@@ -21,5 +21,8 @@ export function useMyCouncils() {
   // 방금 만든 학생회는 서버가 돌려준 줄을 바로 더한다.
   const add = useCallback((council: MyCouncil) => setState(current => ({ kind: 'ready',
     councils: [...(current.kind === 'ready' ? current.councils.filter(item => item.id !== council.id) : []), council] })), [])
-  return { state, reload, add }
+  // 운영진이 아니게 된 학생회는 목록을 다시 읽다 실패해도 목록에서 바로 뺀다.
+  const remove = useCallback((councilId: string) => setState(current => current.kind === 'ready'
+    ? { kind: 'ready', councils: current.councils.filter(item => item.id !== councilId) } : current), [])
+  return { state, reload, add, remove }
 }

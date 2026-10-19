@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import Workspace from '../workspace/Workspace'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -19,9 +19,11 @@ type Props = {
 
 // 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 작업 공간이다.
 export default function MyCouncils({ user, initialCouncilId, card, onEnterCode, logoutBusy, onLogout }: Props) {
-  const { state, reload, add } = useMyCouncils()
+  const { state, reload, add, remove } = useMyCouncils()
   const [creating, setCreating] = useState(false)
   const [opened, setOpened] = useState(initialCouncilId)
+  // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고, 서버의 목록을 다시 읽는다.
+  const lost = useCallback((councilId: string) => { remove(councilId); reload() }, [remove, reload])
   if (state.kind === 'loading') return card(<StateMessage kind="loading">학생회 확인 중…</StateMessage>)
   if (state.kind === 'failed') return card(<div className="flex flex-col gap-3">
     <StateMessage kind="error">학생회를 확인하지 못했어요. 서버 연결을 확인해 주세요.</StateMessage>
@@ -31,5 +33,5 @@ export default function MyCouncils({ user, initialCouncilId, card, onEnterCode, 
     ? <CreateCouncilForm onCancel={() => setCreating(false)} onCreated={council => { setCreating(false); setOpened(council.id); add(council) }} />
     : <NoCouncil onEnterCode={onEnterCode} onCreate={() => setCreating(true)} />)
   return <Workspace key={opened ?? ''} councils={state.councils} initialCouncilId={opened} user={user} logoutBusy={logoutBusy}
-    onLogout={onLogout} onCouncilsChanged={reload} />
+    onLogout={onLogout} onCouncilsChanged={reload} onCouncilLost={lost} />
 }

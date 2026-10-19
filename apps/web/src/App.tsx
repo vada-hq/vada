@@ -12,6 +12,7 @@ import { BrandMark } from '@/components/BrandMark'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
+import { setUnauthorizedHandler } from '@/lib/api'
 import { isIosHomeScreenApp } from '@/lib/platform'
 
 // 초대 링크(/join/코드)로 왔는지, 학생회가 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
@@ -19,7 +20,8 @@ type Invite = { code: string; from: 'link' | 'form' }
 
 // 로그인 전후의 가운데 카드 화면. 와이어프레임 SIGN-IN·INV-00과 같은 틀이다.
 function AuthPage({ children }: { children: ReactNode }) {
-  return <main className="flex min-h-dvh items-center justify-center p-4 sm:py-12">
+  // 작업 공간의 h-dvh 열 안에서 카드가 화면보다 길어도 줄어들지 않고 페이지가 스크롤되게 shrink-0을 둔다.
+  return <main className="flex min-h-dvh shrink-0 items-center justify-center p-4 sm:py-12">
     <AuthCard>
       <div className="flex flex-wrap items-center gap-2">
         <BrandMark />
@@ -53,6 +55,12 @@ export default function App() {
     document.addEventListener('visibilitychange', onVisible)
     return () => { channel?.close(); document.removeEventListener('visibilitychange', onVisible) }
   }, [homeScreenApp, session, refetch])
+
+  // 로그인이 풀려 API가 401을 주면 세션을 다시 읽는다. 세션이 없으면 아래에서 로그인 화면으로 돌아간다.
+  useEffect(() => {
+    setUnauthorizedHandler(() => { void refetch() })
+    return () => setUnauthorizedHandler(null)
+  }, [refetch])
 
   function leaveInvite() {
     window.history.replaceState(null, '', '/')
@@ -110,15 +118,15 @@ export default function App() {
         <Button variant="outline" className="flex-1" disabled={busy} onClick={() => { void logout() }}>{busy ? '로그아웃 중…' : '로그아웃'}</Button>
       </div>
     </AuthPage>
-    // 로그아웃 실패는 카드 화면과 작업 공간 어디서나 맨 위 한 줄로 알린다.
+    // 로그아웃 실패는 카드 화면과 작업 공간 어디서나 맨 위 한 줄로 알린다. 작업 공간은 알림 줄을 뺀 남은 높이만 쓰도록 같은 h-dvh 열 안에 둔다.
     const banner = message && <StateMessage kind="error" className="border-b bg-white px-6 py-3">{message}</StateMessage>
     if (invite) return <>{banner}{card(<JoinCouncil key={invite.code} code={invite.code} leaveLabel={invite.from === 'link' ? 'VADA로 가기' : '다시 입력'}
       onJoined={councilId => { leaveInvite(); setOpened(councilId) }} onLeave={leaveInvite} />)}</>
-    return <>
+    return <div className="flex h-dvh flex-col">
       {banner}
       <MyCouncils key={`${session.user.id}:${opened ?? ''}`} user={session.user} initialCouncilId={opened} card={card}
         onEnterCode={code => setInvite({ code, from: 'form' })} logoutBusy={busy} onLogout={() => { void logout() }} />
-    </>
+    </div>
   }
 
   return <AuthPage>

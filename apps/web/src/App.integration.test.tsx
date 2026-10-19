@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { MyCouncil } from '@vada/contracts'
@@ -6,14 +7,14 @@ import App from './App'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 
-const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn() }))
+const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn(), refetch: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession, signIn: { social: auth.social }, signOut: auth.signOut } }))
 let api: ReturnType<typeof mockApi>
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
   vi.resetAllMocks()
   api = mockApi()
-  auth.useSession.mockReturnValue({ data: { user: { id: 'u1', name: '김회장', email: 'kim@example.test' } }, isPending: false, error: null })
+  auth.useSession.mockReturnValue({ data: { user: { id: 'u1', name: '김회장', email: 'kim@example.test' } }, isPending: false, error: null, refetch: auth.refetch })
 })
 afterEach(() => {
   cleanup()
@@ -159,4 +160,132 @@ test('옆 메뉴로 운영진 > 부서를 열고, 학생회 이름 메뉴의 설
   fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
   expect(await screen.findByRole('heading', { level: 1, name: '학생회 정보' })).toBeTruthy()
   expect((screen.getByLabelText('학교') as HTMLInputElement).value).toBe('한양대학교 ERICA')
+})
+
+// 학생회를 잃은 뒤 내 학생회 목록을 다시 읽다 실패해도(500) 그 학생회는 목록에서 빠지고, 남은 학생회나 안내로 간다.
+test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회를 떠나, 남은 학생회를 연다', async () => {
+  let listCalls = 0
+  api.on('GET', '/api/me/councils', () => listCalls++ === 0
+    ? json({ councils: [myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)] }) : json({ error: 'Internal server error' }, 500))
+  api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
+  openCouncil('c2', '경영학부 학생회')
+  render(<App />)
+  const menu = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
+  fireEvent.keyDown(menu, { key: 'Enter' })
+  const list = await screen.findByRole('menu')
+  expect(within(list).getAllByRole('menuitem').map(item => item.textContent)).toEqual(['경영학부 학생회', '설정'])
+  expect(await screen.findByText('운영진 3명')).toBeTruthy()
+})
+
+test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 남은 학생회가 없으면 학생회 없음 안내로 돌아간다', async () => {
+  let listCalls = 0
+  api.on('GET', '/api/me/councils', () => listCalls++ === 0 ? json({ councils: [myCouncil('c1')] }) : json({ error: 'Internal server error' }, 500))
+  api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
+  render(<App />)
+  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
+  expect(screen.queryByRole('button', { name: /학생회 메뉴/ })).toBeNull()
+})
+
+test('내보내진 뒤 다른 학생회가 남아 있으면 그 학생회로 옮긴다', async () => {
+  councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)], [myCouncil('c2', '경영학부 학생회', null)])
+  api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
+  openCouncil('c2', '경영학부 학생회')
+  render(<App />)
+  expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  expect(await screen.findByText('운영진 3명')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
+})
+
+test('학생회를 불러오지 못해 다시 시도했는데 403이면 그 학생회를 떠난다', async () => {
+  councilsInSequence([myCouncil('c1')], [])
+  let viewCalls = 0
+  api.on('GET', '/api/organizations/c1', () => viewCalls++ === 0 ? json({ error: 'Internal server error' }, 500) : json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+})
+
+test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다시 읽고, 운영진이 아니면 그 학생회를 떠난다', async () => {
+  councilsInSequence([myCouncil('c1')], [])
+  let viewCalls = 0
+  api.on('GET', '/api/organizations/c1', () => viewCalls++ === 0 ? json(councilView('c1')) : json({ error: 'FORBIDDEN' }, 403))
+  let memberCalls = 0
+  api.on('GET', '/api/organizations/c1/members', () => memberCalls++ === 0 ? json({ error: 'Internal server error' }, 500) : json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(viewCalls).toBe(2)
+})
+
+// 로그인이 풀리면(쿠키 만료) API가 401을 준다. 서버 연결 오류로 보이지 않고 로그인 화면으로 돌아가야 한다.
+test('API가 401이면 세션을 다시 읽어 로그인 화면으로 돌아간다', async () => {
+  let session: { user: { id: string; name: string; email: string } } | null = { user: { id: 'u1', name: '김회장', email: 'kim@example.test' } }
+  const listeners = new Set<() => void>()
+  auth.refetch.mockImplementation(async () => { session = null; listeners.forEach(listener => listener()) })
+  auth.useSession.mockImplementation(() => ({
+    data: useSyncExternalStore(listener => { listeners.add(listener); return () => { listeners.delete(listener) } }, () => session),
+    isPending: false, error: null, refetch: auth.refetch,
+  }))
+  api.on('GET', '/api/me/councils', () => json({ error: 'UNAUTHENTICATED' }, 401))
+  render(<App />)
+  expect(await screen.findByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
+  expect(auth.refetch).toHaveBeenCalled()
+  expect(screen.queryByText(/서버 연결을 확인해 주세요/)).toBeNull()
+})
+
+// 학생회 이름 메뉴로 고르면 작업 공간이 새로 그려진다. 키보드 사용자가 body에 떨어지지 않게 새 이름 메뉴 버튼으로 돌려놓는다.
+test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생회 메뉴 버튼에 있다', async () => {
+  councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)])
+  openCouncil()
+  openCouncil('c2', '경영학부 학생회')
+  render(<App />)
+  fireEvent.keyDown(await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
+  const next = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  await waitFor(() => expect(document.activeElement).toBe(next))
+  // 메뉴를 닫을 때 Radix가 거는 지연 작업이 포커스를 도로 가져가지 않는다.
+  await new Promise(done => setTimeout(done, 50))
+  expect(document.activeElement).toBe(next)
+})
+
+test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스가 헤더의 메뉴 열기 버튼에 있다', async () => {
+  councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)])
+  openCouncil()
+  openCouncil('c2', '경영학부 학생회')
+  render(<App />)
+  await screen.findByText('운영진 3명')
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  fireEvent.keyDown(within(sheet).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
+  await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' })))
+  await new Promise(done => setTimeout(done, 50))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' }))
+})
+
+test('로그아웃에 실패해도 알림 줄은 화면 높이 안의 같은 열에 있고, 작업 공간은 남은 높이만 쓴다', async () => {
+  councilsInSequence([myCouncil()])
+  openCouncil()
+  auth.signOut.mockResolvedValue({ error: { message: 'failed' } })
+  render(<App />)
+  const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.click(within(aside).getByRole('button', { name: '로그아웃' }))
+  const banner = await screen.findByText('로그아웃하지 못했어요. 다시 시도해 주세요.')
+  // 알림 줄과 작업 공간이 h-dvh 한 열 안에 함께 있고, 작업 공간이 그 열의 남은 높이(flex-1 min-h-0)를 쓴다.
+  const column = banner.parentElement!
+  expect(column.className).toContain('h-dvh')
+  expect(column.className).toContain('flex-col')
+  const workspace = aside.parentElement!
+  expect(workspace.parentElement).toBe(column)
+  expect(workspace.className).toContain('flex-1')
+  expect(workspace.className).toContain('min-h-0')
+  expect(workspace.className).not.toContain('h-dvh')
 })
