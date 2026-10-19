@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CalendarDays, Check, Copy, Ellipsis, Plus, Settings } from 'lucide-react'
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
@@ -38,7 +38,15 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function Gallery() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [panelOpen, setPanelOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  // 확인 대화상자의 세 모양: 위험한 동작(빨간 확인 버튼과 오류 문구), 일반 동작(파란 확인 버튼), 보내는 중(두 버튼이 꺼지고 닫히지 않음).
+  const [confirmKind, setConfirmKind] = useState<'destructive' | 'normal' | 'busy' | null>(null)
+  // 보내는 중 예시는 닫히지 않으므로 실제 응답이 오듯 잠시 뒤 저절로 닫는다.
+  useEffect(() => {
+    if (confirmKind !== 'busy') return
+    const timer = setTimeout(() => setConfirmKind(null), 1500)
+    return () => clearTimeout(timer)
+  }, [confirmKind])
+  const closeConfirm = () => setConfirmKind(null)
   return <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
     <h1 className="text-xl font-bold">VADA 부품</h1>
     <Section title="버튼">
@@ -121,10 +129,18 @@ export default function Gallery() {
       </Sheet>
     </Section>
     <Section title="확인 대화상자">
-      <Button variant="outline" onClick={() => setConfirmOpen(true)}>확인 대화상자 열기</Button>
-      <ConfirmDialog open={confirmOpen} destructive title="박새내님을 내보낼까요?" error="저장하지 못했어요. 다시 시도해 주세요."
+      <Button variant="outline" onClick={() => setConfirmKind('destructive')}>확인 대화상자 열기</Button>
+      <Button variant="outline" onClick={() => setConfirmKind('normal')}>일반 확인 대화상자 열기</Button>
+      <Button variant="outline" onClick={() => setConfirmKind('busy')}>보내는 중 확인 대화상자 열기</Button>
+      <ConfirmDialog open={confirmKind === 'destructive'} destructive title="박새내님을 내보낼까요?" error="저장하지 못했어요. 다시 시도해 주세요."
         description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
-        confirmLabel="내보내기" onCancel={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} />
+        confirmLabel="내보내기" onCancel={closeConfirm} onConfirm={closeConfirm} />
+      <ConfirmDialog open={confirmKind === 'normal'} title="이재정님에게 회장 직급을 넘길까요?"
+        description="넘기면 나는 직급이 없어지고, 회장만 하던 일은 넘겨받은 사람이 해요."
+        confirmLabel="넘기기" onCancel={closeConfirm} onConfirm={closeConfirm} />
+      <ConfirmDialog open={confirmKind === 'busy'} destructive busy title="박새내님을 내보낼까요?"
+        description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
+        confirmLabel="내보내기" onCancel={closeConfirm} onConfirm={closeConfirm} />
     </Section>
     <Section title="상태 문구">
       <StateMessage kind="loading">불러오는 중…</StateMessage><StateMessage kind="notice">저장했어요.</StateMessage>

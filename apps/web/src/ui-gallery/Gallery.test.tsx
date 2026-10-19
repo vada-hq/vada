@@ -74,6 +74,31 @@ test('확인 대화상자 예시는 빨간 확인 버튼과 오류 문구를 보
   const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
   expect(within(dialog).getByRole('button', { name: '내보내기' }).className).toContain('bg-destructive')
   expect(within(dialog).getByRole('alert').textContent).toBe('저장하지 못했어요. 다시 시도해 주세요.')
+  // 이름이 길어도 설명이 대화상자 밖으로 넘치지 않게 줄바꿈한다.
+  expect(within(dialog).getByText(/^학생회 소속과 부서 소속이 함께 끝나요/).className).toContain('wrap-anywhere')
   fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('확인 대화상자의 일반 모양은 파란 확인 버튼이고 오류 문구가 없다', async () => {
+  render(<Gallery />)
+  fireEvent.click(screen.getByRole('button', { name: '일반 확인 대화상자 열기' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정님에게 회장 직급을 넘길까요?' })
+  const confirm = within(dialog).getByRole('button', { name: '넘기기' })
+  expect(confirm.className).toContain('bg-primary')
+  expect(confirm.className).not.toContain('bg-destructive')
+  expect(within(dialog).queryByRole('alert')).toBeNull()
+  fireEvent.click(confirm)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('확인 대화상자의 보내는 중 모양은 두 버튼이 꺼지고 Escape로 닫히지 않으며, 예시는 잠시 뒤 저절로 닫힌다', async () => {
+  render(<Gallery />)
+  fireEvent.click(screen.getByRole('button', { name: '보내는 중 확인 대화상자 열기' }))
+  const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
+  expect((within(dialog).getByRole('button', { name: '내보내기' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((within(dialog).getByRole('button', { name: '취소' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.keyDown(dialog, { key: 'Escape' })
+  expect(screen.getByRole('dialog', { name: '박새내님을 내보낼까요?' })).toBeTruthy()
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 4_000 })
 })

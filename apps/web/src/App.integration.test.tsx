@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { MyCouncil } from '@vada/contracts'
 import App from './App'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
-import { json, mockApi } from './test-support/mock-api'
+import { deferredResponse, json, mockApi } from './test-support/mock-api'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn(), refetch: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession, signIn: { social: auth.social }, signOut: auth.signOut } }))
@@ -54,6 +54,28 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   const year = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 4)
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ name: '컴퓨터학부 학생회', unit: 'college', schoolName: '한양대학교 ERICA',
     cohortName: year, startsOn: `${year}-01-01`, endsOn: `${year}-12-31` })
+})
+
+test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러도 한 번만 보낸다', async () => {
+  councilsInSequence([])
+  openCouncil()
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/create', () => pending.promise)
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
+  const form = screen.getByRole('form', { name: '학생회 만들기' })
+  fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '컴퓨터학부 학생회' } })
+  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+  const sending = await within(form).findByRole('button', { name: '만드는 중…' }) as HTMLButtonElement
+  expect(sending.disabled).toBe(true)
+  // 꺼진 버튼을 눌러도, 입력칸에서 Enter로 보내도 두 번째 요청은 가지 않는다.
+  fireEvent.click(sending)
+  fireEvent.submit(form)
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+  pending.resolve(json({ council: myCouncil() }, 201))
+  expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {
@@ -109,6 +131,9 @@ test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보�
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: '들어가기' }))
   expect(await screen.findByText('지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.')).toBeTruthy()
+  // 들어가지 못했어도 화면은 그대로이고, 다시 눌러 볼 수 있다.
+  expect((screen.getByRole('button', { name: '들어가기' }) as HTMLButtonElement).disabled).toBe(false)
+  expect(screen.getByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' })).toBeTruthy()
 })
 
 test('내보내진 사람의 다음 요청이 403이면 그 학생회를 닫고, 남은 학생회가 없으면 학생회 없음 안내로 돌아간다', async () => {
