@@ -15,6 +15,8 @@ import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
 import { setUnauthorizedHandler } from '@/lib/api'
 import { isIosHomeScreenApp } from '@/lib/platform'
 
+const loginStartFailed = '로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+
 // 초대 링크(/join/코드)로 왔는지, 학생회가 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
 type Invite = { code: string; from: 'link' | 'form' }
 
@@ -95,7 +97,7 @@ export default function App() {
       })
       if (result.error) throw new Error('Sign-in failed')
     } catch {
-      setMessage('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
+      setMessage(loginStartFailed)
       setBusy(false)
     }
   }
@@ -104,21 +106,26 @@ export default function App() {
   async function loginInApp() {
     setBusy(true)
     setMessage('')
-    const result = await startPopupLogin(
-      () => window.open('about:blank', '_blank'),
-      () =>
-        authClient.signIn.social({
-          provider: 'google',
-          callbackURL: AUTH_DONE_PATH,
-          errorCallbackURL: `${AUTH_DONE_PATH}?error=1`,
-          disableRedirect: true,
-        }),
-    )
-    setBusy(false)
-    if (result === 'blocked')
-      setMessage('로그인 창을 열지 못했어요. 다른 방법으로 로그인해 주세요.')
-    if (result === 'failed')
-      setMessage('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
+    // 창을 열거나 닫다가 던져도(막힌 환경) 버튼이 영원히 막히지 않게 늘 푼다.
+    try {
+      const result = await startPopupLogin(
+        () => window.open('about:blank', '_blank'),
+        () =>
+          authClient.signIn.social({
+            provider: 'google',
+            callbackURL: AUTH_DONE_PATH,
+            errorCallbackURL: `${AUTH_DONE_PATH}?error=1`,
+            disableRedirect: true,
+          }),
+      )
+      if (result === 'blocked')
+        setMessage('로그인 창을 열지 못했어요. 다른 방법으로 로그인해 주세요.')
+      if (result === 'failed') setMessage(loginStartFailed)
+    } catch {
+      setMessage(loginStartFailed)
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function logout() {

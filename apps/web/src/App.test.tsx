@@ -241,6 +241,47 @@ test('iOS home-screen app opens an in-app window before asking for the Google UR
   }
 })
 
+test('iOS home-screen app releases the busy state and says so when opening or driving the login window throws', async () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  const open = vi.spyOn(window, 'open').mockImplementation(() => {
+    throw new Error('window.open is not allowed here')
+  })
+  try {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+    expect(
+      await screen.findByText('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'),
+    ).toBeTruthy()
+    // 다시 누를 수 있다: 두 버튼이 모두 풀려 있다.
+    const retry = screen.getByRole('button', { name: 'Google로 로그인' })
+    expect(retry).toHaveProperty('disabled', false)
+    expect(screen.getByRole('button', { name: '다른 방법으로 로그인' })).toHaveProperty(
+      'disabled',
+      false,
+    )
+    // 팝업이 열린 뒤에 닫기가 던져도 같다.
+    const popup = {
+      location: { href: 'about:blank' },
+      close: vi.fn(() => {
+        throw new Error('already closed')
+      }),
+    }
+    open.mockReturnValue(popup as unknown as Window)
+    auth.social.mockRejectedValue(new Error('offline'))
+    fireEvent.click(retry)
+    await waitFor(() => expect(popup.close).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Google로 로그인' })).toHaveProperty(
+        'disabled',
+        false,
+      ),
+    )
+  } finally {
+    open.mockRestore()
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})
+
 test('iOS home-screen app rechecks the session when the login window reports back', () => {
   Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
   const listeners: (() => void)[] = []

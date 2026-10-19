@@ -95,7 +95,7 @@ test('동작 메뉴 예시는 키보드로 열고, 위험한 항목은 빨갛게
     within(menu)
       .getAllByRole('menuitem')
       .map(item => item.textContent),
-  ).toEqual(['부서 배정', '부회장으로 두기', '내보내기'])
+  ).toEqual(['부서 배정', '부회장 직급 주기', '내보내기'])
   expect(within(menu).getByRole('menuitem', { name: '내보내기' }).className).toContain(
     'text-destructive',
   )

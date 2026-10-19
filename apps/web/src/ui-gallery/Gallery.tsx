@@ -189,7 +189,7 @@ export default function Gallery() {
           </MenuTrigger>
           <MenuContent>
             <MenuItem>부서 배정</MenuItem>
-            <MenuItem>부회장으로 두기</MenuItem>
+            <MenuItem>부회장 직급 주기</MenuItem>
             <MenuItem destructive>내보내기</MenuItem>
           </MenuContent>
         </Menu>
