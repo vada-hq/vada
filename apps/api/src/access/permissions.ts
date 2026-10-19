@@ -36,8 +36,9 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
 
 export function allows(actor: Actor, rule: Rule, context: Context = {}) {
   if (!rule.who.some(criterion => meets(actor, criterion, context))) return false
-  // 직무 분리: 요청한 사람은 자기 요청을 승인하지 않는다. 재정 역할 부서는 예외다(DEC-41).
-  return !(rule.notOwnRequest && context.requestedBy === actor.memberId && !meets(actor, 'finance', context))
+  // 직무 분리: 요청한 사람은 자기 요청을 승인하지 않는다. 재정 역할 부서도 예외가 아니다.
+  // 구매 결재 칸은 notOwnRequest를 두지 않는 것으로 직무 분리를 두지 않는다(DEC-41). 재정부를 겸한 부장·회장단이 다른 칸에서 면제받지 않게 한다.
+  return !(rule.notOwnRequest && context.requestedBy === actor.memberId)
 }
 
 export const can = (actor: Actor, action: Action, context?: Context) => allows(actor, PERMISSIONS[action], context)

@@ -19,3 +19,14 @@ export function caller(app: App) {
     }),
   }
 }
+
+// 거래 밖에서 읽으면 던지는 DB. 거래가 끝난 뒤에 다시 읽다가 응답이 500이 되는 일(이미 만들어진 뒤의 실패)을 잡는 시험에 쓴다.
+export function withoutReadsOutsideTransaction<T extends object>(db: T): T {
+  return new Proxy(db, {
+    get(target, property) {
+      if (property === 'select') return () => { throw new Error('거래 밖에서 읽었다') }
+      const value = Reflect.get(target, property, target)
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
+}

@@ -27,9 +27,13 @@ export function createInviteRoutes(db: Db, getSession: SessionReader, clock: () 
   routes.post('/organizations/join', json(JoinCouncilSchema), auth, async c => {
     const now = clock()
     const userId = c.get('userId')
-    const councilId = await db.transaction(tx => joinCouncil(tx, userId, c.req.valid('json').code, now))
-    const council = (await myCouncils(db, userId, now)).find(item => item.id === councilId)
-    if (!council) throw new Error('Council missing after join')
+    // 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 들어와졌는데 요청은 500이 된다.
+    const council = await db.transaction(async tx => {
+      const councilId = await joinCouncil(tx, userId, c.req.valid('json').code, now)
+      const joined = (await myCouncils(tx, userId, now)).find(item => item.id === councilId)
+      if (!joined) throw new Error('Council missing after join')
+      return joined
+    })
     return c.json({ council } satisfies JoinCouncilResponse)
   })
   routes.get('/organizations/:councilId/invite', auth, async c => {

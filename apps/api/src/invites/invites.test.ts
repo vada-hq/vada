@@ -1,20 +1,22 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { drizzle } from 'drizzle-orm/pglite'
 import type { CreateCouncilResponse, InviteCodeResponse, InvitePreviewResponse, JoinCouncilResponse, MyCouncilsResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { addUser } from '../test-support/council.js'
-import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { caller, ORIGIN, testSession, withoutReadsOutsideTransaction } from '../test-support/http.js'
 import { createInviteRoutes } from './routes.js'
+import { joinCouncil } from './service.js'
 
 const noon = new Date('2026-10-19T03:00:00Z')
 const body = { name: '컴퓨터학부 학생회', unit: 'department', schoolName: '한양대학교 ERICA', cohortName: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' }
 
-function appOf(testDb: TestDb, now = noon) {
+function appOf(testDb: TestDb, now = noon, db: TestDb['db'] = testDb.db) {
   return caller(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: ORIGIN,
-    councils: createCouncilRoutes(testDb.db, testSession, () => now), invites: createInviteRoutes(testDb.db, testSession, () => now) }))
+    councils: createCouncilRoutes(db, testSession, () => now), invites: createInviteRoutes(db, testSession, () => now) }))
 }
 
 // 회장(u1)이 학생회를 만들고 초대 코드를 받는다.
@@ -191,6 +193,92 @@ test('지금 기수가 없으면 409 NO_CURRENT_COHORT이고, 들어오기 입�
     }
     assert.equal((await api.post('/api/organizations/join', { code })).status, 401)
     assert.equal((await membershipsOf(testDb, 'u2')).rows.length, 0)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('들어오기 응답은 거래 안에서 만든다: 거래 밖에서 읽지 않아도 200이고, 응답은 내 학생회 목록의 한 줄과 같다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { council, code } = await setup(testDb)
+    const response = await appOf(testDb, noon, withoutReadsOutsideTransaction(testDb.db)).post('/api/organizations/join', { code }, 'u2')
+    assert.equal(response.status, 200)
+    const joined = await response.json() as JoinCouncilResponse
+    assert.deepEqual(joined, { council: { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] } })
+    assert.deepEqual(await (await appOf(testDb).get('/api/me/councils', 'u2')).json() as MyCouncilsResponse, { councils: [joined.council] })
+    // 이미 들어온 사람이 다시 들어올 때도 같다.
+    assert.equal((await appOf(testDb, noon, withoutReadsOutsideTransaction(testDb.db)).post('/api/organizations/join', { code }, 'u2')).status, 200)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('내보내졌다가 다시 들어올 때, 끝나지 않고 남은 부서 소속(재정부)도 함께 끝낸다. 판에 남고 재정 권한은 돌아오지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, council, code } = await setup(testDb)
+    await api.post('/api/organizations/join', { code }, 'u2')
+    const { id: membershipId } = one((await membershipsOf(testDb, 'u2')).rows)
+    const { cohort_id: cohortId, member_id: memberId } = one((await testDb.pg.query<{ cohort_id: string; member_id: string }>(
+      'SELECT cohort_id, member_id FROM council_membership WHERE id = $1', [membershipId])).rows)
+    const { id: finance } = one((await testDb.pg.query<{ id: string }>("SELECT id FROM department WHERE role = 'finance'")).rows)
+    // 학생회 소속만 끝나고 재정부 소속은 열린 채로 남은 상태를 손으로 만든다(내보내기는 둘을 함께 끝내지만, 어긋난 기록이 있어도 돌아오지 않아야 한다).
+    const placement = await testDb.db.transaction(async tx => {
+      const created = await createRecord(tx, { kind: 'department_membership', councilId: council.id, actor: null,
+        values: { memberId, departmentId: finance, cohortId, departmentRank: 'head', startsAt: clockNow } })
+      await updateRecord(tx, { kind: 'council_membership', id: membershipId, actor: null, reason: null, changes: { endsAt: clockNow } })
+      return created
+    })
+    assert.equal((await api.post('/api/organizations/join', { code }, 'u2')).status, 200)
+    const [ended] = (await testDb.pg.query<{ ends_at: string | null; department_rank: string | null }>(
+      'SELECT ends_at::text, department_rank FROM department_membership WHERE id = $1', [placement])).rows
+    assert.notEqual(ended!.ends_at, null)
+    // 끝난 상태가 새 판으로 남는다. 직급은 그대로 두고 끝 시각만 적는다.
+    const versions = await testDb.pg.query<{ ended: boolean; rank: string | null }>(
+      "SELECT data->>'ends_at' IS NOT NULL AS ended, data->>'department_rank' AS rank FROM record_version WHERE record_id = $1 ORDER BY version_no", [placement])
+    assert.deepEqual(versions.rows, [{ ended: false, rank: 'head' }, { ended: true, rank: 'head' }])
+    assert.deepEqual(await (await api.get('/api/me/councils', 'u2')).json() as MyCouncilsResponse,
+      { councils: [{ id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] }] })
+    // 학생회 소속은 다시 열렸다.
+    assert.equal(one((await membershipsOf(testDb, 'u2')).rows).ends_at, null)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('들어오기의 한국 날짜 경계: 한국의 1월 1일 0시에 시작하는 기수는 그 순간부터, 12월 31일에 끝나는 기수는 그 날 끝까지 들어올 수 있다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { code } = await setup(testDb, ['u1', 'u2', 'u3', 'u4', 'u5'])
+    const joinAt = (at: string, user: string) => appOf(testDb, new Date(at)).post('/api/organizations/join', { code }, user)
+    // 기수는 2026-01-01 ~ 2026-12-31이다. 2026-01-01 00:00 KST = 2025-12-31 15:00 UTC.
+    assert.equal((await joinAt('2025-12-31T15:00:00Z', 'u2')).status, 200)
+    assert.equal((await joinAt('2026-12-31T14:59:59Z', 'u3')).status, 200)
+    for (const [at, user] of [['2025-12-31T14:59:59Z', 'u4'], ['2026-12-31T15:00:00Z', 'u5']] as const) {
+      const response = await joinAt(at, user)
+      assert.equal(response.status, 409, at)
+      assert.deepEqual(await response.json(), { error: 'NO_CURRENT_COHORT' }, at)
+      assert.equal((await membershipsOf(testDb, user)).rows.length, 0, at)
+    }
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('들어오기는 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤 코드를 다시 확인하고 소속을 만든다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { code } = await setup(testDb)
+    const queries: string[] = []
+    const db = drizzle(testDb.pg, { logger: { logQuery: query => { queries.push(query) } } })
+    await db.transaction(tx => joinCouncil(tx, 'u2', code, noon))
+    const lock = queries.findIndex(query => query.includes('from "council"') && query.endsWith(' for no key update'))
+    assert.ok(lock >= 0, JSON.stringify(queries))
+    // 잠근 문장 뒤에 코드를 다시 확인하고, 기수와 소속을 읽고 쓴다.
+    assert.ok(queries.findIndex((query, index) => index > lock && query.includes('"invite_code"')) > lock)
+    assert.ok(queries.findIndex((query, index) => index > lock && query.includes('insert into "council_membership"')) > lock)
+    assert.equal(queries.findIndex(query => query.includes('"cohort"') && query.includes('"starts_on"')) > lock, true)
   } finally {
     await testDb.close()
   }

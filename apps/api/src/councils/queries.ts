@@ -1,6 +1,6 @@
-import { and, asc, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
-import { koreanDate, type Actor } from '../access/actor.js'
+import { currentCouncilMembership, type Actor } from '../access/actor.js'
 import { permissionsOf } from '../access/permissions.js'
 import { cohort, council, councilMembership, department, departmentMembership, member, memberLogin } from '../db/schema.js'
 import type { Db } from '../records/records.js'
@@ -9,14 +9,13 @@ type Reader = Pick<Db, 'select'>
 
 // 내 학생회 목록: 지금 소속이 있는 학생회와 그 학생회의 직급, 지금 부서 소속. 끝난 소속과 지난 기수는 빠진다.
 export async function myCouncils(db: Reader, userId: string, now: Date): Promise<MyCouncil[]> {
-  const today = koreanDate(now)
   const rows = await db.select({ id: council.id, name: council.name, councilRank: councilMembership.councilRank, memberId: memberLogin.memberId,
     cohortId: cohort.id })
     .from(memberLogin)
     .innerJoin(councilMembership, eq(councilMembership.memberId, memberLogin.memberId))
     .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
     .innerJoin(council, eq(council.id, cohort.councilId))
-    .where(and(eq(memberLogin.userId, userId), isNull(councilMembership.endsAt), lte(cohort.startsOn, today), gte(cohort.endsOn, today)))
+    .where(and(eq(memberLogin.userId, userId), currentCouncilMembership(now)))
     .orderBy(asc(council.id))
   const first = rows[0]
   if (!first) return []

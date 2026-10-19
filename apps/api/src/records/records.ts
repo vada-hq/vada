@@ -1,6 +1,6 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import type { PgDatabase, PgInsertValue, PgQueryResultHKT, PgUpdateSetSource } from 'drizzle-orm/pg-core'
-import { cohort, council, councilMembership, department, departmentMembership, member, record } from '../db/schema.js'
+import { cohort, council, councilMembership, department, departmentMembership, member, record, recordVersion } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
@@ -104,6 +104,11 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
         .where(sql`${councilMembership.id} = ${change.id} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`)
       if (president) presidentCohorts.add(president.cohortId)
     }
+    // 새 판을 열려면 열린 지금 판이 있어야 한다. 하위 행을 쓰기 전에 먼저 보아, 없으면 아무것도 쓰지 않고 실패한다(거래를 되돌리는 드라이버에 기대지 않는다).
+    // 이 하위 행은 위에서 잠겼으므로 이 거래가 끝나기 전에는 열린 판이 바뀌지 않는다. 아래 새 판 열기의 확인은 그대로 둔다.
+    const [openVersion] = await tx.select({ versionNo: recordVersion.versionNo }).from(recordVersion)
+      .where(and(eq(recordVersion.recordId, change.id), sql`upper_inf(${recordVersion.valid})`))
+    if (!openVersion) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
     await tx.update(table).set(change.changes as PgUpdateSetSource<Table<RecordKind>>).where(eq(table.id, change.id))
     // 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
     const opened = await tx.execute(sql`WITH closed AS (

@@ -50,3 +50,32 @@ test('다른 계정에 이어진 운영진이 같은 이메일을 쓰면 409 EMA
     await close()
   }
 })
+
+test('이메일을 확인하지 않은 로그인은 같은 이메일의 운영진을 가로채지 못한다: 409 EMAIL_IN_USE이고 그 운영진은 잇지 않은 채로 남는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const waiting = await db.transaction(tx => createRecord(tx, { kind: 'member', councilId: null, actor: null,
+      values: { name: '미리 적은 이름', email: 'lee@example.test' } }))
+    await addUser(pg, 'unverified', '확인 안 된 사람', 'lee@example.test', false)
+    await assert.rejects(db.transaction(tx => linkMember(tx, 'unverified')), { code: 'EMAIL_IN_USE', status: 409 })
+    assert.equal((await pg.query('SELECT 1 FROM member_login')).rows.length, 0)
+    assert.deepEqual((await pg.query('SELECT id FROM member')).rows, [{ id: waiting }])
+    // 확인된 같은 이메일의 로그인이 오면 그 운영진에 잇는다.
+    await pg.query("UPDATE users SET email = 'unverified@example.test' WHERE id = 'unverified'")
+    await addUser(pg, 'verified', '확인된 사람', 'lee@example.test', true)
+    assert.equal(await db.transaction(tx => linkMember(tx, 'verified')), waiting)
+  } finally {
+    await close()
+  }
+})
+
+test('이메일을 확인하지 않은 로그인도 같은 이메일의 운영진이 없으면 새 운영진이 된다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    await addUser(pg, 'fresh', '새 사람', 'fresh@example.test', false)
+    const memberId = await db.transaction(tx => linkMember(tx, 'fresh'))
+    assert.deepEqual((await pg.query('SELECT id, name, email FROM member')).rows, [{ id: memberId, name: '새 사람', email: 'fresh@example.test' }])
+  } finally {
+    await close()
+  }
+})

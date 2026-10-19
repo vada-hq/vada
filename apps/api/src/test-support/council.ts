@@ -4,9 +4,9 @@ import { clockNow, createRecord, updateRecord, type Db } from '../records/record
 
 export type Person = { userId: string; memberId: string }
 
-// 시험용 로그인 계정. better-auth가 만드는 users 행과 같은 칸만 채운다.
-export async function addUser(pg: PGlite, userId: string, name = userId, email = `${userId}@example.test`) {
-  await pg.query('INSERT INTO users (id, name, email) VALUES ($1, $2, $3)', [userId, name, email])
+// 시험용 로그인 계정. better-auth가 만드는 users 행과 같은 칸만 채운다. Google 로그인처럼 이메일은 확인된 것이 기본이다.
+export async function addUser(pg: PGlite, userId: string, name = userId, email = `${userId}@example.test`, emailVerified = true) {
+  await pg.query('INSERT INTO users (id, name, email, email_verified) VALUES ($1, $2, $3, $4)', [userId, name, email, emailVerified])
 }
 
 // 학생회 하나와 여러 처지의 사람을 기록 모듈로 만든다. 권한과 소속 시험이 같이 쓴다.

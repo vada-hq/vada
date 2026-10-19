@@ -16,9 +16,13 @@ export function createCouncilRoutes(db: Db, getSession: SessionReader, clock: ()
   routes.post('/organizations/create', json(CreateCouncilSchema), auth, async c => {
     const now = clock()
     const userId = c.get('userId')
-    const councilId = await db.transaction(tx => createCouncil(tx, userId, c.req.valid('json'), now))
-    const council = (await myCouncils(db, userId, now)).find(item => item.id === councilId)
-    if (!council) throw new Error('Council missing after create')
+    // 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 학생회는 만들어졌는데 요청은 500이 된다.
+    const council = await db.transaction(async tx => {
+      const councilId = await createCouncil(tx, userId, c.req.valid('json'), now)
+      const created = (await myCouncils(tx, userId, now)).find(item => item.id === councilId)
+      if (!created) throw new Error('Council missing after create')
+      return created
+    })
     return c.json({ council } satisfies CreateCouncilResponse, 201)
   })
   routes.get('/organizations/:councilId', auth, async c => {

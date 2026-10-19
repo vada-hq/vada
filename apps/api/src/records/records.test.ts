@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { PGlite } from '@electric-sql/pglite'
+import { drizzle } from 'drizzle-orm/pglite'
 import { createTestDb } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord, updateRecords, type AnyRecordChange, type Tx } from './records.js'
 
@@ -223,6 +224,23 @@ test('지금 판이 없으면 새 판을 열 수 없어 Error로 거부하고 �
     assert.deepEqual((await pg.query('SELECT name FROM council ORDER BY name')).rows, [{ name: '둘째 학생회' }, { name: '컴퓨터학부 학생회' }])
     assert.equal((await versionsOf(pg, council)).length, 1)
     assert.equal((await versionsOf(pg, second)).length, 0)
+  } finally {
+    await close()
+  }
+})
+
+test('지금 판이 없으면 하위 행을 바꾸는 문장을 보내기 전에 거부한다(쓰기 전에 실패하므로 드라이버와 상관없이 같다)', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const queries: string[] = []
+    const db = drizzle(pg, { logger: { logQuery: query => { queries.push(query) } } })
+    const { kim, council } = await db.transaction(seed)
+    await pg.query("UPDATE record_version SET valid = tstzrange(lower(valid), lower(valid) + interval '1 second') WHERE record_id = $1", [council])
+    queries.length = 0
+    await assert.rejects(db.transaction(tx => updateRecord(tx, { kind: 'council', id: council, actor: kim, reason: null, changes: { name: '바꿈' } })), /지금 판이 없어/)
+    assert.ok(queries.length > 0)
+    assert.deepEqual(queries.filter(query => /^(update|insert|with) /i.test(query)), [], JSON.stringify(queries))
+    assert.deepEqual((await pg.query('SELECT name FROM council')).rows, [{ name: '컴퓨터학부 학생회' }])
   } finally {
     await close()
   }
