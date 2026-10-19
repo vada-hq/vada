@@ -179,15 +179,54 @@ test('이미 켜진 구독은 열 때 서버에 기기를 저장한다(덩어리
   api.assertNoUnexpectedRequests()
 })
 
-test('이미 켜진 구독을 열 때 저장하지 못하면 켜기에 실패한 것처럼 구독을 지우고 다시 누르게 한다', async () => {
+test('이미 켜진 구독을 열 때 저장하지 못하면 구독은 지우지 않고 꺼진 것으로 보여 주고, 켜기를 누르면 같은 구독을 저장한다', async () => {
   const api = serverWithKey()
-  api.on('POST', '/api/me/push/devices', () => json({ error: 'Internal server error' }, 500))
+  let attempts = 0
+  api.on('POST', '/api/me/push/devices', () => ++attempts === 1 ? json({ error: 'Internal server error' }, 500) : new Response(null, { status: 204 }))
   const existing = subscriptionOf(keyBytes)
-  render(<PushSettingsBody environment={environment({ permission: 'granted', existing }).env} />)
+  // 같은 열쇠로 다시 구독하면 브라우저는 있던 구독을 돌려준다(W3C Push API).
+  const { env, subscribe } = environment({ permission: 'granted', existing, subscribe: async () => existing })
+  render(<PushSettingsBody environment={env} />)
   expect(await screen.findByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeTruthy()
-  expect(existing.unsubscribe).toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '알림 켜기' })).toBeTruthy()
+  expect(existing.unsubscribe).not.toHaveBeenCalled()
   expect(screen.queryByText('이 기기에서 알림을 받아요.')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '알림 켜기' }))
+  expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+  expect(subscribe).toHaveBeenCalledTimes(1)
+  expect(existing.unsubscribe).not.toHaveBeenCalled()
+  expect(screen.queryByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeNull()
+  expect(api.calls.filter(call => call.path === '/api/me/push/devices').map(call => call.body)).toEqual([existing.toJSON(), existing.toJSON()])
+})
+
+// 닫은 뒤에 응답이 와도 구독을 지우거나 서버를 더 부르지 않는다.
+test('저장 응답을 기다리는 중에 대화상자를 닫으면 구독을 지우지 않고 서버를 더 부르지 않는다', async () => {
+  const api = serverWithKey()
+  const pending = deferredResponse()
+  api.on('POST', '/api/me/push/devices', () => pending.promise)
+  const existing = subscriptionOf(keyBytes)
+  const { unmount } = render(<PushSettingsBody environment={environment({ permission: 'granted', existing }).env} />)
+  await waitFor(() => expect(api.calls.filter(call => call.path === '/api/me/push/devices')).toHaveLength(1))
+  unmount()
+  pending.resolve(json({ error: 'Internal server error' }, 500))
+  await new Promise(resolve => setTimeout(resolve, 20))
+  expect(existing.unsubscribe).not.toHaveBeenCalled()
+  expect(api.calls.map(call => call.path)).toEqual(['/api/me/push', '/api/me/push/devices'])
+})
+
+test('구독을 읽는 중에 대화상자를 닫으면 옛 구독 지우기도 서버 요청도 하지 않는다', async () => {
+  const api = serverWithKey()
+  const old = subscriptionOf(Uint8Array.from([4, 9, 9, 9]), 'https://fcm.googleapis.com/fcm/send/old')
+  let finishReading!: (subscription: BrowserSubscription) => void
+  const reading = new Promise<BrowserSubscription>(resolve => { finishReading = resolve })
+  const getSubscription = vi.fn(() => reading)
+  const { env } = environment({ permission: 'granted', manager: async () => ({ getSubscription, subscribe: vi.fn() }) })
+  const { unmount } = render(<PushSettingsBody environment={env} />)
+  await waitFor(() => expect(getSubscription).toHaveBeenCalledTimes(1))
+  unmount()
+  finishReading(old)
+  await new Promise(resolve => setTimeout(resolve, 20))
+  expect(old.unsubscribe).not.toHaveBeenCalled()
+  expect(api.calls.map(call => call.path)).toEqual(['/api/me/push'])
 })
 
 test('시험 알림은 구독을 보내고, 보내는 동안 버튼을 막아 한 번만 보낸다', async () => {
@@ -241,13 +280,37 @@ test('알림 서버가 받지 않으면 그렇게 알린다', async () => {
   expect(await screen.findByText('알림 서버가 받지 않았어요.')).toBeTruthy()
 })
 
-test('서버가 모르는 알림 서버면 그 호스트를 보여 준다', async () => {
+// 진짜 서버처럼 모르는 알림 서버의 기기 저장은 400 PUSH_SERVICE_UNSUPPORTED로 거절한다.
+test('서버가 모르는 알림 서버면 열 때 그 호스트를 보여 주고, 켜지 못했다며 다시 누르게 하지 않는다', async () => {
   const api = serverWithKey()
-  api.on('POST', '/api/me/push/test', () => json({ error: 'PUSH_SERVICE_UNSUPPORTED' }, 400))
+  api.on('POST', '/api/me/push/devices', () => json({ error: 'PUSH_SERVICE_UNSUPPORTED' }, 400))
   const existing = subscriptionOf(keyBytes, 'https://push.samsung.example/abc')
   render(<PushSettingsBody environment={environment({ permission: 'granted', existing }).env} />)
-  fireEvent.click(await screen.findByRole('button', { name: '시험 알림 보내기' }))
   expect(await screen.findByText('이 브라우저의 알림 서버(push.samsung.example)는 아직 받지 않아요.')).toBeTruthy()
+  expect(screen.queryByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeNull()
+  expect(screen.queryByText('이 기기에서 알림을 받아요.')).toBeNull()
+  expect(existing.unsubscribe).not.toHaveBeenCalled()
+})
+
+test('알림 켜기에서 저장이 모르는 알림 서버라고 거절되면 그 호스트를 보여 주고, 켜지 못했다며 다시 누르게 하지 않는다', async () => {
+  const api = serverWithKey()
+  api.on('POST', '/api/me/push/devices', () => json({ error: 'PUSH_SERVICE_UNSUPPORTED' }, 400))
+  const created = subscriptionOf(keyBytes, 'https://push.samsung.example/abc')
+  render(<PushSettingsBody environment={environment({ subscribe: async () => created }).env} />)
+  fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
+  expect(await screen.findByText('이 브라우저의 알림 서버(push.samsung.example)는 아직 받지 않아요.')).toBeTruthy()
+  expect(screen.queryByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeNull()
+  expect(screen.queryByText('이 기기에서 알림을 받아요.')).toBeNull()
+  expect(created.unsubscribe).toHaveBeenCalled()
+})
+
+// 기기 저장은 받았는데 시험 알림에서 모른다고 하는 경우(서버 쪽 알림 서버 목록이 어긋난 때)도 호스트를 보여 준다.
+test('시험 알림에서 서버가 모르는 알림 서버라고 하면 그 호스트를 보여 준다', async () => {
+  const api = serverWithKey()
+  api.on('POST', '/api/me/push/test', () => json({ error: 'PUSH_SERVICE_UNSUPPORTED' }, 400))
+  render(<PushSettingsBody environment={environment({ permission: 'granted', existing: subscriptionOf(keyBytes) }).env} />)
+  fireEvent.click(await screen.findByRole('button', { name: '시험 알림 보내기' }))
+  expect(await screen.findByText('이 브라우저의 알림 서버(fcm.googleapis.com)는 아직 받지 않아요.')).toBeTruthy()
 })
 
 test('기다리는 동안 화면을 꺼서 요청이 끊기면 실패 대신 모른다고 알린다', async () => {

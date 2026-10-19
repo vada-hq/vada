@@ -14,16 +14,23 @@ export const currentEnvironment = (): PushEnvironment => ({
   homeScreenApp: isIosHomeScreenApp(navigator as { standalone?: boolean }),
 })
 
-// 알림 받을 기기를 서버에 저장한다(바탕 spec G10). 같은 구독 주소면 서버가 열쇠를 갱신한다. 저장했으면 true다.
-async function saveDevice(subscription: BrowserSubscription) {
+type SaveResult = 'saved' | 'unsupported' | 'failed'
+
+// 알림 받을 기기를 서버에 저장한다(바탕 spec G10). 같은 구독 주소면 서버가 열쇠를 갱신한다.
+// 서버가 모르는 알림 서버라고 거절하면(400 PUSH_SERVICE_UNSUPPORTED) 다시 눌러도 같으므로 'failed'와 나눠, 호스트를 알려 준다.
+async function saveDevice(subscription: BrowserSubscription): Promise<SaveResult> {
   try {
     const response = await fetch('/api/me/push/devices', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) })
-    return response.ok
+    if (response.ok) return 'saved'
+    if (response.status === 400 && (await response.json() as { error?: string }).error === 'PUSH_SERVICE_UNSUPPORTED') return 'unsupported'
+    return 'failed'
   } catch {
-    return false
+    return 'failed'
   }
 }
+
+const unsupportedServiceOf = (endpoint: string): PushTest => ({ kind: 'unsupported-service', host: new URL(endpoint).host })
 
 // 끝난 구독은 서버에서도 지운다(바탕 spec G10). 실패해도 화면은 그대로 둔다.
 function forgetDevice(endpoint: string) {
@@ -61,6 +68,8 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
         const key = base64UrlToBytes(publicKey)
         const manager = await browser.pushManager()
         let existing = await manager.getSubscription()
+        // 대화상자를 닫았으면 구독 지우기도 서버 요청도 하지 않는다.
+        if (cancelled) return
         // 열쇠가 바뀐 옛 구독은 여기서 지운다. 못 지워도 넘어가고, 구독이 없는 것으로 본다. 서버에 저장된 그 기기도 지운다(바탕 spec G10).
         // 그래야 '알림 켜기'를 누른 동작 안에서 기다림 없이 구독할 수 있다.
         if (existing && !sameKey(existing, key)) {
@@ -69,16 +78,16 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
           existing = null
         }
         // 이미 켜진(지금 열쇠의) 구독도 서버에 저장한다. 덩어리 1에서 켠 기기나 다른 계정으로 켰던 브라우저도 이 계정의 기기가 된다(바탕 spec G10).
-        // 저장하지 못하면 켜기에 실패한 것처럼 구독을 지우고 다시 누르게 한다. 서버에 기기가 없는데 '켜짐'을 보이지 않는다(P23).
-        let saveFailed = false
-        if (existing && !await saveDevice(existing)) {
-          await existing.unsubscribe().catch(() => false)
-          existing = null
-          saveFailed = true
-        }
+        // 저장하지 못하면 서버에 기기가 없는데 '켜짐'을 보이지 않는다(P23). 구독은 지우지 않고 켜기 전으로 보여 준다.
+        // '알림 켜기'를 누르면 브라우저가 같은 열쇠의 그 구독을 돌려주므로, 그때 다시 저장한다.
+        const saved = existing ? await saveDevice(existing) : 'saved'
         if (cancelled) return
+        if (existing && saved !== 'saved') {
+          if (saved === 'unsupported') setTest(unsupportedServiceOf(existing.endpoint))
+          else setEnableFailed(true)
+          existing = null
+        }
         setSubscription(existing)
-        if (saveFailed) setEnableFailed(true)
         setServer({ kind: 'ready', key, manager })
       } catch {
         if (!cancelled) setServer({ kind: 'failed' })
@@ -99,11 +108,13 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
     setEnableFailed(false)
     setTest({ kind: 'idle' })
     ready.manager.subscribe({ userVisibleOnly: true, applicationServerKey: ready.key }).then(async next => {
-      if (!await saveDevice(next)) {
+      const saved = await saveDevice(next)
+      if (saved !== 'saved') {
         await next.unsubscribe().catch(() => false)
         setSubscription(null)
         setPermission(browser.permission())
-        setEnableFailed(true)
+        if (saved === 'unsupported') setTest(unsupportedServiceOf(next.endpoint))
+        else setEnableFailed(true)
         return
       }
       setSubscription(next)
@@ -126,7 +137,7 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
       const response = await fetch('/api/me/push/test', { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) })
       if (response.status === 400 && (await response.json() as { error?: string }).error === 'PUSH_SERVICE_UNSUPPORTED') {
-        setTest({ kind: 'unsupported-service', host: new URL(subscription.endpoint).host })
+        setTest(unsupportedServiceOf(subscription.endpoint))
         return
       }
       if (!response.ok) throw new Error('Push test failed')

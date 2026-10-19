@@ -84,6 +84,27 @@ test('보내지 못한 시험 알림은 결과 종류에 상태 번호나 연결
   assert.deepEqual(logged, [])
 })
 
+test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 그대로 돌려주고, 실패는 구독 주소 없이 로그에 남긴다', async (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'warn', (line: string) => { logged.push(line) })
+  // 드라이버 오류는 메시지에 질의 값(구독 주소)을 담고, SQLSTATE는 cause에 있다.
+  const failure = Object.assign(new Error(`delete from push_device where endpoint = ${subscription.endpoint}`), { cause: { code: '57P01' } })
+  const push = createPushRoutes(async () => ({ user: { id: 'u1' } }), 'PUBLIC', async () => ({ result: 'expired', status: 410 }), async () => {},
+    async () => { throw failure })
+  const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, push })
+  const response = await app.request('/api/me/push/test', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(subscription),
+  })
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), { result: 'expired' })
+  // 시험 알림 결과를 먼저 남기고, 지우기 실패는 그다음에 SQLSTATE만 남긴다.
+  assert.deepEqual(logged.map(line => JSON.parse(line)), [
+    { event: 'push_test_failed', result: 'expired', status: 410 },
+    { event: 'push_device_forget_failed', sqlState: '57P01' },
+  ])
+  assert.ok(logged.every(line => !line.includes(subscription.endpoint)))
+})
+
 test('모르는 알림 서버면 기다리지도 보내지도 않고 400이다', async () => {
   const { post, sent, waits } = setup()
   const response = await post({ ...subscription, endpoint: 'https://evil.test/push' })

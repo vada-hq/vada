@@ -76,13 +76,13 @@ test('모르는 알림 서버는 400 PUSH_SERVICE_UNSUPPORTED, 틀린 본문은 
   }
 })
 
-test('시험 알림이 끝난 구독(expired)이면 보낸 사람의 그 기기 줄도 지운다. 보낸 알림이면 남기고, 다른 사람의 기기는 두고 간다', async (t) => {
+test('시험 알림이 끝난 구독(expired)이면 보낸 사람의 그 기기 줄도 지운다. 보냈거나 거절된 알림이면 남기고, 다른 사람의 기기는 두고 간다', async (t) => {
   // 보내지 못한 시험 알림은 결과를 로그에 남긴다(덩어리 1). 이 시험에서는 조용히 둔다.
   t.mock.method(console, 'warn', () => {})
   const testDb = await createTestDb()
   try {
     for (const user of ['u1', 'u2']) await addUser(testDb.pg, user)
-    let result: 'sent' | 'expired' = 'sent'
+    let result: 'sent' | 'rejected' | 'expired' = 'sent'
     const api = caller(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: ORIGIN,
       pushDevices: createPushDeviceRoutes(testDb.db, testSession),
       push: createPushRoutes(testSession, 'PUBLIC', async () => ({ result }), async () => {}, (userId, endpoint) => forgetPushDevice(testDb.db, userId, endpoint)) }))
@@ -90,6 +90,10 @@ test('시험 알림이 끝난 구독(expired)이면 보낸 사람의 그 기기 
     await api.post('/api/me/push/devices', subscription, 'u1')
     await api.post('/api/me/push/devices', other, 'u2')
     assert.deepEqual(await (await api.post('/api/me/push/test', subscription, 'u1')).json(), { result: 'sent' })
+    assert.equal((await devicesOf(testDb)).rows.length, 2)
+    // 알림 서버가 받지 않은 것(rejected)은 끝난 구독이 아니다. 기기 줄을 남긴다.
+    result = 'rejected'
+    assert.deepEqual(await (await api.post('/api/me/push/test', subscription, 'u1')).json(), { result: 'rejected' })
     assert.equal((await devicesOf(testDb)).rows.length, 2)
     result = 'expired'
     await api.post('/api/me/push/test', other, 'u1')
