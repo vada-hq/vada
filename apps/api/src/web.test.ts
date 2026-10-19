@@ -14,6 +14,11 @@ test('built web and API share an origin, only web entry and assets are public', 
     writeFileSync(join(root, 'assets', 'app.js'), 'window.vada = true')
     writeFileSync(join(root, 'assets', 'zxing_reader-abc123.wasm'), Buffer.from([0, 97, 115, 109]))
     writeFileSync(join(root, 'private.txt'), 'not-public')
+    mkdirSync(join(root, 'icons'))
+    writeFileSync(join(root, 'sw.js'), 'self.addEventListener("push", () => {})')
+    writeFileSync(join(root, 'manifest.webmanifest'), '{"name":"VADA"}')
+    writeFileSync(join(root, 'icons', 'icon-192.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+    writeFileSync(join(root, 'apple-touch-icon.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
     const app = createApp({ auth: { handler: async () => new Response('auth') }, trustedOrigin: 'http://127.0.0.1:5180' })
     attachWeb(app, root)
     const page = await app.request('/')
@@ -33,6 +38,22 @@ test('built web and API share an origin, only web entry and assets are public', 
     assert.equal(wasm.headers.get('Cache-Control'), immutable)
     // 없는 파일의 404는 캐시하지 않는다.
     assert.equal((await app.request('/assets/missing.js')).headers.get('Cache-Control'), null)
+    // 서비스 워커와 홈 화면 설정은 바뀌면 바로 받도록 캐시하지 않는다. 아이콘은 하루 캐시한다.
+    const worker = await app.request('/sw.js')
+    assert.equal(worker.status, 200)
+    assert.match(worker.headers.get('Content-Type')!, /javascript/)
+    assert.equal(worker.headers.get('Cache-Control'), 'no-cache')
+    const manifest = await app.request('/manifest.webmanifest')
+    assert.equal(manifest.status, 200)
+    assert.equal(manifest.headers.get('Content-Type'), 'application/manifest+json')
+    assert.equal(manifest.headers.get('Cache-Control'), 'no-cache')
+    for (const path of ['/icons/icon-192.png', '/apple-touch-icon.png']) {
+      const icon = await app.request(path)
+      assert.equal(icon.status, 200, path)
+      assert.equal(icon.headers.get('Content-Type'), 'image/png', path)
+      assert.equal(icon.headers.get('Cache-Control'), 'public, max-age=86400', path)
+    }
+    assert.equal((await app.request('/icons/missing.png')).headers.get('Cache-Control'), null)
     assert.equal((await app.request('/', { method: 'HEAD' })).status, 200)
     assert.deepEqual(await (await app.request('/api/health')).json(), { status: 'ok' })
     assert.equal(await (await app.request('/api/auth/get-session')).text(), 'auth')
@@ -48,7 +69,7 @@ test('built web and API share an origin, only web entry and assets are public', 
       assert.match(await entry.text(), /VADA/, path)
     }
     for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt', '/join/', '/join/a/b',
-      '/apply/', '/apply/a/b', '/r/x']) {
+      '/apply/', '/apply/a/b', '/r/x', '/icons/', '/icons/a/b', '/icons/missing.png', '/sw.js/x']) {
       assert.equal((await app.request(path)).status, 404)
     }
     assert.equal((await app.request('/', { method: 'POST' })).status, 404)
