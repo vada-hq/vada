@@ -73,8 +73,17 @@ export async function createRecord<K extends RecordKind>(tx: Tx,
 // 하위 행이 어느 학생회·기수·부서·운영진의 것인지 정하는 칸. 같은 학생회인지는 만들 때만 보므로(assertSameCouncil) 바꾸지 않는다.
 const ownershipKeys: ReadonlySet<string> = new Set(['councilId', 'cohortId', 'departmentId', 'memberId', 'council_id', 'cohort_id', 'department_id', 'member_id'])
 
+// 쿼리가 돌려준 행 수. drizzle의 execute는 드라이버가 준 모양 그대로 돌려준다: postgres-js는 배열, PGlite는 { rows }다.
+function rowCount(result: unknown): number {
+  const rows = Array.isArray(result) ? result : (result as { rows?: unknown } | null)?.rows
+  if (!Array.isArray(rows)) throw new Error('쿼리 결과의 모양을 모른다')
+  return rows.length
+}
+
 // 여러 기록을 차례로 바꾼다. 하위 행을 잠그고 바꾼 뒤, 지금 판을 닫고 새 판을 연다.
 // 회장이 없어지는 변경은 막는다(DEC-17, DEC-47). 회장 넘기기처럼 한 번에 거두고 주는 변경은 모두 바꾼 뒤에 본다.
+// 회장 넘기기는 거두기를 먼저, 주기를 나중에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어, 주기를 먼저 하면
+// 그 자리에서 DB 오류(23505)로 거부된다. 거두기를 앞에 둘 책임은 부르는 쪽에 있다.
 export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[]) {
   for (const change of changes) {
     const owned = Object.keys(change.changes).filter(key => ownershipKeys.has(key))
@@ -83,6 +92,8 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
   const presidentCohorts = new Set<string>()
   for (const change of changes) {
     const table: Table<RecordKind> = tables[change.kind]
+    // 하위 행 잠금이 가장 먼저다. 아래의 확정 여부와 회장이었는지 읽기는 이 잠금 뒤에 해야 같은 기록을 바꾸던 거래가 끝난 값을 본다.
+    // 학생회 행을 잠그지 않고 이 모듈을 부르는 쪽은 이 순서에 기댄다. 순서를 바꾸지 않는다.
     // FOR NO KEY UPDATE: 같은 기록을 바꾸는 거래는 한 줄로 세우되, 이 행을 가리키는 행을 넣을 때의 외래 키 검사(FOR KEY SHARE)는 막지 않는다.
     const [current] = await tx.select({ id: table.id }).from(table).where(eq(table.id, change.id)).for('no key update')
     if (!current) throw new ApiError('NOT_FOUND', 404)
@@ -95,14 +106,17 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
     }
     await tx.update(table).set(change.changes as PgUpdateSetSource<Table<RecordKind>>).where(eq(table.id, change.id))
     // 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
-    await tx.execute(sql`WITH closed AS (
+    const opened = await tx.execute(sql`WITH closed AS (
         UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(clock_timestamp(), lower(valid) + interval '1 microsecond'))
         WHERE record_id = ${change.id} AND upper_inf(valid)
         RETURNING version_no, upper(valid) AS ended_at
       )
       INSERT INTO record_version (record_id, version_no, valid, data, changed_by, reason)
       SELECT ${change.id}, closed.version_no + 1, tstzrange(closed.ended_at, NULL), to_jsonb(t), ${change.actor}, ${change.reason}
-      FROM closed, ${table} t WHERE t.id = ${change.id}`)
+      FROM closed, ${table} t WHERE t.id = ${change.id}
+      RETURNING version_no`)
+    // 새 판은 꼭 하나 열려야 한다. 열린 판이 없으면(판 없이 만든 기록, 이미 닫힌 판) 하위 행만 바뀌고 이력이 빠지므로 거래를 되돌린다.
+    if (rowCount(opened) !== 1) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
   }
   for (const cohortId of presidentCohorts) {
     const [president] = await tx.select({ id: councilMembership.id }).from(councilMembership)

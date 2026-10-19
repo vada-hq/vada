@@ -78,6 +78,24 @@ test('한 거래에서 두 번 바꿔도 판이 겹치거나 비지 않고 이�
   }
 })
 
+test('지금 판의 시작이 시계보다 뒤여도 판은 1마이크로초 이상으로 닫히고 이어진다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const { kim, council } = await db.transaction(seed)
+    // 시계가 뒤로 간 것과 같은 상태: 지금 판의 시작을 한 시간 뒤로 민다.
+    await pg.query("UPDATE record_version SET valid = tstzrange(now() + interval '1 hour', NULL) WHERE record_id = $1", [council])
+    await db.transaction(tx => updateRecord(tx, { kind: 'council', id: council, actor: kim, reason: null, changes: { name: 'x' } }))
+    const [first, second] = await versionsOf(pg, council)
+    assert.equal(first!.upper, second!.lower)
+    assert.ok(first!.lower < first!.upper!, '판의 기간이 비지 않는다')
+    assert.equal(second!.upper, null)
+    assert.deepEqual((await pg.query('SELECT (upper(valid) - lower(valid))::text AS gap FROM record_version WHERE record_id = $1 AND version_no = 1', [council])).rows,
+      [{ gap: '00:00:00.000001' }])
+  } finally {
+    await close()
+  }
+})
+
 test('확정한 기록은 사유 없이 바꿀 수 없고, 사유를 주면 판에 남는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
@@ -104,16 +122,17 @@ test('학생회 번호 규칙: 학생회와 운영진만 비우고, 소속은 �
       const department = await createRecord(tx, { kind: 'department', councilId: council, actor: first.kim, values: { name: '재정부', role: 'finance' } })
       return { council, department }
     })
-    const attempts: ((tx: Tx) => Promise<unknown>)[] = [
-      tx => createRecord(tx, { kind: 'member', councilId: first.council, actor: null, values: { name: '박', email: 'park@example.test' } }),
-      tx => createRecord(tx, { kind: 'council', councilId: first.council, actor: null, values: { name: 'x', unit: 'college', schoolName: 'y' } }),
-      tx => createRecord(tx, { kind: 'cohort', councilId: null, actor: null, values: { name: '2027', startsOn: '2027-01-01', endsOn: '2027-12-31' } }),
-      tx => createRecord(tx, { kind: 'council_membership', councilId: other.council, actor: first.kim,
-        values: { memberId: first.lee, cohortId: first.cohort, startsAt: clockNow } }),
-      tx => createRecord(tx, { kind: 'department_membership', councilId: first.council, actor: first.kim,
-        values: { memberId: first.lee, departmentId: other.department, cohortId: first.cohort, startsAt: clockNow } }),
+    // 거부 이유까지 맞춘다. 외래 키 같은 다른 이유로 거부돼도 통과하면 규칙을 지키는지 알 수 없다.
+    const attempts: [(tx: Tx) => Promise<unknown>, RegExp][] = [
+      [tx => createRecord(tx, { kind: 'member', councilId: first.council, actor: null, values: { name: '박', email: 'park@example.test' } }), /학생회 번호 규칙/],
+      [tx => createRecord(tx, { kind: 'council', councilId: first.council, actor: null, values: { name: 'x', unit: 'college', schoolName: 'y' } }), /학생회 번호 규칙/],
+      [tx => createRecord(tx, { kind: 'cohort', councilId: null, actor: null, values: { name: '2027', startsOn: '2027-01-01', endsOn: '2027-12-31' } }), /학생회 번호 규칙/],
+      [tx => createRecord(tx, { kind: 'council_membership', councilId: other.council, actor: first.kim,
+        values: { memberId: first.lee, cohortId: first.cohort, startsAt: clockNow } }), /학생회가 다르다/],
+      [tx => createRecord(tx, { kind: 'department_membership', councilId: first.council, actor: first.kim,
+        values: { memberId: first.lee, departmentId: other.department, cohortId: first.cohort, startsAt: clockNow } }), /학생회가 다르다/],
     ]
-    for (const attempt of attempts) await assert.rejects(db.transaction(attempt))
+    for (const [attempt, reason] of attempts) await assert.rejects(db.transaction(attempt), reason)
   } finally {
     await close()
   }
@@ -143,6 +162,26 @@ test('회장이 없어지는 변경은 막고, 한 번에 거두고 주는 회�
   }
 })
 
+test('회장 넘기기는 거두기를 먼저 넘겨야 한다: 주기를 먼저 넘기면 거부하고 아무것도 바꾸지 않는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const { kim, lee, council, cohort } = await db.transaction(seed)
+    const [president, member] = await db.transaction(async tx => [
+      await createRecord(tx, { kind: 'council_membership', councilId: council, actor: kim, values: { memberId: kim, cohortId: cohort, councilRank: 'president', startsAt: clockNow } }),
+      await createRecord(tx, { kind: 'council_membership', councilId: council, actor: kim, values: { memberId: lee, cohortId: cohort, startsAt: clockNow } }),
+    ])
+    // 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어, 거두기 전에 주면 DB가 막는다(23505).
+    await assert.rejects(db.transaction(tx => updateRecords(tx, [
+      { kind: 'council_membership', id: member!, actor: kim, reason: null, changes: { councilRank: 'president' } },
+      { kind: 'council_membership', id: president!, actor: kim, reason: null, changes: { councilRank: null } },
+    ])), (error: unknown) => (error as { cause?: { code?: string } }).cause?.code === '23505')
+    assert.deepEqual((await pg.query('SELECT member_id FROM council_membership WHERE council_rank = $1', ['president'])).rows, [{ member_id: kim }])
+    for (const id of [president!, member!]) assert.equal((await versionsOf(pg, id)).length, 1)
+  } finally {
+    await close()
+  }
+})
+
 test('주인 칸(학생회·기수·부서·운영진 번호)은 바꾸지 않는다. 같은 학생회인지는 만들 때만 보기 때문이다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
@@ -165,6 +204,25 @@ test('주인 칸(학생회·기수·부서·운영진 번호)은 바꾸지 않�
     ]
     for (const change of attempts) await assert.rejects(db.transaction(tx => updateRecords(tx, [change])), /주인 칸/, change.kind)
     for (const id of [cohort, ids.membership, ids.placement, ids.department]) assert.equal((await versionsOf(pg, id)).length, 1)
+  } finally {
+    await close()
+  }
+})
+
+test('지금 판이 없으면 새 판을 열 수 없어 Error로 거부하고 하위 행을 바꾸지 않는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const { kim, council } = await db.transaction(seed)
+    const second = await db.transaction(tx => createRecord(tx, { kind: 'council', councilId: null, actor: kim, values: { name: '둘째 학생회', unit: 'college', schoolName: 'y' } }))
+    // 지금 판이 없는 두 경우: 이미 닫힌 판, 아예 없는 판.
+    await pg.query("UPDATE record_version SET valid = tstzrange(lower(valid), lower(valid) + interval '1 second') WHERE record_id = $1", [council])
+    await pg.query('DELETE FROM record_version WHERE record_id = $1', [second])
+    for (const id of [council, second]) {
+      await assert.rejects(db.transaction(tx => updateRecord(tx, { kind: 'council', id, actor: kim, reason: null, changes: { name: '바꿈' } })), /지금 판이 없어/)
+    }
+    assert.deepEqual((await pg.query('SELECT name FROM council ORDER BY name')).rows, [{ name: '둘째 학생회' }, { name: '컴퓨터학부 학생회' }])
+    assert.equal((await versionsOf(pg, council)).length, 1)
+    assert.equal((await versionsOf(pg, second)).length, 0)
   } finally {
     await close()
   }
