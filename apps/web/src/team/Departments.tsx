@@ -58,11 +58,12 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
   const renamed = renamingDepartment ? UpdateDepartmentSchema.safeParse({ name, role: renamingDepartment.role }) : null
   const problemIn = (scope: Scope) => problem?.scope === scope ? problem.text : ''
 
-  // 실패하면 오류 코드를, 성공하면 null을 돌려준다. 오류는 동작한 자리에 보이고, 대화상자 안에서 다시 보내도 소용없는 오류는 쪽 위에 보인다.
+  // 실패하면 오류 코드를, 성공하면 null을 돌려준다. 오류는 동작한 자리에 보이고, 다시 보내도 소용없는 오류는 쪽 위에 보인다.
+  // 권한이 바뀌었다는 답은 만들기 칸이나 대화상자와 함께 그 자리가 사라질 수 있어 쪽 위에 보인다.
   async function run(path: string, body: unknown, scope: Scope) {
     setProblem(null)
     const code = await change(path, body)
-    if (code) setProblem({ scope: (scope === 'rename' || scope === 'remove') && final.has(code) ? 'list' : scope, text: errors[code] ?? failure })
+    if (code) setProblem({ scope: final.has(code) ? 'list' : scope, text: errors[code] ?? failure })
     return code
   }
   const departmentPath = (department: TeamDepartment) => `/departments/${encodeURIComponent(department.id)}`

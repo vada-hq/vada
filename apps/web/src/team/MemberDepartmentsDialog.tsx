@@ -12,7 +12,8 @@ type Props = {
   departments: TeamDepartment[]
   titles: CouncilTitles
   saving: boolean
-  // 부서 직급(부장·부부장)을 바꿀 수 있는가(rank.manage). 부서에 넣고 빼는 일은 member.manage만으로 된다(P19).
+  // 부서 직급(부장·부부장)을 바꿀 수 있는가(rank.manage). 부서에 직급 없이 넣는 일은 member.manage만으로 된다(P19).
+  // 직급이 붙은 소속을 빼는 일은 그 직급을 거두는 일이기도 해서 서버는 rank.manage도 본다.
   canRank: boolean
   error: string
   onAssign: (departmentId: string, rank: DepartmentRank | null) => void
@@ -44,7 +45,7 @@ export default function MemberDepartmentsDialog({ member, departments, titles, s
             <span className="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">{name}</span>
             <NativeSelect aria-label={`${name} 부서 직급`} className="w-32" value={rankValue(item.rank)} disabled={saving || !canRank}
               onChange={event => onAssign(item.id, rankOf(event.target.value))}>{rankOptions}</NativeSelect>
-            <Button variant="ghost" size="icon" aria-label={`${name}에서 빼기`} disabled={saving} onClick={() => onRemove(item.id)}><X /></Button>
+            <Button variant="ghost" size="icon" aria-label={`${name}에서 빼기`} disabled={saving || (item.rank !== null && !canRank)} onClick={() => onRemove(item.id)}><X /></Button>
           </div>
         })}
       </section>

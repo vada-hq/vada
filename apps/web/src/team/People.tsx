@@ -11,7 +11,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { useReveal } from '@/lib/use-reveal'
 import InviteCard from './InviteCard'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
-import { councilRankLabel, joinedDay, placementsText } from './team-view'
+import { councilRankLabel, holdsRank, joinedDay, placementsText } from './team-view'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
@@ -24,8 +24,10 @@ const errors: Record<string, string> = {
   NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
 }
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
-// 화면이 오래됐다는 답: 같은 요청을 다시 보내도 소용없으므로 확인 대화상자를 닫는다.
-const stale = new Set(['FORBIDDEN', 'NOT_FOUND'])
+// 화면이 오래됐다는 409: 같은 요청을 다시 보내도 같은 답이므로 확인 대화상자를 닫고 목록을 다시 읽는다.
+const staleConflicts = new Set(['PRESIDENT_CANNOT_LEAVE', 'CANNOT_REMOVE_SELF', 'ALREADY_PRESIDENT'])
+// 화면이 오래됐다는 답: 같은 요청을 다시 보내도 소용없으므로 확인 대화상자를 닫는다. 403·404는 useTeam이 목록을 다시 읽는다.
+const stale = new Set(['FORBIDDEN', 'NOT_FOUND', ...staleConflicts])
 type Confirm = { kind: 'remove' | 'transfer'; memberId: string }
 
 type Props = { view: CouncilView; team: Team; onCouncilChanged: () => void }
@@ -42,13 +44,15 @@ export default function People({ view, team, onCouncilChanged }: Props) {
   const titles = view.council.titles
   const me = view.me.memberId
   const can = (action: Action) => view.permissions.includes(action)
+  // 내보내기: 서버와 같이 직급이 붙은 사람은 member.manage에 더해 rank.manage도 있어야 한다. 회장과 나는 내보낼 수 없다.
+  const removable = (member: TeamMember) => can('member.manage') && member.councilRank !== 'president' && member.id !== me && (!holdsRank(member) || can('rank.manage'))
 
   // 다시 읽은 목록과 권한으로 매번 대상을 찾는다. 대상이 사라졌거나 권한을 잃으면 대화상자는 닫힌다.
   const members = data?.members
   const editingMember = can('member.manage') ? members?.find(member => member.id === editing) ?? null : null
   const target = confirm ? members?.find(member => member.id === confirm.memberId) : undefined
   const confirming = confirm && target && target.id !== me && (confirm.kind === 'remove'
-    ? can('member.manage') && target.councilRank !== 'president' : can('president.transfer')) ? { kind: confirm.kind, member: target } : null
+    ? removable(target) : can('president.transfer')) ? { kind: confirm.kind, member: target } : null
   const editingGone = data !== null && editing !== null && !editingMember
   const confirmGone = data !== null && confirm !== null && !confirming
   // 대화상자 안에 보이지 않는 오류만 쪽 위에 보인다. 문구가 쪽에 나타나면 화면 안으로 스크롤한다.
@@ -69,6 +73,7 @@ export default function People({ view, team, onCouncilChanged }: Props) {
     const code = await change(path, body)
     if (code) {
       setMessage(errors[code] ?? failure)
+      if (staleConflicts.has(code)) reload()
       return code
     }
     if (changesMe) onCouncilChanged()
@@ -104,7 +109,7 @@ export default function People({ view, team, onCouncilChanged }: Props) {
           const canAssign = can('member.manage')
           const canRankChange = can('rank.manage') && !president
           const canTransfer = can('president.transfer') && member.id !== me
-          const canRemove = canAssign && !president && member.id !== me
+          const canRemove = removable(member)
           return <li key={member.id} className="flex items-center gap-3 px-4 py-3">
             <Avatar />
             <div className="min-w-0 flex-1">

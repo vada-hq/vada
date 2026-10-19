@@ -17,3 +17,7 @@ export function placementsText(member: Pick<TeamMember, 'departments'>, departme
     return rank ? `${name} ${rank}` : name
   }).join(' · ')
 }
+
+// 학생회 직급이나 부서 직급이 하나라도 붙어 있는가. 서버는 이런 사람을 내보내거나 직급 있는 소속을 끝낼 때 직급 칸(rank.manage)도 본다.
+export const holdsRank = (member: Pick<TeamMember, 'councilRank' | 'departments'>) =>
+  member.councilRank !== null || member.departments.some(item => item.rank !== null)

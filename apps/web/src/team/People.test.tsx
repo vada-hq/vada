@@ -77,7 +77,9 @@ test('직급 없는 운영진은 초대 링크와 ⋯ 메뉴를 보지 않고 �
 test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () => {
   const cases: { permissions: Action[]; invite: boolean; menus: Record<string, string[]> }[] = [
     { permissions: ['council.view', 'invite.manage'], invite: true, menus: {} },
-    { permissions: ['council.view', 'member.manage'], invite: false, menus: { 김회장: ['부서 배정'], 이재정: ['부서 배정', '내보내기'] } },
+    // 이재정은 부서 직급이 있어 내보내기에는 rank.manage도 필요하다.
+    { permissions: ['council.view', 'member.manage'], invite: false, menus: { 김회장: ['부서 배정'], 이재정: ['부서 배정'], 박새내: ['부서 배정', '내보내기'] } },
+    { permissions: ['council.view', 'member.manage', 'rank.manage'], invite: false, menus: { 김회장: ['부서 배정'], 이재정: ['부서 배정', '부위원장 직급 주기', '내보내기'] } },
     { permissions: ['council.view', 'rank.manage'], invite: false, menus: { 김회장: [], 이재정: ['부위원장 직급 주기'] } },
     { permissions: ['council.view', 'president.transfer'], invite: false, menus: { 김회장: [], 이재정: ['위원장 넘기기'] } },
   ]
@@ -85,6 +87,8 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
     const api = serve()
     render(<Harness permissions={permissions} />)
     await screen.findByText('운영진 3명')
+    // 초대 링크는 코드를 받아 온 뒤에야 나타난다. 있어야 하는 경우에는 기다린 뒤에 확인한다.
+    if (invite) await screen.findByRole('region', { name: '초대 링크' })
     expect(!!screen.queryByRole('region', { name: '초대 링크' }), `초대 링크 ${permissions}`).toBe(invite)
     expect(api.calls.some(call => call.path.endsWith('/invite')), `초대 코드 요청 ${permissions}`).toBe(invite)
     for (const [name, items] of Object.entries(menus)) {
@@ -166,6 +170,33 @@ test('회장단의 ⋯ 메뉴: 회장 줄에는 직급과 내보내기가 없고
   expect(within(menu).getAllByRole('menuitem').map(item => item.textContent)).toEqual(['부서 배정', '부위원장 직급 주기', '위원장 넘기기', '내보내기'])
 })
 
+// 서버는 학생회 직급이나 부서 직급이 붙은 사람을 내보낼 때 member.manage에 더해 rank.manage도 본다.
+test('직급이 붙은 사람은 member.manage와 rank.manage가 둘 다 있어야 내보내기가 보인다', async () => {
+  const team = teamResponse()
+  team.members.push(
+    { id: 'm4', name: '최부회장', councilRank: 'vice_president', departments: [], joinedAt: '2026-10-19T01:00:00.000Z' },
+    { id: 'm5', name: '정부원', councilRank: null, departments: [{ id: 'd2', rank: null }], joinedAt: '2026-10-19T02:00:00.000Z' },
+  )
+  const cases: { permissions: Action[]; menus: Record<string, string[]> }[] = [
+    { permissions: ['council.view', 'member.manage'], menus: {
+      이재정: ['부서 배정'], 최부회장: ['부서 배정'], 박새내: ['부서 배정', '내보내기'], 정부원: ['부서 배정', '내보내기'] } },
+    { permissions: ['council.view', 'member.manage', 'rank.manage'], menus: {
+      이재정: ['부서 배정', '부위원장 직급 주기', '내보내기'], 최부회장: ['부서 배정', '부위원장 직급 거두기', '내보내기'],
+      박새내: ['부서 배정', '부위원장 직급 주기', '내보내기'], 정부원: ['부서 배정', '부위원장 직급 주기', '내보내기'] } },
+  ]
+  for (const { permissions, menus } of cases) {
+    serve(team)
+    render(<Harness permissions={permissions} />)
+    for (const [name, items] of Object.entries(menus)) {
+      const menu = await openMenu(name)
+      expect(within(menu).getAllByRole('menuitem').map(item => item.textContent), `${name} ${permissions}`).toEqual(items)
+      fireEvent.keyDown(menu, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    }
+    cleanup()
+  }
+})
+
 test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부서에서 뺀다', async () => {
   const api = serve()
   const assigned = teamResponse()
@@ -186,7 +217,8 @@ test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부
 })
 
 // 부서 직급(부장·부부장)을 바꾸는 일은 member.manage에 더해 rank.manage도 본다(P19).
-test('부서 직급 선택칸은 rank.manage가 있을 때만 켜진다', async () => {
+// 직급이 붙은 소속을 끝내는 것은 그 직급을 거두는 일이기도 해서 서버는 빼기에도 rank.manage를 본다.
+test('부서 직급 선택칸과 직급이 붙은 소속 빼기는 rank.manage가 있을 때만 켜진다', async () => {
   const withHead = teamResponse()
   serve(withHead)
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
@@ -194,23 +226,46 @@ test('부서 직급 선택칸은 rank.manage가 있을 때만 켜진다', async 
   let dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
   expect((within(dialog).getByLabelText('재정부 부서 직급') as HTMLSelectElement).disabled).toBe(false)
   expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(false)
+  expect((within(dialog).getByRole('button', { name: '재정부에서 빼기' }) as HTMLButtonElement).disabled).toBe(false)
   view.rerender(<Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />)
   dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
   expect((within(dialog).getByLabelText('재정부 부서 직급') as HTMLSelectElement).disabled).toBe(true)
   expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(true)
-  // 부서에 넣거나 빼는 일은 member.manage만으로 된다.
+  // 부서에 직급 없이 넣는 일은 member.manage만으로 된다. 직급이 붙은 소속은 빼지 못한다.
   expect((within(dialog).getByRole('button', { name: '부서에 넣기' }) as HTMLButtonElement).disabled).toBe(false)
-  expect((within(dialog).getByRole('button', { name: '재정부에서 빼기' }) as HTMLButtonElement).disabled).toBe(false)
+  expect((within(dialog).getByRole('button', { name: '재정부에서 빼기' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
-test('부서 직급 없이 부서에 넣을 때 rank.manage가 없으면 직급을 보내지 않는다', async () => {
-  const api = serve()
-  api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(teamResponse()))
+test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () => {
+  const placed = teamResponse()
+  placed.members[2]!.departments = [{ id: 'd2', rank: null }]
+  const api = serve(placed)
+  api.on('POST', '/api/organizations/c1/members/m3/departments/d2/remove', () => json(teamResponse()))
   render(<Harness permissions={['council.view', 'member.manage']} />)
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '부서 배정' }))
   const dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
+  const remove = within(dialog).getByRole('button', { name: '기획부에서 빼기' }) as HTMLButtonElement
+  expect(remove.disabled).toBe(false)
+  fireEvent.click(remove)
+  await waitFor(() => expect(within(dialog).getByText('아직 부서가 없어요.')).toBeTruthy())
+  expect(posts(api)).toHaveLength(1)
+})
+
+// 직급을 골라 둔 채 rank.manage를 잃으면 칸은 꺼지고 비어 보이지만 고른 값은 남아 있다. 그 값을 보내면 안 된다.
+test('부서 직급을 골라 둔 채 rank.manage를 잃으면 부서에 넣어도 직급을 보내지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(teamResponse()))
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '부서 배정' }))
+  let dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
+  fireEvent.change(within(dialog).getByLabelText('부서 직급'), { target: { value: 'vice_head' } })
+  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).value).toBe('vice_head')
+  view.rerender(<Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />)
+  dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
+  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(true)
   fireEvent.click(within(dialog).getByRole('button', { name: '부서에 넣기' }))
-  await waitFor(() => expect(api.calls.find(call => call.path.endsWith('/members/m3/departments'))?.body).toEqual({ departmentId: 'd1', rank: null }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]!.body).toEqual({ departmentId: 'd1', rank: null })
 })
 
 test('부회장 직급은 확인 없이 바로 주고, 다른 사람의 직급을 바꾸면 학생회를 다시 읽지 않는다', async () => {
@@ -303,6 +358,33 @@ test('회장 넘기기는 확인한 뒤 넘기고 학생회를 다시 읽는다.
   await noDialog()
 })
 
+// 오래된 화면 때문에 막힌 409는 같은 요청을 다시 보내도 같은 답이므로, 대화상자를 닫고 목록을 다시 읽고 까닭을 쪽에 보인다.
+test('내보내기나 회장 넘기기가 오래된 화면 때문에 409로 막히면 대화상자를 닫고 목록을 다시 읽고 까닭을 쪽에 보인다', async () => {
+  for (const { permissions, name, item, title, confirm, path, code, text } of [
+    { permissions: LEADER_PERMISSIONS, name: '박새내', item: '내보내기', title: '박새내님을 내보낼까요?', confirm: '내보내기',
+      path: '/members/m3/remove', code: 'PRESIDENT_CANNOT_LEAVE', text: '회장은 내보낼 수 없어요. 먼저 회장을 넘겨 주세요.' },
+    { permissions: LEADER_PERMISSIONS, name: '박새내', item: '내보내기', title: '박새내님을 내보낼까요?', confirm: '내보내기',
+      path: '/members/m3/remove', code: 'CANNOT_REMOVE_SELF', text: '나를 내보낼 수는 없어요.' },
+    { permissions: PRESIDENT_PERMISSIONS, name: '이재정', item: '위원장 넘기기', title: '이재정님에게 위원장 직급을 넘길까요?', confirm: '넘기기',
+      path: '/president/transfer', code: 'ALREADY_PRESIDENT', text: '이미 회장이에요.' },
+  ]) {
+    const api = mockApi()
+    let reads = 0
+    api.on('GET', '/api/organizations/c1/members', () => { reads++; return json(teamResponse()) })
+    api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+    api.on('POST', `/api/organizations/c1${path}`, () => json({ error: code }, 409))
+    render(<Harness permissions={permissions} />)
+    fireEvent.click(within(await openMenu(name)).getByRole('menuitem', { name: item }))
+    const dialog = await screen.findByRole('dialog', { name: title })
+    fireEvent.click(within(dialog).getByRole('button', { name: confirm }))
+    await noDialog()
+    expect(screen.getByText(text), code).toBeTruthy()
+    await waitFor(() => expect(reads, `${code} 목록 다시 읽기`).toBe(2))
+    expect(posts(api), code).toHaveLength(1)
+    cleanup()
+  }
+})
+
 test('확인 대화상자는 서버가 잠시 실패하면 까닭을 안에 보이고 다시 눌러 보낼 수 있다', async () => {
   const api = serve()
   let first = true
@@ -338,6 +420,8 @@ test('확인 대화상자가 열린 채 권한을 잃으면 닫히고, 다시 �
   for (const { permissions, lost, name, title, item } of [
     { permissions: LEADER_PERMISSIONS, lost: MEMBER_PERMISSIONS, name: '박새내', title: '박새내님을 내보낼까요?', item: '내보내기' },
     { permissions: PRESIDENT_PERMISSIONS, lost: LEADER_PERMISSIONS, name: '이재정', title: '이재정님에게 위원장 직급을 넘길까요?', item: '위원장 넘기기' },
+    // 부서 직급이 있는 사람을 내보내는 확인은 rank.manage를 잃어도 닫힌다.
+    { permissions: LEADER_PERMISSIONS, lost: ['council.view', 'member.manage'] as Action[], name: '이재정', title: '이재정님을 내보낼까요?', item: '내보내기' },
   ]) {
     const api = serve()
     const view = render(<Harness permissions={permissions} />)

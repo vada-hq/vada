@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action, TeamResponse } from '@vada/contracts'
@@ -10,10 +11,12 @@ import { useTeam } from './useTeam'
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 // "목록 다시 읽기"는 다른 곳에서 부서가 바뀐 뒤 화면이 목록을 다시 읽는 일(404·403 뒤의 다시 읽기)을 대신한다.
-function Harness({ permissions }: { permissions: Action[] }) {
-  const team = useTeam('c1', () => {})
+// dropOnForbidden은 실제 작업 공간처럼 403을 받으면 학생회를 다시 읽어 권한이 회장단 밖으로 줄어드는 일을 대신한다.
+function Harness({ permissions, dropOnForbidden = false }: { permissions: Action[]; dropOnForbidden?: boolean }) {
+  const [dropped, setDropped] = useState(false)
+  const team = useTeam('c1', () => { if (dropOnForbidden) setDropped(true) })
   return <>
-    <Departments view={councilView('c1', { permissions })} team={team} />
+    <Departments view={councilView('c1', { permissions: dropped ? MEMBER_PERMISSIONS : permissions })} team={team} />
     <button type="button" onClick={team.reload}>목록 다시 읽기</button>
   </>
 }
@@ -76,6 +79,19 @@ test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지
   expect(within(form).getByLabelText('새 부서 이름').getAttribute('aria-invalid')).toBe('true')
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정국' } })
   expect(screen.queryByText('같은 이름의 부서가 있어요.')).toBeNull()
+})
+
+// 검토 지적: 만들기 칸 아래 오류는 권한과 함께 칸이 사라지면 같이 사라진다. 권한이 바뀌었다는 답은 쪽 위에 보인다.
+test('부서를 만들다 403으로 권한을 잃으면 만들기 칸이 사라져도 까닭이 쪽에 남는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments', () => json({ error: 'FORBIDDEN' }, 403))
+  render(<Harness permissions={LEADER_PERMISSIONS} dropOnForbidden />)
+  const form = await screen.findByRole('form', { name: '부서 만들기' })
+  fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '홍보부' } })
+  fireEvent.click(within(form).getByRole('button', { name: '부서 만들기' }))
+  await waitFor(() => expect(screen.queryByRole('form', { name: '부서 만들기' })).toBeNull())
+  expect(screen.getByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  expect(posts(api)).toHaveLength(1)
 })
 
 test('회장단은 줄마다 이름 바꾸기, 재정 역할 주고 거두기, 없애기를 한다. 쓰인 부서는 없애지 못한 까닭을 보인다', async () => {
