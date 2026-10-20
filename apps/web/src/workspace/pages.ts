@@ -1,4 +1,5 @@
 import type { MyCouncil } from '@vada/contracts'
+import type { ChatLink } from './useChatLink'
 
 export type Page = 'chat' | 'people' | 'departments' | 'settings'
 // 학생회를 고른 곳. 작업 공간이 새로 그려진 뒤 포커스를 그 자리의 버튼으로 돌려놓는다.
@@ -14,6 +15,8 @@ export const pageTitles: Record<Page, { section: string; title: string }> = {
 export type WorkspaceProps = {
   councils: MyCouncil[]
   initialCouncilId?: string | undefined
+  // 알림을 눌러 열 방. 있으면 그 학생회의 대화에서 그 방을 연다.
+  chatLink?: ChatLink | null | undefined
   user: { name: string }
   logoutBusy: boolean
   onLogout: () => void

@@ -11,10 +11,10 @@ export function attachWeb(
 ) {
   if (!statSync(join(root, 'index.html')).isFile()) throw new Error('웹 빌드가 필요합니다.')
   const entry = serveStatic({ root, path: 'index.html' })
-  // 초대 링크(/join/코드), 공개 참가 신청(/apply/코드), 내 신청(/r#토큰), 홈 화면 앱 안 로그인이 끝나는 곳(/auth-done)도 화면 진입점이다. 코드 검사는 화면이 API로 한다.
+  // 초대 링크(/join/코드), 공개 참가 신청(/apply/코드), 내 신청(/r#토큰), 홈 화면 앱 안 로그인이 끝나는 곳(/auth-done), 알림을 누르면 여는 방(/chat/학생회/방)도 화면 진입점이다. 코드 검사는 화면이 API로 한다.
   app.on(
     ['GET', 'HEAD'],
-    ['/', '/index.html', '/join/:code', '/apply/:code', '/r', '/auth-done'],
+    ['/', '/index.html', '/join/:code', '/apply/:code', '/chat/:council/:room', '/r', '/auth-done'],
     async (context, next) => {
       context.header('Cache-Control', 'no-cache')
       return entry(context, next)

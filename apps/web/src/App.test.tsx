@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import App from './App'
 
 const auth = vi.hoisted(() => ({
@@ -17,21 +17,30 @@ vi.mock('./auth/auth-client', () => ({
     signOut: auth.signOut,
   },
 }))
+const push = vi.hoisted(() => ({ forgetThisDevice: vi.fn() }))
+vi.mock('./push/push-logout', () => ({ forgetThisDevice: push.forgetThisDevice }))
 // 로그인 뒤의 화면은 따로 시험한다(App.integration.test.tsx). 여기서는 App이 무엇을 넘기는지만 본다.
 vi.mock('./councils/MyCouncils', () => ({
   default: ({
     card,
     initialCouncilId,
+    chatLink,
     onEnterCode,
   }: {
     card: (content: ReactNode) => ReactNode
     initialCouncilId?: string
+    chatLink?: { councilId: string; roomId: string; seq: number } | null
     onEnterCode: (code: string) => void
   }) => (
     <>
       {card(
         <>
           <p>학생회 목록 자리{initialCouncilId ? `: ${initialCouncilId}` : ''}</p>
+          {chatLink && (
+            <p>
+              방 열기: {chatLink.councilId}/{chatLink.roomId}/{chatLink.seq}
+            </p>
+          )}
           <button type="button" onClick={() => onEnterCode('WXYZ6789')}>
             코드 입력
           </button>
@@ -121,6 +130,52 @@ test('로그인하면 내 학생회 화면을 열고, 카드에 이름·휴대�
   auth.useSession.mockReturnValue({ data: null, isPending: false, error: null })
   view.rerender(<App />)
   expect(screen.getByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
+})
+
+test('로그아웃은 이 기기 줄을 먼저 지운 뒤에 한다', async () => {
+  signedIn()
+  const order: string[] = []
+  push.forgetThisDevice.mockImplementation(async () => {
+    order.push('기기 지우기')
+  })
+  auth.signOut.mockImplementation(async () => {
+    order.push('로그아웃')
+    return { error: null }
+  })
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+  await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
+  expect(order).toEqual(['기기 지우기', '로그아웃'])
+})
+
+test('알림 주소(/chat/학생회/방)로 열면 그 방을 열라고 넘기고 주소는 맨 앞으로 되돌린다', async () => {
+  signedIn()
+  window.history.replaceState(null, '', '/chat/c1/r1')
+  render(<App />)
+  expect(screen.getByText('방 열기: c1/r1/0')).toBeTruthy()
+  await waitFor(() => expect(window.location.pathname).toBe('/'))
+})
+
+test('열려 있는 동안 서비스 워커가 알리면 그 방으로 다시 연다', async () => {
+  signedIn()
+  const listeners: ((event: { data: unknown }) => void)[] = []
+  Object.defineProperty(navigator, 'serviceWorker', {
+    configurable: true,
+    value: {
+      addEventListener: (_type: string, listener: (event: { data: unknown }) => void) =>
+        listeners.push(listener),
+      removeEventListener: () => undefined,
+    },
+  })
+  render(<App />)
+  expect(screen.queryByText(/방 열기/)).toBeNull()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c2/r9' } }))
+  expect(screen.getByText('방 열기: c2/r9/1')).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c2/r9' } }))
+  expect(screen.getByText('방 열기: c2/r9/2')).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: 'https://evil.test/chat/c2/r9' } }))
+  expect(screen.getByText('방 열기: c2/r9/2')).toBeTruthy()
+  Reflect.deleteProperty(navigator, 'serviceWorker')
 })
 
 test('login failure allows retry without exposing the raw error', async () => {

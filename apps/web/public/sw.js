@@ -32,30 +32,61 @@ self.addEventListener('push', event => {
   const title = typeof message.title === 'string' && message.title ? message.title : 'VADA'
   const body = typeof message.body === 'string' ? message.body : ''
   const url = sameSitePath(message.url)
+  // 같은 방의 알림은 tag로 한 줄에 갈아 끼운다. renotify가 없으면 갈아 끼운 알림이 소리 없이 바뀐다.
+  const tag =
+    typeof message.tag === 'string' && message.tag ? { tag: message.tag, renotify: true } : {}
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      data: { url },
-      icon: '/icons/icon-192.png',
-      lang: 'ko',
-    }),
+    Promise.all([
+      tellWindows({ type: 'vada:push' }),
+      self.registration.showNotification(title, {
+        body,
+        data: { url },
+        icon: '/icons/icon-192.png',
+        lang: 'ko',
+        ...tag,
+      }),
+    ]),
   )
 })
 
-// 알림을 누르면 열린 VADA 창을 앞으로 가져와 그 주소로 보내고, 없으면 새로 연다.
+// 열린 VADA 창을 찾는다. 찾기가 실패해도 멈추지 않는다.
+async function openWindows() {
+  try {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    return windows.filter(client => new URL(client.url).origin === self.location.origin)
+  } catch {
+    return []
+  }
+}
+
+// 창마다 따로 보낸다. 한 창이 실패해도 나머지에는 간다.
+async function tellWindows(message) {
+  for (const client of await openWindows()) {
+    try {
+      client.postMessage(message)
+    } catch {
+      // 닫히는 창이다. 알림은 그대로 띄운다.
+    }
+  }
+}
+
+// 알림을 누르면 열린 VADA 창에 주소를 알려 앞으로 가져오고, 창이 없거나 실패하면 새로 연다.
+// 열린 창을 navigate하지 않는다(아이폰 WebKit이 첫 화면만 여는 일이 있다).
+async function openFromNotification(path) {
+  for (const client of await openWindows()) {
+    try {
+      client.postMessage({ type: 'vada:open', url: path })
+      await client.focus()
+      return
+    } catch {
+      // 다음 창이나 새 창으로 넘어간다.
+    }
+  }
+  await self.clients.openWindow(new URL(path, self.location.origin).href)
+}
+
 self.addEventListener('notificationclick', event => {
   event.notification.close()
-  const url = new URL(sameSitePath(event.notification.data?.url), self.location.origin).href
-  event.waitUntil(
-    (async () => {
-      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      const open = windows.find(client => new URL(client.url).origin === self.location.origin)
-      if (open) {
-        await open.focus()
-        if (open.url !== url) await open.navigate(url).catch(() => {})
-        return
-      }
-      await self.clients.openWindow(url)
-    })(),
-  )
+  const path = sameSitePath(event.notification.data?.url)
+  event.waitUntil(openFromNotification(path).catch(() => {}))
 })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { invitePath } from '../councils/invite-path'
 import { authClient } from './auth-client'
+import { forgetThisDevice } from '../push/push-logout'
 import { AUTH_DONE_PATH, startPopupLogin } from './popup-login'
 import type { Invite } from './useInviteEntry'
 
@@ -45,6 +46,8 @@ async function signInInApp(): Promise<string> {
 }
 
 async function signOut(): Promise<string> {
+  // 이 기기로 이 계정의 알림이 더 오지 않게 먼저 지운다. 못 지워도 로그아웃은 한다.
+  await forgetThisDevice()
   try {
     const result = await authClient.signOut()
     return result.error ? logoutFailed : ''

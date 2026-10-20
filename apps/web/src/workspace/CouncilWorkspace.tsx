@@ -1,5 +1,6 @@
 import type { MyCouncil } from '@vada/contracts'
 import { useRoomList } from '../chat/useRoomList'
+import PushOffBand from '../push/PushOffBand'
 import type { Opener, Page, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
 import { useCouncilData } from './useCouncilData'
@@ -9,11 +10,13 @@ import WorkspaceFrame from './WorkspaceFrame'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar from './WorkspaceSidebar'
 
-type Props = Omit<WorkspaceProps, 'initialCouncilId'> & {
+type Props = Omit<WorkspaceProps, 'initialCouncilId' | 'chatLink'> & {
   council: MyCouncil
   onSelect: (councilId: string, from: Opener) => void
   returnFocusTo: Opener | null
   startPage: Page
+  // 알림으로 열 방. 대화가 이 방에서 시작한다.
+  roomId: string | undefined
 }
 
 export default function CouncilWorkspace({
@@ -22,6 +25,7 @@ export default function CouncilWorkspace({
   onSelect,
   returnFocusTo,
   startPage,
+  roomId,
   user,
   logoutBusy,
   onLogout,
@@ -60,7 +64,8 @@ export default function CouncilWorkspace({
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
       />
-      <WorkspaceContent data={data} rooms={rooms} page={nav.page} />
+      <PushOffBand visible={nav.page === 'chat'} />
+      <WorkspaceContent data={data} rooms={rooms} page={nav.page} roomId={roomId} />
     </WorkspaceFrame>
   )
 }

@@ -19,6 +19,8 @@ type Props = {
   rooms: RoomListHook
   // 권한이 바뀌었을 때 학생회를 다시 읽게 한다.
   onForbidden: () => void
+  // 알림으로 열면 방 목록 대신 이 방에서 시작한다.
+  initialRoomId?: string | undefined
   onScreen: (screen: Screen) => void
 }
 
@@ -75,7 +77,9 @@ function ListScreen({ councilId, view, team, rooms, onForbidden, onScreen }: Pro
 
 // 대화: 방 목록 → 방, 공지 모아 보기. 목록에서 시작한다.
 export default function ChatPage(props: Omit<Props, 'onScreen'>) {
-  const [screen, setScreen] = useState<Screen>({ kind: 'list' })
+  const [screen, setScreen] = useState<Screen>(() =>
+    props.initialRoomId ? { kind: 'room', roomId: props.initialRoomId } : { kind: 'list' },
+  )
   const list = () => setScreen({ kind: 'list' })
   if (screen.kind === 'room')
     return (

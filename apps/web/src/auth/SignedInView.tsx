@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import JoinCouncil from '../councils/JoinCouncil'
 import MyCouncils from '../councils/MyCouncils'
 import PushSettingsButton from '../push/PushSettings'
+import type { ChatLink } from '../workspace/useChatLink'
 import AuthPage from './AuthPage'
 import type { Invite } from './useInviteEntry'
 import StateMessage from '@/components/StateMessage'
@@ -12,6 +13,8 @@ type Props = {
   user: User
   invite: Invite | null
   opened: string | undefined
+  // 알림을 눌러 열 방. 내 학생회가 아니면 무시한다.
+  chatLink: ChatLink | null
   busy: boolean
   message: string
   onEnterCode: (code: string) => void
@@ -67,6 +70,7 @@ export default function SignedInView({
   user,
   invite,
   opened,
+  chatLink,
   busy,
   message,
   onEnterCode,
@@ -97,6 +101,7 @@ export default function SignedInView({
         key={`${user.id}:${opened ?? ''}`}
         user={user}
         initialCouncilId={opened}
+        chatLink={chatLink}
         card={content => (
           <SignedInCard user={user} busy={busy} onLogout={onLogout}>
             {content}

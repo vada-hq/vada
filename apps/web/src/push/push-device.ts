@@ -31,14 +31,19 @@ export async function saveDevice(subscription: BrowserSubscription): Promise<Sav
   }
 }
 
-// 끝난 구독은 서버에서도 지운다(바탕 spec G10). 실패해도 화면은 그대로 둔다.
-export function forgetDevice(endpoint: string) {
-  void fetch('/api/me/push/devices/remove', {
+// 서버의 이 기기 줄을 지운다. 연결이 실패하면 던진다(부르는 쪽이 정한다).
+export async function removeDevice(endpoint: string): Promise<void> {
+  await fetch('/api/me/push/devices/remove', {
     method: 'POST',
     credentials: 'same-origin',
     headers: JSON_HEADERS,
     body: JSON.stringify({ endpoint }),
-  }).catch(() => undefined)
+  })
+}
+
+// 끝난 구독은 서버에서도 지운다(바탕 spec G10). 실패해도 화면은 그대로 둔다.
+export function forgetDevice(endpoint: string) {
+  void removeDevice(endpoint).catch(() => undefined)
 }
 
 export type EnableResult =

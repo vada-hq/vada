@@ -55,6 +55,7 @@ export {
   koreanYearOf,
 } from './korean-time.js'
 export {
+  chatRoomFromPath,
   chatRoomTag,
   chatRoomUrl,
   PUSH_BODY_MAX,

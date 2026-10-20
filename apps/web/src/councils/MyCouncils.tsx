@@ -1,4 +1,5 @@
 import { useCallback, useState, type ReactNode } from 'react'
+import type { ChatLink } from '../workspace/useChatLink'
 import Workspace from '../workspace/Workspace'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,8 @@ type Props = {
   user: { name: string }
   // 방금 들어온 학생회. 있으면 그 학생회를 먼저 연다.
   initialCouncilId?: string | undefined
+  // 알림을 눌러 열 방. 내 학생회의 방일 때만 쓴다.
+  chatLink?: ChatLink | null | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
   card: (content: ReactNode) => ReactNode
   onEnterCode: (code: string) => void
@@ -30,7 +33,7 @@ function LoadFailed({ onRetry }: { onRetry: () => void }) {
 }
 
 // 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 작업 공간이다.
-export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Props) {
+export default function MyCouncils({ user, initialCouncilId, chatLink, card, ...rest }: Props) {
   const { state, reload, add, remove } = useMyCouncils()
   const [opened, setOpened] = useState(initialCouncilId)
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고, 서버의 목록을 다시 읽는다.
@@ -54,11 +57,14 @@ export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Pr
         }}
       />,
     )
+  // 내 학생회가 아닌 학생회의 방 주소는 무시한다. 아무것도 바뀌지 않는다.
+  const link = state.councils.some(item => item.id === chatLink?.councilId) ? chatLink : null
   return (
     <Workspace
-      key={opened ?? ''}
+      key={`${opened ?? ''}:${link?.seq ?? ''}`}
       councils={state.councils}
       initialCouncilId={opened}
+      chatLink={link}
       user={user}
       logoutBusy={rest.logoutBusy}
       onLogout={rest.onLogout}

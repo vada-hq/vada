@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { PUSH_ARRIVED_EVENT } from './service-worker'
 import { useLatest } from './use-latest'
 
 // 화면이 보이는 동안만 일정 간격으로 run을 부른다. 숨으면 멈추고, 다시 보이면 바로 한 번 부르고 이어 간다.
@@ -21,10 +22,16 @@ export function useVisiblePoll(run: () => void, intervalMs: number) {
       start()
     }
     if (document.visibilityState === 'visible') start()
+    // 푸시가 오면 보이는 화면은 바로 한 번 더 읽는다.
+    const onPush = () => {
+      if (document.visibilityState === 'visible') latest.current()
+    }
     document.addEventListener('visibilitychange', onChange)
+    window.addEventListener(PUSH_ARRIVED_EVENT, onPush)
     return () => {
       stop()
       document.removeEventListener('visibilitychange', onChange)
+      window.removeEventListener(PUSH_ARRIVED_EVENT, onPush)
     }
   }, [intervalMs, latest])
 }

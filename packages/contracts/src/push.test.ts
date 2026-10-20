@@ -1,6 +1,26 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { PUSH_ENDPOINT_MAX, PushSubscriptionSchema, RemovePushDeviceSchema } from './push.js'
+import {
+  chatRoomFromPath,
+  chatRoomUrl,
+  PUSH_ENDPOINT_MAX,
+  PushSubscriptionSchema,
+  RemovePushDeviceSchema,
+} from './push.js'
+
+test('chatRoomFromPath: 서버가 보내는 방 주소를 학생회와 방으로 읽는다', () => {
+  assert.deepEqual(chatRoomFromPath(chatRoomUrl('c-1', 'r-1')), {
+    councilId: 'c-1',
+    roomId: 'r-1',
+  })
+  assert.deepEqual(chatRoomFromPath('/chat/c%201/r'), { councilId: 'c 1', roomId: 'r' })
+})
+
+test('chatRoomFromPath: 다른 모양의 주소는 읽지 않는다', () => {
+  for (const path of ['/', '/chat', '/chat/c', '/chat/c/', '/chat//r', '/chat/c/r/x', '/join/c/r'])
+    assert.equal(chatRoomFromPath(path), null, path)
+  assert.equal(chatRoomFromPath('/chat/%E0%A4%A/r'), null)
+})
 
 const valid = {
   endpoint: 'https://fcm.googleapis.com/fcm/send/abc',

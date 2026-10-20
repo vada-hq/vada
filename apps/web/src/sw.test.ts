@@ -6,7 +6,8 @@ const source = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8')
 type Client = {
   url: string
   focus: () => Promise<unknown>
-  navigate: (url: string) => Promise<unknown>
+  navigate?: (url: string) => Promise<unknown>
+  postMessage?: (message: unknown) => void
 }
 
 // 가짜 서비스 워커 전역(self)에 sw.js를 불러 이벤트를 보낸다.
@@ -110,19 +111,82 @@ test('점 경로를 앞세워 //로 시작하게 만든 주소도 맨 앞 화면
   })
 })
 
-test('알림을 누르면 열린 VADA 창을 앞으로 가져와 그 주소로 보낸다', async () => {
+function openWindowClient(overrides: Partial<Client> = {}) {
   const window: Client = {
     url: 'https://vada.test/',
     focus: vi.fn(async () => window),
     navigate: vi.fn(async () => window),
+    postMessage: vi.fn(),
+    ...overrides,
   }
+  return window
+}
+const click = (url: string) => ({ notification: { close: vi.fn(), data: { url } } })
+
+test('알림을 누르면 열린 VADA 창에 주소를 알리고 앞으로 가져온다(navigate는 쓰지 않는다)', async () => {
+  const window = openWindowClient()
   const { self, fire } = load([window])
-  const close = vi.fn()
-  await fire('notificationclick', { notification: { close, data: { url: '/?from=push' } } })
-  expect(close).toHaveBeenCalled()
+  const event = click('/chat/c1/r1')
+  await fire('notificationclick', event)
+  expect(event.notification.close).toHaveBeenCalled()
+  expect(window.postMessage).toHaveBeenCalledWith({ type: 'vada:open', url: '/chat/c1/r1' })
   expect(window.focus).toHaveBeenCalled()
-  expect(window.navigate).toHaveBeenCalledWith('https://vada.test/?from=push')
+  expect(window.navigate).not.toHaveBeenCalled()
   expect(self.clients.openWindow).not.toHaveBeenCalled()
+})
+
+test('열린 창에 알리거나 앞으로 가져오는 일이 실패하면 새 창으로 연다', async () => {
+  for (const broken of [
+    { focus: vi.fn(async () => Promise.reject(new Error('x'))) },
+    {
+      postMessage: vi.fn(() => {
+        throw new Error('x')
+      }),
+    },
+  ]) {
+    const { self, fire } = load([openWindowClient(broken)])
+    await fire('notificationclick', click('/chat/c1/r1'))
+    expect(self.clients.openWindow).toHaveBeenCalledWith('https://vada.test/chat/c1/r1')
+  }
+})
+
+test('창 찾기나 새 창 열기가 실패해도 멈추지 않는다', async () => {
+  const { self, fire } = load()
+  self.clients.matchAll.mockRejectedValue(new Error('x'))
+  self.clients.openWindow.mockRejectedValue(new Error('y'))
+  await fire('notificationclick', click('/chat/c1/r1'))
+  expect(self.clients.openWindow).toHaveBeenCalledWith('https://vada.test/chat/c1/r1')
+})
+
+test('푸시가 오면 열린 VADA 창에 알려 바로 다시 읽게 한다', async () => {
+  const window = openWindowClient()
+  const broken = openWindowClient({
+    postMessage: () => {
+      throw new Error('x')
+    },
+  })
+  const { self, fire } = load([broken, window])
+  await fire('push', { data: { json: () => ({ title: 'x', body: 'y', url: '/' }) } })
+  expect(window.postMessage).toHaveBeenCalledWith({ type: 'vada:push' })
+  expect(self.registration.showNotification).toHaveBeenCalled()
+})
+
+test('창 찾기가 실패해도 알림은 띄운다', async () => {
+  const { self, fire } = load()
+  self.clients.matchAll.mockRejectedValue(new Error('x'))
+  await fire('push', { data: { json: () => ({ title: 'x', body: 'y', url: '/' }) } })
+  expect(self.registration.showNotification).toHaveBeenCalledTimes(1)
+})
+
+test('tag가 있으면 같은 방 알림을 갈아 끼운다', async () => {
+  const { self, fire } = load()
+  await fire('push', {
+    data: { json: () => ({ title: 'x', body: 'y', url: '/', tag: 'room:r1' }) },
+  })
+  await fire('push', { data: { json: () => ({ title: 'x', body: 'y', url: '/', tag: 7 }) } })
+  const [first, second] = self.registration.showNotification.mock.calls
+  expect(first![1]).toMatchObject({ tag: 'room:r1', renotify: true })
+  expect(second![1]).not.toHaveProperty('tag')
 })
 
 test('열린 창이 없으면 새로 연다', async () => {

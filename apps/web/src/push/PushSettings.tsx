@@ -30,6 +30,27 @@ export function PushSettingsBody({ environment }: { environment?: PushEnvironmen
   )
 }
 
+// 휴대폰 알림 대화상자. 종 버튼과 '알림 켜기' 띠가 같이 쓴다.
+export function PushDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>휴대폰 알림</DialogTitle>
+          <DialogDescription>새 글과 부름을 휴대폰 알림으로 받아요.</DialogDescription>
+        </DialogHeader>
+        {open && <PushSettingsBody />}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // 옆 메뉴 아래 종 모양 버튼. 휴대폰 알림을 켜고 시험한다(휴대폰 길 spec).
 export default function PushSettingsButton() {
   const [open, setOpen] = useState(false)
@@ -44,15 +65,7 @@ export default function PushSettingsButton() {
       >
         <Bell />
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>휴대폰 알림</DialogTitle>
-            <DialogDescription>새 글과 부름을 휴대폰 알림으로 받아요.</DialogDescription>
-          </DialogHeader>
-          {open && <PushSettingsBody />}
-        </DialogContent>
-      </Dialog>
+      <PushDialog open={open} onOpenChange={setOpen} />
     </>
   )
 }

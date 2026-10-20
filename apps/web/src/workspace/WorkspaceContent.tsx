@@ -11,12 +11,13 @@ import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
 
-type Props = { data: CouncilData; rooms: RoomList; page: Page }
+type Props = { data: CouncilData; rooms: RoomList; page: Page; roomId?: string | undefined }
 
 function PageOf({
   data,
   rooms,
   page,
+  roomId,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
@@ -27,6 +28,7 @@ function PageOf({
         view={view}
         team={data.team}
         rooms={rooms}
+        initialRoomId={roomId}
         onForbidden={data.reload}
       />
     )
@@ -45,7 +47,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, page }: Props) {
+function Body({ data, rooms, page, roomId }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -63,7 +65,16 @@ function Body({ data, rooms, page }: Props) {
       </Card>
     )
   if (state.kind !== 'ready') return <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-  return <PageOf data={data} rooms={rooms} page={page} view={state.view} reading={state.reading} />
+  return (
+    <PageOf
+      data={data}
+      rooms={rooms}
+      page={page}
+      roomId={roomId}
+      view={state.view}
+      reading={state.reading}
+    />
+  )
 }
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.
