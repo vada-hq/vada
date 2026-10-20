@@ -44,7 +44,7 @@ test('학생회 만들기는 한 거래로 운영진, 로그인 잇기, 학생�
   const testDb = await createTestDb()
   const { pg } = testDb
   try {
-    await addUser(pg, 'u1', '김회장', 'kim@example.test')
+    await addUser(pg, 'u1', { name: '김회장', email: 'kim@example.test' })
     const response = await appOf(testDb).post('/api/organizations/create', body, 'u1')
     assert.equal(response.status, 201)
     const { council } = (await response.json()) as CreateCouncilResponse
@@ -108,7 +108,7 @@ test('학생회 만들기는 한 거래로 운영진, 로그인 잇기, 학생�
 test('학생회 만들기 응답은 거래 안에서 만든다: 거래 밖에서 읽지 않아도 201이고, 응답은 내 학생회 목록의 한 줄과 같다', async () => {
   const testDb = await createTestDb()
   try {
-    await addUser(testDb.pg, 'u1', '김회장')
+    await addUser(testDb.pg, 'u1', { name: '김회장' })
     const response = await appOf(testDb, noon, withoutReadsOutsideTransaction(testDb.db)).post(
       '/api/organizations/create',
       body,
@@ -171,8 +171,8 @@ test('학생회 만들기 중간에 실패하면 아무것도 남지 않는다',
 test('내 학생회 목록과 학생회 하나 보기: 만든 사람은 회장이고 조직 칸 권한을 모두 가진다', async () => {
   const testDb = await createTestDb()
   try {
-    await addUser(testDb.pg, 'u1', '김회장')
-    await addUser(testDb.pg, 'u2', '이방문')
+    await addUser(testDb.pg, 'u1', { name: '김회장' })
+    await addUser(testDb.pg, 'u2', { name: '이방문' })
     const api = appOf(testDb)
     const { council } = (await (
       await api.post('/api/organizations/create', body, 'u1')
@@ -440,12 +440,12 @@ test('다른 계정에 이어진 운영진이 같은 이메일을 쓰면 만들�
   const testDb = await createTestDb()
   const { pg } = testDb
   try {
-    await addUser(pg, 'old', '예전 계정', 'park@example.test')
+    await addUser(pg, 'old', { name: '예전 계정', email: 'park@example.test' })
     const api = appOf(testDb)
     assert.equal((await api.post('/api/organizations/create', body, 'old')).status, 201)
     // 같은 이메일이 다른 Google 계정으로 옮겨 간 경우(드물다)
     await pg.query("UPDATE users SET email = 'park-old@example.test' WHERE id = 'old'")
-    await addUser(pg, 'new', '새 계정', 'park@example.test')
+    await addUser(pg, 'new', { name: '새 계정', email: 'park@example.test' })
     const before = (await pg.query('SELECT 1 FROM record')).rows.length
     const response = await api.post(
       '/api/organizations/create',

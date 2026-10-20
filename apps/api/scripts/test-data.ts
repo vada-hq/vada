@@ -28,6 +28,9 @@ export type TestDepartment = keyof typeof TEST_DEPARTMENTS
 export type TestDataCommand =
   | { command: 'seed'; userId: string; apply: boolean }
   | { command: 'assign'; userId: string; department: TestDepartment; apply: boolean }
+const isTestDepartment = (value: string | undefined): value is TestDepartment =>
+  value !== undefined && Object.hasOwn(TEST_DEPARTMENTS, value)
+
 export function parseTestDataArgs(args: readonly string[]): TestDataCommand | null {
   const apply = args.at(-1) === '--apply'
   const rest = apply ? args.slice(0, -1) : args
@@ -35,13 +38,8 @@ export function parseTestDataArgs(args: readonly string[]): TestDataCommand | nu
   // 계정 번호 자리에 플래그가 들어오면(seed --apply) 계정 번호가 빠진 것이다.
   if (extra.length > 0 || !userId?.trim() || userId.startsWith('-')) return null
   if (command === 'seed' && department === undefined) return { command, userId, apply }
-  if (
-    command === 'assign' &&
-    department !== undefined &&
-    Object.hasOwn(TEST_DEPARTMENTS, department)
-  ) {
-    return { command, userId, department: department as TestDepartment, apply }
-  }
+  if (command === 'assign' && isTestDepartment(department))
+    return { command, userId, department, apply }
   return null
 }
 
@@ -168,6 +166,10 @@ export async function assignTestMember(db: Db, userId: string, target: TestDepar
     if (!wanted) throw new Error('Seed the test council first')
     if (member.departments.some(item => item.departmentId !== wanted.id))
       throw new Error('Existing department assignment cannot be overwritten')
-    await assignDepartment(tx, president, member.memberId, wanted.id, null)
+    await assignDepartment(tx, president, {
+      memberId: member.memberId,
+      departmentId: wanted.id,
+      rank: null,
+    })
   })
 }

@@ -24,13 +24,15 @@ export type ForgetDevice = (userId: string, endpoint: string) => Promise<void>
 
 // 휴대폰 알림. 시험 알림은 저장한 기기와 상관없이 받은 구독으로 보낸다(휴대폰 길 spec). 기기 저장은 devices.ts가 맡는다.
 // 끝난(expired) 구독이면 보낸 사람의 그 기기 줄도 지운다. 화면의 지우기 요청이 실패해도 줄이 남지 않는다. 지우기가 실패해도 시험 알림 결과는 그대로다.
-export function createPushRoutes(
-  getSession: SessionReader,
-  publicKey: string,
-  send: PushSender,
-  wait: (ms: number) => Promise<void> = sleep,
-  forget: ForgetDevice = async () => {},
-) {
+export interface PushRoutesOptions {
+  publicKey: string
+  send: PushSender
+  wait?: (ms: number) => Promise<void>
+  forget?: ForgetDevice
+}
+
+export function createPushRoutes(getSession: SessionReader, options: PushRoutesOptions) {
+  const { publicKey, send, wait = sleep, forget = async () => {} } = options
   const routes = new Hono<SessionEnv>()
   const authenticated = requireSession(getSession)
   routes.get('/me/push', authenticated, c => c.json({ publicKey } satisfies PushKeyResponse))

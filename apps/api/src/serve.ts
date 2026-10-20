@@ -13,23 +13,35 @@ import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
 import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createTeamRoutes } from './team/routes.js'
+import type { SessionReader } from './auth/require-session.js'
+import type { Db } from './db/types.js'
 
-function main() {
-  const { env, production, hostname, port } = readRuntime(
-    process.env,
-    process.argv.includes('--production'),
-  )
-  if (production) process.env.NODE_ENV = 'production'
-  if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development'))
-    console.log('오류 알림 켜짐 (Sentry)')
-  // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
+type Env = NodeJS.ProcessEnv
+
+// DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
+function connectDb(env: Env) {
   const client = postgres(env.DATABASE_URL!, {
     max: 5,
     ssl: { rejectUnauthorized: true },
     connect_timeout: 15,
     onnotice: () => {},
   })
-  const db = drizzle(client)
+  return { client, db: drizzle(client) }
+}
+
+// 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
+function pushRoutesOf(env: Env, db: Db, session: SessionReader) {
+  const pushConfig = pushConfigFrom(env)
+  if (!pushConfig) return undefined
+  console.log('휴대폰 알림 켜짐 (Web Push)')
+  return createPushRoutes(session, {
+    publicKey: pushConfig.publicKey,
+    send: createPushSender(pushConfig),
+    forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
+  })
+}
+
+function appOf(env: Env, db: Db) {
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET!,
     baseURL: env.BETTER_AUTH_URL!,
@@ -37,32 +49,23 @@ function main() {
     googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
-  const councils = createCouncilRoutes(db, session)
-  const invites = createInviteRoutes(db, session)
-  const team = createTeamRoutes(db, session)
-  const pushDevices = createPushDeviceRoutes(db, session)
-  // 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
-  const pushConfig = pushConfigFrom(env)
-  if (pushConfig) console.log('휴대폰 알림 켜짐 (Web Push)')
-  const push = pushConfig
-    ? createPushRoutes(
-        session,
-        pushConfig.publicKey,
-        createPushSender(pushConfig),
-        undefined,
-        (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
-      )
-    : undefined
-  const app = createApp({
+  return createApp({
     auth,
     trustedOrigin: env.BETTER_AUTH_URL!,
-    councils,
-    invites,
-    team,
-    push,
-    pushDevices,
+    councils: createCouncilRoutes(db, session),
+    invites: createInviteRoutes(db, session),
+    team: createTeamRoutes(db, session),
+    push: pushRoutesOf(env, db, session),
+    pushDevices: createPushDeviceRoutes(db, session),
   })
-  if (production) attachWeb(app)
+}
+
+function listen(
+  app: ReturnType<typeof appOf>,
+  client: { end(options: { timeout: number }): Promise<void> },
+  address: { hostname: string; port: number; production: boolean },
+) {
+  const { hostname, port, production } = address
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)
   })
@@ -79,6 +82,20 @@ function main() {
   }
   process.once('SIGTERM', shutdown)
   process.once('SIGINT', shutdown)
+}
+
+function main() {
+  const { env, production, hostname, port } = readRuntime(
+    process.env,
+    process.argv.includes('--production'),
+  )
+  if (production) process.env.NODE_ENV = 'production'
+  if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development'))
+    console.log('오류 알림 켜짐 (Sentry)')
+  const { client, db } = connectDb(env)
+  const app = appOf(env, db)
+  if (production) attachWeb(app)
+  listen(app, client, { hostname, port, production })
 }
 
 try {

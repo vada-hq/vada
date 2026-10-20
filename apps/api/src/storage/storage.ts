@@ -1,5 +1,5 @@
 import { AwsClient } from 'aws4fetch'
-import { ERROR_STATUS } from '@vada/contracts'
+import { NOT_FOUND } from '../http/status.js'
 
 export interface StoredObject {
   size: number
@@ -37,11 +37,7 @@ export function r2ConfigFrom(env: NodeJS.ProcessEnv): R2Config | null {
 }
 
 // Cloudflare R2의 S3 호환 주소에 SigV4로 서명한다. 버킷은 비공개다.
-export function createR2Storage(
-  config: R2Config,
-  fetcher: typeof fetch = fetch,
-  now: () => Date = () => new Date(),
-): ReceiptStorage {
+function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
   const client = new AwsClient({
     accessKeyId: config.accessKeyId,
     secretAccessKey: config.secretAccessKey,
@@ -79,6 +75,15 @@ export function createR2Storage(
       await client.sign(objectUrl(key).toString(), { method, aws: { datetime: stamp() } }),
     )
   }
+  return { objectUrl, presign, call }
+}
+
+export function createR2Storage(
+  config: R2Config,
+  fetcher: typeof fetch = fetch,
+  now: () => Date = () => new Date(),
+): ReceiptStorage {
+  const { objectUrl, presign, call } = r2Access(config, fetcher, now)
   return {
     async uploadUrl(key, contentType) {
       const headers = { 'Content-Type': contentType }
@@ -100,7 +105,7 @@ export function createR2Storage(
     },
     async head(key) {
       const response = await call('HEAD', key)
-      if (response.status === ERROR_STATUS.NOT_FOUND) return null
+      if (response.status === NOT_FOUND) return null
       if (!response.ok) throw new Error('STORAGE_HEAD_FAILED')
       return {
         size: Number(response.headers.get('content-length') ?? '-1'),
@@ -109,8 +114,7 @@ export function createR2Storage(
     },
     async remove(key) {
       const response = await call('DELETE', key)
-      if (!response.ok && response.status !== ERROR_STATUS.NOT_FOUND)
-        throw new Error('STORAGE_DELETE_FAILED')
+      if (!response.ok && response.status !== NOT_FOUND) throw new Error('STORAGE_DELETE_FAILED')
     },
   }
 }

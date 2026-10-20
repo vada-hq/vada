@@ -37,7 +37,7 @@ function appOf(testDb: TestDb, db: TestDb['db'] = testDb.db) {
 // 회장 u1이 학생회를 만들고 u2·u3·u4가 초대로 들어온다. u5는 다른 학생회의 회장이다.
 async function setup(testDb: TestDb) {
   for (const user of ['u1', 'u2', 'u3', 'u4', 'u5'])
-    await addUser(testDb.pg, user, `이름 ${user}`, `${user}@example.test`)
+    await addUser(testDb.pg, user, { name: `이름 ${user}`, email: `${user}@example.test` })
   const api = appOf(testDb)
   const { council } = (await (
     await api.post('/api/organizations/create', body, 'u1')
@@ -90,7 +90,7 @@ const versionsOf = async (testDb: TestDb, recordId: string) =>
 // 한 사람(x)이 두 학생회 A와 B에 모두 들어 있다. 각 학생회의 회장이 x를 자기 재정부에 부장으로 넣는다. B에서는 부회장 직급도 준다.
 async function twoCouncils(testDb: TestDb) {
   for (const user of ['a', 'b', 'x'])
-    await addUser(testDb.pg, user, `이름 ${user}`, `${user}@example.test`)
+    await addUser(testDb.pg, user, { name: `이름 ${user}`, email: `${user}@example.test` })
   const api = appOf(testDb)
   const make = async (user: string, name: string) => {
     const { council } = (await (

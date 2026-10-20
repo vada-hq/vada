@@ -18,12 +18,11 @@ test('auth routes use the existing schema without external services', async t =>
       googleClientSecret: 'test-secret',
     })
     // 로그인한 사람만 쓰는 경로(휴대폰 알림 열쇠)로 세션 확인을 본다.
-    const push = createPushRoutes(
-      headers => auth.api.getSession({ headers }),
-      'PUBLIC',
-      async () => ({ result: 'sent' }),
-      async () => {},
-    )
+    const push = createPushRoutes(headers => auth.api.getSession({ headers }), {
+      publicKey: 'PUBLIC',
+      send: async () => ({ result: 'sent' }),
+      wait: async () => {},
+    })
     const app = createApp({ auth, trustedOrigin: 'http://127.0.0.1:5180', push })
     const request = (path: string, init?: RequestInit) =>
       app.request(`${baseURL}/api/auth/${path}`, init)

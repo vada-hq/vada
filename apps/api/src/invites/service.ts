@@ -26,70 +26,82 @@ export async function invitedCouncil(db: Pick<Db, 'select'>, code: string) {
   return found
 }
 
-// 초대 링크로 들어오기(바탕 spec G3, G4): 지금 기수에 직급과 부서 없이 바로 들어온다.
-// 이미 지금 소속이면 아무것도 바꾸지 않는다. 내보내졌던 사람은 같은 소속을 다시 연다. 직급과 부서는 돌아오지 않는다:
-// 다시 열기 전에 그 기수에 끝나지 않고 남은 부서 소속(재정부 포함)을 함께 끝낸다.
-export async function joinCouncil(
-  tx: Tx,
-  userId: string,
-  code: string,
-  now: Date,
-): Promise<string> {
+// 학생회 행을 잠가 코드 바꾸기, 내보내기와 한 번에 하나씩 처리한다(authorizeChange와 같은 잠금). 잠근 뒤 코드가 아직 그 학생회의 것인지 다시 본다.
+async function lockInvitedCouncil(tx: Tx, code: string) {
   const { id: councilId } = await invitedCouncil(tx, code)
-  // 학생회 행을 잠가 코드 바꾸기, 내보내기와 한 번에 하나씩 처리한다(authorizeChange와 같은 잠금). 잠근 뒤 코드가 아직 그 학생회의 것인지 다시 본다.
   await lockCouncil(tx, councilId)
   const [still] = await tx
     .select({ code: inviteCode.code })
     .from(inviteCode)
     .where(and(eq(inviteCode.councilId, councilId), eq(inviteCode.code, code)))
   if (!still) throw new ApiError('NOT_FOUND')
+  return councilId
+}
+
+async function currentCohortId(tx: Tx, councilId: string, now: Date) {
   const [current] = await tx
     .select({ id: cohort.id })
     .from(cohort)
     .where(and(eq(cohort.councilId, councilId), cohortIsCurrent(now)))
   if (!current) throw new ApiError('NO_CURRENT_COHORT')
+  return current.id
+}
+
+// 내보내졌던 사람이 돌아올 때 직급과 부서는 돌아오지 않는다: 같은 소속을 다시 열기 전에 그 기수에 끝나지 않고 남은 부서 소속을 함께 끝낸다.
+async function reopenMembership(tx: Tx, membershipId: string, memberId: string, cohortId: string) {
+  const open = await tx
+    .select({ id: departmentMembership.id })
+    .from(departmentMembership)
+    .where(
+      and(
+        eq(departmentMembership.memberId, memberId),
+        eq(departmentMembership.cohortId, cohortId),
+        isNull(departmentMembership.endsAt),
+      ),
+    )
+  const changes: AnyRecordChange[] = [
+    ...open.map(item => ({
+      kind: 'department_membership' as const,
+      id: item.id,
+      actor: memberId,
+      reason: null,
+      changes: { endsAt: clockNow },
+    })),
+    {
+      kind: 'council_membership',
+      id: membershipId,
+      actor: memberId,
+      reason: null,
+      changes: { startsAt: clockNow, endsAt: null, councilRank: null },
+    },
+  ]
+  await updateRecords(tx, changes)
+}
+
+// 초대 링크로 들어오기(바탕 spec G3, G4): 지금 기수에 직급과 부서 없이 바로 들어온다.
+// 이미 지금 소속이면 아무것도 바꾸지 않는다. 내보내졌던 사람은 같은 소속을 다시 연다.
+export async function joinCouncil(
+  tx: Tx,
+  userId: string,
+  code: string,
+  now: Date,
+): Promise<string> {
+  const councilId = await lockInvitedCouncil(tx, code)
+  const cohortId = await currentCohortId(tx, councilId, now)
   const memberId = await linkMember(tx, userId)
   const [membership] = await tx
     .select({ id: councilMembership.id, endsAt: councilMembership.endsAt })
     .from(councilMembership)
-    .where(
-      and(eq(councilMembership.memberId, memberId), eq(councilMembership.cohortId, current.id)),
-    )
+    .where(and(eq(councilMembership.memberId, memberId), eq(councilMembership.cohortId, cohortId)))
   if (!membership) {
     await createRecord(tx, {
       kind: 'council_membership',
       councilId,
       actor: memberId,
-      values: { memberId, cohortId: current.id, startsAt: clockNow },
+      values: { memberId, cohortId, startsAt: clockNow },
     })
   } else if (membership.endsAt !== null) {
-    const open = await tx
-      .select({ id: departmentMembership.id })
-      .from(departmentMembership)
-      .where(
-        and(
-          eq(departmentMembership.memberId, memberId),
-          eq(departmentMembership.cohortId, current.id),
-          isNull(departmentMembership.endsAt),
-        ),
-      )
-    const changes: AnyRecordChange[] = [
-      ...open.map(item => ({
-        kind: 'department_membership' as const,
-        id: item.id,
-        actor: memberId,
-        reason: null,
-        changes: { endsAt: clockNow },
-      })),
-      {
-        kind: 'council_membership',
-        id: membership.id,
-        actor: memberId,
-        reason: null,
-        changes: { startsAt: clockNow, endsAt: null, councilRank: null },
-      },
-    ]
-    await updateRecords(tx, changes)
+    await reopenMembership(tx, membership.id, memberId, cohortId)
   }
   return councilId
 }

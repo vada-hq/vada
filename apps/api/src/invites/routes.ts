@@ -18,6 +18,16 @@ import { json } from '../http/validate.js'
 import type { Db } from '../db/types.js'
 import { invitedCouncil, joinCouncil, rotateInviteCode } from './service.js'
 
+// 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 들어와졌는데 요청은 500이 된다.
+async function joinedCouncil(db: Db, userId: string, code: string, now: Date) {
+  return db.transaction(async tx => {
+    const councilId = await joinCouncil(tx, userId, code, now)
+    const joined = (await myCouncils(tx, userId, now)).find(item => item.id === councilId)
+    if (!joined) throw new Error('Council missing after join')
+    return joined
+  })
+}
+
 // 초대: 초대 확인과 들어오기(로그인한 누구나), 초대 코드 보기와 바꾸기(회장단, DEC-47).
 export function createInviteRoutes(
   db: Db,
@@ -34,20 +44,17 @@ export function createInviteRoutes(
     return c.json({ council: found, joined } satisfies InvitePreviewResponse)
   })
   routes.post('/organizations/join', json(JoinCouncilSchema), auth, async c => {
-    const now = clock()
-    const userId = c.get('userId')
-    // 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 들어와졌는데 요청은 500이 된다.
-    const council = await db.transaction(async tx => {
-      const councilId = await joinCouncil(tx, userId, c.req.valid('json').code, now)
-      const joined = (await myCouncils(tx, userId, now)).find(item => item.id === councilId)
-      if (!joined) throw new Error('Council missing after join')
-      return joined
-    })
+    const council = await joinedCouncil(db, c.get('userId'), c.req.valid('json').code, clock())
     return c.json({ council } satisfies JoinCouncilResponse)
   })
   routes.get('/organizations/:councilId/invite', auth, async c => {
     const councilId = councilIdOf(c.req.param('councilId'))
-    await authorize(db, c.get('userId'), councilId, 'invite.manage', clock())
+    await authorize(db, {
+      userId: c.get('userId'),
+      councilId,
+      action: 'invite.manage',
+      now: clock(),
+    })
     const [row] = await db
       .select({ code: inviteCode.code })
       .from(inviteCode)
@@ -61,14 +68,13 @@ export function createInviteRoutes(
     json(EmptyRequestSchema),
     auth,
     async c => {
-      const code = await inCouncilChange(
-        db,
-        c.get('userId'),
-        c.req.param('councilId'),
-        'invite.manage',
-        clock(),
-        rotateInviteCode,
-      )
+      const request = {
+        userId: c.get('userId'),
+        councilId: c.req.param('councilId'),
+        action: 'invite.manage' as const,
+        now: clock(),
+      }
+      const code = await inCouncilChange(db, request, rotateInviteCode)
       return c.json({ code } satisfies InviteCodeResponse)
     },
   )

@@ -174,24 +174,57 @@ test('authorize: 운영진이 아니거나 권한이 없으면 403이고, 바꾸
   try {
     const { people, councilId } = await seedCouncil(db, pg)
     await addUser(pg, 'stranger')
-    await assert.rejects(authorize(db, 'stranger', councilId, 'council.view', inside), {
-      code: 'FORBIDDEN',
-      status: 403,
-    })
-    await assert.rejects(authorize(db, people.ended.userId, councilId, 'council.view', inside), {
-      code: 'FORBIDDEN',
-      status: 403,
-    })
     await assert.rejects(
-      authorize(db, people.planningHead.userId, councilId, 'member.manage', inside),
+      authorize(db, {
+        userId: 'stranger',
+        councilId: councilId,
+        action: 'council.view',
+        now: inside,
+      }),
+      {
+        code: 'FORBIDDEN',
+        status: 403,
+      },
+    )
+    await assert.rejects(
+      authorize(db, {
+        userId: people.ended.userId,
+        councilId: councilId,
+        action: 'council.view',
+        now: inside,
+      }),
+      {
+        code: 'FORBIDDEN',
+        status: 403,
+      },
+    )
+    await assert.rejects(
+      authorize(db, {
+        userId: people.planningHead.userId,
+        councilId: councilId,
+        action: 'member.manage',
+        now: inside,
+      }),
       { code: 'FORBIDDEN', status: 403 },
     )
     assert.equal(
-      (await authorize(db, people.plain.userId, councilId, 'council.view', inside)).memberId,
+      (
+        await authorize(db, {
+          userId: people.plain.userId,
+          councilId: councilId,
+          action: 'council.view',
+          now: inside,
+        })
+      ).memberId,
       people.plain.memberId,
     )
     const actor = await db.transaction(tx =>
-      authorizeChange(tx, people.vicePresident.userId, councilId, 'member.manage', inside),
+      authorizeChange(tx, {
+        userId: people.vicePresident.userId,
+        councilId: councilId,
+        action: 'member.manage',
+        now: inside,
+      }),
     )
     assert.equal(actor.councilRank, 'vice_president')
   } finally {
@@ -213,13 +246,12 @@ test('authorizeChange: 권한을 보기 전에 학생회 행을 FOR NO KEY UPDAT
     const { people, councilId } = await seedCouncil(db, pg)
     queries.length = 0
     const held = await db.transaction(async tx => {
-      const actor = await authorizeChange(
-        tx,
-        people.vicePresident.userId,
+      const actor = await authorizeChange(tx, {
+        userId: people.vicePresident.userId,
         councilId,
-        'member.manage',
-        inside,
-      )
+        action: 'member.manage',
+        now: inside,
+      })
       assert.equal(actor.memberId, people.vicePresident.memberId)
       // 잠금을 건 문장은 council 표를 FOR NO KEY UPDATE로 읽고, 그 문장이 소속을 읽는 문장보다 먼저다.
       const lock = queries.findIndex(query => query.includes('from "council"'))
@@ -239,7 +271,14 @@ test('authorizeChange: 권한을 보기 전에 학생회 행을 FOR NO KEY UPDAT
     await addUser(pg, 'stranger')
     for (const user of [people.planningHead.userId, people.ended.userId, 'stranger']) {
       await assert.rejects(
-        db.transaction(tx => authorizeChange(tx, user, councilId, 'member.manage', inside)),
+        db.transaction(tx =>
+          authorizeChange(tx, {
+            userId: user,
+            councilId: councilId,
+            action: 'member.manage',
+            now: inside,
+          }),
+        ),
         { code: 'FORBIDDEN', status: 403 },
         user,
       )
@@ -255,13 +294,23 @@ test('학생회 번호 형식이 틀리면 authorize와 authorizeChange가 스�
     const { people, councilId } = await seedCouncil(db, pg)
     for (const bad of ['not-a-uuid', '', "' OR 1=1 --", councilId.slice(1)]) {
       await assert.rejects(
-        authorize(db, people.president.userId, bad, 'council.view', inside),
+        authorize(db, {
+          userId: people.president.userId,
+          councilId: bad,
+          action: 'council.view',
+          now: inside,
+        }),
         { code: 'FORBIDDEN', status: 403 },
         bad,
       )
       await assert.rejects(
         db.transaction(tx =>
-          authorizeChange(tx, people.president.userId, bad, 'member.manage', inside),
+          authorizeChange(tx, {
+            userId: people.president.userId,
+            councilId: bad,
+            action: 'member.manage',
+            now: inside,
+          }),
         ),
         { code: 'FORBIDDEN', status: 403 },
         bad,
@@ -270,13 +319,12 @@ test('학생회 번호 형식이 틀리면 authorize와 authorizeChange가 스�
     // 대문자 uuid는 같은 번호로 받아 소문자로 돌려준다.
     assert.equal(
       (
-        await authorize(
-          db,
-          people.president.userId,
-          councilId.toUpperCase(),
-          'council.view',
-          inside,
-        )
+        await authorize(db, {
+          userId: people.president.userId,
+          councilId: councilId.toUpperCase(),
+          action: 'council.view',
+          now: inside,
+        })
       ).councilId,
       councilId,
     )

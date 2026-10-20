@@ -9,9 +9,7 @@ export type Person = { userId: string; memberId: string }
 export async function addUser(
   pg: PGlite,
   userId: string,
-  name = userId,
-  email = `${userId}@example.test`,
-  emailVerified = true,
+  { name = userId, email = `${userId}@example.test`, emailVerified = true } = {},
 ) {
   await pg.query('INSERT INTO users (id, name, email, email_verified) VALUES ($1, $2, $3, $4)', [
     userId,
@@ -39,7 +37,7 @@ export async function seedCouncil(
     'plain',
     'ended',
   ] as const
-  for (const name of names) await addUser(pg, `${prefix}-${name}`, `${prefix} ${name}`)
+  for (const name of names) await addUser(pg, `${prefix}-${name}`, { name: `${prefix} ${name}` })
   return db.transaction(async tx => {
     const people = {} as Record<(typeof names)[number], Person>
     for (const name of names) {

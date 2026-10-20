@@ -16,17 +16,16 @@ function setup(outcome: Awaited<ReturnType<PushSender>> = { result: 'sent' }) {
   let userId: string | null = 'u1'
   const sent: Parameters<PushSender>[] = []
   const waits: number[] = []
-  const push = createPushRoutes(
-    async () => (userId ? { user: { id: userId } } : null),
-    'PUBLIC',
-    async (...args) => {
+  const push = createPushRoutes(async () => (userId ? { user: { id: userId } } : null), {
+    publicKey: 'PUBLIC',
+    send: async (...args) => {
       sent.push(args)
       return outcome
     },
-    async ms => {
+    wait: async ms => {
       waits.push(ms)
     },
-  )
+  })
   const app = createApp({
     auth: { handler: async () => new Response() },
     trustedOrigin: origin,
@@ -146,15 +145,14 @@ test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 
     new Error(`delete from push_device where endpoint = ${subscription.endpoint}`),
     { cause: { code: '57P01' } },
   )
-  const push = createPushRoutes(
-    async () => ({ user: { id: 'u1' } }),
-    'PUBLIC',
-    async () => ({ result: 'expired', status: 410 }),
-    async () => {},
-    async () => {
+  const push = createPushRoutes(async () => ({ user: { id: 'u1' } }), {
+    publicKey: 'PUBLIC',
+    send: async () => ({ result: 'expired', status: 410 }),
+    wait: async () => {},
+    forget: async () => {
       throw failure
     },
-  )
+  })
   const app = createApp({
     auth: { handler: async () => new Response() },
     trustedOrigin: origin,

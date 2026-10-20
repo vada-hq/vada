@@ -66,9 +66,11 @@ const placementOf = (tx: Tx, actor: Actor, memberId: string, departmentId: strin
 export async function assignDepartment(
   tx: Tx,
   actor: Actor,
-  memberId: string,
-  departmentId: string,
-  rank: DepartmentRank | null,
+  {
+    memberId,
+    departmentId,
+    rank,
+  }: { memberId: string; departmentId: string; rank: DepartmentRank | null },
 ) {
   await currentMembership(tx, actor, memberId)
   await departmentOf(tx, actor, departmentId)

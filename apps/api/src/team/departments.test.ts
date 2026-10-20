@@ -33,7 +33,7 @@ async function setup(testDb: TestDb) {
       team: createTeamRoutes(testDb.db, testSession, clock),
     }),
   )
-  for (const user of ['u1', 'u2', 'u3']) await addUser(testDb.pg, user, `이름 ${user}`)
+  for (const user of ['u1', 'u2', 'u3']) await addUser(testDb.pg, user, { name: `이름 ${user}` })
   const { council } = (await (
     await api.post('/api/organizations/create', body, 'u1')
   ).json()) as CreateCouncilResponse

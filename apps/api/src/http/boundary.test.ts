@@ -35,12 +35,11 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
-    push: createPushRoutes(
-      session,
-      'PUBLIC',
-      async () => ({ result: 'sent' }),
-      async () => {},
-    ),
+    push: createPushRoutes(session, {
+      publicKey: 'PUBLIC',
+      send: async () => ({ result: 'sent' }),
+      wait: async () => {},
+    }),
     pushDevices: createPushDeviceRoutes(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({

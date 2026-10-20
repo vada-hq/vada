@@ -46,7 +46,7 @@ function appOf(testDb: TestDb, now = noon, db: TestDb['db'] = testDb.db) {
 
 // 회장(u1)이 학생회를 만들고 초대 코드를 받는다.
 async function setup(testDb: TestDb, users = ['u1', 'u2', 'u3']) {
-  for (const user of users) await addUser(testDb.pg, user, `이름 ${user}`)
+  for (const user of users) await addUser(testDb.pg, user, { name: `이름 ${user}` })
   const api = appOf(testDb)
   const { council } = (await (
     await api.post('/api/organizations/create', body, 'u1')
@@ -554,10 +554,7 @@ test('rotateInviteCode는 이 학생회의 코드 한 줄을 새 코드로 바�
     const { council, code } = await setup(testDb)
     const next = await inCouncilChange(
       testDb.db,
-      'u1',
-      council.id,
-      'invite.manage',
-      noon,
+      { userId: 'u1', councilId: council.id, action: 'invite.manage', now: noon },
       (tx, actor) => rotateInviteCode(tx, actor),
     )
     assert.match(next, /^[2-9A-HJ-NP-Z]{8}$/)

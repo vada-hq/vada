@@ -29,8 +29,8 @@ test('흐름: 판의 개수와 바꾼 사람, 단계마다의 DB 상태', async 
         team: createTeamRoutes(db, testSession, clock),
       }),
     )
-    await addUser(pg, 'kim', '김회장', 'kim@example.test')
-    await addUser(pg, 'lee', '이운영', 'lee@example.test')
+    await addUser(pg, 'kim', { name: '김회장', email: 'kim@example.test' })
+    await addUser(pg, 'lee', { name: '이운영', email: 'lee@example.test' })
     const memberOf = async (user: string) =>
       (
         await pg.query<{ member_id: string }>(

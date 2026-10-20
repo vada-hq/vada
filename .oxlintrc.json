@@ -187,11 +187,7 @@
     // R01 임시 예외: 아래 묶음은 지금 상한을 넘는 파일이다(docs/features/r01-maintainability.md). 조각마다 고친 파일을 뺀다. 새 파일을 더하지 않는다. 비면 묶음을 지운다.
     {
       "files": [
-        "apps/api/scripts/test-data.ts",
         "apps/api/src/db/migrate-run.ts",
-        "apps/api/src/push/config.ts",
-        "apps/api/src/records/records.ts",
-        "apps/api/src/runtime.ts",
         "apps/web/src/App.tsx",
         "apps/web/src/push/PushPanel.tsx",
         "apps/web/src/push/usePush.ts",
@@ -205,16 +201,9 @@
     },
     {
       "files": [
-        "apps/api/src/councils/routes.ts",
         "apps/api/src/db/migrate-run.ts",
         "apps/api/src/db/pg-smoke-cases.ts",
         "apps/api/src/db/pg-smoke.ts",
-        "apps/api/src/invites/routes.ts",
-        "apps/api/src/invites/service.ts",
-        "apps/api/src/records/records.ts",
-        "apps/api/src/serve.ts",
-        "apps/api/src/storage/storage.ts",
-        "apps/api/src/team/routes.ts",
         "apps/web/src/App.tsx",
         "apps/web/src/auth/KakaoBlock.tsx",
         "apps/web/src/councils/CreateCouncilForm.tsx",
@@ -245,13 +234,7 @@
       }
     },
     {
-      "files": [
-        "apps/api/src/access/authorize.ts",
-        "apps/api/src/db/pg-smoke-cases.ts",
-        "apps/api/src/push/routes.ts",
-        "apps/api/src/team/service.ts",
-        "apps/api/src/test-support/council.ts"
-      ],
+      "files": ["apps/api/src/db/pg-smoke-cases.ts"],
       "rules": {
         "max-params": "off"
       }

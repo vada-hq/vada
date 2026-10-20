@@ -16,13 +16,7 @@ const PUBLIC_KEY_BYTES = 65
 const PRIVATE_KEY_BYTES = 32
 const UNCOMPRESSED_POINT_PREFIX = 4
 
-export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
-  const publicKey = env.VAPID_PUBLIC_KEY?.trim() ?? ''
-  const privateKey = env.VAPID_PRIVATE_KEY?.trim() ?? ''
-  const subject = env.VAPID_SUBJECT?.trim() ?? ''
-  const given = [publicKey, privateKey, subject].filter(Boolean).length
-  if (given === 0) return null
-  if (given < VALUE_COUNT) throw new Error('알림 열쇠 설정(VAPID) 세 값을 모두 넣거나 모두 빼세요.')
+function requireKeyShape(publicKey: string, privateKey: string) {
   const point = bytesOf(publicKey)
   if (
     !point ||
@@ -32,6 +26,16 @@ export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
   ) {
     throw new Error('알림 열쇠(VAPID) 형식을 확인하세요.')
   }
+}
+
+export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
+  const publicKey = env.VAPID_PUBLIC_KEY?.trim() ?? ''
+  const privateKey = env.VAPID_PRIVATE_KEY?.trim() ?? ''
+  const subject = env.VAPID_SUBJECT?.trim() ?? ''
+  const given = [publicKey, privateKey, subject].filter(Boolean).length
+  if (given === 0) return null
+  if (given < VALUE_COUNT) throw new Error('알림 열쇠 설정(VAPID) 세 값을 모두 넣거나 모두 빼세요.')
+  requireKeyShape(publicKey, privateKey)
   if (!/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/.test(subject))
     throw new Error('VAPID_SUBJECT는 mailto: 또는 https: 주소여야 합니다.')
   return { publicKey, privateKey, subject }

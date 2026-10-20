@@ -98,7 +98,7 @@
 - 수용 기준은 4와 같은 꼴이고, 알림 켜기, 시험 알림, 카카오톡 안 브라우저 안내가 전처럼 동작한다. 대상은 `App.tsx`, `Workspace.tsx`, `WorkspaceSidebar.tsx`, `usePush.ts`, `PushPanel.tsx`, `KakaoBlock.tsx`다.
 - 검토: 보통.
 
-### 8. 서버 함수 나누기 [ ]
+### 8. 서버 함수 나누기 [x]
 - 할 수 있게 되는 것: 서버 진입점과 라우트 묶음이 읽고 잇기만 하고, 판단은 시험이 있는 작은 함수에 있다.
 - 수용 기준: API 시험이 모두 통과한다. 대상 함수가 모두 상한 안이다. 대상은 `runtime.ts readRuntime`(복잡도 26), `push/config.ts pushConfigFrom`(15), `serve.ts main`, `team/routes.ts`, `councils/routes.ts`, `invites/routes.ts`, `records.updateRecords`, `invites/service.joinCouncil`, `storage.createR2Storage`, `scripts/test-data.ts parseTestDataArgs`, 그리고 인자 5개 이상인 6곳(`authorize`, `authorizeChange`, `inCouncilChange`, `assignDepartment`, `createPushRoutes`, 시험 도우미 `addUser`)이다. 운영 모드 시작(CI 단계)이 그대로 통과한다.
 - 검토: 깊게(로그인 잇기, 초대, 기록, 권한 확인이 권한과 데이터 경계다).

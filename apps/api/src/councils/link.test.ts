@@ -8,7 +8,7 @@ import { linkMember } from './link.js'
 test('처음 잇으면 운영진을 만든다: 이름은 로그인 이름, 이메일은 소문자. 다시 부르면 같은 운영진이다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
-    await addUser(pg, 'u1', '김회장', 'Kim.Hoe@Example.COM')
+    await addUser(pg, 'u1', { name: '김회장', email: 'Kim.Hoe@Example.COM' })
     const first = await db.transaction(tx => linkMember(tx, 'u1'))
     assert.equal(await db.transaction(tx => linkMember(tx, 'u1')), first)
     assert.deepEqual((await pg.query('SELECT name, email FROM member')).rows, [
@@ -46,7 +46,7 @@ test('같은 이메일의 잇지 않은 운영진이 있으면 그 운영진에 
         values: { name: '미리 적은 이름', email: 'lee@example.test' },
       }),
     )
-    await addUser(pg, 'u2', '이부원', 'LEE@Example.test')
+    await addUser(pg, 'u2', { name: '이부원', email: 'LEE@Example.test' })
     assert.equal(await db.transaction(tx => linkMember(tx, 'u2')), waiting)
     assert.equal((await pg.query('SELECT id FROM member')).rows.length, 1)
   } finally {
@@ -57,11 +57,11 @@ test('같은 이메일의 잇지 않은 운영진이 있으면 그 운영진에 
 test('다른 계정에 이어진 운영진이 같은 이메일을 쓰면 409 EMAIL_IN_USE이고 아무것도 만들지 않는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
-    await addUser(pg, 'old', '예전 계정', 'park@example.test')
+    await addUser(pg, 'old', { name: '예전 계정', email: 'park@example.test' })
     await db.transaction(tx => linkMember(tx, 'old'))
     // 같은 이메일이 다른 Google 계정으로 옮겨 간 경우(드물다)
     await pg.query("UPDATE users SET email = 'park-old@example.test' WHERE id = 'old'")
-    await addUser(pg, 'new', '새 계정', 'park@example.test')
+    await addUser(pg, 'new', { name: '새 계정', email: 'park@example.test' })
     await assert.rejects(
       db.transaction(tx => linkMember(tx, 'new')),
       { code: 'EMAIL_IN_USE', status: 409 },
@@ -84,7 +84,11 @@ test('이메일을 확인하지 않은 로그인은 같은 이메일의 운영�
         values: { name: '미리 적은 이름', email: 'lee@example.test' },
       }),
     )
-    await addUser(pg, 'unverified', '확인 안 된 사람', 'lee@example.test', false)
+    await addUser(pg, 'unverified', {
+      name: '확인 안 된 사람',
+      email: 'lee@example.test',
+      emailVerified: false,
+    })
     await assert.rejects(
       db.transaction(tx => linkMember(tx, 'unverified')),
       { code: 'EMAIL_IN_USE', status: 409 },
@@ -93,7 +97,11 @@ test('이메일을 확인하지 않은 로그인은 같은 이메일의 운영�
     assert.deepEqual((await pg.query('SELECT id FROM member')).rows, [{ id: waiting }])
     // 확인된 같은 이메일의 로그인이 오면 그 운영진에 잇는다.
     await pg.query("UPDATE users SET email = 'unverified@example.test' WHERE id = 'unverified'")
-    await addUser(pg, 'verified', '확인된 사람', 'lee@example.test', true)
+    await addUser(pg, 'verified', {
+      name: '확인된 사람',
+      email: 'lee@example.test',
+      emailVerified: true,
+    })
     assert.equal(await db.transaction(tx => linkMember(tx, 'verified')), waiting)
   } finally {
     await close()
@@ -103,7 +111,11 @@ test('이메일을 확인하지 않은 로그인은 같은 이메일의 운영�
 test('이메일을 확인하지 않은 로그인도 같은 이메일의 운영진이 없으면 새 운영진이 된다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
-    await addUser(pg, 'fresh', '새 사람', 'fresh@example.test', false)
+    await addUser(pg, 'fresh', {
+      name: '새 사람',
+      email: 'fresh@example.test',
+      emailVerified: false,
+    })
     const memberId = await db.transaction(tx => linkMember(tx, 'fresh'))
     assert.deepEqual((await pg.query('SELECT id, name, email FROM member')).rows, [
       { id: memberId, name: '새 사람', email: 'fresh@example.test' },

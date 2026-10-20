@@ -129,7 +129,7 @@ const changed = <T>(
   councilId: string,
   action: Action,
   run: (tx: Tx, actor: Actor) => Promise<T>,
-) => inCouncilChange(db, userId, councilId, action, context.now, run)
+) => inCouncilChange(db, { userId, councilId, action, now: context.now }, run)
 
 async function inviteCodeOf(db: Db, councilId: string) {
   const [row] = await db
@@ -222,7 +222,7 @@ export const writePathCase: SmokeCase = {
       await joined(db, context, W.member, await inviteCodeOf(db, councilId))
       const memberId = await memberIdOf(db, W.member)
       await change('member.manage', (tx, actor) =>
-        assignDepartment(tx, actor, memberId, planning.id, null),
+        assignDepartment(tx, actor, { memberId, departmentId: planning.id, rank: null }),
       )
       await change('council.update', (tx, actor) => updateSettings(tx, actor, WRITE_SETTINGS))
       const [placement] = await db

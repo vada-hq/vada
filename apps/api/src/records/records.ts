@@ -126,52 +126,60 @@ function rowCount(result: unknown): number {
   return rows.length
 }
 
-// 여러 기록을 차례로 바꾼다. 하위 행을 잠그고 바꾼 뒤, 지금 판을 닫고 새 판을 연다.
-// 회장이 없어지는 변경은 막는다(DEC-17, DEC-47). 회장 넘기기처럼 한 번에 거두고 주는 변경은 모두 바꾼 뒤에 본다.
-// 회장 넘기기는 거두기를 먼저, 주기를 나중에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어, 주기를 먼저 하면
-// 그 자리에서 DB 오류(23505)로 거부된다. 거두기를 앞에 둘 책임은 부르는 쪽에 있다.
-export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[]) {
+function assertNoOwnershipChange(changes: readonly AnyRecordChange[]) {
   for (const change of changes) {
     const owned = Object.keys(change.changes).filter(key => ownershipKeys.has(key))
     if (owned.length)
       throw new Error(`${change.kind}: 주인 칸(${owned.join(', ')})은 바꾸지 않는다`)
   }
-  const presidentCohorts = new Set<string>()
-  for (const change of changes) {
-    const table: Table<RecordKind> = tables[change.kind]
-    // 하위 행 잠금이 가장 먼저다. 아래의 확정 여부와 회장이었는지 읽기는 이 잠금 뒤에 해야 같은 기록을 바꾸던 거래가 끝난 값을 본다.
-    // 학생회 행을 잠그지 않고 이 모듈을 부르는 쪽은 이 순서에 기댄다. 순서를 바꾸지 않는다.
-    // FOR NO KEY UPDATE: 같은 기록을 바꾸는 거래는 한 줄로 세우되, 이 행을 가리키는 행을 넣을 때의 외래 키 검사(FOR KEY SHARE)는 막지 않는다.
-    const [current] = await tx
-      .select({ id: table.id })
-      .from(table)
-      .where(eq(table.id, change.id))
-      .for('no key update')
-    if (!current) throw new ApiError('NOT_FOUND')
-    const [meta] = await tx
-      .select({ confirmedAt: record.confirmedAt })
-      .from(record)
-      .where(eq(record.id, change.id))
-    if (meta?.confirmedAt && !change.reason?.trim()) throw new ApiError('REASON_REQUIRED')
-    if (change.kind === 'council_membership') {
-      const [president] = await tx
-        .select({ cohortId: councilMembership.cohortId })
-        .from(councilMembership)
-        .where(
-          sql`${councilMembership.id} = ${change.id} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`,
-        )
-      if (president) presidentCohorts.add(president.cohortId)
-    }
-    // 새 판을 열려면 열린 지금 판이 있어야 한다. 하위 행을 쓰기 전에 먼저 보아, 없으면 아무것도 쓰지 않고 실패한다(거래를 되돌리는 드라이버에 기대지 않는다).
-    // 이 하위 행은 위에서 잠겼으므로 이 거래가 끝나기 전에는 열린 판이 바뀌지 않는다. 아래 새 판 열기의 확인은 그대로 둔다.
-    const [openVersion] = await tx
-      .select({ versionNo: recordVersion.versionNo })
-      .from(recordVersion)
-      .where(and(eq(recordVersion.recordId, change.id), sql`upper_inf(${recordVersion.valid})`))
-    if (!openVersion) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
-    await tx.update(table).set(change.changes).where(eq(table.id, change.id))
-    // 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
-    const opened = await tx.execute(sql`WITH closed AS (
+}
+
+// 하위 행 잠금이 가장 먼저다. 이어서 확정 여부와 회장이었는지 읽기는 이 잠금 뒤에 해야 같은 기록을 바꾸던 거래가 끝난 값을 본다.
+// 학생회 행을 잠그지 않고 이 모듈을 부르는 쪽은 이 순서에 기댄다. 순서를 바꾸지 않는다.
+// FOR NO KEY UPDATE: 같은 기록을 바꾸는 거래는 한 줄로 세우되, 이 행을 가리키는 행을 넣을 때의 외래 키 검사(FOR KEY SHARE)는 막지 않는다.
+async function lockRecord(tx: Tx, table: Table<RecordKind>, id: string) {
+  const [current] = await tx
+    .select({ id: table.id })
+    .from(table)
+    .where(eq(table.id, id))
+    .for('no key update')
+  if (!current) throw new ApiError('NOT_FOUND')
+}
+
+async function assertReasonGiven(tx: Tx, change: AnyRecordChange) {
+  const [meta] = await tx
+    .select({ confirmedAt: record.confirmedAt })
+    .from(record)
+    .where(eq(record.id, change.id))
+  if (meta?.confirmedAt && !change.reason?.trim()) throw new ApiError('REASON_REQUIRED')
+}
+
+// 바꾸기 전에 회장이던 학생회 구성원이면 그 기수를 돌려준다. 끝에서 회장이 남았는지 본다.
+async function presidentCohortOf(tx: Tx, change: AnyRecordChange) {
+  if (change.kind !== 'council_membership') return null
+  const [president] = await tx
+    .select({ cohortId: councilMembership.cohortId })
+    .from(councilMembership)
+    .where(
+      sql`${councilMembership.id} = ${change.id} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`,
+    )
+  return president?.cohortId ?? null
+}
+
+// 새 판을 열려면 열린 지금 판이 있어야 한다. 하위 행을 쓰기 전에 먼저 보아, 없으면 아무것도 쓰지 않고 실패한다(거래를 되돌리는 드라이버에 기대지 않는다).
+// 이 하위 행은 위에서 잠겼으므로 이 거래가 끝나기 전에는 열린 판이 바뀌지 않는다. 새 판 열기의 확인은 그대로 둔다.
+async function assertOpenVersion(tx: Tx, change: AnyRecordChange) {
+  const [openVersion] = await tx
+    .select({ versionNo: recordVersion.versionNo })
+    .from(recordVersion)
+    .where(and(eq(recordVersion.recordId, change.id), sql`upper_inf(${recordVersion.valid})`))
+  if (!openVersion) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
+}
+
+// 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
+// 새 판은 꼭 하나 열려야 한다. 열린 판이 없으면(판 없이 만든 기록, 이미 닫힌 판) 하위 행만 바뀌고 이력이 빠지므로 거래를 되돌린다.
+async function openNextVersion(tx: Tx, table: Table<RecordKind>, change: AnyRecordChange) {
+  const opened = await tx.execute(sql`WITH closed AS (
         UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(clock_timestamp(), lower(valid) + interval '1 microsecond'))
         WHERE record_id = ${change.id} AND upper_inf(valid)
         RETURNING version_no, upper(valid) AS ended_at
@@ -180,19 +188,37 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
       SELECT ${change.id}, closed.version_no + 1, tstzrange(closed.ended_at, NULL), to_jsonb(t), ${change.actor}, ${change.reason}
       FROM closed, ${table} t WHERE t.id = ${change.id}
       RETURNING version_no`)
-    // 새 판은 꼭 하나 열려야 한다. 열린 판이 없으면(판 없이 만든 기록, 이미 닫힌 판) 하위 행만 바뀌고 이력이 빠지므로 거래를 되돌린다.
-    if (rowCount(opened) !== 1)
-      throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
+  if (rowCount(opened) !== 1) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
+}
+
+async function assertPresidentRemains(tx: Tx, cohortId: string) {
+  const [president] = await tx
+    .select({ id: councilMembership.id })
+    .from(councilMembership)
+    .where(
+      sql`${councilMembership.cohortId} = ${cohortId} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`,
+    )
+  if (!president) throw new ApiError('PRESIDENT_REQUIRED')
+}
+
+// 여러 기록을 차례로 바꾼다. 하위 행을 잠그고 바꾼 뒤, 지금 판을 닫고 새 판을 연다.
+// 회장이 없어지는 변경은 막는다(DEC-17, DEC-47). 회장 넘기기처럼 한 번에 거두고 주는 변경은 모두 바꾼 뒤에 본다.
+// 회장 넘기기는 거두기를 먼저, 주기를 나중에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어, 주기를 먼저 하면
+// 그 자리에서 DB 오류(23505)로 거부된다. 거두기를 앞에 둘 책임은 부르는 쪽에 있다.
+export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[]) {
+  assertNoOwnershipChange(changes)
+  const presidentCohorts = new Set<string>()
+  for (const change of changes) {
+    const table: Table<RecordKind> = tables[change.kind]
+    await lockRecord(tx, table, change.id)
+    await assertReasonGiven(tx, change)
+    const cohortId = await presidentCohortOf(tx, change)
+    if (cohortId) presidentCohorts.add(cohortId)
+    await assertOpenVersion(tx, change)
+    await tx.update(table).set(change.changes).where(eq(table.id, change.id))
+    await openNextVersion(tx, table, change)
   }
-  for (const cohortId of presidentCohorts) {
-    const [president] = await tx
-      .select({ id: councilMembership.id })
-      .from(councilMembership)
-      .where(
-        sql`${councilMembership.cohortId} = ${cohortId} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`,
-      )
-    if (!president) throw new ApiError('PRESIDENT_REQUIRED')
-  }
+  for (const cohortId of presidentCohorts) await assertPresidentRemains(tx, cohortId)
 }
 
 export const updateRecord = <K extends RecordKind>(tx: Tx, change: RecordChange<K>) =>

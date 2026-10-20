@@ -168,13 +168,12 @@ test('시험 알림이 끝난 구독(expired)이면 보낸 사람의 그 기기 
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
         pushDevices: createPushDeviceRoutes(testDb.db, testSession),
-        push: createPushRoutes(
-          testSession,
-          'PUBLIC',
-          async () => ({ result }),
-          async () => {},
-          (userId, endpoint) => forgetPushDevice(testDb.db, userId, endpoint),
-        ),
+        push: createPushRoutes(testSession, {
+          publicKey: 'PUBLIC',
+          send: async () => ({ result }),
+          wait: async () => {},
+          forget: (userId, endpoint) => forgetPushDevice(testDb.db, userId, endpoint),
+        }),
       }),
     )
     const other = { ...subscription, endpoint: 'https://web.push.apple.com/other' }
