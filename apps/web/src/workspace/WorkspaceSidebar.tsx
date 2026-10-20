@@ -10,6 +10,7 @@ type Props = {
   councils: MyCouncil[]
   view: CouncilView | null
   page: Page
+  unread: number
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
   // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
@@ -26,6 +27,7 @@ export default function WorkspaceSidebar({
   councils,
   view,
   page,
+  unread,
   onSelect,
   onPage,
   menuRef,
@@ -42,7 +44,7 @@ export default function WorkspaceSidebar({
         onPage={onPage}
         menuRef={menuRef}
       />
-      <SidebarNav page={page} onPage={onPage} />
+      <SidebarNav page={page} unread={unread} onPage={onPage} />
       <SidebarFooter view={view} user={user} logoutBusy={logoutBusy} onLogout={onLogout} />
     </div>
   )

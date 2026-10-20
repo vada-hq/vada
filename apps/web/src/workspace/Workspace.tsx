@@ -7,6 +7,8 @@ export default function Workspace({ councils, initialCouncilId, ...props }: Work
   const [councilId, setCouncilId] = useState(
     () => (councils.find(item => item.id === initialCouncilId) ?? councils[0])?.id,
   )
+  // 방금 만들었거나 들어온 학생회만 운영진 화면으로 시작한다. 그 밖에는 대화가 첫 화면이다.
+  const [fresh, setFresh] = useState(initialCouncilId)
   const [picked, setPicked] = useState<{ councilId: string; from: Opener } | null>(null)
   const council = councils.find(item => item.id === councilId) ?? councils[0]
   if (!council) return null
@@ -17,8 +19,10 @@ export default function Workspace({ councils, initialCouncilId, ...props }: Work
       {...props}
       councils={councils}
       council={council}
+      startPage={fresh === council.id ? 'people' : 'chat'}
       returnFocusTo={picked?.councilId === council.id ? picked.from : null}
       onSelect={(next, from) => {
+        setFresh(undefined)
         setPicked({ councilId: next, from })
         setCouncilId(next)
       }}

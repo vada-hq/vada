@@ -1,10 +1,11 @@
 import type { MyCouncil } from '@vada/contracts'
 
-export type Page = 'people' | 'departments' | 'settings'
+export type Page = 'chat' | 'people' | 'departments' | 'settings'
 // 학생회를 고른 곳. 작업 공간이 새로 그려진 뒤 포커스를 그 자리의 버튼으로 돌려놓는다.
 export type Opener = 'sidebar' | 'header'
 
 export const pageTitles: Record<Page, { section: string; title: string }> = {
+  chat: { section: '대화', title: '대화' },
   people: { section: '운영진', title: '사람' },
   departments: { section: '운영진', title: '부서' },
   settings: { section: '설정', title: '학생회 정보' },

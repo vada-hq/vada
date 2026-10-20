@@ -1,4 +1,6 @@
 import type { CouncilView } from '@vada/contracts'
+import ChatPage from '../chat/ChatPage'
+import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
 import Departments from '../team/Departments'
 import People from '../team/People'
@@ -9,9 +11,25 @@ import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
 
-type Props = { data: CouncilData; page: Page }
+type Props = { data: CouncilData; rooms: RoomList; page: Page }
 
-function PageOf({ data, page, view, reading }: Props & { view: CouncilView; reading: Reading }) {
+function PageOf({
+  data,
+  rooms,
+  page,
+  view,
+  reading,
+}: Props & { view: CouncilView; reading: Reading }) {
+  if (page === 'chat')
+    return (
+      <ChatPage
+        councilId={view.council.id}
+        view={view}
+        team={data.team}
+        rooms={rooms}
+        onForbidden={data.reload}
+      />
+    )
   if (page === 'people')
     return (
       <People
@@ -27,7 +45,7 @@ function PageOf({ data, page, view, reading }: Props & { view: CouncilView; read
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, page }: Props) {
+function Body({ data, rooms, page }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -45,7 +63,7 @@ function Body({ data, page }: Props) {
       </Card>
     )
   if (state.kind !== 'ready') return <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-  return <PageOf data={data} page={page} view={state.view} reading={state.reading} />
+  return <PageOf data={data} rooms={rooms} page={page} view={state.view} reading={state.reading} />
 }
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.

@@ -1,5 +1,6 @@
 import type { MyCouncil } from '@vada/contracts'
-import type { Opener, WorkspaceProps } from './pages'
+import { useRoomList } from '../chat/useRoomList'
+import type { Opener, Page, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
 import { useCouncilData } from './useCouncilData'
 import { useWorkspaceNav } from './useWorkspaceNav'
@@ -12,6 +13,7 @@ type Props = Omit<WorkspaceProps, 'initialCouncilId'> & {
   council: MyCouncil
   onSelect: (councilId: string, from: Opener) => void
   returnFocusTo: Opener | null
+  startPage: Page
 }
 
 export default function CouncilWorkspace({
@@ -19,6 +21,7 @@ export default function CouncilWorkspace({
   councils,
   onSelect,
   returnFocusTo,
+  startPage,
   user,
   logoutBusy,
   onLogout,
@@ -26,13 +29,17 @@ export default function CouncilWorkspace({
   onCouncilLost,
 }: Props) {
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
-  const nav = useWorkspaceNav(returnFocusTo)
+  const nav = useWorkspaceNav(returnFocusTo, startPage)
+  // 옆 메뉴의 안 읽은 수와 대화 화면이 같은 목록을 쓴다.
+  const rooms = useRoomList(council.id, data.reload, data.state.kind === 'ready')
+  const unread = rooms.state.kind === 'ready' ? rooms.state.data.unreadTotal : 0
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
       councils={councils}
       view={data.view}
       page={nav.page}
+      unread={unread}
       user={user}
       logoutBusy={logoutBusy}
       onLogout={onLogout}
@@ -53,7 +60,7 @@ export default function CouncilWorkspace({
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
       />
-      <WorkspaceContent data={data} page={nav.page} />
+      <WorkspaceContent data={data} rooms={rooms} page={nav.page} />
     </WorkspaceFrame>
   )
 }

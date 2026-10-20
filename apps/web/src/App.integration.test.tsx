@@ -51,7 +51,19 @@ function councilsInSequence(...lists: MyCouncil[][]) {
     json({ councils: lists[Math.min(call++, lists.length - 1)] }),
   )
 }
+// 대화가 첫 화면이라 학생회를 열면 방 목록을 읽는다. 이 시험들은 운영진 화면을 보므로 방은 비어 있다.
+function emptyRooms(id: string) {
+  api.on('GET', `/api/organizations/${id}/rooms`, () =>
+    json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
+  )
+}
+// 만든 직후가 아니면 대화가 첫 화면이다. 옆 메뉴로 운영진 > 사람을 연다.
+async function openPeople() {
+  const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.click(await within(aside).findByRole('button', { name: '사람' }))
+}
 function openCouncil(id = 'c1', name = '컴퓨터학부 학생회') {
+  emptyRooms(id)
   api.on('GET', `/api/organizations/${id}`, () => json(councilView(id, { name })))
   api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
   // 회장단에게는 운영진 > 사람 위에 초대 링크가 보인다.
@@ -297,6 +309,9 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회
       .getAllByRole('menuitem')
       .map(item => item.textContent),
   ).toEqual(['경영학부 학생회', '설정'])
+  fireEvent.keyDown(list, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  await openPeople()
   expect(await screen.findByText('운영진 3명')).toBeTruthy()
 })
 
@@ -325,6 +340,7 @@ test('내보내진 뒤 다른 학생회가 남아 있으면 그 학생회로 옮
   openCouncil('c2', '경영학부 학생회')
   render(<App />)
   expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  await openPeople()
   expect(await screen.findByText('운영진 3명')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
 })
@@ -356,7 +372,9 @@ test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다
       : json({ error: 'FORBIDDEN' }, 403),
   )
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  emptyRooms('c1')
   render(<App />)
+  await openPeople()
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
   expect(viewCalls).toBe(2)
@@ -416,7 +434,7 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
   openCouncil()
   openCouncil('c2', '경영학부 학생회')
   render(<App />)
-  await screen.findByText('운영진 3명')
+  await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   fireEvent.keyDown(within(sheet).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
@@ -492,6 +510,7 @@ function councilReads(...after: (() => Response | Promise<Response>)[]) {
     reads++
     return answer()
   })
+  emptyRooms('c1')
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
   api.on('POST', '/api/organizations/c1/president/transfer', () => json(teamResponse()))
@@ -501,6 +520,7 @@ const demoted = () => json(councilView('c1', { councilRank: null }))
 const councilGets = () => api.calls.filter(call => call.path === '/api/organizations/c1')
 async function transferPresident() {
   render(<App />)
+  await openPeople()
   fireEvent.keyDown(await screen.findByRole('button', { name: '이재정 동작' }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '회장 넘기기' }))
   const dialog = await screen.findByRole('dialog', { name: '이재정님에게 회장 직급을 넘길까요?' })
@@ -544,4 +564,16 @@ test('회장 넘기기 뒤 내 다시 읽기가 늦게 와도 버려지고, 그 
   await settle()
   expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
   expect(screen.getByText(LOST)).toBeTruthy()
+})
+
+test('학생회를 열면 첫 화면이 대화이고, 옆 메뉴의 대화에 안 읽은 수 합계가 보이며 99를 넘으면 99+다', async () => {
+  councilsInSequence([myCouncil()])
+  openCouncil()
+  api.on('GET', '/api/organizations/c1/rooms', () =>
+    json({ rooms: [], notices: [], unreadTotal: 120, mentionTotal: 0 }),
+  )
+  render(<App />)
+  expect(await screen.findByRole('heading', { level: 1, name: '대화' })).toBeTruthy()
+  const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  expect((await within(aside).findByLabelText('안 읽은 메시지 120개')).textContent).toBe('99+')
 })

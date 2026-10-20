@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import App from './App'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
+import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { snapshotHtml } from './test-support/snapshot-html'
 
@@ -106,7 +107,15 @@ function openWorkspace() {
   api.on('GET', '/api/organizations/c1', () => json(councilView('c1')))
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  api.on('GET', '/api/organizations/c1/rooms', () => json(roomList()))
+  api.on('GET', '/api/organizations/c1/rooms/r1', () => json(roomDetail()))
+  api.on('GET', '/api/organizations/c1/rooms/r1/messages', () => json(messagePage()))
+  api.on('POST', '/api/organizations/c1/rooms/r1/read', () => new Response(null, { status: 204 }))
   return api
+}
+// 대화가 첫 화면이다. 운영진 화면을 찍는 시험은 옆 메뉴로 사람을 연다.
+async function openPeople() {
+  fireEvent.click(await screen.findByRole('button', { name: '사람' }))
 }
 
 test('작업 공간: 학생회를 불러오는 중', async () => {
@@ -120,6 +129,7 @@ test('작업 공간: 학생회를 불러오는 중', async () => {
 test('작업 공간: 사람', async () => {
   openWorkspace()
   render(<App />)
+  await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
   await screen.findByRole('region', { name: '초대 링크' })
@@ -129,12 +139,28 @@ test('작업 공간: 사람', async () => {
 test('작업 공간: 부서', async () => {
   openWorkspace()
   render(<App />)
+  await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
   await screen.findByRole('region', { name: '초대 링크' })
   fireEvent.click(screen.getAllByRole('button', { name: '부서' })[0] as HTMLElement)
   await screen.findByRole('heading', { level: 1, name: '부서' })
   await screen.findByText('부서 2개')
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('작업 공간: 대화 방 목록', async () => {
+  openWorkspace()
+  render(<App />)
+  await screen.findByText('재정부')
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('작업 공간: 대화 방', async () => {
+  openWorkspace()
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
+  await screen.findByText('모레 회의 있어요')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -149,6 +175,7 @@ test('작업 공간: 학생회를 불러오지 못함', async () => {
 test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   openWorkspace()
   render(<App />)
+  await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
   await screen.findByRole('region', { name: '초대 링크' })
