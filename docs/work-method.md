@@ -1,0 +1,198 @@
+# 기능 만드는 방법
+
+다시 만들기(`docs/superpowers/specs/2026-10-19-rebuild-design.md`)의 남은 기능과 버그 고치기는 모두 이 방법으로 만든다. 에이전트와 사람이 같은 방법을 따른다. 2026-10-20에 기능 1·2의 측정과 업계 표준 조사로 처음부터 다시 정했다(조사: `.superpowers/research/2026-10-20-method/`, git 밖).
+
+## 한 줄로
+
+기능마다 짧은 명세 하나를 쓰고, 기능을 몇 시간짜리 조각으로 나눠 조각마다 만들고 → 기계 검사 → 검토 한 번 → main에 올려 바로 배포한다. 사람은 배포된 것을 써 보고 다른 곳을 버그로 알린다.
+
+## 말
+
+| 말 | 뜻 | 업계 말 |
+|---|---|---|
+| 기능 | 다시 만들기의 7개 단위(휴대폰 길, 바탕, 대화와 알림, 업무, 구매와 지출, 시작 준비, 쓰기 전에). 번호 001~007 | feature([Spec Kit](https://github.com/github/spec-kit/blob/main/spec-driven.md), [Kiro](https://kiro.dev/docs/specs/)). Jira에서는 epic |
+| 기능 명세 | 기능 하나의 무엇·왜·범위·조각·확인 방법. `docs/features/NNN-이름.md` | spec, mini design doc |
+| 조각 | 기능 안에서 따로 끝내고 배포할 수 있는 한 묶음. 사람이 써 볼 수 있는 동작 하나이거나, 그 동작을 받치는 바탕 하나 | vertical slice, Shape Up의 scope |
+| 상한 | 기능 하나에 쓸 시간을 먼저 정한 것. 넘으면 늘리지 않고 범위를 줄인다 | appetite, timebox |
+
+## 처음 상한 6시간의 근거
+
+기능 1은 조사부터 기기 확인까지 7시간 7분, 기능 2는 실행만 4시간 44분이었다(`.superpowers/research/2026-10-20-method/time-measure.md`). 이 방법은 계획 쓰기와 다시 한 일을 줄이므로 6시간에서 시작하고, 기능 3과 4의 실제 값으로 고친다(Kanban은 상한을 지난 cycle time으로 정한다).
+
+## 원칙과 근거
+
+1. **작게 자주 내보낸다.** 조각마다 main에 올리고 배포한다. 가지는 몇 시간 안에 합친다. 쪼갠 조각을 다시 모아 한 번에 내보내지 않는다.
+   - [DORA 작은 배치](https://dora.dev/capabilities/working-in-small-batches/): "일주일 넘게 걸리는 묶음은 너무 크다", 하루 한 번 이상 trunk에. 쪼갠 뒤 다시 묶어 내보내는 것을 함정으로 꼽는다. [DORA 2025 AI 보고서](https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report): AI의 이득은 작은 배치와 잦은 커밋에 달려 있다.
+   - [DORA trunk 기반 개발](https://dora.dev/capabilities/trunk-based-development/): 가지는 몇 시간, 활성 가지 셋 이하.
+2. **명세는 무엇·왜·확인 방법까지, 코드는 만들면서 쓴다.** 계획에 코드를 미리 적지 않는다. 작업 순서도 미리 쪼개지 않고 만드는 사람이 시험 목록부터 찾는다.
+   - [Anthropic, 긴 앱 개발 하네스](https://www.anthropic.com/engineering/harness-design-long-running-apps): 계획자가 기술 세부를 미리 정하다 틀리면 오류가 아래로 이어진다. [Spec Kit](https://github.com/github/spec-kit/blob/main/spec-driven.md): 명세는 WHAT/WHY, 작업은 한 줄과 파일 경로.
+   - [Shape Up 2장](https://basecamp.com/shapeup/1.1-chapter-02): 거칠고, 풀렸고, 경계가 있는 수준에서 멈춘다. [10장](https://basecamp.com/shapeup/3.1-chapter-10): 작업을 먼저 쪼개는 것은 "종이 분쇄기"다. [Google 설계 문서](https://www.industrialempathy.com/posts/design-docs-at-google/): 구현 설명서가 되는 문서는 쓰지 말고 코드를 쓴다. 증분은 1~3쪽.
+   - 우리 측정: 기능 2의 계획 9,586줄(코드 포함)에서 고친 항목 89개의 약 95%와 Important 9건 중 8건이 나왔다.
+3. **검사는 기계가 먼저, 검토는 한 번, 위험한 곳만 깊게.**
+   - [Claude Code 모범 사례](https://code.claude.com/docs/en/best-practices): 에이전트가 직접 돌릴 검사를 주고, 검토는 새 문맥의 다른 에이전트가 한다. 검토자에게 "정확성이나 명시된 요구에 걸리는 빈틈만" 보고하게 한다. 모든 지적을 좇으면 과설계가 된다.
+   - [Google 코드 리뷰](https://google.github.io/eng-practices/review/): 변경 대부분이 검토자 한 명이다. 형식과 규칙은 기계에 맡긴다. [DORA 변경 승인](https://dora.dev/capabilities/streamlining-change-approval/): 무거운 승인 단계는 리드타임과 배치를 키우고 안정성을 높이지 못한다.
+   - 우리 측정: 기능 2에서 검토가 에이전트 시간의 45%, 다시 한 일이 34%였다.
+4. **시간을 먼저 정하고 범위를 맞춘다.** 기능 명세에 상한을 적는다. 상한을 넘으면 늘리지 않고 남은 조각을 다음 기능이나 '나중'으로 넘긴다. 남은 일이 모두 답을 아는 일일 때만 늘린다.
+   - Shape Up [3장](https://basecamp.com/shapeup/1.2-chapter-03) appetite, [8장](https://basecamp.com/shapeup/2.2-chapter-08) circuit breaker, [14장](https://basecamp.com/shapeup/3.5-chapter-14) 연장 조건("남은 일이 모두 내리막").
+5. **문맥을 아낀다.** 진행 에이전트는 파일과 git으로 넘기고 요약만 받는다. 기능 하나 = 진행 세션 하나가 기본이다.
+   - [Anthropic 문맥 공학](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents), [긴 작업 하네스](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents): 한 세션에 기능 하나, 진행 파일과 git 커밋으로 넘긴다.
+   - 우리 측정: 진행 에이전트 문맥이 호출마다 평균 약 49만 토큰, 출력이 하위 에이전트 전체의 79%였다.
+6. **묻느라 서지 않는다.** 작업을 시작해 배포할 때까지 사람에게 묻거나 승인받을 것이 없다(2026-10-20 주인 지시).
+   - [OpenAI ExecPlan](https://developers.openai.com/cookbook/articles/codex_exec_plans): 다음 단계를 사용자에게 묻지 말고 다음 마일스톤으로 간다.
+   - 우리 측정: 막는 질문 하나가 9시간 41분 멈췄다. 기능 2는 계획 확정부터 운영까지 16시간 16분 중 56%가 질문 막힘과 자리 비움이었다.
+7. **잰 것으로 고친다.** 느낌이 아니라 시각과 횟수로 본다.
+   - [DORA 지표](https://dora.dev/guides/dora-metrics/), [METR 2025](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/): 개발자는 19% 느려졌는데 20% 빨라졌다고 믿었다.
+
+## 한 기능의 흐름
+
+### 1. 모양 잡기 — 앞 기능을 만드는 동안 한다
+
+진행 에이전트가 하위 에이전트 하나에 맡기고, 결과로 기능 명세 하나(`docs/features/NNN-이름.md`, 아래 양식)를 받는다. 길이는 3쪽(약 150줄) 안이다.
+
+- 이미 정해진 것(vada-docs의 `product.md`, `domain.md`, `principles.md`, `physical-model.md`, 결정 기록)은 다시 조사하지 않고 가리키기만 한다.
+- 정할 것은 답이 불확실하거나 되돌리기 어려운 것만 뽑는다. 정할 것마다 유사 서비스와 업계 표준을 웹에서 찾아 권장대로 정하고, 근거 주소와 되돌리기 쉬운 정도를 한 줄로 적는다. 근거상 둘 다 되면 되돌리기 쉬운 쪽을 고른다. 표, 공개 API처럼 되돌리기 어려운 결정은 vada-docs의 결정 기록과 `physical-model.md`에도 적는다.
+- 아래 '위험 점검 목록'을 대어 보고 걸린 것만 명세의 '위험'에 적는다.
+- 조각을 나눈다. 위험이 크거나 처음 하는 일(마이그레이션, 권한, 동시 처리, 외부 서비스)이 든 조각을 앞에 둔다([Shape Up 13장](https://basecamp.com/shapeup/3.4-chapter-13): 오르막을 먼저).
+
+### 2. 조각 만들기 — 조각마다 되풀이한다
+
+| 차례 | 누가 | 하는 일 | 끝난 표시 |
+|---|---|---|---|
+| 1 | 진행 | main에서 가지 `work/NNN-조각번호`를 작업 폴더(git worktree)에 딴다. 작업자에게 명세 경로와 조각 번호를 넘긴다 | 지시 한 번 |
+| 2 | 작업자 | 조각의 수용 기준으로 시험 목록을 쓰고, 시험 하나 → 통과 → 정리를 되풀이한다([Kent Beck, Canon TDD](https://newsletter.kentbeck.com/p/canon-tdd)). 커밋 전에 `npm run check`와 영향받는 시험만 돌린다. 가지를 올리면 CI가 전체 시험을 돈다. 명세의 그 조각에 `[x]`를 친다 | 가지 CI 통과 |
+| 3 | 검토자 | 새 문맥에서 변경과 명세의 그 조각만 본다. 정확성, 수용 기준, 아래 '자주 잡힌 것', AGENTS.md의 규칙 위반만 Critical·Important로 낸다. 형식, 린트, 타입은 보지 않는다 | 판정 한 번 |
+| 4 | 작업자 | 지적을 고친다. 같은 작업자가 이어서 고친다. 두 번 고쳐도 남으면 한 단계 큰 모델의 새 작업자가 고친다 | 고친 곳만 다시 검토 |
+| 5 | 진행 | 마이그레이션이 있으면 개발 DB → 운영 DB 순서로 적용한다(AGENTS.md '마이그레이션'). main에 fast-forward로 올린다. 그사이 main이 움직였으면 가지를 그 위로 다시 올리고 CI를 다시 본다. CI 통과 뒤 Render가 배포한다. 배포는 뒤에서 감시하고, CI가 끝나고 5분 안에 배포가 시작되지 않으면 Render API로 그 커밋을 배포한다 | 배포 live |
+| 6 | 진행 | 배포 뒤 확인(아래). 주인에게 "써 볼 수 있는 것" 한 줄을 남긴다 | 확인 한 줄 |
+
+- 검토 깊이는 위험으로 정한다. 주소, 인증, 권한, 학생회 사이 격리, 돈, 데이터 무결성, 운영 DB, 동시 처리를 건드리는 조각은 가장 큰 모델이 검토한다. 나머지는 중간 모델이 검토한다.
+- 같은 지적이 두 조각 이상에서 나오면 '자주 잡힌 것'에 더하고, 린트 규칙이나 시험으로 바꿀 수 있으면 바꾼다([OpenAI 하네스 공학](https://openai.com/index/harness-engineering/)).
+- 조각 크기는 작업자가 2시간 안에 끝낼 일, 시험을 뺀 변경 400줄 안팎을 처음 기준으로 둔다. 넘을 것 같으면 둘로 나눈다. 지운 코드, 만든 파일, 이름 바꾸기는 세지 않는다([Google 작은 변경](https://google.github.io/eng-practices/review/developer/small-cls.html): 100줄 적당, 1000줄은 대개 너무 큼). 기능 3에서 재고 고친다.
+
+### 3. 닫기
+
+- 마지막 조각이 배포되면 명세 맨 아래 '닫기'에 지표(아래 '재는 것')와 회고 세 줄(그대로 둘 것, 바꿀 것, 다음에 시험할 것)을 적는다. 바꿀 것은 두 조각 이상에서 되풀이된 문제만, 근거와 함께 이 문서에 반영한다([Scrum Guide 회고](https://scrumguides.org/scrum-guide.html#sprint-retrospective)).
+- 회고는 기록을 세는 하위 에이전트 하나로 30분 안에 끝낸다.
+
+## 기능 명세 양식
+
+```markdown
+# NNN 이름
+
+상한: N시간(실제로 도는 시간, 처음 기본값 6시간). 시작 YYYY-MM-DD HH:MM
+
+## 왜
+누가 무엇을 못 해서 무엇을 하게 되는가. vada-docs의 근거 문서와 결정 번호.
+
+## 범위 밖
+이번에 하지 않는 것.
+
+## 정한 것
+| 무엇 | 정한 것 | 근거(주소) | 되돌리기 |
+
+## 위험
+'위험 점검 목록'에서 걸린 것과 그 처리.
+
+## 조각
+### 1. 이름 [ ]
+- 할 수 있게 되는 것: 한 문장.
+- 수용 기준: "~하면(때) ~한다" 꼴. 화면에서 보이거나 API로 확인할 수 있는 동작만 쓴다.
+- 닿는 곳: 계약 이름, 라우트, 표, 화면(파일 경로까지만).
+- 검토: 깊게 / 보통. 마이그레이션: 있음 / 없음.
+
+## 닫기
+지표와 회고 세 줄.
+```
+
+- 쓰지 않는 것: 구현 코드, 시험 코드, 함수 본문, 작업마다의 커밋 제목. 이름과 계약(타입 이름, 오류 코드, 경로)은 쓴다([Claude Code 모범 사례](https://code.claude.com/docs/en/best-practices): 관련 파일과 인터페이스 이름, 범위 밖, 끝에서 끝까지의 확인 단계는 넣는다).
+- 수용 기준을 점검하는 질문: "구현이 바뀌면 이 문장도 바뀌는가?" 바뀌면 구현을 적은 것이니 동작으로 다시 쓴다([Cucumber, 좋은 시나리오](https://cucumber.io/docs/bdd/better-gherkin/)).
+
+## 검사와 시험
+
+- 작업자는 커밋 전에 `npm run check`(형식, 린트, 타입)와 영향받는 시험만 돌린다. 전체 시험은 CI가 돈다. 이 컴퓨터에서 전체 시험을 여럿 겹쳐 돌리지 않는다(기능 2에서 겹치면 2~3배 느려졌다. 로컬은 관련 시험만, 전체는 CI가 업계 기본이다: [Software Engineering at Google 시험 장](https://abseil.io/resources/swe-book/html/ch11.html)).
+- CI는 `work/**` 가지와 main에 올릴 때 돈다. 10분 안에 끝나야 한다([DORA CI](https://dora.dev/capabilities/continuous-integration/)). 지금 약 4분이다.
+- 흔들리는 시험은 다시 돌려 넘기지 않는다. 고칠 때까지 그 조각을 닫지 않는다.
+- 주인이 알린 버그는 가장 낮은 층의 시험으로 먼저 재현한다.
+
+## 배포 뒤 확인
+
+1. 공개 주소에서 바뀐 경로와 정적 파일이 기대한 상태 코드를 주는지 본다.
+2. DB 쓰기나 동시 처리를 바꾼 조각이면 실제 PostgreSQL 점검(`apps/api`에서 `npx tsx scripts/pg-smoke.ts`, `DATABASE_URL`은 개발 서버 주소를 프로그램이 넘긴다)에 그 조각의 경우를 더해 돌린다. PGlite 시험은 거래를 하나씩 돌려 동시 처리를 증명하지 못한다. 강제로 끊기면 `vada_smoke_*` DB가 남으니 지운다.
+3. 화면을 바꾼 조각이면 진행 에이전트가 데스크톱 폭과 휴대폰 폭(390px)으로 찍어 본다.
+4. 막히면 Render에서 이전 배포로 되돌리고, 원인을 버그로 고친다.
+
+## 버그
+
+- 주인이 알린 버그는 조각 하나로 다룬다. 명세 없이 시작하고, 재현 시험 → 고치기 → 검토 → 배포 순서다. 원인을 모르거나 핵심 경로이거나 되풀이된 버그만 기능 명세의 '버그' 절에 원인과 처리를 적는다([Kiro Bugfix Spec](https://kiro.dev/docs/specs/)).
+- 버그 고치기는 진행 중인 조각보다 먼저 한다.
+
+## 동시에 하는 일
+
+- 만드는 기능은 한 번에 하나다. 다음 기능의 모양 잡기만 겹쳐 한다(기능 2 때 겹쳐서 충돌 0이었다).
+- 한 기능 안에서는 조각을 차례로 만든다. 파일이 겹치지 않는 두 조각만 동시에 만든다. 작업자는 둘을 넘지 않는다([DORA WIP 제한](https://dora.dev/capabilities/wip-limits/), [Anthropic 다중 에이전트](https://www.anthropic.com/engineering/built-multi-agent-research-system): 코딩은 나란히 할 일이 적고 토큰을 약 15배 쓴다).
+- 조각 N을 검토하는 동안 조각 N+1을 만들기 시작해도 된다. N+1은 N의 가지 위에서 따고, N이 고쳐지면 그 위로 다시 올린다.
+
+## 진행 에이전트
+
+- 기능마다 새 세션에서 시작하는 것이 기본이다. 시작할 때 이 문서, 그 기능의 명세, `git log`, 진행 기록을 읽는다.
+- 하위 에이전트 지시는 15줄 이하(목표, 읽을 파일 경로, 결과 모양, 하지 말 것)다. 하위 에이전트는 결과를 파일에 쓰고 10줄 이하로 돌려준다.
+- 진행 기록(`.superpowers/sdd/NNN/progress.md`, git 밖)은 사건마다 한 줄(시각, 조각, 판정, 커밋)이다. 계획과 다르게 정한 것은 `Ruling:` 한 줄로 적는다.
+- 주인에게는 조각이 배포될 때 한 줄, 기능을 닫을 때 짧은 글을 쓴다. 그림은 주인이 원할 때만 만든다. 까닭: 10/18~10/20에 진행 에이전트가 직접 일한 647분 중 그림 82분, 보고 글 78분, 기록 95분이었다.
+- 일이 도는 동안에는 사람의 답을 기다리는 질문 창을 쓰지 않는다. 물을 것은 턴 끝에 한 줄로 남긴다.
+- 노력값: 진행, 모양 잡기, 깊은 검토는 xhigh, 작업자와 보통 검토는 high, 기계적인 일은 medium이다. max는 쓰지 않는다. 모델은 작업자와 보통 검토가 중간 모델, 깊은 검토와 모양 잡기가 가장 큰 모델이다.
+
+## 하위 에이전트가 지키는 것
+
+- `.env` 값을 열람하거나 출력하지 않는다. 실제 DB에 닿는 명령(`db:migrate`, `test-data`, `pg-smoke`)은 진행 에이전트만 돌린다.
+- 검토자는 패키지를 새로 깔지 않는다. 코드를 일부러 고장 내 시험이 잡는지 보는 확인은 깊은 검토에서만 한다.
+- 작업자는 브라우저를 열지 않는다. 화면 확인은 진행 에이전트가 한다.
+- 끝내기 전에 자기가 띄운 프로세스를 끈다.
+
+## 사람이 하는 것
+
+- 배포된 제품을 써 보고, 생각과 다른 곳을 버그로 알린다. 알려 준 기기 확인 결과는 `docs/device-checks.md`에 적는다.
+- 에이전트가 할 수 없는 일만 기능을 시작하기 전에 한 번에 한다: 새 비밀 값 만들기(외부 서비스 가입, 키 발급), 결제, 실물 기기. 모양 잡기의 '위험'이 이런 일을 미리 찾는다. 키는 `.env`에 넣어 두면 에이전트가 프로그램으로 읽어 쓴다.
+
+## 재는 것
+
+조각마다 시각을 git, GitHub, Render 기록에서 뽑는다. 따로 적지 않는다.
+
+| 지표 | 뜻 | 출처 |
+|---|---|---|
+| 조각 리드타임 | 가지 첫 커밋 → 배포 live | [DORA](https://dora.dev/guides/dora-metrics/) 변경 리드타임 |
+| 기능 리드타임 | 명세 시작 → 마지막 조각 live, 상한과 비교 | Shape Up appetite |
+| 배포 횟수 | 기능 하나의 배포 수 | DORA 배포 빈도 |
+| 다시 한 비율 | 고치기와 다시 검토 시간 / 전체 | 가치 흐름 지도의 %C/A |
+| 변경 실패율 | 주인이 버그를 알린 배포 / 전체 배포 | DORA 변경 실패율 |
+| 복구 시간 | 버그 알림 → 고친 배포 live | DORA 실패 배포 복구 시간 |
+
+## 위험 점검 목록
+
+모양 잡기에서 기능에 대어 보고, 걸린 것만 명세의 '위험'에 적는다.
+
+- **뒤에서 돌리는 일**(예약 실행, 대기열, 재시도): 여러 번 돌아도 결과가 같은가, 겹쳐 돌지 않게 막는가, 실패를 어디서 보는가.
+- **파일 올리기**: 크기와 형식 상한, 올리기 주소 만료, 공개되지 않는 버킷, 이름과 형식 검사([OWASP File Upload](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)).
+- **속도 제한**: 기준(사람, IP, 학생회)과 상태를 어디에 둘지.
+- **외부 webhook과 콜백**: 서명 확인과 재전송 막기, `boundary.test.ts`의 `outsideGuard`에 이유.
+- **새 비밀 값이나 환경 변수**: `runtime.ts` 필수 목록, CI 운영 모드 시작의 가짜 값, Render 설정, `.env.example`을 함께.
+- **새 의존성**: 정확한 버전, 관리 여부와 라이선스, 운영 의존성이면 `npm audit`.
+- **새 표, 칸, 제약**: AGENTS.md '마이그레이션' 순서.
+- **새로 저장하는 개인정보**: 로그와 Sentry에 넣지 않고(`scrubEvent`), 보관 기간을 정한다.
+- **새 라우트 모듈**: `AppOptions`로 연결하고 경계 시험을 둔다.
+- **새 경계 규칙**: 문장 대신 `no-restricted-imports` override로 강제할 수 있는지.
+- **기준선 조사(`.superpowers/research/2026-10-20-engineering-baseline.md`) 2절의 '다시 볼 때' 조건**: 결제, webhook, 파일 올리기는 SAST와 비밀 스캔의 조건이다. PGlite와 Postgres 차이로 결함이 나면 CI에 postgres 컨테이너를 둔다.
+
+## 자주 잡힌 것
+
+기능 2의 검토에서 두 작업 이상 다시 잡힌 것이다. 작업자는 커밋 전에 스스로 확인하고, 검토자는 같은 목록으로 본다([Google 코드 리뷰, 작성자 안내](https://google.github.io/eng-practices/review/developer/)).
+
+1. 대상이 사라지거나 권한을 잃은 대화상자와 양식은 닫고 이유를 보인다.
+2. 진행 중인 버튼은 막는다(두 번 보내기 금지).
+3. 오류는 그 동작 옆에 보인다(390px에서 보이는 곳).
+4. 401·403·404 경로마다 시험을 둔다.
+5. 한국 날짜 경계는 ±1초로 시험한다.
+6. 다른 학생회 사람으로 시험한다.
+7. 맥락이 없으면 거부한다(기본 거부).
+8. 응답은 거래 안에서 만든다.
+9. 두 번째 복사가 생기면 공유 도우미로 옮긴다.
+10. 시험은 고정 시간 대기 대신 끝난 일을 기다린다. 명령줄 입구는 얇게 두고, 인자 읽기와 실행은 시험이 있는 모듈에 둔다.

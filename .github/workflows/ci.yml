@@ -4,11 +4,17 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # work/** 는 조각 가지다(docs/work-method.md). 전체 시험은 이 컴퓨터가 아니라 CI가 돈다.
+    branches: [main, 'work/**']
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# 같은 가지에 새로 올리면 앞의 실행을 멈춘다. main은 배포가 그 결과를 기다리므로 멈추지 않는다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   check:

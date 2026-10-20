@@ -7,9 +7,9 @@
 - AI가 만든 내용은 사람이 확인하기 전까지 초안이고, 근거(원문 대화·자료)에 연결한다. 결정 이유와 변경 이력을 남긴다.
 - spec에는 "원칙 대조" 절을 둔다. 사람이 새로 하는 입력과 그것이 바로 이득인지, 근거 연결, 변경 이력을 적는다. 와이어프레임도 이 원칙으로 비판한다.
 
-## 덩어리 만들기
-- 다시 만들기의 덩어리는 `docs/superpowers/build-cycle.md`의 순서로 만든다. 사전 조사 → 결정 → 설계서 → 계획 → 작업마다 검토하며 실행 → 마무리 검토 → 검토와 반영 → 기기 확인 → 넘기기다.
-- 설계 결정, 설계서, 계획은 사람에게 묻지 않는다. 유사 서비스 벤치마킹과 업계 표준 근거로 권장대로 정하고 근거와 함께 기록한다. 사람은 다 만들어진 결과를 검토하고, 운영 배포("반영해")와 운영 DB 적용만 정한다.
+## 기능 만들기
+- 기능과 버그 고치기는 `docs/work-method.md`대로 만든다. 기능 명세(`docs/features/NNN-이름.md`) → 조각마다 만들기·검사·검토 한 번·main에 올려 배포 → 닫기다.
+- 작업을 시작해 배포할 때까지 사람에게 묻거나 승인받지 않는다. 결정은 유사 서비스 벤치마킹과 업계 표준 근거로 권장대로 정하고 근거와 함께 기록한다. 사람은 배포된 제품을 써 보고 다른 곳을 버그로 알린다.
 
 ## 새 API를 만들 때
 - 요청 본문 스키마는 `packages/contracts`에 zod `z.strictObject`로 정의한다. 문자열은 `text(max)`(사람이 쓰는 글) 또는 `token(max)`(식별자·키)로만 만들고, 모든 문자열·배열·숫자에 상한을 둔다.
@@ -47,27 +47,27 @@
 - 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `npm run db:generate --workspace @vada/api`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `npm run check:design --workspace @vada/api`가 마이그레이션 DB와 설계를 맞댄다.
 - 첫 마이그레이션 `0000_baseline.sql`은 `apps/api/scripts/baseline-from-design.ts`가 physical-model.md에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
 - 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 Neon 프로젝트 `vada`의 `dev` 가지(개발, 로컬 `.env`의 `DATABASE_URL`)와 `production` 가지(배포) 두 곳이다.
-- 적용은 사람이 한다. `npm run db:migrate --workspace @vada/api`는 미리 보기다. 대상(호스트와 DB 이름), 점검 결과, 적용할 개수만 보여 주고 아무것도 바꾸지 않는다(`-- --dry-run`은 같은 뜻을 분명히 적는 것). 실제 적용은 `npm run db:migrate --workspace @vada/api -- --apply`로만 한다. 인자는 `--apply`, `--dry-run`, `--from-shell`뿐이고(`--apply`와 `--dry-run`은 같이 줄 수 없다) 다른 인자는 `.env`를 읽거나 연결하기 전에 멈춘다. npm이 `--dry-run`을 가져가지 않게 플래그 앞에 `--`를 둔다.
+- 적용은 진행 에이전트가 한다(작업자와 검토자는 하지 않는다). `npm run db:migrate --workspace @vada/api`는 미리 보기다. 대상(호스트와 DB 이름), 점검 결과, 적용할 개수만 보여 주고 아무것도 바꾸지 않는다(`-- --dry-run`은 같은 뜻을 분명히 적는 것). 실제 적용은 `npm run db:migrate --workspace @vada/api -- --apply`로만 한다. 인자는 `--apply`, `--dry-run`, `--from-shell`뿐이고(`--apply`와 `--dry-run`은 같이 줄 수 없다) 다른 인자는 `.env`를 읽거나 연결하기 전에 멈춘다. npm이 `--dry-run`을 가져가지 않게 플래그 앞에 `--`를 둔다.
 - 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `-- --from-shell`을 붙인다(적용은 `-- --from-shell --apply`). 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면, 로컬 마이그레이션 시각이 커지는 순서가 아니면 적용하지 않는다. 적용 뒤에는 기록을 다시 읽어 실제로 적용된 개수를 보여 준다.
 - 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다.
 - 새 컬럼을 읽는 코드는 반대로, 두 DB에 마이그레이션을 먼저 적용한 뒤 배포한다. 코드가 먼저 나가면 없는 컬럼을 읽다가 해당 요청이 모두 실패한다. 새 컬럼에 거는 제약은 위반 행이 생길 수 없으므로 이 순서를 따르고, 기존 컬럼에 거는 제약과는 한 마이그레이션에 섞지 않는다.
 - 칸·표를 지우는 마이그레이션은 그것을 읽지 않는 코드를 먼저 배포한 뒤 적용한다. 적용 스크립트가 남은 마이그레이션을 모두 적용하므로, 지우는 마이그레이션 파일은 배포 뒤에 만든다.
 - `.sql` 파일은 `.gitattributes`로 LF로 고정한다. drizzle이 남기는 적용 기록의 해시가 파일 내용 기준이라, 줄바꿈이 바뀌면 기록과 어긋나 보인다.
-- 개발 DB의 시험 학생회는 사람이 `npm run test-data --workspace @vada/api -- seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `-- assign <user-id> <planning|finance> --apply`로 넣는다. `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
-- 에이전트는 `db:migrate`(미리 보기 포함)와 `test-data`를 실행하지 않는다. 둘 다 실제 DB에 연결한다.
+- 개발 DB의 시험 학생회는 진행 에이전트가 `npm run test-data --workspace @vada/api -- seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `-- assign <user-id> <planning|finance> --apply`로 넣는다. `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
+- 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `pg-smoke`를 실행하지 않는다. 셋 다 실제 DB에 연결한다.
 
 ## 로그·비밀
 - 로그와 응답에 요청 본문, 오류 메시지 원문, DB 값, 비밀 값을 넣지 않는다.
 - 서버 쪽 실패(예상하지 못한 500, 5xx)는 `apps/api/src/http/on-error.ts`가 로그와 Sentry(`SENTRY_DSN`이 있을 때)에 함께 보낸다. Sentry를 직접 호출하지 않는다. 보내기 전 정제는 `http/sentry.ts`의 `scrubEvent`가 맡는다.
 - 휴대폰 알림의 구독 주소(endpoint)는 기기를 가리키는 비밀 주소다. 로그와 응답에 넣지 않는다.
-- `.env`는 읽거나 출력하지 않는다.
+- `.env`의 값을 열람하거나 출력하지 않는다. 프로그램이 읽어 쓰는 것은 된다.
 
 ## 실행 환경
 - Node 버전은 저장소 루트 `.node-version` 하나로 정한다. 로컬, CI(`node-version-file`), Render가 모두 이 파일을 따른다. Render 대시보드에 `NODE_VERSION` 변수를 두면 이 파일보다 우선하므로 두지 않는다.
 - `engines`에 위가 열린 범위(`>=22`)를 쓰지 않는다. Render는 열린 범위를 항상 최신 Node로 해석해, 테스트한 버전과 운영 버전이 달라진다.
 
 ## 검사
-- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다
+- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다. 전체 시험은 CI가 `work/**` 가지와 main에서 돈다
 - 형식: `npm run format`. 형식은 Prettier가 정한다. 손으로 맞추거나 검토에서 지적하지 않는다
 - 린트: `npm run lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
 - blame에서 형식 커밋 빼기(한 번): `git config blame.ignoreRevsFile .git-blame-ignore-revs`
