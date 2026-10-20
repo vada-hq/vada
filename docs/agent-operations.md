@@ -100,7 +100,7 @@
 | 파일 | 내용 |
 |---|---|
 | `.claude/settings.json` | `model: claude-opus-5-5`, `effortLevel: high`, `worktree.baseRef: head`, `env`(`CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000`, `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS=4`), `permissions.deny`(`Read(.env)`, `Read(.env.*)`. 거부가 허용을 이기므로 `.env.example`도 막힌다), `enabledPlugins`(superpowers 끔) |
-| `.claude/agents/*.md` | 위 '역할' 표의 여섯 개. 머리말에 `name`, `description`, `model`, `effort`, `tools`. `worker`, `reviewer`, `deep-reviewer`, `clerk`는 머리말 `hooks`의 PreToolUse(`if: "Bash(*db:migrate*)"` 등)로 실제 DB 명령(`db:migrate`, `test-data`, `pg-smoke`)을 막는다. `disallowedTools`에 `Bash(…)`를 적으면 명령 하나가 아니라 Bash 전체가 빠진다([sub-agents](https://code.claude.com/docs/en/sub-agents), 10/20 시험). 이 훅은 폴더를 신뢰한 대화형 세션에서만 돈다. `-p` 세션과 신뢰하지 않은 폴더에서는 건너뛴다 |
+| `.claude/agents/*.md` | 위 '역할' 표의 여섯 개. 머리말에 `name`, `description`, `model`, `effort`, `tools`. `worker`, `reviewer`, `deep-reviewer`, `clerk`는 머리말 `hooks`의 PreToolUse로 `.claude/hooks/block-db-commands.mjs`를 돌려 실제 DB 명령(`db:migrate`, `test-data`, `pg-smoke`, `drizzle-kit push`)을 실행하려 할 때만 막는다. 이름이 글자로만 든 명령(grep, git mv, 린트, 시험)은 막지 않는다. 처음의 `if: "Bash(*pg-smoke*)"` 패턴은 그런 명령과 복잡한 셸 명령까지 막아 R01 작업자 대부분이 우회했다. `disallowedTools`에 `Bash(…)`를 적으면 명령 하나가 아니라 Bash 전체가 빠진다([sub-agents](https://code.claude.com/docs/en/sub-agents), 10/20 시험). 이 훅은 폴더를 신뢰한 대화형 세션에서만 돈다. `-p` 세션과 신뢰하지 않은 폴더에서는 건너뛴다 |
 | `CLAUDE.md` | `@AGENTS.md` 아래에 `# Compact instructions`. 지금 기능 번호와 조각 번호, 명세와 진행 기록 경로, 고친 파일 목록, 실패 중인 시험과 그 명령, 아직 적용하지 않은 `Ruling:`을 남긴다 |
 | `.gitignore` | `.claude/worktrees/`, `.claude/settings.local.json`, `.superpowers/`(진행 기록, 조사, Codex 결과) |
 | `tools/codex-review.sh`, `tools/codex-review-schema.json` | 위 'Codex'. 결과는 `.superpowers/codex/<가지>-<조각>.json`, 이벤트 기록은 옆의 `.events.jsonl`이다. 비교 기준은 `BASE`(기본 `main`)로 바꾼다. 돈 뒤 작업 트리가 바뀌었으면 70으로 끝난다 |
@@ -152,9 +152,9 @@
 |---|---|
 | 에이전트 여섯 개가 보이고 모델과 effort가 머리말대로인가 | 그렇다(`claude -p --setting-sources project`) |
 | `.env` 읽기가 저장소 설정만으로 막히는가 | 막힌다 |
-| DB 명령 훅 | `--agents`로 같은 훅을 준 하위 에이전트에서 `db:migrate`, `pg-smoke`, `test-data`가 막히고 `echo hello`는 돈다 |
+| DB 명령 훅 | 스크립트에 명령 19개를 넣어 실행 명령 9개는 막히고 이름만 든 명령 10개는 돈다. `--agents`로 같은 훅을 준 하위 에이전트에서 `npm run pg-smoke`가 막히고 `grep pg-smoke`, `git log -- …pg-smoke.ts`는 돈다 |
 | `tools/codex-review.sh`(`fa5952e` 한 커밋) | 작업 트리 그대로, 결과가 스키마대로, 토큰 수가 나온다(입력 56만 중 캐시 48만, 출력 1.9천), 지적은 정확성 기준만 썼다(판정 pass, 지적 0) |
 
-사람이 한 번 할 것: 이 폴더에서 Claude Code를 처음 열 때 나오는 신뢰 창을 받는다. 받기 전에는 에이전트의 DB 명령 훅이 돌지 않는다. 그다음 새 세션에서 `/agents`에 여섯 개가 보이는지 본다.
+사람이 한 번 할 것: 이 폴더에서 Claude Code를 처음 열 때 나오는 신뢰 창을 받는다. 받기 전에는 에이전트의 DB 명령 훅이 돌지 않는다. 그다음 새 세션에서 Claude에게 하위 에이전트 목록을 물어 여섯 개가 보이는지 본다(2.1.304에는 `/agents` 화면이 없다).
 
 다음은 R01을 이 방법으로 시작하고, 처음 세 조각에서 '재는 것'을 뽑아 '다시 볼 때'에 대어 본다.

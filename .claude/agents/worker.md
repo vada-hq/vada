@@ -9,17 +9,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          if: "Bash(*db:migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*src/ops/migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*test-data*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*pg-smoke*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/block-db-commands.mjs"'
 ---
 
 명세의 조각 하나를 만든다. `docs/work-method.md` '2. 조각 만들기'와 '하위 에이전트가 지키는 것'을 따른다.

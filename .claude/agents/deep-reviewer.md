@@ -10,17 +10,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          if: "Bash(*db:migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*src/ops/migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*test-data*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*pg-smoke*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/block-db-commands.mjs"'
 ---
 
 위험한 조각 하나를 깊게 검토한다. 코드를 고쳐 남기지 않는다.

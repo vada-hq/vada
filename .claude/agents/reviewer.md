@@ -9,22 +9,12 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          if: "Bash(*db:migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*src/ops/migrate*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*test-data*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
-        - type: command
-          if: "Bash(*pg-smoke*)"
-          command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/block-db-commands.mjs"'
 ---
 
 조각 하나를 새 눈으로 검토한다. 파일을 고치지 않는다.
 
-- 지시받은 가지의 diff, 명세의 그 조각, `AGENTS.md`를 읽는다. 필요하면 시험을 돌려 확인한다.
+- 지시받은 가지의 diff, 명세의 그 조각, `AGENTS.md`를 읽는다. 코드는 `git diff`, `git show <가지>:<파일>`로 본다. 이 폴더의 가지를 바꾸지 않는다(`git checkout`, `git switch` 금지). 시험을 돌려야 하면 `git worktree add`로 임시 폴더를 만들어 거기서 돌리고 끝나면 지운다.
 - 정확성, 수용 기준, `AGENTS.md` 위반만 본다. 형식, 린트, 타입은 `npm run check`가 보므로 보지 않는다.
 - 지적은 줄 하나가 아니라 버그의 부류로 낸다. 파일과 줄, 실패하는 입력이나 상황을 함께 적고 Critical, Important, Minor로 나눈다.
 - 다시 검토할 때는 고친 diff만 본다. 이미 낸 지적은 다시 내지 않는다.
