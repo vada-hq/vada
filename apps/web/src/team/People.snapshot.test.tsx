@@ -29,8 +29,10 @@ function Harness({ permissions }: { permissions: Action[] }) {
   return (
     <People
       view={{ ...base, council: { ...base.council, titles } }}
+      reading={{ own: false }}
       team={team}
       onCouncilChanged={() => {}}
+      onOwnChange={() => {}}
     />
   )
 }

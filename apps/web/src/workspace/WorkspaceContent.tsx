@@ -2,35 +2,33 @@ import type { CouncilView } from '@vada/contracts'
 import CouncilSettings from '../settings/CouncilSettings'
 import Departments from '../team/Departments'
 import People from '../team/People'
-import type { Team } from '../team/useTeam'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
-import type { CouncilViewState } from './useCouncilView'
+import type { CouncilData } from './useCouncilData'
 
-type Props = {
-  state: CouncilViewState
-  page: Page
-  team: Team
-  reload: () => void
-  onSaved: (view: CouncilView) => void
-}
+type Props = { data: CouncilData; page: Page }
 
-function PageOf({
-  view,
-  page,
-  team,
-  reload,
-  onSaved,
-}: Omit<Props, 'state'> & { view: CouncilView }) {
-  if (page === 'people') return <People view={view} team={team} onCouncilChanged={reload} />
-  if (page === 'departments') return <Departments view={view} team={team} />
+function PageOf({ data, page, view, reading }: Props & { view: CouncilView; reading: Reading }) {
+  if (page === 'people')
+    return (
+      <People
+        view={view}
+        reading={reading}
+        team={data.team}
+        onCouncilChanged={data.reload}
+        onOwnChange={data.reloadAfterOwnChange}
+      />
+    )
+  if (page === 'departments') return <Departments view={view} team={data.team} />
   // 학생회 이름이 바뀌면 옆 메뉴와 학생회 고르기의 이름도 바뀌도록 내 학생회 목록을 다시 읽는다.
-  return <CouncilSettings view={view} onForbidden={reload} onSaved={onSaved} />
+  return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ state, page, team, reload, onSaved }: Props) {
+function Body({ data, page }: Props) {
+  const { state } = data
   if (state.kind === 'lost')
     return (
       <StateMessage kind="notice">
@@ -41,13 +39,13 @@ function Body({ state, page, team, reload, onSaved }: Props) {
     return (
       <Card className="flex flex-col gap-3 p-6">
         <StateMessage kind="error">학생회를 불러오지 못했어요. 연결을 확인해 주세요.</StateMessage>
-        <Button variant="outline" className="self-start" onClick={reload}>
+        <Button variant="outline" className="self-start" onClick={data.reload}>
           다시 시도
         </Button>
       </Card>
     )
   if (state.kind !== 'ready') return <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-  return <PageOf view={state.view} page={page} team={team} reload={reload} onSaved={onSaved} />
+  return <PageOf data={data} page={page} view={state.view} reading={state.reading} />
 }
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.

@@ -1,4 +1,5 @@
 import type { CouncilView } from '@vada/contracts'
+import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -11,13 +12,21 @@ import { PeopleConfirmDialogs } from './PeopleConfirmDialogs'
 import { usePeople, type PeopleState } from './usePeople'
 import type { Team } from './useTeam'
 
-type Props = { view: CouncilView; team: Team; onCouncilChanged: () => void }
+// reading은 view를 가져온 학생회 읽기다. onCouncilChanged는 바깥 변경을 알게 돼(403) 학생회를 다시 읽고,
+// onOwnChange는 내 직급이 바뀐 요청이 성공해 다시 읽는다. 그 다시 읽기로 줄어든 권한은 알리지 않는다.
+type Props = {
+  view: CouncilView
+  reading: Reading
+  team: Team
+  onCouncilChanged: () => void
+  onOwnChange: () => void
+}
 
 // 운영진 > 사람: 이름, 직급(학생회가 정한 표시 이름), 부서와 부서 직급, 들어온 날. 들어온 순서대로다(DEC-47).
 // 회장단은 초대 링크와 줄마다 ⋯ 메뉴(부서 배정, 직급, 내보내기)를 보고, 회장은 회장 넘기기를 더 본다.
 // 동작 버튼은 서버가 준 내 권한 목록으로만 보이거나 숨긴다(DEC-38). 대화상자는 대상이 목록에 있고 권한이 있을 때만 열려 있다.
-export default function People({ view, team, onCouncilChanged }: Props) {
-  const people = usePeople(view, team, onCouncilChanged)
+export default function People({ view, reading, team, onCouncilChanged, onOwnChange }: Props) {
+  const people = usePeople({ view, reading }, team, onOwnChange)
   if (!team.data) return <LoadState failed={team.loadFailed} onRetry={team.reload} />
   const { members, departments } = team.data
   const titles = view.council.titles

@@ -9,7 +9,7 @@ export function useCouncilData(
   onCouncilLost: (councilId: string) => void,
   onCouncilsChanged: () => void,
 ) {
-  const { state, reload, replace } = useCouncilView(councilId)
+  const { state, reload, reloadAfterOwnChange, replace } = useCouncilView(councilId)
   const team = useTeam(councilId, reload)
   useEffect(() => {
     if (state.kind === 'lost') onCouncilLost(councilId)
@@ -20,5 +20,6 @@ export function useCouncilData(
     replace(next)
     onCouncilsChanged()
   }
-  return { state, view, reload, saved, team }
+  return { state, view, reload, reloadAfterOwnChange, saved, team }
 }
+export type CouncilData = ReturnType<typeof useCouncilData>

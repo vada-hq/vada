@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action, TeamResponse } from '@vada/contracts'
@@ -15,6 +15,7 @@ import People from './People'
 import { useTeam } from './useTeam'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
+import type { Reading } from '@/lib/use-lost'
 
 afterEach(() => {
   cleanup()
@@ -23,17 +24,23 @@ afterEach(() => {
 })
 const titles = { president: '위원장', vicePresident: '부위원장', head: '국장', viceHead: '차장' }
 
-// 실제 작업 공간처럼 useTeam의 onForbidden과 People의 onCouncilChanged는 둘 다 학생회를 다시 읽는 일이다. 시험에서는 따로 세어 본다.
+// 실제 작업 공간처럼 useTeam의 onForbidden, People의 onCouncilChanged·onOwnChange는 모두 학생회를 다시 읽는 일이다. 시험에서는 따로 세어 본다.
 // "목록 다시 읽기"는 다른 곳에서 목록이 바뀐 뒤 화면이 다시 읽는 일(404·403 뒤의 다시 읽기, 쪽 이동)을 대신한다.
+// 권한을 준 학생회 읽기. 따로 주지 않으면 바깥 변경을 읽은 것으로 본다.
+const outside: Reading = { own: false }
 function Harness({
   permissions,
   memberId,
+  reading = outside,
   onCouncilChanged = () => {},
+  onOwnChange = () => {},
   onForbidden = () => {},
 }: {
   permissions: Action[]
   memberId?: string
+  reading?: Reading
   onCouncilChanged?: () => void
+  onOwnChange?: () => void
   onForbidden?: () => void
 }) {
   const team = useTeam('c1', onForbidden)
@@ -42,8 +49,10 @@ function Harness({
     <>
       <People
         view={{ ...base, council: { ...base.council, titles } }}
+        reading={reading}
         team={team}
         onCouncilChanged={onCouncilChanged}
+        onOwnChange={onOwnChange}
       />
       <button type="button" onClick={team.reload}>
         목록 다시 읽기
@@ -450,7 +459,7 @@ test('부회장 직급은 확인 없이 바로 주고, 다른 사람의 직급�
   promoted.members[1]!.councilRank = 'vice_president'
   api.on('POST', '/api/organizations/c1/members/m2/rank', () => json(promoted))
   const changed = vi.fn()
-  render(<Harness permissions={LEADER_PERMISSIONS} onCouncilChanged={changed} />)
+  render(<Harness permissions={LEADER_PERMISSIONS} onOwnChange={changed} />)
   fireEvent.click(
     within(await openMenu('이재정')).getByRole('menuitem', { name: '부위원장 직급 주기' }),
   )
@@ -467,7 +476,7 @@ test('내 직급을 바꾸면 학생회를 다시 읽어 권한을 새로 받는
   promoted.members[1]!.councilRank = 'vice_president'
   api.on('POST', '/api/organizations/c1/members/m2/rank', () => json(promoted))
   const changed = vi.fn()
-  render(<Harness permissions={LEADER_PERMISSIONS} memberId="m2" onCouncilChanged={changed} />)
+  render(<Harness permissions={LEADER_PERMISSIONS} memberId="m2" onOwnChange={changed} />)
   fireEvent.click(
     within(await openMenu('이재정')).getByRole('menuitem', { name: '부위원장 직급 주기' }),
   )
@@ -528,7 +537,7 @@ test('회장 넘기기는 확인한 뒤 넘기고 학생회를 다시 읽는다.
     return json(teamResponse())
   })
   const changed = vi.fn()
-  render(<Harness permissions={PRESIDENT_PERMISSIONS} onCouncilChanged={changed} />)
+  render(<Harness permissions={PRESIDENT_PERMISSIONS} onOwnChange={changed} />)
   fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '위원장 넘기기' }))
   let dialog = await screen.findByRole('dialog', { name: '이재정님에게 위원장 직급을 넘길까요?' })
   fireEvent.click(within(dialog).getByRole('button', { name: '넘기기' }))
@@ -825,12 +834,13 @@ test('내보내기가 성공해 확인 대화상자가 닫힐 때는 까닭 문�
 
 // 내 요청이 성공해 내 권한이 줄고 학생회를 다시 읽은 결과는 바깥 변경이 아니므로 경고하지 않는다.
 function SelfChanging({ from, memberId }: { from: Action[]; memberId: string }) {
-  const [permissions, setPermissions] = useState(from)
+  const [read, setRead] = useState({ permissions: from, reading: outside })
   return (
     <Harness
-      permissions={permissions}
+      permissions={read.permissions}
+      reading={read.reading}
       memberId={memberId}
-      onCouncilChanged={() => setPermissions(MEMBER_PERMISSIONS)}
+      onOwnChange={() => setRead({ permissions: MEMBER_PERMISSIONS, reading: { own: true } })}
     />
   )
 }
@@ -864,15 +874,21 @@ test('내 부서 배정을 고쳐 내 권한이 줄어 대화상자가 닫혀도
 
 // 내 변경 뒤 학생회를 다시 읽어 화면에 반영된 다음에 바깥에서 생긴 변화는 알린다.
 function SelfThenOutside({ memberId }: { memberId: string }) {
-  const [permissions, setPermissions] = useState(LEADER_PERMISSIONS)
+  const [read, setRead] = useState({ permissions: LEADER_PERMISSIONS, reading: outside })
   return (
     <>
       <Harness
-        permissions={permissions}
+        permissions={read.permissions}
+        reading={read.reading}
         memberId={memberId}
-        onCouncilChanged={() => setPermissions([...LEADER_PERMISSIONS])}
+        onOwnChange={() =>
+          setRead({ permissions: [...LEADER_PERMISSIONS], reading: { own: true } })
+        }
       />
-      <button type="button" onClick={() => setPermissions(MEMBER_PERMISSIONS)}>
+      <button
+        type="button"
+        onClick={() => setRead({ permissions: MEMBER_PERMISSIONS, reading: { own: false } })}
+      >
         바깥에서 권한 빼기
       </button>
     </>
@@ -914,4 +930,71 @@ test('내 변경 뒤 다시 읽기가 끝난 다음 열려 있던 대화상자�
   fireEvent.click(screen.getByText('목록 다시 읽기'))
   await noDialog()
   expect(await screen.findByText(GONE)).toBeTruthy()
+})
+
+// 내 변경 뒤 학생회 다시 읽기가 실패하면 보던 값이 그대로라 억제할 것이 없다. 그 뒤의 바깥 변경은 어느 길로 와도 알린다.
+// 첫 다시 읽기(내 변경 뒤)는 실패하고, 그다음 다시 읽기(바깥 변경)는 권한이 줄어든 값을 가져온다.
+function OwnReadFails({ memberId }: { memberId: string }) {
+  const [read, setRead] = useState({ permissions: LEADER_PERMISSIONS, reading: outside })
+  const reads = useRef(0)
+  const outsideDrop = () => setRead({ permissions: MEMBER_PERMISSIONS, reading: { own: false } })
+  const reread = () => {
+    if (reads.current++ > 0) outsideDrop()
+  }
+  return (
+    <>
+      <Harness
+        permissions={read.permissions}
+        reading={read.reading}
+        memberId={memberId}
+        onOwnChange={reread}
+        onCouncilChanged={reread}
+      />
+      <button type="button" onClick={outsideDrop}>
+        바깥에서 권한 빼기
+      </button>
+    </>
+  )
+}
+const removeOwnDepartment = async (api: ReturnType<typeof mockApi>) => {
+  api.on('POST', '/api/organizations/c1/members/m2/departments/d1/remove', () =>
+    json(teamResponse()),
+  )
+  render(<OwnReadFails memberId="m2" />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '재정부에서 빼기' }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  await settle()
+  fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }))
+  await noDialog()
+}
+
+test('내 변경 뒤 다시 읽기가 실패하고 대화상자를 닫은 다음 코드 바꾸기가 403이면 사라진 초대 카드의 까닭을 보인다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ error: 'FORBIDDEN' }, 403))
+  await removeOwnDepartment(api)
+  const card = await screen.findByRole('region', { name: '초대 링크' })
+  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})
+
+test('내 변경 뒤 다시 읽기가 실패하고 대화상자를 닫은 다음 바깥에서 권한이 줄면 까닭을 보인다', async () => {
+  await removeOwnDepartment(serve())
+  fireEvent.click(screen.getByText('바깥에서 권한 빼기'))
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})
+
+test('대화상자 없는 내 변경(내 부위원장 직급) 뒤 다시 읽기가 실패한 다음 바깥에서 권한이 줄면 까닭을 보인다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m2/rank', () => json(teamResponse()))
+  render(<OwnReadFails memberId="m2" />)
+  fireEvent.click(
+    within(await openMenu('이재정')).getByRole('menuitem', { name: '부위원장 직급 주기' }),
+  )
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  await settle()
+  fireEvent.click(screen.getByText('바깥에서 권한 빼기'))
+  expect(await screen.findByText(LOST)).toBeTruthy()
 })

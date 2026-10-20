@@ -25,17 +25,13 @@ export default function CouncilWorkspace({
   onCouncilsChanged,
   onCouncilLost,
 }: Props) {
-  const { state, view, reload, saved, team } = useCouncilData(
-    council.id,
-    onCouncilLost,
-    onCouncilsChanged,
-  )
+  const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
       councils={councils}
-      view={view}
+      view={data.view}
       page={nav.page}
       user={user}
       logoutBusy={logoutBusy}
@@ -57,7 +53,7 @@ export default function CouncilWorkspace({
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
       />
-      <WorkspaceContent state={state} page={nav.page} team={team} reload={reload} onSaved={saved} />
+      <WorkspaceContent data={data} page={nav.page} />
     </WorkspaceFrame>
   )
 }
