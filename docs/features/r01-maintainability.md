@@ -38,7 +38,7 @@
 | 중첩 깊이 | 4(`max-depth`). 지금 넘는 곳은 `make-icons.mjs` 1곳 | ESLint 기본 | 설정 숫자 |
 | 인자 수 | 4(`max-params`). ESLint 기본은 3이지만, 서비스 함수의 `(tx, 사람, 입력, 시각)` 꼴을 지키려고 하나 더 둔다. 넘는 7곳은 객체 하나로 받는다 | [ESLint](https://eslint.org/docs/latest/rules/max-params) | 설정 숫자 |
 | 이름 없는 숫자 | `no-magic-numbers`. -1, 0, 1, 타입 안의 숫자, 배열 첨자, 기본값은 뺀다. `const`를 강제한다. 이름 붙은 상수 표(코드 → 값) 안의 값은 이름이 있는 것으로 본다. 규칙이 그 값을 잡으면 그 파일만 설정에서 이유와 함께 뺀다 | [Fowler, Replace Magic Literal](https://refactoring.com/catalog/replaceMagicLiteral.html), [oxlint 옵션](https://oxc.rs/docs/guide/usage/linter/rules/eslint/no-magic-numbers.html) | 설정 |
-| 시험 파일 | 함수 길이와 이름 없는 숫자는 시험 파일(`*.test.ts(x)`)과 시험 도우미(`**/test-support/**`)에 걸지 않는다. 복잡도와 인자 수는 건다 | 시험의 기대값과 시험 자료는 눈에 보이는 값이어야 읽힌다 | 설정 |
+| 시험 파일 | 함수 길이, 파일 길이, 이름 없는 숫자는 시험 파일(`*.test.ts(x)`)과 시험 도우미(`**/test-support/**`)에 걸지 않는다. 복잡도와 인자 수는 건다 | 시험의 기대값과 시험 자료는 눈에 보이는 값이어야 읽힌다 | 설정 |
 | 아이콘 스크립트 | `make-icons.mjs`는 이름 없는 숫자에서 영구히 뺀다(설정에 이유). 49개가 PNG 형식 바이트(CRC 다항식, 덩어리 위치)와 그림 좌표라 이름을 붙이면 형식 명세를 다시 적게 된다. 중첩 깊이는 고친다 | 모양을 바꿀 때만 손으로 돌리는 생성기다 | 설정 |
 | 들여오는 방식 | 규칙은 첫 조각에서 오류로 켠다. 지금 어긴 파일만 설정의 '임시 예외' 목록에 두고, 조각마다 고친 파일을 목록에서 뺀다. 새 코드는 바로 막힌다. 목록이 비면 끝난다 | 작게 나눠 내보낸다([DORA](https://dora.dev/capabilities/working-in-small-batches/)) | 목록 |
 | 상수 자리 | 값마다 한 곳에서만 정의하고, 그 값을 주로 쓰는 모듈에 둔다. 서버와 화면이 같이 쓰면 `packages/contracts`에 둔다. 앱 전체 상수 파일 하나는 만들지 않는다 | 함께 바뀌는 것은 함께 둔다([Common Closure Principle](https://helix.sitecore.com/appendix/package-principles.html)). 전역 상수 묶음은 [반패턴](https://en.wikipedia.org/wiki/Constant_interface)이다 | 파일 옮기기 |
@@ -62,7 +62,7 @@
 
 위험이 크고 다른 조각이 기대는 것을 앞에 둔다. 1 → 2 → 3은 차례로, 4~7(화면)과 8(서버)은 파일이 겹치지 않아 두 작업자가 동시에 할 수 있다. 9~11은 그 뒤에 차례로 한다.
 
-### 1. 린트 상한 켜기 [ ]
+### 1. 린트 상한 켜기 [x]
 - 할 수 있게 되는 것: 새로 쓰는 코드가 크기, 복잡도, 이름 없는 숫자 상한을 넘으면 커밋 전에 막힌다.
 - 수용 기준: `npm run check`가 새 규칙으로 돈다. 임시 예외 목록 밖 파일은 위반이 0이다. 시험이 아닌 파일에 일부러 넣은 위반은 실패한다. AGENTS.md '코드' 절에 상한 숫자와 '값마다 한 곳' 규칙이 있다.
 - 닿는 곳: 루트 `.oxlintrc.json`, AGENTS.md.
