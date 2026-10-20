@@ -318,6 +318,43 @@ test('이름 바꾸기 대화상자가 열린 채 그 부서가 목록에서 사
   expect(posts(api)).toEqual([])
 })
 
+// 사라짐 효과를 지우면 대상 id가 남아, 같은 부서가 목록에 다시 나타날 때 대화상자가 저절로 다시 열린다.
+test('대화상자 대상 부서가 사라져 닫힌 뒤 목록에 다시 나타나도 대화상자는 다시 열리지 않는다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () =>
+    reads++ === 1
+      ? withDepartments(team => {
+          team.departments = team.departments.slice(0, 1)
+        })
+      : json(teamResponse()),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await noDialog()
+  expect(await screen.findByText('부서 1개')).toBeTruthy()
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  expect(await screen.findByText('부서 2개')).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('재정 역할을 주는 동안에는 ⋯ 버튼이 막혀 요청이 두 번 나가지 않는다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/c1/departments/d2', () => pending.promise)
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(
+    within(await openMenu('기획부')).getByRole('menuitem', { name: '재정 역할 주기' }),
+  )
+  const trigger = (await screen.findByRole('button', { name: '기획부 동작' })) as HTMLButtonElement
+  await waitFor(() => expect(trigger.disabled).toBe(true))
+  expect(posts(api)).toHaveLength(1)
+  pending.resolve(json(teamResponse()))
+  await waitFor(() => expect(trigger.disabled).toBe(false))
+})
+
 test('없애기 확인 대화상자는 보내는 동안 꺼져 한 번만 보내고, 권한을 잃거나 부서가 사라지면 닫힌다', async () => {
   const api = serve()
   const pending = deferredResponse()
