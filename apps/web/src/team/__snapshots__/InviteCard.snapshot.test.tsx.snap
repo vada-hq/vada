@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`권한 없음 1`] = `
+"<div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<p role="alert" class="text-sm wrap-anywhere text-destructive">권한이 바뀌었어요. 화면을 새로 불러왔어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 self-start">다시 시도</button>
+</div>
+</div>"
+`;
+
+exports[`불러오기 오류 1`] = `
+"<div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<p role="alert" class="text-sm wrap-anywhere text-destructive">초대 링크를 불러오지 못했어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 self-start">다시 시도</button>
+</div>
+</div>"
+`;
+
+exports[`불러오는 중 1`] = `
+"<div>
+</div>"
+`;
+
+exports[`초대 링크 1`] = `
+"<div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<section aria-label="초대 링크" class="flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_r_1_">초대 링크</label>
+<p class="text-xs text-gray-500">단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를 바꿔 주세요.</p>
+</div>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_r_1_" readonly="" value="http://localhost:3000/join/ABCD2345">
+<div class="flex flex-wrap gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
+<rect width="14" height="14" x="8" y="8" rx="2" ry="2">
+</rect>
+<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2">
+</path>
+</svg>링크 복사</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw" aria-hidden="true">
+<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8">
+</path>
+<path d="M21 3v5h-5">
+</path>
+<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16">
+</path>
+<path d="M8 16H3v5">
+</path>
+</svg>코드 바꾸기</button>
+</div>
+</section>
+</div>
+</div>"
+`;
+
+exports[`코드를 바꾼 뒤 1`] = `
+"<div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<section aria-label="초대 링크" class="flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_r_4_">초대 링크</label>
+<p class="text-xs text-gray-500">단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를 바꿔 주세요.</p>
+</div>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_r_4_" readonly="" value="http://localhost:3000/join/WXYZ6789">
+<div class="flex flex-wrap gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
+<rect width="14" height="14" x="8" y="8" rx="2" ry="2">
+</rect>
+<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2">
+</path>
+</svg>링크 복사</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw" aria-hidden="true">
+<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8">
+</path>
+<path d="M21 3v5h-5">
+</path>
+<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16">
+</path>
+<path d="M8 16H3v5">
+</path>
+</svg>코드 바꾸기</button>
+</div>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.</p>
+</section>
+</div>
+</div>"
+`;

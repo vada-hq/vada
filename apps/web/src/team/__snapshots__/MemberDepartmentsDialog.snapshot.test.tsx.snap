@@ -1,0 +1,366 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`만들어 둔 부서가 없음 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_f_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_g_" aria-describedby="radix-_r_h_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_g_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
+<p id="radix-_r_h_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<p class="text-sm text-gray-500">아직 부서가 없어요.</p>
+</section>
+<p class="text-sm text-gray-500">부서가 없어요. 운영진 &gt; 부서에서 먼저 만들어 주세요.</p>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`모든 부서에 들어 있음 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_i_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_j_" aria-describedby="radix-_r_k_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_j_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_r_k_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">재정부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="재정부 부서 직급">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="재정부에서 빼기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">기획부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="기획부 부서 직급">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="기획부에서 빼기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</section>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`부서가 없는 사람 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_3_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_4_" aria-describedby="radix-_r_5_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_4_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
+<p id="radix-_r_5_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<p class="text-sm text-gray-500">아직 부서가 없어요.</p>
+</section>
+<section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
+<div class="grid grid-cols-2 gap-2">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="d1">재정부</option>
+<option value="d2">기획부</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서 직급<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">부서에 넣기</button>
+</section>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`부서가 있는 사람 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_0_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_1_" aria-describedby="radix-_r_2_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_1_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_r_2_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">재정부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="재정부 부서 직급">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="재정부에서 빼기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</section>
+<section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
+<div class="grid grid-cols-2 gap-2">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="d2">기획부</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서 직급<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">부서에 넣기</button>
+</section>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`오류 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_c_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_d_" aria-describedby="radix-_r_e_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_d_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_r_e_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">재정부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="재정부 부서 직급">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="재정부에서 빼기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</section>
+<section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
+<div class="grid grid-cols-2 gap-2">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="d2">기획부</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서 직급<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">부서에 넣기</button>
+</section>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">저장하지 못했어요.</p>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`저장 중 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_9_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_a_" aria-describedby="radix-_r_b_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_a_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_r_b_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">재정부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="재정부 부서 직급" disabled="">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="재정부에서 빼기" disabled="">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</section>
+<section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
+<div class="grid grid-cols-2 gap-2">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="d2">기획부</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서 직급<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" disabled="">부서에 넣기</button>
+</section>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
+
+exports[`직급 권한 없음 1`] = `
+"<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>
+<div data-aria-hidden="true" aria-hidden="true">
+</div>
+<div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
+<div role="dialog" id="radix-_r_6_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_7_" aria-describedby="radix-_r_8_" style="pointer-events: auto;">
+<div class="flex flex-col gap-1 pr-6">
+<h2 id="radix-_r_7_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_r_8_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+</div>
+<section aria-label="지금 부서" class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">재정부</span>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-32" aria-label="재정부 부서 직급" disabled="">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="재정부에서 빼기" disabled="">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</section>
+<section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
+<div class="grid grid-cols-2 gap-2">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="d2">기획부</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-1.5">부서 직급<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer" disabled="">
+<option value="">직급 없음</option>
+<option value="head">국장</option>
+<option value="vice_head">차장</option>
+</select>
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">부서에 넣기</button>
+</section>
+<button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
+</span>"
+`;
