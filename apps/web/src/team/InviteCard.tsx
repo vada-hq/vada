@@ -26,8 +26,6 @@ export default function InviteCard({
   onForbidden: () => void
 }) {
   const invite = useInvite(councilId, onForbidden)
-  // 번호는 처음 그릴 때 정해져야 한다. 불러온 뒤 부품 안에서 받으면 번호가 달라진다.
-  const linkId = useId()
   if (!invite.code)
     return invite.loadError ? (
       <Card className="flex flex-col gap-3 p-4">
@@ -40,7 +38,6 @@ export default function InviteCard({
   return (
     <Card className="flex flex-col gap-3 p-4">
       <InviteLinkSection
-        linkId={linkId}
         link={inviteLink(invite.code)}
         rotating={invite.rotating}
         notice={invite.notice}
@@ -56,7 +53,6 @@ export default function InviteCard({
 }
 
 type SectionProps = {
-  linkId: string
   link: string
   rotating: boolean
   notice: Notice
@@ -64,7 +60,8 @@ type SectionProps = {
   onRotate: () => void
 }
 
-function InviteLinkSection({ linkId, link, rotating, notice, onCopy, onRotate }: SectionProps) {
+function InviteLinkSection({ link, rotating, notice, onCopy, onRotate }: SectionProps) {
+  const linkId = useId()
   return (
     <section aria-label="초대 링크" className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
