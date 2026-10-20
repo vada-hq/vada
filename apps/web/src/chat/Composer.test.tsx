@@ -208,7 +208,6 @@ test('보내기에 실패하면 글과 사진이 남고 자동으로 다시 보�
 
 test.each([
   [429, 'TOO_MANY_REQUESTS', /너무 빨리/],
-  [409, 'ROOM_READ_ONLY', /보기만 할 수 있어요/],
   [400, 'UPLOAD_MISMATCH', /올린 사진을 확인하지 못했어요/],
   [409, 'PHOTO_ALREADY_SENT', /이미 보낸 사진/],
   [400, 'INVALID_INPUT', /보낼 수 없는 내용/],
@@ -258,6 +257,74 @@ test('상대가 떠난 보기만 방에는 입력칸이 없다', async () => {
   api.on('GET', `${chatBase}/rooms/r1`, () => json(roomDetail(room('r1', { readOnly: true }))))
   render(<ChatHarness />)
   await openAllRoom()
+  expect(await screen.findByText('이 방은 보기만 할 수 있어요.')).toBeTruthy()
+  expect(screen.queryByLabelText('메시지')).toBeNull()
+})
+
+test('보내는 동안 이어 친 글과 새로 고른 사진은 남고, 보낸 글과 사진만 지워진다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => pending.promise)
+  api.on('POST', `${chatBase}/rooms/r1/uploads`, () => json(signed))
+  await open()
+  type('보낸 글')
+  choose('a.jpg')
+  await waitFor(() => expect(sendButton().disabled).toBe(false))
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(1))
+  type('보낸 글 이어서 친 글')
+  api.on('POST', `${chatBase}/rooms/r1/uploads`, () => json({ ...signed, key: 'k2' }))
+  choose('b.jpg')
+  await waitFor(() => expect(screen.getAllByRole('img').length).toBeGreaterThan(1))
+  pending.resolve(json({ id: 'a3' }, 201))
+  await waitFor(() => expect(field().value).toBe('이어서 친 글'))
+  const strip = screen.getByLabelText('보낼 사진')
+  expect(within(strip).getAllByRole('listitem')).toHaveLength(1)
+  expect(within(strip).getByRole('button', { name: 'b.jpg 빼기' })).toBeTruthy()
+})
+
+test('올리는 것은 줄인 JPEG이고 원본 파일이 아니다', async () => {
+  serve()
+  const resized = jpeg()
+  vi.mocked(resizeToJpeg).mockResolvedValue(resized)
+  await open()
+  choose('원본.jpg')
+  await waitFor(() => expect(sendButton().disabled).toBe(true))
+  await waitFor(() =>
+    expect(vi.mocked(fetch).mock.calls.some(([, i]) => i?.method === 'PUT')).toBe(true),
+  )
+  const put = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === 'PUT')
+  expect(put?.[1]?.body).toBe(resized)
+  expect(put?.[1]?.body).not.toBeInstanceOf(File)
+})
+
+test('줄인 사진이 상한을 넘으면 올리지 않고 그 자리에서 알린다', async () => {
+  serve()
+  const big = jpeg()
+  Object.defineProperty(big, 'size', { value: 10 * 1_048_576 + 1 })
+  vi.mocked(resizeToJpeg).mockResolvedValue(big)
+  await open()
+  choose('큰.jpg')
+  expect(await screen.findByText(/사진이 너무 커요/)).toBeTruthy()
+  expect(vi.mocked(fetch).mock.calls.some(([, init]) => init?.method === 'PUT')).toBe(false)
+})
+
+test('글만 보낼 때의 일반 503은 사진 저장소 문구가 아니다', async () => {
+  const api = serve()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => json({ error: 'X' }, 503))
+  await open()
+  type('글')
+  fireEvent.click(sendButton())
+  expect(await screen.findByText(/보내지 못했어요/)).toBeTruthy()
+  expect(screen.queryByText(/사진을 보낼 수 없어요/)).toBeNull()
+})
+
+test('보내다 보기만 되는 방(409)이 되면 입력칸을 닫고 보기만 안내로 바꾼다', async () => {
+  const api = serve()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => json({ error: 'ROOM_READ_ONLY' }, 409))
+  await open()
+  type('글')
+  fireEvent.click(sendButton())
   expect(await screen.findByText('이 방은 보기만 할 수 있어요.')).toBeTruthy()
   expect(screen.queryByLabelText('메시지')).toBeNull()
 })

@@ -78,11 +78,12 @@ export const SEND_ERRORS: Record<string, string> = {
   ROOM_READ_ONLY: '이 방은 보기만 할 수 있어요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 글과 사진을 확인해 주세요.',
   UPLOAD_MISMATCH: '올린 사진을 확인하지 못했어요. 그 사진을 빼고 다시 올려 주세요.',
+  STORAGE_NOT_CONFIGURED:
+    '지금은 사진을 보낼 수 없어요. 글은 보낼 수 있어요. 사진을 빼고 보내 주세요.',
   PHOTO_ALREADY_SENT: '이미 보낸 사진이에요. 그 사진을 빼고 보내 주세요.',
 }
 export const SEND_FAILED = '보내지 못했어요. 글과 사진은 그대로 있어요. 다시 보내 주세요.'
-export const STORAGE_NOT_CONFIGURED =
-  '지금은 사진을 보낼 수 없어요. 글은 보낼 수 있어요. 사진을 빼고 보내 주세요.'
+export const PHOTO_TOO_BIG = '사진이 너무 커요. 다른 사진을 골라 주세요.'
 export const PHOTO_CANNOT_OPEN = '이 사진을 열 수 없어요. 다른 사진을 골라 주세요.'
 export const PHOTO_UPLOAD_FAILED = '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'
 export const PHOTO_TOO_MANY = (max: number) => `사진은 한 번에 ${max}장까지 보낼 수 있어요.`

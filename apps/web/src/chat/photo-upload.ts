@@ -1,4 +1,4 @@
-import { FILE_NAME_MAX, type PhotoUploadResponse } from '@vada/contracts'
+import { FILE_NAME_MAX, PHOTO_MAX_BYTES, type PhotoUploadResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { uploadsPath } from './chat-api'
 import { resizeToJpeg } from './photo-resize'
@@ -34,8 +34,9 @@ async function uploadPhoto(councilId: string, roomId: string, jpeg: Blob): Promi
 }
 
 export const UNREADABLE = 'UNREADABLE'
+export const TOO_BIG = 'TOO_BIG'
 
-// 고른 파일을 줄여 올린다. 줄인 사진이 나오면 onPreview로 미리 보기를 넘긴다. 열 수 없으면 code가 UNREADABLE이다.
+// 고른 파일을 줄여 올린다. 줄인 사진이 나오면 onPreview로 미리 보기를 넘긴다. 열 수 없으면 code가 UNREADABLE, 너무 크면 TOO_BIG이다.
 export async function sendPhoto(
   where: { councilId: string; roomId: string },
   file: File,
@@ -43,6 +44,8 @@ export async function sendPhoto(
 ): Promise<UploadOutcome> {
   const jpeg = await resizeToJpeg(file)
   if (!jpeg) return { ok: false, status: 0, code: UNREADABLE }
+  // 줄인 결과가 상한을 넘으면 올리지 않고 바로 알린다(올린 뒤 거절당하지 않게).
+  if (jpeg.size > PHOTO_MAX_BYTES) return { ok: false, status: 0, code: TOO_BIG }
   onPreview(URL.createObjectURL(jpeg))
   return uploadPhoto(where.councilId, where.roomId, jpeg)
 }

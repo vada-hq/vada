@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import PhotoStrip from './PhotoStrip'
+import { SEND_ERRORS } from '@/lib/messages'
 import { useComposer } from './useComposer'
 import { useMentionInput } from './useMentionInput'
 
@@ -86,12 +87,13 @@ function PhotoPicker({ onPick }: { onPick: (files: File[]) => void }) {
 // 입력칸: 글, '@' 부르기, 사진 붙이기, 보내기. 버튼은 계약의 검사로 켜고 끈다.
 export default function Composer({ participants, meId, ...args }: Props) {
   const composer = useComposer(args)
-  const { body, send, canSend, sending, error, drafts } = composer
+  const { body, send, canSend, sending, error, readOnly, drafts } = composer
   const { field, people, onChange, onPick, onSelect } = useMentionInput(
     composer,
     participants,
     meId,
   )
+  if (readOnly) return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
   return (
     <form
       className="flex flex-col gap-2 border-t bg-white pt-3"

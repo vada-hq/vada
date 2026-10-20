@@ -43,3 +43,31 @@ test('열 수 없는 파일은 null이다', async () => {
   vi.stubGlobal('createImageBitmap', () => Promise.reject(new Error('열 수 없음')))
   expect(await resizeToJpeg(new Blob(['heic']))).toBeNull()
 })
+
+test('풀기 전에 크기를 읽어 긴 변 기준으로 줄여 풀고, 사진에 적힌 방향을 따른다', async () => {
+  vi.stubGlobal(
+    'URL',
+    Object.assign(URL, { createObjectURL: () => 'blob:x', revokeObjectURL: vi.fn() }),
+  )
+  vi.stubGlobal(
+    'Image',
+    class {
+      naturalWidth = 3000
+      naturalHeight = 6000
+      src = ''
+      decode = () => Promise.resolve()
+    },
+  )
+  const decode = vi.fn((_file: Blob, _options?: object) =>
+    Promise.resolve({ width: 1024, height: 2048, close: vi.fn() }),
+  )
+  vi.stubGlobal('createImageBitmap', decode)
+  stubCanvas(new Blob(['jpeg']))
+  await resizeToJpeg(new Blob(['raw']))
+  expect(decode.mock.calls[0]?.[1]).toEqual({
+    imageOrientation: 'from-image',
+    resizeWidth: 1024,
+    resizeHeight: 2048,
+    resizeQuality: 'high',
+  })
+})

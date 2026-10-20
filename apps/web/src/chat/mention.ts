@@ -22,10 +22,21 @@ export function insertMention(text: string, caret: number, name: string) {
   }
 }
 
+// "@이름" 바로 뒤에 글자가 이어지면 다른 이름이다("@김민수"는 "김민"을 부르지 않는다).
+const NAME_CHAR = /[\p{L}\p{N}]/u
+function isCalled(body: string, name: string) {
+  const token = `@${name}`
+  for (let at = body.indexOf(token); at >= 0; at = body.indexOf(token, at + 1)) {
+    const next = body.charAt(at + token.length)
+    if (next === '' || !NAME_CHAR.test(next)) return true
+  }
+  return false
+}
+
 // 고른 사람 가운데 본문에 아직 "@이름"이 남은 사람만 부른다. 지운 이름은 부르지 않는다.
 export function mentionIds(body: string, picks: RoomParticipant[]): string[] {
   const ids = new Set<string>()
-  for (const pick of picks) if (body.includes(`@${pick.name}`)) ids.add(pick.memberId)
+  for (const pick of picks) if (isCalled(body, pick.name)) ids.add(pick.memberId)
   return [...ids].slice(0, MENTION_MAX)
 }
 

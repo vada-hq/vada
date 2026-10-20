@@ -71,3 +71,17 @@ test('getJson은 받은 취소 신호를 fetch에 그대로 넘기고, 없으면
   expect(withSignal?.signal).toBe(controller.signal)
   expect(withoutSignal).not.toHaveProperty('signal')
 })
+
+test('503은 사진 저장소가 꺼진 코드일 때만 코드를 믿고, 다른 503은 FAILED다', async () => {
+  const api = mockApi()
+  api.on('POST', '/api/a', () => json({ error: 'STORAGE_NOT_CONFIGURED' }, 503))
+  api.on('POST', '/api/b', () => json({ error: 'Service Unavailable' }, 503))
+  api.on('POST', '/api/c', () => json({ error: 'STORAGE_NOT_CONFIGURED' }, 500))
+  expect(await postJson('/api/a', {})).toEqual({
+    ok: false,
+    status: 503,
+    code: 'STORAGE_NOT_CONFIGURED',
+  })
+  expect(await postJson('/api/b', {})).toEqual({ ok: false, status: 503, code: 'FAILED' })
+  expect(await postJson('/api/c', {})).toEqual({ ok: false, status: 500, code: 'FAILED' })
+})

@@ -33,3 +33,11 @@ test('목록은 이름으로 거르고 나는 뺀다', () => {
   expect(suggestions(people, '이', 'm1')).toEqual([people[1]])
   expect(suggestions(people, '', 'm1')).toEqual([people[1]])
 })
+
+test('"@김민수"는 "김민"을 부르지 않고, "@김민 "과 문장 끝은 부른다', () => {
+  const pick = { memberId: 'm9', name: '김민' }
+  expect(mentionIds('@김민수 안녕', [pick])).toEqual([])
+  expect(mentionIds('@김민 안녕', [pick])).toEqual(['m9'])
+  expect(mentionIds('안녕 @김민', [pick])).toEqual(['m9'])
+  expect(mentionIds('@김민수 @김민', [pick])).toEqual(['m9'])
+})

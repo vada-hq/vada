@@ -4,7 +4,7 @@ import {
   statusOf,
   type OpenDirectResponse,
 } from '@vada/contracts'
-import { SEND_ERRORS, STORAGE_NOT_CONFIGURED } from '@/lib/messages'
+import { SEND_ERRORS } from '@/lib/messages'
 
 // 새 메시지가 보이기까지의 최대 시간(기능 003: 3초 안에).
 export const CHAT_POLL_MS = 3000
@@ -39,8 +39,6 @@ export const uploadsPath = (councilId: string, roomId: string) =>
 export const filePath = (councilId: string, fileId: string) =>
   `${chatBase(councilId)}/files/${encodeURIComponent(fileId)}`
 
-// 보내기·올리기 실패의 문구. 503은 사진 저장소가 없는 것이다.
-export function sendErrorText(result: { status: number; code: string }, fallback: string) {
-  if (result.status === statusOf('STORAGE_NOT_CONFIGURED')) return STORAGE_NOT_CONFIGURED
-  return SEND_ERRORS[result.code] ?? fallback
-}
+// 보내기·올리기 실패의 문구. 사진 저장소가 없을 때만 그 문구고, 다른 503(배포 중 등)은 일반 문구다.
+export const sendErrorText = (result: { code: string }, fallback: string) =>
+  SEND_ERRORS[result.code] ?? fallback

@@ -17,10 +17,38 @@ export function fitSize(width: number, height: number, max = PHOTO_MAX_EDGE) {
 const toBlob = (canvas: HTMLCanvasElement) =>
   new Promise<Blob | null>(done => canvas.toBlob(done, PHOTO_MEDIA_TYPE, PHOTO_QUALITY))
 
+// 풀기 전에 그림 크기만 읽는다(열 수 없으면 null). 큰 사진을 원본 크기로 풀지 않으려고 줄일 크기를 먼저 정한다.
+async function probeSize(file: Blob) {
+  const url = URL.createObjectURL(file)
+  try {
+    const image = new Image()
+    image.src = url
+    await image.decode()
+    return { width: image.naturalWidth, height: image.naturalHeight }
+  } catch {
+    return null
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+// 방향은 사진에 적힌 대로 세우고, 긴 변이 상한을 넘으면 풀 때부터 줄인다.
+async function decode(file: Blob) {
+  const probed = await probeSize(file)
+  const target = probed && fitSize(probed.width, probed.height)
+  const shrink = probed && target && target.width < probed.width
+  return createImageBitmap(file, {
+    imageOrientation: 'from-image',
+    ...(shrink
+      ? { resizeWidth: target.width, resizeHeight: target.height, resizeQuality: 'high' }
+      : {}),
+  })
+}
+
 // 열 수 없는 파일(HEIF를 못 여는 브라우저, 사진이 아닌 파일)은 null이다.
 export async function resizeToJpeg(file: Blob): Promise<Blob | null> {
   try {
-    const bitmap = await createImageBitmap(file)
+    const bitmap = await decode(file)
     const size = fitSize(bitmap.width, bitmap.height)
     const canvas = document.createElement('canvas')
     canvas.width = size.width

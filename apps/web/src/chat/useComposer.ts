@@ -16,12 +16,20 @@ type Args = {
   onLost: () => void
 }
 
+// 보낸 글을 뺀 나머지. 보낸 글 뒤에 이어 쳤으면 그 부분만 남고, 중간을 고쳤으면 고친 글을 그대로 둔다.
+function unsentBody(now: string, sent: string) {
+  if (now === sent) return ''
+  return now.startsWith(sent) ? now.slice(sent.length).trimStart() : now
+}
+
 // 입력칸 하나: 글, 부른 사람, 사진, 보내기. 보내기에 실패하면 글과 사진을 그대로 두고 자동으로 다시 보내지 않는다.
 export function useComposer({ councilId, roomId, onSent, onLost }: Args) {
   const [body, setBody] = useState('')
   const [picks, setPicks] = useState<RoomParticipant[]>([])
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 보내다 보기만 되는 방이 된 것을 알게 되면 입력칸을 닫는다.
+  const [readOnly, setReadOnly] = useState(false)
   const busy = useRef(false)
   const isActive = useActive()
   const drafts = usePhotoDrafts(councilId, roomId, onLost)
@@ -51,12 +59,15 @@ export function useComposer({ councilId, roomId, onSent, onLost }: Args) {
     if (!isActive()) return
     setSending(false)
     if (result.ok) {
-      setBody('')
-      setPicks([])
-      drafts.clear()
+      // 보낸 것만 지운다. 기다리는 사이 이어 친 글과 새로 고른 사진은 남긴다.
+      setBody(now => unsentBody(now, body))
+      drafts.removeSent(keys)
       onSent()
     } else if (isRoomLost(result.status)) onLost()
-    else setError(sendErrorText(result, SEND_FAILED))
+    else if (result.code === 'ROOM_READ_ONLY') {
+      setReadOnly(true)
+      onSent()
+    } else setError(sendErrorText(result, SEND_FAILED))
   }
 
   const pick = (person: RoomParticipant) =>
@@ -64,6 +75,6 @@ export function useComposer({ councilId, roomId, onSent, onLost }: Args) {
       list.some(item => item.memberId === person.memberId) ? list : [...list, person],
     )
 
-  return { body, setBody, pick, send, canSend, sending, error, drafts }
+  return { body, setBody, pick, send, canSend, sending, error, readOnly, drafts }
 }
 export type Composer = ReturnType<typeof useComposer>
