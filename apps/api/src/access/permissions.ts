@@ -5,12 +5,18 @@ import type { Actor } from './actor.js'
 // 기준: 회장단은 학생회 직급이 있는 사람, 부장은 부서 직급이 있는 사람(부부장은 부장과 같다, 기준 4),
 // 재정부는 재정 역할 부서의 지금 소속이다.
 export type Criterion =
-  'member' | 'leadership' | 'president' | 'department_head' | 'finance' | 'room_member'
+  'member' | 'leadership' | 'president' | 'department_head' | 'finance' | 'room_member' | 'assignee'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
-export type Context = { departmentId?: string; requestedBy?: string; inRoom?: boolean }
+// assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
+export type Context = {
+  departmentId?: string
+  requestedBy?: string
+  inRoom?: boolean
+  assigneeId?: string
+}
 
 export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'council.view': { who: ['member'] },
@@ -25,6 +31,11 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'chat.direct': { who: ['member'] },
   // 회장단도 물려받지 않는다(PRIN-5). 참여 줄이 있어야 한다.
   'chat.use': { who: ['room_member'] },
+  // 업무 칸. 부장 기준은 업무의 부서(없으면 회장단만)를 맥락으로 묻는다. 담당자 기준은 회장단도 물려받지 않는다.
+  'task.manage': { who: ['department_head', 'assignee'] },
+  'task.set_department': { who: ['leadership'] },
+  'task.assign': { who: ['department_head'] },
+  'task.status': { who: ['department_head', 'assignee'] },
 }
 
 function meets(actor: Actor, criterion: Criterion, context: Context) {
@@ -49,6 +60,9 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
     // 기본은 거부다. 호출하는 쪽이 방 참여를 넘기지 않으면 열리지 않는다.
     case 'room_member':
       return context.inRoom === true
+    // 담당자를 모르면(assigneeId가 없으면) 열리지 않는다.
+    case 'assignee':
+      return context.assigneeId !== undefined && context.assigneeId === actor.memberId
   }
 }
 

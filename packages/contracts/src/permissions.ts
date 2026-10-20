@@ -20,5 +20,9 @@ export const ACTIONS = [
   'chat.notice', // 전체방 메시지에 공지 표시 붙이고 떼기(회장단)
   'chat.direct', // 1:1 대화 열기(모든 운영진)
   'chat.use', // 방 읽고 보내기. 그 방 참여자만이라 내 권한 목록에는 없다
+  'task.manage', // 업무 만들기·고치기·지우기(그 부서 부장 기준과 담당자)
+  'task.set_department', // 업무의 담당 부서 정하기(회장단)
+  'task.assign', // 업무 맡기기(그 부서 부장 기준)
+  'task.status', // 업무 상태 바꾸기(그 부서 부장 기준과 담당자)
 ] as const
 export type Action = (typeof ACTIONS)[number]

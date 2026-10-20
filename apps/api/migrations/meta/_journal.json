@@ -15,6 +15,20 @@
       "when": 1792509144157,
       "tag": "0001_chat_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792539522049,
+      "tag": "0002_task_cancelled_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792539523375,
+      "tag": "0003_task_limits",
+      "breakpoints": true
     }
   ]
 }

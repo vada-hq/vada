@@ -148,3 +148,49 @@ test('내 권한 목록: 방에 달린 chat.use는 없다. 회장은 나머지 �
   assert.deepEqual(permissionsOf(planningHead), ['council.view', 'chat.direct'])
   assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct'])
 })
+
+// 업무 칸(DEC-28). 맥락은 업무의 부서(departmentId)와 담당자(assigneeId)다. 담당자 기준은 회장단도 물려받지 않는다.
+test('업무 칸: 부장 기준은 그 부서 부장과 회장단, 부서 없는 업무는 회장단만이다', () => {
+  for (const action of ['task.manage', 'task.assign', 'task.status'] as const) {
+    for (const allowed of [president, vicePresident, planningHead, planningViceHead])
+      assert.equal(can(allowed, action, { departmentId: 'planning' }), true, action)
+    for (const denied of [planningMember, financeMember, plain])
+      assert.equal(can(denied, action, { departmentId: 'planning' }), false, action)
+    assert.equal(can(planningHead, action, { departmentId: 'finance' }), false, action)
+    assert.equal(can(vicePresident, action, {}), true, action)
+    assert.equal(can(planningHead, action, {}), false, action)
+  }
+})
+
+test('업무 칸: 담당자는 고치기와 상태 바꾸기만 되고 맡기기는 안 되며, 맥락의 담당자가 나일 때만 맞다', () => {
+  const mine = { departmentId: 'planning', assigneeId: 'member' }
+  assert.equal(can(planningMember, 'task.manage', mine), true)
+  assert.equal(can(planningMember, 'task.status', mine), true)
+  assert.equal(can(planningMember, 'task.assign', mine), false)
+  assert.equal(can(planningMember, 'task.set_department', mine), false)
+  assert.equal(
+    can(planningMember, 'task.manage', { departmentId: 'planning', assigneeId: 'x' }),
+    false,
+  )
+  assert.equal(can(planningMember, 'task.manage', { departmentId: 'planning' }), false)
+  assert.equal(can(planningMember, 'task.manage'), false)
+  // 회장도 담당자 기준을 물려받지 않는다.
+  assert.equal(allows(president, { who: ['assignee'] }, { assigneeId: 'x' }), false)
+  assert.equal(allows(president, { who: ['assignee'] }, { assigneeId: 'president' }), true)
+})
+
+test('업무 칸: 부서 정하기는 회장단만이다', () => {
+  for (const allowed of [president, vicePresident])
+    assert.equal(can(allowed, 'task.set_department', { departmentId: 'planning' }), true)
+  for (const denied of [planningHead, planningViceHead, planningMember, plain])
+    assert.equal(can(denied, 'task.set_department', { departmentId: 'planning' }), false)
+})
+
+test('내 권한 목록: 회장단은 업무 넷을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
+  const tasks = ['task.manage', 'task.set_department', 'task.assign', 'task.status']
+  const taskActions = (who: Actor) =>
+    permissionsOf(who).filter(action => action.startsWith('task.'))
+  for (const who of [president, vicePresident]) assert.deepEqual(taskActions(who), tasks)
+  for (const who of [planningHead, planningViceHead, planningMember, financeMember, plain])
+    assert.deepEqual(taskActions(who), [])
+})

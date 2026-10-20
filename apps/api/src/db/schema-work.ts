@@ -9,11 +9,12 @@ export const task = pgTable('task', {
   title: text('title').notNull(),
   body: text('body'),
   dueAt: at('due_at'),
-  status: text('status').notNull(),
+  status: text('status').notNull().default('todo'),
   recurrence: text('recurrence'),
   eventId: uuid('event_id'),
   departmentId: uuid('department_id'),
   assigneeId: uuid('assignee_id'),
+  cancelledAt: at('cancelled_at'),
 })
 
 export const request = pgTable('request', {

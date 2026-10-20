@@ -196,7 +196,7 @@ test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함�
       )
     ).rows as [{ id: string }]
     await pg.query(
-      "INSERT INTO task (id, title, status, department_id) VALUES ($1, '현수막', 'open', $2)",
+      "INSERT INTO task (id, title, status, department_id) VALUES ($1, '현수막', 'todo', $2)",
       [taskId, tasked],
     )
     const referenced = await api.post(`${base}/departments/${tasked}/delete`, {}, 'u1')

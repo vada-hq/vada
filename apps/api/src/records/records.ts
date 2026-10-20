@@ -13,10 +13,11 @@ import {
   notification,
   record,
   recordVersion,
+  task,
 } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { assertSameCouncil } from './same-council.js'
+import { assertChangeStaysInCouncil, assertSameCouncil } from './same-council.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
 // 지금 상태도 판이다. 만들 때 판 1을 열고, 바꿀 때 지금 판을 닫고 새 판을 연다. 판에는 하위 행의 칸 값 전체를 담는다.
@@ -34,6 +35,7 @@ const tables = {
   message,
   file,
   notification,
+  task,
 }
 export type RecordKind = keyof typeof tables
 type Table<K extends RecordKind> = (typeof tables)[K]
@@ -108,6 +110,12 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   message: new Set(['roomId', 'room_id']),
   file: new Set(['attachedToId', 'attached_to_id', 'storageKey', 'storage_key']),
   notification: new Set(['recipientId', 'recipient_id', 'recordId', 'record_id']),
+  // 업무의 행사 칸은 행사를 만드는 길(기능 006)이 생길 때 연다.
+  task: new Set(['eventId', 'event_id']),
+}
+// 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서는 회장단이 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
+const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
+  task: new Set(['departmentId', 'department_id']),
 }
 
 // 쿼리가 돌려준 행 수. drizzle의 execute는 드라이버가 준 모양 그대로 돌려준다: postgres-js는 배열, PGlite는 { rows }다.
@@ -120,8 +128,9 @@ function rowCount(result: unknown): number {
 function assertNoOwnershipChange(changes: readonly AnyRecordChange[]) {
   for (const change of changes) {
     const extra = ownershipKeysOf[change.kind]
+    const changeable = changeableKeysOf[change.kind]
     const owned = Object.keys(change.changes).filter(
-      key => ownershipKeys.has(key) || extra?.has(key),
+      key => (ownershipKeys.has(key) && !changeable?.has(key)) || extra?.has(key),
     )
     if (owned.length)
       throw new Error(`${change.kind}: 주인 칸(${owned.join(', ')})은 바꾸지 않는다`)
@@ -205,6 +214,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
   for (const change of changes) {
     const table: Table<RecordKind> = tables[change.kind]
     await lockRecord(tx, table, change.id)
+    await assertChangeStaysInCouncil(tx, change)
     await assertReasonGiven(tx, change)
     const cohortId = await presidentCohortOf(tx, change)
     if (cohortId) presidentCohorts.add(cohortId)
