@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { token, UUID_LENGTH } from './input.js'
+import { text, token, UUID_LENGTH } from './input.js'
 import { recordIdInput } from './team.js'
 
 // 대화 칸의 길이 상한. DB CHECK(message.body, file.name)와 같은 값이다(기능 003).
@@ -82,3 +82,22 @@ export const MessagePageQuerySchema = z
     after: token(UUID_LENGTH).optional(),
   })
   .refine(value => value.before === undefined || value.after === undefined)
+
+// 한 메시지에서 부를 수 있는 사람 수. 이 수를 넘으면 400이다(Discord와 같다).
+export const MENTION_MAX = 50
+
+// 보내기: 본문 그대로("@이름"을 적은 채)와 부른 사람의 운영진 번호. 참여자가 아니거나 나이거나 없는 번호는 서버가 조용히 뺀다.
+export const SendMessageSchema = z.strictObject({
+  body: text(MESSAGE_BODY_MAX),
+  mentions: z.array(recordIdInput).max(MENTION_MAX).default([]),
+})
+export type SendMessageRequest = z.input<typeof SendMessageSchema>
+
+// 공지 표시를 붙이거나 뗀다. 같은 값이면 아무것도 바뀌지 않는다.
+export const MarkNoticeSchema = z.strictObject({ isNotice: z.boolean() })
+
+// 1:1 열기. 이미 있으면 그 방을 돌려준다.
+export const OpenDirectSchema = z.strictObject({ memberId: recordIdInput })
+export interface OpenDirectResponse {
+  roomId: string
+}

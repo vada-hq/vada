@@ -1,3 +1,4 @@
+import { sendAndRemoveCase, sendTogetherCase } from './pg-smoke-chat-cases.js'
 import {
   createAndJoinCase,
   joinTwiceCase,
@@ -18,6 +19,8 @@ export {
   createAndJoinCase,
   joinTwiceCase,
   rotateTogetherCase,
+  sendAndRemoveCase,
+  sendTogetherCase,
   sessionDuringJoinCase,
   transferAndRemoveCase,
   writePathCase,
@@ -30,4 +33,6 @@ export const smokeCases: readonly SmokeCase[] = [
   transferAndRemoveCase,
   createAndJoinCase,
   sessionDuringJoinCase,
+  sendAndRemoveCase,
+  sendTogetherCase,
 ]

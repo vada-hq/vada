@@ -15,11 +15,16 @@ export async function markRead(tx: Tx, actor: Actor, roomId: string, messageId: 
     .from(message)
     .where(and(eq(message.id, messageId), eq(message.roomId, roomId), sinceJoined(actor.memberId)))
   if (!visible) throw new ApiError('NOT_FOUND')
+  await advanceRead(tx, roomId, actor.memberId, messageId)
+}
+
+// 내 읽음을 그 메시지의 시각까지 옮긴다. 읽음은 뒤로 가지 않는다. 내가 보낸 메시지에도 같이 쓴다.
+export async function advanceRead(tx: Tx, roomId: string, memberId: string, messageId: string) {
   await tx
     .update(roomMembership)
     .set({
       lastReadAt: sql`greatest(coalesce(${roomMembership.lastReadAt}, '-infinity'::timestamptz),
         (select ${message.sentAt} from ${message} where ${message.id} = ${messageId}::uuid))`,
     })
-    .where(and(eq(roomMembership.roomId, roomId), eq(roomMembership.memberId, actor.memberId)))
+    .where(and(eq(roomMembership.roomId, roomId), eq(roomMembership.memberId, memberId)))
 }

@@ -8,6 +8,8 @@ import {
   createAndJoinCase,
   joinTwiceCase,
   rotateTogetherCase,
+  sendAndRemoveCase,
+  sendTogetherCase,
   sessionDuringJoinCase,
   transferAndRemoveCase,
   unexpectedFailures,
@@ -248,6 +250,48 @@ test('다른 연결이 세션을 넣는 일: 한도 안에 끝나지 않으면 �
       ).rows.length,
       1,
     )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('글 보내기와 그 사람 내보내기를 동시에: 참여 줄이 모두 지워지고 보낸 글이 남는다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await sendAndRemoveCase.run(contextOf(testDb))), /참여 줄이 지워졌고/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('글 보내기와 그 사람 내보내기를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await sendAndRemoveCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 방에서 동시에 글 보내기: 글이 모두 남고 보낸 시각이 겹치지 않는다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await sendTogetherCase.run(contextOf(testDb))), /보낸 시각이 모두 다르다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 방에서 동시에 글 보내기: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await sendTogetherCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
   } finally {
     await testDb.close()
   }

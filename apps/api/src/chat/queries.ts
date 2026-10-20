@@ -7,11 +7,8 @@ import {
   type RoomType,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { currentCouncilMembership } from '../access/current-cohort.js'
 import {
   chatRoom,
-  cohort,
-  councilMembership,
   department,
   member,
   message,
@@ -20,6 +17,7 @@ import {
   roomMembership,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { currentMembersAmong } from './current-members.js'
 import { noticesOf } from './messages.js'
 
 type Reader = Pick<Db, 'select'>
@@ -95,23 +93,12 @@ async function directPeers(db: Reader, actor: Actor, now: Date, roomIds: string[
     .where(
       and(inArray(roomMembership.roomId, roomIds), ne(roomMembership.memberId, actor.memberId)),
     )
-  const current = peers.length
-    ? await db
-        .select({ memberId: councilMembership.memberId })
-        .from(councilMembership)
-        .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
-        .where(
-          and(
-            eq(cohort.councilId, actor.councilId),
-            inArray(
-              councilMembership.memberId,
-              peers.map(peer => peer.memberId),
-            ),
-            currentCouncilMembership(now),
-          ),
-        )
-    : []
-  const alive = new Set(current.map(row => row.memberId))
+  const alive = await currentMembersAmong(
+    db,
+    actor.councilId,
+    peers.map(peer => peer.memberId),
+    now,
+  )
   return new Map(
     peers.map(peer => [peer.roomId, { name: peer.name, current: alive.has(peer.memberId) }]),
   )

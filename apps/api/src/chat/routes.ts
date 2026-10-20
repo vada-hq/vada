@@ -1,27 +1,38 @@
 import { Hono, type Context } from 'hono'
 import {
+  MarkNoticeSchema,
   MessagePageQuerySchema,
   NO_CONTENT,
   NOTICE_LIST_MAX,
+  OpenDirectSchema,
   ReadMarkerSchema,
+  SendMessageSchema,
+  type Action,
+  type ChatMessage,
+  type OpenDirectResponse,
   type MessagePageResponse,
   type NoticeListResponse,
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
-import { authorize, councilIdOf, recordIdOf } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
+import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
+import { openDirect } from './direct.js'
 import { messagePage, noticesOf } from './messages.js'
+import { markNotice } from './notice.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
 import { ensureCouncilRooms } from './rooms.js'
+import { SEND_LIMIT, sendMessage } from './send.js'
 
 const root = '/organizations/:councilId'
+const CREATED = 201
 
 // 읽기는 한 시점의 모습이다. 권한 확인과 조회를 읽기 전용 REPEATABLE READ 거래 하나에서 한다(team 읽기와 같다).
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
@@ -32,6 +43,13 @@ interface Kit {
   auth: ReturnType<typeof requireSession>
   db: Db
   asked: (c: Context<SessionEnv>) => ReturnType<typeof requestOf>
+  sendLimiter: RateLimiter
+  // 학생회 행을 잠그고 권한(action)을 다시 본 뒤 바꾸는 거래
+  change: <T>(
+    c: Context<SessionEnv>,
+    action: Action,
+    run: (tx: Tx, actor: Actor, now: Date) => Promise<T>,
+  ) => Promise<T>
   inRoom: <T>(
     c: Context<SessionEnv>,
     run: (tx: Tx, actor: Actor, roomId: string, now: Date) => Promise<T>,
@@ -86,18 +104,58 @@ function roomRoutes({ routes, auth, db, asked, inRoom }: Kit) {
   })
 }
 
-// 대화: 방 목록, 방, 메시지 읽기, 공지, 읽음. 방에 닿으려면 그 방 참여자여야 한다.
+function writeRoutes({ routes, auth, db, asked, sendLimiter, change }: Kit) {
+  routes.post(`${root}/rooms/:roomId/messages`, json(SendMessageSchema), auth, async c => {
+    const request = asked(c)
+    // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
+    if (!sendLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
+    const roomId = recordIdOf(c.req.param('roomId'))
+    const { body, mentions } = c.req.valid('json')
+    // READ COMMITTED 거래: 보내기가 줄을 잠그고 기다린 뒤의 값을 봐야 한다(send.ts).
+    const sent = await db.transaction(async tx =>
+      sendMessage(tx, await authorize(tx, request), { roomId, body, mentions }, request.now),
+    )
+    return c.json(sent satisfies ChatMessage, CREATED)
+  })
+  routes.post(`${root}/messages/:messageId/notice`, json(MarkNoticeSchema), auth, async c => {
+    const messageId = recordIdOf(c.req.param('messageId'))
+    const { isNotice } = c.req.valid('json')
+    const marked = await change(c, 'chat.notice', (tx, actor) =>
+      markNotice(tx, actor, messageId, isNotice),
+    )
+    return c.json(marked satisfies ChatMessage)
+  })
+  routes.post(`${root}/direct`, json(OpenDirectSchema), auth, async c => {
+    const { memberId } = c.req.valid('json')
+    const roomId = await change(c, 'chat.direct', (tx, actor, now) =>
+      openDirect(tx, actor, memberId, now),
+    )
+    return c.json({ roomId } satisfies OpenDirectResponse)
+  })
+}
+
+// 대화: 방 목록, 방, 메시지 읽기와 보내기, 공지, 읽음, 1:1. 방에 닿으려면 그 방 참여자여야 한다.
 export function createChatRoutes(
   db: Db,
   getSession: SessionReader,
-  clock: () => Date = () => new Date(),
+  options: { clock?: () => Date; sendLimiter?: RateLimiter } = {},
 ) {
+  const clock = options.clock ?? (() => new Date())
   const asked = (c: Context<SessionEnv>) => requestOf(c, clock())
   const kit: Kit = {
     routes: new Hono<SessionEnv>(),
     auth: requireSession(getSession),
     db,
     asked,
+    sendLimiter: options.sendLimiter ?? createRateLimiter(SEND_LIMIT),
+    change: (c, action, run) => {
+      const now = clock()
+      return inCouncilChange(
+        db,
+        { userId: c.get('userId'), councilId: c.req.param('councilId'), action, now },
+        (tx, actor) => run(tx, actor, now),
+      )
+    },
     // 방 참여자만 지나는 읽기. 방이 이 학생회 것이 아니면 404, 참여자가 아니면 403이다.
     inRoom: (c, run) => {
       const request = asked(c)
@@ -111,5 +169,6 @@ export function createChatRoutes(
   }
   listRoutes(kit)
   roomRoutes(kit)
+  writeRoutes(kit)
   return kit.routes
 }

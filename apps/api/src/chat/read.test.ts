@@ -28,7 +28,7 @@ async function start() {
     createApp({
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
-      chat: createChatRoutes(db, testSession, () => now),
+      chat: createChatRoutes(db, testSession, { clock: () => now }),
     }),
   )
   const base = `/api/organizations/${council.councilId}`
@@ -481,7 +481,7 @@ test('이 기능 전에 만든 학생회는 방 목록을 처음 읽을 때 방�
       createApp({
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
-        chat: createChatRoutes(db, testSession, () => now),
+        chat: createChatRoutes(db, testSession, { clock: () => now }),
       }),
     )
     assert.deepEqual(await roomMap(pg, council.councilId), {})
@@ -571,7 +571,7 @@ test('행사방만 있는 학생회도 방 목록을 처음 읽을 때 편성 �
       createApp({
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
-        chat: createChatRoutes(db, testSession, () => now),
+        chat: createChatRoutes(db, testSession, { clock: () => now }),
       }),
     )
     const response = await api.get(`/api/organizations/${council.councilId}/rooms`, 's-plain')

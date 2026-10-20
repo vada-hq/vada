@@ -32,6 +32,12 @@ const rowsOf = (db: Reader) =>
 type Row = Awaited<ReturnType<ReturnType<typeof rowsOf>['limit']>>[number]
 const chatMessageOf = (row: Row): ChatMessage => ({ ...row, sentAt: row.sentAt.toISOString() })
 
+// 메시지 하나. 보낸 직후와 공지를 바꾼 직후의 응답이 쓴다.
+export async function messageOf(db: Reader, messageId: string): Promise<ChatMessage> {
+  const [row] = await rowsOf(db).where(eq(message.id, messageId))
+  return chatMessageOf(row!)
+}
+
 // 들어온 뒤의 메시지(DEC-20). 시각은 참여 줄과 DB 안에서 비교한다. Date로 옮기면 마이크로초가 깎여 경계가 어긋난다.
 export const sinceJoined = (memberId: string) =>
   sql`${message.sentAt} >= (select ${roomMembership.joinedAt} from ${roomMembership}

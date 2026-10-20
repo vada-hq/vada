@@ -84,10 +84,10 @@
 - 닿는 곳: contracts `chat.ts`(응답 모양, `ReadMarkerSchema`). `chat/routes.ts`(새, `createChatRoutes`), `chat/queries.ts`, `app.ts`, `serve.ts`, `http/boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET rooms`, `GET rooms/:roomId`, `GET rooms/:roomId/messages`, `GET notices`, `POST rooms/:roomId/read`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 4. 보내기, 부르기, 공지 표시, 1:1 [ ]
+### 4. 보내기, 부르기, 공지 표시, 1:1 [x]
 - 할 수 있게 되는 것: 참여자가 글을 보내고 사람을 부른다. 회장단이 공지를 붙이고 뗀다. 누구와든 1:1을 연다.
-- 수용 기준: 참여자가 글을 보내면 201이고, 내 읽음이 그 메시지까지 간다. 부른 번호 중 그 방의 지금 참여자(나 빼고)에게만 부름 기록이 생기고, 나머지 번호는 조용히 빠진다. 10초 안에 21번째로 보내면 429이고 다른 사람은 막히지 않는다. 빠진 사람은 빠진 뒤로 보내지 못한다(403). 회장단이 전체방 메시지에 공지를 붙이거나 떼면 판이 남는다. 부서방 메시지면 404, 회장단이 아니면 403, 같은 값이면 판이 늘지 않는다. 1:1은 두 번 열어도 같은 방이다. 나와 열면 409 `CANNOT_DIRECT_SELF`다. 메시지가 없는 1:1은 목록에 없다. 상대가 떠난 1:1은 보기만 된다(`readOnly`, 보내면 409 `ROOM_READ_ONLY`). AGENTS.md의 입력 경우를 모두 시험한다.
-- 닿는 곳: contracts `SendMessageSchema`, `MarkNoticeSchema`, `OpenDirectSchema`, `errors.ts`. `chat/service.ts`, `chat/routes.ts`, `http/rate-limit.ts`(새), `ops/pg-smoke/`(동시 보내기와 내보내기). 경로는 `POST rooms/:roomId/messages`, `POST messages/:messageId/notice`, `POST direct`.
+- 수용 기준: 참여자가 글을 보내면 201이고, 내 읽음이 그 메시지까지 간다. 부른 번호 중 그 방의 지금 참여자(나 빼고)에게만 부름 기록이 생기고, 나머지 번호는 조용히 빠진다. 10초 안에 21번째로 보내면 429이고 다른 사람은 막히지 않는다. 빠진 사람은 빠진 뒤로 보내지 못한다(403). 회장단이 전체방 메시지에 공지를 붙이거나 떼면 판이 남는다. 부서방 메시지면 404, 회장단이 아니면 403, 같은 값이면 판이 늘지 않는다. 1:1은 두 번 열어도 같은 방이다. 나와 열면 409 `CANNOT_DIRECT_SELF`다. 메시지가 없는 1:1은 목록에 없다. 상대가 떠난 1:1은 보기만 된다(`readOnly`, 보내면 409 `ROOM_READ_ONLY`). 같은 방의 메시지는 커밋 순서와 보낸 시각 순서가 같다(방 행을 잠그고 DB 시계로 정하며, 보낸 시각은 겹치지 않는다). AGENTS.md의 입력 경우를 모두 시험한다.
+- 닿는 곳: contracts `SendMessageSchema`, `MarkNoticeSchema`, `OpenDirectSchema`, `errors.ts`. `chat/service.ts`, `chat/routes.ts`, `http/rate-limit.ts`(새), `ops/pg-smoke/`(동시 보내기와 내보내기, 같은 방 동시 보내기 순서). 경로는 `POST rooms/:roomId/messages`, `POST messages/:messageId/notice`, `POST direct`.
 - 검토: 깊게. 마이그레이션: 없음.
 
 ### 5. 휴대폰 알림 보내기 [ ]
