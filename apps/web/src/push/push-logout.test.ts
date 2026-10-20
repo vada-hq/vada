@@ -1,4 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest'
+import { saveDevice } from './push-device'
 import { forgetThisDevice } from './push-logout'
 
 afterEach(() => {
@@ -60,4 +61,36 @@ test('3초가 넘으면 기다리지 않는다', async () => {
   expect(done).not.toHaveBeenCalled()
   await vi.advanceTimersByTimeAsync(2)
   expect(done).toHaveBeenCalled()
+})
+
+test('진행 중인 기기 저장이 끝난 뒤에 지운다(늦은 저장이 지운 줄을 되살리지 않게)', async () => {
+  const order: string[] = []
+  let finishSave: (() => void) | undefined
+  const request = stubBrowser(
+    { endpoint: ENDPOINT },
+    vi.fn((path: string) => {
+      if (path.endsWith('/remove')) {
+        order.push('지우기')
+        return Promise.resolve(new Response(null))
+      }
+      return new Promise<Response>(resolve => {
+        finishSave = () => {
+          order.push('저장 끝')
+          resolve(new Response(null))
+        }
+      })
+    }),
+  )
+  const saving = saveDevice({
+    endpoint: ENDPOINT,
+    toJSON: () => ({}),
+  } as unknown as Parameters<typeof saveDevice>[0])
+  const forgetting = forgetThisDevice()
+  await new Promise(resolve => setTimeout(resolve, 20))
+  expect(order).toEqual([])
+  finishSave?.()
+  await saving
+  await forgetting
+  expect(order).toEqual(['저장 끝', '지우기'])
+  expect(request).toHaveBeenCalledTimes(2)
 })

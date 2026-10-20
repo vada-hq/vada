@@ -401,3 +401,14 @@ test('iOS home-screen app rechecks the session when it becomes visible again, an
     delete (navigator as { standalone?: boolean }).standalone
   }
 })
+
+test('로그아웃하는 동안 카드의 로그아웃 단추는 막혀 한 번만 보낸다', async () => {
+  signedIn()
+  auth.signOut.mockReturnValue(new Promise(() => undefined))
+  render(<App />)
+  const button = screen.getByRole('button', { name: '로그아웃' }) as HTMLButtonElement
+  fireEvent.click(button)
+  await waitFor(() => expect(button.disabled).toBe(true))
+  fireEvent.click(button)
+  await waitFor(() => expect(auth.signOut).toHaveBeenCalledTimes(1))
+})

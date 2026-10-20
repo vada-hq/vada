@@ -1,5 +1,5 @@
 import { withTimeout } from './push-client'
-import { removeDevice } from './push-device'
+import { removeDevice, settlePendingSaves } from './push-device'
 
 const LOGOUT_FORGET_MS = 3000
 
@@ -16,7 +16,9 @@ async function currentEndpoint(): Promise<string | null> {
 export async function forgetThisDevice(timeoutMs = LOGOUT_FORGET_MS): Promise<void> {
   try {
     await withTimeout(
-      currentEndpoint().then(endpoint => (endpoint ? removeDevice(endpoint) : undefined)),
+      settlePendingSaves()
+        .then(currentEndpoint)
+        .then(endpoint => (endpoint ? removeDevice(endpoint) : undefined)),
       timeoutMs,
     )
   } catch {

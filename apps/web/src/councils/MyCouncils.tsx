@@ -36,6 +36,8 @@ function LoadFailed({ onRetry }: { onRetry: () => void }) {
 export default function MyCouncils({ user, initialCouncilId, chatLink, card, ...rest }: Props) {
   const { state, reload, add, remove } = useMyCouncils()
   const [opened, setOpened] = useState(initialCouncilId)
+  // 마지막으로 받아들인 알림. 내 학생회가 아닌 알림은 받아들이지 않아, 지금 화면을 그대로 둔다.
+  const [link, setLink] = useState<ChatLink | null>(null)
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고, 서버의 목록을 다시 읽는다.
   const lost = useCallback(
     (councilId: string) => {
@@ -57,8 +59,8 @@ export default function MyCouncils({ user, initialCouncilId, chatLink, card, ...
         }}
       />,
     )
-  // 내 학생회가 아닌 학생회의 방 주소는 무시한다. 아무것도 바뀌지 않는다.
-  const link = state.councils.some(item => item.id === chatLink?.councilId) ? chatLink : null
+  if (chatLink && chatLink !== link && state.councils.some(item => item.id === chatLink.councilId))
+    setLink(chatLink)
   return (
     <Workspace
       key={`${opened ?? ''}:${link?.seq ?? ''}`}

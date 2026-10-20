@@ -15,7 +15,20 @@ export async function isUnsupportedService(response: Response): Promise<boolean>
 
 // 알림 받을 기기를 서버에 저장한다(바탕 spec G10). 같은 구독 주소면 서버가 열쇠를 갱신한다.
 // 서버가 모르는 알림 서버라고 거절하면(PUSH_SERVICE_UNSUPPORTED) 다시 눌러도 같으므로 'failed'와 나눠, 호스트를 알려 준다.
-export async function saveDevice(subscription: BrowserSubscription): Promise<SaveResult> {
+export function saveDevice(subscription: BrowserSubscription): Promise<SaveResult> {
+  const pending = postDevice(subscription)
+  pendingSaves.add(pending)
+  void pending.finally(() => pendingSaves.delete(pending))
+  return pending
+}
+
+// 진행 중인 저장. 로그아웃이 지우기 전에 이 저장이 끝나기를 기다려야, 늦게 처리된 저장이 지운 줄을 되살리지 않는다.
+const pendingSaves = new Set<Promise<SaveResult>>()
+export async function settlePendingSaves(): Promise<void> {
+  await Promise.all([...pendingSaves])
+}
+
+async function postDevice(subscription: BrowserSubscription): Promise<SaveResult> {
   try {
     const response = await fetch('/api/me/push/devices', {
       method: 'POST',

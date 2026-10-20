@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
 import { useRoomList } from '../chat/useRoomList'
 import PushOffBand from '../push/PushOffBand'
@@ -25,7 +26,7 @@ export default function CouncilWorkspace({
   onSelect,
   returnFocusTo,
   startPage,
-  roomId,
+  roomId: linkedRoom,
   user,
   logoutBusy,
   onLogout,
@@ -34,6 +35,9 @@ export default function CouncilWorkspace({
 }: Props) {
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo, startPage)
+  // 알림으로 연 방은 한 번만 쓴다. 다른 화면으로 가면 버리고, 대화로 돌아오면 방 목록이 열린다.
+  const [roomId, setRoomId] = useState(linkedRoom)
+  if (roomId && nav.page !== 'chat') setRoomId(undefined)
   // 옆 메뉴의 안 읽은 수와 대화 화면이 같은 목록을 쓴다.
   const rooms = useRoomList(council.id, data.reload, data.state.kind === 'ready')
   const unread = rooms.state.kind === 'ready' ? rooms.state.data.unreadTotal : 0
