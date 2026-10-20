@@ -5,9 +5,9 @@ import type { PushConfig } from './config.js'
 import { isKnownPushService } from './endpoint.js'
 
 export type PushMessage = { title: string; body: string; url: string }
-export type PushTarget = { endpoint: string; keys: { p256dh: string; auth: string } }
+type PushTarget = { endpoint: string; keys: { p256dh: string; auth: string } }
 // 실패했을 때는 원인을 찾을 단서로 알림 서버의 상태 번호(status)나 연결 오류 코드(code)를 함께 돌려준다. 비밀이나 사용자 값은 담지 않는다.
-export type PushOutcome = { result: PushTestResult; status?: number; code?: string }
+type PushOutcome = { result: PushTestResult; status?: number; code?: string }
 export type PushSender = (target: PushTarget, message: PushMessage) => Promise<PushOutcome>
 type Send = (target: PushTarget, payload: string, options: RequestOptions) => Promise<unknown>
 

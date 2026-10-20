@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-export type ApiCall = { method: string; path: string; body: unknown; signal: AbortSignal | null }
+type ApiCall = { method: string; path: string; body: unknown; signal: AbortSignal | null }
 type Handler = (call: ApiCall) => Response | Promise<Response>
 export const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {

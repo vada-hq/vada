@@ -1,6 +1,6 @@
 import { readMigrationFiles } from 'drizzle-orm/migrator'
 
-export type AppliedMigration = { hash: string; createdAt: number }
+type AppliedMigration = { hash: string; createdAt: number }
 // applied가 null이면 drizzle 적용 기록 표가 없다(마이그레이션을 한 번도 적용하지 않은 DB).
 export type TargetState = { publicTables: number; applied: AppliedMigration[] | null }
 export type LocalMigration = { hash: string; folderMillis: number }

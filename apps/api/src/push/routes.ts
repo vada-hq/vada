@@ -20,7 +20,7 @@ export const TEST_DELAY_MS = 5_000
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 // 끝난 구독의 저장된 기기를 지운다(바탕 spec G10). 기기는 devices.ts가 맡아, 이 모듈은 DB를 모른다.
-export type ForgetDevice = (userId: string, endpoint: string) => Promise<void>
+type ForgetDevice = (userId: string, endpoint: string) => Promise<void>
 
 // 휴대폰 알림. 시험 알림은 저장한 기기와 상관없이 받은 구독으로 보낸다(휴대폰 길 spec). 기기 저장은 devices.ts가 맡는다.
 // 끝난(expired) 구독이면 보낸 사람의 그 기기 줄도 지운다. 화면의 지우기 요청이 실패해도 줄이 남지 않는다. 지우기가 실패해도 시험 알림 결과는 그대로다.

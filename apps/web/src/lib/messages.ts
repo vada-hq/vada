@@ -6,11 +6,11 @@ export const SAVE_FAILED = '저장하지 못했어요. 다시 시도해 주세�
 // 서버가 403으로 답했다: 화면을 연 뒤에 내 권한이나 소속이 바뀌었다.
 export const PERMISSION_CHANGED = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'
 // 로그인한 Google 계정의 이메일을 다른 계정이 이미 쓰고 있다(서버 EMAIL_IN_USE).
-export const EMAIL_IN_USE =
+const EMAIL_IN_USE =
   '이 Google 계정의 이메일을 다른 계정이 쓰고 있어요. 다른 계정으로 로그인해 주세요.'
 
 // 화면마다 서버 오류 코드를 문구로 바꾸는 표. 표에 없는 코드는 그 화면의 일반 실패 문구로 보인다.
-export const NOT_FOUND_RELOADED = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
+const NOT_FOUND_RELOADED = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
 
 export const CREATE_COUNCIL_ERRORS: Record<string, string> = {
   COHORT_NOT_CURRENT: '임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.',

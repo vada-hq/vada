@@ -8,7 +8,7 @@ import {
 } from '@vada/contracts'
 
 // 화면 시험이 같이 쓰는 학생회 응답. 값은 서버 응답과 같은 모양이다.
-export const defaultTitles = {
+const defaultTitles = {
   president: '회장',
   vicePresident: '부회장',
   head: '부장',

@@ -13,7 +13,7 @@ import {
 import { errorCodeOf } from '../../db/error-code.js'
 
 // 적용 스크립트의 판단 전부. migrate.ts는 실제 연결(postgres-js)을 이어 주기만 한다. 시험은 PGlite를 감싼 가짜 connect로 돌린다.
-export type MigrationConnection = {
+type MigrationConnection = {
   // SQL 하나를 실행해 행을 돌려준다(읽기 전용으로만 쓴다)
   query: (text: string) => Promise<Record<string, unknown>[]>
   // 남은 마이그레이션을 모두 적용한다

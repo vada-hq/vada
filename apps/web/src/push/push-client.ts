@@ -18,7 +18,7 @@ export type PushBrowser = {
   pushManager: () => Promise<BrowserPushManager>
 }
 
-export const READY_TIMEOUT_MS = 10_000
+const READY_TIMEOUT_MS = 10_000
 
 // 서비스 워커가 준비되지 않으면(사생활 보호 모드, 등록 실패) ready가 끝나지 않는다. 기다림에 상한을 둔다.
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

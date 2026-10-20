@@ -10,7 +10,7 @@ import {
 import type { Db } from '../db/types.js'
 import { currentCouncilMembership } from './current-cohort.js'
 
-export type ActorDepartment = {
+type ActorDepartment = {
   departmentId: string
   role: DepartmentRole | null
   rank: DepartmentRank | null

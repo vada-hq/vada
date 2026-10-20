@@ -14,10 +14,10 @@ import type { Tx } from '../db/types.js'
 import { linkMember } from './link.js'
 
 // 학생회를 만들면 함께 생기는 재정 역할 부서(DEC-16). 이름은 나중에 바꿀 수 있다.
-export const FINANCE_DEPARTMENT_NAME = '재정부'
+const FINANCE_DEPARTMENT_NAME = '재정부'
 
 // 기수의 기간이 오늘(한국 날짜)을 담아야 운영진에게 지금 소속이 생긴다. 담지 않으면 아무도 학생회를 열 수 없다.
-export function assertCurrentPeriod(period: { startsOn: string; endsOn: string }, now: Date) {
+function assertCurrentPeriod(period: { startsOn: string; endsOn: string }, now: Date) {
   if (!periodIsCurrent(period, now)) throw new ApiError('COHORT_NOT_CURRENT')
 }
 

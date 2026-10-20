@@ -18,10 +18,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives",
-    "check": "npm run format:check && npm run lint && npm run typecheck"
+    "knip": "knip",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run knip"
   },
   "devDependencies": {
     "@types/node": "22.20.4",
+    "knip": "6.42.1",
     "oxlint": "1.88.0",
     "oxlint-tsgolint": "7.0.2004",
     "prettier": "3.9.10",

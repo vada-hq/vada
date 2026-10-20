@@ -1,7 +1,7 @@
 import { AwsClient } from 'aws4fetch'
 import { NOT_FOUND } from '../http/status.js'
 
-export interface StoredObject {
+interface StoredObject {
   size: number
   contentType: string | null
 }
@@ -21,9 +21,9 @@ export interface R2Config {
   secretAccessKey: string
   bucket: string
 }
-export const UPLOAD_SECONDS = 600
+const UPLOAD_SECONDS = 600
 const MS_PER_SECOND = 1000
-export const DOWNLOAD_SECONDS = 300
+const DOWNLOAD_SECONDS = 300
 
 // 네 값이 모두 있어야 켠다. 하나라도 없으면 영수증 올리기·보기만 막는다.
 export function r2ConfigFrom(env: NodeJS.ProcessEnv): R2Config | null {

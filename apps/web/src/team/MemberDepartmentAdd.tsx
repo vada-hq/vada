@@ -14,7 +14,7 @@ export function useAddDepartment(others: TeamDepartment[]) {
     : (others[0]?.id ?? '')
   return { selected, rank, setAdding, setRank }
 }
-export type AddDepartment = ReturnType<typeof useAddDepartment>
+type AddDepartment = ReturnType<typeof useAddDepartment>
 
 type Props = {
   others: TeamDepartment[]

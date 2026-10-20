@@ -6,7 +6,7 @@ export type Confirm = { kind: 'remove' | 'transfer'; memberId: string }
 export type Confirming = { kind: Confirm['kind']; member: TeamMember }
 
 // 내보내기: 서버와 같이 직급이 붙은 사람은 member.manage에 더해 rank.manage도 있어야 한다. 회장과 나는 내보낼 수 없다.
-export const removable = (member: TeamMember, me: string, can: Can) =>
+const removable = (member: TeamMember, me: string, can: Can) =>
   can('member.manage') &&
   member.councilRank !== 'president' &&
   member.id !== me &&

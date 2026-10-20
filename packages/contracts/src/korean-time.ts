@@ -3,7 +3,7 @@ import { token } from './input.js'
 // 한국 시각 글자 "YYYY-MM-DDTHH:mm"의 앞쪽 길이. 연도, 날짜, 날짜+시각이다.
 const YEAR_LENGTH = 4
 export const KOREAN_DATE_LENGTH = 10
-export const KOREAN_DATE_TIME_LENGTH = 16
+const KOREAN_DATE_TIME_LENGTH = 16
 
 // 이 앱은 한국에서만 쓴다. 일시는 한국 시각 "YYYY-MM-DDTHH:mm"으로 주고받아 기기의 시간대와 상관없이 같은 순간이 되게 한다.
 const pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/

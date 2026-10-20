@@ -3,7 +3,7 @@ import { memberLogin } from '../db/schema.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import type { Db } from '../db/types.js'
 
-export type Person = { userId: string; memberId: string }
+type Person = { userId: string; memberId: string }
 
 // 시험용 로그인 계정. better-auth가 만드는 users 행과 같은 칸만 채운다. Google 로그인처럼 이메일은 확인된 것이 기본이다.
 export async function addUser(
@@ -120,4 +120,3 @@ export async function seedCouncil(
     return { councilId, cohortId, departments: { finance, planning }, people }
   })
 }
-export type SeededCouncil = Awaited<ReturnType<typeof seedCouncil>>

@@ -18,7 +18,6 @@ const badgeVariants = cva(
     defaultVariants: { tone: 'neutral' },
   },
 )
-export type Tone = NonNullable<VariantProps<typeof badgeVariants>['tone']>
 
 export function Badge({
   className,

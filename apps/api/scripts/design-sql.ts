@@ -5,8 +5,8 @@
 export const BREAKPOINT = '--> statement-breakpoint'
 
 // 설계 검사에서 뺄 표: 로그인 표 4개와 설계 밖 표 3개(바탕 spec G11)
-export const AUTH_TABLES = ['users', 'accounts', 'sessions', 'verifications'] as const
-export const OUTSIDE_TABLES = ['member_login', 'invite_code', 'push_device'] as const
+const AUTH_TABLES = ['users', 'accounts', 'sessions', 'verifications'] as const
+const OUTSIDE_TABLES = ['member_login', 'invite_code', 'push_device'] as const
 export const NOT_IN_DESIGN: ReadonlySet<string> = new Set([...AUTH_TABLES, ...OUTSIDE_TABLES])
 
 // 로그인 표 4개. 옛 0000_rare_cardiac.sql과 0001_auth.sql의 정의 그대로다(better-auth가 쓴다).
