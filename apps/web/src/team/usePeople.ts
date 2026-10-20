@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Action, CouncilView, TeamMember } from '@vada/contracts'
 import type { Confirm } from './people-access'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -16,9 +16,8 @@ export function usePeople(view: CouncilView, team: Team, onCouncilChanged: () =>
   const can = (action: Action) => view.permissions.includes(action)
   const own = useOwnChange(setMessage, onCouncilChanged)
   const dialogs = usePeopleDialogs(team.data, me, can, own.notify)
-  // 초대 링크 카드는 초대 권한과 함께 사라진다.
-  useLost(can('invite.manage'), () => own.notify(PERMISSION_CHANGED))
   const requests = usePeopleRequests(team, me, own.changed, own.setMessage)
+  useEndOfOwnChange(own, view.permissions, can('invite.manage'))
   const { editingMember, confirming, setEditing, setConfirm } = dialogs
   // 대화상자 안에 보이지 않는 오류만 쪽 위에 보인다.
   const pageMessage = !editingMember && !confirming ? message : ''
@@ -66,7 +65,7 @@ export function usePeople(view: CouncilView, team: Team, onCouncilChanged: () =>
 export type PeopleState = ReturnType<typeof usePeople>
 
 // 내 요청이 성공해 내 권한이 바뀌고 학생회를 다시 읽은 뒤의 사라짐은 바깥 변경이 아니므로 알리지 않는다.
-// 다음 동작이 시작되면(문구를 비우면) 다시 알린다.
+// 다시 읽은 권한이 화면에 반영되면 꺼서 그 뒤의 바깥 변경은 알린다. 다시 읽기가 없거나 실패해도 다음 동작이 시작되면 꺼진다.
 function useOwnChange(setMessage: (text: string) => void, onCouncilChanged: () => void) {
   const mine = useRef(false)
   return {
@@ -85,4 +84,19 @@ function useOwnChange(setMessage: (text: string) => void, onCouncilChanged: () =
       setMessage(text)
     },
   }
+}
+
+// 위 알림 효과들이 이번 렌더에서 돈 뒤에 꺼야 하므로 usePeople에서 맨 나중에 부른다(선언 순서가 효과 순서다).
+function useEndOfOwnChange(
+  own: { reset: () => void; notify: (text: string) => void },
+  permissions: unknown,
+  canInvite: boolean,
+) {
+  // 초대 링크 카드는 초대 권한과 함께 사라진다.
+  useLost(canInvite, () => own.notify(PERMISSION_CHANGED))
+  useEffect(() => {
+    own.reset()
+    // reset은 ref만 바꾸므로 권한이 새로 읽힐 때만 돌면 된다.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- 위 이유
+  }, [permissions])
 }
