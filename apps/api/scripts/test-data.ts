@@ -51,6 +51,14 @@ const planOf = (command: TestDataCommand) =>
     ? '시험 학생회를 두고 그 계정을 회장으로 둔다'
     : `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[command.department]}에 넣는다`
 
+// 그대로 붙여 칠 수 있는 적용 명령
+const applyCommandOf = (command: TestDataCommand) =>
+  `npm run test-data --workspace @vada/api -- ${
+    command.command === 'seed'
+      ? `seed ${command.userId}`
+      : `assign ${command.userId} ${command.department}`
+  } --apply`
+
 // 다음에 할 일. 미리 보기(--apply 없음)는 하려는 일만 보여 준다. 적용은 대상(describeTarget)을 보여 줄 수 있을 때만 한다.
 // npm이 --apply를 가져가지 않도록 안내에는 -- 를 앞에 붙여 적는다.
 export type TestDataStep = { step: 'preview' | 'stop'; message: string } | { step: 'apply' }
@@ -58,7 +66,7 @@ export function stepOf(command: TestDataCommand, target: string): TestDataStep {
   if (!command.apply)
     return {
       step: 'preview',
-      message: `${planOf(command)}. 미리 보기라 바꾸지 않았다. 실제로 하려면 -- --apply를 붙인다.`,
+      message: `${planOf(command)}. 미리 보기라 바꾸지 않았다. 실제로 하려면: ${applyCommandOf(command)}`,
     }
   if (target === UNREADABLE_TARGET) return { step: 'stop', message: UNSHOWN_TARGET_MESSAGE }
   return { step: 'apply' }

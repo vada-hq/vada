@@ -9576,11 +9576,11 @@ Task 1~14와 리뷰가 끝난 뒤, 사용자가 아래 차례로 한다(spec '�
    - Git Bash: `read -rs DATABASE_URL && export DATABASE_URL` 뒤 `production` 가지 주소를 붙여 넣는다.
    - PowerShell(7.1 이상): `$env:DATABASE_URL = Read-Host -MaskInput '배포 DB 주소'`. `-MaskInput` 없는 `Read-Host`는 주소(비밀번호 포함)를 화면에 그대로 보이므로 쓰지 않는다. PowerShell이 7.1보다 낮으면 Git Bash의 `read -rs`를 쓴다.
    - 주소는 1단계의 형식 그대로다: 직접(`-pooler` 없는) 주소, 오늘 동작하는 주소와 같은 쿼리 형식.
-   1. `npm run db:migrate --workspace @vada/api -- --from-shell --dry-run` → `대상: <production 가지 호스트>/<DB 이름> (셸의 DATABASE_URL)`, `public 표 0개, 적용 기록 없음`이어야 한다. 표가 있거나 "…적용하지 않는다"가 나오면 멈추고 무엇이 들어 있는지 본다. `마이그레이션 실패 … 42704`로 끝나면 1단계의 주소 형식(`channel_binding`)을 본다.
+   1. `npm run db:migrate --workspace @vada/api -- --from-shell --dry-run` → `대상: <production 가지 호스트>/<DB 이름> (셸의 DATABASE_URL)`, `public 표 0개, 적용 기록 없음`이어야 한다. 표가 있거나 "…적용하지 않는다"가 나오면 멈추고 무엇이 들어 있는지 본다. `마이그레이션 실패 … 42704`로 끝나면 1단계의 주소 형식(`channel_binding`)을 본다. 이 3단계의 어디에서 멈추든 그만두기 전에 4번(셸에서 주소 지우기)을 한다.
    2. **적용하기 전에 DB 설정을 본다.** Neon 콘솔의 SQL 편집기에서 `production` 가지에 `SHOW server_version;`(`18.`로 시작)과 `SHOW default_transaction_isolation;`(`read committed`)을 실행한다. `dev` 가지와 같아야 하고, 다르면 적용하지 않는다.
    3. 사용자가 승인하면 `npm run db:migrate --workspace @vada/api -- --from-shell --apply` → `마이그레이션 적용 완료(1개)`. `적용은 끝났고 확인 읽기에 실패했다`가 나오면 적용은 된 것이다. 다시 `-- --from-shell --dry-run`으로 `적용할 마이그레이션 0개`인지 확인한다.
    4. 셸에서 주소를 지운다: Git Bash `unset DATABASE_URL`, PowerShell `Remove-Item Env:DATABASE_URL`
 4. **main에 합치고 올리기:** 사용자가 반영하라고 하면 바탕 커밋을 main에 합치고 push한다. push하면 Render가 새 코드를 배포한다. 다음 단계까지 몇 분은 화면이 깨진다(새 코드가 옛 DB를 본다). 받아들이기로 했다.
-5. **Render 바꾸기:** Render 대시보드의 vada-m1 → Environment에서 `DATABASE_URL`을 `production` 가지 주소로 바꾸고 저장한다(다시 배포된다). 주소 형식은 1단계와 같다(직접 주소, 오늘 동작하는 주소와 같은 쿼리 형식, `channel_binding` 없음). 세션이 옛 DB에 있으므로 모두 다시 로그인한다.
+5. **Render 바꾸기:** Render 대시보드의 vada-m1 → Environment에서 `DATABASE_URL`을 `production` 가지 주소로 바꾸고 저장한다(다시 배포된다). 주소 형식은 1단계와 같다(직접 주소, 오늘 동작하는 주소와 같은 쿼리 형식. 3단계 미리 보기에서 `channel_binding`을 지웠다면 여기서도 지운다). 세션이 옛 DB에 있으므로 모두 다시 로그인한다.
 6. **vada-m1에서 확인:** 휴대폰과 데스크톱에서 로그인, 학생회 만들기, 다른 계정으로 초대 링크 들어오기, 휴대폰 알림 켜기와 시험 알림을 한다. 덩어리 1에서 알림을 켠 휴대폰은 다시 켜지 않아도 된다. 휴대폰 알림 대화상자를 연 뒤 Neon SQL 편집기(`production` 가지)에서 `SELECT count(*) FROM push_device;`로 기기가 저장됐는지 본다(대화상자를 열 때 이미 켜진 구독을 저장한다, P23). 두 기기로 같은 초대 링크를 거의 동시에 눌러 한 번씩만 들어가는지도 본다. 결과는 `docs/device-checks.md`에 남긴다.
 7. **막히면 되돌리기:** Render의 `DATABASE_URL`을 옛 주소로 돌리고, Render의 배포 기록에서 바탕 전 배포를 골라 Rollback한다. 옛 DB(`vada-m1-dev`)는 시범 운영이 시작할 때까지 지우지 않는다.

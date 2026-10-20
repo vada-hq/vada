@@ -155,10 +155,21 @@ test('시험 데이터는 --apply가 없으면 미리 보기로 -- --apply를 �
   const assign = { command: 'assign', userId: 'u2', department: 'planning', apply: false } as const
   const preview = stepOf(seed, 'host/db')
   assert.equal(preview.step, 'preview')
-  assert.ok('message' in preview && preview.message.includes('-- --apply'), JSON.stringify(preview))
+  assert.ok(
+    'message' in preview &&
+      preview.message.includes('npm run test-data --workspace @vada/api -- seed u1 --apply'),
+    JSON.stringify(preview),
+  )
   const assignPreview = stepOf(assign, UNREADABLE_TARGET)
   assert.equal(assignPreview.step, 'preview')
-  assert.ok('message' in assignPreview && assignPreview.message.includes('기획부'))
+  assert.ok(
+    'message' in assignPreview &&
+      assignPreview.message.includes('기획부') &&
+      assignPreview.message.includes(
+        'npm run test-data --workspace @vada/api -- assign u2 planning --apply',
+      ),
+    JSON.stringify(assignPreview),
+  )
   assert.deepEqual(stepOf({ ...seed, apply: true }, 'host/db'), { step: 'apply' })
   assert.deepEqual(stepOf({ ...assign, apply: true }, 'host/db'), { step: 'apply' })
   assert.deepEqual(stepOf({ ...seed, apply: true }, UNREADABLE_TARGET), {
