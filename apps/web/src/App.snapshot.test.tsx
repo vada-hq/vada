@@ -121,6 +121,8 @@ test('작업 공간: 사람', async () => {
   openWorkspace()
   render(<App />)
   await screen.findByText('운영진 3명')
+  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
+  await screen.findByRole('region', { name: '초대 링크' })
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -128,8 +130,11 @@ test('작업 공간: 부서', async () => {
   openWorkspace()
   render(<App />)
   await screen.findByText('운영진 3명')
+  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
+  await screen.findByRole('region', { name: '초대 링크' })
   fireEvent.click(screen.getAllByRole('button', { name: '부서' })[0] as HTMLElement)
   await screen.findByRole('heading', { level: 1, name: '부서' })
+  await screen.findByText('부서 2개')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -145,6 +150,8 @@ test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   openWorkspace()
   render(<App />)
   await screen.findByText('운영진 3명')
+  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
+  await screen.findByRole('region', { name: '초대 링크' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   await screen.findByRole('dialog')
   expect(snapshotHtml()).toMatchSnapshot()
