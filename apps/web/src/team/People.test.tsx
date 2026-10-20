@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action, TeamResponse } from '@vada/contracts'
@@ -820,4 +821,43 @@ test('내보내기가 성공해 확인 대화상자가 닫힐 때는 까닭 문�
   await settle()
   expect(screen.queryByText(GONE)).toBeNull()
   expect(screen.queryByText(LOST)).toBeNull()
+})
+
+// 내 요청이 성공해 내 권한이 줄고 학생회를 다시 읽은 결과는 바깥 변경이 아니므로 경고하지 않는다.
+function SelfChanging({ from, memberId }: { from: Action[]; memberId: string }) {
+  const [permissions, setPermissions] = useState(from)
+  return (
+    <Harness
+      permissions={permissions}
+      memberId={memberId}
+      onCouncilChanged={() => setPermissions(MEMBER_PERMISSIONS)}
+    />
+  )
+}
+
+test('회장 넘기기가 성공해 내 권한이 줄어도 권한이 바뀌었다는 경고를 보이지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/president/transfer', () => json(teamResponse()))
+  render(<SelfChanging from={PRESIDENT_PERMISSIONS} memberId="m1" />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '위원장 넘기기' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정님에게 위원장 직급을 넘길까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '넘기기' }))
+  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  await settle()
+  expect(screen.queryByText(LOST)).toBeNull()
+})
+
+test('내 부서 배정을 고쳐 내 권한이 줄어 대화상자가 닫혀도 권한이 바뀌었다는 경고를 보이지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m2/departments/d1/remove', () =>
+    json(teamResponse()),
+  )
+  render(<SelfChanging from={LEADER_PERMISSIONS} memberId="m2" />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '재정부에서 빼기' }))
+  await noDialog()
+  await settle()
+  expect(screen.queryByText(LOST)).toBeNull()
+  expect(screen.queryByText(GONE)).toBeNull()
 })
