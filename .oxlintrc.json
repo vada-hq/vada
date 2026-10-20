@@ -183,15 +183,6 @@
       "rules": {
         "no-magic-numbers": "off"
       }
-    },
-    // R01 임시 예외: 아래 묶음은 지금 상한을 넘는 파일이다(docs/features/r01-maintainability.md). 조각마다 고친 파일을 뺀다. 새 파일을 더하지 않는다. 비면 묶음을 지운다.
-    {
-      "files": ["apps/web/src/ui-gallery/Gallery.tsx"],
-      "rules": { "max-lines-per-function": "off" }
-    },
-    {
-      "files": ["apps/api/src/db/schema.ts", "apps/web/src/ui-gallery/Gallery.tsx"],
-      "rules": { "max-lines": "off" }
     }
   ]
 }

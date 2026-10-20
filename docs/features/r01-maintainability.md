@@ -109,7 +109,7 @@
 - 닿는 곳: `api/src/db/`, `api/src/ops/`, `api/scripts/pg-smoke.ts`, `api/package.json` 스크립트, AGENTS.md, `docs/work-method.md`.
 - 검토: 깊게(운영 DB).
 
-### 10. 큰 파일 나누기 [ ]
+### 10. 큰 파일 나누기 [x]
 - 할 수 있게 되는 것: 표 정의와 부품 확인 화면을 영역별 파일에서 찾는다.
 - 수용 기준: `schema.ts`가 영역별 파일로 나뉘고 모두 300줄 안이다. 맞춤 시험(`schema-match.test.ts`)과 `npm run check:design`이 전과 같이 통과한다. `ui-gallery/Gallery.tsx`가 300줄 안이고 `/ui.html`이 전과 같게 보인다.
 - 닿는 곳: `api/src/db/schema*.ts`, `drizzle.config.ts`, `web/src/ui-gallery/`.
