@@ -5,6 +5,7 @@ import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
 import { createAuth } from './auth/auth.js'
+import { createChatPush } from './chat/notify.js'
 import { createChatRoutes } from './chat/routes.js'
 import { createCouncilRoutes } from './councils/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
@@ -30,16 +31,20 @@ function connectDb(env: Env) {
   return { client, db: drizzle(client) }
 }
 
-// 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
-function pushRoutesOf(env: Env, db: Db, session: SessionReader) {
+// 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로와 대화 알림을 만들지 않는다(대화는 알림 없이 돈다).
+function pushOf(env: Env, db: Db, session: SessionReader) {
   const pushConfig = pushConfigFrom(env)
-  if (!pushConfig) return undefined
+  if (!pushConfig) return {}
   console.log('휴대폰 알림 켜짐 (Web Push)')
-  return createPushRoutes(session, {
-    publicKey: pushConfig.publicKey,
-    send: createPushSender(pushConfig),
-    forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
-  })
+  const send = createPushSender(pushConfig)
+  return {
+    routes: createPushRoutes(session, {
+      publicKey: pushConfig.publicKey,
+      send,
+      forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
+    }),
+    chatPush: createChatPush(db, send),
+  }
 }
 
 function appOf(env: Env, db: Db) {
@@ -50,14 +55,15 @@ function appOf(env: Env, db: Db) {
     googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
+  const push = pushOf(env, db, session)
   return createApp({
     auth,
     trustedOrigin: env.BETTER_AUTH_URL!,
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
-    chat: createChatRoutes(db, session),
-    push: pushRoutesOf(env, db, session),
+    chat: createChatRoutes(db, session, { push: push.chatPush }),
+    push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
   })
 }

@@ -48,6 +48,15 @@ function setup(outcome: Awaited<ReturnType<PushSender>> = { result: 'sent' }) {
   }
 }
 
+test('시험 알림은 계정마다 분당 3번이고 4번째는 429이며 알림 서버를 부르지 않는다', async () => {
+  const { post, sent } = setup()
+  for (let n = 0; n < 3; n++) assert.equal((await post(subscription)).status, 200)
+  const blocked = await post(subscription)
+  assert.equal(blocked.status, 429)
+  assert.deepEqual(await blocked.json(), { error: 'TOO_MANY_REQUESTS' })
+  assert.equal(sent.length, 3)
+})
+
 test('공개 열쇠는 로그인한 사람에게만 준다', async () => {
   const { app, logout } = setup()
   const response = await app.request('/api/me/push')

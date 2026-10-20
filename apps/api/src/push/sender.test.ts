@@ -39,6 +39,16 @@ test('정한 설정으로 한 번 보내고 sent를 돌려준다', async () => {
   ])
 })
 
+test('보내는 쪽이 정한 TTL로 보내고, 정하지 않으면 60초다', async () => {
+  const ttls: unknown[] = []
+  const send = createPushSender(config, async (_target, _payload, options) => {
+    ttls.push(options.TTL)
+  })
+  await send(target, message, { ttl: 86_400 })
+  await send(target, message)
+  assert.deepEqual(ttls, [86_400, 60])
+})
+
 test('404·410은 expired, 그 밖의 실패는 rejected이고, 알림 서버의 상태 번호를 함께 돌려준다', async () => {
   for (const [statusCode, result] of [
     [404, 'expired'],

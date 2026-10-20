@@ -25,6 +25,7 @@ import type { Db, Tx } from '../db/types.js'
 import { openDirect } from './direct.js'
 import { messagePage, noticesOf } from './messages.js'
 import { markNotice } from './notice.js'
+import type { ChatPush } from './notify.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
@@ -44,6 +45,8 @@ interface Kit {
   db: Db
   asked: (c: Context<SessionEnv>) => ReturnType<typeof requestOf>
   sendLimiter: RateLimiter
+  push: ChatPush | undefined
+  clock: () => Date
   // 학생회 행을 잠그고 권한(action)을 다시 본 뒤 바꾸는 거래
   change: <T>(
     c: Context<SessionEnv>,
@@ -84,7 +87,7 @@ function listRoutes({ routes, auth, db, asked }: Kit) {
   })
 }
 
-function roomRoutes({ routes, auth, db, asked, inRoom }: Kit) {
+function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
   routes.get(`${root}/rooms/:roomId`, auth, async c => {
     const detail = await inRoom(c, (tx, actor, id, now) => roomDetailOf(tx, actor, now, id))
     return c.json(detail satisfies RoomDetailResponse)
@@ -92,7 +95,13 @@ function roomRoutes({ routes, auth, db, asked, inRoom }: Kit) {
   routes.get(`${root}/rooms/:roomId/messages`, auth, async c => {
     const query = MessagePageQuerySchema.safeParse(c.req.query())
     if (!query.success) throw new ApiError('INVALID_INPUT')
-    const page = await inRoom(c, (tx, actor, id) => messagePage(tx, actor, id, query.data))
+    const page = await inRoom(c, async (tx, actor, id, now) => {
+      const read = await messagePage(tx, actor, id, query.data)
+      // 가장 최근 쪽을 읽으면 그 방을 보는 중이다. 옛 메시지를 거슬러 읽는 것은 보는 중이 아니다.
+      if (query.data.before === undefined && query.data.after === undefined)
+        push?.seen(id, actor.memberId, now)
+      return read
+    })
     return c.json(page satisfies MessagePageResponse)
   })
   routes.post(`${root}/rooms/:roomId/read`, json(ReadMarkerSchema), auth, async c => {
@@ -104,7 +113,7 @@ function roomRoutes({ routes, auth, db, asked, inRoom }: Kit) {
   })
 }
 
-function writeRoutes({ routes, auth, db, asked, sendLimiter, change }: Kit) {
+function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock }: Kit) {
   routes.post(`${root}/rooms/:roomId/messages`, json(SendMessageSchema), auth, async c => {
     const request = asked(c)
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
@@ -115,6 +124,8 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change }: Kit) {
     const sent = await db.transaction(async tx =>
       sendMessage(tx, await authorize(tx, request), { roomId, body, mentions }, request.now),
     )
+    // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
+    void push?.notify(sent.id, clock())
     return c.json(sent satisfies ChatMessage, CREATED)
   })
   routes.post(`${root}/messages/:messageId/notice`, json(MarkNoticeSchema), auth, async c => {
@@ -138,7 +149,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change }: Kit) {
 export function createChatRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; sendLimiter?: RateLimiter } = {},
+  options: { clock?: () => Date; sendLimiter?: RateLimiter; push?: ChatPush | undefined } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const asked = (c: Context<SessionEnv>) => requestOf(c, clock())
@@ -148,6 +159,8 @@ export function createChatRoutes(
     db,
     asked,
     sendLimiter: options.sendLimiter ?? createRateLimiter(SEND_LIMIT),
+    push: options.push,
+    clock,
     change: (c, action, run) => {
       const now = clock()
       return inCouncilChange(

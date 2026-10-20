@@ -32,3 +32,10 @@ export const RemovePushDeviceSchema = z.strictObject({
   endpoint: PushSubscriptionSchema.shape.endpoint,
 })
 export type RemovePushDeviceRequest = z.infer<typeof RemovePushDeviceSchema>
+
+// 대화 알림(기능 003). 잠금 화면에 보이는 본문은 앞 100자까지다. 사진만 보내면 '사진'이다.
+export const PUSH_BODY_MAX = 100
+export const PUSH_PHOTO_BODY = '사진'
+// 알림을 누르면 열 방 주소. 화면(조각 9)이 같은 함수로 읽는다.
+export const chatRoomUrl = (councilId: string, roomId: string) => `/chat/${councilId}/${roomId}`
+export const chatRoomTag = (roomId: string) => `room:${roomId}`

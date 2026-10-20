@@ -4,12 +4,20 @@ import { GONE, NOT_FOUND } from '../http/status.js'
 import type { PushConfig } from './config.js'
 import { isKnownPushService } from './endpoint.js'
 
-export type PushMessage = { title: string; body: string; url: string }
+// tag는 같은 방의 알림을 서비스 워커가 한 줄로 접게 하는 이름이다(기능 003 '알림 전달').
+export type PushMessage = { title: string; body: string; url: string; tag?: string }
 type PushTarget = { endpoint: string; keys: { p256dh: string; auth: string } }
 // 실패했을 때는 원인을 찾을 단서로 알림 서버의 상태 번호(status)나 연결 오류 코드(code)를 함께 돌려준다. 비밀이나 사용자 값은 담지 않는다.
 type PushOutcome = { result: PushTestResult; status?: number; code?: string }
-export type PushSender = (target: PushTarget, message: PushMessage) => Promise<PushOutcome>
+// ttl(초)은 알림 서버가 꺼진 기기를 기다려 주는 시간이다. 시험 알림은 60초, 대화 알림은 하루다.
+export type PushSender = (
+  target: PushTarget,
+  message: PushMessage,
+  options?: { ttl?: number },
+) => Promise<PushOutcome>
 type Send = (target: PushTarget, payload: string, options: RequestOptions) => Promise<unknown>
+
+const TEST_TTL_SECONDS = 60
 
 const sendWithLibrary: Send = (target, payload, options) =>
   webpush.sendNotification(target, payload, options)
@@ -33,14 +41,13 @@ export function createPushSender(config: PushConfig, send: Send = sendWithLibrar
       publicKey: config.publicKey,
       privateKey: config.privateKey,
     },
-    TTL: 60,
     urgency: 'high',
     timeout: 10_000,
   }
-  return async (target, message) => {
+  return async (target, message, { ttl = TEST_TTL_SECONDS } = {}) => {
     if (!isKnownPushService(target.endpoint)) return { result: 'rejected' }
     try {
-      await send(target, JSON.stringify(message), options)
+      await send(target, JSON.stringify(message), { ...options, TTL: ttl })
       return { result: 'sent' }
     } catch (error) {
       const diagnosis = diagnosisOf(error)

@@ -7,6 +7,7 @@ import {
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { logUnexpectedError, sqlState } from '../http/on-error.js'
+import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { isKnownPushService } from './endpoint.js'
 import type { PushMessage, PushSender } from './sender.js'
@@ -17,6 +18,8 @@ export const TEST_MESSAGE: PushMessage = {
   url: '/',
 }
 export const TEST_DELAY_MS = 5_000
+// 시험 알림은 계정마다 분당 3번이다(기능 003 '속도 제한'). 5초씩 붙들고 알림 서버를 두드리는 일을 막는다.
+const TEST_LIMIT = { limit: 3, windowMs: 60_000 }
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 // 끝난 구독의 저장된 기기를 지운다(바탕 spec G10). 기기는 devices.ts가 맡아, 이 모듈은 DB를 모른다.
@@ -29,15 +32,25 @@ export interface PushRoutesOptions {
   send: PushSender
   wait?: (ms: number) => Promise<void>
   forget?: ForgetDevice
+  limiter?: RateLimiter
+  clock?: () => Date
 }
 
 export function createPushRoutes(getSession: SessionReader, options: PushRoutesOptions) {
-  const { publicKey, send, wait = sleep, forget = async () => {} } = options
+  const {
+    publicKey,
+    send,
+    wait = sleep,
+    forget = async () => {},
+    clock = () => new Date(),
+  } = options
+  const limiter = options.limiter ?? createRateLimiter(TEST_LIMIT)
   const routes = new Hono<SessionEnv>()
   const authenticated = requireSession(getSession)
   routes.get('/me/push', authenticated, c => c.json({ publicKey } satisfies PushKeyResponse))
   // 5초 기다렸다 보낸다. 그동안 사용자가 화면을 끄거나 홈으로 나가 잠금 화면의 알림을 본다.
   routes.post('/me/push/test', json(PushSubscriptionSchema), authenticated, async c => {
+    if (!limiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
     const { endpoint, keys } = c.req.valid('json')
     if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED')
     await wait(TEST_DELAY_MS)

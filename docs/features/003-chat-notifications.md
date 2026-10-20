@@ -90,7 +90,7 @@
 - 닿는 곳: contracts `SendMessageSchema`, `MarkNoticeSchema`, `OpenDirectSchema`, `errors.ts`. `chat/service.ts`, `chat/routes.ts`, `http/rate-limit.ts`(새), `ops/pg-smoke/`(동시 보내기와 내보내기, 같은 방 동시 보내기 순서). 경로는 `POST rooms/:roomId/messages`, `POST messages/:messageId/notice`, `POST direct`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 5. 휴대폰 알림 보내기 [ ]
+### 5. 휴대폰 알림 보내기 [x]
 - 할 수 있게 되는 것: 메시지를 보내면 방의 다른 운영진 휴대폰에 알림이 간다.
 - 수용 기준: 보내면 받는 사람의 기기마다 한 번씩 알림이 간다. 받는 사람은 그 방의 지금 참여자에서 보낸 사람, 내보낸 사람, 지난 기수 사람을 뺀 사람이다. 부름 받은 사람은 부름 문구로 한 번만 받는다. 10초 안에 그 방의 최신 페이지를 읽은 사람은 빠지고, 10초가 지나면 다시 받는다. 응답은 알림을 기다리지 않는다. 알림 내용은 제목(방 이름, 1:1은 보낸 사람), 본문 앞 100자(사진만이면 '사진'), 그 방 주소, tag다. 끝난 구독은 기기 줄이 지워진다. 로그에 구독 주소, 본문, 운영진 번호가 없다. 알림 열쇠가 없어도 대화는 돈다. 공지 표시에는 알림이 없다. 시험 알림은 분당 4번째에 429다.
 - 닿는 곳: contracts `push.ts`(알림 내용 모양, 방 주소). `push/sender.ts`, `push/fanout.ts`(새), `push/routes.ts`, `chat/notify.ts`, `chat/presence.ts`, `serve.ts`.
