@@ -1,0 +1,321 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`내 학생회: 불러오기 오류 1`] = `
+"<div>
+<div>
+<div class="flex flex-col gap-3">
+<p role="alert" class="text-sm wrap-anywhere text-destructive">학생회를 확인하지 못했어요. 서버 연결을 확인해 주세요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">다시 확인</button>
+</div>
+</div>
+</div>"
+`;
+
+exports[`내 학생회: 불러오는 중 1`] = `
+"<div>
+<div>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">학생회 확인 중…</p>
+</div>
+</div>"
+`;
+
+exports[`내 학생회: 학생회 없음, 만들기 열기 1`] = `
+"<div>
+<div>
+<div class="flex flex-col gap-6">
+<form aria-label="초대 코드로 들어가기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">아직 들어간 학생회가 없어요</h2>
+<p class="text-sm text-gray-500">학생회에서 받은 초대 링크를 누르거나, 초대 코드를 입력해 주세요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">초대 코드<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" value="">
+</label>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit" disabled="">초대 코드로 들어가기</button>
+</form>
+<div class="flex flex-col items-center gap-2 border-t pt-4 text-center">
+<p class="text-sm text-gray-500">학생회를 처음 시작하나요?</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">학생회 만들기</button>
+</div>
+</div>
+</div>
+</div>"
+`;
+
+exports[`내 학생회: 학생회 없음, 만들기 열기 2`] = `
+"<div>
+<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit" disabled="">학생회 만들기</button>
+</div>
+</form>
+</div>
+</div>"
+`;
+
+exports[`들어오기: 묻기 1`] = `
+"<div>
+<section aria-label="학생회 들어가기" class="flex flex-col gap-4">
+<div class="rounded-lg border p-6">
+<h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
+</div>
+<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 돼요. 부서는 회장단이 정해요.</p>
+<div class="flex flex-col gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">들어가기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">들어가지 않기</button>
+</div>
+</section>
+</div>"
+`;
+
+exports[`들어오기: 불러오는 중 1`] = `
+"<div>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">초대 확인 중…</p>
+</div>"
+`;
+
+exports[`들어오기: 없는 코드 1`] = `
+"<div>
+<section aria-label="학생회 들어가기" class="flex flex-col gap-3">
+<p role="alert" class="text-sm wrap-anywhere text-destructive">초대 코드가 올바르지 않아요. 바뀌었을 수 있으니 학생회에 다시 받아 주세요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">나가기</button>
+</section>
+</div>"
+`;
+
+exports[`들어오기: 오류 1`] = `
+"<div>
+<section aria-label="학생회 들어가기" class="flex flex-col gap-4">
+<div class="rounded-lg border p-6">
+<h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
+</div>
+<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 돼요. 부서는 회장단이 정해요.</p>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.</p>
+<div class="flex flex-col gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">들어가기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">들어가지 않기</button>
+</div>
+</section>
+</div>"
+`;
+
+exports[`들어오기: 이미 들어옴 1`] = `
+"<div>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">초대 확인 중…</p>
+</div>"
+`;
+
+exports[`들어오기: 진행 중 1`] = `
+"<div>
+<section aria-label="학생회 들어가기" class="flex flex-col gap-4">
+<div class="rounded-lg border p-6">
+<h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
+</div>
+<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 돼요. 부서는 회장단이 정해요.</p>
+<div class="flex flex-col gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" disabled="">들어가는 중…</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5" disabled="">들어가지 않기</button>
+</div>
+</section>
+</div>"
+`;
+
+exports[`들어오기: 확인 실패 1`] = `
+"<div>
+<section aria-label="학생회 들어가기" class="flex flex-col gap-3">
+<p role="alert" class="text-sm wrap-anywhere text-destructive">초대를 확인하지 못했어요. 연결을 확인하고 다시 시도해 주세요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">다시 시도</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">나가기</button>
+</section>
+</div>"
+`;
+
+exports[`만들기: 성공 1`] = `
+"<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="소프트웨어학부">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="한양대학교">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit" disabled="">만드는 중…</button>
+</div>
+</form>
+</div>"
+`;
+
+exports[`만들기: 오류 1`] = `
+"<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="소프트웨어학부">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="한양대학교">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.</p>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit">학생회 만들기</button>
+</div>
+</form>
+</div>"
+`;
+
+exports[`만들기: 임기 순서 오류 1`] = `
+"<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2025-12-31">
+</label>
+</div>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">임기 끝은 시작보다 뒤여야 해요.</p>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit" disabled="">학생회 만들기</button>
+</div>
+</form>
+</div>"
+`;
+
+exports[`만들기: 입력 전 1`] = `
+"<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit" disabled="">학생회 만들기</button>
+</div>
+</form>
+</div>"
+`;
+
+exports[`만들기: 진행 중 1`] = `
+"<div>
+<form aria-label="학생회 만들기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<p class="text-sm text-gray-500">만든 사람이 회장이 되고, 재정부가 함께 생겨요.</p>
+</div>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 소프트웨어학부 학생회" value="소프트웨어학부">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" placeholder="예: 한양대학교 ERICA" value="한양대학교">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<div class="flex gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">취소</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1" type="submit" disabled="">만드는 중…</button>
+</div>
+</form>
+</div>"
+`;

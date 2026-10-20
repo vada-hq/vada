@@ -1,0 +1,354 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`권한 없음: 보기만 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<p class="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="컴퓨터학부 학생회">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer" disabled="">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="부부장">
+</label>
+</div>
+</fieldset>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" readonly="" type="date" value="2026-12-31">
+</label>
+</div>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`성공 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="새 이름">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">저장했어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">학생회 정보 저장</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`오류: 권한을 잃음 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="새 이름">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">권한이 바뀌었어요. 화면을 새로 불러왔어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">학생회 정보 저장</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`오류: 기간 밖 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="컴퓨터학부 학생회">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">학생회 정보 저장</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2027">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">기간에 오늘이 들어 있어야 해요. 그렇지 않으면 모든 운영진이 학생회를 열 수 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`임기 순서 오류 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="컴퓨터학부 학생회">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">학생회 정보 저장</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2025-12-31">
+</label>
+</div>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">임기 끝은 시작보다 뒤여야 해요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit" disabled="">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`입력 전: 회장단 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="컴퓨터학부 학생회">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">학생회 정보 저장</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
+
+exports[`진행 중 1`] = `
+"<div>
+<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="학생회 정보" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학생회 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="새 이름">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">단위<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
+<option value="department">학과</option>
+<option value="college">단과대</option>
+<option value="university">총학생회</option>
+</select>
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">학교<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="한양대학교 ERICA">
+</label>
+<fieldset class="flex flex-col gap-2">
+<legend class="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부회장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부회장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부장">
+</label>
+<label data-slot="label" class="text-xs font-medium flex flex-col gap-1.5 text-gray-500">부부장<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="부부장">
+</label>
+</div>
+</fieldset>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit" disabled="">저장하는 중…</button>
+</form>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+<form aria-label="지금 기수" class="flex flex-col gap-4">
+<h2 class="text-base font-semibold text-gray-900">지금 기수</h2>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">기수 이름<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" value="2026">
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 시작<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-01-01">
+</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">임기 끝<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" type="date" value="2026-12-31">
+</label>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit" disabled="">기수 저장</button>
+</form>
+</div>
+</div>
+</div>"
+`;
