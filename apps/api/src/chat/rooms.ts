@@ -66,6 +66,8 @@ async function existingRooms(tx: Tx, councilId: string) {
     .where(
       and(
         eq(record.councilId, councilId),
+        // 행사방은 행사가 정한다. 편성 방만 고른다.
+        isNull(chatRoom.eventId),
         inArray(chatRoom.type, ['all_members', 'leadership', 'department']),
       ),
     )

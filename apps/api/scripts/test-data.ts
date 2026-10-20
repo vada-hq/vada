@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import { koreanYearOf } from '@vada/contracts'
+import { lockCouncil } from '../src/access/authorize.js'
 import { actorOf } from '../src/access/actor.js'
 import { currentCouncilMembership } from '../src/access/current-cohort.js'
 import { syncRooms } from '../src/chat/rooms.js'
@@ -129,6 +130,8 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
     } else if ((await presidentUserOf(tx, councilId, now)) !== userId) {
       throw new Error('Test council has another president')
     }
+    // syncRooms는 학생회 행을 잠근 거래 안에서 부르는 것이 전제다(rooms.ts).
+    await lockCouncil(tx, councilId)
     await tx
       .update(inviteCode)
       .set({ code: TEST_INVITE_CODE })

@@ -255,3 +255,42 @@ test('거부된 편성 요청은 방도 참여도 바꾸지 않는다', async ()
     await s.testDb.close()
   }
 })
+
+test('행사방은 편성 방으로 잡히지 않아 맞출 때 참여가 그대로다', async () => {
+  const s = await start()
+  try {
+    const kim = await s.memberOf('kim')
+    // 행사방은 편성이 아니라 행사가 정한다(event_id가 있다). 종류 칸이 전체방과 같아도 편성 방이 아니다.
+    const event = (
+      await s.pg.query<{ id: string }>(
+        `INSERT INTO record (kind, council_id) VALUES ('event', $1) RETURNING id`,
+        [s.councilId],
+      )
+    ).rows[0]!.id
+    await s.pg.query(`INSERT INTO event (id, name) VALUES ($1, '행사')`, [event])
+    const room = (
+      await s.pg.query<{ id: string }>(
+        `INSERT INTO record (kind, council_id) VALUES ('chat_room', $1) RETURNING id`,
+        [s.councilId],
+      )
+    ).rows[0]!.id
+    await s.pg.query(`INSERT INTO chat_room (id, type, event_id) VALUES ($1, 'all_members', $2)`, [
+      room,
+      event,
+    ])
+    await s.pg.query(
+      `INSERT INTO room_membership (room_id, member_id, joined_at) VALUES ($1, $2, now())`,
+      [room, kim],
+    )
+    await s.join('lee')
+    const members = async (id: string) =>
+      (await s.pg.query('SELECT 1 FROM room_membership WHERE room_id = $1', [id])).rows.length
+    assert.equal(await members(room), 1)
+    const all = await s.pg.query(
+      `SELECT count(*)::int AS n FROM chat_room WHERE type = 'all_members' AND event_id IS NULL`,
+    )
+    assert.deepEqual(all.rows, [{ n: 1 }])
+  } finally {
+    await s.testDb.close()
+  }
+})

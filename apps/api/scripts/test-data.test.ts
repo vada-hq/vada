@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { PGlite } from '@electric-sql/pglite'
+import { sql } from 'drizzle-orm'
+import type { Db, Tx } from '../src/db/types.js'
 import { createTestDb } from '../src/db/test-db.js'
 import { roomMap } from '../src/test-support/chat.js'
 import {
@@ -102,6 +104,31 @@ test('부서원 넣기는 다시 돌려도 같고, 이미 다른 부서인 사�
     assert.deepEqual((await pg.query('SELECT code FROM invite_code')).rows, [
       { code: TEST_INVITE_CODE },
     ])
+  } finally {
+    await close()
+  }
+})
+
+test('이미 있는 시험 학생회를 다시 맞출 때도 학생회 행을 잠근 거래 안에서 방을 맞춘다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    await googleUser(pg, 'u1')
+    await seedTestCouncil(db, 'u1', now)
+    // 끝나기 직전(커밋 전) 이 거래가 학생회 행을 잠갔는지 본다. 행 잠금은 xmax에 이 거래 번호를 남긴다.
+    let locked: unknown
+    const probe = {
+      transaction: (run: (tx: Tx) => Promise<unknown>) =>
+        db.transaction(async tx => {
+          const result = await run(tx)
+          const rows = (await tx.execute(
+            sql`SELECT xmax::text = pg_current_xact_id()::xid::text AS locked FROM council`,
+          )) as unknown as { rows: { locked: boolean }[] }
+          locked = rows.rows[0]?.locked
+          return result
+        }),
+    } as unknown as Db
+    await seedTestCouncil(probe, 'u1', now)
+    assert.equal(locked, true)
   } finally {
     await close()
   }
