@@ -47,7 +47,8 @@ finished() {
 remove_dir() {
   [ -d "$1" ] || return 0
   case ${OSTYPE:-} in
-    msys* | cygwin*) cmd //c rmdir /s /q "$(cygpath -w "$1")" >/dev/null 2>&1 ;;
+    # Git Bash는 /s, /q 같은 인자를 Windows 경로(S:/, Q:/)로 바꿔 넘긴다. 바꾸지 않게 막는다.
+    msys* | cygwin*) MSYS2_ARG_CONV_EXCL='*' cmd /c rmdir /s /q "$(cygpath -w "$1")" >/dev/null 2>&1 ;;
     *) rm -rf -- "$1" ;;
   esac
   [ ! -d "$1" ]
