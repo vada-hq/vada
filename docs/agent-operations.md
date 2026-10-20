@@ -1,6 +1,6 @@
 ---
 독자: 에이전트
-상태: 계획(적용 전). 적용 순서는 맨 아래 '적용'에 있다.
+상태: 적용됨(2026-10-20). 사람이 할 확인은 맨 아래 '적용'에 있다.
 ---
 
 # 에이전트 운영 방법
@@ -56,7 +56,7 @@
 | 조사 | `researcher` | `claude-opus-5-5` | high | 읽기, 웹, 조사 파일 쓰기. `omitClaudeMd: true` | 출처를 읽고 대조하는 여러 단계 일이다. 코드 규칙은 필요 없다 |
 | 작업자 | `worker` | `claude-sonnet-5-5` | medium | 전체. `isolation: worktree` | 명세에 수용 기준과 닿는 곳이 정해진 코딩이다. 공식 권고는 "잘 정해진 에이전트 코딩은 Sonnet 5.5 medium", "지시가 구체적이면 작은 모델로" |
 | 보통 검토 | `reviewer` | `claude-sonnet-5-5` | high | `Read, Grep, Glob, Bash` | 검토는 확인과 경계 사례가 중요한 일이라 high다. 작성자와 같은 등급 이상이다 |
-| 깊은 검토 | `deep-reviewer` | `claude-opus-5-5` | high | `Read, Grep, Glob, Bash` | 주소, 인증, 권한, 학생회 사이 격리, 돈, 데이터 무결성, 운영 DB, 동시 처리 조각(`docs/work-method.md` 2절)이다. Codex가 따로 함께 본다 |
+| 깊은 검토 | `deep-reviewer` | `claude-opus-5-5` | high | `Read, Grep, Glob, Bash`. `isolation: worktree` | 코드를 고장 내 시험이 잡는지 보는 확인을 임시 작업 폴더에서만 한다. 주소, 인증, 권한, 학생회 사이 격리, 돈, 데이터 무결성, 운영 DB, 동시 처리 조각(`docs/work-method.md` 2절)이다. Codex가 따로 함께 본다 |
 | 기계적 일 | `clerk` | `claude-haiku-5-5` | medium | 읽기, `Bash`, 결과 파일 쓰기. `omitClaudeMd: true` | 기록 세기, 지표 뽑기, 일정 읽기처럼 답이 하나인 일이다. Haiku 5.5의 공식 용도다. Claude Code 2.1.293 이상이 필요하다 |
 
 근거: [model-config, effort 표](https://code.claude.com/docs/en/model-config#choose-an-effort-level)("Opus 5.5는 medium에서 시작"), [모델 개요](https://platform.claude.com/docs/en/models/overview), [Anthropic 블로그, 모델과 effort 고르기](https://claude.com/blog/claude-model-and-effort-level-in-claude-code), [effort 쓰기](https://claude.dev/blog/spending-your-effort/)("낮은 effort로 만들고 높은 effort로 확인"). 역할별 공식 표는 없다. 위 표는 공식 서술을 우리 역할에 대입한 것이라 아래 '재는 것'으로 확인한다.
@@ -98,11 +98,11 @@
 
 | 파일 | 내용 |
 |---|---|
-| `.claude/settings.json` | `model: claude-opus-5-5`, `effortLevel: high`, `worktree.baseRef: head`, `env`(`CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000`, `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS=4`), `permissions.deny`(`Read(./.env)`, `Read(./.env.*)`, `.env.example`는 허용), `enabledPlugins`(superpowers 끔) |
-| `.claude/agents/*.md` | 위 '역할' 표의 여섯 개. 머리말에 `name`, `description`, `model`, `effort`, `tools`. 작업자와 검토자는 실제 DB 명령(`db:migrate`, `test-data`, `pg-smoke`)을 막는다. `disallowedTools`의 `Bash(…)` 패턴으로 막고, 안 되면 머리말 `hooks`의 PreToolUse로 막는다. 적용할 때 시험으로 확인한다 |
+| `.claude/settings.json` | `model: claude-opus-5-5`, `effortLevel: high`, `worktree.baseRef: head`, `env`(`CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000`, `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS=4`), `permissions.deny`(`Read(.env)`, `Read(.env.*)`. 거부가 허용을 이기므로 `.env.example`도 막힌다), `enabledPlugins`(superpowers 끔) |
+| `.claude/agents/*.md` | 위 '역할' 표의 여섯 개. 머리말에 `name`, `description`, `model`, `effort`, `tools`. `worker`, `reviewer`, `deep-reviewer`, `clerk`는 머리말 `hooks`의 PreToolUse(`if: "Bash(*db:migrate*)"` 등)로 실제 DB 명령(`db:migrate`, `test-data`, `pg-smoke`)을 막는다. `disallowedTools`에 `Bash(…)`를 적으면 명령 하나가 아니라 Bash 전체가 빠진다([sub-agents](https://code.claude.com/docs/en/sub-agents), 10/20 시험). 이 훅은 폴더를 신뢰한 대화형 세션에서만 돈다. `-p` 세션과 신뢰하지 않은 폴더에서는 건너뛴다 |
 | `CLAUDE.md` | `@AGENTS.md` 아래에 `# Compact instructions`. 지금 기능 번호와 조각 번호, 명세와 진행 기록 경로, 고친 파일 목록, 실패 중인 시험과 그 명령, 아직 적용하지 않은 `Ruling:`을 남긴다 |
-| `.gitignore` | `.claude/worktrees/`, `.claude/settings.local.json` |
-| `tools/codex-review.sh`, `tools/codex-review-schema.json` | 위 'Codex' |
+| `.gitignore` | `.claude/worktrees/`, `.claude/settings.local.json`, `.superpowers/`(진행 기록, 조사, Codex 결과) |
+| `tools/codex-review.sh`, `tools/codex-review-schema.json` | 위 'Codex'. 결과는 `.superpowers/codex/<가지>-<조각>.json`, 이벤트 기록은 옆의 `.events.jsonl`이다. 비교 기준은 `BASE`(기본 `main`)로 바꾼다. 돈 뒤 작업 트리가 바뀌었으면 70으로 끝난다 |
 
 - `.env` 읽기 금지는 지금 전역 설정에만 있어서 팀원에게는 걸리지 않는다. 저장소 설정으로 옮긴다.
 - 개인 설정은 `.claude/settings.local.json`(git 밖)과 전역 설정에 둔다. 저장소 설정이 전역 설정을 이긴다.
@@ -145,8 +145,15 @@
 
 ## 적용
 
-1. **사람, 세션 사이에:** `claude update`로 Claude Code를 2.1.296 이상으로 올린다(Haiku 5.5, 호출마다 effort, 머리말 `autoCompactWindow`, 유휴 압축). 함께 일할 팀원도 같은 버전 이상을 쓴다.
-2. 저장소 설정을 한 커밋으로 넣는다: `.claude/settings.json`, `.claude/agents/` 여섯 개, `CLAUDE.md`의 Compact instructions, `.gitignore`. `AGENTS.md` '기능 만들기'에 이 문서를 가리키는 줄을 더한다. `docs/work-method.md` '진행 에이전트'의 노력값 줄을 이 문서를 가리키는 줄로 바꾼다. 이 문서 머리의 상태를 '적용됨'으로 고친다.
-3. 확인한다. 새 세션에서 `/agents`에 여섯 개가 보이는지 본다. 작업자와 검토자가 DB 명령을 못 돌리는지 본다. `.env` 읽기가 막히는지 본다.
-4. `tools/codex-review.sh`와 스키마를 만든다. 지난 조각 하나(기능 2의 가지 범위)로 처음 돌려 네 가지를 본다. 돌린 뒤 `git status`가 그대로인지(읽기 전용), 결과 JSON이 스키마대로인지, 토큰 수가 나오는지, 지적이 정확성에만 머무는지다.
-5. R01을 이 방법으로 시작하고, 처음 세 조각에서 '재는 것'을 뽑아 '다시 볼 때'에 대어 본다.
+2026-10-20에 적용했다. Claude Code 2.1.304, Codex CLI 0.163.0에서 확인했다.
+
+| 확인한 것 | 결과 |
+|---|---|
+| 에이전트 여섯 개가 보이고 모델과 effort가 머리말대로인가 | 그렇다(`claude -p --setting-sources project`) |
+| `.env` 읽기가 저장소 설정만으로 막히는가 | 막힌다 |
+| DB 명령 훅 | `--agents`로 같은 훅을 준 하위 에이전트에서 `db:migrate`, `pg-smoke`, `test-data`가 막히고 `echo hello`는 돈다 |
+| `tools/codex-review.sh`(`fa5952e` 한 커밋) | 작업 트리 그대로, 결과가 스키마대로, 토큰 수가 나온다(입력 56만 중 캐시 48만, 출력 1.9천), 지적은 정확성 기준만 썼다(판정 pass, 지적 0) |
+
+사람이 한 번 할 것: 이 폴더에서 Claude Code를 처음 열 때 나오는 신뢰 창을 받는다. 받기 전에는 에이전트의 DB 명령 훅이 돌지 않는다. 그다음 새 세션에서 `/agents`에 여섯 개가 보이는지 본다.
+
+다음은 R01을 이 방법으로 시작하고, 처음 세 조각에서 '재는 것'을 뽑아 '다시 볼 때'에 대어 본다.
