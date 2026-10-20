@@ -172,6 +172,8 @@ test('시험 알림이 끝난 구독(expired)이면 보낸 사람의 그 기기 
           publicKey: 'PUBLIC',
           send: async () => ({ result }),
           wait: async () => {},
+          // 이 시험은 한 계정으로 네 번 보낸다. 속도 제한은 routes.test.ts가 본다.
+          limiter: { take: () => true },
           forget: (userId, endpoint) => forgetPushDevice(testDb.db, userId, endpoint),
         }),
       }),
