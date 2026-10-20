@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CouncilView, TeamDepartment } from '@vada/contracts'
 import { useDepartmentRequests } from './useDepartmentRequests'
 import { useDepartmentDialogs } from './useDepartmentDialogs'
@@ -8,6 +9,8 @@ import type { Team } from './useTeam'
 // 운영진 > 부서 화면의 상태와 동작: 오류 문구, 대화상자, 서버 변경. 화면(Departments)은 이것을 그리기만 한다.
 export function useDepartments(view: CouncilView, team: Team) {
   const manage = view.permissions.includes('department.manage')
+  // 만들기 칸은 권한에 따라 나타났다 사라지므로 적던 이름은 여기서 들고 있는다.
+  const [newName, setNewName] = useState('')
   const menuFocus = useMenuFocus()
   const requests = useDepartmentRequests(team.change)
   const dialogs = useDepartmentDialogs(team.data, manage)
@@ -22,6 +25,8 @@ export function useDepartments(view: CouncilView, team: Team) {
   return {
     ...submits,
     manage,
+    newName,
+    setNewName,
     menuFocus,
     problemIn: requests.problemIn,
     clearCreateProblem: () => requests.clearIn('create'),

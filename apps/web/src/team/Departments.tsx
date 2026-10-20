@@ -43,6 +43,8 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
         <DepartmentCreateForm
           saving={team.saving}
           error={state.problemIn('create')}
+          name={state.newName}
+          onName={state.setNewName}
           onCreate={state.create}
           onEdit={state.clearCreateProblem}
         />
