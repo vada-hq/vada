@@ -1,4 +1,5 @@
 import type { CouncilView } from '@vada/contracts'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -29,7 +30,7 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
   const { departments } = team.data
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <PageColumn>
       <h2 className="text-base font-semibold text-gray-900">부서 {departments.length}개</h2>
       {pageProblem && (
         <div ref={problemRef}>
@@ -50,7 +51,7 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
         />
       )}
       <DepartmentDialogs state={state} saving={team.saving} />
-    </div>
+    </PageColumn>
   )
 }
 

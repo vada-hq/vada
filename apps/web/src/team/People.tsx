@@ -1,6 +1,7 @@
 import type { CouncilView } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -31,7 +32,7 @@ export default function People({ view, reading, team, onCouncilChanged, onOwnCha
   const { members, departments } = team.data
   const titles = view.council.titles
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <PageColumn>
       {people.can('invite.manage') && (
         <InviteCard councilId={view.council.id} onForbidden={onCouncilChanged} />
       )}
@@ -68,7 +69,7 @@ export default function People({ view, reading, team, onCouncilChanged, onOwnCha
           void people.confirmed()
         }}
       />
-    </div>
+    </PageColumn>
   )
 }
 

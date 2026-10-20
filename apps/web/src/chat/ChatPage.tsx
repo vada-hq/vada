@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { CouncilView } from '@vada/contracts'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED, ROOMS_LOAD_FAILED } from '@/lib/messages'
@@ -34,12 +35,12 @@ function ListScreen({ councilId, view, team, rooms, onForbidden, onScreen }: Pro
     return <StateMessage kind="loading">대화방 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
     return (
-      <div className="flex flex-col gap-3">
+      <PageColumn className="gap-3">
         <StateMessage kind="error">{ROOMS_LOAD_FAILED}</StateMessage>
         <Button variant="outline" className="self-start" onClick={() => void rooms.reload()}>
           다시 시도
         </Button>
-      </div>
+      </PageColumn>
     )
   return (
     <>

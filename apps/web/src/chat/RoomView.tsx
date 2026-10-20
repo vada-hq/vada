@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { ChatMessage } from '@vada/contracts'
 import { ArrowLeft } from 'lucide-react'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import type { RoomList } from './useRoomList'
 import { useNoticeMark } from './useNoticeMark'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
+import { useStickToBottom } from './useStickToBottom'
 
 type Props = {
   councilId: string
@@ -118,14 +120,14 @@ function Messages({
   onMarkNotice: (message: ChatMessage, isNotice: boolean) => Promise<string | null>
 }) {
   const now = useNow()
-  const end = useRef<HTMLDivElement>(null)
-  const lastId = state.messages.at(-1)?.id
-  // 새 메시지가 오면 맨 아래로 간다.
-  useEffect(() => {
-    end.current?.scrollIntoView?.({ block: 'end' })
-  }, [lastId])
+  const { ref: scrollRef, onScroll } = useStickToBottom(state.messages.at(-1)?.id)
   return (
-    <>
+    // 입력칸은 이 흐름 밖에 붙어 있고 메시지 흐름만 스크롤된다.
+    <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto"
+    >
       {state.hasOlder && <Older onLoad={room.loadOlder} />}
       {state.messages.length === 0 ? (
         <StateMessage kind="empty">아직 메시지가 없어요.</StateMessage>
@@ -144,8 +146,7 @@ function Messages({
         </ul>
       )}
       {state.syncFailed && <StateMessage kind="error">{ROOM_SYNC_FAILED}</StateMessage>}
-      <div ref={end} />
-    </>
+    </div>
   )
 }
 
@@ -161,7 +162,7 @@ function Bottom({
   if (state.room.readOnly)
     return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
   return (
-    <div className="sticky bottom-0 bg-white">
+    <div className="shrink-0 bg-white">
       <Composer
         councilId={councilId}
         roomId={roomId}
@@ -202,7 +203,7 @@ export default function RoomView({
   const allMembers = state.room.type === 'all_members'
   const band = rooms.state.kind === 'ready' ? rooms.state.data.notices[0] : undefined
   return (
-    <div className="flex flex-col gap-3">
+    <PageColumn className="h-full gap-3">
       <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
       {note && <StateMessage kind="notice">{note}</StateMessage>}
       {allMembers && band && <NoticeBand notice={band} now={now} onOpenNotices={onOpenNotices} />}
@@ -221,6 +222,6 @@ export default function RoomView({
         room={room}
         rooms={rooms}
       />
-    </div>
+    </PageColumn>
   )
 }

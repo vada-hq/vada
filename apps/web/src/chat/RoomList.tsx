@@ -1,6 +1,7 @@
 import { useNow } from '@/lib/use-now'
 import type { ChatMessage, RoomListResponse } from '@vada/contracts'
 import { MessageSquarePlus } from 'lucide-react'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -61,7 +62,7 @@ export default function RoomList({
 }: Props) {
   const now = useNow()
   return (
-    <div className="flex flex-col gap-4">
+    <PageColumn>
       {note && <StateMessage kind="notice">{note}</StateMessage>}
       <RecentNotices notices={data.notices} now={now} onOpenNotices={onOpenNotices} />
       <ul className="flex flex-col gap-2">
@@ -77,6 +78,6 @@ export default function RoomList({
           1:1 대화
         </Button>
       )}
-    </div>
+    </PageColumn>
   )
 }

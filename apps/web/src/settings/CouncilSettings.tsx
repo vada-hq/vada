@@ -1,4 +1,5 @@
 import type { CouncilView } from '@vada/contracts'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import CohortForm from './CohortForm'
 import CouncilInfoForm from './CouncilInfoForm'
@@ -15,7 +16,7 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
     message?.form === form && <StateMessage kind={message.kind}>{message.text}</StateMessage>
   const canCouncil = view.permissions.includes('council.update')
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <PageColumn>
       {!canCouncil && <p className="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>}
       <CouncilInfoForm
         value={settings.council}
@@ -42,6 +43,6 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
           void settings.save(event, 'cohort')
         }}
       />
-    </div>
+    </PageColumn>
   )
 }

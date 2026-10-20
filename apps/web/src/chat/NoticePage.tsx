@@ -1,5 +1,6 @@
 import { useNow } from '@/lib/use-now'
 import { ArrowLeft } from 'lucide-react'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { NOTICES_LOAD_FAILED } from '@/lib/messages'
@@ -19,7 +20,7 @@ export default function NoticePage({
   const { state, retry } = useNotices(councilId, onForbidden)
   const now = useNow()
   return (
-    <div className="flex flex-col gap-3">
+    <PageColumn className="gap-3">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" aria-label="대화방 목록" onClick={onBack}>
           <ArrowLeft />
@@ -53,6 +54,6 @@ export default function NoticePage({
           ))}
         </ul>
       )}
-    </div>
+    </PageColumn>
   )
 }
