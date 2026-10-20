@@ -3,6 +3,7 @@ import { afterEach, expect, test } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import type { TeamMember } from '@vada/contracts'
 import { teamResponse } from '@/test-support/council-fixtures'
+import { snapshotHtml } from '@/test-support/snapshot-html'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
 
 // 부서 배정 대화상자를 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 5).
@@ -31,38 +32,35 @@ function show(
     />,
   )
 }
-function html() {
-  return document.body.innerHTML.replace(/«r[0-9a-z]+»/g, '«id»').replaceAll('><', '>\n<')
-}
 
 test('부서가 있는 사람', () => {
   show(placed)
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('부서가 없는 사람', () => {
   show(free)
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('직급 권한 없음', () => {
   show(placed, { canRank: false })
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('저장 중', () => {
   show(placed, { saving: true })
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('오류', () => {
   show(placed, { error: '저장하지 못했어요.' })
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('만들어 둔 부서가 없음', () => {
   show(free, { none: true })
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('모든 부서에 들어 있음', () => {
@@ -73,5 +71,5 @@ test('모든 부서에 들어 있음', () => {
       { id: 'd2', rank: 'vice_head' },
     ],
   })
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })

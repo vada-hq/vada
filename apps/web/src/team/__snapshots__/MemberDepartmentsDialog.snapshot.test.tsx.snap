@@ -6,10 +6,10 @@ exports[`만들어 둔 부서가 없음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_f_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_g_" aria-describedby="radix-_r_h_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_g_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
-<p id="radix-_r_h_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <p class="text-sm text-gray-500">아직 부서가 없어요.</p>
@@ -35,10 +35,10 @@ exports[`모든 부서에 들어 있음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_i_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_j_" aria-describedby="radix-_r_k_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_j_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_r_k_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -94,10 +94,10 @@ exports[`부서가 없는 사람 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_3_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_4_" aria-describedby="radix-_r_5_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_4_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
-<p id="radix-_r_5_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <p class="text-sm text-gray-500">아직 부서가 없어요.</p>
@@ -138,10 +138,10 @@ exports[`부서가 있는 사람 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_0_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_1_" aria-describedby="radix-_r_2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_1_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_r_2_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -196,10 +196,10 @@ exports[`오류 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_c_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_d_" aria-describedby="radix-_r_e_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_d_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_r_e_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -255,10 +255,10 @@ exports[`저장 중 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_9_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_a_" aria-describedby="radix-_r_b_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_a_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_r_b_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -313,10 +313,10 @@ exports[`직급 권한 없음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_r_6_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_r_7_" aria-describedby="radix-_r_8_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <div class="flex flex-col gap-1 pr-6">
-<h2 id="radix-_r_7_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_r_8_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
+<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">

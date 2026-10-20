@@ -9,6 +9,7 @@ import {
   teamResponse,
 } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { snapshotHtml } from '@/test-support/snapshot-html'
 import Departments from './Departments'
 import { useTeam } from './useTeam'
 
@@ -30,10 +31,6 @@ function serve(status = 200, team: TeamResponse = teamResponse()) {
     status === 200 ? json(team) : json({ error: 'Internal server error' }, status),
   )
 }
-// Radix가 붙이는 번호는 부품이 몇 개 있느냐에 따라 달라지므로 같은 자리의 이름으로 바꾼다.
-function html() {
-  return document.body.innerHTML.replace(/«r[0-9a-z]+»/g, '«id»').replaceAll('><', '>\n<')
-}
 async function openMenuItem(name: string, item: string) {
   fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 동작` }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: item }))
@@ -43,47 +40,47 @@ async function openMenuItem(name: string, item: string) {
 test('불러오는 중', () => {
   serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('목록: 회장단', async () => {
   serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await screen.findByText('부서 2개')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('목록: 권한 없음', async () => {
   serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await screen.findByText('부서 2개')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('빈 목록', async () => {
   serve(200, { members: [], departments: [] })
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await screen.findByText('부서 0개')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('불러오기 오류', async () => {
   serve(500)
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await screen.findByText('부서를 불러오지 못했어요.')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('대화상자: 이름 바꾸기', async () => {
   serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await openMenuItem('재정부', '이름 바꾸기')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('대화상자: 없애기', async () => {
   serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await openMenuItem('기획부', '없애기')
-  expect(html()).toMatchSnapshot()
+  expect(snapshotHtml()).toMatchSnapshot()
 })
