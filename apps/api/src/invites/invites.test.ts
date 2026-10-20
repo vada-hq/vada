@@ -8,6 +8,7 @@ import type {
   JoinCouncilResponse,
   MyCouncilsResponse,
 } from '@vada/contracts'
+import { inCouncilChange } from '../access/authorize.js'
 import { createApp } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
@@ -20,7 +21,7 @@ import {
   withoutReadsOutsideTransaction,
 } from '../test-support/http.js'
 import { createInviteRoutes } from './routes.js'
-import { joinCouncil } from './service.js'
+import { joinCouncil, rotateInviteCode } from './service.js'
 
 const noon = new Date('2026-10-19T03:00:00Z')
 const body = {
@@ -542,6 +543,33 @@ test('들어오기는 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤 코드를
         lock,
       true,
     )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('rotateInviteCode는 이 학생회의 코드 한 줄을 새 코드로 바꾸고 바꾼 사람을 남긴다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { council, code } = await setup(testDb)
+    const next = await inCouncilChange(
+      testDb.db,
+      'u1',
+      council.id,
+      'invite.manage',
+      noon,
+      (tx, actor) => rotateInviteCode(tx, actor),
+    )
+    assert.match(next, /^[2-9A-HJ-NP-Z]{8}$/)
+    assert.notEqual(next, code)
+    const rows = (
+      await testDb.pg.query<{ code: string; by_user: string }>(
+        `SELECT ic.code, ml.user_id AS by_user FROM invite_code ic
+         JOIN member_login ml ON ml.member_id = ic.created_by WHERE ic.council_id = $1`,
+        [council.id],
+      )
+    ).rows
+    assert.deepEqual(rows, [{ code: next, by_user: 'u1' }])
   } finally {
     await testDb.close()
   }

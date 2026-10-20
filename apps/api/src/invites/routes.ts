@@ -15,10 +15,8 @@ import { myCouncils } from '../councils/queries.js'
 import { inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
-import { clockNow } from '../records/records.js'
 import type { Db } from '../db/types.js'
-import { freshInviteCode } from './code.js'
-import { invitedCouncil, joinCouncil } from './service.js'
+import { invitedCouncil, joinCouncil, rotateInviteCode } from './service.js'
 
 // 초대: 초대 확인과 들어오기(로그인한 누구나), 초대 코드 보기와 바꾸기(회장단, DEC-47).
 export function createInviteRoutes(
@@ -69,14 +67,7 @@ export function createInviteRoutes(
         c.req.param('councilId'),
         'invite.manage',
         clock(),
-        async (tx, actor) => {
-          const next = await freshInviteCode(tx)
-          await tx
-            .update(inviteCode)
-            .set({ code: next, createdBy: actor.memberId, createdAt: clockNow })
-            .where(eq(inviteCode.councilId, actor.councilId))
-          return next
-        },
+        rotateInviteCode,
       )
       return c.json({ code } satisfies InviteCodeResponse)
     },

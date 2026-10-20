@@ -10,6 +10,7 @@ import {
   type MigrateArgs,
   type TargetSource,
 } from './migrate-check.js'
+import { errorCodeOf } from './error-code.js'
 
 // 적용 스크립트의 판단 전부. migrate.ts는 실제 연결(postgres-js)을 이어 주기만 한다. 시험은 PGlite를 감싼 가짜 connect로 돌린다.
 export type MigrationConnection = {
@@ -46,12 +47,6 @@ const CHECK_MESSAGES = {
   HISTORY_MISMATCH: '이미 적용된 기록이 로컬 마이그레이션과 순서나 해시가 다르다. 적용하지 않는다.',
   LOCAL_ORDER: '로컬 마이그레이션 파일의 시각이 커지는 순서가 아니다. 적용하지 않는다.',
 } as const
-
-// 오류에서 SQLSTATE나 시스템 오류 코드처럼 대문자·숫자로 된 코드만 꺼낸다. 오류 원문은 주소와 비밀번호를 담을 수 있어 쓰지 않는다.
-function codeOf(error: unknown) {
-  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
-  return /^[A-Z0-9_]+$/.test(code) ? code : ''
-}
 
 // 종료 코드를 돌려준다(0이 성공). 인자와 대상이 어긋나면 .env를 읽지도 연결하지도 않고 멈춘다.
 // 안내에 적는 명령. 그대로 붙여 칠 수 있게 `--`와 플래그를 모두 넣는다(npm이 -- 없는 플래그를 가져간다).
@@ -108,7 +103,7 @@ export async function runMigration(run: MigrationRun): Promise<number> {
     } catch (error) {
       // 적용은 이미 끝났다. "마이그레이션 실패"로 알리면 적용되지 않은 줄 알고 다시 하려 들 수 있어 따로 알린다.
       run.log.error(
-        `적용은 끝났고 확인 읽기에 실패했다 — 미리 보기로 다시 확인한다(${commandOf(options.fromShell, false)}). 연결 문자열과 오류 원문은 출력하지 않습니다. ${codeOf(error)}`.trim(),
+        `적용은 끝났고 확인 읽기에 실패했다 — 미리 보기로 다시 확인한다(${commandOf(options.fromShell, false)}). 연결 문자열과 오류 원문은 출력하지 않습니다. ${errorCodeOf(error)}`.trim(),
       )
       return 1
     }
@@ -118,7 +113,7 @@ export async function runMigration(run: MigrationRun): Promise<number> {
     return 0
   } catch (error) {
     run.log.error(
-      `마이그레이션 실패. 연결 문자열과 오류 원문은 출력하지 않습니다. ${codeOf(error)}`.trim(),
+      `마이그레이션 실패. 연결 문자열과 오류 원문은 출력하지 않습니다. ${errorCodeOf(error)}`.trim(),
     )
     return 1
   } finally {

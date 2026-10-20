@@ -1,12 +1,10 @@
-import { fileURLToPath } from 'node:url'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { readLocalEnv } from '../local-env.js'
 import { localMigrations } from './migrate-check.js'
+import { migrationsFolder } from './migrations-folder.js'
 import { runMigration } from './migrate-run.js'
-
-const migrationsFolder = fileURLToPath(new URL('../../migrations', import.meta.url))
 
 // 사용법: npm run db:migrate --workspace @vada/api -- [--apply] [--from-shell]   (플래그 앞의 --를 빠뜨리지 않는다)
 // 기본은 미리 보기다: 대상(호스트와 DB 이름)과 점검 결과만 찍고 아무것도 바꾸지 않는다(--dry-run은 같은 뜻을 분명히 적는 것). 실제 적용은 --apply를 줄 때만 한다.

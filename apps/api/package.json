@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate --custom",
     "check:design": "tsx scripts/check-design.ts",
     "db:migrate": "tsx src/db/migrate.ts",
-    "test-data": "tsx scripts/manage-test-data.ts"
+    "test-data": "tsx scripts/manage-test-data.ts",
+    "pg-smoke": "tsx scripts/pg-smoke.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.6",

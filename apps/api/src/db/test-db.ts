@@ -1,10 +1,11 @@
-import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
+import { migrationsFolder } from './migrations-folder.js'
 
-export const migrationsFolder = fileURLToPath(new URL('../../migrations', import.meta.url))
+// 시험이 마이그레이션 폴더를 이 모듈에서 가져다 쓰므로 그대로 다시 내보낸다.
+export { migrationsFolder }
 
 // 마이그레이션을 적용한 DB를 프로세스마다 한 번 만들어 떠 둔다. 새 DB를 처음부터 만들면 이 PC에서 8초쯤 걸리고, 뜬 것을 불러오면 2초쯤 걸린다.
 let template: Promise<File | Blob> | undefined

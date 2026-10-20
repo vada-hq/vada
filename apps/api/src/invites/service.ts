@@ -1,4 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
+import type { Actor } from '../access/actor.js'
 import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
 import { linkMember } from '../councils/link.js'
@@ -12,6 +13,7 @@ import {
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecords, type AnyRecordChange } from '../records/records.js'
 import type { Db, Tx } from '../db/types.js'
+import { freshInviteCode } from './code.js'
 
 // 초대 코드로 학생회를 찾는다. 형식이 틀린 코드와 없는 코드를 구분하지 않는다. 둘 다 404다.
 export async function invitedCouncil(db: Pick<Db, 'select'>, code: string) {
@@ -90,4 +92,15 @@ export async function joinCouncil(
     await updateRecords(tx, changes)
   }
   return councilId
+}
+
+// 초대 코드 바꾸기: 이 학생회의 코드 한 줄을 새 코드로 바꾸고 새 코드를 돌려준다. 바꾸면 옛 코드로는 들어올 수 없다(DEC-47).
+// 학생회 행을 잠근 거래 안에서 부른다(inCouncilChange). 같은 학생회의 코드 바꾸기와 들어오기가 한 번에 하나씩 처리된다.
+export async function rotateInviteCode(tx: Tx, actor: Actor): Promise<string> {
+  const next = await freshInviteCode(tx)
+  await tx
+    .update(inviteCode)
+    .set({ code: next, createdBy: actor.memberId, createdAt: clockNow })
+    .where(eq(inviteCode.councilId, actor.councilId))
+  return next
 }
