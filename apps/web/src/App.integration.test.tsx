@@ -479,3 +479,69 @@ test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름�
     '소프트웨어학부 학생회',
   )
 })
+
+// 회장 넘기기가 성공하면 작업 공간이 학생회를 "내 변경 뒤 다시 읽기"로 다시 읽는다. 그 읽기로 줄어든 권한은 알리지 않고,
+// 그 읽기가 실패하거나 버려진 뒤 바깥 변경으로 줄어든 권한은 알린다(vada-docs#24). People 시험과 달리 진짜 연결을 지난다.
+const LOST = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'
+// 학생회 GET을 차례로 답한다. 첫 번째는 회장, 그다음은 주어진 답이다.
+function councilReads(...after: (() => Response | Promise<Response>)[]) {
+  councilsInSequence([myCouncil('c1')])
+  let reads = 0
+  api.on('GET', '/api/organizations/c1', () => {
+    const answer = reads === 0 ? () => json(councilView('c1')) : after[reads - 1]!
+    reads++
+    return answer()
+  })
+  api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
+  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  api.on('POST', '/api/organizations/c1/president/transfer', () => json(teamResponse()))
+  api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ error: 'FORBIDDEN' }, 403))
+}
+const demoted = () => json(councilView('c1', { councilRank: null }))
+const councilGets = () => api.calls.filter(call => call.path === '/api/organizations/c1')
+async function transferPresident() {
+  render(<App />)
+  fireEvent.keyDown(await screen.findByRole('button', { name: '이재정 동작' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '회장 넘기기' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정님에게 회장 직급을 넘길까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '넘기기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(councilGets()).toHaveLength(2))
+}
+const rotateInvite = () =>
+  fireEvent.click(
+    within(screen.getByRole('region', { name: '초대 링크' })).getByRole('button', {
+      name: '코드 바꾸기',
+    }),
+  )
+
+test('회장 넘기기가 성공해 다시 읽은 학생회에서 내 권한이 줄어도 권한이 바뀌었다는 경고를 보이지 않는다', async () => {
+  councilReads(demoted)
+  await transferPresident()
+  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  await settle()
+  expect(screen.queryByText(LOST)).toBeNull()
+})
+
+test('회장 넘기기 뒤 다시 읽기가 실패하고 코드 바꾸기가 403이면 사라진 초대 카드의 까닭을 보인다', async () => {
+  councilReads(() => json({ error: 'Internal server error' }, 500), demoted)
+  await transferPresident()
+  await settle()
+  rotateInvite()
+  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})
+
+test('회장 넘기기 뒤 내 다시 읽기가 늦게 와도 버려지고, 그 사이 바깥 변경의 경고가 남는다', async () => {
+  const late = deferredResponse()
+  councilReads(() => late.promise, demoted)
+  await transferPresident()
+  rotateInvite()
+  // 403 문구는 초대 카드 안에도 잠깐 보이므로, 카드가 사라진 뒤의 쪽 문구를 본다.
+  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  expect(await screen.findByText(LOST)).toBeTruthy()
+  late.resolve(json(councilView('c1')))
+  await settle()
+  expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
+  expect(screen.getByText(LOST)).toBeTruthy()
+})
