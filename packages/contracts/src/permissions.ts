@@ -17,5 +17,8 @@ export const ACTIONS = [
   'member.manage', // 운영진 내보내기, 부서 배정과 빼기
   'rank.manage', // 부회장 직급, 부장과 부부장 직급 주고 거두기
   'president.transfer', // 회장 직급 넘기기
+  'chat.notice', // 전체방 메시지에 공지 표시 붙이고 떼기(회장단)
+  'chat.direct', // 1:1 대화 열기(모든 운영진)
+  'chat.use', // 방 읽고 보내기. 그 방 참여자만이라 내 권한 목록에는 없다
 ] as const
 export type Action = (typeof ACTIONS)[number]

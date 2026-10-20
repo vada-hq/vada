@@ -204,7 +204,11 @@ test('내 학생회 목록과 학생회 하나 보기: 만든 사람은 회장�
       { ...view.me, memberId: undefined },
       { memberId: undefined, name: '김회장', councilRank: 'president', departments: [] },
     )
-    assert.deepEqual(view.permissions, [...ACTIONS])
+    // chat.use는 방 참여자만이라 내 권한 목록에 없다.
+    assert.deepEqual(
+      view.permissions,
+      ACTIONS.filter(action => action !== 'chat.use'),
+    )
   } finally {
     await testDb.close()
   }

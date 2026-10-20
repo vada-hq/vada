@@ -42,11 +42,14 @@ const cells: [Action, Actor, Actor][] = [
   ['member.manage', vicePresident, planningViceHead],
   ['rank.manage', vicePresident, planningHead],
   ['president.transfer', president, vicePresident],
+  ['chat.notice', vicePresident, planningHead],
+  ['chat.direct', plain, plain],
 ]
 for (const [action, allowed, denied] of cells) {
-  test(`조직 칸 ${action}: ${allowed.memberId}는 되고${action === 'council.view' ? '' : ` ${denied.memberId}는 안 된다`}`, () => {
+  test(`조직 칸 ${action}: ${allowed.memberId}는 되고${action === 'council.view' || action === 'chat.direct' ? '' : ` ${denied.memberId}는 안 된다`}`, () => {
     assert.equal(can(allowed, action), true)
-    if (action !== 'council.view') assert.equal(can(denied, action), false)
+    if (action !== 'council.view' && action !== 'chat.direct')
+      assert.equal(can(denied, action), false)
   })
 }
 
@@ -126,12 +129,22 @@ test('직무 분리: 재정부를 겸한 부장은 부장 칸에서, 재정부�
   assert.equal(allows(financeVice, leadershipCell, { requestedBy: 'member' }), true)
 })
 
-test('내 권한 목록: 회장은 조직 칸 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기만 가진다', () => {
-  assert.deepEqual(permissionsOf(president), [...ACTIONS])
+// chat.use는 그 방의 참여자인지에 달려 있어 직급만으로 정해지지 않는다. 방을 아는 라우트가 방 참여를 넘겨 묻는다(회장단도 물려받지 않는다).
+test('chat.use는 그 방 참여자만 된다: 회장도 참여하지 않은 방은 안 되고, 직급 없는 참여자는 된다', () => {
+  for (const who of [president, vicePresident, planningHead, plain]) {
+    assert.equal(can(who, 'chat.use'), false, who.memberId)
+    assert.equal(can(who, 'chat.use', { inRoom: false }), false, who.memberId)
+    assert.equal(can(who, 'chat.use', { inRoom: true }), true, who.memberId)
+  }
+})
+
+test('내 권한 목록: 방에 달린 chat.use는 없다. 회장은 나머지 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기와 1:1만 가진다', () => {
+  const listed = ACTIONS.filter(action => action !== 'chat.use')
+  assert.deepEqual(permissionsOf(president), listed)
   assert.deepEqual(
     permissionsOf(vicePresident),
-    ACTIONS.filter(action => action !== 'president.transfer'),
+    listed.filter(action => action !== 'president.transfer'),
   )
-  assert.deepEqual(permissionsOf(planningHead), ['council.view'])
-  assert.deepEqual(permissionsOf(plain), ['council.view'])
+  assert.deepEqual(permissionsOf(planningHead), ['council.view', 'chat.direct'])
+  assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct'])
 })

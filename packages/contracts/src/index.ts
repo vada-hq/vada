@@ -1,3 +1,4 @@
+export { FILE_NAME_MAX, MESSAGE_BODY_MAX } from './chat.js'
 export {
   ERROR_STATUS,
   NO_CONTENT,

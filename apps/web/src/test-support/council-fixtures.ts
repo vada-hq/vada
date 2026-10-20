@@ -14,11 +14,11 @@ const defaultTitles = {
   head: '부장',
   viceHead: '부부장',
 }
-export const MEMBER_PERMISSIONS: Action[] = ['council.view']
+export const MEMBER_PERMISSIONS: Action[] = ['council.view', 'chat.direct']
 export const LEADER_PERMISSIONS: Action[] = ACTIONS.filter(
-  action => action !== 'president.transfer',
+  action => action !== 'president.transfer' && action !== 'chat.use',
 )
-export const PRESIDENT_PERMISSIONS: Action[] = [...ACTIONS]
+export const PRESIDENT_PERMISSIONS: Action[] = ACTIONS.filter(action => action !== 'chat.use')
 
 export const myCouncil = (
   id = 'c1',

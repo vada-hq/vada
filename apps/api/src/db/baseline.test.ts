@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import type { PGlite } from '@electric-sql/pglite'
+import { FILE_NAME_MAX, MESSAGE_BODY_MAX } from '@vada/contracts'
 import { createTestDb, migrationsFolder } from './test-db.js'
 
 // 기록과 하위 행을 함께 넣는다(vada-docs tools/schema-check/setup.mjs의 recorder와 같다). 기록 모듈은 다음 작업에서 만든다.
@@ -76,9 +77,9 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
     ) as { entries: { tag: string }[] }
     assert.deepEqual(
       journal.entries.map(entry => entry.tag),
-      ['0000_baseline'],
+      ['0000_baseline', '0001_chat_limits'],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 1)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 2)
   } finally {
     await close()
   }
@@ -236,6 +237,30 @@ test('DB가 로그인 계정 하나를 운영진 둘에 잇거나 운영진 하�
     await pg.query("DELETE FROM users WHERE id = 'u1'")
     assert.equal((await pg.query('SELECT * FROM member_login')).rows.length, 0)
     assert.equal((await pg.query('SELECT * FROM member WHERE id = $1', [kim])).rows.length, 1)
+  } finally {
+    await close()
+  }
+})
+
+test('DB가 메시지 본문 2000자와 파일 이름 200자까지만 받는다(계약과 같은 값, 이모지도 한 글자)', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const { council } = await seed(pg)
+    const room = await add(pg, 'chat_room', council, { type: 'all_members' })
+    const text = (length: number) => `${'가'.repeat(length - 1)}😀`
+    const message = (body: string) =>
+      add(pg, 'message', council, { room_id: room, body, sent_at: '2026-02-01T00:00:00Z' })
+    const file = (name: string, key: string) =>
+      add(pg, 'file', council, {
+        name,
+        media_type: 'image/jpeg',
+        size_bytes: 1,
+        storage_key: key,
+      })
+    await assert.rejects(message(text(MESSAGE_BODY_MAX + 1)), { code: '23514' })
+    await message(text(MESSAGE_BODY_MAX))
+    await assert.rejects(file(text(FILE_NAME_MAX + 1), 'k1'), { code: '23514' })
+    await file(text(FILE_NAME_MAX), 'k2')
   } finally {
     await close()
   }

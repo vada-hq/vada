@@ -1,17 +1,22 @@
 import { and, eq, sql } from 'drizzle-orm'
 import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import {
+  chatRoom,
   cohort,
   council,
   councilMembership,
   department,
   departmentMembership,
+  file,
   member,
+  message,
+  notification,
   record,
   recordVersion,
 } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { assertSameCouncil } from './same-council.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
 // 지금 상태도 판이다. 만들 때 판 1을 열고, 바꿀 때 지금 판을 닫고 새 판을 연다. 판에는 하위 행의 칸 값 전체를 담는다.
@@ -25,6 +30,10 @@ const tables = {
   council_membership: councilMembership,
   department,
   department_membership: departmentMembership,
+  chat_room: chatRoom,
+  message,
+  file,
+  notification,
 }
 export type RecordKind = keyof typeof tables
 type Table<K extends RecordKind> = (typeof tables)[K]
@@ -51,32 +60,6 @@ export type AnyRecordChange = { [K in RecordKind]: RecordChange<K> }[RecordKind]
 
 // 지금 시각. 거래 시작 시각(now())이 아니라 실제 시계 시각이다.
 export const clockNow = sql`clock_timestamp()`
-
-// 학생회 소속과 부서 소속은 기수나 부서의 학생회와 같아야 한다. DB가 막지 못해 여기서 막는다.
-async function assertSameCouncil(
-  tx: Tx,
-  kind: RecordKind,
-  councilId: string | null,
-  values: Record<string, unknown>,
-) {
-  const owners: string[] = []
-  if (kind === 'council_membership' || kind === 'department_membership') {
-    const [owner] = await tx
-      .select({ councilId: cohort.councilId })
-      .from(cohort)
-      .where(eq(cohort.id, String(values.cohortId)))
-    owners.push(owner?.councilId ?? '')
-  }
-  if (kind === 'department_membership') {
-    const [owner] = await tx
-      .select({ councilId: department.councilId })
-      .from(department)
-      .where(eq(department.id, String(values.departmentId)))
-    owners.push(owner?.councilId ?? '')
-  }
-  if (owners.some(owner => owner !== councilId))
-    throw new Error(`${kind}: 기수나 부서의 학생회와 기록의 학생회가 다르다`)
-}
 
 // 기록 하나와 하위 행 하나, 판 1을 함께 만들고 식별자를 돌려준다. actor는 만든 사람이고, 신청자나 시스템이면 null이다.
 export async function createRecord<K extends RecordKind>(
@@ -118,6 +101,14 @@ const ownershipKeys: ReadonlySet<string> = new Set([
   'department_id',
   'member_id',
 ])
+// 종류마다 더 있는 주인 칸. 대화는 메시지의 방, 파일의 붙은 기록과 저장 위치, 알림의 받는 사람과 기록, 방의 종류다.
+// 칸 이름이 다른 종류의 일반 칸(type 등)과 겹치므로 종류별로 둔다.
+const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
+  chat_room: new Set(['type', 'eventId', 'event_id']),
+  message: new Set(['roomId', 'room_id']),
+  file: new Set(['attachedToId', 'attached_to_id', 'storageKey', 'storage_key']),
+  notification: new Set(['recipientId', 'recipient_id', 'recordId', 'record_id']),
+}
 
 // 쿼리가 돌려준 행 수. drizzle의 execute는 드라이버가 준 모양 그대로 돌려준다: postgres-js는 배열, PGlite는 { rows }다.
 function rowCount(result: unknown): number {
@@ -128,7 +119,10 @@ function rowCount(result: unknown): number {
 
 function assertNoOwnershipChange(changes: readonly AnyRecordChange[]) {
   for (const change of changes) {
-    const owned = Object.keys(change.changes).filter(key => ownershipKeys.has(key))
+    const extra = ownershipKeysOf[change.kind]
+    const owned = Object.keys(change.changes).filter(
+      key => ownershipKeys.has(key) || extra?.has(key),
+    )
     if (owned.length)
       throw new Error(`${change.kind}: 주인 칸(${owned.join(', ')})은 바꾸지 않는다`)
   }

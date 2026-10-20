@@ -4,11 +4,13 @@ import type { Actor } from './actor.js'
 // 권한표 하나(DEC-27, DEC-28, DEC-47). 라우트는 이 표만 묻는다(can). 칸마다 테스트가 있다(permissions.test.ts).
 // 기준: 회장단은 학생회 직급이 있는 사람, 부장은 부서 직급이 있는 사람(부부장은 부장과 같다, 기준 4),
 // 재정부는 재정 역할 부서의 지금 소속이다.
-export type Criterion = 'member' | 'leadership' | 'president' | 'department_head' | 'finance'
+export type Criterion =
+  'member' | 'leadership' | 'president' | 'department_head' | 'finance' | 'room_member'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
-export type Context = { departmentId?: string; requestedBy?: string }
+// inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
+export type Context = { departmentId?: string; requestedBy?: string; inRoom?: boolean }
 
 export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'council.view': { who: ['member'] },
@@ -19,6 +21,10 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'member.manage': { who: ['leadership'] },
   'rank.manage': { who: ['leadership'] },
   'president.transfer': { who: ['president'] },
+  'chat.notice': { who: ['leadership'] },
+  'chat.direct': { who: ['member'] },
+  // 회장단도 물려받지 않는다(PRIN-5). 참여 줄이 있어야 한다.
+  'chat.use': { who: ['room_member'] },
 }
 
 function meets(actor: Actor, criterion: Criterion, context: Context) {
@@ -40,6 +46,9 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
     // 재정 권한은 직급으로 물려받지 않는다(기준 3).
     case 'finance':
       return actor.departments.some(item => item.role === 'finance')
+    // 기본은 거부다. 호출하는 쪽이 방 참여를 넘기지 않으면 열리지 않는다.
+    case 'room_member':
+      return context.inRoom === true
   }
 }
 
@@ -57,5 +66,8 @@ export const can = (actor: Actor, action: Action, context?: Context) =>
   allows(actor, PERMISSIONS[action], context)
 
 // 화면에 줄 내 권한 목록. 화면은 이 목록으로 동작 버튼을 보이거나 숨기고, 권한을 다시 계산하지 않는다(DEC-38).
+// 방에 달린 칸(room_member)은 방 없이 물을 수 없어 목록에서 뺀다.
 export const permissionsOf = (actor: Actor): Action[] =>
-  (Object.keys(PERMISSIONS) as Action[]).filter(action => can(actor, action))
+  (Object.keys(PERMISSIONS) as Action[]).filter(
+    action => !PERMISSIONS[action].who.includes('room_member') && can(actor, action),
+  )
