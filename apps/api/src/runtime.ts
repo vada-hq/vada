@@ -1,4 +1,7 @@
+import { AUTH_SECRET_MIN_LENGTH } from './auth/auth.js'
 import { readLocalEnv } from './local-env.js'
+
+const PORT_MAX = 65535
 
 function readLocalEnvironment(): NodeJS.ProcessEnv {
   try {
@@ -26,7 +29,10 @@ export function readRuntime(
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
   ]
-  if (required.some(key => !env[key]?.trim()) || env.BETTER_AUTH_SECRET!.length < 32) {
+  if (
+    required.some(key => !env[key]?.trim()) ||
+    env.BETTER_AUTH_SECRET!.length < AUTH_SECRET_MIN_LENGTH
+  ) {
     throw new Error('필수 서버 환경설정을 확인하세요.')
   }
   let baseURL: URL
@@ -49,7 +55,8 @@ export function readRuntime(
   }
   const rawPort = env.PORT ?? '8891'
   const port = Number(rawPort)
-  if (!/^\d+$/.test(rawPort) || port < 1 || port > 65535) throw new Error('PORT 설정을 확인하세요.')
+  if (!/^\d+$/.test(rawPort) || port < 1 || port > PORT_MAX)
+    throw new Error('PORT 설정을 확인하세요.')
   const hostname = env.HOST?.trim() || (production ? '0.0.0.0' : '127.0.0.1')
   return { env, production, hostname, port }
 }

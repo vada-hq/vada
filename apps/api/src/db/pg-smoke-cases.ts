@@ -1,6 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import {
-  koreanDateOf,
+  koreanYearOf,
   type Action,
   type CreateCouncilRequest,
   type UpdateCouncilSettingsRequest,
@@ -101,8 +101,10 @@ async function googleUser(db: Db, id: string) {
     .values({ id: `${id}-google`, userId: id, accountId: `sub-${id}`, providerId: 'google' })
 }
 
+const ONE_HOUR_MS = 3_600_000
+
 function councilInput(now: Date, name: string): CreateCouncilRequest {
-  const year = koreanDateOf(now).slice(0, 4)
+  const year = koreanYearOf(now)
   return {
     name,
     unit: 'department',
@@ -477,7 +479,7 @@ export const sessionDuringJoinCase: SmokeCase = {
             id: 'smoke-e-session',
             userId: E.guest,
             token: 'smoke-e-token',
-            expiresAt: new Date(context.now.getTime() + 60 * 60 * 1000),
+            expiresAt: new Date(context.now.getTime() + ONE_HOUR_MS),
           })
           .then(
             () => 'done' as const,

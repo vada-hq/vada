@@ -63,7 +63,8 @@ export function startErrorReporting(
   return true
 }
 
+const FLUSH_TIMEOUT_MS = 2000
 // 종료 전에 보내지 못한 오류를 내보낸다. 켜지 않았으면 바로 끝난다.
 export async function stopErrorReporting() {
-  await Sentry.close(2000)
+  await Sentry.close(FLUSH_TIMEOUT_MS)
 }

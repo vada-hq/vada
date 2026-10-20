@@ -16,11 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
-import { COUNCIL_SETTINGS_ERRORS } from '@/lib/messages'
+import { COUNCIL_SETTINGS_ERRORS, SAVE_FAILED } from '@/lib/messages'
 
 type Form = 'council' | 'cohort'
 type Message = { form: Form; kind: 'notice' | 'error'; text: string }
-const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 const titleFields = [
   ['president', '회장'],
   ['vicePresident', '부회장'],
@@ -94,7 +93,7 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
       return
     }
     if (result.status === statusOf('FORBIDDEN')) onForbidden()
-    setMessage({ form, kind: 'error', text: COUNCIL_SETTINGS_ERRORS[result.code] ?? failure })
+    setMessage({ form, kind: 'error', text: COUNCIL_SETTINGS_ERRORS[result.code] ?? SAVE_FAILED })
   }
   const note = (form: Form) =>
     message?.form === form && <StateMessage kind={message.kind}>{message.text}</StateMessage>

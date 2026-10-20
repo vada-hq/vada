@@ -39,8 +39,9 @@ test('Sentry로 보내기 전에 메시지·요청·사용자·브레드크럼�
   ])
     assert.ok(!sent.includes(leaked), leaked)
   const scrubbed = scrubEvent(event)
-  assert.equal(scrubbed.exception?.values?.[0]?.type, 'PostgresError')
-  assert.equal(scrubbed.exception?.values?.[0]?.stacktrace?.frames?.[0]?.function, 'handler')
+  const kept = scrubbed.exception?.values?.[0]
+  assert.equal(kept?.type, 'PostgresError')
+  assert.equal(kept?.stacktrace?.frames?.[0]?.function, 'handler')
   assert.deepEqual(scrubbed.tags, { route: '/api/organizations/:organizationId/events' })
 })
 

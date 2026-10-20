@@ -44,19 +44,23 @@ function inV(u, v, scale) {
   )
 }
 
+// 한 픽셀 중 V가 덮는 비율(0~1)
+function coverage(x, y, size, scale) {
+  let hits = 0
+  for (let sy = 0; sy < SAMPLES; sy++) {
+    for (let sx = 0; sx < SAMPLES; sx++) {
+      if (inV((x + (sx + 0.5) / SAMPLES) / size, (y + (sy + 0.5) / SAMPLES) / size, scale)) hits++
+    }
+  }
+  return hits / (SAMPLES * SAMPLES)
+}
+
 function icon(size, scale) {
   const row = size * 3 + 1 // 줄마다 맨 앞 1바이트는 필터(0)다.
   const raw = Buffer.alloc(size * row)
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      let hits = 0
-      for (let sy = 0; sy < SAMPLES; sy++) {
-        for (let sx = 0; sx < SAMPLES; sx++) {
-          if (inV((x + (sx + 0.5) / SAMPLES) / size, (y + (sy + 0.5) / SAMPLES) / size, scale))
-            hits++
-        }
-      }
-      const cover = hits / (SAMPLES * SAMPLES)
+      const cover = coverage(x, y, size, scale)
       for (let c = 0; c < 3; c++)
         raw[y * row + 1 + x * 3 + c] = Math.round(BLUE[c] + (WHITE[c] - BLUE[c]) * cover)
     }

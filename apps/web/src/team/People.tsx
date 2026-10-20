@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
-import { PEOPLE_ERRORS } from '@/lib/messages'
+import { PEOPLE_ERRORS, SAVE_FAILED } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import InviteCard from './InviteCard'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
@@ -16,7 +16,6 @@ import { councilRankLabel, holdsRank, joinedDay, placementsText } from './team-v
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
-const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 // 화면이 오래됐다는 충돌 오류: 같은 요청을 다시 보내도 같은 답이므로 확인 대화상자를 닫고 목록을 다시 읽는다.
 const staleConflicts = new Set([
   'PRESIDENT_CANNOT_LEAVE',
@@ -91,7 +90,7 @@ export default function People({ view, team, onCouncilChanged }: Props) {
     setMessage('')
     const code = await change(path, body)
     if (code) {
-      setMessage(PEOPLE_ERRORS[code] ?? failure)
+      setMessage(PEOPLE_ERRORS[code] ?? SAVE_FAILED)
       if (staleConflicts.has(code)) reload()
       return code
     }

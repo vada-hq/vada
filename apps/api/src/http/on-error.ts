@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { SERVER_ERROR_FROM, statusOf, type ErrorCode } from '@vada/contracts'
+import { CAUSE_DEPTH_MAX } from '../db/error-code.js'
 import { ApiError } from './errors.js'
 import { INTERNAL_SERVER_ERROR } from './status.js'
 
@@ -19,7 +20,7 @@ const httpExceptionCodeOf = (status: number) =>
 // DB 오류는 drizzle이 감싸므로 cause를 몇 단계 따라가 SQLSTATE만 꺼낸다. 숫자가 없는 EPIPE 같은 시스템 오류 코드는 제외한다.
 export function sqlState(error: unknown): string | undefined {
   let current = error
-  for (let depth = 0; current && typeof current === 'object' && depth < 3; depth++) {
+  for (let depth = 0; current && typeof current === 'object' && depth < CAUSE_DEPTH_MAX; depth++) {
     const code = (current as { code?: unknown }).code
     if (typeof code === 'string' && /^(?=.*\d)[0-9A-Z]{5}$/.test(code)) return code
     current = (current as { cause?: unknown }).cause

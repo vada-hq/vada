@@ -8,9 +8,10 @@ export const INVITE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
 export const newInviteCode = () =>
   Array.from({ length: 8 }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('')
 
+const MAX_ATTEMPTS = 5
 // 아직 쓰이지 않은 코드. 겹칠 확률은 32^8분의 1이라 몇 번만 다시 뽑는다.
 export async function freshInviteCode(db: Pick<Db, 'select'>): Promise<string> {
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const code = newInviteCode()
     const [taken] = await db
       .select({ code: inviteCode.code })

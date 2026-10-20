@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm'
-import { koreanDateOf } from '@vada/contracts'
+import { koreanYearOf } from '@vada/contracts'
 import { actorOf } from '../src/access/actor.js'
 import { currentCouncilMembership } from '../src/access/current-cohort.js'
 import { createCouncil } from '../src/councils/service.js'
@@ -113,7 +113,7 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
     await requireGoogleUser(tx, userId)
     let councilId = await testCouncilId(tx)
     if (!councilId) {
-      const year = koreanDateOf(now).slice(0, 4)
+      const year = koreanYearOf(now)
       councilId = await createCouncil(
         tx,
         userId,

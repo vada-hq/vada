@@ -8,6 +8,18 @@ export const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
+function describeRequest(input: RequestInfo | URL, init?: RequestInit) {
+  const url = new URL(input instanceof Request ? input.url : String(input), 'http://localhost')
+  const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
+  const call: ApiCall = {
+    method,
+    path: url.pathname + url.search,
+    body: typeof init?.body === 'string' ? JSON.parse(init.body) : null,
+    signal: init?.signal ?? null,
+  }
+  return { url, call }
+}
+
 // No network fallback. Assert after React cleanup so caught request failures cannot pass silently.
 export function mockApi() {
   const routes = new Map<string, Handler>()
@@ -16,17 +28,8 @@ export function mockApi() {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = new URL(input instanceof Request ? input.url : String(input), 'http://localhost')
-      const method = (
-        init?.method ?? (input instanceof Request ? input.method : 'GET')
-      ).toUpperCase()
-      const path = url.pathname + url.search
-      const call: ApiCall = {
-        method,
-        path,
-        body: typeof init?.body === 'string' ? JSON.parse(init.body) : null,
-        signal: init?.signal ?? null,
-      }
+      const { url, call } = describeRequest(input, init)
+      const { method, path } = call
       calls.push(call)
       const handler =
         url.origin === 'http://localhost' ? routes.get(`${method} ${path}`) : undefined

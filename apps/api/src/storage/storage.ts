@@ -22,6 +22,7 @@ export interface R2Config {
   bucket: string
 }
 export const UPLOAD_SECONDS = 600
+const MS_PER_SECOND = 1000
 export const DOWNLOAD_SECONDS = 300
 
 // 네 값이 모두 있어야 켠다. 하나라도 없으면 영수증 올리기·보기만 막는다.
@@ -84,7 +85,7 @@ export function createR2Storage(
       return {
         url: await presign('PUT', objectUrl(key), UPLOAD_SECONDS, headers),
         headers,
-        expiresAt: new Date(now().getTime() + UPLOAD_SECONDS * 1000),
+        expiresAt: new Date(now().getTime() + UPLOAD_SECONDS * MS_PER_SECOND),
       }
     },
     async downloadUrl(key, fileName, contentType) {

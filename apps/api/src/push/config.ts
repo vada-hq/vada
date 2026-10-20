@@ -10,16 +10,26 @@ export interface PushConfig {
 const bytesOf = (value: string) =>
   /^[A-Za-z0-9_-]+$/.test(value) ? Buffer.from(value, 'base64url') : null
 
+const VALUE_COUNT = 3
+// 공개 열쇠는 P-256 점(65바이트, 0x04로 시작), 비밀 열쇠는 32바이트다.
+const PUBLIC_KEY_BYTES = 65
+const PRIVATE_KEY_BYTES = 32
+const UNCOMPRESSED_POINT_PREFIX = 4
+
 export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
   const publicKey = env.VAPID_PUBLIC_KEY?.trim() ?? ''
   const privateKey = env.VAPID_PRIVATE_KEY?.trim() ?? ''
   const subject = env.VAPID_SUBJECT?.trim() ?? ''
   const given = [publicKey, privateKey, subject].filter(Boolean).length
   if (given === 0) return null
-  if (given < 3) throw new Error('알림 열쇠 설정(VAPID) 세 값을 모두 넣거나 모두 빼세요.')
-  // 공개 열쇠는 P-256 점(65바이트, 0x04로 시작), 비밀 열쇠는 32바이트다.
+  if (given < VALUE_COUNT) throw new Error('알림 열쇠 설정(VAPID) 세 값을 모두 넣거나 모두 빼세요.')
   const point = bytesOf(publicKey)
-  if (!point || point.length !== 65 || point[0] !== 4 || bytesOf(privateKey)?.length !== 32) {
+  if (
+    !point ||
+    point.length !== PUBLIC_KEY_BYTES ||
+    point[0] !== UNCOMPRESSED_POINT_PREFIX ||
+    bytesOf(privateKey)?.length !== PRIVATE_KEY_BYTES
+  ) {
     throw new Error('알림 열쇠(VAPID) 형식을 확인하세요.')
   }
   if (!/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/.test(subject))

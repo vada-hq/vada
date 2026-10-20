@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { text, token } from './input.js'
+import { KOREAN_DATE_LENGTH } from './korean-time.js'
 import type { Action, CouncilRank, DepartmentRank, DepartmentRole } from './permissions.js'
 
 // 사람이 쓰는 이름의 상한. 학생회 이름은 지금 vada와 같은 50자다.
@@ -11,12 +12,12 @@ export type CouncilUnit = (typeof COUNCIL_UNITS)[number]
 
 // 날짜(YYYY-MM-DD). 달력에 있는 날이고, koreanDateTime과 같은 범위(2000~2999년)만 받는다.
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
-export const dateInput = token(10).refine(value => {
+export const dateInput = token(KOREAN_DATE_LENGTH).refine(value => {
   if (!datePattern.test(value)) return false
   const parsed = new Date(`${value}T00:00:00Z`)
   return (
     !Number.isNaN(parsed.getTime()) &&
-    parsed.toISOString().slice(0, 10) === value &&
+    parsed.toISOString().slice(0, KOREAN_DATE_LENGTH) === value &&
     value >= '2000-01-01' &&
     value <= '2999-12-31'
   )

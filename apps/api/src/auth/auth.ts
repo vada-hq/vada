@@ -2,6 +2,8 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
 import { accounts, sessions, users, verifications } from '../db/schema.js'
 
+export const AUTH_SECRET_MIN_LENGTH = 32
+
 export type AuthConfig = {
   secret: string
   baseURL: string
@@ -10,7 +12,7 @@ export type AuthConfig = {
 }
 
 export function createAuth(db: Parameters<typeof drizzleAdapter>[0], config: AuthConfig) {
-  if (config.secret.length < 32)
+  if (config.secret.length < AUTH_SECRET_MIN_LENGTH)
     throw new Error('BETTER_AUTH_SECRET must have at least 32 characters')
   if (!config.googleClientId || !config.googleClientSecret)
     throw new Error('Google OAuth configuration is required')

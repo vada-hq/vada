@@ -37,12 +37,17 @@ import { TabButton } from '@/components/ui/tab-button'
 import { Textarea } from '@/components/ui/textarea'
 import KakaoBlock from '@/auth/KakaoBlock'
 import PushPanel from '@/push/PushPanel'
+import { SAVE_FAILED } from '@/lib/messages'
+
+const LONG_NAME_REPEAT = 2
+const UNBROKEN_REPEAT = 12
+const BUSY_EXAMPLE_MS = 1500
 
 const longName =
   '2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름'.repeat(
-    2,
+    LONG_NAME_REPEAT,
   )
-const unbroken = `https://www.coupang.com/vp/products/${'1234567890'.repeat(12)}`
+const unbroken = `https://www.coupang.com/vp/products/${'1234567890'.repeat(UNBROKEN_REPEAT)}`
 // 카톡 안 로그인 예시용 사용자 에이전트. KakaoBlock에 가짜 주소·가짜 복사와 함께 끼워 넣어, 버튼을 눌러도 이 화면이 넘어가거나 클립보드를 건드리지 않는다.
 const kakaoUserAgent =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 KAKAOTALK 10.9.0'
@@ -65,7 +70,7 @@ export default function Gallery() {
   // 보내는 중 예시는 닫히지 않으므로 실제 응답이 오듯 잠시 뒤 저절로 닫는다.
   useEffect(() => {
     if (confirmKind !== 'busy') return
-    const timer = setTimeout(() => setConfirmKind(null), 1500)
+    const timer = setTimeout(() => setConfirmKind(null), BUSY_EXAMPLE_MS)
     return () => clearTimeout(timer)
   }, [confirmKind])
   const closeConfirm = () => setConfirmKind(null)
@@ -267,7 +272,7 @@ export default function Gallery() {
           open={confirmKind === 'destructive'}
           destructive
           title="박새내님을 내보낼까요?"
-          error="저장하지 못했어요. 다시 시도해 주세요."
+          error={SAVE_FAILED}
           description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
           confirmLabel="내보내기"
           onCancel={closeConfirm}

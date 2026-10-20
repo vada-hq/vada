@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isUuid, text, token } from './input.js'
+import { isUuid, text, token, UUID_LENGTH } from './input.js'
 import {
   DEPARTMENT_RANKS,
   DEPARTMENT_ROLES,
@@ -9,7 +9,7 @@ import {
 } from './permissions.js'
 
 // 본문으로 받는 기록 번호(부서, 넘겨받을 운영진). uuid가 아니면 400이다. 소문자로 맞춘다.
-export const recordIdInput = token(36)
+export const recordIdInput = token(UUID_LENGTH)
   .refine(isUuid)
   .transform(value => value.toLowerCase())
 

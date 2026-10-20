@@ -46,10 +46,11 @@ export function browserPush(): PushBrowser {
   }
 }
 
+const BASE64_BLOCK = 4
 // 서버 열쇠(VAPID 공개 열쇠)는 URL용 base64다. subscribe는 바이트를 받는다.
 export function base64UrlToBytes(value: string) {
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+  const padded = base64 + '='.repeat((BASE64_BLOCK - (base64.length % BASE64_BLOCK)) % BASE64_BLOCK)
   return Uint8Array.from(atob(padded), char => char.charCodeAt(0))
 }
 

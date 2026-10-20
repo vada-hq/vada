@@ -189,7 +189,6 @@
       "files": [
         "apps/api/scripts/test-data.ts",
         "apps/api/src/db/migrate-run.ts",
-        "apps/api/src/http/sentry.test.ts",
         "apps/api/src/push/config.ts",
         "apps/api/src/records/records.ts",
         "apps/api/src/runtime.ts",
@@ -199,8 +198,7 @@
         "apps/web/src/settings/CouncilSettings.tsx",
         "apps/web/src/team/Departments.tsx",
         "apps/web/src/team/MemberDepartmentsDialog.tsx",
-        "apps/web/src/team/People.tsx",
-        "apps/web/src/test-support/mock-api.ts"
+        "apps/web/src/team/People.tsx"
       ],
       "rules": {
         "complexity": "off"
@@ -258,48 +256,6 @@
       ],
       "rules": {
         "max-params": "off"
-      }
-    },
-    {
-      "files": ["apps/web/scripts/make-icons.mjs"],
-      "rules": {
-        "max-depth": "off"
-      }
-    },
-    {
-      "files": [
-        "apps/api/scripts/manage-test-data.ts",
-        "apps/api/scripts/test-data.ts",
-        "apps/api/src/auth/auth.ts",
-        "apps/api/src/councils/routes.ts",
-        "apps/api/src/db/error-code.ts",
-        "apps/api/src/db/migrate.ts",
-        "apps/api/src/db/pg-smoke-cases.ts",
-        "apps/api/src/db/pg-smoke.ts",
-        "apps/api/src/http/on-error.ts",
-        "apps/api/src/http/sentry.ts",
-        "apps/api/src/invites/code.ts",
-        "apps/api/src/push/config.ts",
-        "apps/api/src/push/routes.ts",
-        "apps/api/src/records/records.ts",
-        "apps/api/src/runtime.ts",
-        "apps/api/src/storage/storage.ts",
-        "apps/api/src/team/routes.ts",
-        "apps/web/src/councils/CreateCouncilForm.tsx",
-        "apps/web/src/councils/JoinCouncil.tsx",
-        "apps/web/src/lib/download.ts",
-        "apps/web/src/push/push-client.ts",
-        "apps/web/src/push/usePush.ts",
-        "apps/web/src/settings/CouncilSettings.tsx",
-        "apps/web/src/team/InviteCard.tsx",
-        "apps/web/src/ui-gallery/Gallery.tsx",
-        "packages/contracts/src/councils.ts",
-        "packages/contracts/src/korean-time.ts",
-        "packages/contracts/src/push.ts",
-        "packages/contracts/src/team.ts"
-      ],
-      "rules": {
-        "no-magic-numbers": "off"
       }
     }
   ]

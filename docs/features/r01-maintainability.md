@@ -74,7 +74,7 @@
 - 닿는 곳: `packages/contracts`(새 오류 목록), `api/src/http/`(`errors.ts`, `guard.ts`, `validate.ts`, `on-error.ts`), `auth/require-session.ts`, 오류를 던지는 곳, `web/src/lib/api.ts`, `web/src/lib/messages.ts`, 화면들의 `errors` 표.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 3. 이름 없는 숫자와 겹친 문구 [ ]
+### 3. 이름 없는 숫자와 겹친 문구 [x]
 - 할 수 있게 되는 것: 시간, 길이, 크기 값을 이름으로 찾고 한 곳에서 고친다.
 - 수용 기준: `no-magic-numbers` 임시 예외 목록이 빈다. "저장하지 못했어요" 문구가 한 곳에만 있다. `make-icons.mjs`의 중첩 깊이와 `web/src/test-support/mock-api.ts`의 복잡도가 상한 안이다.
 - 닿는 곳: 린트가 가리킨 파일(`team/service.ts`, `pg-smoke.ts`, `push/devices.ts`, `push/config.ts`, `on-error.ts`, `korean-time.ts`, `useTeam.ts`, `InviteCard.tsx` 등 45개).

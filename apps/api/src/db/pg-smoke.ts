@@ -5,12 +5,16 @@ import type { SmokeCase, SmokeContext, SmokeVerdict } from './pg-smoke-cases.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 
 // 잠깐 쓸 DB 이름: vada_smoke_<년월일시분초(UTC)>_<난수 4자>. 소문자·숫자·밑줄뿐이라 따옴표 없이도 안전하다.
+const SUFFIX_RADIX = 36
+const SUFFIX_LENGTH = 4
+const TIMESTAMP_DIGITS = 14
+const EXIT_NO_PRIVILEGE = 2
 const randomSuffix = () =>
-  randomInt(36 ** 4)
-    .toString(36)
-    .padStart(4, '0')
+  randomInt(SUFFIX_RADIX ** SUFFIX_LENGTH)
+    .toString(SUFFIX_RADIX)
+    .padStart(SUFFIX_LENGTH, '0')
 export function smokeDatabaseName(now: Date, suffix = randomSuffix()): string {
-  return `vada_smoke_${now.toISOString().replace(/\D/g, '').slice(0, 14)}_${suffix}`
+  return `vada_smoke_${now.toISOString().replace(/\D/g, '').slice(0, TIMESTAMP_DIGITS)}_${suffix}`
 }
 
 // 같은 서버의 다른 DB로 이은 주소. 경로(DB 이름)만 바꾸고 사용자, 비밀번호(인코딩된 채로), 호스트, 포트, 쿼리는 그대로 둔다.
@@ -108,7 +112,7 @@ export async function runPgSmoke(run: SmokeRun): Promise<number> {
       run.log.error(
         'CREATE DATABASE 권한이 없다(42501). 이 계정으로는 점검 DB를 만들 수 없어 아무것도 하지 않았다.',
       )
-      return 2
+      return EXIT_NO_PRIVILEGE
     }
     run.log.info(`점검 DB: ${database} (만들었다)`)
     const smokeUrl = withDatabase(url, database)

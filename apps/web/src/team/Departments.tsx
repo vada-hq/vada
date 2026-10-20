@@ -21,12 +21,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
-import { DEPARTMENT_ERRORS } from '@/lib/messages'
+import { DEPARTMENT_ERRORS, SAVE_FAILED } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
-const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 // 같은 요청을 다시 보내도 같은 답이 오는 경우: 화면이 오래됐거나(권한이 바뀜, 부서가 없어짐) 부서원이 있었던 부서다.
 const final = new Set(['FORBIDDEN', 'NOT_FOUND', 'DEPARTMENT_IN_USE'])
 // 오류를 보일 자리: 만들기 칸 아래, 열린 대화상자 안, 쪽 위.
@@ -88,7 +87,7 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
     if (code)
       setProblem({
         scope: final.has(code) ? 'list' : scope,
-        text: DEPARTMENT_ERRORS[code] ?? failure,
+        text: DEPARTMENT_ERRORS[code] ?? SAVE_FAILED,
       })
     return code
   }

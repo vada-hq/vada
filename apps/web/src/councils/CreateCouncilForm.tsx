@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import {
   COUNCIL_UNITS,
   CreateCouncilSchema,
-  koreanOf,
+  koreanYearOf,
   type CouncilUnit,
   type CreateCouncilResponse,
   type MyCouncil,
@@ -26,7 +26,7 @@ type Props = { onCreated: (council: MyCouncil) => void; onCancel: () => void }
 
 // 학생회 만들기(바탕 spec G6): 이름, 단위, 학교, 첫 기수의 이름과 임기. 기본 임기는 올해(한국 날짜) 1/1~12/31이다.
 export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
-  const [year] = useState(() => koreanOf(new Date()).slice(0, 4))
+  const [year] = useState(() => koreanYearOf(new Date()))
   const [form, setForm] = useState({
     name: '',
     unit: 'department' as CouncilUnit,
