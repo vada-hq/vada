@@ -90,7 +90,7 @@
 - 수용 기준은 4와 같은 꼴이다. 대상은 `Departments.tsx`, `MemberDepartmentsDialog.tsx`, `InviteCard.tsx`다.
 - 검토: 깊게.
 
-### 6. 학생회 설정·만들기·들어오기 양식 나누기 [ ]
+### 6. 학생회 설정·만들기·들어오기 양식 나누기 [x]
 - 수용 기준은 4와 같은 꼴이다. 대상은 `CouncilSettings.tsx`, `CreateCouncilForm.tsx`, `JoinCouncil.tsx`, `MyCouncils.tsx`다.
 - 검토: 보통.
 

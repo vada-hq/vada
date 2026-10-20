@@ -7,6 +7,7 @@ import {
   MEMBER_PERMISSIONS,
 } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { snapshotHtml } from '@/test-support/snapshot-html'
 import CouncilSettings from './CouncilSettings'
 
 // 학생회 설정을 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 6).
@@ -25,7 +26,7 @@ function show(permissions = LEADER_PERMISSIONS, onForbidden = () => {}) {
     />,
   )
 }
-const html = () => document.body.innerHTML.replaceAll('><', '>\n<')
+const html = snapshotHtml
 function saveCouncil() {
   const form = screen.getByRole('form', { name: '학생회 정보' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '새 이름' } })

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { snapshotHtml } from '@/test-support/snapshot-html'
 import { myCouncil } from '@/test-support/council-fixtures'
 import CreateCouncilForm from './CreateCouncilForm'
 import JoinCouncil from './JoinCouncil'
@@ -20,7 +21,7 @@ afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
 })
-const html = () => document.body.innerHTML.replaceAll('><', '>\n<')
+const html = snapshotHtml
 
 function createForm(onCreated = () => {}) {
   render(<CreateCouncilForm onCreated={onCreated} onCancel={() => {}} />)
