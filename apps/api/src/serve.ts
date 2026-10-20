@@ -5,6 +5,7 @@ import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
 import { createAuth } from './auth/auth.js'
+import { createChatRoutes } from './chat/routes.js'
 import { createCouncilRoutes } from './councils/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 import { createInviteRoutes } from './invites/routes.js'
@@ -55,6 +56,7 @@ function appOf(env: Env, db: Db) {
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
+    chat: createChatRoutes(db, session),
     push: pushRoutesOf(env, db, session),
     pushDevices: createPushDeviceRoutes(db, session),
   })

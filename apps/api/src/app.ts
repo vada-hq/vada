@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { HealthResponse } from '@vada/contracts'
+import type { createChatRoutes } from './chat/routes.js'
 import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
@@ -18,6 +19,8 @@ export type AppOptions = {
   invites?: ReturnType<typeof createInviteRoutes>
   // 운영진: 목록, 부서 배정과 빼기, 직급, 회장 넘기기, 내보내기, 부서
   team?: ReturnType<typeof createTeamRoutes>
+  // 대화: 방 목록, 메시지 읽기, 공지, 읽음
+  chat?: ReturnType<typeof createChatRoutes>
   // 휴대폰 알림. 알림 열쇠(VAPID)가 없으면 만들지 않는다.
   push?: ReturnType<typeof createPushRoutes> | undefined
   // 알림 받을 기기 저장과 지우기
@@ -30,6 +33,7 @@ export function createApp({
   councils,
   invites,
   team,
+  chat,
   push,
   pushDevices,
 }: AppOptions) {
@@ -46,6 +50,7 @@ export function createApp({
   if (councils) app.route('/api', councils)
   if (invites) app.route('/api', invites)
   if (team) app.route('/api', team)
+  if (chat) app.route('/api', chat)
   if (push) app.route('/api', push)
   if (pushDevices) app.route('/api', pushDevices)
   app.onError(handleError)

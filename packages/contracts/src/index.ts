@@ -1,4 +1,21 @@
-export { FILE_NAME_MAX, MESSAGE_BODY_MAX } from './chat.js'
+export {
+  FILE_NAME_MAX,
+  MESSAGE_BODY_MAX,
+  MESSAGE_PAGE_SIZE,
+  MessagePageQuerySchema,
+  NOTICE_LIST_MAX,
+  ReadMarkerSchema,
+  RECENT_NOTICE_COUNT,
+  ROOM_TYPES,
+  type ChatMessage,
+  type MessagePageResponse,
+  type NoticeListResponse,
+  type RoomDetailResponse,
+  type RoomListResponse,
+  type RoomParticipant,
+  type RoomSummary,
+  type RoomType,
+} from './chat.js'
 export {
   ERROR_STATUS,
   NO_CONTENT,

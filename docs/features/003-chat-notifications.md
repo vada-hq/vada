@@ -78,7 +78,7 @@
 - 닿는 곳: `apps/api/src/chat/rooms.ts`(새), `councils/service.ts`, `invites/service.ts`, `team/routes.ts`·`councils/routes.ts`의 `change` 도우미, `scripts/test-data.ts`, `test-support/chat.ts`(새).
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 3. 방 목록과 메시지 읽기 [ ]
+### 3. 방 목록과 메시지 읽기 [x]
 - 할 수 있게 되는 것: 운영진이 자기 방 목록, 안 읽은 수, 메시지 흐름, 공지를 API로 읽고 읽음을 남긴다.
 - 수용 기준: 방 목록에는 내가 참여한 방만 나온다. 순서는 전체방, 회장단방, 부서방(이름순), 1:1(최근순)이다. 방마다 안 읽은 수(내가 읽은 뒤 남이 보낸 메시지), '나를 부름', 합계가 나온다. 메시지는 들어온 뒤의 것만 50개씩 오래된 것부터 커서로 나온다. 커서가 들어오기 전 메시지나 다른 방 메시지면 400 `INVALID_CURSOR`다. 같은 기수의 공지는 들어오기 전 것도 공지 목록과 방 목록의 최근 공지 3개에 나오고, 흐름에는 끼지 않는다. 지난 기수의 공지는 나오지 않는다. 읽음은 뒤로 가지 않는다. 참여자가 아니면 403, 다른 학생회의 방이면 404, 로그인하지 않았으면 401, 내보낸 사람의 다음 요청은 403이다. JSON 응답은 `no-store`다.
 - 닿는 곳: contracts `chat.ts`(응답 모양, `ReadMarkerSchema`). `chat/routes.ts`(새, `createChatRoutes`), `chat/queries.ts`, `app.ts`, `serve.ts`, `http/boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET rooms`, `GET rooms/:roomId`, `GET rooms/:roomId/messages`, `GET notices`, `POST rooms/:roomId/read`.
