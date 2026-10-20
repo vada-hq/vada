@@ -14,5 +14,18 @@
   },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": false
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/clean-merged.sh\" --remote > \"$CLAUDE_PROJECT_DIR/.git/clean-merged.log\" 2>&1 &"
+          }
+        ]
+      }
+    ]
   }
 }
