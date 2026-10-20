@@ -340,6 +340,28 @@ test('대화상자 대상 부서가 사라져 닫힌 뒤 목록에 다시 나타
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
+test('없애기 확인 대화상자도 대상 부서가 사라져 닫힌 뒤 다시 나타나면 다시 열리지 않는다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () =>
+    reads++ === 1
+      ? withDepartments(team => {
+          team.departments = team.departments.slice(0, 1)
+        })
+      : json(teamResponse()),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
+  await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await noDialog()
+  expect(await screen.findByText('부서 1개')).toBeTruthy()
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  expect(await screen.findByText('부서 2개')).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(posts(api)).toEqual([])
+})
+
 test('재정 역할을 주는 동안에는 ⋯ 버튼이 막혀 요청이 두 번 나가지 않는다', async () => {
   const api = serve()
   const pending = deferredResponse()
