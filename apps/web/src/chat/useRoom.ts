@@ -69,6 +69,6 @@ export function useRoom(councilId: string, roomId: string) {
     (messageId: string, isNotice: boolean) => setState(now => withNotice(now, messageId, isNotice)),
     [],
   )
-  return { state, retry: first, lose, loadOlder, setNoticeLocally }
+  return { state, retry: first, lose, loadOlder, setNoticeLocally, sync: catchUp }
 }
 export type Room = ReturnType<typeof useRoom>

@@ -5,9 +5,12 @@ import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
+import { photosOf } from './chat-api'
 import { timeLabel } from './chat-view'
+import MessagePhotos from './MessagePhotos'
 
 type Props = {
+  councilId: string
   message: ChatMessage
   now: Date
   // 공지 붙이기·떼기 메뉴는 회장단이 전체방 메시지에서만 본다.
@@ -54,7 +57,14 @@ function NoticeMenu({ message, onMarkNotice }: Pick<Props, 'message' | 'onMarkNo
 }
 
 // 메시지 하나: 보낸 사람, 시각, 공지 표시, 본문. 본문의 줄바꿈은 그대로 두고 긴 글은 꺾는다.
-export default function MessageItem({ message, now, canMarkNotice, onMarkNotice }: Props) {
+export default function MessageItem({
+  councilId,
+  message,
+  now,
+  canMarkNotice,
+  onMarkNotice,
+}: Props) {
+  const photos = photosOf(message)
   return (
     <li className="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
       <div className="min-w-0 flex-1">
@@ -70,9 +80,12 @@ export default function MessageItem({ message, now, canMarkNotice, onMarkNotice 
             </Badge>
           )}
         </p>
-        <p className="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">
-          {message.body}
-        </p>
+        {message.body !== '' && (
+          <p className="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">
+            {message.body}
+          </p>
+        )}
+        {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
       </div>
       {canMarkNotice && <NoticeMenu message={message} onMarkNotice={onMarkNotice} />}
     </li>

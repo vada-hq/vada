@@ -87,6 +87,7 @@ export default function ChatPage(props: Omit<Props, 'onScreen'>) {
         key={screen.roomId}
         councilId={props.councilId}
         roomId={screen.roomId}
+        meId={props.view.me.memberId}
         rooms={props.rooms}
         canMarkNotice={props.view.permissions.includes('chat.notice')}
         onBack={list}

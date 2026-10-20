@@ -1,14 +1,10 @@
 // @vitest-environment jsdom
-import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { Action } from '@vada/contracts'
 import {
-  councilView,
   LEADER_PERMISSIONS,
   MEMBER_PERMISSIONS,
   PRESIDENT_PERMISSIONS,
-  teamResponse,
 } from '@/test-support/council-fixtures'
 import {
   messagePage,
@@ -21,9 +17,7 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
-import ChatPage from './ChatPage'
-import { useRoomList } from './useRoomList'
-import { useTeam } from '../team/useTeam'
+import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 
 afterEach(() => {
   cleanup()
@@ -32,33 +26,10 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const base = '/api/organizations/c1'
-// 권한이 바뀌면(403) 학생회를 다시 읽어 권한이 줄어든 모습을 받는다.
-function Harness({ permissions = MEMBER_PERMISSIONS }: { permissions?: Action[] }) {
-  const [granted, setGranted] = useState(permissions)
-  const team = useTeam('c1', () => {})
-  const rooms = useRoomList('c1', () => {}, true)
-  return (
-    <ChatPage
-      councilId="c1"
-      view={councilView('c1', { permissions: granted })}
-      team={team}
-      rooms={rooms}
-      onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
-    />
-  )
-}
-function serve() {
-  const api = mockApi()
-  api.on('GET', `${base}/rooms`, () => json(roomList()))
-  api.on('GET', `${base}/members`, () => json(teamResponse()))
-  api.on('GET', `${base}/rooms/r1`, () => json(roomDetail()))
-  api.on('GET', `${base}/rooms/r1/messages`, () => json(messagePage()))
-  api.on('POST', `${base}/rooms/r1/read`, () => new Response(null, { status: 204 }))
-  return api
-}
-const openAll = async () =>
-  fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
+const base = chatBase
+const Harness = ChatHarness
+const serve = serveChat
+const openAll = openAllRoom
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
 test('방 카드는 이름, 마지막 시각, 안 읽은 수, 나를 부름, 보기만을 보이고 최근 공지가 위에 있다', async () => {

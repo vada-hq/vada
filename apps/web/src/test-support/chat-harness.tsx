@@ -1,0 +1,41 @@
+import { useState } from 'react'
+import { fireEvent, screen } from '@testing-library/react'
+import type { Action } from '@vada/contracts'
+import ChatPage from '@/chat/ChatPage'
+import { useRoomList } from '@/chat/useRoomList'
+import { useTeam } from '@/team/useTeam'
+import { messagePage, roomDetail, roomList } from './chat-fixtures'
+import { councilView, MEMBER_PERMISSIONS, teamResponse } from './council-fixtures'
+import { json, mockApi } from './mock-api'
+
+export const chatBase = '/api/organizations/c1'
+
+// 권한이 바뀌면(403) 학생회를 다시 읽어 권한이 줄어든 모습을 받는다.
+export function ChatHarness({ permissions = MEMBER_PERMISSIONS }: { permissions?: Action[] }) {
+  const [granted, setGranted] = useState(permissions)
+  const team = useTeam('c1', () => {})
+  const rooms = useRoomList('c1', () => {}, true)
+  return (
+    <ChatPage
+      councilId="c1"
+      view={councilView('c1', { permissions: granted })}
+      team={team}
+      rooms={rooms}
+      onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
+    />
+  )
+}
+
+// 방 목록과 전체방 하나의 읽기 응답을 등록한다.
+export function serveChat() {
+  const api = mockApi()
+  api.on('GET', `${chatBase}/rooms`, () => json(roomList()))
+  api.on('GET', `${chatBase}/members`, () => json(teamResponse()))
+  api.on('GET', `${chatBase}/rooms/r1`, () => json(roomDetail()))
+  api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage()))
+  api.on('POST', `${chatBase}/rooms/r1/read`, () => new Response(null, { status: 204 }))
+  return api
+}
+
+export const openAllRoom = async () =>
+  fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
