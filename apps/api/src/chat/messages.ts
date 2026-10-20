@@ -9,6 +9,7 @@ import type { Actor } from '../access/actor.js'
 import { chatRoom, cohort, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { isPlanRoom } from './plan-room.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -103,6 +104,7 @@ export async function noticesOf(db: Reader, actor: Actor, limit: number): Promis
       and(
         eq(record.councilId, actor.councilId),
         eq(chatRoom.type, 'all_members'),
+        isPlanRoom,
         eq(message.isNotice, true),
         sql`(${message.sentAt} at time zone 'Asia/Seoul')::date between ${cohort.startsOn} and ${cohort.endsOn}`,
       ),

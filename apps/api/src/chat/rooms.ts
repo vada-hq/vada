@@ -10,6 +10,7 @@ import {
 } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { clockNow, createRecord } from '../records/records.js'
+import { isPlanRoom } from './plan-room.js'
 
 // 방 참여는 편성을 따른다(DEC-18, DEC-28): 전체방은 모든 운영진, 회장단방은 회장과 부회장, 부서방은 그 부서원.
 // 편성이 바뀌는 거래가 끝나기 전에 부른다. 지금 편성에서 있어야 할 참여를 계산해 방과 줄을 맞춘다.
@@ -66,8 +67,7 @@ async function existingRooms(tx: Tx, councilId: string) {
     .where(
       and(
         eq(record.councilId, councilId),
-        // 행사방은 행사가 정한다. 편성 방만 고른다.
-        isNull(chatRoom.eventId),
+        isPlanRoom,
         inArray(chatRoom.type, ['all_members', 'leadership', 'department']),
       ),
     )
@@ -125,7 +125,9 @@ export async function ensureCouncilRooms(db: Db, scope: Scope) {
       .select({ id: chatRoom.id })
       .from(chatRoom)
       .innerJoin(record, eq(record.id, chatRoom.id))
-      .where(and(eq(record.councilId, scope.councilId), eq(chatRoom.type, 'all_members')))
+      .where(
+        and(eq(record.councilId, scope.councilId), eq(chatRoom.type, 'all_members'), isPlanRoom),
+      )
       .then(rows => rows.length > 0)
   if (await hasAllRoom(db)) return
   await db.transaction(async tx => {

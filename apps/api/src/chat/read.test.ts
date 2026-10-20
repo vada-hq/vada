@@ -500,3 +500,112 @@ test('이 기능 전에 만든 학생회는 방 목록을 처음 읽을 때 방�
     await close()
   }
 })
+
+// 행사방: 종류 칸이 전체방과 같아도 event_id가 있으면 편성 방이 아니다.
+async function eventRoom(s: Pick<Setup, 'pg'>, councilId: string) {
+  const row = async (kind: string) =>
+    (
+      await s.pg.query<{ id: string }>(
+        `INSERT INTO record (kind, council_id) VALUES ($1, $2) RETURNING id`,
+        [kind, councilId],
+      )
+    ).rows[0]!.id
+  const event = await row('event')
+  await s.pg.query(`INSERT INTO event (id, name) VALUES ($1, '행사')`, [event])
+  const room = await row('chat_room')
+  await s.pg.query(`INSERT INTO chat_room (id, type, event_id) VALUES ($1, 'all_members', $2)`, [
+    room,
+    event,
+  ])
+  return room
+}
+const noticesBodies = async (s: Setup, user: string) =>
+  ((await (await s.api.get(`${s.base}/notices`, user)).json()) as NoticeListResponse).notices.map(
+    item => item.body,
+  )
+
+test(
+  '다른 학생회의 공지는 기간이 겹쳐도 공지 목록과 방 목록에 나오지 않는다',
+  run(async s => {
+    await s.api.get(`/api/organizations/${s.other.councilId}/rooms`, 'o-president')
+    const foreign = await s.roomId(s.other.councilId, 'all')
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'message',
+        councilId: s.other.councilId,
+        actor: s.other.people.president.memberId,
+        values: {
+          roomId: foreign,
+          body: '남의 공지',
+          sentAt: new Date('2026-04-01T00:00:00Z'),
+          isNotice: true,
+        },
+      }),
+    )
+    const all = await s.roomId(s.council.councilId, 'all')
+    await s.notice(all, s.person.president.memberId, '우리 공지', '2026-04-02T00:00:00Z')
+    assert.deepEqual(await noticesBodies(s, 's-plain'), ['우리 공지'])
+    assert.deepEqual(
+      (await s.list('s-plain')).notices.map(item => item.body),
+      ['우리 공지'],
+    )
+  }),
+)
+
+test(
+  '행사방에 붙은 공지는 공지 목록과 방 목록에 나오지 않는다',
+  run(async s => {
+    const room = await eventRoom(s, s.council.councilId)
+    await s.notice(room, s.person.president.memberId, '행사방 공지', '2026-04-01T00:00:00Z')
+    assert.deepEqual(await noticesBodies(s, 's-plain'), [])
+    assert.deepEqual((await s.list('s-plain')).notices, [])
+  }),
+)
+
+test('행사방만 있는 학생회도 방 목록을 처음 읽을 때 편성 방이 채워진다', async () => {
+  const { pg, db, close } = await createTestDb()
+  try {
+    const council = await seedCouncil(db, pg)
+    await eventRoom({ pg }, council.councilId)
+    const api = caller(
+      createApp({
+        auth: { handler: async () => new Response() },
+        trustedOrigin: ORIGIN,
+        chat: createChatRoutes(db, testSession, () => now),
+      }),
+    )
+    const response = await api.get(`/api/organizations/${council.councilId}/rooms`, 's-plain')
+    assert.deepEqual(
+      ((await response.json()) as RoomListResponse).rooms.map(room => room.type),
+      ['all_members'],
+    )
+    const real = await pg.query(
+      `SELECT 1 FROM chat_room WHERE type = 'all_members' AND event_id IS NULL`,
+    )
+    assert.equal(real.rows.length, 1)
+  } finally {
+    await close()
+  }
+})
+
+test(
+  '들어오기 전 메시지의 부름은 세지 않고, 들어온 시각과 같은 메시지의 부름은 센다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const kim = s.person.president.memberId
+    const lee = s.person.vicePresident.memberId
+    const early = await s.send(all, lee, '전', '2026-02-28T23:59:59Z')
+    const same = await s.send(all, lee, '같은 시각', JOINED)
+    for (const recordId of [early, same])
+      await s.db.transaction(async tx => {
+        await createRecord(tx, {
+          kind: 'notification',
+          councilId: s.council.councilId,
+          actor: null,
+          values: { recipientId: kim, recordId, type: 'mention', notifiedAt: new Date(now) },
+        })
+      })
+    const room = (await s.list()).rooms.find(item => item.id === all)!
+    assert.deepEqual([room.unread, room.mentions], [1, 1])
+  }),
+)
