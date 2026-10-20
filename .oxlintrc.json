@@ -197,8 +197,7 @@
         "apps/web/src/push/usePush.ts",
         "apps/web/src/settings/CouncilSettings.tsx",
         "apps/web/src/team/Departments.tsx",
-        "apps/web/src/team/MemberDepartmentsDialog.tsx",
-        "apps/web/src/team/People.tsx"
+        "apps/web/src/team/MemberDepartmentsDialog.tsx"
       ],
       "rules": {
         "complexity": "off"
@@ -227,7 +226,6 @@
         "apps/web/src/team/Departments.tsx",
         "apps/web/src/team/InviteCard.tsx",
         "apps/web/src/team/MemberDepartmentsDialog.tsx",
-        "apps/web/src/team/People.tsx",
         "apps/web/src/ui-gallery/Gallery.tsx",
         "apps/web/src/workspace/Workspace.tsx",
         "apps/web/src/workspace/WorkspaceSidebar.tsx"

@@ -80,7 +80,7 @@
 - 닿는 곳: 린트가 가리킨 파일(`team/service.ts`, `pg-smoke.ts`, `push/devices.ts`, `push/config.ts`, `on-error.ts`, `korean-time.ts`, `useTeam.ts`, `InviteCard.tsx` 등 45개).
 - 검토: 보통.
 
-### 4. 사람 화면 나누기 [ ]
+### 4. 사람 화면 나누기 [x]
 - 할 수 있게 되는 것: 사람 화면을 고칠 때 바꿀 곳이 한 부품이나 한 훅으로 좁혀진다.
 - 수용 기준: 사람 화면 시험이 모두 통과한다. `People.tsx`와 나온 파일이 모두 상한 안이다. 390px과 데스크톱 스크린샷이 전과 같다. 권한을 잃거나 대상이 사라진 대화상자는 전처럼 닫히고 이유를 보인다.
 - 닿는 곳: `web/src/team/`(People, 사람 동작 훅, 사람 줄, 확인 대화상자).
