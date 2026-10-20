@@ -255,10 +255,10 @@ test('다른 연결이 세션을 넣는 일: 한도 안에 끝나지 않으면 �
   }
 })
 
-test('글 보내기와 그 사람 내보내기를 동시에: 참여 줄이 모두 지워지고 보낸 글이 남는다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+test('글 보내기와 그 사람 내보내기를 동시에: 내보낸 뒤의 시각으로 남은 글이 없고 참여 줄이 지워진다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
   const testDb = await createTestDb()
   try {
-    assert.match(passed(await sendAndRemoveCase.run(contextOf(testDb))), /참여 줄이 지워졌고/)
+    assert.match(passed(await sendAndRemoveCase.run(contextOf(testDb))), /참여 줄이 지워졌다/)
   } finally {
     await testDb.close()
   }
@@ -276,10 +276,10 @@ test('글 보내기와 그 사람 내보내기를 동시에: 예상하지 못한
   }
 })
 
-test('같은 방에서 동시에 글 보내기: 글이 모두 남고 보낸 시각이 겹치지 않는다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+test('같은 방에서 동시에 글 보내기: 글이 모두 남고 보낸 시각이 겹치지 않으며 커밋 순서와 같다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
   const testDb = await createTestDb()
   try {
-    assert.match(passed(await sendTogetherCase.run(contextOf(testDb))), /보낸 시각이 모두 다르다/)
+    assert.match(passed(await sendTogetherCase.run(contextOf(testDb))), /커밋 순서와 같다/)
   } finally {
     await testDb.close()
   }

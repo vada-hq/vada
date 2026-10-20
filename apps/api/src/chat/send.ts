@@ -5,7 +5,7 @@ import { chatRoom, message, roomMembership } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
-import { currentMembersAmong } from './current-members.js'
+import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
 import { messageOf } from './messages.js'
 import { advanceRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
@@ -14,18 +14,22 @@ import { roomAccess } from './room-access.js'
 export const SEND_LIMIT = { limit: 20, windowMs: 10_000 }
 
 // 상대가 학생회를 떠난 1:1은 보기만 된다.
+// 1:1은 내보내기가 참여 줄을 지우지 않아 내 참여 줄 잠금으로는 내보내기와 직렬화되지 않는다. 그래서 나와 상대의 소속 줄을 함께 잠그고
+// (lockCurrentMembers) 다시 읽는다: 내가 먼저 내보내졌으면 FORBIDDEN, 상대가 먼저 떠났으면 ROOM_READ_ONLY다.
+// 보내기가 먼저면 내보내기가 이 거래가 끝나기를 기다리므로, 떠난 사람의 마지막 글은 떠나기 전의 글이다.
 async function assertWritable(tx: Tx, actor: Actor, room: { id: string; type: string }, now: Date) {
   if (room.type !== 'direct') return
   const peers = await tx
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
     .where(and(eq(roomMembership.roomId, room.id), ne(roomMembership.memberId, actor.memberId)))
-  const alive = await currentMembersAmong(
+  const alive = await lockCurrentMembers(
     tx,
     actor.councilId,
-    peers.map(peer => peer.memberId),
+    [actor.memberId, ...peers.map(peer => peer.memberId)],
     now,
   )
+  if (!alive.has(actor.memberId)) throw new ApiError('FORBIDDEN')
   if (!peers.some(peer => alive.has(peer.memberId))) throw new ApiError('ROOM_READ_ONLY')
 }
 

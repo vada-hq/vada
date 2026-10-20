@@ -101,20 +101,24 @@ export async function messagePage(
 }
 
 // 같은 기수의 공지(DEC-48): 전체방의 공지 표시가 붙은 메시지 중 보낸 시각의 한국 날짜가 내 지금 기수 기간에 드는 것.
-// 들어오기 전 것도 나온다. 기수는 한국 날짜로 가른다(서버 시간대가 UTC여도 같다). 최근 것부터다.
+// 들어오기 전 것도 보인다. 기수는 한국 날짜로 가른다(서버 시간대가 UTC여도 같다).
+// 보이는 공지와 떼어 낼 수 있는 공지가 같은 조건에서 나오도록 이 한 곳에 둔다(조회와 공지 표시가 함께 쓴다). record, chat_room을 합친 조회에서 쓴다.
+export const shownNotice = (actor: Actor) =>
+  and(
+    eq(record.councilId, actor.councilId),
+    eq(chatRoom.type, 'all_members'),
+    isPlanRoom,
+    eq(message.isNotice, true),
+    sql`(${message.sentAt} at time zone 'Asia/Seoul')::date
+      between (select ${cohort.startsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)
+      and (select ${cohort.endsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)`,
+  )
+
+// 같은 기수의 공지. 최근 것부터다.
 export async function noticesOf(db: Reader, actor: Actor, limit: number): Promise<ChatMessage[]> {
   const rows = await rowsOf(db)
     .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
-    .innerJoin(cohort, eq(cohort.id, actor.cohortId))
-    .where(
-      and(
-        eq(record.councilId, actor.councilId),
-        eq(chatRoom.type, 'all_members'),
-        isPlanRoom,
-        eq(message.isNotice, true),
-        sql`(${message.sentAt} at time zone 'Asia/Seoul')::date between ${cohort.startsOn} and ${cohort.endsOn}`,
-      ),
-    )
+    .where(shownNotice(actor))
     .orderBy(desc(message.sentAt), desc(message.id))
     .limit(limit)
   return rows.map(chatMessageOf)

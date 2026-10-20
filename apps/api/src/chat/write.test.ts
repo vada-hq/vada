@@ -455,3 +455,38 @@ test(
     assert.equal((await s.direct('s-president', p.plain.memberId)).status, 404)
   }),
 )
+
+test(
+  '공지 떼기는 보이는 공지와 같은 조건이다: 공지가 붙은 뒤 들어온 회장단도 같은 기수 공지는 떼고, 지난 기수 공지와 보이지 않는 글은 404다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const post = (body: string, sentAt: string, isNotice: boolean) =>
+      s.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'message',
+          councilId: s.council.councilId,
+          actor: s.person.president.memberId,
+          values: { roomId: all, body, sentAt: new Date(sentAt), isNotice },
+        }),
+      )
+    const shown = await post('보이는 공지', '2026-05-01T00:00:00Z', true)
+    const lastYear = await post('지난 기수 공지', '2025-05-01T00:00:00Z', true)
+    const hidden = await post('들어오기 전 일반 글', '2026-05-02T00:00:00Z', false)
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-06-01T00:00:00Z'
+        WHERE room_id = $1 AND member_id = $2`,
+      [all, s.person.vicePresident.memberId],
+    )
+    const mark = (id: string, isNotice: boolean) =>
+      s.api.post(`${s.base}/messages/${id}/notice`, { isNotice }, 's-vicePresident')
+    assert.equal((await s.list('s-vicePresident')).notices.length, 1)
+    assert.equal((await mark(lastYear, false)).status, 404)
+    assert.equal((await mark(hidden, true)).status, 404)
+    const off = await mark(shown, false)
+    assert.equal(off.status, 200)
+    assert.equal((await sentOf(off)).isNotice, false)
+    assert.equal((await s.list('s-vicePresident')).notices.length, 0)
+    // 뗀 글은 들어오기 전 글이라 다시 붙일 수는 없다.
+    assert.equal((await mark(shown, true)).status, 404)
+  }),
+)
