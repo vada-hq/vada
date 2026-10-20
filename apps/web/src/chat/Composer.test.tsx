@@ -32,6 +32,12 @@ afterEach(() => {
 const sends = (api: ReturnType<typeof mockApi>) =>
   api.calls.filter(call => call.method === 'POST' && call.path === `${chatBase}/rooms/r1/messages`)
 const field = () => screen.getByLabelText<HTMLTextAreaElement>('메시지')
+const signed = {
+  key: 'k1',
+  url: '/r2/k1',
+  headers: { 'Content-Type': 'image/jpeg', 'If-None-Match': '*' },
+  expiresAt: '2026-10-21T00:10:00.000Z',
+}
 const sendButton = () => screen.getByRole<HTMLButtonElement>('button', { name: /보내/ })
 const type = (value: string) => fireEvent.change(field(), { target: { value } })
 const choose = (...names: string[]) =>
@@ -55,7 +61,7 @@ function serve() {
   api.on('GET', `${chatBase}/rooms/r1/messages?after=a2`, () =>
     json(messagePage([message('a3', '보낸 글')])),
   )
-  api.on('POST', `${chatBase}/rooms/r1/uploads`, () => json({ key: 'k1', url: '/r2/k1' }))
+  api.on('POST', `${chatBase}/rooms/r1/uploads`, () => json(signed))
   api.on('PUT', '/r2/k1', () => new Response(null, { status: 200 }))
   return api
 }
@@ -81,7 +87,7 @@ test('보내면 글을 비우고 보낸 글이 흐름에 나타난다', async ()
   type('보낸 글')
   fireEvent.click(sendButton())
   expect(await screen.findByText('보낸 글', { selector: 'p' })).toBeTruthy()
-  expect(sends(api)[0]?.body).toEqual({ body: '보낸 글', mentions: [] })
+  expect(sends(api)[0]?.body).toEqual({ body: '보낸 글', mentions: [], photos: [] })
   expect(field().value).toBe('')
 })
 
@@ -111,7 +117,11 @@ test('@를 치면 참여자 목록(나 제외)이 뜨고, 고르면 "@이름 "�
   type('@이재정 확인 부탁해요')
   fireEvent.click(sendButton())
   await waitFor(() => expect(sends(api)).toHaveLength(1))
-  expect(sends(api)[0]?.body).toEqual({ body: '@이재정 확인 부탁해요', mentions: [ANOTHER] })
+  expect(sends(api)[0]?.body).toEqual({
+    body: '@이재정 확인 부탁해요',
+    mentions: [ANOTHER],
+    photos: [],
+  })
 })
 
 test('본문에서 지운 이름은 부르지 않는다', async () => {
@@ -122,25 +132,21 @@ test('본문에서 지운 이름은 부르지 않는다', async () => {
   type('그냥 글')
   fireEvent.click(sendButton())
   await waitFor(() => expect(sends(api)).toHaveLength(1))
-  expect(sends(api)[0]?.body).toEqual({ body: '그냥 글', mentions: [] })
+  expect(sends(api)[0]?.body).toEqual({ body: '그냥 글', mentions: [], photos: [] })
 })
 
-test('사진만 있으면 보내기가 켜지고, 줄인 JPEG를 덮어쓰기 막고 올린 뒤 키를 싣는다', async () => {
+test('사진만 있으면 보내기가 켜지고, 줄인 JPEG를 서버가 준 머리 그대로 올린 뒤 키를 싣는다', async () => {
   const api = serve()
   await open()
   choose('여행.png')
   await waitFor(() => expect(sendButton().disabled).toBe(false))
   const put = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === 'PUT')
-  expect(put?.[1]?.headers).toEqual({ 'Content-Type': 'image/jpeg', 'If-None-Match': '*' })
+  expect(put?.[1]?.headers).toEqual(signed.headers)
   expect(put?.[1]?.credentials).toBe('omit')
-  expect(api.calls.find(call => call.path.endsWith('/uploads'))?.body).toEqual({ name: '여행.jpg' })
+  expect(api.calls.find(call => call.path.endsWith('/uploads'))?.body).toEqual({})
   fireEvent.click(sendButton())
   await waitFor(() => expect(sends(api)).toHaveLength(1))
-  expect(sends(api)[0]?.body).toEqual({
-    body: '',
-    mentions: [],
-    photos: [{ key: 'k1', name: '여행.jpg' }],
-  })
+  expect(sends(api)[0]?.body).toEqual({ mentions: [], photos: ['k1'] })
   await waitFor(() => expect(screen.queryByLabelText('보낼 사진')).toBeNull())
 })
 
@@ -237,10 +243,10 @@ test('올리다 방을 잃으면(403) 같은 화면으로 바뀐다', async () =
 
 test('사진이 붙은 메시지는 사진을 보이고, 누르면 크게 보인다', async () => {
   const api = serve()
-  const withPhoto = { ...message('a2', ''), photos: [{ id: 'f1', name: '칠판.jpg' }] }
+  const withPhoto = { ...message('a2', ''), photos: [{ id: 'f1' }] }
   api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage([withPhoto])))
   await open()
-  const thumb = await screen.findByRole('button', { name: '칠판.jpg 크게 보기' })
+  const thumb = await screen.findByRole('button', { name: '사진 크게 보기' })
   expect(within(thumb).getByRole('img').getAttribute('src')).toBe(`${chatBase}/files/f1`)
   fireEvent.click(thumb)
   const dialog = await screen.findByRole('dialog')

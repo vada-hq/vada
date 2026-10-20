@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
-import { SendMessageSchema, type RoomParticipant } from '@vada/contracts'
+import { SendMessageSchema, type RoomParticipant, type SendMessageRequest } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { SEND_FAILED } from '@/lib/messages'
-import { isRoomLost, messagesPath, sendErrorText, type SendWithPhotosBody } from './chat-api'
+import { isRoomLost, messagesPath, sendErrorText } from './chat-api'
 import { mentionIds } from './mention'
 import { usePhotoDrafts } from './usePhotoDrafts'
 
@@ -40,11 +40,11 @@ export function useComposer({ councilId, roomId, onSent, onLost }: Args) {
     busy.current = true
     setSending(true)
     setError(null)
-    const refs = photos.flatMap(photo => (photo.key ? [{ key: photo.key, name: photo.name }] : []))
-    const payload: SendWithPhotosBody = {
-      body: body.trim() === '' ? '' : body,
+    const keys = photos.flatMap(photo => (photo.key ? [photo.key] : []))
+    const payload: SendMessageRequest = {
+      ...(body.trim() === '' ? {} : { body }),
       mentions,
-      ...(refs.length > 0 ? { photos: refs } : {}),
+      photos: keys,
     }
     const result = await postJson(messagesPath(councilId, roomId), payload)
     busy.current = false

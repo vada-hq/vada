@@ -5,7 +5,6 @@ import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
-import { photosOf } from './chat-api'
 import { timeLabel } from './chat-view'
 import MessagePhotos from './MessagePhotos'
 
@@ -64,7 +63,7 @@ export default function MessageItem({
   canMarkNotice,
   onMarkNotice,
 }: Props) {
-  const photos = photosOf(message)
+  const photos = message.photos
   return (
     <li className="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
       <div className="min-w-0 flex-1">

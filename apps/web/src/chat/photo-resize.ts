@@ -1,10 +1,9 @@
 // 대화 사진은 휴대폰에서 긴 변 2048px JPEG로 다시 저장해 올린다. 다시 저장하면 위치 정보(EXIF GPS)가 빠지므로
 // 원본은 어디에도 올라가지 않는다(결정 0050). 다시 저장할 수 없는 파일은 올리지 않는다.
+import { PHOTO_MEDIA_TYPE } from '@vada/contracts'
+
 const PHOTO_MAX_EDGE = 2048
 const PHOTO_QUALITY = 0.85
-// 한 메시지의 사진 수(결정 0050). 서버 상한과 같은 값이라 조각 6의 계약으로 옮길 수 있다.
-export const PHOTO_MAX_COUNT = 10
-export const PHOTO_TYPE = 'image/jpeg'
 
 // 긴 변이 상한을 넘을 때만 비율대로 줄인다. 키우지 않는다.
 export function fitSize(width: number, height: number, max = PHOTO_MAX_EDGE) {
@@ -16,7 +15,7 @@ export function fitSize(width: number, height: number, max = PHOTO_MAX_EDGE) {
 }
 
 const toBlob = (canvas: HTMLCanvasElement) =>
-  new Promise<Blob | null>(done => canvas.toBlob(done, PHOTO_TYPE, PHOTO_QUALITY))
+  new Promise<Blob | null>(done => canvas.toBlob(done, PHOTO_MEDIA_TYPE, PHOTO_QUALITY))
 
 // 열 수 없는 파일(HEIF를 못 여는 브라우저, 사진이 아닌 파일)은 null이다.
 export async function resizeToJpeg(file: Blob): Promise<Blob | null> {

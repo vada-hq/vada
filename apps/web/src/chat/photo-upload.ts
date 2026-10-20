@@ -1,7 +1,7 @@
-import { FILE_NAME_MAX } from '@vada/contracts'
+import { FILE_NAME_MAX, type PhotoUploadResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import { uploadsPath, type UploadBody, type UploadResponse } from './chat-api'
-import { PHOTO_TYPE, resizeToJpeg } from './photo-resize'
+import { uploadsPath } from './chat-api'
+import { resizeToJpeg } from './photo-resize'
 
 type UploadOutcome = { ok: true; key: string } | { ok: false; status: number; code: string }
 
@@ -13,23 +13,16 @@ export function photoName(original: string) {
     .join('')}.jpg`
 }
 
-// 올리기 주소를 받아 저장소에 바로 올린다. 서버는 파일을 받지 않는다. 덮어쓰기를 막는 If-None-Match를 같이 보낸다.
+// 올리기 주소를 받아 저장소에 바로 올린다. 서버는 파일을 받지 않는다. 서버가 준 머리를 그대로 붙인다.
 // 저장소는 다른 출처이므로 우리 쿠키를 보내지 않는다.
-async function uploadPhoto(
-  councilId: string,
-  roomId: string,
-  jpeg: Blob,
-  name: string,
-): Promise<UploadOutcome> {
-  const signed = await postJson<UploadResponse>(uploadsPath(councilId, roomId), {
-    name,
-  } satisfies UploadBody)
+async function uploadPhoto(councilId: string, roomId: string, jpeg: Blob): Promise<UploadOutcome> {
+  const signed = await postJson<PhotoUploadResponse>(uploadsPath(councilId, roomId), {})
   if (!signed.ok) return signed
   try {
     const response = await fetch(signed.data.url, {
       method: 'PUT',
       credentials: 'omit',
-      headers: { 'Content-Type': PHOTO_TYPE, 'If-None-Match': '*' },
+      headers: signed.data.headers,
       body: jpeg,
     })
     if (response.ok) return { ok: true, key: signed.data.key }
@@ -46,11 +39,10 @@ export const UNREADABLE = 'UNREADABLE'
 export async function sendPhoto(
   where: { councilId: string; roomId: string },
   file: File,
-  name: string,
   onPreview: (url: string) => void,
 ): Promise<UploadOutcome> {
   const jpeg = await resizeToJpeg(file)
   if (!jpeg) return { ok: false, status: 0, code: UNREADABLE }
   onPreview(URL.createObjectURL(jpeg))
-  return uploadPhoto(where.councilId, where.roomId, jpeg, name)
+  return uploadPhoto(where.councilId, where.roomId, jpeg)
 }
