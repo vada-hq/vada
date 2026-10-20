@@ -1,6 +1,10 @@
 import { randomInt } from 'node:crypto'
-import { errorCodeOf } from './error-code.js'
-import { describeTarget, UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from './migrate-check.js'
+import { errorCodeOf } from '../../db/error-code.js'
+import {
+  describeTarget,
+  UNREADABLE_TARGET,
+  UNSHOWN_TARGET_MESSAGE,
+} from '../migrate/migrate-check.js'
 import type { SmokeCase, SmokeContext, SmokeVerdict } from './pg-smoke-cases.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 

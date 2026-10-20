@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { ApiError } from '../http/errors.js'
-import { addUser } from '../test-support/council.js'
-import { pgliteConnection } from '../test-support/smoke-connection.js'
+import { ApiError } from '../../http/errors.js'
+import { addUser } from '../../test-support/council.js'
+import { pgliteConnection } from '../../test-support/smoke-connection.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   createAndJoinCase,
@@ -15,7 +15,7 @@ import {
   type SmokeContext,
   type SmokeVerdict,
 } from './pg-smoke-cases.js'
-import { createTestDb, type TestDb } from './test-db.js'
+import { createTestDb, type TestDb } from '../../db/test-db.js'
 
 // PGlite는 연결이 하나이고 거래를 하나씩 돌린다. 그래서 아래 시험은 "동시에" 시작한 두 거래를 순서대로 돌려 각 경우의 모양
 // (준비, 판정, 예상한 오류 거르기)을 확인할 뿐, 잠금이 실제로 동시 처리를 막는지는 증명하지 못한다. 그것은 실제 PostgreSQL에서 pg-smoke가 보인다.

@@ -2,7 +2,7 @@ import { PGlite } from '@electric-sql/pglite'
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import { migrationsFolder } from './migrations-folder.js'
+import { migrationsFolder } from '../ops/migrate/migrations-folder.js'
 
 // 시험이 마이그레이션 폴더를 이 모듈에서 가져다 쓰므로 그대로 다시 내보낸다.
 export { migrationsFolder }

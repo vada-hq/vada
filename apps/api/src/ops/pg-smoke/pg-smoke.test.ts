@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { Db } from './types.js'
-import { pgliteConnection } from '../test-support/smoke-connection.js'
-import { UNSHOWN_TARGET_MESSAGE } from './migrate-check.js'
+import type { Db } from '../../db/types.js'
+import { pgliteConnection } from '../../test-support/smoke-connection.js'
+import { UNSHOWN_TARGET_MESSAGE } from '../migrate/migrate-check.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   createAndJoinCase,
@@ -13,7 +13,7 @@ import {
   type SmokeCase,
 } from './pg-smoke-cases.js'
 import { runPgSmoke, serverProblem, smokeDatabaseName, withDatabase } from './pg-smoke.js'
-import { createTestDb } from './test-db.js'
+import { createTestDb } from '../../db/test-db.js'
 
 test('DB 이름만 바꾼다: 쿼리, 포트, IPv6, 인코딩된 비밀번호, 사용자는 그대로 둔다', () => {
   const cases: [string, string][] = [

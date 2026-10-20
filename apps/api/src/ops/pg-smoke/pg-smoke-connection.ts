@@ -1,4 +1,4 @@
-import type { Db } from './types.js'
+import type { Db } from '../../db/types.js'
 
 // 점검 도구가 DB와 주고받는 연결의 모양. 실제 실행은 postgres-js, 시험은 PGlite나 가짜가 이 모양을 맞춘다.
 export type SmokeSql = {

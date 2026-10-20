@@ -10,7 +10,7 @@ import {
   type MigrateArgs,
   type TargetSource,
 } from './migrate-check.js'
-import { errorCodeOf } from './error-code.js'
+import { errorCodeOf } from '../../db/error-code.js'
 
 // 적용 스크립트의 판단 전부. migrate.ts는 실제 연결(postgres-js)을 이어 주기만 한다. 시험은 PGlite를 감싼 가짜 connect로 돌린다.
 export type MigrationConnection = {

@@ -9,7 +9,7 @@ import {
   stepOf,
   TEST_INVITE_CODE,
 } from './test-data.js'
-import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/db/migrate-check.js'
+import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/ops/migrate/migrate-check.js'
 
 const now = new Date('2026-10-19T03:00:00Z')
 

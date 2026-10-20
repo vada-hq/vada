@@ -9,7 +9,7 @@ import {
   readTargetState,
   targetSourceOf,
 } from './migrate-check.js'
-import { createTestDb, migrationsFolder } from './test-db.js'
+import { createTestDb, migrationsFolder } from '../../db/test-db.js'
 
 const local = [
   { hash: 'a', folderMillis: 1 },

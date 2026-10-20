@@ -12,7 +12,7 @@ import {
   inviteCode,
   memberLogin,
 } from '../src/db/schema.js'
-import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/db/migrate-check.js'
+import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/ops/migrate/migrate-check.js'
 import { joinCouncil } from '../src/invites/service.js'
 import type { Db, Tx } from '../src/db/types.js'
 import { assignDepartment, createDepartment } from '../src/team/service.js'

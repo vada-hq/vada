@@ -1,7 +1,7 @@
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
-import { readLocalEnv } from '../local-env.js'
+import { readLocalEnv } from '../../local-env.js'
 import { localMigrations } from './migrate-check.js'
 import { migrationsFolder } from './migrations-folder.js'
 import { runMigration } from './migrate-run.js'

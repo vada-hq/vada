@@ -9,7 +9,7 @@
     "test": "tsx --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "db:generate": "drizzle-kit generate --custom",
     "check:design": "tsx scripts/check-design.ts",
-    "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate": "tsx src/ops/migrate/migrate.ts",
     "test-data": "tsx scripts/manage-test-data.ts",
     "pg-smoke": "tsx scripts/pg-smoke.ts"
   },

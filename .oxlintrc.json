@@ -185,38 +185,24 @@
       }
     },
     // R01 임시 예외: 아래 묶음은 지금 상한을 넘는 파일이다(docs/features/r01-maintainability.md). 조각마다 고친 파일을 뺀다. 새 파일을 더하지 않는다. 비면 묶음을 지운다.
-    {
-      "files": ["apps/api/src/db/migrate-run.ts"],
-      "rules": {
-        "complexity": "off"
-      }
-    },
+    { "files": ["apps/api/src/ops/migrate/migrate-run.ts"], "rules": { "complexity": "off" } },
     {
       "files": [
-        "apps/api/src/db/migrate-run.ts",
-        "apps/api/src/db/pg-smoke-cases.ts",
-        "apps/api/src/db/pg-smoke.ts",
+        "apps/api/src/ops/migrate/migrate-run.ts",
+        "apps/api/src/ops/pg-smoke/pg-smoke-cases.ts",
+        "apps/api/src/ops/pg-smoke/pg-smoke.ts",
         "apps/web/src/ui-gallery/Gallery.tsx"
       ],
-      "rules": {
-        "max-lines-per-function": "off"
-      }
+      "rules": { "max-lines-per-function": "off" }
     },
     {
       "files": [
-        "apps/api/src/db/pg-smoke-cases.ts",
+        "apps/api/src/ops/pg-smoke/pg-smoke-cases.ts",
         "apps/api/src/db/schema.ts",
         "apps/web/src/ui-gallery/Gallery.tsx"
       ],
-      "rules": {
-        "max-lines": "off"
-      }
+      "rules": { "max-lines": "off" }
     },
-    {
-      "files": ["apps/api/src/db/pg-smoke-cases.ts"],
-      "rules": {
-        "max-params": "off"
-      }
-    }
+    { "files": ["apps/api/src/ops/pg-smoke/pg-smoke-cases.ts"], "rules": { "max-params": "off" } }
   ]
 }

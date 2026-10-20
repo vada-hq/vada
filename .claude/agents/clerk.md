@@ -12,7 +12,7 @@ hooks:
           if: "Bash(*db:migrate*)"
           command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
         - type: command
-          if: "Bash(*src/db/migrate*)"
+          if: "Bash(*src/ops/migrate*)"
           command: "echo '실제 DB에 닿는 명령(db:migrate, test-data, pg-smoke)은 진행 에이전트만 돌린다.' >&2; exit 2"
         - type: command
           if: "Bash(*test-data*)"

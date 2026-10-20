@@ -1,6 +1,6 @@
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { describeTarget } from '../src/db/migrate-check.js'
+import { describeTarget } from '../src/ops/migrate/migrate-check.js'
 import { readLocalEnv } from '../src/local-env.js'
 import { assignTestMember, parseTestDataArgs, seedTestCouncil, stepOf } from './test-data.js'
 

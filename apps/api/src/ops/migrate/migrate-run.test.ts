@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { localMigrations, type LocalMigration } from './migrate-check.js'
 import { runMigration } from './migrate-run.js'
-import { migrationsFolder } from './test-db.js'
+import { migrationsFolder } from '../../db/test-db.js'
 
 // 실제 DB에는 닿지 않는다. connect는 PGlite를 감싼 가짜이고, 불린 횟수를 센다.
 const URL_WITH_PASSWORD = 'postgres://u:secret@h/db'
