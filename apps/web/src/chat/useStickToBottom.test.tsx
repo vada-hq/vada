@@ -38,3 +38,17 @@ test('맨 아래에 있을 때만 새 메시지를 따라 내려간다', () => {
   rerender({ id: 'd' })
   expect(el.scrollTop).toBe(1000)
 })
+
+test('위를 보고 있어도 내가 보낸 메시지로는 내려간다', () => {
+  const el = box(100)
+  const { result, rerender } = renderHook(({ id, mine }) => useStickToBottom(id, mine), {
+    initialProps: { id: 'a', mine: false },
+  })
+  act(() => {
+    result.current.ref(el)
+  })
+  el.scrollTop = 100
+  result.current.onScroll()
+  rerender({ id: 'b', mine: true })
+  expect(el.scrollTop).toBe(1000)
+})

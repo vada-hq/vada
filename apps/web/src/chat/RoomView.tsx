@@ -110,17 +110,20 @@ function Messages({
   councilId,
   state,
   room,
+  meId,
   canMarkNotice,
   onMarkNotice,
 }: {
   councilId: string
+  meId: string
   state: Ready
   room: Room
   canMarkNotice: boolean
   onMarkNotice: (message: ChatMessage, isNotice: boolean) => Promise<string | null>
 }) {
   const now = useNow()
-  const { ref: scrollRef, onScroll } = useStickToBottom(state.messages.at(-1)?.id)
+  const last = state.messages.at(-1)
+  const { ref: scrollRef, onScroll } = useStickToBottom(last?.id, last?.senderId === meId)
   return (
     // 입력칸은 이 흐름 밖에 붙어 있고 메시지 흐름만 스크롤된다.
     <div
@@ -209,6 +212,7 @@ export default function RoomView({
       {allMembers && band && <NoticeBand notice={band} now={now} onOpenNotices={onOpenNotices} />}
       <Messages
         councilId={councilId}
+        meId={meId}
         state={state}
         room={room}
         canMarkNotice={canMarkNotice && allMembers}
