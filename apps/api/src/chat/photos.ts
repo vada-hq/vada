@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, or } from 'drizzle-orm'
 import {
   isUuid,
   PHOTO_MAX_BYTES,
@@ -7,12 +7,13 @@ import {
   type PhotoUploadResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { file, message, record, roomMembership } from '../db/schema.js'
+import { chatRoom, file, message, record, roomMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
+import { uniqueViolationOf } from '../db/error-code.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import type { FileStorage } from '../storage/storage.js'
-import { sinceJoined } from './messages.js'
+import { shownNotice, sinceJoined } from './messages.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -104,28 +105,28 @@ export async function attachPhotos(
 }
 
 // 같은 키가 동시에 두 번 들어오면 저장소 위치의 UNIQUE가 막는다. 그것을 이미 보낸 사진으로 답한다.
-export function isStorageKeyConflict(error: unknown): boolean {
-  for (let cause = error; cause && typeof cause === 'object'; cause = (cause as Error).cause) {
-    const { code, constraint } = cause as { code?: unknown; constraint?: unknown }
-    if (code === '23505' && typeof constraint === 'string' && constraint.includes('storage_key'))
-      return true
-  }
-  return false
-}
+export const isStorageKeyConflict = (error: unknown) =>
+  uniqueViolationOf(error)?.includes('storage_key') === true
 
-// 사진 보기: 그 사진이 붙은 메시지를 내가 볼 수 있을 때만(방 참여자, 들어온 뒤). 아니면 있는지도 드러내지 않는 404다.
+// 사진 보기: 그 사진이 붙은 메시지를 내가 볼 수 있을 때만(방 참여자이고, 들어온 뒤의 것이거나 보이는 같은 기수의 공지). 아니면 있는지도 드러내지 않는 404다.
+// 공지 목록이 사진 번호를 내려주므로 열 수 있는 조건도 메시지 보기와 같다(markNotice와 같은 꼴).
 export async function photoToView(db: Reader, actor: Actor, fileId: string) {
   const [found] = await db
     .select({ key: file.storageKey, name: file.name, mediaType: file.mediaType })
     .from(file)
-    .innerJoin(record, eq(record.id, file.id))
     .innerJoin(message, eq(message.id, file.attachedToId))
+    .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .innerJoin(
       roomMembership,
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
     )
     .where(
-      and(eq(file.id, fileId), eq(record.councilId, actor.councilId), sinceJoined(actor.memberId)),
+      and(
+        eq(file.id, fileId),
+        eq(record.councilId, actor.councilId),
+        or(sinceJoined(actor.memberId), shownNotice(actor)),
+      ),
     )
   if (!found) throw new ApiError('NOT_FOUND')
   return found

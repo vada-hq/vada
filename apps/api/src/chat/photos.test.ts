@@ -13,6 +13,7 @@ import { createRateLimiter } from '../http/rate-limit.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { fakeStorage } from '../test-support/storage.js'
+import { isStorageKeyConflict } from './photos.js'
 import { createChatRoutes } from './routes.js'
 
 const now = new Date('2026-10-19T03:00:00Z')
@@ -51,10 +52,18 @@ async function start(configured = true, uploadLimiter?: ReturnType<typeof create
   const upload = (room: string, user?: string) =>
     api.post(`${base}/rooms/${room}/uploads`, {}, user)
   // 주소를 받고 객체가 올라간 것처럼 저장소에 둔다.
-  const uploaded = async (room: string, user: string, size = 1000, type = 'image/jpeg') => {
-    const response = await upload(room, user)
+  const issued = async (at: string, room: string, user: string) => {
+    const response = await api.post(`${at}/rooms/${room}/uploads`, {}, user)
     assert.equal(response.status, 200)
-    const { key } = (await response.json()) as PhotoUploadResponse
+    return ((await response.json()) as PhotoUploadResponse).key
+  }
+  const uploadedIn = async (at: string, room: string, user: string) => {
+    const key = await issued(at, room, user)
+    store.put(key)
+    return key
+  }
+  const uploaded = async (room: string, user: string, size = 1000, type = 'image/jpeg') => {
+    const key = await issued(base, room, user)
     store.put(key, size, type)
     return key
   }
@@ -66,12 +75,14 @@ async function start(configured = true, uploadLimiter?: ReturnType<typeof create
     close,
     api,
     base,
+    otherBase: `/api/organizations/${other.councilId}`,
     council,
     other,
     store,
     roomId,
     upload,
     uploaded,
+    uploadedIn,
     send,
     messages: () => count('SELECT count(*) AS n FROM message'),
     files: () => count('SELECT count(*) AS n FROM file'),
@@ -380,3 +391,51 @@ test(
     assert.equal((await s.api.get(`${s.base}/files/${fileId}`, 's-planningMember')).status, 404)
   }),
 )
+
+test(
+  '들어오기 전의 같은 기수 공지의 사진은 열리고, 공지를 떼면 다시 404이며, 다른 학생회 사진 번호는 404다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const key = await s.uploaded(all, 's-president')
+    const sent = await json<ChatMessage>(await s.send(all, 's-president', { photos: [key] }))
+    const fileId = sent.photos[0]!.id
+    await s.pg.query(`UPDATE message SET sent_at = '2026-06-01T00:00:00Z' WHERE id = $1`, [sent.id])
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-07-01T00:00:00Z' WHERE member_id = $1`,
+      [s.council.people.plain.memberId],
+    )
+    const view = () => s.api.get(`${s.base}/files/${fileId}`, 's-plain')
+    assert.equal((await view()).status, 404)
+    const mark = (isNotice: boolean) =>
+      s.api.post(`${s.base}/messages/${sent.id}/notice`, { isNotice }, 's-president')
+    assert.equal((await mark(true)).status, 200)
+    assert.equal((await view()).status, 302)
+    assert.equal((await mark(false)).status, 200)
+    assert.equal((await view()).status, 404)
+    // 다른 학생회의 사진 번호를 내 학생회 주소로 열어도 404다.
+    const foreignRoom = await s.roomId(s.other.councilId, 'all')
+    const foreignKey = await s.uploadedIn(s.otherBase, foreignRoom, 'o-president')
+    const foreign = await json<ChatMessage>(
+      await s.api.post(
+        `${s.otherBase}/rooms/${foreignRoom}/messages`,
+        { photos: [foreignKey] },
+        'o-president',
+      ),
+    )
+    const response = await s.api.get(`${s.base}/files/${foreign.photos[0]!.id}`, 's-president')
+    assert.equal(response.status, 404)
+  }),
+)
+
+test('같은 키 충돌은 두 드라이버의 오류 모양 모두에서 이미 보낸 사진으로 알아본다', () => {
+  for (const shape of [
+    { constraint: 'file_storage_key_key' },
+    { constraint_name: 'file_storage_key_key' },
+  ]) {
+    const error = Object.assign(new Error('x'), { code: '23505', ...shape })
+    assert.equal(isStorageKeyConflict(error), true)
+    assert.equal(isStorageKeyConflict(new Error('wrap', { cause: error })), true)
+  }
+  const other = Object.assign(new Error('x'), { code: '23505', constraint_name: 'record_pkey' })
+  assert.equal(isStorageKeyConflict(other), false)
+})

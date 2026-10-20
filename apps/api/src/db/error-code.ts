@@ -10,3 +10,16 @@ export function errorCodeOf(error: unknown): string {
   }
   return ''
 }
+
+const UNIQUE_VIOLATION = '23505'
+// 유일 제약 위반이면 어긋난 제약 이름을 돌려준다(아니면 undefined). PGlite는 constraint에, 운영 드라이버(postgres.js)는 constraint_name에 담는다.
+export function uniqueViolationOf(error: unknown): string | undefined {
+  let current = error
+  for (let depth = 0; current && typeof current === 'object' && depth < CAUSE_DEPTH_MAX; depth++) {
+    const { code, constraint, constraint_name } = current as Record<string, unknown>
+    const name = typeof constraint === 'string' ? constraint : constraint_name
+    if (code === UNIQUE_VIOLATION && typeof name === 'string') return name
+    current = (current as { cause?: unknown }).cause
+  }
+  return undefined
+}

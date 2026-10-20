@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { ApiError } from '../http/errors.js'
-import { errorCodeOf } from './error-code.js'
+import { errorCodeOf, uniqueViolationOf } from './error-code.js'
 
 test('오류에서 SQLSTATE나 시스템 오류 코드만 꺼낸다', () => {
   assert.equal(errorCodeOf(Object.assign(new Error('x'), { code: '42501' })), '42501')
@@ -30,4 +30,23 @@ test('코드가 없거나 코드 모양이 아니면 빈 글자이고, 오류 �
   assert.equal(errorCodeOf('postgres://u:secret@h/db'), '')
   assert.equal(errorCodeOf(undefined), '')
   assert.equal(errorCodeOf(null), '')
+})
+
+test('유일 제약 위반은 두 드라이버의 모양(constraint, constraint_name)과 감싼 오류에서 제약 이름을 꺼낸다', () => {
+  const pglite = Object.assign(new Error('x'), {
+    code: '23505',
+    constraint: 'file_storage_key_key',
+  })
+  const postgresJs = Object.assign(new Error('x'), {
+    code: '23505',
+    constraint_name: 'file_storage_key_key',
+  })
+  for (const driver of [pglite, postgresJs]) {
+    assert.equal(uniqueViolationOf(driver), 'file_storage_key_key')
+    assert.equal(uniqueViolationOf(new Error('wrap', { cause: driver })), 'file_storage_key_key')
+  }
+  const other = Object.assign(new Error('x'), { code: '23503', constraint_name: 'fk' })
+  assert.equal(uniqueViolationOf(other), undefined)
+  assert.equal(uniqueViolationOf(Object.assign(new Error('x'), { code: '23505' })), undefined)
+  assert.equal(uniqueViolationOf(undefined), undefined)
 })
