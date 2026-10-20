@@ -4,6 +4,8 @@ import { MESSAGE_BODY_MAX, type ChatMessage, type MessagePageResponse } from '@v
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import type { PushSender } from '../push/sender.js'
+import { clockNow, createRecord } from '../records/records.js'
+import { memberLogin } from '../db/schema.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createChatPush } from './notify.js'
@@ -72,6 +74,7 @@ async function setup(outcomeOf: (endpoint: string) => Outcome) {
   }
   return {
     pg,
+    db,
     api,
     base,
     council,
@@ -197,8 +200,8 @@ test(
     const first = (await (await s.send(all, 's-president', { body: '하나' })).json()) as ChatMessage
     s.calls.length = 0
     assert.equal((await s.api.get(`${s.base}/rooms/${all}/messages`, 's-plain')).status, 200)
-    // 커서가 있는 읽기는 최신 쪽이 아니라 보는 중이 아니다.
-    await s.api.get(`${s.base}/rooms/${all}/messages?after=${first.id}`, 's-financeMember')
+    // 이전 쪽(before) 읽기는 보는 중이 아니다.
+    await s.api.get(`${s.base}/rooms/${all}/messages?before=${first.id}`, 's-financeMember')
     await s.send(all, 's-president', { body: '둘' })
     assert.ok(!endpointsOf(s).includes(endpointOf('s-plain')))
     assert.ok(endpointsOf(s).includes(endpointOf('s-financeMember')))
@@ -313,3 +316,76 @@ test('알림 열쇠가 없어도(push 없음) 대화는 돈다', async () => {
     await close()
   }
 })
+
+test(
+  '방 참여 줄이 남았어도 학생회를 떠난 사람과 지난 기수 사람에게는 알림이 가지 않는다',
+  run(async s => {
+    const all = await s.roomId('all')
+    const { ended } = s.council.people
+    const councilId = s.council.councilId
+    await s.pg.query(
+      "INSERT INTO users (id, name, email) VALUES ('s-old', 'old', 'old@example.test')",
+    )
+    const old = await s.db.transaction(async tx => {
+      const cohortId = await createRecord(tx, {
+        kind: 'cohort',
+        councilId,
+        actor: s.council.people.president.memberId,
+        values: { name: '2025', startsOn: '2025-01-01', endsOn: '2025-12-31' },
+      })
+      const memberId = await createRecord(tx, {
+        kind: 'member',
+        councilId: null,
+        actor: null,
+        values: { name: 'old', email: 'old@example.test' },
+      })
+      await tx.insert(memberLogin).values({ memberId, userId: 's-old' })
+      await createRecord(tx, {
+        kind: 'council_membership',
+        councilId,
+        actor: s.council.people.president.memberId,
+        values: { memberId, cohortId, councilRank: null, startsAt: clockNow },
+      })
+      return memberId
+    })
+    for (const [memberId, user] of [
+      [ended.memberId, 's-ended'],
+      [old, 's-old'],
+    ] as const) {
+      await s.pg.query(
+        'INSERT INTO room_membership (room_id, member_id, joined_at) VALUES ($1,$2,$3)',
+        [all, memberId, JOINED],
+      )
+      if (user === 's-old')
+        await s.pg.query(
+          'INSERT INTO push_device (user_id, endpoint, p256dh, auth) VALUES ($1,$2,$3,$4)',
+          [user, endpointOf(user), 'p', 'a'],
+        )
+    }
+    await s.send(all, 's-president', { body: '전체' })
+    const reached = endpointsOf(s)
+    assert.ok(!reached.includes(endpointOf('s-ended')))
+    assert.ok(!reached.includes(endpointOf('s-old')))
+    assert.ok(reached.includes(endpointOf('s-plain')))
+  }),
+)
+
+test(
+  '최신까지 이어 읽는 중이면 10초가 지나도 알림이 오지 않고, 이전 쪽을 보는 사람은 받는다',
+  run(async s => {
+    const all = await s.roomId('all')
+    const first = (await (await s.send(all, 's-president', { body: '하나' })).json()) as ChatMessage
+    s.calls.length = 0
+    // 화면은 열린 방을 3초마다 after 커서로 이어 읽는다. 최신까지 닿으면(hasNewer=false) 보는 중이다.
+    for (const seconds of [3, 6, 9, 12]) {
+      s.setNow(new Date(start.getTime() + seconds * 1000))
+      const page = await s.api.get(`${s.base}/rooms/${all}/messages?after=${first.id}`, 's-plain')
+      assert.equal(((await page.json()) as MessagePageResponse).hasNewer, false)
+      // 이전 쪽 보기는 보는 중이 아니다.
+      await s.api.get(`${s.base}/rooms/${all}/messages?before=${first.id}`, 's-financeMember')
+    }
+    await s.send(all, 's-president', { body: '둘' })
+    assert.ok(!endpointsOf(s).includes(endpointOf('s-plain')))
+    assert.ok(endpointsOf(s).includes(endpointOf('s-financeMember')))
+  }),
+)

@@ -97,9 +97,9 @@ function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
     if (!query.success) throw new ApiError('INVALID_INPUT')
     const page = await inRoom(c, async (tx, actor, id, now) => {
       const read = await messagePage(tx, actor, id, query.data)
-      // 가장 최근 쪽을 읽으면 그 방을 보는 중이다. 옛 메시지를 거슬러 읽는 것은 보는 중이 아니다.
-      if (query.data.before === undefined && query.data.after === undefined)
-        push?.seen(id, actor.memberId, now)
+      // 최신까지 읽으면 그 방을 보는 중이다. 화면은 열린 방을 after 커서로 이어 읽으므로 그것도 센다.
+      // 이전 쪽(before)을 거슬러 읽는 것과 최신까지 닿지 못한 읽기는 보는 중이 아니다.
+      if (query.data.before === undefined && !read.hasNewer) push?.seen(id, actor.memberId, now)
       return read
     })
     return c.json(page satisfies MessagePageResponse)
