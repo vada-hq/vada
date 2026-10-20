@@ -1,4 +1,5 @@
 import type { Action, TeamMember } from '@vada/contracts'
+import { NOT_FOUND_RELOADED, PERMISSION_CHANGED } from '@/lib/messages'
 import { holdsRank } from './team-view'
 
 export type Can = (action: Action) => boolean
@@ -38,3 +39,7 @@ export function findConfirming(
   const allowed = confirm.kind === 'remove' ? removable(target, me, can) : can('president.transfer')
   return allowed ? { kind: confirm.kind, member: target } : null
 }
+
+// 대화상자가 닫힌 까닭: 대상이 목록에 아직 있는데 닫혔다면 권한을 잃은 것이고, 없으면 사라진 것이다.
+export const closedReason = (members: TeamMember[] | undefined, id: string | null) =>
+  members?.some(member => member.id === id) ? PERMISSION_CHANGED : NOT_FOUND_RELOADED

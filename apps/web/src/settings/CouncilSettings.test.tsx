@@ -185,3 +185,23 @@ test('임기 끝이 시작보다 뒤가 아니면 저장 버튼을 끄고 까닭
   expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
   expect(save.disabled).toBe(false)
 })
+
+test('고치던 중 회장단 권한을 잃으면 양식이 보기만으로 바뀌고 까닭이 보인다', () => {
+  const view = render(
+    <CouncilSettings
+      view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
+      onSaved={() => {}}
+      onForbidden={() => {}}
+    />,
+  )
+  expect(screen.queryByText('회장단만 고칠 수 있어요.')).toBeNull()
+  view.rerender(
+    <CouncilSettings
+      view={councilView('c1', { councilRank: null, permissions: MEMBER_PERMISSIONS })}
+      onSaved={() => {}}
+      onForbidden={() => {}}
+    />,
+  )
+  expect(screen.getByText('회장단만 고칠 수 있어요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '저장' })).toBeNull()
+})

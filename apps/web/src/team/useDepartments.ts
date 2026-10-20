@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { CouncilView, TeamDepartment } from '@vada/contracts'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { useLost } from '@/lib/use-lost'
 import { useDepartmentRequests } from './useDepartmentRequests'
 import { useDepartmentDialogs } from './useDepartmentDialogs'
 import { departmentPath, useDepartmentSubmits } from './useDepartmentSubmits'
@@ -13,7 +15,9 @@ export function useDepartments(view: CouncilView, team: Team) {
   const [newName, setNewName] = useState('')
   const menuFocus = useMenuFocus()
   const requests = useDepartmentRequests(team.change)
-  const dialogs = useDepartmentDialogs(team.data, manage)
+  const dialogs = useDepartmentDialogs(team.data, manage, requests.report)
+  // 만들기 칸과 줄의 ⋯ 메뉴는 권한과 함께 사라진다.
+  useLost(manage, () => requests.report(PERMISSION_CHANGED))
   const submits = useDepartmentSubmits(team.saving, requests, dialogs)
 
   // 닫을 때 포커스를 그 줄의 ⋯ 버튼으로 돌려주려고 어느 줄인지 기억한다.

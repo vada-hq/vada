@@ -28,6 +28,8 @@ export function useDepartmentRequests(change: Team['change']) {
   return {
     run,
     problemIn: (scope: Scope) => (problem?.scope === scope ? problem.text : ''),
+    // 서버 답이 아니라 화면이 알아챈 일(대상이 사라짐, 권한을 잃음)의 까닭을 쪽 위에 보인다.
+    report: (text: string) => setProblem({ scope: 'list', text }),
     clear: () => setProblem(null),
     clearIn: (scope: Scope) => setProblem(current => (current?.scope === scope ? null : current)),
   }

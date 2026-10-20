@@ -807,3 +807,17 @@ test('초대 링크 카드는 초대 권한을 잃어 사라지면 까닭을 쪽
   expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
   expect(await screen.findByText(LOST)).toBeTruthy()
 })
+
+test('내보내기가 성공해 확인 대화상자가 닫힐 때는 까닭 문구를 보이지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m3/remove', () => json(withoutMember('m3')))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
+  const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '내보내기' }))
+  expect(await screen.findByText('운영진 2명')).toBeTruthy()
+  await noDialog()
+  await settle()
+  expect(screen.queryByText(GONE)).toBeNull()
+  expect(screen.queryByText(LOST)).toBeNull()
+})

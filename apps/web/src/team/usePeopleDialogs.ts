@@ -1,22 +1,46 @@
 import { useEffect, useState } from 'react'
 import type { TeamResponse } from '@vada/contracts'
-import { findConfirming, findEditing, type Can, type Confirm } from './people-access'
+import { useLatest } from '@/lib/use-latest'
+import { closedReason, findConfirming, findEditing, type Can, type Confirm } from './people-access'
 
 // 사람 화면의 대화상자 둘(부서 배정, 확인)의 대상. 다시 읽은 목록과 권한으로 매번 대상을 찾으므로,
-// 대상이 사라졌거나 권한을 잃으면 대화상자는 닫힌다.
-export function usePeopleDialogs(data: TeamResponse | null, me: string, can: Can) {
+// 대상이 사라졌거나 권한을 잃으면 대화상자는 닫히고 onClosed로 까닭을 알린다.
+export function usePeopleDialogs(
+  data: TeamResponse | null,
+  me: string,
+  can: Can,
+  onClosed: (reason: string) => void,
+) {
   const [editing, setEditing] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const editingMember = findEditing(data?.members, editing, can)
   const confirming = findConfirming(data?.members, confirm, me, can)
-  const editingGone = data !== null && editing !== null && !editingMember
-  const confirmGone = data !== null && confirm !== null && !confirming
+  const editingGone = isGone(data, editing, editingMember)
+  const confirmGone = isGone(data, confirm, confirming)
   // 닫힌 대화상자의 대상을 지운다. 나중에 같은 운영진이 다시 목록에 나타나도 대화상자가 저절로 열리지 않게 한다.
-  useEffect(() => {
-    if (editingGone) setEditing(null)
-  }, [editingGone])
-  useEffect(() => {
-    if (confirmGone) setConfirm(null)
-  }, [confirmGone])
+  useWhenClosed(editingGone, closedReason(data?.members, editing), onClosed, () => setEditing(null))
+  useWhenClosed(confirmGone, closedReason(data?.members, confirm?.memberId ?? null), onClosed, () =>
+    setConfirm(null),
+  )
   return { editingMember, confirming, setEditing, setConfirm }
+}
+
+// 목록을 읽은 뒤 열려 있던(대상을 기억하던) 대화상자의 대상을 못 찾으면 닫힌 것이다.
+const isGone = (data: TeamResponse | null, key: unknown, found: unknown) =>
+  data !== null && key !== null && !found
+
+// 대상을 잃어 대화상자가 닫혔을 때 한 번 대상을 지우고 까닭을 알린다.
+function useWhenClosed(
+  gone: boolean,
+  reason: string,
+  onClosed: (reason: string) => void,
+  clear: () => void,
+) {
+  const closed = useLatest(onClosed)
+  const clearing = useLatest(clear)
+  useEffect(() => {
+    if (!gone) return
+    clearing.current()
+    closed.current(reason)
+  }, [gone, reason, closed, clearing])
 }

@@ -13,6 +13,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import Departments from './Departments'
 import { useTeam } from './useTeam'
 import { asElement } from '@/test-support/elements'
+import { settle } from '@/test-support/settle'
 
 afterEach(() => {
   cleanup()
@@ -501,4 +502,22 @@ test('까닭 문구는 다른 대화상자를 열면 사라진다', async () => 
   fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '이름 바꾸기' }))
   await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
   expect(screen.queryByText(GONE)).toBeNull()
+})
+
+test('부서를 없애 확인 대화상자가 닫힐 때는 까닭 문구를 보이지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments/d2/delete', () =>
+    withDepartments(team => {
+      team.departments = team.departments.slice(0, 1)
+    }),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
+  const dialog = await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '없애기' }))
+  expect(await screen.findByText('부서 1개')).toBeTruthy()
+  await noDialog()
+  await settle()
+  expect(screen.queryByText(GONE)).toBeNull()
+  expect(screen.queryByText(LOST)).toBeNull()
 })
