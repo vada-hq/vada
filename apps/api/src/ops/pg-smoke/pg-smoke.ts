@@ -65,30 +65,77 @@ async function judged(smokeCase: SmokeCase, context: SmokeContext): Promise<Smok
   }
 }
 
-// 종료 코드를 돌려준다. 0은 모두 통과, 1은 실패(사례 실패, 서버 조건 미달, 지우기 실패 포함), 2는 CREATE DATABASE 권한이 없다.
-// 같은 서버에 잠깐 쓸 DB를 만들어 마이그레이션하고 사례를 돌린 뒤 지운다. 끝나는 길이 어떻든 연결을 닫고 그 DB를 지운다.
-// 화면에는 호스트와 DB 이름, 판정 줄, 오류 코드만 찍는다. 주소, 비밀번호, 오류 원문은 찍지 않는다.
-export async function runPgSmoke(run: SmokeRun): Promise<number> {
+// 클로저 안에서 바뀌는 값이라 객체에 둔다. database는 만들었을 수 있는 점검 DB다.
+type Open = { admin: SmokeConnection | undefined; database: string | undefined }
+
+// 시작 조건: 주소가 있고 화면에 보여 줄 수 있어야 한다. 아니면 멈출 종료 코드를 돌려준다.
+function targetOf(run: SmokeRun): { url: string } | { exit: number } {
   const url = run.databaseUrl?.trim()
   if (!url) {
     run.log.error(
       'DATABASE_URL이 없다. apps/api에서 npx tsx --env-file=../../.env scripts/pg-smoke.ts처럼 환경 파일을 넘겨 실행한다. 아무것도 하지 않았다.',
     )
-    return 1
+    return { exit: 1 }
   }
   const shown = describeTarget(url)
   run.log.info(`대상: ${shown}`)
   if (shown === UNREADABLE_TARGET) {
     run.log.error(UNSHOWN_TARGET_MESSAGE)
-    return 1
+    return { exit: 1 }
   }
+  return { url }
+}
 
-  // 클로저 안에서 바뀌는 값이라 객체에 둔다. database는 만들었을 수 있는 점검 DB다.
-  const open: { admin: SmokeConnection | undefined; database: string | undefined } = {
-    admin: undefined,
-    database: undefined,
+// 서버 버전과 격리 수준을 읽어 점검해도 되는 서버인지 본다. 아니면 이유를 찍고 false를 돌려준다.
+async function serverAllowed(admin: SmokeConnection, run: SmokeRun): Promise<boolean> {
+  const [version] = await admin.sql.unsafe('SHOW server_version')
+  const [isolation] = await admin.sql.unsafe('SHOW default_transaction_isolation')
+  const problem = serverProblem(version?.server_version, isolation?.default_transaction_isolation)
+  if (problem) run.log.error(problem)
+  return !problem
+}
+
+// 점검 DB를 만든다. 권한이 없어 못 만들면 종료 코드를 돌려준다.
+async function createSmokeDatabase(
+  admin: SmokeConnection,
+  run: SmokeRun,
+  open: Open,
+): Promise<{ database: string } | { exit: number }> {
+  const database = smokeDatabaseName(run.now())
+  open.database = database
+  try {
+    await admin.sql.unsafe(`CREATE DATABASE "${database}"`)
+  } catch (error) {
+    // 권한이 없다는 확실한 거절이면 만들어진 것이 없다. 그 밖의 실패는 만들어졌을 수 있어 끝에서 지우기를 시도한다.
+    if (errorCodeOf(error) !== '42501') throw error
+    open.database = undefined
+    run.log.error(
+      'CREATE DATABASE 권한이 없다(42501). 이 계정으로는 점검 DB를 만들 수 없어 아무것도 하지 않았다.',
+    )
+    return { exit: EXIT_NO_PRIVILEGE }
   }
-  // 사례에 준 연결은 사례가 닫지 않았어도 끝에서 닫는다. 두 번 닫혀도 한 번만 부른다.
+  run.log.info(`점검 DB: ${database} (만들었다)`)
+  return { database }
+}
+
+// 사례를 차례로 돌려 판정 줄을 찍고 종료 코드를 돌려준다.
+async function runCases(run: SmokeRun, context: SmokeContext): Promise<number> {
+  let failed = 0
+  for (const smokeCase of run.cases) {
+    const verdict = await judged(smokeCase, context)
+    if (verdict.ok) {
+      run.log.info(`통과: ${smokeCase.name} — ${verdict.detail}`)
+    } else {
+      failed += 1
+      run.log.error(`실패: ${smokeCase.name} — ${verdict.detail} (${verdict.code})`)
+    }
+  }
+  run.log.info(failed === 0 ? '모두 통과' : `${failed}개 실패`)
+  return failed === 0 ? 0 : 1
+}
+
+// 사례에 준 연결은 사례가 닫지 않았어도 끝에서 닫는다. 두 번 닫혀도 한 번만 부른다.
+function trackedConnections() {
   const handedOut: SmokeConnection[] = []
   const track = (connection: SmokeConnection): SmokeConnection => {
     let ending: Promise<void> | undefined
@@ -96,76 +143,74 @@ export async function runPgSmoke(run: SmokeRun): Promise<number> {
     handedOut.push(tracked)
     return tracked
   }
+  // 닫다 실패해도 결과는 바꾸지 않는다.
+  const closeAll = () =>
+    Promise.allSettled(handedOut.map(connection => Promise.resolve().then(connection.end)))
+  return { track, closeAll }
+}
 
-  const start = async (admin: SmokeConnection): Promise<number> => {
-    const [version] = await admin.sql.unsafe('SHOW server_version')
-    const [isolation] = await admin.sql.unsafe('SHOW default_transaction_isolation')
-    const problem = serverProblem(version?.server_version, isolation?.default_transaction_isolation)
-    if (problem) {
-      run.log.error(problem)
-      return 1
-    }
-    const database = smokeDatabaseName(run.now())
-    open.database = database
+// 점검 DB를 만들고 마이그레이션해 사례를 돌린다.
+async function smoke(
+  run: SmokeRun,
+  url: string,
+  open: Open,
+  track: (connection: SmokeConnection) => SmokeConnection,
+): Promise<number> {
+  const admin = open.admin
+  if (!admin) return 1
+  if (!(await serverAllowed(admin, run))) return 1
+  const created = await createSmokeDatabase(admin, run, open)
+  if ('exit' in created) return created.exit
+  const smokeUrl = withDatabase(url, created.database)
+  await run.migrate(smokeUrl)
+  run.log.info('마이그레이션 적용 완료')
+  return await runCases(run, {
+    connect: () => track(run.connect(smokeUrl)),
+    now: run.now(),
+    sessionLimitMs: SESSION_LIMIT_MS,
+  })
+}
+
+// 점검 DB를 지우고 관리 연결을 닫는다. 지우지 못했으면 true를 돌려준다.
+async function dropAndClose(run: SmokeRun, open: Open): Promise<boolean> {
+  let dropFailed = false
+  if (open.admin && open.database) {
     try {
-      await admin.sql.unsafe(`CREATE DATABASE "${database}"`)
+      await open.admin.sql.unsafe(`DROP DATABASE IF EXISTS "${open.database}" WITH (FORCE)`)
+      run.log.info(`점검 DB를 지웠다: ${open.database}`)
     } catch (error) {
-      // 권한이 없다는 확실한 거절이면 만들어진 것이 없다. 그 밖의 실패는 만들어졌을 수 있어 끝에서 지우기를 시도한다.
-      if (errorCodeOf(error) !== '42501') throw error
-      open.database = undefined
       run.log.error(
-        'CREATE DATABASE 권한이 없다(42501). 이 계정으로는 점검 DB를 만들 수 없어 아무것도 하지 않았다.',
+        `점검 DB를 지우지 못했다. 직접 지운다: ${open.database} ${errorCodeOf(error)}`.trim(),
       )
-      return EXIT_NO_PRIVILEGE
+      dropFailed = true
     }
-    run.log.info(`점검 DB: ${database} (만들었다)`)
-    const smokeUrl = withDatabase(url, database)
-    await run.migrate(smokeUrl)
-    run.log.info('마이그레이션 적용 완료')
-    const context: SmokeContext = {
-      connect: () => track(run.connect(smokeUrl)),
-      now: run.now(),
-      sessionLimitMs: SESSION_LIMIT_MS,
-    }
-    let failed = 0
-    for (const smokeCase of run.cases) {
-      const verdict = await judged(smokeCase, context)
-      if (verdict.ok) {
-        run.log.info(`통과: ${smokeCase.name} — ${verdict.detail}`)
-      } else {
-        failed += 1
-        run.log.error(`실패: ${smokeCase.name} — ${verdict.detail} (${verdict.code})`)
-      }
-    }
-    run.log.info(failed === 0 ? '모두 통과' : `${failed}개 실패`)
-    return failed === 0 ? 0 : 1
   }
+  try {
+    await open.admin?.end()
+  } catch {
+    // 무시
+  }
+  return dropFailed
+}
 
+// 종료 코드를 돌려준다. 0은 모두 통과, 1은 실패(사례 실패, 서버 조건 미달, 지우기 실패 포함), 2는 CREATE DATABASE 권한이 없다.
+// 같은 서버에 잠깐 쓸 DB를 만들어 마이그레이션하고 사례를 돌린 뒤 지운다. 끝나는 길이 어떻든 연결을 닫고 그 DB를 지운다.
+// 화면에는 호스트와 DB 이름, 판정 줄, 오류 코드만 찍는다. 주소, 비밀번호, 오류 원문은 찍지 않는다.
+export async function runPgSmoke(run: SmokeRun): Promise<number> {
+  const target = targetOf(run)
+  if ('exit' in target) return target.exit
+  const open: Open = { admin: undefined, database: undefined }
+  const { track, closeAll } = trackedConnections()
   let exit = 1
   try {
-    open.admin = run.connect(url)
-    exit = await start(open.admin)
+    open.admin = run.connect(target.url)
+    exit = await smoke(run, target.url, open, track)
   } catch (error) {
     run.log.error(`점검 실패. ${SECRET_NOTE} ${errorCodeOf(error)}`.trim())
   } finally {
-    // 지우기 전에 연결을 닫는다(WITH (FORCE)가 남은 연결을 끊기는 하지만 깔끔하게 닫고 지운다). 닫다 실패해도 결과는 바꾸지 않는다.
-    await Promise.allSettled(handedOut.map(connection => Promise.resolve().then(connection.end)))
-    if (open.admin && open.database) {
-      try {
-        await open.admin.sql.unsafe(`DROP DATABASE IF EXISTS "${open.database}" WITH (FORCE)`)
-        run.log.info(`점검 DB를 지웠다: ${open.database}`)
-      } catch (error) {
-        run.log.error(
-          `점검 DB를 지우지 못했다. 직접 지운다: ${open.database} ${errorCodeOf(error)}`.trim(),
-        )
-        exit = 1
-      }
-    }
-    try {
-      await open.admin?.end()
-    } catch {
-      // 무시
-    }
+    // 지우기 전에 연결을 닫는다(WITH (FORCE)가 남은 연결을 끊기는 하지만 깔끔하게 닫고 지운다).
+    await closeAll()
+    if (await dropAndClose(run, open)) exit = 1
   }
   return exit
 }

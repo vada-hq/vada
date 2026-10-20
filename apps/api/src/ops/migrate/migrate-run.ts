@@ -55,6 +55,70 @@ const commandOf = (fromShell: boolean, apply: boolean) => {
   return `npm run db:migrate --workspace @vada/api${flags.length > 0 ? ` -- ${flags.join(' ')}` : ''}`
 }
 
+type Options = Exclude<MigrateArgs, { stop: string }>
+type Target = Exclude<TargetSource, { stop: string }>
+
+// 적용을 마친 뒤 기록을 다시 읽어 실제로 적용된 개수를 찍는다.
+async function applyAndReport(
+  run: MigrationRun,
+  connection: MigrationConnection,
+  options: Options,
+  before: Awaited<ReturnType<typeof readTargetState>>,
+): Promise<number> {
+  await connection.apply()
+  // 적용 호출이 돌아왔다는 것과 기록이 늘었다는 것은 다르다. 기록을 다시 읽어 실제로 적용된 개수를 찍는다.
+  let after: Awaited<ReturnType<typeof readTargetState>>
+  try {
+    after = await readTargetState(connection.query)
+  } catch (error) {
+    // 적용은 이미 끝났다. "마이그레이션 실패"로 알리면 적용되지 않은 줄 알고 다시 하려 들 수 있어 따로 알린다.
+    run.log.error(
+      `적용은 끝났고 확인 읽기에 실패했다 — 미리 보기로 다시 확인한다(${commandOf(options.fromShell, false)}). 연결 문자열과 오류 원문은 출력하지 않습니다. ${errorCodeOf(error)}`.trim(),
+    )
+    return 1
+  }
+  run.log.info(
+    `마이그레이션 적용 완료(${(after.applied?.length ?? 0) - (before.applied?.length ?? 0)}개)`,
+  )
+  return 0
+}
+
+// 대상을 보여 주고, 연결해 점검한 뒤 미리 보기 또는 적용을 한다. 연결을 열면 hold로 알려 바깥이 닫게 한다.
+async function migrateOn(
+  run: MigrationRun,
+  options: Options,
+  target: Target,
+  hold: (connection: MigrationConnection) => void,
+): Promise<number> {
+  const url = target.source === 'shell' ? target.url : run.readEnvUrl()
+  if (!url) throw new Error('DATABASE_URL is missing')
+  const shown = describeTarget(url)
+  run.log.info(`대상: ${shown} (${target.source === 'shell' ? '셸의 DATABASE_URL' : '.env'})`)
+  if (options.apply && shown === UNREADABLE_TARGET) {
+    run.log.error(UNSHOWN_TARGET_MESSAGE)
+    return 1
+  }
+  const local = run.readLocal()
+  const connection = run.connect(url)
+  hold(connection)
+  const state = await readTargetState(connection.query)
+  run.log.info(
+    `public 표 ${state.publicTables}개, 적용 기록 ${state.applied?.length ?? '없음'}, 로컬 마이그레이션 ${local.length}개`,
+  )
+  const check = checkTarget(state, local)
+  if (!check.ok) {
+    run.log.error(CHECK_MESSAGES[check.reason])
+    return 1
+  }
+  if (!options.apply) {
+    run.log.info(
+      `적용할 마이그레이션 ${check.pending}개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면: ${commandOf(options.fromShell, true)}`,
+    )
+    return 0
+  }
+  return await applyAndReport(run, connection, options, state)
+}
+
 // 기본은 미리 보기다: 대상과 점검 결과만 찍는다. --apply를 줄 때만, 대상을 보여 줄 수 있고 점검을 통과했을 때 적용한다.
 // 화면에는 호스트와 DB 이름, 개수, 오류 코드만 찍는다. 주소, 비밀번호, 오류 원문은 찍지 않는다.
 export async function runMigration(run: MigrationRun): Promise<number> {
@@ -70,47 +134,9 @@ export async function runMigration(run: MigrationRun): Promise<number> {
   }
   let connection: MigrationConnection | undefined
   try {
-    const url = target.source === 'shell' ? target.url : run.readEnvUrl()
-    if (!url) throw new Error('DATABASE_URL is missing')
-    const shown = describeTarget(url)
-    run.log.info(`대상: ${shown} (${target.source === 'shell' ? '셸의 DATABASE_URL' : '.env'})`)
-    if (options.apply && shown === UNREADABLE_TARGET) {
-      run.log.error(UNSHOWN_TARGET_MESSAGE)
-      return 1
-    }
-    const local = run.readLocal()
-    connection = run.connect(url)
-    const state = await readTargetState(connection.query)
-    run.log.info(
-      `public 표 ${state.publicTables}개, 적용 기록 ${state.applied?.length ?? '없음'}, 로컬 마이그레이션 ${local.length}개`,
-    )
-    const check = checkTarget(state, local)
-    if (!check.ok) {
-      run.log.error(CHECK_MESSAGES[check.reason])
-      return 1
-    }
-    if (!options.apply) {
-      run.log.info(
-        `적용할 마이그레이션 ${check.pending}개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면: ${commandOf(options.fromShell, true)}`,
-      )
-      return 0
-    }
-    await connection.apply()
-    // 적용 호출이 돌아왔다는 것과 기록이 늘었다는 것은 다르다. 기록을 다시 읽어 실제로 적용된 개수를 찍는다.
-    let after: Awaited<ReturnType<typeof readTargetState>>
-    try {
-      after = await readTargetState(connection.query)
-    } catch (error) {
-      // 적용은 이미 끝났다. "마이그레이션 실패"로 알리면 적용되지 않은 줄 알고 다시 하려 들 수 있어 따로 알린다.
-      run.log.error(
-        `적용은 끝났고 확인 읽기에 실패했다 — 미리 보기로 다시 확인한다(${commandOf(options.fromShell, false)}). 연결 문자열과 오류 원문은 출력하지 않습니다. ${errorCodeOf(error)}`.trim(),
-      )
-      return 1
-    }
-    run.log.info(
-      `마이그레이션 적용 완료(${(after.applied?.length ?? 0) - (state.applied?.length ?? 0)}개)`,
-    )
-    return 0
+    return await migrateOn(run, options, target, opened => {
+      connection = opened
+    })
   } catch (error) {
     run.log.error(
       `마이그레이션 실패. 연결 문자열과 오류 원문은 출력하지 않습니다. ${errorCodeOf(error)}`.trim(),

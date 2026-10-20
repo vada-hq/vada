@@ -103,7 +103,7 @@
 - 수용 기준: API 시험이 모두 통과한다. 대상 함수가 모두 상한 안이다. 대상은 `runtime.ts readRuntime`(복잡도 26), `push/config.ts pushConfigFrom`(15), `serve.ts main`, `team/routes.ts`, `councils/routes.ts`, `invites/routes.ts`, `records.updateRecords`, `invites/service.joinCouncil`, `storage.createR2Storage`, `scripts/test-data.ts parseTestDataArgs`, 그리고 인자 5개 이상인 6곳(`authorize`, `authorizeChange`, `inCouncilChange`, `assignDepartment`, `createPushRoutes`, 시험 도우미 `addUser`)이다. 운영 모드 시작(CI 단계)이 그대로 통과한다.
 - 검토: 깊게(로그인 잇기, 초대, 기록, 권한 확인이 권한과 데이터 경계다).
 
-### 9. 운영 도구 폴더와 함수 [ ]
+### 9. 운영 도구 폴더와 함수 [x]
 - 할 수 있게 되는 것: 실행 코드와 운영 도구를 폴더 이름으로 구별하고, 운영 DB 적용 경로를 작은 함수 단위로 읽는다.
 - 수용 기준: `api/src/db/`에 운영 도구가 없다. `migrate-run.runMigration`(복잡도 20), `pg-smoke.runPgSmoke`, `pg-smoke-cases.ts`(파일 길이, 함수 길이, 인자 6개)가 상한 안이다. 옮기기만 한 커밋과 나누기 커밋이 따로 있다. AGENTS.md와 문서의 경로가 새 폴더를 가리킨다. 진행 에이전트가 개발 DB에 `pg-smoke`와 `db:migrate` 미리 보기를 돌려 전과 같은 결과를 본다.
 - 닿는 곳: `api/src/db/`, `api/src/ops/`, `api/scripts/pg-smoke.ts`, `api/package.json` 스크립트, AGENTS.md, `docs/work-method.md`.
