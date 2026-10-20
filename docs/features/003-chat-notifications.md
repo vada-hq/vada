@@ -96,7 +96,7 @@
 - 닿는 곳: contracts `push.ts`(알림 내용 모양, 방 주소). `push/sender.ts`, `push/fanout.ts`(새), `push/routes.ts`, `chat/notify.ts`, `chat/presence.ts`, `serve.ts`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 6. 사진 보내기와 보기(서버) [ ]
+### 6. 사진 보내기와 보기(서버) [x]
 - 할 수 있게 되는 것: 참여자가 사진을 R2에 올려 메시지로 보내고, 참여자만 본다.
 - 수용 기준: 올리기 주소는 참여자만 받는다. 키는 `chat/{학생회}/{나}/{번호}`, 10분짜리이고 JPEG만 올라가며 덮어쓸 수 없다. 보낼 때 저장소의 크기가 1바이트~10MB가 아니거나 형식이 JPEG가 아니면 400 `UPLOAD_MISMATCH`이고 그 객체를 지운다. 남의 키면 400이고 지우지 않는다. 같은 키로 다시 보내면 409 `PHOTO_ALREADY_SENT`다. 어느 실패에서도 메시지가 생기지 않는다. 사진만 보내면 본문이 빈 글이다. 사진 보기는 참여자에게 5분 서명 주소로 302를 준다. 볼 수 없는 메시지의 사진은 404다. R2 값이 없으면 사진은 503 `STORAGE_NOT_CONFIGURED`이고 글은 그대로 돈다.
 - 닿는 곳: `storage/storage.ts`(영수증 전용 이름을 파일 저장소로, 덮어쓰기 막기). contracts `CreatePhotoUploadSchema`, 사진 키. `chat/photos.ts`, `chat/routes.ts`, `serve.ts`(R2 잇기), `.env.example`. 경로는 `POST rooms/:roomId/uploads`, `GET files/:fileId`.

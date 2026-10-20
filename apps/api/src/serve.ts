@@ -14,6 +14,7 @@ import { pushConfigFrom } from './push/config.js'
 import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
 import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
+import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
 import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
@@ -47,6 +48,13 @@ function pushOf(env: Env, db: Db, session: SessionReader) {
   }
 }
 
+// 파일 저장소(R2) 값 넷이 모두 있어야 켠다. 없으면 사진만 막히고 서버와 글 대화는 돈다.
+function storageOf(env: Env) {
+  const config = r2ConfigFrom(env)
+  if (config) console.log('파일 저장소 켜짐 (R2)')
+  return config ? createR2Storage(config) : undefined
+}
+
 function appOf(env: Env, db: Db) {
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET!,
@@ -62,7 +70,7 @@ function appOf(env: Env, db: Db) {
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
-    chat: createChatRoutes(db, session, { push: push.chatPush }),
+    chat: createChatRoutes(db, session, { push: push.chatPush, storage: storageOf(env) }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
   })

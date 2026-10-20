@@ -8,6 +8,7 @@ import { clockNow, createRecord } from '../records/records.js'
 import { memberLogin } from '../db/schema.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { fakeStorage } from '../test-support/storage.js'
 import { createChatPush } from './notify.js'
 import { createChatRoutes } from './routes.js'
 
@@ -30,6 +31,7 @@ async function setup(outcomeOf: (endpoint: string) => Outcome) {
     return outcome
   }
   const pending: Promise<void>[] = []
+  const store = fakeStorage()
   const chatPush = createChatPush(db, send)
   const push = {
     seen: chatPush.seen,
@@ -43,7 +45,7 @@ async function setup(outcomeOf: (endpoint: string) => Outcome) {
     createApp({
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
-      chat: createChatRoutes(db, testSession, { clock: () => now, push }),
+      chat: createChatRoutes(db, testSession, { clock: () => now, push, storage: store.storage }),
     }),
   )
   const base = `/api/organizations/${council.councilId}`
@@ -79,6 +81,7 @@ async function setup(outcomeOf: (endpoint: string) => Outcome) {
     base,
     council,
     calls,
+    store,
     roomId,
     send: sendAs,
     settled,
@@ -107,6 +110,26 @@ const run =
   }
 const endpointsOf = (s: Setup) => s.calls.map(call => call[0].endpoint).sort()
 const usersOf = (...names: string[]) => names.map(name => endpointOf(`s-${name}`)).sort()
+
+test(
+  '사진만 보내면 알림 본문이 사진이고 글과 함께면 글 앞부분이다',
+  run(async s => {
+    const all = await s.roomId('all')
+    const photo = async (user: string, body?: string) => {
+      const issued = (await (
+        await s.api.post(`${s.base}/rooms/${all}/uploads`, {}, user)
+      ).json()) as { key: string }
+      s.store.put(issued.key)
+      return s.send(all, user, { ...(body ? { body } : {}), photos: [issued.key] })
+    }
+    assert.equal((await photo('s-president')).status, 201)
+    assert.equal(s.calls[0]![1].body, '사진')
+    s.calls.length = 0
+    s.setNow(new Date(start.getTime() + 60_000))
+    assert.equal((await photo('s-president', '행사 사진')).status, 201)
+    assert.equal(s.calls[0]![1].body, '행사 사진')
+  }),
+)
 
 test(
   '글을 보내면 그 방의 다른 참여자 기기마다 한 번씩 가고 보낸 사람과 내보낸 사람은 뺀다',

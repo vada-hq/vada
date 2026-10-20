@@ -1,5 +1,6 @@
 import { Hono, type Context } from 'hono'
 import {
+  CreatePhotoUploadSchema,
   MarkNoticeSchema,
   MessagePageQuerySchema,
   NO_CONTENT,
@@ -10,6 +11,7 @@ import {
   type Action,
   type ChatMessage,
   type OpenDirectResponse,
+  type PhotoUploadResponse,
   type MessagePageResponse,
   type NoticeListResponse,
   type RoomDetailResponse,
@@ -19,6 +21,7 @@ import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/a
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
+import type { FileStorage } from '../storage/storage.js'
 import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
@@ -26,6 +29,14 @@ import { openDirect } from './direct.js'
 import { messagePage, noticesOf } from './messages.js'
 import { markNotice } from './notice.js'
 import type { ChatPush } from './notify.js'
+import {
+  isStorageKeyConflict,
+  issuePhotoUpload,
+  photoToView,
+  PHOTO_UPLOAD_LIMIT,
+  requireStorage,
+  verifyPhotos,
+} from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
@@ -34,6 +45,7 @@ import { SEND_LIMIT, sendMessage } from './send.js'
 
 const root = '/organizations/:councilId'
 const CREATED = 201
+const FOUND = 302
 
 // 읽기는 한 시점의 모습이다. 권한 확인과 조회를 읽기 전용 REPEATABLE READ 거래 하나에서 한다(team 읽기와 같다).
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
@@ -45,6 +57,8 @@ interface Kit {
   db: Db
   asked: (c: Context<SessionEnv>) => ReturnType<typeof requestOf>
   sendLimiter: RateLimiter
+  uploadLimiter: RateLimiter
+  storage: FileStorage | undefined
   push: ChatPush | undefined
   clock: () => Date
   // 학생회 행을 잠그고 권한(action)을 다시 본 뒤 바꾸는 거래
@@ -113,16 +127,35 @@ function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
   })
 }
 
-function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock }: Kit) {
+// 보내기 거래. 같은 사진 키가 동시에 두 번 들어와 저장소 위치 UNIQUE에 걸리면 이미 보낸 사진이다.
+async function sentIn(db: Db, run: (tx: Tx) => Promise<ChatMessage>) {
+  try {
+    // READ COMMITTED 거래: 보내기가 줄을 잠그고 기다린 뒤의 값을 봐야 한다(send.ts).
+    return await db.transaction(run)
+  } catch (error) {
+    if (isStorageKeyConflict(error)) throw new ApiError('PHOTO_ALREADY_SENT')
+    throw error
+  }
+}
+
+function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock, storage }: Kit) {
   routes.post(`${root}/rooms/:roomId/messages`, json(SendMessageSchema), auth, async c => {
     const request = asked(c)
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!sendLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
     const roomId = recordIdOf(c.req.param('roomId'))
-    const { body, mentions } = c.req.valid('json')
-    // READ COMMITTED 거래: 보내기가 줄을 잠그고 기다린 뒤의 값을 봐야 한다(send.ts).
-    const sent = await db.transaction(async tx =>
-      sendMessage(tx, await authorize(tx, request), { roomId, body, mentions }, request.now),
+    const { body, mentions, photos: keys } = c.req.valid('json')
+    // 사진은 거래 밖에서 저장소를 확인한다(저장소를 기다리는 동안 참여 줄 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
+    const photos = keys.length
+      ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
+      : []
+    const sent = await sentIn(db, async tx =>
+      sendMessage(
+        tx,
+        await authorize(tx, request),
+        { roomId, body: body ?? '', mentions, photos },
+        request.now,
+      ),
     )
     // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
     void push?.notify(sent.id, clock())
@@ -145,11 +178,45 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
   })
 }
 
+function photoRoutes({ routes, auth, db, asked, uploadLimiter, storage }: Kit) {
+  routes.post(`${root}/rooms/:roomId/uploads`, json(CreatePhotoUploadSchema), auth, async c => {
+    const files = requireStorage(storage)
+    const request = asked(c)
+    if (!uploadLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
+    const roomId = recordIdOf(c.req.param('roomId'))
+    const actor = await db.transaction(async tx => {
+      const asking = await authorize(tx, request)
+      await roomAccess(tx, asking, roomId)
+      return asking
+    }, snapshot)
+    return c.json((await issuePhotoUpload(files, actor)) satisfies PhotoUploadResponse)
+  })
+  routes.get(`${root}/files/:fileId`, auth, async c => {
+    const request = asked(c)
+    const fileId = recordIdOf(c.req.param('fileId'))
+    const photo = await db.transaction(
+      async tx => photoToView(tx, await authorize(tx, request), fileId),
+      snapshot,
+    )
+    const url = await requireStorage(storage).downloadUrl(photo.key, photo.name, photo.mediaType)
+    // 주소는 5분짜리 비밀이다. 다른 곳에 남지 않게 한다.
+    c.header('Cache-Control', 'private, no-store')
+    return c.redirect(url, FOUND)
+  })
+}
+
 // 대화: 방 목록, 방, 메시지 읽기와 보내기, 공지, 읽음, 1:1. 방에 닿으려면 그 방 참여자여야 한다.
 export function createChatRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; sendLimiter?: RateLimiter; push?: ChatPush | undefined } = {},
+  options: {
+    clock?: () => Date
+    sendLimiter?: RateLimiter
+    uploadLimiter?: RateLimiter
+    // 없으면 사진만 막힌다(STORAGE_NOT_CONFIGURED).
+    storage?: FileStorage | undefined
+    push?: ChatPush | undefined
+  } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const asked = (c: Context<SessionEnv>) => requestOf(c, clock())
@@ -159,6 +226,8 @@ export function createChatRoutes(
     db,
     asked,
     sendLimiter: options.sendLimiter ?? createRateLimiter(SEND_LIMIT),
+    uploadLimiter: options.uploadLimiter ?? createRateLimiter(PHOTO_UPLOAD_LIMIT),
+    storage: options.storage,
     push: options.push,
     clock,
     change: (c, action, run) => {
@@ -183,5 +252,6 @@ export function createChatRoutes(
   listRoutes(kit)
   roomRoutes(kit)
   writeRoutes(kit)
+  photoRoutes(kit)
   return kit.routes
 }

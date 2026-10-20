@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { text, token, UUID_LENGTH } from './input.js'
+import { EmptyRequestSchema, text, token, UUID_LENGTH } from './input.js'
 import { recordIdInput } from './team.js'
 
 // 대화 칸의 길이 상한. DB CHECK(message.body, file.name)와 같은 값이다(기능 003).
@@ -21,6 +21,20 @@ export const MESSAGE_PAGE_SIZE = 50
 export const RECENT_NOTICE_COUNT = 3
 export const NOTICE_LIST_MAX = 100
 
+// 사진 한 장 10MB, 한 메시지 10장, 형식은 JPEG(DEC-50). 휴대폰이 줄여 올리고 서버는 저장소에서 크기와 형식을 확인한다.
+const BYTES_PER_MB = 1_048_576
+const PHOTO_MAX_MB = 10
+export const PHOTO_MAX_BYTES = PHOTO_MAX_MB * BYTES_PER_MB
+export const PHOTO_MAX_COUNT = 10
+export const PHOTO_MEDIA_TYPE = 'image/jpeg'
+// 사진 키 `chat/{학생회}/{운영진}/{번호}`의 길이 상한(uuid 셋과 글자 일곱)
+export const PHOTO_KEY_MAX = 128
+
+export interface ChatPhoto {
+  // 사진 보기 주소(`files/:fileId`)의 번호
+  id: string
+}
+
 export interface ChatMessage {
   id: string
   // 보낸 운영진. 시스템이 만든 메시지는 비어 있다.
@@ -29,6 +43,7 @@ export interface ChatMessage {
   body: string
   sentAt: string
   isNotice: boolean
+  photos: ChatPhoto[]
 }
 
 export interface RoomSummary {
@@ -87,11 +102,27 @@ export const MessagePageQuerySchema = z
 export const MENTION_MAX = 50
 
 // 보내기: 본문 그대로("@이름"을 적은 채)와 부른 사람의 운영진 번호. 참여자가 아니거나 나이거나 없는 번호는 서버가 조용히 뺀다.
-export const SendMessageSchema = z.strictObject({
-  body: text(MESSAGE_BODY_MAX),
-  mentions: z.array(recordIdInput).max(MENTION_MAX).default([]),
-})
+// 사진은 올리기 주소로 받은 키다. 사진만 보내면 본문을 비운다(없으면 빈 글).
+export const SendMessageSchema = z
+  .strictObject({
+    body: text(MESSAGE_BODY_MAX).optional(),
+    mentions: z.array(recordIdInput).max(MENTION_MAX).default([]),
+    photos: z.array(token(PHOTO_KEY_MAX)).max(PHOTO_MAX_COUNT).default([]),
+  })
+  .refine(value => value.body !== undefined || value.photos.length > 0)
+  .refine(value => new Set(value.photos).size === value.photos.length)
 export type SendMessageRequest = z.input<typeof SendMessageSchema>
+
+// 사진 올리기 주소 받기. 보낼 값이 없다.
+export const CreatePhotoUploadSchema = EmptyRequestSchema
+export interface PhotoUploadResponse {
+  // 보낼 때 이 키를 photos에 넣는다.
+  key: string
+  url: string
+  // 올릴 때 그대로 붙이는 머리
+  headers: Record<string, string>
+  expiresAt: string
+}
 
 // 공지 표시를 붙이거나 뗀다. 같은 값이면 아무것도 바뀌지 않는다.
 export const MarkNoticeSchema = z.strictObject({ isNotice: z.boolean() })

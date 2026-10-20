@@ -48,7 +48,7 @@ const sentBy = (
       action: 'council.view',
       now: context.now,
     })
-    const sent = await sendMessage(tx, actor, input, context.now)
+    const sent = await sendMessage(tx, actor, { ...input, photos: [] }, context.now)
     await who.beforeCommit?.(sent.id)
     return sent
   })

@@ -7,6 +7,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
 import { messageOf } from './messages.js'
+import { attachPhotos, type VerifiedPhoto } from './photos.js'
 import { advanceRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
 
@@ -67,7 +68,7 @@ async function calledFrom(
 export async function sendMessage(
   tx: Tx,
   actor: Actor,
-  input: { roomId: string; body: string; mentions: string[] },
+  input: { roomId: string; body: string; mentions: string[]; photos: VerifiedPhoto[] },
   now: Date,
 ): Promise<ChatMessage> {
   const room = await roomAccess(tx, actor, input.roomId)
@@ -94,6 +95,7 @@ export async function sendMessage(
     actor: actor.memberId,
     values: { roomId: room.id, body: input.body, sentAt, isNotice: false },
   })
+  await attachPhotos(tx, actor, messageId, input.photos)
   await advanceRead(tx, room.id, actor.memberId, messageId)
   for (const recipientId of called)
     await createRecord(tx, {

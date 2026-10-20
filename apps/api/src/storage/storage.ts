@@ -5,8 +5,8 @@ interface StoredObject {
   size: number
   contentType: string | null
 }
-// 영수증 파일 저장소. 파일은 브라우저가 서명 주소로 바로 올리고 받는다.
-export interface ReceiptStorage {
+// 파일 저장소(영수증, 대화의 사진). 파일은 브라우저가 서명 주소로 바로 올리고 받는다.
+export interface FileStorage {
   uploadUrl(
     key: string,
     contentType: string,
@@ -25,7 +25,7 @@ const UPLOAD_SECONDS = 600
 const MS_PER_SECOND = 1000
 const DOWNLOAD_SECONDS = 300
 
-// 네 값이 모두 있어야 켠다. 하나라도 없으면 영수증 올리기·보기만 막는다.
+// 네 값이 모두 있어야 켠다. 하나라도 없으면 파일 올리기·보기만 막는다.
 export function r2ConfigFrom(env: NodeJS.ProcessEnv): R2Config | null {
   const config = {
     accountId: env.R2_ACCOUNT_ID?.trim() ?? '',
@@ -55,7 +55,7 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     now()
       .toISOString()
       .replace(/[:-]|\.\d{3}/g, '')
-  // 서명 주소. 올리기는 Content-Type까지 서명해 다른 형식으로 올리지 못하게 한다.
+  // 서명 주소. 올리기는 Content-Type과 If-None-Match까지 서명해 다른 형식으로 올리거나 덮어쓰지 못하게 한다.
   async function presign(
     method: 'PUT' | 'GET',
     url: URL,
@@ -82,11 +82,12 @@ export function createR2Storage(
   config: R2Config,
   fetcher: typeof fetch = fetch,
   now: () => Date = () => new Date(),
-): ReceiptStorage {
+): FileStorage {
   const { objectUrl, presign, call } = r2Access(config, fetcher, now)
   return {
     async uploadUrl(key, contentType) {
-      const headers = { 'Content-Type': contentType }
+      // If-None-Match: *를 서명해 이미 있는 키에는 올리지 못하게 한다(덮어쓰기 금지).
+      const headers = { 'Content-Type': contentType, 'If-None-Match': '*' }
       return {
         url: await presign('PUT', objectUrl(key), UPLOAD_SECONDS, headers),
         headers,

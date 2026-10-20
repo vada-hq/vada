@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import {
   isUuid,
   MESSAGE_PAGE_SIZE,
@@ -6,7 +6,7 @@ import {
   type MessagePageResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { chatRoom, cohort, member, message, record, roomMembership } from '../db/schema.js'
+import { chatRoom, cohort, file, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { isPlanRoom } from './plan-room.js'
@@ -30,12 +30,38 @@ const rowsOf = (db: Reader) =>
     .leftJoin(member, eq(member.id, record.createdBy))
 
 type Row = Awaited<ReturnType<ReturnType<typeof rowsOf>['limit']>>[number]
-const chatMessageOf = (row: Row): ChatMessage => ({ ...row, sentAt: row.sentAt.toISOString() })
+
+// 메시지에 붙은 사진 번호. 보낸 차례(만든 시각)대로다.
+async function photosOf(db: Reader, messageIds: string[]) {
+  const byMessage = new Map<string, { id: string }[]>()
+  if (!messageIds.length) return byMessage
+  const rows = await db
+    .select({ id: file.id, messageId: file.attachedToId })
+    .from(file)
+    .innerJoin(record, eq(record.id, file.id))
+    .where(inArray(file.attachedToId, messageIds))
+    .orderBy(asc(record.createdAt), asc(file.id))
+  for (const row of rows)
+    byMessage.set(row.messageId!, [...(byMessage.get(row.messageId!) ?? []), { id: row.id }])
+  return byMessage
+}
+
+async function chatMessagesOf(db: Reader, rows: Row[]): Promise<ChatMessage[]> {
+  const photos = await photosOf(
+    db,
+    rows.map(row => row.id),
+  )
+  return rows.map(row => ({
+    ...row,
+    sentAt: row.sentAt.toISOString(),
+    photos: photos.get(row.id) ?? [],
+  }))
+}
 
 // 메시지 하나. 보낸 직후와 공지를 바꾼 직후의 응답이 쓴다.
 export async function messageOf(db: Reader, messageId: string): Promise<ChatMessage> {
   const [row] = await rowsOf(db).where(eq(message.id, messageId))
-  return chatMessageOf(row!)
+  return (await chatMessagesOf(db, [row!]))[0]!
 }
 
 // 들어온 뒤의 메시지(DEC-20). 시각은 참여 줄과 DB 안에서 비교한다. Date로 옮기면 마이크로초가 깎여 경계가 어긋난다.
@@ -94,7 +120,7 @@ export async function messagePage(
   if (!forward) page.reverse()
   const hasCursor = cursor !== undefined
   return {
-    messages: page.map(chatMessageOf),
+    messages: await chatMessagesOf(db, page),
     hasOlder: forward ? hasCursor : more,
     hasNewer: forward ? more : hasCursor,
   }
@@ -121,5 +147,5 @@ export async function noticesOf(db: Reader, actor: Actor, limit: number): Promis
     .where(shownNotice(actor))
     .orderBy(desc(message.sentAt), desc(message.id))
     .limit(limit)
-  return rows.map(chatMessageOf)
+  return chatMessagesOf(db, rows)
 }

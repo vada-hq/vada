@@ -17,11 +17,11 @@ test('올리기 주소는 버킷 경로·10분 만료·형식 서명을 담고, 
   assert.equal(url.origin, 'https://acc.r2.cloudflarestorage.com')
   assert.equal(url.pathname, '/vada-receipts/receipts/a/e1/r1')
   assert.equal(url.searchParams.get('X-Amz-Expires'), '600')
-  assert.equal(url.searchParams.get('X-Amz-SignedHeaders'), 'content-type;host')
+  assert.equal(url.searchParams.get('X-Amz-SignedHeaders'), 'content-type;host;if-none-match')
   assert.equal(url.searchParams.get('X-Amz-Date'), '20261009T050000Z')
   assert.equal(url.searchParams.get('X-Amz-Credential'), 'AKID/20261009/auto/s3/aws4_request')
   assert.match(url.searchParams.get('X-Amz-Signature') ?? '', /^[0-9a-f]{64}$/)
-  assert.deepEqual(upload.headers, { 'Content-Type': 'image/jpeg' })
+  assert.deepEqual(upload.headers, { 'Content-Type': 'image/jpeg', 'If-None-Match': '*' })
   assert.equal(upload.expiresAt.toISOString(), '2026-10-09T05:10:00.000Z')
   assert.ok(!upload.url.includes('secret-value'))
   const name = '체육대회 영수증 (1).jpg'
