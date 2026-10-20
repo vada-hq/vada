@@ -861,3 +861,57 @@ test('내 부서 배정을 고쳐 내 권한이 줄어 대화상자가 닫혀도
   expect(screen.queryByText(LOST)).toBeNull()
   expect(screen.queryByText(GONE)).toBeNull()
 })
+
+// 내 변경 뒤 학생회를 다시 읽어 화면에 반영된 다음에 바깥에서 생긴 변화는 알린다.
+function SelfThenOutside({ memberId }: { memberId: string }) {
+  const [permissions, setPermissions] = useState(LEADER_PERMISSIONS)
+  return (
+    <>
+      <Harness
+        permissions={permissions}
+        memberId={memberId}
+        onCouncilChanged={() => setPermissions([...LEADER_PERMISSIONS])}
+      />
+      <button type="button" onClick={() => setPermissions(MEMBER_PERMISSIONS)}>
+        바깥에서 권한 빼기
+      </button>
+    </>
+  )
+}
+
+test('내 변경 뒤 다시 읽기가 끝난 다음 바깥에서 권한이 줄면 경고를 보인다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m2/departments/d1/remove', () =>
+    json(teamResponse()),
+  )
+  render(<SelfThenOutside memberId="m2" />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '재정부에서 빼기' }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  await settle()
+  fireEvent.click(screen.getByText('바깥에서 권한 빼기'))
+  await noDialog()
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})
+
+test('내 변경 뒤 다시 읽기가 끝난 다음 열려 있던 대화상자의 대상이 바깥에서 사라지면 경고를 보인다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () =>
+    json(reads++ === 0 ? teamResponse() : withoutMember('m2')),
+  )
+  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  api.on('POST', '/api/organizations/c1/members/m2/departments/d1/remove', () =>
+    json(teamResponse()),
+  )
+  render(<SelfThenOutside memberId="m2" />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
+  const dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '재정부에서 빼기' }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  await settle()
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await noDialog()
+  expect(await screen.findByText(GONE)).toBeTruthy()
+})
