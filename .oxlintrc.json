@@ -186,12 +186,7 @@
     },
     // R01 임시 예외: 아래 묶음은 지금 상한을 넘는 파일이다(docs/features/r01-maintainability.md). 조각마다 고친 파일을 뺀다. 새 파일을 더하지 않는다. 비면 묶음을 지운다.
     {
-      "files": [
-        "apps/api/src/db/migrate-run.ts",
-        "apps/web/src/App.tsx",
-        "apps/web/src/push/PushPanel.tsx",
-        "apps/web/src/push/usePush.ts"
-      ],
+      "files": ["apps/api/src/db/migrate-run.ts"],
       "rules": {
         "complexity": "off"
       }
@@ -201,13 +196,7 @@
         "apps/api/src/db/migrate-run.ts",
         "apps/api/src/db/pg-smoke-cases.ts",
         "apps/api/src/db/pg-smoke.ts",
-        "apps/web/src/App.tsx",
-        "apps/web/src/auth/KakaoBlock.tsx",
-        "apps/web/src/push/PushPanel.tsx",
-        "apps/web/src/push/usePush.ts",
-        "apps/web/src/ui-gallery/Gallery.tsx",
-        "apps/web/src/workspace/Workspace.tsx",
-        "apps/web/src/workspace/WorkspaceSidebar.tsx"
+        "apps/web/src/ui-gallery/Gallery.tsx"
       ],
       "rules": {
         "max-lines-per-function": "off"

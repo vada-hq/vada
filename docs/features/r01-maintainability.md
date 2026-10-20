@@ -94,7 +94,7 @@
 - 수용 기준은 4와 같은 꼴이다. 대상은 `CouncilSettings.tsx`, `CreateCouncilForm.tsx`, `JoinCouncil.tsx`, `MyCouncils.tsx`다.
 - 검토: 보통.
 
-### 7. 앱 틀과 알림 나누기 [ ]
+### 7. 앱 틀과 알림 나누기 [x]
 - 수용 기준은 4와 같은 꼴이고, 알림 켜기, 시험 알림, 카카오톡 안 브라우저 안내가 전처럼 동작한다. 대상은 `App.tsx`, `Workspace.tsx`, `WorkspaceSidebar.tsx`, `usePush.ts`, `PushPanel.tsx`, `KakaoBlock.tsx`다.
 - 검토: 보통.
 
