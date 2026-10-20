@@ -1,5 +1,6 @@
 import webpush, { type RequestOptions } from 'web-push'
-import type { PushTestResult } from '@vada/contracts'
+import { ERROR_STATUS, type PushTestResult } from '@vada/contracts'
+import { GONE } from '../http/status.js'
 import type { PushConfig } from './config.js'
 import { isKnownPushService } from './endpoint.js'
 
@@ -44,7 +45,10 @@ export function createPushSender(config: PushConfig, send: Send = sendWithLibrar
     } catch (error) {
       const diagnosis = diagnosisOf(error)
       return {
-        result: diagnosis.status === 404 || diagnosis.status === 410 ? 'expired' : 'rejected',
+        result:
+          diagnosis.status === ERROR_STATUS.NOT_FOUND || diagnosis.status === GONE
+            ? 'expired'
+            : 'rejected',
         ...diagnosis,
       }
     }

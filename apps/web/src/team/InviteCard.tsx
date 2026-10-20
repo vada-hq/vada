@@ -1,13 +1,13 @@
 import { useEffect, useId, useState } from 'react'
 import { Copy, RefreshCw } from 'lucide-react'
-import type { InviteCodeResponse } from '@vada/contracts'
+import { statusOf, type InviteCodeResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getJson, postJson } from '@/lib/api'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { INVITE_LOAD_ERRORS, PERMISSION_CHANGED } from '@/lib/messages'
 import { useLatest } from '@/lib/use-latest'
 import { inviteLink } from '../councils/invite-path'
 
@@ -19,10 +19,9 @@ const notices: Record<Exclude<Notice, null>, { kind: 'notice' | 'error'; text: s
   failed: { kind: 'error', text: '코드를 바꾸지 못했어요. 다시 시도해 주세요.' },
   forbidden: { kind: 'error', text: PERMISSION_CHANGED },
 }
-const loadErrors = { forbidden: notices.forbidden.text, failed: '초대 링크를 불러오지 못했어요.' }
 
 // 초대 링크(회장단): 링크 복사와 코드 바꾸기. 바꾸면 옛 코드는 막히고 만료는 없다(바탕 spec G2).
-// 403이면 권한이 바뀐 것이라 onForbidden으로 학생회를 다시 읽게 한다. 불러오기가 실패하면 다시 시도할 수 있다.
+// 권한 오류면 권한이 바뀐 것이라 onForbidden으로 학생회를 다시 읽게 한다. 불러오기가 실패하면 다시 시도할 수 있다.
 export default function InviteCard({
   councilId,
   onForbidden,
@@ -33,7 +32,7 @@ export default function InviteCard({
   const base = `/api/organizations/${encodeURIComponent(councilId)}/invite`
   const linkId = useId()
   const [code, setCode] = useState<string | null>(null)
-  const [loadError, setLoadError] = useState<keyof typeof loadErrors | null>(null)
+  const [loadError, setLoadError] = useState<keyof typeof INVITE_LOAD_ERRORS | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [rotating, setRotating] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
@@ -44,8 +43,8 @@ export default function InviteCard({
     void getJson<InviteCodeResponse>(base, controller.signal).then(result => {
       if (controller.signal.aborted) return
       if (result.ok) return setCode(result.data.code)
-      if (result.status === 403) forbidden.current()
-      setLoadError(result.status === 403 ? 'forbidden' : 'failed')
+      if (result.status === statusOf('FORBIDDEN')) forbidden.current()
+      setLoadError(result.status === statusOf('FORBIDDEN') ? 'forbidden' : 'failed')
     })
     return () => controller.abort()
   }, [base, attempt, forbidden])
@@ -66,8 +65,8 @@ export default function InviteCard({
     const result = await postJson<InviteCodeResponse>(`${base}/rotate`, {})
     setRotating(false)
     if (!result.ok) {
-      if (result.status === 403) forbidden.current()
-      return setNotice(result.status === 403 ? 'forbidden' : 'failed')
+      if (result.status === statusOf('FORBIDDEN')) forbidden.current()
+      return setNotice(result.status === statusOf('FORBIDDEN') ? 'forbidden' : 'failed')
     }
     setCode(result.data.code)
     setNotice('rotated')
@@ -76,7 +75,7 @@ export default function InviteCard({
   if (!code)
     return loadError ? (
       <Card className="flex flex-col gap-3 p-4">
-        <StateMessage kind="error">{loadErrors[loadError]}</StateMessage>
+        <StateMessage kind="error">{INVITE_LOAD_ERRORS[loadError]}</StateMessage>
         <Button
           variant="outline"
           size="sm"

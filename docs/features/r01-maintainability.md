@@ -68,7 +68,7 @@
 - 닿는 곳: 루트 `.oxlintrc.json`, AGENTS.md.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 2. 오류 목록 하나로 [ ]
+### 2. 오류 목록 하나로 [x]
 - 할 수 있게 되는 것: 오류 코드와 상태를 `contracts` 한 곳에서 고치면 서버와 화면이 같이 따른다.
 - 수용 기준: 모든 라우트가 전과 같은 상태 번호와 `code`를 돌려준다(지금 시험이 고치지 않고 그대로 통과한다). 오류 목록과 상태 이름을 정한 파일 밖의 서버와 화면 소스(시험 제외)에 HTTP 상태 숫자 글자가 0이다. 화면의 오류 문구 표 5개와 `loadErrors`가 `messages.ts` 한 곳으로 모인다.
 - 닿는 곳: `packages/contracts`(새 오류 목록), `api/src/http/`(`errors.ts`, `guard.ts`, `validate.ts`, `on-error.ts`), `auth/require-session.ts`, 오류를 던지는 곳, `web/src/lib/api.ts`, `web/src/lib/messages.ts`, 화면들의 `errors` 표.

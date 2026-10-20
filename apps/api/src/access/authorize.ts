@@ -8,18 +8,18 @@ import { can } from './permissions.js'
 
 // 경로의 학생회 번호. 형식이 틀리면 그 학생회의 운영진일 수 없으므로 403이다(학생회가 있는지 드러내지 않는다).
 export function councilIdOf(value: string | undefined) {
-  if (!value || !isUuid(value)) throw new ApiError('FORBIDDEN', 403)
+  if (!value || !isUuid(value)) throw new ApiError('FORBIDDEN')
   return value.toLowerCase()
 }
 
 // 경로의 운영진·부서 번호. 형식이 틀리면 없는 번호로 본다.
 export function recordIdOf(value: string | undefined) {
-  if (!value || !isUuid(value)) throw new ApiError('NOT_FOUND', 404)
+  if (!value || !isUuid(value)) throw new ApiError('NOT_FOUND')
   return value.toLowerCase()
 }
 
 // 읽기: 지금 소속을 찾고 권한표를 묻는다. 운영진이 아니거나 권한이 없으면 403이다.
-// 학생회 번호의 형식도 여기서 본다. 라우트가 councilIdOf를 빠뜨려도 DB 오류(500)가 아니라 403이다.
+// 학생회 번호의 형식도 여기서 본다. 라우트가 councilIdOf를 빠뜨려도 DB 오류가 아니라 FORBIDDEN이다.
 export async function authorize(
   db: Pick<Db, 'select'>,
   userId: string,
@@ -28,7 +28,7 @@ export async function authorize(
   now: Date,
 ): Promise<Actor> {
   const actor = await actorOf(db, userId, councilIdOf(councilId), now)
-  if (!actor || !can(actor, action)) throw new ApiError('FORBIDDEN', 403)
+  if (!actor || !can(actor, action)) throw new ApiError('FORBIDDEN')
   return actor
 }
 

@@ -1,4 +1,5 @@
 import { AwsClient } from 'aws4fetch'
+import { ERROR_STATUS } from '@vada/contracts'
 
 export interface StoredObject {
   size: number
@@ -98,7 +99,7 @@ export function createR2Storage(
     },
     async head(key) {
       const response = await call('HEAD', key)
-      if (response.status === 404) return null
+      if (response.status === ERROR_STATUS.NOT_FOUND) return null
       if (!response.ok) throw new Error('STORAGE_HEAD_FAILED')
       return {
         size: Number(response.headers.get('content-length') ?? '-1'),
@@ -107,7 +108,8 @@ export function createR2Storage(
     },
     async remove(key) {
       const response = await call('DELETE', key)
-      if (!response.ok && response.status !== 404) throw new Error('STORAGE_DELETE_FAILED')
+      if (!response.ok && response.status !== ERROR_STATUS.NOT_FOUND)
+        throw new Error('STORAGE_DELETE_FAILED')
     },
   }
 }

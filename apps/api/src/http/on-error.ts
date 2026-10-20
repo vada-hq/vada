@@ -1,16 +1,20 @@
 import type { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
+import { SERVER_ERROR_FROM, statusOf, type ErrorCode } from '@vada/contracts'
 import { ApiError } from './errors.js'
+import { INTERNAL_SERVER_ERROR } from './status.js'
 
-// HTTPException은 상태만 믿고 기존 오류 코드 이름으로 응답한다.
-const httpCodes: Partial<Record<number, string>> = {
-  400: 'INVALID_INPUT',
-  401: 'UNAUTHENTICATED',
-  403: 'FORBIDDEN',
-  404: 'NOT_FOUND',
-  413: 'BODY_TOO_LARGE',
-  415: 'UNSUPPORTED_MEDIA_TYPE',
-}
+// HTTPException은 상태만 믿고 기존 오류 코드 이름으로 응답한다. 같은 상태를 가진 코드가 여럿이면 앞의 것이다.
+const httpExceptionCodes: ErrorCode[] = [
+  'INVALID_INPUT',
+  'UNAUTHENTICATED',
+  'FORBIDDEN',
+  'NOT_FOUND',
+  'BODY_TOO_LARGE',
+  'UNSUPPORTED_MEDIA_TYPE',
+]
+const httpExceptionCodeOf = (status: number) =>
+  httpExceptionCodes.find(code => statusOf(code) === status) ?? 'REQUEST_FAILED'
 
 // DB 오류는 drizzle이 감싸므로 cause를 몇 단계 따라가 SQLSTATE만 꺼낸다. 숫자가 없는 EPIPE 같은 시스템 오류 코드는 제외한다.
 export function sqlState(error: unknown): string | undefined {
@@ -55,13 +59,14 @@ export function logUnexpectedError(c: Context, error: Error) {
 export function handleError(error: Error, c: Context) {
   if (error instanceof ApiError) {
     // 외부 서비스 장애처럼 서버 쪽 실패는 운영에서 보이도록 코드와 상태를 남긴다.
-    if (error.status >= 500) logFailure(c, error, { code: error.code, status: error.status })
+    if (error.status >= SERVER_ERROR_FROM)
+      logFailure(c, error, { code: error.code, status: error.status })
     return c.json({ error: error.code }, error.status)
   }
   if (error instanceof HTTPException) {
-    if (error.status >= 500) logFailure(c, error, { status: error.status })
-    return c.json({ error: httpCodes[error.status] ?? 'REQUEST_FAILED' }, error.status)
+    if (error.status >= SERVER_ERROR_FROM) logFailure(c, error, { status: error.status })
+    return c.json({ error: httpExceptionCodeOf(error.status) }, error.status)
   }
   logUnexpectedError(c, error)
-  return c.json({ error: 'Internal server error' }, 500)
+  return c.json({ error: 'Internal server error' }, INTERNAL_SERVER_ERROR)
 }

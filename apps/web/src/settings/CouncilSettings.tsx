@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import {
   COUNCIL_UNITS,
+  statusOf,
   UpdateCohortSchema,
   UpdateCouncilSettingsSchema,
   type CouncilUnit,
@@ -15,15 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { COUNCIL_SETTINGS_ERRORS } from '@/lib/messages'
 
 type Form = 'council' | 'cohort'
 type Message = { form: Form; kind: 'notice' | 'error'; text: string }
-const errors: Record<string, string> = {
-  COHORT_NOT_CURRENT:
-    '기간에 오늘이 들어 있어야 해요. 그렇지 않으면 모든 운영진이 학생회를 열 수 없어요.',
-  FORBIDDEN: PERMISSION_CHANGED,
-}
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 const titleFields = [
   ['president', '회장'],
@@ -53,7 +49,7 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
   const [cohort, setCohort] = useState(() => cohortFrom(view))
   const [saving, setSaving] = useState<Form | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
-  // 이 화면이 열린 채 학생회가 다시 읽히면(403 뒤 다시 읽기, 다른 곳의 저장) 서버의 새 값으로 다시 채운다. 내용이 바뀐 쪽만 채워, 같은 내용의 다시 읽기나 다른 쪽에서 고치던 값은 건드리지 않는다.
+  // 이 화면이 열린 채 학생회가 다시 읽히면(권한 오류 뒤 다시 읽기, 다른 곳의 저장) 서버의 새 값으로 다시 채운다. 내용이 바뀐 쪽만 채워, 같은 내용의 다시 읽기나 다른 쪽에서 고치던 값은 건드리지 않는다.
   const councilKey = JSON.stringify(view.council)
   const cohortKey = JSON.stringify(view.cohort)
   const [seen, setSeen] = useState({ council: councilKey, cohort: cohortKey })
@@ -97,8 +93,8 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
       onSaved(result.data)
       return
     }
-    if (result.status === 403) onForbidden()
-    setMessage({ form, kind: 'error', text: errors[result.code] ?? failure })
+    if (result.status === statusOf('FORBIDDEN')) onForbidden()
+    setMessage({ form, kind: 'error', text: COUNCIL_SETTINGS_ERRORS[result.code] ?? failure })
   }
   const note = (form: Form) =>
     message?.form === form && <StateMessage kind={message.kind}>{message.text}</StateMessage>

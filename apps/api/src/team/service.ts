@@ -33,7 +33,7 @@ export async function currentMembership(tx: Tx, actor: Actor, memberId: string) 
         isNull(councilMembership.endsAt),
       ),
     )
-  if (!row) throw new ApiError('NOT_FOUND', 404)
+  if (!row) throw new ApiError('NOT_FOUND')
   return row
 }
 
@@ -42,7 +42,7 @@ export async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
     .select({ id: department.id, name: department.name, role: department.role })
     .from(department)
     .where(and(eq(department.id, departmentId), eq(department.councilId, actor.councilId)))
-  if (!row) throw new ApiError('NOT_FOUND', 404)
+  if (!row) throw new ApiError('NOT_FOUND')
   return row
 }
 
@@ -76,7 +76,7 @@ export async function assignDepartment(
   const current = placement && placement.endsAt === null ? placement : undefined
   // 부장과 부부장 직급을 주고 거두는 것은 직급 칸이다(DEC-28).
   if ((current?.rank ?? null) !== rank && !can(actor, 'rank.manage'))
-    throw new ApiError('FORBIDDEN', 403)
+    throw new ApiError('FORBIDDEN')
   if (!placement) {
     await createRecord(tx, {
       kind: 'department_membership',
@@ -119,8 +119,8 @@ export async function removeFromDepartment(
 ) {
   await currentMembership(tx, actor, memberId)
   const [placement] = await placementOf(tx, actor, memberId, departmentId)
-  if (!placement || placement.endsAt !== null) throw new ApiError('NOT_FOUND', 404)
-  if (placement.rank !== null && !can(actor, 'rank.manage')) throw new ApiError('FORBIDDEN', 403)
+  if (!placement || placement.endsAt !== null) throw new ApiError('NOT_FOUND')
+  if (placement.rank !== null && !can(actor, 'rank.manage')) throw new ApiError('FORBIDDEN')
   await updateRecord(tx, {
     kind: 'department_membership',
     id: placement.id,
@@ -130,7 +130,7 @@ export async function removeFromDepartment(
   })
 }
 
-// 부회장 주고 거두기. 회장의 직급을 바꾸면 회장이 없어지므로 기록 모듈이 409 PRESIDENT_REQUIRED로 막는다.
+// 부회장 주고 거두기. 회장의 직급을 바꾸면 회장이 없어지므로 기록 모듈이 PRESIDENT_REQUIRED로 막는다.
 export async function changeRank(
   tx: Tx,
   actor: Actor,
@@ -151,7 +151,7 @@ export async function changeRank(
 // 회장 넘기기: 한 번에 거두고 준다. 넘긴 사람은 직급 없음이 된다(바탕 spec).
 // 거두기를 앞에, 주기를 뒤에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어 순서가 바뀌면 DB가 거부한다(records.ts).
 export async function transferPresident(tx: Tx, actor: Actor, memberId: string) {
-  if (memberId === actor.memberId) throw new ApiError('ALREADY_PRESIDENT', 409)
+  if (memberId === actor.memberId) throw new ApiError('ALREADY_PRESIDENT')
   const target = await currentMembership(tx, actor, memberId)
   await updateRecords(tx, [
     {
@@ -175,8 +175,8 @@ export async function transferPresident(tx: Tx, actor: Actor, memberId: string) 
 // 학생회 직급이나 부서 직급이 붙은 소속이 있으면 그 직급을 거두는 일이기도 해서 직급 칸도 본다.
 export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
   const target = await currentMembership(tx, actor, memberId)
-  if (target.councilRank === 'president') throw new ApiError('PRESIDENT_CANNOT_LEAVE', 409)
-  if (memberId === actor.memberId) throw new ApiError('CANNOT_REMOVE_SELF', 409)
+  if (target.councilRank === 'president') throw new ApiError('PRESIDENT_CANNOT_LEAVE')
+  if (memberId === actor.memberId) throw new ApiError('CANNOT_REMOVE_SELF')
   const placements = await tx
     .select({ id: departmentMembership.id, rank: departmentMembership.departmentRank })
     .from(departmentMembership)
@@ -191,7 +191,7 @@ export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
     (target.councilRank !== null || placements.some(item => item.rank !== null)) &&
     !can(actor, 'rank.manage')
   )
-    throw new ApiError('FORBIDDEN', 403)
+    throw new ApiError('FORBIDDEN')
   const changes: AnyRecordChange[] = [
     ...placements.map(item => ({
       kind: 'department_membership' as const,
@@ -216,7 +216,7 @@ async function assertNameFree(tx: Tx, actor: Actor, name: string) {
     .select({ id: department.id })
     .from(department)
     .where(and(eq(department.councilId, actor.councilId), eq(department.name, name)))
-  if (taken) throw new ApiError('DEPARTMENT_NAME_TAKEN', 409)
+  if (taken) throw new ApiError('DEPARTMENT_NAME_TAKEN')
 }
 
 // 부서 만들기. 역할 없이 만든다.
@@ -258,13 +258,13 @@ export async function deleteDepartment(tx: Tx, actor: Actor, departmentId: strin
     .select({ confirmedAt: record.confirmedAt })
     .from(record)
     .where(eq(record.id, departmentId))
-  if (meta?.confirmedAt) throw new ApiError('RECORD_CONFIRMED', 409)
+  if (meta?.confirmedAt) throw new ApiError('RECORD_CONFIRMED')
   const [used] = await tx
     .select({ id: departmentMembership.id })
     .from(departmentMembership)
     .where(eq(departmentMembership.departmentId, departmentId))
     .limit(1)
-  if (used) throw new ApiError('DEPARTMENT_IN_USE', 409)
+  if (used) throw new ApiError('DEPARTMENT_IN_USE')
   await tx.delete(recordVersion).where(eq(recordVersion.recordId, departmentId))
   await tx.delete(department).where(eq(department.id, departmentId))
   await tx.delete(record).where(eq(record.id, departmentId))

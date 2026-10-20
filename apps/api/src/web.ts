@@ -3,6 +3,7 @@ import { statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Hono } from 'hono'
+import { OK } from './http/status.js'
 
 export function attachWeb(
   app: Hono,
@@ -25,7 +26,7 @@ export function attachWeb(
     ['/sw.js', '/manifest.webmanifest'],
     async (context, next) => {
       await next()
-      if (context.res.status === 200) context.res.headers.set('Cache-Control', 'no-cache')
+      if (context.res.status === OK) context.res.headers.set('Cache-Control', 'no-cache')
     },
     serveStatic({ root }),
   )
@@ -35,7 +36,7 @@ export function attachWeb(
     ['/icons/:file', '/apple-touch-icon.png'],
     async (context, next) => {
       await next()
-      if (context.res.status === 200)
+      if (context.res.status === OK)
         context.res.headers.set('Cache-Control', 'public, max-age=86400')
     },
     serveStatic({ root }),
@@ -47,7 +48,7 @@ export function attachWeb(
     '/assets/*',
     async (context, next) => {
       await next()
-      if (context.res.status === 200)
+      if (context.res.status === OK)
         context.res.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
     },
     serveStatic({ root }),

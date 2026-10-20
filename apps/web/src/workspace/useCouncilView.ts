@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { CouncilView } from '@vada/contracts'
+import { statusOf, type CouncilView } from '@vada/contracts'
 import { getJson } from '@/lib/api'
 
 export type CouncilViewState =
   { kind: 'loading' } | { kind: 'failed' } | { kind: 'lost' } | { kind: 'ready'; view: CouncilView }
 
 // 학생회 하나(학생회 정보, 지금 기수, 내 직급과 부서, 내 권한). 서버가 요청마다 소속을 다시 보므로,
-// 403이면 이 학생회의 운영진이 아니게 된 것이다(내보내졌거나 기수가 끝남). 다시 읽다 실패하면 보던 것을 그대로 둔다.
+// 권한 오류면 이 학생회의 운영진이 아니게 된 것이다(내보내졌거나 기수가 끝남). 다시 읽다 실패하면 보던 것을 그대로 둔다.
 export function useCouncilView(councilId: string) {
   const [state, setState] = useState<CouncilViewState>({ kind: 'loading' })
   const [attempt, setAttempt] = useState(0)
@@ -18,7 +18,7 @@ export function useCouncilView(councilId: string) {
     ).then(result => {
       if (controller.signal.aborted) return
       if (result.ok) setState({ kind: 'ready', view: result.data })
-      else if (result.status === 403) setState({ kind: 'lost' })
+      else if (result.status === statusOf('FORBIDDEN')) setState({ kind: 'lost' })
       else setState(current => (current.kind === 'ready' ? current : { kind: 'failed' }))
     })
     return () => controller.abort()

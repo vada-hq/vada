@@ -28,7 +28,7 @@ export function createInviteRoutes(
   const auth = requireSession(getSession)
   routes.get('/invites/:code', auth, async c => {
     const code = InviteCodeSchema.safeParse(c.req.param('code'))
-    if (!code.success) throw new ApiError('NOT_FOUND', 404)
+    if (!code.success) throw new ApiError('NOT_FOUND')
     const found = await invitedCouncil(db, code.data)
     const joined = (await actorOf(db, c.get('userId'), found.id, clock())) !== null
     return c.json({ council: found, joined } satisfies InvitePreviewResponse)

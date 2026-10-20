@@ -13,17 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
-import { EMAIL_IN_USE } from '@/lib/messages'
+import { CREATE_COUNCIL_ERRORS, CREATE_COUNCIL_FAILED } from '@/lib/messages'
 import { endsBeforeStart, TERM_ORDER_MESSAGE } from './term'
 
 export const unitLabels: Record<CouncilUnit, string> = {
   department: '학과',
   college: '단과대',
   university: '총학생회',
-}
-const errors: Record<string, string> = {
-  COHORT_NOT_CURRENT: '임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.',
-  EMAIL_IN_USE,
 }
 
 type Props = { onCreated: (council: MyCouncil) => void; onCancel: () => void }
@@ -54,7 +50,7 @@ export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
     const result = await postJson<CreateCouncilResponse>('/api/organizations/create', parsed.data)
     if (result.ok) return onCreated(result.data.council)
     setSaving(false)
-    setError(errors[result.code] ?? '학생회를 만들지 못했어요. 다시 시도해 주세요.')
+    setError(CREATE_COUNCIL_ERRORS[result.code] ?? CREATE_COUNCIL_FAILED)
   }
 
   return (

@@ -6,7 +6,7 @@ import { errorCodeOf } from './error-code.js'
 test('오류에서 SQLSTATE나 시스템 오류 코드만 꺼낸다', () => {
   assert.equal(errorCodeOf(Object.assign(new Error('x'), { code: '42501' })), '42501')
   assert.equal(errorCodeOf(Object.assign(new Error('x'), { code: 'ECONNREFUSED' })), 'ECONNREFUSED')
-  assert.equal(errorCodeOf(new ApiError('PRESIDENT_CANNOT_LEAVE', 409)), 'PRESIDENT_CANNOT_LEAVE')
+  assert.equal(errorCodeOf(new ApiError('PRESIDENT_CANNOT_LEAVE')), 'PRESIDENT_CANNOT_LEAVE')
 })
 
 test('drizzle이 감싼 DB 오류는 cause를 따라가 코드를 꺼낸다', () => {

@@ -11,6 +11,7 @@ import {
 import type { Actor } from '../access/actor.js'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
+import { CREATED } from '../http/status.js'
 import { json } from '../http/validate.js'
 import type { Db, Tx } from '../db/types.js'
 import { councilView, myCouncils } from './queries.js'
@@ -61,7 +62,7 @@ export function createCouncilRoutes(
       if (!created) throw new Error('Council missing after create')
       return created
     })
-    return c.json({ council } satisfies CreateCouncilResponse, 201)
+    return c.json({ council } satisfies CreateCouncilResponse, CREATED)
   })
   routes.get('/organizations/:councilId', auth, async c => {
     const actor = await authorize(

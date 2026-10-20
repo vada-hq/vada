@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import type { InvitePreviewResponse, JoinCouncilResponse } from '@vada/contracts'
+import { statusOf, type InvitePreviewResponse, type JoinCouncilResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { getJson, postJson } from '@/lib/api'
-import { EMAIL_IN_USE } from '@/lib/messages'
+import { JOIN_COUNCIL_ERRORS, JOIN_COUNCIL_FAILED } from '@/lib/messages'
 import { useLatest } from '@/lib/use-latest'
 
 type Props = {
@@ -17,10 +17,6 @@ type View =
   | { kind: 'invalid' }
   | { kind: 'failed' }
   | { kind: 'ready'; council: InvitePreviewResponse['council'] }
-const errors: Record<string, string> = {
-  NO_CURRENT_COHORT: '지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.',
-  EMAIL_IN_USE,
-}
 
 // 초대 링크(/join/코드): "OOO에 들어갈까요?" [들어가기]. 이미 들어왔으면 묻지 않고 그 학생회를 연다(바탕 spec '화면').
 export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Props) {
@@ -37,7 +33,8 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
       controller.signal,
     ).then(result => {
       if (controller.signal.aborted) return
-      if (!result.ok) return setView({ kind: result.status === 404 ? 'invalid' : 'failed' })
+      if (!result.ok)
+        return setView({ kind: result.status === statusOf('NOT_FOUND') ? 'invalid' : 'failed' })
       if (result.data.joined) joined.current(result.data.council.id)
       else setView({ kind: 'ready', council: result.data.council })
     })
@@ -50,8 +47,8 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
     const result = await postJson<JoinCouncilResponse>('/api/organizations/join', { code })
     if (result.ok) return onJoined(result.data.council.id)
     setJoining(false)
-    if (result.status === 404) setView({ kind: 'invalid' })
-    else setError(errors[result.code] ?? '들어가지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
+    if (result.status === statusOf('NOT_FOUND')) setView({ kind: 'invalid' })
+    else setError(JOIN_COUNCIL_ERRORS[result.code] ?? JOIN_COUNCIL_FAILED)
   }
 
   if (view.kind === 'loading') return <StateMessage kind="loading">초대 확인 중…</StateMessage>

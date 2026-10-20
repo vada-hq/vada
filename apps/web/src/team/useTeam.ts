@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { TeamResponse } from '@vada/contracts'
+import { statusOf, type TeamResponse } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { useLatest } from '@/lib/use-latest'
 
@@ -25,14 +25,14 @@ export function useTeam(councilId: string, onForbidden: () => void) {
     void getJson<TeamResponse>(`${base}/members`, controller.signal).then(result => {
       if (controller.signal.aborted) return
       if (result.ok) return setData(result.data)
-      if (result.status === 403) forbidden.current()
+      if (result.status === statusOf('FORBIDDEN')) forbidden.current()
       setLoadFailed(true)
     })
     return () => controller.abort()
   }, [base, attempt, forbidden])
 
   // 회장단의 변경은 목록 전체를 돌려준다. 성공하면 null을, 실패하면 오류 코드를 돌려준다.
-  // 권한이 바뀌었으면(403) 학생회를 다시 읽고, 화면이 오래됐으면(403, 404) 목록도 다시 읽는다.
+  // 권한이 바뀌었으면(권한 오류) 학생회를 다시 읽고, 화면이 오래됐으면(권한·없음 오류) 목록도 다시 읽는다.
   async function change(path: string, body: unknown): Promise<string | null> {
     setSaving(true)
     const result = await postJson<TeamResponse>(`${base}${path}`, body)
@@ -42,8 +42,9 @@ export function useTeam(councilId: string, onForbidden: () => void) {
       setData(result.data)
       return null
     }
-    if (result.status === 403) forbidden.current()
-    if (result.status === 403 || result.status === 404) setAttempt(value => value + 1)
+    if (result.status === statusOf('FORBIDDEN')) forbidden.current()
+    if (result.status === statusOf('FORBIDDEN') || result.status === statusOf('NOT_FOUND'))
+      setAttempt(value => value + 1)
     return result.code
   }
 

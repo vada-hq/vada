@@ -21,17 +21,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { DEPARTMENT_ERRORS } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
-const errors: Record<string, string> = {
-  DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
-  DEPARTMENT_IN_USE: '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.',
-  FORBIDDEN: PERMISSION_CHANGED,
-  NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
-}
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 // 같은 요청을 다시 보내도 같은 답이 오는 경우: 화면이 오래됐거나(권한이 바뀜, 부서가 없어짐) 부서원이 있었던 부서다.
 const final = new Set(['FORBIDDEN', 'NOT_FOUND', 'DEPARTMENT_IN_USE'])
@@ -40,7 +34,7 @@ type Scope = 'create' | 'rename' | 'remove' | 'list'
 type Problem = { scope: Scope; text: string }
 
 // 운영진 > 부서: 이름, 역할(재정), 부서원 수. 회장단은 부서 만들기와 줄마다 이름 바꾸기, 재정 역할 주고 거두기, 없애기를 본다.
-// 없애기는 쓰인 적 없는 부서만 된다(서버가 409로 막는다). 되돌리기 어려워 한 번 묻는다.
+// 없애기는 쓰인 적 없는 부서만 된다(서버가 막는다). 되돌리기 어려워 한 번 묻는다.
 // 대화상자는 id만 기억하고 매번 다시 읽은 목록에서 부서를 찾는다. 부서가 사라졌거나 권한을 잃으면 닫힌다(DEC-38).
 export default function Departments({ view, team }: { view: CouncilView; team: Team }) {
   const { data, loadFailed, saving, change, reload } = team
@@ -91,7 +85,11 @@ export default function Departments({ view, team }: { view: CouncilView; team: T
   async function run(path: string, body: unknown, scope: Scope) {
     setProblem(null)
     const code = await change(path, body)
-    if (code) setProblem({ scope: final.has(code) ? 'list' : scope, text: errors[code] ?? failure })
+    if (code)
+      setProblem({
+        scope: final.has(code) ? 'list' : scope,
+        text: DEPARTMENT_ERRORS[code] ?? failure,
+      })
     return code
   }
   const departmentPath = (department: TeamDepartment) =>

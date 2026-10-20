@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { PEOPLE_ERRORS } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import InviteCard from './InviteCard'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
@@ -16,22 +16,14 @@ import { councilRankLabel, holdsRank, joinedDay, placementsText } from './team-v
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
-const errors: Record<string, string> = {
-  PRESIDENT_CANNOT_LEAVE: '회장은 내보낼 수 없어요. 먼저 회장을 넘겨 주세요.',
-  CANNOT_REMOVE_SELF: '나를 내보낼 수는 없어요.',
-  PRESIDENT_REQUIRED: '회장의 직급은 회장 넘기기로만 바꿀 수 있어요.',
-  ALREADY_PRESIDENT: '이미 회장이에요.',
-  FORBIDDEN: PERMISSION_CHANGED,
-  NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
-}
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
-// 화면이 오래됐다는 409: 같은 요청을 다시 보내도 같은 답이므로 확인 대화상자를 닫고 목록을 다시 읽는다.
+// 화면이 오래됐다는 충돌 오류: 같은 요청을 다시 보내도 같은 답이므로 확인 대화상자를 닫고 목록을 다시 읽는다.
 const staleConflicts = new Set([
   'PRESIDENT_CANNOT_LEAVE',
   'CANNOT_REMOVE_SELF',
   'ALREADY_PRESIDENT',
 ])
-// 화면이 오래됐다는 답: 같은 요청을 다시 보내도 소용없으므로 확인 대화상자를 닫는다. 403·404는 useTeam이 목록을 다시 읽는다.
+// 화면이 오래됐다는 답: 같은 요청을 다시 보내도 소용없으므로 확인 대화상자를 닫는다. 권한·없음 오류는 useTeam이 목록을 다시 읽는다.
 const stale = new Set(['FORBIDDEN', 'NOT_FOUND', ...staleConflicts])
 type Confirm = { kind: 'remove' | 'transfer'; memberId: string }
 
@@ -99,7 +91,7 @@ export default function People({ view, team, onCouncilChanged }: Props) {
     setMessage('')
     const code = await change(path, body)
     if (code) {
-      setMessage(errors[code] ?? failure)
+      setMessage(PEOPLE_ERRORS[code] ?? failure)
       if (staleConflicts.has(code)) reload()
       return code
     }

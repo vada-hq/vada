@@ -37,7 +37,7 @@ export function createPushRoutes(
   // 5초 기다렸다 보낸다. 그동안 사용자가 화면을 끄거나 홈으로 나가 잠금 화면의 알림을 본다.
   routes.post('/me/push/test', json(PushSubscriptionSchema), authenticated, async c => {
     const { endpoint, keys } = c.req.valid('json')
-    if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED', 400)
+    if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED')
     await wait(TEST_DELAY_MS)
     const { result, status, code } = await send({ endpoint, keys }, TEST_MESSAGE)
     // 구독 주소는 기기를 가리키는 비밀 주소라 남기지 않는다. 결과의 종류와, 있으면 알림 서버의 상태 번호나 연결 오류 코드만 남긴다.

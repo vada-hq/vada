@@ -147,12 +147,12 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
       .from(table)
       .where(eq(table.id, change.id))
       .for('no key update')
-    if (!current) throw new ApiError('NOT_FOUND', 404)
+    if (!current) throw new ApiError('NOT_FOUND')
     const [meta] = await tx
       .select({ confirmedAt: record.confirmedAt })
       .from(record)
       .where(eq(record.id, change.id))
-    if (meta?.confirmedAt && !change.reason?.trim()) throw new ApiError('REASON_REQUIRED', 400)
+    if (meta?.confirmedAt && !change.reason?.trim()) throw new ApiError('REASON_REQUIRED')
     if (change.kind === 'council_membership') {
       const [president] = await tx
         .select({ cohortId: councilMembership.cohortId })
@@ -191,7 +191,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
       .where(
         sql`${councilMembership.cohortId} = ${cohortId} AND ${councilMembership.councilRank} = 'president' AND ${councilMembership.endsAt} IS NULL`,
       )
-    if (!president) throw new ApiError('PRESIDENT_REQUIRED', 409)
+    if (!president) throw new ApiError('PRESIDENT_REQUIRED')
   }
 }
 

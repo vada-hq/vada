@@ -58,8 +58,8 @@ test('예상한 ApiError 코드만 거르고, 그 밖의 실패는 코드와 함
   const rejected = (reason: unknown): PromiseRejectedResult => ({ status: 'rejected', reason })
   const results: PromiseSettledResult<unknown>[] = [
     { status: 'fulfilled', value: 1 },
-    rejected(new ApiError('PRESIDENT_CANNOT_LEAVE', 409)),
-    rejected(new ApiError('NOT_FOUND', 404)),
+    rejected(new ApiError('PRESIDENT_CANNOT_LEAVE')),
+    rejected(new ApiError('NOT_FOUND')),
     rejected(Object.assign(new Error('duplicate key'), { code: '23505' })),
     rejected(new Error('postgres://u:secret@h/db')),
     rejected('문자열'),

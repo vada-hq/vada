@@ -25,7 +25,7 @@ test('GET /api/health returns the API health status', async () => {
 test('ApiError는 코드와 상태로, HTTPException 400은 INVALID_INPUT으로 응답한다', async () => {
   const app = createApp({ auth: noAuth, trustedOrigin: origin })
   app.get('/api/conflict', () => {
-    throw new ApiError('VERSION_CONFLICT', 409)
+    throw new ApiError('VERSION_CONFLICT')
   })
   app.get('/api/malformed', () => {
     throw new HTTPException(400, { message: 'Malformed JSON in request body' })
@@ -149,13 +149,13 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
   })
   const app = createApp({ auth: noAuth, trustedOrigin: origin })
   app.get('/api/organizations/:organizationId/provider', () => {
-    throw new ApiError('DELIVERY_PROVIDER_FAILED', 502)
+    throw new ApiError('DELIVERY_PROVIDER_FAILED')
   })
   app.get('/api/organizations/:organizationId/unavailable', () => {
     throw new HTTPException(503, { message: 'upstream secret-token' })
   })
   app.get('/api/organizations/:organizationId/conflict', () => {
-    throw new ApiError('VERSION_CONFLICT', 409)
+    throw new ApiError('VERSION_CONFLICT')
   })
   const failed = await app.request('/api/organizations/org-1/provider')
   assert.equal(failed.status, 502)
@@ -270,10 +270,10 @@ test('서버 쪽 실패만 오류 수집기로 보내고, 로그와 같은 정�
     throw crash
   })
   app.get('/api/organizations/:organizationId/provider', () => {
-    throw new ApiError('DELIVERY_PROVIDER_FAILED', 502)
+    throw new ApiError('DELIVERY_PROVIDER_FAILED')
   })
   app.get('/api/organizations/:organizationId/conflict', () => {
-    throw new ApiError('VERSION_CONFLICT', 409)
+    throw new ApiError('VERSION_CONFLICT')
   })
   await app.request('/api/organizations/org-1/crash')
   await app.request('/api/organizations/org-1/provider')

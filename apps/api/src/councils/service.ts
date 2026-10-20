@@ -18,7 +18,7 @@ export const FINANCE_DEPARTMENT_NAME = '재정부'
 
 // 기수의 기간이 오늘(한국 날짜)을 담아야 운영진에게 지금 소속이 생긴다. 담지 않으면 아무도 학생회를 열 수 없다.
 export function assertCurrentPeriod(period: { startsOn: string; endsOn: string }, now: Date) {
-  if (!periodIsCurrent(period, now)) throw new ApiError('COHORT_NOT_CURRENT', 409)
+  if (!periodIsCurrent(period, now)) throw new ApiError('COHORT_NOT_CURRENT')
 }
 
 // 학생회 만들기는 한 거래다(바탕 spec G6): 운영진(없으면)과 로그인 잇기, 학생회, 첫 기수, 회장 소속, 재정부, 초대 코드.
@@ -73,7 +73,7 @@ export async function updateSettings(tx: Tx, actor: Actor, input: UpdateCouncilS
     viceHeadTitle: input.titles.viceHead,
   }
   const [current] = await tx.select().from(council).where(eq(council.id, actor.councilId))
-  if (!current) throw new ApiError('NOT_FOUND', 404)
+  if (!current) throw new ApiError('NOT_FOUND')
   if (
     (Object.keys(changes) as (keyof typeof changes)[]).every(key => current[key] === changes[key])
   )

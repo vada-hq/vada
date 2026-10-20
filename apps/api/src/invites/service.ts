@@ -22,7 +22,7 @@ export async function invitedCouncil(db: Pick<Db, 'select'>, code: string) {
     .from(inviteCode)
     .innerJoin(council, eq(council.id, inviteCode.councilId))
     .where(eq(inviteCode.code, code))
-  if (!found) throw new ApiError('NOT_FOUND', 404)
+  if (!found) throw new ApiError('NOT_FOUND')
   return found
 }
 
@@ -42,12 +42,12 @@ export async function joinCouncil(
     .select({ code: inviteCode.code })
     .from(inviteCode)
     .where(and(eq(inviteCode.councilId, councilId), eq(inviteCode.code, code)))
-  if (!still) throw new ApiError('NOT_FOUND', 404)
+  if (!still) throw new ApiError('NOT_FOUND')
   const [current] = await tx
     .select({ id: cohort.id })
     .from(cohort)
     .where(and(eq(cohort.councilId, councilId), cohortIsCurrent(now)))
-  if (!current) throw new ApiError('NO_CURRENT_COHORT', 409)
+  if (!current) throw new ApiError('NO_CURRENT_COHORT')
   const memberId = await linkMember(tx, userId)
   const [membership] = await tx
     .select({ id: councilMembership.id, endsAt: councilMembership.endsAt })

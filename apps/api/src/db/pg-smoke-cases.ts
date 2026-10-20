@@ -340,7 +340,7 @@ export const rotateTogetherCase: SmokeCase = {
 
 // 사례 c: 회장 넘기기와 그 사람 내보내기를 동시에 ------------------------------------
 
-// 넘기기가 먼저면 내보내기는 회장을 내보내려 해서 409, 내보내기가 먼저면 넘기기는 없는 소속이라 404다.
+// 넘기기가 먼저면 내보내기는 회장을 내보내려 해서 PRESIDENT_CANNOT_LEAVE, 내보내기가 먼저면 넘기기는 없는 소속이라 NOT_FOUND다.
 const TRANSFER_REMOVE_EXPECTED = new Set(['PRESIDENT_CANNOT_LEAVE', 'NOT_FOUND'])
 
 const C = { president: 'smoke-c-president', vice: 'smoke-c-vice', target: 'smoke-c-target' }

@@ -7,6 +7,7 @@ import {
   TransferPresidentSchema,
   UpdateDepartmentSchema,
   type Action,
+  type ErrorCode,
   type TeamResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -30,8 +31,8 @@ import {
 
 // 미리 본 뒤 다른 요청이나 다른 기록과 겹쳐 생긴 제약 위반을 같은 오류 코드로 바꾼다. 길마다 낼 수 있는 위반만 넘긴다. 그 밖의 위반은 500이다.
 // 만들기와 이름 바꾸기는 부서 이름이 겹치면 23505, 없애기는 다른 기록이 부서를 가리키면 23503이다.
-const nameConflicts: Readonly<Record<string, string>> = { '23505': 'DEPARTMENT_NAME_TAKEN' }
-const removeConflicts: Readonly<Record<string, string>> = { '23503': 'DEPARTMENT_IN_USE' }
+const nameConflicts: Readonly<Record<string, ErrorCode>> = { '23505': 'DEPARTMENT_NAME_TAKEN' }
+const removeConflicts: Readonly<Record<string, ErrorCode>> = { '23503': 'DEPARTMENT_IN_USE' }
 
 // 운영진: 목록(모든 운영진)과 편성(회장단, 회장 넘기기는 회장), 부서(회장단). 변경도 목록 전체를 돌려준다.
 export function createTeamRoutes(
@@ -48,7 +49,7 @@ export function createTeamRoutes(
     c: Context<SessionEnv>,
     action: Action,
     run: (tx: Tx, actor: Actor) => Promise<void>,
-    conflicts: Readonly<Record<string, string>> = {},
+    conflicts: Readonly<Record<string, ErrorCode>> = {},
   ) {
     try {
       const team = await inCouncilChange(
@@ -65,7 +66,7 @@ export function createTeamRoutes(
       return c.json(team satisfies TeamResponse)
     } catch (error) {
       const code = conflicts[sqlState(error) ?? '']
-      if (code) throw new ApiError(code, 409)
+      if (code) throw new ApiError(code)
       throw error
     }
   }

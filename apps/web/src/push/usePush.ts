@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PushKeyResponse, PushTestResponse, PushTestResult } from '@vada/contracts'
+import {
+  statusOf,
+  type PushKeyResponse,
+  type PushTestResponse,
+  type PushTestResult,
+} from '@vada/contracts'
 import { deviceOf, isIosHomeScreenApp, type Device } from '@/lib/platform'
 import {
   base64UrlToBytes,
@@ -29,7 +34,7 @@ export const currentEnvironment = (): PushEnvironment => ({
 type SaveResult = 'saved' | 'unsupported' | 'failed'
 
 // 알림 받을 기기를 서버에 저장한다(바탕 spec G10). 같은 구독 주소면 서버가 열쇠를 갱신한다.
-// 서버가 모르는 알림 서버라고 거절하면(400 PUSH_SERVICE_UNSUPPORTED) 다시 눌러도 같으므로 'failed'와 나눠, 호스트를 알려 준다.
+// 서버가 모르는 알림 서버라고 거절하면(PUSH_SERVICE_UNSUPPORTED) 다시 눌러도 같으므로 'failed'와 나눠, 호스트를 알려 준다.
 async function saveDevice(subscription: BrowserSubscription): Promise<SaveResult> {
   try {
     const response = await fetch('/api/me/push/devices', {
@@ -40,7 +45,7 @@ async function saveDevice(subscription: BrowserSubscription): Promise<SaveResult
     })
     if (response.ok) return 'saved'
     if (
-      response.status === 400 &&
+      response.status === statusOf('PUSH_SERVICE_UNSUPPORTED') &&
       ((await response.json()) as { error?: string }).error === 'PUSH_SERVICE_UNSUPPORTED'
     )
       return 'unsupported'
@@ -95,7 +100,7 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
           credentials: 'same-origin',
           cache: 'no-store',
         })
-        if (response.status === 404) {
+        if (response.status === statusOf('NOT_FOUND')) {
           if (!cancelled) setServer({ kind: 'off' })
           return
         }
@@ -191,7 +196,7 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
         body: JSON.stringify(subscription.toJSON()),
       })
       if (
-        response.status === 400 &&
+        response.status === statusOf('PUSH_SERVICE_UNSUPPORTED') &&
         ((await response.json()) as { error?: string }).error === 'PUSH_SERVICE_UNSUPPORTED'
       ) {
         setTest(unsupportedServiceOf(subscription.endpoint))

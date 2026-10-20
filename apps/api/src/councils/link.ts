@@ -29,7 +29,7 @@ export async function linkMember(tx: Tx, userId: string): Promise<string> {
     .where(eq(member.email, email))
   // 다른 계정에 이어진 운영진이 같은 이메일을 쓰고 있거나, 확인되지 않은 이메일로는 그 운영진을 이을 수 없다.
   // 운영진 이메일은 겹칠 수 없어(physical-model.md) 새 운영진도 만들지 못하므로 둘 다 409다.
-  if (existing && (existing.linkedTo || !user.verified)) throw new ApiError('EMAIL_IN_USE', 409)
+  if (existing && (existing.linkedTo || !user.verified)) throw new ApiError('EMAIL_IN_USE')
   const memberId =
     existing?.id ??
     (await createRecord(tx, {
