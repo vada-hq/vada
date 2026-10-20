@@ -72,7 +72,7 @@
 - 닿는 곳: vada-docs `physical-model.md`(고쳤음). `apps/api/migrations/0001_*.sql`, `db/baseline.test.ts`, `records/records.ts`, `access/permissions.ts`, `packages/contracts/src/permissions.ts`, `chat.ts`(새, 상한 상수).
 - 검토: 깊게. 마이그레이션: 있음(이미 있는 칸의 제약).
 
-### 2. 방 맞추기 [ ]
+### 2. 방 맞추기 [x]
 - 할 수 있게 되는 것: 편성대로 방과 참여가 저절로 맞춰진다.
 - 수용 기준: 학생회를 만들면 전체방과 회장단방이 생기고 회장이 둘 다에 들어간다. 초대로 들어오면 전체방에만 들어가고, 들어온 시각은 그때다. 부서에 첫 부서원을 넣으면 부서방이 생긴다. 부서에서 빼면 그 줄만 지워지고 방과 메시지는 남는다. 부회장을 주고 거두거나 회장을 넘기면 회장단방 참여가 따라 바뀐다. 내보내면 1:1을 뺀 모든 참여가 지워진다. 직급만 바꾸면 들어온 시각이 그대로다. 두 번 맞춰도 결과가 같다. 이 기능 전에 만든 학생회는 방 목록을 처음 읽을 때 방이 채워진다. 시험 데이터 스크립트로 부서를 배정해도 맞춰진다.
 - 닿는 곳: `apps/api/src/chat/rooms.ts`(새), `councils/service.ts`, `invites/service.ts`, `team/routes.ts`·`councils/routes.ts`의 `change` 도우미, `scripts/test-data.ts`, `test-support/chat.ts`(새).

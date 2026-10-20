@@ -8,6 +8,7 @@ import type { Actor } from '../access/actor.js'
 import { periodIsCurrent } from '../access/current-cohort.js'
 import { cohort, council, inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
+import { syncRooms } from '../chat/rooms.js'
 import { freshInviteCode } from '../invites/code.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import type { Tx } from '../db/types.js'
@@ -58,6 +59,7 @@ export async function createCouncil(
   await tx
     .insert(inviteCode)
     .values({ councilId, code: await freshInviteCode(tx), createdBy: actor })
+  await syncRooms(tx, { councilId, cohortId, memberId: actor })
   return councilId
 }
 

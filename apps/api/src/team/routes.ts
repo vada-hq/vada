@@ -11,6 +11,7 @@ import {
   type TeamResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { syncRooms } from '../chat/rooms.js'
 import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
@@ -58,6 +59,8 @@ const changeOf =
       const request = { userId: c.get('userId'), councilId: c.req.param('councilId'), action }
       const team = await inCouncilChange(db, { ...request, now: clock() }, async (tx, actor) => {
         await run(tx, actor)
+        // 편성이 바뀐 같은 거래에서 방 참여를 맞춘다(DEC-18). 실패하면 편성도 함께 되돌아간다.
+        await syncRooms(tx, actor)
         return teamOf(tx, actor)
       })
       return c.json(team satisfies TeamResponse)

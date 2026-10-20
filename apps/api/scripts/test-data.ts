@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { koreanYearOf } from '@vada/contracts'
 import { actorOf } from '../src/access/actor.js'
 import { currentCouncilMembership } from '../src/access/current-cohort.js'
+import { syncRooms } from '../src/chat/rooms.js'
 import { createCouncil } from '../src/councils/service.js'
 import {
   accounts,
@@ -141,6 +142,8 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
         and(eq(department.councilId, councilId), eq(department.name, TEST_DEPARTMENTS.planning)),
       )
     if (!planning) await createDepartment(tx, actor, TEST_DEPARTMENTS.planning)
+    // 이 기능 전에 만든 시험 학생회도 방을 갖게 한다. 다시 돌려도 같다.
+    await syncRooms(tx, actor)
     return councilId
   })
 }
@@ -171,5 +174,6 @@ export async function assignTestMember(db: Db, userId: string, target: TestDepar
       departmentId: wanted.id,
       rank: null,
     })
+    await syncRooms(tx, president)
   })
 }

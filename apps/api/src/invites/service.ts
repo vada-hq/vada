@@ -2,6 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
 import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
+import { syncRooms } from '../chat/rooms.js'
 import { linkMember } from '../councils/link.js'
 import {
   cohort,
@@ -103,6 +104,7 @@ export async function joinCouncil(
   } else if (membership.endsAt !== null) {
     await reopenMembership(tx, membership.id, memberId, cohortId)
   }
+  await syncRooms(tx, { councilId, cohortId, memberId })
   return councilId
 }
 

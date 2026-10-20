@@ -64,7 +64,7 @@ test('학생회 만들기는 한 거래로 운영진, 로그인 잇기, 학생�
     }>('SELECT kind, council_id, created_by FROM record ORDER BY created_at, id')
     assert.deepEqual(
       kinds.rows.map(row => row.kind),
-      ['member', 'council', 'cohort', 'council_membership', 'department'],
+      ['member', 'council', 'cohort', 'council_membership', 'department', 'chat_room', 'chat_room'],
     )
     for (const row of kinds.rows.slice(1)) {
       assert.equal(row.created_by, creator!.member_id, row.kind)
@@ -98,7 +98,7 @@ test('학생회 만들기는 한 거래로 운영진, 로그인 잇기, 학생�
           'SELECT count(*)::int AS n FROM record r JOIN record_version v ON v.record_id = r.id AND v.version_no = 1',
         )
       ).rows,
-      [{ n: 5 }],
+      [{ n: 7 }],
     )
   } finally {
     await testDb.close()

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { PGlite } from '@electric-sql/pglite'
 import { createTestDb } from '../src/db/test-db.js'
+import { roomMap } from '../src/test-support/chat.js'
 import {
   assignTestMember,
   parseTestDataArgs,
@@ -83,6 +84,12 @@ test('부서원 넣기는 다시 돌려도 같고, 이미 다른 부서인 사�
       { user_id: 'u3', name: '재정부' },
     ])
     assert.equal((await pg.query('SELECT 1 FROM council_membership')).rows.length, 3)
+    // 부서를 배정하면 부서방이 맞춰진다.
+    const councilId = (await pg.query<{ id: string }>('SELECT id FROM council')).rows[0]!.id
+    const rooms = await roomMap(pg, councilId)
+    assert.deepEqual(rooms['dept:기획부']?.length, 1)
+    assert.deepEqual(rooms['dept:재정부']?.length, 1)
+    assert.equal(rooms.all?.length, 3)
     // 회장이 아닌 운영진(이미 학생회 안에 있는 u2)이 seed를 돌려도 회장을 가져가지 못한다.
     await assert.rejects(seedTestCouncil(db, 'u2', now), /Test council has another president/)
     assert.deepEqual(
