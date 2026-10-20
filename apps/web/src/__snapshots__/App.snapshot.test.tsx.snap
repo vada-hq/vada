@@ -298,6 +298,30 @@ exports[`작업 공간: 대화 방 1`] = `
 </ul>
 <div>
 </div>
+<div class="sticky bottom-0 bg-white">
+<form class="flex flex-col gap-2 border-t bg-white pt-3">
+<div class="flex items-end gap-2">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" accept="image/*" multiple="" hidden="" tabindex="-1" aria-label="사진 고르기" type="file">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="사진 붙이기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus" aria-hidden="true">
+<path d="M16 5h6">
+</path>
+<path d="M19 2v6">
+</path>
+<path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5">
+</path>
+<path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21">
+</path>
+<circle cx="9" cy="9" r="2">
+</circle>
+</svg>
+</button>
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive resize-y read-only:border-border read-only:bg-gray-50 min-h-10 flex-1" rows="1" aria-label="메시지" placeholder="메시지를 입력하세요. @로 사람을 부를 수 있어요.">
+</textarea>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit" disabled="">보내기</button>
+</div>
+</form>
+</div>
 </div>
 </main>
 </div>
