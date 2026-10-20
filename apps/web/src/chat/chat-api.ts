@@ -1,4 +1,9 @@
-import { statusOf } from '@vada/contracts'
+import {
+  MarkNoticeSchema,
+  OpenDirectSchema,
+  statusOf,
+  type OpenDirectResponse,
+} from '@vada/contracts'
 
 // 새 메시지가 보이기까지의 최대 시간(기능 003: 3초 안에).
 export const CHAT_POLL_MS = 3000
@@ -15,10 +20,10 @@ export const isRoomLost = (status: number) =>
   status === statusOf('FORBIDDEN') ||
   status === statusOf('NOT_FOUND')
 
-// 공지 붙이기·떼기(`POST messages/:messageId/notice`)와 1:1 열기(`POST direct`)의 본문과 응답. 기능 003 조각 4가 계약으로 정한다.
+// 공지 붙이기·떼기(`POST messages/:messageId/notice`)와 1:1 열기(`POST direct`)의 본문과 응답은 계약의 것이다.
 export const noticePath = (councilId: string, messageId: string) =>
   `${chatBase(councilId)}/messages/${encodeURIComponent(messageId)}/notice`
 export const directPath = (councilId: string) => `${chatBase(councilId)}/direct`
-export type NoticeBody = { isNotice: boolean }
-export type DirectBody = { memberId: string }
-export type DirectResponse = { roomId: string }
+export type NoticeBody = ReturnType<typeof MarkNoticeSchema.parse>
+export type DirectBody = ReturnType<typeof OpenDirectSchema.parse>
+export type DirectResponse = OpenDirectResponse
