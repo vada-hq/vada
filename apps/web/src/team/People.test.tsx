@@ -757,3 +757,53 @@ test('메뉴 항목으로 연 대화상자를 닫으면 포커스가 그 운영�
   await settle()
   expect(document.activeElement).toBe(screen.getByRole('button', { name: '이재정 동작' }))
 })
+
+// 닫힌 까닭을 쪽 위에 보인다(자주 잡힌 것 1번, vada-docs#24). 서버 답이 아니라 목록·권한을 다시 읽어 닫힐 때도 같다.
+const GONE = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
+const LOST = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'
+
+test('부서 배정·확인 대화상자가 열린 채 대상이 목록에서 사라져 닫히면 까닭을 쪽에 보인다', async () => {
+  for (const { item, title } of [
+    { item: '부서 배정', title: '박새내의 부서' },
+    { item: '내보내기', title: '박새내님을 내보낼까요?' },
+  ]) {
+    const api = mockApi()
+    let reads = 0
+    api.on('GET', '/api/organizations/c1/members', () =>
+      json(reads++ === 0 ? teamResponse() : withoutMember('m3')),
+    )
+    api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+    render(<Harness permissions={LEADER_PERMISSIONS} />)
+    fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: item }))
+    await screen.findByRole('dialog', { name: title })
+    fireEvent.click(screen.getByText('목록 다시 읽기'))
+    await noDialog()
+    expect(await screen.findByText(GONE), item).toBeTruthy()
+    cleanup()
+  }
+})
+
+test('부서 배정·확인 대화상자가 열린 채 권한을 잃어 닫히면 까닭을 쪽에 보인다', async () => {
+  for (const { item, title } of [
+    { item: '부서 배정', title: '박새내의 부서' },
+    { item: '내보내기', title: '박새내님을 내보낼까요?' },
+  ]) {
+    serve()
+    const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+    fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: item }))
+    await screen.findByRole('dialog', { name: title })
+    view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+    await noDialog()
+    expect(await screen.findByText(LOST), item).toBeTruthy()
+    cleanup()
+  }
+})
+
+test('초대 링크 카드는 초대 권한을 잃어 사라지면 까닭을 쪽에 보인다', async () => {
+  serve()
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await screen.findByRole('region', { name: '초대 링크' })
+  view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+  expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})

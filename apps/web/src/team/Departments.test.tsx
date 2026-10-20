@@ -429,3 +429,76 @@ test('줄에서 한 동작이 실패하면 휴대폰 화면에서도 보이도�
     delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView
   }
 })
+
+// 닫힌 까닭을 쪽 위에 보인다(자주 잡힌 것 1번, vada-docs#24).
+const GONE = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
+const LOST = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'
+
+test('이름 바꾸기·없애기 대화상자가 열린 채 대상 부서가 사라져 닫히면 까닭을 쪽에 보인다', async () => {
+  for (const { item, title } of [
+    { item: '이름 바꾸기', title: '부서 이름 바꾸기' },
+    { item: '없애기', title: '기획부 부서를 없앨까요?' },
+  ]) {
+    const api = mockApi()
+    let reads = 0
+    api.on('GET', '/api/organizations/c1/members', () =>
+      reads++ === 0
+        ? json(teamResponse())
+        : withDepartments(team => {
+            team.departments = team.departments.slice(0, 1)
+          }),
+    )
+    render(<Harness permissions={LEADER_PERMISSIONS} />)
+    fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: item }))
+    await screen.findByRole('dialog', { name: title })
+    fireEvent.click(screen.getByText('목록 다시 읽기'))
+    await noDialog()
+    expect(await screen.findByText(GONE), item).toBeTruthy()
+    cleanup()
+  }
+})
+
+test('이름 바꾸기·없애기 대화상자가 열린 채 권한을 잃어 닫히면 까닭을 쪽에 보인다', async () => {
+  for (const { item, title } of [
+    { item: '이름 바꾸기', title: '부서 이름 바꾸기' },
+    { item: '없애기', title: '기획부 부서를 없앨까요?' },
+  ]) {
+    serve()
+    const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+    fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: item }))
+    await screen.findByRole('dialog', { name: title })
+    view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+    await noDialog()
+    expect(await screen.findByText(LOST), item).toBeTruthy()
+    cleanup()
+  }
+})
+
+test('열려 있던 대화상자가 없어도 권한을 잃어 만들기 칸이 사라지면 까닭을 쪽에 보인다', async () => {
+  serve()
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await screen.findByRole('form', { name: '부서 만들기' })
+  view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+  expect(screen.queryByRole('form', { name: '부서 만들기' })).toBeNull()
+  expect(await screen.findByText(LOST)).toBeTruthy()
+})
+
+test('까닭 문구는 다른 대화상자를 열면 사라진다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () =>
+    reads++ === 0
+      ? json(teamResponse())
+      : withDepartments(team => {
+          team.departments = team.departments.slice(0, 1)
+        }),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
+  await screen.findByRole('dialog')
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await screen.findByText(GONE)
+  fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  expect(screen.queryByText(GONE)).toBeNull()
+})
