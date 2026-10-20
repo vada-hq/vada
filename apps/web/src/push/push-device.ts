@@ -25,7 +25,7 @@ export function saveDevice(subscription: BrowserSubscription): Promise<SaveResul
 // 진행 중인 저장. 로그아웃이 지우기 전에 이 저장이 끝나기를 기다려야, 늦게 처리된 저장이 지운 줄을 되살리지 않는다.
 const pendingSaves = new Set<Promise<SaveResult>>()
 export async function settlePendingSaves(): Promise<void> {
-  await Promise.all([...pendingSaves])
+  await Promise.all(pendingSaves)
 }
 
 async function postDevice(subscription: BrowserSubscription): Promise<SaveResult> {
