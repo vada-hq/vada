@@ -131,3 +131,26 @@ export {
 export interface HealthResponse {
   status: 'ok'
 }
+export {
+  TASK_ACTIONS,
+  TASK_BODY_MAX,
+  TASK_DONE_LIMIT,
+  TASK_FILTERS,
+  TASK_OPEN_LIMIT,
+  TASK_STATUSES,
+  TASK_TITLE_MAX,
+  TASK_VIEWS,
+  TaskListQuerySchema,
+  type TaskAction,
+  type TaskChange,
+  type TaskDetail,
+  type TaskFilter,
+  type TaskListQuery,
+  type TaskPerson,
+  type TaskResponse,
+  type TaskStatus,
+  type TaskSummary,
+  type TaskVersion,
+  type TaskView,
+  type TasksResponse,
+} from './tasks.js'

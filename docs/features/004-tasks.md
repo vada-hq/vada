@@ -75,7 +75,7 @@ T1~T10과 작은 결정은 옛 설계의 사전 조사대로다(다시 조사하
 - 닿는 곳: `apps/api/migrations/0002_*.sql`·`0003_*.sql`과 journal, `db/schema-work.ts`, `db/baseline.test.ts`(journal 넷), `team/departments.test.ts`(상태 값), `records/records.ts`, `records/same-council.ts`, `access/permissions.ts`, contracts `permissions.ts`. `docs/superpowers/specs/2026-10-19-rebuild-design.md` 덩어리 표의 4줄(학생회 업무(부서 업무 포함), 지우기(DEC-49), 행사와 잇기는 6에서)과 6줄(행사 업무: 행사 칸, 행사 책임자 기준, 행사 업무 탭, 만들기의 행사 고르기).
 - 검토: 깊게. 마이그레이션: 있음(새 칸 하나, 이미 있는 칸의 제약과 기본값). 올린 뒤 '위험'의 차례로 두 DB에 적용한다.
 
-### 2. 업무 읽기 [ ]
+### 2. 업무 읽기 [x]
 - 할 수 있게 되는 것: 운영진이 업무 목록 셋과 업무 하나(이력, 할 수 있는 동작)를 API로 읽는다.
 - 수용 기준: `view=mine`은 나에게 맡긴 것, `all`은 지운 것만 뺀 모두, `unassigned`는 담당자 없음·떠난 담당자(`current: false`)·부서 없는 업무다. `status=open`(기본)과 `done`의 순서와 개수, `truncated`는 '정한 것'대로다. 모르는 키, 틀린 값, 같은 키 두 번은 400 `INVALID_INPUT`. 마감일 당일 한국 23:59:59는 지남이 아니고 다음 날 00:00은 지남이다(±1초), 끝남은 지나도 아니다. 업무 하나는 내용, 만든 사람, 판마다 바뀐 칸(판 1은 '만듦')을 준다. 줄마다 `actions`가 그 사람의 권한과 같다. 다른 학생회 업무는 목록에 없고 열면 404, 지운 업무와 형식이 틀린 번호도 404, 운영진이 아니면 403, 로그인하지 않으면 401, 내보낸 사람의 다음 요청은 403이다. JSON은 `no-store`다.
 - 닿는 곳: contracts `tasks.ts`(새: 상태·상한·목록 상수, `TaskListQuerySchema`, `TaskSummary`, `TaskDetail`, `TasksResponse`, `TaskResponse`). `apps/api/src/tasks/`(새: `routes.ts`의 `createTaskRoutes`, `queries.ts`, `due.ts`), `app.ts`, `serve.ts`, `http/boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET tasks`, `GET tasks/:taskId`.

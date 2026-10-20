@@ -8,6 +8,7 @@ import { createInviteRoutes } from '../invites/routes.js'
 import { createPushDeviceRoutes } from '../push/devices.js'
 import { createPushRoutes } from '../push/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
 import type { Db } from '../db/types.js'
@@ -43,6 +44,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       wait: async () => {},
     }),
     pushDevices: createPushDeviceRoutes(db, session),
+    tasks: createTaskRoutes(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({
     auth: { handler: async () => new Response() },

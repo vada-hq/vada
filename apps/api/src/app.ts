@@ -5,6 +5,7 @@ import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
+import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
@@ -25,6 +26,8 @@ export type AppOptions = {
   push?: ReturnType<typeof createPushRoutes> | undefined
   // 알림 받을 기기 저장과 지우기
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
+  // 업무: 목록, 하나 읽기
+  tasks?: ReturnType<typeof createTaskRoutes>
 }
 
 export function createApp({
@@ -36,6 +39,7 @@ export function createApp({
   chat,
   push,
   pushDevices,
+  tasks,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -53,6 +57,7 @@ export function createApp({
   if (chat) app.route('/api', chat)
   if (push) app.route('/api', push)
   if (pushDevices) app.route('/api', pushDevices)
+  if (tasks) app.route('/api', tasks)
   app.onError(handleError)
   return app
 }

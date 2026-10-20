@@ -16,6 +16,7 @@ import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
+import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
 
@@ -73,6 +74,7 @@ function appOf(env: Env, db: Db) {
     chat: createChatRoutes(db, session, { push: push.chatPush, storage: storageOf(env) }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
+    tasks: createTaskRoutes(db, session),
   })
 }
 
