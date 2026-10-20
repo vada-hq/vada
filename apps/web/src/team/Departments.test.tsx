@@ -74,6 +74,21 @@ test('부서 목록은 이름, 재정 역할, 부서원 수를 보이고, 직급
   expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
 })
 
+// DEC-38 근처 회귀: 만들기 칸에 적던 이름은 권한이 잠깐 빠져 칸이 사라졌다 돌아와도 남는다.
+test('부서 만들기 칸에 적던 이름은 권한을 잃었다 되찾아도 남는다', async () => {
+  serve()
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  const form = await screen.findByRole('form', { name: '부서 만들기' })
+  fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '홍보부' } })
+  view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+  expect(screen.queryByRole('form', { name: '부서 만들기' })).toBeNull()
+  view.rerender(<Harness permissions={LEADER_PERMISSIONS} />)
+  const back = await screen.findByRole('form', { name: '부서 만들기' })
+  expect(asElement(within(back).getByLabelText('새 부서 이름'), HTMLInputElement).value).toBe(
+    '홍보부',
+  )
+})
+
 test('부서를 불러오지 못하면 다시 시도할 수 있다', async () => {
   const api = mockApi()
   let calls = 0
