@@ -9,6 +9,7 @@ import {
   readMessages,
   readNewer,
   withNotice,
+  withSync,
   type RoomState,
 } from './room-state'
 
@@ -44,7 +45,9 @@ export function useRoom(councilId: string, roomId: string) {
       return isActive()
     })
     busy.current = false
-    if (outcome === 'lost' && isActive()) lose()
+    if (!isActive()) return
+    if (outcome === 'lost') lose()
+    else setState(before => withSync(before, outcome === 'failed'))
   }, [where, ready, lastId, lose, isActive])
   useVisiblePoll(() => void catchUp(), CHAT_POLL_MS)
 

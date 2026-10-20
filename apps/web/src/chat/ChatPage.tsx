@@ -87,8 +87,10 @@ export default function ChatPage(props: Omit<Props, 'onScreen'>) {
         canMarkNotice={props.view.permissions.includes('chat.notice')}
         onBack={list}
         onOpenNotices={() => setScreen({ kind: 'notices' })}
+        onForbidden={props.onForbidden}
       />
     )
-  if (screen.kind === 'notices') return <NoticePage councilId={props.councilId} onBack={list} />
+  if (screen.kind === 'notices')
+    return <NoticePage councilId={props.councilId} onBack={list} onForbidden={props.onForbidden} />
   return <ListScreen {...props} onScreen={setScreen} />
 }

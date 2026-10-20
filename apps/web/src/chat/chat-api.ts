@@ -1,7 +1,9 @@
-import { statusOf, type RoomDetailResponse } from '@vada/contracts'
+import { statusOf } from '@vada/contracts'
 
 // 새 메시지가 보이기까지의 최대 시간(기능 003: 3초 안에).
 export const CHAT_POLL_MS = 3000
+// 방 목록(안 읽은 수, 공지)은 열린 방보다 느리게 다시 읽는다(기능 003: 목록 15초, 열린 방 3초).
+export const CHAT_LIST_POLL_MS = 15_000
 
 export const chatBase = (councilId: string) => `/api/organizations/${encodeURIComponent(councilId)}`
 export const roomPath = (councilId: string, roomId: string) =>
@@ -19,4 +21,4 @@ export const noticePath = (councilId: string, messageId: string) =>
 export const directPath = (councilId: string) => `${chatBase(councilId)}/direct`
 export type NoticeBody = { isNotice: boolean }
 export type DirectBody = { memberId: string }
-export type DirectResponse = RoomDetailResponse
+export type DirectResponse = { roomId: string }

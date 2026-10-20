@@ -10,11 +10,13 @@ import { useNotices } from './useNotices'
 export default function NoticePage({
   councilId,
   onBack,
+  onForbidden,
 }: {
   councilId: string
   onBack: () => void
+  onForbidden: () => void
 }) {
-  const { state, retry } = useNotices(councilId)
+  const { state, retry } = useNotices(councilId, onForbidden)
   const now = useNow()
   return (
     <div className="flex flex-col gap-3">

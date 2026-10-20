@@ -4,20 +4,13 @@ import { ArrowLeft } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { postJson } from '@/lib/api'
-import {
-  NOTICE_ERRORS,
-  NOTICE_FAILED,
-  OLDER_LOAD_FAILED,
-  ROOM_LOAD_FAILED,
-  ROOM_LOST,
-} from '@/lib/messages'
+import { OLDER_LOAD_FAILED, ROOM_LOAD_FAILED, ROOM_LOST, ROOM_SYNC_FAILED } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
-import { noticePath, type NoticeBody } from './chat-api'
 import { roomName } from './chat-view'
 import MessageItem from './MessageItem'
 import NoticeBand from './NoticeBand'
 import type { RoomList } from './useRoomList'
+import { useNoticeMark } from './useNoticeMark'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
 
@@ -28,6 +21,8 @@ type Props = {
   canMarkNotice: boolean
   onBack: () => void
   onOpenNotices: () => void
+  // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
+  onForbidden: () => void
 }
 
 function Title({
@@ -137,6 +132,7 @@ function Messages({
           ))}
         </ul>
       )}
+      {state.syncFailed && <StateMessage kind="error">{ROOM_SYNC_FAILED}</StateMessage>}
       <div ref={end} />
     </>
   )
@@ -150,24 +146,16 @@ export default function RoomView({
   canMarkNotice,
   onBack,
   onOpenNotices,
+  onForbidden,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
   const now = useNow()
+  const { note, markNotice } = useNoticeMark({ councilId, room, rooms, onForbidden })
   useReadMarker({ councilId, roomId }, state, {
     onRead: () => void rooms.reload(),
     onLost: room.lose,
   })
-
-  const markNotice = async (message: ChatMessage, isNotice: boolean) => {
-    const result = await postJson(noticePath(councilId, message.id), {
-      isNotice,
-    } satisfies NoticeBody)
-    if (!result.ok) return NOTICE_ERRORS[result.code] ?? NOTICE_FAILED
-    room.setNoticeLocally(message.id, isNotice)
-    void rooms.reload()
-    return null
-  }
 
   if (state.kind !== 'ready')
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
@@ -176,6 +164,7 @@ export default function RoomView({
   return (
     <div className="flex flex-col gap-3">
       <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
+      {note && <StateMessage kind="notice">{note}</StateMessage>}
       {allMembers && band && <NoticeBand notice={band} now={now} onOpenNotices={onOpenNotices} />}
       <Messages
         state={state}

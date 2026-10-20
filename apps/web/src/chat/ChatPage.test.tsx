@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action } from '@vada/contracts'
@@ -32,16 +33,18 @@ afterEach(() => {
 })
 
 const base = '/api/organizations/c1'
+// 권한이 바뀌면(403) 학생회를 다시 읽어 권한이 줄어든 모습을 받는다.
 function Harness({ permissions = MEMBER_PERMISSIONS }: { permissions?: Action[] }) {
+  const [granted, setGranted] = useState(permissions)
   const team = useTeam('c1', () => {})
   const rooms = useRoomList('c1', () => {}, true)
   return (
     <ChatPage
       councilId="c1"
-      view={councilView('c1', { permissions })}
+      view={councilView('c1', { permissions: granted })}
       team={team}
       rooms={rooms}
-      onForbidden={() => {}}
+      onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
     />
   )
 }
@@ -212,15 +215,13 @@ test('공지 표시가 실패하면 그 메시지 옆에 까닭을 보이고, �
         .disabled,
     ).toBe(true),
   )
-  pending.resolve(json({ error: 'FORBIDDEN' }, 403))
-  expect(await screen.findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  pending.resolve(json({ error: 'X' }, 500))
+  expect(await screen.findByText('공지 표시를 바꾸지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
 })
 
 test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열린다', async () => {
   const api = serve()
-  api.on('POST', `${base}/direct`, () =>
-    json(roomDetail(room('r9', { type: 'direct', name: '박새내' }))),
-  )
+  api.on('POST', `${base}/direct`, () => json({ roomId: 'r9' }, 201))
   api.on('GET', `${base}/rooms/r9`, () =>
     json(roomDetail(room('r9', { type: 'direct', name: '박새내' }))),
   )
@@ -250,4 +251,64 @@ test('1:1 열기가 409면 대화상자 안에 까닭을 보이고, 403이면 �
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await settle()
   expect(screen.getByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+})
+
+test('공지 표시가 403이면 학생회를 다시 읽어 공지 메뉴가 사라진다', async () => {
+  const api = serve()
+  api.on('POST', `${base}/messages/a1/notice`, () => json({ error: 'FORBIDDEN' }, 403))
+  render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
+  await openAll()
+  fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
+    key: 'Enter',
+  })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '공지로 표시' }))
+  expect(await screen.findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  await waitFor(() => expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull())
+})
+
+test('방 정보와 메시지 중 하나만 403이어도 방을 잃은 것으로 본다', async () => {
+  const api = serve()
+  api.on('GET', `${base}/rooms/r1`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', `${base}/rooms/r1/messages`, () => json({ error: 'X' }, 500))
+  render(<Harness />)
+  await openAll()
+  expect(await screen.findByText('이 방을 볼 수 없어요')).toBeTruthy()
+})
+
+test('새 메시지를 읽지 못하면 흐름 옆에 연결 문구를 보이고, 다시 읽히면 사라진다', async () => {
+  const api = serve()
+  let ok = false
+  api.on('GET', `${base}/rooms/r1/messages?after=a2`, () =>
+    ok ? json(messagePage([])) : json({ error: 'X' }, 500),
+  )
+  render(<Harness />)
+  await openAll()
+  await screen.findByText('모레 회의 있어요')
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000)
+  })
+  expect(await screen.findByText(/새 메시지를 불러오지 못하고 있어요/)).toBeTruthy()
+  expect(screen.getByText('모레 회의 있어요')).toBeTruthy()
+  ok = true
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000)
+  })
+  await waitFor(() => expect(screen.queryByText(/새 메시지를 불러오지 못하고 있어요/)).toBeNull())
+})
+
+test('방 목록은 15초마다, 열린 방은 3초마다 다시 읽는다', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  const api = serve()
+  render(<Harness />)
+  await screen.findByRole('button', { name: /운영진 전체방/ })
+  const listReads = () => api.calls.filter(call => call.path === `${base}/rooms`).length
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000 * 4)
+  })
+  expect(listReads()).toBe(1)
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000)
+  })
+  expect(listReads()).toBe(2)
 })

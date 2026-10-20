@@ -75,7 +75,7 @@ export default function DirectDialog({
       memberId: member.id,
     } satisfies DirectBody)
     setBusy(false)
-    if (result.ok) return onOpened(result.data.room.id)
+    if (result.ok) return onOpened(result.data.roomId)
     // 권한을 잃었으면 대화상자는 닫히고, 이유는 목록 위에 보인다.
     if (result.status === statusOf('FORBIDDEN')) return onForbidden()
     if (result.status === statusOf('NOT_FOUND')) team.reload()

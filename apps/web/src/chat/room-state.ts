@@ -19,6 +19,8 @@ export type RoomState =
       participants: RoomParticipant[]
       messages: ChatMessage[]
       hasOlder: boolean
+      // 새 메시지를 읽지 못하고 있다(연결 문제). 보이던 흐름은 그대로 둔다.
+      syncFailed?: boolean
     }
 
 // 방의 정보와 가장 최근 메시지 쪽을 함께 읽는다.
@@ -36,8 +38,9 @@ export async function loadRoom(councilId: string, roomId: string): Promise<RoomS
       messages: page.data.messages,
       hasOlder: page.data.hasOlder,
     }
-  const failure = detail.ok ? page : detail
-  return failure.ok || !isRoomLost(failure.status) ? { kind: 'failed' } : { kind: 'lost' }
+  // 하나라도 잃었으면(401·403·404) 다른 쪽이 어떻든 잃은 것이다.
+  const lost = [detail, page].some(result => !result.ok && isRoomLost(result.status))
+  return lost ? { kind: 'lost' } : { kind: 'failed' }
 }
 
 export type RoomAt = { councilId: string; roomId: string }
@@ -82,6 +85,10 @@ export function appended(state: RoomState, more: ChatMessage[]): RoomState {
 export function prepended(state: RoomState, older: MessagePageResponse): RoomState {
   if (state.kind !== 'ready') return state
   return { ...state, hasOlder: older.hasOlder, messages: [...older.messages, ...state.messages] }
+}
+
+export function withSync(state: RoomState, syncFailed: boolean): RoomState {
+  return state.kind === 'ready' ? { ...state, syncFailed } : state
 }
 
 export function withNotice(state: RoomState, messageId: string, isNotice: boolean): RoomState {
