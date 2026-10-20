@@ -86,7 +86,7 @@
 - 닿는 곳: `web/src/team/`(People, 사람 동작 훅, 사람 줄, 확인 대화상자).
 - 검토: 깊게.
 
-### 5. 부서 화면과 부서 배정 대화상자 나누기 [ ]
+### 5. 부서 화면과 부서 배정 대화상자 나누기 [x]
 - 수용 기준은 4와 같은 꼴이다. 대상은 `Departments.tsx`, `MemberDepartmentsDialog.tsx`, `InviteCard.tsx`다.
 - 검토: 깊게.
 

@@ -190,9 +190,7 @@
         "apps/api/src/db/migrate-run.ts",
         "apps/web/src/App.tsx",
         "apps/web/src/push/PushPanel.tsx",
-        "apps/web/src/push/usePush.ts",
-        "apps/web/src/team/Departments.tsx",
-        "apps/web/src/team/MemberDepartmentsDialog.tsx"
+        "apps/web/src/push/usePush.ts"
       ],
       "rules": {
         "complexity": "off"
@@ -207,9 +205,6 @@
         "apps/web/src/auth/KakaoBlock.tsx",
         "apps/web/src/push/PushPanel.tsx",
         "apps/web/src/push/usePush.ts",
-        "apps/web/src/team/Departments.tsx",
-        "apps/web/src/team/InviteCard.tsx",
-        "apps/web/src/team/MemberDepartmentsDialog.tsx",
         "apps/web/src/ui-gallery/Gallery.tsx",
         "apps/web/src/workspace/Workspace.tsx",
         "apps/web/src/workspace/WorkspaceSidebar.tsx"
