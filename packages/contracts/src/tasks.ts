@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { EmptyRequestSchema, text, token } from './input.js'
-import { KOREAN_DATE_LENGTH, koreanDateTime } from './korean-time.js'
+import { EmptyRequestSchema, text } from './input.js'
+import { koreanDate } from './korean-time.js'
 import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
 
@@ -91,10 +91,7 @@ export interface TaskResponse {
   task: TaskDetail
 }
 
-// 마감은 날짜만 받는다(T2). 달력에 있는 날이고 DB 검사와 같은 범위(2000~2999년)만 받는다.
-const dueDate = token(KOREAN_DATE_LENGTH).refine(
-  value => /^\d{4}-\d{2}-\d{2}$/.test(value) && koreanDateTime.safeParse(`${value}T00:00`).success,
-)
+const dueDate = koreanDate
 
 // 업무 만들기. 부서와 담당자와 마감과 내용은 비울 수 있고 비우면 null이다.
 export const CreateTaskSchema = z.strictObject({

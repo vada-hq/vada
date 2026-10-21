@@ -16,6 +16,8 @@ import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
+import { createPurchasePush } from './purchases/notify.js'
+import { createPurchaseRoutes } from './purchases/routes.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
@@ -48,6 +50,7 @@ function pushOf(env: Env, db: Db, session: SessionReader) {
     }),
     chatPush: createChatPush(db, send),
     taskPush: createTaskPush(db, send),
+    purchasePush: createPurchasePush(db, send),
   }
 }
 
@@ -77,6 +80,7 @@ function appOf(env: Env, db: Db) {
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session, { push: push.taskPush }),
+    purchases: createPurchaseRoutes(db, session, { push: push.purchasePush }),
   })
 }
 

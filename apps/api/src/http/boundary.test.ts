@@ -8,6 +8,7 @@ import { createInviteRoutes } from '../invites/routes.js'
 import { createPushDeviceRoutes } from '../push/devices.js'
 import { createPushRoutes } from '../push/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
+import { createPurchaseRoutes } from '../purchases/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
@@ -45,6 +46,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     }),
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session),
+    purchases: createPurchaseRoutes(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({
     auth: { handler: async () => new Response() },
@@ -70,7 +72,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
   const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
   // 목록이 비어 테스트가 저절로 통과하는 일을 막는다. 변경 라우트를 더하면 이 수도 올린다.
-  assert.ok(mutating.length >= 21, `변경 라우트 ${mutating.length}개`)
+  assert.ok(mutating.length >= 23, `변경 라우트 ${mutating.length}개`)
   for (const key of mutating) {
     const registered = key.slice(0, key.indexOf(' '))
     // app.all()로 등록한 라우트는 POST로 확인한다.
@@ -111,7 +113,9 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   }
 })
 
-test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단은 1 MiB, 회고 저장은 64 KiB이다', () => {
+test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단은 1 MiB, 회고 저장은 64 KiB, 구매 요청은 96 KiB이다', () => {
+  assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests'), 98_304)
+  assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests/b/cancel'), MAX_BODY_BYTES)
   assert.equal(bodyLimitOf('/api/organizations/a/dues-roster'), 1_048_576)
   assert.equal(bodyLimitOf('/api/organizations/a/events/e/report/retrospective'), 65_536)
   for (const path of [

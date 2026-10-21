@@ -61,3 +61,17 @@ export function taskFromPath(pathname: string) {
   }
 }
 export const taskTag = (taskId: string) => `task:${taskId}`
+
+// 구매 요청 알림을 누르면 열 요청 주소. 화면은 purchaseRequestFromPath로 읽는다. 둘은 한 쌍이다.
+export const purchaseRequestUrl = (councilId: string, requestId: string) =>
+  `/purchases/${councilId}/${requestId}`
+export function purchaseRequestFromPath(pathname: string) {
+  const match = /^\/purchases\/([^/]+)\/([^/]+)$/.exec(pathname)
+  if (!match) return null
+  try {
+    return { councilId: decodeURIComponent(match[1]!), requestId: decodeURIComponent(match[2]!) }
+  } catch {
+    return null
+  }
+}
+export const purchaseRequestTag = (requestId: string) => `request:${requestId}`

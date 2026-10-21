@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import type { Hono } from 'hono'
 import { OK } from './http/status.js'
 
-// 초대 링크(/join/코드), 공개 참가 신청(/apply/코드), 내 신청(/r#토큰), 홈 화면 앱 안 로그인이 끝나는 곳(/auth-done), 알림을 누르면 여는 방(/chat/학생회/방)과 업무(/tasks/학생회/업무)도 화면 진입점이다. 코드 검사는 화면이 API로 한다.
+// 초대 링크(/join/코드), 공개 참가 신청(/apply/코드), 내 신청(/r#토큰), 홈 화면 앱 안 로그인이 끝나는 곳(/auth-done), 알림을 누르면 여는 방(/chat/학생회/방)과 업무(/tasks/학생회/업무), 구매 요청(/purchases/학생회/요청)도 화면 진입점이다. 코드 검사는 화면이 API로 한다.
 const ENTRY_PATHS = [
   '/',
   '/index.html',
@@ -13,6 +13,7 @@ const ENTRY_PATHS = [
   '/apply/:code',
   '/chat/:council/:room',
   '/tasks/:council/:task',
+  '/purchases/:council/:request',
   '/r',
   '/auth-done',
 ]

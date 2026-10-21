@@ -27,3 +27,8 @@ export const koreanOf = (date: Date) =>
 // 한국 날짜(YYYY-MM-DD). 서버 시간대(Render는 UTC)와 기기의 시간대와 상관없이 같은 날을 쓴다.
 export const koreanDateOf = (date: Date) => koreanOf(date).slice(0, KOREAN_DATE_LENGTH)
 export const koreanYearOf = (date: Date) => koreanOf(date).slice(0, YEAR_LENGTH)
+
+// 날짜만 받는 입력(마감, 필요한 때). 달력에 있는 날이고 DB 검사와 같은 범위(2000~2999년)만 받는다.
+export const koreanDate = token(KOREAN_DATE_LENGTH).refine(
+  value => /^\d{4}-\d{2}-\d{2}$/.test(value) && koreanDateTime.safeParse(`${value}T00:00`).success,
+)

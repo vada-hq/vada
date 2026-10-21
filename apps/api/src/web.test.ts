@@ -71,6 +71,7 @@ test('built web and API share an origin, only web entry and assets are public', 
       '/auth-done',
       '/chat/council-1/room-1',
       '/tasks/council-1/task-1',
+      '/purchases/council-1/request-1',
     ]) {
       const entry = await app.request(path)
       assert.equal(entry.status, 200, path)
@@ -93,6 +94,9 @@ test('built web and API share an origin, only web entry and assets are public', 
       '/tasks/',
       '/tasks/a',
       '/tasks/a/b/c',
+      '/purchases/',
+      '/purchases/a',
+      '/purchases/a/b/c',
       '/r/x',
       '/icons/',
       '/icons/a/b',

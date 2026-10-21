@@ -75,7 +75,7 @@
 - 닿는 곳: `apps/api/migrations/0004_*.sql`과 journal, `db/baseline.test.ts`, `records/records.ts`, `records/same-council.ts`, `access/permissions.ts`, contracts `permissions.ts`.
 - 검토: 깊게. 마이그레이션: 있음(이미 있는 칸의 CHECK). 올린 뒤 '위험'의 차례로 두 DB에 적용한다.
 
-### 2. 구매 요청 내기, 읽기, 취소, 새 요청 알림 [ ]
+### 2. 구매 요청 내기, 읽기, 취소, 새 요청 알림 [x]
 - 할 수 있게 되는 것: 운영진이 구매 요청을 내고 읽고 취소하며, 재정부의 휴대폰에 새 요청 알림이 간다.
 - 수용 기준: 누구나 품목 1~20줄로 요청을 낸다(201, 요청한 사람은 나, 금액과 예산 항목은 빈칸). 21줄, http·https가 아닌 링크, 수량 0과 1000은 400이다. `GET purchase-requests`의 `view=mine|pending|all` 순서와 개수, `truncated`는 '정한 것'대로이고 줄마다 계산한 상태가 있다. 요청 하나는 품목(금액, 예산 항목 이름, 상태, 결제함), 결재 기록, 결제한 지출, 이력, 그 사람의 `actions`를 준다. 요청한 사람만 취소하고(재정부와 회장단도 403) 204이며, 결재된 품목이 있거나 이미 취소했으면 409 `REQUEST_CLOSED`이다. 새 요청은 같은 거래에 재정부의 지금 부서원마다(요청한 사람 제외) 알림 기록을 남기고, 커밋 뒤 기기마다 한 번 알림이 간다. 재정부가 없어도 201이다. 내보낸 사람과 다른 학생회 사람은 받지 않는다. 응답은 알림을 기다리지 않는다. 계정마다 10초에 21번째는 429이다. 다른 학생회 요청과 형식이 틀린 번호는 404, 운영진이 아니면 403, 로그인하지 않으면 401이다. JSON은 `no-store`다. `/purchases/{학생회}/{요청}`을 열면 화면 진입점이 온다. AGENTS.md의 입력 경우를 모두 시험한다.
 - 닿는 곳: contracts `purchases.ts`(새: 상수, `CreatePurchaseRequestSchema`, `PurchaseRequestListQuerySchema`, `PurchaseRequestSummary`, `PurchaseRequestDetail`), `push.ts`(요청 주소 한 쌍), `errors.ts`. `apps/api/src/purchases/`(새: `routes.ts`, `service.ts`, `queries.ts`, `status.ts`, `notify.ts`), 재정부 지금 부서원 찾기, `app.ts`, `serve.ts`, `web.ts`, `http/boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET purchase-requests`, `GET purchase-requests/:requestId`, `POST purchase-requests`, `POST purchase-requests/:requestId/cancel`.
