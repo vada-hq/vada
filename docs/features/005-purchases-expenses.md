@@ -50,7 +50,7 @@
 | 화면 | 옆 메뉴 '업무' 아래 '재정'에 탭 셋: 구매 요청(거르기 내 요청, 결재 대기, 전체), 지출, 예산. 재정부에게만 결재 대기 요청 수 배지. 상세는 대화상자. [구매 요청 내기]는 모든 운영진, [지출 적기]는 재정부 | navigation.md '재정', 기능 004 T9 | 쉽다 |
 | 목록 | 결재 대기는 오래된 순 300, 내 요청과 전체는 최근 순 100, 지출은 결제일 최근 순 300. 넘치면 `truncated` | 기능 004 | 쉽다 |
 | 속도 제한 | 요청 내기와 지출 적기가 한도 하나(계정마다 10초에 20번). 증빙 올리기 주소는 대화 사진과 같은 한도 | 기능 003·004 | 쉽다 |
-| 오류 | 409 `REQUEST_CLOSED`(결재가 시작됐거나 취소된 요청), `LINE_ITEM_DECIDED`, `BUDGET_ITEM_INVALID`(다른 학생회, 수입 항목, 지금 기간 밖), `NO_FISCAL_PERIOD`, `FISCAL_PERIOD_CONFLICT`(겹침, 같은 이름), `LINE_ITEM_NOT_PAYABLE`(승인 안 됨, 다른 학생회, 취소된 요청), `MEMBER_INVALID`(먼저 낸 사람이나 부탁한 사람이 지금 운영진이 아님), `EXPENSE_CANCELLED`, `NOT_REIMBURSABLE`, `EVIDENCE_LIMIT`. 403이 409보다 먼저다 | [RFC 9110 403](https://www.rfc-editor.org/rfc/rfc9110.html#name-403-forbidden), 기능 004 | 쉽다 |
+| 오류 | 409 `REQUEST_CLOSED`(결재가 시작됐거나 취소된 요청), `LINE_ITEM_DECIDED`(이미 결재했거나 이 요청의 품목이 아님), `BUDGET_ITEM_INVALID`(다른 학생회, 수입 항목, 지금 기간 밖), `NO_FISCAL_PERIOD`, `FISCAL_PERIOD_CONFLICT`(겹침, 같은 이름), `LINE_ITEM_NOT_PAYABLE`(승인 안 됨, 다른 학생회, 취소된 요청), `MEMBER_INVALID`(먼저 낸 사람이나 부탁한 사람이 지금 운영진이 아님), `EXPENSE_CANCELLED`, `NOT_REIMBURSABLE`, `EVIDENCE_LIMIT`. 403이 409보다 먼저다 | [RFC 9110 403](https://www.rfc-editor.org/rfc/rfc9110.html#name-403-forbidden), 기능 004 | 쉽다 |
 
 ## 위험
 

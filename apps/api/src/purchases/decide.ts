@@ -1,9 +1,10 @@
-import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm'
-import { koreanDateOf, type DecideLineItems, type PurchaseRequestDetail } from '@vada/contracts'
+import { and, asc, eq, inArray } from 'drizzle-orm'
+import type { DecideLineItems, PurchaseRequestDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import { approval, budget, budgetItem, fiscalPeriod, lineItem, record } from '../db/schema.js'
+import { currentPeriodOf } from '../budget/queries.js'
+import { approval, budgetItem, lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -32,26 +33,22 @@ async function decidedAmong(tx: Tx, ids: string[]) {
   return rows.length > 0
 }
 
-// 승인에 고른 예산 항목은 이 학생회의 지출 항목이고 오늘(한국)이 든 회계 기간의 것이어야 한다.
+// 승인에 고른 예산 항목은 오늘(한국)이 든 이 학생회 회계 기간의 지출 항목이어야 한다. 기간은 예산 모듈의 같은 규칙(currentPeriodOf)으로 찾는다.
 async function assertBudgetItems(tx: Tx, actor: Actor, decisions: Decision[], now: Date) {
   const ids = [
     ...new Set(decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : []))),
   ]
   if (!ids.length) return
-  const today = koreanDateOf(now)
+  const period = await currentPeriodOf(tx, actor, now)
+  if (!period) throw new ApiError('BUDGET_ITEM_INVALID')
   const rows = await tx
     .select({ id: budgetItem.id })
     .from(budgetItem)
-    .innerJoin(record, eq(record.id, budgetItem.id))
-    .innerJoin(budget, eq(budget.id, budgetItem.budgetId))
-    .innerJoin(fiscalPeriod, eq(fiscalPeriod.id, budget.fiscalPeriodId))
     .where(
       and(
         inArray(budgetItem.id, ids),
-        eq(record.councilId, actor.councilId),
+        eq(budgetItem.budgetId, period.budgetId),
         eq(budgetItem.type, 'expense'),
-        lte(fiscalPeriod.startsOn, today),
-        gte(fiscalPeriod.endsOn, today),
       ),
     )
   if (rows.length !== ids.length) throw new ApiError('BUDGET_ITEM_INVALID')

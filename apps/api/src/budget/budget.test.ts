@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { BudgetResponse } from '@vada/contracts'
+import { createRecord } from '../records/records.js'
 import { errorOf, runPurchases, type PurchaseKit } from '../test-support/purchases.js'
 
 const emoji = (n: number) => '😀'.repeat(n)
@@ -189,5 +190,49 @@ test(
     s.setNow(new Date('2026-12-01T00:00:00Z'))
     const none = await makeItem(s, { purpose: 'a', amount: 1 })
     assert.equal(await errorOf(none), 'NO_FISCAL_PERIOD')
+  }),
+)
+
+test(
+  '다른 학생회에 오늘이 든 기간이 있어도 내 학생회의 예산은 비어 있고 항목도 더하지 못한다',
+  runPurchases(async s => {
+    const theirs = `/api/organizations/${s.other.councilId}`
+    assert.equal(
+      (await s.api.post(`${theirs}/fiscal-periods`, PERIOD, 'o-financeMember')).status,
+      201,
+    )
+    await s.api.post(`${theirs}/budget-items`, { purpose: '남의 것', amount: 5 }, 'o-financeMember')
+    const mine = await viewOf(await s.api.get(`${root(s)}/budget`, FINANCE))
+    assert.equal(mine.period, null)
+    assert.deepEqual(mine.items, [])
+    assert.equal(await errorOf(await makeItem(s, { purpose: 'a', amount: 1 })), 'NO_FISCAL_PERIOD')
+    const seen = await viewOf(await s.api.get(`${theirs}/budget`, 'o-financeMember'))
+    assert.equal(seen.items.length, 1)
+  }),
+)
+
+test(
+  '수입 항목은 지출 예산 항목 목록에 보이지 않는다',
+  runPurchases(async s => {
+    const view = await viewOf(await makePeriod(s))
+    await makeItem(s, { purpose: '지출', amount: 1 })
+    const budgetId = (
+      await s.pg.query<{ id: string }>('SELECT id FROM budget WHERE fiscal_period_id = $1', [
+        view.period!.id,
+      ])
+    ).rows[0]!.id
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'budget_item',
+        councilId: s.council.councilId,
+        actor: null,
+        values: { budgetId, type: 'income', purpose: '수입', amount: '9' },
+      }),
+    )
+    const read = await viewOf(await s.api.get(`${root(s)}/budget`, FINANCE))
+    assert.deepEqual(
+      read.items.map(item => item.purpose),
+      ['지출'],
+    )
   }),
 )

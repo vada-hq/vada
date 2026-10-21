@@ -139,3 +139,42 @@ test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으�
     await close()
   }
 })
+
+// 기간 겹침과 같은 이름 검사는 학생회 행 잠금에 기댄다. 기간 만들기와 항목 더하기가 그 잠금과 운영진 확인 뒤에 읽고 쓴다.
+test('기간 만들기와 항목 더하기는 학생회 행 잠금과 운영진 확인 뒤에 읽고 쓴다', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const queries: string[] = []
+    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const council = await seedCouncil(db, pg)
+    const api = caller(
+      createApp({
+        auth: { handler: async () => new Response() },
+        trustedOrigin: ORIGIN,
+        budget: createBudgetRoutes(db, testSession, { clock: () => noon }),
+      }),
+    )
+    const root = `/api/organizations/${council.councilId}`
+    const orderOf = (readFrom: string, writeInto: string) => {
+      const lock = queries.findIndex(
+        query => query.includes('from "council"') && query.endsWith(' for no key update'),
+      )
+      const actor = queries.findIndex(query => query.includes('"member_login"'))
+      const read = queries.findIndex(query => query.includes(`from "${readFrom}"`))
+      const write = queries.findIndex(query => query.includes(`insert into "${writeInto}"`))
+      assert.ok(lock >= 0 && actor > lock, `${writeInto}: 학생회 잠금 뒤에 운영진 확인`)
+      assert.ok(read > actor, `${writeInto}: 겹침·기간 읽기는 운영진 확인 뒤`)
+      assert.ok(write > read, `${writeInto}: 쓰기는 읽기 뒤`)
+    }
+    queries.length = 0
+    const period = { name: '2학기', startsOn: '2026-09-01', endsOn: '2026-12-31' }
+    assert.equal((await api.post(`${root}/fiscal-periods`, period, 's-financeMember')).status, 201)
+    orderOf('fiscal_period', 'fiscal_period')
+    queries.length = 0
+    const item = { purpose: '소모품', amount: 1 }
+    assert.equal((await api.post(`${root}/budget-items`, item, 's-financeMember')).status, 201)
+    orderOf('fiscal_period', 'budget_item')
+  } finally {
+    await close()
+  }
+})

@@ -15,11 +15,11 @@ const FINANCE = 's-financeMember'
 const emoji = (n: number) => '😀'.repeat(n)
 
 // 기간과 지출 항목 둘을 두고, 품목 둘짜리 요청을 낸다. 알림 기록은 비워 결재가 만든 것만 남게 한다.
-async function prepare(s: PurchaseKit, user = 's-planningMember') {
+async function prepare(s: PurchaseKit, user = 's-planningMember', endsOn = '2026-12-31') {
   const root = `/api/organizations/${s.council.councilId}`
   await s.api.post(
     `${root}/fiscal-periods`,
-    { name: '2학기', startsOn: '2026-09-01', endsOn: '2026-12-31' },
+    { name: `2학기 ${endsOn}`, startsOn: '2026-09-01', endsOn },
     FINANCE,
   )
   await s.api.post(`${root}/budget-items`, { purpose: '소모품', amount: 100000 }, FINANCE)
@@ -390,5 +390,19 @@ test(
       detail.items.map(item => item.budgetItem?.id),
       [p.items[0]!.id, p.items[0]!.id],
     )
+  }),
+)
+
+test(
+  '승인할 항목의 기간은 한국 자정 ±1초로 갈린다',
+  runPurchases(async s => {
+    const p = await prepare(s, 's-planningMember', '2026-11-30')
+    s.setNow(new Date('2026-11-30T14:59:59Z'))
+    assert.equal((await decide(s, p, [approve(p, p.first)])).status, 200)
+    s.setNow(new Date('2026-11-30T15:00:00Z'))
+    const late = await decide(s, p, [approve(p, p.second)])
+    assert.equal(late.status, 409)
+    assert.equal(await errorOf(late), 'BUDGET_ITEM_INVALID')
+    assert.equal(await approvals(s), 1)
   }),
 )
