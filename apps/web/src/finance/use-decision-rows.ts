@@ -10,6 +10,9 @@ import {
 } from './decision-form'
 import type { useDecide } from './useDecide'
 
+// 예산을 다시 읽어야 하는 오류(항목이 지금 기간에 맞지 않거나 기간이 없어졌다).
+const REREAD_BUDGET = new Set(['BUDGET_ITEM_INVALID', 'NO_FISCAL_PERIOD'])
+
 // 결재 줄들의 입력값과 보내기. 승인이 되면 마지막에 승인한 항목을 기억하고, 항목이 맞지 않다고 하면(BUDGET_ITEM_INVALID) 예산을 다시 읽게 한다.
 export function useDecisionRows(
   councilId: string,
@@ -30,7 +33,7 @@ export function useDecisionRows(
     const remembered = last ? chosenOf(last.id) : null
     const result = await decide.decide(decisions)
     if (result.ok && remembered) rememberItem(councilId, remembered)
-    if (!result.ok && result.code === 'BUDGET_ITEM_INVALID') onInvalidItem()
+    if (!result.ok && REREAD_BUDGET.has(result.code)) onInvalidItem()
   }
 
   return {

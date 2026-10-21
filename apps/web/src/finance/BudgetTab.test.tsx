@@ -172,3 +172,16 @@ test('예산을 못 읽으면 다시 시도를 보인다', async () => {
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
 })
+
+test('금액 칸은 숫자만 받는다(1e3, 0x10 거부)', async () => {
+  show(FINANCE_PERMISSIONS, budgetWithPeriod())
+  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
+  await screen.findByRole('form', { name: '예산 항목 더하기' })
+  fill('목적', '간식')
+  for (const bad of ['1e3', '0x10', '1.5', '12원'] as const) {
+    fill('금액(원)', bad)
+    expect(button('더하기').disabled).toBe(true)
+  }
+  fill('금액(원)', '0')
+  expect(button('더하기').disabled).toBe(false)
+})

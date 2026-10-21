@@ -131,11 +131,13 @@ function Loaded({
   onForbidden: () => void
   onOpenBudget: () => void
 }) {
+  const deciding =
+    request.actions.includes('purchase.approve') && request.items.some(i => i.status === 'pending')
   return (
     <div className="flex flex-col gap-6">
       <Facts request={request} />
       <RequestItems items={request.items} />
-      {request.actions.includes('purchase.approve') && (
+      {deciding && (
         <DecisionPanel
           councilId={councilId}
           items={request.items}
@@ -143,6 +145,10 @@ function Loaded({
           onForbidden={onForbidden}
           onOpenBudget={onOpenBudget}
         />
+      )}
+      {/* 남이 먼저 결재하거나 취소해 결재 칸이 사라져도 이유는 남긴다. */}
+      {!deciding && detail.decide.problem && (
+        <StateMessage kind="error">{detail.decide.problem}</StateMessage>
       )}
       <RequestDecisions decisions={request.decisions} items={request.items} />
       {request.actions.includes('purchase.cancel') && <CancelButton detail={detail} />}

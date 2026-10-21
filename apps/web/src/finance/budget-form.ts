@@ -13,7 +13,8 @@ export const emptyBudgetItem = (): BudgetItemValues => ({ purpose: '', amount: '
 // 금액 칸: 쉼표와 공백은 지우고, 비었거나 숫자가 아니면 NaN이라 계약 검사가 막는다.
 export function wonOf(value: string) {
   const digits = value.replace(/[,\s]/g, '')
-  return digits === '' ? Number.NaN : Number(digits)
+  // 1e3, 0x10 같은 글은 Number가 받아도 숫자 입력이 아니다.
+  return /^\d+$/.test(digits) ? Number(digits) : Number.NaN
 }
 
 export const budgetItemOf = (values: BudgetItemValues) => ({

@@ -9,6 +9,7 @@ import {
 } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { BUDGET_A, budgetWithPeriod, LINE_1 } from '@/test-support/budget-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import type { Page } from './pages'
 import CouncilWorkspace from './CouncilWorkspace'
@@ -100,4 +101,42 @@ test('요청을 내면 옆 메뉴의 결재 대기 수를 다시 읽는다', asy
   fireEvent.change(screen.getByLabelText('품목 1 이름'), { target: { value: '테이프' } })
   fireEvent.click(screen.getByRole('button', { name: '내기' }))
   expect((await screen.findAllByLabelText('결재 대기 요청 3개'))[0]!.textContent).toBe('3')
+})
+
+test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다', async () => {
+  let count = 2
+  const api = open({ finance: true, pending: () => pending(count)(), startPage: 'finance' })
+  api.on('GET', minePath, () => json({ requests: [purchaseSummary('r1')], truncated: false }))
+  api.on('GET', `${base}/purchase-requests/r1`, () =>
+    json({
+      request: purchaseDetail('r1', {
+        items: [
+          {
+            id: LINE_1,
+            name: '포스터',
+            quantity: 1,
+            link: null,
+            options: null,
+            amount: null,
+            budgetItem: null,
+            status: 'pending',
+            paid: false,
+          },
+        ],
+        decisions: [],
+        actions: ['purchase.approve'],
+      }),
+    }),
+  )
+  api.on('GET', `${base}/budget`, () => json(budgetWithPeriod()))
+  api.on('POST', `${base}/purchase-requests/r1/decisions`, () => {
+    count = 1
+    return json({ request: purchaseDetail() })
+  })
+  expect((await screen.findAllByLabelText('결재 대기 요청 2개'))[0]!.textContent).toBe('2')
+  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.change(await screen.findByLabelText('포스터 금액'), { target: { value: '1000' } })
+  fireEvent.change(screen.getByLabelText('포스터 예산 항목'), { target: { value: BUDGET_A } })
+  fireEvent.click(screen.getByRole('button', { name: '포스터 승인' }))
+  expect((await screen.findAllByLabelText('결재 대기 요청 1개'))[0]!.textContent).toBe('1')
 })

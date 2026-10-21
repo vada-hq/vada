@@ -303,3 +303,39 @@ test('결재 뒤 상태 배지가 바뀐다', async () => {
   expect(await within(dialog).findByText('승인')).toBeTruthy()
   expect(screen.queryByRole('group', { name: '결재 포스터' })).toBeNull()
 })
+
+// 남이 그사이 결재하거나 취소해 결재 칸이 사라져도 이유는 대화상자에 남는다.
+test.each([
+  ['LINE_ITEM_DECIDED', /이미 결재된 품목이 있어요/, { items: [], actions: [] }],
+  ['REQUEST_CLOSED', /취소된 요청이라 결재할 수 없어요/, { status: 'cancelled', actions: [] }],
+] as const)('%s로 결재 칸이 사라져도 문구가 남는다', async (code, message, after) => {
+  const { api } = setup()
+  let reads = 0
+  api.on('GET', `${BASE}/r1`, () => {
+    reads += 1
+    return json({ request: reads === 1 ? twoPending() : twoPending(after) })
+  })
+  api.on('POST', `${BASE}/r1/decisions`, () => json({ error: code }, 409))
+  await open()
+  fill('포스터 금액', '1000')
+  fill('포스터 예산 항목', BUDGET_A)
+  fireEvent.click(btn('포스터 승인'))
+  await waitFor(() => expect(screen.queryByRole('group', { name: '결재 포스터' })).toBeNull())
+  expect(within(screen.getByRole('dialog')).getByText(message)).toBeTruthy()
+})
+
+test('결재 중 기간이 없어졌으면(NO_FISCAL_PERIOD) 문구를 보이고 예산을 다시 읽는다', async () => {
+  const { api } = setup()
+  let budgetReads = 0
+  api.on('GET', `${ORG}/budget`, () => {
+    budgetReads += 1
+    return json(budgetReads === 1 ? budgetWithPeriod() : budgetWithoutPeriod())
+  })
+  api.on('POST', `${BASE}/r1/decisions`, () => json({ error: 'NO_FISCAL_PERIOD' }, 409))
+  await open()
+  fill('포스터 금액', '1000')
+  fill('포스터 예산 항목', BUDGET_A)
+  fireEvent.click(btn('포스터 승인'))
+  expect(await screen.findByText('회계 기간을 먼저 만들어 주세요.')).toBeTruthy()
+  expect(budgetReads).toBeGreaterThan(1)
+})
