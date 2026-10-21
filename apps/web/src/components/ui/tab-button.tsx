@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '@/lib/utils'
 
 // 와이어프레임 페이지 탭: 높이 40px(py-3 + 밑줄 2px), 굵기 500, 비활성 gray-500, 활성 blue-700과 blue-600 밑줄. 탭 동작(ARIA·키보드)은 쓰는 쪽이 정한다.
+// 밑줄을 부모의 border-b에 겹치려고 -mb-px를 쓴다. 부모에 overflow를 주면 1px이 넘쳐 스크롤 막대가 생기므로 두지 않는다.
 export function TabButton({ className, ...props }: ComponentProps<'button'>) {
   return (
     <button

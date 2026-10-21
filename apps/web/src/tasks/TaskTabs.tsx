@@ -23,7 +23,7 @@ type Props = {
 export function TaskTabs({ view, filter, onView, onFilter }: Props) {
   return (
     <>
-      <div role="tablist" aria-label="업무 보기" className="flex overflow-x-auto border-b">
+      <div role="tablist" aria-label="업무 보기" className="flex border-b">
         {TABS.map(tab => (
           <TabButton
             key={tab.view}
