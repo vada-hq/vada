@@ -72,6 +72,19 @@ export const DIRECT_ERRORS: Record<string, string> = {
 export const DIRECT_FAILED = '1:1 대화를 열지 못했어요. 다시 시도해 주세요.'
 export const DIRECT_PEOPLE_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
+// 업무 상세와 만들기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const TASK_ERRORS: Record<string, string> = {
+  TASK_ASSIGNEE_INVALID:
+    '이 학생회의 지금 운영진만 담당자가 될 수 있어요. 다른 사람을 골라 주세요.',
+  TASK_DEPARTMENT_INVALID: '이 학생회의 부서가 아니에요. 다른 부서를 골라 주세요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const TASK_FAILED = '저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const TASK_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const TASK_LOST = '이 업무를 볼 수 없어요. 지워졌을 수 있어요.'
+export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어요. 연결을 확인해 주세요.'
+
 // 메시지 보내기와 사진 올리기. 오류는 입력칸 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const SEND_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 보내 주세요.',
