@@ -5,6 +5,8 @@ import { addUser } from '../../test-support/council.js'
 import { pgliteConnection } from '../../test-support/smoke-connection.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
+  assignAndRemoveCase,
+  changeStatusTogetherCase,
   createAndJoinCase,
   joinTwiceCase,
   rotateTogetherCase,
@@ -289,6 +291,48 @@ test('같은 방에서 동시에 글 보내기: 예상하지 못한 DB 오류는
   const testDb = await createTestDb()
   try {
     const verdict = await sendTogetherCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('업무 맡기기와 그 사람 내보내기를 동시에: 내보낸 뒤의 담당자와 알림이 없다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await assignAndRemoveCase.run(contextOf(testDb))), /배정 알림이 없다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('업무 맡기기와 그 사람 내보내기를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await assignAndRemoveCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 업무에 상태 바꾸기를 동시에: 판이 겹치지 않고 마지막 판이 지금 상태와 같다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await changeStatusTogetherCase.run(contextOf(testDb))), /지금 상태와 같다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 업무에 상태 바꾸기를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await changeStatusTogetherCase.run(
       contextOf(testDb, failingParticipants(testDb, '40P01')),
     )
     assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))

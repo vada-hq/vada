@@ -7,6 +7,7 @@ import {
 } from './pg-smoke-join-cases.js'
 import type { SmokeCase } from './pg-smoke-kit.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
+import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
 import { writePathCase } from './pg-smoke-write-case.js'
 
 // 실제 PostgreSQL에서 돌리는 점검 사례의 목록. 사례마다 새 시험 사용자와 학생회를 만든다.
@@ -16,6 +17,8 @@ import { writePathCase } from './pg-smoke-write-case.js'
 export type { SmokeCase, SmokeContext, SmokeVerdict } from './pg-smoke-kit.js'
 export { unexpectedFailures } from './pg-smoke-kit.js'
 export {
+  assignAndRemoveCase,
+  changeStatusTogetherCase,
   createAndJoinCase,
   joinTwiceCase,
   rotateTogetherCase,
@@ -35,4 +38,6 @@ export const smokeCases: readonly SmokeCase[] = [
   sessionDuringJoinCase,
   sendAndRemoveCase,
   sendTogetherCase,
+  assignAndRemoveCase,
+  changeStatusTogetherCase,
 ]
