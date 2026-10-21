@@ -1,3 +1,4 @@
+import { expenseTogetherCase } from './pg-smoke-expense-cases.js'
 import { sendAndRemoveCase, sendTogetherCase } from './pg-smoke-chat-cases.js'
 import {
   createAndJoinCase,
@@ -6,6 +7,7 @@ import {
   transferAndRemoveCase,
 } from './pg-smoke-join-cases.js'
 import type { SmokeCase } from './pg-smoke-kit.js'
+import { cancelAndDecideCase, decideTogetherCase } from './pg-smoke-purchase-cases.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
 import { writePathCase } from './pg-smoke-write-case.js'
@@ -18,8 +20,11 @@ export type { SmokeCase, SmokeContext, SmokeVerdict } from './pg-smoke-kit.js'
 export { unexpectedFailures } from './pg-smoke-kit.js'
 export {
   assignAndRemoveCase,
+  cancelAndDecideCase,
   changeStatusTogetherCase,
   createAndJoinCase,
+  decideTogetherCase,
+  expenseTogetherCase,
   joinTwiceCase,
   rotateTogetherCase,
   sendAndRemoveCase,
@@ -40,4 +45,7 @@ export const smokeCases: readonly SmokeCase[] = [
   sendTogetherCase,
   assignAndRemoveCase,
   changeStatusTogetherCase,
+  decideTogetherCase,
+  cancelAndDecideCase,
+  expenseTogetherCase,
 ]

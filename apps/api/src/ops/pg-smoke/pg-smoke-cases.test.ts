@@ -6,8 +6,11 @@ import { pgliteConnection } from '../../test-support/smoke-connection.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   assignAndRemoveCase,
+  cancelAndDecideCase,
   changeStatusTogetherCase,
   createAndJoinCase,
+  decideTogetherCase,
+  expenseTogetherCase,
   joinTwiceCase,
   rotateTogetherCase,
   sendAndRemoveCase,
@@ -333,6 +336,69 @@ test('같은 업무에 상태 바꾸기를 동시에: 예상하지 못한 DB 오
   const testDb = await createTestDb()
   try {
     const verdict = await changeStatusTogetherCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 품목을 재정부원들이 동시에 결재: 결재 기록 1개와 나머지의 LINE_ITEM_DECIDED (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await decideTogetherCase.run(contextOf(testDb))), /이미 결재됨으로 막혔다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 품목을 재정부원들이 동시에 결재: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await decideTogetherCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('구매 요청 취소와 결재를 동시에: 취소 뒤엔 결재 기록 0개, 결재 뒤엔 취소 안 됨 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await cancelAndDecideCase.run(contextOf(testDb))), /하나만 됐다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('구매 요청 취소와 결재를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await cancelAndDecideCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 지출을 동시에 취소하고 환급: 판 수와 끝 상태가 기대와 같다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await expenseTogetherCase.run(contextOf(testDb))), /판 수와 끝 상태/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 지출을 동시에 취소하고 환급: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await expenseTogetherCase.run(
       contextOf(testDb, failingParticipants(testDb, '40P01')),
     )
     assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
