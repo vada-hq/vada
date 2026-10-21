@@ -12,19 +12,17 @@ import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/a
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
+import type { RateLimiter } from '../http/rate-limit.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { decideLineItems } from './decide.js'
 import type { PurchasePush } from './notify.js'
 import { requestDetailOf, requestListOf } from './queries.js'
 import { cancelPurchaseRequest, createPurchaseRequest } from './service.js'
+import { createPurchaseWriteLimiter } from './write-limit.js'
 
 const root = '/organizations/:councilId/purchase-requests'
 const CREATED = 201
-
-// 요청 내기는 계정마다 10초에 20번이다(기능 003 보내기와 같은 값). 지출 적기(조각 4)와 한도를 같이 쓴다.
-const PURCHASE_WRITE_LIMIT = { limit: 20, windowMs: 10_000 }
 
 // 읽기는 한 시점의 모습이다. 권한 확인과 조회를 읽기 전용 REPEATABLE READ 거래 하나에서 한다(업무와 같다).
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
@@ -84,7 +82,7 @@ export function createPurchaseRoutes(
   options: { clock?: () => Date; writeLimiter?: RateLimiter; push?: PurchasePush | undefined } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
-  const writeLimiter = options.writeLimiter ?? createRateLimiter(PURCHASE_WRITE_LIMIT)
+  const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
   const routes = new Hono<SessionEnv>()
   const auth = requireSession(getSession)
   const asked = (c: Context<SessionEnv>) => ({

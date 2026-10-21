@@ -1,0 +1,188 @@
+import { and, asc, desc, eq, sql, type SQL } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
+import {
+  EXPENSE_LIST_LIMIT,
+  koreanDateOf,
+  type EvidenceType,
+  type ExpenseApproval,
+  type ExpenseDetail,
+  type ExpenseMethod,
+  type ExpenseSummary,
+  type ExpensesResponse,
+} from '@vada/contracts'
+import type { Actor } from '../access/actor.js'
+import {
+  approval,
+  budgetItem,
+  evidence,
+  expense,
+  lineItem,
+  member,
+  paymentLine,
+  record,
+  request,
+} from '../db/schema.js'
+import type { Db } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
+import { expenseHistoryOf } from './history.js'
+import { expenseActionsOf } from './status.js'
+
+type Reader = Pick<Db, 'select'>
+
+const payer = alias(member, 'payer')
+const requester = alias(member, 'requester')
+
+const evidenceCount = sql<number>`(select count(*) from ${evidence} where ${evidence.expenseId} = ${expense.id})`
+
+// 지출 줄. 학생회 경계는 기록의 학생회 번호로 건다.
+function expenseRows(
+  db: Reader,
+  actor: Actor,
+  options: { where?: SQL | undefined; limit: number },
+) {
+  return db
+    .select({
+      id: expense.id,
+      vendor: expense.vendor,
+      description: expense.description,
+      amount: expense.amount,
+      paidAt: expense.paidAt,
+      method: expense.method,
+      reason: expense.reason,
+      paidById: expense.paidBy,
+      payerName: payer.name,
+      requestedById: expense.requestedBy,
+      requesterName: requester.name,
+      reimbursedAt: expense.reimbursedAt,
+      cancelledAt: expense.cancelledAt,
+      budgetItemId: expense.budgetItemId,
+      purpose: budgetItem.purpose,
+      evidenceCount: evidenceCount.mapWith(Number),
+    })
+    .from(expense)
+    .innerJoin(record, eq(record.id, expense.id))
+    .leftJoin(payer, eq(payer.id, expense.paidBy))
+    .leftJoin(requester, eq(requester.id, expense.requestedBy))
+    .leftJoin(budgetItem, eq(budgetItem.id, expense.budgetItemId))
+    .where(and(eq(record.councilId, actor.councilId), options.where))
+    .orderBy(desc(expense.paidAt), desc(expense.id))
+    .limit(options.limit)
+}
+type Row = Awaited<ReturnType<typeof expenseRows>>[number]
+
+const person = (id: string | null, name: string | null) => (id && name ? { id, name } : null)
+
+function summaryOf(row: Row): ExpenseSummary {
+  return {
+    id: row.id,
+    vendor: row.vendor,
+    description: row.description,
+    amount: Number(row.amount),
+    paidOn: koreanDateOf(row.paidAt),
+    method: row.method as ExpenseMethod,
+    paidBy: person(row.paidById, row.payerName),
+    reimbursed: row.reimbursedAt !== null,
+    evidenceCount: row.evidenceCount,
+    cancelled: row.cancelledAt !== null,
+  }
+}
+
+// 결제일 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
+export async function expenseListOf(db: Reader, actor: Actor): Promise<ExpensesResponse> {
+  const rows = await expenseRows(db, actor, { limit: EXPENSE_LIST_LIMIT + 1 })
+  return {
+    expenses: rows.slice(0, EXPENSE_LIST_LIMIT).map(summaryOf),
+    truncated: rows.length > EXPENSE_LIST_LIMIT,
+  }
+}
+
+// 이 학생회의 지출 하나. 다른 학생회의 지출은 없는 것과 같아 404다. 취소한 지출도 읽을 수 있다.
+export async function expenseRowOf(db: Reader, actor: Actor, expenseId: string) {
+  const [row] = await expenseRows(db, actor, { where: eq(expense.id, expenseId), limit: 1 })
+  if (!row) throw new ApiError('NOT_FOUND')
+  return row
+}
+
+async function linesOf(db: Reader, expenseId: string) {
+  const rows = await db
+    .select({
+      lineItemId: lineItem.id,
+      name: lineItem.name,
+      amount: paymentLine.amount,
+      requestId: request.id,
+      requestTitle: request.title,
+    })
+    .from(paymentLine)
+    .innerJoin(lineItem, eq(lineItem.id, paymentLine.lineItemId))
+    .innerJoin(request, eq(request.id, lineItem.requestId))
+    .innerJoin(record, eq(record.id, paymentLine.id))
+    .where(eq(paymentLine.expenseId, expenseId))
+    .orderBy(asc(record.createdAt), asc(paymentLine.id))
+  return rows.map(row => ({ ...row, amount: Number(row.amount) }))
+}
+
+async function evidenceOf(db: Reader, expenseId: string) {
+  const rows = await db
+    .select({ id: evidence.id, type: evidence.type })
+    .from(evidence)
+    .innerJoin(record, eq(record.id, evidence.id))
+    .where(eq(evidence.expenseId, expenseId))
+    .orderBy(asc(record.createdAt), asc(evidence.id))
+  return rows.map(row => ({ id: row.id, type: row.type as EvidenceType }))
+}
+
+async function approvalsOf(db: Reader, expenseId: string): Promise<ExpenseApproval[]> {
+  const rows = await db
+    .select({
+      id: approval.id,
+      outcome: approval.outcome,
+      actorId: approval.actorId,
+      actorName: member.name,
+      actedAt: approval.actedAt,
+    })
+    .from(approval)
+    .leftJoin(member, eq(member.id, approval.actorId))
+    .where(
+      and(
+        eq(approval.targetId, expenseId),
+        eq(approval.targetKind, 'expense'),
+        eq(approval.actorKind, 'member'),
+      ),
+    )
+    .orderBy(asc(approval.actedAt), asc(approval.id))
+  const found: ExpenseApproval[] = []
+  for (const row of rows)
+    if (row.outcome === 'approved' || row.outcome === 'rejected')
+      found.push({
+        id: row.id,
+        by: person(row.actorId, row.actorName),
+        at: row.actedAt.toISOString(),
+        outcome: row.outcome,
+      })
+  return found
+}
+
+export async function expenseDetailOf(
+  db: Reader,
+  actor: Actor,
+  expenseId: string,
+): Promise<ExpenseDetail> {
+  const row = await expenseRowOf(db, actor, expenseId)
+  const summary = summaryOf(row)
+  return {
+    ...summary,
+    reason: row.reason,
+    requestedBy: person(row.requestedById, row.requesterName),
+    budgetItem:
+      row.budgetItemId && row.purpose ? { id: row.budgetItemId, purpose: row.purpose } : null,
+    lines: await linesOf(db, expenseId),
+    evidence: await evidenceOf(db, expenseId),
+    approvals: await approvalsOf(db, expenseId),
+    history: await expenseHistoryOf(db, expenseId),
+    actions: expenseActionsOf(actor, {
+      cancelled: summary.cancelled,
+      paidBy: row.paidById,
+      reimbursed: summary.reimbursed,
+    }),
+  }
+}

@@ -17,8 +17,10 @@ import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
 import { createBudgetRoutes } from './budget/routes.js'
+import { createExpenseRoutes } from './expenses/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
 import { createPurchaseRoutes } from './purchases/routes.js'
+import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
@@ -71,6 +73,8 @@ function appOf(env: Env, db: Db) {
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
   const push = pushOf(env, db, session)
+  // 요청 내기와 지출 적기가 한도 하나를 같이 쓰도록 같은 인스턴스를 둘에 준다.
+  const writeLimiter = createPurchaseWriteLimiter()
   return createApp({
     auth,
     trustedOrigin: env.BETTER_AUTH_URL!,
@@ -81,8 +85,9 @@ function appOf(env: Env, db: Db) {
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session, { push: push.taskPush }),
-    purchases: createPurchaseRoutes(db, session, { push: push.purchasePush }),
+    purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
+    expenses: createExpenseRoutes(db, session, { writeLimiter }),
   })
 }
 

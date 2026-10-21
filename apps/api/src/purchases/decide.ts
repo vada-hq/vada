@@ -3,8 +3,8 @@ import type { DecideLineItems, PurchaseRequestDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import { currentPeriodOf } from '../budget/queries.js'
-import { approval, budgetItem, lineItem } from '../db/schema.js'
+import { assertCurrentExpenseItems } from '../budget/queries.js'
+import { approval, lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -31,27 +31,6 @@ async function decidedAmong(tx: Tx, ids: string[]) {
     .from(approval)
     .where(and(eq(approval.targetKind, 'line_item'), inArray(approval.targetId, ids)))
   return rows.length > 0
-}
-
-// 승인에 고른 예산 항목은 오늘(한국)이 든 이 학생회 회계 기간의 지출 항목이어야 한다. 기간은 예산 모듈의 같은 규칙(currentPeriodOf)으로 찾는다.
-async function assertBudgetItems(tx: Tx, actor: Actor, decisions: Decision[], now: Date) {
-  const ids = [
-    ...new Set(decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : []))),
-  ]
-  if (!ids.length) return
-  const period = await currentPeriodOf(tx, actor, now)
-  if (!period) throw new ApiError('BUDGET_ITEM_INVALID')
-  const rows = await tx
-    .select({ id: budgetItem.id })
-    .from(budgetItem)
-    .where(
-      and(
-        inArray(budgetItem.id, ids),
-        eq(budgetItem.budgetId, period.budgetId),
-        eq(budgetItem.type, 'expense'),
-      ),
-    )
-  if (rows.length !== ids.length) throw new ApiError('BUDGET_ITEM_INVALID')
 }
 
 async function writeDecision(tx: Tx, actor: Actor, item: Decision) {
@@ -123,7 +102,12 @@ export async function decideLineItems(
   // 다른 요청이나 다른 학생회의 품목도 이 요청에서는 결재할 수 없는 품목이다.
   if (ids.some(id => !own.has(id)) || (await decidedAmong(tx, ids)))
     throw new ApiError('LINE_ITEM_DECIDED')
-  await assertBudgetItems(tx, actor, input.decisions, now)
+  await assertCurrentExpenseItems(
+    tx,
+    actor,
+    input.decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : [])),
+    now,
+  )
   for (const item of input.decisions) await writeDecision(tx, actor, item)
   const pendingBefore = row.items - row.approved - row.rejected
   const notice = await noticeResult(tx, actor, requestId, { pendingBefore, now })

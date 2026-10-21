@@ -6,6 +6,7 @@ import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
+import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
@@ -34,6 +35,8 @@ export type AppOptions = {
   purchases?: ReturnType<typeof createPurchaseRoutes>
   // 회계 기간과 지출 예산 항목
   budget?: ReturnType<typeof createBudgetRoutes>
+  // 지출: 목록, 하나 읽기, 적기, 취소, 환급
+  expenses?: ReturnType<typeof createExpenseRoutes>
 }
 
 export function createApp({
@@ -48,6 +51,7 @@ export function createApp({
   tasks,
   purchases,
   budget,
+  expenses,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -59,15 +63,19 @@ export function createApp({
   // better-auth는 출처 검사 전에 본문 전체를 읽으므로 크기만 먼저 제한한다.
   app.use('/api/auth/*', limitBody())
   app.on(['GET', 'POST'], '/api/auth/*', c => auth.handler(c.req.raw))
-  if (councils) app.route('/api', councils)
-  if (invites) app.route('/api', invites)
-  if (team) app.route('/api', team)
-  if (chat) app.route('/api', chat)
-  if (push) app.route('/api', push)
-  if (pushDevices) app.route('/api', pushDevices)
-  if (tasks) app.route('/api', tasks)
-  if (purchases) app.route('/api', purchases)
-  if (budget) app.route('/api', budget)
+  for (const routes of [
+    councils,
+    invites,
+    team,
+    chat,
+    push,
+    pushDevices,
+    tasks,
+    purchases,
+    budget,
+    expenses,
+  ])
+    if (routes) app.route('/api', routes)
   app.onError(handleError)
   return app
 }

@@ -1,8 +1,9 @@
-import { and, asc, eq, gte, lte, type SQL } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm'
 import { koreanDateOf, type BudgetResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { budget, budgetItem, cohort, fiscalPeriod } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -64,4 +65,28 @@ export async function budgetOf(db: Reader, actor: Actor, now: Date): Promise<Bud
     .from(cohort)
     .where(eq(cohort.id, actor.cohortId))
   return { period: null, items: [], suggested: current ?? null }
+}
+
+// 승인과 지출에 고른 예산 항목은 오늘(한국)이 든 이 학생회 회계 기간의 지출 항목이어야 한다. 다른 학생회, 수입 항목, 지금 기간 밖은 409다.
+export async function assertCurrentExpenseItems(
+  db: Reader,
+  actor: Actor,
+  ids: readonly string[],
+  now: Date,
+) {
+  const unique = [...new Set(ids)]
+  if (!unique.length) return
+  const period = await currentPeriodOf(db, actor, now)
+  if (!period) throw new ApiError('BUDGET_ITEM_INVALID')
+  const rows = await db
+    .select({ id: budgetItem.id })
+    .from(budgetItem)
+    .where(
+      and(
+        inArray(budgetItem.id, unique),
+        eq(budgetItem.budgetId, period.budgetId),
+        eq(budgetItem.type, 'expense'),
+      ),
+    )
+  if (rows.length !== unique.length) throw new ApiError('BUDGET_ITEM_INVALID')
 }

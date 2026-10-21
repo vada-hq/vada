@@ -87,7 +87,7 @@
 - 닿는 곳: contracts `budget.ts`(새: `CreateFiscalPeriodSchema`, `CreateBudgetItemSchema`, `BudgetResponse`), `purchases.ts`(`DecideLineItemsSchema`), `errors.ts`. `apps/api/src/budget/`(새: `routes.ts`, `service.ts`, `queries.ts`), `purchases/`(`decide.ts` 새, `notify.ts`, `routes.ts`), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `GET budget`, `POST fiscal-periods`, `POST budget-items`, `POST purchase-requests/:requestId/decisions`. 400줄을 넘을 것 같으면 예산을 앞 조각으로 나눈다.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 4. 지출 적기, 읽기, 취소, 환급 [ ]
+### 4. 지출 적기, 읽기, 취소, 환급 [x]
 - 할 수 있게 되는 것: 재정부가 요청을 거친 지출이나 요청 없는 지출을 적고, 취소하고, 환급을 표시하며, 모든 운영진이 지출을 읽는다.
 - 수용 기준: 재정부만 적는다(회장단 403). 201이고 같은 거래에 적은 사람의 승인 결재 기록이 생긴다. 결제 내역의 합이 금액과 다르거나, 결제 내역과 함께 예산 항목이나 부탁한 사람을 보내거나, 결제일이 내일(한국)이면 400이다(오늘 23:59:59는 받는다). 승인되지 않았거나 반려됐거나 취소된 요청의 품목, 다른 학생회 품목은 409 `LINE_ITEM_NOT_PAYABLE`이고 아무것도 생기지 않는다. 먼저 낸 사람이나 부탁한 사람이 내보낸 사람이거나 다른 학생회 사람이면 409 `MEMBER_INVALID`이다. 한 품목을 두 지출에 나눠 결제하면 둘 다 된다. 목록 줄에는 사용처, 내역, 금액, 결제일, 결제 수단, 먼저 낸 사람과 환급 여부, 증빙 수, 취소가 있다. 상세는 칸, 결제한 품목과 그 요청, 예산 항목, 증빙, 결재 기록, 이력, `actions`를 준다. 취소는 사유를 받아 판에 남기고, 다시 취소하면 409 `EXPENSE_CANCELLED`이며, 취소한 지출의 품목은 요청 상세에서 '결제함'이 아니다. 환급은 먼저 낸 사람이 있고 취소되지 않았고 아직 환급 전일 때만 되고, 아니면 409 `NOT_REIMBURSABLE`이다. 다른 학생회 지출 404, 403, 401, 요청 내기와 같은 한도의 429를 시험한다. 로그에 금액, 사용처, 이름이 없다.
 - 닿는 곳: contracts `expenses.ts`(새: 상수, `CreateExpenseSchema`, `CancelExpenseSchema`, `ExpenseSummary`, `ExpenseDetail`, `ExpensesResponse`), `errors.ts`. `apps/api/src/expenses/`(새: `routes.ts`, `service.ts`, `queries.ts`), `purchases/queries.ts`(결제함), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `GET expenses`, `GET expenses/:expenseId`, `POST expenses`, `POST expenses/:expenseId/cancel`, `POST expenses/:expenseId/reimburse`.

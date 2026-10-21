@@ -2,10 +2,12 @@ import assert from 'node:assert/strict'
 import type { PurchaseRequestDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createBudgetRoutes } from '../budget/routes.js'
+import { createExpenseRoutes } from '../expenses/routes.js'
 import { createTestDb } from '../db/test-db.js'
-import { createRateLimiter } from '../http/rate-limit.js'
+import type { RateLimiter } from '../http/rate-limit.js'
 import { createPurchasePush } from '../purchases/notify.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
+import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
 import type { PushSender } from '../push/sender.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { seedCouncil } from './council.js'
@@ -23,9 +25,7 @@ export const detailOf = async (response: Response) =>
   ((await response.json()) as { request: PurchaseRequestDetail }).request
 
 // 구매 요청 시험의 바탕: 학생회 둘(내 것 's', 다른 것 'o'), 모든 사람의 기기 하나씩, 알림 보내기를 기록하는 가짜 보내기.
-export async function startPurchases(
-  options: { withPush?: boolean; limiter?: ReturnType<typeof createRateLimiter> } = {},
-) {
+export async function startPurchases(options: { withPush?: boolean; limiter?: RateLimiter } = {}) {
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
@@ -53,6 +53,8 @@ export async function startPurchases(
       'INSERT INTO push_device (user_id, endpoint, p256dh, auth) VALUES ($1,$2,$3,$4)',
       [person.userId, endpointOf(person.userId), 'p', 'a'],
     )
+  // 서버처럼 요청 내기와 지출 적기가 한도 하나를 같이 쓴다.
+  const writeLimiter = options.limiter ?? createPurchaseWriteLimiter()
   const api = caller(
     createApp({
       auth: { handler: async () => new Response() },
@@ -60,9 +62,10 @@ export async function startPurchases(
       purchases: createPurchaseRoutes(db, testSession, {
         clock,
         ...(options.withPush === false ? {} : { push }),
-        ...(options.limiter ? { writeLimiter: options.limiter } : {}),
+        writeLimiter,
       }),
       budget: createBudgetRoutes(db, testSession, { clock }),
+      expenses: createExpenseRoutes(db, testSession, { clock, writeLimiter }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/purchase-requests`
