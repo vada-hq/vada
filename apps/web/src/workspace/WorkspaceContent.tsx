@@ -2,6 +2,8 @@ import type { CouncilView } from '@vada/contracts'
 import ChatPage from '../chat/ChatPage'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
+import TasksPage from '../tasks/TasksPage'
+import type { TaskList } from '../tasks/useTasks'
 import Departments from '../team/Departments'
 import People from '../team/People'
 import StateMessage from '@/components/StateMessage'
@@ -11,11 +13,18 @@ import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
 
-type Props = { data: CouncilData; rooms: RoomList; page: Page; roomId?: string | undefined }
+type Props = {
+  data: CouncilData
+  rooms: RoomList
+  tasks: TaskList
+  page: Page
+  roomId?: string | undefined
+}
 
 function PageOf({
   data,
   rooms,
+  tasks,
   page,
   roomId,
   view,
@@ -30,6 +39,14 @@ function PageOf({
         rooms={rooms}
         initialRoomId={roomId}
         onForbidden={data.reload}
+      />
+    )
+  if (page === 'tasks')
+    return (
+      <TasksPage
+        councilId={view.council.id}
+        onForbidden={data.reload}
+        onChanged={() => void tasks.reload()}
       />
     )
   if (page === 'people')
@@ -47,7 +64,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, page, roomId }: Props) {
+function Body({ data, rooms, tasks, page, roomId }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -69,6 +86,7 @@ function Body({ data, rooms, page, roomId }: Props) {
     <PageOf
       data={data}
       rooms={rooms}
+      tasks={tasks}
       page={page}
       roomId={roomId}
       view={state.view}

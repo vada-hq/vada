@@ -87,3 +87,16 @@ export const PHOTO_TOO_BIG = '사진이 너무 커요. 다른 사진을 골라 �
 export const PHOTO_CANNOT_OPEN = '이 사진을 열 수 없어요. 다른 사진을 골라 주세요.'
 export const PHOTO_UPLOAD_FAILED = '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'
 export const PHOTO_TOO_MANY = (max: number) => `사진은 한 번에 ${max}장까지 보낼 수 있어요.`
+
+// 업무 목록과 카드. 상태 바꾸기 오류는 그 카드 안에 보인다. 표에 없는 코드는 일반 문구다.
+export const TASKS_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const TASK_STATUS_ERRORS: Record<string, string> = {
+  FORBIDDEN: PERMISSION_CHANGED,
+  NOT_FOUND: '이 업무는 지워졌어요. 목록을 새로 불러왔어요.',
+  TOO_MANY_REQUESTS: '너무 빨리 바꾸고 있어요. 잠시 뒤에 다시 해 주세요.',
+}
+export const TASK_STATUS_FAILED = '상태를 바꾸지 못했어요. 다시 시도해 주세요.'
+
+// 알림이 꺼져 있다는 띠의 문구. 화면이 무엇을 놓칠 수 있는지에 맞춘다.
+export const PUSH_OFF_CHAT = '휴대폰 알림이 꺼져 있어요. 새 글과 부름을 놓칠 수 있어요.'
+export const TASK_PUSH_OFF = '휴대폰 알림이 꺼져 있어요. 맡은 업무를 놓칠 수 있어요.'

@@ -93,7 +93,7 @@ T1~T10과 작은 결정은 옛 설계의 사전 조사대로다(다시 조사하
 - 닿는 곳: contracts `AssignTaskSchema`, `SetTaskDepartmentSchema`, 업무 주소 한 쌍(`push.ts`). `tasks/service.ts`, `tasks/routes.ts`, `tasks/notify.ts`(새), 운영진 → 로그인 계정 찾기 공유(`chat/notify.ts`에서 꺼낸다), `push/fanout.ts`, `serve.ts`, `web.ts`. 경로는 `POST tasks/:taskId/assignee`, `POST tasks/:taskId/department`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 5. 업무 화면: 목록, 카드, 옆 메뉴 [ ]
+### 5. 업무 화면: 목록, 카드, 옆 메뉴 [x]
 - 할 수 있게 되는 것: 운영진이 옆 메뉴 '업무'에서 내 업무와 전체를 보고 카드에서 상태를 바꾼다.
 - 수용 기준: 옆 메뉴 '대화' 아래 '업무'에, 내 업무 중 지난 것이 있으면 "지남 N"(danger), 없으면 남은 수(info), 0이면 배지가 없고, 넘치면 '+'다. 탭 셋과 거르기 둘이 있다. 전체와 담당자 없음은 부서 이름순으로 묶고 '학생회 업무'를 맨 뒤에 둔다. 카드에 제목(`wrap-anywhere`), 마감("10월 25일", "마감 없음"), '지남', 상태 배지, 담당자("담당자 없음", "떠난 사람: 이름")가 보인다. `task.status`가 있을 때만 [시작]·[끝내기]가 보이고 보내는 동안 막힌다. 빈 목록, 넘침, 불러오기 실패 문구가 있다. 탭을 바꾸면 늦게 온 응답을 버린다. 화면이 다시 보일 때, 내 변경 뒤, 알림이 오면 다시 읽는다. 403이면 학생회를 닫는다. 알림이 꺼져 있으면 업무 화면에도 업무에 맞는 문구의 띠가 보인다. 부품 확인 화면에 카드와 수 배지가 있다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/tasks/`(새), `workspace/`(`pages.ts`, `SidebarNav.tsx`, `WorkspaceContent.tsx`, `CouncilWorkspace.tsx`), `push/PushOffBand.tsx`, `lib/messages.ts`, `ui-gallery/`.

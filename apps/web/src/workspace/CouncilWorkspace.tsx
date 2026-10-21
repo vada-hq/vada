@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
-import { useRoomList } from '../chat/useRoomList'
-import PushOffBand from '../push/PushOffBand'
+import PagePushBand from './PagePushBand'
 import type { Opener, Page, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
 import { useCouncilData } from './useCouncilData'
+import { useWorkspaceLists } from './useWorkspaceLists'
 import { useWorkspaceNav } from './useWorkspaceNav'
 import WorkspaceContent from './WorkspaceContent'
 import WorkspaceFrame from './WorkspaceFrame'
@@ -43,9 +43,7 @@ export default function CouncilWorkspace({
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo, startPage)
   const roomId = useOnceRoom(linkedRoom, nav.page)
-  // 옆 메뉴의 안 읽은 수와 대화 화면이 같은 목록을 쓴다.
-  const rooms = useRoomList(council.id, data.reload, data.state.kind === 'ready')
-  const unread = rooms.state.kind === 'ready' ? rooms.state.data.unreadTotal : 0
+  const { rooms, unread, tasks, taskCount } = useWorkspaceLists(council.id, data)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
@@ -53,6 +51,7 @@ export default function CouncilWorkspace({
       view={data.view}
       page={nav.page}
       unread={unread}
+      taskCount={taskCount}
       user={user}
       logoutBusy={logoutBusy}
       onLogout={onLogout}
@@ -73,8 +72,8 @@ export default function CouncilWorkspace({
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
       />
-      <PushOffBand visible={nav.page === 'chat'} />
-      <WorkspaceContent data={data} rooms={rooms} page={nav.page} roomId={roomId} />
+      <PagePushBand page={nav.page} />
+      <WorkspaceContent data={data} rooms={rooms} tasks={tasks} page={nav.page} roomId={roomId} />
     </WorkspaceFrame>
   )
 }

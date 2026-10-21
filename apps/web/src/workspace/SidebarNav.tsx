@@ -1,17 +1,42 @@
-import { MessageSquare, Network, Users } from 'lucide-react'
+import { ListChecks, MessageSquare, Network, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
+import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 
-// 옆 메뉴 가운데: 대화(안 읽은 수 합계)와 운영진(사람, 부서).
+function TasksItem({
+  active,
+  count,
+  onClick,
+}: {
+  active: boolean
+  count: TaskCount | null
+  onClick: () => void
+}) {
+  return (
+    <NavItem active={active} className="mt-1 flex items-center gap-2" onClick={onClick}>
+      <ListChecks aria-hidden className="size-4" />
+      <span className="flex-1">업무</span>
+      {count && (
+        <Badge tone={count.tone} aria-label={count.description}>
+          {count.label}
+        </Badge>
+      )}
+    </NavItem>
+  )
+}
+
+// 옆 메뉴 가운데: 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 운영진(사람, 부서).
 export default function SidebarNav({
   page,
   unread,
+  taskCount,
   onPage,
 }: {
   page: Page
   unread: number
+  taskCount: TaskCount | null
   onPage: (page: Page) => void
 }) {
   return (
@@ -29,6 +54,7 @@ export default function SidebarNav({
           </Badge>
         )}
       </NavItem>
+      <TasksItem active={page === 'tasks'} count={taskCount} onClick={() => onPage('tasks')} />
       <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
       <NavItem
         active={page === 'people'}
