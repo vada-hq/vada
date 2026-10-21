@@ -38,14 +38,19 @@ export interface TaskCount {
 export function countOf(mine: TaskSummary[], truncated: boolean): TaskCount | null {
   const overdue = mine.filter(task => task.overdue).length
   const plus = truncated ? '+' : ''
+  const more = truncated ? ' 이상' : ''
   if (overdue > 0)
     return {
       label: `지남 ${overdue}${plus}`,
       tone: 'danger',
-      description: `지난 업무 ${overdue}개`,
+      description: `지난 업무 ${overdue}개${more}`,
     }
   if (mine.length === 0) return null
-  return { label: `${mine.length}${plus}`, tone: 'info', description: `남은 업무 ${mine.length}개` }
+  return {
+    label: `${mine.length}${plus}`,
+    tone: 'info',
+    description: `남은 업무 ${mine.length}개${more}`,
+  }
 }
 
 export interface TaskGroup {

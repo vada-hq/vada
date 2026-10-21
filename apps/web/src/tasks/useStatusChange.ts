@@ -16,7 +16,8 @@ export function useStatusChange(councilId: string, onDone: () => void, onForbidd
     setBusy(before => new Set(before).add(taskId))
     setErrors(before => Object.fromEntries(Object.entries(before).filter(([id]) => id !== taskId)))
     const result = await postJson(taskStatusPath(councilId, taskId), { status })
-    if (!isActive()) return
+    // 화면이 사라졌어도 바뀐 것은 옆 메뉴의 수에 반영해야 한다. 상태만 건드리지 않는다.
+    if (!isActive()) return result.ok ? onDone() : undefined
     setBusy(before => {
       const next = new Set(before)
       next.delete(taskId)

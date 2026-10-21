@@ -3,8 +3,8 @@ import { statusOf, type RoomListResponse } from '@vada/contracts'
 import { getJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { useLatest } from '@/lib/use-latest'
-import { useVisiblePoll } from '@/lib/use-visible-poll'
-import { CHAT_LIST_POLL_MS, chatBase } from './chat-api'
+import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
+import { chatBase } from './chat-api'
 
 export type RoomListState =
   { kind: 'loading' } | { kind: 'failed' } | { kind: 'ready'; data: RoomListResponse }
@@ -29,7 +29,7 @@ export function useRoomList(councilId: string, onForbidden: () => void, enabled:
   useEffect(() => {
     void load()
   }, [load])
-  useVisiblePoll(() => void load(), CHAT_LIST_POLL_MS)
+  useVisiblePoll(() => void load(), LIST_POLL_MS)
   return { state, reload: load }
 }
 export type RoomList = ReturnType<typeof useRoomList>

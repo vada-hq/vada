@@ -3,7 +3,14 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { TaskSummary } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import TasksPage from './TasksPage'
+
+function readsOf(api: ReturnType<typeof mockApi>) {
+  return () =>
+    api.calls.filter(call => call.path === '/api/organizations/c1/tasks?view=mine&status=open')
+      .length
+}
 
 afterEach(() => {
   cleanup()
@@ -170,4 +177,36 @@ test('onOpenTask가 있으면 제목을 눌러 열고, 없으면 제목은 글�
   )
   fireEvent.click(await screen.findByRole('button', { name: '업무 a' }))
   expect(onOpenTask).toHaveBeenCalledWith('a')
+})
+
+test('내 업무의 제목은 h2이고, 부서 묶음 아래 카드의 제목은 h3이다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([task('a')]))
+  api.on('GET', listPath('all'), () => list([task('b')]))
+  render(<TasksPage councilId="c1" onForbidden={() => {}} onChanged={() => {}} />)
+  expect((await screen.findByText('업무 a')).tagName).toBe('H2')
+  fireEvent.click(screen.getByRole('tab', { name: '전체' }))
+  expect((await screen.findByText('업무 b')).tagName).toBe('H3')
+})
+
+test('푸시가 오면 보이는 화면은 목록을 바로 다시 읽는다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([task('a')]))
+  render(<TasksPage councilId="c1" onForbidden={() => {}} onChanged={() => {}} />)
+  await screen.findByText('업무 a')
+  const reads = readsOf(api)
+  const before = reads()
+  window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
+  await waitFor(() => expect(reads()).toBe(before + 1))
+})
+
+test('화면이 다시 보이면 목록을 다시 읽는다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([task('a')]))
+  render(<TasksPage councilId="c1" onForbidden={() => {}} onChanged={() => {}} />)
+  await screen.findByText('업무 a')
+  const reads = readsOf(api)
+  const before = reads()
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(reads()).toBe(before + 1))
 })

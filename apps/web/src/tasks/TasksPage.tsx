@@ -56,21 +56,22 @@ function Cards({
   change: Change
   onOpenTask: Props['onOpenTask']
 }) {
-  const card = (task: TaskSummary) => (
+  const card = (task: TaskSummary, headingLevel: 'h2' | 'h3') => (
     <TaskCard
       key={task.id}
       task={task}
+      headingLevel={headingLevel}
       busy={change.busy.has(task.id)}
       error={change.errors[task.id]}
       onChangeStatus={status => void change.change(task.id, status)}
       onOpen={onOpenTask ? () => onOpenTask(task.id) : undefined}
     />
   )
-  if (view !== 'mine') return <TaskGroups tasks={tasks} card={card} />
+  if (view !== 'mine') return <TaskGroups tasks={tasks} card={task => card(task, 'h3')} />
   return (
     <ul className="flex flex-col gap-2">
       {tasks.map(task => (
-        <li key={task.id}>{card(task)}</li>
+        <li key={task.id}>{card(task, 'h2')}</li>
       ))}
     </ul>
   )

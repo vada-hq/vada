@@ -19,17 +19,24 @@ type Props = {
   onChangeStatus: (status: TaskStatus) => void
   // 카드를 눌러 상세를 여는 자리(조각 6). 없으면 제목은 글자일 뿐이다.
   onOpen?: (() => void) | undefined
+  // 제목의 단계. 부서 묶음 제목(h2) 아래에서는 3, 묶음 없이 화면 제목(h1) 바로 아래에서는 2다.
+  headingLevel?: 'h2' | 'h3'
 }
 
-function Title({ task, onOpen }: Pick<Props, 'task' | 'onOpen'>) {
+function Title({
+  task,
+  onOpen,
+  headingLevel = 'h3',
+}: Pick<Props, 'task' | 'onOpen' | 'headingLevel'>) {
+  const Heading = headingLevel
   if (!onOpen)
     return (
-      <h3 className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
+      <Heading className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
         {task.title}
-      </h3>
+      </Heading>
     )
   return (
-    <h3 className="min-w-0 flex-1">
+    <Heading className="min-w-0 flex-1">
       <Button
         variant="link"
         className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere"
@@ -37,17 +44,24 @@ function Title({ task, onOpen }: Pick<Props, 'task' | 'onOpen'>) {
       >
         {task.title}
       </Button>
-    </h3>
+    </Heading>
   )
 }
 
 // 업무 카드: 제목, 마감과 지남, 상태, 담당자. 상태를 바꿀 수 있는 사람(task.status)에게만 [시작]·[끝내기]가 보인다.
-export default function TaskCard({ task, busy, error, onChangeStatus, onOpen }: Props) {
+export default function TaskCard({
+  task,
+  busy,
+  error,
+  onChangeStatus,
+  onOpen,
+  headingLevel,
+}: Props) {
   const next = task.actions.includes('task.status') ? NEXT_STEP[task.status] : null
   return (
     <Card className="flex flex-col gap-2 p-4">
       <div className="flex items-start gap-2">
-        <Title task={task} onOpen={onOpen} />
+        <Title task={task} onOpen={onOpen} headingLevel={headingLevel} />
         <Badge tone={STATUS_TONE[task.status]}>{STATUS_LABEL[task.status]}</Badge>
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">

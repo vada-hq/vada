@@ -3,8 +3,8 @@ import { statusOf, type TaskFilter, type TasksResponse, type TaskView } from '@v
 import { getJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { useLatest } from '@/lib/use-latest'
-import { useVisiblePoll } from '@/lib/use-visible-poll'
-import { TASK_POLL_MS, tasksPath } from './task-api'
+import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
+import { tasksPath } from './task-api'
 
 type Loaded =
   { kind: 'failed' } | { kind: 'ready'; tasks: TasksResponse['tasks']; truncated: boolean }
@@ -45,7 +45,7 @@ export function useTasks(
   useEffect(() => {
     void load()
   }, [load])
-  useVisiblePoll(() => void load(), TASK_POLL_MS)
+  useVisiblePoll(() => void load(), LIST_POLL_MS)
   const state: TasksState = loaded?.key === key ? loaded.state : { kind: 'loading' }
   return { state, reload: load }
 }
