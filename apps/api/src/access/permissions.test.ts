@@ -138,15 +138,63 @@ test('chat.use는 그 방 참여자만 된다: 회장도 참여하지 않은 방
   }
 })
 
-test('내 권한 목록: 방에 달린 chat.use는 없다. 회장은 나머지 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기와 1:1만 가진다', () => {
-  const listed = ACTIONS.filter(action => action !== 'chat.use')
+test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸은 빼고, 회장은 나머지 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기와 1:1과 구매 요청만 가진다', () => {
+  const listed = ACTIONS.filter(
+    action =>
+      !['chat.use', 'purchase.cancel', 'purchase.approve', 'finance.manage'].includes(action),
+  )
   assert.deepEqual(permissionsOf(president), listed)
   assert.deepEqual(
     permissionsOf(vicePresident),
     listed.filter(action => action !== 'president.transfer'),
   )
-  assert.deepEqual(permissionsOf(planningHead), ['council.view', 'chat.direct'])
-  assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct'])
+  assert.deepEqual(permissionsOf(planningHead), ['council.view', 'chat.direct', 'purchase.request'])
+  assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct', 'purchase.request'])
+})
+
+// 구매와 재정 칸(DEC-27 기준 3·5, DEC-28, DEC-41). 재정은 직급으로 물려받지 않고, 결재에는 직무 분리가 없다.
+test('구매 칸: 요청은 모든 운영진이 한다', () => {
+  for (const who of [president, planningHead, planningMember, financeMember, plain])
+    assert.equal(can(who, 'purchase.request'), true, who.memberId)
+})
+
+test('구매 칸: 취소는 요청한 사람만이고 회장단도 물려받지 않으며, 맥락이 없으면 거부한다', () => {
+  for (const who of [president, vicePresident, planningHead, financeMember, plain]) {
+    assert.equal(can(who, 'purchase.cancel', { requestedBy: who.memberId }), true, who.memberId)
+    assert.equal(can(who, 'purchase.cancel', { requestedBy: 'someone' }), false, who.memberId)
+    assert.equal(can(who, 'purchase.cancel'), false, who.memberId)
+  }
+})
+
+test('재정 칸: 결재와 재정 관리는 재정부만이고 회장단과 부장도 물려받지 않으며, 자기 요청도 결재한다', () => {
+  for (const action of ['purchase.approve', 'finance.manage'] as const) {
+    assert.equal(can(financeMember, action), true, action)
+    for (const denied of [
+      president,
+      vicePresident,
+      planningHead,
+      planningViceHead,
+      planningMember,
+      plain,
+    ])
+      assert.equal(can(denied, action), false, `${action} ${denied.memberId}`)
+  }
+  assert.equal(can(financeMember, 'purchase.approve', { requestedBy: 'finance' }), true)
+  assert.equal(can(financeMember, 'purchase.approve', { requestedBy: 'other' }), true)
+})
+
+test('내 권한 목록: 재정부원은 구매 요청, 결재, 재정 관리를 받고 회장단과 부장은 구매 요청만 받는다', () => {
+  const purchases = (who: Actor) =>
+    permissionsOf(who).filter(
+      action => action.startsWith('purchase.') || action.startsWith('finance.'),
+    )
+  assert.deepEqual(purchases(financeMember), [
+    'purchase.request',
+    'purchase.approve',
+    'finance.manage',
+  ])
+  for (const who of [president, vicePresident, planningHead, planningViceHead])
+    assert.deepEqual(purchases(who), ['purchase.request'])
 })
 
 // 업무 칸(DEC-28). 맥락은 업무의 부서(departmentId)와 담당자(assigneeId)다. 담당자 기준은 회장단도 물려받지 않는다.

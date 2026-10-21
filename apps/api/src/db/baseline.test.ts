@@ -77,9 +77,15 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
     ) as { entries: { tag: string }[] }
     assert.deepEqual(
       journal.entries.map(entry => entry.tag),
-      ['0000_baseline', '0001_chat_limits', '0002_task_cancelled_at', '0003_task_limits'],
+      [
+        '0000_baseline',
+        '0001_chat_limits',
+        '0002_task_cancelled_at',
+        '0003_task_limits',
+        '0004_purchase_limits',
+      ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 4)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 5)
   } finally {
     await close()
   }

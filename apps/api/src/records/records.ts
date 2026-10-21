@@ -1,18 +1,27 @@
 import { and, eq, sql } from 'drizzle-orm'
 import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import {
+  approval,
+  budget,
+  budgetItem,
   chatRoom,
   cohort,
   council,
   councilMembership,
   department,
   departmentMembership,
+  evidence,
+  expense,
   file,
+  fiscalPeriod,
+  lineItem,
   member,
   message,
   notification,
+  paymentLine,
   record,
   recordVersion,
+  request,
   task,
 } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
@@ -36,11 +45,20 @@ const tables = {
   file,
   notification,
   task,
+  fiscal_period: fiscalPeriod,
+  budget,
+  budget_item: budgetItem,
+  request,
+  line_item: lineItem,
+  expense,
+  payment_line: paymentLine,
+  evidence,
+  approval,
 }
 export type RecordKind = keyof typeof tables
 type Table<K extends RecordKind> = (typeof tables)[K]
 // 하위 표에도 학생회 번호를 두는 종류(physical-model.md 작성 규칙). 모듈이 기록의 학생회 번호를 그대로 넣는다.
-const councilColumn: ReadonlySet<RecordKind> = new Set(['cohort', 'department'])
+const councilColumn: ReadonlySet<RecordKind> = new Set(['cohort', 'department', 'fiscal_period'])
 // 학생회를 넘어 이어지는 운영진과 학생회 자신만 학생회 번호를 비운다.
 const withoutCouncil: ReadonlySet<RecordKind> = new Set(['council', 'member'])
 
@@ -112,6 +130,23 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   notification: new Set(['recipientId', 'recipient_id', 'recordId', 'record_id']),
   // 업무의 행사 칸은 행사를 만드는 길(기능 006)이 생길 때 연다.
   task: new Set(['eventId', 'event_id']),
+  // 구매와 지출: 위의 것을 가리키는 칸은 만든 뒤 바꾸지 않는다. 품목의 예산 항목과 지출의 예산 항목·부탁한 사람·먼저 낸 사람만 바꿀 수 있다.
+  budget: new Set(['fiscalPeriodId', 'fiscal_period_id']),
+  budget_item: new Set(['budgetId', 'budget_id']),
+  line_item: new Set(['requestId', 'request_id']),
+  payment_line: new Set(['expenseId', 'expense_id', 'lineItemId', 'line_item_id']),
+  evidence: new Set(['expenseId', 'expense_id']),
+  approval: new Set([
+    'targetId',
+    'target_id',
+    'targetKind',
+    'target_kind',
+    'outcome',
+    'actorId',
+    'actor_id',
+    'actorKind',
+    'actor_kind',
+  ]),
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서는 회장단이 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
 const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {

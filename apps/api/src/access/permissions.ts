@@ -5,12 +5,20 @@ import type { Actor } from './actor.js'
 // 기준: 회장단은 학생회 직급이 있는 사람, 부장은 부서 직급이 있는 사람(부부장은 부장과 같다, 기준 4),
 // 재정부는 재정 역할 부서의 지금 소속이다.
 export type Criterion =
-  'member' | 'leadership' | 'president' | 'department_head' | 'finance' | 'room_member' | 'assignee'
+  | 'member'
+  | 'leadership'
+  | 'president'
+  | 'department_head'
+  | 'finance'
+  | 'room_member'
+  | 'assignee'
+  | 'requester'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
 // assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
+// requestedBy는 구매 요청의 요청한 사람이기도 하다: 요청한 사람 기준(requester)은 이것이 나일 때만 맞다.
 export type Context = {
   departmentId?: string
   requestedBy?: string
@@ -36,6 +44,11 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'task.set_department': { who: ['leadership'] },
   'task.assign': { who: ['department_head'] },
   'task.status': { who: ['department_head', 'assignee'] },
+  // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).
+  'purchase.request': { who: ['member'] },
+  'purchase.cancel': { who: ['requester'] },
+  'purchase.approve': { who: ['finance'] },
+  'finance.manage': { who: ['finance'] },
 }
 
 function meets(actor: Actor, criterion: Criterion, context: Context) {
@@ -57,12 +70,22 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
     // 재정 권한은 직급으로 물려받지 않는다(기준 3).
     case 'finance':
       return actor.departments.some(item => item.role === 'finance')
-    // 기본은 거부다. 호출하는 쪽이 방 참여를 넘기지 않으면 열리지 않는다.
+    default:
+      return meetsContext(actor, criterion, context)
+  }
+}
+
+// 맥락이 가리키는 사람이나 방이 나일 때만 맞는 기준. 맥락이 없으면 모두 거부다(호출하는 쪽이 빠뜨려도 열리지 않는다).
+function meetsContext(actor: Actor, criterion: Criterion, context: Context) {
+  switch (criterion) {
     case 'room_member':
       return context.inRoom === true
-    // 담당자를 모르면(assigneeId가 없으면) 열리지 않는다.
     case 'assignee':
       return context.assigneeId !== undefined && context.assigneeId === actor.memberId
+    case 'requester':
+      return context.requestedBy !== undefined && context.requestedBy === actor.memberId
+    default:
+      return false
   }
 }
 

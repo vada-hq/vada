@@ -24,5 +24,9 @@ export const ACTIONS = [
   'task.set_department', // 업무의 담당 부서 정하기(회장단)
   'task.assign', // 업무 맡기기(그 부서 부장 기준)
   'task.status', // 업무 상태 바꾸기(그 부서 부장 기준과 담당자)
+  'purchase.request', // 구매 요청 내기(모든 운영진)
+  'purchase.cancel', // 구매 요청 취소(요청한 사람만)
+  'purchase.approve', // 구매 품목 결재(재정부, 자기 요청 포함)
+  'finance.manage', // 회계 기간, 예산 항목, 지출, 증빙, 취소, 환급(재정부)
 ] as const
 export type Action = (typeof ACTIONS)[number]

@@ -204,10 +204,11 @@ test('내 학생회 목록과 학생회 하나 보기: 만든 사람은 회장�
       { ...view.me, memberId: undefined },
       { memberId: undefined, name: '김회장', councilRank: 'president', departments: [] },
     )
-    // chat.use는 방 참여자만이라 내 권한 목록에 없다.
+    // chat.use는 방 참여자만, purchase.cancel은 요청한 사람만, 결재와 재정 관리는 재정부만이라 회장의 목록에 없다.
+    const notListed = ['chat.use', 'purchase.cancel', 'purchase.approve', 'finance.manage']
     assert.deepEqual(
       view.permissions,
-      ACTIONS.filter(action => action !== 'chat.use'),
+      ACTIONS.filter(action => !notListed.includes(action)),
     )
   } finally {
     await testDb.close()
