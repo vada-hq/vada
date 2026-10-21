@@ -22,6 +22,8 @@ type Props = {
   onSave: (id: string | null) => Promise<boolean>
 }
 
+const UNSET = '__current__'
+
 // 부서나 담당자 한 줄: 지금 값과 [바꾸기]. 누르면 선택지를 읽어 고르는 칸이 열린다.
 export function TaskPickerRow(props: Props) {
   const [picking, setPicking] = useState(false)
@@ -48,10 +50,13 @@ export function TaskPickerRow(props: Props) {
 
 function Picker({ onDone, ...props }: Props & { onDone: () => void }) {
   const team = useTeam(props.councilId, props.onForbidden)
-  const [value, setValue] = useState(choiceValue(props.currentId))
+  const choices = team.data ? props.choicesOf(team.data) : []
+  // 지금 값이 선택지에 없으면(떠난 담당자) 어느 것도 고르지 않은 채 시작한다. 아니면 첫 항목이 골라진 것처럼 보여 고를 수 없다.
+  const listed = choices.some(item => item.id === props.currentId)
+  const [picked, setPicked] = useState<string | null>(null)
+  const value = picked ?? (listed ? choiceValue(props.currentId) : UNSET)
   if (team.loadFailed) return <StateMessage kind="error">{TASK_TEAM_FAILED}</StateMessage>
   if (!team.data) return <StateMessage kind="loading">불러오는 중이에요</StateMessage>
-  const choices = props.choicesOf(team.data)
   return (
     <div className="flex flex-wrap items-center gap-2">
       <NativeSelect
@@ -59,8 +64,13 @@ function Picker({ onDone, ...props }: Props & { onDone: () => void }) {
         className="w-auto max-w-full flex-1"
         value={value}
         disabled={props.saving}
-        onChange={event => setValue(event.target.value)}
+        onChange={event => setPicked(event.target.value)}
       >
+        {!listed && (
+          <option value={UNSET} disabled>
+            {props.current}
+          </option>
+        )}
         {choices.map(item => (
           <option key={choiceValue(item.id)} value={choiceValue(item.id)}>
             {item.label}
@@ -69,7 +79,7 @@ function Picker({ onDone, ...props }: Props & { onDone: () => void }) {
       </NativeSelect>
       <Button
         size="sm"
-        disabled={props.saving || value === choiceValue(props.currentId)}
+        disabled={props.saving || value === UNSET || value === choiceValue(props.currentId)}
         onClick={() => {
           void props.onSave(choiceId(value)).then(done => {
             if (done) onDone()

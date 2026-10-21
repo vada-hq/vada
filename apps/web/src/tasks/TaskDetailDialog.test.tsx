@@ -267,3 +267,15 @@ test('지남과 떠난 담당자가 보인다', async () => {
   await screen.findByText('지남')
   expect(screen.getByText('떠난 사람: 최탈퇴')).toBeTruthy()
 })
+
+test('떠난 담당자 업무는 아무도 골라지지 않은 채 열리고 다른 사람을 골라 다시 맡길 수 있다', async () => {
+  const { api } = setup(taskDetail({ assignee: { id: 'm9', name: '최탈퇴', current: false } }))
+  api.on('POST', `${URL_TASK}/assignee`, () => json({ task: taskDetail() }))
+  fireEvent.click(await screen.findByRole('button', { name: '담당자 바꾸기' }))
+  const select = await screen.findByRole('combobox', { name: '담당자' })
+  expect(select).toHaveProperty('value', '__current__')
+  expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
+  fireEvent.change(select, { target: { value: 'm3' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(api.calls.at(-1)?.body).toEqual({ assigneeId: 'm3' }))
+})

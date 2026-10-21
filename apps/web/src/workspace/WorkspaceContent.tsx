@@ -42,13 +42,7 @@ function PageOf({
       />
     )
   if (page === 'tasks')
-    return (
-      <TasksPage
-        councilId={view.council.id}
-        onForbidden={data.reload}
-        onChanged={() => void tasks.reload()}
-      />
-    )
+    return <TasksPage view={view} onForbidden={data.reload} onChanged={() => void tasks.reload()} />
   if (page === 'people')
     return (
       <People

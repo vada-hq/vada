@@ -6,18 +6,21 @@ export const STATUS_LABEL: Record<TaskStatus, string> = {
   done: '끝남',
 }
 
-// 부서가 없는 업무의 묶음 이름. 묶음 맨 뒤에 둔다.
-const NO_DEPARTMENT = '학생회 업무'
+// 부서가 없는 업무의 이름(묶음 이름, 고르는 칸, 이력). 묶음에서는 맨 뒤에 둔다.
+export const COUNCIL_TASK_LABEL = '학생회 업무'
+export const NO_ASSIGNEE_LABEL = '담당자 없음'
 
-// "2026-10-25" → "10월 25일". 마감이 없으면 "마감 없음".
-export function dueLabel(dueDate: string | null) {
-  if (!dueDate) return '마감 없음'
+// "2026-10-25" → "10월 25일"
+export function monthDay(dueDate: string) {
   const [, month, day] = dueDate.split('-')
   return `${Number(month)}월 ${Number(day)}일`
 }
 
+// 마감이 없으면 "마감 없음".
+export const dueLabel = (dueDate: string | null) => (dueDate ? monthDay(dueDate) : '마감 없음')
+
 export function assigneeLabel(assignee: TaskPerson | null) {
-  if (!assignee) return '담당자 없음'
+  if (!assignee) return NO_ASSIGNEE_LABEL
   return assignee.current ? assignee.name : `떠난 사람: ${assignee.name}`
 }
 
@@ -66,7 +69,7 @@ export function groupByDepartment(tasks: TaskSummary[]): TaskGroup[] {
     const key = task.department?.id ?? ''
     const group = groups.get(key) ?? {
       key,
-      name: task.department?.name ?? NO_DEPARTMENT,
+      name: task.department?.name ?? COUNCIL_TASK_LABEL,
       tasks: [],
     }
     group.tasks.push(task)

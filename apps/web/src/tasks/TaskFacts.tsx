@@ -2,13 +2,8 @@ import type { ReactNode } from 'react'
 import type { CouncilView, TaskDetail, TaskStatus } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
-import {
-  COUNCIL_TASK_LABEL,
-  NO_ASSIGNEE_LABEL,
-  detailAssigneeChoices,
-  detailDepartmentChoices,
-} from './task-form-options'
-import { monthDay } from './task-text'
+import { detailAssigneeChoices, detailDepartmentChoices } from './task-form-options'
+import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
 import { TaskPickerRow } from './TaskPickerRow'
 import { TaskStatusRow } from './TaskStatusRow'
 import type { TaskProblem, TaskWhere } from './useTaskDetail'
@@ -20,11 +15,6 @@ type Props = {
   problem: TaskProblem | null
   onForbidden: () => void
   send: (where: TaskWhere, path: string, body: unknown) => Promise<boolean>
-}
-
-const assigneeText = (task: TaskDetail) => {
-  if (task.assignee === null) return NO_ASSIGNEE_LABEL
-  return task.assignee.current ? task.assignee.name : `떠난 사람: ${task.assignee.name}`
 }
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
@@ -65,7 +55,7 @@ function AssigneeFact({ view, task, saving, problem, onForbidden, send, can }: R
       <TaskPickerRow
         label="담당자"
         councilId={view.council.id}
-        current={assigneeText(task)}
+        current={assigneeLabel(task.assignee)}
         currentId={task.assignee?.id ?? null}
         canChange={can('task.assign')}
         saving={saving}
@@ -102,7 +92,7 @@ export function TaskFacts(props: Props) {
       </Fact>
       <Fact label="마감">
         <span className="flex flex-wrap items-center gap-2">
-          {task.dueDate === null ? '마감 없음' : monthDay(task.dueDate)}
+          {dueLabel(task.dueDate)}
           {task.overdue && <Badge tone="danger">지남</Badge>}
         </span>
       </Fact>

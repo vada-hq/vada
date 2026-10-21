@@ -1,7 +1,7 @@
 import { TASK_STATUSES, type TaskStatus } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { STATUS_LABELS } from './task-text'
+import { STATUS_LABEL } from './task-view'
 
 type Props = {
   status: TaskStatus
@@ -13,7 +13,7 @@ type Props = {
 
 // 상태 버튼 셋. 끌기 없이 어느 상태로든 바로 바꾼다(T1).
 export function TaskStatusRow({ status, canChange, saving, onChange }: Props) {
-  if (!canChange) return <Badge tone="info">{STATUS_LABELS[status]}</Badge>
+  if (!canChange) return <Badge tone="info">{STATUS_LABEL[status]}</Badge>
   return (
     <div role="group" aria-label="상태" className="flex flex-wrap gap-2">
       {TASK_STATUSES.map(item => (
@@ -27,7 +27,7 @@ export function TaskStatusRow({ status, canChange, saving, onChange }: Props) {
             if (item !== status) onChange(item)
           }}
         >
-          {STATUS_LABELS[item]}
+          {STATUS_LABEL[item]}
         </Button>
       ))}
     </div>

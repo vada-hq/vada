@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import type { TaskChange } from '@vada/contracts'
-import { monthDay, monthDayTime, versionLine } from './task-text'
+import { monthDayTime, versionLine } from './task-text'
+import { monthDay } from './task-view'
 
 const by = { id: 'm1', name: '김회장' }
 const line = (changes: TaskChange[], at = '2026-10-20T05:03:00.000Z') =>

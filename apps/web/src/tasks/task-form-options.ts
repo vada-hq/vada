@@ -1,11 +1,10 @@
 import type { CouncilView, TaskDetail, TeamResponse } from '@vada/contracts'
+import { COUNCIL_TASK_LABEL, NO_ASSIGNEE_LABEL } from './task-view'
 
 // 업무 폼의 선택지. 서버가 준 권한 목록과 내 부서 직급으로만 좁히고, 권한표를 다시 만들지 않는다(DEC-38).
 // 서버가 마지막에 다시 검사하므로 여기서 놓친 경우도 403·409로 막힌다.
 export type Choice = { id: string | null; label: string }
 
-export const COUNCIL_TASK_LABEL = '학생회 업무'
-export const NO_ASSIGNEE_LABEL = '담당자 없음'
 const ME_LABEL = '나'
 
 // 선택칸의 값은 글자라 '없음'(null)을 빈 글로 바꿔 오간다.
