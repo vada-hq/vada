@@ -13,7 +13,7 @@ import { createRateLimiter } from '../http/rate-limit.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { fakeStorage } from '../test-support/storage.js'
-import { isStorageKeyConflict } from './photos.js'
+import { isStorageKeyConflict } from '../storage/uploads.js'
 import { createChatRoutes } from './routes.js'
 
 const now = new Date('2026-10-19T03:00:00Z')

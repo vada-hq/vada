@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { WON_MAX } from './budget.js'
-import { EmptyRequestSchema, text } from './input.js'
+import { PHOTO_KEY_MAX } from './chat.js'
+import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { PURCHASE_ITEMS_MAX, PURCHASE_REASON_MAX, type PurchasePerson } from './purchases.js'
 import { recordIdInput } from './team.js'
@@ -11,6 +12,9 @@ export const EXPENSE_DESCRIPTION_MAX = 200
 export const EXPENSE_REASON_MAX = 1000
 // 지출 목록은 결제일 최근 순 300개다. 넘치면 truncated다.
 export const EXPENSE_LIST_LIMIT = 300
+
+// 지출 하나에 붙일 수 있는 증빙 사진 수. 증빙 하나에 사진 하나다.
+export const EVIDENCE_MAX = 20
 
 export const EXPENSE_METHODS = ['card', 'transfer', 'cash'] as const
 export type ExpenseMethod = (typeof EXPENSE_METHODS)[number]
@@ -64,6 +68,13 @@ export type CreateExpense = z.infer<typeof CreateExpenseSchema>
 export const CancelExpenseSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
 export const ReimburseExpenseSchema = EmptyRequestSchema
 
+// 증빙 붙이기. 키는 올리기 주소(POST uploads)가 준 것이고, 종류를 고르지 않으면 영수증이다.
+export const AttachEvidenceSchema = z.strictObject({
+  key: token(PHOTO_KEY_MAX),
+  type: z.enum(EVIDENCE_TYPES).default('receipt'),
+})
+export type AttachEvidence = z.infer<typeof AttachEvidenceSchema>
+
 // 지출마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
 export const EXPENSE_ACTIONS = ['expense.cancel', 'expense.reimburse'] as const
 export type ExpenseAction = (typeof EXPENSE_ACTIONS)[number]
@@ -89,11 +100,15 @@ export interface ExpensePaymentLine {
   amount: number
   requestId: string
   requestTitle: string
+  // 승인할 때 정한 품목의 예산 항목 이름
+  budgetPurpose: string | null
 }
 
 export interface ExpenseEvidence {
   id: string
   type: EvidenceType
+  // 사진 보기 `GET expenses/:expenseId/files/:fileId`의 번호
+  fileId: string
 }
 
 export interface ExpenseApproval {

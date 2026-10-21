@@ -10,9 +10,12 @@ import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/a
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import type { RateLimiter } from '../http/rate-limit.js'
+import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
+import type { FileStorage } from '../storage/storage.js'
+import { PHOTO_UPLOAD_LIMIT } from '../storage/uploads.js'
+import { addEvidenceRoutes } from './evidence-routes.js'
 import { expenseDetailOf, expenseListOf } from './queries.js'
 import { cancelExpense, createExpense, reimburseExpense } from './service.js'
 
@@ -68,7 +71,13 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
 export function createExpenseRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; writeLimiter?: RateLimiter } = {},
+  options: {
+    clock?: () => Date
+    writeLimiter?: RateLimiter
+    uploadLimiter?: RateLimiter
+    // 없으면 증빙 사진만 막힌다(STORAGE_NOT_CONFIGURED).
+    storage?: FileStorage | undefined
+  } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
@@ -98,5 +107,14 @@ export function createExpenseRoutes(
     return c.json({ expense: detail } satisfies ExpenseResponse)
   })
   addWriteRoutes({ routes, auth, writeLimiter, clock, db })
+  addEvidenceRoutes({
+    routes,
+    auth,
+    db,
+    clock,
+    storage: options.storage,
+    // 대화 사진과 같은 한도다. 계정마다 센다.
+    uploadLimiter: options.uploadLimiter ?? createRateLimiter(PHOTO_UPLOAD_LIMIT),
+  })
   return routes
 }

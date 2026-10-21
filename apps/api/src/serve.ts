@@ -75,19 +75,21 @@ function appOf(env: Env, db: Db) {
   const push = pushOf(env, db, session)
   // 요청 내기와 지출 적기가 한도 하나를 같이 쓰도록 같은 인스턴스를 둘에 준다.
   const writeLimiter = createPurchaseWriteLimiter()
+  // 대화와 증빙이 같은 저장소를 쓴다.
+  const storage = storageOf(env)
   return createApp({
     auth,
     trustedOrigin: env.BETTER_AUTH_URL!,
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
-    chat: createChatRoutes(db, session, { push: push.chatPush, storage: storageOf(env) }),
+    chat: createChatRoutes(db, session, { push: push.chatPush, storage }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session, { push: push.taskPush }),
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
-    expenses: createExpenseRoutes(db, session, { writeLimiter }),
+    expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
   })
 }
 

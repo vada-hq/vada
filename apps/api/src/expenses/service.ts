@@ -1,4 +1,3 @@
-import { eq } from 'drizzle-orm'
 import {
   dateFromKorean,
   koreanDateOf,
@@ -9,12 +8,12 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { assertCurrentExpenseItems } from '../budget/queries.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import { expense } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { assertPayable } from './payable.js'
-import { expenseDetailOf, expenseRowOf } from './queries.js'
+import { lockedExpenseRow } from './lock.js'
+import { expenseDetailOf } from './queries.js'
 import { canCancelExpense, canReimburse } from './status.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 지출 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -87,18 +86,6 @@ export async function createExpense(
     },
   })
   return expenseDetailOf(tx, actor, expenseId)
-}
-
-// 지출 행을 잠그고 잠근 뒤의 값을 돌려준다. 취소와 환급이 겹치면 이 잠금 뒤에 하나만 된다(나중 거래는 앞 거래가 끝난 값을 읽는다).
-// 앞의 읽기는 없는 지출과 다른 학생회의 지출을 잠그기 전에 404로 거르려는 것이다.
-async function lockedExpenseRow(tx: Tx, actor: Actor, expenseId: string) {
-  await expenseRowOf(tx, actor, expenseId)
-  await tx
-    .select({ id: expense.id })
-    .from(expense)
-    .where(eq(expense.id, expenseId))
-    .for('no key update')
-  return expenseRowOf(tx, actor, expenseId)
 }
 
 const factsOf = (row: Awaited<ReturnType<typeof lockedExpenseRow>>) => ({

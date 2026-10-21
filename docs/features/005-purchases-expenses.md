@@ -93,7 +93,7 @@
 - 닿는 곳: contracts `expenses.ts`(새: 상수, `CreateExpenseSchema`, `CancelExpenseSchema`, `ExpenseSummary`, `ExpenseDetail`, `ExpensesResponse`), `errors.ts`. `apps/api/src/expenses/`(새: `routes.ts`, `service.ts`, `queries.ts`), `purchases/queries.ts`(결제함), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `GET expenses`, `GET expenses/:expenseId`, `POST expenses`, `POST expenses/:expenseId/cancel`, `POST expenses/:expenseId/reimburse`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 5. 증빙 사진 올리기와 보기(서버) [ ]
+### 5. 증빙 사진 올리기와 보기(서버) [x]
 - 할 수 있게 되는 것: 재정부가 지출에 사진 증빙을 R2로 올려 붙이고, 모든 운영진이 본다.
 - 수용 기준: 올리기 주소는 재정부만 받는다. 키는 `evidence/{학생회}/{나}/{번호}`이고 10분, JPEG만, 덮어쓸 수 없다. 붙일 때 저장소의 크기가 1바이트~10MB가 아니거나 JPEG가 아니면 400 `UPLOAD_MISMATCH`이고 그 객체를 지운다. 남의 키나 대화 사진 키는 400이고 지우지 않는다. 같은 키를 다시 붙이면 409 `PHOTO_ALREADY_SENT`, 취소한 지출이면 409 `EXPENSE_CANCELLED`, 21번째 사진이면 409 `EVIDENCE_LIMIT`이다. 어느 실패에도 증빙이 생기지 않는다. 성공하면 증빙과 파일이 판 1과 함께 생기고 지출 상세에 종류와 함께 보인다. 보기는 모든 운영진에게 5분 서명 주소로 302이고, 다른 지출의 파일, 대화 사진, 다른 학생회는 404이다. R2 값이 없으면 증빙만 503이고 지출 쓰기와 읽기는 돈다. 대화 사진 보내기의 기존 시험이 그대로 통과한다.
 - 닿는 곳: contracts `expenses.ts`(`EVIDENCE_TYPES`, `AttachEvidenceSchema`, 증빙 키 상한), `chat/photos.ts`(키와 저장소 확인을 공유 도우미로 꺼낸다), `storage/`, `expenses/evidence.ts`(새), `expenses/routes.ts`. 경로는 `POST expenses/:expenseId/uploads`, `POST expenses/:expenseId/evidence`, `GET expenses/:expenseId/files/:fileId`.

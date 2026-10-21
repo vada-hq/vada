@@ -173,8 +173,10 @@ export {
   type TasksResponse,
 } from './tasks.js'
 export {
+  AttachEvidenceSchema,
   CancelExpenseSchema,
   CreateExpenseSchema,
+  EVIDENCE_MAX,
   EVIDENCE_TYPES,
   EXPENSE_ACTIONS,
   EXPENSE_DESCRIPTION_MAX,
@@ -183,6 +185,7 @@ export {
   EXPENSE_REASON_MAX,
   EXPENSE_VENDOR_MAX,
   ReimburseExpenseSchema,
+  type AttachEvidence,
   type CreateExpense,
   type EvidenceType,
   type ExpenseAction,

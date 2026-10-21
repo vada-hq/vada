@@ -12,6 +12,7 @@ import type { PushSender } from '../push/sender.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { seedCouncil } from './council.js'
 import { caller, ORIGIN, testSession } from './http.js'
+import { fakeStorage } from './storage.js'
 
 // 한국 시각 2026-10-25 12:00
 const noon = new Date('2026-10-25T03:00:00Z')
@@ -25,7 +26,14 @@ export const detailOf = async (response: Response) =>
   ((await response.json()) as { request: PurchaseRequestDetail }).request
 
 // 구매 요청 시험의 바탕: 학생회 둘(내 것 's', 다른 것 'o'), 모든 사람의 기기 하나씩, 알림 보내기를 기록하는 가짜 보내기.
-export async function startPurchases(options: { withPush?: boolean; limiter?: RateLimiter } = {}) {
+export async function startPurchases(
+  options: {
+    withPush?: boolean
+    limiter?: RateLimiter
+    uploadLimiter?: RateLimiter
+    noStorage?: boolean
+  } = {},
+) {
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
@@ -55,6 +63,7 @@ export async function startPurchases(options: { withPush?: boolean; limiter?: Ra
     )
   // 서버처럼 요청 내기와 지출 적기가 한도 하나를 같이 쓴다.
   const writeLimiter = options.limiter ?? createPurchaseWriteLimiter()
+  const store = fakeStorage()
   const api = caller(
     createApp({
       auth: { handler: async () => new Response() },
@@ -65,7 +74,12 @@ export async function startPurchases(options: { withPush?: boolean; limiter?: Ra
         writeLimiter,
       }),
       budget: createBudgetRoutes(db, testSession, { clock }),
-      expenses: createExpenseRoutes(db, testSession, { clock, writeLimiter }),
+      expenses: createExpenseRoutes(db, testSession, {
+        clock,
+        writeLimiter,
+        ...(options.noStorage ? {} : { storage: store.storage }),
+        ...(options.uploadLimiter ? { uploadLimiter: options.uploadLimiter } : {}),
+      }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/purchase-requests`
@@ -109,6 +123,7 @@ export async function startPurchases(options: { withPush?: boolean; limiter?: Ra
     other,
     api,
     base,
+    store,
     calls,
     setNow: (value: Date) => {
       now = value

@@ -16,6 +16,7 @@ import {
   budgetItem,
   evidence,
   expense,
+  file,
   lineItem,
   member,
   paymentLine,
@@ -111,9 +112,11 @@ async function linesOf(db: Reader, expenseId: string) {
       amount: paymentLine.amount,
       requestId: request.id,
       requestTitle: request.title,
+      budgetPurpose: budgetItem.purpose,
     })
     .from(paymentLine)
     .innerJoin(lineItem, eq(lineItem.id, paymentLine.lineItemId))
+    .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
     .innerJoin(request, eq(request.id, lineItem.requestId))
     .innerJoin(record, eq(record.id, paymentLine.id))
     .where(eq(paymentLine.expenseId, expenseId))
@@ -123,12 +126,36 @@ async function linesOf(db: Reader, expenseId: string) {
 
 async function evidenceOf(db: Reader, expenseId: string) {
   const rows = await db
-    .select({ id: evidence.id, type: evidence.type })
+    .select({ id: evidence.id, type: evidence.type, fileId: file.id })
     .from(evidence)
     .innerJoin(record, eq(record.id, evidence.id))
+    .innerJoin(file, eq(file.attachedToId, evidence.id))
     .where(eq(evidence.expenseId, expenseId))
     .orderBy(asc(record.createdAt), asc(evidence.id))
-  return rows.map(row => ({ id: row.id, type: row.type as EvidenceType }))
+  return rows.map(row => ({ id: row.id, type: row.type as EvidenceType, fileId: row.fileId }))
+}
+
+// 증빙 사진 보기: 이 학생회의 이 지출에 붙은 증빙의 파일만 연다. 대화 사진, 다른 지출의 파일, 다른 학생회의 것은 없는 것과 같아 404다.
+export async function evidenceFileToView(
+  db: Reader,
+  actor: Actor,
+  expenseId: string,
+  fileId: string,
+) {
+  const [found] = await db
+    .select({ key: file.storageKey, name: file.name, mediaType: file.mediaType })
+    .from(file)
+    .innerJoin(evidence, eq(evidence.id, file.attachedToId))
+    .innerJoin(record, eq(record.id, evidence.id))
+    .where(
+      and(
+        eq(file.id, fileId),
+        eq(evidence.expenseId, expenseId),
+        eq(record.councilId, actor.councilId),
+      ),
+    )
+  if (!found) throw new ApiError('NOT_FOUND')
+  return found
 }
 
 async function approvalsOf(db: Reader, expenseId: string): Promise<ExpenseApproval[]> {

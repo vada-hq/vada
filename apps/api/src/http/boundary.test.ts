@@ -26,17 +26,15 @@ const outsideGuard = new Map([
 ])
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
-test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 인증 전에 거절한다', async () => {
-  const origin = 'http://127.0.0.1:5180'
-  let authCalls = 0
-  const session = async () => {
-    authCalls++
-    return null
-  }
-  // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
+const origin = 'http://127.0.0.1:5180'
+// 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
+const MUTATING_ROUTES = 37
+
+// 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
+function modulesOf(session: () => Promise<null>) {
   const db = {} as Db
   // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
-  const modules = {
+  return {
     councils: createCouncilRoutes(db, session),
     invites: createInviteRoutes(db, session),
     team: createTeamRoutes(db, session),
@@ -52,19 +50,42 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
-  const app = createApp({
-    auth: { handler: async () => new Response() },
-    trustedOrigin: origin,
-    ...modules,
-  })
-  const writes = [
-    ...new Set(
-      app.routes
-        .filter(route => !readOnly.has(route.method))
-        .map(route => `${route.method} ${route.path}`),
-    ),
-  ]
-  const pathOf = (key: string) => key.slice(key.indexOf(' ') + 1)
+}
+const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>
+  createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
+
+// 미들웨어 등록(/*)은 빼고 실제 변경 라우트만 센다.
+const pathOf = (key: string) => key.slice(key.indexOf(' ') + 1)
+const writesOf = (app: ReturnType<typeof appOf>) => [
+  ...new Set(
+    app.routes
+      .filter(route => !readOnly.has(route.method))
+      .map(route => `${route.method} ${route.path}`),
+  ),
+]
+const mutatingOf = (writes: string[]) =>
+  writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
+
+test('경계 검사가 보는 변경 라우트 수가 맞고, 모듈 하나가 빠지면 줄어든다', () => {
+  const modules = modulesOf(async () => null)
+  assert.equal(mutatingOf(writesOf(appOf(modules))).length, MUTATING_ROUTES)
+  for (const name of Object.keys(modules) as (keyof typeof modules)[]) {
+    const { [name]: _omitted, ...rest } = modules
+    assert.ok(
+      mutatingOf(writesOf(appOf(rest))).length < MUTATING_ROUTES,
+      `${name}: 이 모듈이 빠져도 경계 검사가 모릅니다`,
+    )
+  }
+})
+
+test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 인증 전에 거절한다', async () => {
+  let authCalls = 0
+  const session = async () => {
+    authCalls++
+    return null
+  }
+  const app = appOf(modulesOf(session))
+  const writes = writesOf(app)
   for (const key of writes) {
     assert.ok(
       isGuarded(pathOf(key)) || outsideGuard.has(key),
@@ -73,10 +94,8 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   }
   for (const key of outsideGuard.keys())
     assert.ok(writes.includes(key), `${key}: 없는 라우트가 outsideGuard에 남아 있다`)
-  // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
-  const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
-  // 목록이 비어 테스트가 저절로 통과하는 일을 막는다. 변경 라우트를 더하면 이 수도 올린다.
-  assert.ok(mutating.length >= 26, `변경 라우트 ${mutating.length}개`)
+  const mutating = mutatingOf(writes)
+  assert.equal(mutating.length, MUTATING_ROUTES)
   for (const key of mutating) {
     const registered = key.slice(0, key.indexOf(' '))
     // app.all()로 등록한 라우트는 POST로 확인한다.

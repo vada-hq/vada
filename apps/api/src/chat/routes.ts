@@ -22,6 +22,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import type { FileStorage } from '../storage/storage.js'
+import { isStorageKeyConflict, PHOTO_UPLOAD_LIMIT, requireStorage } from '../storage/uploads.js'
 import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
@@ -29,14 +30,7 @@ import { openDirect } from './direct.js'
 import { messagePage, noticesOf } from './messages.js'
 import { markNotice } from './notice.js'
 import type { ChatPush } from './notify.js'
-import {
-  isStorageKeyConflict,
-  issuePhotoUpload,
-  photoToView,
-  PHOTO_UPLOAD_LIMIT,
-  requireStorage,
-  verifyPhotos,
-} from './photos.js'
+import { issuePhotoUpload, photoToView, verifyPhotos } from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
