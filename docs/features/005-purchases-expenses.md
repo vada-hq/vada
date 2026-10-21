@@ -117,7 +117,7 @@
 - 닿는 곳: `apps/web/src/finance/`(지출), `chat/photo-resize.ts`·`photo-upload.ts`(`lib/`로 옮겨 같이 쓴다), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 9. 알림을 누르면 그 요청이 열린다 [ ]
+### 9. 알림을 누르면 그 요청이 열린다 [x]
 - 할 수 있게 되는 것: 새 요청과 결과 알림을 누르면 그 학생회의 재정 화면과 그 요청 상세가 열린다.
 - 수용 기준: 앱이 닫혀 있어 `/purchases/{학생회}/{요청}`로 열리든, 열린 창에 서비스 워커가 그 주소를 알리든 그 요청 상세가 열리고 주소는 맨 앞으로 돌아간다. 같은 요청을 다시 눌러도 다시 열린다. 내 학생회가 아니거나, 다른 사이트이거나, 번호가 uuid가 아니면 아무것도 바뀌지 않는다. 방과 업무 주소의 기존 시험은 그대로 통과한다.
 - 닿는 곳: `workspace/useChatLink.ts`(요청도 읽게 넓힌다), `workspace/pages.ts`, `App.tsx`, `auth/SignedInView.tsx`, `councils/MyCouncils.tsx`, `workspace/CouncilWorkspace.tsx`, `apps/web/src/finance/`. `public/sw.js`는 고치지 않는다.

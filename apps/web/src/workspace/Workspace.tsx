@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
 import CouncilWorkspace from './CouncilWorkspace'
+import type { ChatLink } from './useChatLink'
 import type { Opener, Page, WorkspaceProps } from './pages'
 
-// 업무 알림으로 열었으면 업무 화면이, 방금 만든 학생회면 운영진 화면이, 그 밖에는 대화가 첫 화면이다.
-function startPageOf(fresh: boolean, taskLinked: string | undefined): Page {
-  if (taskLinked) return 'tasks'
+// 업무 알림이면 업무 화면이, 구매 요청 알림이면 재정 화면이, 방금 만든 학생회면 운영진 화면이, 그 밖에는 대화가 첫 화면이다.
+function startPageOf(fresh: boolean, linked: ChatLink | null): Page {
+  if (linked?.taskId) return 'tasks'
+  if (linked?.requestId) return 'finance'
   return fresh ? 'people' : 'chat'
 }
 
@@ -39,9 +41,10 @@ export default function Workspace({
       {...props}
       councils={councils}
       council={council}
-      startPage={startPageOf(fresh === council.id, linked?.taskId)}
+      startPage={startPageOf(fresh === council.id, linked)}
       roomId={linked?.roomId}
       taskId={linked?.taskId}
+      requestId={linked?.requestId}
       returnFocusTo={picked?.councilId === council.id ? picked.from : null}
       onSelect={(next, from) => {
         setFresh(undefined)

@@ -20,6 +20,8 @@ type Props = Omit<WorkspaceProps, 'initialCouncilId' | 'chatLink'> & {
   roomId: string | undefined
   // 알림으로 열 업무. 업무 화면이 이 업무의 상세를 열고 시작한다.
   taskId?: string | undefined
+  // 알림으로 열 구매 요청. 재정 화면이 이 요청의 상세를 열고 시작한다.
+  requestId?: string | undefined
 }
 
 // 알림으로 연 방이나 업무는 한 번만 쓴다. 다른 화면으로 가면 버리고, 돌아오면 목록이 열린다.
@@ -64,6 +66,7 @@ export default function CouncilWorkspace({
   startPage,
   roomId: linkedRoom,
   taskId: linkedTask,
+  requestId: linkedRequest,
   user,
   logoutBusy,
   onLogout,
@@ -74,6 +77,7 @@ export default function CouncilWorkspace({
   const nav = useWorkspaceNav(returnFocusTo, startPage)
   const roomId = useOnceLinked(linkedRoom, nav.page, 'chat')
   const taskId = useOnceLinked(linkedTask, nav.page, 'tasks')
+  const requestId = useOnceLinked(linkedRequest, nav.page, 'finance')
   const { lists, counts } = useWorkspaceLists(council.id, data)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
@@ -95,7 +99,11 @@ export default function CouncilWorkspace({
   )
   return (
     <WorkspaceFrame sidebar={sidebar} navOpen={nav.navOpen} onNavOpenChange={nav.setNavOpen}>
-      <CouncilMain council={council} nav={nav} content={{ data, ...lists, roomId, taskId }} />
+      <CouncilMain
+        council={council}
+        nav={nav}
+        content={{ data, ...lists, roomId, taskId, requestId }}
+      />
     </WorkspaceFrame>
   )
 }

@@ -23,6 +23,8 @@ const overflow = (view: PurchaseView) =>
 
 type Props = {
   view: CouncilView
+  // 알림으로 연 요청. 있으면 그 요청의 상세를 열고 시작한다.
+  initialRequestId?: string | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 결재 대기 수를 다시 읽는다).
@@ -164,7 +166,7 @@ function RequestDialogs({
 export default function FinancePage(props: Props) {
   const [filter, setFilter] = useState<PurchaseView>('mine')
   const [tab, setTab] = useState<FinanceTab>('requests')
-  const dialogs = useRecordDialogs()
+  const dialogs = useRecordDialogs(props.initialRequestId)
   const councilId = props.view.council.id
   const list = usePurchases(councilId, filter, props.onForbidden)
   const canRequest = props.view.permissions.includes('purchase.request')

@@ -6,7 +6,8 @@ import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
-import { TASK_LOST } from './lib/messages'
+import { purchaseDetail } from './test-support/purchase-fixtures'
+import { PURCHASE_LOST, TASK_LOST } from './lib/messages'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -204,6 +205,113 @@ test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업�
   expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
   fireEvent.click(within(aside).getByRole('button', { name: /^업무/ }))
   expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+const R1 = '7c9e6679-7425-40de-944b-e07fc1f90ae7'
+const requestCalls = () => api.calls.filter(call => call.path.includes('/purchase-requests/'))
+function requestApi(id = 'c1', requestId = R1) {
+  api.on('GET', `/api/organizations/${id}/purchase-requests?view=mine`, () =>
+    json({ requests: [], truncated: false }),
+  )
+  api.on('GET', `/api/organizations/${id}/purchase-requests/${requestId}`, () =>
+    json({ request: purchaseDetail(requestId, { title: '테이프 구매' }) }),
+  )
+}
+const requestDialog = () =>
+  waitFor(() => expect(within(screen.getByRole('dialog')).getByText('테이프 구매')).toBeTruthy(), {
+    timeout: 5000,
+  })
+const financeHeading = () => screen.findByRole('heading', { level: 1, name: '재정', hidden: true })
+
+test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정 화면과 그 요청 상세가 열린다', async () => {
+  requestApi('c2')
+  window.history.replaceState(null, '', `/purchases/c2/${R1}`)
+  render(<App />)
+  await requestDialog()
+  expect(await financeHeading()).toBeTruthy()
+  expect(
+    api.calls.some(call => call.path === `/api/organizations/c2/purchase-requests/${R1}`),
+  ).toBe(true)
+  expect(requestCalls().some(call => call.path.startsWith('/api/organizations/c1/'))).toBe(false)
+  expect(window.location.pathname).toBe('/')
+})
+
+test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던 곳에서 그 요청 상세로 옮겨 간다', async () => {
+  requestApi()
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
+  await requestDialog()
+  expect(await financeHeading()).toBeTruthy()
+})
+
+test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
+  requestApi()
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  const press = () =>
+    act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
+  press()
+  await requestDialog()
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  press()
+  await requestDialog()
+})
+
+test.each([
+  ['내 학생회가 아닌', `/purchases/other/${R1}`],
+  ['다른 사이트의', `https://evil.example/purchases/c1/${R1}`],
+  ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
+])('%s 요청 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  const before = api.calls.length
+  act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(api.calls.length).toBe(before)
+})
+
+test.each([
+  ['내 학생회가 아닌', `/purchases/other/${R1}`],
+  ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
+])('%s 요청 주소로 열면 첫 학생회의 대화가 열리고 요청은 읽지 않는다', async (_name, path) => {
+  window.history.replaceState(null, '', path)
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(requestCalls()).toEqual([])
+})
+
+test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 보이고 상세는 닫힌다', async () => {
+  api.on('GET', `/api/organizations/c1/purchase-requests?view=mine`, () =>
+    json({ requests: [], truncated: false }),
+  )
+  api.on('GET', `/api/organizations/c1/purchase-requests/${R1}`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
+  window.history.replaceState(null, '', `/purchases/c1/${R1}`)
+  render(<App />)
+  expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재정으로 돌아오면 상세가 닫혀 있다', async () => {
+  requestApi()
+  window.history.replaceState(null, '', `/purchases/c1/${R1}`)
+  render(<App />)
+  await requestDialog()
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.click(within(aside).getByRole('button', { name: '사람' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
+  fireEvent.click(within(aside).getByRole('button', { name: /^재정/ }))
+  expect(await financeHeading()).toBeTruthy()
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(screen.queryByRole('dialog')).toBeNull()
 })

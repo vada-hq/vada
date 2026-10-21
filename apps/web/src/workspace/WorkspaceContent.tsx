@@ -24,6 +24,39 @@ type Props = {
   page: Page
   roomId?: string | undefined
   taskId?: string | undefined
+  requestId?: string | undefined
+}
+
+// 알림으로 열 업무나 요청을 받는 목록 화면 둘(업무, 재정).
+function RecordsPage({
+  data,
+  tasks,
+  pending,
+  page,
+  taskId,
+  requestId,
+  view,
+}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId' | 'requestId'> & {
+  page: 'tasks' | 'finance'
+  view: CouncilView
+}) {
+  if (page === 'tasks')
+    return (
+      <TasksPage
+        view={view}
+        initialTaskId={taskId}
+        onForbidden={data.reload}
+        onChanged={() => void tasks.reload()}
+      />
+    )
+  return (
+    <FinancePage
+      view={view}
+      initialRequestId={requestId}
+      onForbidden={data.reload}
+      onChanged={() => void pending.reload()}
+    />
+  )
 }
 
 function PageOf({
@@ -34,6 +67,7 @@ function PageOf({
   page,
   roomId,
   taskId,
+  requestId,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
@@ -48,19 +82,8 @@ function PageOf({
         onForbidden={data.reload}
       />
     )
-  if (page === 'tasks')
-    return (
-      <TasksPage
-        view={view}
-        initialTaskId={taskId}
-        onForbidden={data.reload}
-        onChanged={() => void tasks.reload()}
-      />
-    )
-  if (page === 'finance')
-    return (
-      <FinancePage view={view} onForbidden={data.reload} onChanged={() => void pending.reload()} />
-    )
+  if (page === 'tasks' || page === 'finance')
+    return <RecordsPage {...{ data, tasks, pending, page, taskId, requestId, view }} />
   if (page === 'people')
     return (
       <People
@@ -76,7 +99,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, tasks, pending, page, roomId, taskId }: Props) {
+function Body({ data, rooms, tasks, pending, page, roomId, taskId, requestId }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -103,6 +126,7 @@ function Body({ data, rooms, tasks, pending, page, roomId, taskId }: Props) {
       page={page}
       roomId={roomId}
       taskId={taskId}
+      requestId={requestId}
       view={state.view}
       reading={state.reading}
     />
