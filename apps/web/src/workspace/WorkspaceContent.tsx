@@ -1,5 +1,7 @@
 import type { CouncilView } from '@vada/contracts'
 import ChatPage from '../chat/ChatPage'
+import FinancePage from '../finance/FinancePage'
+import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
 import TasksPage from '../tasks/TasksPage'
@@ -17,6 +19,8 @@ type Props = {
   data: CouncilData
   rooms: RoomList
   tasks: TaskList
+  // 결재 대기 요청(옆 메뉴의 수). 재정 화면이 목록을 바꾸면 다시 읽는다.
+  pending: PurchaseList
   page: Page
   roomId?: string | undefined
   taskId?: string | undefined
@@ -26,6 +30,7 @@ function PageOf({
   data,
   rooms,
   tasks,
+  pending,
   page,
   roomId,
   taskId,
@@ -52,6 +57,10 @@ function PageOf({
         onChanged={() => void tasks.reload()}
       />
     )
+  if (page === 'finance')
+    return (
+      <FinancePage view={view} onForbidden={data.reload} onChanged={() => void pending.reload()} />
+    )
   if (page === 'people')
     return (
       <People
@@ -67,7 +76,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, tasks, page, roomId, taskId }: Props) {
+function Body({ data, rooms, tasks, pending, page, roomId, taskId }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -90,6 +99,7 @@ function Body({ data, rooms, tasks, page, roomId, taskId }: Props) {
       data={data}
       rooms={rooms}
       tasks={tasks}
+      pending={pending}
       page={page}
       roomId={roomId}
       taskId={taskId}

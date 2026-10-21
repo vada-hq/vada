@@ -74,15 +74,14 @@ export default function CouncilWorkspace({
   const nav = useWorkspaceNav(returnFocusTo, startPage)
   const roomId = useOnceLinked(linkedRoom, nav.page, 'chat')
   const taskId = useOnceLinked(linkedTask, nav.page, 'tasks')
-  const { rooms, unread, tasks, taskCount } = useWorkspaceLists(council.id, data)
+  const { lists, counts } = useWorkspaceLists(council.id, data)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
       councils={councils}
       view={data.view}
       page={nav.page}
-      unread={unread}
-      taskCount={taskCount}
+      {...counts}
       user={user}
       logoutBusy={logoutBusy}
       onLogout={onLogout}
@@ -96,7 +95,7 @@ export default function CouncilWorkspace({
   )
   return (
     <WorkspaceFrame sidebar={sidebar} navOpen={nav.navOpen} onNavOpenChange={nav.setNavOpen}>
-      <CouncilMain council={council} nav={nav} content={{ data, rooms, tasks, roomId, taskId }} />
+      <CouncilMain council={council} nav={nav} content={{ data, ...lists, roomId, taskId }} />
     </WorkspaceFrame>
   )
 }

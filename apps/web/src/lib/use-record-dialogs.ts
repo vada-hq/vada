@@ -1,8 +1,8 @@
 import { useState } from 'react'
 
-// 업무 화면의 대화상자 상태: 열린 업무, 만들기 열림, 잃은 이유.
-// 잃은 이유(업무가 사라졌거나 권한을 잃음)는 다음에 무엇을 열면 지운다.
-export function useTaskDialogState(initialId?: string) {
+// 목록 화면(업무, 구매 요청)의 대화상자 상태: 열린 기록, 만들기 열림, 잃은 이유.
+// 잃은 이유(기록이 사라졌거나 권한을 잃음)는 다음에 무엇을 열면 지운다.
+export function useRecordDialogs(initialId?: string) {
   const [openId, setOpenId] = useState<string | null>(initialId ?? null)
   const [creating, setCreating] = useState(false)
   const [lost, setLost] = useState<string | null>(null)
@@ -10,7 +10,7 @@ export function useTaskDialogState(initialId?: string) {
     openId,
     creating,
     lost,
-    openTask: (id: string) => {
+    openRecord: (id: string) => {
       setLost(null)
       setOpenId(id)
     },

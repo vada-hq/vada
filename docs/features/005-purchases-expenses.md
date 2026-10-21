@@ -99,7 +99,7 @@
 - 닿는 곳: contracts `expenses.ts`(`EVIDENCE_TYPES`, `AttachEvidenceSchema`, 증빙 키 상한), `chat/photos.ts`(키와 저장소 확인을 공유 도우미로 꺼낸다), `storage/`, `expenses/evidence.ts`(새), `expenses/routes.ts`. 경로는 `POST expenses/:expenseId/uploads`, `POST expenses/:expenseId/evidence`, `GET expenses/:expenseId/files/:fileId`.
 - 검토: 깊게(파일 올리기). 마이그레이션: 없음.
 
-### 6. 재정 메뉴와 구매 요청 화면 [ ]
+### 6. 재정 메뉴와 구매 요청 화면 [x]
 - 할 수 있게 되는 것: 운영진이 휴대폰에서 구매 요청을 내고, 목록과 상세를 보고, 자기 요청을 취소한다.
 - 수용 기준: 옆 메뉴 '업무' 아래에 '재정'이 있고 탭 셋이 있다(지출과 예산은 7·8 전까지 숨긴다). 재정부에게만 결재 대기 수 배지(0이면 없음, 넘치면 '+')가 보인다. 거르기 셋과 카드(제목 `wrap-anywhere`, 요청한 사람, 필요한 때, 상태 배지, 품목 수)가 있다. 내기 대화상자는 제목, 품목 줄 더하기와 빼기(이름, 수량 기본 1, 링크, 옵션), 필요한 때, 내용이고, [내기]는 계약 `safeParse`로 켜며 두 번 누름을 막는다. 상세는 제목, 상태, 요청한 사람, 필요한 때, 내용, 품목(링크는 새 창, 금액, 예산 항목, 상태, 결제함), 결재 이력("이름 · 10월 21일 14:03 · 반려: 사유"), 이력 차례다. `actions`가 있을 때만 [취소]가 보이고 확인을 거친다. 열려 있는 동안 지워지거나(404) 권한을 잃으면(403) 대화상자를 닫고 이유를 보인다. 409와 429 문구가 동작 옆에 보인다. 화면이 다시 보일 때, 내 변경 뒤, 알림이 오면 다시 읽는다. 부품 확인 화면에 요청 카드와 상태 배지가 있다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/finance/`(새), `workspace/`(`pages.ts`, `SidebarNav.tsx`, `WorkspaceContent.tsx`, `CouncilWorkspace.tsx`), `lib/messages.ts`, `ui-gallery/`.

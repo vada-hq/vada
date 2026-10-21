@@ -1,6 +1,7 @@
 import type { Ref } from 'react'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
 import CouncilMenu from './CouncilMenu'
+import type { PendingCount } from '../finance/purchase-view'
 import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 import SidebarFooter from './SidebarFooter'
@@ -13,6 +14,7 @@ type Props = {
   page: Page
   unread: number
   taskCount: TaskCount | null
+  pendingCount: PendingCount | null
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
   // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
@@ -31,6 +33,7 @@ export default function WorkspaceSidebar({
   page,
   unread,
   taskCount,
+  pendingCount,
   onSelect,
   onPage,
   menuRef,
@@ -47,7 +50,13 @@ export default function WorkspaceSidebar({
         onPage={onPage}
         menuRef={menuRef}
       />
-      <SidebarNav page={page} unread={unread} taskCount={taskCount} onPage={onPage} />
+      <SidebarNav
+        page={page}
+        unread={unread}
+        taskCount={taskCount}
+        pendingCount={pendingCount}
+        onPage={onPage}
+      />
       <SidebarFooter view={view} user={user} logoutBusy={logoutBusy} onLogout={onLogout} />
     </div>
   )

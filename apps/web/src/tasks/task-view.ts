@@ -1,3 +1,4 @@
+import { monthDay } from '@/lib/korean-date-text'
 import type { TaskPerson, TaskStatus, TaskSummary } from '@vada/contracts'
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -9,12 +10,6 @@ export const STATUS_LABEL: Record<TaskStatus, string> = {
 // 부서가 없는 업무의 이름(묶음 이름, 고르는 칸, 이력). 묶음에서는 맨 뒤에 둔다.
 export const COUNCIL_TASK_LABEL = '학생회 업무'
 export const NO_ASSIGNEE_LABEL = '담당자 없음'
-
-// "2026-10-25" → "10월 25일"
-export function monthDay(dueDate: string) {
-  const [, month, day] = dueDate.split('-')
-  return `${Number(month)}월 ${Number(day)}일`
-}
 
 // 마감이 없으면 "마감 없음".
 export const dueLabel = (dueDate: string | null) => (dueDate ? monthDay(dueDate) : '마감 없음')

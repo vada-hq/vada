@@ -113,3 +113,14 @@ export const TASK_STATUS_FAILED = '상태를 바꾸지 못했어요. 다시 시�
 // 알림이 꺼져 있다는 띠의 문구. 화면이 무엇을 놓칠 수 있는지에 맞춘다.
 export const PUSH_OFF_CHAT = '휴대폰 알림이 꺼져 있어요. 새 글과 부름을 놓칠 수 있어요.'
 export const TASK_PUSH_OFF = '휴대폰 알림이 꺼져 있어요. 맡은 업무를 놓칠 수 있어요.'
+
+// 구매 요청 목록, 내기, 상세, 취소. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const PURCHASES_LOAD_FAILED = '구매 요청을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const PURCHASE_LOAD_FAILED = '이 요청을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const PURCHASE_LOST = '이 요청을 볼 수 없어요. 다른 학생회의 요청이거나 없어졌을 수 있어요.'
+export const PURCHASE_ERRORS: Record<string, string> = {
+  REQUEST_CLOSED: '이미 결재가 시작됐거나 취소된 요청이라 취소할 수 없어요. 새로 불러왔어요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const PURCHASE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'

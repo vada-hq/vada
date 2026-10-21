@@ -1,16 +1,10 @@
-import { KOREAN_DATE_LENGTH, koreanOf, type TaskChange, type TaskVersion } from '@vada/contracts'
-import { COUNCIL_TASK_LABEL, monthDay, STATUS_LABEL } from './task-view'
+import type { TaskChange, TaskVersion } from '@vada/contracts'
+import { monthDay, monthDayTime } from '@/lib/korean-date-text'
+import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
 const NONE = '없음'
 const UNKNOWN_PERSON = '알 수 없는 사람'
 const REMOVED_DEPARTMENT = '없앤 부서'
-const TIME_FROM = KOREAN_DATE_LENGTH + 1
-
-// ISO 시각 → '10월 20일 14:03'(한국 시각)
-export function monthDayTime(iso: string) {
-  const korean = koreanOf(new Date(iso))
-  return `${monthDay(korean.slice(0, KOREAN_DATE_LENGTH))} ${korean.slice(TIME_FROM)}`
-}
 
 const dueText = (value: string | null) => (value === null ? NONE : monthDay(value))
 type Side = { id: string; name: string | null } | null

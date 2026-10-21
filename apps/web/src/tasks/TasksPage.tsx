@@ -14,7 +14,7 @@ import { TASKS_LOAD_FAILED } from '@/lib/messages'
 import TaskCard from './TaskCard'
 import { TaskDialogs } from './TaskDialogs'
 import { TaskTabs } from './TaskTabs'
-import { useTaskDialogState } from './useTaskDialogState'
+import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import TaskGroups from './TaskGroups'
 import { useStatusChange } from './useStatusChange'
 import { useTasks, type TaskList } from './useTasks'
@@ -117,7 +117,7 @@ function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: () => vo
 export default function TasksPage(props: Props) {
   const [view, setView] = useState<TaskView>('mine')
   const [filter, setFilter] = useState<TaskFilter>('open')
-  const dialogs = useTaskDialogState(props.initialTaskId)
+  const dialogs = useRecordDialogs(props.initialTaskId)
   const councilId = props.view.council.id
   const list = useTasks(councilId, { view, filter }, props.onForbidden)
   const changed = () => {
@@ -148,7 +148,7 @@ export default function TasksPage(props: Props) {
           view={view}
           filter={filter}
           change={change}
-          onOpenTask={dialogs.openTask}
+          onOpenTask={dialogs.openRecord}
         />
       </div>
     </PageColumn>
