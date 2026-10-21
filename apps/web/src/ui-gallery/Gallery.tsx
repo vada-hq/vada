@@ -8,7 +8,7 @@ import {
 } from './AppSections'
 import { ButtonsSection, CardsSection, ChipsSection, InputsSection } from './FormSections'
 import { ActionMenuSection, EmptyAvatarSection, MenuTabsSection } from './MenuSections'
-import { FinanceSection } from './FinanceSections'
+import { DecisionSection, FinanceSection } from './FinanceSections'
 import { TaskSection } from './TaskSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 
@@ -30,6 +30,7 @@ export default function Gallery() {
       <PushSection />
       <TaskSection />
       <FinanceSection />
+      <DecisionSection />
       <AuthSection />
       <KakaoSection />
       <LongTextSection />

@@ -45,12 +45,12 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
 })
 
-test('탭은 구매 요청 하나이고 지출과 예산 탭은 숨긴다', async () => {
+test('탭은 구매 요청과 예산이고 지출 탭은 숨긴다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show()
   await screen.findByText('내가 낸 구매 요청이 없어요.')
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['구매 요청'])
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['구매 요청', '예산'])
 })
 
 test('거르기 셋이 있고 바꾸면 그 보기를 읽는다', async () => {

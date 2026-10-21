@@ -10,7 +10,8 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import { FinanceTabs } from './FinanceTabs'
+import { BudgetTab } from './BudgetTab'
+import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { RequestCreateDialog } from './RequestCreateDialog'
@@ -65,6 +66,41 @@ function Body({
   )
 }
 
+function FinanceTabPanel({
+  tab,
+  filter,
+  onFilter,
+  list,
+  view,
+  onOpen,
+  onForbidden,
+}: {
+  tab: FinanceTab
+  filter: PurchaseView
+  onFilter: (filter: PurchaseView) => void
+  list: PurchaseList
+  view: CouncilView
+  onOpen: (requestId: string) => void
+  onForbidden: () => void
+}) {
+  return (
+    <div role="tabpanel" className="flex flex-col gap-3">
+      {tab === 'requests' ? (
+        <>
+          <RequestFilter view={filter} onView={onFilter} />
+          <Body list={list} view={filter} onOpen={onOpen} />
+        </>
+      ) : (
+        <BudgetTab
+          councilId={view.council.id}
+          canManage={view.permissions.includes('finance.manage')}
+          onForbidden={onForbidden}
+        />
+      )}
+    </div>
+  )
+}
+
 // 내기 버튼과, 열려 있던 요청을 잃었을 때의 이유(좁은 화면에서도 버튼 바로 옆에 보인다).
 function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: (() => void) | null }) {
   return (
@@ -75,47 +111,86 @@ function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: (() => v
   )
 }
 
-// 옆 메뉴 '재정': 구매 요청 탭과 거르기 셋(내 요청, 결재 대기, 전체). 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
+type Dialogs = ReturnType<typeof useRecordDialogs>
+
+// 상세와 내기 대화상자. 바뀌면 목록과 수를 다시 읽고, 대상을 잃으면 이유를 보인다.
+function RequestDialogs({
+  councilId,
+  dialogs,
+  onChanged,
+  onForbidden,
+  onOpenBudget,
+}: {
+  councilId: string
+  dialogs: Dialogs
+  onChanged: () => void
+  onForbidden: () => void
+  onOpenBudget: () => void
+}) {
+  const shared = {
+    councilId,
+    onForbidden,
+    onLost: (message: string) => {
+      dialogs.lose(message)
+      onChanged()
+    },
+  }
+  return (
+    <>
+      <RequestDetailDialog
+        {...shared}
+        requestId={dialogs.openId}
+        onClose={dialogs.closeDetail}
+        onChanged={onChanged}
+        onOpenBudget={() => {
+          dialogs.closeDetail()
+          onOpenBudget()
+        }}
+      />
+      <RequestCreateDialog
+        {...shared}
+        open={dialogs.creating}
+        onClose={dialogs.closeCreate}
+        onCreated={() => {
+          onChanged()
+          dialogs.closeCreate()
+        }}
+      />
+    </>
+  )
+}
+
+// 옆 메뉴 '재정': 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)과 예산 탭. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
 export default function FinancePage(props: Props) {
   const [filter, setFilter] = useState<PurchaseView>('mine')
+  const [tab, setTab] = useState<FinanceTab>('requests')
   const dialogs = useRecordDialogs()
   const councilId = props.view.council.id
   const list = usePurchases(councilId, filter, props.onForbidden)
-  const changed = () => {
-    void list.reload()
-    props.onChanged()
-  }
-  const lose = (message: string) => {
-    dialogs.lose(message)
-    changed()
-  }
   const canRequest = props.view.permissions.includes('purchase.request')
   return (
     <PageColumn>
       <CreateRow lost={dialogs.lost} onCreate={canRequest ? dialogs.startCreate : null} />
-      <RequestDetailDialog
+      <RequestDialogs
         councilId={councilId}
-        requestId={dialogs.openId}
-        onClose={dialogs.closeDetail}
-        onChanged={changed}
-        onLost={lose}
-        onForbidden={props.onForbidden}
-      />
-      <RequestCreateDialog
-        councilId={councilId}
-        open={dialogs.creating}
-        onClose={dialogs.closeCreate}
-        onCreated={() => {
-          changed()
-          dialogs.closeCreate()
+        dialogs={dialogs}
+        onChanged={() => {
+          void list.reload()
+          props.onChanged()
         }}
-        onLost={lose}
+        onForbidden={props.onForbidden}
+        onOpenBudget={() => setTab('budget')}
+      />
+      <FinanceTabs tab={tab} onTab={setTab} />
+      <FinanceTabPanel
+        tab={tab}
+        filter={filter}
+        onFilter={setFilter}
+        list={list}
+        view={props.view}
+        onOpen={dialogs.openRecord}
         onForbidden={props.onForbidden}
       />
-      <FinanceTabs view={filter} onView={setFilter} />
-      <div role="tabpanel" className="flex flex-col gap-3">
-        <Body list={list} view={filter} onOpen={dialogs.openRecord} />
-      </div>
     </PageColumn>
   )
 }

@@ -5,6 +5,7 @@ import { useLatest } from '@/lib/use-latest'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
 import { purchaseCancelPath, purchasePath } from './finance-api'
 import { problemText, reportLost, type PurchaseDialogHandlers } from './purchase-requests'
+import { useDecide } from './useDecide'
 
 // 취소의 결과. 이미 닫힌 요청(409 REQUEST_CLOSED)이면 요청을 다시 읽어 보이고 확인을 닫는다.
 type CancelOutcome = 'done' | 'closed' | 'failed'
@@ -46,7 +47,7 @@ function useCancel(
   return { saving, problem, cancel, clearProblem: () => setProblem(null) }
 }
 
-// 요청 하나를 읽고 취소한다. 열려 있는 동안 화면이 보이면 15초마다, 다시 보일 때, 알림이 올 때 다시 읽는다.
+// 요청 하나를 읽고 취소하거나 결재한다. 열려 있는 동안 화면이 보이면 15초마다, 다시 보일 때, 알림이 올 때 다시 읽는다.
 // 읽다 실패해도 보이던 요청은 그대로 둔다. 취소하는 요청은 한 번에 하나만 나간다.
 export function useRequestDetail(
   councilId: string,
@@ -82,11 +83,15 @@ export function useRequestDetail(
   useVisiblePoll(() => void load(), LIST_POLL_MS)
 
   const cancel = useCancel(councilId, requestId, latest, load)
+  const decide = useDecide(councilId, requestId, latest, load)
 
   return {
     request,
     loadFailed,
     ...cancel,
+    // 취소와 결재는 서로 막는다(대화상자는 보내는 동안 닫히지 않는다).
+    saving: cancel.saving || decide.saving,
+    decide,
     retry: () => void load(),
   }
 }

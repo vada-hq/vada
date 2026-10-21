@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { PURCHASE_LOAD_FAILED } from '@/lib/messages'
 import { neededByLabel } from './purchase-view'
 import type { PurchaseDialogHandlers } from './purchase-requests'
+import { DecisionPanel } from './DecisionPanel'
 import { RequestItems } from './RequestItems'
 import { RequestDecisions, RequestHistory } from './RequestRecords'
 import { StatusBadge } from './StatusBadge'
@@ -17,6 +18,8 @@ type Props = PurchaseDialogHandlers & {
   // 열린 요청의 번호. null이면 닫혀 있다. 카드를 눌러 열고 닫는 일은 부모가 한다.
   requestId: string | null
   onClose: () => void
+  // 결재할 기간이나 항목이 없을 때 예산 탭으로 간다(부모가 대화상자를 닫는다).
+  onOpenBudget: () => void
 }
 
 // 구매 요청 상세 대화상자. 열려 있을 때만 읽고, 요청이 바뀌면 처음부터 다시 읽는다.
@@ -29,6 +32,7 @@ function OpenRequestDialog({
   councilId,
   requestId,
   onClose,
+  onOpenBudget,
   ...handlers
 }: Props & { requestId: string }) {
   const detail = useRequestDetail(councilId, requestId, handlers)
@@ -46,7 +50,13 @@ function OpenRequestDialog({
           </DialogTitle>
         </DialogHeader>
         {detail.request ? (
-          <Loaded request={detail.request} detail={detail} />
+          <Loaded
+            request={detail.request}
+            detail={detail}
+            councilId={councilId}
+            onForbidden={handlers.onForbidden}
+            onOpenBudget={onOpenBudget}
+          />
         ) : detail.loadFailed ? (
           <div className="flex flex-col items-start gap-3">
             <StateMessage kind="error">{PURCHASE_LOAD_FAILED}</StateMessage>
@@ -111,14 +121,29 @@ function CancelButton({ detail }: { detail: ReturnType<typeof useRequestDetail> 
 function Loaded({
   request,
   detail,
+  councilId,
+  onForbidden,
+  onOpenBudget,
 }: {
   request: PurchaseRequestDetail
   detail: ReturnType<typeof useRequestDetail>
+  councilId: string
+  onForbidden: () => void
+  onOpenBudget: () => void
 }) {
   return (
     <div className="flex flex-col gap-6">
       <Facts request={request} />
       <RequestItems items={request.items} />
+      {request.actions.includes('purchase.approve') && (
+        <DecisionPanel
+          councilId={councilId}
+          items={request.items}
+          decide={detail.decide}
+          onForbidden={onForbidden}
+          onOpenBudget={onOpenBudget}
+        />
+      )}
       <RequestDecisions decisions={request.decisions} items={request.items} />
       {request.actions.includes('purchase.cancel') && <CancelButton detail={detail} />}
       {detail.problem && !request.actions.includes('purchase.cancel') && (

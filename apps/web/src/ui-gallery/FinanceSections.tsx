@@ -1,5 +1,11 @@
-import { PURCHASE_STATUSES, type PurchaseRequestSummary } from '@vada/contracts'
+import {
+  PURCHASE_STATUSES,
+  type PurchaseLineItem,
+  type PurchaseRequestSummary,
+} from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
+import { emptyRow } from '@/finance/decision-form'
+import { DecisionRow } from '@/finance/DecisionRow'
 import { pendingCountOf } from '@/finance/purchase-view'
 import RequestCard from '@/finance/RequestCard'
 import { StatusBadge } from '@/finance/StatusBadge'
@@ -18,6 +24,22 @@ const request = (id: string, extra: Partial<PurchaseRequestSummary>): PurchaseRe
 })
 
 const noop = () => {}
+
+const lineItem = (name: string): PurchaseLineItem => ({
+  id: name,
+  name,
+  quantity: 3,
+  link: null,
+  options: null,
+  amount: null,
+  budgetItem: null,
+  status: 'pending',
+  paid: false,
+})
+const budgetItems = [
+  { id: 'b1', purpose: '행사 홍보', amount: 300000 },
+  { id: 'b2', purpose: longName, amount: 50000 },
+]
 
 export function FinanceSection() {
   const few = pendingCountOf([request('a', {}), request('b', {})], false)
@@ -45,6 +67,35 @@ export function FinanceSection() {
           })}
           onOpen={noop}
         />
+      </div>
+    </Section>
+  )
+}
+
+export function DecisionSection() {
+  const filled = { ...emptyRow(), amount: '15000' }
+  const rejecting = { ...emptyRow(), rejecting: true, reason: '이미 있어요' }
+  const rows = [
+    { item: lineItem('A2 포스터'), values: filled, chosen: 'b1', canApprove: true },
+    { item: lineItem('테이프'), values: emptyRow(), chosen: '', canApprove: false },
+    { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: 'b2', canApprove: true },
+    { item: lineItem(longName), values: filled, chosen: 'b2', canApprove: true },
+  ]
+  return (
+    <Section title="결재 줄">
+      <div className="flex w-80 flex-col gap-2">
+        {rows.map(row => (
+          <DecisionRow
+            key={row.item.id}
+            {...row}
+            budgetItems={budgetItems}
+            disabled={false}
+            canReject
+            onChange={noop}
+            onApprove={noop}
+            onReject={noop}
+          />
+        ))}
       </div>
     </Section>
   )

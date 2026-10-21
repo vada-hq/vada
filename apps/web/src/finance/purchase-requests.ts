@@ -11,8 +11,8 @@ export type PurchaseDialogHandlers = {
   onForbidden: () => void
 }
 
-function lostMessage(status: number) {
-  if (status === statusOf('NOT_FOUND')) return PURCHASE_LOST
+function lostMessage(status: number, notFound: string) {
+  if (status === statusOf('NOT_FOUND')) return notFound
   if (status === statusOf('FORBIDDEN')) return PERMISSION_CHANGED
   return null
 }
@@ -23,8 +23,9 @@ export const problemText = (code: string) => PURCHASE_ERRORS[code] ?? PURCHASE_F
 export function reportLost(
   handlers: Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'>,
   status: number,
+  notFound = PURCHASE_LOST,
 ) {
-  const message = lostMessage(status)
+  const message = lostMessage(status, notFound)
   if (message === null) return false
   if (status === statusOf('FORBIDDEN')) handlers.onForbidden()
   handlers.onLost(message)
