@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import {
   chatRoomTag,
   chatRoomUrl,
@@ -10,7 +10,6 @@ import {
   chatRoom,
   department,
   member,
-  memberLogin,
   message,
   notification,
   record,
@@ -18,6 +17,7 @@ import {
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { sqlState } from '../http/on-error.js'
+import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { currentMembersAmong } from './current-members.js'
@@ -81,15 +81,6 @@ async function calledOf(db: Db, messageId: string) {
   return new Set(rows.map(row => row.recipientId))
 }
 
-// 사람 번호 → 로그인 계정. 한 사람이 계정을 여럿 가질 수 있다.
-async function accountsOf(db: Db, memberIds: string[]) {
-  if (!memberIds.length) return []
-  return db
-    .select({ memberId: memberLogin.memberId, userId: memberLogin.userId })
-    .from(memberLogin)
-    .where(inArray(memberLogin.memberId, memberIds))
-}
-
 // 메시지를 보낸 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
 // 받는 사람: 그 방의 지금 참여자 - 보낸 사람 - 10초 안에 그 방을 본 사람. 부름 받은 사람은 부름 문구로 한 번만 받는다.
 // 재시작 중이면 그 알림은 사라진다(outbox는 '나중', 기능 003 '위험').
@@ -118,7 +109,7 @@ export function createChatPush(db: Db, send: PushSender) {
       tag,
     }
     const messages = new Map<string, PushMessage>()
-    for (const { memberId, userId } of await accountsOf(db, viewers))
+    for (const { memberId, userId } of await loginAccountsOf(db, viewers))
       messages.set(userId, called.has(memberId) ? mention : normal)
     await fanout.deliver(messages)
   }

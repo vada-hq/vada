@@ -6,6 +6,9 @@ import {
   PUSH_ENDPOINT_MAX,
   PushSubscriptionSchema,
   RemovePushDeviceSchema,
+  taskFromPath,
+  taskTag,
+  taskUrl,
 } from './push.js'
 
 test('chatRoomFromPath: 서버가 보내는 방 주소를 학생회와 방으로 읽는다', () => {
@@ -20,6 +23,26 @@ test('chatRoomFromPath: 다른 모양의 주소는 읽지 않는다', () => {
   for (const path of ['/', '/chat', '/chat/c', '/chat/c/', '/chat//r', '/chat/c/r/x', '/join/c/r'])
     assert.equal(chatRoomFromPath(path), null, path)
   assert.equal(chatRoomFromPath('/chat/%E0%A4%A/r'), null)
+})
+
+test('taskFromPath: 서버가 보내는 업무 주소를 학생회와 업무로 읽는다', () => {
+  assert.deepEqual(taskFromPath(taskUrl('c-1', 't-1')), { councilId: 'c-1', taskId: 't-1' })
+  assert.deepEqual(taskFromPath('/tasks/c%201/t'), { councilId: 'c 1', taskId: 't' })
+  assert.equal(taskTag('t-1'), 'task:t-1')
+})
+
+test('taskFromPath: 다른 모양의 주소는 읽지 않는다', () => {
+  for (const path of [
+    '/',
+    '/tasks',
+    '/tasks/c',
+    '/tasks/c/',
+    '/tasks//t',
+    '/tasks/c/t/x',
+    '/chat/c/t',
+  ])
+    assert.equal(taskFromPath(path), null, path)
+  assert.equal(taskFromPath('/tasks/%E0%A4%A/t'), null)
 })
 
 const valid = {

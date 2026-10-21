@@ -5,6 +5,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
+import type { TaskPush } from './notify.js'
 import { listQueryOf } from './list-query.js'
 import { taskDetailOf, taskListOf } from './queries.js'
 import { addTaskWriteRoutes, TASK_WRITE_LIMIT } from './write-routes.js'
@@ -33,7 +34,7 @@ function changeIn<T>(
 export function createTaskRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; writeLimiter?: RateLimiter } = {},
+  options: { clock?: () => Date; writeLimiter?: RateLimiter; push?: TaskPush | undefined } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const routes = new Hono<SessionEnv>()
@@ -66,6 +67,7 @@ export function createTaskRoutes(
     routes,
     auth,
     clock,
+    push: options.push,
     writeLimiter: options.writeLimiter ?? createRateLimiter(TASK_WRITE_LIMIT),
     change: (c, run) => changeIn(db, clock, c, run),
   })

@@ -1,9 +1,11 @@
 import type { Context, Hono } from 'hono'
 import {
+  AssignTaskSchema,
   ChangeTaskStatusSchema,
   CreateTaskSchema,
   DeleteTaskSchema,
   NO_CONTENT,
+  SetTaskDepartmentSchema,
   UpdateTaskSchema,
   type TaskResponse,
 } from '@vada/contracts'
@@ -14,12 +16,21 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import type { RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
-import { changeTaskStatus, createTask, deleteTask, updateTask } from './service.js'
+import type { TaskPush } from './notify.js'
+import {
+  assignTask,
+  changeTaskStatus,
+  createTask,
+  deleteTask,
+  setTaskDepartment,
+  updateTask,
+  type AssignmentNotice,
+} from './service.js'
 
 const root = '/organizations/:councilId'
 const CREATED = 201
 
-// 만들기(와 조각 4의 맡기기)가 한도 하나를 같이 쓴다: 계정마다 10초에 20번(기능 003 보내기와 같은 값).
+// 만들기와 맡기기가 한도 하나를 같이 쓴다: 계정마다 10초에 20번(기능 003 보내기와 같은 값).
 export const TASK_WRITE_LIMIT = { limit: 20, windowMs: 10_000 }
 
 export interface WriteKit {
@@ -27,6 +38,7 @@ export interface WriteKit {
   auth: ReturnType<typeof requireSession>
   writeLimiter: RateLimiter
   clock: () => Date
+  push: TaskPush | undefined
   // 학생회 행을 잠그고 운영진인지 본 뒤 바꾸는 거래
   change: <T>(
     c: Context<SessionEnv>,
@@ -37,12 +49,17 @@ export interface WriteKit {
 // 번호 형식은 운영진인지 본 뒤에 본다: 운영진이 아니면 대상이 있는지 드러내지 않고 403이다.
 const taskIdOf = (c: Context<SessionEnv>) => recordIdOf(c.req.param('taskId'))
 
-export function addTaskWriteRoutes({ routes, auth, writeLimiter, clock, change }: WriteKit) {
+export function addTaskWriteRoutes({ routes, auth, writeLimiter, clock, change, push }: WriteKit) {
+  // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않는다.
+  const notifyLater = (notice: AssignmentNotice | null) => {
+    if (notice) void push?.notify(notice)
+  }
   routes.post(`${root}/tasks`, json(CreateTaskSchema), auth, async c => {
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!writeLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
     const input = c.req.valid('json')
-    const task = await change(c, (tx, actor, now) => createTask(tx, actor, input, now))
+    const { task, notice } = await change(c, (tx, actor, now) => createTask(tx, actor, input, now))
+    notifyLater(notice)
     return c.json({ task } satisfies TaskResponse, CREATED)
   })
   routes.post(`${root}/tasks/:taskId`, json(UpdateTaskSchema), auth, async c => {
@@ -62,5 +79,21 @@ export function addTaskWriteRoutes({ routes, auth, writeLimiter, clock, change }
   routes.post(`${root}/tasks/:taskId/delete`, json(DeleteTaskSchema), auth, async c => {
     await change(c, (tx, actor, now) => deleteTask(tx, actor, { taskId: taskIdOf(c), now }))
     return c.body(null, NO_CONTENT)
+  })
+  routes.post(`${root}/tasks/:taskId/assignee`, json(AssignTaskSchema), auth, async c => {
+    if (!writeLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
+    const input = c.req.valid('json')
+    const { task, notice } = await change(c, (tx, actor, now) =>
+      assignTask(tx, actor, { taskId: taskIdOf(c), now }, input),
+    )
+    notifyLater(notice)
+    return c.json({ task } satisfies TaskResponse)
+  })
+  routes.post(`${root}/tasks/:taskId/department`, json(SetTaskDepartmentSchema), auth, async c => {
+    const input = c.req.valid('json')
+    const task = await change(c, (tx, actor, now) =>
+      setTaskDepartment(tx, actor, { taskId: taskIdOf(c), now }, input),
+    )
+    return c.json({ task } satisfies TaskResponse)
   })
 }

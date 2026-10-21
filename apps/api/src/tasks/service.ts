@@ -1,7 +1,9 @@
 import { and, eq } from 'drizzle-orm'
 import type {
+  AssignTaskRequest,
   ChangeTaskStatusRequest,
   CreateTaskRequest,
+  SetTaskDepartmentRequest,
   TaskAction,
   TaskDetail,
   UpdateTaskRequest,
@@ -47,6 +49,26 @@ async function assertAssignee(tx: Tx, actor: Actor, assigneeId: string | null, n
   if (!alive.has(assigneeId)) throw new ApiError('TASK_ASSIGNEE_INVALID')
 }
 
+// 맡긴 뒤 새 담당자에게 보낼 알림. 커밋 뒤에 보내고, 기록은 같은 거래에서 이미 남겼다.
+export type AssignmentNotice = { taskId: string; recipientId: string; assignerId: string }
+
+// 새 담당자에게만 알린다(T3). 나에게 맡기기, 같은 사람 다시, 비우기는 알리지 않는다.
+async function noticeAssignment(
+  tx: Tx,
+  actor: Actor,
+  taskId: string,
+  { previous, next }: { previous: string | null; next: string | null },
+): Promise<AssignmentNotice | null> {
+  if (!next || next === previous || next === actor.memberId) return null
+  await createRecord(tx, {
+    kind: 'notification',
+    councilId: actor.councilId,
+    actor: null,
+    values: { recipientId: next, recordId: taskId, type: 'assignment', notifiedAt: clockNow },
+  })
+  return { taskId, recipientId: next, assignerId: actor.memberId }
+}
+
 // 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
 function createContext(actor: Actor, input: CreateTaskRequest) {
   const mine =
@@ -64,7 +86,7 @@ export async function createTask(
   actor: Actor,
   input: CreateTaskRequest,
   now: Date,
-): Promise<TaskDetail> {
+): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
   // 403이 409보다 먼저다.
   if (!can(actor, 'task.manage', createContext(actor, input))) throw new ApiError('FORBIDDEN')
   await assertDepartment(tx, actor, input.departmentId)
@@ -81,7 +103,8 @@ export async function createTask(
       assigneeId: input.assigneeId,
     },
   })
-  return taskDetailOf(tx, actor, id, now)
+  const notice = await noticeAssignment(tx, actor, id, { previous: null, next: input.assigneeId })
+  return { task: await taskDetailOf(tx, actor, id, now), notice }
 }
 
 // 같은 값이면 판을 만들지 않는다. 마감은 날짜로 견준다.
@@ -136,4 +159,49 @@ export async function deleteTask(tx: Tx, actor: Actor, target: Target) {
     reason: null,
     changes: { cancelledAt: clockNow },
   })
+}
+
+// 사람 맡기기와 비우기. 부장 기준이라 담당자 본인은 403이다. 같은 사람이면 판도 알림도 없다.
+export async function assignTask(
+  tx: Tx,
+  actor: Actor,
+  target: Target,
+  input: AssignTaskRequest,
+): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
+  const row = await taskFor(tx, actor, target, 'task.assign')
+  await assertAssignee(tx, actor, input.assigneeId, target.now)
+  if (input.assigneeId === row.assigneeId)
+    return { task: await taskDetailOf(tx, actor, row.id, target.now), notice: null }
+  await updateRecord(tx, {
+    kind: 'task',
+    id: row.id,
+    actor: actor.memberId,
+    reason: null,
+    changes: { assigneeId: input.assigneeId },
+  })
+  const notice = await noticeAssignment(tx, actor, row.id, {
+    previous: row.assigneeId,
+    next: input.assigneeId,
+  })
+  return { task: await taskDetailOf(tx, actor, row.id, target.now), notice }
+}
+
+// 부서 정하기와 비우기. 회장단만 한다. 담당자는 그대로다.
+export async function setTaskDepartment(
+  tx: Tx,
+  actor: Actor,
+  target: Target,
+  input: SetTaskDepartmentRequest,
+): Promise<TaskDetail> {
+  const row = await taskFor(tx, actor, target, 'task.set_department')
+  await assertDepartment(tx, actor, input.departmentId)
+  if (input.departmentId !== row.departmentId)
+    await updateRecord(tx, {
+      kind: 'task',
+      id: row.id,
+      actor: actor.memberId,
+      reason: null,
+      changes: { departmentId: input.departmentId },
+    })
+  return taskDetailOf(tx, actor, row.id, target.now)
 }

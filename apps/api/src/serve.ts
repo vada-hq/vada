@@ -16,6 +16,7 @@ import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
+import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
@@ -46,6 +47,7 @@ function pushOf(env: Env, db: Db, session: SessionReader) {
       forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
     }),
     chatPush: createChatPush(db, send),
+    taskPush: createTaskPush(db, send),
   }
 }
 
@@ -74,7 +76,7 @@ function appOf(env: Env, db: Db) {
     chat: createChatRoutes(db, session, { push: push.chatPush, storage: storageOf(env) }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
-    tasks: createTaskRoutes(db, session),
+    tasks: createTaskRoutes(db, session, { push: push.taskPush }),
   })
 }
 

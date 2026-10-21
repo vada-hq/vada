@@ -116,3 +116,8 @@ export const ChangeTaskStatusSchema = z.strictObject({ status: z.enum(TASK_STATU
 export type ChangeTaskStatusRequest = z.infer<typeof ChangeTaskStatusSchema>
 // 업무 지우기는 본문이 없다.
 export const DeleteTaskSchema = EmptyRequestSchema
+// 맡기기와 부서 정하기. 비우려면 null을 보낸다(키를 빼면 400).
+export const AssignTaskSchema = z.strictObject({ assigneeId: recordIdInput.nullable() })
+export type AssignTaskRequest = z.infer<typeof AssignTaskSchema>
+export const SetTaskDepartmentSchema = z.strictObject({ departmentId: recordIdInput.nullable() })
+export type SetTaskDepartmentRequest = z.infer<typeof SetTaskDepartmentSchema>

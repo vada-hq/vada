@@ -48,3 +48,16 @@ export function chatRoomFromPath(pathname: string) {
   }
 }
 export const chatRoomTag = (roomId: string) => `room:${roomId}`
+
+// 업무를 맡았다는 알림을 누르면 열 업무 주소. 화면은 taskFromPath로 읽는다. 둘은 한 쌍이다.
+export const taskUrl = (councilId: string, taskId: string) => `/tasks/${councilId}/${taskId}`
+export function taskFromPath(pathname: string) {
+  const match = /^\/tasks\/([^/]+)\/([^/]+)$/.exec(pathname)
+  if (!match) return null
+  try {
+    return { councilId: decodeURIComponent(match[1]!), taskId: decodeURIComponent(match[2]!) }
+  } catch {
+    return null
+  }
+}
+export const taskTag = (taskId: string) => `task:${taskId}`

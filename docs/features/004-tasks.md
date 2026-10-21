@@ -87,7 +87,7 @@ T1~T10과 작은 결정은 옛 설계의 사전 조사대로다(다시 조사하
 - 닿는 곳: contracts `CreateTaskSchema`, `UpdateTaskSchema`, `ChangeTaskStatusSchema`, `errors.ts`. `tasks/service.ts`(새), `tasks/routes.ts`. 경로는 `POST tasks`, `POST tasks/:taskId`, `POST tasks/:taskId/status`, `POST tasks/:taskId/delete`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 4. 맡기기, 부서 정하기, 배정 알림 [ ]
+### 4. 맡기기, 부서 정하기, 배정 알림 [x]
 - 할 수 있게 되는 것: 부장이 사람을, 회장단이 부서를 정하고, 맡은 사람의 휴대폰에 알림이 간다.
 - 수용 기준: 그 부서 부장과 회장단은 지금 운영진 누구에게나 맡기고 비운다. 담당자와 부원은 403, 떠난 사람과 다른 학생회 사람은 409이고 판이 없다. 회장단만 부서를 정하고 비운다(부장 403). 담당자는 그대로다. 담당자를 정해 만들거나 다른 사람으로 바꾸면 같은 거래에 배정 알림 기록 하나가 생기고, 커밋 뒤 새 담당자의 기기마다 한 번 '정한 것'의 내용과 주소 `/tasks/{학생회}/{업무}`로 알림이 간다. 나에게 맡기기, 같은 사람 다시, 비우기, 부서·상태·내용 바꾸기, 지우기, 실패한 쓰기는 알림도 기록도 없다. 이전 담당자는 받지 않는다. 응답은 알림을 기다리지 않는다(끝나지 않는 보내기로 시험한다). 알림 열쇠가 없어도 업무와 알림 기록은 생긴다. 만들기와 맡기기가 한도 하나를 같이 쓴다. 로그에 제목, 내용, 운영진 번호, 구독 주소가 없다. `/tasks/{학생회}/{업무}`를 열면 화면 진입점이 온다.
 - 닿는 곳: contracts `AssignTaskSchema`, `SetTaskDepartmentSchema`, 업무 주소 한 쌍(`push.ts`). `tasks/service.ts`, `tasks/routes.ts`, `tasks/notify.ts`(새), 운영진 → 로그인 계정 찾기 공유(`chat/notify.ts`에서 꺼낸다), `push/fanout.ts`, `serve.ts`, `web.ts`. 경로는 `POST tasks/:taskId/assignee`, `POST tasks/:taskId/department`.
