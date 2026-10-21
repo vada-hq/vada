@@ -362,6 +362,68 @@ test(
   }),
 )
 
+test(
+  '고치기 입력: 상한+1(이모지 포함), NUL, 홀로 쓰인 서러게이트, 빈 글은 400이고 판이 늘지 않으며 상한 그대로는 받는다',
+  run(async s => {
+    const task = await s.made({ title: 'x' })
+    const bad: unknown[] = [
+      { ...EDIT, title: 'a'.repeat(TASK_TITLE_MAX + 1) },
+      { ...EDIT, title: '😀'.repeat(TASK_TITLE_MAX + 1) },
+      { ...EDIT, title: 'a\u0000b' },
+      { ...EDIT, title: 'a\uD800' },
+      { ...EDIT, title: '' },
+      { ...EDIT, body: 'a'.repeat(TASK_BODY_MAX + 1) },
+      { ...EDIT, body: '😀'.repeat(TASK_BODY_MAX + 1) },
+      { ...EDIT, body: 'x\u0000' },
+      { ...EDIT, body: 'x\uDC00' },
+      { ...EDIT, body: ' \n' },
+      { ...EDIT, dueDate: '2026-13-01' },
+    ]
+    for (const body of bad) {
+      const response = await s.post(`/${task.id}`, body)
+      assert.equal(response.status, 400, JSON.stringify(body).slice(0, 80))
+      assert.equal(await errorOf(response), 'INVALID_INPUT')
+    }
+    assert.equal(await s.versions(task.id), 1)
+    const full = {
+      title: '😀'.repeat(TASK_TITLE_MAX),
+      body: '😀'.repeat(TASK_BODY_MAX),
+      dueDate: null,
+    }
+    assert.equal((await s.post(`/${task.id}`, full)).status, 200)
+  }),
+)
+
+test(
+  '담당자를 내보낸 사람으로 해도 권한이 없으면 403이 먼저다',
+  run(async s => {
+    const before = await s.taskCount()
+    const body = { title: 'x', assigneeId: s.council.people.ended.memberId }
+    assert.equal((await s.create(body, 's-planningMember')).status, 403)
+    assert.equal((await s.create(body, 's-plain')).status, 403)
+    assert.equal(await s.taskCount(), before)
+  }),
+)
+
+test(
+  '고치기·상태 바꾸기·지우기: 다른 학생회 사용자와 내보낸 사람은 403, 로그인하지 않으면 401이고 업무는 그대로다',
+  run(async s => {
+    const task = await s.made({ title: '그대로' })
+    const calls: [string, unknown][] = [
+      [`/${task.id}`, { title: '바뀜', body: null, dueDate: null }],
+      [`/${task.id}/status`, { status: 'done' }],
+      [`/${task.id}/delete`, {}],
+    ]
+    for (const [path, body] of calls) {
+      assert.equal((await s.post(path, body, 'o-president')).status, 403, path)
+      assert.equal((await s.post(path, body, 's-ended')).status, 403, path)
+      assert.equal((await s.api.post(`${s.base}${path}`, body)).status, 401, path)
+    }
+    assert.equal(await s.versions(task.id), 1)
+    assert.equal((await s.row(task.id)).cancelled_at, null)
+  }),
+)
+
 test('계정마다 10초에 21번째 만들기는 429이고 다른 사람은 막히지 않으며 막힌 업무는 남지 않는다', async () => {
   const s = await start()
   try {
