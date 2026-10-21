@@ -13,7 +13,8 @@ export const purchaseCancelPath = (councilId: string, requestId: string) =>
 export const purchaseDecisionsPath = (councilId: string, requestId: string) =>
   `${purchasePath(councilId, requestId)}/decisions`
 
-const council = (councilId: string) => `/api/organizations/${encodeURIComponent(councilId)}`
-export const budgetPath = (councilId: string) => `${council(councilId)}/budget`
-export const fiscalPeriodsPath = (councilId: string) => `${council(councilId)}/fiscal-periods`
-export const budgetItemsPath = (councilId: string) => `${council(councilId)}/budget-items`
+export const councilPath = (councilId: string) =>
+  `/api/organizations/${encodeURIComponent(councilId)}`
+export const budgetPath = (councilId: string) => `${councilPath(councilId)}/budget`
+export const fiscalPeriodsPath = (councilId: string) => `${councilPath(councilId)}/fiscal-periods`
+export const budgetItemsPath = (councilId: string) => `${councilPath(councilId)}/budget-items`

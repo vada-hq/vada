@@ -1,9 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { statusOf, type PurchaseRequestsResponse, type PurchaseView } from '@vada/contracts'
-import { getJson } from '@/lib/api'
-import { useActive } from '@/lib/use-active'
-import { useLatest } from '@/lib/use-latest'
-import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
+import { usePolledRead } from '@/lib/use-polled-read'
 import { purchasesPath } from './finance-api'
 
 type Loaded =
@@ -19,35 +15,15 @@ export function usePurchases(
   onForbidden: () => void,
   enabled = true,
 ) {
-  const key = `${councilId}|${view}`
-  const [loaded, setLoaded] = useState<{ key: string; state: Loaded } | null>(null)
-  const forbidden = useLatest(onForbidden)
-  const latestKey = useLatest(key)
-  const issued = useRef(0)
-  const isActive = useActive()
-  const load = useCallback(async () => {
-    if (!enabled) return
-    const seq = ++issued.current
-    const result = await getJson<PurchaseRequestsResponse>(purchasesPath(councilId, view))
-    // 더 나중에 보낸 읽기가 있거나(보기를 바꿈 포함) 화면이 사라졌으면 이 응답은 버린다.
-    if (seq !== issued.current || !isActive()) return
-    const mine = latestKey.current
-    if (result.ok) {
-      const { requests, truncated } = result.data
-      return setLoaded({ key: mine, state: { kind: 'ready', requests, truncated } })
-    }
-    if (result.status === statusOf('FORBIDDEN')) forbidden.current()
-    setLoaded(before =>
-      before?.key === mine && before.state.kind === 'ready'
-        ? before
-        : { key: mine, state: { kind: 'failed' } },
-    )
-  }, [councilId, view, enabled, forbidden, isActive, latestKey])
-  useEffect(() => {
-    void load()
-  }, [load])
-  useVisiblePoll(() => void load(), LIST_POLL_MS)
-  const state: PurchasesState = loaded?.key === key ? loaded.state : { kind: 'loading' }
-  return { state, reload: load }
+  const read = usePolledRead<PurchaseRequestsResponse>(
+    purchasesPath(councilId, view),
+    status => {
+      if (status === statusOf('FORBIDDEN')) onForbidden()
+    },
+    enabled,
+  )
+  const state: PurchasesState =
+    read.state.kind === 'ready' ? { kind: 'ready', ...read.state.data } : read.state
+  return { state, reload: read.reload }
 }
 export type PurchaseList = ReturnType<typeof usePurchases>

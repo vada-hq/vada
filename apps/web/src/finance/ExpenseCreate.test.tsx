@@ -112,7 +112,8 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   showFinance()
   await fillRequestPayment()
   // 승인된 요청만 고를 수 있고, 품목은 승인된 것만 보인다.
-  expect(screen.queryByRole('option', { name: '아직 대기' })).toBeNull()
+  // 대기 요청도 승인된 품목이 있을 수 있어 고를 수 있다(품목을 읽은 뒤 가린다).
+  expect(screen.getByRole('option', { name: '아직 대기' })).toBeTruthy()
   expect(screen.queryByRole('option', { name: '취소한 요청' })).toBeNull()
   expect(screen.queryByRole('checkbox', { name: /반려된 것/ })).toBeNull()
   expect(asElement(screen.getByLabelText('A2 포스터 결제 금액'), HTMLInputElement).value).toBe(
@@ -143,6 +144,10 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
     ],
   })
   expect(screen.queryByRole('form', { name: '지출 적기' })).toBeNull()
+  // 적고 나면 지출 목록을 다시 읽는다.
+  expect(
+    api.calls.filter(call => call.method === 'GET' && call.path === EXPENSES).length,
+  ).toBeGreaterThan(1)
 })
 
 test('요청을 바꾸면 고른 품목을 비우고 품목이 없으면 적기가 꺼진다', async () => {
@@ -291,4 +296,55 @@ test('적는 중에 권한을 잃으면(403) 닫고 학생회를 다시 읽게 �
   await waitFor(() => expect(screen.queryByRole('form', { name: '지출 적기' })).toBeNull())
   expect(handlers.onForbidden).toHaveBeenCalled()
   expect(screen.getByText(/권한이 바뀌었어요/)).toBeTruthy()
+})
+
+test('품목 하나만 승인되고 다른 품목이 대기인 요청도 고를 수 있고, 승인된 품목이 없으면 안내한다', async () => {
+  const api = serve()
+  api.on('GET', `${REQUESTS}?view=all`, () =>
+    json({
+      requests: [
+        purchaseSummary('r1', { title: '일부만 결재', status: 'pending' }),
+        purchaseSummary('r4', { title: '반려됨', status: 'rejected' }),
+      ],
+      truncated: false,
+    }),
+  )
+  api.on('GET', `${REQUESTS}/r1`, () =>
+    json({
+      request: purchaseDetail('r1', {
+        items: [approvedItem(ITEM_1, 'A2 포스터', 30000), purchaseDetail().items[0]!],
+      }),
+    }),
+  )
+  showFinance()
+  await openForm()
+  await screen.findByRole('option', { name: '일부만 결재' })
+  expect(screen.queryByRole('option', { name: '반려됨' })).toBeNull()
+  choose('결제할 요청', 'r1')
+  expect(await screen.findAllByRole('checkbox')).toHaveLength(1)
+  api.on('GET', `${REQUESTS}/r1`, () =>
+    json({ request: purchaseDetail('r1', { items: [purchaseDetail().items[0]!] }) }),
+  )
+  choose('결제할 요청', '')
+  choose('결제할 요청', 'r1')
+  await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+})
+
+test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비운다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  showFinance()
+  await readyDirect()
+  await screen.findByRole('option', { name: /행사 홍보/ })
+  choose('예산 항목', BUDGET)
+  api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [], suggested: null }))
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('option', { name: /행사 홍보/ })).toBeNull())
+  await settle()
+  fireEvent.click(submit())
+  await screen.findByRole('button', { name: '사진 올리기' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    budgetItemId: null,
+  })
 })

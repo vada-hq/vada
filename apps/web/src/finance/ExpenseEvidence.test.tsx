@@ -151,6 +151,40 @@ test.each([
   await waitFor(() => expect(attachButton().disabled).toBe(unusable))
 })
 
+test('붙이는 중에 지출이 취소돼 올리기 칸이 사라져도 거절 문구는 남는다', async () => {
+  const api = serve()
+  let reads = 0
+  api.on('GET', `${EXPENSES}/e1`, () => {
+    reads += 1
+    return json({
+      expense:
+        reads > 1 ? expenseDetail('e1', { cancelled: true, actions: [] }) : expenseDetail('e1'),
+    })
+  })
+  api.on('POST', `${EXPENSES}/e1/evidence`, () => json({ error: 'EXPENSE_CANCELLED' }, 409))
+  await open()
+  pick()
+  await waitFor(() => expect(attachButton().disabled).toBe(false))
+  fireEvent.click(attachButton())
+  await waitFor(() => expect(screen.queryByRole('button', { name: '붙이기' })).toBeNull())
+  expect(screen.getByRole('alert').textContent).toContain('이미 취소된 지출')
+})
+
+test('사진을 붙이면 지출 목록을 다시 읽는다', async () => {
+  const api = serve()
+  api.on('POST', `${EXPENSES}/e1/evidence`, () => json({ expense: withPhoto }, 201))
+  await open()
+  const before = api.calls.filter(call => call.method === 'GET' && call.path === EXPENSES).length
+  pick()
+  await waitFor(() => expect(attachButton().disabled).toBe(false))
+  fireEvent.click(attachButton())
+  await waitFor(() =>
+    expect(
+      api.calls.filter(call => call.method === 'GET' && call.path === EXPENSES).length,
+    ).toBeGreaterThan(before),
+  )
+})
+
 test('취소된 지출과 재정부가 아닌 사람에게는 올리기 칸이 없고 사진은 모두 본다', async () => {
   serve(expenseDetail('e1', { ...withPhoto, cancelled: true, actions: [] }))
   await open()

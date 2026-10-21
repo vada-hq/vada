@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { statusOf, type BudgetResponse, type TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Input } from '@/components/ui/input'
@@ -5,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
-import { budgetPath } from './expense-api'
+import { budgetPath } from './finance-api'
 import type { ExpenseValues } from './expense-form'
 import { wonLabel } from './purchase-view'
 
@@ -23,9 +24,16 @@ function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Om
   const budget = usePolledRead<BudgetResponse>(budgetPath(councilId), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
+  const items = budget.state.kind === 'ready' ? budget.state.data.items : []
+  const loaded = budget.state.kind === 'ready'
+  const gone =
+    loaded && values.budgetItemId !== null && !items.some(i => i.id === values.budgetItemId)
+  // 다시 읽은 목록에서 고른 항목이 사라졌으면(기간이 바뀜) 값을 비워 몰래 나가지 않게 한다.
+  useEffect(() => {
+    if (gone) onChange({ ...values, budgetItemId: null })
+  }, [gone, values, onChange])
   if (budget.state.kind === 'failed')
     return <StateMessage kind="error">{EXPENSE_OPTIONS_FAILED}</StateMessage>
-  const items = budget.state.kind === 'ready' ? budget.state.data.items : []
   return (
     <ChoiceSelect
       label="예산 항목"

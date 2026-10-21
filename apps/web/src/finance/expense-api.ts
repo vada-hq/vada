@@ -1,6 +1,6 @@
-const base = (councilId: string) => `/api/organizations/${encodeURIComponent(councilId)}`
+import { councilPath } from './finance-api'
 
-export const expensesPath = (councilId: string) => `${base(councilId)}/expenses`
+export const expensesPath = (councilId: string) => `${councilPath(councilId)}/expenses`
 export const expensePath = (councilId: string, expenseId: string) =>
   `${expensesPath(councilId)}/${encodeURIComponent(expenseId)}`
 export const expenseCancelPath = (councilId: string, expenseId: string) =>
@@ -14,5 +14,3 @@ export const evidencePath = (councilId: string, expenseId: string) =>
   `${expensePath(councilId, expenseId)}/evidence`
 export const evidenceFilePath = (councilId: string, expenseId: string, fileId: string) =>
   `${expensePath(councilId, expenseId)}/files/${encodeURIComponent(fileId)}`
-// 지출을 적을 때 고르는 예산 항목은 지금 회계 기간의 것이다.
-export const budgetPath = (councilId: string) => `${base(councilId)}/budget`

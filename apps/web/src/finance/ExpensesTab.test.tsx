@@ -134,6 +134,32 @@ test('상세에 칸, 결제한 품목, 결재, 이력이 보이고 환급함을 
   expect(handlers.onChanged).not.toHaveBeenCalled()
 })
 
+const listReads = (api: ReturnType<typeof serveFinance>) =>
+  api.calls.filter(call => call.method === 'GET' && call.path === EXPENSES).length
+
+test('환급과 취소가 끝나면 지출 목록을 다시 읽는다', async () => {
+  const api = serveDetail()
+  api.on('POST', `${EXPENSES}/e1/reimburse`, () =>
+    json({ expense: expenseDetail('e1', { reimbursed: true }) }),
+  )
+  api.on('POST', `${EXPENSES}/e1/cancel`, () =>
+    json({ expense: expenseDetail('e1', { cancelled: true, actions: [] }) }),
+  )
+  showFinance()
+  const dialog = await openDetail()
+  let before = listReads(api)
+  fireEvent.click(within(dialog).getByRole('button', { name: '환급함' }))
+  const confirm = screen.getByText('환급했다고 표시할까요?').closest('[role="dialog"]')!
+  fireEvent.click(within(confirm as HTMLElement).getByRole('button', { name: '환급함' }))
+  await waitFor(() => expect(listReads(api)).toBeGreaterThan(before))
+  before = listReads(api)
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '취소' }))
+  const ask = screen.getByText('이 지출을 취소할까요?').closest('[role="dialog"]') as HTMLElement
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
+  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  await waitFor(() => expect(listReads(api)).toBeGreaterThan(before))
+})
+
 test('동작이 없으면 [환급함]과 [취소]가 보이지 않는다', async () => {
   serveDetail(expenseDetail('e1', { actions: [], cancelled: true }))
   showFinance(MEMBER_PERMISSIONS)

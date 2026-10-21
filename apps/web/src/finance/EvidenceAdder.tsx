@@ -1,7 +1,6 @@
 import { useRef, type ChangeEvent } from 'react'
 import { EVIDENCE_TYPES, type EvidenceType } from '@vada/contracts'
 import { ImagePlus, X } from 'lucide-react'
-import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -96,7 +95,6 @@ export function EvidenceAdder({ upload }: { upload: Upload }) {
     <div className="flex flex-col gap-3">
       {!upload.photo && <PhotoPicker onPick={file => void upload.pick(file)} />}
       <PendingCard upload={upload} />
-      {upload.problem && <StateMessage kind="error">{upload.problem}</StateMessage>}
     </div>
   )
 }

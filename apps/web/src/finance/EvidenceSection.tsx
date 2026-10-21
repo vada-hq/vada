@@ -32,6 +32,8 @@ export function EvidenceSection({ councilId, expense, canManage, upload }: Props
         </StateMessage>
       )}
       {attachable && <EvidenceAdder upload={upload} />}
+      {/* 다시 읽은 지출이 취소됐거나 한도에 닿아 올리기 칸이 사라져도 거절 이유는 남긴다. */}
+      {upload.problem && <StateMessage kind="error">{upload.problem}</StateMessage>}
     </section>
   )
 }
