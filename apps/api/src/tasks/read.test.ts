@@ -138,6 +138,24 @@ test('끝나지 않은 것은 300개, 끝남은 50개까지 주고 넘치면 tru
   }
 })
 
+test('끝남이 51개면 50개를 주고 truncated이다', async () => {
+  const t = await start()
+  try {
+    await t.pg.exec(`INSERT INTO record (id, kind, council_id)
+      SELECT uuidv7(), 'task', '${t.council.councilId}' FROM generate_series(1, 51)`)
+    await t.pg.exec(
+      `INSERT INTO task (id, title, status) SELECT id, 't', 'done' FROM record WHERE kind = 'task'`,
+    )
+    await t.pg.exec(`INSERT INTO record_version (record_id, version_no, valid, data)
+      SELECT id, 1, tstzrange(now(), NULL), '{}'::jsonb FROM record WHERE kind = 'task'`)
+    const done = await t.list('view=all&status=done')
+    assert.equal(done.tasks.length, 50)
+    assert.equal(done.truncated, true)
+  } finally {
+    await t.close()
+  }
+})
+
 test('모르는 키, 틀린 값, 빠진 view, 같은 키 두 번은 400 INVALID_INPUT이다', async () => {
   const t = await start()
   try {
