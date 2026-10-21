@@ -20,7 +20,7 @@ export default function PushOffBand({
   visible: boolean
   // 화면에 맞는 문구. 기본은 대화다.
   message?: string | undefined
-  environment?: PushEnvironment
+  environment?: PushEnvironment | undefined
 }) {
   const [env] = useState(() => environment ?? currentEnvironment())
   const push = usePush(env)

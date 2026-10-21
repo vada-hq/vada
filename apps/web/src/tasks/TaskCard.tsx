@@ -20,7 +20,7 @@ type Props = {
   // 카드를 눌러 상세를 여는 자리(조각 6). 없으면 제목은 글자일 뿐이다.
   onOpen?: (() => void) | undefined
   // 제목의 단계. 부서 묶음 제목(h2) 아래에서는 3, 묶음 없이 화면 제목(h1) 바로 아래에서는 2다.
-  headingLevel?: 'h2' | 'h3'
+  headingLevel?: 'h2' | 'h3' | undefined
 }
 
 function Title({

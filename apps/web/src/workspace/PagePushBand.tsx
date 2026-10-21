@@ -9,7 +9,7 @@ export default function PagePushBand({
   environment,
 }: {
   page: Page
-  environment?: PushEnvironment
+  environment?: PushEnvironment | undefined
 }) {
   return (
     <PushOffBand
