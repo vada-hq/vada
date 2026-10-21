@@ -29,8 +29,10 @@ export async function startPurchases(
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
   const calls: Parameters<PushSender>[] = []
+  let gate: Promise<void> = Promise.resolve()
   const send: PushSender = async (...args) => {
     calls.push(args)
+    await gate
     return { result: 'sent' }
   }
   const pending: Promise<void>[] = []
@@ -104,6 +106,12 @@ export async function startPurchases(
     create,
     made,
     decide,
+    // 보내기를 끝나지 않게 묶고, 푸는 함수를 돌려준다.
+    hold: () => {
+      let release = () => {}
+      gate = new Promise<void>(resolve => (release = resolve))
+      return release
+    },
     settled: () => Promise.all(pending),
     notices: () => count('SELECT count(*) AS n FROM notification'),
     versions: (id: string) =>

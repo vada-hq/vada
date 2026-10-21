@@ -113,8 +113,8 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   }
 })
 
-test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단은 1 MiB, 회고 저장은 64 KiB, 구매 요청은 96 KiB이다', () => {
-  assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests'), 98_304)
+test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단은 1 MiB, 회고 저장은 64 KiB, 구매 요청은 192 KiB이다', () => {
+  assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests'), 196_608)
   assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests/b/cancel'), MAX_BODY_BYTES)
   assert.equal(bodyLimitOf('/api/organizations/a/dues-roster'), 1_048_576)
   assert.equal(bodyLimitOf('/api/organizations/a/events/e/report/retrospective'), 65_536)

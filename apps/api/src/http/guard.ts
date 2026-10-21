@@ -6,11 +6,13 @@ import { errorResponse } from './errors.js'
 export const MAX_BODY_BYTES = 32768
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 // 본문이 큰 경로. 상한은 여기 한 곳에서 정하고 라우트에서 다시 다루지 않는다.
-// 구매 요청은 품목 20줄(이름 100, 링크 2000, 옵션 200자)이라 제어 문자가 한 글자 6바이트가 되는 가장 나쁜 경우에도 84KB 안이다.
+// 구매 요청의 가장 큰 본문: 품목 한 줄은 이름 100자와 옵션 200자가 제어 문자(JSON에서 6바이트)이고 링크 2000자가 한글 같은 3바이트 글자이면
+// (100+200)*6 + 2000*3 = 7,800바이트에 키 이름이 약 60바이트다. 20줄이면 약 157KB이고, 제목 100자와 내용 1000자가 6바이트이면 6.6KB가 더해져 약 164KB다.
+// 그래서 192 KiB(196,608)로 둔다. 시험(purchases/write.test.ts)이 이 최대 입력이 413 없이 받아지는지 본다.
 // 학생회비 명단은 학번·이름 수천 줄을 한 번에 받는다. 회고 저장(M5c)은 200자 30문장까지이고, 제어 문자는 JSON에서 6바이트가 된다.
 const largeBodies: { pattern: RegExp; max: number }[] = [
   { pattern: /^\/api\/organizations\/[^/]+\/dues-roster$/, max: 1_048_576 },
-  { pattern: /^\/api\/organizations\/[^/]+\/purchase-requests$/, max: 98_304 },
+  { pattern: /^\/api\/organizations\/[^/]+\/purchase-requests$/, max: 196_608 },
   { pattern: /^\/api\/organizations\/[^/]+\/events\/[^/]+\/report\/retrospective$/, max: 65_536 },
 ]
 export const bodyLimitOf = (path: string) =>

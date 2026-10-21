@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createRateLimiter } from '../http/rate-limit.js'
-import { clockNow, updateRecord } from '../records/records.js'
+import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import {
   detailOf,
   endpointOf,
@@ -330,5 +330,71 @@ test(
     )
     assert.equal(await s.versions(theirs), 1)
     assert.equal(await s.versions(mine.id), 1)
+  }),
+)
+
+test(
+  '응답은 알림을 기다리지 않는다: 알림 보내기가 끝나지 않아도 201이고 알림 기록은 남는다',
+  runPurchases(async s => {
+    const release = s.hold()
+    const response = await s.api.post(s.base, { title: 'a', items: [ITEM] }, 's-planningMember')
+    assert.equal(response.status, 201)
+    assert.equal(await s.notices(), 1)
+    release()
+    await s.settled()
+    assert.equal(s.calls.length, 1)
+  }),
+)
+
+test(
+  '스키마가 받는 가장 큰 요청(제어 문자와 한글로 채운 품목 20줄)도 413 없이 201이다',
+  runPurchases(async s => {
+    const control = (n: number) => ''.repeat(n)
+    const body = {
+      title: control(100),
+      body: control(1000),
+      neededBy: '2026-10-30',
+      items: Array.from({ length: 20 }, () => ({
+        name: control(100),
+        quantity: 999,
+        link: `https://a.example/${'한'.repeat(1982)}`,
+        options: control(200),
+      })),
+    }
+    assert.ok(new TextEncoder().encode(JSON.stringify(body)).length > 142_000)
+    assert.equal((await s.create(body)).status, 201)
+  }),
+)
+
+test(
+  '지난 기수에 재정부였고 지금은 아닌 사람은 새 요청 알림을 받지 않는다',
+  runPurchases(async s => {
+    const { council } = s
+    const president = council.people.president.memberId
+    await s.db.transaction(async tx => {
+      const cohortId = await createRecord(tx, {
+        kind: 'cohort',
+        councilId: council.councilId,
+        actor: president,
+        values: { name: '2025', startsOn: '2025-01-01', endsOn: '2025-12-31' },
+      })
+      await createRecord(tx, {
+        kind: 'department_membership',
+        councilId: council.councilId,
+        actor: president,
+        values: {
+          memberId: council.people.plain.memberId,
+          departmentId: council.departments.finance,
+          cohortId,
+          departmentRank: null,
+          startsAt: clockNow,
+        },
+      })
+    })
+    await s.made({ title: 'a', items: [ITEM] }, 's-planningMember')
+    const recipients = (
+      await s.pg.query<{ recipient_id: string }>('SELECT recipient_id FROM notification')
+    ).rows.map(row => row.recipient_id)
+    assert.deepEqual(recipients, [council.people.financeMember.memberId])
   }),
 )
