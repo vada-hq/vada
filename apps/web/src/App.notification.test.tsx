@@ -38,6 +38,9 @@ beforeEach(() => {
     api.on('GET', `/api/organizations/${id}`, () => json(councilView(id)))
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
+    api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
+      json({ tasks: [], truncated: false }),
+    )
     api.on('GET', `/api/organizations/${id}/rooms/r1`, () => json(roomDetail()))
     api.on('GET', `/api/organizations/${id}/rooms/r1/messages`, () => json(messagePage()))
     api.on(

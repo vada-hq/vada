@@ -56,6 +56,9 @@ function emptyRooms(id: string) {
   api.on('GET', `/api/organizations/${id}/rooms`, () =>
     json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
   )
+  api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
+    json({ tasks: [], truncated: false }),
+  )
 }
 // 만든 직후가 아니면 대화가 첫 화면이다. 옆 메뉴로 운영진 > 사람을 연다.
 async function openPeople() {
@@ -571,6 +574,9 @@ test('학생회를 열면 첫 화면이 대화이고, 옆 메뉴의 대화에 �
   openCouncil()
   api.on('GET', '/api/organizations/c1/rooms', () =>
     json({ rooms: [], notices: [], unreadTotal: 120, mentionTotal: 0 }),
+  )
+  api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
+    json({ tasks: [], truncated: false }),
   )
   render(<App />)
   expect(await screen.findByRole('heading', { level: 1, name: '대화' })).toBeTruthy()

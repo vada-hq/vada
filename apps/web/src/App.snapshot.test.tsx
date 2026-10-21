@@ -108,6 +108,9 @@ function openWorkspace() {
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
   api.on('GET', '/api/organizations/c1/rooms', () => json(roomList()))
+  api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
+    json({ tasks: [], truncated: false }),
+  )
   api.on('GET', '/api/organizations/c1/rooms/r1', () => json(roomDetail()))
   api.on('GET', '/api/organizations/c1/rooms/r1/messages', () => json(messagePage()))
   api.on('POST', '/api/organizations/c1/rooms/r1/read', () => new Response(null, { status: 204 }))
