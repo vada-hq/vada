@@ -1,0 +1,73 @@
+import { statusOf, type BudgetResponse, type TeamResponse } from '@vada/contracts'
+import StateMessage from '@/components/StateMessage'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
+import { usePolledRead } from '@/lib/use-polled-read'
+import { ChoiceSelect } from '@/tasks/ChoiceSelect'
+import { budgetPath } from './expense-api'
+import type { ExpenseValues } from './expense-form'
+import { wonLabel } from './purchase-view'
+
+type Props = {
+  councilId: string
+  team: TeamResponse
+  values: ExpenseValues
+  disabled: boolean
+  onChange: (values: ExpenseValues) => void
+  onForbidden: () => void
+}
+
+// 예산 항목 고르기. 지금 회계 기간의 지출 항목이고, 고르지 않을 수도 있다. 기간이 아직 없으면 고를 항목이 없다.
+function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Omit<Props, 'team'>) {
+  const budget = usePolledRead<BudgetResponse>(budgetPath(councilId), status => {
+    if (status === statusOf('FORBIDDEN')) onForbidden()
+  })
+  if (budget.state.kind === 'failed')
+    return <StateMessage kind="error">{EXPENSE_OPTIONS_FAILED}</StateMessage>
+  const items = budget.state.kind === 'ready' ? budget.state.data.items : []
+  return (
+    <ChoiceSelect
+      label="예산 항목"
+      choices={[
+        { id: null, label: '고르지 않음' },
+        ...items.map(item => ({
+          id: item.id,
+          label: `${item.purpose} (${wonLabel(item.amount)})`,
+        })),
+      ]}
+      value={values.budgetItemId}
+      disabled={disabled}
+      onChange={budgetItemId => onChange({ ...values, budgetItemId })}
+    />
+  )
+}
+
+// 요청 없이 적는 지출: 금액, 예산 항목, 부탁한 사람(요청 없는 지출만 고른다).
+export function ExpenseDirectFields({ team, ...props }: Props) {
+  const { values, disabled, onChange } = props
+  return (
+    <>
+      <Label className="flex flex-col gap-2">
+        금액(원)
+        <Input
+          inputMode="numeric"
+          value={values.amount}
+          disabled={disabled}
+          onChange={event => onChange({ ...values, amount: event.target.value })}
+        />
+      </Label>
+      <BudgetSelect {...props} />
+      <ChoiceSelect
+        label="부탁한 사람"
+        choices={[
+          { id: null, label: '없음' },
+          ...team.members.map(member => ({ id: member.id, label: member.name })),
+        ]}
+        value={values.requestedBy}
+        disabled={disabled}
+        onChange={requestedBy => onChange({ ...values, requestedBy })}
+      />
+    </>
+  )
+}

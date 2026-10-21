@@ -7,8 +7,8 @@ import {
   PHOTO_TOO_MANY,
   PHOTO_UPLOAD_FAILED,
 } from '@/lib/messages'
-import { isRoomLost, sendErrorText } from './chat-api'
-import { photoName, sendPhoto, TOO_BIG, UNREADABLE } from './photo-upload'
+import { photoName, sendPhoto, TOO_BIG, UNREADABLE } from '@/lib/photo-upload'
+import { isRoomLost, sendErrorText, uploadsPath } from './chat-api'
 
 // 보내기 전 사진 한 장. 고르는 즉시 줄여서 올리고, 올라가면 키를 쥐고 있다가 보낼 때 싣는다.
 export type PhotoDraft = {
@@ -59,8 +59,9 @@ export function usePhotoDrafts(councilId: string, roomId: string, onLost: () => 
 
   const process = useCallback(
     async (draft: PhotoDraft, file: File) => {
-      const where = { councilId, roomId }
-      const result = await sendPhoto(where, file, preview => patch(draft.id, { preview }))
+      const result = await sendPhoto(uploadsPath(councilId, roomId), file, preview =>
+        patch(draft.id, { preview }),
+      )
       if (!isActive()) return
       if (result.ok) return patch(draft.id, { state: 'ready', key: result.key })
       if (isRoomLost(result.status)) onLost()

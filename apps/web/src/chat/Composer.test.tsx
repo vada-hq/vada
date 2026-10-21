@@ -4,10 +4,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { message, messagePage, room, roomDetail } from '@/test-support/chat-fixtures'
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
-import { resizeToJpeg } from './photo-resize'
+import { resizeToJpeg } from '@/lib/photo-resize'
 
-vi.mock('./photo-resize', async importOriginal => ({
-  ...(await importOriginal<typeof import('./photo-resize')>()),
+vi.mock('@/lib/photo-resize', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/lib/photo-resize')>()),
   resizeToJpeg: vi.fn(),
 }))
 

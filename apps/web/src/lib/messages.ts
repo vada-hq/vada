@@ -145,3 +145,28 @@ export const BUDGET_ERRORS: Record<string, string> = {
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
 export const BUDGET_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
+
+// 지출 목록, 적기, 상세, 취소·환급, 증빙 사진. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const EXPENSES_LOAD_FAILED = '지출을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EXPENSE_LOAD_FAILED = '이 지출을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EXPENSE_LOST = '이 지출을 볼 수 없어요. 다른 학생회의 지출이거나 없어졌을 수 있어요.'
+export const EXPENSE_OPTIONS_FAILED = '고를 목록을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EXPENSE_ERRORS: Record<string, string> = {
+  LINE_ITEM_NOT_PAYABLE:
+    '결제할 수 없는 품목이 있어요. 승인되지 않았거나 취소된 요청이에요. 품목을 다시 골라 주세요.',
+  MEMBER_INVALID: '먼저 낸 사람이나 부탁한 사람이 지금 운영진이 아니에요. 다른 사람을 골라 주세요.',
+  EXPENSE_CANCELLED: '이미 취소된 지출이에요. 새로 불러왔어요.',
+  NOT_REIMBURSABLE:
+    '환급할 수 없는 지출이에요. 먼저 낸 사람이 없거나 이미 환급했어요. 새로 불러왔어요.',
+  EVIDENCE_LIMIT: '증빙 사진은 한 지출에 20장까지 붙일 수 있어요.',
+  UPLOAD_MISMATCH: '올린 사진을 확인하지 못했어요. 그 사진을 빼고 다시 올려 주세요.',
+  PHOTO_ALREADY_SENT: '이미 붙인 사진이에요. 그 사진을 빼고 다시 올려 주세요.',
+  STORAGE_NOT_CONFIGURED:
+    '지금은 사진을 올릴 수 없어요. 지출은 적을 수 있어요. 나중에 다시 해 주세요.',
+  BUDGET_ITEM_INVALID: '고를 수 없는 예산 항목이에요. 다른 항목을 골라 주세요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const EXPENSE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const EVIDENCE_UPLOAD_FAILED =
+  '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'

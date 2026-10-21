@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   PURCHASE_PENDING_LIMIT,
   PURCHASE_RECENT_LIMIT,
+  type Action,
   type CouncilView,
   type PurchaseView,
 } from '@vada/contracts'
@@ -11,11 +12,14 @@ import { Button } from '@/components/ui/button'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { BudgetTab } from './BudgetTab'
+import { ExpenseDialogs } from './ExpenseDialogs'
+import { ExpensesPanel } from './ExpensesPanel'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { RequestCreateDialog } from './RequestCreateDialog'
 import { RequestDetailDialog } from './RequestDetailDialog'
+import { useExpenses, type ExpenseList } from './useExpenses'
 import { usePurchases, type PurchaseList } from './usePurchases'
 
 const overflow = (view: PurchaseView) =>
@@ -73,16 +77,20 @@ function FinanceTabPanel({
   filter,
   onFilter,
   list,
+  expenses,
   view,
   onOpen,
+  onOpenExpense,
   onForbidden,
 }: {
   tab: FinanceTab
   filter: PurchaseView
   onFilter: (filter: PurchaseView) => void
   list: PurchaseList
+  expenses: ExpenseList
   view: CouncilView
   onOpen: (requestId: string) => void
+  onOpenExpense: (expenseId: string) => void
   onForbidden: () => void
 }) {
   return (
@@ -92,6 +100,8 @@ function FinanceTabPanel({
           <RequestFilter view={filter} onView={onFilter} />
           <Body list={list} view={filter} onOpen={onOpen} />
         </>
+      ) : tab === 'expenses' ? (
+        <ExpensesPanel list={expenses} onOpen={onOpenExpense} />
       ) : (
         <BudgetTab
           councilId={view.council.id}
@@ -104,10 +114,24 @@ function FinanceTabPanel({
 }
 
 // 내기 버튼과, 열려 있던 요청을 잃었을 때의 이유(좁은 화면에서도 버튼 바로 옆에 보인다).
-function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: (() => void) | null }) {
+function CreateRow({
+  lost,
+  onCreate,
+  onCreateExpense,
+}: {
+  lost: string | null
+  onCreate: (() => void) | null
+  // 재정부에게만, 지출 탭에서만 있다.
+  onCreateExpense: (() => void) | null
+}) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {onCreate && <Button onClick={onCreate}>구매 요청 내기</Button>}
+      {onCreateExpense && (
+        <Button variant="outline" onClick={onCreateExpense}>
+          지출 적기
+        </Button>
+      )}
       {lost && <StateMessage kind="error">{lost}</StateMessage>}
     </div>
   )
@@ -122,12 +146,14 @@ function RequestDialogs({
   onChanged,
   onForbidden,
   onOpenBudget,
+  onOpenExpense,
 }: {
   councilId: string
   dialogs: Dialogs
   onChanged: () => void
   onForbidden: () => void
   onOpenBudget: () => void
+  onOpenExpense: (expenseId: string) => void
 }) {
   const shared = {
     councilId,
@@ -137,6 +163,11 @@ function RequestDialogs({
       onChanged()
     },
   }
+  // 다른 화면으로 가기 전에 요청 상세를 닫는다.
+  const leave = (go: () => void) => {
+    dialogs.closeDetail()
+    go()
+  }
   return (
     <>
       <RequestDetailDialog
@@ -144,10 +175,8 @@ function RequestDialogs({
         requestId={dialogs.openId}
         onClose={dialogs.closeDetail}
         onChanged={onChanged}
-        onOpenBudget={() => {
-          dialogs.closeDetail()
-          onOpenBudget()
-        }}
+        onOpenBudget={() => leave(onOpenBudget)}
+        onOpenExpense={id => leave(() => onOpenExpense(id))}
       />
       <RequestCreateDialog
         {...shared}
@@ -167,12 +196,27 @@ export default function FinancePage(props: Props) {
   const [filter, setFilter] = useState<PurchaseView>('mine')
   const [tab, setTab] = useState<FinanceTab>('requests')
   const dialogs = useRecordDialogs(props.initialRequestId)
+  const expenseDialogs = useRecordDialogs()
   const councilId = props.view.council.id
   const list = usePurchases(councilId, filter, props.onForbidden)
-  const canRequest = props.view.permissions.includes('purchase.request')
+  // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
+  const expenses = useExpenses(councilId, props.onForbidden, tab === 'expenses')
+  const can = (action: Action) => props.view.permissions.includes(action)
   return (
     <PageColumn>
-      <CreateRow lost={dialogs.lost} onCreate={canRequest ? dialogs.startCreate : null} />
+      <CreateRow
+        lost={dialogs.lost ?? expenseDialogs.lost}
+        onCreate={can('purchase.request') ? dialogs.startCreate : null}
+        onCreateExpense={
+          tab === 'expenses' && can('finance.manage') ? expenseDialogs.startCreate : null
+        }
+      />
+      <ExpenseDialogs
+        view={props.view}
+        dialogs={expenseDialogs}
+        onChanged={() => void expenses.reload()}
+        onForbidden={props.onForbidden}
+      />
       <RequestDialogs
         councilId={councilId}
         dialogs={dialogs}
@@ -182,6 +226,7 @@ export default function FinancePage(props: Props) {
         }}
         onForbidden={props.onForbidden}
         onOpenBudget={() => setTab('budget')}
+        onOpenExpense={expenseDialogs.openRecord}
       />
       <FinanceTabs tab={tab} onTab={setTab} />
       <FinanceTabPanel
@@ -189,8 +234,10 @@ export default function FinancePage(props: Props) {
         filter={filter}
         onFilter={setFilter}
         list={list}
+        expenses={expenses}
         view={props.view}
         onOpen={dialogs.openRecord}
+        onOpenExpense={expenseDialogs.openRecord}
         onForbidden={props.onForbidden}
       />
     </PageColumn>

@@ -8,6 +8,7 @@ import { PURCHASE_LOAD_FAILED } from '@/lib/messages'
 import { neededByLabel } from './purchase-view'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import { DecisionPanel } from './DecisionPanel'
+import { RequestExpenses } from './RequestExpenses'
 import { RequestItems } from './RequestItems'
 import { RequestDecisions, RequestHistory } from './RequestRecords'
 import { StatusBadge } from './StatusBadge'
@@ -20,6 +21,8 @@ type Props = PurchaseDialogHandlers & {
   onClose: () => void
   // 결재할 기간이나 항목이 없을 때 예산 탭으로 간다(부모가 대화상자를 닫는다).
   onOpenBudget: () => void
+  // 결제한 지출을 누르면 그 지출을 연다(부모가 이 대화상자를 닫고 지출 상세를 연다).
+  onOpenExpense: (expenseId: string) => void
 }
 
 // 구매 요청 상세 대화상자. 열려 있을 때만 읽고, 요청이 바뀌면 처음부터 다시 읽는다.
@@ -33,6 +36,7 @@ function OpenRequestDialog({
   requestId,
   onClose,
   onOpenBudget,
+  onOpenExpense,
   ...handlers
 }: Props & { requestId: string }) {
   const detail = useRequestDetail(councilId, requestId, handlers)
@@ -56,6 +60,7 @@ function OpenRequestDialog({
             councilId={councilId}
             onForbidden={handlers.onForbidden}
             onOpenBudget={onOpenBudget}
+            onOpenExpense={onOpenExpense}
           />
         ) : detail.loadFailed ? (
           <div className="flex flex-col items-start gap-3">
@@ -124,12 +129,14 @@ function Loaded({
   councilId,
   onForbidden,
   onOpenBudget,
+  onOpenExpense,
 }: {
   request: PurchaseRequestDetail
   detail: ReturnType<typeof useRequestDetail>
   councilId: string
   onForbidden: () => void
   onOpenBudget: () => void
+  onOpenExpense: (expenseId: string) => void
 }) {
   const deciding =
     request.actions.includes('purchase.approve') && request.items.some(i => i.status === 'pending')
@@ -137,6 +144,7 @@ function Loaded({
     <div className="flex flex-col gap-6">
       <Facts request={request} />
       <RequestItems items={request.items} />
+      <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
       {deciding && (
         <DecisionPanel
           councilId={councilId}

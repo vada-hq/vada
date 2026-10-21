@@ -3,14 +3,16 @@ import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { VIEW_LABEL } from './purchase-view'
 
-// 지출 탭은 그 화면을 만드는 조각(8)에서 더한다.
-export type FinanceTab = 'requests' | 'budget'
+export type FinanceTab = 'requests' | 'expenses' | 'budget'
 
 export function FinanceTabs({ tab, onTab }: { tab: FinanceTab; onTab: (tab: FinanceTab) => void }) {
   return (
     <div role="tablist" aria-label="재정 보기" className="flex border-b">
       <TabButton aria-selected={tab === 'requests'} onClick={() => onTab('requests')}>
         구매 요청
+      </TabButton>
+      <TabButton aria-selected={tab === 'expenses'} onClick={() => onTab('expenses')}>
+        지출
       </TabButton>
       <TabButton aria-selected={tab === 'budget'} onClick={() => onTab('budget')}>
         예산

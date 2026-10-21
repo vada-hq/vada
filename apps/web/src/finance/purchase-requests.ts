@@ -19,7 +19,7 @@ function lostMessage(status: number, notFound: string) {
 
 export const problemText = (code: string) => PURCHASE_ERRORS[code] ?? PURCHASE_FAILED
 
-// 사라짐이나 권한 잃음이면 부모에게 알리고 true, 그 밖의 실패면 false다.
+// 사라짐이나 권한 잃음이면 부모에게 알리고 true, 그 밖의 실패면 false다. 사라짐 문구는 대상마다 다르다(지출도 같이 쓴다).
 export function reportLost(
   handlers: Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'>,
   status: number,

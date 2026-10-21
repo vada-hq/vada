@@ -34,10 +34,14 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const button = (name: string) => asElement(screen.getByRole('button', { name }), HTMLButtonElement)
 
-test('탭은 구매 요청과 예산이고 지출 탭은 숨긴다', async () => {
+test('탭은 구매 요청, 지출, 예산이다', async () => {
   show()
   await screen.findByText(/아직 회계 기간이 없어요/)
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['구매 요청', '예산'])
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+    '구매 요청',
+    '지출',
+    '예산',
+  ])
 })
 
 test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 지금 기수의 이름과 날짜로 채워진다', async () => {
