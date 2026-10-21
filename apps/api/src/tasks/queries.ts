@@ -142,7 +142,7 @@ export async function taskListOf(
 }
 
 // 이 학생회의 지우지 않은 업무 하나. 다른 학생회 업무와 지운 업무는 없는 것과 같아 404다.
-async function taskRowOf(db: Reader, actor: Actor, taskId: string, now: Date) {
+export async function taskRowOf(db: Reader, actor: Actor, taskId: string, now: Date) {
   const [row] = await taskSelect(db, actor, now).where(and(inCouncil(actor), eq(task.id, taskId)))
   if (!row) throw new ApiError('NOT_FOUND')
   return row

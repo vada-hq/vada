@@ -81,7 +81,7 @@ T1~T10과 작은 결정은 옛 설계의 사전 조사대로다(다시 조사하
 - 닿는 곳: contracts `tasks.ts`(새: 상태·상한·목록 상수, `TaskListQuerySchema`, `TaskSummary`, `TaskDetail`, `TasksResponse`, `TaskResponse`). `apps/api/src/tasks/`(새: `routes.ts`의 `createTaskRoutes`, `queries.ts`, `due.ts`), `app.ts`, `serve.ts`, `http/boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET tasks`, `GET tasks/:taskId`.
 - 검토: 깊게. 마이그레이션: 없음(1의 적용 뒤에 올린다).
 
-### 3. 만들기, 고치기, 상태, 지우기 [ ]
+### 3. 만들기, 고치기, 상태, 지우기 [x]
 - 할 수 있게 되는 것: 권한 있는 운영진이 업무를 만들고, 제목·내용·마감을 고치고, 상태를 바꾸고, 지운다.
 - 수용 기준: 회장단은 아무 부서나 학생회 업무를, 부장은 자기 부서 업무를, 누구나 부서가 없거나 내 부서인 자기 업무를 만든다(201, 판 1, 할 일). 부장의 학생회 업무, 부원의 남 업무, 내 부서가 아닌 부서의 자기 업무는 403이고 기록이 없다. 다른 학생회 부서는 409 `TASK_DEPARTMENT_INVALID`, 내보낸 사람이나 다른 학생회 사람을 담당자로 하면 409 `TASK_ASSIGNEE_INVALID`. 담당자와 부장은 고치고 상태를 어느 쪽으로든 바꾸고, 다른 부원은 403이다. 같은 값(앞뒤 공백, 대문자 번호 포함)이면 판이 늘지 않는다. 지우면 204이고 다시 열거나 지우면 404, 판과 알림 기록은 남는다. 응답은 거래 안에서 만든다. 계정마다 10초에 21번째 만들기는 429이고 다른 사람은 막히지 않는다. 학생회 행 잠금이 업무 행 읽기보다 먼저다. AGENTS.md의 입력 경우를 모두 시험한다.
 - 닿는 곳: contracts `CreateTaskSchema`, `UpdateTaskSchema`, `ChangeTaskStatusSchema`, `errors.ts`. `tasks/service.ts`(새), `tasks/routes.ts`. 경로는 `POST tasks`, `POST tasks/:taskId`, `POST tasks/:taskId/status`, `POST tasks/:taskId/delete`.

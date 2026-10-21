@@ -6,3 +6,7 @@ export const dueDateOf = (dueAt: Date | null) => (dueAt ? koreanDateOf(dueAt) : 
 export function isOverdue(dueAt: Date | null, status: TaskStatus, now: Date) {
   return status !== 'done' && dueAt !== null && koreanDateOf(now) > koreanDateOf(dueAt)
 }
+
+// 마감 날짜는 그날 한국 23:59:59로 저장한다(T2). 날짜는 계약이 이미 달력에 있는 날로 거른 것이다.
+export const dueAtOf = (dueDate: string | null) =>
+  dueDate ? new Date(`${dueDate}T23:59:59+09:00`) : null

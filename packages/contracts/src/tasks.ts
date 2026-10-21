@@ -1,5 +1,8 @@
 import { z } from 'zod'
+import { EmptyRequestSchema, text, token } from './input.js'
+import { KOREAN_DATE_LENGTH, koreanDateTime } from './korean-time.js'
 import type { Action } from './permissions.js'
+import { recordIdInput } from './team.js'
 
 // 업무(DEC-22, DEC-39). 상태는 셋이고 새 업무는 할 일이다. 값은 DB CHECK와 같다.
 export const TASK_STATUSES = ['todo', 'in_progress', 'done'] as const
@@ -87,3 +90,29 @@ export interface TasksResponse {
 export interface TaskResponse {
   task: TaskDetail
 }
+
+// 마감은 날짜만 받는다(T2). 달력에 있는 날이고 DB 검사와 같은 범위(2000~2999년)만 받는다.
+const dueDate = token(KOREAN_DATE_LENGTH).refine(
+  value => /^\d{4}-\d{2}-\d{2}$/.test(value) && koreanDateTime.safeParse(`${value}T00:00`).success,
+)
+
+// 업무 만들기. 부서와 담당자와 마감과 내용은 비울 수 있고 비우면 null이다.
+export const CreateTaskSchema = z.strictObject({
+  title: text(TASK_TITLE_MAX),
+  body: text(TASK_BODY_MAX).nullable().default(null),
+  dueDate: dueDate.nullable().default(null),
+  departmentId: recordIdInput.nullable().default(null),
+  assigneeId: recordIdInput.nullable().default(null),
+})
+export type CreateTaskRequest = z.infer<typeof CreateTaskSchema>
+// 제목, 내용, 마감 고치기. 세 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
+export const UpdateTaskSchema = z.strictObject({
+  title: text(TASK_TITLE_MAX),
+  body: text(TASK_BODY_MAX).nullable(),
+  dueDate: dueDate.nullable(),
+})
+export type UpdateTaskRequest = z.infer<typeof UpdateTaskSchema>
+export const ChangeTaskStatusSchema = z.strictObject({ status: z.enum(TASK_STATUSES) })
+export type ChangeTaskStatusRequest = z.infer<typeof ChangeTaskStatusSchema>
+// 업무 지우기는 본문이 없다.
+export const DeleteTaskSchema = EmptyRequestSchema
