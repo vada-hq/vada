@@ -31,6 +31,11 @@ export type SmokeVerdict =
   { ok: true; detail: string } | { ok: false; detail: string; code: string }
 export type SmokeCase = { name: string; run: (context: SmokeContext) => Promise<SmokeVerdict> }
 
+// 동시 처리 사례가 쓰는 사람(계정과 학생회), 쥔 채 기다리는 시간
+export type Who = { userId: string; councilId: string }
+export const HOLD_MS = 300
+export const pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
 export const pass = (detail: string): SmokeVerdict => ({ ok: true, detail })
 export const fail = (detail: string, code = 'MISMATCH'): SmokeVerdict => ({
   ok: false,

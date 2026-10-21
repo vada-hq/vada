@@ -9,17 +9,19 @@ import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   changer,
   createdCouncil,
+  HOLD_MS,
   googleUser,
   inviteCodeOf,
   joined,
   memberIdOf,
   outcomeOf,
+  pause,
+  type Who,
   type SmokeContext,
 } from './pg-smoke-kit.js'
 
 // 구매 요청과 지출(기능 005) 사례가 함께 쓰는 틀: 재정부원 둘과 요청한 사람이 있는 학생회, 그리고 "먼저 잠근 쪽이 확실히 잠근 뒤 다른 쪽이 시작"하는 순서 강제.
 
-export type Who = { userId: string; councilId: string }
 export type MoneyScene = {
   requester: Who
   finance: readonly [Who, Who]
@@ -27,8 +29,6 @@ export type MoneyScene = {
   budgetItemId: string
 }
 
-const pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
-const HOLD_MS = 300
 const BUDGET_AMOUNT = 100000
 
 // 학생회 하나(재정 역할 부서는 학생회를 만들 때 함께 생긴다), 그 부서에 든 부원 둘, 요청만 내는 부원 하나, 오늘이 든 기간과 지출 예산 항목 하나.

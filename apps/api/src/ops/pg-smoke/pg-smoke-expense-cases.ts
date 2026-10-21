@@ -21,7 +21,8 @@ import {
 } from './pg-smoke-money-kit.js'
 
 // 지출(기능 005)의 동시 처리 사례 m. 서비스 함수를 라우트와 같은 잠금(inCouncilChange)으로 불러 운영과 같은 길을 탄다.
-// 지출 행 잠금이 없으면 두 번 환급 표시되거나, 취소와 환급이 서로를 못 보고 판이 겹쳐 남는다.
+// 모든 쓰기가 학생회 행 잠금을 먼저 거치므로, 이 사례가 증명하는 것은 학생회 행 잠금과 READ COMMITTED 다시 읽기다(지출 행 잠금만의 효과가 아니다).
+// 그 둘이 없으면 두 번 환급 표시되거나, 취소와 환급이 서로를 못 보고 판이 겹쳐 남는다.
 
 const EXPECTED = new Set(['NOT_REIMBURSABLE', 'EXPENSE_CANCELLED'])
 const EXPENSE_AMOUNT = 12000

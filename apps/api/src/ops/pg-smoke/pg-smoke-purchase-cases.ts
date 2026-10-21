@@ -11,6 +11,7 @@ import {
   withConnections,
   type SmokeCase,
   type SmokeContext,
+  type Who,
 } from './pg-smoke-kit.js'
 import {
   moneyScene,
@@ -19,11 +20,11 @@ import {
   raceHolding,
   warmed,
   type MoneyScene,
-  type Who,
 } from './pg-smoke-money-kit.js'
 
 // 구매 요청(기능 005)의 동시 처리 사례 k, l. 서비스 함수를 라우트와 같은 잠금(inCouncilChange)으로 불러 운영과 같은 길을 탄다.
-// 요청 행 → 품목 행 잠금이 없으면 같은 품목에 결재 기록이 둘 남거나, 취소된 요청에 결재가 남거나 결재된 요청이 취소된다.
+// 모든 쓰기가 학생회 행 잠금을 먼저 거치므로, 이 사례가 증명하는 것은 학생회 행 잠금과 READ COMMITTED 다시 읽기다(요청·품목 행 잠금만의 효과가 아니다).
+// 그 둘이 없으면 같은 품목에 결재 기록이 둘 남거나, 취소된 요청에 결재가 남거나 결재된 요청이 취소된다.
 
 const EXPECTED = new Set(['LINE_ITEM_DECIDED', 'REQUEST_CLOSED'])
 const APPROVED_AMOUNT = 5000

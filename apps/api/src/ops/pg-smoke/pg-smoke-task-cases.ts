@@ -12,21 +12,20 @@ import {
   fail,
   googleUser,
   inviteCodeOf,
+  HOLD_MS,
   joined,
   memberIdOf,
   pass,
+  pause,
   unexpectedFailures,
   versionsOf,
+  type Who,
   withConnections,
   type SmokeCase,
   type SmokeContext,
 } from './pg-smoke-kit.js'
 
 // 업무(기능 004)를 둘러싼 동시 처리 사례 i, j. 서비스 함수를 라우트와 같은 잠금(inCouncilChange)으로 불러 운영과 같은 길을 탄다.
-
-type Who = { userId: string; councilId: string }
-
-const pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 async function taskIn(db: Db, context: SmokeContext, who: Who, title: string) {
   const { task } = await changer(
@@ -52,7 +51,6 @@ const ASSIGN_REMOVE_EXPECTED = new Set(['TASK_ASSIGNEE_INVALID'])
 const I = { host: 'smoke-i-host' }
 const I_ROUNDS = 6
 const ASSIGNERS = 3
-const HOLD_MS = 300
 
 // 내보낸 시각(removedAt) 이후에 생긴 것: 그 사람이 담당자가 된 판, 그 사람에게 간 배정 알림
 async function leftoverAfter(main: SmokeConnection, guestMember: string, removedAt: string) {
