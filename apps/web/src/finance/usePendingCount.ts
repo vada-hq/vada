@@ -5,6 +5,8 @@ import { usePurchases } from './usePurchases'
 export function usePendingCount(councilId: string, onForbidden: () => void, enabled: boolean) {
   const pending = usePurchases(councilId, 'pending', onForbidden, enabled)
   const { state } = pending
-  const count = state.kind === 'ready' ? pendingCountOf(state.requests, state.truncated) : null
+  // 결재 권한을 잃으면(enabled가 꺼지면) 이전에 읽은 값이 남아 있어도 수를 내지 않는다.
+  const count =
+    enabled && state.kind === 'ready' ? pendingCountOf(state.requests, state.truncated) : null
   return { pending, count }
 }

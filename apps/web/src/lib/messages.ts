@@ -113,6 +113,7 @@ export const TASK_STATUS_FAILED = '상태를 바꾸지 못했어요. 다시 시�
 // 알림이 꺼져 있다는 띠의 문구. 화면이 무엇을 놓칠 수 있는지에 맞춘다.
 export const PUSH_OFF_CHAT = '휴대폰 알림이 꺼져 있어요. 새 글과 부름을 놓칠 수 있어요.'
 export const TASK_PUSH_OFF = '휴대폰 알림이 꺼져 있어요. 맡은 업무를 놓칠 수 있어요.'
+export const FINANCE_PUSH_OFF = '휴대폰 알림이 꺼져 있어요. 새 요청과 결재 결과를 놓칠 수 있어요.'
 
 // 구매 요청 목록, 내기, 상세, 취소. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const PURCHASES_LOAD_FAILED = '구매 요청을 불러오지 못했어요. 연결을 확인해 주세요.'

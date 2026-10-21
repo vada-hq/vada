@@ -219,6 +219,12 @@ test('취소가 너무 빠르면(429) 확인 안에 문구가 보인다', async 
   fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toMatch(/너무 빨리 보내고 있어요/)
+  // 확인을 닫으면 실패 문구도 사라진다.
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', { name: '이 요청을 취소할까요?' })).toBeNull(),
+  )
+  expect(screen.queryByText(/너무 빨리 보내고 있어요/)).toBeNull()
 })
 
 test('열 때 요청이 없으면(404) 대화상자를 닫고 이유를 보인다', async () => {
