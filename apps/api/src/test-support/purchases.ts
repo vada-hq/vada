@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import type { PurchaseRequestDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
+import { createBudgetRoutes } from '../budget/routes.js'
 import { createTestDb } from '../db/test-db.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { createPurchasePush } from '../purchases/notify.js'
@@ -28,6 +29,9 @@ export async function startPurchases(
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
+  // 시험이 시계를 옮길 수 있다(한국 날짜 경계).
+  let now = noon
+  const clock = () => now
   const calls: Parameters<PushSender>[] = []
   let gate: Promise<void> = Promise.resolve()
   const send: PushSender = async (...args) => {
@@ -54,10 +58,11 @@ export async function startPurchases(
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       purchases: createPurchaseRoutes(db, testSession, {
-        clock: () => noon,
+        clock,
         ...(options.withPush === false ? {} : { push }),
         ...(options.limiter ? { writeLimiter: options.limiter } : {}),
       }),
+      budget: createBudgetRoutes(db, testSession, { clock }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/purchase-requests`
@@ -102,6 +107,9 @@ export async function startPurchases(
     api,
     base,
     calls,
+    setNow: (value: Date) => {
+      now = value
+    },
     count,
     create,
     made,

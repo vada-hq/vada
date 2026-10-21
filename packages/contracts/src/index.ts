@@ -173,7 +173,22 @@ export {
   type TasksResponse,
 } from './tasks.js'
 export {
+  BUDGET_PURPOSE_MAX,
+  CreateBudgetItemSchema,
+  CreateFiscalPeriodSchema,
+  FISCAL_PERIOD_NAME_MAX,
+  WON_MAX,
+  type BudgetItemView,
+  type BudgetResponse,
+  type CreateBudgetItem,
+  type CreateFiscalPeriod,
+  type FiscalPeriodView,
+} from './budget.js'
+export {
   CancelPurchaseRequestSchema,
+  DecideLineItemsSchema,
+  PURCHASE_REASON_MAX,
+  type DecideLineItems,
   CreatePurchaseRequestSchema,
   LINE_ITEM_STATUSES,
   PURCHASE_ACTIONS,

@@ -5,6 +5,7 @@ import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
+import type { createBudgetRoutes } from './budget/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
@@ -29,8 +30,10 @@ export type AppOptions = {
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
   // 업무: 목록, 하나 읽기
   tasks?: ReturnType<typeof createTaskRoutes>
-  // 구매 요청: 목록, 하나 읽기, 내기, 취소
+  // 구매 요청: 목록, 하나 읽기, 내기, 취소, 결재
   purchases?: ReturnType<typeof createPurchaseRoutes>
+  // 회계 기간과 지출 예산 항목
+  budget?: ReturnType<typeof createBudgetRoutes>
 }
 
 export function createApp({
@@ -44,6 +47,7 @@ export function createApp({
   pushDevices,
   tasks,
   purchases,
+  budget,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -63,6 +67,7 @@ export function createApp({
   if (pushDevices) app.route('/api', pushDevices)
   if (tasks) app.route('/api', tasks)
   if (purchases) app.route('/api', purchases)
+  if (budget) app.route('/api', budget)
   app.onError(handleError)
   return app
 }

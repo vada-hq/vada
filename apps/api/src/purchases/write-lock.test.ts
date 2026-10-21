@@ -5,6 +5,7 @@ import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { createBudgetRoutes } from '../budget/routes.js'
 import { createPurchaseRoutes } from './routes.js'
 
 const noon = new Date('2026-10-25T03:00:00Z')
@@ -63,6 +64,77 @@ test('구매 요청 쓰기 둘은 학생회 행을 FOR NO KEY UPDATE로 잠근 �
     assert.ok(councilLock >= 0 && actor > councilLock, '취소: 학생회 잠금 뒤에 운영진 확인')
     assert.ok(requestLock > actor, '취소: 요청 행 잠금이 운영진 확인보다 앞선다')
     assert.ok(decided > requestLock, '취소: 결재 수는 요청 행을 잠근 뒤에 센다')
+  } finally {
+    await close()
+  }
+})
+
+// 결재는 학생회 행 → 운영진 확인 → 요청 행 → 품목 행 차례로 잠근 뒤에 결재 기록을 읽고 쓴다.
+// 이 차례가 같은 품목의 동시 결재와 취소·결재 겹침에서 하나만 되게 한다(실제 PostgreSQL 점검이 같은 두 경우를 더 본다).
+test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으로 잠그고 그 뒤에 결재 기록을 읽는다', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const queries: string[] = []
+    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const council = await seedCouncil(db, pg)
+    const api = caller(
+      createApp({
+        auth: { handler: async () => new Response() },
+        trustedOrigin: ORIGIN,
+        purchases: createPurchaseRoutes(db, testSession, { clock: () => noon }),
+        budget: createBudgetRoutes(db, testSession, { clock: () => noon }),
+      }),
+    )
+    const root = `/api/organizations/${council.councilId}`
+    await api.post(
+      `${root}/fiscal-periods`,
+      { name: '2학기', startsOn: '2026-09-01', endsOn: '2026-12-31' },
+      's-financeMember',
+    )
+    const view = (await (
+      await api.post(`${root}/budget-items`, { purpose: '소모품', amount: 1000 }, 's-financeMember')
+    ).json()) as { items: { id: string }[] }
+    const created = await api.post(
+      `${root}/purchase-requests`,
+      { title: '마커', items: [{ name: 'a', quantity: 1 }] },
+      's-planningMember',
+    )
+    const { request } = (await created.json()) as {
+      request: { id: string; items: { id: string }[] }
+    }
+    queries.length = 0
+    const decided = await api.post(
+      `${root}/purchase-requests/${request.id}/decisions`,
+      {
+        decisions: [
+          {
+            lineItemId: request.items[0]!.id,
+            outcome: 'approved',
+            amount: 100,
+            budgetItemId: view.items[0]!.id,
+          },
+        ],
+      },
+      's-financeMember',
+    )
+    assert.equal(decided.status, 200)
+    const locked = (table: string) =>
+      queries.findIndex(
+        query => query.includes(`from "${table}"`) && query.endsWith(' for no key update'),
+      )
+    const councilLock = locked('council')
+    const actor = queries.findIndex(query => query.includes('"member_login"'))
+    const requestLock = locked('request')
+    const itemLock = locked('line_item')
+    const decidedRead = queries.findIndex(
+      query => query.includes('from "approval"') && query.includes('"target_id" in'),
+    )
+    const write = queries.findIndex(query => query.includes('insert into "approval"'))
+    assert.ok(councilLock >= 0 && actor > councilLock, '학생회 잠금 뒤에 운영진 확인')
+    assert.ok(requestLock > actor, '요청 행 잠금이 운영진 확인 뒤')
+    assert.ok(itemLock > requestLock, '품목 행 잠금이 요청 행 잠금 뒤')
+    assert.ok(decidedRead > itemLock, '이미 결재했는지는 품목을 잠근 뒤에 읽는다')
+    assert.ok(write > decidedRead, '결재 기록은 그 뒤에 쓴다')
   } finally {
     await close()
   }

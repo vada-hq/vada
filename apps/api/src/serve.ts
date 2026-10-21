@@ -16,6 +16,7 @@ import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
+import { createBudgetRoutes } from './budget/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
 import { createPurchaseRoutes } from './purchases/routes.js'
 import { createTaskPush } from './tasks/notify.js'
@@ -81,6 +82,7 @@ function appOf(env: Env, db: Db) {
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session, { push: push.taskPush }),
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush }),
+    budget: createBudgetRoutes(db, session),
   })
 }
 

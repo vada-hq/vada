@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono'
 import {
   CancelPurchaseRequestSchema,
   CreatePurchaseRequestSchema,
+  DecideLineItemsSchema,
   NO_CONTENT,
   PurchaseRequestListQuerySchema,
   type PurchaseRequestResponse,
@@ -14,6 +15,7 @@ import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
+import { decideLineItems } from './decide.js'
 import type { PurchasePush } from './notify.js'
 import { requestDetailOf, requestListOf } from './queries.js'
 import { cancelPurchaseRequest, createPurchaseRequest } from './service.js'
@@ -61,6 +63,17 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, push, db }: WriteKi
       (tx, actor) => cancelPurchaseRequest(tx, actor, requestIdOf(c)),
     )
     return c.body(null, NO_CONTENT)
+  })
+  routes.post(`${root}/:requestId/decisions`, json(DecideLineItemsSchema), auth, async c => {
+    const input = c.req.valid('json')
+    const now = clock()
+    const { request, notice } = await inCouncilChange(
+      db,
+      { userId: c.get('userId'), councilId: c.req.param('councilId'), action: 'council.view', now },
+      (tx, actor) => decideLineItems(tx, actor, requestIdOf(c), { input, now }),
+    )
+    if (notice) void push?.notify(notice)
+    return c.json({ request } satisfies PurchaseRequestResponse)
   })
 }
 

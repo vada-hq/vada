@@ -395,9 +395,17 @@ test('가리키는 칸은 바꾸지 못한다', async () => {
           'actor_id',
           'actorKind',
           'actor_kind',
+          'actedAt',
+          'acted_at',
         ],
       ],
-      ['fiscal_period', own.period, ['councilId', 'council_id']],
+      [
+        'fiscal_period',
+        own.period,
+        ['councilId', 'council_id', 'previousPeriodId', 'previous_period_id'],
+      ],
+      ['budget_item', own.item, ['eventId', 'event_id']],
+      ['expense', own.expense, ['eventId', 'event_id', 'accountId', 'account_id']],
     ]
     for (const [kind, id, keys] of fixed)
       for (const key of keys)
@@ -407,6 +415,112 @@ test('가리키는 칸은 바꾸지 못한다', async () => {
           `${kind}.${key}`,
         )
     assert.equal(await versionCount(pg, own.budget), 1)
+  } finally {
+    await close()
+  }
+})
+
+// 행사, 계좌, 감사 기구는 이 모듈이 만드는 종류가 아니라(기능 006, 007) 시험이 기록과 하위 행을 직접 넣는다.
+async function plain(pg: PGlite, kind: 'event' | 'account' | 'audit_body', councilId: string) {
+  const id = (await pg.query<{ id: string }>('SELECT gen_random_uuid() AS id')).rows[0]!.id
+  await pg.query('INSERT INTO record (id, kind, council_id) VALUES ($1, $2, $3)', [
+    id,
+    kind,
+    councilId,
+  ])
+  const columns: Record<typeof kind, string> = {
+    event: "(id, name) VALUES ($1, 'e')",
+    account:
+      "(id, council_id, name, bank, account_number, holder, type) VALUES ($1, $2, 'a', 'b', '1', 'h', 'business')",
+    audit_body: "(id, council_id, name) VALUES ($1, $2, 'a')",
+  }
+  const params = kind === 'event' ? [id] : [id, councilId]
+  await pg.query(`INSERT INTO ${kind} ${columns[kind]}`, params)
+  return id
+}
+
+test('이전 기간, 행사, 계좌도 다른 학생회의 것이면 만들 때와 바꿀 때 막고, 같은 학생회의 것은 된다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const own = s.mineSet
+    const mineEvent = await plain(pg, 'event', s.mine)
+    const theirEvent = await plain(pg, 'event', s.theirs)
+    const mineAccount = await plain(pg, 'account', s.mine)
+    const theirAccount = await plain(pg, 'account', s.theirs)
+    const attempts: [string, Kind, string, object, string, string][] = [
+      [
+        '이전 기간',
+        'fiscal_period',
+        own.period,
+        newValues(s, 'fiscal_period', 2030),
+        'previousPeriodId',
+        s.theirSet.period,
+      ],
+      [
+        '예산 항목의 행사',
+        'budget_item',
+        own.item,
+        newValues(s, 'budget_item', 0),
+        'eventId',
+        theirEvent,
+      ],
+      ['지출의 행사', 'expense', own.expense, newValues(s, 'expense', 0), 'eventId', theirEvent],
+      [
+        '지출의 계좌',
+        'expense',
+        own.expense,
+        newValues(s, 'expense', 0),
+        'accountId',
+        theirAccount,
+      ],
+    ]
+    const before = await recordCount(pg)
+    for (const [name, kind, , values, key, foreign] of attempts)
+      await assert.rejects(
+        db.transaction(tx => make(tx, s.owner, kind, { ...values, [key]: foreign })),
+        /학생회/,
+        `${name} 만들기`,
+      )
+    assert.equal(await recordCount(pg), before)
+    for (const [, kind, , values, key] of attempts) {
+      const good =
+        key === 'previousPeriodId' ? own.period : key === 'eventId' ? mineEvent : mineAccount
+      await db.transaction(tx => make(tx, s.owner, kind, { ...values, [key]: good }))
+    }
+    // 바꿀 때: 가리키는 칸 자체가 주인 칸이라 어디로도 못 바꾼다(업무의 행사와 같다).
+    for (const [name, kind, id, , key] of attempts)
+      await assert.rejects(
+        db.transaction(tx => updateRecords(tx, [change(s, kind, id, { [key]: mineEvent })])),
+        /주인 칸/,
+        `${name} 바꾸기`,
+      )
+  } finally {
+    await close()
+  }
+})
+
+test('결재한 사람이 운영진이 아니면 감사 기구의 학생회를 본다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const mineBody = await plain(pg, 'audit_body', s.mine)
+    const theirBody = await plain(pg, 'audit_body', s.theirs)
+    const values = (actorId: string) => ({
+      targetId: s.mineSet.expense,
+      targetKind: 'expense',
+      outcome: 'audited',
+      actorId,
+      actorKind: 'audit_body',
+      actedAt: clockNow,
+    })
+    await db.transaction(tx => make(tx, s.owner, 'approval', values(mineBody)))
+    const before = await recordCount(pg)
+    await assert.rejects(
+      db.transaction(tx => make(tx, s.owner, 'approval', values(theirBody))),
+      /학생회/,
+    )
+    assert.equal(await recordCount(pg), before)
   } finally {
     await close()
   }

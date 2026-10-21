@@ -73,8 +73,12 @@ const ownersOf: Partial<
     if (assignee) owners.push(await councilOfMember(tx, assignee, councilId))
     return owners
   },
+  fiscal_period: (tx, _, v) => optional(tx, field(v, 'previousPeriodId', 'previous_period_id')),
   budget: (tx, _, v) => optional(tx, field(v, 'fiscalPeriodId', 'fiscal_period_id')),
-  budget_item: (tx, _, v) => optional(tx, field(v, 'budgetId', 'budget_id')),
+  budget_item: async (tx, _, v) => [
+    ...(await optional(tx, field(v, 'budgetId', 'budget_id'))),
+    ...(await optional(tx, field(v, 'eventId', 'event_id'))),
+  ],
   request: async (tx, councilId, v) => [
     ...(await members(tx, councilId, [field(v, 'requestedBy', 'requested_by')])),
     ...(await optional(tx, field(v, 'defaultBudgetItemId', 'default_budget_item_id'))),
@@ -85,6 +89,8 @@ const ownersOf: Partial<
   ],
   expense: async (tx, councilId, v) => [
     ...(await optional(tx, field(v, 'budgetItemId', 'budget_item_id'))),
+    ...(await optional(tx, field(v, 'eventId', 'event_id'))),
+    ...(await optional(tx, field(v, 'accountId', 'account_id'))),
     ...(await members(tx, councilId, [
       field(v, 'requestedBy', 'requested_by'),
       field(v, 'paidBy', 'paid_by'),

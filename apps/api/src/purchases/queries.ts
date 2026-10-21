@@ -27,8 +27,11 @@ import { actionsOf, lineItemStatusOf, requestStatusOf } from './status.js'
 type Reader = Pick<Db, 'select'>
 
 // 품목마다 결재는 한 번이라(되돌리지 않는다) 품목에 붙는 결재 줄은 많아야 하나다.
-const decidedOn = and(eq(approval.targetId, lineItem.id), eq(approval.targetKind, 'line_item'))
-const decidedAs = (outcome: 'approved' | 'rejected') =>
+export const decidedOn = and(
+  eq(approval.targetId, lineItem.id),
+  eq(approval.targetKind, 'line_item'),
+)
+export const decidedAs = (outcome: 'approved' | 'rejected') =>
   sql<number>`count(${approval.id}) filter (where ${approval.outcome} = ${outcome})`.mapWith(Number)
 
 // 요청 줄과 품목·결재 수. 학생회 경계는 기록의 학생회 번호로 건다. 기본 키로 묶어 다른 표의 칸은 그 기본 키에 딸린 값이다.

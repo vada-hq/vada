@@ -8,6 +8,7 @@ import { createInviteRoutes } from '../invites/routes.js'
 import { createPushDeviceRoutes } from '../push/devices.js'
 import { createPushRoutes } from '../push/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
+import { createBudgetRoutes } from '../budget/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
@@ -47,6 +48,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session),
     purchases: createPurchaseRoutes(db, session),
+    budget: createBudgetRoutes(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({
     auth: { handler: async () => new Response() },
@@ -72,7 +74,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
   const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
   // 목록이 비어 테스트가 저절로 통과하는 일을 막는다. 변경 라우트를 더하면 이 수도 올린다.
-  assert.ok(mutating.length >= 23, `변경 라우트 ${mutating.length}개`)
+  assert.ok(mutating.length >= 26, `변경 라우트 ${mutating.length}개`)
   for (const key of mutating) {
     const registered = key.slice(0, key.indexOf(' '))
     // app.all()로 등록한 라우트는 POST로 확인한다.

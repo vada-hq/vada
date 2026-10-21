@@ -1,7 +1,9 @@
 import { z } from 'zod'
+import { WON_MAX } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import type { Action } from './permissions.js'
+import { recordIdInput } from './team.js'
 
 // 구매 요청(DEC-15, DEC-40). 요청서 한 장에 품목 여럿이고, 상태는 저장하지 않고 품목의 결재로 센다. 값은 DB CHECK와 같다.
 export const PURCHASE_TITLE_MAX = 100
@@ -67,6 +69,29 @@ export const CreatePurchaseRequestSchema = z.strictObject({
 export type CreatePurchaseRequest = z.infer<typeof CreatePurchaseRequestSchema>
 // 취소는 본문이 없다.
 export const CancelPurchaseRequestSchema = EmptyRequestSchema
+
+export const PURCHASE_REASON_MAX = 500
+
+// 품목마다 결재(DEC-15). 승인은 금액(그 줄 합계)과 예산 항목이, 반려는 사유가 꼭 있다. 한 번에 여러 품목을 보낸다.
+const ApproveSchema = z.strictObject({
+  lineItemId: recordIdInput,
+  outcome: z.literal('approved'),
+  amount: z.number().int().min(1).max(WON_MAX),
+  budgetItemId: recordIdInput,
+})
+const RejectSchema = z.strictObject({
+  lineItemId: recordIdInput,
+  outcome: z.literal('rejected'),
+  reason: text(PURCHASE_REASON_MAX),
+})
+export const DecideLineItemsSchema = z.strictObject({
+  decisions: z
+    .array(z.discriminatedUnion('outcome', [ApproveSchema, RejectSchema]))
+    .min(1)
+    .max(PURCHASE_ITEMS_MAX)
+    .refine(list => new Set(list.map(item => item.lineItemId)).size === list.length),
+})
+export type DecideLineItems = z.infer<typeof DecideLineItemsSchema>
 
 export interface PurchasePerson {
   id: string

@@ -131,8 +131,11 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   // 업무의 행사 칸은 행사를 만드는 길(기능 006)이 생길 때 연다.
   task: new Set(['eventId', 'event_id']),
   // 구매와 지출: 위의 것을 가리키는 칸은 만든 뒤 바꾸지 않는다. 품목의 예산 항목과 지출의 예산 항목·부탁한 사람·먼저 낸 사람만 바꿀 수 있다.
+  fiscal_period: new Set(['previousPeriodId', 'previous_period_id']),
   budget: new Set(['fiscalPeriodId', 'fiscal_period_id']),
-  budget_item: new Set(['budgetId', 'budget_id']),
+  budget_item: new Set(['budgetId', 'budget_id', 'eventId', 'event_id']),
+  // 지출의 행사와 계좌는 그것을 만드는 길(기능 006)이 생길 때 연다.
+  expense: new Set(['eventId', 'event_id', 'accountId', 'account_id']),
   line_item: new Set(['requestId', 'request_id']),
   payment_line: new Set(['expenseId', 'expense_id', 'lineItemId', 'line_item_id']),
   evidence: new Set(['expenseId', 'expense_id']),
@@ -146,6 +149,8 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
     'actor_id',
     'actorKind',
     'actor_kind',
+    'actedAt',
+    'acted_at',
   ]),
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서는 회장단이 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
