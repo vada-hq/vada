@@ -105,7 +105,7 @@ T1~T10과 작은 결정은 옛 설계의 사전 조사대로다(다시 조사하
 - 닿는 곳: `apps/web/src/tasks/`(상세·만들기 대화상자, 폼 선택지 계산), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 7. 알림을 누르면 그 업무가 열린다 [ ]
+### 7. 알림을 누르면 그 업무가 열린다 [x]
 - 할 수 있게 되는 것: 배정 알림을 누르면 그 학생회의 업무 화면과 그 업무 상세가 열린다.
 - 수용 기준: 앱이 닫혀 있어 `/tasks/{학생회}/{업무}`로 열리든, 열린 창에 서비스 워커가 그 주소를 알리든 그 업무 상세가 열리고 주소는 맨 앞으로 돌아간다. 같은 업무를 다시 눌러도 다시 열린다. 내 학생회가 아니거나, 다른 사이트이거나, 번호가 uuid가 아니면 아무것도 바뀌지 않는다. 지운 업무면 "이 업무를 볼 수 없어요. 지워졌을 수 있어요."가 보인다. 방 주소의 기존 시험은 그대로 통과한다.
 - 닿는 곳: `workspace/useChatLink.ts`(방이나 업무를 읽게 넓힌다), `workspace/pages.ts`, `App.tsx`, `auth/SignedInView.tsx`, `councils/MyCouncils.tsx`, `workspace/CouncilWorkspace.tsx`, `apps/web/src/tasks/`. `public/sw.js`는 고치지 않는다.

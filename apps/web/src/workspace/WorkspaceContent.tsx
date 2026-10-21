@@ -19,6 +19,7 @@ type Props = {
   tasks: TaskList
   page: Page
   roomId?: string | undefined
+  taskId?: string | undefined
 }
 
 function PageOf({
@@ -27,6 +28,7 @@ function PageOf({
   tasks,
   page,
   roomId,
+  taskId,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
@@ -42,7 +44,14 @@ function PageOf({
       />
     )
   if (page === 'tasks')
-    return <TasksPage view={view} onForbidden={data.reload} onChanged={() => void tasks.reload()} />
+    return (
+      <TasksPage
+        view={view}
+        initialTaskId={taskId}
+        onForbidden={data.reload}
+        onChanged={() => void tasks.reload()}
+      />
+    )
   if (page === 'people')
     return (
       <People
@@ -58,7 +67,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, tasks, page, roomId }: Props) {
+function Body({ data, rooms, tasks, page, roomId, taskId }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -83,6 +92,7 @@ function Body({ data, rooms, tasks, page, roomId }: Props) {
       tasks={tasks}
       page={page}
       roomId={roomId}
+      taskId={taskId}
       view={state.view}
       reading={state.reading}
     />

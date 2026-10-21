@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import type { MyCouncil } from '@vada/contracts'
 import PagePushBand from './PagePushBand'
 import type { Opener, Page, WorkspaceProps } from './pages'
@@ -18,13 +18,42 @@ type Props = Omit<WorkspaceProps, 'initialCouncilId' | 'chatLink'> & {
   startPage: Page
   // 알림으로 열 방. 대화가 이 방에서 시작한다.
   roomId: string | undefined
+  // 알림으로 열 업무. 업무 화면이 이 업무의 상세를 열고 시작한다.
+  taskId?: string | undefined
 }
 
-// 알림으로 연 방은 한 번만 쓴다. 다른 화면으로 가면 버리고, 대화로 돌아오면 방 목록이 열린다.
-function useOnceRoom(linked: string | undefined, page: Page) {
-  const [roomId, setRoomId] = useState(linked)
-  if (roomId && page !== 'chat') setRoomId(undefined)
-  return roomId
+// 알림으로 연 방이나 업무는 한 번만 쓴다. 다른 화면으로 가면 버리고, 돌아오면 목록이 열린다.
+function useOnceLinked(linked: string | undefined, page: Page, own: Page) {
+  const [id, setId] = useState(linked)
+  if (id && page !== own) setId(undefined)
+  return id
+}
+
+type Nav = ReturnType<typeof useWorkspaceNav>
+
+// 위 줄(학생회 이름, 화면 이름), 휴대폰 알림 안내, 본문.
+function CouncilMain({
+  council,
+  nav,
+  content,
+}: {
+  council: MyCouncil
+  nav: Nav
+  content: Omit<ComponentProps<typeof WorkspaceContent>, 'page'>
+}) {
+  return (
+    <>
+      <WorkspaceHeader
+        councilName={council.name}
+        section={pageTitles[nav.page].section}
+        title={pageTitles[nav.page].title}
+        menuRef={nav.headerMenu}
+        onMenu={() => nav.setNavOpen(true)}
+      />
+      <PagePushBand page={nav.page} />
+      <WorkspaceContent {...content} page={nav.page} />
+    </>
+  )
 }
 
 export default function CouncilWorkspace({
@@ -34,6 +63,7 @@ export default function CouncilWorkspace({
   returnFocusTo,
   startPage,
   roomId: linkedRoom,
+  taskId: linkedTask,
   user,
   logoutBusy,
   onLogout,
@@ -42,7 +72,8 @@ export default function CouncilWorkspace({
 }: Props) {
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo, startPage)
-  const roomId = useOnceRoom(linkedRoom, nav.page)
+  const roomId = useOnceLinked(linkedRoom, nav.page, 'chat')
+  const taskId = useOnceLinked(linkedTask, nav.page, 'tasks')
   const { rooms, unread, tasks, taskCount } = useWorkspaceLists(council.id, data)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
@@ -65,15 +96,7 @@ export default function CouncilWorkspace({
   )
   return (
     <WorkspaceFrame sidebar={sidebar} navOpen={nav.navOpen} onNavOpenChange={nav.setNavOpen}>
-      <WorkspaceHeader
-        councilName={council.name}
-        section={pageTitles[nav.page].section}
-        title={pageTitles[nav.page].title}
-        menuRef={nav.headerMenu}
-        onMenu={() => nav.setNavOpen(true)}
-      />
-      <PagePushBand page={nav.page} />
-      <WorkspaceContent data={data} rooms={rooms} tasks={tasks} page={nav.page} roomId={roomId} />
+      <CouncilMain council={council} nav={nav} content={{ data, rooms, tasks, roomId, taskId }} />
     </WorkspaceFrame>
   )
 }

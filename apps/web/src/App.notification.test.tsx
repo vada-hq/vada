@@ -5,6 +5,8 @@ import App from './App'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { json, mockApi } from './test-support/mock-api'
+import { taskDetail } from './test-support/task-detail-fixtures'
+import { TASK_LOST } from './lib/messages'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -103,6 +105,107 @@ test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대�
   fireEvent.click(within(aside).getByRole('button', { name: /^대화/ }))
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
+})
+
+const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+const taskCalls = () => api.calls.filter(call => call.path.includes('/tasks/'))
+function taskApi(id = 'c1', taskId = T1) {
+  api.on('GET', `/api/organizations/${id}/tasks/${taskId}`, () =>
+    json({ task: taskDetail({ title: '현수막 주문' }) }),
+  )
+}
+// 상세가 열리고 업무를 읽어 제목이 보일 때까지 기다린다.
+const taskDialog = async () => {
+  await waitFor(
+    () => expect(within(screen.getByRole('dialog')).getByText('현수막 주문')).toBeTruthy(),
+    { timeout: 5000 },
+  )
+  return '현수막 주문'
+}
+
+test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무 화면과 그 업무 상세가 열린다', async () => {
+  taskApi('c2')
+  window.history.replaceState(null, '', `/tasks/c2/${T1}`)
+  render(<App />)
+  expect(await taskDialog()).toContain('현수막 주문')
+  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  expect(api.calls.some(call => call.path === `/api/organizations/c2/tasks/${T1}`)).toBe(true)
+  expect(api.calls.some(call => call.path.startsWith('/api/organizations/c1/tasks/'))).toBe(false)
+  expect(window.location.pathname).toBe('/')
+})
+
+test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던 곳에서 그 업무 상세로 옮겨 간다', async () => {
+  taskApi()
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
+  expect(await taskDialog()).toContain('현수막 주문')
+  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+})
+
+test('같은 업무 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
+  taskApi()
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  const press = () =>
+    act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
+  press()
+  await taskDialog()
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  press()
+  expect(await taskDialog()).toContain('현수막 주문')
+})
+
+test.each([
+  ['내 학생회가 아닌', `/tasks/other/${T1}`],
+  ['다른 사이트의', `https://evil.example/tasks/c1/${T1}`],
+  ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
+])('%s 업무 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  const before = api.calls.length
+  act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(api.calls.length).toBe(before)
+  expect(taskCalls()).toEqual([])
+})
+
+test.each([
+  ['내 학생회가 아닌', `/tasks/other/${T1}`],
+  ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
+])('%s 업무 주소로 열면 첫 학생회의 대화가 열리고 업무는 읽지 않는다', async (_name, path) => {
+  window.history.replaceState(null, '', path)
+  render(<App />)
+  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(taskCalls()).toEqual([])
+})
+
+test('지운 업무의 알림을 누르면 "이 업무를 볼 수 없어요"가 보인다', async () => {
+  api.on('GET', `/api/organizations/c1/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
+  window.history.replaceState(null, '', `/tasks/c1/${T1}`)
+  render(<App />)
+  expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업무로 돌아오면 상세가 닫혀 있다', async () => {
+  taskApi()
+  window.history.replaceState(null, '', `/tasks/c1/${T1}`)
+  render(<App />)
+  await taskDialog()
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.click(within(aside).getByRole('button', { name: '사람' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
+  fireEvent.click(within(aside).getByRole('button', { name: /^업무/ }))
+  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
 
 test('로그아웃하는 동안 옆 메뉴의 로그아웃 단추는 막혀 한 번만 보낸다', async () => {

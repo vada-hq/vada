@@ -28,6 +28,8 @@ const overflow = (filter: TaskFilter) =>
 
 type Props = {
   view: CouncilView
+  // 알림으로 연 업무. 있으면 그 업무의 상세를 열고 시작한다.
+  initialTaskId?: string | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
@@ -115,7 +117,7 @@ function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: () => vo
 export default function TasksPage(props: Props) {
   const [view, setView] = useState<TaskView>('mine')
   const [filter, setFilter] = useState<TaskFilter>('open')
-  const dialogs = useTaskDialogState()
+  const dialogs = useTaskDialogState(props.initialTaskId)
   const councilId = props.view.council.id
   const list = useTasks(councilId, { view, filter }, props.onForbidden)
   const changed = () => {
