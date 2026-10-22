@@ -30,13 +30,7 @@ function show(closing = closingFixture(), canManage = true) {
   api.on('GET', CLOSING, () => json({ closing }))
   const openers = { onOpenExpense: vi.fn(), onOpenRequest: vi.fn(), onOpenEvent: vi.fn() }
   render(
-    <ClosingTab
-      councilId="c1"
-      canManage={canManage}
-      onForbidden={vi.fn()}
-      openers={openers}
-      exportReady
-    />,
+    <ClosingTab councilId="c1" canManage={canManage} onForbidden={vi.fn()} openers={openers} />,
   )
 }
 
@@ -95,12 +89,34 @@ test('증빙 묶음이 오류 코드로 거절되면 문구를 버튼 옆에 보
   expect((await screen.findByRole('alert')).textContent).toBe(CLOSING_ERRORS.EXPORT_TOO_LARGE)
 })
 
-test('상한을 넘으면 묶음 버튼이 꺼지고 이유가 보인다', async () => {
+test.each([
+  {
+    name: '엑셀 상한',
+    info: { workbookTooLarge: true },
+    off: '감사용 엑셀',
+    reason: '엑셀을 받을 수 없어요',
+    on: '증빙 묶음 받기',
+  },
+  {
+    name: '묶음 상한',
+    info: { bundleTooLarge: true },
+    off: '증빙 묶음 받기',
+    reason: '묶음을 받을 수 없어요',
+    on: '감사용 엑셀',
+  },
+  {
+    name: '저장소 없음',
+    info: { bundleAvailable: false },
+    off: '증빙 묶음 받기',
+    reason: '묶음을 만들 수 없어요',
+    on: '감사용 엑셀',
+  },
+])('$name이면 그 버튼만 꺼지고 이유가 보인다', async ({ info, off, reason, on }) => {
   const closing = closingFixture({ actions: [...FINANCE] })
-  show({ ...closing, exportInfo: { ...closing.exportInfo, tooLarge: true } })
-  const bundle = await screen.findByRole('button', { name: '증빙 묶음 받기' })
-  expect(bundle).toHaveProperty('disabled', true)
-  expect(screen.getByText(/묶음을 받을 수 없어요/)).toBeTruthy()
+  show({ ...closing, exportInfo: { ...closing.exportInfo, ...info } })
+  expect(await screen.findByRole('button', { name: off })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: on })).toHaveProperty('disabled', false)
+  expect(screen.getByText(new RegExp(reason))).toBeTruthy()
 })
 
 test('받기가 거절되면 문구를 버튼 옆에 보이고, 받는 동안은 다시 누를 수 없다', async () => {
@@ -135,7 +151,6 @@ test('확인을 연 동안 감사용 동작이 서버 동작에서 빠지면 확
       canManage
       onForbidden={vi.fn()}
       openers={{ onOpenExpense: vi.fn(), onOpenRequest: vi.fn(), onOpenEvent: vi.fn() }}
-      exportReady
     />,
   )
   fireEvent.click(await screen.findByRole('button', { name: '감사용 엑셀' }))

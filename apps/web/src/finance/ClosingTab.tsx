@@ -20,7 +20,6 @@ import {
   ClosingNumbers,
 } from './ClosingSections'
 import { ClosingStatusBadge } from './ClosingStatusBadge'
-import { CLOSING_EXPORT_READY } from './closing-export'
 import { defaultClosingPeriod } from './closing-view'
 import { chosenPeriod, PeriodSelect } from './PeriodSelect'
 import { useClosing, useClosingChange, type ClosingRead } from './useClosing'
@@ -32,16 +31,13 @@ type Props = {
   canManage: boolean
   onForbidden: () => void
   openers: ClosingOpeners
-  // 내보내기 버튼을 보일지. 서버가 파일을 주기 전까지 숨긴다(`closing-export.ts`).
-  exportReady?: boolean
 }
 
 function ClosingBody({
   read,
   ...rest
-}: Omit<Props, 'exportReady' | 'onForbidden'> & {
+}: Omit<Props, 'onForbidden'> & {
   read: ClosingRead
-  exportReady: boolean
   change: ReturnType<typeof useClosingChange>
 }) {
   const { state } = read
@@ -64,11 +60,9 @@ function ClosingView({
   councilId,
   canManage,
   openers,
-  exportReady,
   change,
-}: Omit<Props, 'onForbidden' | 'exportReady'> & {
+}: Omit<Props, 'onForbidden'> & {
   closing: Closing
-  exportReady: boolean
   change: ReturnType<typeof useClosingChange>
 }) {
   return (
@@ -85,7 +79,7 @@ function ClosingView({
       <ClosingExpenseSection closing={closing} />
       <ClosingAccountsSection closing={closing} />
       <ClosingChecks closing={closing} openers={openers} />
-      {exportReady && <ClosingExport councilId={councilId} closing={closing} />}
+      <ClosingExport councilId={councilId} closing={closing} />
     </>
   )
 }
@@ -96,18 +90,16 @@ function PeriodClosing({
   period,
   onChanged,
   onForbidden,
-  exportReady,
   ...rest
-}: Omit<Props, 'exportReady'> & {
+}: Props & {
   period: FiscalPeriodSummary
   onChanged: () => void
-  exportReady: boolean
 }) {
   const hidden = period.status === 'draft' && !rest.canManage
   const read = useClosing(rest.councilId, period.id, !hidden, onForbidden)
   const change = useClosingChange(rest.councilId, period.id, read, { onChanged, onForbidden })
   if (hidden) return <StateMessage kind="notice">{CLOSING_HIDDEN}</StateMessage>
-  return <ClosingBody read={read} change={change} exportReady={exportReady} {...rest} />
+  return <ClosingBody read={read} change={change} {...rest} />
 }
 
 // 기본 기간은 목록을 처음 읽었을 때 한 번만 정해 둔다. 공개해서 목록이 바뀌어도 보던 기간에 남는다.
@@ -119,7 +111,7 @@ function usePinnedPeriod(list: FiscalPeriodSummary[], today: string) {
 }
 
 // 결산 탭: 기간을 고르고(기본은 끝났고 공개하지 않은 가장 이른 기간, 없으면 지금 기간) 그 기간의 결산서를 본다.
-export function ClosingTab({ exportReady = CLOSING_EXPORT_READY, ...props }: Props) {
+export function ClosingTab(props: Props) {
   const periods = usePeriods(props.councilId, props.onForbidden)
   const today = koreanDateOf(useNow())
   const list = periods.state.kind === 'ready' ? periods.state.data.periods : []
@@ -139,7 +131,7 @@ export function ClosingTab({ exportReady = CLOSING_EXPORT_READY, ...props }: Pro
       <PeriodClosing
         key={period.id}
         period={period}
-        exportReady={exportReady}
+
         onChanged={() => void periods.reload()}
         {...props}
       />

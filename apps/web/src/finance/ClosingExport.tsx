@@ -12,8 +12,11 @@ const AUDIT_WARNING =
   '이 파일에는 운영진 이름, 계좌번호, 예금주, 영수증 사진이 들어 있어요. 감사에 내는 용도로만 쓰고, 받은 파일은 다른 사람에게 넘기지 않도록 보관해 주세요.'
 const PUBLIC_NOTE =
   '공개용 파일에는 이름, 계좌번호, 사진이 없어요. 다만 지출 내용과 사유에 사람이 직접 쓴 이름은 걸러지지 않아요.'
-const TOO_LARGE_NOTE =
+const BUNDLE_TOO_LARGE_NOTE =
   '증빙이 너무 많아서(사진 2,000장이나 1GB 초과) 묶음을 받을 수 없어요. VADA 팀에 부탁해 주세요.'
+const WORKBOOK_TOO_LARGE_NOTE =
+  '지출이나 수입이 너무 많아서(각 1,000건 초과) 엑셀을 받을 수 없어요. VADA 팀에 부탁해 주세요.'
+const NO_STORAGE_NOTE = '지금은 증빙 묶음을 만들 수 없어요. 엑셀은 받을 수 있어요.'
 
 type AuditKind = Exclude<ExportKind, 'public'>
 const AUDIT_TITLE: Record<AuditKind, string> = {
@@ -21,10 +24,14 @@ const AUDIT_TITLE: Record<AuditKind, string> = {
   bundle: '증빙 묶음을 받을까요?',
 }
 
-// 버튼을 끌지의 판단은 이 함수 하나다. 지금은 서버의 tooLarge 하나가 엑셀 상한과 묶음 상한을 함께 뜻하므로 묶음만 끈다.
-// 계약이 엑셀과 묶음으로 나뉘면 여기만 바꾼다.
-const isBlocked = (closing: Closing, kind: AuditKind) =>
-  kind === 'bundle' && closing.exportInfo.tooLarge
+// 버튼을 끌지와 그 이유는 이 함수 하나다. 엑셀은 줄 수 상한만, 묶음은 사진 수·크기 상한과 파일 저장소 유무도 본다.
+// 끄지 않으면 null이다.
+function blockedReason(closing: Closing, kind: AuditKind) {
+  const info = closing.exportInfo
+  if (kind === 'audit') return info.workbookTooLarge ? WORKBOOK_TOO_LARGE_NOTE : null
+  if (!info.bundleAvailable) return NO_STORAGE_NOTE
+  return info.bundleTooLarge ? BUNDLE_TOO_LARGE_NOTE : null
+}
 
 type ButtonsProps = {
   closing: Closing
@@ -45,14 +52,18 @@ function ExportButtons({ closing, busy, onPublic, onAudit }: ButtonsProps) {
         </Button>
       )}
       {canAudit && (
-        <Button variant="outline" disabled={busy} onClick={() => onAudit('audit')}>
+        <Button
+          variant="outline"
+          disabled={busy || blockedReason(closing, 'audit') !== null}
+          onClick={() => onAudit('audit')}
+        >
           감사용 엑셀
         </Button>
       )}
       {canAudit && (
         <Button
           variant="outline"
-          disabled={busy || isBlocked(closing, 'bundle')}
+          disabled={busy || blockedReason(closing, 'bundle') !== null}
           onClick={() => onAudit('bundle')}
         >
           증빙 묶음 받기
@@ -64,13 +75,21 @@ function ExportButtons({ closing, busy, onPublic, onAudit }: ButtonsProps) {
 
 function ExportNotes({ closing }: { closing: Closing }) {
   const canAudit = closing.actions.includes('closing.export_audit')
+  const reasons = canAudit
+    ? (['audit', 'bundle'] as const).map(kind => blockedReason(closing, kind))
+    : []
   return (
     <>
       {closing.actions.includes('closing.export_public') && (
         <p className="text-xs text-gray-500">{PUBLIC_NOTE}</p>
       )}
-      {canAudit && isBlocked(closing, 'bundle') && (
-        <StateMessage kind="notice">{TOO_LARGE_NOTE}</StateMessage>
+      {reasons.map(
+        reason =>
+          reason && (
+            <StateMessage key={reason} kind="notice">
+              {reason}
+            </StateMessage>
+          ),
       )}
     </>
   )

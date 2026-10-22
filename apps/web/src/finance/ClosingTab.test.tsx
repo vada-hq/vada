@@ -240,11 +240,11 @@ test('권한이 바뀌어 읽기가 403이면 학생회를 다시 읽게 한다'
   expect(api.calls.some(call => call.path === CLOSING)).toBe(true)
 })
 
-test('내보내기 버튼은 서버가 파일을 주기 전까지 숨겨져 있다', async () => {
-  serve()
+test('내보내기 버튼은 서버 동작대로 보인다', async () => {
+  serve(closingFixture({ actions: ['closing.export_public'] }))
   await show()
-  await screen.findByText('작성 중')
-  expect(screen.queryByRole('button', { name: '공개용 엑셀' })).toBeNull()
+  expect(await screen.findByRole('button', { name: '공개용 엑셀' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '감사용 엑셀' })).toBeNull()
   expect(screen.queryByRole('button', { name: '증빙 묶음 받기' })).toBeNull()
 })
 
