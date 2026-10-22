@@ -45,7 +45,7 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
 })
 
-test('탭은 구매 요청, 지출, 예산이다', async () => {
+test('탭은 구매 요청, 지출, 예산, 계좌다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show()
@@ -54,6 +54,7 @@ test('탭은 구매 요청, 지출, 예산이다', async () => {
     '구매 요청',
     '지출',
     '예산',
+    '계좌',
   ])
 })
 

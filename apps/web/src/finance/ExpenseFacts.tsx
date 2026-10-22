@@ -23,6 +23,7 @@ export function ExpenseFacts({ expense }: { expense: ExpenseDetail }) {
           {monthDay(expense.paidOn)} · {METHOD_LABEL[expense.method]}
         </span>
         <span className="wrap-anywhere">{paidByLabel(expense)}</span>
+        {expense.account && <span className="wrap-anywhere">계좌 {expense.account.name}</span>}
         {expense.budgetItem && (
           <span className="wrap-anywhere">예산 항목 {expense.budgetItem.purpose}</span>
         )}

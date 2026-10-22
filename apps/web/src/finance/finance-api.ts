@@ -18,3 +18,8 @@ export const councilPath = (councilId: string) =>
 export const budgetPath = (councilId: string) => `${councilPath(councilId)}/budget`
 export const fiscalPeriodsPath = (councilId: string) => `${councilPath(councilId)}/fiscal-periods`
 export const budgetItemsPath = (councilId: string) => `${councilPath(councilId)}/budget-items`
+export const accountsPath = (councilId: string) => `${councilPath(councilId)}/accounts`
+export const accountPath = (councilId: string, accountId: string) =>
+  `${accountsPath(councilId)}/${encodeURIComponent(accountId)}`
+export const accountClosePath = (councilId: string, accountId: string) =>
+  `${accountPath(councilId, accountId)}/close`

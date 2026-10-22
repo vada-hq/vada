@@ -118,7 +118,7 @@
 - 닿는 곳: `apps/web/src/events/`(새), `tasks/`(만들기 폼, 카드, 상세), `workspace/`(`pages.ts`, `SidebarNav.tsx`, `WorkspaceContent.tsx`), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 8. 계좌 화면과 지출의 계좌 고르기 [ ]
+### 8. 계좌 화면과 지출의 계좌 고르기 [x]
 - 할 수 있게 되는 것: 재정부가 휴대폰에서 계좌를 두고 고치고 닫으며, 지출을 적을 때 계좌가 대표 계좌로 채워진다.
 - 수용 기준: 재정 화면에 '계좌' 탭이 있고 카드에 이름, 은행, 계좌번호, 예금주, 종류, 닫힘이 보인다(`wrap-anywhere`). [계좌 더하기], [고치기], [닫기](확인을 거친다)는 `finance.manage`가 있을 때만 보인다. 지출 적기에 '계좌'(없음과 닫지 않은 계좌)가 있고 대표 계좌로 채워진다. 지출 상세에 계좌가 보인다. 두 번 누름, 409 문구, 404·403을 시험한다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/finance/`(`FinanceTabs.tsx`, 계좌 탭 새, `ExpenseCreateDialog.tsx`, `ExpenseFacts.tsx`), `lib/messages.ts`, `ui-gallery/`.
