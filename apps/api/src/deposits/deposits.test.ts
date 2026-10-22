@@ -199,7 +199,10 @@ test(
     assert.equal(await allDeposits(t), 1)
     const second = (await started(t, { ...kim, name: '박동시' })).id
     const results = await Promise.all([confirm(t, second), confirm(t, second)])
-    assert.deepEqual(results.map(r => r.status).sort(), [201, 409])
+    assert.deepEqual(
+      results.map(r => r.status).sort((a, b) => a - b),
+      [201, 409],
+    )
     assert.equal(await allDeposits(t), 2)
   }),
 )

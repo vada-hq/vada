@@ -31,4 +31,6 @@ export interface DepositResponse {
 // 신청자 목록 거르기: 입금을 확인한 신청, 환불 대기 신청
 export const APPLICANT_FILTERS = ['deposited', 'refund_pending'] as const
 export type ApplicantFilter = (typeof APPLICANT_FILTERS)[number]
-export const ApplicantsQuerySchema = z.strictObject({ filter: z.enum(APPLICANT_FILTERS).optional() })
+export const ApplicantsQuerySchema = z.strictObject({
+  filter: z.enum(APPLICANT_FILTERS).optional(),
+})

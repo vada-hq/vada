@@ -63,23 +63,9 @@ export type AppOptions = {
 export function createApp({
   auth,
   trustedOrigin,
-  councils,
-  invites,
-  team,
-  chat,
-  push,
-  pushDevices,
-  tasks,
-  purchases,
-  budget,
-  expenses,
   agreement,
-  events,
-  accounts,
-  registrations,
-  deposits,
-  feePayments,
   publicRegistrations,
+  ...modules
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -93,24 +79,8 @@ export function createApp({
   // better-auth는 출처 검사 전에 본문 전체를 읽으므로 크기만 먼저 제한한다.
   app.use('/api/auth/*', limitBody())
   app.on(['GET', 'POST'], '/api/auth/*', c => auth.handler(c.req.raw))
-  for (const routes of [
-    councils,
-    invites,
-    team,
-    chat,
-    push,
-    pushDevices,
-    tasks,
-    purchases,
-    budget,
-    expenses,
-    agreement?.routes,
-    events,
-    accounts,
-    registrations,
-    deposits,
-    feePayments,
-  ])
+  // 모듈은 AppOptions에 적힌 차례로 붙는다. 가입 동의(gate와 routes가 한 쌍)와 공개 경로(환경 타입이 다르다)만 따로 붙인다.
+  for (const routes of [agreement?.routes, ...Object.values(modules)])
     if (routes) app.route('/api', routes)
   // 공개 경로는 로그인 세션을 쓰지 않아 환경 타입이 다르다.
   if (publicRegistrations) app.route('/api', publicRegistrations)
