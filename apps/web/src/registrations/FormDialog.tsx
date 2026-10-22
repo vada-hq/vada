@@ -89,7 +89,7 @@ export function FormDialog({ councilId, eventId, form, onClose, onDone, ...handl
             ])}
           />
           <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
-            취소
+            닫기
           </Button>
           <Button type="submit" disabled={!valid || saving}>
             {mode.submit}

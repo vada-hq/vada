@@ -245,7 +245,8 @@ test('이름 바꾸기는 이름을 비우면 버튼이 꺼지고, 대화상자�
   expect(
     asElement(within(dialog).getByRole('button', { name: '바꾸기' }), HTMLButtonElement).disabled,
   ).toBe(true)
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  // 버튼 줄의 [닫기]. 오른쪽 위 ×도 이름이 '닫기'라 첫째를 누른다.
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await noDialog()
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '기획부 동작' })),

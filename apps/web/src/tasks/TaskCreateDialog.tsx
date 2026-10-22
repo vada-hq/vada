@@ -125,7 +125,7 @@ function CreateForm({ view, team, events, saving, setSaving, ...props }: FormPro
       <DialogFooter>
         <MissingHint missing={missingLabels([['제목', form.fields.title]])} />
         <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
-          취소
+          닫기
         </Button>
         <Button type="submit" disabled={!create.valid || saving}>
           만들기

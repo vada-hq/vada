@@ -46,7 +46,7 @@ export function EventForm(props: Props) {
       <DialogFooter>
         <MissingHint missing={missingLabels([['이름', props.values.name]])} />
         <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
-          취소
+          닫기
         </Button>
         <Button type="submit" disabled={!props.valid || props.saving}>
           {props.submitLabel}

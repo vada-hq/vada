@@ -76,7 +76,7 @@ function OwnerForm({ councilId, event, team, saving, setSaving, onClose, ...hand
       {submit.problem && <StateMessage kind="error">{submit.problem}</StateMessage>}
       <DialogFooter>
         <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
-          취소
+          닫기
         </Button>
         <Button type="submit" disabled={unchanged || saving}>
           저장
