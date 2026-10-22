@@ -4,7 +4,7 @@
 
 # 010 직급마다의 홈
 
-상한: 6시간(실제로 도는 시간). 시작은 008이 닫힌 뒤 진행 에이전트가 적는다. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/010-조각번호`, 진행 기록은 `.superpowers/sdd/010/progress.md`, 이슈: 열 예정(vada-hq/vada-docs#19 묶음 아래). 주인이 2026-10-23 "홈 먼저"라고 정해 009보다 앞에 만든다. 정산·완료는 main에 있는 008 조각 1~3과 `docs/features/008-event-settlement.md`를 기준으로 하고, 어긋나면 008을 따르고 `Ruling:`으로 적는다.
+상한: 6시간(실제로 도는 시간). 시작은 008이 닫힌 뒤 진행 에이전트가 적는다. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/010-조각번호`, 진행 기록은 `.superpowers/sdd/010/progress.md`, 이슈: vada-hq/vada-docs#63(vada-hq/vada-docs#19 묶음 아래). 주인이 2026-10-23 "홈 먼저"라고 정해 009보다 앞에 만든다. 정산·완료는 main에 있는 008 조각 1~3과 `docs/features/008-event-settlement.md`를 기준으로 하고, 어긋나면 008을 따르고 `Ruling:`으로 적는다.
 
 ## 왜
 
