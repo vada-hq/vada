@@ -415,6 +415,22 @@ test('요청을 비우면 지출의 행사 잠금이 풀린다', async () => {
   await waitFor(() => expect(select().disabled).toBe(true))
   choose('결제할 요청', '')
   await waitFor(() => expect(select().disabled).toBe(false))
+  // 요청에서 채운 행사는 요청을 비우면 함께 지운다.
+  expect(select().value).toBe('')
+})
+
+test('요청에서 채운 행사는 직접 적기로 바꿔도 지운다', async () => {
+  serveWithEvent()
+  showFinance()
+  await openForm()
+  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  await waitFor(() => expect(select().disabled).toBe(false))
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', 'r1')
+  await waitFor(() => expect(select().value).toBe(SPRING))
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  await waitFor(() => expect(select().value).toBe(''))
+  expect(select().disabled).toBe(false)
 })
 
 test('요청 없이 적을 때 예산 항목 고르기에는 지출 항목만 보인다', async () => {

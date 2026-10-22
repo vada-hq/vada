@@ -89,11 +89,41 @@ function ViewFilter({
   )
 }
 
+// 환불을 표시했다는 알림과, 잘린 목록 안내(거른 뒤에는 잘린 앞부분 안에서만 찾은 것이다).
+function ListNotices({
+  notice,
+  truncated,
+  filtered,
+}: {
+  notice: string | null
+  truncated: boolean
+  filtered: boolean
+}) {
+  return (
+    <>
+      {notice && <StateMessage kind="notice">{notice}</StateMessage>}
+      {truncated && (
+        <StateMessage kind="notice">
+          {filtered
+            ? '신청이 많아 앞의 일부 안에서만 찾았어요. 뒤쪽 신청은 여기에 없을 수 있어요.'
+            : '신청이 많아 앞의 일부만 보여요.'}
+        </StateMessage>
+      )}
+    </>
+  )
+}
+
 function ApplicantItems({ data, onReload, attendance, onCancelled, ...rest }: ItemsProps) {
   const [query, setQuery] = useState('')
   const [view, setView] = useState<ApplicantView>('all')
   const { rows, cancelled, deposited } = useApplicantRows(data.applicants, onCancelled)
+  const [notice, setNotice] = useState<string | null>(null)
   const word = query.trim()
+  const filtered = word !== '' || view !== 'all'
+  const onDeposit: typeof deposited = (id, deposit) => {
+    deposited(id, deposit)
+    setNotice(deposit.status === 'refunded' ? '환불을 표시했어요.' : null)
+  }
   const shown = rows.filter(
     item => inView(item, view) && (word === '' || matches(word, item.name, item.studentId)),
   )
@@ -111,10 +141,10 @@ function ApplicantItems({ data, onReload, attendance, onCancelled, ...rest }: It
         </Button>
       </div>
       <ViewFilter view={view} onChange={setView} />
-      {data.truncated && <StateMessage kind="notice">신청이 많아 앞의 일부만 보여요.</StateMessage>}
+      <ListNotices notice={notice} truncated={data.truncated} filtered={filtered} />
       {shown.length === 0 ? (
         <StateMessage kind="empty">
-          {word === '' && view === 'all' ? '아직 신청한 사람이 없어요.' : '찾는 신청자가 없어요.'}
+          {!filtered ? '아직 신청한 사람이 없어요.' : '찾는 신청자가 없어요.'}
         </StateMessage>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -124,7 +154,7 @@ function ApplicantItems({ data, onReload, attendance, onCancelled, ...rest }: It
               applicant={item}
               attended={attendance.get(item.id) ?? item.attended}
               onCancelled={cancelled}
-              onDeposit={deposited}
+              onDeposit={onDeposit}
               {...rest}
             />
           ))}

@@ -70,7 +70,13 @@ export function ApplicantRow({ applicant, attended, can, onDeposit, ...rest }: P
           {...handlers}
         />
       )}
-      <DepositActions applicant={applicant} can={can} onDeposit={onDeposit} {...handlers} />
+      <DepositActions
+        applicant={applicant}
+        can={can}
+        onDeposit={onDeposit}
+        onGone={() => onCancelled(applicant.id, false)}
+        {...handlers}
+      />
     </li>
   )
 }

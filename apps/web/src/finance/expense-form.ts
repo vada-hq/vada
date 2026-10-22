@@ -61,6 +61,7 @@ export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValue
   amount: '',
   budgetItemId: null,
   requestedBy: null,
+  eventId: values.eventLocked ? null : values.eventId,
   eventLocked: false,
 })
 

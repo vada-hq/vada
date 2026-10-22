@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { BudgetResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
 import { periodRange } from './budget-form'
@@ -19,14 +20,23 @@ type Props = {
 }
 
 function Items({ items }: { items: BudgetResponse['items'] }) {
-  if (items.length === 0)
-    return <StateMessage kind="empty">지출 예산 항목이 아직 없어요.</StateMessage>
+  if (items.length === 0) return <StateMessage kind="empty">예산 항목이 아직 없어요.</StateMessage>
   return (
-    <ul aria-label="지출 예산 항목" className="flex flex-col gap-2">
+    <ul aria-label="예산 항목" className="flex flex-col gap-2">
       {items.map(item => (
         <li key={item.id}>
           <Card className="flex items-start justify-between gap-3 p-3 text-sm">
-            <span className="min-w-0 wrap-anywhere text-gray-900">{item.purpose}</span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="wrap-anywhere text-gray-900">{item.purpose}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone={item.type === 'income' ? 'info' : 'neutral'}>
+                  {item.type === 'income' ? '수입' : '지출'}
+                </Badge>
+                {item.event && (
+                  <span className="text-xs text-gray-500 wrap-anywhere">{item.event.name}</span>
+                )}
+              </div>
+            </div>
             <span className="shrink-0 font-medium text-gray-700">{wonLabel(item.amount)}</span>
           </Card>
         </li>

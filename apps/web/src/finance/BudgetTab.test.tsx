@@ -107,7 +107,7 @@ test('기간이 있으면 이름, 기간, 지출 항목과 [항목 더하기]가
   show(FINANCE_PERMISSIONS, budgetWithPeriod())
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
   expect(screen.getByText('2026-09-01 ~ 2027-02-28')).toBeTruthy()
-  const list = screen.getByRole('list', { name: '지출 예산 항목' })
+  const list = screen.getByRole('list', { name: '예산 항목' })
   expect(within(list).getByText('행사 홍보')).toBeTruthy()
   expect(within(list).getByText('300,000원')).toBeTruthy()
   expect(screen.getByRole('button', { name: '항목 더하기' })).toBeTruthy()
@@ -192,4 +192,22 @@ test('금액 칸은 숫자만 받는다(1e3, 0x10 거부)', async () => {
   }
   fill('금액(원)', '0')
   expect(button('더하기').disabled).toBe(false)
+})
+
+test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이름이 보인다', async () => {
+  const budget = budgetWithPeriod()
+  budget.items.push({
+    id: '55555555-5555-4555-8555-555555555599',
+    purpose: '참가비',
+    amount: 100000,
+    type: 'income',
+    event: { id: 'e1', name: '봄 축제' },
+  })
+  show(FINANCE_PERMISSIONS, budget)
+  const list = await screen.findByRole('list', { name: '예산 항목' })
+  const income = within(list).getByText('참가비').closest('li') as HTMLElement
+  expect(within(income).getByText('수입')).toBeTruthy()
+  expect(within(income).getByText('봄 축제')).toBeTruthy()
+  const spend = within(list).getByText('소모품').closest('li') as HTMLElement
+  expect(within(spend).getByText('지출')).toBeTruthy()
 })

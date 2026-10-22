@@ -40,7 +40,8 @@ function withRequest(
     ...values,
     requestId,
     lines: [],
-    eventId: event ? event.id : values.eventId,
+    // 전에 요청에서 채워 잠근 행사는 요청을 비우거나 행사 없는 요청으로 바꾸면 함께 지운다.
+    eventId: event ? event.id : values.eventLocked ? null : values.eventId,
     eventLocked: event !== null,
   }
 }

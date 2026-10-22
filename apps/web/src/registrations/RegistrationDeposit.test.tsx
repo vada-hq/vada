@@ -37,6 +37,7 @@ type Options = {
   actions?: RegistrationAction[]
   permissions?: Action[]
   applicants?: Applicant[]
+  truncated?: boolean
 }
 
 async function open(options: Options = {}) {
@@ -49,7 +50,10 @@ async function open(options: Options = {}) {
     }),
   )
   api.on('GET', APPLICANTS_PATH, () =>
-    json({ applicants: options.applicants ?? [applicant()], truncated: false }),
+    json({
+      applicants: options.applicants ?? [applicant()],
+      truncated: options.truncated ?? false,
+    }),
   )
   api.on('GET', '/api/organizations/c1/accounts', () => json({ accounts: [], truncated: false }))
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
@@ -148,6 +152,7 @@ test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 
   fireEvent.click(within(dialog).getByRole('button', { name: '환불함' }))
   await waitFor(() => expect(screen.queryByText('김새내')).toBeNull())
   expect(posts(api)[0]?.body).toEqual({ amount: 3000 })
+  expect(screen.getByText('환불을 표시했어요.')).toBeTruthy()
 })
 
 test('입금한 신청을 취소하면 줄이 환불 대기로 바뀌고 학번만 지워진다고 알린다', async () => {
@@ -208,6 +213,8 @@ test.each(LOSSES)('입금 확인이 $status면 창을 닫고 이유를 부모에
   fireEvent.click(within(dialog).getByRole('button', { name: step.dialog }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(await screen.findByText(step.lost)).toBeTruthy()
+  // 신청이 없어졌으면(404) 줄도 뺀다.
+  expect(screen.queryByText('김새내') === null).toBe(step.status === 404)
   expect(handlers.onForbidden).toHaveBeenCalledTimes(step.status === 403 ? 1 : 0)
 })
 
@@ -231,4 +238,12 @@ test('확인 취소가 409(환불한 입금)면 창 안에 문구가 보인다',
   fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '사유' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '확인 취소' }))
   expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.DEPOSIT_CLOSED!)).toBeTruthy()
+})
+
+test('신청이 많아 잘렸으면 거른 뒤에도 일부 안에서만 찾았다고 알린다', async () => {
+  await open({ truncated: true })
+  expect(screen.getByText('신청이 많아 앞의 일부만 보여요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '환불 대기' }))
+  expect(screen.getByText(/앞의 일부 안에서만 찾았어요/)).toBeTruthy()
+  expect(screen.getByText('찾는 신청자가 없어요.')).toBeTruthy()
 })
