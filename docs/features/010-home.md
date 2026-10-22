@@ -95,7 +95,7 @@
 - 닿는 곳: `apps/web/src/home/`(새: `HomePage.tsx`, `useHome.ts`, `home-view.ts`, 부분 부품), `workspace/pages.ts`·`Workspace.tsx`(`startPageOf`)·`SidebarNav.tsx`·`WorkspaceContent.tsx`·`CouncilWorkspace.tsx`, 기존 첫 화면 시험(`Workspace.link.test.tsx`, `CouncilWorkspace.*.test.tsx`), `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 5. 부서, 학생회, 받은 것 화면 [ ]
+### 5. 부서, 학생회, 받은 것 화면 [x]
 - 할 수 있게 되는 것: 부장, 회장단, 재정부가 자기 부분을 홈에서 보고 줄을 눌러 그 기록으로 간다.
 - 수용 기준: 응답에 있는 부분만 '정한 것'의 차례로 보인다. 내 부서 카드에 수와 지난·담당자 없는 업무 줄이, 학생회에 행사 카드(상태 배지, 기간, 책임자, 업무 끝남/전체, 지남, 담당자 없음, 끝난 행사는 "정산에 남은 것 N" 또는 "완료할 수 있어요")와 부서별 막힌 곳과 지난 업무 줄이, 받은 것에 요청 줄(제목, 요청한 사람, 낸 날)이, 정산할 행사에 행사 줄이 보인다. 업무 줄은 업무 상세로, 요청 줄은 재정 화면의 그 요청 상세로, 행사 카드는 그 행사로(정산 수가 있으면 '돈' 탭) 간다. 잘렸으면 알리고 "모두 보기"가 원래 화면으로 간다. 행사가 없으면 회장단에게 [새 행사]가 보인다. 결재하고 홈으로 돌아오면 그 줄이 없다. 390px과 데스크톱으로 확인하고 와이어프레임 홈 노드와 비교한다.
 - 닿는 곳: `apps/web/src/home/`(부분 부품), `events/EventsPage.tsx`(처음 열 탭), `workspace/CouncilWorkspace.tsx`(행사 열기), `lib/messages.ts`, `ui-gallery/`.

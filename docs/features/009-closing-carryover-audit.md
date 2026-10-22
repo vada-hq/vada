@@ -4,7 +4,7 @@
 
 # 009 결산과 이월, 감사 증빙 묶음
 
-상한: 6시간(실제로 도는 시간). 시작은 010이 닫힌 뒤 진행 에이전트가 적는다(만드는 차례는 008 → 010 → 009). 양식은 `docs/work-method.md`를 따른다. 가지는 `work/009-조각번호`, 진행 기록은 `.superpowers/sdd/009/progress.md`, 이슈는 vada-hq/vada-docs#52다. 008(`docs/features/008-event-settlement.md`, main fafb88e)의 수입 기록 종류, 참가비 수입, 완료 잠금, 수입 예산 항목에 맞춰 2026-10-23에 다시 썼다. 008 명세나 코드가 이 문서와 어긋나면 008을 따르고 `Ruling:`으로 적는다.
+상한: 6시간(실제로 도는 시간). 시작 2026-10-23 05:55(010 닫기와 겹쳐 시작, 만드는 차례는 008 → 010 → 009). 양식은 `docs/work-method.md`를 따른다. 가지는 `work/009-조각번호`, 진행 기록은 `.superpowers/sdd/009/progress.md`, 이슈는 vada-hq/vada-docs#52다. 008(`docs/features/008-event-settlement.md`, main fafb88e)의 수입 기록 종류, 참가비 수입, 완료 잠금, 수입 예산 항목에 맞춰 2026-10-23에 다시 썼다. 008 명세나 코드가 이 문서와 어긋나면 008을 따르고 `Ruling:`으로 적는다.
 
 ## 왜
 
