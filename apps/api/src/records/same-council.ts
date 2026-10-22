@@ -131,6 +131,7 @@ const ownersOf: Partial<
     ...(await optional(tx, field(v, 'budgetItemId', 'budget_item_id'))),
     ...(await optional(tx, field(v, 'accountId', 'account_id'))),
   ],
+  account_closing: (tx, _, v) => optional(tx, field(v, 'fiscalPeriodId', 'fiscal_period_id')),
   notification: async (tx, councilId, v) => [
     await councilOfRecord(tx, v.recordId),
     await councilOfMember(tx, v.recipientId, councilId),

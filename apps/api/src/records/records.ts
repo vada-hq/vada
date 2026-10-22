@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import {
   account,
+  accountClosing,
   approval,
   attendance,
   budget,
@@ -69,6 +70,7 @@ const tables = {
   attendance,
   deposit,
   income,
+  account_closing: accountClosing,
   fee_payment: feePayment,
 }
 export type RecordKind = keyof typeof tables
@@ -194,6 +196,8 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
     'accountId',
     'account_id',
   ]),
+  // 결산의 회계 기간은 만든 뒤 바꾸지 않는다. 공개 여부(published_at)만 바뀐다(DEC-70).
+  account_closing: new Set(['fiscalPeriodId', 'fiscal_period_id']),
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서와 행사, 행사의 책임자는 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
 const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {

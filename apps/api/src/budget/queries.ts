@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, lt, lte, type SQL } from 'drizzle-orm'
 import { koreanDateOf, type BudgetItemType, type BudgetResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { budget, budgetItem, cohort, event, fiscalPeriod, record } from '../db/schema.js'
@@ -37,6 +37,24 @@ export function currentPeriodOf(db: Reader, actor: Actor, now: Date) {
 }
 
 export const periodById = (db: Reader, id: string) => periodWhere(db, eq(fiscalPeriod.id, id))
+
+// 새 기간의 이전 기간: 끝일이 새 시작일보다 이른 기간 가운데 가장 늦은 것. 그 뒤에 이미 이어진 기간이 있으면(사이에 끼우는 것) 비운다.
+// 이전 기간은 만든 뒤 바꾸지 않는다(기능 009 '정한 것'). 학생회 행 잠금 안에서 부른다.
+export async function previousPeriodIdFor(db: Reader, councilId: string, startsOn: string) {
+  const [latest] = await db
+    .select({ id: fiscalPeriod.id })
+    .from(fiscalPeriod)
+    .where(and(eq(fiscalPeriod.councilId, councilId), lt(fiscalPeriod.endsOn, startsOn)))
+    .orderBy(desc(fiscalPeriod.endsOn))
+    .limit(1)
+  if (!latest) return null
+  const [next] = await db
+    .select({ id: fiscalPeriod.id })
+    .from(fiscalPeriod)
+    .where(eq(fiscalPeriod.previousPeriodId, latest.id))
+    .limit(1)
+  return next ? null : latest.id
+}
 
 // 기간 하나와 그 예산 항목(목적순). 수입 항목도 종류와 함께 준다.
 export async function budgetViewOf(

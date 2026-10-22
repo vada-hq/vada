@@ -117,6 +117,39 @@ test(
 )
 
 test(
+  '기간을 만들면 바로 앞 기간이 이전 기간으로 잡히고, 사이에 끼운 기간과 첫 기간은 비어 있다. 다른 학생회의 기간은 잡히지 않는다',
+  runPurchases(async s => {
+    const make = async (name: string, startsOn: string, endsOn: string, user = FINANCE) => {
+      const url = user === FINANCE ? root(s) : `/api/organizations/${s.other.councilId}`
+      assert.equal(
+        (await s.api.post(`${url}/fiscal-periods`, { name, startsOn, endsOn }, user)).status,
+        201,
+      )
+    }
+    const previousOf = async () => {
+      const { rows } = await s.pg.query<{ name: string; prev: string | null }>(
+        'SELECT p.name, q.name AS prev FROM fiscal_period p LEFT JOIN fiscal_period q ON q.id = p.previous_period_id',
+      )
+      return Object.fromEntries(rows.map(row => [row.name, row.prev]))
+    }
+    await make('2025', '2025-01-01', '2025-12-31')
+    // 다른 학생회의 더 이른 기간이 있어도 잡히지 않는다.
+    await make('남의 2026', '2025-06-01', '2025-12-31', 'o-financeMember')
+    await make('2027', '2027-01-01', '2027-12-31')
+    // 사이에 끼운 기간은 비고, 뒤 기간의 이전 기간도 그대로다.
+    await make('2026', '2026-01-01', '2026-12-31')
+    await make('2028', '2028-01-01', '2028-12-31')
+    assert.deepEqual(await previousOf(), {
+      '2025': null,
+      '남의 2026': null,
+      '2027': '2025',
+      '2026': null,
+      '2028': '2027',
+    })
+  }),
+)
+
+test(
   '항목은 오늘이 든 기간에 더하고 목적순으로 보인다. 기간이 없으면 409이다',
   runPurchases(async s => {
     const none = await makeItem(s, { purpose: '소모품', amount: 1000 })

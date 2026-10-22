@@ -8,7 +8,7 @@ import { assertEventOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
-import { budgetViewOf, currentPeriodOf, periodById } from './queries.js'
+import { budgetViewOf, currentPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 뒤에 부른다. 같은 학생회의 쓰기는 그 잠금으로 한 줄로 서므로 겹침을 먼저 보고 넣어도 새지 않는다.
 // 재정부만 쓴다(회장단도 403). 재정은 직급으로 물려받지 않는다.
@@ -43,7 +43,10 @@ export async function createFiscalPeriod(
     kind: 'fiscal_period',
     councilId: actor.councilId,
     actor: actor.memberId,
-    values: input,
+    values: {
+      ...input,
+      previousPeriodId: await previousPeriodIdFor(tx, actor.councilId, input.startsOn),
+    },
   })
   await createRecord(tx, {
     kind: 'budget',
