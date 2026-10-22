@@ -592,15 +592,18 @@ test('취소하지 않은 입금 기록은 신청마다 하나이고 취소하�
       db.transaction(tx => makeDeposit(tx, s, registration)),
       constraint('deposit_registration_id_idx'),
     )
-    const bad: [string, object][] = [
-      ['환불액이 입금액보다 큼', { refundAmount: '5001', refundedAt: clockNow }],
-      ['금액만 있음', { refundAmount: '1' }],
-      ['시각만 있음', { refundedAt: clockNow }],
+    // 제약마다 따로 지켜지는지 본다. PostgreSQL이 칸 둘에 걸린 검사에 붙인 이름이 달라, 한쪽을 지우면 그 경우가 실패한다.
+    // 환불액 검사(0 이상, 입금액 이하)는 deposit_check, 환불 시각과 금액이 함께인지는 deposit_check1이다.
+    const bad: [string, string, object][] = [
+      ['환불액이 입금액보다 큼', 'deposit_check"', { refundAmount: '5001', refundedAt: clockNow }],
+      ['환불액이 음수', 'deposit_check"', { refundAmount: '-1', refundedAt: clockNow }],
+      ['금액만 있음', 'deposit_check1"', { refundAmount: '1' }],
+      ['시각만 있음', 'deposit_check1"', { refundedAt: clockNow }],
     ]
-    for (const [label, changes] of bad)
+    for (const [label, name, changes] of bad)
       await assert.rejects(
         db.transaction(tx => updateRecords(tx, [change(s, 'deposit', first, changes)])),
-        constraint('deposit_'),
+        constraint(name),
         label,
       )
     assert.equal(await versionCount(pg, first), 1)

@@ -4,6 +4,7 @@ import { createTestDb } from '../../db/test-db.js'
 import { pgliteConnection } from '../../test-support/smoke-connection.js'
 import {
   cancelAndCheckInCase,
+  confirmTogetherCase,
   lastSeatTogetherCase,
   sameQrTogetherCase,
   smokeCases,
@@ -34,11 +35,13 @@ test('마지막 한 자리 동시 신청: 신청 하나와 나머지의 REGISTRA
 test('출석 동시 처리 사례 둘이 점검 목록에 있다', () => {
   assert.ok(smokeCases.includes(sameQrTogetherCase))
   assert.ok(smokeCases.includes(cancelAndCheckInCase))
+  assert.ok(smokeCases.includes(confirmTogetherCase))
 })
 
 for (const [smokeCase, detail] of [
   [sameQrTogetherCase, /already/],
   [cancelAndCheckInCase, /취소와 출석/],
+  [confirmTogetherCase, /DEPOSIT_EXISTS/],
 ] as const)
   test(`${smokeCase.name}: 준비와 판정이 맞다 (PGlite는 순서대로 돌려 모양만 본다)`, async () => {
     const testDb = await createTestDb()

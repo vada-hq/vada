@@ -11,6 +11,7 @@ import {
 import type { SmokeCase } from './pg-smoke-kit.js'
 import { cancelAndDecideCase, decideTogetherCase } from './pg-smoke-purchase-cases.js'
 import { cancelAndCheckInCase, sameQrTogetherCase } from './pg-smoke-attendance-cases.js'
+import { confirmTogetherCase } from './pg-smoke-deposit-cases.js'
 import { lastSeatTogetherCase } from './pg-smoke-registration-cases.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
@@ -27,6 +28,7 @@ export {
   cancelAndCheckInCase,
   cancelAndDecideCase,
   changeStatusTogetherCase,
+  confirmTogetherCase,
   createAndJoinCase,
   decideTogetherCase,
   expenseTogetherCase,
@@ -62,4 +64,5 @@ export const smokeCases: readonly SmokeCase[] = [
   lastSeatTogetherCase,
   sameQrTogetherCase,
   cancelAndCheckInCase,
+  confirmTogetherCase,
 ]

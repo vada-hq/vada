@@ -154,7 +154,7 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   task: new Set(['eventId', 'event_id']),
   // 행사의 책임자는 회장단이 바꾸고(changeableKeysOf), 이전 행사는 만든 뒤 바꾸지 않는다.
   event: new Set(['ownerId', 'owner_id', 'previousEventId', 'previous_event_id']),
-  // 구매와 지출: 위의 것을 가리키는 칸은 만든 뒤 바꾸지 않는다. 품목의 예산 항목과 지출의 예산 항목·부탁한 사람·먼저 낸 사람만 바꿀 수 있다.
+  // 구매와 지출: 위의 것을 가리키는 칸은 만든 뒤 바꾸지 않는다. 품목의 예산 항목과 지출의 예산 항목·행사·부탁한 사람·먼저 낸 사람만 바꿀 수 있다.
   fiscal_period: new Set(['previousPeriodId', 'previous_period_id']),
   budget: new Set(['fiscalPeriodId', 'fiscal_period_id']),
   budget_item: new Set(['budgetId', 'budget_id', 'eventId', 'event_id']),

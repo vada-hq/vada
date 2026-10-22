@@ -42,7 +42,11 @@ test(
     assert.deepEqual([form.payerFee, form.nonPayerFee, form.feeAccount], [null, null, null])
     // 행사 끝도 시작도 없으면 양식 마감 날짜 + 1년이다.
     assert.equal(form.purgeOn, '2027-11-01')
-    assert.deepEqual(form.actions, ['registration.manage', 'registration.view_applicants'])
+    assert.deepEqual(form.actions, [
+      'registration.manage',
+      'registration.view_applicants',
+      'deposit.confirm',
+    ])
     assert.equal(await t.versions(form.id), 1)
     assert.equal(await t.count('SELECT count(*) AS n FROM registration_form'), 1)
   }),

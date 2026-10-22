@@ -12,14 +12,17 @@ test(
     assert.deepEqual(await actionsOf('s-president'), [
       'registration.manage',
       'registration.view_applicants',
+      'deposit.confirm',
     ])
     assert.deepEqual(await actionsOf('s-vicePresident'), [
       'registration.manage',
       'registration.view_applicants',
+      'deposit.confirm',
     ])
     assert.deepEqual(await actionsOf('s-planningMember'), [
       'registration.manage',
       'registration.view_applicants',
+      'deposit.confirm',
     ])
     // 재정부는 신청자 정보는 보지만 관리하지 못하고, 담당이 아닌 부장과 직급 없는 운영진은 둘 다 못 한다.
     assert.deepEqual(await actionsOf('s-financeMember'), ['registration.view_applicants'])
@@ -191,12 +194,14 @@ test(
     assert.deepEqual(await actionsOf('s-planningMember'), [
       'registration.manage',
       'registration.view_applicants',
+      'deposit.confirm',
     ])
     assert.deepEqual(await actionsOf('s-financeMember'), ['registration.view_applicants'])
     assert.deepEqual(await actionsOf('s-plain'), [])
     assert.deepEqual(await actionsOf('s-president'), [
       'registration.manage',
       'registration.view_applicants',
+      'deposit.confirm',
     ])
     await t.change('task', task, { cancelledAt: new Date() })
     assert.deepEqual(await actionsOf('s-planningMember'), [])
