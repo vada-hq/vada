@@ -101,7 +101,7 @@ export const feePayment = pgTable('fee_payment', {
   id: uuid('id').primaryKey(),
   kind: text('kind').notNull().default('fee_payment'),
   councilId: uuid('council_id').notNull(),
-  studentId: text('student_id').notNull(),
+  studentId: text('student_id'),
   paidFrom: day('paid_from').notNull(),
   paidUntil: day('paid_until').notNull(),
 })

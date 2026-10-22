@@ -194,6 +194,57 @@ test('형식이 틀린 공개 코드, 학번, 휴대폰과 한쪽만 있는 참�
   }
 })
 
+test('취소한 신청은 학번만 비우면 되고(이름과 휴대폰은 환불 때까지 남을 수 있다), 학번이 남으면 DB가 거절한다', async () => {
+  const { db, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const form = await db.transaction(tx => makeForm(tx, s))
+    const keep = { name: '학생', phone: '01012345678', cancelledAt: clockNow }
+    await db.transaction(tx => makeRegistration(tx, s, form, { ...keep, studentId: null }))
+    await assert.rejects(
+      db.transaction(tx => makeRegistration(tx, s, form, { ...keep, studentId: '123456' })),
+      constraint('registration_check'),
+    )
+    await db.transaction(tx => makeRegistration(tx, s, form, { studentId: '123456' }))
+    const registration = await db.transaction(tx =>
+      makeRegistration(tx, s, form, { studentId: '123456' }),
+    )
+    await assert.rejects(
+      db.transaction(tx =>
+        updateRecords(tx, [change(s, 'registration', registration, { cancelledAt: clockNow })]),
+      ),
+      constraint('registration_check'),
+    )
+  } finally {
+    await close()
+  }
+})
+
+test('납부 학번은 비울 수 있고 행은 남는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const payment = await db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'fee_payment',
+        councilId: s.mine,
+        actor: s.kim,
+        values: { studentId: '2024000001', paidFrom: '2026-03-01', paidUntil: '2026-08-31' },
+      }),
+    )
+    await db.transaction(tx =>
+      updateRecords(tx, [change(s, 'fee_payment', payment, { studentId: null })]),
+    )
+    const { rows } = await pg.query<{ student_id: string | null }>(
+      'SELECT student_id FROM fee_payment WHERE id = $1',
+      [payment],
+    )
+    assert.equal(rows[0]!.student_id, null)
+  } finally {
+    await close()
+  }
+})
+
 test('취소하지 않은 출석은 신청마다 하나이고, 취소하면 다시 둘 수 있으며, 확인 방법은 둘 중 하나다', async () => {
   const { db, pg, close } = await createTestDb()
   try {

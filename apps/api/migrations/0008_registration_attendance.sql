@@ -1,5 +1,13 @@
 -- 출석의 확인 방법과 취소, 열람 기록, 개인 링크(기능 007 조각 1). physical-model.md의 attendance와 같고, 뒤의 두 표는 설계 밖 표다.
 -- 새 칸과 새 표라 그것을 읽는 코드보다 먼저 두 DB에 적용한다. method는 NOT NULL이라 적용 전에 두 DB의 attendance가 0행인지 본다.
+-- 납부 학번은 기한이 지나거나 빼면 비운다(DEC-54, DEC-55). 행은 남는다.
+ALTER TABLE fee_payment ALTER COLUMN student_id DROP NOT NULL;
+--> statement-breakpoint
+-- 취소하면 학번만 바로 비운다. 환불을 기다리는 동안 이름과 휴대폰이 남는다(DEC-55). 지금 규칙보다 느슨해 위반 행이 생길 수 없다.
+ALTER TABLE registration DROP CONSTRAINT registration_check;
+--> statement-breakpoint
+ALTER TABLE registration ADD CHECK (cancelled_at IS NULL OR student_id IS NULL);
+--> statement-breakpoint
 ALTER TABLE attendance ADD COLUMN method text NOT NULL CHECK (method IN ('qr', 'manual'));
 --> statement-breakpoint
 ALTER TABLE attendance ADD COLUMN cancelled_at timestamptz;
