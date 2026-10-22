@@ -109,7 +109,7 @@
 - 닿는 곳: `apps/web/src/events/`(`EventDetailView.tsx`, 돈 탭 새, 완료 대화상자 새, `EventCard.tsx`), `finance/`(`ExpenseDetailDialog.tsx`, `ExpenseActions.tsx`, 지출 고치기 새), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 7. 입금 확인·환불 화면과 행사 고르기 [ ]
+### 7. 입금 확인·환불 화면과 행사 고르기 [x]
 - 할 수 있게 되는 것: 행사 담당이 휴대폰의 신청 목록에서 입금을 확인하고, 재정부가 환불을 표시하며, 요청·예산 항목·지출을 행사에 잇는다.
 - 수용 기준: 007의 신청자 목록 줄에 입금 상태와 [입금 확인](양식 `actions`에 `deposit.confirm`이 있을 때, 금액은 적용 참가비로 채움)이 있고, 같은 줄의 동작(007은 상세 화면이 없다)에 [확인 취소](사유)와 재정부(내 권한 목록의 `finance.manage`)의 [환불함](금액)이 확인을 거쳐 보인다. 거르기 '입금 안 함'과 '환불 대기'가 있다. 입금한 신청을 [신청 취소]하면 줄이 빠지지 않고 '환불 대기'로 바뀌며, 그 확인 창은 학번만 지워진다고 알린다(입금 전 취소는 007의 문구와 동작 그대로). 요청 내기, 예산 항목 더하기, 지출 적기에 '행사'(없음과 완료하지 않은 행사)가 있고 행사 화면에서 열면 그 행사로 채워진다. 지출에서 품목을 고르면 요청의 행사로 채워지고 잠긴다. 예산 항목 더하기에 종류(지출, 수입)가 있고, 결재와 지출의 예산 항목 고르기 목록에는 지출 항목만 보인다. 409 문구, 두 번 누름, 404·403을 시험한다. 390px과 데스크톱으로 확인한다. 400줄을 넘을 것 같으면 행사 고르기를 나눈다.
 - 닿는 곳: 007의 신청 화면 `apps/web/src/registrations/`(`ApplicantList.tsx`, `ApplicantRow.tsx`, `ApplicantActions.tsx`, `useApplicants.ts`, `registration-api.ts`), `finance/`(`RequestCreateDialog.tsx`, `BudgetItemDialog.tsx`, `ExpenseCreateDialog.tsx`, `ExpenseRequestFields.tsx`, `ExpenseDirectFields.tsx`), `lib/messages.ts`, `ui-gallery/`.
