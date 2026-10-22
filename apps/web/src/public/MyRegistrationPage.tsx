@@ -19,7 +19,6 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
       <Button variant="outline" className="self-start" onClick={() => setAsking(true)}>
         신청 취소
       </Button>
-      {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
       <ConfirmDialog
         open={asking}
         title="신청을 취소할까요?"
@@ -64,6 +63,8 @@ function Ready({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
       <FeeBlock mine={mine} />
       <SaveAddress />
       {mine.cancellable && <CancelBlock cancel={cancel} />}
+      {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
+      {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
       <p className="text-xs text-gray-500">신청 정보는 {dateText(mine.purgeOn)}에 지워져요.</p>
     </div>
   )

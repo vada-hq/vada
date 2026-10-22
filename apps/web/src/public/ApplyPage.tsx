@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
@@ -39,6 +39,11 @@ export default function ApplyPage({ code, onApplied }: Props) {
       onApplied(token)
     },
   })
+  const status = state.kind === 'ready' ? state.data.status : null
+  const { clearProblem } = apply
+  useEffect(() => {
+    if (status !== null && status !== 'open') clearProblem()
+  }, [status, clearProblem])
   if (lost || gone) return <StateMessage kind="error">{REGISTRATION_FORM_LOST}</StateMessage>
   if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중…</StateMessage>
   if (state.kind === 'failed')
@@ -58,7 +63,10 @@ export default function ApplyPage({ code, onApplied }: Props) {
           values={values}
           busy={apply.busy}
           problem={apply.problem}
-          onValues={setValues}
+          onValues={next => {
+            clearProblem()
+            setValues(next)
+          }}
           onSubmit={() => {
             const parsed = parseApply(data, values)
             if (parsed.success) void apply.submit(parsed.data)

@@ -35,6 +35,7 @@ test('토큰은 본문으로만 보내고 내가 넣은 것과 참가비, 계좌
   const qr = screen.getByRole('img', { name: '출석 확인 QR' })
   expect(qr.querySelector('path')?.getAttribute('d')?.length).toBeGreaterThan(100)
   expect(qr.getAttribute('class')).toContain('bg-white')
+  expect(qr.querySelector('path')?.getAttribute('class')).toContain('fill-black')
 })
 
 test('참가비가 없으면 계좌가 없고, 출석했으면 QR 대신 출석 확인됨이 보인다', async () => {
@@ -74,19 +75,43 @@ test('취소는 확인을 거치고, 하면 신청을 취소했다고 하며 기
   expect(window.localStorage.getItem(SAVED_KEY)).toBeNull()
 })
 
-test('마감 뒤 409면 버튼 옆에 문구를 보이고 다시 읽는다', async () => {
+test('취소가 끝난 뒤 다시 읽기가 돌아도 취소했어요가 찾을 수 없어요로 바뀌지 않는다', async () => {
   const api = setup()
-  api.on('POST', CANCEL_PATH, () => json({ error: 'CANCEL_CLOSED' }, 409))
+  api.on('POST', CANCEL_PATH, () => json({ cancelled: true }))
   fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
   fireEvent.click(
     within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }),
   )
+  await screen.findByText('신청을 취소했어요.')
+  // 취소 뒤 서버는 404다. 화면이 다시 읽으면 문구가 바뀐다.
+  api.on('POST', LOOKUP_PATH, () => json({ error: 'NOT_FOUND' }, 404))
+  const reads = api.calls.filter(call => call.path === LOOKUP_PATH).length
+  document.dispatchEvent(new Event('visibilitychange'))
+  await settle()
+  expect(screen.getByText('신청을 취소했어요.')).toBeTruthy()
+  expect(api.calls.filter(call => call.path === LOOKUP_PATH)).toHaveLength(reads)
+})
+
+test('마감 뒤 409로 취소 버튼이 사라져도 이유가 남고 확인 창은 닫힌다', async () => {
+  const api = setup()
+  api.on('POST', CANCEL_PATH, () => json({ error: 'CANCEL_CLOSED' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
+  // 다시 읽으면 마감이 지나 취소할 수 없다.
+  api.on('POST', LOOKUP_PATH, () => json(myRegistration({ cancellable: false })))
+  fireEvent.click(
+    within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }),
+  )
+  await waitFor(() => expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(
     CANCEL_REGISTRATION_ERRORS.CANCEL_CLOSED,
   )
-  await waitFor(() => expect(api.calls.filter(call => call.path === LOOKUP_PATH)).toHaveLength(2))
-  await settle()
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('계좌번호 복사 버튼은 정의 목록 밖에 있다', async () => {
+  setup()
+  const button = await screen.findByRole('button', { name: '계좌번호 복사' })
+  expect(button.closest('dl')).toBeNull()
 })
 
 test('주소 복사가 막히면 주소를 보여 길게 눌러 복사하게 한다', async () => {

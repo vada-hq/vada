@@ -83,6 +83,23 @@ test('신청하면 본문을 보내고 토큰을 기억하며 두 번 눌러도 
   await act(async () => pending.resolve(json({ token: 'tok123' }, 201)))
   await waitFor(() => expect(onApplied).toHaveBeenCalledWith('tok123'))
   expect(window.localStorage.getItem(`vada.registration.${FORM_CODE}`)).toBe('tok123')
+  // 이동하는 동안 다시 눌러도 신청이 하나 더 생기지 않는다.
+  expect((button as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(button)
+  await settle()
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+})
+
+test('실패 문구는 칸을 고치면 사라진다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'REGISTRATION_FULL' }, 409))
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  fill('학번', '20260001')
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await screen.findByRole('alert')
+  fill('이름', '김새내2')
+  expect(screen.queryByRole('alert')).toBeNull()
 })
 
 test('409는 양식을 다시 읽고 버튼 옆에 문구를 보인다', async () => {

@@ -23,16 +23,18 @@ export function AttendanceBlock({ mine }: { mine: MyRegistration }) {
 // 참가비가 0보다 클 때만 계좌가 온다. 서버가 주는 값만 그대로 보인다.
 export function FeeBlock({ mine }: { mine: MyRegistration }) {
   return (
-    <dl className="flex flex-col gap-3">
-      <Fact label="참가비">{won(mine.appliedFee)}</Fact>
-      {mine.account && (
-        <>
-          <Fact label="입금 계좌">
-            {mine.account.bank} {mine.account.accountNumber}
-          </Fact>
-          <Fact label="예금주">{mine.account.holder}</Fact>
-        </>
-      )}
+    <div className="flex flex-col gap-3">
+      <dl className="flex flex-col gap-3">
+        <Fact label="참가비">{won(mine.appliedFee)}</Fact>
+        {mine.account && (
+          <>
+            <Fact label="입금 계좌">
+              {mine.account.bank} {mine.account.accountNumber}
+            </Fact>
+            <Fact label="예금주">{mine.account.holder}</Fact>
+          </>
+        )}
+      </dl>
       {mine.account && (
         <CopyButton
           value={mine.account.accountNumber}
@@ -40,7 +42,7 @@ export function FeeBlock({ mine }: { mine: MyRegistration }) {
           failedHint="복사하지 못했어요. 길게 눌러 복사해 주세요."
         />
       )}
-    </dl>
+    </div>
   )
 }
 

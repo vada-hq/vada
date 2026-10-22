@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   statusOf,
   ApplySchema,
@@ -45,13 +45,16 @@ export function useApply({ code, reload, onLost, onApplied }: Handlers) {
       `/api/public/registration-forms/${encodeURIComponent(code)}/apply`,
       body,
     )
+    // 성공이면 이동하는 동안 막힌 채 둔다. 풀면 이동 전에 다시 눌러 신청이 하나 더 생긴다.
+    if (result.ok) return onApplied(result.data.token)
     sending.current = false
     setBusy(false)
-    if (result.ok) return onApplied(result.data.token)
     if (result.status === statusOf('NOT_FOUND')) return onLost()
     // 409는 모두 양식 상태가 달라졌다는 뜻이다(마감, 정원, 칸 바뀜). 새로 읽어 화면이 지금 모습을 보이게 한다.
     if (result.status === statusOf('FORM_CHANGED')) reload()
     setProblem(APPLY_ERRORS[result.code] ?? APPLY_FAILED)
   }
-  return { busy, problem, submit }
+  // 지난 시도의 문구는 칸을 고치거나 양식이 닫히면 거둔다. 남기면 다시 열렸을 때 묵은 이유가 보인다.
+  const clearProblem = useCallback(() => setProblem(''), [])
+  return { busy, problem, submit, clearProblem }
 }

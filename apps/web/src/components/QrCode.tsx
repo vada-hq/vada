@@ -12,7 +12,7 @@ export default function QrCode({ text, label }: { text: string; label: string })
       shapeRendering="crispEdges"
       className="size-56 max-w-full rounded-sm bg-white"
     >
-      <path d={qrPath(matrix)} fill="#000" />
+      <path d={qrPath(matrix)} className="fill-black" />
     </svg>
   )
 }

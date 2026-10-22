@@ -5,18 +5,16 @@ import { CANCEL_REGISTRATION_ERRORS, CANCEL_REGISTRATION_FAILED } from '@/lib/me
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
 import { forgetToken } from './saved-links'
 
-export type MineState =
+type MineState =
   | { kind: 'loading' }
   | { kind: 'failed' }
   | { kind: 'lost' }
   | { kind: 'cancelled' }
   | { kind: 'ready'; data: MyRegistration }
 
-// 개인 링크 토큰으로 내 신청을 읽고 취소한다. 토큰은 본문으로만 보낸다. 출석이 찍히면 보이는 동안 다시 읽어 QR이 '출석 확인됨'으로 바뀐다.
-export function useMyRegistration(token: string) {
+// 내 신청 읽기. 출석이 찍히면 보이는 동안 다시 읽어 QR이 '출석 확인됨'으로 바뀐다.
+function useMineRead(token: string) {
   const [state, setState] = useState<MineState>({ kind: 'loading' })
-  const [busy, setBusy] = useState(false)
-  const [problem, setProblem] = useState('')
   const alive = useRef(true)
   useEffect(() => {
     alive.current = true
@@ -24,23 +22,38 @@ export function useMyRegistration(token: string) {
       alive.current = false
     }
   }, [])
+  // 취소했거나 찾을 수 없다고 끝난 뒤에는 다시 읽지 않는다. 읽으면 404로 '취소했어요'가 '찾을 수 없어요'로 바뀐다.
+  const ended = useRef(false)
+  const finish = useCallback((kind: 'lost' | 'cancelled') => {
+    ended.current = true
+    setState({ kind })
+  }, [])
   const load = useCallback(async () => {
-    if (token === '') return setState({ kind: 'lost' })
+    if (ended.current) return
+    if (token === '') return finish('lost')
     const result = await postJson<MyRegistration>('/api/public/registrations/lookup', { token })
-    if (!alive.current) return
+    // 읽는 동안 취소가 끝났을 수 있다.
+    if (!alive.current || ended.current) return
     if (result.ok) return setState({ kind: 'ready', data: result.data })
     if (result.status === statusOf('NOT_FOUND')) {
       forgetToken(token)
-      return setState({ kind: 'lost' })
+      return finish('lost')
     }
     // 읽다 실패해도 보이던 신청은 그대로 둔다.
     setState(before => (before.kind === 'ready' ? before : { kind: 'failed' }))
-  }, [token])
+  }, [token, finish])
   useEffect(() => {
     void load()
   }, [load])
   useVisiblePoll(() => void load(), LIST_POLL_MS)
+  return { state, alive, finish, load }
+}
 
+// 개인 링크 토큰으로 내 신청을 읽고 취소한다. 토큰은 본문으로만 보낸다.
+export function useMyRegistration(token: string) {
+  const { state, alive, finish, load } = useMineRead(token)
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState('')
   const sending = useRef(false)
   async function cancel() {
     if (sending.current) return
@@ -55,9 +68,9 @@ export function useMyRegistration(token: string) {
     setBusy(false)
     if (result.ok) {
       forgetToken(token)
-      return setState({ kind: 'cancelled' })
+      return finish('cancelled')
     }
-    if (result.status === statusOf('NOT_FOUND')) return setState({ kind: 'lost' })
+    if (result.status === statusOf('NOT_FOUND')) return finish('lost')
     setProblem(CANCEL_REGISTRATION_ERRORS[result.code] ?? CANCEL_REGISTRATION_FAILED)
     // 409는 마감이나 출석으로 사정이 달라졌다는 뜻이다. 취소 버튼이 지금도 맞는지 다시 읽는다.
     if (result.status === statusOf('CANCEL_CLOSED')) await load()
