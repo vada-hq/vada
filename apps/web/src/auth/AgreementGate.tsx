@@ -3,6 +3,8 @@ import type { AgreementResponse } from '@vada/contracts'
 import AgreementPanel, { AGREEMENT_PATH } from './AgreementPanel'
 import AuthPage from './AuthPage'
 import { getJson, setTermsRequiredHandler } from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { AGREEMENT_READ_FAILED } from '@/lib/messages'
 import StateMessage from '@/components/StateMessage'
 
 type Props = {
@@ -16,15 +18,18 @@ type Props = {
 export default function AgreementGate({ logoutBusy, onLogout, children }: Props) {
   const [terms, setTerms] = useState<AgreementResponse | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const reload = useCallback(async () => {
+  // 서버가 막았는데(403) 동의 상태를 읽지 못하면 그대로 두지 않고 다시 읽게 한다.
+  const [blockedUnread, setBlockedUnread] = useState(false)
+  const reload = useCallback(async (blocked: boolean) => {
     const result = await getJson<AgreementResponse>(AGREEMENT_PATH)
     if (result.ok) setTerms(result.data)
+    setBlockedUnread(blocked && !result.ok)
     setLoaded(true)
   }, [])
   useEffect(() => {
-    void reload()
+    void reload(false)
     setTermsRequiredHandler(() => {
-      void reload()
+      void reload(true)
     })
     return () => {
       setTermsRequiredHandler(null)
@@ -35,6 +40,19 @@ export default function AgreementGate({ logoutBusy, onLogout, children }: Props)
     return (
       <AuthPage>
         <StateMessage kind="loading">확인 중…</StateMessage>
+      </AuthPage>
+    )
+  if (blockedUnread)
+    return (
+      <AuthPage>
+        <StateMessage kind="error">{AGREEMENT_READ_FAILED}</StateMessage>
+        <Button
+          onClick={() => {
+            void reload(true)
+          }}
+        >
+          다시 시도
+        </Button>
       </AuthPage>
     )
   if (terms?.required && !terms.agreed)

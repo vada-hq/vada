@@ -4,7 +4,8 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import App from './App'
 import { renderApp } from './test-support/render-app'
-import { mockApi } from './test-support/mock-api'
+import { agreementResponse } from './test-support/agreement-fixtures'
+import { json, mockApi } from './test-support/mock-api'
 
 const auth = vi.hoisted(() => ({
   useSession: vi.fn(),
@@ -417,4 +418,38 @@ test('로그아웃하는 동안 카드의 로그아웃 단추는 막혀 한 번�
   await waitFor(() => expect(button.disabled).toBe(true))
   fireEvent.click(button)
   await waitFor(() => expect(auth.signOut).toHaveBeenCalledTimes(1))
+})
+
+// 동의 화면을 지우거나 학생회 화면 뒤로 보내면 실패한다.
+function needAgreement() {
+  const api = mockApi()
+  let agreed = false
+  api.on('GET', '/api/me/agreement', () => json(agreementResponse({ required: true, agreed })))
+  api.on('POST', '/api/me/agreement', () => {
+    agreed = true
+    return json(agreementResponse({ required: true, agreed }))
+  })
+}
+
+test('초대 링크로 시작해도 동의가 먼저고, 동의 뒤 초대 확인으로 간다', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  signedIn()
+  needAgreement()
+  await renderApp()
+  expect(screen.queryByText('초대 확인 자리: ABCD2345')).toBeNull()
+  fireEvent.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
+  fireEvent.click(screen.getByRole('button', { name: '시작하기' }))
+  expect(await screen.findByText('초대 확인 자리: ABCD2345')).toBeTruthy()
+})
+
+test('알림 주소로 시작해도 동의가 먼저고, 동의 뒤 그 방을 연다', async () => {
+  window.history.replaceState(null, '', '/chat/c1/r1')
+  signedIn()
+  needAgreement()
+  await renderApp()
+  expect(screen.queryByText('방 열기: c1/r1/0')).toBeNull()
+  expect(screen.queryByText('학생회 목록 자리')).toBeNull()
+  fireEvent.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
+  fireEvent.click(screen.getByRole('button', { name: '시작하기' }))
+  expect(await screen.findByText('방 열기: c1/r1/0')).toBeTruthy()
 })

@@ -16,6 +16,8 @@ export const NOT_FOUND_RELOADED = '이미 바뀌었어요. 목록을 새로 불�
 export const AGREEMENT_ERRORS: Record<string, string> = {
   TERMS_OUTDATED: '약관이 바뀌었어요. 새 내용을 확인하고 다시 동의해 주세요.',
 }
+export const AGREEMENT_READ_FAILED =
+  '동의 상태를 확인하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const AGREEMENT_FAILED = '동의를 저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
 export const CREATE_COUNCIL_ERRORS: Record<string, string> = {

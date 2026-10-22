@@ -22,8 +22,13 @@ export function setTermsRequiredHandler(handler: (() => void) | null) {
   onTermsRequired = handler
 }
 
-function failure(status: number, code: unknown) {
+// 응답을 직접 읽는 곳(내려받기)도 이것을 거쳐야 동의 전 막힘이 동의 화면으로 이어진다.
+export function noteTermsRequired(status: number, code: unknown) {
   if (status === statusOf('TERMS_REQUIRED') && code === 'TERMS_REQUIRED') onTermsRequired?.()
+}
+
+function failure(status: number, code: unknown) {
+  noteTermsRequired(status, code)
   return { ok: false as const, status, code: trusted(status, code) ? code : 'FAILED' }
 }
 

@@ -164,3 +164,16 @@ test('저장에 실패하면 버튼 옆에 문구가 보이고 다시 누를 수
   expect(alert.textContent).toContain('동의를 저장하지 못했어요')
   await waitFor(() => expect(startButton().hasAttribute('disabled')).toBe(false))
 })
+
+test('403으로 막힌 뒤 동의 상태를 읽지 못하면 안내와 다시 시도가 보이고, 읽으면 동의 화면이 된다', async () => {
+  let reads = 0
+  api.on('GET', '/api/me/agreement', () =>
+    ++reads === 2 ? json({ error: 'x' }, 500) : json(reads === 1 ? agreementResponse() : needed()),
+  )
+  api.on('GET', '/api/organizations/c1', () => json({ error: 'TERMS_REQUIRED' }, 403))
+  open()
+  fireEvent.click(await screen.findByRole('button', { name: '학생회 열기' }))
+  await screen.findByText('동의 상태를 확인하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  await screen.findByText('이용약관에 동의합니다')
+})

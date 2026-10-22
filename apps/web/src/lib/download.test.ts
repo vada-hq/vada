@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
+import { setTermsRequiredHandler } from './api'
 import { downloadFile, downloadName } from './download'
 
 afterEach(() => {
@@ -69,4 +70,28 @@ test('파일을 받으면 서버가 준 이름으로 내려받고, 실패하면 
     }),
   )
   expect(await downloadFile('/api/report', '결산.xlsx')).toEqual({ ok: false, code: null })
+})
+
+test('내려받기가 403 TERMS_REQUIRED로 막히면 동의 화면 처리기에 알린다', async () => {
+  const handler = vi.fn()
+  setTermsRequiredHandler(handler)
+  try {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ error: 'FORBIDDEN' }), { status: 403 })),
+    )
+    await downloadFile('/api/report', '결산.xlsx')
+    expect(handler).not.toHaveBeenCalled()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ error: 'TERMS_REQUIRED' }), { status: 403 })),
+    )
+    expect(await downloadFile('/api/report', '결산.xlsx')).toEqual({
+      ok: false,
+      code: 'TERMS_REQUIRED',
+    })
+    expect(handler).toHaveBeenCalledOnce()
+  } finally {
+    setTermsRequiredHandler(null)
+  }
 })

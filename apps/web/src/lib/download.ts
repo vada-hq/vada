@@ -1,3 +1,5 @@
+import { noteTermsRequired } from './api'
+
 const REVOKE_DELAY_MS = 40_000
 
 // 내려받기 머리글의 filename*에서 파일 이름을 꺼낸다. 없거나 깨졌으면 기본 이름이다.
@@ -21,6 +23,7 @@ export async function downloadFile(
     const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' })
     if (!response.ok) {
       const result = (await response.json().catch(() => null)) as { error?: unknown } | null
+      noteTermsRequired(response.status, result?.error)
       return { ok: false, code: result?.error ?? null }
     }
     const href = URL.createObjectURL(await response.blob())
