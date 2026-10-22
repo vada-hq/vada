@@ -20,7 +20,7 @@ type Props = PurchaseDialogHandlers & {
   requestId: string | null
   onClose: () => void
   // 결재할 기간이나 항목이 없을 때 예산 탭으로 간다(부모가 대화상자를 닫는다).
-  onOpenBudget: () => void
+  onOpenBudget?: (() => void) | undefined
   // 결제한 지출을 누르면 그 지출을 연다(부모가 이 대화상자를 닫고 지출 상세를 연다).
   onOpenExpense: (expenseId: string) => void
 }
@@ -135,7 +135,7 @@ function Loaded({
   detail: ReturnType<typeof useRequestDetail>
   councilId: string
   onForbidden: () => void
-  onOpenBudget: () => void
+  onOpenBudget: (() => void) | undefined
   onOpenExpense: (expenseId: string) => void
 }) {
   const deciding =

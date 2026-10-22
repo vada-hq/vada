@@ -106,7 +106,7 @@ export const COMPLETION_FAILED = '보내지 못했어요. 연결을 확인하고
 export const EVENT_COMPLETED_NOTICE = '완료한 행사라 바꿀 수 없어요.'
 export const EVENT_TEAM_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
-// 업무를 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때
+// 업무와 지출을 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때
 const EVENT_INVALID = '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.'
 
 // 업무 상세와 만들기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
@@ -162,6 +162,8 @@ export const PURCHASE_ERRORS: Record<string, string> = {
   LINE_ITEM_DECIDED: '이미 결재된 품목이 있어요. 요청을 새로 불러왔으니 확인해 주세요.',
   BUDGET_ITEM_INVALID: '이 예산 항목은 지금 쓸 수 없어요. 항목을 다시 골라 주세요.',
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.',
+  EVENT_COMPLETED:
+    '완료한 행사의 요청이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
@@ -234,7 +236,7 @@ export const EXPENSE_ERRORS: Record<string, string> = {
   EVENT_COMPLETED:
     '완료한 행사의 지출이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
   EVENT_MISMATCH: '결제한 요청의 행사와 달라요. 요청과 같은 행사를 골라 주세요.',
-  EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
+  EVENT_INVALID,
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',

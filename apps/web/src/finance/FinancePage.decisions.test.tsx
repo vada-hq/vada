@@ -308,6 +308,7 @@ test('결재 뒤 상태 배지가 바뀐다', async () => {
 test.each([
   ['LINE_ITEM_DECIDED', /이미 결재된 품목이 있어요/, { items: [], actions: [] }],
   ['REQUEST_CLOSED', /취소된 요청이라 결재할 수 없어요/, { status: 'cancelled', actions: [] }],
+  ['EVENT_COMPLETED', /완료한 행사의 요청이라 바꿀 수 없어요/, { actions: [] }],
 ] satisfies [string, RegExp, Partial<PurchaseRequestDetail>][])(
   '%s로 결재 칸이 사라져도 문구가 남는다',
   async (code, message, after) => {

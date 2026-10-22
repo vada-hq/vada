@@ -16,8 +16,8 @@ type Props = {
   items: PurchaseLineItem[]
   decide: Decide
   onForbidden: () => void
-  // 기간이나 항목이 없을 때 예산 탭으로 데려간다.
-  onOpenBudget: () => void
+  // 기간이나 항목이 없을 때 예산 탭으로 데려간다. 갈 곳이 없는 화면(행사의 돈 탭)은 주지 않고 버튼이 없다.
+  onOpenBudget?: (() => void) | undefined
 }
 
 // 결재할 예산이 없다: 기간이 없거나 항목이 하나도 없다.
@@ -26,16 +26,18 @@ function NeedsBudget({
   onOpenBudget,
 }: {
   hasPeriod: boolean
-  onOpenBudget: () => void
+  onOpenBudget: (() => void) | undefined
 }) {
   return (
     <div className="flex flex-col items-start gap-3">
       <Alert tone="warning">
         {hasPeriod ? '지출 예산 항목을 먼저 더해 주세요.' : '회계 기간을 먼저 만들어 주세요.'}
       </Alert>
-      <Button variant="outline" size="sm" onClick={onOpenBudget}>
-        예산 탭으로 가기
-      </Button>
+      {onOpenBudget && (
+        <Button variant="outline" size="sm" onClick={onOpenBudget}>
+          예산 탭으로 가기
+        </Button>
+      )}
     </div>
   )
 }

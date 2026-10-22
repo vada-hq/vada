@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { useEvents } from '../events/useEvents'
 import { ChoiceSelect } from '../tasks/ChoiceSelect'
 import { eventChoices } from '../tasks/task-form-options'
@@ -69,6 +70,9 @@ function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: F
         disabled={busy || events.state.kind !== 'ready'}
         onChange={on.onEvent}
       />
+      {events.state.kind === 'failed' && (
+        <StateMessage kind="error">{EXPENSE_OPTIONS_FAILED}</StateMessage>
+      )}
     </>
   )
 }

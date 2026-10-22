@@ -15,7 +15,7 @@ type Props = {
 }
 
 // 정산의 남은 것에서 연 요청과 지출의 상세. 바뀌면 정산을 다시 읽고, 잃으면(404·403) 닫고 이유를 탭 위에 보인다.
-// 요청에서 결제한 지출을 누르면 요청을 닫고 지출을 연다. 예산 탭으로 가는 길은 이 화면에 없어 상세만 닫는다.
+// 요청에서 결제한 지출을 누르면 요청을 닫고 지출을 연다. 예산 탭으로 가는 길은 이 화면에 없어 그 버튼은 숨긴다.
 export function MoneyRecordDialogs({
   councilId,
   canManage,
@@ -35,7 +35,6 @@ export function MoneyRecordDialogs({
           requests.lose(message)
           onChanged()
         }}
-        onOpenBudget={requests.closeDetail}
         onOpenExpense={id => {
           requests.closeDetail()
           expenses.openRecord(id)

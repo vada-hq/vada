@@ -11,7 +11,7 @@ import {
   showFinance,
 } from '@/test-support/expense-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
-import { ACTION_GONE, EXPENSE_ERRORS, EXPENSE_LOST } from '@/lib/messages'
+import { ACTION_GONE, EXPENSE_OPTIONS_FAILED, EXPENSE_ERRORS, EXPENSE_LOST } from '@/lib/messages'
 
 afterEach(() => {
   cleanup()
@@ -159,4 +159,17 @@ test('창을 열어 둔 사이 다시 읽은 지출에서 고치기가 빠지면
   document.dispatchEvent(new Event('visibilitychange'))
   await waitFor(() => expect(screen.queryByText('지출 고치기')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(ACTION_GONE)
+})
+
+test('행사 목록을 읽지 못하면 이유를 보이고 사유는 고칠 수 있다', async () => {
+  const api = serve()
+  api.on('GET', `${BASE}/events`, () => json({ error: 'INTERNAL' }, 500))
+  showFinance()
+  openExpensesTab()
+  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  const detail = await screen.findByRole('dialog')
+  fireEvent.click(await within(detail).findByRole('button', { name: '고치기' }))
+  expect((await screen.findByText(EXPENSE_OPTIONS_FAILED)).textContent).toBe(EXPENSE_OPTIONS_FAILED)
+  expect(screen.getByLabelText('행사')).toHaveProperty('disabled', true)
+  expect(screen.getByLabelText('사유')).toHaveProperty('disabled', false)
 })

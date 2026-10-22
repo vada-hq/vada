@@ -7,7 +7,7 @@ import { reportLost, type PurchaseDialogHandlers } from './purchase-requests'
 
 // 결재가 막힌 까닭. 요청이 바뀐 것이면 요청을 다시 읽고, 항목이 맞지 않으면 화면이 예산을 다시 읽는다.
 export type DecideResult = { ok: true } | { ok: false; code: string }
-const REREAD = new Set(['LINE_ITEM_DECIDED', 'REQUEST_CLOSED'])
+const REREAD = new Set(['LINE_ITEM_DECIDED', 'REQUEST_CLOSED', 'EVENT_COMPLETED'])
 
 // 품목 결재 보내기. 한 번에 하나만 나가고, 끝나고 요청을 다시 읽을 때까지 막아 둔다(낡은 줄을 다시 누르지 못하게).
 export function useDecide(

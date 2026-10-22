@@ -211,6 +211,21 @@ test('이미 결재가 시작됐으면(409) 이유를 보이고 요청을 다시
   expect(reads).toBeGreaterThan(1)
 })
 
+test('행사가 완료됐으면(409 EVENT_COMPLETED) 요청 취소가 이유를 보이고 요청을 다시 읽는다', async () => {
+  const { api } = setup()
+  let reads = 0
+  api.on('GET', `${BASE}/r1`, () => {
+    reads += 1
+    return json({ request: purchaseDetail('r1', reads > 1 ? { actions: [] } : {}) })
+  })
+  api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'EVENT_COMPLETED' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
+  fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
+  expect(await screen.findByText(/완료한 행사의 요청이라 바꿀 수 없어요/)).toBeTruthy()
+  expect(reads).toBeGreaterThan(1)
+})
+
 test('취소가 너무 빠르면(429) 확인 안에 문구가 보인다', async () => {
   const { api } = setup()
   api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))

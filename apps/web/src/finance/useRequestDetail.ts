@@ -7,9 +7,9 @@ import { purchaseCancelPath, purchasePath } from './finance-api'
 import { problemText, reportLost, type PurchaseDialogHandlers } from './purchase-requests'
 import { useDecide } from './useDecide'
 
-// 취소의 결과. 이미 닫힌 요청(409 REQUEST_CLOSED)이면 요청을 다시 읽어 보이고 확인을 닫는다.
+// 취소의 결과. 이미 닫힌 요청(409 REQUEST_CLOSED, 행사 완료)이면 요청을 다시 읽어 보이고 확인을 닫는다.
 type CancelOutcome = 'done' | 'closed' | 'failed'
-const CLOSED = 'REQUEST_CLOSED'
+const CLOSED = new Set(['REQUEST_CLOSED', 'EVENT_COMPLETED'])
 
 type Latest = { current: PurchaseDialogHandlers }
 
@@ -41,7 +41,7 @@ function useCancel(
     if (result.ok) return refreshed('done')
     if (reportLost(latest.current, result.status)) return 'failed'
     setProblem(problemText(result.code))
-    return result.code === CLOSED ? refreshed('closed') : 'failed'
+    return CLOSED.has(result.code) ? refreshed('closed') : 'failed'
   }
 
   return { saving, problem, cancel, clearProblem: () => setProblem(null) }

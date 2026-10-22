@@ -6,6 +6,8 @@ import { councilView } from '@/test-support/council-fixtures'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { expenseDetail } from '@/test-support/expense-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { budgetWithoutPeriod } from '@/test-support/budget-fixtures'
+import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
 import { COMPLETION_ERRORS, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
@@ -249,4 +251,116 @@ test('정산을 불러오지 못하면 다시 시도할 수 있다', async () =>
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('지출 예산')).toBeTruthy()
   expect(button('완료')).toBeTruthy()
+})
+
+const reads = (api: ReturnType<typeof mockApi>, path: string) =>
+  api.calls.filter(call => call.method === 'GET' && call.path === path).length
+
+test('완료와 완료 취소가 끝나면 부모에게 알려 행사 목록을 다시 읽게 한다', async () => {
+  const { api, handlers } = openMoney()
+  api.on('POST', `${EVENT}/complete`, () => json({ event: event({ status: 'completed' }) }))
+  api.on('POST', `${EVENT}/cancel-completion`, () => json({ event: event() }))
+  fireEvent.click(await screen.findByRole('button', { name: '완료' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledTimes(1))
+  fireEvent.click(await screen.findByRole('button', { name: '완료 취소' }))
+  fireEvent.change(screen.getByLabelText('취소 사유'), { target: { value: '실수' } })
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료 취소' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledTimes(2))
+})
+
+test('정산은 화면이 다시 보일 때 다시 읽는다', async () => {
+  const { api } = openMoney()
+  await screen.findByText('지출 예산')
+  const before = reads(api, `${EVENT}/settlement`)
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
+})
+
+test('열어 둔 지출을 내가 바꾸면 정산과 행사를 다시 읽는다', async () => {
+  const { api } = openMoney()
+  api.on('GET', `${ORG}/expenses/x1`, () => json({ expense: expenseDetail('x1') }))
+  api.on('POST', `${ORG}/expenses/x1/reimburse`, () =>
+    json({ expense: expenseDetail('x1', { reimbursed: true }) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: /인쇄소 · 36,000원/ }))
+  const dialog = await screen.findByRole('dialog')
+  const settlementBefore = reads(api, `${EVENT}/settlement`)
+  const eventBefore = reads(api, EVENT)
+  fireEvent.click(await within(dialog).findByRole('button', { name: '환급함' }))
+  const confirm = (await screen.findAllByRole('dialog')).at(-1)!
+  fireEvent.click(within(confirm).getByRole('button', { name: '환급함' }))
+  await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(settlementBefore))
+  expect(reads(api, EVENT)).toBeGreaterThan(eventBefore)
+})
+
+test('열어 둔 지출을 잃으면(404) 정산을 다시 읽는다', async () => {
+  const { api } = openMoney()
+  api.on('GET', `${ORG}/expenses/x1`, () => json({ error: 'NOT_FOUND' }, 404))
+  await screen.findByText('지출 예산')
+  const before = reads(api, `${EVENT}/settlement`)
+  fireEvent.click(await screen.findByRole('button', { name: /인쇄소 · 36,000원/ }))
+  await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
+})
+
+const startCancel = async (api: ReturnType<typeof mockApi>, status: number, error: string) => {
+  api.on('POST', `${EVENT}/cancel-completion`, () => json({ error }, status))
+  fireEvent.click(await screen.findByRole('button', { name: '완료 취소' }))
+  fireEvent.change(screen.getByLabelText('취소 사유'), { target: { value: '실수' } })
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료 취소' }))
+}
+
+test('완료 취소가 409 EVENT_NOT_COMPLETED이면 창을 닫고 문구를 보이며 다시 읽는다', async () => {
+  const { api } = openMoney(event({ status: 'completed' }))
+  await screen.findByText('지출 예산')
+  const before = reads(api, `${EVENT}/settlement`)
+  await startCancel(api, 409, 'EVENT_NOT_COMPLETED')
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.EVENT_NOT_COMPLETED)
+  await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
+})
+
+test('완료 취소 중 행사가 사라지면(404) 부모가 닫고 이유를 받는다', async () => {
+  const { api, handlers } = openMoney(event({ status: 'completed' }))
+  await startCancel(api, 404, 'NOT_FOUND')
+  await waitFor(() => expect(handlers.onLost).toHaveBeenCalledWith(EVENT_LOST))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('완료 취소 중 권한을 잃으면(403) 학생회를 다시 읽게 하고 이유를 받는다', async () => {
+  const { api, handlers } = openMoney(event({ status: 'completed' }))
+  await startCancel(api, 403, 'FORBIDDEN')
+  await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
+  expect(handlers.onLost).toHaveBeenCalledWith(PERMISSION_CHANGED)
+})
+
+test('완료 취소 확인을 열어 둔 사이 다른 사람이 이미 취소하면 닫고 문구를 보인다', async () => {
+  const { serve } = openMoney(event({ status: 'completed' }))
+  fireEvent.click(await screen.findByRole('button', { name: '완료 취소' }))
+  await screen.findByRole('dialog')
+  serve(event())
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.EVENT_NOT_COMPLETED)
+})
+
+test('돈 탭에서 연 요청 상세에는 예산 탭으로 가기 버튼이 없다', async () => {
+  const { api } = openMoney()
+  api.on('GET', `${ORG}/budget`, () => json(budgetWithoutPeriod()))
+  api.on('GET', `${ORG}/purchase-requests/r1`, () =>
+    json({ request: purchaseDetail('r1', { actions: ['purchase.approve'] }) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '포스터 인쇄' }))
+  await screen.findByRole('dialog')
+  await screen.findByText(/회계 기간을 먼저 만들어 주세요/)
+  expect(screen.queryByRole('button', { name: '예산 탭으로 가기' })).toBeNull()
+})
+
+test('열어 둔 요청을 잃으면(404) 정산을 다시 읽는다', async () => {
+  const { api } = openMoney()
+  api.on('GET', `${ORG}/purchase-requests/r1`, () => json({ error: 'NOT_FOUND' }, 404))
+  await screen.findByText('지출 예산')
+  const before = reads(api, `${EVENT}/settlement`)
+  fireEvent.click(await screen.findByRole('button', { name: '포스터 인쇄' }))
+  await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
 })
