@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { HealthResponse } from '@vada/contracts'
+import type { createAgreement } from './agreement/routes.js'
 import type { createChatRoutes } from './chat/routes.js'
 import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
@@ -37,6 +38,8 @@ export type AppOptions = {
   budget?: ReturnType<typeof createBudgetRoutes>
   // 지출: 목록, 하나 읽기, 적기, 취소, 환급
   expenses?: ReturnType<typeof createExpenseRoutes>
+  // 가입 동의: 지금 판 읽기, 동의하기, 그리고 동의 전 막기(/api/organizations/ 아래 모든 경로에 접두어로 건다). 둘이 한 쌍이라 따로 연결하지 못한다.
+  agreement?: ReturnType<typeof createAgreement>
 }
 
 export function createApp({
@@ -52,9 +55,12 @@ export function createApp({
   purchases,
   budget,
   expenses,
+  agreement,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
+  // 가드 다음, 각 경로 앞이다. 형식이 틀린 요청은 가드가 먼저 거절한다.
+  if (agreement) app.use('/api/organizations/*', agreement.gate)
   // 로그인한 사람 자신의 것(휴대폰 알림)도 같은 가드를 건다.
   app.use('/api/me/*', mutationGuard(trustedOrigin))
   // 로그인 없이 쓰는 공개 경로(참가 신청)도 같은 화면에서만 보내므로 같은 가드를 건다.
@@ -74,6 +80,7 @@ export function createApp({
     purchases,
     budget,
     expenses,
+    agreement?.routes,
   ])
     if (routes) app.route('/api', routes)
   app.onError(handleError)

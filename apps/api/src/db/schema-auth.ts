@@ -96,6 +96,17 @@ export const inviteCode = pgTable('invite_code', {
   createdAt: at('created_at').notNull().defaultNow(),
 })
 
+// 가입 동의 기록(DEC-51). 로그인 계정마다 동의한 약관 판과 처리방침 판을 판마다 한 줄 더한다.
+export const termsAgreement = pgTable('terms_agreement', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
+  userId: text('user_id').notNull(),
+  termsVersion: text('terms_version').notNull(),
+  privacyVersion: text('privacy_version').notNull(),
+  agreedAt: at('agreed_at').notNull().defaultNow(),
+})
+
 export const pushDevice = pgTable('push_device', {
   id: uuid('id')
     .primaryKey()

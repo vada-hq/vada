@@ -48,7 +48,7 @@ test('설계 검사의 비교는 설계 밖 표를 빼고, 한쪽에만 있는 �
 test('설계 SQL이 설계 밖 표 이름을 쓰면 비교에서 빠지지 않고 드러난다', async () => {
   const migrated = await createTestDb()
   try {
-    // 마이그레이션을 적용한 DB는 설계 밖 표 7개를 모두 가진다.
+    // 마이그레이션을 적용한 DB는 설계 밖 표 8개를 모두 가진다.
     assert.deepEqual(await excludedTablesIn(migrated.pg, NOT_IN_DESIGN), [...NOT_IN_DESIGN].sort())
     assert.deepEqual(await excludedTablesIn(migrated.pg, new Set(['no_such_table'])), [])
   } finally {
