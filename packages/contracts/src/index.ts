@@ -207,6 +207,7 @@ export {
   type TasksResponse,
 } from './tasks.js'
 export * from './accounts.js'
+export * from './home.js'
 export {
   AttachEvidenceSchema,
   CancelExpenseSchema,

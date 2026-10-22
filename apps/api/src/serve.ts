@@ -30,6 +30,7 @@ import { createPublicRegistrationRoutes } from './registrations/public-routes.js
 import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { startPurge } from './purge/run.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
+import { createHomeRoutes } from './home/routes.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
@@ -96,6 +97,7 @@ function appOf(env: Env, db: Db) {
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session, { push: push.taskPush }),
+    home: createHomeRoutes(db, session),
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),

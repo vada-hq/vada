@@ -20,6 +20,7 @@ import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
+import { createHomeRoutes } from '../home/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
@@ -55,6 +56,7 @@ function modulesOf(session: () => Promise<null>) {
     }),
     pushDevices: createPushDeviceRoutes(db, session),
     tasks: createTaskRoutes(db, session),
+    home: createHomeRoutes(db, session),
     purchases: createPurchaseRoutes(db, session),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session),

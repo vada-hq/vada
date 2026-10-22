@@ -48,7 +48,7 @@ const assigneeIsCurrent = (db: Reader, actor: Actor, now: Date) =>
 
 // 읽기 바탕(조각 3·4의 쓰기가 같은 줄과 권한 맥락을 다시 쓴다): 이 학생회의 업무와 그 줄에 필요한 이름, 담당자 현재 여부.
 // 학생회 경계는 기록(record)의 학생회 번호로 건다. 조건(where)은 부르는 쪽이 inCouncil과 함께 더한다.
-function taskSelect(db: Reader, actor: Actor, now: Date) {
+export function taskSelect(db: Reader, actor: Actor, now: Date) {
   return db
     .select({
       id: task.id,
@@ -74,12 +74,12 @@ function taskSelect(db: Reader, actor: Actor, now: Date) {
 }
 
 // 이 학생회의 지우지 않은 업무
-const inCouncil = (actor: Actor) =>
+export const inCouncil = (actor: Actor) =>
   and(eq(record.councilId, actor.councilId), isNull(task.cancelledAt))
 
-type Row = Awaited<ReturnType<ReturnType<typeof taskSelect>['where']>>[number]
+export type Row = Awaited<ReturnType<ReturnType<typeof taskSelect>['where']>>[number]
 
-function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
+export function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
   const status = row.status as TaskStatus
   return {
     id: row.id,
@@ -100,8 +100,11 @@ function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
   }
 }
 
+// 나에게 맡긴 업무. 업무 화면의 '내 업무'와 홈이 같이 쓴다.
+export const assignedTo = (actor: Actor) => eq(task.assigneeId, actor.memberId)
+
 function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL | undefined {
-  if (view === 'mine') return eq(task.assigneeId, actor.memberId)
+  if (view === 'mine') return assignedTo(actor)
   if (view === 'all') return undefined
   // 담당자 없음, 떠난 담당자, 부서 없는 업무
   return or(

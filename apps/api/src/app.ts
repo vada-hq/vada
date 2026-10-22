@@ -16,6 +16,7 @@ import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
+import type { createHomeRoutes } from './home/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
 import { handleError } from './http/on-error.js'
@@ -39,6 +40,8 @@ export type AppOptions = {
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
   // 업무: 목록, 하나 읽기
   tasks?: ReturnType<typeof createTaskRoutes>
+  // 홈: 그 사람의 부분을 한 번에 읽기
+  home?: ReturnType<typeof createHomeRoutes>
   // 구매 요청: 목록, 하나 읽기, 내기, 취소, 결재
   purchases?: ReturnType<typeof createPurchaseRoutes>
   // 회계 기간과 지출 예산 항목
