@@ -141,7 +141,10 @@ test(
     )
     assert.deepEqual(asOwner.history[1]?.changes, [{ field: 'place', from: '운동장', to: '강당' }])
     assert.equal(asOwner.history[1]?.by?.id, president.memberId)
-    assert.deepEqual((await t.detail(id, 's-president')).actions, ['event.set_owner'])
+    assert.deepEqual((await t.detail(id, 's-president')).actions, [
+      'event.set_owner',
+      'event.complete',
+    ])
     assert.deepEqual((await t.detail(id, 's-plain')).actions, [])
   }),
 )

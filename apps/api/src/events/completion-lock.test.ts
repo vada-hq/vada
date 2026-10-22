@@ -94,7 +94,7 @@ const post =
   (path: string, body: unknown, user = PRESIDENT) =>
     t.api.post(`/api/organizations/${t.council.councilId}${path}`, body, user)
 
-type Row = [string, (t: SettlementKit, s: Scene) => Promise<Response>]
+type Row = [string, (t: SettlementKit, s: Scene) => Promise<Response> | Response]
 
 const rows: Row[] = [
   // 행사
