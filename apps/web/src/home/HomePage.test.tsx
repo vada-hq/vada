@@ -99,6 +99,20 @@ test('실패하면 다시 불러오기로 새로 읽는다', async () => {
   expect(await screen.findByText('지금 할 업무가 없어요.')).toBeTruthy()
 })
 
+test('다시 불러오는 동안 [다시 불러오기]는 막혀 한 번만 읽는다', async () => {
+  let calls = 0
+  const retry = deferredResponse()
+  open(() => {
+    calls += 1
+    return calls === 1 ? json({ code: 'INTERNAL' }, 500) : retry.promise
+  })
+  const button = await screen.findByRole('button', { name: '다시 불러오기' })
+  fireEvent.click(button)
+  await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(true))
+  fireEvent.click(button)
+  expect(calls).toBe(2)
+})
+
 test('403이면 학생회를 다시 읽게 한다', async () => {
   const { onForbidden } = open(() => json({ code: 'FORBIDDEN' }, 403))
   await waitFor(() => expect(onForbidden).toHaveBeenCalled())

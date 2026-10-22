@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -19,12 +20,26 @@ type Props = {
 // 옆 메뉴 '홈': 그 사람의 부분을 한 번 읽어 보인다. 읽기만 하고, 줄은 원래 기록의 화면으로 간다.
 export default function HomePage({ view, onOpenTask, onOpenPage, onForbidden }: Props) {
   const { state, reload } = useHome(view.council.id, onForbidden)
+  const [retrying, setRetrying] = useState(false)
+  const retry = async () => {
+    setRetrying(true)
+    try {
+      await reload()
+    } finally {
+      setRetrying(false)
+    }
+  }
   if (state.kind === 'loading') return <StateMessage kind="loading">홈 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
     return (
       <div className="flex flex-col gap-3">
         <StateMessage kind="error">{HOME_LOAD_FAILED}</StateMessage>
-        <Button variant="outline" className="self-start" onClick={() => void reload()}>
+        <Button
+          variant="outline"
+          className="self-start"
+          disabled={retrying}
+          onClick={() => void retry()}
+        >
           다시 불러오기
         </Button>
       </div>

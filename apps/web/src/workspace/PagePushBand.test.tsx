@@ -44,6 +44,11 @@ test('대화 화면에서는 기존 문구를 보인다', async () => {
   expect(await screen.findByText(PUSH_OFF_CHAT)).toBeTruthy()
 })
 
+test('홈 화면에서도 기본 문구로 보인다', async () => {
+  show('home')
+  expect(await screen.findByText(PUSH_OFF_CHAT)).toBeTruthy()
+})
+
 test('다른 화면에서는 띠가 없다', async () => {
   show('people')
   await new Promise(resolve => setTimeout(resolve, 20))
