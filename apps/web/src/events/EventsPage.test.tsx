@@ -214,6 +214,32 @@ test('책임자가 고치면 칸을 그대로 보내고 응답이 화면 값이 
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
+test('빈 일시·장소는 고칠 수 있을 때 [넣기] 버튼이고, 누르면 고치기가 그 칸에 포커스를 두고 열린다', async () => {
+  const { api } = setup()
+  const empty = eventDetail({ startsAt: null, endsAt: null, place: null, status: 'tbd' }, [
+    'event.update',
+  ])
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '장소 넣기' }))
+  const dialog = await screen.findByRole('dialog', { name: '행사 고치기' })
+  expect(document.activeElement).toBe(within(dialog).getByLabelText('장소'))
+  fireEvent.keyDown(dialog, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  fireEvent.click(screen.getByRole('button', { name: '일시 넣기' }))
+  const again = await screen.findByRole('dialog', { name: '행사 고치기' })
+  expect(document.activeElement).toBe(within(again).getByLabelText('시작'))
+})
+
+test('고칠 수 없으면 빈 칸은 글자로만 보인다', async () => {
+  const { api } = setup()
+  const empty = eventDetail({ startsAt: null, endsAt: null, place: null, status: 'tbd' })
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  expect(await screen.findByText('장소 없음')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '장소 넣기' })).toBeNull()
+})
+
 test('고치기에서 끝이 시작보다 이르면 저장 버튼이 꺼져 있다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))

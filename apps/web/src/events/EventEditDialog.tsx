@@ -4,6 +4,7 @@ import { eventFieldsOf, eventFieldsRequest } from './event-fields'
 import { eventPath } from './event-api'
 import { EventDialogShell } from './EventDialogShell'
 import { EventForm } from './EventForm'
+import type { EventFieldFocus } from './EventFields'
 import { useEventSubmit, type EventDialogHandlers } from './useEventSubmit'
 
 type Props = EventDialogHandlers & {
@@ -11,10 +12,11 @@ type Props = EventDialogHandlers & {
   event: EventDetail
   onClose: () => void
   onDone: (event: EventDetail) => void
+  focus?: EventFieldFocus | undefined
 }
 
 // 이름, 일시, 장소 고치기(책임자). 책임자는 여기서 바꾸지 않는다.
-export function EventEditDialog({ councilId, event, onClose, onDone, ...handlers }: Props) {
+export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...handlers }: Props) {
   const [values, setValues] = useState(eventFieldsOf(event))
   const [saving, setSaving] = useState(false)
   const request = eventFieldsRequest(values)
@@ -30,6 +32,7 @@ export function EventEditDialog({ councilId, event, onClose, onDone, ...handlers
         submitLabel="저장"
         values={values}
         onValues={setValues}
+        focus={focus}
         valid={submit.valid}
         saving={saving}
         problem={submit.problem}

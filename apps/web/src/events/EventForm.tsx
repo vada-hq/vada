@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { MissingHint, missingLabels } from '@/components/ui/field'
 import type { EventFieldValues } from './event-fields'
-import { EventFields } from './EventFields'
+import { EventFields, type EventFieldFocus } from './EventFields'
 
 type Props = {
   label: string
@@ -15,6 +15,7 @@ type Props = {
   extra?: ReactNode
   // 만들기는 이름만 받는다(EventFields).
   nameOnly?: boolean
+  focus?: EventFieldFocus | undefined
   valid: boolean
   saving: boolean
   problem: string | null
@@ -38,6 +39,7 @@ export function EventForm(props: Props) {
         disabled={props.saving}
         onChange={props.onValues}
         nameOnly={props.nameOnly}
+        focus={props.focus}
       />
       {props.extra}
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
