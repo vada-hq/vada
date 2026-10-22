@@ -97,7 +97,7 @@
 - 닿는 곳: contracts `events.ts`(`CompleteEventSchema`, `CancelCompletionSchema`, 동작), `errors.ts`. `events/completion.ts`(새: 완료 여부와 잠금 확인), `settlement/complete.ts`·`fee-income.ts`(새), 잠금을 부르는 곳: `events/service.ts`, `purchases/service.ts`·`decide.ts`, `expenses/service.ts`·`evidence.ts`, `budget/service.ts`, `deposits/service.ts`, 007의 신청 쓰기 모듈(`registrations/service.ts`의 `createForm`·`updateForm`·`setPaused`, `apply.ts`·`cancel-mine.ts`(`lockCouncil`도 더한다), `cancel-by-staff.ts`, `attendance.ts`의 `checkInByQr`·`checkInManually`·`cancelAttendance`), `ops/pg-smoke/`.
 - 검토: 깊게(잠금, 돈, 동시 처리). 마이그레이션: 없음.
 
-### 5. 행사 잇기와 지출 고치기(서버) [ ]
+### 5. 행사 잇기와 지출 고치기(서버) [x]
 - 할 수 있게 되는 것: 운영진이 요청을, 재정부가 예산 항목과 지출을 행사에 잇고, 재정부가 정산 전에 지출의 사유와 행사를 고친다.
 - 수용 기준: 요청 내기, 예산 항목 더하기(종류와 행사), 지출 적기가 `eventId`를 받고 다른 학생회 행사는 409 `EVENT_INVALID`, 완료한 행사는 409 `EVENT_COMPLETED`다. 결제 내역의 요청 행사와 지출의 행사가 다르면 409 `EVENT_MISMATCH`이고, 요청에 행사가 있으면 지출의 행사를 빼도 그 행사로 채운다. 수입 예산 항목을 결재나 지출에 고르면 409 `BUDGET_ITEM_INVALID`다. `POST expenses/:expenseId`는 재정부만 사유와 행사를 바꾸고, 같은 값이면 판이 늘지 않으며, 취소한 지출 409 `EXPENSE_CANCELLED`, 결제 내역이 있는 지출의 행사를 요청과 다르게 바꾸면 409 `EVENT_MISMATCH`다. 지출 상세 이력에 사유·행사 바꿈이 보인다. `GET expenses?event=`와 `GET purchase-requests?view=all&event=`는 그 행사의 것만 주고 다른 학생회 행사는 404다. 지출·요청의 요약과 상세, 예산 항목에 행사 이름이 있다. `GET budget`은 수입 항목을 종류와 함께 준다. 기존 시험이 그대로 통과한다.
 - 닿는 곳: contracts `purchases.ts`, `budget.ts`, `expenses.ts`(`UpdateExpenseSchema`, 행사), `errors.ts`. `purchases/service.ts`·`queries.ts`, `budget/service.ts`·`queries.ts`, `expenses/service.ts`·`queries.ts`·`routes.ts`·`history.ts`, `records/records.ts`.
