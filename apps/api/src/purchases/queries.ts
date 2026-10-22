@@ -21,6 +21,7 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
@@ -223,6 +224,10 @@ async function expensesOf(db: Reader, requestId: string) {
   }))
 }
 
+async function isLocked(db: Reader, eventId: string | null) {
+  return !!eventId && (await completedEventIdsAmong(db, [eventId])).size > 0
+}
+
 export async function requestDetailOf(
   db: Reader,
   actor: Actor,
@@ -238,11 +243,14 @@ export async function requestDetailOf(
     decisions,
     expenses: await expensesOf(db, requestId),
     history: await requestHistoryOf(db, requestId),
-    actions: actionsOf(actor, {
-      requestedBy: row.requestedBy,
-      status,
-      decided: decisions.length,
-    }),
+    // 완료한 행사의 요청은 취소도 결재도 잠겨 있어 동작을 주지 않는다(DEC-68). 결재에서 고른 예산 항목의 행사는 그 선택만 막는다.
+    actions: (await isLocked(db, row.eventId))
+      ? []
+      : actionsOf(actor, {
+          requestedBy: row.requestedBy,
+          status,
+          decided: decisions.length,
+        }),
   }
 }
 

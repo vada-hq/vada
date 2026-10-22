@@ -29,6 +29,7 @@ import {
 import type { Db } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
+import { isExpenseLocked } from './event-lock.js'
 import { expenseHistoryOf } from './history.js'
 import { expenseActionsOf } from './status.js'
 
@@ -227,10 +228,13 @@ export async function expenseDetailOf(
     evidence: await evidenceOf(db, expenseId),
     approvals: await approvalsOf(db, expenseId),
     history: await expenseHistoryOf(db, expenseId),
-    actions: expenseActionsOf(actor, {
-      cancelled: summary.cancelled,
-      paidBy: row.paidById,
-      reimbursed: summary.reimbursed,
-    }),
+    // 완료한 행사의 지출은 잠겨 있어 취소·환급 동작을 주지 않는다(DEC-68).
+    actions: (await isExpenseLocked(db, actor, expenseId))
+      ? []
+      : expenseActionsOf(actor, {
+          cancelled: summary.cancelled,
+          paidBy: row.paidById,
+          reimbursed: summary.reimbursed,
+        }),
   }
 }

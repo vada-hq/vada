@@ -3,7 +3,7 @@ import type { Actor } from '../access/actor.js'
 import { budgetItemEventsOf } from '../budget/queries.js'
 import { budgetItem, expense, lineItem, paymentLine, record, request } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
-import { assertEventsOpen } from '../events/completion.js'
+import { assertEventsOpen, completedEventIdsAmong } from '../events/completion.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -52,7 +52,7 @@ export async function requestEventsOfExpense(db: Reader, actor: Actor, expenseId
 
 // 지출 하나의 행사들: 지출에 적은 행사, 지출이 고른 예산 항목의 행사, 결제한 품목들의 행사.
 // 지출의 행사는 요청의 행사와 같게 지키지만(조각 5) 그 전에 만든 지출도 같은 잠금을 받도록 모두 본다.
-export async function eventsOfExpense(tx: Tx, actor: Actor, expenseId: string) {
+export async function eventsOfExpense(tx: Reader, actor: Actor, expenseId: string) {
   const [own] = await tx
     .select({ eventId: expense.eventId, budgetItemId: expense.budgetItemId })
     .from(expense)
@@ -75,4 +75,10 @@ export async function eventsOfExpense(tx: Tx, actor: Actor, expenseId: string) {
 // 이미 있는 지출을 취소·환급·증빙으로 바꾸는 거래가 지출 행을 잠근 뒤에 부른다.
 export async function assertExpenseEventOpen(tx: Tx, actor: Actor, expenseId: string) {
   await assertEventsOpen(tx, await eventsOfExpense(tx, actor, expenseId))
+}
+
+// 읽기: 지출의 어느 행사든 완료했으면 잠겼다. 취소·환급 같은 잠금 범위의 동작을 보여 주지 않는 데 쓴다. 쓰기와 같은 판단(eventsOfExpense)이다.
+export async function isExpenseLocked(db: Reader, actor: Actor, expenseId: string) {
+  const ids = (await eventsOfExpense(db, actor, expenseId)).filter((id): id is string => !!id)
+  return (await completedEventIdsAmong(db, ids)).size > 0
 }
