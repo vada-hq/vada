@@ -24,6 +24,7 @@ export function ExpenseFacts({ expense }: { expense: ExpenseDetail }) {
         </span>
         <span className="wrap-anywhere">{paidByLabel(expense)}</span>
         {expense.account && <span className="wrap-anywhere">계좌 {expense.account.name}</span>}
+        {expense.event && <span className="wrap-anywhere">행사 {expense.event.name}</span>}
         {expense.budgetItem && (
           <span className="wrap-anywhere">예산 항목 {expense.budgetItem.purpose}</span>
         )}

@@ -12,6 +12,6 @@ export const reportExpenseLost = (
   status: number,
 ) => reportLost(handlers, status, EXPENSE_LOST)
 
-// 이미 바뀐 상태라 다시 읽어야 하는 거절(취소된 지출, 환급할 수 없음).
-const STALE_CODES = ['EXPENSE_CANCELLED', 'NOT_REIMBURSABLE', 'EVIDENCE_LIMIT']
+// 이미 바뀐 상태라 다시 읽어야 하는 거절(취소된 지출, 환급할 수 없음, 완료한 행사).
+const STALE_CODES = ['EXPENSE_CANCELLED', 'NOT_REIMBURSABLE', 'EVIDENCE_LIMIT', 'EVENT_COMPLETED']
 export const isStale = (code: string) => STALE_CODES.includes(code)

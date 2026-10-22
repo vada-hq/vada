@@ -13,6 +13,7 @@ import { AccountSection } from './AccountSections'
 import { ExpenseSection } from './ExpenseSections'
 import { DecisionSection, FinanceSection } from './FinanceSections'
 import { EventSection } from './EventSections'
+import { SettlementSection } from './SettlementSections'
 import { TaskSection } from './TaskSections'
 import { PublicSection } from './PublicSections'
 import { RegistrationSection } from './RegistrationSections'
@@ -35,6 +36,7 @@ export default function Gallery() {
       <StateSection />
       <PushSection />
       <EventSection />
+      <SettlementSection />
       <TaskSection />
       <PublicSection />
       <RegistrationSection />

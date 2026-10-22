@@ -90,6 +90,20 @@ export const EVENT_FAILED = '저장하지 못했어요. 연결을 확인하고 �
 export const EVENTS_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EVENT_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EVENT_LOST = '이 행사를 볼 수 없어요. 다른 학생회의 행사일 수 있어요.'
+// 행사의 돈 탭: 정산 읽기와 완료·완료 취소. 오류는 그 동작 옆에 보인다.
+export const SETTLEMENT_LOAD_FAILED = '정산을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const COMPLETION_ERRORS: Record<string, string> = {
+  SETTLEMENT_PENDING: '아직 정산이 끝나지 않았어요. 남은 것을 처리한 뒤에 완료해 주세요.',
+  EVENT_NOT_STARTED: '시작하지 않은 행사는 완료할 수 없어요. 행사 일시를 확인해 주세요.',
+  NO_FISCAL_PERIOD:
+    '참가비를 수입으로 넣을 회계 기간이 없어요. 재정의 예산 탭에서 회계 기간을 먼저 만들어 주세요.',
+  EVENT_COMPLETED: '이미 완료한 행사예요. 새로 불러왔어요.',
+  EVENT_NOT_COMPLETED: '완료한 행사가 아니에요. 새로 불러왔어요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const COMPLETION_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const EVENT_COMPLETED_NOTICE = '완료한 행사라 바꿀 수 없어요.'
 export const EVENT_TEAM_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
 // 업무를 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때
@@ -217,10 +231,15 @@ export const EXPENSE_ERRORS: Record<string, string> = {
   STORAGE_NOT_CONFIGURED:
     '지금은 사진을 올릴 수 없어요. 지출은 적을 수 있어요. 나중에 다시 해 주세요.',
   BUDGET_ITEM_INVALID: '고를 수 없는 예산 항목이에요. 다른 항목을 골라 주세요.',
+  EVENT_COMPLETED:
+    '완료한 행사의 지출이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
+  EVENT_MISMATCH: '결제한 요청의 행사와 달라요. 요청과 같은 행사를 골라 주세요.',
+  EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
+export const ACTION_GONE = '지금은 할 수 없는 동작이에요. 화면을 새로 불러왔어요.'
 export const EXPENSE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const EVIDENCE_UPLOAD_FAILED =
   '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'

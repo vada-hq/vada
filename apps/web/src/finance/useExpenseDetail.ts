@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { ExpenseResponse } from '@vada/contracts'
+import type { ExpenseResponse, UpdateExpense } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { useLatest } from '@/lib/use-latest'
 import { usePolledRead } from '@/lib/use-polled-read'
@@ -62,8 +62,9 @@ export function useExpenseDetail(
     retry: () => void read.reload(),
     saving,
     problem,
-    clearProblem: () => setProblem(null),
+    report: setProblem,
     cancel: (reason: string) => change(expenseCancelPath(councilId, expenseId), { reason }),
+    update: (body: UpdateExpense) => change(expensePath(councilId, expenseId), body),
     reimburse: () => change(expenseReimbursePath(councilId, expenseId), {}),
     apply,
     reload: read.reload,

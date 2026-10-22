@@ -1,0 +1,125 @@
+import { useState } from 'react'
+import { UpdateExpenseSchema, type ExpenseDetail, type UpdateExpense } from '@vada/contracts'
+import StateMessage from '@/components/StateMessage'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useEvents } from '../events/useEvents'
+import { ChoiceSelect } from '../tasks/ChoiceSelect'
+import { eventChoices } from '../tasks/task-form-options'
+
+type Props = {
+  councilId: string
+  expense: ExpenseDetail
+  busy: boolean
+  error: string | null
+  onForbidden: () => void
+  onClose: () => void
+  onConfirm: (body: UpdateExpense) => void
+}
+
+// 바뀐 칸만 보낸다. 비운 사유는 null이다. 아무것도 바뀌지 않았으면 null이다.
+function changesOf(expense: ExpenseDetail, reason: string, eventId: string | null) {
+  const before = expense.reason ?? ''
+  const body: UpdateExpense = {}
+  if (reason !== before) body.reason = reason.trim() === '' ? null : reason
+  if (eventId !== (expense.event?.id ?? null)) body.eventId = eventId
+  return Object.keys(body).length === 0 ? null : body
+}
+
+type FieldsProps = {
+  councilId: string
+  expense: ExpenseDetail
+  busy: boolean
+  state: { reason: string; eventId: string | null }
+  onReason: (reason: string) => void
+  onEvent: (eventId: string | null) => void
+  onForbidden: () => void
+}
+
+// 사유와 행사 칸. 행사는 완료하지 않은 행사만 고른다.
+function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: FieldsProps) {
+  const events = useEvents(councilId, onForbidden)
+  const open =
+    events.state.kind === 'ready'
+      ? events.state.data.events.filter(item => item.status !== 'completed')
+      : []
+  return (
+    <>
+      <Label className="flex flex-col gap-2">
+        사유
+        <Textarea
+          value={state.reason}
+          disabled={busy}
+          onChange={e => on.onReason(e.target.value)}
+        />
+      </Label>
+      <ChoiceSelect
+        label="행사"
+        choices={eventChoices(open, expense.event)}
+        value={state.eventId}
+        disabled={busy || events.state.kind !== 'ready'}
+        onChange={on.onEvent}
+      />
+    </>
+  )
+}
+
+// 지출 고치기(재정부, 정산 전): 사유와 행사. 행사는 완료하지 않은 행사만 고른다. [저장]은 계약의 검사로 켠다.
+export function ExpenseUpdateDialog({
+  councilId,
+  expense,
+  busy,
+  error,
+  onForbidden,
+  onClose,
+  onConfirm,
+}: Props) {
+  const [reason, setReason] = useState(expense.reason ?? '')
+  const [eventId, setEventId] = useState(expense.event?.id ?? null)
+  const body = changesOf(expense, reason, eventId)
+  const valid = body !== null && UpdateExpenseSchema.safeParse(body).success
+  return (
+    <Dialog
+      open
+      onOpenChange={next => {
+        if (!next && !busy) onClose()
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>지출 고치기</DialogTitle>
+          <DialogDescription className="wrap-anywhere">
+            사유와 행사를 고쳐요. 행사가 완료되면 바꿀 수 없어요. 고친 내용은 이력에 남아요.
+          </DialogDescription>
+        </DialogHeader>
+        <UpdateFields
+          councilId={councilId}
+          expense={expense}
+          busy={busy}
+          state={{ reason, eventId }}
+          onReason={setReason}
+          onEvent={setEventId}
+          onForbidden={onForbidden}
+        />
+        {error && <StateMessage kind="error">{error}</StateMessage>}
+        <DialogFooter>
+          <Button variant="outline" disabled={busy} onClick={onClose}>
+            닫기
+          </Button>
+          <Button disabled={!valid || busy} onClick={() => body && onConfirm(body)}>
+            저장
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

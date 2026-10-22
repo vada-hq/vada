@@ -51,7 +51,11 @@ function OpenExpenseDialog({
           <DialogTitle className="wrap-anywhere">{detail.expense?.vendor ?? '지출'}</DialogTitle>
         </DialogHeader>
         {detail.expense ? (
-          <Loaded {...{ councilId, canManage, detail, upload }} expense={detail.expense} />
+          <Loaded
+            {...{ councilId, canManage, detail, upload }}
+            expense={detail.expense}
+            onForbidden={handlers.onForbidden}
+          />
         ) : detail.loadFailed ? (
           <div className="flex flex-col items-start gap-3">
             <StateMessage kind="error">{EXPENSE_LOAD_FAILED}</StateMessage>
@@ -73,7 +77,9 @@ function Loaded({
   expense,
   detail,
   upload,
+  onForbidden,
 }: {
+  onForbidden: () => void
   councilId: string
   canManage: boolean
   expense: ExpenseDetail
@@ -85,7 +91,12 @@ function Loaded({
       <ExpenseFacts expense={expense} />
       <ExpenseLines lines={expense.lines} />
       <EvidenceSection {...{ councilId, expense, canManage, upload }} />
-      <ExpenseActions expense={expense} detail={detail} />
+      <ExpenseActions
+        councilId={councilId}
+        expense={expense}
+        detail={detail}
+        onForbidden={onForbidden}
+      />
       <ExpenseRecords expense={expense} />
     </div>
   )
