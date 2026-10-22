@@ -21,6 +21,11 @@ const AUDIT_TITLE: Record<AuditKind, string> = {
   bundle: '증빙 묶음을 받을까요?',
 }
 
+// 버튼을 끌지의 판단은 이 함수 하나다. 지금은 서버의 tooLarge 하나가 엑셀 상한과 묶음 상한을 함께 뜻하므로 묶음만 끈다.
+// 계약이 엑셀과 묶음으로 나뉘면 여기만 바꾼다.
+const isBlocked = (closing: Closing, kind: AuditKind) =>
+  kind === 'bundle' && closing.exportInfo.tooLarge
+
 type ButtonsProps = {
   closing: Closing
   busy: boolean
@@ -47,7 +52,7 @@ function ExportButtons({ closing, busy, onPublic, onAudit }: ButtonsProps) {
       {canAudit && (
         <Button
           variant="outline"
-          disabled={busy || closing.exportInfo.tooLarge}
+          disabled={busy || isBlocked(closing, 'bundle')}
           onClick={() => onAudit('bundle')}
         >
           증빙 묶음 받기
@@ -64,7 +69,7 @@ function ExportNotes({ closing }: { closing: Closing }) {
       {closing.actions.includes('closing.export_public') && (
         <p className="text-xs text-gray-500">{PUBLIC_NOTE}</p>
       )}
-      {canAudit && closing.exportInfo.tooLarge && (
+      {canAudit && isBlocked(closing, 'bundle') && (
         <StateMessage kind="notice">{TOO_LARGE_NOTE}</StateMessage>
       )}
     </>
