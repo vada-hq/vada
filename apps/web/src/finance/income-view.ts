@@ -1,16 +1,7 @@
-import type { IncomeChange, IncomeSource, IncomeVersion } from '@vada/contracts'
+import { SOURCE_LABEL, type IncomeChange, type IncomeVersion } from '@vada/contracts'
 import { monthDayTime } from '@/lib/korean-date-text'
 
-// 참가비는 행사 완료 때, 이월금은 결산 공개 때 서버가 만든다. 출처 이름이 곧 그 표시다.
-export const SOURCE_LABEL: Record<IncomeSource, string> = {
-  fee: '학생회비',
-  grant: '지원금',
-  business: '사업 수익',
-  donation: '후원금',
-  other: '기타',
-  participation_fee: '참가비',
-  carryover: '이월금',
-}
+export { SOURCE_LABEL }
 
 const UNKNOWN_PERSON = '알 수 없는 사람'
 const CHANGE_TEXT: Record<IncomeChange['field'], string> = {

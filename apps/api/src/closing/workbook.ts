@@ -1,5 +1,11 @@
 import writeXlsxFile from 'write-excel-file/node'
-import type { Closing, ClosingCheckKind, EvidenceType, IncomeSource } from '@vada/contracts'
+import {
+  CLOSING_CHECK_LABEL,
+  METHOD_LABEL,
+  SOURCE_LABEL,
+  type Closing,
+  type IncomeSource,
+} from '@vada/contracts'
 import type { ExportAccount, ExportExpense, ExportIncome } from './export-rows.js'
 
 // 결산서 엑셀. 숫자는 결산서와 같은 계산 모듈(numbers.ts)이 만든 값을 그대로 받고 여기서 다시 계산하지 않는다.
@@ -37,40 +43,6 @@ const percent = (value: number | null): Cell =>
 const head = (...labels: string[]): Row =>
   labels.map(value => ({ value, type: String, fontWeight: 'bold' }))
 const titled = (label: string): Row => head(label)
-
-const SOURCE_LABEL: Record<IncomeSource, string> = {
-  fee: '학생회비',
-  grant: '지원금',
-  business: '사업 수익',
-  donation: '후원금',
-  other: '기타',
-  participation_fee: '참가비',
-  carryover: '이월금',
-}
-const METHOD_LABEL: Record<string, string> = {
-  card: '카드',
-  transfer: '계좌 이체',
-  cash: '현금',
-}
-export const EVIDENCE_TYPE_LABEL: Record<EvidenceType, string> = {
-  receipt: '영수증',
-  statement: '거래명세서',
-  tax_invoice: '세금계산서',
-  card_statement: '카드 전표',
-  transfer_confirmation: '이체 확인증',
-  item_photo: '물품 사진',
-  site_photo: '현장 사진',
-  stock_photo: '입고 사진',
-  other: '기타',
-}
-const CHECK_LABEL: Record<ClosingCheckKind, string> = {
-  no_evidence: '증빙 없음',
-  no_reason: '사유 없음',
-  unreimbursed: '환급 전',
-  no_account: '계좌 없음',
-  no_item: '예산 항목 없음',
-  other_period_item: '다른 기간 예산 항목',
-}
 
 const NO_ITEM = '(예산 항목 없음)'
 
@@ -153,7 +125,7 @@ function expenseSheet({ expenses, kind }: WorkbookInput): Row[] {
       text(row.vendor),
       text(row.description),
       won(row.amount),
-      text(METHOD_LABEL[row.method] ?? row.method),
+      text(METHOD_LABEL[row.method]),
       text(row.items.join(', ')),
       text(row.account),
       text(row.event),
@@ -195,7 +167,7 @@ function checkSheet({ closing, expenses }: WorkbookInput): Row[] {
     const listed = check.targets.flatMap(target =>
       target.type === 'expense' && numbers.has(target.id) ? [String(numbers.get(target.id))] : [],
     )
-    rows.push([text(CHECK_LABEL[check.kind]), count(check.count), text(listed.join(', '))])
+    rows.push([text(CLOSING_CHECK_LABEL[check.kind]), count(check.count), text(listed.join(', '))])
   }
   rows.push([], head('완료하지 않은 행사의 입금', '입금 수', '금액'))
   for (const row of closing.feePending.blocking)

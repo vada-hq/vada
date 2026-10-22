@@ -59,7 +59,7 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
         storage: store.storage,
       }),
       incomes: createIncomeRoutes(db, testSession, { clock, writeLimiter }),
-      closing: createClosingRoutes(db, testSession, { clock }),
+      closing: createClosingRoutes(db, testSession, { clock, bundleAvailable: true }),
       closingExport: createClosingExportRoutes(db, testSession, {
         clock,
         storage: store.storage,

@@ -1,8 +1,5 @@
 import { Hono, type Context } from 'hono'
 import {
-  CLOSING_EXPORT_MAX_BYTES,
-  CLOSING_EXPORT_MAX_PHOTOS,
-  CLOSING_EXPORT_MAX_ROWS,
   ClosingExportQuerySchema,
   koreanDateOf,
   type Closing,
@@ -38,13 +35,10 @@ const LABEL: Record<ExportKind, string> = { public: '공개용', audit: '감사�
 // 읽기는 한 시점의 모습이다. 엑셀의 수입·지출 줄이 결산서 숫자와 어긋나 보이지 않게 한다.
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
 
-// 엑셀은 줄 수만, 묶음은 사진 수와 크기도 본다(Render 512MB와 대역폭).
+// 상한은 exportInfo의 값 그대로다(판단은 export-info.ts 한 곳). 엑셀은 줄 수만, 묶음은 사진 수와 크기도 본다.
 function assertWithinLimits(info: ClosingExportInfo, withPhotos: boolean) {
-  const rows =
-    info.expenseCount > CLOSING_EXPORT_MAX_ROWS || info.incomeCount > CLOSING_EXPORT_MAX_ROWS
-  const photos =
-    info.photoCount > CLOSING_EXPORT_MAX_PHOTOS || info.photoBytes > CLOSING_EXPORT_MAX_BYTES
-  if (rows || (withPhotos && photos)) throw new ApiError('EXPORT_TOO_LARGE')
+  if (withPhotos ? info.bundleTooLarge : info.workbookTooLarge)
+    throw new ApiError('EXPORT_TOO_LARGE')
 }
 
 type ExportRequest = { userId: string; councilId: string; periodId: string; now: Date }
@@ -90,12 +84,22 @@ async function startBundle(
   kit: { running: Set<string>; limiter: RateLimiter; storage: FileStorage },
   request: ExportRequest,
   loaded: Exported,
+  signal: AbortSignal,
 ) {
   if (kit.running.has(request.councilId) || !kit.limiter.take(request.userId, request.now))
     throw new ApiError('TOO_MANY_REQUESTS')
   // 자리는 기다리는 동안 다른 요청이 가로채지 못하게 바로 잡는다.
   kit.running.add(request.councilId)
-  const release = () => kit.running.delete(request.councilId)
+  // 여러 번 불려도 한 번만 푼다: 그 사이 같은 학생회의 새 묶음이 잡은 자리를 풀지 않게.
+  let released = false
+  const release = () => {
+    if (released) return
+    released = true
+    kit.running.delete(request.councilId)
+  }
+  // 엑셀을 만드는 사이나 보내는 중에 연결이 끊기면 스트림이 취소되지 않을 수 있어, 끊김 자체에서도 푼다(이미 끊겼어도).
+  if (signal.aborted) release()
+  else signal.addEventListener('abort', release, { once: true })
   const workbook = await workbookOf(workbookInputOf('audit', loaded)).catch((error: unknown) => {
     release()
     throw error
@@ -144,7 +148,12 @@ export function createClosingExportRoutes(
     const request = requestOf(c)
     const loaded = await loadExport(db, request, 'audit', true)
     const storage = requireStorage(options.storage)
-    const stream = await startBundle({ running, limiter, storage }, request, loaded)
+    const stream = await startBundle(
+      { running, limiter, storage },
+      request,
+      loaded,
+      c.req.raw.signal,
+    )
     const name = fileNameOf(loaded, 'audit', request.now, 'zip')
     return c.body(stream, { headers: attachmentHeaders(name, ZIP_TYPE) })
   })

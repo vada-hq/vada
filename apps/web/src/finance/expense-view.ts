@@ -1,28 +1,12 @@
 import {
   EVIDENCE_MAX,
-  type EvidenceType,
+  EVIDENCE_TYPE_LABEL,
+  METHOD_LABEL,
   type ExpenseDetail,
-  type ExpenseMethod,
   type ExpenseSummary,
 } from '@vada/contracts'
 
-export const METHOD_LABEL: Record<ExpenseMethod, string> = {
-  card: '카드',
-  transfer: '계좌 이체',
-  cash: '현금',
-}
-
-export const EVIDENCE_TYPE_LABEL: Record<EvidenceType, string> = {
-  receipt: '영수증',
-  statement: '거래명세서',
-  tax_invoice: '세금계산서',
-  card_statement: '카드 전표',
-  transfer_confirmation: '이체 확인증',
-  item_photo: '물품 사진',
-  site_photo: '현장 사진',
-  stock_photo: '입고 사진',
-  other: '기타',
-}
+export { EVIDENCE_TYPE_LABEL, METHOD_LABEL }
 
 // 목록 카드와 상세가 같이 보이는 상태 칩. 취소된 지출은 환급 전과 증빙 없음을 말하지 않는다.
 export type ExpenseChip = { label: string; tone: 'neutral' | 'warning' | 'success' }

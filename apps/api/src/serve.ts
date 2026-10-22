@@ -105,7 +105,7 @@ function appOf(env: Env, db: Db) {
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
     incomes: createIncomeRoutes(db, session, { writeLimiter }),
-    closing: createClosingRoutes(db, session),
+    closing: createClosingRoutes(db, session, { bundleAvailable: storage !== undefined }),
     closingExport: createClosingExportRoutes(db, session, { storage }),
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),

@@ -1,6 +1,6 @@
 import { Zip, ZipPassThrough } from 'fflate'
+import { EVIDENCE_TYPE_LABEL } from '@vada/contracts'
 import type { FileStorage } from '../storage/storage.js'
-import { EVIDENCE_TYPE_LABEL } from './workbook.js'
 import type { ExportPhoto } from './export-rows.js'
 
 // 증빙 묶음: ZIP 하나에 감사용 엑셀과 `증빙/{증빙번호}-{순번}_{종류}.jpg`. 사용처·이름은 파일 이름에 넣지 않는다.
@@ -41,10 +41,15 @@ type BundleInput = {
 }
 
 // 압축 없이 담는 ZIP 쓰기. 한 파일을 다 넣고 나서 다음 파일을 넣는다(fflate는 같은 순간에 한 파일만 흘려보낸다).
-function zipWriter(controller: ReadableStreamDefaultController<Uint8Array>) {
+function zipWriter(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  onError: (error: unknown) => void,
+) {
   const zip = new Zip((error, chunk) => {
-    if (error) controller.error(error)
-    else controller.enqueue(chunk)
+    if (error) {
+      controller.error(error)
+      onError(error)
+    } else controller.enqueue(chunk)
   })
   return {
     add(name: string, body: Uint8Array) {
@@ -68,8 +73,13 @@ export function bundleStream(input: BundleInput): ReadableStream<Uint8Array> {
   }
   return new ReadableStream<Uint8Array>({
     start(controller) {
-      writer = zipWriter(controller)
-      writer.add(input.workbookName, input.workbook)
+      try {
+        writer = zipWriter(controller, finish)
+        writer.add(input.workbookName, input.workbook)
+      } catch (error) {
+        controller.error(error)
+        finish()
+      }
     },
     // 받는 쪽이 읽는 만큼만 불린다. 한 번에 사진 한 장을 읽어 넣는다.
     async pull(controller) {

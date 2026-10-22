@@ -102,12 +102,11 @@ export async function closingOf(
     ...numbers,
     checks: await expenseChecksOf(db, actor, period),
     feePending: await feePendingOf(db, actor, period),
-    exportInfo: await exportInfoOf(
-      db,
-      actor,
-      period,
-      incomes.reduce((all, row) => all + row.count, 0),
-    ),
+    exportInfo: await exportInfoOf(db, actor, period, {
+      incomeCount: incomes.reduce((all, row) => all + row.count, 0),
+      // 파일 저장소가 있는지는 라우트가 안다. 응답을 내보내는 라우트가 채운다(routes.ts).
+      bundleAvailable: false,
+    }),
     actions: await actionsOf(db, actor, period, { status, now }),
   }
 }

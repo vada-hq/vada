@@ -111,7 +111,11 @@ export interface ClosingExportInfo {
   incomeCount: number
   photoCount: number
   photoBytes: number
-  tooLarge: boolean
+  // 엑셀은 줄 수만 본다(지출·수입 각 CLOSING_EXPORT_MAX_ROWS). 묶음은 사진 수와 크기도 본다.
+  workbookTooLarge: boolean
+  bundleTooLarge: boolean
+  // 파일 저장소(R2)가 없으면 묶음은 받을 수 없다(503). 엑셀은 된다.
+  bundleAvailable: boolean
 }
 
 export const CLOSING_ACTIONS = [

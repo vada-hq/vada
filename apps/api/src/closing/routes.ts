@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono'
 import {
   PublishClosingSchema,
   ReopenClosingSchema,
+  type Closing,
   type ClosingResponse,
   type FiscalPeriodsResponse,
 } from '@vada/contracts'
@@ -20,13 +21,20 @@ const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } 
 // 번호 형식은 운영진인지 본 뒤에 본다: 운영진이 아니면 대상이 있는지 드러내지 않고 403이다.
 const periodIdOf = (c: Context<SessionEnv>) => recordIdOf(c.req.param('periodId'))
 
+// 결산서 계산은 파일 저장소를 모르므로 묶음을 받을 수 있는지는 라우트가 채운다.
+const withBundle = (closing: Closing, bundleAvailable: boolean): Closing => ({
+  ...closing,
+  exportInfo: { ...closing.exportInfo, bundleAvailable },
+})
+
 // 회계 기간 목록과 결산서 읽기, 공개와 다시 열기. 목록은 모든 운영진이, 결산서는 공개 전에는 재정부만 본다(DEC-28, DEC-63).
 export function createClosingRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date } = {},
+  options: { clock?: () => Date; bundleAvailable?: boolean } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
+  const bundleAvailable = options.bundleAvailable ?? false
   const routes = new Hono<SessionEnv>()
   const auth = requireSession(getSession)
   const asked = (c: Context<SessionEnv>) => ({
@@ -49,7 +57,7 @@ export function createClosingRoutes(
       async tx => closingOf(tx, await authorize(tx, request), periodIdOf(c), request.now),
       snapshot,
     )
-    return c.json({ closing } satisfies ClosingResponse)
+    return c.json({ closing: withBundle(closing, bundleAvailable) } satisfies ClosingResponse)
   })
   // 공개와 다시 열기는 재정부만이다. 재정부 확인은 서비스가 한다(회장단도 403).
   routes.post(`${root}/:periodId/closing/publish`, json(PublishClosingSchema), auth, async c => {
@@ -57,7 +65,7 @@ export function createClosingRoutes(
     const closing = await inCouncilChange(db, request, (tx, actor) =>
       publishClosing(tx, actor, periodIdOf(c), request.now),
     )
-    return c.json({ closing } satisfies ClosingResponse)
+    return c.json({ closing: withBundle(closing, bundleAvailable) } satisfies ClosingResponse)
   })
   routes.post(`${root}/:periodId/closing/reopen`, json(ReopenClosingSchema), auth, async c => {
     const { reason } = c.req.valid('json')
@@ -65,7 +73,7 @@ export function createClosingRoutes(
     const closing = await inCouncilChange(db, request, (tx, actor) =>
       reopenClosing(tx, actor, periodIdOf(c), { reason, now: request.now }),
     )
-    return c.json({ closing } satisfies ClosingResponse)
+    return c.json({ closing: withBundle(closing, bundleAvailable) } satisfies ClosingResponse)
   })
   return routes
 }

@@ -86,7 +86,9 @@ test(
       incomeCount: 1,
       photoCount: 0,
       photoBytes: 0,
-      tooLarge: false,
+      workbookTooLarge: false,
+      bundleTooLarge: false,
+      bundleAvailable: true,
     })
     assert.deepEqual(
       closing.accounts.map(line => line.account),

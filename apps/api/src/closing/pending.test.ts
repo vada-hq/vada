@@ -135,9 +135,12 @@ test(
       incomeCount: 1,
       photoCount: 2,
       photoBytes: 2000,
-      tooLarge: false,
+      workbookTooLarge: false,
+      bundleTooLarge: false,
+      bundleAvailable: true,
     })
     await photo(kept, 1_000_000_000)
-    assert.equal((await readClosing(t, period)).exportInfo.tooLarge, true)
+    const big = (await readClosing(t, period)).exportInfo
+    assert.deepEqual([big.workbookTooLarge, big.bundleTooLarge], [false, true])
   }),
 )

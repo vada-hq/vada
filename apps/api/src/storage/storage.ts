@@ -26,6 +26,7 @@ export interface R2Config {
 const UPLOAD_SECONDS = 600
 const MS_PER_SECOND = 1000
 const DOWNLOAD_SECONDS = 300
+const READ_TIMEOUT_MS = 30_000
 
 // 네 값이 모두 있어야 켠다. 하나라도 없으면 파일 올리기·보기만 막는다.
 export function r2ConfigFrom(env: NodeJS.ProcessEnv): R2Config | null {
@@ -72,9 +73,13 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     })
     return signed.url
   }
-  async function call(method: 'HEAD' | 'DELETE' | 'GET', key: string) {
+  async function call(method: 'HEAD' | 'DELETE' | 'GET', key: string, signal?: AbortSignal) {
     return fetcher(
-      await client.sign(objectUrl(key).toString(), { method, aws: { datetime: stamp() } }),
+      await client.sign(objectUrl(key).toString(), {
+        method,
+        ...(signal ? { signal } : {}),
+        aws: { datetime: stamp() },
+      }),
     )
   }
   return { objectUrl, presign, call }
@@ -116,7 +121,8 @@ export function createR2Storage(
       }
     },
     async read(key) {
-      const response = await call('GET', key)
+      // 저장소가 멈춰도 묶음 하나가 영원히 자리를 잡지 않게 시간을 제한한다.
+      const response = await call('GET', key, AbortSignal.timeout(READ_TIMEOUT_MS))
       if (response.status === NOT_FOUND) return null
       if (!response.ok) throw new Error('STORAGE_READ_FAILED')
       return new Uint8Array(await response.arrayBuffer())

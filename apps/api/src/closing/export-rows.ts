@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
-import { koreanDateOf, type EvidenceType } from '@vada/contracts'
+import { koreanDateOf, type EvidenceType, type ExpenseMethod } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import {
   account,
@@ -39,7 +39,7 @@ export type ExportExpense = {
   vendor: string
   description: string
   amount: number
-  method: string
+  method: ExpenseMethod
   items: string[]
   account: string | null
   event: string | null
@@ -169,6 +169,7 @@ export async function expenseRowsForExport(
   return rows.map(({ paidAt, reimbursedAt, item, amount, ...row }, index) => ({
     ...row,
     amount: Number(amount),
+    method: row.method as ExpenseMethod,
     number: index + 1,
     paidOn: koreanDateOf(paidAt),
     reimbursedOn: reimbursedAt ? koreanDateOf(reimbursedAt) : null,
