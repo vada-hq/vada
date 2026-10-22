@@ -71,25 +71,25 @@
 
 1 → 2 → 3 → 4 → 5는 서버라 차례로 한다. 6은 4·5가, 7은 2·5가 main에 오른 뒤 시작하고 둘은 함께 해도 된다. 시간이 모자라면 7의 행사 고르기 → 6의 지출 고치기 차례로 뺀다(행사 화면에서 연 요청·지출은 행사가 채워진다).
 
-### 1. 표 칸, 기록 종류, 권한 칸 [ ]
+### 1. 표 칸, 기록 종류, 권한 칸 [x]
 - 할 수 있게 되는 것: 서버가 요청의 행사, 입금 기록, 수입을 학생회 경계와 판 규칙 안에서 쓰고, 완료와 입금 확인 권한을 묻는다.
 - 수용 기준: 요청을 다른 학생회 행사로, 입금 기록을 다른 학생회 신청으로, 수입을 다른 학생회의 회계 기간·예산 항목·계좌로 만들면 실패하고 하위 행과 판이 없다. 입금 기록과 수입을 만들면 판 1, 바꾸면 판이 는다. 입금 기록의 신청·금액, 수입의 회계 기간·출처·금액, 요청의 행사는 바꾸지 못하고, 지출의 행사와 입금 기록의 수입은 바꿀 수 있으며 바꿀 때도 같은 학생회를 다시 본다(drizzle 이름과 DB 칸 이름 모두). B 뒤 같은 신청에 취소하지 않은 입금 기록 둘은 DB가 거절한다. 환불액이 입금액보다 크거나 환불 시각과 금액 가운데 하나만 있으면 DB가 거절한다. 권한표에 `event.complete`(회장단)와 `deposit.confirm`(`registration.manage`와 같은 `event_owner`·`event_department`·`leadership`, 맥락이 없으면 책임자·담당 부서 기준은 거부)이 있고, 내 권한 목록에서 회장단은 `event.complete`와 `deposit.confirm`을 받는다. `check:design`이 설계와 같다고 낸다.
 - 닿는 곳: `apps/api/migrations/0009_*.sql`, `0010_*.sql`과 `migrations/meta/_journal.json`, `db/schema-work.ts`(`request`, `deposit`), `db/schema-money.ts`, `db/baseline.test.ts`, `records/records.ts`(종류 `deposit`, `income`), `records/same-council.ts`, `records/registration-records.test.ts`, `access/permissions.ts`, contracts `permissions.ts`.
 - 검토: 깊게. 마이그레이션: 있음('위험'의 A·B 차례).
 
-### 2. 입금 확인, 확인 취소, 환불함(서버) [ ]
+### 2. 입금 확인, 확인 취소, 환불함(서버) [x]
 - 할 수 있게 되는 것: 행사 담당이 신청마다 입금을 확인하거나 취소하고, 재정부가 환불 대기 신청에 환불을 표시한다.
 - 수용 기준: 신청 관리 권한자(책임자, 행사 담당 부서, 회장단)만 확인하고(그 밖의 부원과 재정부만인 사람 403) 201이며 금액을 빼면 적용 참가비다. 0원과 10억+1은 400, 취소한 신청은 404, 이미 확인했으면 409 `DEPOSIT_EXISTS`, 동시에 둘이 확인해도 하나만 된다. 확인 취소는 사유를 받아 판에 남기고, 입금 기록이 없으면 409 `NO_DEPOSIT`, 환불했으면 409 `DEPOSIT_CLOSED`다. 환불 대기인 신청의 확인을 취소하면 같은 거래에서 이름·휴대폰 번호가 빈다. 입금한 신청을 취소하면(스스로 취소와 운영진 취소 모두) 학번만 지금 값과 모든 판에서 비고 이름·휴대폰 번호가 남아 '환불 대기'가 된다. 개인 링크는 007대로 지운다. 입금 전 취소는 007대로 모두 빈다. 입금 확인과 취소가 겹치면 신청 행 잠금으로 하나로 정해진다. 환불함은 재정부만(책임자 403), 환불 대기가 아니면 409 `NOT_REFUNDABLE`, 입금액보다 크면 400이다. 환불하면 환불 시각과 금액이 남고, 같은 거래에서 그 신청의 이름·휴대폰 번호가 지금 값과 모든 판에서 비며 입금 금액은 남는다. 007의 신청자 목록(`GET registration-forms/:formId/applicants`)에 입금 상태(없음, 확인과 금액, 환불 대기)와 거르기(입금, 환불 대기)가 있고, 환불 대기인 취소한 신청은 목록에 남으며 환불한 신청은 이름이 비어 빠진다. 열람 권한(`registration.view_applicants`)이 없는 사람은 007대로 403이고 열람 기록이 없다. 양식의 `actions`에 `deposit.confirm`이 있다. 다른 학생회 404, 403, 401, AGENTS.md의 입력 경우를 시험한다. 로그에 이름과 금액이 없다.
 - 닿는 곳: contracts `deposits.ts`(새: `ConfirmDepositSchema`, `CancelDepositSchema`, `RefundSchema`, 입금 상태), `registrations.ts`(`Applicant`에 입금 상태와 취소 여부, `REGISTRATION_ACTIONS`에 `deposit.confirm`), `errors.ts`. `apps/api/src/deposits/`(새: `routes.ts`, `service.ts`, `queries.ts`), 007의 `registrations/void-registration.ts`(입금이 있으면 학번만), `personal-values.ts`(판에서 학번만 비우는 도우미), `applicants.ts`(`applicantRowsOf`가 환불 대기를 포함), `queries.ts`(양식 `actions`), `app.ts`(`AppOptions`), `serve.ts`, `http/boundary.test.ts`, `ops/pg-smoke/`(`pg-smoke-registration-cases.ts` 옆에 입금 사례). 경로는 `/api/organizations/:councilId/registrations/:registrationId/` 아래 `POST deposit`, `deposit/cancel`, `refund`. 거래는 `inCouncilChange` → 권한(`registrationContextOf`) → `lockRegistration` → 다시 읽기 순서다(007의 `lockedLiveRegistration`과 같고, 환불은 취소한 신청을 읽어야 해서 그것을 쓰지 않는다).
 - 검토: 깊게(돈, 개인정보 비우기). 마이그레이션: 없음.
 
-### 3. 행사 정산 읽기 [ ]
+### 3. 행사 정산 읽기 [x]
 - 할 수 있게 되는 것: 모든 운영진이 행사의 예산 대비 수입·지출과 정산에 남은 것을 본다.
 - 수용 기준: `GET events/:eventId/settlement`는 '정한 것'의 정산 숫자, 남은 것(종류별 수와 대상: 요청 번호·제목, 지출 번호·사용처·금액. 환불 대기는 수만), `settled`, 완료 여부와 완료·완료 취소 결재(누가, 언제, 사유)를 준다. 취소한 요청·지출·입금은 숫자와 남은 것에서 빠지고, 다른 행사와 상시 지출은 섞이지 않는다. 환급하면, 사유를 채우면, 증빙을 붙이면, 품목을 결제하면, 환불하면 그 줄이 남은 것에서 빠지는 것을 하나씩 시험한다. 응답에 신청자 이름과 휴대폰 번호가 없다. 행사 목록과 상세의 상태가 완료를 센다(완료 결재가 마지막이면 완료). 다른 학생회 행사와 형식이 틀린 번호 404, 운영진 아님 403, 401. JSON은 `no-store`다.
 - 닿는 곳: contracts `settlement.ts`(새: `EventSettlement`, `SettlementRemaining`, `SettlementResponse`), `events.ts`(상태 `completed`). `apps/api/src/settlement/`(새: `routes.ts`, `queries.ts`, `remaining.ts`), `events/status.ts`, `events/queries.ts`, `app.ts`, `serve.ts`.
 - 검토: 깊게(돈 계산). 마이그레이션: 없음.
 
-### 4. 완료, 완료 취소, 잠금, 참가비 수입 [ ]
+### 4. 완료, 완료 취소, 잠금, 참가비 수입 [x]
 - 할 수 있게 되는 것: 회장단이 정산이 끝난 행사를 완료해 기록을 잠그고 참가비가 수입으로 모이며, 잘못 완료했으면 사유와 함께 되돌린다.
 - 수용 기준: `POST events/:eventId/complete`와 `…/cancel-completion`은 회장단만(책임자인 부원 403)이고 '정한 것'의 409를 낸다. 완료하면 결재 기록과 '정한 것'의 참가비 수입이 생기고 입금 기록이 그 수입을 가리킨다. 회계 기간이 없으면 아무것도 생기지 않는다. 완료 취소는 공백만인 사유 400이고, 수입을 같은 사유로 취소한다. 다시 완료하면 새 수입이 생기고 취소한 수입은 남는다. 완료한 행사에서 '정한 것'의 잠금 범위 경로는 모두 409 `EVENT_COMPLETED`이고 아무것도 쓰지 않는다(표 시험, 확인을 지우면 실패). 007의 쓰기 경로 열 개(양식 만들기·고치기·멈추기·다시 받기, 공개 신청, 스스로 취소, 운영진 취소, QR 출석, 이름 출석, 출석 취소)가 표에 모두 있다. 업무 쓰기, 모든 읽기, 기한 지우기, 납부자 명단은 된다. 완료 취소 뒤에는 다시 된다. 완료와 그 행사 지출 적기, 완료와 입금 확인을 동시에 하면 하나로 정해진다. 행사 상세의 `actions`에 완료·완료 취소가 있고 이력에 결재가 보인다. 끝나지 않은 업무가 있어도 완료된다.
 - 닿는 곳: contracts `events.ts`(`CompleteEventSchema`, `CancelCompletionSchema`, 동작), `errors.ts`. `events/completion.ts`(새: 완료 여부와 잠금 확인), `settlement/complete.ts`·`fee-income.ts`(새), 잠금을 부르는 곳: `events/service.ts`, `purchases/service.ts`·`decide.ts`, `expenses/service.ts`·`evidence.ts`, `budget/service.ts`, `deposits/service.ts`, 007의 신청 쓰기 모듈(`registrations/service.ts`의 `createForm`·`updateForm`·`setPaused`, `apply.ts`·`cancel-mine.ts`(`lockCouncil`도 더한다), `cancel-by-staff.ts`, `attendance.ts`의 `checkInByQr`·`checkInManually`·`cancelAttendance`), `ops/pg-smoke/`.
