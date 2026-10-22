@@ -1,5 +1,5 @@
-import type { CouncilView, TaskDetail, TeamResponse } from '@vada/contracts'
-import { COUNCIL_TASK_LABEL, NO_ASSIGNEE_LABEL } from './task-view'
+import type { CouncilView, EventSummary, TaskDetail, TeamResponse } from '@vada/contracts'
+import { COUNCIL_TASK_LABEL, NO_ASSIGNEE_LABEL, NO_EVENT_LABEL } from './task-view'
 
 // 업무 폼의 선택지. 서버가 준 권한 목록과 내 부서 직급으로만 좁히고, 권한표를 다시 만들지 않는다(DEC-38).
 // 서버가 마지막에 다시 검사하므로 여기서 놓친 경우도 403·409로 막힌다.
@@ -14,16 +14,26 @@ export const choiceId = (value: string) => (value === '' ? null : value)
 const councilTask: Choice = { id: null, label: COUNCIL_TASK_LABEL }
 const noAssignee: Choice = { id: null, label: NO_ASSIGNEE_LABEL }
 
-// 회장단은 부서를 정할 수 있는 칸(task.set_department)을 받는다.
-const isLeadership = (view: CouncilView) => view.permissions.includes('task.set_department')
+// 내가 책임자인 행사를 골랐으면 그 행사의 업무는 어느 부서로든 만들고 맡길 수 있다(DEC-28).
+export const ownsEvent = (view: CouncilView, events: EventSummary[], eventId: string | null) =>
+  eventId !== null &&
+  events.some(item => item.id === eventId && item.owner?.id === view.me.memberId)
+
+// 회장단은 부서를 정할 수 있는 칸(task.set_department)을 받는다. 내가 책임자인 행사의 업무도 같다.
+const isLeadership = (view: CouncilView, ownsPicked: boolean) =>
+  ownsPicked || view.permissions.includes('task.set_department')
 
 const headsDepartment = (view: CouncilView, departmentId: string | null) =>
   departmentId !== null &&
   view.me.departments.some(item => item.id === departmentId && item.rank !== null)
 
 // 만들 때 고를 수 있는 부서. '학생회 업무'(부서 없음)는 맨 뒤다.
-export function departmentChoices(view: CouncilView, team: TeamResponse): Choice[] {
-  const departments = isLeadership(view)
+export function departmentChoices(
+  view: CouncilView,
+  team: TeamResponse,
+  ownsPicked = false,
+): Choice[] {
+  const departments = isLeadership(view, ownsPicked)
     ? team.departments.map(item => ({ id: item.id, label: item.name }))
     : view.me.departments.map(item => ({ id: item.id, label: item.name }))
   return [...departments, councilTask]
@@ -34,15 +44,16 @@ export function assigneeChoices(
   view: CouncilView,
   team: TeamResponse,
   departmentId: string | null,
+  ownsPicked = false,
 ): Choice[] {
-  if (isLeadership(view) || headsDepartment(view, departmentId))
+  if (isLeadership(view, ownsPicked) || headsDepartment(view, departmentId))
     return [noAssignee, ...team.members.map(item => ({ id: item.id, label: item.name }))]
   return [{ id: view.me.memberId, label: ME_LABEL }]
 }
 
 // 처음 고른 부서. 회장단은 부서 없이, 그 밖은 내 첫 부서(없으면 부서 없음)다.
-export function defaultDepartmentId(view: CouncilView): string | null {
-  if (isLeadership(view)) return null
+export function defaultDepartmentId(view: CouncilView, ownsPicked = false): string | null {
+  if (isLeadership(view, ownsPicked)) return null
   return view.me.departments[0]?.id ?? null
 }
 
@@ -73,5 +84,16 @@ export function detailAssigneeChoices(
     ...team.members.filter(inDepartment).map(toChoice),
     ...team.members.filter(member => !inDepartment(member)).map(toChoice),
     noAssignee,
+  ]
+}
+
+// 행사 고르기: '행사 없음'과 행사들. 지금 이은 행사가 목록에 없으면(목록이 넘쳤거나 읽기 전) 맨 뒤에 더한다.
+export function eventChoices(events: EventSummary[], current: { id: string; name: string } | null) {
+  const listed = events.map((item): Choice => ({ id: item.id, label: item.name }))
+  const missing = current !== null && !events.some(item => item.id === current.id)
+  return [
+    { id: null, label: NO_EVENT_LABEL },
+    ...listed,
+    ...(missing ? [{ id: current.id, label: current.name }] : []),
   ]
 }

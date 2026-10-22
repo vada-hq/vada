@@ -16,6 +16,7 @@ type Props = TaskDialogHandlers & {
   // 열린 업무의 번호. null이면 닫혀 있다. 카드를 눌러 열고 닫는 일은 부모가 한다.
   taskId: string | null
   onClose: () => void
+  onOpenEvent?: ((eventId: string) => void) | undefined
 }
 
 // 업무 상세 대화상자. 열려 있을 때만 읽고, 업무가 바뀌면 처음부터 다시 읽는다.
@@ -24,7 +25,13 @@ export function TaskDetailDialog({ taskId, ...props }: Props) {
   return <OpenTaskDialog key={taskId} taskId={taskId} {...props} />
 }
 
-function OpenTaskDialog({ view, taskId, onClose, ...handlers }: Props & { taskId: string }) {
+function OpenTaskDialog({
+  view,
+  taskId,
+  onClose,
+  onOpenEvent,
+  ...handlers
+}: Props & { taskId: string }) {
   const detail = useTaskDetail(view.council.id, taskId, handlers)
   return (
     <Dialog
@@ -43,6 +50,7 @@ function OpenTaskDialog({ view, taskId, onClose, ...handlers }: Props & { taskId
             task={detail.task}
             detail={detail}
             onForbidden={handlers.onForbidden}
+            onOpenEvent={onOpenEvent}
             onClose={onClose}
           />
         ) : detail.loadFailed ? (
@@ -65,14 +73,17 @@ type LoadedProps = {
   task: TaskDetail
   detail: ReturnType<typeof useTaskDetail>
   onForbidden: () => void
+  onOpenEvent: Props['onOpenEvent']
   onClose: () => void
 }
 
-function Loaded({ view, task, detail, onForbidden, onClose }: LoadedProps) {
+function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: LoadedProps) {
   const [editing, setEditing] = useState(false)
   if (editing)
     return (
       <TaskEditForm
+        councilId={view.council.id}
+        onForbidden={onForbidden}
         task={task}
         saving={detail.saving}
         problem={detail.problem?.where === 'edit' ? detail.problem.text : undefined}
@@ -95,6 +106,7 @@ function Loaded({ view, task, detail, onForbidden, onClose }: LoadedProps) {
         saving={detail.saving}
         problem={detail.problem}
         onForbidden={onForbidden}
+        onOpenEvent={onOpenEvent}
         send={detail.send}
       />
       {task.body && (

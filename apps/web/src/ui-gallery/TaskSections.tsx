@@ -42,6 +42,12 @@ export function TaskSection() {
           onChangeStatus={noop}
         />
         <TaskCard
+          task={task('5', { event: { id: 'e1', name: '신입생 환영회' } })}
+          busy={false}
+          onChangeStatus={noop}
+          onOpenEvent={noop}
+        />
+        <TaskCard
           task={task('4', {
             title: `${unbroken} ${longName}`,
             assignee: { id: 'p2', name: longName, current: false },

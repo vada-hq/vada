@@ -32,6 +32,7 @@ function setup() {
   api.on('GET', LIST, () => json({ tasks: [summary], truncated: false }))
   api.on('GET', `${BASE}/t1`, () => json({ task: taskDetail() }))
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
+  api.on('GET', '/api/organizations/c1/events', () => json({ events: [], truncated: false }))
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(<TasksPage view={councilView('c1')} {...handlers} />)
   const reads = () => api.calls.filter(call => call.path === LIST).length

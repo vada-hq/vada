@@ -47,11 +47,13 @@ function Cards({
   view,
   change,
   onOpenTask,
+  onOpenEvent,
 }: {
   tasks: TaskSummary[]
   view: TaskView
   change: Change
   onOpenTask: (taskId: string) => void
+  onOpenEvent: Props['onOpenEvent']
 }) {
   const card = (task: TaskSummary, headingLevel: 'h2' | 'h3') => (
     <TaskCard
@@ -62,6 +64,7 @@ function Cards({
       error={change.errors[task.id]}
       onChangeStatus={status => void change.change(task.id, status)}
       onOpen={() => onOpenTask(task.id)}
+      onOpenEvent={onOpenEvent}
     />
   )
   if (view !== 'mine') return <TaskGroups tasks={tasks} card={task => card(task, 'h3')} />
@@ -80,12 +83,14 @@ function Body({
   filter,
   change,
   onOpenTask,
+  onOpenEvent,
 }: {
   list: TaskList
   view: TaskView
   filter: TaskFilter
   change: Change
   onOpenTask: (taskId: string) => void
+  onOpenEvent: Props['onOpenEvent']
 }) {
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">업무 불러오는 중…</StateMessage>
@@ -101,7 +106,13 @@ function Body({
   if (state.tasks.length === 0) return <StateMessage kind="empty">{EMPTY[filter]}</StateMessage>
   return (
     <>
-      <Cards tasks={state.tasks} view={view} change={change} onOpenTask={onOpenTask} />
+      <Cards
+        tasks={state.tasks}
+        view={view}
+        change={change}
+        onOpenTask={onOpenTask}
+        onOpenEvent={onOpenEvent}
+      />
       {state.truncated && <StateMessage kind="notice">{overflow(filter)}</StateMessage>}
     </>
   )
@@ -138,6 +149,7 @@ export default function TasksPage(props: Props) {
         openId={dialogs.openId}
         creating={dialogs.creating}
         eventId={props.eventId}
+        onOpenEvent={props.onOpenEvent}
         onCloseDetail={dialogs.closeDetail}
         onCloseCreate={dialogs.closeCreate}
         onChanged={changed}
@@ -161,6 +173,7 @@ export default function TasksPage(props: Props) {
           filter={filter}
           change={change}
           onOpenTask={dialogs.openRecord}
+          onOpenEvent={props.onOpenEvent}
         />
       </div>
     </PageColumn>

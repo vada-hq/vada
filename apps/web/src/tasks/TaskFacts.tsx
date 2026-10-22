@@ -3,7 +3,8 @@ import type { CouncilView, TaskDetail, TaskStatus } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { detailAssigneeChoices, detailDepartmentChoices } from './task-form-options'
-import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
+import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel, NO_EVENT_LABEL } from './task-view'
+import { TaskEventLink } from './TaskEventLink'
 import { TaskPickerRow } from './TaskPickerRow'
 import { TaskStatusRow } from './TaskStatusRow'
 import type { TaskProblem, TaskWhere } from './useTaskDetail'
@@ -14,6 +15,8 @@ type Props = {
   saving: boolean
   problem: TaskProblem | null
   onForbidden: () => void
+  // 행사 이름을 눌렀다. 없으면 이름은 글자일 뿐이다.
+  onOpenEvent?: ((eventId: string) => void) | undefined
   send: (where: TaskWhere, path: string, body: unknown) => Promise<boolean>
 }
 
@@ -68,7 +71,7 @@ function AssigneeFact({ view, task, saving, problem, onForbidden, send, can }: R
   )
 }
 
-// 상태, 마감, 담당 부서, 담당자. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
+// 상태, 마감, 행사, 담당 부서, 담당자. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 export function TaskFacts(props: Props) {
   const { task, saving, problem, send } = props
   const can = (action: TaskDetail['actions'][number]) => task.actions.includes(action)
@@ -95,6 +98,13 @@ export function TaskFacts(props: Props) {
           {dueLabel(task.dueDate)}
           {task.overdue && <Badge tone="danger">지남</Badge>}
         </span>
+      </Fact>
+      <Fact label="행사">
+        {task.event ? (
+          <TaskEventLink event={task.event} onOpen={props.onOpenEvent} className="text-sm" />
+        ) : (
+          NO_EVENT_LABEL
+        )}
       </Fact>
       <DepartmentFact {...props} can={can} />
       <AssigneeFact {...props} can={can} />

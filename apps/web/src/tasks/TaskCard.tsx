@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { assigneeLabel, dueLabel, NEXT_STEP, STATUS_LABEL } from './task-view'
+import { TaskEventLink } from './TaskEventLink'
 
 const STATUS_TONE: Record<TaskStatus, 'neutral' | 'info' | 'success'> = {
   todo: 'neutral',
@@ -19,6 +20,8 @@ type Props = {
   onChangeStatus: (status: TaskStatus) => void
   // 카드를 눌러 상세를 여는 자리(조각 6). 없으면 제목은 글자일 뿐이다.
   onOpen?: (() => void) | undefined
+  // 행사 이름을 눌렀다. 없으면 이름은 글자일 뿐이다.
+  onOpenEvent?: ((eventId: string) => void) | undefined
   // 제목의 단계. 부서 묶음 제목(h2) 아래에서는 3, 묶음 없이 화면 제목(h1) 바로 아래에서는 2다.
   headingLevel?: 'h2' | 'h3' | undefined
 }
@@ -48,13 +51,14 @@ function Title({
   )
 }
 
-// 업무 카드: 제목, 마감과 지남, 상태, 담당자. 상태를 바꿀 수 있는 사람(task.status)에게만 [시작]·[끝내기]가 보인다.
+// 업무 카드: 제목, 마감과 지남, 상태, 담당자, 이어진 행사. 상태를 바꿀 수 있는 사람(task.status)에게만 [시작]·[끝내기]가 보인다.
 export default function TaskCard({
   task,
   busy,
   error,
   onChangeStatus,
   onOpen,
+  onOpenEvent,
   headingLevel,
 }: Props) {
   const next = task.actions.includes('task.status') ? NEXT_STEP[task.status] : null
@@ -68,6 +72,9 @@ export default function TaskCard({
         <span>{dueLabel(task.dueDate)}</span>
         {task.overdue && <Badge tone="danger">지남</Badge>}
         <span className="wrap-anywhere">{assigneeLabel(task.assignee)}</span>
+        {task.event && (
+          <TaskEventLink event={task.event} onOpen={onOpenEvent} className="text-xs" />
+        )}
       </div>
       {next && (
         <Button

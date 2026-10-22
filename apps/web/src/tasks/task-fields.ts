@@ -25,5 +25,5 @@ export const createRequest = (
   values: TaskFieldValues,
   departmentId: string | null,
   assigneeId: string | null,
-  eventId: string | undefined,
-) => ({ ...fieldsRequest(values), departmentId, assigneeId, eventId: eventId ?? null })
+  eventId: string | null,
+) => ({ ...fieldsRequest(values), departmentId, assigneeId, eventId })

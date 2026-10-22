@@ -4,12 +4,14 @@ import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
 const NONE = '없음'
 const UNKNOWN_PERSON = '알 수 없는 사람'
+const UNKNOWN_EVENT = '알 수 없는 행사'
 const REMOVED_DEPARTMENT = '없앤 부서'
 
 const dueText = (value: string | null) => (value === null ? NONE : monthDay(value))
 type Side = { id: string; name: string | null } | null
 const departmentText = (side: Side) =>
   side === null ? COUNCIL_TASK_LABEL : (side.name ?? REMOVED_DEPARTMENT)
+const eventText = (side: Side) => (side === null ? NONE : (side.name ?? UNKNOWN_EVENT))
 const personText = (side: Side) => (side === null ? NONE : (side.name ?? UNKNOWN_PERSON))
 
 function changeText(change: TaskChange) {
@@ -28,6 +30,8 @@ function changeText(change: TaskChange) {
       return `담당 부서 ${departmentText(change.from)} → ${departmentText(change.to)}`
     case 'assignee':
       return `담당자 ${personText(change.from)} → ${personText(change.to)}`
+    case 'event':
+      return `행사 ${eventText(change.from)} → ${eventText(change.to)}`
   }
 }
 

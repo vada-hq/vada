@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CouncilView, TaskDetail } from '@vada/contracts'
+import type { CouncilView, EventSummary, TaskDetail, TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,19 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { TASK_TEAM_FAILED } from '@/lib/messages'
+import { EVENTS_LOAD_FAILED, TASK_TEAM_FAILED } from '@/lib/messages'
 import { useTeam } from '@/team/useTeam'
-import { createRequest, emptyFields } from './task-fields'
-import {
-  assigneeChoices,
-  defaultDepartmentId,
-  departmentChoices,
-  keepAssignee,
-} from './task-form-options'
+import { useEvents } from '../events/useEvents'
 import type { TaskDialogHandlers } from './task-requests'
 import { ChoiceSelect } from './ChoiceSelect'
 import { TaskFields } from './TaskFields'
 import { useTaskCreate } from './useTaskCreate'
+import { useTaskCreateForm } from './useTaskCreateForm'
 
 type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
   view: CouncilView
@@ -42,8 +37,15 @@ export function TaskCreateDialog({ open, ...props }: Props) {
 }
 
 function OpenCreateDialog(props: Omit<Props, 'open'>) {
-  const team = useTeam(props.view.council.id, props.onForbidden)
+  const councilId = props.view.council.id
+  const team = useTeam(councilId, props.onForbidden)
+  const events = useEvents(councilId, props.onForbidden)
   const [saving, setSaving] = useState(false)
+  const failedText = team.loadFailed
+    ? TASK_TEAM_FAILED
+    : events.state.kind === 'failed'
+      ? EVENTS_LOAD_FAILED
+      : null
   return (
     <Dialog
       open
@@ -58,11 +60,17 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
             맡은 사람의 휴대폰에 알림이 가요.
           </DialogDescription>
         </DialogHeader>
-        {team.data ? (
-          <CreateForm {...props} team={team.data} saving={saving} setSaving={setSaving} />
+        {team.data && events.state.kind === 'ready' ? (
+          <CreateForm
+            {...props}
+            team={team.data}
+            events={events.state.data.events}
+            saving={saving}
+            setSaving={setSaving}
+          />
         ) : (
-          <StateMessage kind={team.loadFailed ? 'error' : 'loading'}>
-            {team.loadFailed ? TASK_TEAM_FAILED : '불러오는 중이에요'}
+          <StateMessage kind={failedText ? 'error' : 'loading'}>
+            {failedText ?? '불러오는 중이에요'}
           </StateMessage>
         )}
       </DialogContent>
@@ -71,19 +79,15 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
 }
 
 type FormProps = Omit<Props, 'open'> & {
-  team: NonNullable<ReturnType<typeof useTeam>['data']>
+  team: TeamResponse
+  events: EventSummary[]
   saving: boolean
   setSaving: (saving: boolean) => void
 }
 
-function CreateForm({ view, team, saving, setSaving, ...props }: FormProps) {
-  const [fields, setFields] = useState(emptyFields)
-  const [departmentId, setDepartmentId] = useState(defaultDepartmentId(view))
-  const [assigneeId, setAssigneeId] = useState(() =>
-    keepAssignee(assigneeChoices(view, team, defaultDepartmentId(view)), null),
-  )
-  const request = createRequest(fields, departmentId, assigneeId, props.eventId)
-  const create = useTaskCreate(view.council.id, request, { ...props, setSaving })
+function CreateForm({ view, team, events, saving, setSaving, ...props }: FormProps) {
+  const form = useTaskCreateForm(view, team, events, props.eventId)
+  const create = useTaskCreate(view.council.id, form.request, { ...props, setSaving })
 
   return (
     <form
@@ -94,23 +98,27 @@ function CreateForm({ view, team, saving, setSaving, ...props }: FormProps) {
         void create.submit()
       }}
     >
-      <TaskFields values={fields} disabled={saving} onChange={setFields} />
+      <TaskFields values={form.fields} disabled={saving} onChange={form.setFields} />
+      <ChoiceSelect
+        label="행사"
+        choices={form.events}
+        value={form.eventId}
+        disabled={saving}
+        onChange={form.pickEvent}
+      />
       <ChoiceSelect
         label="담당 부서"
-        choices={departmentChoices(view, team)}
-        value={departmentId}
+        choices={form.departments}
+        value={form.departmentId}
         disabled={saving}
-        onChange={next => {
-          setDepartmentId(next)
-          setAssigneeId(keepAssignee(assigneeChoices(view, team, next), assigneeId))
-        }}
+        onChange={form.pickDepartment}
       />
       <ChoiceSelect
         label="담당자"
-        choices={assigneeChoices(view, team, departmentId)}
-        value={assigneeId}
+        choices={form.assignees}
+        value={form.assigneeId}
         disabled={saving}
-        onChange={setAssigneeId}
+        onChange={form.setAssigneeId}
       />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>

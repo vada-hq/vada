@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { CouncilView } from '@vada/contracts'
+import type { CouncilView, EventSummary } from '@vada/contracts'
 import { councilView, MEMBER_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
+import { eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { EVENTS_LOAD_FAILED, TASK_ERRORS } from '@/lib/messages'
 import { TaskCreateDialog } from './TaskCreateDialog'
 
 afterEach(() => {
@@ -44,11 +46,19 @@ function headView(): CouncilView {
   }
 }
 
-function setup(view: CouncilView = councilView('c1')) {
+const EVENT_ID = uuid(21)
+// 이재정(M2)이 책임자인 행사와 책임자가 없는 행사
+const events: EventSummary[] = [
+  eventSummary({ id: EVENT_ID, name: '환영회', owner: { id: M2, name: '이재정', current: true } }),
+  eventSummary({ id: uuid(22), name: '체육대회', owner: null }),
+]
+
+function setup(view: CouncilView = councilView('c1'), eventId?: string) {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/members', () => json(uuidTeam()))
+  api.on('GET', '/api/organizations/c1/events', () => json({ events, truncated: false }))
   const handlers = { onClose: vi.fn(), onCreated: vi.fn(), onLost: vi.fn(), onForbidden: vi.fn() }
-  render(<TaskCreateDialog view={view} open {...handlers} />)
+  render(<TaskCreateDialog view={view} open eventId={eventId} {...handlers} />)
   return { api, handlers }
 }
 
@@ -186,6 +196,7 @@ test('만들다가 권한을 잃으면(403) 이유를 알리고 학생회를 다
 test('운영진과 부서를 읽지 못하면 문구를 보이고 만들 수 없다', async () => {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'X' }, 500))
+  api.on('GET', '/api/organizations/c1/events', () => json({ events, truncated: false }))
   render(
     <TaskCreateDialog
       view={councilView('c1')}
@@ -198,4 +209,65 @@ test('운영진과 부서를 읽지 못하면 문구를 보이고 만들 수 없
   )
   expect((await screen.findByRole('alert')).textContent).toMatch(/불러오지 못했어요/)
   expect(screen.queryByRole('button', { name: '만들기' })).toBeNull()
+})
+
+test('행사를 읽지 못해도 문구를 보이고 만들 수 없다', async () => {
+  const api = mockApi()
+  api.on('GET', '/api/organizations/c1/members', () => json(uuidTeam()))
+  api.on('GET', '/api/organizations/c1/events', () => json({ error: 'X' }, 500))
+  render(
+    <TaskCreateDialog
+      view={councilView('c1')}
+      open
+      onClose={vi.fn()}
+      onCreated={vi.fn()}
+      onLost={vi.fn()}
+      onForbidden={vi.fn()}
+    />,
+  )
+  expect((await screen.findByRole('alert')).textContent).toBe(EVENTS_LOAD_FAILED)
+  expect(screen.queryByRole('button', { name: '만들기' })).toBeNull()
+})
+
+test('행사 칸은 행사 없음으로 시작하고, 고른 행사를 요청에 담는다', async () => {
+  const { api, handlers } = setup()
+  api.on('POST', CREATE, () => json({ task: taskDetail() }, 201))
+  await screen.findByRole('combobox', { name: '행사' })
+  expect(optionsOf('행사')).toEqual(['행사 없음', '환영회', '체육대회'])
+  expect(screen.getByRole('combobox', { name: '행사' })).toHaveProperty('value', '')
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
+  fireEvent.change(screen.getByRole('combobox', { name: '행사' }), { target: { value: EVENT_ID } })
+  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
+  await waitFor(() => expect(handlers.onCreated).toHaveBeenCalled())
+  expect(api.calls.at(-1)?.body).toMatchObject({ eventId: EVENT_ID })
+})
+
+test('행사의 업무 탭에서 열면 그 행사가 골라져 있다', async () => {
+  setup(councilView('c1'), EVENT_ID)
+  const select = await screen.findByRole('combobox', { name: '행사' })
+  expect(select).toHaveProperty('value', EVENT_ID)
+})
+
+test('내가 책임자인 행사를 고르면 모든 부서와 운영진을 고르고, 책임자가 아닌 행사로 돌리면 다시 좁아진다', async () => {
+  const view = councilView('c1', { councilRank: null, permissions: MEMBER_PERMISSIONS })
+  setup({ ...view, me: { ...view.me, memberId: M2 } })
+  await screen.findByRole('combobox', { name: '행사' })
+  expect(optionsOf('담당 부서')).toEqual(['학생회 업무'])
+  expect(optionsOf('담당자')).toEqual(['나'])
+  fireEvent.change(screen.getByRole('combobox', { name: '행사' }), { target: { value: EVENT_ID } })
+  expect(optionsOf('담당 부서')).toEqual(['재정부', '기획부', '학생회 업무'])
+  expect(optionsOf('담당자')).toEqual(['담당자 없음', '김회장', '이재정', '박새내'])
+  fireEvent.change(screen.getByRole('combobox', { name: '행사' }), { target: { value: uuid(22) } })
+  expect(optionsOf('담당 부서')).toEqual(['학생회 업무'])
+  expect(optionsOf('담당자')).toEqual(['나'])
+})
+
+test('만들기 409 EVENT_INVALID는 만들기 옆에 보인다', async () => {
+  const { api } = setup()
+  api.on('POST', CREATE, () => json({ error: 'EVENT_INVALID' }, 409))
+  await screen.findByRole('combobox', { name: '행사' })
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
+  fireEvent.change(screen.getByRole('combobox', { name: '행사' }), { target: { value: EVENT_ID } })
+  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
+  expect((await screen.findByRole('alert')).textContent).toBe(TASK_ERRORS.EVENT_INVALID)
 })

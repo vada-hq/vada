@@ -5,6 +5,7 @@ import type { TaskDetail } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
+import { eventSummary } from '@/test-support/event-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { TASK_LOST } from '@/lib/messages'
 import { TaskDetailDialog } from './TaskDetailDialog'
@@ -15,12 +16,29 @@ afterEach(() => {
 })
 
 const URL_TASK = '/api/organizations/c1/tasks/t1'
+const E1 = '00000000-0000-4000-8000-0000000000e1'
+const E2 = '00000000-0000-4000-8000-0000000000e2'
 
 function setup(task: TaskDetail = taskDetail()) {
   const api = mockApi()
   api.on('GET', URL_TASK, () => json({ task }))
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
-  const handlers = { onClose: vi.fn(), onChanged: vi.fn(), onLost: vi.fn(), onForbidden: vi.fn() }
+  api.on('GET', '/api/organizations/c1/events', () =>
+    json({
+      events: [
+        eventSummary({ id: E1, name: '환영회' }),
+        eventSummary({ id: E2, name: '체육대회' }),
+      ],
+      truncated: false,
+    }),
+  )
+  const handlers = {
+    onClose: vi.fn(),
+    onChanged: vi.fn(),
+    onLost: vi.fn(),
+    onForbidden: vi.fn(),
+    onOpenEvent: vi.fn(),
+  }
   render(<TaskDetailDialog view={councilView('c1')} taskId="t1" {...handlers} />)
   return { api, handlers }
 }
@@ -238,6 +256,42 @@ test('고치기는 계약이 허락할 때만 저장하고 세 칸을 보낸다'
   fireEvent.click(within(form).getByRole('button', { name: '저장' }))
   await screen.findByText('새 제목')
   expect(api.calls.at(-1)?.body).toEqual({ title: '새 제목', body: null, dueDate: null })
+})
+
+test('이어진 행사 이름이 보이고, 누르면 그 행사를 열게 한다', async () => {
+  const { handlers } = setup(taskDetail({ event: { id: E1, name: '환영회' } }))
+  fireEvent.click(await screen.findByRole('button', { name: '환영회' }))
+  expect(handlers.onOpenEvent).toHaveBeenCalledWith(E1)
+})
+
+test('행사가 없으면 행사 없음이 보이고 누를 곳이 없다', async () => {
+  setup()
+  await screen.findByText('크기는 3m로 해 주세요.')
+  expect(screen.getByText('행사 없음')).toBeTruthy()
+})
+
+test('고치기에서 행사를 바꾸면 행사를 보내고, 비우면 null을 보낸다', async () => {
+  const { api } = setup(taskDetail({ event: { id: E1, name: '환영회' } }))
+  api.on('POST', URL_TASK, () =>
+    json({ task: taskDetail({ event: { id: E2, name: '체육대회' } }) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = screen.getByRole('form', { name: '업무 고치기' })
+  const select = within(form).getByLabelText('행사')
+  await waitFor(() => expect(select).toHaveProperty('disabled', false))
+  expect(select).toHaveProperty('value', E1)
+  fireEvent.change(select, { target: { value: E2 } })
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('form', { name: '업무 고치기' })).toBeNull())
+  expect(api.calls.at(-1)?.body).toMatchObject({ eventId: E2 })
+
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const again = screen.getByRole('form', { name: '업무 고치기' })
+  const clear = within(again).getByLabelText('행사')
+  await waitFor(() => expect(clear).toHaveProperty('disabled', false))
+  fireEvent.change(clear, { target: { value: '' } })
+  fireEvent.click(within(again).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(api.calls.at(-1)?.body).toMatchObject({ eventId: null }))
 })
 
 test('이력 줄이 판마다 보인다', async () => {

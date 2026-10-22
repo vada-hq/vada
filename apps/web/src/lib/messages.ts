@@ -92,8 +92,12 @@ export const EVENT_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을
 export const EVENT_LOST = '이 행사를 볼 수 없어요. 다른 학생회의 행사일 수 있어요.'
 export const EVENT_TEAM_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
+// 업무를 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때
+const EVENT_INVALID = '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.'
+
 // 업무 상세와 만들기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const TASK_ERRORS: Record<string, string> = {
+  EVENT_INVALID,
   TASK_ASSIGNEE_INVALID:
     '이 학생회의 지금 운영진만 담당자가 될 수 있어요. 다른 사람을 골라 주세요.',
   TASK_DEPARTMENT_INVALID: '이 학생회의 부서가 아니에요. 다른 부서를 골라 주세요.',

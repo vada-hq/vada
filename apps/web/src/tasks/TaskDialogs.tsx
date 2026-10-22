@@ -9,6 +9,8 @@ type Props = TaskDialogHandlers & {
   creating: boolean
   // 행사의 업무 탭에서 열었으면 만들 업무가 이어질 행사
   eventId?: string | undefined
+  // 상세에서 행사 이름을 눌렀다. 행사의 업무 탭에서는 주지 않는다.
+  onOpenEvent?: ((eventId: string) => void) | undefined
   onCloseDetail: () => void
   onCloseCreate: () => void
 }
@@ -19,13 +21,20 @@ export function TaskDialogs({
   openId,
   creating,
   eventId,
+  onOpenEvent,
   onCloseDetail,
   onCloseCreate,
   ...rest
 }: Props) {
   return (
     <>
-      <TaskDetailDialog view={view} taskId={openId} onClose={onCloseDetail} {...rest} />
+      <TaskDetailDialog
+        view={view}
+        taskId={openId}
+        onClose={onCloseDetail}
+        onOpenEvent={onOpenEvent}
+        {...rest}
+      />
       <TaskCreateDialog
         view={view}
         open={creating}

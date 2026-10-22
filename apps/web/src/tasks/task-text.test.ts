@@ -46,3 +46,15 @@ test('부서, 사람, 마감, 내용, 제목이 바뀐 글', () => {
     '담당 부서 없앤 부서 → 학생회 업무',
   )
 })
+
+test('행사가 바뀐 글: 없음, 행사 이름, 이름을 모르는 행사', () => {
+  expect(line([{ field: 'event', from: null, to: { id: 'e1', name: '환영회' } }])).toBe(
+    '김회장 · 10월 20일 14:03 · 행사 없음 → 환영회',
+  )
+  expect(line([{ field: 'event', from: { id: 'e1', name: '환영회' }, to: null }])).toContain(
+    '행사 환영회 → 없음',
+  )
+  expect(line([{ field: 'event', from: { id: 'e2', name: null }, to: null }])).toContain(
+    '행사 알 수 없는 행사 → 없음',
+  )
+})
