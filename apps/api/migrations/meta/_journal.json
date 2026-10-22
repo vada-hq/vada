@@ -36,6 +36,13 @@
       "when": 1792566936170,
       "tag": "0004_purchase_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792637267267,
+      "tag": "0005_event_account_limits",
+      "breakpoints": true
     }
   ]
 }

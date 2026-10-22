@@ -13,17 +13,20 @@ export type Criterion =
   | 'room_member'
   | 'assignee'
   | 'requester'
+  | 'event_owner'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
 // assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
+// eventOwnerId는 행사 칸이 보는 대상이다: 행사(업무가 이어진 행사 포함)의 책임자. 행사 책임자 기준은 이것이 나일 때만 맞다.
 // requestedBy는 구매 요청의 요청한 사람이기도 하다: 요청한 사람 기준(requester)은 이것이 나일 때만 맞다.
 export type Context = {
   departmentId?: string
   requestedBy?: string
   inRoom?: boolean
   assigneeId?: string
+  eventOwnerId?: string
 }
 
 export const PERMISSIONS: { readonly [A in Action]: Rule } = {
@@ -40,10 +43,15 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   // 회장단도 물려받지 않는다(PRIN-5). 참여 줄이 있어야 한다.
   'chat.use': { who: ['room_member'] },
   // 업무 칸. 부장 기준은 업무의 부서(없으면 회장단만)를 맥락으로 묻는다. 담당자 기준은 회장단도 물려받지 않는다.
-  'task.manage': { who: ['department_head', 'assignee'] },
-  'task.set_department': { who: ['leadership'] },
-  'task.assign': { who: ['department_head'] },
-  'task.status': { who: ['department_head', 'assignee'] },
+  // 그 행사의 업무는 책임자가 어느 부서로든 다룬다(DEC-28 '행사'의 이어진 업무 다루기).
+  'task.manage': { who: ['department_head', 'assignee', 'event_owner'] },
+  'task.set_department': { who: ['leadership', 'event_owner'] },
+  'task.assign': { who: ['department_head', 'event_owner'] },
+  'task.status': { who: ['department_head', 'assignee', 'event_owner'] },
+  // 행사 칸. 만들 때 책임자도 정한다. 고치기는 책임자만이라 회장단도 물려받지 않는다(회장단은 책임자를 자기로 바꿔 고친다).
+  'event.create': { who: ['leadership'] },
+  'event.set_owner': { who: ['leadership'] },
+  'event.update': { who: ['event_owner'] },
   // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).
   'purchase.request': { who: ['member'] },
   'purchase.cancel': { who: ['requester'] },
@@ -84,6 +92,8 @@ function meetsContext(actor: Actor, criterion: Criterion, context: Context) {
       return context.assigneeId !== undefined && context.assigneeId === actor.memberId
     case 'requester':
       return context.requestedBy !== undefined && context.requestedBy === actor.memberId
+    case 'event_owner':
+      return context.eventOwnerId !== undefined && context.eventOwnerId === actor.memberId
     default:
       return false
   }

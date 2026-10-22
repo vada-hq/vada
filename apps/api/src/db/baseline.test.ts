@@ -83,9 +83,10 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
         '0002_task_cancelled_at',
         '0003_task_limits',
         '0004_purchase_limits',
+        '0005_event_account_limits',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 5)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 6)
   } finally {
     await close()
   }

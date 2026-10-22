@@ -138,10 +138,16 @@ test('chat.use는 그 방 참여자만 된다: 회장도 참여하지 않은 방
   }
 })
 
-test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸은 빼고, 회장은 나머지 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기와 1:1과 구매 요청만 가진다', () => {
+test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람·행사 책임자 칸은 빼고, 회장은 나머지 전부, 부회장은 회장 넘기기만 빼고, 직급 없는 운영진은 보기와 1:1과 구매 요청만 가진다', () => {
   const listed = ACTIONS.filter(
     action =>
-      !['chat.use', 'purchase.cancel', 'purchase.approve', 'finance.manage'].includes(action),
+      ![
+        'chat.use',
+        'event.update',
+        'purchase.cancel',
+        'purchase.approve',
+        'finance.manage',
+      ].includes(action),
   )
   assert.deepEqual(permissionsOf(president), listed)
   assert.deepEqual(
@@ -241,4 +247,47 @@ test('내 권한 목록: 회장단은 업무 넷을 받고, 부장과 직급 없
   for (const who of [president, vicePresident]) assert.deepEqual(taskActions(who), tasks)
   for (const who of [planningHead, planningViceHead, planningMember, financeMember, plain])
     assert.deepEqual(taskActions(who), [])
+})
+
+// 행사 칸(DEC-28 '행사', 기능 006). 만들기와 책임자 정하기는 회장단이고, 고치기는 맥락의 책임자가 나일 때만 맞다.
+test('행사 칸: 만들기와 책임자 정하기는 회장단만 한다', () => {
+  for (const action of ['event.create', 'event.set_owner'] as const) {
+    for (const allowed of [president, vicePresident]) assert.equal(can(allowed, action), true)
+    for (const denied of [planningHead, planningViceHead, planningMember, financeMember, plain])
+      assert.equal(can(denied, action), false, `${action} ${denied.memberId}`)
+  }
+})
+
+test('행사 칸: 고치기는 책임자가 나일 때만 맞고 회장단도 물려받지 않으며, 맥락이 없으면 거부한다', () => {
+  for (const who of [president, vicePresident, planningHead, financeMember, plain]) {
+    assert.equal(can(who, 'event.update', { eventOwnerId: who.memberId }), true, who.memberId)
+    assert.equal(can(who, 'event.update', { eventOwnerId: 'someone' }), false, who.memberId)
+    assert.equal(can(who, 'event.update', {}), false, who.memberId)
+    assert.equal(can(who, 'event.update'), false, who.memberId)
+  }
+})
+
+test('내 권한 목록: 회장단은 행사 만들기와 책임자 정하기를 받고 고치기는 받지 않으며, 나머지는 행사 칸이 없다', () => {
+  const events = (who: Actor) => permissionsOf(who).filter(action => action.startsWith('event.'))
+  for (const who of [president, vicePresident])
+    assert.deepEqual(events(who), ['event.create', 'event.set_owner'])
+  for (const who of [planningHead, planningMember, financeMember, plain])
+    assert.deepEqual(events(who), [])
+})
+
+test('업무 칸: 그 행사의 책임자는 부서와 담당자와 관계없이 업무를 만들고 맡기고 부서를 정하고 상태를 바꾼다', () => {
+  const inEvent = { departmentId: 'finance', eventOwnerId: 'member' }
+  for (const action of [
+    'task.manage',
+    'task.assign',
+    'task.status',
+    'task.set_department',
+  ] as const) {
+    assert.equal(can(planningMember, action, inEvent), true, action)
+    assert.equal(can(planningMember, action, { ...inEvent, eventOwnerId: 'x' }), false, action)
+    assert.equal(can(planningMember, action, { departmentId: 'finance' }), false, action)
+    assert.equal(can(planningMember, action), false, action)
+  }
+  // 회장단도 책임자가 아니면 이 기준으로는 맞지 않는다(회장단 기준으로만 맞는다).
+  assert.equal(allows(president, { who: ['event_owner'] }, { eventOwnerId: 'x' }), false)
 })

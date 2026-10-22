@@ -194,17 +194,11 @@ test('담당자와 부서는 비울 수 있고, 떠난 운영진으로 바꾸기
   }
 })
 
-test('업무의 행사 칸은 바꾸지 못하고, 다른 종류의 부서 칸도 여전히 바꾸지 못한다', async () => {
+test('다른 종류의 부서 칸은 여전히 바꾸지 못한다(업무의 행사 바꾸기는 event-account-records.test.ts가 본다)', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const s = await db.transaction(seed)
     const id = await db.transaction(tx => makeTask(tx, s))
-    for (const key of ['eventId', 'event_id'])
-      await assert.rejects(
-        db.transaction(tx => updateRecords(tx, [change(s, id, { [key]: s.mine })])),
-        /주인 칸/,
-        key,
-      )
     const room = await db.transaction(tx =>
       createRecord(tx, {
         kind: 'chat_room',
