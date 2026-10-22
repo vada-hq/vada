@@ -15,7 +15,7 @@ import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { assertExpenseEventOpen, eventsOfLines, requestEventsOfLines } from './event-lock.js'
-import { eventOfNewExpense } from './event-rule.js'
+import { assertEventMatchesItem, eventOfNewExpense } from './event-rule.js'
 import { assertPayable } from './payable.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
@@ -85,6 +85,8 @@ export async function createExpense(
   // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
   await assertCouncilEvent(tx, actor, input.eventId)
   const eventId = eventOfNewExpense(await assertEventsOpenFor(tx, actor, input), input.eventId)
+  if (input.budgetItemId)
+    assertEventMatchesItem(await budgetItemEventsOf(tx, actor, [input.budgetItemId]), eventId)
   await assertInputAllowed(tx, actor, input, now)
   const expenseId = await createRecord(tx, {
     kind: 'expense',

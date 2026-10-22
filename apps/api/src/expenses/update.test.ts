@@ -99,6 +99,8 @@ test(
   withSettlement(async t => {
     const mine = await t.event()
     const theirs = await t.event({}, t.other)
+    // 다른 학생회의 완료한 행사여도 EVENT_COMPLETED가 아니라 EVENT_INVALID다(잠금 확인이 뒤).
+    await t.completionOfOther(theirs)
     const id = await t.expense({ eventId: mine })
     for (const eventId of [theirs, NO_SUCH]) {
       const response = await post(t, id, { eventId })
@@ -169,5 +171,21 @@ test(
     const other = await t.expense({})
     await t.pay(other, free.line)
     assert.equal((await post(t, other, { eventId: second })).status, 200)
+  }),
+)
+
+test(
+  '예산 항목을 고른 지출은 그 항목의 행사 밖으로 옮길 수 없다: 409 EVENT_MISMATCH이고 지출은 그대로다',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const first = await t.event()
+    const second = await t.event()
+    const item = await t.budgetItem(budget, { eventId: first })
+    const id = await t.expense({ eventId: first, budgetItemId: item })
+    const response = await post(t, id, { eventId: second })
+    assert.equal(response.status, 409)
+    assert.equal(await errorOf(response), 'EVENT_MISMATCH')
+    assert.equal((await versions(t, id)).n, 1)
+    assert.equal((await post(t, id, { eventId: first, reason: '고침' })).status, 200)
   }),
 )

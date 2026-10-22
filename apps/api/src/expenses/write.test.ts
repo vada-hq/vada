@@ -84,7 +84,7 @@ test(
       detail.history.map(version => version.changes),
       [[{ field: 'created' }]],
     )
-    assert.deepEqual(detail.actions, ['expense.cancel', 'expense.reimburse'])
+    assert.deepEqual(detail.actions, ['expense.cancel', 'expense.reimburse', 'expense.update'])
     const read = (await (
       await s.api.get(
         `/api/organizations/${s.council.councilId}/purchase-requests/${p.request.id}`,
@@ -154,7 +154,7 @@ test(
       ['cash', '급히 필요', '소모품', 's planningHead'],
     )
     assert.equal(detail.paidBy, null)
-    assert.deepEqual(detail.actions, ['expense.cancel'])
+    assert.deepEqual(detail.actions, ['expense.cancel', 'expense.update'])
     assert.deepEqual(detail.lines, [])
     const bare = await expenseOf(
       await post(s, { vendor: 'a', description: 'b', amount: 1, paidOn: '2026-10-25' }),

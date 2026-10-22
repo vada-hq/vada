@@ -57,6 +57,7 @@ test(
   '요청 내기: 다른 학생회와 없는 행사는 409 EVENT_INVALID, 완료한 행사는 409 EVENT_COMPLETED이고 아무것도 쓰지 않는다',
   withSettlement(async t => {
     const theirs = await t.event({}, t.other)
+    await t.completionOfOther(theirs)
     const done = await t.event()
     await complete(t, done)
     const before = await records(t)
@@ -120,6 +121,8 @@ test(
   withSettlement(async t => {
     await t.budgetOf()
     const theirs = await t.event({}, t.other)
+    // 다른 학생회의 완료한 행사여도 EVENT_COMPLETED가 아니라 EVENT_INVALID다(잠금 확인이 뒤).
+    await t.completionOfOther(theirs)
     const done = await t.event()
     await complete(t, done)
     const before = await records(t)
@@ -177,6 +180,7 @@ test(
   '지출 적기: 다른 학생회 행사는 EVENT_INVALID, 완료한 행사는 EVENT_COMPLETED',
   withSettlement(async t => {
     const theirs = await t.event({}, t.other)
+    await t.completionOfOther(theirs)
     const done = await t.event()
     await complete(t, done)
     const before = await records(t)
@@ -295,5 +299,27 @@ test(
     assert.equal((await get(t, `/expenses?event=${mine}&event=${other}`)).status, 400)
     assert.equal((await get(t, '/expenses')).status, 200)
     assert.equal((await get(t, '/purchase-requests?view=all')).status, 200)
+  }),
+)
+
+test(
+  '지출 적기: 고른 예산 항목의 행사와 지출의 행사가 다르면 EVENT_MISMATCH, 같거나 한쪽이 없으면 된다',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const first = await t.event({ name: '봄 축제' })
+    const second = await t.event({ name: '가을 축제' })
+    const tied = await t.budgetItem(budget, { eventId: first })
+    const loose = await t.budgetItem(budget, {})
+    const before = await records(t)
+    const denied = await post(t, '/expenses', { ...EXPENSE, budgetItemId: tied, eventId: second })
+    assert.equal(denied.status, 409)
+    assert.equal(await errorOf(denied), 'EVENT_MISMATCH')
+    assert.equal(await records(t), before)
+    for (const body of [
+      { budgetItemId: tied, eventId: first },
+      { budgetItemId: tied },
+      { budgetItemId: loose, eventId: second },
+    ])
+      assert.equal((await post(t, '/expenses', { ...EXPENSE, ...body })).status, 201)
   }),
 )

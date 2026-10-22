@@ -134,6 +134,17 @@ async function startSettlement() {
       actedAt,
       reason,
     })
+  // 다른 학생회가 자기 행사를 완료한 기록이다. 그 행사를 이쪽에서 건드려도 완료 여부가 새지 않는지 볼 때 쓴다.
+  const completionOfOther = (eventId: string) =>
+    make(other, 'approval', {
+      targetId: eventId,
+      targetKind: 'event',
+      outcome: 'completed',
+      actorId: other.people.president.memberId,
+      actorKind: 'member',
+      actedAt: new Date('2026-10-24T03:00:00Z'),
+      reason: null,
+    })
   const form = (eventId: string, owner = council, values: Values = {}) =>
     make(owner, 'registration_form', {
       eventId,
@@ -194,6 +205,7 @@ async function startSettlement() {
     evidence,
     pay,
     completion,
+    completionOfOther,
     form,
     registration,
     deposit,

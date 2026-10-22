@@ -44,6 +44,6 @@ export const expenseDetail = (id = 'e1', extra: Partial<ExpenseDetail> = {}): Ex
       reason: null,
     },
   ],
-  actions: ['expense.cancel', 'expense.reimburse'],
+  actions: ['expense.cancel', 'expense.reimburse', 'expense.update'],
   ...extra,
 })

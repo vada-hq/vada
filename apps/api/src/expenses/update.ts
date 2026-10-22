@@ -2,12 +2,13 @@ import type { ExpenseDetail, UpdateExpense } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
+import { budgetItemEventsOf } from '../budget/queries.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { updateRecord } from '../records/records.js'
 import { eventsOfExpense, requestEventsOfExpense } from './event-lock.js'
-import { assertEventMatchesRequests } from './event-rule.js'
+import { assertEventMatchesItem, assertEventMatchesRequests } from './event-rule.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
 
@@ -18,6 +19,18 @@ function changesOf(row: { reason: string | null }, input: UpdateExpense, moving:
     ...(reason ? { reason: input.reason } : {}),
     ...(moving ? { eventId: input.eventId } : {}),
   }
+}
+
+// 지출의 행사는 결제한 요청의 행사와, 고른 예산 항목의 행사와 어긋나지 않게 옮긴다.
+async function assertMoveAllowed(
+  tx: Tx,
+  actor: Actor,
+  row: { id: string; budgetItemId: string | null },
+  eventId: string | null,
+) {
+  assertEventMatchesRequests(await requestEventsOfExpense(tx, actor, row.id), eventId)
+  if (row.budgetItemId)
+    assertEventMatchesItem(await budgetItemEventsOf(tx, actor, [row.budgetItemId]), eventId)
 }
 
 // 정산 전에 재정부가 사유와 행사를 고친다. 학생회 행 잠금과 운영진 확인 뒤에 부르고, 지출 행을 잠근다. 403이 409보다 먼저다.
@@ -39,11 +52,7 @@ export async function updateExpense(
     moving ? input.eventId : null,
   ])
   if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
-  if (moving)
-    assertEventMatchesRequests(
-      await requestEventsOfExpense(tx, actor, expenseId),
-      input.eventId ?? null,
-    )
+  if (moving) await assertMoveAllowed(tx, actor, row, input.eventId ?? null)
   const changes = changesOf(row, input, moving)
   if (Object.keys(changes).length)
     await updateRecord(tx, {

@@ -21,3 +21,9 @@ export function assertEventMatchesRequests(lineEvents: readonly string[], wanted
   const fromRequest = requestEventOf(lineEvents)
   if (fromRequest !== null && wanted !== fromRequest) throw new ApiError('EVENT_MISMATCH')
 }
+
+// 지출의 행사와 고른 예산 항목의 행사가 둘 다 있는데 다르면 409다. 어느 쪽 행사의 돈인지 갈린다.
+export function assertEventMatchesItem(itemEvents: readonly string[], eventId: string | null) {
+  if (eventId !== null && itemEvents.some(itemEvent => itemEvent !== eventId))
+    throw new ApiError('EVENT_MISMATCH')
+}

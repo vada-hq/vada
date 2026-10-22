@@ -42,7 +42,11 @@ test(
     await t.completion(event, 'completed', DAY('2026-10-24T03:00'))
     for (const id of all) assert.deepEqual(await expenseActions(t, id), [], id)
     // 행사와 무관한 지출은 그대로다.
-    assert.deepEqual(await expenseActions(t, free), ['expense.cancel', 'expense.reimburse'])
+    assert.deepEqual(await expenseActions(t, free), [
+      'expense.cancel',
+      'expense.reimburse',
+      'expense.update',
+    ])
     await t.completion(event, 'completion_cancelled', DAY('2026-10-24T04:00'), '되돌림')
     for (const id of all) assert.notDeepEqual(await expenseActions(t, id), [], id)
   }),
@@ -63,5 +67,24 @@ test(
     assert.deepEqual(await requestActions(t, inOpen.request, FINANCE), ['purchase.approve'])
     await t.completion(done, 'completion_cancelled', DAY('2026-10-24T04:00'), '되돌림')
     assert.deepEqual(await requestActions(t, inDone.request, FINANCE), ['purchase.approve'])
+  }),
+)
+
+test(
+  '취소한 지출은 고치기 동작이 없고, 고치기는 재정부에게만 보인다',
+  withSettlement(async t => {
+    const id = await t.expense({})
+    const actions = async (user: string) =>
+      ((await (await t.api.get(`${root(t)}/expenses/${id}`, user)).json()) as ExpenseResponse)
+        .expense.actions
+    assert.ok((await actions(FINANCE)).includes('expense.update'))
+    assert.ok(!(await actions(PLANNER)).includes('expense.update'))
+    const cancel = await t.api.post(
+      `${root(t)}/expenses/${id}/cancel`,
+      { reason: '잘못 적음' },
+      FINANCE,
+    )
+    assert.equal(cancel.status, 200)
+    assert.deepEqual(await actions(FINANCE), [])
   }),
 )
