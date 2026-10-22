@@ -9,11 +9,14 @@ import { registrationStatusOf, remainingOf } from './state.js'
 const koreanOrNull = (value: Date | null) => (value ? koreanOf(value) : null)
 const feeOf = (value: string | null) => (value === null ? null : Number(value))
 
-// 코드가 가리키는 양식과 그 행사, 학생회 이름. 아래 고른 칸이 곧 공개하는 칸이다: 계좌, 신청자, 운영진, 내부 번호는 고르지 않는다.
-async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
+// 코드가 가리키는 양식과 그 행사, 학생회 이름. 응답에 담는 칸은 publicFormOf가 하나씩 고른다(계좌, 신청자, 운영진, 내부 번호는 담지 않는다).
+// 신청(apply.ts)이 학생회 번호와 계좌 번호를 쓰므로 여기서 함께 읽는다.
+export async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
   const [row] = await db
     .select({
       id: registrationForm.id,
+      councilId: record.councilId,
+      feeAccountId: registrationForm.feeAccountId,
       councilName: council.name,
       eventName: event.name,
       eventStartsAt: event.startsAt,
@@ -38,6 +41,15 @@ async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
   return row
 }
 
+// 취소하지 않은 신청 수
+export async function applicantCountOf(db: Pick<Db, 'select'>, formId: string) {
+  const [applicants] = await db
+    .select({ n: count() })
+    .from(registration)
+    .where(and(eq(registration.formId, formId), isNull(registration.cancelledAt)))
+  return applicants?.n ?? 0
+}
+
 // 로그인 없이 코드로 읽는 양식.
 // 모르는 코드와 형식이 틀린 코드는 가르지 않고 모두 404다. 코드는 대문자로 적히지만 손으로 옮긴 소문자도 받는다.
 export async function publicFormOf(
@@ -48,11 +60,7 @@ export async function publicFormOf(
   const code = rawCode.toUpperCase()
   if (!PUBLIC_CODE_PATTERN.test(code)) throw new ApiError('NOT_FOUND')
   const row = await publicRowOf(db, code)
-  const [applicants] = await db
-    .select({ n: count() })
-    .from(registration)
-    .where(and(eq(registration.formId, row.id), isNull(registration.cancelledAt)))
-  const applicantCount = applicants?.n ?? 0
+  const applicantCount = await applicantCountOf(db, row.id)
   const payerFee = feeOf(row.payerFee)
   const nonPayerFee = feeOf(row.nonPayerFee)
   return {

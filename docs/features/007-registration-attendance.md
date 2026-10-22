@@ -89,7 +89,7 @@
 - 닿는 곳: contracts `registrations.ts`(새: 상한, `CreateFormSchema`, `UpdateFormSchema`, `FormSummary`, `FormDetail`, `PublicForm`), `errors.ts`. `apps/api/src/registrations/`(새: `routes.ts`, `service.ts`, `queries.ts`, `state.ts`, `public-routes.ts`), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET`·`POST events/:eventId/registration-forms`, `GET`·`POST registration-forms/:formId`, `POST registration-forms/:formId/pause`, `.../resume`.
 - 검토: 깊게(공개 라우트). 마이그레이션: 없음.
 
-### 3. 공개 신청과 내 신청(서버) [ ]
+### 3. 공개 신청과 내 신청(서버) [x]
 - 할 수 있게 되는 것: 학생이 로그인 없이 신청하고, 개인 링크로 내 신청을 보고 취소한다.
 - 수용 기준: 받는 중인 양식에 `POST /api/public/registration-forms/:code/apply`로 신청하면 201과 토큰이 한 번 오고, DB에는 해시만 있다. 적용 참가비는 '정한 것'대로이고 납부 기간 경계(신청한 날 한국 자정 ±1초)와 다른 학생회 명단은 맞지 않음을 시험한다. 받지 않는 칸이 오거나 받는 칸이 없으면 409 `FORM_CHANGED`, 받는 중이 아니면 `REGISTRATION_NOT_OPEN`, 정원 참 `REGISTRATION_FULL`. 같은 학번 둘은 모두 된다. `POST /api/public/registrations/lookup`은 토큰으로 행사, 양식, 내가 넣은 것, 적용 참가비, 참가비가 0보다 크면 계좌(은행, 번호, 예금주), QR 글자, 출석 여부, 취소 가능 여부를 준다. `.../cancel`은 '정한 것'대로 비우고 토큰 줄을 지우며, 그 뒤 같은 토큰은 404다. 신청과 취소의 판은 바꾼 사람이 비어 있다. 로그에 이름, 학번, 휴대폰, 토큰이 없다. `Origin`이 다르면 403, 모르는 키 400.
 - 닿는 곳: contracts `registrations.ts`(`ApplySchema`, `TokenSchema`, `MyRegistration`, QR 글자 도우미), `errors.ts`. `registrations/`(`apply.ts`, `link.ts`, `fee-match.ts`, `personal-values.ts`(지금 값과 판 비우기, 5가 같이 쓴다), `public-routes.ts`), `ops/pg-smoke/`(마지막 자리 둘).

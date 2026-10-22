@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { EmptyRequestSchema, text } from './input.js'
+import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDateTime } from './korean-time.js'
 import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
@@ -117,4 +117,63 @@ export interface PublicRegistrationForm {
   collectsStudentId: boolean
   collectsPhone: boolean
   purgeOn: string
+}
+
+// 신청(기능 007 조각 3). 학번은 두 참가비가 다를 때만, 휴대폰은 받을 때만 받는다. 받는 칸인지는 서버가 양식으로 본다(409 FORM_CHANGED).
+export const STUDENT_ID_PATTERN = /^[0-9]{6,12}$/
+export const PHONE_PATTERN = /^01[0-9]{8,9}$/
+// 휴대폰은 공백과 '-'가 섞여 와도 받는다(010-1234-5678). 줄이기 전 글자 수의 상한이다.
+const PHONE_INPUT_MAX = 20
+const STUDENT_ID_INPUT_MAX = 12
+
+const phone = token(PHONE_INPUT_MAX)
+  .transform(value => value.replace(/[\s-]/g, ''))
+  .refine(value => PHONE_PATTERN.test(value))
+export const ApplySchema = z.strictObject({
+  name: text(REGISTRATION_FORM_NAME_MAX),
+  studentId: token(STUDENT_ID_INPUT_MAX)
+    .refine(value => STUDENT_ID_PATTERN.test(value))
+    .nullable()
+    .default(null),
+  phone: phone.nullable().default(null),
+})
+export type ApplyRequest = z.infer<typeof ApplySchema>
+
+// 개인 링크 토큰(주소의 # 뒤). 128비트를 base64url로 쓰면 22자다. 모르는 토큰은 형식과 상관없이 404라서 길이만 막는다.
+const REGISTRATION_TOKEN_MAX = 64
+export const TokenSchema = z.strictObject({ token: token(REGISTRATION_TOKEN_MAX) })
+export type TokenRequest = z.infer<typeof TokenSchema>
+
+export interface ApplyResponse {
+  // 한 번만 준다. DB에는 해시만 있어 다시 볼 수 없다.
+  token: string
+}
+export interface CancelRegistrationResponse {
+  cancelled: true
+}
+
+// 개인 링크로 보는 내 신청. 내가 넣은 것과 적용 참가비, 참가비가 0보다 크면 계좌, 출석 QR 글자를 담는다.
+export interface MyRegistration {
+  councilName: string
+  event: PublicRegistrationForm['event']
+  form: PublicRegistrationForm['form']
+  mine: { name: string; studentId: string | null; phone: string | null }
+  appliedFee: number
+  account: { bank: string; accountNumber: string; holder: string } | null
+  qrText: string
+  attended: boolean
+  // 마감 전이고 출석 전이면 스스로 취소할 수 있다(멈춤이어도).
+  cancellable: boolean
+  purgeOn: string
+}
+
+// 출석 QR 글자는 'VADA:'와 토큰 SHA-256(대문자 16진)이다. 저장은 소문자 16진 64자(DB CHECK)라 찾을 때 맞춘다.
+const QR_PREFIX = 'VADA:'
+const HASH_HEX = /^[0-9a-f]{64}$/i
+export const qrTextOf = (tokenHash: string) => `${QR_PREFIX}${tokenHash.toUpperCase()}`
+// QR 글자에서 해시를 꺼낸다(소문자). VADA 글자가 아니거나 해시 모양이 아니면 null이다.
+export function tokenHashOfQr(value: string): string | null {
+  if (!value.startsWith(QR_PREFIX)) return null
+  const hash = value.slice(QR_PREFIX.length)
+  return HASH_HEX.test(hash) ? hash.toLowerCase() : null
 }

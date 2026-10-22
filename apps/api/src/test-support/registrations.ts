@@ -111,6 +111,21 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
         values: { formId, name: '김학생', appliedFee: '0', ...values },
       }),
     )
+  // 납부자 명단 줄(재정부가 올린 것과 같은 기록)
+  const makeFeePayment = (values: Values, owner: typeof council = council) =>
+    db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'fee_payment',
+        councilId: owner.councilId,
+        actor: owner.people.financeMember.memberId,
+        values: {
+          studentId: '202612345',
+          paidFrom: '2026-03-01',
+          paidUntil: '2026-08-31',
+          ...values,
+        },
+      }),
+    )
   const attend = (registrationId: string, values: Values = {}) =>
     db.transaction(tx =>
       createRecord(tx, {
@@ -155,6 +170,17 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     const response = await api.get(`/api/public/registration-forms/${code}`)
     return { response, text: await response.text() }
   }
+  const publicPost = (path: string, body: unknown) => api.post(`/api/public${path}`, body)
+  const apply = (code: string, body: unknown) =>
+    publicPost(`/registration-forms/${code}/apply`, body)
+  // 신청해서 토큰을 받는다. 성공(201)이 아니면 던진다.
+  const applied = async (code: string, body: unknown) => {
+    const response = await apply(code, body)
+    if (response.status !== 201) throw new Error(`신청이 ${response.status}로 끝났다`)
+    return ((await response.json()) as { token: string }).token
+  }
+  const lookup = (token: string) => publicPost('/registrations/lookup', { token })
+  const cancelMine = (token: string) => publicPost('/registrations/cancel', { token })
   const publicForm = async (code: string) =>
     JSON.parse((await publicRead(code)).text) as PublicRegistrationForm
   return {
@@ -169,6 +195,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     makeAccount,
     makeForm,
     makeRegistration,
+    makeFeePayment,
     attend,
     change,
     post,
@@ -178,6 +205,11 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     list,
     publicRead,
     publicForm,
+    publicPost,
+    apply,
+    applied,
+    lookup,
+    cancelMine,
     count,
     versions: (id: string) =>
       count('SELECT count(*) AS n FROM record_version WHERE record_id = $1', [id]),
