@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  HOME_ENDED_LIMIT,
   HOME_EVENT_LIMIT,
   HOME_LIST_LIMIT,
   type HomeResponse,
@@ -286,5 +287,44 @@ test('직급을 잃으면 다음 읽기에서 그 부분이 빠진다', async ()
       [t.council.people.planningHead.memberId],
     )
     assert.equal((await h.read('s-planningHead')).departments, undefined)
+  })()
+})
+
+test('학생회 직급이 있으면 부서 직급도 있어도 departments는 없고 council만 받는다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    await t.pg.query(
+      `UPDATE council_membership SET council_rank = 'vice_president' WHERE member_id = $1`,
+      [t.council.people.planningHead.memberId],
+    )
+    const home = await h.read('s-planningHead')
+    assert.equal(home.departments, undefined)
+    assert.ok(home.council)
+  })()
+})
+
+test('끝난 행사는 오래된 것부터 10개까지만 카드가 되고 전체 수가 따로 오며 정산은 보이는 것에만 돈다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    for (let day = 1; day <= HOME_ENDED_LIMIT + 2; day++)
+      await t.event({
+        name: `끝남 ${day}`,
+        startsAt: new Date(`2026-09-${String(day).padStart(2, '0')}T00:00:00Z`),
+      })
+    for (let index = 0; index < HOME_EVENT_LIMIT; index++)
+      await t.event({ name: `미정 ${index}`, startsAt: null })
+    const { council } = await h.read('s-president')
+    const cards = council!.events
+    assert.equal(cards.length, HOME_EVENT_LIMIT)
+    assert.equal(council!.endedTotal, HOME_ENDED_LIMIT + 2)
+    assert.equal(council!.truncated, true)
+    const ended = cards.filter(card => card.event.status === 'ended')
+    assert.deepEqual(ended.map(card => card.event.name).slice(0, 2), ['끝남 1', '끝남 2'])
+    assert.equal(ended.length, HOME_ENDED_LIMIT)
+    assert.equal(cards.filter(card => card.settlement).length, HOME_ENDED_LIMIT)
+    assert.equal(
+      cards.filter(card => card.event.status === 'tbd').length,
+      HOME_EVENT_LIMIT - HOME_ENDED_LIMIT,
+    )
   })()
 })

@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import {
   EVENT_ACTIONS,
   EVENT_LIST_LIMIT,
@@ -112,39 +112,53 @@ export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<
   }
 }
 
-// 홈의 행사 카드: 완료하지 않은 행사를 끝남(끝난 지 오래된 것부터) → 진행 중 → 예정(시작 순) → 날짜 미정(만든 순)으로 limit개까지. 한 개 더 읽어 넘쳤는지 안다.
+// 홈의 행사 카드: 완료하지 않은 행사. 끝난 행사(정산이 남은 것)는 끝난 지 오래된 것부터 endedLimit개까지만 주고 전체 수를 따로 준다.
+// 진행 중 → 예정(시작 순) → 날짜 미정(만든 순)은 그 뒤에 남은 자리(전체 limit개)까지다. 한 개 더 읽어 넘쳤는지 안다.
 export async function openEventsOf(
   db: Reader,
   actor: Actor,
   now: Date,
-  limit: number,
-): Promise<EventsResponse> {
+  limits: { limit: number; endedLimit: number },
+): Promise<EventsResponse & { endedTotal: number }> {
   const group = groupSql(now)
-  const rows = await eventSelect(db)
-    .where(and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`))
+  const scope = and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
+  const ended = await eventSelect(db)
+    .where(and(scope, sql`${group} = 3`))
+    .orderBy(sql`${endsAtSql} asc`, event.id)
+  const shown = ended.slice(0, limits.endedLimit)
+  const rest = limits.limit - shown.length
+  const others = await eventSelect(db)
+    .where(and(scope, sql`${group} < 3`))
     .orderBy(
-      sql`(${group} + 1) % 4`,
-      sql`case when ${group} = 3 then ${endsAtSql} end asc`,
+      group,
       sql`case when ${group} < 2 then ${event.startsAt} end asc`,
       sql`case when ${group} = 2 then ${record.createdAt} end asc`,
       event.id,
     )
-    .limit(limit + 1)
+    .limit(rest + 1)
   return {
-    events: await summariesOf(db, actor, rows.slice(0, limit), now),
-    truncated: rows.length > limit,
+    events: await summariesOf(db, actor, [...shown, ...others.slice(0, rest)], now),
+    truncated: others.length > rest || ended.length > shown.length,
+    endedTotal: ended.length,
   }
 }
 
-async function taskCountsOf(db: Reader, eventId: string) {
-  const [counts] = await db
+// 행사 여럿의 지우지 않은 업무 수(끝나지 않은 것, 전체). 행사 상세와 홈이 같이 쓴다.
+export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
+  const counts = new Map<string, { open: number; total: number }>()
+  if (!eventIds.length) return counts
+  const rows = await db
     .select({
+      eventId: task.eventId,
       total: sql<number>`count(*)`.mapWith(Number),
       open: sql<number>`count(*) filter (where ${task.status} <> 'done')`.mapWith(Number),
     })
     .from(task)
-    .where(and(eq(task.eventId, eventId), isNull(task.cancelledAt)))
-  return { open: counts?.open ?? 0, total: counts?.total ?? 0 }
+    .where(and(inArray(task.eventId, eventIds), isNull(task.cancelledAt)))
+    .groupBy(task.eventId)
+  for (const row of rows)
+    if (row.eventId) counts.set(row.eventId, { open: row.open, total: row.total })
+  return counts
 }
 
 // 행사 하나와 그 사람이 할 수 있는 동작. 동작은 책임자가 나일 때만 맞는 기준이라 책임자를 맥락으로 묻는다.
@@ -159,7 +173,7 @@ export async function eventDetailOf(
   const context = row.ownerId ? { eventOwnerId: row.ownerId } : {}
   return {
     ...summary!,
-    tasks: await taskCountsOf(db, eventId),
+    tasks: (await taskCountsByEvent(db, [eventId])).get(eventId) ?? { open: 0, total: 0 },
     history: await eventHistoryOf(db, eventId),
     approvals: await completionApprovalsOf(db, eventId),
     // 완료한 행사는 고치기와 책임자 바꾸기가 잠긴다(완료 취소로 다시 열린다).

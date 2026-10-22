@@ -1,14 +1,13 @@
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import {
+  HOME_ENDED_LIMIT,
   HOME_EVENT_LIMIT,
   type HomeBlocked,
   type HomeCouncil,
   type HomeEventCard,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { openEventsOf } from '../events/queries.js'
+import { openEventsOf, taskCountsByEvent } from '../events/queries.js'
 import { remainingOf } from '../settlement/remaining.js'
 import { listOf, type OpenTask } from './open-tasks.js'
 
@@ -32,30 +31,6 @@ function blockedOf(open: OpenTask[]): HomeBlocked[] {
     .sort((a, b) => (a.department?.name ?? LAST).localeCompare(b.department?.name ?? LAST))
 }
 
-// 지우지 않은 행사 업무의 끝남과 전체
-async function taskTotalsOf(db: Reader, actor: Actor, eventIds: string[]) {
-  const totals = new Map<string, { done: number; total: number }>()
-  if (!eventIds.length) return totals
-  const rows = await db
-    .select({
-      eventId: task.eventId,
-      total: sql<number>`count(*)`.mapWith(Number),
-      done: sql<number>`count(*) filter (where ${task.status} = 'done')`.mapWith(Number),
-    })
-    .from(task)
-    .innerJoin(record, eq(record.id, task.id))
-    .where(
-      and(
-        eq(record.councilId, actor.councilId),
-        isNull(task.cancelledAt),
-        inArray(task.eventId, eventIds),
-      ),
-    )
-    .groupBy(task.eventId)
-  for (const row of rows) if (row.eventId) totals.set(row.eventId, row)
-  return totals
-}
-
 // 정산에 남은 것 수는 행사 '돈' 탭의 항목 수 합이다(같은 remainingOf). 끝났고 완료하지 않은 행사에만 센다.
 async function settlementOf(db: Reader, actor: Actor, eventId: string) {
   const remaining = await remainingOf(db, { councilId: actor.councilId, eventId })
@@ -71,10 +46,12 @@ export async function councilOf(
   now: Date,
   open: OpenTask[],
 ): Promise<HomeCouncil> {
-  const { events, truncated } = await openEventsOf(db, actor, now, HOME_EVENT_LIMIT)
-  const totals = await taskTotalsOf(
+  const { events, truncated, endedTotal } = await openEventsOf(db, actor, now, {
+    limit: HOME_EVENT_LIMIT,
+    endedLimit: HOME_ENDED_LIMIT,
+  })
+  const totals = await taskCountsByEvent(
     db,
-    actor,
     events.map(item => item.id),
   )
   const cards: HomeEventCard[] = []
@@ -84,7 +61,7 @@ export async function councilOf(
     cards.push({
       event: item,
       tasks: {
-        done: total?.done ?? 0,
+        done: (total?.total ?? 0) - (total?.open ?? 0),
         total: total?.total ?? 0,
         overdue: mine.filter(row => row.summary.overdue).length,
         unassigned: mine.filter(row => row.unassigned).length,
@@ -95,6 +72,7 @@ export async function councilOf(
   return {
     events: cards,
     truncated,
+    endedTotal,
     blocked: blockedOf(open),
     overdue: listOf(open.filter(row => row.summary.overdue)),
   }

@@ -6,6 +6,8 @@ import type { TaskSummary } from './tasks.js'
 export const HOME_LIST_LIMIT = 10
 // 학생회 행사 카드는 20개까지다. 넘으면 truncated.
 export const HOME_EVENT_LIMIT = 20
+// 그 가운데 끝났고 완료하지 않은 행사(정산이 남은 것)는 끝난 지 오래된 것부터 이만큼까지다. 정산 질의는 보여 주는 행사에만 돈다.
+export const HOME_ENDED_LIMIT = 10
 // '7일 안'은 내일부터 이 날수 뒤까지다.
 export const HOME_SOON_DAYS = 7
 
@@ -19,6 +21,7 @@ export interface HomeTask extends TaskSummary {
 // 나에게 맡긴 끝나지 않은 업무. tasks는 지남 → 오늘 → 7일 안 차례로 마감 순 HOME_LIST_LIMIT줄까지다.
 export interface HomeMine {
   tasks: HomeTask[]
+  // todo·inProgress는 끝나지 않은 업무 수라 지남과 담당자 없음이 그 안에 겹쳐 있다(합치면 안 된다).
   counts: { overdue: number; today: number; soon: number; later: number; noDue: number }
 }
 
@@ -53,8 +56,10 @@ export interface HomeBlocked {
 
 export interface HomeCouncil {
   events: HomeEventCard[]
-  // 행사가 HOME_EVENT_LIMIT을 넘어 잘렸는가
+  // 행사가 상한(HOME_EVENT_LIMIT, 끝난 행사는 HOME_ENDED_LIMIT)을 넘어 잘렸는가
   truncated: boolean
+  // 끝났고 완료하지 않은 행사의 전체 수(카드는 HOME_ENDED_LIMIT개까지)
+  endedTotal: number
   blocked: HomeBlocked[]
   // 학생회 전체의 지난 업무. 오래 지난 것부터다.
   overdue: HomeList

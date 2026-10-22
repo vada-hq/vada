@@ -19,22 +19,25 @@ export async function departmentsOf(
     .select({ id: department.id, name: department.name })
     .from(department)
     .where(and(eq(department.councilId, actor.councilId), inArray(department.id, departmentIds)))
-    .orderBy(asc(department.name), asc(department.id))
-  return rows.map(row => {
-    const mine = open.filter(item => item.summary.department?.id === row.id)
-    const overdue = mine.filter(item => item.summary.overdue)
-    const unassigned = mine.filter(item => item.unassigned)
-    return {
-      id: row.id,
-      name: row.name,
-      counts: {
-        todo: mine.filter(item => item.summary.status === 'todo').length,
-        inProgress: mine.filter(item => item.summary.status === 'in_progress').length,
-        overdue: overdue.length,
-        unassigned: unassigned.length,
-      },
-      overdue: listOf(overdue),
-      unassigned: listOf(unassigned),
-    }
-  })
+    .orderBy(asc(department.id))
+  // 부서 이름 차례는 council의 부서별 막힌 곳과 같게 JS 한 곳에서 맞춘다.
+  return rows
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(row => {
+      const mine = open.filter(item => item.summary.department?.id === row.id)
+      const overdue = mine.filter(item => item.summary.overdue)
+      const unassigned = mine.filter(item => item.unassigned)
+      return {
+        id: row.id,
+        name: row.name,
+        counts: {
+          todo: mine.filter(item => item.summary.status === 'todo').length,
+          inProgress: mine.filter(item => item.summary.status === 'in_progress').length,
+          overdue: overdue.length,
+          unassigned: unassigned.length,
+        },
+        overdue: listOf(overdue),
+        unassigned: listOf(unassigned),
+      }
+    })
 }
