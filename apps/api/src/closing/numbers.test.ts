@@ -37,7 +37,28 @@ test(
     await earn(t, old, 99, { receivedOn: '2026-05-01' })
     // 다른 학생회의 지출·수입
     const theirs = await t.budgetOf(t.other)
-    await t.expense({ amount: '123456', paidAt: new Date('2026-10-20T00:00:00Z') }, t.other)
+    const theirAccount = await t.make(t.other, 'account', {
+      name: '다른 통장',
+      bank: '국민',
+      accountNumber: '999',
+      holder: '다른 학생회',
+      type: 'main',
+    })
+    const theirExpense = await t.expense(
+      { amount: '123456', paidAt: new Date('2026-10-20T00:00:00Z'), accountId: theirAccount },
+      t.other,
+    )
+    const theirEvidence = await t.make(t.other, 'evidence', {
+      expenseId: theirExpense,
+      type: 'receipt',
+    })
+    await t.make(t.other, 'file', {
+      name: 'evidence.jpg',
+      mediaType: 'image/jpeg',
+      sizeBytes: 4321,
+      storageKey: `k-${theirEvidence}`,
+      attachedToId: theirEvidence,
+    })
     await t.make(t.other, 'income', {
       fiscalPeriodId: theirs.period,
       source: 'fee',
@@ -48,6 +69,29 @@ test(
     assert.equal(closing.expense.total, 500)
     assert.equal(closing.income.total, 3000)
     assert.equal(closing.remaining, 2500)
+    // 다른 학생회의 지출·계좌·사진은 점검, 내보내기 정보, 계좌 줄에 들지 않는다
+    assert.deepEqual(
+      closing.checks.map(check => [check.kind, check.count]),
+      [
+        ['no_evidence', 1],
+        ['no_reason', 0],
+        ['unreimbursed', 0],
+        ['no_account', 1],
+        ['no_item', 1],
+        ['other_period_item', 0],
+      ],
+    )
+    assert.deepEqual(closing.exportInfo, {
+      expenseCount: 1,
+      incomeCount: 1,
+      photoCount: 0,
+      photoBytes: 0,
+      tooLarge: false,
+    })
+    assert.deepEqual(
+      closing.accounts.map(line => line.account),
+      [null],
+    )
   }),
 )
 
