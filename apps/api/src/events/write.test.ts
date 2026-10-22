@@ -211,6 +211,12 @@ test(
       const response = await t.post(`/${event.id}`, { ...FULL, ...patch }, 's-planningMember')
       assert.equal(response.status, 400, JSON.stringify(patch))
     }
+    // 필수값 누락: 빈 본문과 칸을 하나씩 뺀 본문
+    const missing = [{}, ...Object.keys(FULL).map(key => ({ ...FULL, [key]: undefined }))]
+    for (const body of missing) {
+      const response = await t.post(`/${event.id}`, body, 's-planningMember')
+      assert.equal(response.status, 400, JSON.stringify(body))
+    }
     assert.equal(await t.versions(event.id), 1)
   }),
 )
