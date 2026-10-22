@@ -94,7 +94,24 @@ test('[행사 만들기]는 event.create가 있을 때만 보인다', async () =
   expect(screen.queryByRole('button', { name: '행사 만들기' })).toBeNull()
 })
 
-test('만들기는 책임자를 나로 채우고, 보내는 동안 다시 보내지 않으며, 만든 행사를 연다', async () => {
+// 만들기는 이름 하나만 받는다. 일시·장소는 만든 뒤 상세에서 채운다(notes/frontend-fix-plan.md A4).
+async function openCreate() {
+  fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
+  return screen.findByRole('form', { name: '행사 만들기' })
+}
+
+test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자는 나로 채운 한 줄이다', async () => {
+  setup()
+  const form = await openCreate()
+  const name = await within(form).findByLabelText('이름')
+  expect(document.activeElement).toBe(name)
+  expect(within(form).queryByLabelText('시작')).toBeNull()
+  expect(within(form).queryByLabelText('장소')).toBeNull()
+  expect(within(form).queryByRole('combobox', { name: '책임자' })).toBeNull()
+  expect(within(form).getByText(/책임자: 김회장\(나\)/)).toBeTruthy()
+})
+
+test('만들기는 보내는 동안 다시 보내지 않으며, 이름만 보내고 만든 행사를 연다', async () => {
   const { api } = setup()
   const created = eventDetail({ id: 'e9', name: '봄 축제' })
   let posts = 0
@@ -103,14 +120,10 @@ test('만들기는 책임자를 나로 채우고, 보내는 동안 다시 보내
     return json({ event: created }, 201)
   })
   api.on('GET', `${BASE}/e9`, () => json({ event: created }))
-  await screen.findByRole('button', { name: '신입생 환영회' })
-  fireEvent.click(screen.getByRole('button', { name: '행사 만들기' }))
-  await screen.findByRole('combobox', { name: '책임자' })
-  expect(screen.getByRole('combobox', { name: '책임자' })).toHaveProperty('value', MEMBER.m1)
-  const submit = screen.getByRole('button', { name: '만들기' })
+  const form = await openCreate()
+  const submit = within(form).getByRole('button', { name: '만들기' })
   expect(submit).toHaveProperty('disabled', true)
-  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '봄 축제' } })
-  fireEvent.change(screen.getByLabelText('시작'), { target: { value: '2026-10-30T10:00' } })
+  fireEvent.change(await within(form).findByLabelText('이름'), { target: { value: '봄 축제' } })
   expect(submit).toHaveProperty('disabled', false)
   fireEvent.click(submit)
   fireEvent.click(submit)
@@ -118,29 +131,34 @@ test('만들기는 책임자를 나로 채우고, 보내는 동안 다시 보내
   expect(posts).toBe(1)
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     name: '봄 축제',
-    startsAt: '2026-10-30T10:00',
+    startsAt: null,
     endsAt: null,
     place: null,
     ownerId: MEMBER.m1,
   })
 })
 
-test('끝이 시작보다 이르면 만들기 버튼이 꺼져 있다', async () => {
-  setup()
-  fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
-  await screen.findByRole('combobox', { name: '책임자' })
-  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '행사' } })
-  fireEvent.change(screen.getByLabelText('시작'), { target: { value: '2026-10-30T10:00' } })
-  fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-30T09:00' } })
-  expect(screen.getByRole('button', { name: '만들기' })).toHaveProperty('disabled', true)
+test('[바꾸기]를 누르면 책임자 선택칸이 펼쳐지고, 고른 사람으로 보낸다', async () => {
+  const { api } = setup()
+  api.on('POST', BASE, () => json({ event: eventDetail({ id: 'e9' }) }, 201))
+  api.on('GET', `${BASE}/e9`, () => json({ event: eventDetail({ id: 'e9' }) }))
+  const form = await openCreate()
+  fireEvent.click(await within(form).findByRole('button', { name: '책임자 고르기' }))
+  const select = within(form).getByRole('combobox', { name: '책임자' })
+  expect(select).toHaveProperty('value', MEMBER.m1)
+  fireEvent.change(select, { target: { value: '' } })
+  fireEvent.change(within(form).getByLabelText('이름'), { target: { value: '행사' } })
+  fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
+  await waitFor(() =>
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ ownerId: null }),
+  )
 })
 
 test('만들기 409와 429는 폼 안에 문구로 보이고 대화상자는 열려 있다', async () => {
   const { api } = setup()
   api.on('POST', BASE, () => json({ error: 'MEMBER_INVALID' }, 409))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
-  await screen.findByRole('combobox', { name: '책임자' })
-  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '행사' } })
+  fireEvent.change(await screen.findByLabelText('이름'), { target: { value: '행사' } })
   fireEvent.click(screen.getByRole('button', { name: '만들기' }))
   const form = screen.getByRole('form', { name: '행사 만들기' })
   expect((await within(form).findByRole('alert')).textContent).toBe(EVENT_ERRORS.MEMBER_INVALID)
@@ -155,8 +173,7 @@ test('만들다 권한을 잃으면(403) 학생회를 다시 읽게 하고 이�
   const { api, handlers } = setup()
   api.on('POST', BASE, () => json({ error: 'FORBIDDEN' }, 403))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
-  await screen.findByRole('combobox', { name: '책임자' })
-  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '행사' } })
+  fireEvent.change(await screen.findByLabelText('이름'), { target: { value: '행사' } })
   fireEvent.click(screen.getByRole('button', { name: '만들기' }))
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

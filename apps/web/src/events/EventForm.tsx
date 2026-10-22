@@ -13,6 +13,8 @@ type Props = {
   onValues: (values: EventFieldValues) => void
   // 책임자 고르기 같은 칸. 만들기에만 있다.
   extra?: ReactNode
+  // 만들기는 이름만 받는다(EventFields).
+  nameOnly?: boolean
   valid: boolean
   saving: boolean
   problem: string | null
@@ -31,7 +33,12 @@ export function EventForm(props: Props) {
         props.onSubmit()
       }}
     >
-      <EventFields values={props.values} disabled={props.saving} onChange={props.onValues} />
+      <EventFields
+        values={props.values}
+        disabled={props.saving}
+        onChange={props.onValues}
+        nameOnly={props.nameOnly}
+      />
       {props.extra}
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>

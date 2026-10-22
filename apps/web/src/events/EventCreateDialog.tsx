@@ -5,12 +5,14 @@ import {
   type EventDetail,
   type TeamResponse,
 } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { eventsPath } from './event-api'
 import { emptyEventFields, eventFieldsRequest } from './event-fields'
 import { EventDialogShell } from './EventDialogShell'
 import { EventForm } from './EventForm'
 import { EventTeamGate } from './EventTeamGate'
+import { NO_OWNER_LABEL } from './event-view'
 import { ownerChoices } from './owner-choices'
 import { useEventSubmit, type EventDialogHandlers } from './useEventSubmit'
 
@@ -47,6 +49,51 @@ type FormProps = Props & {
   setSaving: (saving: boolean) => void
 }
 
+// 책임자는 만든 사람으로 채운 한 줄로 보이고, [바꾸기]를 누를 때만 선택칸이 펼쳐진다(점진적 공개).
+function OwnerPick({
+  team,
+  ownerId,
+  meId,
+  saving,
+  onChange,
+}: {
+  team: TeamResponse
+  ownerId: string | null
+  meId: string
+  saving: boolean
+  onChange: (id: string | null) => void
+}) {
+  const [picking, setPicking] = useState(false)
+  const choices = ownerChoices(team)
+  if (picking)
+    return (
+      <ChoiceSelect
+        label="책임자"
+        choices={choices}
+        value={ownerId}
+        disabled={saving}
+        onChange={onChange}
+      />
+    )
+  const name = choices.find(choice => choice.id === ownerId)?.label ?? NO_OWNER_LABEL
+  return (
+    <p className="flex items-center gap-1 text-sm text-gray-600">
+      책임자: {name}
+      {ownerId === meId && '(나)'}
+      <Button
+        type="button"
+        variant="link"
+        size="sm"
+        aria-label="책임자 고르기"
+        disabled={saving}
+        onClick={() => setPicking(true)}
+      >
+        바꾸기
+      </Button>
+    </p>
+  )
+}
+
 function CreateForm({ view, team, saving, setSaving, onClose, ...handlers }: FormProps) {
   const [values, setValues] = useState(emptyEventFields)
   const [ownerId, setOwnerId] = useState<string | null>(view.me.memberId)
@@ -61,12 +108,13 @@ function CreateForm({ view, team, saving, setSaving, onClose, ...handlers }: For
       submitLabel="만들기"
       values={values}
       onValues={setValues}
+      nameOnly
       extra={
-        <ChoiceSelect
-          label="책임자"
-          choices={ownerChoices(team)}
-          value={ownerId}
-          disabled={saving}
+        <OwnerPick
+          team={team}
+          ownerId={ownerId}
+          meId={view.me.memberId}
+          saving={saving}
           onChange={setOwnerId}
         />
       }
