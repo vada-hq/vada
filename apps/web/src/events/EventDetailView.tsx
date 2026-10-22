@@ -5,16 +5,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { EVENT_LOAD_FAILED } from '@/lib/messages'
+import { RegistrationTab } from '../registrations/RegistrationTab'
 import TasksPage from '../tasks/TasksPage'
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE } from './event-view'
 import { EventOverview } from './EventOverview'
 import type { EventDialogHandlers } from './useEventSubmit'
 import { useEventDetail } from './useEventDetail'
 
-type Tab = 'overview' | 'tasks'
+type Tab = 'overview' | 'tasks' | 'registrations'
 const TABS: { tab: Tab; label: string }[] = [
   { tab: 'overview', label: '개요' },
   { tab: 'tasks', label: '업무' },
+  { tab: 'registrations', label: '참가 신청' },
 ]
 
 type Props = EventDialogHandlers & {
@@ -39,7 +41,7 @@ function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
   )
 }
 
-// 행사 하나: 이름과 상태, 탭 둘(개요, 업무). 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
+// 행사 하나: 이름과 상태, 탭 셋(개요, 업무, 참가 신청). 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
 export default function EventDetailView({ view, eventId, onBack, ...props }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
   const handlers = { onLost: props.onLost, onForbidden: props.onForbidden }
@@ -69,6 +71,13 @@ export default function EventDetailView({ view, eventId, onBack, ...props }: Pro
               props.onTasksChanged()
               void detail.reload()
             }}
+          />
+        ) : tab === 'registrations' ? (
+          <RegistrationTab
+            view={view}
+            eventId={eventId}
+            owner={event?.owner ?? null}
+            {...handlers}
           />
         ) : (
           <Overview
