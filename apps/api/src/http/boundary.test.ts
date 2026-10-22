@@ -13,6 +13,8 @@ import { createTeamRoutes } from '../team/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createAccountRoutes } from '../accounts/routes.js'
 import { createEventRoutes } from '../events/routes.js'
+import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
+import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
@@ -32,7 +34,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 44
+const MUTATING_ROUTES = 48
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 function modulesOf(session: () => Promise<null>) {
@@ -56,6 +58,8 @@ function modulesOf(session: () => Promise<null>) {
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
+    registrations: createRegistrationRoutes(db, session),
+    publicRegistrations: createPublicRegistrationRoutes(db),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>
@@ -78,8 +82,9 @@ test('경계 검사가 보는 변경 라우트 수가 맞고, 모듈 하나가 �
   assert.equal(mutatingOf(writesOf(appOf(modules))).length, MUTATING_ROUTES)
   for (const name of Object.keys(modules) as (keyof typeof modules)[]) {
     const { [name]: _omitted, ...rest } = modules
+    // 읽기만 있는 모듈(공개 양식 읽기)도 빠지면 모르게 되지 않도록 경로 전체로 센다. 변경 라우트가 더해지는 순간 위 수 검사가 잡는다.
     assert.ok(
-      mutatingOf(writesOf(appOf(rest))).length < MUTATING_ROUTES,
+      appOf(rest).routes.length < appOf(modules).routes.length,
       `${name}: 이 모듈이 빠져도 경계 검사가 모릅니다`,
     )
   }

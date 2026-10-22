@@ -83,7 +83,7 @@
 - 닿는 곳: `apps/api/migrations/0007_*.sql`, `0008_*.sql`과 journal, `db/schema-work.ts`, `db/schema-money.ts`, `scripts/design-sql.ts`(설계 밖 표), `records/records.ts`, `records/same-council.ts`, `access/permissions.ts`, contracts `permissions.ts`.
 - 검토: 깊게. 마이그레이션: 있음 둘('위험'의 차례).
 
-### 2. 신청 양식과 공개 양식 읽기(서버) [ ]
+### 2. 신청 양식과 공개 양식 읽기(서버) [x]
 - 할 수 있게 되는 것: 관리 권한자가 행사에 신청 양식을 만들고 고치고 멈추며, 누구나 공개 코드로 양식을 읽는다.
 - 수용 기준: 관리 권한자만 만들고(201, 판 1) 고치고 멈추고 다시 받는다. 담당 부서가 아닌 부장, 재정부만인 사람은 403. 모든 운영진이 행사의 양식 목록과 양식 하나(설정, 상태, 신청 수, 참석 수, 남은 자리, 공개 코드, 지울 날, 그 사람의 `actions`)를 읽는다. 마감이 없거나 시작보다 이르면 400. 참가비 규칙과 오류는 '정한 것'대로이고, 고치기 본문에 공개 코드가 오면 400이다. 휴대폰 받기를 끄면 받은 번호가 지금 값과 판에서 비워진다. 상태 다섯 가지와 순서를 한국 시각 ±1초로 시험한다. `GET /api/public/registration-forms/:code`는 로그인 없이 학생회 이름, 행사(이름, 일시, 장소), 양식(이름, 기간, 안내), 상태, 남은 자리, 참가비 두 값, 학번·휴대폰을 받는지, 지울 날만 준다(계좌, 신청자, 운영진, 내부 번호 없음). 모르는 코드는 404, 응답은 `no-store`다. 다른 학생회 행사·양식 404, 운영진 아님 403, 401, 21번째 쓰기 429. AGENTS.md의 입력 경우를 모두 시험한다.
 - 닿는 곳: contracts `registrations.ts`(새: 상한, `CreateFormSchema`, `UpdateFormSchema`, `FormSummary`, `FormDetail`, `PublicForm`), `errors.ts`. `apps/api/src/registrations/`(새: `routes.ts`, `service.ts`, `queries.ts`, `state.ts`, `public-routes.ts`), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET`·`POST events/:eventId/registration-forms`, `GET`·`POST registration-forms/:formId`, `POST registration-forms/:formId/pause`, `.../resume`.

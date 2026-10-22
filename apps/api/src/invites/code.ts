@@ -5,7 +5,8 @@ import type { Db } from '../db/types.js'
 
 // 초대 코드 8자. 헷갈리는 0·1·I·O를 뺀 32글자에서 뽑는다(DB CHECK ^[2-9A-HJ-NP-Z]{8}$, 지금 vada와 같다).
 const INVITE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
-const newInviteCode = () =>
+// 신청 양식의 공개 코드도 같은 모양이라 이 뽑기를 같이 쓴다.
+export const newInviteCode = () =>
   Array.from({ length: 8 }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('')
 
 const MAX_ATTEMPTS = 5

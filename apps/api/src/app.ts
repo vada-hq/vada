@@ -9,6 +9,8 @@ import type { createPushRoutes } from './push/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
 import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
+import type { createPublicRegistrationRoutes } from './registrations/public-routes.js'
+import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
@@ -46,6 +48,10 @@ export type AppOptions = {
   events?: ReturnType<typeof createEventRoutes>
   // 계좌: 목록, 만들기, 고치기, 닫기
   accounts?: ReturnType<typeof createAccountRoutes>
+  // 신청 양식: 목록, 하나 읽기, 만들기, 고치기, 멈추기와 다시 받기
+  registrations?: ReturnType<typeof createRegistrationRoutes>
+  // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기
+  publicRegistrations?: ReturnType<typeof createPublicRegistrationRoutes>
 }
 
 export function createApp({
@@ -64,6 +70,8 @@ export function createApp({
   agreement,
   events,
   accounts,
+  registrations,
+  publicRegistrations,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -91,8 +99,11 @@ export function createApp({
     agreement?.routes,
     events,
     accounts,
+    registrations,
   ])
     if (routes) app.route('/api', routes)
+  // 공개 경로는 로그인 세션을 쓰지 않아 환경 타입이 다르다.
+  if (publicRegistrations) app.route('/api', publicRegistrations)
   app.onError(handleError)
   return app
 }

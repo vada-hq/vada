@@ -24,6 +24,8 @@ import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { createAccountRoutes } from './accounts/routes.js'
 import { createEventRoutes } from './events/routes.js'
+import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
+import { createRegistrationRoutes } from './registrations/routes.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
@@ -96,6 +98,8 @@ function appOf(env: Env, db: Db) {
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
+    registrations: createRegistrationRoutes(db, session),
+    publicRegistrations: createPublicRegistrationRoutes(db),
   })
 }
 
