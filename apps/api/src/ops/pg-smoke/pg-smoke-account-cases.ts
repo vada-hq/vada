@@ -99,7 +99,7 @@ export const mainAccountTogetherCase: SmokeCase = {
   run: context =>
     withConnections(context, async open => {
       const main = open()
-      const scene = await moneyScene(main, context, 'a')
+      const scene = await moneyScene(main, context, 'o')
       const problem = await mainTogether(open, { context, scene, sql: main.sql })
       return (
         problem ?? pass('먼저 잠근 쪽이 있을 때도 동시에 시작해도 닫지 않은 대표 계좌는 하나뿐이다')
@@ -192,7 +192,7 @@ export const closeAndSpendCase: SmokeCase = {
   run: context =>
     withConnections(context, async open => {
       const main = open()
-      const scene = await moneyScene(main, context, 'c')
+      const scene = await moneyScene(main, context, 'p')
       const problem = await closeAndSpend(open, { context, scene, sql: main.sql })
       return (
         problem ??

@@ -32,6 +32,7 @@ export type MoneyScene = {
 const BUDGET_AMOUNT = 100000
 
 // 학생회 하나(재정 역할 부서는 학생회를 만들 때 함께 생긴다), 그 부서에 든 부원 둘, 요청만 내는 부원 하나, 오늘이 든 기간과 지출 예산 항목 하나.
+// tag는 모든 사례가 한 점검 DB를 함께 쓰므로 다른 사례의 사용자 이름(smoke-<글자>-…)과 겹치지 않는 글자여야 한다. 겹치면 사용자 만들기가 23505로 멈춘다.
 export async function moneyScene(
   main: SmokeConnection,
   context: SmokeContext,
