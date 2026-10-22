@@ -11,7 +11,7 @@ export const GROUP_LABEL: Record<HomeTaskGroup, string> = {
 export const mineIsEmpty = ({ counts }: HomeMine) =>
   counts.overdue + counts.today + counts.soon + counts.later + counts.noDue === 0
 
-export const EVENT_SETTLED_LABEL = '완료할 수 있어요'
+const EVENT_SETTLED_LABEL = '완료할 수 있어요'
 export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
   settled ? EVENT_SETTLED_LABEL : `정산에 남은 것 ${remaining}`
 
