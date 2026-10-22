@@ -5,10 +5,37 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { createTestDb } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { addUser, seedCouncil } from '../test-support/council.js'
-import { actorOf } from './actor.js'
+import { actorOf, actorOfMember } from './actor.js'
 import { authorize, authorizeChange, councilIdOf, recordIdOf } from './authorize.js'
 
 const inside = new Date('2026-06-01T03:00:00Z')
+
+test('운영진 번호로 열기: 같은 사람이면 actorOf와 같고, 다른 학생회나 끝난 소속은 열리지 않는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const seeded = await seedCouncil(db, pg)
+    const other = await seedCouncil(db, pg, 'o')
+    const { people, councilId } = seeded
+    for (const name of ['president', 'planningHead', 'financeMember', 'plain'] as const) {
+      const byLogin = await actorOf(db, people[name].userId, councilId, inside)
+      assert.ok(byLogin)
+      assert.deepEqual(await actorOfMember(db, people[name].memberId, councilId, inside), byLogin)
+    }
+    assert.equal(await actorOfMember(db, people.president.memberId, other.councilId, inside), null)
+    assert.equal(await actorOfMember(db, people.ended.memberId, councilId, inside), null)
+    assert.equal(
+      await actorOfMember(
+        db,
+        people.president.memberId,
+        councilId,
+        new Date('2027-06-01T03:00:00Z'),
+      ),
+      null,
+    )
+  } finally {
+    await close()
+  }
+})
 
 test('지금 소속: 학생회 직급과 지금 부서 소속(부서, 역할, 부서 직급)을 돌려준다', async () => {
   const { db, pg, close } = await createTestDb()
