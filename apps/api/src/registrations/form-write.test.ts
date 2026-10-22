@@ -427,3 +427,33 @@ test('같은 학생회 운영진의 쓰기는 계정마다 10초에 20번이고 
     await t.close()
   }
 })
+
+test(
+  '고치기도 참가비 규칙을 지킨다: 계좌 없는 참가비는 FEE_ACCOUNT_REQUIRED, 닫은 계좌와 다른 학생회 계좌는 ACCOUNT_INVALID이고 양식은 그대로다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const account = await t.makeAccount()
+    const { form } = await t.created(event)
+    const theirs = await t.makeAccount({}, t.other)
+    const closed = await t.makeAccount({
+      name: '옛 계좌',
+      type: 'business',
+      closedOn: '2026-01-01',
+    })
+    const edit = (body: Record<string, unknown>) =>
+      t.post(`/registration-forms/${form.id}`, { ...EDIT, ...body })
+    const required = await edit({ payerFee: 0, nonPayerFee: 5000, feeAccountId: null })
+    assert.equal(required.status, 409)
+    assert.deepEqual(await required.json(), { error: 'FEE_ACCOUNT_REQUIRED' })
+    for (const feeAccountId of [closed, theirs]) {
+      const response = await edit({ payerFee: 0, nonPayerFee: 5000, feeAccountId })
+      assert.equal(response.status, 409)
+      assert.deepEqual(await response.json(), { error: 'ACCOUNT_INVALID' })
+    }
+    assert.equal(await t.versions(form.id), 1)
+    assert.equal(
+      (await edit({ payerFee: 0, nonPayerFee: 5000, feeAccountId: account })).status,
+      200,
+    )
+  }),
+)
