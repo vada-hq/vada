@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { ApplicantsResponse } from '@vada/contracts'
-import {
-  MISSING,
-  type RegistrationKit,
-  withRegistrations,
-} from '../test-support/registrations.js'
+import { MISSING, type RegistrationKit, withRegistrations } from '../test-support/registrations.js'
 
 const kim = { name: '김납부', studentId: '202612345', phone: null }
 const lee = { name: '이미납', studentId: '202699999', phone: null }
@@ -204,5 +200,24 @@ test(
     assert.equal(response.status, 200)
     assert.deepEqual(((await response.json()) as ApplicantsResponse).applicants, [])
     assert.equal(await t.count('SELECT count(*) AS n FROM registration WHERE name IS NOT NULL'), 0)
+  }),
+)
+
+test(
+  '같은 학번 표시는 그 행사 안에서만 센다: 다른 행사와 다른 학생회의 같은 학번은 표시되지 않는다',
+  withRegistrations(async t => {
+    const { form } = await split(t)
+    const elsewhere = await t.makeForm(await t.makeEvent({ name: '다른 행사' }))
+    await t.makeRegistration(elsewhere, { studentId: kim.studentId })
+    const theirs = await t.makeForm(await t.makeEvent({}, t.other), {}, t.other)
+    await t.makeRegistration(theirs, { studentId: kim.studentId }, t.other)
+    const body = (await (await listOf(t, form.id)).json()) as ApplicantsResponse
+    assert.deepEqual(
+      body.applicants.map(a => [a.name, a.duplicateStudentId]),
+      [
+        ['김납부', false],
+        ['이미납', false],
+      ],
+    )
   }),
 )
