@@ -366,6 +366,7 @@ test('열어 둔 요청을 잃으면(404) 정산을 다시 읽는다', async () 
   const before = reads(api, `${EVENT}/settlement`)
   fireEvent.click(await screen.findByRole('button', { name: '포스터 인쇄' }))
   await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
+})
 
 test('돈 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
   const { api } = openMoney(event({ name: '봄 축제' }))
