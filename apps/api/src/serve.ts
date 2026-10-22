@@ -21,6 +21,7 @@ import { createExpenseRoutes } from './expenses/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
 import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
+import { createEventRoutes } from './events/routes.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import type { SessionReader } from './auth/require-session.js'
@@ -90,6 +91,7 @@ function appOf(env: Env, db: Db) {
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
+    events: createEventRoutes(db, session),
   })
 }
 
