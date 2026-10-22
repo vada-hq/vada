@@ -267,3 +267,46 @@ test(
     assert.ok((await actionsOf(p.next)).includes('closing.reopen'))
   }),
 )
+
+test(
+  '다른 학생회 재정부원이 우리 기간을 공개·다시 열기하면 404이고 아무것도 쓰지 않는다',
+  withSettlement(async t => {
+    const p = await twoPeriods(t)
+    await incomeAndExpense(t, p)
+    const theirs = await t.budgetOf(t.other)
+    const path = (action: string, periodId = p.first) =>
+      `/api/organizations/${t.other.councilId}/fiscal-periods/${periodId}/closing/${action}`
+    const before = await writesOf(t)
+    assert.equal((await t.api.post(path('publish'), {}, 'o-financeMember')).status, 404)
+    assert.equal(await writesOf(t), before)
+    assert.equal((await publish(t, p.first)).status, 200)
+    const published = await writesOf(t)
+    const body = { reason: '남의 것' }
+    assert.equal((await t.api.post(path('reopen'), body, 'o-financeMember')).status, 404)
+    assert.equal(await writesOf(t), published)
+    assert.equal((await closings(t)).length, 1)
+    assert.equal((await carryovers(t)).filter(row => !row.cancelled).length, 1)
+    // 그쪽 자신의 기간은 404가 아니다(아직 끝나지 않아 409)
+    assert.equal(
+      (await t.api.post(path('publish', theirs.period), {}, 'o-financeMember')).status,
+      409,
+    )
+  }),
+)
+
+test(
+  '다시 열기 사유: 501자(이모지 포함), NUL, 홀로 쓰인 서러게이트는 400이고 공개한 채로 남는다',
+  withSettlement(async t => {
+    const p = await twoPeriods(t)
+    await incomeAndExpense(t, p)
+    await publish(t, p.first)
+    const before = await writesOf(t)
+    for (const reason of ['😀'.repeat(501), 'a'.repeat(501), '사유\u0000', '사유\ud800'])
+      assert.equal(
+        (await t.api.post(`${closingPath(t, p.first)}/reopen`, { reason }, FINANCE)).status,
+        400,
+      )
+    assert.equal(await writesOf(t), before)
+    assert.equal((await reopen(t, p.first, '😀'.repeat(500))).status, 200)
+  }),
+)

@@ -13,7 +13,7 @@ const EXPENSE = { vendor: '문구점', description: '마커', amount: 10000, pai
 
 // 공개한 기간(2026-09-01~2027-02-28)과 공개하지 않은 앞 기간(2026-03-01~2026-08-31)
 async function periodsOf(t: SettlementKit) {
-  const { period } = await t.budgetOf()
+  const { period, budget } = await t.budgetOf()
   const closing = await t.make(t.council, 'account_closing', { fiscalPeriodId: period })
   const earlier = await t.make(t.council, 'fiscal_period', {
     name: '2026-1',
@@ -21,7 +21,7 @@ async function periodsOf(t: SettlementKit) {
     endsOn: '2026-08-31',
   })
   await t.make(t.council, 'budget', { fiscalPeriodId: earlier })
-  return { period, closing }
+  return { period, budget, closing }
 }
 type Kit = Awaited<ReturnType<typeof periodsOf>>
 
@@ -151,9 +151,32 @@ test(
     const s = await sceneOf(t, kit)
     const eventExpense = await t.expense({ eventId: s.event, paidAt: DAY('2026-10-21T03:00') })
     await t.completion(s.event, 'completed', DAY('2026-10-24T03:00'))
+    const item = await t.budgetItem(kit.budget, {
+      type: 'income',
+      purpose: '행사 수입',
+      eventId: s.event,
+    })
+    const itemIncome = await t.make(t.council, 'income', {
+      fiscalPeriodId: kit.period,
+      source: 'fee',
+      amount: '1000',
+      receivedOn: '2026-10-21',
+      budgetItemId: item,
+    })
     await setPublished(t, kit.closing, true)
     const cancel = await post(t, `/expenses/${eventExpense}/cancel`, { reason: '잘못' })
     assert.equal(await errorOf(cancel), 'EVENT_COMPLETED')
+    const spend = await post(t, '/expenses', { ...EXPENSE, eventId: s.event })
+    assert.equal(await errorOf(spend), 'EVENT_COMPLETED')
+    const earn = await post(t, '/incomes', {
+      source: 'grant',
+      amount: 1000,
+      receivedOn: '2026-10-24',
+      budgetItemId: item,
+    })
+    assert.equal(await errorOf(earn), 'EVENT_COMPLETED')
+    const undo = await post(t, `/incomes/${itemIncome}/cancel`, { reason: '잘못' })
+    assert.equal(await errorOf(undo), 'EVENT_COMPLETED')
     // 재정부가 아니면 잠금을 보기 전에 403이다
     assert.equal((await post(t, '/expenses', EXPENSE, PRESIDENT)).status, 403)
     assert.equal(
@@ -188,5 +211,33 @@ test(
     assert.deepEqual(lockedIncome, [])
     await setPublished(t, kit.closing, false)
     assert.deepEqual(await actions(), [openExpense, openIncome])
+  }),
+)
+
+test(
+  '다른 학생회가 같은 날짜의 기간을 공개해도 우리 지출·수입은 적고 취소할 수 있고 actions에 취소가 남는다',
+  withSettlement(async t => {
+    const mine = await periodsOf(t)
+    const s = await sceneOf(t, mine)
+    const theirs = await t.budgetOf(t.other)
+    await t.make(t.other, 'account_closing', {
+      fiscalPeriodId: theirs.period,
+      publishedAt: new Date('2026-10-24T03:00:00Z'),
+    })
+    assert.equal((await post(t, '/expenses', EXPENSE)).status, 201)
+    assert.equal((await post(t, `/expenses/${s.expense}/cancel`, { reason: '잘못' })).status, 200)
+    const income = { source: 'grant', amount: 1000, receivedOn: '2026-10-24' }
+    assert.equal((await post(t, '/incomes', income)).status, 201)
+    assert.equal((await post(t, `/incomes/${s.income}/cancel`, { reason: '잘못' })).status, 200)
+    const another = await sceneOf(t, mine)
+    const base = `/api/organizations/${t.council.councilId}`
+    const detail = (await (
+      await t.api.get(`${base}/expenses/${another.expense}`, FINANCE)
+    ).json()) as ExpenseResponse
+    assert.ok(detail.expense.actions.includes('expense.cancel'))
+    const owned = (await (
+      await t.api.get(`${base}/incomes/${another.income}`, FINANCE)
+    ).json()) as IncomeResponse
+    assert.deepEqual(owned.income.actions, ['income.cancel'])
   }),
 )
