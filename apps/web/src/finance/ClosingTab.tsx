@@ -1,0 +1,140 @@
+import { useState } from 'react'
+import { koreanDateOf, type Closing, type FiscalPeriodSummary } from '@vada/contracts'
+import StateMessage from '@/components/StateMessage'
+import { Button } from '@/components/ui/button'
+import { monthDayTime } from '@/lib/korean-date-text'
+import {
+  CLOSING_HIDDEN,
+  CLOSING_LOAD_FAILED,
+  CLOSING_LOST,
+  PERIODS_LOAD_FAILED,
+} from '@/lib/messages'
+import { useNow } from '@/lib/use-now'
+import { ClosingActions } from './ClosingActions'
+import { ClosingChecks, type ClosingOpeners } from './ClosingChecks'
+import { ClosingExport } from './ClosingExport'
+import {
+  ClosingAccountsSection,
+  ClosingExpenseSection,
+  ClosingIncomeSection,
+  ClosingNumbers,
+} from './ClosingSections'
+import { ClosingStatusBadge } from './ClosingStatusBadge'
+import { CLOSING_EXPORT_READY } from './closing-export'
+import { defaultClosingPeriod } from './closing-view'
+import { chosenPeriod, PeriodSelect } from './PeriodSelect'
+import { useClosing, useClosingChange, type ClosingRead } from './useClosing'
+import { usePeriods } from './useIncomes'
+
+type Props = {
+  councilId: string
+  // 공개·다시 열기와 감사용 내보내기는 재정부(`finance.manage`)만이다. 공개 전 결산서도 재정부만 본다.
+  canManage: boolean
+  onForbidden: () => void
+  openers: ClosingOpeners
+  // 내보내기 버튼을 보일지. 서버가 파일을 주기 전까지 숨긴다(`closing-export.ts`).
+  exportReady?: boolean
+}
+
+function ClosingBody({
+  read,
+  ...rest
+}: Omit<Props, 'exportReady' | 'onForbidden'> & {
+  read: ClosingRead
+  exportReady: boolean
+  change: ReturnType<typeof useClosingChange>
+}) {
+  const { state } = read
+  if (read.lost) return <StateMessage kind="error">{CLOSING_LOST}</StateMessage>
+  if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중…</StateMessage>
+  if (state.kind === 'failed')
+    return (
+      <div className="flex flex-col gap-3">
+        <StateMessage kind="error">{CLOSING_LOAD_FAILED}</StateMessage>
+        <Button variant="outline" className="self-start" onClick={() => void read.reload()}>
+          다시 시도
+        </Button>
+      </div>
+    )
+  return <ClosingView closing={state.data.closing} {...rest} />
+}
+
+function ClosingView({
+  closing,
+  councilId,
+  canManage,
+  openers,
+  exportReady,
+  change,
+}: Omit<Props, 'onForbidden' | 'exportReady'> & {
+  closing: Closing
+  exportReady: boolean
+  change: ReturnType<typeof useClosingChange>
+}) {
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <ClosingStatusBadge status={closing.status} />
+        {closing.publishedAt && (
+          <span className="text-xs text-gray-500">{monthDayTime(closing.publishedAt)} 공개</span>
+        )}
+      </div>
+      <ClosingActions closing={closing} change={change} canManage={canManage} />
+      <ClosingNumbers closing={closing} />
+      <ClosingIncomeSection closing={closing} />
+      <ClosingExpenseSection closing={closing} />
+      <ClosingAccountsSection closing={closing} />
+      <ClosingChecks closing={closing} openers={openers} />
+      {exportReady && <ClosingExport councilId={councilId} closing={closing} />}
+    </>
+  )
+}
+
+// 기간 하나의 결산. 기간을 바꾸면 처음부터 다시 만든다(이전 기간의 거절 문구가 남지 않게).
+// 공개 전에는 재정부가 아니면 서버가 403이므로 읽지 않고 안내만 보인다.
+function PeriodClosing({
+  period,
+  onChanged,
+  onForbidden,
+  exportReady,
+  ...rest
+}: Omit<Props, 'exportReady'> & {
+  period: FiscalPeriodSummary
+  onChanged: () => void
+  exportReady: boolean
+}) {
+  const hidden = period.status === 'draft' && !rest.canManage
+  const read = useClosing(rest.councilId, period.id, !hidden, onForbidden)
+  const change = useClosingChange(rest.councilId, period.id, read, { onChanged, onForbidden })
+  if (hidden) return <StateMessage kind="notice">{CLOSING_HIDDEN}</StateMessage>
+  return <ClosingBody read={read} change={change} exportReady={exportReady} {...rest} />
+}
+
+// 결산 탭: 기간을 고르고(기본은 끝났고 공개하지 않은 가장 이른 기간, 없으면 지금 기간) 그 기간의 결산서를 본다.
+export function ClosingTab({ exportReady = CLOSING_EXPORT_READY, ...props }: Props) {
+  const periods = usePeriods(props.councilId, props.onForbidden)
+  const [chosenId, setChosenId] = useState<string | null>(null)
+  const today = koreanDateOf(useNow())
+  const list = periods.state.kind === 'ready' ? periods.state.data.periods : []
+  const period = chosenPeriod(list, chosenId ?? defaultClosingPeriod(list, today))
+  if (periods.state.kind === 'failed')
+    return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
+  if (periods.state.kind === 'loading')
+    return <StateMessage kind="loading">불러오는 중…</StateMessage>
+  if (period === null)
+    return (
+      <StateMessage kind="empty">회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.</StateMessage>
+    )
+  return (
+    <div className="flex flex-col gap-3">
+      <PeriodSelect periods={list} value={period.id} onChange={setChosenId} />
+      <PeriodClosing
+        key={period.id}
+        period={period}
+        exportReady={exportReady}
+        onChanged={() => void periods.reload()}
+        {...props}
+      />
+    </div>
+  )
+}

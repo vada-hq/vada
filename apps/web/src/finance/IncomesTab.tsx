@@ -2,14 +2,13 @@ import { useState } from 'react'
 import { INCOME_LIST_LIMIT, type FiscalPeriodSummary } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { NativeSelect } from '@/components/ui/native-select'
 import { INCOMES_LOAD_FAILED, PERIODS_LOAD_FAILED, PERMISSION_CHANGED } from '@/lib/messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { IncomeCreateDialog } from './IncomeCreateDialog'
 import { IncomeDetailDialog } from './IncomeDetailDialog'
 import IncomeCard from './IncomeCard'
+import { chosenPeriod, PeriodSelect } from './PeriodSelect'
 import { useIncomes, usePeriods, type IncomeList } from './useIncomes'
 
 type Props = {
@@ -17,16 +16,6 @@ type Props = {
   // 수입 적기는 `finance.manage`가 있을 때만. 보는 것은 모든 운영진이다.
   canManage: boolean
   onForbidden: () => void
-}
-
-// 고른 기간이 없거나 목록에서 사라졌으면 지금 기간, 그것도 없으면 가장 최근 기간이다.
-function chosenPeriod(periods: FiscalPeriodSummary[], chosenId: string | null) {
-  return (
-    periods.find(period => period.id === chosenId) ??
-    periods.find(period => period.current) ??
-    periods[0] ??
-    null
-  )
 }
 
 function IncomeBody({ list, onOpen }: { list: IncomeList; onOpen: (incomeId: string) => void }) {
@@ -56,29 +45,6 @@ function IncomeBody({ list, onOpen }: { list: IncomeList; onOpen: (incomeId: str
         <StateMessage kind="notice">수입이 많아서 {INCOME_LIST_LIMIT}개만 보여요.</StateMessage>
       )}
     </>
-  )
-}
-
-function PeriodSelect({
-  periods,
-  value,
-  onChange,
-}: {
-  periods: FiscalPeriodSummary[]
-  value: string
-  onChange: (periodId: string) => void
-}) {
-  return (
-    <Label className="flex flex-col gap-2">
-      회계 기간
-      <NativeSelect value={value} onChange={event => onChange(event.target.value)}>
-        {periods.map(period => (
-          <option key={period.id} value={period.id}>
-            {period.current ? `${period.name} (지금)` : period.name}
-          </option>
-        ))}
-      </NativeSelect>
-    </Label>
   )
 }
 

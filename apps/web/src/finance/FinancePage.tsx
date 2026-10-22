@@ -13,6 +13,8 @@ import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
+import type { ClosingOpeners } from './ClosingChecks'
+import { ClosingTab } from './ClosingTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
 import { FeePaymentsTab } from './FeePaymentsTab'
@@ -36,6 +38,8 @@ type Props = {
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 결재 대기 수를 다시 읽는다).
   onChanged: () => void
+  // 결산 점검에서 눌러 행사 화면을 연다.
+  onOpenEvent: (eventId: string) => void
 }
 
 function Body({
@@ -75,15 +79,17 @@ function Body({
   )
 }
 
-// 재정부가 고치는 탭(납부자 명단, 계좌, 예산, 수입). 보는 것은 탭마다 정한 권한이 가른다.
+// 재정부가 고치는 탭(납부자 명단, 계좌, 예산, 수입, 결산). 보는 것은 탭마다 정한 권한이 가른다.
 function ManagedTab({
   tab,
   view,
   onForbidden,
+  openers,
 }: {
-  tab: 'fees' | 'accounts' | 'budget' | 'incomes'
+  tab: 'fees' | 'accounts' | 'budget' | 'incomes' | 'closing'
   view: CouncilView
   onForbidden: () => void
+  openers: ClosingOpeners
 }) {
   const shared = { councilId: view.council.id, onForbidden }
   if (tab === 'fees')
@@ -92,6 +98,7 @@ function ManagedTab({
     )
   const canManage = view.permissions.includes('finance.manage')
   if (tab === 'incomes') return <IncomesTab {...shared} canManage={canManage} />
+  if (tab === 'closing') return <ClosingTab {...shared} canManage={canManage} openers={openers} />
   return tab === 'accounts' ? (
     <AccountsTab {...shared} canManage={canManage} />
   ) : (
@@ -106,8 +113,7 @@ function FinanceTabPanel({
   list,
   expenses,
   view,
-  onOpen,
-  onOpenExpense,
+  openers,
   onForbidden,
 }: {
   tab: FinanceTab
@@ -116,8 +122,7 @@ function FinanceTabPanel({
   list: PurchaseList
   expenses: ExpenseList
   view: CouncilView
-  onOpen: (requestId: string) => void
-  onOpenExpense: (expenseId: string) => void
+  openers: ClosingOpeners
   onForbidden: () => void
 }) {
   return (
@@ -125,12 +130,12 @@ function FinanceTabPanel({
       {tab === 'requests' ? (
         <>
           <RequestFilter view={filter} onView={onFilter} />
-          <Body list={list} view={filter} onOpen={onOpen} />
+          <Body list={list} view={filter} onOpen={openers.onOpenRequest} />
         </>
       ) : tab === 'expenses' ? (
-        <ExpensesPanel list={expenses} onOpen={onOpenExpense} />
+        <ExpensesPanel list={expenses} onOpen={openers.onOpenExpense} />
       ) : (
-        <ManagedTab tab={tab} view={view} onForbidden={onForbidden} />
+        <ManagedTab tab={tab} view={view} onForbidden={onForbidden} openers={openers} />
       )}
     </div>
   )
@@ -214,6 +219,13 @@ function RequestDialogs({
   )
 }
 
+// 결산 점검에서 요청·지출·행사를 여는 길. 요청과 지출은 이 화면의 대화상자가, 행사는 다른 화면이 연다.
+const openersOf = (requests: Dialogs, expenses: Dialogs, onOpenEvent: (id: string) => void) => ({
+  onOpenRequest: requests.openRecord,
+  onOpenExpense: expenses.openRecord,
+  onOpenEvent,
+})
+
 // 옆 메뉴 '재정': 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)과 예산 탭. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
 // 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
 export default function FinancePage(props: Props) {
@@ -260,8 +272,7 @@ export default function FinancePage(props: Props) {
         list={list}
         expenses={expenses}
         view={props.view}
-        onOpen={dialogs.openRecord}
-        onOpenExpense={expenseDialogs.openRecord}
+        openers={openersOf(dialogs, expenseDialogs, props.onOpenEvent)}
         onForbidden={props.onForbidden}
       />
     </PageColumn>

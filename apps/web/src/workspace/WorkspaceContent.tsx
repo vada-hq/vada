@@ -71,6 +71,7 @@ function RecordsPage({
       initialRequestId={requestId}
       onForbidden={data.reload}
       onChanged={() => void pending.reload()}
+      onOpenEvent={onOpenEvent}
     />
   )
 }

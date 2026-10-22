@@ -53,7 +53,7 @@ function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod(
   )
   api.on('GET', `${BASE}/r1`, () => json({ request: detail }))
   api.on('GET', `${ORG}/budget`, () => json(budget))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
   render(
     <FinancePage view={councilView('c1', { permissions: FINANCE_PERMISSIONS })} {...handlers} />,
   )
@@ -166,6 +166,7 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
       view={councilView('c1', { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
       onChanged={vi.fn()}
+      onOpenEvent={vi.fn()}
     />,
   )
   await open()

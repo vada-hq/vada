@@ -40,3 +40,8 @@ export async function downloadFile(
     return { ok: false, code: null }
   }
 }
+
+// 큰 파일(증빙 묶음)은 메모리에 받지 않고 주소로 이동해 브라우저가 바로 저장하게 한다. 서버가 Content-Disposition으로 내려받기를 지시하므로 화면은 그대로 남는다.
+export function saveByNavigation(url: string) {
+  window.location.assign(url)
+}

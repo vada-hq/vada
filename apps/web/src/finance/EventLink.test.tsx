@@ -57,7 +57,7 @@ function setup(tab: string, budget = budgetWithPeriod()) {
       truncated: false,
     }),
   )
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
   render(
     <FinancePage view={councilView('c1', { permissions: FINANCE_PERMISSIONS })} {...handlers} />,
   )

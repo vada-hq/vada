@@ -25,7 +25,7 @@ function serve(detail = incomeDetail()) {
   return api
 }
 const show = (permissions = FINANCE_PERMISSIONS) => {
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
   const view = (granted: typeof permissions) => (
     <FinancePage view={councilView('c1', { permissions: granted, memberId: ME })} {...handlers} />
   )

@@ -23,7 +23,7 @@ export function serveFinance() {
 export const ME = '11111111-1111-4111-8111-111111111111'
 
 export function showFinance(permissions: Action[] = FINANCE_PERMISSIONS) {
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
   render(<FinancePage view={councilView('c1', { permissions, memberId: ME })} {...handlers} />)
   return handlers
 }

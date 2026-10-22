@@ -281,6 +281,28 @@ export const INCOME_PERIOD_NOT_STARTED =
   '이 기간은 아직 시작하지 않아 받은 날을 고를 수 없어요. 시작한 뒤에 적어 주세요.'
 export const INCOME_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
+// 결산 탭: 읽기, 공개, 다시 열기, 내보내기(기능 009). 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const CLOSING_LOAD_FAILED = '결산서를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const CLOSING_LOST = '이 기간을 볼 수 없어요. 다른 학생회의 기간이거나 없어졌을 수 있어요.'
+export const CLOSING_HIDDEN = '결산이 공개되면 보여요.'
+export const CLOSING_ERRORS: Record<string, string> = {
+  PERIOD_NOT_ENDED: '아직 끝나지 않은 기간이에요. 기간이 끝난 다음 날부터 공개할 수 있어요.',
+  PREVIOUS_PERIOD_OPEN: '앞 기간의 결산이 아직 공개되지 않았어요. 앞 기간부터 공개해 주세요.',
+  CLOSING_NEGATIVE: '남은 돈이 0원보다 적어서 공개할 수 없어요. 수입과 지출을 확인해 주세요.',
+  FEE_INCOME_PENDING:
+    '완료하지 않은 행사의 참가비가 아직 수입에 없어요. 그 행사를 완료한 뒤 공개해 주세요.',
+  CLOSING_PUBLISHED: '이미 공개한 결산이에요. 새로 불러왔어요.',
+  CLOSING_NOT_PUBLISHED: '공개하지 않은 결산이에요. 새로 불러왔어요.',
+  NEXT_PERIOD_CLOSED:
+    '다음 기간의 결산이 공개되어 있어서 다시 열 수 없어요. 다음 기간을 먼저 다시 열어 주세요.',
+  EXPORT_TOO_LARGE: '내보낼 내용이 너무 많아요. 이 기간은 VADA 팀에 부탁해 주세요.',
+  STORAGE_NOT_CONFIGURED: '지금은 증빙 묶음을 만들 수 없어요. 나중에 다시 해 주세요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const CLOSING_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const CLOSING_EXPORT_FAILED = '파일을 받지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+
 // 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.
 export const REGISTRATION_LOST = '신청 정보를 찾을 수 없어요. 링크를 다시 확인해 주세요.'
 export const REGISTRATION_FORM_LOST = '신청 양식을 찾을 수 없어요. 링크를 다시 확인해 주세요.'

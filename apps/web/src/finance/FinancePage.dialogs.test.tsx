@@ -21,7 +21,7 @@ function setup(detail = purchaseDetail()) {
   const api = mockApi()
   api.on('GET', LIST, () => json({ requests: [purchaseSummary('r1')], truncated: false }))
   api.on('GET', `${BASE}/r1`, () => json({ request: detail }))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
   render(
     <FinancePage view={councilView('c1', { permissions: MEMBER_PERMISSIONS })} {...handlers} />,
   )
