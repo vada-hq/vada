@@ -103,7 +103,7 @@
 - 닿는 곳: contracts `purchases.ts`, `budget.ts`, `expenses.ts`(`UpdateExpenseSchema`, 행사), `errors.ts`. `purchases/service.ts`·`queries.ts`, `budget/service.ts`·`queries.ts`, `expenses/service.ts`·`queries.ts`·`routes.ts`·`history.ts`, `records/records.ts`.
 - 검토: 깊게(돈, 격리). 마이그레이션: 없음.
 
-### 6. 행사의 돈 탭, 완료, 지출 고치기 화면 [ ]
+### 6. 행사의 돈 탭, 완료, 지출 고치기 화면 [x]
 - 할 수 있게 되는 것: 운영진이 행사 화면의 '돈' 탭에서 정산을 보고, 재정부가 빠진 사유를 채우며, 회장단이 완료하거나 완료를 취소한다.
 - 수용 기준: 행사 하나에 007의 탭(개요, 업무, 참가 신청) 옆 탭 '돈'이 있고 예산·실제·차이, 예산 항목마다 쓴 돈, 남은 것 목록(누르면 그 요청이나 지출이 열린다), "정산이 끝났어요"가 보인다. 완료한 행사는 상태 배지 '완료'와 "완료한 행사라 바꿀 수 없어요"가 보이고 바꾸는 버튼이 없다. [완료]는 `actions`에 있을 때 확인(끝나지 않은 업무 수를 알린다, 사유 칸 선택)을 거치고, [완료 취소]는 사유를 꼭 받는다. 지출 상세에 재정부에게 [고치기](사유, 행사)가 있다. 409(`SETTLEMENT_PENDING`, `EVENT_NOT_STARTED`, `NO_FISCAL_PERIOD`, `EVENT_COMPLETED`) 문구가 그 동작 옆에 보이고, 두 번 누름, 404·403에 대화상자 닫기, 다시 보일 때와 내 변경 뒤 다시 읽기를 시험한다. 부품 확인 화면에 정산 요약과 '완료' 배지가 있다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/events/`(`EventDetailView.tsx`, 돈 탭 새, 완료 대화상자 새, `EventCard.tsx`), `finance/`(`ExpenseDetailDialog.tsx`, `ExpenseActions.tsx`, 지출 고치기 새), `lib/messages.ts`, `ui-gallery/`.
