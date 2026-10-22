@@ -13,6 +13,7 @@ import { createTeamRoutes } from '../team/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createAccountRoutes } from '../accounts/routes.js'
 import { createEventRoutes } from '../events/routes.js'
+import { createSettlementRoutes } from '../settlement/routes.js'
 import { createDepositRoutes } from '../deposits/routes.js'
 import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
@@ -59,6 +60,7 @@ function modulesOf(session: () => Promise<null>) {
     expenses: createExpenseRoutes(db, session),
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
+    settlement: createSettlementRoutes(db, session),
     accounts: createAccountRoutes(db, session),
     registrations: createRegistrationRoutes(db, session),
     deposits: createDepositRoutes(db, session),

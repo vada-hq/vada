@@ -13,6 +13,7 @@ import { currentMembersAmong } from '../chat/current-members.js'
 import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { completedEventIdsAmong } from './completion.js'
 import { eventHistoryOf } from './history.js'
 import { eventStatusOf } from './status.js'
 
@@ -63,6 +64,10 @@ async function summariesOf(
 ): Promise<EventSummary[]> {
   const ownerIds = [...new Set(rows.flatMap(row => (row.ownerId ? [row.ownerId] : [])))]
   const current = await currentMembersAmong(db, actor.councilId, ownerIds, now)
+  const completed = await completedEventIdsAmong(
+    db,
+    rows.map(row => row.id),
+  )
   return rows.map(row => ({
     id: row.id,
     name: row.name,
@@ -73,7 +78,7 @@ async function summariesOf(
       row.ownerId && row.ownerName
         ? { id: row.ownerId, name: row.ownerName, current: current.has(row.ownerId) }
         : null,
-    status: eventStatusOf(row.startsAt, row.endsAt, now),
+    status: eventStatusOf(row.startsAt, row.endsAt, now, completed.has(row.id)),
   }))
 }
 

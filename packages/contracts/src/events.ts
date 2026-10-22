@@ -10,8 +10,8 @@ export const EVENT_PLACE_MAX = 100
 // 목록 상한. 넘치면 truncated다.
 export const EVENT_LIST_LIMIT = 200
 
-// 상태는 저장하지 않고 시각으로 센다(서버가 센다).
-export const EVENT_STATUSES = ['tbd', 'upcoming', 'ongoing', 'ended'] as const
+// 상태는 저장하지 않고 센다(서버가 센다). 마지막 결재가 완료이면 completed, 아니면 시각으로 센다.
+export const EVENT_STATUSES = ['tbd', 'upcoming', 'ongoing', 'ended', 'completed'] as const
 export type EventStatus = (typeof EVENT_STATUSES)[number]
 
 // 끝만 있는 행사는 없고, 끝은 시작 뒤다. 일시는 한국 시각 YYYY-MM-DDTHH:mm이라 글자 순서가 시간 순서다.

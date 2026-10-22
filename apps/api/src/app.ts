@@ -11,6 +11,7 @@ import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
 import type { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import type { createDepositRoutes } from './deposits/routes.js'
+import type { createSettlementRoutes } from './settlement/routes.js'
 import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
@@ -54,6 +55,8 @@ export type AppOptions = {
   registrations?: ReturnType<typeof createRegistrationRoutes>
   // 입금 확인, 확인 취소, 환불함
   deposits?: ReturnType<typeof createDepositRoutes>
+  // 행사 정산 읽기
+  settlement?: ReturnType<typeof createSettlementRoutes>
   // 학생회비 납부자 명단: 보기, 올리기, 빼기
   feePayments?: ReturnType<typeof createFeePaymentRoutes>
   // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기

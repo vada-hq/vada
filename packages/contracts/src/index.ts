@@ -284,3 +284,4 @@ export {
 export * from './registrations.js'
 export * from './fee-payments.js'
 export * from './deposits.js'
+export * from './settlement.js'

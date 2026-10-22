@@ -6,12 +6,14 @@ export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
   upcoming: '예정',
   ongoing: '진행 중',
   ended: '끝남',
+  completed: '완료',
 }
 export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'success' | 'neutral'> = {
   tbd: 'warning',
   upcoming: 'info',
   ongoing: 'success',
   ended: 'neutral',
+  completed: 'success',
 }
 
 export const NO_OWNER_LABEL = '책임자 없음'
