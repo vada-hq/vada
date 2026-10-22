@@ -80,6 +80,18 @@ export const DIRECT_ERRORS: Record<string, string> = {
 export const DIRECT_FAILED = '1:1 대화를 열지 못했어요. 다시 시도해 주세요.'
 export const DIRECT_PEOPLE_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
+// 행사(목록, 상세, 만들기, 고치기, 책임자 바꾸기). 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const EVENT_ERRORS: Record<string, string> = {
+  MEMBER_INVALID: '이 학생회의 지금 운영진만 책임자가 될 수 있어요. 다른 사람을 골라 주세요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const EVENT_FAILED = '저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const EVENTS_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EVENT_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EVENT_LOST = '이 행사를 볼 수 없어요. 다른 학생회의 행사일 수 있어요.'
+export const EVENT_TEAM_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
+
 // 업무 상세와 만들기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const TASK_ERRORS: Record<string, string> = {
   TASK_ASSIGNEE_INVALID:

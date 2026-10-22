@@ -19,3 +19,11 @@ export const fieldsRequest = (values: TaskFieldValues) => ({
   body: values.body.trim() === '' ? null : values.body,
   dueDate: values.dueDate === '' ? null : values.dueDate,
 })
+
+// 만들기 요청. 부서·담당자·행사는 폼의 다른 칸에서 온다.
+export const createRequest = (
+  values: TaskFieldValues,
+  departmentId: string | null,
+  assigneeId: string | null,
+  eventId: string | undefined,
+) => ({ ...fieldsRequest(values), departmentId, assigneeId, eventId: eventId ?? null })

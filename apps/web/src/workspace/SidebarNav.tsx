@@ -1,4 +1,4 @@
-import { ListChecks, MessageSquare, Network, Users, Wallet } from 'lucide-react'
+import { CalendarDays, ListChecks, MessageSquare, Network, Users, Wallet } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
@@ -76,7 +76,7 @@ function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void 
   )
 }
 
-// 옆 메뉴 가운데: 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
+// 옆 메뉴 가운데: 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
 export default function SidebarNav({
   page,
   unread,
@@ -104,6 +104,14 @@ export default function SidebarNav({
             {unreadLabel(unread)}
           </Badge>
         )}
+      </NavItem>
+      <NavItem
+        active={page === 'events'}
+        className="mt-1 flex items-center gap-2"
+        onClick={() => onPage('events')}
+      >
+        <CalendarDays aria-hidden className="size-4" />
+        행사
       </NavItem>
       <TasksItem active={page === 'tasks'} count={taskCount} onClick={() => onPage('tasks')} />
       <FinanceItem

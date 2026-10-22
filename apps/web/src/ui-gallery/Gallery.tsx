@@ -11,6 +11,7 @@ import { ButtonsSection, CardsSection, ChipsSection, InputsSection } from './For
 import { ActionMenuSection, EmptyAvatarSection, MenuTabsSection } from './MenuSections'
 import { ExpenseSection } from './ExpenseSections'
 import { DecisionSection, FinanceSection } from './FinanceSections'
+import { EventSection } from './EventSections'
 import { TaskSection } from './TaskSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 
@@ -30,6 +31,7 @@ export default function Gallery() {
       <ConfirmSection />
       <StateSection />
       <PushSection />
+      <EventSection />
       <TaskSection />
       <FinanceSection />
       <DecisionSection />

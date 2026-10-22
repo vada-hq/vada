@@ -14,11 +14,11 @@ type TasksState = { kind: 'loading' } | Loaded
 // 탭을 바꾸면 이전 탭의 늦은 응답은 버린다. 읽다 실패해도 보이던 목록은 그대로 둔다. 권한이 바뀌었으면(403) 학생회를 다시 읽게 한다.
 export function useTasks(
   councilId: string,
-  { view, filter }: { view: TaskView; filter: TaskFilter },
+  { view, filter, eventId }: { view: TaskView; filter: TaskFilter; eventId?: string | undefined },
   onForbidden: () => void,
   enabled = true,
 ) {
-  const key = `${councilId}|${view}|${filter}`
+  const key = `${councilId}|${view}|${filter}|${eventId ?? ''}`
   const [loaded, setLoaded] = useState<{ key: string; state: Loaded } | null>(null)
   const forbidden = useLatest(onForbidden)
   const latestKey = useLatest(key)
@@ -27,7 +27,7 @@ export function useTasks(
   const load = useCallback(async () => {
     if (!enabled) return
     const seq = ++issued.current
-    const result = await getJson<TasksResponse>(tasksPath(councilId, view, filter))
+    const result = await getJson<TasksResponse>(tasksPath(councilId, view, filter, eventId))
     // 더 나중에 보낸 읽기가 있거나(탭을 바꿈 포함) 화면이 사라졌으면 이 응답은 버린다.
     if (seq !== issued.current || !isActive()) return
     const mine = latestKey.current
@@ -41,7 +41,7 @@ export function useTasks(
         ? before
         : { key: mine, state: { kind: 'failed' } },
     )
-  }, [councilId, view, filter, enabled, forbidden, isActive, latestKey])
+  }, [councilId, view, filter, eventId, enabled, forbidden, isActive, latestKey])
   useEffect(() => {
     void load()
   }, [load])

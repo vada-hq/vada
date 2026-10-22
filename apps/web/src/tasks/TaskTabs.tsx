@@ -13,6 +13,8 @@ const FILTERS: { filter: TaskFilter; label: string }[] = [
 ]
 
 type Props = {
+  // 행사의 업무 탭은 그 행사의 업무 전체만 보이므로 보기 탭이 없다.
+  showViews?: boolean
   view: TaskView
   filter: TaskFilter
   onView: (view: TaskView) => void
@@ -20,20 +22,22 @@ type Props = {
 }
 
 // 탭 셋(내 업무, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남)
-export function TaskTabs({ view, filter, onView, onFilter }: Props) {
+export function TaskTabs({ showViews = true, view, filter, onView, onFilter }: Props) {
   return (
     <>
-      <div role="tablist" aria-label="업무 보기" className="flex border-b">
-        {TABS.map(tab => (
-          <TabButton
-            key={tab.view}
-            aria-selected={view === tab.view}
-            onClick={() => onView(tab.view)}
-          >
-            {tab.label}
-          </TabButton>
-        ))}
-      </div>
+      {showViews && (
+        <div role="tablist" aria-label="업무 보기" className="flex border-b">
+          {TABS.map(tab => (
+            <TabButton
+              key={tab.view}
+              aria-selected={view === tab.view}
+              onClick={() => onView(tab.view)}
+            >
+              {tab.label}
+            </TabButton>
+          ))}
+        </div>
+      )}
       <div role="group" aria-label="업무 거르기" className="flex gap-2">
         {FILTERS.map(item => (
           <Button

@@ -7,6 +7,8 @@ type Props = TaskDialogHandlers & {
   view: CouncilView
   openId: string | null
   creating: boolean
+  // 행사의 업무 탭에서 열었으면 만들 업무가 이어질 행사
+  eventId?: string | undefined
   onCloseDetail: () => void
   onCloseCreate: () => void
 }
@@ -16,6 +18,7 @@ export function TaskDialogs({
   view,
   openId,
   creating,
+  eventId,
   onCloseDetail,
   onCloseCreate,
   ...rest
@@ -26,6 +29,7 @@ export function TaskDialogs({
       <TaskCreateDialog
         view={view}
         open={creating}
+        eventId={eventId}
         onClose={onCloseCreate}
         onCreated={() => {
           rest.onChanged()

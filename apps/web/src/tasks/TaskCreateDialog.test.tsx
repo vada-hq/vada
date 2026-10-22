@@ -134,6 +134,7 @@ test('내용과 마감과 담당을 채워 만들면 계약 모양으로 보내�
         dueDate: '2026-10-25',
         departmentId: D1,
         assigneeId: M2,
+        eventId: null,
       },
     }),
   ])
@@ -152,6 +153,7 @@ test('비운 내용과 마감과 담당자는 null로 보낸다', async () => {
     dueDate: null,
     departmentId: null,
     assigneeId: null,
+    eventId: null,
   })
 })
 

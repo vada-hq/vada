@@ -1,5 +1,6 @@
 import type { CouncilView } from '@vada/contracts'
 import ChatPage from '../chat/ChatPage'
+import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
 import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
@@ -25,6 +26,10 @@ type Props = {
   roomId?: string | undefined
   taskId?: string | undefined
   requestId?: string | undefined
+  // 업무에서 눌러 연 행사. 행사 화면이 이 행사를 열고 시작한다.
+  eventId?: string | undefined
+  // 업무 카드·상세에서 행사 이름을 눌렀다.
+  onOpenEvent: (eventId: string) => void
 }
 
 // 알림으로 열 업무나 요청을 받는 목록 화면 둘(업무, 재정).
@@ -35,8 +40,9 @@ function RecordsPage({
   page,
   taskId,
   requestId,
+  onOpenEvent,
   view,
-}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId' | 'requestId'> & {
+}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId' | 'requestId' | 'onOpenEvent'> & {
   page: 'tasks' | 'finance'
   view: CouncilView
 }) {
@@ -45,6 +51,7 @@ function RecordsPage({
       <TasksPage
         view={view}
         initialTaskId={taskId}
+        onOpenEvent={onOpenEvent}
         onForbidden={data.reload}
         onChanged={() => void tasks.reload()}
       />
@@ -68,6 +75,8 @@ function PageOf({
   roomId,
   taskId,
   requestId,
+  eventId,
+  onOpenEvent,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
@@ -82,8 +91,17 @@ function PageOf({
         onForbidden={data.reload}
       />
     )
+  if (page === 'events')
+    return (
+      <EventsPage
+        view={view}
+        initialEventId={eventId}
+        onForbidden={data.reload}
+        onTasksChanged={() => void tasks.reload()}
+      />
+    )
   if (page === 'tasks' || page === 'finance')
-    return <RecordsPage {...{ data, tasks, pending, page, taskId, requestId, view }} />
+    return <RecordsPage {...{ data, tasks, pending, page, taskId, requestId, onOpenEvent, view }} />
   if (page === 'people')
     return (
       <People
@@ -99,7 +117,7 @@ function PageOf({
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
 }
 
-function Body({ data, rooms, tasks, pending, page, roomId, taskId, requestId }: Props) {
+function Body({ data, ...props }: Props) {
   const { state } = data
   if (state.kind === 'lost')
     return (
@@ -117,20 +135,7 @@ function Body({ data, rooms, tasks, pending, page, roomId, taskId, requestId }: 
       </Card>
     )
   if (state.kind !== 'ready') return <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-  return (
-    <PageOf
-      data={data}
-      rooms={rooms}
-      tasks={tasks}
-      pending={pending}
-      page={page}
-      roomId={roomId}
-      taskId={taskId}
-      requestId={requestId}
-      view={state.view}
-      reading={state.reading}
-    />
-  )
+  return <PageOf data={data} {...props} view={state.view} reading={state.reading} />
 }
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.

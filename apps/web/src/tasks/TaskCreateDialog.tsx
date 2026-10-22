@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { TASK_TEAM_FAILED } from '@/lib/messages'
 import { useTeam } from '@/team/useTeam'
-import { emptyFields, fieldsRequest } from './task-fields'
+import { createRequest, emptyFields } from './task-fields'
 import {
   assigneeChoices,
   defaultDepartmentId,
@@ -28,6 +28,8 @@ type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
   view: CouncilView
   // 열림 상태는 부모가 가진다([만들기] 버튼이 연다).
   open: boolean
+  // 행사의 업무 탭에서 열었으면 만들 업무가 이어질 행사
+  eventId?: string | undefined
   onClose: () => void
   // 만든 업무를 받는다. 부모가 목록을 다시 읽고 대화상자를 닫는다.
   onCreated: (task: TaskDetail) => void
@@ -80,7 +82,7 @@ function CreateForm({ view, team, saving, setSaving, ...props }: FormProps) {
   const [assigneeId, setAssigneeId] = useState(() =>
     keepAssignee(assigneeChoices(view, team, defaultDepartmentId(view)), null),
   )
-  const request = { ...fieldsRequest(fields), departmentId, assigneeId }
+  const request = createRequest(fields, departmentId, assigneeId, props.eventId)
   const create = useTaskCreate(view.council.id, request, { ...props, setSaving })
 
   return (

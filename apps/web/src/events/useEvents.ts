@@ -1,0 +1,15 @@
+import { statusOf, type EventsResponse } from '@vada/contracts'
+import { usePolledRead } from '@/lib/use-polled-read'
+import { eventsPath } from './event-api'
+
+// 행사 목록. 화면이 보이는 동안 15초마다, 다시 보일 때 다시 읽는다. 권한이 바뀌었으면(403) 학생회를 다시 읽게 한다.
+export function useEvents(councilId: string, onForbidden: () => void, enabled = true) {
+  return usePolledRead<EventsResponse>(
+    eventsPath(councilId),
+    status => {
+      if (status === statusOf('FORBIDDEN')) onForbidden()
+    },
+    enabled,
+  )
+}
+export type EventList = ReturnType<typeof useEvents>

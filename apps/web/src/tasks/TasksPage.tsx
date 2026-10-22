@@ -30,6 +30,10 @@ type Props = {
   view: CouncilView
   // 알림으로 연 업무. 있으면 그 업무의 상세를 열고 시작한다.
   initialTaskId?: string | undefined
+  // 행사의 업무 탭이면 그 행사의 업무만 보이고, 만들기는 그 행사가 골라진 채 열린다.
+  eventId?: string | undefined
+  // 업무의 행사 이름을 눌렀다(행사 화면으로 간다). 행사의 업무 탭에서는 주지 않는다.
+  onOpenEvent?: ((eventId: string) => void) | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
@@ -114,12 +118,13 @@ function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: () => vo
 }
 
 // 옆 메뉴 '업무': 탭 셋(내 업무, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남). 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
+// 행사 화면의 업무 탭은 같은 화면을 그 행사로 좁힌 것이다.
 export default function TasksPage(props: Props) {
-  const [view, setView] = useState<TaskView>('mine')
+  const [view, setView] = useState<TaskView>(props.eventId ? 'all' : 'mine')
   const [filter, setFilter] = useState<TaskFilter>('open')
   const dialogs = useRecordDialogs(props.initialTaskId)
   const councilId = props.view.council.id
-  const list = useTasks(councilId, { view, filter }, props.onForbidden)
+  const list = useTasks(councilId, { view, filter, eventId: props.eventId }, props.onForbidden)
   const changed = () => {
     void list.reload()
     props.onChanged()
@@ -132,6 +137,7 @@ export default function TasksPage(props: Props) {
         view={props.view}
         openId={dialogs.openId}
         creating={dialogs.creating}
+        eventId={props.eventId}
         onCloseDetail={dialogs.closeDetail}
         onCloseCreate={dialogs.closeCreate}
         onChanged={changed}
@@ -141,8 +147,14 @@ export default function TasksPage(props: Props) {
           changed()
         }}
       />
-      <TaskTabs view={view} filter={filter} onView={setView} onFilter={setFilter} />
-      <div role="tabpanel" className="flex flex-col gap-3">
+      <TaskTabs
+        showViews={!props.eventId}
+        view={view}
+        filter={filter}
+        onView={setView}
+        onFilter={setFilter}
+      />
+      <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
         <Body
           list={list}
           view={view}
