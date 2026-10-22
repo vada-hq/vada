@@ -51,7 +51,14 @@ export async function actorOf(
       ),
     )
   if (!membership) return null
-  const departments = await db
+  return { ...membership, councilId, departments: await departmentsOf(db, membership) }
+}
+
+async function departmentsOf(
+  db: Pick<Db, 'select'>,
+  membership: { memberId: string; cohortId: string },
+): Promise<ActorDepartment[]> {
+  return db
     .select({
       departmentId: department.id,
       role: department.role,
@@ -67,5 +74,31 @@ export async function actorOf(
       ),
     )
     .orderBy(asc(department.id))
-  return { ...membership, councilId, departments }
+}
+
+// 로그인 없는 운영진(시연 데이터의 가상 운영진)을 운영진 번호로 연다. 요청 경로는 쓰지 않는다: 로그인한 사람은 actorOf만 쓴다.
+export async function actorOfMember(
+  db: Pick<Db, 'select'>,
+  memberId: string,
+  councilId: string,
+  now: Date,
+): Promise<Actor | null> {
+  const [membership] = await db
+    .select({
+      memberId: councilMembership.memberId,
+      membershipId: councilMembership.id,
+      cohortId: councilMembership.cohortId,
+      councilRank: councilMembership.councilRank,
+    })
+    .from(councilMembership)
+    .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
+    .where(
+      and(
+        eq(councilMembership.memberId, memberId),
+        eq(cohort.councilId, councilId),
+        currentCouncilMembership(now),
+      ),
+    )
+  if (!membership) return null
+  return { ...membership, councilId, departments: await departmentsOf(db, membership) }
 }

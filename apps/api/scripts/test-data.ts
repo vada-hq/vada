@@ -72,7 +72,7 @@ export function stepOf(command: TestDataCommand, target: string): TestDataStep {
   return { step: 'apply' }
 }
 
-async function requireGoogleUser(tx: Tx, userId: string) {
+export async function requireGoogleUser(tx: Tx, userId: string) {
   const [account] = await tx
     .select({ id: accounts.id })
     .from(accounts)

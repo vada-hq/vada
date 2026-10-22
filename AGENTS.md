@@ -59,7 +59,8 @@
 - 칸·표를 지우는 마이그레이션은 그것을 읽지 않는 코드를 먼저 배포한 뒤 적용한다. 적용 스크립트가 남은 마이그레이션을 모두 적용하므로, 지우는 마이그레이션 파일은 배포 뒤에 만든다.
 - `.sql` 파일은 `.gitattributes`로 LF로 고정한다. drizzle이 남기는 적용 기록의 해시가 파일 내용 기준이라, 줄바꿈이 바뀌면 기록과 어긋나 보인다.
 - 개발 DB의 시험 학생회는 진행 에이전트가 `npm run test-data --workspace @vada/api -- seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `-- assign <user-id> <planning|finance> --apply`로 넣는다. `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
-- 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `pg-smoke`를 실행하지 않는다. 셋 다 실제 DB에 연결한다.
+- 시연 학생회(섭외·리허설용, 학교 이름 'VADA 시연 학교')는 진행 에이전트가 `npm run demo --workspace @vada/api -- <user-id> [--apply] [--from-shell]`로 둔다. 미리 보기가 기본이고 `--apply`가 있어야 쓴다. 이미 있으면 아무것도 바꾸지 않고 멈춘다. 배포 DB는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(db:migrate와 같은 규칙). 날짜는 돌리는 날(한국) 기준이고, 다시 넣으려면 학교 이름을 바꾼다.
+- 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `demo`, `pg-smoke`를 실행하지 않는다. 넷 다 실제 DB에 연결한다.
 
 ## 로그·비밀
 - 로그와 응답에 요청 본문, 오류 메시지 원문, DB 값, 비밀 값을 넣지 않는다.
