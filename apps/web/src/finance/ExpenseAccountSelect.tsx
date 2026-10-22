@@ -10,7 +10,8 @@ type Props = {
   councilId: string
   values: ExpenseValues
   disabled: boolean
-  onChange: (values: ExpenseValues) => void
+  // 함수로 바꾼다. 목록이 늦게 와도 그 사이에 사람이 바꾼 다른 칸을 되돌리지 않는다.
+  onChange: (update: (values: ExpenseValues) => ExpenseValues) => void
   onForbidden: () => void
 }
 
@@ -34,12 +35,13 @@ export function ExpenseAccountSelect({
   useEffect(() => {
     if (accounts === null || filled.current) return
     filled.current = true
-    if (values.accountId === null && main) onChange({ ...values, accountId: main.id })
-  }, [accounts, main, values, onChange])
+    if (main)
+      onChange(before => (before.accountId === null ? { ...before, accountId: main.id } : before))
+  }, [accounts, main, onChange])
   // 다시 읽은 목록에서 고른 계좌가 닫혔으면 값을 비워 몰래 나가지 않게 한다.
   useEffect(() => {
-    if (gone) onChange({ ...values, accountId: null })
-  }, [gone, values, onChange])
+    if (gone) onChange(before => ({ ...before, accountId: null }))
+  }, [gone, onChange])
   if (list.state.kind === 'failed')
     return <StateMessage kind="error">{EXPENSE_ACCOUNTS_FAILED}</StateMessage>
   return (
@@ -54,7 +56,7 @@ export function ExpenseAccountSelect({
       ]}
       value={values.accountId}
       disabled={disabled}
-      onChange={accountId => onChange({ ...values, accountId })}
+      onChange={accountId => onChange(before => ({ ...before, accountId }))}
     />
   )
 }
