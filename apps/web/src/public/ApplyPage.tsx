@@ -1,0 +1,70 @@
+import { useState } from 'react'
+import StateMessage from '@/components/StateMessage'
+import { Alert } from '@/components/ui/alert'
+import { buttonVariants } from '@/components/ui/button'
+import { REGISTRATION_FORM_LOST, REGISTRATION_LOAD_FAILED } from '@/lib/messages'
+import ApplyFields from './ApplyFields'
+import FormSummary from './FormSummary'
+import { mineHref } from './public-path'
+import { closedLine } from './registration-text'
+import { savedToken, saveToken } from './saved-links'
+import { EMPTY_VALUES, parseApply, useApply, type ApplyValues } from './useApply'
+import { usePublicForm } from './usePublicForm'
+
+// 같은 기기가 이미 신청했으면 내 신청으로 가는 길을 보인다. 신청 칸은 그대로 둔다(친구 기기, 이미 취소한 신청).
+function AlreadyApplied({ token }: { token: string }) {
+  return (
+    <Alert tone="info" className="flex flex-wrap items-center justify-between gap-2">
+      <span>이미 신청했어요.</span>
+      <a href={mineHref(token)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+        내 신청 보기
+      </a>
+    </Alert>
+  )
+}
+
+type Props = { code: string; onApplied: (token: string) => void }
+
+// 로그인 없이 여는 신청 화면(/apply/코드). 받는 중일 때만 칸이 있다.
+export default function ApplyPage({ code, onApplied }: Props) {
+  const { state, lost, reload } = usePublicForm(code)
+  const [values, setValues] = useState<ApplyValues>(EMPTY_VALUES)
+  const [gone, setGone] = useState(false)
+  const apply = useApply({
+    code,
+    reload,
+    onLost: () => setGone(true),
+    onApplied: token => {
+      saveToken(code, token)
+      onApplied(token)
+    },
+  })
+  if (lost || gone) return <StateMessage kind="error">{REGISTRATION_FORM_LOST}</StateMessage>
+  if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중…</StateMessage>
+  if (state.kind === 'failed')
+    return <StateMessage kind="error">{REGISTRATION_LOAD_FAILED}</StateMessage>
+  const data = state.data
+  const closed = closedLine(data)
+  const saved = savedToken(code)
+  return (
+    <div className="flex flex-col gap-6">
+      {saved && <AlreadyApplied token={saved} />}
+      <FormSummary data={data} />
+      {closed ? (
+        <Alert tone="warning">{closed}</Alert>
+      ) : (
+        <ApplyFields
+          data={data}
+          values={values}
+          busy={apply.busy}
+          problem={apply.problem}
+          onValues={setValues}
+          onSubmit={() => {
+            const parsed = parseApply(data, values)
+            if (parsed.success) void apply.submit(parsed.data)
+          }}
+        />
+      )}
+    </div>
+  )
+}

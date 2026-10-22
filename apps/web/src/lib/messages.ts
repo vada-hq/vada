@@ -212,3 +212,22 @@ export const EXPENSE_ERRORS: Record<string, string> = {
 export const EXPENSE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const EVIDENCE_UPLOAD_FAILED =
   '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'
+
+// 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.
+export const REGISTRATION_LOST = '신청 정보를 찾을 수 없어요. 링크를 다시 확인해 주세요.'
+export const REGISTRATION_FORM_LOST = '신청 양식을 찾을 수 없어요. 링크를 다시 확인해 주세요.'
+export const REGISTRATION_LOAD_FAILED = '불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const APPLY_ERRORS: Record<string, string> = {
+  REGISTRATION_NOT_OPEN: '지금은 신청을 받지 않아요. 화면을 새로 불러왔어요.',
+  REGISTRATION_FULL: '정원이 다 찼어요. 화면을 새로 불러왔어요.',
+  FORM_CHANGED: '신청 양식이 바뀌었어요. 새로 불러왔으니 확인하고 다시 신청해 주세요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const APPLY_FAILED = '신청하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const CANCEL_REGISTRATION_ERRORS: Record<string, string> = {
+  CANCEL_CLOSED: '마감되어 스스로 취소할 수 없어요. 취소가 필요하면 운영진에게 알려 주세요.',
+  CHECKED_IN: '이미 출석해서 취소할 수 없어요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+}
+export const CANCEL_REGISTRATION_FAILED = '취소하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'

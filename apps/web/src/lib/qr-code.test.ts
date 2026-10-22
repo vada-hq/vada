@@ -3,7 +3,20 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { expect, test } from 'vitest'
 import { prepareZXingModule, readBarcodes, type ReaderOptions } from 'zxing-wasm/reader'
-import { qrMatrix } from './qr-code'
+import { qrMatrix, qrPath } from './qr-code'
+
+test('qrPath는 이어진 검은 칸을 가로 네모 하나로 그리고 흰 칸은 그리지 않는다', () => {
+  expect(
+    qrPath([
+      [true, false, true, true],
+      [false, true, true, true],
+    ]),
+  ).toBe('M0 0h1v1h-1zM2 0h2v1h-2zM1 1h3v1h-3z')
+  // 그려진 네모의 칸 수를 모두 더하면 검은 칸 수와 같다.
+  const matrix = qrMatrix(`VADA:${'0123456789ABCDEF'.repeat(4)}`)
+  const drawn = Array.from(qrPath(matrix).matchAll(/h(\d+)v1/g), match => Number(match[1]))
+  expect(drawn.reduce((sum, length) => sum + length, 0)).toBe(matrix.flat().filter(Boolean).length)
+})
 
 // 참석 확인 QR을 읽던 스캐너의 설정과 글자 모양이다(참가 신청은 덩어리 7에서 다시 만든다).
 const readerOptions: ReaderOptions = { formats: ['QRCode'], tryHarder: true, maxNumberOfSymbols: 1 }
