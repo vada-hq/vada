@@ -177,3 +177,39 @@ export function tokenHashOfQr(value: string): string | null {
   const hash = value.slice(QR_PREFIX.length)
   return HASH_HEX.test(hash) ? hash.toLowerCase() : null
 }
+
+// 신청자 목록(조각 4). 열람 권한자만 받고, 받을 때마다 열람 기록이 한 줄 남는다.
+// 한 양식의 신청은 정원(5,000)을 넘기지 않지만 정원이 없는 양식이 있어 상한을 둔다. 넘치면 truncated다.
+export const APPLICANT_LIST_LIMIT = 5000
+export interface Applicant {
+  id: string
+  name: string
+  // 학번은 두 참가비가 다른 양식에서만 받는다.
+  studentId: string | null
+  phone: string | null
+  appliedFee: number
+  // 두 참가비가 같으면 구분이 없어 null이다.
+  payer: boolean | null
+  // 같은 행사(양식 여럿 포함)에 취소하지 않은 같은 학번이 둘 이상이다(DEC-26: 막지 않고 드러낸다).
+  duplicateStudentId: boolean
+  attended: boolean
+  appliedAt: string
+}
+export interface ApplicantsResponse {
+  applicants: Applicant[]
+  truncated: boolean
+}
+
+// 출석 확인은 QR 글자에서 꺼낸 해시(tokenHashOfQr)로 한다. 글자 전체가 아니라 해시만 보내 'VADA:' 모양을 서버가 따로 알 필요가 없다.
+const TOKEN_HASH_LENGTH = 64
+export const CheckInSchema = z.strictObject({
+  tokenHash: token(TOKEN_HASH_LENGTH).refine(value => HASH_HEX.test(value)),
+})
+export type CheckInRequest = z.infer<typeof CheckInSchema>
+// 출석 확인 결과. 스캔한 사람에게 이름과 학번을 크게 보여 준다. 이미 출석이면 오류가 아니라 already다.
+export interface CheckInResult {
+  registrationId: string
+  name: string
+  studentId: string | null
+  already: boolean
+}

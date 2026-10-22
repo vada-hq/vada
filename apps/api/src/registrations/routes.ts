@@ -7,48 +7,32 @@ import {
   type RegistrationFormResponse,
   type RegistrationFormsResponse,
 } from '@vada/contracts'
-import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
-import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { purgeFormIfDue } from './purge.js'
+import { addApplicantRoutes } from './applicant-routes.js'
 import { formDetailOf, formListOf } from './queries.js'
+import {
+  eventIdOf,
+  formIdOf,
+  kitHelpers,
+  REGISTRATION_WRITE_LIMIT,
+  root,
+  type RouteKit,
+} from './route-kit.js'
 import { createForm, setPaused, updateForm } from './service.js'
 
-const root = '/organizations/:councilId'
 const CREATED = 201
-
-// 운영진 쓰기는 계정마다 10초에 20번이다(행사, 계좌와 같은 값).
-const REGISTRATION_WRITE_LIMIT = { limit: 20, windowMs: 10_000 }
 
 // 읽기는 한 시점의 모습이다(행사와 같다).
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
 
-// 번호 형식은 운영진인지 본 뒤에 본다: 운영진이 아니면 대상이 있는지 드러내지 않고 403이다.
-const eventIdOf = (c: Context<SessionEnv>) => recordIdOf(c.req.param('eventId'))
-const formIdOf = (c: Context<SessionEnv>) => recordIdOf(c.req.param('formId'))
-
-type WriteKit = {
-  routes: Hono<SessionEnv>
-  auth: ReturnType<typeof requireSession>
-  writeLimiter: RateLimiter
-  clock: () => Date
-  db: Db
-}
-
-function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
-  const changing = (c: Context<SessionEnv>) => ({
-    userId: c.get('userId'),
-    councilId: c.req.param('councilId'),
-    action: 'council.view' as const,
-    now: clock(),
-  })
-  // 로그인한 사람만 세므로 인증 뒤에 둔다.
-  const limited = (c: Context<SessionEnv>) => {
-    if (!writeLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
-  }
+function addWriteRoutes(kit: RouteKit) {
+  const { routes, auth, db } = kit
+  const { changing, limited } = kitHelpers(kit)
   routes.post(
     `${root}/events/:eventId/registration-forms`,
     json(CreateFormSchema),
@@ -120,12 +104,14 @@ export function createRegistrationRoutes(
     )
     return c.json({ form } satisfies RegistrationFormResponse)
   })
-  addWriteRoutes({
+  const kit = {
     routes,
     auth,
     clock,
     db,
     writeLimiter: options.writeLimiter ?? createRateLimiter(REGISTRATION_WRITE_LIMIT),
-  })
+  }
+  addWriteRoutes(kit)
+  addApplicantRoutes(kit)
   return routes
 }

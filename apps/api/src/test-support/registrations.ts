@@ -102,11 +102,11 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
         },
       }),
     )
-  const makeRegistration = (formId: string, values: Values = {}) =>
+  const makeRegistration = (formId: string, values: Values = {}, owner: typeof council = council) =>
     db.transaction(tx =>
       createRecord(tx, {
         kind: 'registration',
-        councilId: council.councilId,
+        councilId: owner.councilId,
         actor: null,
         values: { formId, name: '김학생', appliedFee: '0', ...values },
       }),

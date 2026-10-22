@@ -6,13 +6,12 @@ import {
   type UpdateFormRequest,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { assertUsableAccount } from '../accounts/queries.js'
 import type { Tx } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { registrationContextOf } from './permission-context.js'
+import { assertManage } from './permission-context.js'
 import { clearPhones } from './personal-values.js'
 import { freshPublicCode } from './public-code.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
@@ -28,11 +27,6 @@ async function assertFeeAccount(tx: Tx, actor: Actor, input: FeeInput) {
   if (input.feeAccountId) return assertUsableAccount(tx, actor, input.feeAccountId)
   if (Math.max(input.payerFee ?? 0, input.nonPayerFee ?? 0) > 0)
     throw new ApiError('FEE_ACCOUNT_REQUIRED')
-}
-
-async function assertManage(tx: Tx, actor: Actor, target: { id: string; ownerId: string | null }) {
-  const context = await registrationContextOf(tx, actor, target)
-  if (!can(actor, 'registration.manage', context)) throw new ApiError('FORBIDDEN')
 }
 
 const fromKorean = (value: string | null) => (value ? dateFromKorean(value) : null)

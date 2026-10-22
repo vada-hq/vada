@@ -95,7 +95,7 @@
 - 닿는 곳: contracts `registrations.ts`(`ApplySchema`, `TokenSchema`, `MyRegistration`, QR 글자 도우미), `errors.ts`. `registrations/`(`apply.ts`, `link.ts`, `fee-match.ts`, `personal-values.ts`(지금 값과 판 비우기, 5가 같이 쓴다), `public-routes.ts`), `ops/pg-smoke/`(마지막 자리 둘).
 - 검토: 깊게(공개, 개인정보, 동시 처리). 마이그레이션: 없음.
 
-### 4. 신청자 목록, 열람 기록, 운영진 취소, 출석(서버) [ ]
+### 4. 신청자 목록, 열람 기록, 운영진 취소, 출석(서버) [x]
 - 할 수 있게 되는 것: 열람 권한자가 신청자를 보고 그 열람이 남으며, 관리 권한자가 당일 QR과 이름으로 출석을 남긴다.
 - 수용 기준: `GET registration-forms/:formId/applicants`는 열람 권한자에게 신청 순으로 이름, 학번, 휴대폰, 적용 참가비, 납부자 여부, 같은 학번 표시, 출석, 신청 시각을 주고 열람 기록 한 줄(`list`)을 남긴다. 그 밖의 운영진은 403이고 기록이 없다. 기록을 못 쓰면 목록도 오지 않는다. 관리 권한자는 신청을 취소하고(출석 뒤는 409 `CHECKED_IN`), `POST events/:eventId/check-in`(QR 글자에서 꺼낸 해시)으로 출석하며, 그 결과에 이름·학번이 오고 기록 한 줄(`check_in`)이 남는다. 이미 출석이면 `already: true`, 그 행사 양식이 아니거나 취소·비운 신청이면 404다. `POST registrations/:registrationId/attendance`(이름으로), `.../attendance/cancel`(없으면 409 `NOT_CHECKED_IN`), 취소 뒤 다시 출석이 된다. 방법이 `qr`·`manual`로 남는다. 동시 스캔 둘과 취소·출석 겹침을 pg-smoke에 더한다. 다른 학생회 404, 403, 401.
 - 닿는 곳: contracts `registrations.ts`(`ApplicantsResponse`, `CheckInSchema`, `CheckInResult`), `errors.ts`. `registrations/`(`applicants.ts`, `attendance.ts`, `access-log.ts`, `routes.ts`), `boundary.test.ts`, `ops/pg-smoke/`.

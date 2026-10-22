@@ -2,7 +2,12 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createTestDb } from '../../db/test-db.js'
 import { pgliteConnection } from '../../test-support/smoke-connection.js'
-import { lastSeatTogetherCase, smokeCases } from './pg-smoke-cases.js'
+import {
+  cancelAndCheckInCase,
+  lastSeatTogetherCase,
+  sameQrTogetherCase,
+  smokeCases,
+} from './pg-smoke-cases.js'
 
 // PGlite는 거래를 하나씩 돌려 잠금이 동시 처리를 막는지 증명하지 못한다. 준비와 판정의 모양만 본다.
 const now = new Date('2026-10-19T03:00:00Z')
@@ -25,3 +30,27 @@ test('마지막 한 자리 동시 신청: 신청 하나와 나머지의 REGISTRA
     await testDb.close()
   }
 })
+
+test('출석 동시 처리 사례 둘이 점검 목록에 있다', () => {
+  assert.ok(smokeCases.includes(sameQrTogetherCase))
+  assert.ok(smokeCases.includes(cancelAndCheckInCase))
+})
+
+for (const [smokeCase, detail] of [
+  [sameQrTogetherCase, /already/],
+  [cancelAndCheckInCase, /취소와 출석/],
+] as const)
+  test(`${smokeCase.name}: 준비와 판정이 맞다 (PGlite는 순서대로 돌려 모양만 본다)`, async () => {
+    const testDb = await createTestDb()
+    try {
+      const verdict = await smokeCase.run({
+        connect: () => pgliteConnection(testDb),
+        now,
+        sessionLimitMs: 2000,
+      })
+      assert.equal(verdict.ok, true, JSON.stringify(verdict))
+      assert.match(verdict.detail, detail)
+    } finally {
+      await testDb.close()
+    }
+  })
