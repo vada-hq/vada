@@ -88,7 +88,7 @@
 - 닿는 곳: contracts `home.ts`(`HomeReceived`, `HomeSettling`), `home/queries.ts`, `purchases/queries.ts`(함께 쓸 조건 내보내기).
 - 검토: 보통. 마이그레이션: 없음.
 
-### 4. 옆 메뉴 '홈', 첫 화면, 내 업무 화면 [ ]
+### 4. 옆 메뉴 '홈', 첫 화면, 내 업무 화면 [x]
 - 할 수 있게 되는 것: 운영진이 학생회를 열면 홈이 먼저 보이고 내 업무를 눌러 그 업무로 간다.
 - 수용 기준: 옆 메뉴 맨 위에 '홈'이 있고 배지가 없다. 학생회를 열면 홈이 첫 화면이고, 알림으로 연 방·업무·요청과 방금 만든 학생회는 지금대로다. 내 업무 부분에 지남·오늘·7일 안 묶음과 수, 그 뒤 수가 보이고, 줄(제목, 마감, 행사 이름)을 누르면 업무 화면에서 그 업무 상세가 열린다. "모두 보기"는 업무 화면 '내 업무'로 간다. 비었으면 한 줄 상태가 보인다. 불러오는 중, 실패와 [다시 불러오기], 403이면 학생회 다시 읽기를 시험한다. 홈을 다시 열거나 화면이 다시 보이면 새로 읽는다. 390px에서 가로 넘침이 없고 긴 제목에 `wrap-anywhere`가 있다. 부품 확인 화면에 홈 부분 카드가 있다.
 - 닿는 곳: `apps/web/src/home/`(새: `HomePage.tsx`, `useHome.ts`, `home-view.ts`, 부분 부품), `workspace/pages.ts`·`Workspace.tsx`(`startPageOf`)·`SidebarNav.tsx`·`WorkspaceContent.tsx`·`CouncilWorkspace.tsx`, 기존 첫 화면 시험(`Workspace.link.test.tsx`, `CouncilWorkspace.*.test.tsx`), `ui-gallery/`.
