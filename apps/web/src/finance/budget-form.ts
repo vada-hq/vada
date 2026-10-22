@@ -25,6 +25,10 @@ export const emptyBudgetItem = (eventId: string | null = null): BudgetItemValues
 export const expenseItems = <T extends Pick<BudgetItemView, 'type'>>(items: readonly T[]) =>
   items.filter(item => item.type === 'expense')
 
+// 수입 적기에서 고를 수 있는 예산 항목은 수입 항목뿐이다.
+export const incomeItems = <T extends Pick<BudgetItemView, 'type'>>(items: readonly T[]) =>
+  items.filter(item => item.type === 'income')
+
 // 금액 칸: 쉼표와 공백은 지우고, 비었거나 숫자가 아니면 NaN이라 계약 검사가 막는다.
 export function wonOf(value: string) {
   const digits = value.replace(/[,\s]/g, '')

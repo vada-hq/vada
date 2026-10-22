@@ -46,6 +46,7 @@ test('탭에 계좌가 있고 카드에 이름, 은행, 계좌번호, 예금주,
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '구매 요청',
     '지출',
+    '수입',
     '예산',
     '계좌',
     '납부자 명단',

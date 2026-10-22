@@ -3,15 +3,30 @@ import type { CouncilView, RegistrationAction, RegistrationForm } from '@vada/co
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
-import { REGISTRATION_FORMS_LOAD_FAILED } from '@/lib/messages'
+import {
+  PERMISSION_CHANGED,
+  REGISTRATION_FORMS_LOAD_FAILED,
+  REGISTRATION_STAFF_LOST,
+} from '@/lib/messages'
+import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { FormCard } from './FormCard'
 import { TabDialogs, type TabDialog } from './TabDialogs'
-import { useDialogGuard } from './useDialogGuard'
 import { useRegistrationForms } from './useRegistrationForms'
 
 type Props = EventDialogHandlers & {
   view: CouncilView
   eventId: string
+}
+
+type Read = { forms: RegistrationForm[]; actions: RegistrationAction[] }
+
+// 열려 있는 동안 15초 읽기가 바꾼 값: 관리 권한이 빠졌거나 고치던 양식이 사라졌으면 닫을 이유다. 읽기 전(null)에는 없다.
+function dialogLostReason(dialog: TabDialog, read: Read | null) {
+  if (dialog === null || read === null) return null
+  if (!read.actions.includes('registration.manage')) return PERMISSION_CHANGED
+  if (dialog.kind === 'edit' && !read.forms.some(form => form.id === dialog.formId))
+    return REGISTRATION_STAFF_LOST
+  return null
 }
 
 // 이 화면에서 바꾼 출석(스캐너 포함). 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
@@ -75,7 +90,7 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
   const ready = read.state.kind === 'ready' ? read.state.data : null
   const forms = ready?.forms ?? []
   const actions = ready?.actions ?? []
-  useDialogGuard(tab.dialog, ready, handlers.onLost)
+  useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), handlers.onLost)
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar

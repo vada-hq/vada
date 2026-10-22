@@ -1,0 +1,199 @@
+// @vitest-environment jsdom
+import { afterEach, expect, test, vi } from 'vitest'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { koreanDateOf } from '@vada/contracts'
+import {
+  standardAccounts,
+  BUSINESS_ACCOUNT_ID,
+  MAIN_ACCOUNT_ID,
+} from '@/test-support/account-fixtures'
+import { asElement } from '@/test-support/elements'
+import { BASE, showFinance } from '@/test-support/expense-harness'
+import { incomeDetail, INCOME_ITEM } from '@/test-support/income-fixtures'
+import {
+  CURRENT_INCOMES,
+  INCOMES,
+  openIncomesTab,
+  serveIncomes,
+} from '@/test-support/income-harness'
+import { deferredResponse, json } from '@/test-support/mock-api'
+import { INCOME_ERRORS, INCOME_LOST, PERMISSION_CHANGED } from '@/lib/messages'
+
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
+
+function serve() {
+  const api = serveIncomes([])
+  api.on('GET', `${BASE}/accounts`, () => json(standardAccounts()))
+  api.on('GET', `${BASE}/budget`, () =>
+    json({
+      period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+      items: [
+        { id: INCOME_ITEM, purpose: '지원금 예산', amount: 800000, type: 'income', event: null },
+        { id: 'x1', purpose: '행사 홍보', amount: 300000, type: 'expense', event: null },
+      ],
+      suggested: null,
+    }),
+  )
+  return api
+}
+
+const openForm = async () => {
+  openIncomesTab()
+  fireEvent.click(await screen.findByRole('button', { name: '수입 적기' }))
+  return screen.findByRole('form', { name: '수입 적기' })
+}
+const fill = (label: string, value: string) =>
+  fireEvent.change(screen.getByLabelText(label), { target: { value } })
+const submit = () => asElement(screen.getByRole('button', { name: '적기' }), HTMLButtonElement)
+const today = () => koreanDateOf(new Date())
+
+test('출처는 사람이 적는 다섯만 보이고 금액을 적어야 켜진다. 받은 날은 오늘, 계좌는 대표 계좌다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
+  showFinance()
+  await openForm()
+  const options = Array.from(
+    asElement(screen.getByLabelText('출처'), HTMLSelectElement).options,
+    option => option.textContent,
+  )
+  expect(options).toEqual(['학생회비', '지원금', '사업 수익', '후원금', '기타'])
+  expect(asElement(screen.getByLabelText('받은 날'), HTMLInputElement).value).toBe(today())
+  expect(submit().disabled).toBe(true)
+  fill('금액(원)', '0')
+  expect(submit().disabled).toBe(true)
+  fill('금액(원)', '500,000')
+  // 수입 항목만 고를 수 있다.
+  await screen.findByRole('option', { name: /지원금 예산/ })
+  expect(screen.queryByRole('option', { name: /행사 홍보/ })).toBeNull()
+  fill('출처', 'grant')
+  fill('내용(선택)', '  ')
+  expect(submit().disabled).toBe(false)
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    source: 'grant',
+    amount: 500000,
+    receivedOn: today(),
+    description: null,
+    budgetItemId: null,
+    accountId: MAIN_ACCOUNT_ID,
+  })
+  // 적고 나면 수입 목록을 다시 읽는다.
+  expect(api.calls.filter(call => call.path === CURRENT_INCOMES).length).toBeGreaterThan(1)
+})
+
+test('예산 항목과 계좌와 내용을 골라 적는다. 계좌는 없음도 고를 수 있다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fill('내용(선택)', '학생회비 2학기분')
+  await screen.findByRole('option', { name: /지원금 예산/ })
+  fill('수입 예산 항목', INCOME_ITEM)
+  fill('계좌', BUSINESS_ACCOUNT_ID)
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    description: '학생회비 2학기분',
+    budgetItemId: INCOME_ITEM,
+    accountId: BUSINESS_ACCOUNT_ID,
+  })
+})
+
+test('오늘 뒤의 받은 날과 계약의 상한을 넘는 내용은 적을 수 없다', async () => {
+  serve()
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
+  expect(date.max).toBe(today())
+  expect(date.min).toBe('2000-01-01')
+  fill('받은 날', '2999-01-01')
+  expect(submit().disabled).toBe(true)
+  fill('받은 날', today())
+  expect(submit().disabled).toBe(false)
+  fill('내용(선택)', '가'.repeat(201))
+  expect(submit().disabled).toBe(true)
+  fill('내용(선택)', '😀'.repeat(200))
+  expect(submit().disabled).toBe(false)
+  fill('금액(원)', '1e3')
+  expect(submit().disabled).toBe(true)
+})
+
+test('두 번 눌러도 한 번만 보내고, 보내는 동안 닫지 못한다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', INCOMES, () => pending.promise)
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  fireEvent.click(submit())
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
+  const form = screen.getByRole('form', { name: '수입 적기' })
+  expect(
+    asElement(within(form).getByRole('button', { name: '닫기' }), HTMLButtonElement).disabled,
+  ).toBe(true)
+  pending.resolve(json({ income: incomeDetail('i1') }, 201))
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+})
+
+test.each([
+  ['NO_FISCAL_PERIOD', 409],
+  ['PERIOD_CLOSED', 409],
+  ['EVENT_COMPLETED', 409],
+  ['BUDGET_ITEM_INVALID', 409],
+  ['ACCOUNT_INVALID', 409],
+  ['TOO_MANY_REQUESTS', 429],
+  ['INVALID_INPUT', 400],
+])('%s 거절은 대화상자를 연 채 그 문구를 보인다', async (code, status) => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: code }, status))
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toBe(INCOME_ERRORS[code])
+  expect(screen.getByRole('form', { name: '수입 적기' })).toBeTruthy()
+  // 고쳐서 다시 보낼 수 있다.
+  expect(submit().disabled).toBe(false)
+})
+
+test('모르는 오류 코드는 일반 문구다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'SOMETHING' }, 500))
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  expect((await screen.findByRole('alert')).textContent).toContain('보내지 못했어요')
+})
+
+test('404면 대화상자를 닫고 이유를 목록 위에 보인다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'NOT_FOUND' }, 404))
+  showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(screen.getByText(INCOME_LOST)).toBeTruthy()
+})
+
+test('403이면 대화상자를 닫고 권한이 바뀌었다고 알리고 학생회를 다시 읽게 한다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'FORBIDDEN' }, 403))
+  const handlers = showFinance()
+  await openForm()
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
+  expect(handlers.onForbidden).toHaveBeenCalled()
+})

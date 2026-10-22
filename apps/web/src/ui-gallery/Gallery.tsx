@@ -11,6 +11,7 @@ import { ButtonsSection, CardsSection, ChipsSection, InputsSection } from './For
 import { ActionMenuSection, EmptyAvatarSection, MenuTabsSection } from './MenuSections'
 import { AccountSection } from './AccountSections'
 import { ExpenseSection } from './ExpenseSections'
+import { IncomeSection } from './IncomeSections'
 import { DecisionSection, FinanceSection } from './FinanceSections'
 import { EventSection } from './EventSections'
 import { SettlementSection } from './SettlementSections'
@@ -47,6 +48,7 @@ export default function Gallery() {
       <FinanceSection />
       <DecisionSection />
       <ExpenseSection />
+      <IncomeSection />
       <AccountSection />
       <AuthSection />
       <AgreementSection />

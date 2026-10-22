@@ -16,6 +16,7 @@ import { BudgetTab } from './BudgetTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
 import { FeePaymentsTab } from './FeePaymentsTab'
+import { IncomesTab } from './IncomesTab'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
@@ -74,13 +75,13 @@ function Body({
   )
 }
 
-// 재정부가 고치는 탭(납부자 명단, 계좌, 예산). 보는 것은 탭마다 정한 권한이 가른다.
+// 재정부가 고치는 탭(납부자 명단, 계좌, 예산, 수입). 보는 것은 탭마다 정한 권한이 가른다.
 function ManagedTab({
   tab,
   view,
   onForbidden,
 }: {
-  tab: 'fees' | 'accounts' | 'budget'
+  tab: 'fees' | 'accounts' | 'budget' | 'incomes'
   view: CouncilView
   onForbidden: () => void
 }) {
@@ -90,6 +91,7 @@ function ManagedTab({
       <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
     )
   const canManage = view.permissions.includes('finance.manage')
+  if (tab === 'incomes') return <IncomesTab {...shared} canManage={canManage} />
   return tab === 'accounts' ? (
     <AccountsTab {...shared} canManage={canManage} />
   ) : (

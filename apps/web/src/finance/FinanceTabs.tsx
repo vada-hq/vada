@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { VIEW_LABEL } from './purchase-view'
 
-export type FinanceTab = 'requests' | 'expenses' | 'budget' | 'accounts' | 'fees'
+export type FinanceTab = 'requests' | 'expenses' | 'incomes' | 'budget' | 'accounts' | 'fees'
 
 type TabsProps = {
   tab: FinanceTab
@@ -14,12 +14,16 @@ type TabsProps = {
 
 export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
   return (
-    <div role="tablist" aria-label="재정 보기" className="flex border-b">
+    // 탭이 여섯(결산이 오면 일곱)이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
+    <div role="tablist" aria-label="재정 보기" className="flex flex-wrap border-b">
       <TabButton aria-selected={tab === 'requests'} onClick={() => onTab('requests')}>
         구매 요청
       </TabButton>
       <TabButton aria-selected={tab === 'expenses'} onClick={() => onTab('expenses')}>
         지출
+      </TabButton>
+      <TabButton aria-selected={tab === 'incomes'} onClick={() => onTab('incomes')}>
+        수입
       </TabButton>
       <TabButton aria-selected={tab === 'budget'} onClick={() => onTab('budget')}>
         예산
