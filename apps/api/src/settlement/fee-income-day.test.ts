@@ -14,7 +14,7 @@ const complete = (t: SettlementKit, event: string) =>
 const feeIncomes = async (t: SettlementKit) =>
   (
     await t.pg.query(
-      `SELECT received_on::text AS on, fiscal_period_id FROM income WHERE source = 'participation_fee' ORDER BY id`,
+      `SELECT i.received_on::text AS on, i.fiscal_period_id FROM income i JOIN record r ON r.id = i.id WHERE i.source = 'participation_fee' ORDER BY r.created_at, i.id`,
     )
   ).rows as { on: string; fiscal_period_id: string }[]
 
@@ -74,5 +74,31 @@ test(
     const response = await complete(t, other)
     assert.equal(await errorOf(response), 'PERIOD_CLOSED')
     assert.equal((await feeIncomes(t)).length, 1)
+  }),
+)
+
+test(
+  '끝 날짜 전에 완료하면 완료한 날이 받은 날이다(미래 날짜가 생기지 않는다): 한국 자정 ±1초와 끝 날짜 당일',
+  withSettlement(async t => {
+    const p = await twoPeriods(t)
+    const cases: [string, string][] = [
+      ['2026-09-10T14:59:59Z', '2026-09-10'],
+      ['2026-09-10T15:00:00Z', '2026-09-11'],
+      ['2026-09-12T14:59:59Z', '2026-09-12'],
+      ['2026-09-12T15:00:00Z', '2026-09-12'],
+    ]
+    for (const [now, expected] of cases) {
+      const event = await t.event({
+        startsAt: new Date('2026-09-09T00:00:00Z'),
+        endsAt: new Date('2026-09-12T06:00:00Z'),
+      })
+      const registration = await t.registration(await t.form(event))
+      await t.deposit(registration, { confirmedAt: new Date('2026-08-20T03:00:00Z') })
+      t.setNow(new Date(now))
+      assert.equal((await complete(t, event)).status, 200, now)
+      const rows = await feeIncomes(t)
+      assert.equal(rows.at(-1)?.on, expected, now)
+      assert.equal(rows.at(-1)?.fiscal_period_id, p.next)
+    }
   }),
 )

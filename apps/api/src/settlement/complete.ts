@@ -54,7 +54,7 @@ export async function completeEvent(
   if (status === 'tbd' || status === 'upcoming') throw new ApiError('EVENT_NOT_STARTED')
   const remaining = await remainingOf(tx, { councilId: actor.councilId, eventId: row.id })
   if (remaining.some(item => item.count > 0)) throw new ApiError('SETTLEMENT_PENDING')
-  await createFeeIncomes(tx, actor, row)
+  await createFeeIncomes(tx, actor, { ...row, now: target.now })
   await recordApproval(tx, actor, {
     eventId: row.id,
     outcome: 'completed',

@@ -8,7 +8,14 @@ import type { Tx } from '../db/types.js'
 import { eventEndDayOf } from '../events/end-day.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 
-type Target = { id: string; name: string; startsAt: Date | null; endsAt: Date | null }
+type Target = {
+  id: string
+  name: string
+  startsAt: Date | null
+  endsAt: Date | null
+  // 완료하는 시각. 끝 날짜 전에 완료하면 받은 날이 미래가 되지 않게 한다.
+  now: Date
+}
 
 // 계좌를 정하지 않은 입금(참가비 0원 양식에 금액을 적어 확인한 것)도 한 묶음이다.
 const NO_ACCOUNT = ''
@@ -36,7 +43,7 @@ async function activeDepositsOf(tx: Tx, actor: Actor, eventId: string) {
     )
 }
 
-// 받은 날: 그 계좌의 마지막 입금 확인일과 행사 끝 날짜(한국) 가운데 늦은 날이다(DEC-70이 DEC-68을 고쳤다).
+// 받은 날: 그 계좌의 마지막 입금 확인일과 '행사 끝 날짜와 완료한 날(한국) 가운데 이른 날' 가운데 늦은 날이다(DEC-70이 DEC-68을 고쳤다).
 // 사전 모집 행사의 참가비가 이미 공개한 앞 기간이 아니라 행사가 열린 기간의 수입이 된다.
 function receivedDayOf(target: Target, rows: { confirmedAt: Date }[]) {
   const last = rows.reduce(
@@ -45,7 +52,10 @@ function receivedDayOf(target: Target, rows: { confirmedAt: Date }[]) {
   )
   const lastDay = koreanDateOf(last)
   const endDay = eventEndDayOf(target)
-  return endDay && endDay > lastDay ? endDay : lastDay
+  if (!endDay) return lastDay
+  const today = koreanDateOf(target.now)
+  const counted = endDay < today ? endDay : today
+  return counted > lastDay ? counted : lastDay
 }
 
 // 완료하는 거래에서 참가비 받는 계좌마다 수입 하나를 만들고 입금 기록마다 그 수입을 잇는다(DEC-68).
