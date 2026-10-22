@@ -15,7 +15,7 @@ import { DecisionSection, FinanceSection } from './FinanceSections'
 import { EventSection } from './EventSections'
 import { SettlementSection } from './SettlementSections'
 import { TaskSection } from './TaskSections'
-import { HomeSection } from './HomeSections'
+import { HomeOtherSection, HomeSection } from './HomeSections'
 import { PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -40,6 +40,7 @@ export default function Gallery() {
       <SettlementSection />
       <TaskSection />
       <HomeSection />
+      <HomeOtherSection />
       <PublicSection />
       <RegistrationSection />
       <ApplicantRowSection />

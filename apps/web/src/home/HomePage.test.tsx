@@ -18,16 +18,20 @@ function open(handler: () => Response | Promise<Response>) {
   api.on('GET', path, handler)
   const onOpenTask = vi.fn()
   const onOpenPage = vi.fn()
+  const onOpenRequest = vi.fn()
+  const onOpenEvent = vi.fn()
   const onForbidden = vi.fn()
   render(
     <HomePage
       view={councilView('c1')}
       onOpenTask={onOpenTask}
+      onOpenRequest={onOpenRequest}
+      onOpenEvent={onOpenEvent}
       onOpenPage={onOpenPage}
       onForbidden={onForbidden}
     />,
   )
-  return { api, onOpenTask, onOpenPage, onForbidden }
+  return { api, onOpenTask, onOpenPage, onOpenRequest, onOpenEvent, onForbidden }
 }
 
 const setVisibility = (state: 'visible' | 'hidden') => {

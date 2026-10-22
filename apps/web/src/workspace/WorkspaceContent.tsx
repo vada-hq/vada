@@ -2,7 +2,9 @@ import type { CouncilView } from '@vada/contracts'
 import ChatPage from '../chat/ChatPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
+import type { HomeOpeners } from '../home/HomeBody'
 import HomePage from '../home/HomePage'
+import type { EventTab } from '../events/event-view'
 import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
@@ -29,8 +31,11 @@ type Props = {
   requestId?: string | undefined
   // 업무에서 눌러 연 행사. 행사 화면이 이 행사를 열고 시작한다.
   eventId?: string | undefined
-  // 업무 카드·상세에서 행사 이름을 눌렀다.
-  onOpenEvent: (eventId: string) => void
+  eventTab?: EventTab | undefined
+  // 업무 카드·상세에서 행사 이름을, 홈에서 행사 줄을 눌렀다.
+  onOpenEvent: (eventId: string, tab?: EventTab) => void
+  // 홈에서 요청 줄을 눌렀다(재정 화면이 그 요청의 상세를 열고 시작한다).
+  onOpenRequest: (requestId: string) => void
   // 홈에서 업무 줄을 눌렀다(업무 화면이 그 업무의 상세를 열고 시작한다).
   onOpenTask: (taskId: string) => void
   onOpenPage: (page: Page) => void
@@ -76,22 +81,14 @@ function LeadPage({
   rooms,
   page,
   roomId,
-  onOpenTask,
-  onOpenPage,
   view,
-}: Pick<Props, 'data' | 'rooms' | 'roomId' | 'onOpenTask' | 'onOpenPage'> & {
-  page: 'home' | 'chat'
-  view: CouncilView
-}) {
-  if (page === 'home')
-    return (
-      <HomePage
-        view={view}
-        onOpenTask={onOpenTask}
-        onOpenPage={onOpenPage}
-        onForbidden={data.reload}
-      />
-    )
+  ...openers
+}: Pick<Props, 'data' | 'rooms' | 'roomId'> &
+  HomeOpeners & {
+    page: 'home' | 'chat'
+    view: CouncilView
+  }) {
+  if (page === 'home') return <HomePage view={view} onForbidden={data.reload} {...openers} />
   return (
     <ChatPage
       councilId={view.council.id}
@@ -114,19 +111,26 @@ function PageOf({
   taskId,
   requestId,
   eventId,
+  eventTab,
   onOpenEvent,
   onOpenTask,
+  onOpenRequest,
   onOpenPage,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat')
-    return <LeadPage {...{ data, rooms, page, roomId, onOpenTask, onOpenPage, view }} />
+    return (
+      <LeadPage
+        {...{ data, rooms, page, roomId, onOpenTask, onOpenRequest, onOpenEvent, onOpenPage, view }}
+      />
+    )
   if (page === 'events')
     return (
       <EventsPage
         view={view}
         initialEventId={eventId}
+        initialTab={eventTab}
         onForbidden={data.reload}
         onTasksChanged={() => void tasks.reload()}
       />

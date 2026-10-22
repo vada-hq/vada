@@ -541,6 +541,205 @@ exports[`대화상자 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">참가 신청 화면</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-96 max-w-full flex-col gap-4">
@@ -1776,6 +1975,205 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <h2 class="text-sm font-semibold text-gray-900">내 업무</h2>
 <p class="text-sm wrap-anywhere text-gray-500">지금 할 업무가 없어요.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
 </div>
 </div>
 </div>
@@ -3017,6 +3415,205 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">참가 신청 화면</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-96 max-w-full flex-col gap-4">
@@ -4250,6 +4847,205 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">참가 신청 화면</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-96 max-w-full flex-col gap-4">
@@ -5475,6 +6271,205 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <h2 class="text-sm font-semibold text-gray-900">내 업무</h2>
 <p class="text-sm wrap-anywhere text-gray-500">지금 할 업무가 없어요.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
 </div>
 </div>
 </div>
@@ -6714,6 +7709,205 @@ exports[`처음 모양 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">참가 신청 화면</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-96 max-w-full flex-col gap-4">
@@ -7923,6 +9117,205 @@ exports[`확인 대화상자 열기 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <h2 class="text-sm font-semibold text-gray-900">내 업무</h2>
 <p class="text-sm wrap-anywhere text-gray-500">지금 할 업무가 없어요.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span class="wrap-anywhere">박부원</span>
+<span>10월 20일</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">받은 것</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">받은 것이 없어요.</p>
+<ul class="flex flex-col">
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<ul class="flex flex-col gap-2">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 1/4</span>
+<span>지남 2</span>
+<span>담당자 없음 1</span>
+<span class="font-medium">정산에 남은 것 3</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 2/2</span>
+<span class="font-medium">완료할 수 있어요</span>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-3">
+<div class="flex items-start gap-2">
+<h3 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회</button>
+</h3>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span class="wrap-anywhere">김회장</span>
+</div>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>업무 0/5</span>
+<span>담당자 없음 2</span>
+</div>
+</div>
+</li>
+</ul>
+<p role="status" class="text-sm wrap-anywhere text-gray-500">끝난 행사 14개 가운데 10개만 보여요.</p>
+<div role="group" aria-label="부서별 막힌 곳" class="flex flex-col gap-1">
+<h4 class="px-2 text-xs font-semibold text-gray-500">부서별 막힌 곳</h4>
+<ul class="flex flex-col">
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">기획부</span>
+<span>지남 2</span>
+<span>담당자 없음 0</span>
+</li>
+<li class="flex flex-wrap gap-x-3 px-2 py-1 text-xs text-gray-500">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">학생회 업무</span>
+<span>지남 0</span>
+<span>담당자 없음 3</span>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="지난 업무 11개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 11</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">학생회 업무</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900">학생회</h2>
+<div class="flex flex-col items-start gap-2">
+<p class="text-sm wrap-anywhere text-gray-500">아직 행사가 없어요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">새 행사</button>
+</div>
+</div>
+<section aria-label="내 부서" class="flex flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h2 class="text-sm font-semibold text-gray-900 wrap-anywhere">기획부</h2>
+<p class="px-2 text-xs text-gray-500">할 일 3 · 진행 중 2 · 지남 1 · 담당자 없음 1</p>
+<div role="group" aria-label="지난 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">지난 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">김새내</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div role="group" aria-label="담당자 없는 업무 1개" class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2 px-2">
+<h4 class="text-xs font-semibold text-gray-500">담당자 없는 업무 1</h4>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 25일</span>
+<span class="wrap-anywhere">담당자 없음</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사 12</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline py-1.5 text-xs [&amp;_svg]:size-3.5 px-0">모두 보기</button>
+</div>
+<ul class="flex flex-col">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal">
+<span class="text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
+<span>10월 20일 (화) 10:00 ~ 12:00</span>
+<span>정산에 남은 것 2</span>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<div class="flex items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-gray-900">정산할 행사</h2>
+</div>
+<p class="text-sm wrap-anywhere text-gray-500">정산할 행사가 없어요.</p>
+<ul class="flex flex-col">
+</ul>
 </div>
 </div>
 </div>

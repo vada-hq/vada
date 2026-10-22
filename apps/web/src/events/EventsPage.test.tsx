@@ -14,6 +14,7 @@ import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { settle } from '@/test-support/settle'
 import { EVENT_ERRORS, EVENT_LOST } from '@/lib/messages'
 import EventsPage from './EventsPage'
+import type { EventTab } from './event-view'
 
 afterEach(() => {
   cleanup()
@@ -22,7 +23,9 @@ afterEach(() => {
 
 const BASE = '/api/organizations/c1/events'
 
-function setup(options: { permissions?: string[]; initialEventId?: string } = {}) {
+function setup(
+  options: { permissions?: string[]; initialEventId?: string; initialTab?: EventTab } = {},
+) {
   const api = mockApi()
   api.on('GET', BASE, () =>
     json({
@@ -45,9 +48,26 @@ function setup(options: { permissions?: string[]; initialEventId?: string } = {}
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
   const view = councilView('c1', { memberId: MEMBER.m1 })
   if (options.permissions) view.permissions = options.permissions as typeof view.permissions
-  render(<EventsPage view={view} initialEventId={options.initialEventId} {...handlers} />)
+  render(
+    <EventsPage
+      view={view}
+      initialEventId={options.initialEventId}
+      initialTab={options.initialTab}
+      {...handlers}
+    />,
+  )
   return { api, handlers }
 }
+
+test('홈에서 연 행사는 정한 탭으로 시작하고, 목록에서 연 다른 행사는 개요로 시작한다', async () => {
+  setup({ initialEventId: 'e1', initialTab: 'money' })
+  const money = await screen.findByRole('tab', { name: '돈' })
+  expect(money.getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
+  fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
+  const overview = await screen.findByRole('tab', { name: '개요' })
+  expect(overview.getAttribute('aria-selected')).toBe('true')
+})
 
 test('목록 카드에 이름, 일시, 상태, 책임자가 보이고 날짜 미정도 보인다', async () => {
   setup()

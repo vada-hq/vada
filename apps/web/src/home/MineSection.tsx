@@ -2,32 +2,14 @@ import { HOME_TASK_GROUPS, type HomeMine, type HomeTask, type HomeTaskGroup } fr
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { dueLabel } from '../tasks/task-view'
 import { GROUP_LABEL, mineIsEmpty } from './home-view'
+import TaskRow from './TaskRow'
 
 type Props = {
   mine: HomeMine
   onOpenTask: (taskId: string) => void
   // 업무 화면 '내 업무'로 간다.
   onSeeAll: () => void
-}
-
-function TaskRow({ task, onOpen }: { task: HomeTask; onOpen: (taskId: string) => void }) {
-  return (
-    <li>
-      <Button
-        variant="ghost"
-        className="h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal"
-        onClick={() => onOpen(task.id)}
-      >
-        <span className="text-sm font-medium text-gray-900 wrap-anywhere">{task.title}</span>
-        <span className="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
-          <span>{dueLabel(task.dueDate)}</span>
-          {task.event && <span className="wrap-anywhere">{task.event.name}</span>}
-        </span>
-      </Button>
-    </li>
-  )
 }
 
 function Group({

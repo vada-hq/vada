@@ -16,6 +16,8 @@ export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'succes
   completed: 'success',
 }
 
+export type EventTab = 'overview' | 'tasks' | 'registrations' | 'money'
+
 export const NO_OWNER_LABEL = '책임자 없음'
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 

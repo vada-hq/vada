@@ -1,4 +1,35 @@
-import type { HomeResponse, HomeTask, HomeTaskGroup } from '@vada/contracts'
+import type {
+  EventSummary,
+  HomeList,
+  HomeResponse,
+  HomeTask,
+  HomeTaskGroup,
+  PurchaseRequestSummary,
+} from '@vada/contracts'
+
+export const homeEvent = (id: string, extra: Partial<EventSummary> = {}): EventSummary => ({
+  id,
+  name: `행사 ${id}`,
+  startsAt: '2026-10-20T10:00',
+  endsAt: '2026-10-20T12:00',
+  place: null,
+  owner: { id: 'p1', name: '김회장', current: true },
+  status: 'ongoing',
+  ...extra,
+})
+
+export const homeRequest = (id: string): PurchaseRequestSummary => ({
+  id,
+  title: `요청 ${id}`,
+  status: 'pending',
+  requestedBy: { id: 'p2', name: '박부원' },
+  neededBy: null,
+  itemCount: 1,
+  createdAt: '2026-10-20T03:00:00.000Z',
+  event: null,
+})
+
+export const noTasks: HomeList = { tasks: [], total: 0 }
 
 export const homeTask = (
   id: string,
