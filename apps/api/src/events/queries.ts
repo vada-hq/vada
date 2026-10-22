@@ -3,6 +3,7 @@ import {
   EVENT_ACTIONS,
   EVENT_LIST_LIMIT,
   koreanOf,
+  type EventAction,
   type EventDetail,
   type EventSummary,
   type EventsResponse,
@@ -13,11 +14,13 @@ import { currentMembersAmong } from '../chat/current-members.js'
 import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { completedEventIdsAmong } from './completion.js'
+import { completedEventIdsAmong, completionApprovalsOf } from './completion.js'
 import { eventHistoryOf } from './history.js'
 import { eventStatusOf } from './status.js'
 
 type Reader = Pick<Db, 'select'>
+
+const LOCKED_ACTIONS: ReadonlySet<EventAction> = new Set(['event.update', 'event.set_owner'])
 
 // 끝나는 때와 목록 묶음의 SQL. status.ts의 eventEndOf, eventStatusOf와 같은 규칙이다(끝이 없으면 시작한 날 한국 23:59:59).
 const endsAtSql = sql`coalesce(${event.endsAt}, (date_trunc('day', ${event.startsAt} at time zone 'Asia/Seoul') + interval '1 day') at time zone 'Asia/Seoul' - interval '1 second')`
@@ -134,6 +137,12 @@ export async function eventDetailOf(
     ...summary!,
     tasks: await taskCountsOf(db, eventId),
     history: await eventHistoryOf(db, eventId),
-    actions: EVENT_ACTIONS.filter(action => can(actor, action, context)),
+    approvals: await completionApprovalsOf(db, eventId),
+    // 완료한 행사는 고치기와 책임자 바꾸기가 잠긴다(완료 취소로 다시 열린다).
+    actions: EVENT_ACTIONS.filter(
+      action =>
+        can(actor, action, context) &&
+        !(LOCKED_ACTIONS.has(action) && summary!.status === 'completed'),
+    ),
   }
 }

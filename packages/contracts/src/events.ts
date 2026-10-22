@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { text } from './input.js'
 import { koreanDateTime } from './korean-time.js'
 import type { Action } from './permissions.js'
+import type { SettlementApproval } from './settlement.js'
+import { PURCHASE_REASON_MAX } from './purchases.js'
 import { recordIdInput } from './team.js'
 
 // 행사(DEC-28). 값은 DB CHECK와 같다.
@@ -43,10 +45,20 @@ export type UpdateEventRequest = z.infer<typeof UpdateEventSchema>
 export const SetEventOwnerSchema = z.strictObject({ ownerId: recordIdInput.nullable() })
 export type SetEventOwnerRequest = z.infer<typeof SetEventOwnerSchema>
 
+// 완료(회장단). 사유는 적을 수만 있다(결재 기록에 남는다).
+export const CompleteEventSchema = z.strictObject({
+  reason: text(PURCHASE_REASON_MAX).nullable().default(null),
+})
+export type CompleteEventRequest = z.infer<typeof CompleteEventSchema>
+// 완료 취소(회장단). 사유가 꼭 있다. 참가비 수입을 취소할 때도 같은 사유를 쓴다.
+export const CancelCompletionSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
+export type CancelCompletionRequest = z.infer<typeof CancelCompletionSchema>
+
 // 행사마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
 export const EVENT_ACTIONS = [
   'event.update',
   'event.set_owner',
+  'event.complete',
 ] as const satisfies readonly Action[]
 export type EventAction = (typeof EVENT_ACTIONS)[number]
 
@@ -83,6 +95,8 @@ export interface EventDetail extends EventSummary {
   tasks: { open: number; total: number }
   // 오래된 판부터 모두
   history: EventVersion[]
+  // 완료와 완료 취소 결재를 오래된 것부터 모두(DEC-68)
+  approvals: SettlementApproval[]
   actions: EventAction[]
 }
 

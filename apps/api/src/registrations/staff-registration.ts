@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
+import { assertEventOpen } from '../events/completion.js'
 import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
@@ -49,6 +50,8 @@ export async function lockedRegistration(
   const first = await rowOf(tx, actor, registrationId)
   if (!first) throw new ApiError('NOT_FOUND')
   await check(tx, actor, { id: first.eventId, ownerId: first.ownerId })
+  // 완료한 행사의 신청·입금·출석은 바꾸지 못한다(DEC-68). 권한 뒤, 신청 행 잠금 앞이다(공개 경로와 같은 차례).
+  await assertEventOpen(tx, first.eventId)
   await lockRegistration(tx, first.id)
   const row = await rowOf(tx, actor, registrationId)
   if (!row) throw new ApiError('NOT_FOUND')

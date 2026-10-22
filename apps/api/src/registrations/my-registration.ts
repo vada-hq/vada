@@ -25,6 +25,7 @@ export async function mineRowOf(db: Reader, token: string) {
   const [row] = await db
     .select({
       id: registration.id,
+      eventId: registrationForm.eventId,
       name: registration.name,
       studentId: registration.studentId,
       phone: registration.phone,

@@ -1,11 +1,21 @@
 import type { SettlementRemainingKind, SettlementResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
+import { createBudgetRoutes } from '../budget/routes.js'
 import { createTestDb } from '../db/test-db.js'
+import { createDepositRoutes } from '../deposits/routes.js'
 import { createEventRoutes } from '../events/routes.js'
-import { clockNow, createRecord } from '../records/records.js'
+import { createExpenseRoutes } from '../expenses/routes.js'
+import { createFeePaymentRoutes } from '../fee-payments/routes.js'
+import { createRateLimiter } from '../http/rate-limit.js'
+import { createPurchaseRoutes } from '../purchases/routes.js'
+import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { createRegistrationRoutes } from '../registrations/routes.js'
+import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { seedCouncil } from './council.js'
 import { caller, ORIGIN, testSession } from './http.js'
+import { fakeStorage } from './storage.js'
 
 export { MISSING } from './events.js'
 
@@ -22,12 +32,28 @@ async function startSettlement() {
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
   const now = new Date('2026-10-25T03:00:00Z')
+  const clock = () => now
+  // 시계가 멈춰 있어 한도 창이 열리지 않으므로 한도를 넉넉히 둔다. 완료 잠금 표 시험이 같은 사람으로 많이 쓴다.
+  const writeLimiter = createRateLimiter({ limit: 100_000, windowMs: 10_000 })
+  const store = fakeStorage()
   const api = caller(
     createApp({
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
-      events: createEventRoutes(db, testSession, { clock: () => now }),
-      settlement: createSettlementRoutes(db, testSession, { clock: () => now }),
+      events: createEventRoutes(db, testSession, { clock, writeLimiter }),
+      settlement: createSettlementRoutes(db, testSession, { clock }),
+      purchases: createPurchaseRoutes(db, testSession, { clock, writeLimiter }),
+      budget: createBudgetRoutes(db, testSession, { clock }),
+      expenses: createExpenseRoutes(db, testSession, {
+        clock,
+        writeLimiter,
+        storage: store.storage,
+      }),
+      registrations: createRegistrationRoutes(db, testSession, { clock, writeLimiter }),
+      deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
+      publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
+      tasks: createTaskRoutes(db, testSession, { clock, writeLimiter }),
+      feePayments: createFeePaymentRoutes(db, testSession, { clock, writeLimiter }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/events`
@@ -108,12 +134,13 @@ async function startSettlement() {
       actedAt,
       reason,
     })
-  const form = (eventId: string, owner = council) =>
+  const form = (eventId: string, owner = council, values: Values = {}) =>
     make(owner, 'registration_form', {
       eventId,
       name: '신청',
       closesAt: new Date('2026-11-01T09:00:00Z'),
       publicCode: nextCode(),
+      ...values,
     })
   const registration = (formId: string, values: Values = {}, owner = council) =>
     make(
@@ -124,6 +151,16 @@ async function startSettlement() {
     )
   const deposit = (registrationId: string, values: Values = {}) =>
     make(council, 'deposit', { registrationId, amount: '5000', confirmedAt: clockNow, ...values })
+  const change = (kind: 'registration' | 'event', id: string, changes: Values) =>
+    db.transaction(tx =>
+      updateRecord(tx, {
+        kind,
+        id,
+        actor: council.people.president.memberId,
+        reason: null,
+        changes,
+      } as Parameters<typeof updateRecord>[1]),
+    )
   const read = (eventId: string, user = 's-president') =>
     api.get(`${base}/${eventId}/settlement`, user)
   const settlement = async (eventId: string, user = 's-president') => {
@@ -145,6 +182,8 @@ async function startSettlement() {
     other,
     api,
     base,
+    store,
+    change,
     make,
     event,
     budgetOf,

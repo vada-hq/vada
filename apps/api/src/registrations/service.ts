@@ -8,6 +8,7 @@ import {
 import type { Actor } from '../access/actor.js'
 import { assertUsableAccount } from '../accounts/queries.js'
 import type { Tx } from '../db/types.js'
+import { assertEventOpen } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -42,6 +43,7 @@ export async function createForm(
 ): Promise<RegistrationForm> {
   const eventRow = await eventRowOf(tx, actor, target.eventId)
   await assertManage(tx, actor, { id: eventRow.id, ownerId: eventRow.ownerId })
+  await assertEventOpen(tx, eventRow.id)
   await assertFeeAccount(tx, actor, input)
   const id = await createRecord(tx, {
     kind: 'registration_form',
@@ -92,6 +94,7 @@ export async function updateForm(
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
   await assertManage(tx, actor, { id: row.eventId, ownerId: row.eventOwnerId })
+  await assertEventOpen(tx, row.eventId)
   await assertFeeAccount(tx, actor, input)
   const changes = changesOf(row, input)
   if (Object.keys(changes).length)
@@ -114,6 +117,7 @@ export async function setPaused(
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
   await assertManage(tx, actor, { id: row.eventId, ownerId: row.eventOwnerId })
+  await assertEventOpen(tx, row.eventId)
   if ((row.pausedAt !== null) !== target.paused)
     await updateRecord(tx, {
       kind: 'registration_form',

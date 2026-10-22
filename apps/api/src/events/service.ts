@@ -12,6 +12,7 @@ import { lockCurrentMembers } from '../chat/current-members.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
+import { assertEventOpen } from './completion.js'
 import { eventDetailOf, eventRowOf } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 행사 행 읽기 → 권한표 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -60,6 +61,7 @@ export async function updateEvent(
   const row = await eventRowOf(tx, actor, target.eventId)
   const context = row.ownerId ? { eventOwnerId: row.ownerId } : {}
   if (!can(actor, 'event.update', context)) throw new ApiError('FORBIDDEN')
+  await assertEventOpen(tx, row.id)
   const same = (value: Date | null, wanted: string | null) =>
     (value ? koreanOf(value) : null) === wanted
   const changes = {
@@ -88,6 +90,7 @@ export async function setEventOwner(
 ): Promise<EventDetail> {
   if (!can(actor, 'event.set_owner')) throw new ApiError('FORBIDDEN')
   const row = await eventRowOf(tx, actor, target.eventId)
+  await assertEventOpen(tx, row.id)
   if (input.ownerId !== row.ownerId) {
     await assertOwner(tx, actor, input.ownerId, target.now)
     await updateRecord(tx, {

@@ -10,6 +10,7 @@ import { can } from '../access/permissions.js'
 import { evidence } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { assertExpenseEventOpen } from './event-lock.js'
 import { createRecord } from '../records/records.js'
 import type { VerifiedPhoto } from '../storage/uploads.js'
 import { lockedExpenseRow } from './lock.js'
@@ -25,6 +26,7 @@ export async function attachEvidence(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
+  await assertExpenseEventOpen(tx, expenseId)
   if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
   const [held] = await tx
     .select({ n: count() })

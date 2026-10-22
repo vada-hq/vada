@@ -16,6 +16,7 @@ export async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
     .select({
       id: registrationForm.id,
       councilId: record.councilId,
+      eventId: event.id,
       feeAccountId: registrationForm.feeAccountId,
       councilName: council.name,
       eventName: event.name,

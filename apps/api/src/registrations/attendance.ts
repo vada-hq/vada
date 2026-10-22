@@ -3,6 +3,7 @@ import type { CheckInResult } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { attendance, registration, registrationForm, registrationLink } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { assertEventOpen } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -84,6 +85,7 @@ export async function checkInByQr(
 ): Promise<CheckInResult> {
   const event = await eventRowOf(tx, actor, target.eventId)
   await assertManage(tx, actor, { id: event.id, ownerId: event.ownerId })
+  await assertEventOpen(tx, event.id)
   const first = await linkedRegistration(tx, event.id, target.tokenHash)
   if (!first) throw new ApiError('NOT_FOUND')
   await lockRegistration(tx, first.registrationId)

@@ -47,6 +47,7 @@ function summaryRows(
       body: request.body,
       neededBy: request.neededBy,
       cancelledAt: request.cancelledAt,
+      eventId: request.eventId,
       requestedBy: request.requestedBy,
       requesterName: member.name,
       createdAt: record.createdAt,

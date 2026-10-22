@@ -3,9 +3,10 @@ import type { DecideLineItems, PurchaseRequestDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import { assertCurrentExpenseItems } from '../budget/queries.js'
+import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries.js'
 import { approval, lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { assertEventsOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { lockedRequestRow } from './lock.js'
@@ -13,6 +14,12 @@ import { requestDetailOf, requestRowOf } from './queries.js'
 import type { PurchaseNotice } from './service.js'
 
 type Decision = DecideLineItems['decisions'][number]
+
+// 승인하며 고른 예산 항목의 행사. 완료한 행사의 예산 항목은 결재에서 고를 수 없다(DEC-68).
+async function budgetItemEventIds(tx: Tx, actor: Actor, decisions: Decision[]) {
+  const ids = decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : []))
+  return budgetItemEventsOf(tx, actor, ids)
+}
 
 // 이 요청의 품목을 id 순으로 잠근다. 같은 품목을 동시에 결재하는 거래는 여기서 한 줄로 서고, 뒤 거래는 앞 거래가 남긴 결재 기록을 본다.
 async function lockedItemIds(tx: Tx, requestId: string) {
@@ -96,6 +103,10 @@ export async function decideLineItems(
   const { input, now } = command
   if (!can(actor, 'purchase.approve')) throw new ApiError('FORBIDDEN')
   const row = await lockedRequestRow(tx, actor, requestId)
+  await assertEventsOpen(tx, [
+    row.eventId,
+    ...(await budgetItemEventIds(tx, actor, input.decisions)),
+  ])
   if (row.cancelledAt) throw new ApiError('REQUEST_CLOSED')
   const own = await lockedItemIds(tx, requestId)
   const ids = input.decisions.map(item => item.lineItemId)

@@ -48,6 +48,7 @@ export function eventDetail(
         changes: [{ field: 'created' }],
       },
     ],
+    approvals: [],
     actions,
     ...overrides,
   }

@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { PUBLIC_CODE_PATTERN, type ApplyRequest } from '@vada/contracts'
 import { registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { assertEventOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import { appliedFeeOf } from './fee-match.js'
@@ -36,6 +37,8 @@ export async function applyToForm(
 ): Promise<{ token: string }> {
   const code = target.code.toUpperCase()
   if (!PUBLIC_CODE_PATTERN.test(code)) throw new ApiError('NOT_FOUND')
+  // 학생회 행을 잠그지 않는 경로(선착순이 다른 변경 뒤에 줄 서지 않게)라 완료와는 행사 행에서 만난다(DEC-68). 양식 행 잠금보다 먼저다.
+  await assertEventOpen(tx, (await publicRowOf(tx, code)).eventId)
   await lockForm(tx, code)
   const form = await publicRowOf(tx, code)
   const status = registrationStatusOf(

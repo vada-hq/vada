@@ -2,6 +2,7 @@ import type { CreatePurchaseRequest, PurchaseRequestDetail } from '@vada/contrac
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
+import { assertEventOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { currentFinanceMembers } from './finance-members.js'
@@ -80,6 +81,7 @@ export async function cancelPurchaseRequest(tx: Tx, actor: Actor, requestId: str
   }
   if (!can(actor, 'purchase.cancel', { requestedBy: row.requestedBy }))
     throw new ApiError('FORBIDDEN')
+  await assertEventOpen(tx, row.eventId)
   if (!canCancel(actor, facts)) throw new ApiError('REQUEST_CLOSED')
   await updateRecord(tx, {
     kind: 'request',

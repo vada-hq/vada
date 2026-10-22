@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm'
 import { koreanDateOf, type BudgetResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { budget, budgetItem, cohort, fiscalPeriod } from '../db/schema.js'
+import { budget, budgetItem, cohort, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 
@@ -65,6 +65,21 @@ export async function budgetOf(db: Reader, actor: Actor, now: Date): Promise<Bud
     .from(cohort)
     .where(eq(cohort.id, actor.cohortId))
   return { period: null, items: [], suggested: current ?? null }
+}
+
+// 이 학생회의 예산 항목들이 매인 행사 번호(없는 항목은 빠진다). 완료한 행사의 항목을 고르지 못하게 하는 확인이 쓴다.
+export async function budgetItemEventsOf(
+  db: Reader,
+  actor: Actor,
+  ids: readonly string[],
+): Promise<string[]> {
+  if (!ids.length) return []
+  const rows = await db
+    .select({ eventId: budgetItem.eventId })
+    .from(budgetItem)
+    .innerJoin(record, eq(record.id, budgetItem.id))
+    .where(and(inArray(budgetItem.id, [...new Set(ids)]), eq(record.councilId, actor.councilId)))
+  return rows.flatMap(row => (row.eventId ? [row.eventId] : []))
 }
 
 // 승인과 지출에 고른 예산 항목은 오늘(한국)이 든 이 학생회 회계 기간의 지출 항목이어야 한다. 다른 학생회, 수입 항목, 지금 기간 밖은 409다.
