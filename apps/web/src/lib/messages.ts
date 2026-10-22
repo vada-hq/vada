@@ -185,6 +185,7 @@ export const ACCOUNT_FAILED = '저장하지 못했어요. 다시 시도해 주�
 
 // 납부자 명단 탭: 올리기와 빼기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const FEE_PAYMENTS_LOAD_FAILED = '납부자 명단을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const FEE_PAYMENT_SEARCH_INVALID = '학번은 숫자로, 너무 길지 않게 써 주세요.'
 export const FEE_PAYMENT_LOST = '이 학번은 이미 비워졌어요. 명단을 새로 불러왔어요.'
 export const FEE_PAYMENT_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',

@@ -48,6 +48,7 @@ test('탭에 계좌가 있고 카드에 이름, 은행, 계좌번호, 예금주,
     '지출',
     '예산',
     '계좌',
+    '납부자 명단',
   ])
   const main = within(cardOf('학생회비 통장'))
   expect(main.getByText('국민은행')).toBeTruthy()

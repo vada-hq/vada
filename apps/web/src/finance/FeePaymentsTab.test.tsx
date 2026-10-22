@@ -2,10 +2,14 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { Action, FeePaymentsResponse } from '@vada/contracts'
-import { FINANCE_PERMISSIONS } from '@/test-support/council-fixtures'
+import {
+  FINANCE_PERMISSIONS,
+  LEADER_PERMISSIONS,
+  MEMBER_PERMISSIONS,
+} from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { FEE_PAYMENT_SEARCH_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
 afterEach(() => {
@@ -14,8 +18,8 @@ afterEach(() => {
 })
 
 const FEES = `${BASE}/fee-payments`
-const MANAGER: Action[] = [...FINANCE_PERMISSIONS, 'fee_payment.view', 'fee_payment.manage']
-const VIEWER: Action[] = [...FINANCE_PERMISSIONS, 'fee_payment.view']
+const MANAGER: Action[] = FINANCE_PERMISSIONS
+const VIEWER: Action[] = LEADER_PERMISSIONS
 const PAYMENT_ID = '22222222-2222-4222-8222-222222222222'
 
 const periods: FeePaymentsResponse = {
@@ -46,7 +50,7 @@ const fill = (label: string, value: string) =>
 
 test('탭은 fee_payment.view가 있을 때만 보인다', () => {
   serveFinance()
-  showFinance(FINANCE_PERMISSIONS)
+  showFinance(MEMBER_PERMISSIONS)
   expect(screen.queryByRole('tab', { name: '납부자 명단' })).toBeNull()
   cleanup()
   showFinance(VIEWER)
@@ -82,6 +86,41 @@ test('찾은 학번이 없으면 안내가 보인다', async () => {
   expect(await screen.findByText('이 학번은 명단에 없어요.')).toBeTruthy()
   fireEvent.click(button('전체 보기'))
   await waitFor(() => expect(screen.queryByText('이 학번은 명단에 없어요.')).toBeNull())
+})
+
+test('찾는 동안과 찾기가 실패해도 찾기 줄이 남고 전체 보기로 돌아간다', async () => {
+  const { api } = await open()
+  const pending = deferredResponse()
+  api.on('GET', `${FEES}?studentId=20260000`, () => pending.promise)
+  fill('찾을 학번', '20260000')
+  fireEvent.click(button('찾기'))
+  expect(await screen.findByText('납부자 명단 불러오는 중…')).toBeTruthy()
+  expect(asElement(screen.getByLabelText('찾을 학번'), HTMLInputElement).value).toBe('20260000')
+  pending.resolve(json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  expect(await screen.findByText(/불러오지 못했어요/)).toBeTruthy()
+  expect(asElement(screen.getByLabelText('찾을 학번'), HTMLInputElement).value).toBe('20260000')
+  fireEvent.click(button('전체 보기'))
+  expect(await screen.findByRole('list', { name: '납부 기간' })).toBeTruthy()
+})
+
+test('연결이 끊겨 찾기가 실패해도 전체 보기가 남는다', async () => {
+  const { api } = await open()
+  api.on('GET', `${FEES}?studentId=20260000`, () => {
+    throw new Error('offline')
+  })
+  fill('찾을 학번', '20260000')
+  fireEvent.click(button('찾기'))
+  expect(await screen.findByText(/불러오지 못했어요/)).toBeTruthy()
+  expect(screen.getByLabelText('찾을 학번')).toBeTruthy()
+  expect(button('전체 보기')).toBeTruthy()
+})
+
+test('학번이 맞지 않아 찾기가 꺼지면 이유가 보인다', async () => {
+  await open()
+  expect(screen.queryByText(FEE_PAYMENT_SEARCH_INVALID)).toBeNull()
+  fill('찾을 학번', '1'.repeat(40))
+  expect(button('찾기').disabled).toBe(true)
+  expect(screen.getByText(FEE_PAYMENT_SEARCH_INVALID)).toBeTruthy()
 })
 
 async function openRemove() {

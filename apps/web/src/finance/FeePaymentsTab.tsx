@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   FeePaymentSearchSchema,
   type FeePaymentMatch,
+  type FeePaymentsResponse,
   type FeePaymentPeriod,
 } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
@@ -9,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FEE_PAYMENTS_LOAD_FAILED } from '@/lib/messages'
+import { FEE_PAYMENT_SEARCH_INVALID, FEE_PAYMENTS_LOAD_FAILED } from '@/lib/messages'
+import type { PolledState } from '@/lib/use-polled-read'
 import { FeePaymentRemoveDialog } from './FeePaymentRemoveDialog'
 import { FeePaymentUploadDialog } from './FeePaymentUploadDialog'
 import { useFeePayments } from './useFeePayments'
@@ -101,6 +103,9 @@ function SearchRow({
       <Button type="submit" variant="outline" disabled={!valid}>
         찾기
       </Button>
+      {query.trim() !== '' && !valid && (
+        <p className="w-full text-sm text-gray-500">{FEE_PAYMENT_SEARCH_INVALID}</p>
+      )}
       {applied && (
         <Button
           type="button"
@@ -162,6 +167,33 @@ function LoadFailed({ onRetry }: { onRetry: () => void }) {
   )
 }
 
+// 읽는 중·실패는 목록 자리만 바꾼다. 찾기 줄은 늘 남아 있어야 실패해도 전체 보기로 돌아갈 수 있다.
+function ListArea({
+  state,
+  applied,
+  canManage,
+  onRetry,
+  onRemove,
+}: {
+  state: PolledState<FeePaymentsResponse>
+  applied: string | undefined
+  canManage: boolean
+  onRetry: () => void
+  onRemove: (payment: FeePaymentMatch) => void
+}) {
+  if (state.kind === 'loading')
+    return <StateMessage kind="loading">납부자 명단 불러오는 중…</StateMessage>
+  if (state.kind === 'failed') return <LoadFailed onRetry={onRetry} />
+  return (
+    <>
+      <Periods periods={state.data.periods} />
+      {applied && (
+        <Matches matches={state.data.matches} canManage={canManage} onRemove={onRemove} />
+      )}
+    </>
+  )
+}
+
 // 납부자 명단 탭: 납부 기간마다 수를 보이고, 학번을 찾아 있는지 본다. 재정부는 붙여 넣어 올리고 잘못 올린 학번을 뺀다.
 export function FeePaymentsTab({ councilId, canManage, onForbidden }: Props) {
   const [applied, setApplied] = useState<string | undefined>(undefined)
@@ -185,9 +217,6 @@ export function FeePaymentsTab({ councilId, canManage, onForbidden }: Props) {
     setOpen(null)
     if (changed) void list.reload()
   }
-  if (state.kind === 'loading')
-    return <StateMessage kind="loading">납부자 명단 불러오는 중…</StateMessage>
-  if (state.kind === 'failed') return <LoadFailed onRetry={() => void list.reload()} />
   return (
     <div className="flex flex-col gap-3">
       {lost && <StateMessage kind="error">{lost}</StateMessage>}
@@ -196,15 +225,14 @@ export function FeePaymentsTab({ councilId, canManage, onForbidden }: Props) {
           납부자 올리기
         </Button>
       )}
-      <Periods periods={state.data.periods} />
       <SearchRow applied={applied} onSearch={setApplied} />
-      {applied && (
-        <Matches
-          matches={state.data.matches}
-          canManage={canManage}
-          onRemove={payment => start({ kind: 'remove', payment })}
-        />
-      )}
+      <ListArea
+        state={state}
+        applied={applied}
+        canManage={canManage}
+        onRetry={() => void list.reload()}
+        onRemove={payment => start({ kind: 'remove', payment })}
+      />
       <FeeDialogs open={open} councilId={councilId} handlers={handlers} close={close} />
     </div>
   )
