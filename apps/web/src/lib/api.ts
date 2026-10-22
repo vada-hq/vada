@@ -16,6 +16,17 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler
 }
 
+// 서버가 동의 전이라고 막으면(403 TERMS_REQUIRED) 앱이 등록한 처리기가 동의 화면으로 돌려보낸다. 화면마다 이 코드를 따로 가르지 않는다.
+let onTermsRequired: (() => void) | null = null
+export function setTermsRequiredHandler(handler: (() => void) | null) {
+  onTermsRequired = handler
+}
+
+function failure(status: number, code: unknown) {
+  if (status === statusOf('TERMS_REQUIRED') && code === 'TERMS_REQUIRED') onTermsRequired?.()
+  return { ok: false as const, status, code: trusted(status, code) ? code : 'FAILED' }
+}
+
 async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
   try {
     const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store', ...init })
@@ -23,12 +34,7 @@ async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
     if (response.status === NO_CONTENT) return { ok: true, data: undefined as T }
     const body: unknown = await response.json().catch(() => null)
     if (response.ok && body !== null) return { ok: true, data: body as T }
-    const code = (body as { error?: unknown } | null)?.error
-    return {
-      ok: false,
-      status: response.status,
-      code: trusted(response.status, code) ? code : 'FAILED',
-    }
+    return failure(response.status, (body as { error?: unknown } | null)?.error)
   } catch {
     return { ok: false, status: 0, code: 'FAILED' }
   }

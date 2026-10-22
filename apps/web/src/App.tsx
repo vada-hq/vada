@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AgreementGate from './auth/AgreementGate'
 import { authClient } from './auth/auth-client'
 import SignedInView from './auth/SignedInView'
 import SignedOutView from './auth/SignedOutView'
@@ -16,22 +17,26 @@ export default function App() {
   const [homeScreenApp] = useState(() => isIosHomeScreenApp(navigator as { standalone?: boolean }))
   useSessionRecheck(homeScreenApp, Boolean(session), refetch)
 
+  const onLogout = () => {
+    void logout()
+  }
+
   if (!isPending && !error && session)
     return (
-      <SignedInView
-        user={session.user}
-        invite={invite}
-        opened={opened}
-        chatLink={chatLink}
-        busy={busy}
-        message={message}
-        onEnterCode={enterCode}
-        onLeaveInvite={leaveInvite}
-        onJoined={joined}
-        onLogout={() => {
-          void logout()
-        }}
-      />
+      <AgreementGate key={session.user.id} logoutBusy={busy} onLogout={onLogout}>
+        <SignedInView
+          user={session.user}
+          invite={invite}
+          opened={opened}
+          chatLink={chatLink}
+          busy={busy}
+          message={message}
+          onEnterCode={enterCode}
+          onLeaveInvite={leaveInvite}
+          onJoined={joined}
+          onLogout={onLogout}
+        />
+      </AgreementGate>
     )
   return (
     <SignedOutView

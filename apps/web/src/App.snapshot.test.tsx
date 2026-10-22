@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import App from './App'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { json, mockApi } from './test-support/mock-api'
@@ -45,40 +45,40 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-test('로그인 전', () => {
-  render(<App />)
+test('로그인 전', async () => {
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('로그인 전: 초대 링크로 옴', () => {
+test('로그인 전: 초대 링크로 옴', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
-  render(<App />)
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('로그인 전: 로그인 시작 실패', async () => {
   auth.social.mockRejectedValue(new Error('x'))
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: /Google/ }))
   await screen.findByText('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('로그인 전: 카카오톡 안 브라우저', () => {
+test('로그인 전: 카카오톡 안 브라우저', async () => {
   vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(kakaoAgent)
-  render(<App />)
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('세션을 불러오는 중', () => {
+test('세션을 불러오는 중', async () => {
   session({ data: null, isPending: true })
-  render(<App />)
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('세션 확인 오류', () => {
+test('세션 확인 오류', async () => {
   session({ data: null, error: new Error('x') })
-  render(<App />)
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -86,16 +86,16 @@ test('학생회 없음', async () => {
   signedIn()
   const api = mockApi()
   api.on('GET', '/api/me/councils', () => json({ councils: [] }))
-  render(<App />)
+  await renderApp()
   await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('학생회 확인 중', () => {
+test('학생회 확인 중', async () => {
   signedIn()
   const api = mockApi()
   api.on('GET', '/api/me/councils', () => new Promise<Response>(() => {}))
-  render(<App />)
+  await renderApp()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -124,14 +124,14 @@ async function openPeople() {
 test('작업 공간: 학생회를 불러오는 중', async () => {
   const api = openWorkspace()
   api.on('GET', '/api/organizations/c1', () => new Promise<Response>(() => {}))
-  render(<App />)
+  await renderApp()
   await screen.findByText('학생회 불러오는 중…')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('작업 공간: 사람', async () => {
   openWorkspace()
-  render(<App />)
+  await renderApp()
   await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
@@ -141,7 +141,7 @@ test('작업 공간: 사람', async () => {
 
 test('작업 공간: 부서', async () => {
   openWorkspace()
-  render(<App />)
+  await renderApp()
   await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
@@ -154,14 +154,14 @@ test('작업 공간: 부서', async () => {
 
 test('작업 공간: 대화 방 목록', async () => {
   openWorkspace()
-  render(<App />)
+  await renderApp()
   await screen.findByText('재정부')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('작업 공간: 대화 방', async () => {
   openWorkspace()
-  render(<App />)
+  await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
   await screen.findByText('모레 회의 있어요')
   expect(snapshotHtml()).toMatchSnapshot()
@@ -170,14 +170,14 @@ test('작업 공간: 대화 방', async () => {
 test('작업 공간: 학생회를 불러오지 못함', async () => {
   const api = openWorkspace()
   api.on('GET', '/api/organizations/c1', () => json({ error: 'Internal server error' }, 500))
-  render(<App />)
+  await renderApp()
   await screen.findByText('학생회를 불러오지 못했어요. 연결을 확인해 주세요.')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   openWorkspace()
-  render(<App />)
+  await renderApp()
   await openPeople()
   await screen.findByText('운영진 3명')
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.

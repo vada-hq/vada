@@ -12,6 +12,12 @@ const EMAIL_IN_USE =
 // 화면마다 서버 오류 코드를 문구로 바꾸는 표. 표에 없는 코드는 그 화면의 일반 실패 문구로 보인다.
 export const NOT_FOUND_RELOADED = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
 
+// 가입 동의 화면: 보여 준 뒤 약관이 바뀌었다(서버 TERMS_OUTDATED). 새 판을 다시 읽어 보인다.
+export const AGREEMENT_ERRORS: Record<string, string> = {
+  TERMS_OUTDATED: '약관이 바뀌었어요. 새 내용을 확인하고 다시 동의해 주세요.',
+}
+export const AGREEMENT_FAILED = '동의를 저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+
 export const CREATE_COUNCIL_ERRORS: Record<string, string> = {
   COHORT_NOT_CURRENT: '임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.',
   EMAIL_IN_USE,

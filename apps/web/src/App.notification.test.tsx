@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import App from './App'
+import { renderApp } from './test-support/render-app'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { json, mockApi } from './test-support/mock-api'
@@ -62,7 +62,7 @@ afterEach(() => {
 
 test('앱이 닫혀 있다가 알림 주소로 열리면 그 학생회의 그 방이 열린다', async () => {
   window.history.replaceState(null, '', '/chat/c2/r1')
-  render(<App />)
+  await renderApp()
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
   expect(api.calls.some(call => call.path === '/api/organizations/c2/rooms/r1')).toBe(true)
   expect(api.calls.some(call => call.path === '/api/organizations/c1/rooms/r1')).toBe(false)
@@ -71,21 +71,21 @@ test('앱이 닫혀 있다가 알림 주소로 열리면 그 학생회의 그 �
 
 test('내 학생회가 아닌 학생회의 방 주소는 무시하고 첫 학생회의 방 목록을 연다', async () => {
   window.history.replaceState(null, '', '/chat/other/r1')
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
   expect(api.calls.some(call => call.path.includes('/other/'))).toBe(false)
 })
 
 test('열려 있는 동안 알림을 누르면 보던 곳에서 그 방으로 옮겨 간다', async () => {
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c1/r1' } }))
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
 })
 
 test('내 학생회가 아닌 방 알림을 눌러도 열려 있는 방과 화면은 그대로다', async () => {
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c1/r1' } }))
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
@@ -98,7 +98,7 @@ test('내 학생회가 아닌 방 알림을 눌러도 열려 있는 방과 화�
 
 test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대화로 돌아오면 방 목록이 열린다', async () => {
   window.history.replaceState(null, '', '/chat/c1/r1')
-  render(<App />)
+  await renderApp()
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '사람' }))
@@ -127,7 +127,7 @@ const taskDialog = async () => {
 test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무 화면과 그 업무 상세가 열린다', async () => {
   taskApi('c2')
   window.history.replaceState(null, '', `/tasks/c2/${T1}`)
-  render(<App />)
+  await renderApp()
   expect(await taskDialog()).toContain('현수막 주문')
   expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
   expect(api.calls.some(call => call.path === `/api/organizations/c2/tasks/${T1}`)).toBe(true)
@@ -137,7 +137,7 @@ test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무
 
 test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던 곳에서 그 업무 상세로 옮겨 간다', async () => {
   taskApi()
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
   expect(await taskDialog()).toContain('현수막 주문')
@@ -146,7 +146,7 @@ test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던
 
 test('같은 업무 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
   taskApi()
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   const press = () =>
     act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
@@ -163,7 +163,7 @@ test.each([
   ['다른 사이트의', `https://evil.example/tasks/c1/${T1}`],
   ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
 ])('%s 업무 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   const before = api.calls.length
   act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
@@ -179,7 +179,7 @@ test.each([
   ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
 ])('%s 업무 주소로 열면 첫 학생회의 대화가 열리고 업무는 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(taskCalls()).toEqual([])
@@ -188,7 +188,7 @@ test.each([
 test('지운 업무의 알림을 누르면 "이 업무를 볼 수 없어요"가 보인다', async () => {
   api.on('GET', `/api/organizations/c1/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
   window.history.replaceState(null, '', `/tasks/c1/${T1}`)
-  render(<App />)
+  await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
   expect(screen.queryByRole('dialog')).toBeNull()
 })
@@ -196,7 +196,7 @@ test('지운 업무의 알림을 누르면 "이 업무를 볼 수 없어요"가 
 test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업무로 돌아오면 상세가 닫혀 있다', async () => {
   taskApi()
   window.history.replaceState(null, '', `/tasks/c1/${T1}`)
-  render(<App />)
+  await renderApp()
   await taskDialog()
   fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -228,7 +228,7 @@ const financeHeading = () => screen.findByRole('heading', { level: 1, name: '재
 test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정 화면과 그 요청 상세가 열린다', async () => {
   requestApi('c2')
   window.history.replaceState(null, '', `/purchases/c2/${R1}`)
-  render(<App />)
+  await renderApp()
   await requestDialog()
   expect(await financeHeading()).toBeTruthy()
   expect(
@@ -240,7 +240,7 @@ test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정
 
 test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던 곳에서 그 요청 상세로 옮겨 간다', async () => {
   requestApi()
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
   await requestDialog()
@@ -249,7 +249,7 @@ test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던
 
 test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
   requestApi()
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   const press = () =>
     act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
@@ -266,7 +266,7 @@ test.each([
   ['다른 사이트의', `https://evil.example/purchases/c1/${R1}`],
   ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
 ])('%s 요청 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   const before = api.calls.length
   act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
@@ -281,7 +281,7 @@ test.each([
   ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
 ])('%s 요청 주소로 열면 첫 학생회의 대화가 열리고 요청은 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(requestCalls()).toEqual([])
@@ -295,7 +295,7 @@ test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 
     json({ error: 'NOT_FOUND' }, 404),
   )
   window.history.replaceState(null, '', `/purchases/c1/${R1}`)
-  render(<App />)
+  await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
   expect(screen.queryByRole('dialog')).toBeNull()
 })
@@ -303,7 +303,7 @@ test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 
 test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재정으로 돌아오면 상세가 닫혀 있다', async () => {
   requestApi()
   window.history.replaceState(null, '', `/purchases/c1/${R1}`)
-  render(<App />)
+  await renderApp()
   await requestDialog()
   fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -318,7 +318,7 @@ test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재�
 
 test('로그아웃하는 동안 옆 메뉴의 로그아웃 단추는 막혀 한 번만 보낸다', async () => {
   auth.signOut.mockReturnValue(new Promise(() => undefined))
-  render(<App />)
+  await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   const button = within(aside).getByRole('button', { name: '로그아웃' }) as HTMLButtonElement
   fireEvent.click(button)

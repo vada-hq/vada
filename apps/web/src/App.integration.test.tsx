@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { MyCouncil } from '@vada/contracts'
 import App from './App'
+import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { asElement } from '@/test-support/elements'
@@ -77,7 +78,7 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   councilsInSequence([])
   openCouncil()
   api.on('POST', '/api/organizations/create', () => json({ council: myCouncil() }, 201))
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
   expect(
     asElement(screen.getByRole('button', { name: '초대 코드로 들어가기' }), HTMLButtonElement)
@@ -112,7 +113,7 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
   openCouncil()
   const pending = deferredResponse()
   api.on('POST', '/api/organizations/create', () => pending.promise)
-  render(<App />)
+  await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), {
@@ -135,7 +136,7 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
 
 test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 버튼을 끄고 까닭을 보인다', async () => {
   councilsInSequence([])
-  render(<App />)
+  await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), {
@@ -157,7 +158,7 @@ test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 버�
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {
   councilsInSequence([])
   api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_CURRENT' }, 409))
-  render(<App />)
+  await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
@@ -178,7 +179,7 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
   )
   councilsInSequence([myCouncil('c1', '컴퓨터학부 학생회', null)])
   openCouncil()
-  render(<App />)
+  await renderApp()
   expect(
     await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' }),
   ).toBeTruthy()
@@ -195,14 +196,14 @@ test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회
   )
   councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회')])
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
 })
 
 test('코드를 직접 입력하면 초대 확인으로 가고, 틀린 코드면 다시 입력할 수 있다', async () => {
   councilsInSequence([])
   api.on('GET', '/api/invites/ZZZZ2222', () => json({ error: 'NOT_FOUND' }, 404))
-  render(<App />)
+  await renderApp()
   fireEvent.change(await screen.findByLabelText('초대 코드'), {
     target: { value: 'https://vada.test/join/zzzz-2222' },
   })
@@ -222,7 +223,7 @@ test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보�
     json({ council: { id: 'c1', name: '컴퓨터학부 학생회' }, joined: false }),
   )
   api.on('POST', '/api/organizations/join', () => json({ error: 'NO_CURRENT_COHORT' }, 409))
-  render(<App />)
+  await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '들어가기' }))
   expect(
     await screen.findByText('지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.'),
@@ -238,7 +239,7 @@ test('내보내진 사람의 다음 요청이 403이면 그 학생회를 닫고,
   councilsInSequence([myCouncil('c1', '컴퓨터학부 학생회', null)], [])
   api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
   expect(api.calls.filter(call => call.path === '/api/me/councils').length).toBeGreaterThanOrEqual(
     2,
@@ -249,7 +250,7 @@ test('학생회 이름 메뉴로 다른 학생회를 고른다', async () => {
   councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)])
   openCouncil()
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   const menu = await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })
   fireEvent.keyDown(menu, { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
@@ -263,7 +264,7 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
   councilsInSequence([myCouncil()])
   openCouncil()
   auth.signOut.mockResolvedValue({ error: null })
-  render(<App />)
+  await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   expect(await within(aside).findByText('회장')).toBeTruthy()
   expect(within(aside).getByText('김회장')).toBeTruthy()
@@ -278,7 +279,7 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
 test('옆 메뉴로 운영진 > 부서를 열고, 학생회 이름 메뉴의 설정으로 학생회 정보를 연다', async () => {
   councilsInSequence([myCouncil()])
   openCouncil()
-  render(<App />)
+  await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '부서' }))
   expect(await screen.findByRole('heading', { level: 1, name: '부서' })).toBeTruthy()
@@ -302,7 +303,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회
   api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   const menu = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
   await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
   fireEvent.keyDown(menu, { key: 'Enter' })
@@ -327,7 +328,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 남은 학생
   )
   api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
   await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
   expect(screen.queryByRole('button', { name: /학생회 메뉴/ })).toBeNull()
@@ -341,7 +342,7 @@ test('내보내진 뒤 다른 학생회가 남아 있으면 그 학생회로 옮
   api.on('GET', '/api/organizations/c1', () => json({ error: 'FORBIDDEN' }, 403))
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
   await openPeople()
   expect(await screen.findByText('운영진 3명')).toBeTruthy()
@@ -357,6 +358,7 @@ test('학생회를 불러오지 못해 다시 시도했는데 403이면 그 학�
       : json({ error: 'FORBIDDEN' }, 403),
   )
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
+  // 동의 읽기를 기다리지 않는다: 읽기 실패 화면은 잠깐만 떠 있다가 403으로 지워진다.
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
@@ -376,7 +378,7 @@ test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다
   )
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
   emptyRooms('c1')
-  render(<App />)
+  await renderApp()
   await openPeople()
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
@@ -408,7 +410,7 @@ test('API가 401이면 세션을 다시 읽어 로그인 화면으로 돌아간�
     refetch: auth.refetch,
   }))
   api.on('GET', '/api/me/councils', () => json({ error: 'UNAUTHENTICATED' }, 401))
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
   expect(auth.refetch).toHaveBeenCalled()
   expect(screen.queryByText(/서버 연결을 확인해 주세요/)).toBeNull()
@@ -419,7 +421,7 @@ test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생�
   councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)])
   openCouncil()
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   fireEvent.keyDown(await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
     key: 'Enter',
   })
@@ -436,7 +438,7 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
   councilsInSequence([myCouncil('c1'), myCouncil('c2', '경영학부 학생회', null)])
   openCouncil()
   openCouncil('c2', '경영학부 학생회')
-  render(<App />)
+  await renderApp()
   await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
@@ -457,7 +459,7 @@ test('로그아웃에 실패해도 알림 줄은 화면 높이 안의 같은 열
   councilsInSequence([myCouncil()])
   openCouncil()
   auth.signOut.mockResolvedValue({ error: { message: 'failed' } })
-  render(<App />)
+  await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '로그아웃' }))
   const banner = await screen.findByText('로그아웃하지 못했어요. 다시 시도해 주세요.')
@@ -478,7 +480,7 @@ test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름�
   api.on('POST', '/api/organizations/c1/settings', () =>
     json(councilView('c1', { name: '소프트웨어학부 학생회' })),
   )
-  render(<App />)
+  await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
     key: 'Enter',
@@ -522,7 +524,7 @@ function councilReads(...after: (() => Response | Promise<Response>)[]) {
 const demoted = () => json(councilView('c1', { councilRank: null }))
 const councilGets = () => api.calls.filter(call => call.path === '/api/organizations/c1')
 async function transferPresident() {
-  render(<App />)
+  await renderApp()
   await openPeople()
   fireEvent.keyDown(await screen.findByRole('button', { name: '이재정 동작' }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '회장 넘기기' }))
@@ -578,7 +580,7 @@ test('학생회를 열면 첫 화면이 대화이고, 옆 메뉴의 대화에 �
   api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
     json({ tasks: [], truncated: false }),
   )
-  render(<App />)
+  await renderApp()
   expect(await screen.findByRole('heading', { level: 1, name: '대화' })).toBeTruthy()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   expect((await within(aside).findByLabelText('안 읽은 메시지 120개')).textContent).toBe('99+')

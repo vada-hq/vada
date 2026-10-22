@@ -1,3 +1,4 @@
+import AgreementPanel from '@/auth/AgreementPanel'
 import KakaoBlock from '@/auth/KakaoBlock'
 import PushPanel from '@/push/PushPanel'
 import { AuthCard } from '@/components/AuthCard'
@@ -55,6 +56,29 @@ export function AuthSection() {
           <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
           <Button>Google로 로그인</Button>
         </div>
+      </AuthCard>
+    </Section>
+  )
+}
+
+// 주소 상수가 비어 있는 동안(#32 전) 운영에서는 이 화면이 뜨지 않는다. 주소가 있을 때의 모습을 여기서 본다.
+export function AgreementSection() {
+  return (
+    <Section title="가입 동의">
+      <AuthCard>
+        <AgreementPanel
+          terms={{
+            termsVersion: '2026-11-01',
+            privacyVersion: '2026-11-01',
+            termsUrl: 'https://example.com/terms',
+            privacyUrl: 'https://example.com/privacy',
+            required: true,
+            agreed: false,
+          }}
+          logoutBusy={false}
+          onTerms={() => {}}
+          onLogout={() => {}}
+        />
       </AuthCard>
     </Section>
   )

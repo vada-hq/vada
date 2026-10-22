@@ -1,4 +1,5 @@
 import {
+  AgreementSection,
   AuthSection,
   HiddenSection,
   KakaoSection,
@@ -34,6 +35,7 @@ export default function Gallery() {
       <DecisionSection />
       <ExpenseSection />
       <AuthSection />
+      <AgreementSection />
       <KakaoSection />
       <LongTextSection />
       <HiddenSection />

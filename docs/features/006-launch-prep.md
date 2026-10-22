@@ -106,7 +106,7 @@
 - 닿는 곳: contracts `accounts.ts`(새), `expenses.ts`(계좌 칸, 상세의 계좌), `errors.ts`. `apps/api/src/accounts/`(새), `expenses/service.ts`, `expenses/queries.ts`, `app.ts`, `serve.ts`, `boundary.test.ts`, `ops/pg-smoke/`. 경로는 `GET accounts`, `POST accounts`, `POST accounts/:accountId`, `POST accounts/:accountId/close`.
 - 검토: 깊게(돈). 마이그레이션: 없음.
 
-### 6. 가입 동의 화면 [ ]
+### 6. 가입 동의 화면 [x]
 - 할 수 있게 되는 것: 처음 들어오거나 판이 바뀐 사람이 동의 화면에서 약관에 동의하고 가려던 곳으로 간다.
 - 수용 기준: 로그인 뒤 동의가 필요하면 학생회 고르기, 만들기, 참여보다 먼저 동의 화면이 보인다. 체크 하나, 약관 보기와 처리방침 보기(새 창, `rel="noopener noreferrer"`), [시작하기]가 있고 [시작하기]는 체크해야 켜지며 두 번 누름을 막는다. 동의하면 가려던 곳(초대 링크 `/join/…`, 알림 주소 포함)으로 간다. 쓰는 중 어느 요청이든 403 `TERMS_REQUIRED`면 동의 화면으로 간다. 409 `TERMS_OUTDATED`면 판을 다시 읽는다. 동의가 필요 없으면 보이지 않는다. 실패 문구가 버튼 옆에 보인다. 부품 확인 화면에 더하고 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/auth/`(동의 화면, `SignedInView.tsx`), API 호출 공통(403 코드 가르기), `lib/messages.ts`, `ui-gallery/`.

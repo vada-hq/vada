@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import App from './App'
+import { renderApp } from './test-support/render-app'
+import { mockApi } from './test-support/mock-api'
 
 const auth = vi.hoisted(() => ({
   useSession: vi.fn(),
@@ -78,6 +80,7 @@ const signedIn = () =>
   })
 beforeEach(() => {
   vi.resetAllMocks()
+  mockApi()
   window.history.replaceState(null, '', '/')
   auth.useSession.mockReturnValue({
     data: null,
@@ -86,11 +89,14 @@ beforeEach(() => {
     refetch: auth.refetch,
   })
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 test('anonymous user starts Google login with same-origin callbacks', async () => {
   auth.social.mockResolvedValue({ error: null })
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
   await waitFor(() =>
     expect(auth.social).toHaveBeenCalledWith({
@@ -101,9 +107,9 @@ test('anonymous user starts Google login with same-origin callbacks', async () =
   )
 })
 
-test('session loading and failures are not presented as logged out', () => {
+test('session loading and failures are not presented as logged out', async () => {
   auth.useSession.mockReturnValue({ data: null, isPending: true, error: null })
-  const view = render(<App />)
+  const view = await renderApp()
   expect(screen.getByRole('status').textContent).toContain('확인 중')
   expect(screen.queryByRole('button', { name: 'Google로 로그인' })).toBeNull()
   auth.useSession.mockReturnValue({
@@ -121,7 +127,7 @@ test('session loading and failures are not presented as logged out', () => {
 test('로그인하면 내 학생회 화면을 열고, 카드에 이름·휴대폰 알림·로그아웃이 있다', async () => {
   signedIn()
   auth.signOut.mockResolvedValue({ error: null })
-  const view = render(<App />)
+  const view = await renderApp()
   expect(screen.getByText('학생회 목록 자리')).toBeTruthy()
   expect(screen.getByText('test@example.test')).toBeTruthy()
   expect(screen.getByRole('button', { name: '휴대폰 알림' })).toBeTruthy()
@@ -142,7 +148,7 @@ test('로그아웃은 이 기기 줄을 먼저 지운 뒤에 한다', async () =
     order.push('로그아웃')
     return { error: null }
   })
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
   expect(order).toEqual(['기기 지우기', '로그아웃'])
@@ -151,7 +157,7 @@ test('로그아웃은 이 기기 줄을 먼저 지운 뒤에 한다', async () =
 test('알림 주소(/chat/학생회/방)로 열면 그 방을 열라고 넘기고 주소는 맨 앞으로 되돌린다', async () => {
   signedIn()
   window.history.replaceState(null, '', '/chat/c1/r1')
-  render(<App />)
+  await renderApp()
   expect(screen.getByText('방 열기: c1/r1/0')).toBeTruthy()
   await waitFor(() => expect(window.location.pathname).toBe('/'))
 })
@@ -167,7 +173,7 @@ test('열려 있는 동안 서비스 워커가 알리면 그 방으로 다시 �
       removeEventListener: () => undefined,
     },
   })
-  render(<App />)
+  await renderApp()
   expect(screen.queryByText(/방 열기/)).toBeNull()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c2/r9' } }))
   expect(screen.getByText('방 열기: c2/r9/1')).toBeTruthy()
@@ -180,7 +186,7 @@ test('열려 있는 동안 서비스 워커가 알리면 그 방으로 다시 �
 
 test('login failure allows retry without exposing the raw error', async () => {
   auth.social.mockRejectedValue(new Error('private error'))
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
   await waitFor(() =>
     expect(screen.getByRole('alert').textContent).toContain('로그인을 시작하지 못했어요'),
@@ -190,16 +196,16 @@ test('login failure allows retry without exposing the raw error', async () => {
   )
 })
 
-test('OAuth callback failure is explained without showing its raw value', () => {
+test('OAuth callback failure is explained without showing its raw value', async () => {
   window.history.replaceState(null, '', '/?error=access_denied')
-  render(<App />)
+  await renderApp()
   expect(screen.getByRole('alert').textContent).toContain('로그인이 완료되지 않았어요')
 })
 
 test('logout failure keeps the signed-in state and enables retry', async () => {
   signedIn()
   auth.signOut.mockResolvedValue({ error: { message: 'private error' } })
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   await waitFor(() =>
     expect(screen.getByRole('alert').textContent).toContain('로그아웃하지 못했어요'),
@@ -210,7 +216,7 @@ test('logout failure keeps the signed-in state and enables retry', async () => {
 test('초대 링크로 온 사람은 로그인 뒤 같은 초대로 돌아오고, 왜 로그인하는지 안다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
   auth.social.mockResolvedValue({ error: null })
-  render(<App />)
+  await renderApp()
   expect(
     screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 들어갈 수 있어요.'),
   ).toBeTruthy()
@@ -226,38 +232,38 @@ test('초대 링크로 온 사람은 로그인 뒤 같은 초대로 돌아오고
 
 test('초대 링크의 로그인이 실패해도 초대를 지키고 까닭을 알린다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345?error=access_denied')
-  render(<App />)
+  await renderApp()
   expect(screen.getByRole('alert').textContent).toContain('로그인이 완료되지 않았어요')
   expect(
     screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 들어갈 수 있어요.'),
   ).toBeTruthy()
 })
 
-test('로그인한 사람이 초대 링크로 오면 초대를 확인하고, 들어가면 주소를 지우고 그 학생회를 연다', () => {
+test('로그인한 사람이 초대 링크로 오면 초대를 확인하고, 들어가면 주소를 지우고 그 학생회를 연다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
   signedIn()
-  render(<App />)
+  await renderApp()
   expect(screen.getByText('초대 확인 자리: ABCD2345')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '들어가기' }))
   expect(window.location.pathname).toBe('/')
   expect(screen.getByText('학생회 목록 자리: c9')).toBeTruthy()
 })
 
-test('학생회가 없어 코드를 입력하면 초대 확인으로 가고, 나가면 목록으로 돌아온다', () => {
+test('학생회가 없어 코드를 입력하면 초대 확인으로 가고, 나가면 목록으로 돌아온다', async () => {
   signedIn()
-  render(<App />)
+  await renderApp()
   fireEvent.click(screen.getByRole('button', { name: '코드 입력' }))
   expect(screen.getByText('초대 확인 자리: WXYZ6789')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '나가기' }))
   expect(screen.getByText('학생회 목록 자리')).toBeTruthy()
 })
 
-test('KakaoTalk in-app browser offers the outside browser instead of Google login', () => {
+test('KakaoTalk in-app browser offers the outside browser instead of Google login', async () => {
   const agent = vi
     .spyOn(navigator, 'userAgent', 'get')
     .mockReturnValue('Mozilla/5.0 (Linux; Android 14) KAKAOTALK/10.9.0')
   try {
-    render(<App />)
+    await renderApp()
     expect(
       screen.getByText(
         '카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.',
@@ -279,7 +285,7 @@ test('iOS home-screen app opens an in-app window before asking for the Google UR
     error: null,
   })
   try {
-    render(<App />)
+    await renderApp()
     fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
     expect(open).toHaveBeenCalledWith('about:blank', '_blank')
     await waitFor(() => expect(popup.location.href).toBe('https://accounts.google.com/x'))
@@ -302,7 +308,7 @@ test('iOS home-screen app releases the busy state and says so when opening or dr
     throw new Error('window.open is not allowed here')
   })
   try {
-    render(<App />)
+    await renderApp()
     fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
     expect(
       await screen.findByText('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'),
@@ -337,7 +343,7 @@ test('iOS home-screen app releases the busy state and says so when opening or dr
   }
 })
 
-test('iOS home-screen app rechecks the session when the login window reports back', () => {
+test('iOS home-screen app rechecks the session when the login window reports back', async () => {
   Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
   const listeners: (() => void)[] = []
   vi.stubGlobal(
@@ -351,7 +357,7 @@ test('iOS home-screen app rechecks the session when the login window reports bac
     },
   )
   try {
-    render(<App />)
+    await renderApp()
     expect(listeners).toHaveLength(1)
     listeners[0]!()
     expect(auth.refetch).toHaveBeenCalled()
@@ -361,7 +367,7 @@ test('iOS home-screen app rechecks the session when the login window reports bac
   }
 })
 
-test('iOS home-screen app rechecks the session when it becomes visible again, and stops listening once signed in', () => {
+test('iOS home-screen app rechecks the session when it becomes visible again, and stops listening once signed in', async () => {
   Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
   let visibility: DocumentVisibilityState = 'visible'
   Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibility })
@@ -380,7 +386,7 @@ test('iOS home-screen app rechecks the session when it becomes visible again, an
     },
   )
   try {
-    const view = render(<App />)
+    const view = await renderApp()
     changeTo('hidden')
     expect(auth.refetch).not.toHaveBeenCalled()
     changeTo('visible')
@@ -405,7 +411,7 @@ test('iOS home-screen app rechecks the session when it becomes visible again, an
 test('로그아웃하는 동안 카드의 로그아웃 단추는 막혀 한 번만 보낸다', async () => {
   signedIn()
   auth.signOut.mockReturnValue(new Promise(() => undefined))
-  render(<App />)
+  await renderApp()
   const button = screen.getByRole('button', { name: '로그아웃' }) as HTMLButtonElement
   fireEvent.click(button)
   await waitFor(() => expect(button.disabled).toBe(true))

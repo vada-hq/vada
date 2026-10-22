@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { agreementResponse } from './agreement-fixtures'
 
 type ApiCall = { method: string; path: string; body: unknown; signal: AbortSignal | null }
 type Handler = (call: ApiCall) => Response | Promise<Response>
@@ -22,7 +23,10 @@ function describeRequest(input: RequestInfo | URL, init?: RequestInit) {
 
 // No network fallback. Assert after React cleanup so caught request failures cannot pass silently.
 export function mockApi() {
-  const routes = new Map<string, Handler>()
+  // 로그인한 앱은 먼저 동의 상태를 읽는다. 따로 정하지 않은 시험에서는 동의가 필요 없는 때로 답한다.
+  const routes = new Map<string, Handler>([
+    ['GET /api/me/agreement', () => json(agreementResponse())],
+  ])
   const unexpected: string[] = []
   const calls: ApiCall[] = []
   vi.stubGlobal(
