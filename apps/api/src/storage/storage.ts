@@ -13,6 +13,8 @@ export interface FileStorage {
   ): Promise<{ url: string; headers: Record<string, string>; expiresAt: Date }>
   downloadUrl(key: string, fileName: string, contentType: string): Promise<string>
   head(key: string): Promise<StoredObject | null>
+  // 객체 바이트를 한 번에 읽는다(증빙 묶음이 한 장씩). 없으면 null이고, 읽지 못하면 던진다.
+  read(key: string): Promise<Uint8Array | null>
   remove(key: string): Promise<void>
 }
 export interface R2Config {
@@ -70,7 +72,7 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     })
     return signed.url
   }
-  async function call(method: 'HEAD' | 'DELETE', key: string) {
+  async function call(method: 'HEAD' | 'DELETE' | 'GET', key: string) {
     return fetcher(
       await client.sign(objectUrl(key).toString(), { method, aws: { datetime: stamp() } }),
     )
@@ -112,6 +114,12 @@ export function createR2Storage(
         size: Number(response.headers.get('content-length') ?? '-1'),
         contentType: response.headers.get('content-type'),
       }
+    },
+    async read(key) {
+      const response = await call('GET', key)
+      if (response.status === NOT_FOUND) return null
+      if (!response.ok) throw new Error('STORAGE_READ_FAILED')
+      return new Uint8Array(await response.arrayBuffer())
     },
     async remove(key) {
       const response = await call('DELETE', key)

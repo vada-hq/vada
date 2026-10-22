@@ -7,6 +7,7 @@ import { createEventRoutes } from '../events/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createClosingRoutes } from '../closing/routes.js'
+import { createClosingExportRoutes } from '../closing/export-routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
@@ -29,7 +30,7 @@ const nextCode = () =>
   `BBBBB${'ABCDEFGH'[Math.floor(codes / 64) % 8]}${'ABCDEFGH'[Math.floor(codes / 8) % 8]}${'23456789'[codes++ % 8]}`
 
 // 학생회 둘(우리, 다른)과 정산 읽기를 띄운다. 기록은 기록 모듈로 바로 만들고, 남은 것이 빠지는 변화는 SQL로 바꾼다.
-async function startSettlement(options: { limit?: number } = {}) {
+async function startSettlement(options: { limit?: number; bundleLimit?: number } = {}) {
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
@@ -39,6 +40,11 @@ async function startSettlement(options: { limit?: number } = {}) {
   // 시계가 멈춰 있어 한도 창이 열리지 않으므로 한도를 넉넉히 둔다. 완료 잠금 표 시험이 같은 사람으로 많이 쓴다.
   const writeLimiter = createRateLimiter({ limit: options.limit ?? 100_000, windowMs: 10_000 })
   const store = fakeStorage()
+  // 묶음 한도 시험이 한도를 줄일 수 있게 하나를 밖에 둔다.
+  const bundleLimiter = createRateLimiter({
+    limit: options.bundleLimit ?? 100_000,
+    windowMs: 600_000,
+  })
   const api = caller(
     createApp({
       auth: { handler: async () => new Response() },
@@ -54,6 +60,11 @@ async function startSettlement(options: { limit?: number } = {}) {
       }),
       incomes: createIncomeRoutes(db, testSession, { clock, writeLimiter }),
       closing: createClosingRoutes(db, testSession, { clock }),
+      closingExport: createClosingExportRoutes(db, testSession, {
+        clock,
+        storage: store.storage,
+        bundleLimiter,
+      }),
       registrations: createRegistrationRoutes(db, testSession, { clock, writeLimiter }),
       deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
       publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
@@ -227,7 +238,10 @@ async function startSettlement(options: { limit?: number } = {}) {
 export type SettlementKit = Awaited<ReturnType<typeof startSettlement>>
 
 export const withSettlement =
-  (body: (t: SettlementKit) => Promise<void>, options: { limit?: number } = {}) =>
+  (
+    body: (t: SettlementKit) => Promise<void>,
+    options: { limit?: number; bundleLimit?: number } = {},
+  ) =>
   async () => {
     const t = await startSettlement(options)
     try {

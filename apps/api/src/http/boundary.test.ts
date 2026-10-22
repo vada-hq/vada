@@ -20,6 +20,7 @@ import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createClosingRoutes } from '../closing/routes.js'
+import { createClosingExportRoutes } from '../closing/export-routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
 import { createHomeRoutes } from '../home/routes.js'
@@ -64,6 +65,7 @@ function modulesOf(session: () => Promise<null>) {
     expenses: createExpenseRoutes(db, session),
     incomes: createIncomeRoutes(db, session),
     closing: createClosingRoutes(db, session),
+    closingExport: createClosingExportRoutes(db, session),
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
     settlement: createSettlementRoutes(db, session),

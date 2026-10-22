@@ -1,8 +1,5 @@
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import {
-  CLOSING_EXPORT_MAX_BYTES,
-  CLOSING_EXPORT_MAX_PHOTOS,
-  CLOSING_EXPORT_MAX_ROWS,
   koreanDateOf,
   type Closing,
   type ClosingAction,
@@ -15,11 +12,11 @@ import { accountClosing, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { expenseChecksOf } from './checks.js'
+import { exportInfoOf } from './export-info.js'
 import { closingFiguresOf } from './figures.js'
 import { publishGateOf, reopenGateOf } from './gates.js'
 import { closingPeriodOf, type ClosingPeriod } from './period.js'
 import { feePendingOf } from './pending.js'
-import { expenseCountOf, photoTotalsOf } from './totals.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -84,22 +81,6 @@ async function actionsOf(
   if (finance || published) actions.push('closing.export_public')
   if (finance) actions.push('closing.export_audit')
   return actions
-}
-
-async function exportInfoOf(db: Reader, actor: Actor, period: ClosingPeriod, incomeCount: number) {
-  const photos = await photoTotalsOf(db, actor, period)
-  const expenseCount = await expenseCountOf(db, actor, period)
-  return {
-    expenseCount,
-    incomeCount,
-    photoCount: photos.count,
-    photoBytes: photos.bytes,
-    tooLarge:
-      expenseCount > CLOSING_EXPORT_MAX_ROWS ||
-      incomeCount > CLOSING_EXPORT_MAX_ROWS ||
-      photos.count > CLOSING_EXPORT_MAX_PHOTOS ||
-      photos.bytes > CLOSING_EXPORT_MAX_BYTES,
-  }
 }
 
 // 결산서 하나. 공개 전에는 재정부만 본다(403). 한 읽기 거래에서 모두 만든다.

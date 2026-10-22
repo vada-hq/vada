@@ -91,3 +91,19 @@ test('네 환경변수가 모두 있어야 저장소를 켠다', () => {
   for (const key of Object.keys(env)) assert.equal(r2ConfigFrom({ ...env, [key]: ' ' }), null, key)
   assert.equal(r2ConfigFrom({}), null)
 })
+
+test('읽기는 바이트를 주고 404는 없음으로 보며 다른 실패는 키를 담지 않은 오류로 던진다', async () => {
+  const responses = [
+    new Response(new Uint8Array([1, 2, 3]), { status: 200 }),
+    new Response(null, { status: 404 }),
+    new Response(null, { status: 500 }),
+  ]
+  const fetcher = (() => Promise.resolve(responses.shift()!)) as typeof fetch
+  const storage = createR2Storage(config, fetcher, fixed)
+  assert.deepEqual([...(await storage.read('receipts/a/e1/r1'))!], [1, 2, 3])
+  assert.equal(await storage.read('receipts/a/e1/r1'), null)
+  await assert.rejects(
+    () => storage.read('receipts/a/e1/r1'),
+    error => error instanceof Error && error.message === 'STORAGE_READ_FAILED',
+  )
+})

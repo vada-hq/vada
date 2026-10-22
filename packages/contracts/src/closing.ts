@@ -144,3 +144,8 @@ export interface ClosingResponse {
 // 공개는 본문이 없다. 다시 열기는 사유가 꼭 있고 판과 이월금 취소에 남는다(PRIN-3).
 export const PublishClosingSchema = z.strictObject({})
 export const ReopenClosingSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
+
+// 결산서 엑셀 내려받기: 공개용 또는 감사용
+export const CLOSING_EXPORT_TYPES = ['public', 'audit'] as const
+export const ClosingExportQuerySchema = z.strictObject({ type: z.enum(CLOSING_EXPORT_TYPES) })
+export type ClosingExportQuery = z.infer<typeof ClosingExportQuerySchema>
