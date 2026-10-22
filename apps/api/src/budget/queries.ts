@@ -137,3 +137,52 @@ export async function assertCurrentExpenseItems(
     )
   if (rows.length !== unique.length) throw new ApiError('BUDGET_ITEM_INVALID')
 }
+
+// 이 학생회의 회계 기간 하나(이름표). 다른 학생회의 기간은 없는 것과 같아 404다.
+export async function periodInCouncil(db: Reader, actor: Actor, periodId: string) {
+  const [row] = await db
+    .select({ id: fiscalPeriod.id, name: fiscalPeriod.name })
+    .from(fiscalPeriod)
+    .where(and(eq(fiscalPeriod.id, periodId), eq(fiscalPeriod.councilId, actor.councilId)))
+  if (!row) throw new ApiError('NOT_FOUND')
+  return row
+}
+
+// 그 날(한국)이 든 이 학생회의 회계 기간 번호. 기간은 겹치지 않는다. 없으면 409다.
+export async function periodIdOn(db: Reader, actor: Actor, day: string) {
+  const [row] = await db
+    .select({ id: fiscalPeriod.id })
+    .from(fiscalPeriod)
+    .where(
+      and(
+        eq(fiscalPeriod.councilId, actor.councilId),
+        lte(fiscalPeriod.startsOn, day),
+        gte(fiscalPeriod.endsOn, day),
+      ),
+    )
+  if (!row) throw new ApiError('NO_FISCAL_PERIOD')
+  return row.id
+}
+
+// 수입에 고른 예산 항목은 그 기간의 이 학생회 수입 항목이어야 한다(지출 항목, 다른 기간, 다른 학생회는 409). 지출 쪽 assertCurrentExpenseItems와 나란하다.
+export async function assertPeriodIncomeItem(
+  db: Reader,
+  actor: Actor,
+  itemId: string,
+  periodId: string,
+) {
+  const [row] = await db
+    .select({ id: budgetItem.id })
+    .from(budgetItem)
+    .innerJoin(budget, eq(budget.id, budgetItem.budgetId))
+    .innerJoin(record, eq(record.id, budgetItem.id))
+    .where(
+      and(
+        eq(budgetItem.id, itemId),
+        eq(budgetItem.type, 'income'),
+        eq(budget.fiscalPeriodId, periodId),
+        eq(record.councilId, actor.councilId),
+      ),
+    )
+  if (!row) throw new ApiError('BUDGET_ITEM_INVALID')
+}

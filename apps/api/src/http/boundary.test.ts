@@ -19,6 +19,7 @@ import { createPublicRegistrationRoutes } from '../registrations/public-routes.j
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
+import { createIncomeRoutes } from '../incomes/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
 import { createHomeRoutes } from '../home/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
@@ -38,7 +39,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 63
+const MUTATING_ROUTES = 65
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 function modulesOf(session: () => Promise<null>) {
@@ -60,6 +61,7 @@ function modulesOf(session: () => Promise<null>) {
     purchases: createPurchaseRoutes(db, session),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session),
+    incomes: createIncomeRoutes(db, session),
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
     settlement: createSettlementRoutes(db, session),

@@ -1,16 +1,9 @@
-import { and, eq, gte, isNotNull, isNull, lte } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull } from 'drizzle-orm'
 import { koreanDateOf } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import {
-  deposit,
-  fiscalPeriod,
-  income,
-  record,
-  registration,
-  registrationForm,
-} from '../db/schema.js'
+import { periodIdOn } from '../budget/queries.js'
+import { deposit, income, record, registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
-import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 
 type Target = { id: string; name: string }
@@ -41,21 +34,6 @@ async function activeDepositsOf(tx: Tx, actor: Actor, eventId: string) {
     )
 }
 
-async function periodOn(tx: Tx, actor: Actor, day: string) {
-  const [period] = await tx
-    .select({ id: fiscalPeriod.id })
-    .from(fiscalPeriod)
-    .where(
-      and(
-        eq(fiscalPeriod.councilId, actor.councilId),
-        lte(fiscalPeriod.startsOn, day),
-        gte(fiscalPeriod.endsOn, day),
-      ),
-    )
-  if (!period) throw new ApiError('NO_FISCAL_PERIOD')
-  return period.id
-}
-
 // 완료하는 거래에서 참가비 받는 계좌마다 수입 하나를 만들고 입금 기록마다 그 수입을 잇는다(DEC-68).
 // 금액은 취소하지 않은 입금 − 환불이고 0이면 만들지 않는다. 받은 날은 그 계좌의 마지막 입금 확인일(한국)이고, 그날이 든 회계 기간이 없으면 409다(완료되지 않는다).
 export async function createFeeIncomes(tx: Tx, actor: Actor, target: Target) {
@@ -80,7 +58,7 @@ export async function createFeeIncomes(tx: Tx, actor: Actor, target: Target) {
       councilId: actor.councilId,
       actor: actor.memberId,
       values: {
-        fiscalPeriodId: await periodOn(tx, actor, day),
+        fiscalPeriodId: await periodIdOn(tx, actor, day),
         source: 'participation_fee',
         amount: String(net),
         receivedOn: day,

@@ -6,6 +6,7 @@ import { createDepositRoutes } from '../deposits/routes.js'
 import { createEventRoutes } from '../events/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
+import { createIncomeRoutes } from '../incomes/routes.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -27,14 +28,15 @@ const nextCode = () =>
   `BBBBB${'ABCDEFGH'[Math.floor(codes / 64) % 8]}${'ABCDEFGH'[Math.floor(codes / 8) % 8]}${'23456789'[codes++ % 8]}`
 
 // 학생회 둘(우리, 다른)과 정산 읽기를 띄운다. 기록은 기록 모듈로 바로 만들고, 남은 것이 빠지는 변화는 SQL로 바꾼다.
-async function startSettlement() {
+async function startSettlement(options: { limit?: number } = {}) {
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
-  const now = new Date('2026-10-25T03:00:00Z')
+  // 시험이 시계를 옮길 수 있다(한국 날짜 경계).
+  let now = new Date('2026-10-25T03:00:00Z')
   const clock = () => now
   // 시계가 멈춰 있어 한도 창이 열리지 않으므로 한도를 넉넉히 둔다. 완료 잠금 표 시험이 같은 사람으로 많이 쓴다.
-  const writeLimiter = createRateLimiter({ limit: 100_000, windowMs: 10_000 })
+  const writeLimiter = createRateLimiter({ limit: options.limit ?? 100_000, windowMs: 10_000 })
   const store = fakeStorage()
   const api = caller(
     createApp({
@@ -49,6 +51,7 @@ async function startSettlement() {
         writeLimiter,
         storage: store.storage,
       }),
+      incomes: createIncomeRoutes(db, testSession, { clock, writeLimiter }),
       registrations: createRegistrationRoutes(db, testSession, { clock, writeLimiter }),
       deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
       publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
@@ -212,17 +215,22 @@ async function startSettlement() {
     read,
     settlement,
     remainingOf,
+    setNow: (value: Date) => {
+      now = value
+    },
     close,
   }
 }
 
 export type SettlementKit = Awaited<ReturnType<typeof startSettlement>>
 
-export const withSettlement = (body: (t: SettlementKit) => Promise<void>) => async () => {
-  const t = await startSettlement()
-  try {
-    await body(t)
-  } finally {
-    await t.close()
+export const withSettlement =
+  (body: (t: SettlementKit) => Promise<void>, options: { limit?: number } = {}) =>
+  async () => {
+    const t = await startSettlement(options)
+    try {
+      await body(t)
+    } finally {
+      await t.close()
+    }
   }
-}

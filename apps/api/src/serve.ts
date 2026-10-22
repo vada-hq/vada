@@ -19,6 +19,7 @@ import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createTeamRoutes } from './team/routes.js'
 import { createBudgetRoutes } from './budget/routes.js'
 import { createExpenseRoutes } from './expenses/routes.js'
+import { createIncomeRoutes } from './incomes/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
 import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
@@ -101,6 +102,7 @@ function appOf(env: Env, db: Db) {
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
+    incomes: createIncomeRoutes(db, session, { writeLimiter }),
     agreement: createAgreement(db, session),
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),

@@ -208,6 +208,7 @@ export {
   type TasksResponse,
 } from './tasks.js'
 export * from './accounts.js'
+export * from './incomes.js'
 export * from './home.js'
 export {
   AttachEvidenceSchema,
