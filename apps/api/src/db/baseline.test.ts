@@ -46,14 +46,14 @@ async function seed(pg: PGlite) {
   return { council, cohort, member }
 }
 
-test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 밖 표 3개를 만든다', async () => {
+test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 밖 표 5개를 만든다', async () => {
   const { pg, close } = await createTestDb()
   try {
     const { rows } = await pg.query<{ table_name: string }>(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
     )
     const names = rows.map(row => row.table_name)
-    assert.equal(names.length, 53)
+    assert.equal(names.length, 55)
     for (const name of [
       'users',
       'accounts',
@@ -63,6 +63,8 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
       'invite_code',
       'push_device',
       'terms_agreement',
+      'registration_link',
+      'applicant_access_log',
       'record',
       'record_version',
       'council',
@@ -86,9 +88,11 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
         '0004_purchase_limits',
         '0005_event_account_limits',
         '0006_terms_agreement',
+        '0007_registration_limits',
+        '0008_registration_attendance',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 7)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 9)
   } finally {
     await close()
   }

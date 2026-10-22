@@ -14,12 +14,14 @@ export type Criterion =
   | 'assignee'
   | 'requester'
   | 'event_owner'
+  | 'event_department'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
 // assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
 // eventOwnerId는 행사 칸이 보는 대상이다: 행사(업무가 이어진 행사 포함)의 책임자. 행사 책임자 기준은 이것이 나일 때만 맞다.
+// eventDepartmentIds는 신청 칸이 보는 대상이다: 그 행사의 취소하지 않은 업무가 가리키는 부서들(eventDepartmentIdsOf). 행사 담당 부서 기준은 내 지금 소속 부서가 이 가운데 있을 때만 맞는다.
 // requestedBy는 구매 요청의 요청한 사람이기도 하다: 요청한 사람 기준(requester)은 이것이 나일 때만 맞다.
 export type Context = {
   departmentId?: string
@@ -27,6 +29,7 @@ export type Context = {
   inRoom?: boolean
   assigneeId?: string
   eventOwnerId?: string
+  eventDepartmentIds?: readonly string[]
 }
 
 export const PERMISSIONS: { readonly [A in Action]: Rule } = {
@@ -57,6 +60,14 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'purchase.cancel': { who: ['requester'] },
   'purchase.approve': { who: ['finance'] },
   'finance.manage': { who: ['finance'] },
+  // 참가 신청 칸(DEC-28 '행사', DEC-25). 관리는 그 행사의 책임자와 담당 부서, 회장단(기준 3 상속)이고 신청자 정보 보기는 거기에 재정부를 더한다.
+  // 납부자 명단은 재정부가 올리고, 재정부와 회장단이 본다. 재정은 직급으로 물려받지 않는다(기준 3).
+  'registration.manage': { who: ['event_owner', 'event_department', 'leadership'] },
+  'registration.view_applicants': {
+    who: ['event_owner', 'event_department', 'leadership', 'finance'],
+  },
+  'fee_payment.manage': { who: ['finance'] },
+  'fee_payment.view': { who: ['finance', 'leadership'] },
 }
 
 function meets(actor: Actor, criterion: Criterion, context: Context) {
@@ -94,6 +105,11 @@ function meetsContext(actor: Actor, criterion: Criterion, context: Context) {
       return context.requestedBy !== undefined && context.requestedBy === actor.memberId
     case 'event_owner':
       return context.eventOwnerId !== undefined && context.eventOwnerId === actor.memberId
+    case 'event_department':
+      return (
+        context.eventDepartmentIds !== undefined &&
+        actor.departments.some(item => context.eventDepartmentIds?.includes(item.departmentId))
+      )
     default:
       return false
   }

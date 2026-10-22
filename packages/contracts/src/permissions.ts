@@ -31,5 +31,9 @@ export const ACTIONS = [
   'purchase.cancel', // 구매 요청 취소(요청한 사람만)
   'purchase.approve', // 구매 품목 결재(재정부, 자기 요청 포함)
   'finance.manage', // 회계 기간, 예산 항목, 지출, 증빙, 취소, 환급(재정부)
+  'registration.manage', // 신청 양식 만들기·고치기·멈추기, 신청 취소, 출석(그 행사의 책임자와 담당 부서, 회장단)
+  'registration.view_applicants', // 신청자 이름·학번·휴대폰 보기(위에 재정부)
+  'fee_payment.manage', // 학생회비 납부자 명단 올리기와 빼기(재정부)
+  'fee_payment.view', // 학생회비 납부자 명단 보기(재정부와 회장단)
 ] as const
 export type Action = (typeof ACTIONS)[number]

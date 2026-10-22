@@ -118,3 +118,24 @@ export const pushDevice = pgTable('push_device', {
   expirationTime: at('expiration_time'),
   createdAt: at('created_at').notNull().defaultNow(),
 })
+
+// 신청 개인 링크(기능 007, DEC-44). 신청마다 한 줄이고 토큰은 SHA-256 소문자 16진만 둔다. 취소하거나 비우면 지운다.
+export const registrationLink = pgTable('registration_link', {
+  registrationId: uuid('registration_id').primaryKey(),
+  tokenHash: text('token_hash').notNull(),
+  createdAt: at('created_at').notNull().defaultNow(),
+})
+
+// 신청자 정보 열람 기록(DEC-56). 같은 거래에서 남기고 1년 뒤 지운다. 신청은 한 건일 때만 있다.
+export const applicantAccessLog = pgTable('applicant_access_log', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
+  memberId: uuid('member_id').notNull(),
+  councilId: uuid('council_id').notNull(),
+  formId: uuid('form_id').notNull(),
+  registrationId: uuid('registration_id'),
+  action: text('action').notNull(),
+  accessedAt: at('accessed_at').notNull().defaultNow(),
+  ip: text('ip').notNull(),
+})

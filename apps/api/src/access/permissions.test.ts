@@ -147,6 +147,7 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람·행
         'purchase.cancel',
         'purchase.approve',
         'finance.manage',
+        'fee_payment.manage',
       ].includes(action),
   )
   assert.deepEqual(permissionsOf(president), listed)
@@ -290,4 +291,71 @@ test('업무 칸: 그 행사의 책임자는 부서와 담당자와 관계없이
   }
   // 회장단도 책임자가 아니면 이 기준으로는 맞지 않는다(회장단 기준으로만 맞는다).
   assert.equal(allows(president, { who: ['event_owner'] }, { eventOwnerId: 'x' }), false)
+})
+
+// 참가 신청 칸(기능 007, DEC-28 '행사', DEC-25). 관리는 책임자·담당 부서·회장단, 신청자 정보 보기는 거기에 재정부다.
+const designHead = actor('designHead', null, [{ departmentId: 'design', role: null, rank: 'head' }])
+
+test('참가 신청 관리: 책임자, 그 행사 담당 부서 사람, 회장단만 하고 재정부와 다른 부서는 못 한다', () => {
+  const inEvent = { eventOwnerId: 'owner', eventDepartmentIds: ['planning'] }
+  for (const allowed of [president, vicePresident, planningHead, planningViceHead, planningMember])
+    assert.equal(can(allowed, 'registration.manage', inEvent), true, allowed.memberId)
+  for (const denied of [financeMember, plain, designHead])
+    assert.equal(can(denied, 'registration.manage', inEvent), false, denied.memberId)
+  // 책임자는 어느 부서든 된다.
+  assert.equal(can(actor('owner', null), 'registration.manage', inEvent), true)
+})
+
+test('참가 신청 칸의 행사 담당 부서 기준은 맥락이 없거나 빈 목록이면 거부한다(회장단만 맞는다)', () => {
+  for (const action of ['registration.manage', 'registration.view_applicants'] as const) {
+    for (const context of [undefined, {}, { eventDepartmentIds: [] }, { eventOwnerId: 'x' }]) {
+      for (const denied of [planningHead, planningMember, plain, designHead])
+        assert.equal(can(denied, action, context), false, `${action} ${denied.memberId}`)
+      for (const allowed of [president, vicePresident])
+        assert.equal(can(allowed, action, context), true, `${action} ${allowed.memberId}`)
+    }
+    // 다른 부서의 업무만 있으면 그 부서만 맞는다.
+    assert.equal(can(planningHead, action, { eventDepartmentIds: ['design'] }), false, action)
+    assert.equal(can(designHead, action, { eventDepartmentIds: ['design'] }), true, action)
+  }
+})
+
+test('신청자 정보 보기: 관리하는 사람에 재정부가 더해지고, 재정부는 맥락이 없어도 본다', () => {
+  const inEvent = { eventDepartmentIds: ['planning'] }
+  for (const allowed of [president, vicePresident, planningHead, planningMember, financeMember])
+    assert.equal(can(allowed, 'registration.view_applicants', inEvent), true, allowed.memberId)
+  for (const denied of [plain, designHead])
+    assert.equal(can(denied, 'registration.view_applicants', inEvent), false, denied.memberId)
+  assert.equal(can(financeMember, 'registration.view_applicants'), true)
+  assert.equal(can(financeMember, 'registration.manage', inEvent), false)
+})
+
+test('학생회비 납부: 올리기와 빼기는 재정부만이고, 보기는 재정부와 회장단이다', () => {
+  for (const who of [president, vicePresident, planningHead, planningMember, plain])
+    assert.equal(can(who, 'fee_payment.manage'), false, who.memberId)
+  assert.equal(can(financeMember, 'fee_payment.manage'), true)
+  for (const who of [president, vicePresident, financeMember])
+    assert.equal(can(who, 'fee_payment.view'), true, who.memberId)
+  for (const who of [planningHead, planningViceHead, planningMember, plain])
+    assert.equal(can(who, 'fee_payment.view'), false, who.memberId)
+})
+
+test('내 권한 목록: 회장단은 신청 관리·보기와 납부 보기를, 재정부는 신청자 보기와 납부 둘을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
+  const mine = (who: Actor) =>
+    permissionsOf(who).filter(
+      action => action.startsWith('registration.') || action.startsWith('fee_payment.'),
+    )
+  for (const who of [president, vicePresident])
+    assert.deepEqual(mine(who), [
+      'registration.manage',
+      'registration.view_applicants',
+      'fee_payment.view',
+    ])
+  assert.deepEqual(mine(financeMember), [
+    'registration.view_applicants',
+    'fee_payment.manage',
+    'fee_payment.view',
+  ])
+  for (const who of [planningHead, planningViceHead, planningMember, plain])
+    assert.deepEqual(mine(who), [])
 })

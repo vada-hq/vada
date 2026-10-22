@@ -4,9 +4,16 @@
 // drizzle 마이그레이터는 이 표시로 파일을 잘라 한 조각씩 실행한다. 조각마다 문장 하나를 둔다.
 export const BREAKPOINT = '--> statement-breakpoint'
 
-// 설계 검사에서 뺄 표: 로그인 표 4개와 설계 밖 표 3개(바탕 spec G11)
+// 설계 검사에서 뺄 표: 로그인 표 4개와 설계 밖 표(바탕 spec G11, 가입 동의, 참가 신청의 개인 링크와 열람 기록)
 const AUTH_TABLES = ['users', 'accounts', 'sessions', 'verifications'] as const
-const OUTSIDE_TABLES = ['member_login', 'invite_code', 'push_device', 'terms_agreement'] as const
+const OUTSIDE_TABLES = [
+  'member_login',
+  'invite_code',
+  'push_device',
+  'terms_agreement',
+  'registration_link',
+  'applicant_access_log',
+] as const
 export const NOT_IN_DESIGN: ReadonlySet<string> = new Set([...AUTH_TABLES, ...OUTSIDE_TABLES])
 
 // 로그인 표 4개. 옛 0000_rare_cardiac.sql과 0001_auth.sql의 정의 그대로다(better-auth가 쓴다).

@@ -70,12 +70,14 @@ test('baselineOf는 로그인 표, 설계 블록, 설계 밖 표 순서로 문�
   assert.equal(joinStatements(['a;', 'b;']), `a;\n${BREAKPOINT}\nb;`)
 })
 
-test('설계 검사에서 빼는 표는 로그인 표 4개와 설계 밖 표 4개다', () => {
+test('설계 검사에서 빼는 표는 로그인 표 4개와 설계 밖 표 6개다', () => {
   assert.deepEqual([...NOT_IN_DESIGN].sort(), [
     'accounts',
+    'applicant_access_log',
     'invite_code',
     'member_login',
     'push_device',
+    'registration_link',
     'sessions',
     'terms_agreement',
     'users',

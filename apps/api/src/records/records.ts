@@ -3,6 +3,7 @@ import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import {
   account,
   approval,
+  attendance,
   budget,
   budgetItem,
   chatRoom,
@@ -14,6 +15,7 @@ import {
   event,
   evidence,
   expense,
+  feePayment,
   file,
   fiscalPeriod,
   lineItem,
@@ -23,6 +25,8 @@ import {
   paymentLine,
   record,
   recordVersion,
+  registration,
+  registrationForm,
   request,
   task,
 } from '../db/schema.js'
@@ -58,6 +62,10 @@ const tables = {
   payment_line: paymentLine,
   evidence,
   approval,
+  registration_form: registrationForm,
+  registration,
+  attendance,
+  fee_payment: feePayment,
 }
 export type RecordKind = keyof typeof tables
 type Table<K extends RecordKind> = (typeof tables)[K]
@@ -67,6 +75,7 @@ const councilColumn: ReadonlySet<RecordKind> = new Set([
   'department',
   'fiscal_period',
   'account',
+  'fee_payment',
 ])
 // 학생회를 넘어 이어지는 운영진과 학생회 자신만 학생회 번호를 비운다.
 const withoutCouncil: ReadonlySet<RecordKind> = new Set(['council', 'member'])
@@ -163,11 +172,16 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
     'actedAt',
     'acted_at',
   ]),
+  // 신청 양식의 행사, 신청의 양식, 출석의 신청은 만든 뒤 바꾸지 않는다. 양식의 참가비 계좌만 바꾼다(changeableKeysOf).
+  registration_form: new Set(['eventId', 'event_id', 'feeAccountId', 'fee_account_id']),
+  registration: new Set(['formId', 'form_id']),
+  attendance: new Set(['registrationId', 'registration_id']),
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서와 행사, 행사의 책임자는 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
 const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   task: new Set(['departmentId', 'department_id', 'eventId', 'event_id']),
   event: new Set(['ownerId', 'owner_id']),
+  registration_form: new Set(['feeAccountId', 'fee_account_id']),
 }
 
 // 쿼리가 돌려준 행 수. drizzle의 execute는 드라이버가 준 모양 그대로 돌려준다: postgres-js는 배열, PGlite는 { rows }다.
