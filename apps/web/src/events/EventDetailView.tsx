@@ -27,6 +27,18 @@ type Props = EventDialogHandlers & {
   onTasksChanged: () => void
 }
 
+function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
+  return (
+    <div role="tablist" aria-label="행사 보기" className="flex border-b">
+      {TABS.map(item => (
+        <TabButton key={item.tab} aria-selected={tab === item.tab} onClick={() => onTab(item.tab)}>
+          {item.label}
+        </TabButton>
+      ))}
+    </div>
+  )
+}
+
 // 행사 하나: 이름과 상태, 탭 둘(개요, 업무). 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
 export default function EventDetailView({ view, eventId, onBack, ...props }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
@@ -46,24 +58,17 @@ export default function EventDetailView({ view, eventId, onBack, ...props }: Pro
           <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
         </div>
       )}
-      <div role="tablist" aria-label="행사 보기" className="flex border-b">
-        {TABS.map(item => (
-          <TabButton
-            key={item.tab}
-            aria-selected={tab === item.tab}
-            onClick={() => setTab(item.tab)}
-          >
-            {item.label}
-          </TabButton>
-        ))}
-      </div>
+      <EventTabs tab={tab} onTab={setTab} />
       <div role="tabpanel" className="flex flex-col gap-3">
         {tab === 'tasks' ? (
           <TasksPage
             view={view}
             eventId={eventId}
             onForbidden={props.onForbidden}
-            onChanged={props.onTasksChanged}
+            onChanged={() => {
+              props.onTasksChanged()
+              void detail.reload()
+            }}
           />
         ) : (
           <Overview

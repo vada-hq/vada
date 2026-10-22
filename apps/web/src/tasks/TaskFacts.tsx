@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import type { CouncilView, TaskDetail, TaskStatus } from '@vada/contracts'
+import { Fact } from '@/components/Fact'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { detailAssigneeChoices, detailDepartmentChoices } from './task-form-options'
@@ -18,15 +18,6 @@ type Props = {
   // 행사 이름을 눌렀다. 없으면 이름은 글자일 뿐이다.
   onOpenEvent?: ((eventId: string) => void) | undefined
   send: (where: TaskWhere, path: string, body: unknown) => Promise<boolean>
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-xs font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-800">{children}</dd>
-    </div>
-  )
 }
 
 type RowProps = Props & { can: (action: TaskDetail['actions'][number]) => boolean }

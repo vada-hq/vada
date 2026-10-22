@@ -10,6 +10,7 @@ import {
   uuidTeam,
 } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { settle } from '@/test-support/settle'
 import { EVENT_ERRORS, EVENT_LOST } from '@/lib/messages'
 import EventsPage from './EventsPage'
@@ -231,4 +232,81 @@ test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이�
     }),
   )
   await settle()
+})
+
+async function openOwnerDialog(api: ReturnType<typeof setup>['api'], detail = eventDetail()) {
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: detail }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '책임자 바꾸기' }))
+  return screen.findByRole('combobox', { name: '책임자' })
+}
+
+test('책임자 바꾸기 409와 403: 409는 폼 안에, 403은 학생회를 다시 읽고 이유를 목록에 보인다', async () => {
+  const { api, handlers } = setup()
+  const select = await openOwnerDialog(api)
+  fireEvent.change(select, { target: { value: MEMBER.m3 } })
+  api.on('POST', `${BASE}/${EVENT_ID}/owner`, () => json({ error: 'MEMBER_INVALID' }, 409))
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  const form = screen.getByRole('form', { name: '책임자 바꾸기' })
+  expect((await within(form).findByRole('alert')).textContent).toBe(EVENT_ERRORS.MEMBER_INVALID)
+  api.on('POST', `${BASE}/${EVENT_ID}/owner`, () => json({ error: 'FORBIDDEN' }, 403))
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
+})
+
+test('떠난 책임자인 행사도 책임자 바꾸기가 열리고, 책임자 없음이 골라진 채 저장할 수 있다', async () => {
+  const { api } = setup()
+  const gone = { id: '00000000-0000-4000-8000-000000000009', name: '최탈퇴', current: false }
+  const select = await openOwnerDialog(api, eventDetail({ owner: gone }))
+  expect(select).toHaveProperty('value', '')
+  expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', false)
+})
+
+test.each([
+  [403, /권한이 바뀌었어요/],
+  [404, new RegExp(EVENT_LOST)],
+])('고치다가 %i이면 대화상자를 닫고 이유를 보인다', async (status, message) => {
+  const { api, handlers } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
+  api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ error: 'X' }, status))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toMatch(message)
+  if (status === 403) expect(handlers.onForbidden).toHaveBeenCalled()
+})
+
+test('대화상자가 열린 채 다시 읽은 actions에서 권한이 빠지면 닫고 이유를 보인다', async () => {
+  const { api } = setup()
+  let actions: ('event.update' | 'event.set_owner')[] = ['event.update']
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, actions) }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  actions = []
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
+})
+
+test('업무 탭에서 업무를 만들면 행사 상세도 다시 읽는다', async () => {
+  const { api } = setup()
+  const detailPath = `${BASE}/${EVENT_ID}`
+  api.on('GET', detailPath, () => json({ event: eventDetail() }))
+  api.on('GET', `/api/organizations/c1/tasks?view=all&status=open&event=${EVENT_ID}`, () =>
+    json({ tasks: [], truncated: false }),
+  )
+  api.on('POST', '/api/organizations/c1/tasks', () => json({ task: taskDetail() }, 201))
+  const reads = () => api.calls.filter(call => call.path === detailPath).length
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
+  fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
+  await screen.findByRole('combobox', { name: '담당 부서' })
+  const before = reads()
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
+  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })

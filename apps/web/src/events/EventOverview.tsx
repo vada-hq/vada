@@ -1,5 +1,7 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import type { EventDetail } from '@vada/contracts'
+import { Fact } from '@/components/Fact'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, ownerLabel, whenLabel } from './event-view'
@@ -15,15 +17,6 @@ type Props = EventDialogHandlers & {
   onChanged: (event: EventDetail) => void
 }
 
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-xs font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-800 wrap-anywhere">{children}</dd>
-    </div>
-  )
-}
-
 // 개요 탭: 일시, 장소, 책임자, 상태, 업무 수, 이력. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 export function EventOverview({ councilId, event, onChanged, ...handlers }: Props) {
   const [dialog, setDialog] = useState<'edit' | 'owner' | null>(null)
@@ -31,6 +24,16 @@ export function EventOverview({ councilId, event, onChanged, ...handlers }: Prop
     setDialog(null)
     onChanged(next)
   }
+  // 열려 있는 동안 다시 읽은 actions에서 권한이 빠지면 닫고 이유를 보인다.
+  const allowed =
+    dialog === null ||
+    event.actions.includes(dialog === 'edit' ? 'event.update' : 'event.set_owner')
+  const { onLost } = handlers
+  useEffect(() => {
+    if (allowed) return
+    setDialog(null)
+    onLost(PERMISSION_CHANGED)
+  }, [allowed, onLost])
   const shared = { councilId, event, onClose: () => setDialog(null), onDone: done, ...handlers }
   return (
     <div className="flex flex-col gap-6">
