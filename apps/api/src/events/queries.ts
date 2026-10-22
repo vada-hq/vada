@@ -112,6 +112,23 @@ export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<
   }
 }
 
+// 끝났고 완료하지 않은 행사(정산이 남은 것). 끝난 지 오래된 것부터 limit개까지 주고 전체 수를 따로 준다.
+async function endedOpenRows(db: Reader, actor: Actor, now: Date, limit: number) {
+  const ended = await eventSelect(db)
+    .where(and(openScope(actor), sql`${groupSql(now)} = 3`))
+    .orderBy(sql`${endsAtSql} asc`, event.id)
+  return { rows: ended.slice(0, limit), total: ended.length }
+}
+
+const openScope = (actor: Actor) =>
+  and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
+
+// 홈의 정산할 행사: 위와 같은 행사를 요약으로 준다.
+export async function endedOpenEventsOf(db: Reader, actor: Actor, now: Date, limit: number) {
+  const { rows, total } = await endedOpenRows(db, actor, now, limit)
+  return { events: await summariesOf(db, actor, rows, now), total }
+}
+
 // 홈의 행사 카드: 완료하지 않은 행사. 끝난 행사(정산이 남은 것)는 끝난 지 오래된 것부터 endedLimit개까지만 주고 전체 수를 따로 준다.
 // 진행 중 → 예정(시작 순) → 날짜 미정(만든 순)은 그 뒤에 남은 자리(전체 limit개)까지다. 한 개 더 읽어 넘쳤는지 안다.
 export async function openEventsOf(
@@ -121,11 +138,8 @@ export async function openEventsOf(
   limits: { limit: number; endedLimit: number },
 ): Promise<EventsResponse & { endedTotal: number }> {
   const group = groupSql(now)
-  const scope = and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
-  const ended = await eventSelect(db)
-    .where(and(scope, sql`${group} = 3`))
-    .orderBy(sql`${endsAtSql} asc`, event.id)
-  const shown = ended.slice(0, limits.endedLimit)
+  const scope = openScope(actor)
+  const { rows: shown, total: endedTotal } = await endedOpenRows(db, actor, now, limits.endedLimit)
   const rest = limits.limit - shown.length
   const others = await eventSelect(db)
     .where(and(scope, sql`${group} < 3`))
@@ -138,8 +152,8 @@ export async function openEventsOf(
     .limit(rest + 1)
   return {
     events: await summariesOf(db, actor, [...shown, ...others.slice(0, rest)], now),
-    truncated: others.length > rest || ended.length > shown.length,
-    endedTotal: ended.length,
+    truncated: others.length > rest || endedTotal > shown.length,
+    endedTotal,
   }
 }
 

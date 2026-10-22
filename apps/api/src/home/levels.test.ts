@@ -91,8 +91,14 @@ test('부장은 직급이 있는 부서의 수와 지난 업무·담당자 없�
     assert.equal(card.unassigned.total, 2)
     // 부부장도 같고, 소속만 있는 부원과 재정부원은 부서를 받지 않는다.
     assert.equal((await h.read('s-planningViceHead')).departments?.[0]?.name, '기획부')
-    for (const user of ['s-planningMember', 's-financeMember'])
-      assert.deepEqual(Object.keys(await h.read(user)).sort(), ['mine', 'today'], user)
+    assert.deepEqual(Object.keys(await h.read('s-planningMember')).sort(), ['mine', 'today'])
+    // 재정부원은 부서를 받지 않고 재정 부분만 더 받는다.
+    assert.deepEqual(Object.keys(await h.read('s-financeMember')).sort(), [
+      'mine',
+      'received',
+      'settling',
+      'today',
+    ])
   })()
 })
 
@@ -326,5 +332,20 @@ test('끝난 행사는 오래된 것부터 10개까지만 카드가 되고 전�
       cards.filter(card => card.event.status === 'tbd').length,
       HOME_EVENT_LIMIT - HOME_ENDED_LIMIT,
     )
+  })()
+})
+
+test('끝난 행사만 11개 이상이어도 truncated이다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    for (let day = 1; day <= HOME_ENDED_LIMIT + 1; day++)
+      await t.event({
+        name: `끝남 ${day}`,
+        startsAt: new Date(`2026-09-${String(day).padStart(2, '0')}T00:00:00Z`),
+      })
+    const { council } = await h.read('s-president')
+    assert.equal(council!.events.length, HOME_ENDED_LIMIT)
+    assert.equal(council!.endedTotal, HOME_ENDED_LIMIT + 1)
+    assert.equal(council!.truncated, true)
   })()
 })

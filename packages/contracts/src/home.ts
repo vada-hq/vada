@@ -1,4 +1,5 @@
 import type { EventSummary } from './events.js'
+import type { PurchaseRequestSummary } from './purchases.js'
 import type { TaskSummary } from './tasks.js'
 
 // 홈(010). 한 번 읽어 그 사람의 부분을 모두 받는다. 있는 부분만 오고, 화면은 직급을 다시 계산하지 않는다(DEC-38).
@@ -21,7 +22,6 @@ export interface HomeTask extends TaskSummary {
 // 나에게 맡긴 끝나지 않은 업무. tasks는 지남 → 오늘 → 7일 안 차례로 마감 순 HOME_LIST_LIMIT줄까지다.
 export interface HomeMine {
   tasks: HomeTask[]
-  // todo·inProgress는 끝나지 않은 업무 수라 지남과 담당자 없음이 그 안에 겹쳐 있다(합치면 안 된다).
   counts: { overdue: number; today: number; soon: number; later: number; noDue: number }
 }
 
@@ -32,6 +32,7 @@ export interface HomeList {
 }
 
 // 부서 직급이 있는 부서 하나(부장·부부장). 수는 끝나지 않은 업무다. 담당자 없음은 업무 화면의 '담당자 없음'과 같다.
+// todo·inProgress는 끝나지 않은 업무 수라 지남과 담당자 없음이 그 안에 겹쳐 있다(합치면 안 된다).
 export interface HomeDepartment {
   id: string
   name: string
@@ -65,6 +66,20 @@ export interface HomeCouncil {
   overdue: HomeList
 }
 
+// 재정부가 받은 것: 결재 대기 요청(요청 목록 pending 보기와 같다), 오래된 것부터 HOME_LIST_LIMIT줄까지.
+// total은 그 보기가 준 수다(보기에 상한이 있어 truncated면 그보다 많다).
+export interface HomeReceived {
+  requests: PurchaseRequestSummary[]
+  total: number
+  truncated: boolean
+}
+
+// 정산할 행사: 끝났고 완료하지 않은 행사(끝난 지 오래된 것부터 HOME_ENDED_LIMIT개까지)와 정산에 남은 것 수.
+export interface HomeSettling {
+  events: { event: EventSummary; settlement: { remaining: number; settled: boolean } }[]
+  total: number
+}
+
 export interface HomeResponse {
   // 한국 날짜(YYYY-MM-DD). 묶음은 이 날짜로 나눈 것이다.
   today: string
@@ -73,4 +88,8 @@ export interface HomeResponse {
   departments?: HomeDepartment[]
   // 학생회 직급이 있을 때만 온다.
   council?: HomeCouncil
+  // 재정 역할 부서 소속일 때만 온다.
+  received?: HomeReceived
+  // 재정이고 학생회 직급이 없을 때만 온다(회장단은 council의 행사 카드에 있다).
+  settling?: HomeSettling
 }

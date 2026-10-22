@@ -12,6 +12,7 @@ import { record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { councilOf } from './council.js'
 import { departmentsOf } from './departments.js'
+import { financeOf } from './finance.js'
 import { levelOf } from './level.js'
 import { openTasksOf } from './open-tasks.js'
 import { dueGroupOf } from '../tasks/due.js'
@@ -41,6 +42,7 @@ async function mineOf(db: Reader, actor: Actor, now: Date): Promise<HomeMine> {
 export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeResponse> {
   const level = levelOf(actor)
   const home: HomeResponse = { today: koreanDateOf(now), mine: await mineOf(db, actor, now) }
+  if (level.finance) Object.assign(home, await financeOf(db, actor, now, level.council))
   if (!level.council && !level.departmentIds.length) return home
   const open = await openTasksOf(db, actor, now)
   if (level.council) home.council = await councilOf(db, actor, now, open)

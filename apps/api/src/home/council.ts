@@ -8,8 +8,8 @@ import {
 import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
 import { openEventsOf, taskCountsByEvent } from '../events/queries.js'
-import { remainingOf } from '../settlement/remaining.js'
 import { listOf, type OpenTask } from './open-tasks.js'
+import { settlementOf } from './settling.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -29,15 +29,6 @@ function blockedOf(open: OpenTask[]): HomeBlocked[] {
   return [...groups.values()]
     .filter(group => group.overdue > 0 || group.unassigned > 0)
     .sort((a, b) => (a.department?.name ?? LAST).localeCompare(b.department?.name ?? LAST))
-}
-
-// 정산에 남은 것 수는 행사 '돈' 탭의 항목 수 합이다(같은 remainingOf). 끝났고 완료하지 않은 행사에만 센다.
-async function settlementOf(db: Reader, actor: Actor, eventId: string) {
-  const remaining = await remainingOf(db, { councilId: actor.councilId, eventId })
-  return {
-    remaining: remaining.reduce((sum, item) => sum + item.count, 0),
-    settled: remaining.every(item => item.count === 0),
-  }
 }
 
 export async function councilOf(
