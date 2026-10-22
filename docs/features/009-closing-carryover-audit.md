@@ -70,6 +70,9 @@
   - Ruling: 이전 기간은 끝일이 새 시작일보다 이른 것 가운데 가장 늦은 것 하나만 보고, 그 기간에 이미 다음 기간이 있으면 비운다. "다음이 없는 것 가운데 가장 늦은 것"으로 고르면 사이에 끼운 기간이 더 오래된 기간에 이어진다(조각 1 검토, vada-docs e587617).
   - Ruling: 참가비 수입의 받은 날은 '행사 끝 날짜와 완료한 날 가운데 이른 날'과 마지막 입금 확인일 가운데 늦은 날이다. 끝 날짜 전에 완료하면 받은 날이 미래가 되어, 그 날의 기간이 없으면 완료가 NO_FISCAL_PERIOD로 막혔다(조각 4 작업자, vada-docs b92feda).
   - Ruling: 결산 `actions`의 공개·다시 열기는 공개 검사와 같은 판단(`closing/gates.ts`)에서 낸다(조각 3 검토).
+  - Ruling: 내보내기 정보는 엑셀 상한(지출·수입 1,000건)과 묶음 상한(사진 2,000장·1GB)을 따로 주고, R2가 없으면 묶음을 못 받는다는 것도 준다. 사진만 넘으면 엑셀은 받는다(조각 5 검토).
+  - Ruling: 증빙 묶음은 주소 이동 대신 숨은 iframe으로 받는다. 오류(429·503·409·404)면 iframe에 문서가 뜨므로 그 코드를 읽어 버튼 옆에 문구를 보인다. 홈 화면 앱에서 주소를 옮기면 오류 JSON 화면에 갇힌다(조각 7 검토).
+  - Ruling: 공개를 막는 다른 이유(기간이 안 끝남, 앞 기간 미공개, 남은 돈 음수)는 서버 `actions`에 이유가 없어 화면이 말하지 못한다. 미룬다(조각 7 검토 Minor).
 
 ## 조각
 
@@ -93,7 +96,7 @@
 - 닿는 곳: contracts `closing.ts`(새: `FiscalPeriodsResponse`, `ClosingResponse`), `settlement.ts`(실제 수입), `errors.ts`. `apps/api/src/closing/`(새: `routes.ts`, `queries.ts`, `numbers.ts`), `budget/queries.ts`, `settlement/queries.ts`, `app.ts`, `serve.ts`, `http/boundary.test.ts`.
 - 검토: 깊게(돈 계산). 마이그레이션: 없음.
 
-### 4. 결산 공개, 다시 열기, 잠금, 이월금(서버) [ ]
+### 4. 결산 공개, 다시 열기, 잠금, 이월금(서버) [x]
 - 할 수 있게 되는 것: 재정부가 끝난 기간의 결산을 공개해 그 기간을 잠그고 남은 돈을 다음 기간으로 이월하며, 사유와 함께 다시 연다.
 - 수용 기준: 재정부만 공개하고 다시 연다(회장단 403). 공개는 '정한 것'의 조건마다 `PERIOD_NOT_ENDED`(끝일 23:59:59와 다음 날 0시로 시험), `PREVIOUS_PERIOD_OPEN`, `CLOSING_NEGATIVE`, `FEE_INCOME_PENDING`(입금 확인이 있고 끝 날짜가 끝일 이하이거나 날짜 미정인 행사를 완료하지 않았을 때. 그 행사를 완료하면 된다. 끝 날짜가 뒤 기간인 행사의 입금만 있으면 공개된다), `CLOSING_PUBLISHED`로 409이고 아무것도 바뀌지 않는다. 사전 모집 행사(입금은 공개한 기간, 끝 날짜는 뒤 기간)를 완료하면 참가비 수입의 받은 날이 행사 끝 날짜라 뒤 기간에 생기고 완료가 막히지 않는다. 공개하면 결산 기록과 판, 다음 기간의 이월금 수입이 한 거래에 생기고 응답은 그 결산서다. 다음 기간을 나중에 만들면 그때 이월금이 생긴다. 다시 열기는 사유가 없으면 400, 공개 전이면 409 `CLOSING_NOT_PUBLISHED`, 다음 기간 결산이 공개됐으면 409 `NEXT_PERIOD_CLOSED`이다. 다시 열면 공개 시각이 비고, 판과 이월금 취소에 그 사유가 남고, 다시 공개하면(사유 없이) 새 이월금이 생긴다. 공개한 기간에 결제일이 드는 지출 적기·취소, 받은 날이 드는 수입 적기·취소, 참가비 수입이 그 기간에 생길 행사 완료와 그 기간 참가비 수입이 있는 행사의 완료 취소는 409 `PERIOD_CLOSED`이고 아무것도 생기지 않는다(표 시험, 확인을 지우면 실패). 증빙 붙이기, 지출 고치기(사유·행사), 환급 표시는 된다. 완료한 행사이면서 공개한 기간인 지출 취소는 `EVENT_COMPLETED`다. 지출·수입 상세의 `actions`에 잠긴 취소가 없다. 다시 열면 모두 다시 된다. 학생회 행 잠금이 결산 읽기보다 먼저다.
 - 닿는 곳: contracts `closing.ts`(`ReopenClosingSchema`), `errors.ts`. `closing/`(`service.ts`, 기간 잠금 공유 도우미, 잠금 표 시험), `expenses/service.ts`·`queries.ts`(`actions`), `incomes/service.ts`·`queries.ts`, `settlement/fee-income.ts`(`createFeeIncomes`·`cancelFeeIncomes`), `budget/service.ts`(기간을 만들 때 이월금), `ops/pg-smoke/`(새 `pg-smoke-closing-cases.ts`와 `pg-smoke-cases.ts` 목록). 경로는 `POST fiscal-periods/:periodId/closing/publish`, `POST fiscal-periods/:periodId/closing/reopen`.
