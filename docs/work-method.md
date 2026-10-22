@@ -14,7 +14,7 @@
 
 | 말 | 뜻 | 업계 말 |
 |---|---|---|
-| 기능 | 다시 만들기의 단위(휴대폰 길, 바탕, 대화와 알림, 업무, 구매와 지출, 시작 준비, 그리고 덩어리 7 '쓰기 전에'를 상한에 맞춰 나눈 참가 신청과 출석, 행사 정산과 환급, 결산과 이월). 번호 001~009 | feature([Spec Kit](https://github.com/github/spec-kit/blob/main/spec-driven.md), [Kiro](https://kiro.dev/docs/specs/)). Jira에서는 epic |
+| 기능 | 다시 만들기의 단위(휴대폰 길, 바탕, 대화와 알림, 업무, 구매와 지출, 시작 준비, 그리고 덩어리 7 '쓰기 전에'를 상한에 맞춰 나눈 참가 신청과 출석, 행사 정산과 환급, 결산과 이월, 주인이 앞당긴 직급마다의 홈). 번호 001~010(010을 009보다 먼저 만든다) | feature([Spec Kit](https://github.com/github/spec-kit/blob/main/spec-driven.md), [Kiro](https://kiro.dev/docs/specs/)). Jira에서는 epic |
 | 기능 명세 | 기능 하나의 무엇·왜·범위·조각·확인 방법. `docs/features/NNN-이름.md` | spec, mini design doc |
 | 조각 | 기능 안에서 따로 끝내고 배포할 수 있는 한 묶음. 사람이 써 볼 수 있는 동작 하나이거나, 그 동작을 받치는 바탕 하나 | vertical slice, Shape Up의 scope |
 | 상한 | 기능 하나에 쓸 시간을 먼저 정한 것. 넘으면 늘리지 않고 범위를 줄인다 | appetite, timebox |
