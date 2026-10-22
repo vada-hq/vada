@@ -90,6 +90,7 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
             key={form.id}
             councilId={councilId}
             form={form}
+            canRefund={view.permissions.includes('finance.manage')}
             attendance={attendance}
             onAttendance={markAttended}
             onLoaded={forget}

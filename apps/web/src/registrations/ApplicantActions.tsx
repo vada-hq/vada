@@ -13,31 +13,36 @@ import { registrationPath } from './registration-api'
 import { useStaffPost, type StaffPostResult } from './useStaffPost'
 
 const CANCEL_WARNING = '취소하면 이름·학번·휴대폰이 바로 지워지고 되돌릴 수 없어요.'
+// 입금을 확인한 신청은 환불 연락을 위해 이름과 휴대폰 번호를 환불할 때까지 남긴다(DEC-55).
+const CANCEL_WARNING_DEPOSITED =
+  '취소하면 학번이 바로 지워지고 되돌릴 수 없어요. 이름과 휴대폰 번호는 환불을 표시할 때까지 남고, 신청은 “환불 대기”로 바뀌어요.'
 
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: Applicant
   attended: boolean
   onAttendance: (registrationId: string, attended: boolean) => void
-  onCancelled: (registrationId: string) => void
+  onCancelled: (registrationId: string, refundPending: boolean) => void
 }
 
 // 이 신청자에게 보내는 쓰기 둘: 출석(취소)과 신청 취소. 404면 신청이 이미 없어졌으니 목록에서 뺀다(이유는 useStaffPost가 부모에게 알린다).
 function useApplicantPost({ councilId, applicant, onAttendance, onCancelled, ...handlers }: Props) {
   const post = useStaffPost(handlers)
   const base = registrationPath(councilId, applicant.id)
+  const deposited = applicant.deposit.status === 'confirmed'
   const isGone = (result: StaffPostResult<unknown>) =>
     !result.ok && result.status === statusOf('NOT_FOUND')
   async function setAttended(next: boolean) {
     const path = `${base}/${next ? 'attendance' : 'attendance/cancel'}`
     const result = await post.send<CheckInResult | CancelRegistrationResponse>(path)
     if (result.ok) onAttendance(applicant.id, next)
-    else if (isGone(result)) onCancelled(applicant.id)
+    else if (isGone(result)) onCancelled(applicant.id, false)
   }
   // 확인 창을 닫아도 되는가: 취소했거나, 신청이 없어졌거나(404), 권한을 잃었다(403). 닫는 이유는 부모가 보인다.
   async function cancel() {
     const result = await post.send<CancelRegistrationResponse>(`${base}/cancel`)
-    if (result.ok || isGone(result)) onCancelled(applicant.id)
+    if (result.ok) onCancelled(applicant.id, deposited)
+    else if (isGone(result)) onCancelled(applicant.id, false)
     return (
       result.ok ||
       result.status === statusOf('NOT_FOUND') ||
@@ -77,6 +82,7 @@ export function ApplicantActions(props: Props) {
       <CancelDialog
         open={confirming}
         name={applicant.name}
+        deposited={applicant.deposit.status === 'confirmed'}
         busy={post.busy}
         problem={post.problem}
         onConfirm={() => void cancel().then(ok => ok && setConfirming(false))}
@@ -92,17 +98,18 @@ export function ApplicantActions(props: Props) {
 type DialogProps = {
   open: boolean
   name: string
+  deposited: boolean
   busy: boolean
   problem: string | null
   onConfirm: () => void
   onCancel: () => void
 }
 
-function CancelDialog({ name, problem, ...rest }: DialogProps) {
+function CancelDialog({ name, deposited, problem, ...rest }: DialogProps) {
   return (
     <ConfirmDialog
       title={`${name}님의 신청을 취소할까요?`}
-      description={CANCEL_WARNING}
+      description={deposited ? CANCEL_WARNING_DEPOSITED : CANCEL_WARNING}
       confirmLabel="신청 취소"
       destructive
       {...(problem ? { error: problem } : {})}

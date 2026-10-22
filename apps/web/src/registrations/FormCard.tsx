@@ -19,6 +19,8 @@ type Props = EventDialogHandlers & {
   onAttendance: (registrationId: string, attended: boolean) => void
   onLoaded: (registrationIds: string[]) => void
   onEdit: () => void
+  // 환불함은 재정부(내 권한 목록의 finance.manage)만 한다.
+  canRefund: boolean
   // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
   onChanged: () => void
 }
@@ -31,6 +33,7 @@ export function FormCard({
   onAttendance,
   onLoaded,
   onEdit,
+  canRefund,
   ...rest
 }: Props) {
   const { onChanged, ...handlers } = rest
@@ -61,6 +64,7 @@ export function FormCard({
           <Applicants
             councilId={councilId}
             form={form}
+            canRefund={canRefund}
             attendance={attendance}
             onAttendance={onAttendance}
             onLoaded={onLoaded}
@@ -121,12 +125,12 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
 }
 
 type ApplicantsProps = EventDialogHandlers &
-  Pick<Props, 'councilId' | 'form' | 'attendance' | 'onAttendance' | 'onLoaded'> & {
+  Pick<Props, 'councilId' | 'form' | 'canRefund' | 'attendance' | 'onAttendance' | 'onLoaded'> & {
     onCancelled: () => void
   }
 
 // 신청자 정보(이름, 학번, 휴대폰)는 열람 권한자에게만 보이고, 아니면 신청 수만 보인다. 열람은 기록이 남아 눌러야 읽는다.
-function Applicants({ form, ...rest }: ApplicantsProps) {
+function Applicants({ form, canRefund, ...rest }: ApplicantsProps) {
   const [shown, setShown] = useState(false)
   if (!form.actions.includes('registration.view_applicants'))
     return (
@@ -146,7 +150,11 @@ function Applicants({ form, ...rest }: ApplicantsProps) {
   return (
     <ApplicantList
       formId={form.id}
-      canManage={form.actions.includes('registration.manage')}
+      can={{
+        manage: form.actions.includes('registration.manage'),
+        deposit: form.actions.includes('deposit.confirm'),
+        refund: canRefund,
+      }}
       {...rest}
     />
   )

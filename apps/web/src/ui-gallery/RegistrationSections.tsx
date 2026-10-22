@@ -1,4 +1,5 @@
-import { REGISTRATION_STATUSES, type RegistrationForm } from '@vada/contracts'
+import { REGISTRATION_STATUSES, type Applicant, type RegistrationForm } from '@vada/contracts'
+import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
 import { ScanResultCard } from '@/registrations/ScanResultCard'
 import { Section } from './GallerySection'
@@ -36,6 +37,7 @@ function Card({ data }: { data: RegistrationForm }) {
     <FormCard
       councilId="c1"
       form={data}
+      canRefund
       attendance={attendance}
       onAttendance={noop}
       onLoaded={noop}
@@ -43,6 +45,53 @@ function Card({ data }: { data: RegistrationForm }) {
       onChanged={noop}
       {...handlers}
     />
+  )
+}
+
+const applicant = (id: string, extra: Partial<Applicant>): Applicant => ({
+  id,
+  name: '김새내',
+  studentId: '20260001',
+  phone: null,
+  appliedFee: 5000,
+  payer: true,
+  duplicateStudentId: false,
+  attended: false,
+  appliedAt: '2026-10-20T05:00:00.000Z',
+  cancelled: false,
+  deposit: { status: 'none', amount: null },
+  ...extra,
+})
+
+const can = { manage: true, deposit: true, refund: true }
+
+// 신청자 줄: 입금 안 함, 입금 확인, 환불 대기(취소함), 참가비 없음, 긴 이름. 390px 폭에서 본다.
+export function ApplicantRowSection() {
+  const rows = [
+    applicant('none', {}),
+    applicant('paid', { deposit: { status: 'confirmed', amount: 5000 } }),
+    applicant('refund', { cancelled: true, deposit: { status: 'refund_pending', amount: 5000 } }),
+    applicant('free', { appliedFee: 0, payer: null }),
+    applicant('long', { name: `${unbroken} ${longName}` }),
+  ]
+  return (
+    <Section title="신청자 줄·입금 칩·환불 대기">
+      <ul className="flex w-96 max-w-full flex-col gap-2">
+        {rows.map(row => (
+          <ApplicantRow
+            key={row.id}
+            councilId="c1"
+            applicant={row}
+            attended={false}
+            can={can}
+            onAttendance={noop}
+            onCancelled={noop}
+            onDeposit={noop}
+            {...handlers}
+          />
+        ))}
+      </ul>
+    </Section>
   )
 }
 

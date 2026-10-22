@@ -270,6 +270,12 @@ export const REGISTRATION_STAFF_ERRORS: Record<string, string> = {
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   CHECKED_IN: '이미 출석한 신청이에요. 출석을 먼저 취소해 주세요.',
+  DEPOSIT_EXISTS: '이미 입금을 확인한 신청이에요. [새로 읽기]로 확인해 주세요.',
+  NO_DEPOSIT: '확인한 입금이 없어요. [새로 읽기]로 확인해 주세요.',
+  DEPOSIT_CLOSED: '이미 환불한 입금이라 확인을 취소할 수 없어요.',
+  NOT_REFUNDABLE:
+    '환불할 수 없는 신청이에요. 이미 환불했거나 취소하지 않은 신청이에요. [새로 읽기]로 확인해 주세요.',
+  EVENT_COMPLETED: '완료한 행사라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
   NOT_CHECKED_IN: '출석 기록이 없어요. 화면을 새로 불러와 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
