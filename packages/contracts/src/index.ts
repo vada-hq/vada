@@ -1,4 +1,13 @@
 export {
+  AgreeSchema,
+  CURRENT_TERMS,
+  isTermsRequired,
+  TERMS_VERSION_MAX,
+  type AgreeRequest,
+  type AgreementResponse,
+  type Terms,
+} from './agreement.js'
+export {
   CreatePhotoUploadSchema,
   FILE_NAME_MAX,
   PHOTO_KEY_MAX,

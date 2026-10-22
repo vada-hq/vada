@@ -4,6 +4,7 @@ import { attachWeb } from './web.js'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
+import { createAgreement } from './agreement/routes.js'
 import { createAuth } from './auth/auth.js'
 import { createChatPush } from './chat/notify.js'
 import { createChatRoutes } from './chat/routes.js'
@@ -90,6 +91,7 @@ function appOf(env: Env, db: Db) {
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
+    agreement: createAgreement(db, session),
   })
 }
 

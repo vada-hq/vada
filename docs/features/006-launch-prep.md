@@ -82,7 +82,7 @@
 - 닿는 곳: `apps/api/migrations/0005_*.sql`과 journal, `db/baseline.test.ts`, `records/records.ts`, `records/same-council.ts`, `access/permissions.ts`, contracts `permissions.ts`.
 - 검토: 깊게. 마이그레이션: 있음(이미 있는 칸의 CHECK). '위험'의 차례로 두 DB에 적용한다.
 
-### 2. 가입 동의(서버) [ ]
+### 2. 가입 동의(서버) [x]
 - 할 수 있게 되는 것: 서버가 로그인한 사람의 동의를 판과 함께 남기고, 지금 판에 동의하지 않은 사람의 학생회 요청을 막는다.
 - 수용 기준: `GET /api/me/agreement`는 지금 판과 주소, 동의가 필요한지, 내가 지금 판에 동의했는지를 준다. 지금 두 판을 `POST /api/me/agreement`로 보내면 한 줄이 남고, 같은 판을 다시 보내도 줄이 늘지 않는다. 지난 판이나 모르는 판은 409 `TERMS_OUTDATED`. 동의하지 않은 계정은 `/api/organizations/` 아래 모든 경로(만들기, 참여, 읽기)가 403 `TERMS_REQUIRED`이고 아무것도 쓰지 않는다. 판 상수를 올리면 동의한 계정도 다시 403이다. 주소 상수가 비면 막지 않고 동의가 필요 없다고 준다. 로그인하지 않으면 401. `/api/me/` 아래와 `/api/invites/`는 동의 없이 된다. 막기를 지우면 실패하는 시험이 있다(자주 잡힌 것 11). 로그에 계정 번호가 없다.
 - 닿는 곳: `apps/api/migrations/0006_*.sql`(새 표 `terms_agreement`: 계정, 약관 판, 처리방침 판, 시각, 앞의 셋으로 유일), `scripts/design-sql.ts`(설계 밖 표 목록), `db/schema-auth.ts`, contracts `agreement.ts`(새: 판과 주소 상수, `AgreeSchema`, `AgreementResponse`), `errors.ts`, `apps/api/src/agreement/`(새), `app.ts`(접두어 미들웨어), `serve.ts`, `http/boundary.test.ts`, `test-support/`.

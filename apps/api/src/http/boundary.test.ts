@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { z } from 'zod'
 import { createApp, type AppOptions } from '../app.js'
+import { createAgreement } from '../agreement/routes.js'
+import { termsGate } from '../agreement/gate.js'
 import { createChatRoutes } from '../chat/routes.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createInviteRoutes } from '../invites/routes.js'
@@ -28,7 +30,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 37
+const MUTATING_ROUTES = 38
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 function modulesOf(session: () => Promise<null>) {
@@ -49,6 +51,7 @@ function modulesOf(session: () => Promise<null>) {
     purchases: createPurchaseRoutes(db, session),
     budget: createBudgetRoutes(db, session),
     expenses: createExpenseRoutes(db, session),
+    agreement: createAgreement(db, session),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>
@@ -161,4 +164,43 @@ test('json()은 모르는 키를 조용히 버리는 스키마를 라우트 생�
   assert.throws(() => json(z.object({ title: z.string() })))
   assert.throws(() => json(z.looseObject({ title: z.string() })))
   assert.doesNotThrow(() => json(z.strictObject({ title: z.string() })))
+})
+
+// 동의 전 막기는 접두어로 건다. 지금 판에 동의하지 않은 계정은 /api/organizations/ 아래 어떤 경로도 쓰지 못한다.
+// 경로를 하나씩 적지 않고 앱이 가진 경로를 모두 돌아, 새 경로가 더해져도 막기에서 빠지지 않는지 본다.
+test('동의하지 않은 계정은 /api/organizations/ 아래 모든 경로가 403 TERMS_REQUIRED이고 DB에 닿지 않는다', async () => {
+  const session = async () => ({ user: { id: 'u1' } })
+  const terms = {
+    termsVersion: '2026-11-01',
+    privacyVersion: '2026-11-01',
+    termsUrl: 'https://vada.example.test/terms',
+    privacyUrl: 'https://vada.example.test/privacy',
+  }
+  const modules = modulesOf(async () => null)
+  const app = appOf({
+    ...modules,
+    agreement: {
+      routes: modules.agreement.routes,
+      gate: termsGate(session, async () => false, terms),
+    },
+  })
+  const keys = [
+    ...new Set(
+      app.routes
+        .filter(route => route.path.startsWith('/api/organizations/') && !route.path.endsWith('/*'))
+        .map(route => `${route.method === 'ALL' ? 'POST' : route.method} ${route.path}`),
+    ),
+  ]
+  assert.ok(keys.length > 40, `경로를 ${keys.length}개만 찾았다. 모두 도는지 확인한다`)
+  for (const key of keys) {
+    const method = key.slice(0, key.indexOf(' '))
+    const path = pathOf(key).replace(/:[^/]+/g, 'probe')
+    const response = await app.request(path, {
+      method,
+      headers: { 'Content-Type': 'application/json', Origin: origin },
+      ...(method === 'GET' ? {} : { body: '{}' }),
+    })
+    assert.equal(response.status, 403, key)
+    assert.deepEqual(await response.json(), { error: 'TERMS_REQUIRED' }, key)
+  }
 })
