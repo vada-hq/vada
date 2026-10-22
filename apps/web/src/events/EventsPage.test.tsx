@@ -214,6 +214,15 @@ test('책임자가 고치면 칸을 그대로 보내고 응답이 화면 값이 
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
+test('고치기에서 끝이 시작보다 이르면 저장 버튼이 꺼져 있다', async () => {
+  const { api } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-24T13:00' } })
+  expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
+})
+
 test('책임자를 바꾸면 owner 경로로 보내고, 같은 사람이면 저장이 꺼져 있다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
