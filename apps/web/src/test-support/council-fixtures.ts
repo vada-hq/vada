@@ -18,7 +18,7 @@ const defaultTitles = {
 // 재정 칸은 직급으로 물려받지 않아 재정부만 가진다.
 export const MEMBER_PERMISSIONS: Action[] = ['council.view', 'chat.direct', 'purchase.request']
 const FINANCE_ONLY: Action[] = ['purchase.approve', 'finance.manage']
-const NEEDS_CONTEXT: Action[] = ['chat.use', 'purchase.cancel']
+const NEEDS_CONTEXT: Action[] = ['chat.use', 'purchase.cancel', 'event.update']
 export const FINANCE_PERMISSIONS: Action[] = [...MEMBER_PERMISSIONS, ...FINANCE_ONLY]
 export const LEADER_PERMISSIONS: Action[] = ACTIONS.filter(
   action =>
