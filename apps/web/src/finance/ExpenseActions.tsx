@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { ExpenseAction, ExpenseDetail } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { ACTION_GONE } from '@/lib/messages'
+import { useAskingGuard } from '@/lib/use-asking-guard'
 import { ExpenseCancelDialog } from './ExpenseCancelDialog'
 import { ExpenseUpdateDialog } from './ExpenseUpdateDialog'
 import type { ExpenseDetailState } from './useExpenseDetail'
@@ -46,24 +47,6 @@ function ActionButtons({
   )
 }
 
-// 열려 있는 동안 다시 읽은 동작에서 그 동작이 빠지면(다른 사람이 취소했거나 행사가 완료됐다) 닫고 이유를 보인다.
-// 이미 거절 문구가 있으면(방금 409를 받았다) 그것을 남긴다.
-function useAskingGuard(
-  asking: Asking,
-  expense: ExpenseDetail,
-  detail: ExpenseDetailState,
-  close: () => void,
-) {
-  const gone = asking !== null && !expense.actions.includes(NEEDED[asking])
-  useEffect(() => {
-    if (!gone) return
-    close()
-    detail.report(detail.problem ?? ACTION_GONE)
-    // 빠졌다는 사실이 바뀔 때만 돈다.
-    // oxlint-disable-next-line react/exhaustive-deps -- close와 detail은 매 렌더 새 값이다
-  }, [gone])
-}
-
 type Props = {
   councilId: string
   expense: ExpenseDetail
@@ -71,19 +54,33 @@ type Props = {
   onForbidden: () => void
 }
 
-// [환급함], [고치기], [취소]는 서버가 준 동작에 있을 때만 보이고, 환급과 취소는 확인을 거친다.
-// 이미 바뀐 상태(409)면 확인을 닫고 이유를 버튼 옆에 보인다.
-export function ExpenseActions({ councilId, expense, detail, onForbidden }: Props) {
+// 확인 상태와 닫기, 보내기. 열려 있는 동안 다시 읽은 동작에서 그 동작이 빠지면(다른 사람이 취소했거나 행사가 완료됐다) 닫고 이유를 보인다.
+// 이미 거절 문구가 있으면(방금 409를 받았다) 그것을 남긴다.
+function useAsking(expense: ExpenseDetail, detail: ExpenseDetailState) {
   const [asking, setAsking] = useState<Asking>(null)
   const close = () => {
     detail.report(null)
     setAsking(null)
   }
-  useAskingGuard(asking, expense, detail, () => setAsking(null))
-  const finish = (outcome: Promise<string>) =>
-    void outcome.then(result => {
+  const guarded = useAskingGuard(
+    asking !== null,
+    asking !== null && !expense.actions.includes(NEEDED[asking]) ? 'gone' : null,
+    () => {
+      setAsking(null)
+      detail.report(detail.problem ?? ACTION_GONE)
+    },
+  )
+  const finish = (request: () => Promise<string>) =>
+    void guarded(request, result => result !== 'failed').then(result => {
       if (result !== 'failed') setAsking(null)
     })
+  return { asking, setAsking, close, finish }
+}
+
+// [환급함], [고치기], [취소]는 서버가 준 동작에 있을 때만 보이고, 환급과 취소는 확인을 거친다.
+// 이미 바뀐 상태(409)면 확인을 닫고 이유를 버튼 옆에 보인다.
+export function ExpenseActions({ councilId, expense, detail, onForbidden }: Props) {
+  const { asking, setAsking, close, finish } = useAsking(expense, detail)
   return (
     <div className="flex flex-col items-start gap-2">
       <ActionButtons actions={expense.actions} saving={detail.saving} onAsk={setAsking} />
@@ -98,14 +95,14 @@ export function ExpenseActions({ councilId, expense, detail, onForbidden }: Prop
         description="먼저 낸 사람에게 돈을 돌려준 뒤에 표시하세요. 표시한 뒤에는 되돌릴 수 없어요."
         confirmLabel="환급함"
         onCancel={close}
-        onConfirm={() => finish(detail.reimburse())}
+        onConfirm={() => finish(() => detail.reimburse())}
       />
       {asking === 'cancel' && (
         <ExpenseCancelDialog
           busy={detail.saving}
           error={detail.problem}
           onClose={close}
-          onConfirm={reason => finish(detail.cancel(reason))}
+          onConfirm={reason => finish(() => detail.cancel(reason))}
         />
       )}
       {asking === 'update' && (
@@ -116,7 +113,7 @@ export function ExpenseActions({ councilId, expense, detail, onForbidden }: Prop
           error={detail.problem}
           onForbidden={onForbidden}
           onClose={close}
-          onConfirm={body => finish(detail.update(body))}
+          onConfirm={body => finish(() => detail.update(body))}
         />
       )}
     </div>

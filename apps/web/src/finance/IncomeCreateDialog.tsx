@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { emptyIncome, incomeOf, receivedRange, type IncomeValues } from './income-form'
 import type { IncomeDialogHandlers } from './income-requests'
@@ -116,6 +117,35 @@ type FormProps = Omit<Props, 'open'> & {
   setSaving: (saving: boolean) => void
 }
 
+function FormFooter({
+  notStarted,
+  problem,
+  saving,
+  canSubmit,
+  onClose,
+}: {
+  notStarted: boolean
+  problem: string | null
+  saving: boolean
+  canSubmit: boolean
+  onClose: () => void
+}) {
+  return (
+    <>
+      {notStarted && <StateMessage kind="notice">{INCOME_PERIOD_NOT_STARTED}</StateMessage>}
+      {problem && <StateMessage kind="error">{problem}</StateMessage>}
+      <DialogFooter>
+        <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
+          닫기
+        </Button>
+        <Button type="submit" disabled={!canSubmit || saving}>
+          적기
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
 function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
   const [values, setValues] = useState(() => emptyIncome(period, today))
@@ -153,15 +183,13 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
         disabled={saving}
         onPick={accountId => setValues({ ...values, accountId })}
       />
-      {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
-      <DialogFooter>
-        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
-          닫기
-        </Button>
-        <Button type="submit" disabled={!create.valid || !inRange || saving}>
-          적기
-        </Button>
-      </DialogFooter>
+      <FormFooter
+        notStarted={range.min > range.max}
+        problem={create.problem}
+        saving={saving}
+        canSubmit={create.valid && inRange}
+        onClose={props.onClose}
+      />
     </form>
   )
 }

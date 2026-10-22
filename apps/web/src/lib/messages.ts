@@ -277,6 +277,8 @@ export const INCOME_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
+export const INCOME_PERIOD_NOT_STARTED =
+  '이 기간은 아직 시작하지 않아 받은 날을 고를 수 없어요. 시작한 뒤에 적어 주세요.'
 export const INCOME_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
 // 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.

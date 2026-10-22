@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { COMPLETION_ERRORS, PERMISSION_CHANGED } from '@/lib/messages'
+import { useAskingGuard } from '@/lib/use-asking-guard'
 import { CompletionDialog } from './CompletionDialog'
 import { useCompletionPost } from './useCompletionPost'
 import type { EventDialogHandlers } from './useEventSubmit'
@@ -18,24 +19,29 @@ type Props = EventDialogHandlers & {
 
 type Asking = 'complete' | 'cancel' | null
 
+type Gone = 'permission' | 'completed' | 'not_completed'
+
 // 열려 있는 동안 다시 읽은 행사가 바뀌면 닫고 이유를 보인다: 권한이 빠졌거나, 다른 사람이 이미 완료(또는 완료 취소)했다.
-function useAskingGuard(
-  asking: Asking,
-  event: EventDetail,
+function goneOf(asking: Asking, event: EventDetail): Gone | null {
+  const completed = event.status === 'completed'
+  if (!event.actions.includes('event.complete')) return 'permission'
+  if (asking === 'complete' && completed) return 'completed'
+  if (asking === 'cancel' && !completed) return 'not_completed'
+  return null
+}
+
+// 막힌 이유에 맞는 문구로 확인을 닫는다. 권한을 잃었으면 부모에게도 알린다.
+function closeFor(
+  gone: Gone,
   close: (message: string | null) => void,
   onLost: (message: string) => void,
 ) {
-  const completed = event.status === 'completed'
-  const allowed = event.actions.includes('event.complete')
-  useEffect(() => {
-    if (asking === null) return
-    if (!allowed) {
-      close(null)
-      return onLost(PERMISSION_CHANGED)
-    }
-    if (asking === 'complete' && completed) close(COMPLETION_ERRORS.EVENT_COMPLETED ?? null)
-    if (asking === 'cancel' && !completed) close(COMPLETION_ERRORS.EVENT_NOT_COMPLETED ?? null)
-  }, [asking, allowed, completed, close, onLost])
+  if (gone === 'permission') {
+    close(null)
+    return onLost(PERMISSION_CHANGED)
+  }
+  const code = gone === 'completed' ? 'EVENT_COMPLETED' : 'EVENT_NOT_COMPLETED'
+  close(COMPLETION_ERRORS[code] ?? null)
 }
 
 // 완료와 완료 취소(회장단). 버튼은 서버가 준 동작(event.complete)이 있을 때만 보이고, 완료한 행사에서는 [완료 취소]가 된다.
@@ -48,11 +54,16 @@ export function EventCompletion({ councilId, event, onDone, onStale, ...handlers
     setAsking(null)
     report(message)
   }
-  useAskingGuard(asking, event, close, handlers.onLost)
+  const guarded = useAskingGuard(asking !== null, goneOf(asking, event), gone =>
+    closeFor(gone, close, handlers.onLost),
+  )
   if (!event.actions.includes('event.complete')) return null
   const completed = event.status === 'completed'
   async function confirm(reason: string | null) {
-    const outcome = await post.send(completed ? 'cancel-completion' : 'complete', { reason })
+    const outcome = await guarded(
+      () => post.send(completed ? 'cancel-completion' : 'complete', { reason }),
+      result => result !== 'failed',
+    )
     if (outcome === 'done' || outcome === 'lost') setAsking(null)
     if (outcome === 'rejected') {
       setAsking(null)

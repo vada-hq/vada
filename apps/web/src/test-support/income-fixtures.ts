@@ -25,8 +25,8 @@ export const standardPeriods = () => ({
     periodSummary(CURRENT_PERIOD),
     periodSummary(OLD_PERIOD, {
       name: '2026년 1학기',
-      startsOn: '1990-01-01',
-      endsOn: '1999-12-31',
+      startsOn: '2020-01-01',
+      endsOn: '2020-12-31',
       current: false,
       status: 'published',
     }),

@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { CancelIncomeSchema, type IncomeDetail } from '@vada/contracts'
 import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { ACTION_GONE } from '@/lib/messages'
-import type { IncomeDetailState } from './useIncomeDetail'
+import { useAskingGuard } from '@/lib/use-asking-guard'
+import type { IncomeDetailState, IncomeOutcome } from './useIncomeDetail'
+
+// 취소 요청이 값을 바꿨는가(done), 이미 바뀐 값을 다시 읽게 했는가(stale). failed만 아무것도 바꾸지 못했다.
+const isApplied = (outcome: IncomeOutcome) => outcome !== 'failed'
 
 type Props = { income: IncomeDetail; detail: IncomeDetailState }
 
@@ -13,14 +17,10 @@ type Props = { income: IncomeDetail; detail: IncomeDetailState }
 export function IncomeActions({ income, detail }: Props) {
   const [asking, setAsking] = useState(false)
   const canCancel = income.actions.includes('income.cancel')
-  const gone = asking && !canCancel
-  useEffect(() => {
-    if (!gone) return
+  const guarded = useAskingGuard(asking, canCancel ? null : 'gone', () => {
     setAsking(false)
     detail.report(detail.problem ?? ACTION_GONE)
-    // 빠졌다는 사실이 바뀔 때만 돈다.
-    // oxlint-disable-next-line react/exhaustive-deps -- detail은 매 렌더 새 값이다
-  }, [gone])
+  })
   const close = () => {
     detail.report(null)
     setAsking(false)
@@ -42,8 +42,8 @@ export function IncomeActions({ income, detail }: Props) {
           isValid={reason => CancelIncomeSchema.safeParse({ reason }).success}
           onClose={close}
           onConfirm={reason =>
-            void detail.cancel(reason).then(outcome => {
-              if (outcome !== 'failed') setAsking(false)
+            void guarded(() => detail.cancel(reason), isApplied).then(outcome => {
+              if (isApplied(outcome)) setAsking(false)
             })
           }
         />

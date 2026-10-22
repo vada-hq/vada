@@ -9,7 +9,12 @@ import {
 } from '@/test-support/account-fixtures'
 import { asElement } from '@/test-support/elements'
 import { BASE, showFinance } from '@/test-support/expense-harness'
-import { incomeDetail, INCOME_ITEM } from '@/test-support/income-fixtures'
+import {
+  incomeDetail,
+  INCOME_ITEM,
+  OLD_PERIOD,
+  periodSummary,
+} from '@/test-support/income-fixtures'
 import {
   CURRENT_INCOMES,
   INCOMES,
@@ -17,7 +22,12 @@ import {
   serveIncomes,
 } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
-import { INCOME_ERRORS, INCOME_LOST, PERMISSION_CHANGED } from '@/lib/messages'
+import {
+  INCOME_ERRORS,
+  INCOME_LOST,
+  INCOME_PERIOD_NOT_STARTED,
+  PERMISSION_CHANGED,
+} from '@/lib/messages'
 
 afterEach(() => {
   cleanup()
@@ -196,4 +206,54 @@ test('403이면 대화상자를 닫고 권한이 바뀌었다고 알리고 학�
   await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
   expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
   expect(handlers.onForbidden).toHaveBeenCalled()
+})
+
+test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고 예산 항목 칸이 없다', async () => {
+  const api = serve()
+  api.on('GET', `${INCOMES}?period=${OLD_PERIOD}`, () => json({ incomes: [], truncated: false }))
+  api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
+  showFinance()
+  openIncomesTab()
+  await screen.findByRole('button', { name: '수입 적기' })
+  fireEvent.change(screen.getByLabelText('회계 기간'), { target: { value: OLD_PERIOD } })
+  await screen.findByText('적힌 수입이 없어요.')
+  fireEvent.click(screen.getByRole('button', { name: '수입 적기' }))
+  await screen.findByRole('form', { name: '수입 적기' })
+  const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
+  expect([date.min, date.max, date.value]).toEqual(['2020-01-01', '2020-12-31', '2020-12-31'])
+  expect(screen.queryByLabelText('수입 예산 항목')).toBeNull()
+  // 예산 항목은 지금 기간만 읽으므로 읽지도 않는다.
+  expect(api.calls.some(call => call.path === `${BASE}/budget`)).toBe(false)
+  fill('금액(원)', '1000')
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    receivedOn: '2020-12-31',
+    budgetItemId: null,
+  })
+})
+
+test('시작 전 기간이면 이유를 한 줄 보이고 적을 수 없다', async () => {
+  const api = serve()
+  const future = '77777777-7777-4777-8777-777777777773'
+  api.on('GET', `${BASE}/fiscal-periods`, () =>
+    json({
+      periods: [
+        periodSummary(future, {
+          name: '다음 기간',
+          startsOn: '2999-01-01',
+          endsOn: '2999-12-31',
+          current: false,
+        }),
+      ],
+    }),
+  )
+  api.on('GET', `${INCOMES}?period=${future}`, () => json({ incomes: [], truncated: false }))
+  showFinance()
+  openIncomesTab()
+  fireEvent.click(await screen.findByRole('button', { name: '수입 적기' }))
+  await screen.findByRole('form', { name: '수입 적기' })
+  expect(screen.getByText(INCOME_PERIOD_NOT_STARTED)).toBeTruthy()
+  fill('금액(원)', '1000')
+  expect(submit().disabled).toBe(true)
 })

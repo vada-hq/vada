@@ -121,6 +121,8 @@ test('취소는 사유를 받아야 켜지고 한 번만 보내며 끝나면 목
   const dialog = screen.getByRole('dialog')
   expect(within(dialog).getByText('취소됨')).toBeTruthy()
   expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  // 성공한 취소 뒤에는 '할 수 없는 동작' 같은 알림이 없다.
+  expect(within(dialog).queryByRole('alert')).toBeNull()
   await waitFor(() =>
     expect(api.calls.filter(call => call.path.includes('period=')).length).toBeGreaterThan(before),
   )
@@ -205,4 +207,24 @@ test('수입 적기를 연 동안 재정 권한이 빠지면 닫고 이유를 �
   await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
   expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
   expect(screen.queryByRole('button', { name: '수입 적기' })).toBeNull()
+})
+
+test('취소를 보낼 때 404면 상세를 닫고 이유를, 403이면 권한이 바뀌었다고 알린다', async () => {
+  const api = serve()
+  api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: 'NOT_FOUND' }, 404))
+  show()
+  let ask = await askCancel()
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
+  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByText(INCOME_LOST)).toBeTruthy()
+  cleanup()
+  api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: 'FORBIDDEN' }, 403))
+  const page = show()
+  ask = await askCancel()
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
+  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
+  expect(page.onForbidden).toHaveBeenCalled()
 })
