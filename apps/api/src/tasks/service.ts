@@ -17,6 +17,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { taskContext } from './actions.js'
 import { dueAtOf, dueDateOf } from './due.js'
+import { eventChangeOf, eventLinkOf } from './event-link.js'
 import { taskDetailOf, taskRowOf } from './queries.js'
 
 // 고칠 업무와 요청 시각. 조각 4의 맡기기도 같은 모양으로 부른다.
@@ -70,7 +71,7 @@ async function noticeAssignment(
 }
 
 // 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
-function createContext(actor: Actor, input: CreateTaskRequest) {
+function createContext(actor: Actor, input: CreateTaskRequest, eventOwnerId: string | null) {
   const mine =
     input.assigneeId === actor.memberId &&
     (!input.departmentId ||
@@ -78,6 +79,7 @@ function createContext(actor: Actor, input: CreateTaskRequest) {
   return taskContext({
     departmentId: input.departmentId,
     assigneeId: mine ? input.assigneeId : null,
+    eventOwnerId,
   })
 }
 
@@ -87,8 +89,11 @@ export async function createTask(
   input: CreateTaskRequest,
   now: Date,
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
-  // 403이 409보다 먼저다.
-  if (!can(actor, 'task.manage', createContext(actor, input))) throw new ApiError('FORBIDDEN')
+  // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다.
+  const link = await eventLinkOf(tx, actor, input.eventId)
+  if (!can(actor, 'task.manage', createContext(actor, input, link.ownerId)))
+    throw new ApiError('FORBIDDEN')
+  if (!link.valid) throw new ApiError('EVENT_INVALID')
   await assertDepartment(tx, actor, input.departmentId)
   await assertAssignee(tx, actor, input.assigneeId, now)
   const id = await createRecord(tx, {
@@ -101,13 +106,14 @@ export async function createTask(
       dueAt: dueAtOf(input.dueDate),
       departmentId: input.departmentId,
       assigneeId: input.assigneeId,
+      eventId: input.eventId,
     },
   })
   const notice = await noticeAssignment(tx, actor, id, { previous: null, next: input.assigneeId })
   return { task: await taskDetailOf(tx, actor, id, now), notice }
 }
 
-// 같은 값이면 판을 만들지 않는다. 마감은 날짜로 견준다.
+// 같은 값이면 판을 만들지 않는다. 마감은 날짜로 견준다. 행사를 바꾸면 앞과 뒤 맥락 모두에서 권한을 본다(event-link.ts).
 export async function updateTask(
   tx: Tx,
   actor: Actor,
@@ -119,6 +125,7 @@ export async function updateTask(
     ...(input.title !== row.title ? { title: input.title } : {}),
     ...(input.body !== row.body ? { body: input.body } : {}),
     ...(input.dueDate !== dueDateOf(row.dueAt) ? { dueAt: dueAtOf(input.dueDate) } : {}),
+    ...(await eventChangeOf(tx, actor, row, input.eventId)),
   }
   if (Object.keys(changes).length)
     await updateRecord(tx, {

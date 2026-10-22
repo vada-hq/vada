@@ -9,6 +9,7 @@ const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   dueDate: null,
   overdue: false,
   department: null,
+  event: null,
   assignee: null,
   actions: [],
   ...extra,

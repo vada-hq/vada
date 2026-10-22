@@ -16,6 +16,7 @@ export function taskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
     dueDate: '2026-10-25',
     overdue: false,
     department: { id: 'd1', name: '재정부' },
+    event: null,
     assignee: { id: 'm2', name: '이재정', current: true },
     actions: ALL_TASK_ACTIONS,
     body: '크기는 3m로 해 주세요.',

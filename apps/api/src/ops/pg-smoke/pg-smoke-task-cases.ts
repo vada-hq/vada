@@ -36,7 +36,7 @@ async function taskIn(db: Db, context: SmokeContext, who: Who, title: string) {
     createTask(
       tx,
       actor,
-      { title, body: null, dueDate: null, departmentId: null, assigneeId: null },
+      { title, body: null, dueDate: null, departmentId: null, assigneeId: null, eventId: null },
       context.now,
     ),
   )

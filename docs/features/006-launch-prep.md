@@ -94,7 +94,7 @@
 - 닿는 곳: contracts `events.ts`(새: 상한, `CreateEventSchema`, `UpdateEventSchema`, `SetEventOwnerSchema`, `EventSummary`, `EventDetail`, `EventsResponse`), `errors.ts`. `apps/api/src/events/`(새: `routes.ts`, `service.ts`, `queries.ts`, `status.ts`), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET events`, `GET events/:eventId`, `POST events`, `POST events/:eventId`, `POST events/:eventId/owner`.
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 4. 행사 업무(서버) [ ]
+### 4. 행사 업무(서버) [x]
 - 할 수 있게 되는 것: 업무가 행사에 이어지고, 행사 책임자가 그 업무를 다룬다.
 - 수용 기준: 업무를 만들 때 행사를 고를 수 있고 다른 학생회 행사는 409 `EVENT_INVALID`다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만들고, 고치고, 지우고, 맡기고, 부서를 정하고, 상태를 바꾼다. 같은 사람이 행사 없는 업무와 다른 행사의 업무에서는 004 규칙대로다. 책임자가 바뀐 뒤 전 책임자는 403이다. 고치기로 행사를 바꾸거나 비우면 전과 뒤 모두에서 `task.manage`가 있어야 하고 아니면 403이다. `GET tasks?event=`는 그 행사의 업무만 기존 `view`·`status`와 함께 주고, 다른 학생회 행사면 404다. 업무 줄과 상세에 행사 이름이 있고 `actions`가 책임자 권한을 담는다. 기존 업무 시험이 그대로 통과한다.
 - 닿는 곳: contracts `tasks.ts`(행사 칸, 목록 거르기, 줄의 행사), `errors.ts`. `tasks/service.ts`, `tasks/queries.ts`, `tasks/list-query.ts`, `tasks/actions.ts`, `tasks/write-routes.ts`, `ops/pg-smoke/`(책임자 바꾸기와 겹치기).

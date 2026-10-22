@@ -6,6 +6,7 @@ import { pgliteConnection } from '../../test-support/smoke-connection.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   assignAndRemoveCase,
+  ownerChangeAndWriteCase,
   cancelAndDecideCase,
   changeStatusTogetherCase,
   createAndJoinCase,
@@ -399,6 +400,27 @@ test('같은 지출을 동시에 취소하고 환급: 예상하지 못한 DB 오
   const testDb = await createTestDb()
   try {
     const verdict = await expenseTogetherCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('행사 책임자 바꾸기와 전 책임자의 업무 쓰기를 동시에: 바꾼 뒤의 쓰기 판이 없다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await ownerChangeAndWriteCase.run(contextOf(testDb))), /쓴 업무 판이 없다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('행사 책임자 바꾸기와 전 책임자의 업무 쓰기를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await ownerChangeAndWriteCase.run(
       contextOf(testDb, failingParticipants(testDb, '40P01')),
     )
     assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))

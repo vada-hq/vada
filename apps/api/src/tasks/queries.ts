@@ -15,6 +15,7 @@ import {
   cohort,
   councilMembership,
   department,
+  event,
   member,
   record,
   recordVersion,
@@ -24,6 +25,7 @@ import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { actionsOf } from './actions.js'
 import { dueDateOf, isOverdue } from './due.js'
+import { eventRowOf } from '../events/queries.js'
 import { historyOf } from './history.js'
 
 type Reader = Pick<Db, 'select'>
@@ -56,6 +58,9 @@ function taskSelect(db: Reader, actor: Actor, now: Date) {
       dueAt: task.dueAt,
       departmentId: task.departmentId,
       departmentName: department.name,
+      eventId: task.eventId,
+      eventName: event.name,
+      eventOwnerId: event.ownerId,
       assigneeId: task.assigneeId,
       assigneeName: member.name,
       assigneeCurrent: sql<boolean>`${assigneeIsCurrent(db, actor, now)}`.mapWith(Boolean),
@@ -64,6 +69,7 @@ function taskSelect(db: Reader, actor: Actor, now: Date) {
     .from(task)
     .innerJoin(record, eq(record.id, task.id))
     .leftJoin(department, eq(department.id, task.departmentId))
+    .leftJoin(event, eq(event.id, task.eventId))
     .leftJoin(member, eq(member.id, task.assigneeId))
 }
 
@@ -85,6 +91,7 @@ function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
       row.departmentId && row.departmentName
         ? { id: row.departmentId, name: row.departmentName }
         : null,
+    event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
     assignee:
       row.assigneeId && row.assigneeName
         ? { id: row.assigneeId, name: row.assigneeName, current: row.assigneeCurrent }
@@ -110,6 +117,7 @@ function listRows(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
     inCouncil(actor),
     viewCondition(db, actor, query.view, now),
     query.status === 'done' ? eq(task.status, 'done') : ne(task.status, 'done'),
+    query.event ? eq(task.eventId, query.event) : undefined,
   )
   const base = taskSelect(db, actor, now)
   if (query.status === 'open')
@@ -133,6 +141,8 @@ export async function taskListOf(
   query: TaskListQuery,
   now: Date,
 ): Promise<TasksResponse> {
+  // 다른 학생회 행사와 없는 행사는 404다. 빈 목록으로 답하면 행사가 있는지 드러난다.
+  if (query.event) await eventRowOf(db, actor, query.event)
   const rows = await listRows(db, actor, query, now)
   const limit = query.status === 'open' ? TASK_OPEN_LIMIT : TASK_DONE_LIMIT
   return {

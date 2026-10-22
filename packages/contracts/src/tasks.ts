@@ -22,6 +22,8 @@ export type TaskFilter = (typeof TASK_FILTERS)[number]
 export const TaskListQuerySchema = z.strictObject({
   view: z.enum(TASK_VIEWS),
   status: z.enum(TASK_FILTERS).default('open'),
+  // 그 행사의 업무만. 다른 학생회 행사는 서버가 404로 답한다.
+  event: recordIdInput.optional(),
 })
 export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 
@@ -50,6 +52,8 @@ export interface TaskSummary {
   // 끝나지 않았고 오늘(한국)이 마감일 뒤일 때만 참이다. 서버가 센다.
   overdue: boolean
   department: { id: string; name: string } | null
+  // 이어진 행사. 이름은 지금 이름이다.
+  event: { id: string; name: string } | null
   assignee: TaskPerson | null
   actions: TaskAction[]
 }
@@ -100,13 +104,16 @@ export const CreateTaskSchema = z.strictObject({
   dueDate: dueDate.nullable().default(null),
   departmentId: recordIdInput.nullable().default(null),
   assigneeId: recordIdInput.nullable().default(null),
+  eventId: recordIdInput.nullable().default(null),
 })
 export type CreateTaskRequest = z.infer<typeof CreateTaskSchema>
 // 제목, 내용, 마감 고치기. 세 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
+// 행사는 보낼 때만 바꾼다(null이면 비운다). 칸을 빼면 그대로다.
 export const UpdateTaskSchema = z.strictObject({
   title: text(TASK_TITLE_MAX),
   body: text(TASK_BODY_MAX).nullable(),
   dueDate: dueDate.nullable(),
+  eventId: recordIdInput.nullable().optional(),
 })
 export type UpdateTaskRequest = z.infer<typeof UpdateTaskSchema>
 export const ChangeTaskStatusSchema = z.strictObject({ status: z.enum(TASK_STATUSES) })

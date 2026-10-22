@@ -1,0 +1,47 @@
+import { and, eq } from 'drizzle-orm'
+import type { Actor } from '../access/actor.js'
+import { can } from '../access/permissions.js'
+import { event, record } from '../db/schema.js'
+import type { Tx } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
+import { taskContext } from './actions.js'
+
+// 업무가 이을 행사. 이 학생회의 행사만 valid다. 다른 학생회 행사의 책임자는 맥락에 넣지 않는다(권한이 없는 사람에게 행사가 있는지 드러내지 않는다).
+type EventLink = { valid: boolean; ownerId: string | null }
+
+// 쓰기 거래 안에서 부른다. 학생회 행 잠금이 책임자 바꾸기와 줄을 세우므로, 여기서 읽은 책임자는 거래가 끝날 때까지 바뀌지 않는다.
+export async function eventLinkOf(
+  tx: Tx,
+  actor: Actor,
+  eventId: string | null,
+): Promise<EventLink> {
+  if (!eventId) return { valid: true, ownerId: null }
+  const [found] = await tx
+    .select({ ownerId: event.ownerId })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(and(eq(event.id, eventId), eq(record.councilId, actor.councilId)))
+  return found ? { valid: true, ownerId: found.ownerId } : { valid: false, ownerId: null }
+}
+
+type Row = {
+  departmentId: string | null
+  assigneeId: string | null
+  eventId: string | null
+}
+
+// 고치기가 정한 행사: 칸을 빼면 그대로, 같은 값이면 확인도 판도 없다. 바꾸면 뒤의 행사 맥락에서도 task.manage가 있어야 한다(앞은 업무를 읽을 때 이미 봤다).
+// 403이 409보다 먼저다.
+export async function eventChangeOf(
+  tx: Tx,
+  actor: Actor,
+  row: Row,
+  wanted: string | null | undefined,
+): Promise<{ eventId?: string | null }> {
+  if (wanted === undefined || wanted === row.eventId) return {}
+  const link = await eventLinkOf(tx, actor, wanted)
+  if (!can(actor, 'task.manage', taskContext({ ...row, eventOwnerId: link.ownerId })))
+    throw new ApiError('FORBIDDEN')
+  if (!link.valid) throw new ApiError('EVENT_INVALID')
+  return { eventId: wanted }
+}

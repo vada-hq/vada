@@ -22,6 +22,7 @@ const summary: TaskSummary = {
   dueDate: null,
   overdue: false,
   department: null,
+  event: null,
   assignee: null,
   actions: ['task.status', 'task.manage'],
 }
