@@ -112,6 +112,30 @@ export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<
   }
 }
 
+// 홈의 행사 카드: 완료하지 않은 행사를 끝남(끝난 지 오래된 것부터) → 진행 중 → 예정(시작 순) → 날짜 미정(만든 순)으로 limit개까지. 한 개 더 읽어 넘쳤는지 안다.
+export async function openEventsOf(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+  limit: number,
+): Promise<EventsResponse> {
+  const group = groupSql(now)
+  const rows = await eventSelect(db)
+    .where(and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`))
+    .orderBy(
+      sql`(${group} + 1) % 4`,
+      sql`case when ${group} = 3 then ${endsAtSql} end asc`,
+      sql`case when ${group} < 2 then ${event.startsAt} end asc`,
+      sql`case when ${group} = 2 then ${record.createdAt} end asc`,
+      event.id,
+    )
+    .limit(limit + 1)
+  return {
+    events: await summariesOf(db, actor, rows.slice(0, limit), now),
+    truncated: rows.length > limit,
+  }
+}
+
 async function taskCountsOf(db: Reader, eventId: string) {
   const [counts] = await db
     .select({

@@ -74,25 +74,32 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'fee_payment.view': { who: ['finance', 'leadership'] },
 }
 
+// 기준의 판단 하나씩. 권한표(meets)와 홈의 계층 가르기가 같은 것을 쓴다(DEC-38, 화면과 서버가 다시 적지 않는다).
+export const isLeadership = (actor: Actor) => actor.councilRank !== null
+// 부서 직급이 있는 부서들(부부장 포함). 소속만 있는 부서는 아니다.
+export const headDepartmentIds = (actor: Actor) =>
+  actor.departments.filter(item => item.rank !== null).map(item => item.departmentId)
+export const isFinanceMember = (actor: Actor) =>
+  actor.departments.some(item => item.role === 'finance')
+
 function meets(actor: Actor, criterion: Criterion, context: Context) {
   switch (criterion) {
     case 'member':
       return true
     case 'leadership':
-      return actor.councilRank !== null
+      return isLeadership(actor)
     case 'president':
       return actor.councilRank === 'president'
     // 상속(기준 3): 회장단은 모든 부서에서 부장 권한을 가진다.
     case 'department_head':
       return (
-        actor.councilRank !== null ||
-        actor.departments.some(
-          item => item.rank !== null && item.departmentId === context.departmentId,
-        )
+        isLeadership(actor) ||
+        (context.departmentId !== undefined &&
+          headDepartmentIds(actor).includes(context.departmentId))
       )
     // 재정 권한은 직급으로 물려받지 않는다(기준 3).
     case 'finance':
-      return actor.departments.some(item => item.role === 'finance')
+      return isFinanceMember(actor)
     default:
       return meetsContext(actor, criterion, context)
   }

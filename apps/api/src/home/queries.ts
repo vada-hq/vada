@@ -10,6 +10,10 @@ import {
 import type { Actor } from '../access/actor.js'
 import { record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { councilOf } from './council.js'
+import { departmentsOf } from './departments.js'
+import { levelOf } from './level.js'
+import { openTasksOf } from './open-tasks.js'
 import { dueGroupOf } from '../tasks/due.js'
 import { assignedTo, inCouncil, summaryOf, taskSelect } from '../tasks/queries.js'
 
@@ -33,6 +37,13 @@ async function mineOf(db: Reader, actor: Actor, now: Date): Promise<HomeMine> {
   return { tasks, counts }
 }
 
+// 계층(levelOf)이 가른 부분만 읽는다. 회장단은 모든 부서에서 부장 권한을 물려받아 '내 부서'를 받지 않고 council의 부서별 막힌 곳으로 본다.
 export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeResponse> {
-  return { today: koreanDateOf(now), mine: await mineOf(db, actor, now) }
+  const level = levelOf(actor)
+  const home: HomeResponse = { today: koreanDateOf(now), mine: await mineOf(db, actor, now) }
+  if (!level.council && !level.departmentIds.length) return home
+  const open = await openTasksOf(db, actor, now)
+  if (level.council) home.council = await councilOf(db, actor, now, open)
+  else home.departments = await departmentsOf(db, actor, level.departmentIds, open)
+  return home
 }

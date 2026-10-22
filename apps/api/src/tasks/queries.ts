@@ -103,15 +103,18 @@ export function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
 // 나에게 맡긴 업무. 업무 화면의 '내 업무'와 홈이 같이 쓴다.
 export const assignedTo = (actor: Actor) => eq(task.assigneeId, actor.memberId)
 
-function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL | undefined {
-  if (view === 'mine') return assignedTo(actor)
-  if (view === 'all') return undefined
-  // 담당자 없음, 떠난 담당자, 부서 없는 업무
-  return or(
+// 업무 화면의 '담당자 없음'. 담당자 없음, 떠난 담당자, 부서 없는 업무. 홈이 같이 쓴다.
+export const unassignedCondition = (db: Reader, actor: Actor, now: Date) =>
+  or(
     isNull(task.assigneeId),
     sql`not ${assigneeIsCurrent(db, actor, now)}`,
     isNull(task.departmentId),
   )
+
+function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL | undefined {
+  if (view === 'mine') return assignedTo(actor)
+  if (view === 'all') return undefined
+  return unassignedCondition(db, actor, now)
 }
 
 // 끝나지 않은 것은 마감 순(없으면 뒤)에 만든 순, 끝남은 마지막으로 바뀐 순이다. 한 개 더 읽어 넘쳤는지 안다.
