@@ -14,6 +14,7 @@ import { createBudgetRoutes } from '../budget/routes.js'
 import { createAccountRoutes } from '../accounts/routes.js'
 import { createEventRoutes } from '../events/routes.js'
 import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
+import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
@@ -34,7 +35,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 51
+const MUTATING_ROUTES = 53
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 function modulesOf(session: () => Promise<null>) {
@@ -59,6 +60,7 @@ function modulesOf(session: () => Promise<null>) {
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
     registrations: createRegistrationRoutes(db, session),
+    feePayments: createFeePaymentRoutes(db, session),
     publicRegistrations: createPublicRegistrationRoutes(db),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }
@@ -151,14 +153,14 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
 test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단은 1 MiB, 회고 저장은 64 KiB, 구매 요청은 192 KiB이다', () => {
   assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests'), 196_608)
   assert.equal(bodyLimitOf('/api/organizations/a/purchase-requests/b/cancel'), MAX_BODY_BYTES)
-  assert.equal(bodyLimitOf('/api/organizations/a/dues-roster'), 1_048_576)
+  assert.equal(bodyLimitOf('/api/organizations/a/fee-payments'), 1_048_576)
   assert.equal(bodyLimitOf('/api/organizations/a/events/e/report/retrospective'), 65_536)
   for (const path of [
-    '/api/organizations/a/dues-roster/delete',
+    '/api/organizations/a/fee-payments/b/remove',
     '/api/organizations/a/expenses',
     '/api/public/registrations/lookup',
-    '/api/organizations/a/b/dues-roster',
-    '/api/organizations//dues-roster',
+    '/api/organizations/a/b/fee-payments',
+    '/api/organizations//fee-payments',
     '/api/organizations/a/events/e/report',
     '/api/organizations/a/events/e/report/retrospective/generate',
     '/api/organizations/a/events/e/report/retrospective/confirm',

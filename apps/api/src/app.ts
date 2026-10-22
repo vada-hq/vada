@@ -11,6 +11,7 @@ import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
 import type { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import type { createRegistrationRoutes } from './registrations/routes.js'
+import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
@@ -50,6 +51,8 @@ export type AppOptions = {
   accounts?: ReturnType<typeof createAccountRoutes>
   // 신청 양식: 목록, 하나 읽기, 만들기, 고치기, 멈추기와 다시 받기
   registrations?: ReturnType<typeof createRegistrationRoutes>
+  // 학생회비 납부자 명단: 보기, 올리기, 빼기
+  feePayments?: ReturnType<typeof createFeePaymentRoutes>
   // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기
   publicRegistrations?: ReturnType<typeof createPublicRegistrationRoutes>
 }
@@ -71,6 +74,7 @@ export function createApp({
   events,
   accounts,
   registrations,
+  feePayments,
   publicRegistrations,
 }: AppOptions) {
   const app = new Hono()
@@ -100,6 +104,7 @@ export function createApp({
     events,
     accounts,
     registrations,
+    feePayments,
   ])
     if (routes) app.route('/api', routes)
   // 공개 경로는 로그인 세션을 쓰지 않아 환경 타입이 다르다.

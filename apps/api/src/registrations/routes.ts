@@ -13,6 +13,7 @@ import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
+import { purgeFormIfDue } from './purge.js'
 import { formDetailOf, formListOf } from './queries.js'
 import { createForm, setPaused, updateForm } from './service.js'
 
@@ -110,6 +111,9 @@ export function createRegistrationRoutes(
   })
   routes.get(`${root}/registration-forms/:formId`, auth, async c => {
     const request = asked(c)
+    // 운영진인지 먼저 본 뒤(403), 읽기 전에 이 양식의 기한이 지난 신청자 정보를 지운다. 읽기 거래는 쓰지 못해 따로 한다.
+    await db.transaction(tx => authorize(tx, request), snapshot)
+    await purgeFormIfDue(db, formIdOf(c), request.now)
     const form = await db.transaction(
       async tx => formDetailOf(tx, await authorize(tx, request), formIdOf(c), request.now),
       snapshot,

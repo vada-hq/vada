@@ -1,7 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto'
-import { eq } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { registrationLink } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { idList } from './personal-values.js'
 
 const TOKEN_BYTES = 16
 
@@ -16,6 +17,8 @@ export async function addLink(db: Pick<Db, 'insert'>, registrationId: string, to
 }
 
 // 취소하거나 신청자 정보를 비우면 줄을 지운다: 그 뒤 같은 토큰은 404다.
-export async function removeLink(db: Pick<Db, 'delete'>, registrationId: string) {
-  await db.delete(registrationLink).where(eq(registrationLink.registrationId, registrationId))
+export async function removeLinks(db: Pick<Db, 'execute'>, registrationIds: string[]) {
+  await db.execute(
+    sql`DELETE FROM registration_link WHERE registration_id IN ${idList(registrationIds)}`,
+  )
 }

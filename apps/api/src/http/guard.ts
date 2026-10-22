@@ -11,7 +11,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 // 그래서 192 KiB(196,608)로 둔다. 시험(purchases/write.test.ts)이 이 최대 입력이 413 없이 받아지는지 본다.
 // 학생회비 명단은 학번·이름 수천 줄을 한 번에 받는다. 회고 저장(M5c)은 200자 30문장까지이고, 제어 문자는 JSON에서 6바이트가 된다.
 const largeBodies: { pattern: RegExp; max: number }[] = [
-  { pattern: /^\/api\/organizations\/[^/]+\/dues-roster$/, max: 1_048_576 },
+  { pattern: /^\/api\/organizations\/[^/]+\/fee-payments$/, max: 1_048_576 },
   { pattern: /^\/api\/organizations\/[^/]+\/purchase-requests$/, max: 196_608 },
   { pattern: /^\/api\/organizations\/[^/]+\/events\/[^/]+\/report\/retrospective$/, max: 65_536 },
 ]

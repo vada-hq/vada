@@ -101,7 +101,7 @@
 - 닿는 곳: contracts `registrations.ts`(`ApplicantsResponse`, `CheckInSchema`, `CheckInResult`), `errors.ts`. `registrations/`(`applicants.ts`, `attendance.ts`, `access-log.ts`, `routes.ts`), `boundary.test.ts`, `ops/pg-smoke/`.
 - 검토: 깊게(개인정보 열람 범위). 마이그레이션: 없음.
 
-### 5. 학생회비 납부자 명단과 기한 지우기(서버) [ ]
+### 5. 학생회비 납부자 명단과 기한 지우기(서버) [x]
 - 할 수 있게 되는 것: 재정부가 납부자 학번을 붙여 넣어 신청 때 참가비가 저절로 정해지고, 기한이 지난 개인정보와 열람 기록이 저절로 지워진다.
 - 수용 기준: 재정부만 `POST fee-payments`로 올리고(회장단 403) 더한 수와 건너뛴 수를 받는다. 형식이 틀린 학번은 400과 줄 번호이고 아무것도 쓰지 않는다. 20,000개(약 300KB)를 413 없이 받고 1 MiB를 넘으면 413이다. 재정부와 회장단은 `GET fee-payments`(기간마다 수, 학번 찾기)를 보고 다른 운영진은 403이다. `POST fee-payments/:id/remove`는 학번을 지금 값과 판에서 비우고 대조에서 뺀다. 지우기 실행기는 '정한 것'의 셋을 하고, 기준 시각 ±1초로 시험하며(행사 날짜를 미루면 지울 날도 미뤄진다), 두 번 돌려도 같고, 잠금을 쥔 다른 실행이 있으면 건너뛴다. 실패는 뒤 작업 보고 도우미로 가고 서버는 멈추지 않는다. 양식 하나와 신청자 목록은 읽기 전에 그 양식의 지울 것을 지운다.
 - 닿는 곳: contracts `fee-payments.ts`(새), `errors.ts`. `apps/api/src/fee-payments/`(새), `registrations/purge.ts`, `http/guard.ts`(`bodyLimitOf`), `http/sentry.ts`(뒤 작업 보고), `app.ts`, `serve.ts`(시작과 1시간마다, `unref`), `boundary.test.ts`.

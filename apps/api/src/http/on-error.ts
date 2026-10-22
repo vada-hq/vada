@@ -57,6 +57,22 @@ export function logUnexpectedError(c: Context, error: Error) {
   })
 }
 
+// 요청 밖에서 도는 일(기한 지우기)의 실패. 요청이 없어 handleError를 타지 않으므로 같은 필드만 로그와 수집기에 보낸다.
+// 오류 메시지·값은 남기지 않고 일의 이름, 클래스 이름, SQLSTATE만 남긴다(scrubEvent가 수집기 쪽을 한 번 더 정제한다).
+export function reportBackgroundFailure(task: string, error: unknown) {
+  const failure = error instanceof Error ? error : new Error('BackgroundFailure')
+  const fields = Object.fromEntries(
+    Object.entries({
+      event: 'background_failed',
+      route: `background:${task}`,
+      error: /^[A-Za-z][A-Za-z0-9]{0,59}$/.test(failure.name) ? failure.name : 'Error',
+      sqlState: sqlState(failure),
+    }).filter(([, value]) => value !== undefined),
+  )
+  console.error(JSON.stringify(fields))
+  reporter?.(failure, fields)
+}
+
 export function handleError(error: Error, c: Context) {
   if (error instanceof ApiError) {
     // 외부 서비스 장애처럼 서버 쪽 실패는 운영에서 보이도록 코드와 상태를 남긴다.

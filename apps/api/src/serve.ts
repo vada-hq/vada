@@ -25,6 +25,8 @@ import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { createAccountRoutes } from './accounts/routes.js'
 import { createEventRoutes } from './events/routes.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
+import { createFeePaymentRoutes } from './fee-payments/routes.js'
+import { startPurge } from './purge/run.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createTaskPush } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
@@ -99,6 +101,7 @@ function appOf(env: Env, db: Db) {
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
     registrations: createRegistrationRoutes(db, session),
+    feePayments: createFeePaymentRoutes(db, session),
     publicRegistrations: createPublicRegistrationRoutes(db),
   })
 }
@@ -107,6 +110,7 @@ function listen(
   app: ReturnType<typeof appOf>,
   client: { end(options: { timeout: number }): Promise<void> },
   address: { hostname: string; port: number; production: boolean },
+  stopPurge: () => void,
 ) {
   const { hostname, port, production } = address
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
@@ -118,6 +122,7 @@ function listen(
     process.exitCode = 1
   })
   const shutdown = () => {
+    stopPurge()
     server.close(() => {
       void client.end({ timeout: 5 })
       void stopErrorReporting()
@@ -138,7 +143,8 @@ function main() {
   const { client, db } = connectDb(env)
   const app = appOf(env, db)
   if (production) attachWeb(app)
-  listen(app, client, { hostname, port, production })
+  // 기한이 지난 개인정보와 열람 기록을 시작 때와 1시간마다 지운다.
+  listen(app, client, { hostname, port, production }, startPurge(db))
 }
 
 try {

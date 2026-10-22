@@ -12,11 +12,16 @@ export async function clearPhones(tx: Tx, formId: string) {
   )
 }
 
-// 신청 하나의 이름·학번·휴대폰을 이전 판에서 모두 비운다(지금 값은 부르는 쪽이 같은 거래에서 비운다).
-// 스스로 취소가 쓰고, 기한 지우기(조각 5)도 같은 판 비우기를 쓴다. 판의 키는 DB 칸 이름(snake_case)이다.
+// 번호들을 한 문장에 넣는 목록(번호가 많아도 매개변수는 하나다).
+export const idList = (ids: string[]) =>
+  sql`(SELECT jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb)::uuid)`
+
+// 신청들의 이름·학번·휴대폰을 이전 판에서 모두 비운다(지금 값은 부르는 쪽이 같은 거래에서 비운다).
+// 스스로 취소와 기한 지우기가 같이 쓴다. 판의 키는 DB 칸 이름(snake_case)이다.
 // DB CHECK는 취소한 신청의 학번만 요구하므로, 이름과 휴대폰까지 비웠는지는 시험이 지킨다.
-export async function clearVersionValues(tx: Tx, registrationId: string) {
+export async function clearVersionValues(tx: Tx, registrationIds: string[]) {
   await tx.execute(sql`UPDATE record_version
     SET data = data || '{"name": null, "student_id": null, "phone": null}'::jsonb
-    WHERE record_id = ${registrationId}`)
+    WHERE record_id IN ${idList(registrationIds)}
+      AND (data ->> 'name' IS NOT NULL OR data ->> 'student_id' IS NOT NULL OR data ->> 'phone' IS NOT NULL)`)
 }

@@ -3,7 +3,7 @@ import { registration } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, updateRecord } from '../records/records.js'
-import { removeLink } from './link.js'
+import { removeLinks } from './link.js'
 import { isAttended, mineRowOf } from './my-registration.js'
 import { clearVersionValues } from './personal-values.js'
 
@@ -31,6 +31,6 @@ export async function cancelMine(tx: Tx, token: string, now: Date) {
     reason: null,
     changes: { cancelledAt: clockNow, name: null, studentId: null, phone: null },
   })
-  await clearVersionValues(tx, row.id)
-  await removeLink(tx, row.id)
+  await clearVersionValues(tx, [row.id])
+  await removeLinks(tx, [row.id])
 }
