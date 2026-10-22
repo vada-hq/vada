@@ -16,6 +16,7 @@ import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createIncomeRoutes } from './incomes/routes.js'
+import type { createClosingRoutes } from './closing/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createHomeRoutes } from './home/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
@@ -51,6 +52,8 @@ export type AppOptions = {
   expenses?: ReturnType<typeof createExpenseRoutes>
   // 수입: 기간의 목록, 하나 읽기, 적기, 취소
   incomes?: ReturnType<typeof createIncomeRoutes>
+  // 회계 기간 목록과 결산서 읽기
+  closing?: ReturnType<typeof createClosingRoutes>
   // 가입 동의: 지금 판 읽기, 동의하기, 그리고 동의 전 막기(/api/organizations/ 아래 모든 경로에 접두어로 건다). 둘이 한 쌍이라 따로 연결하지 못한다.
   agreement?: ReturnType<typeof createAgreement>
   // 행사: 목록, 하나 읽기, 만들기, 고치기, 책임자

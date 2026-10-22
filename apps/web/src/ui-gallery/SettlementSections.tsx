@@ -19,7 +19,7 @@ const settlement: EventSettlement = {
       { id: 'b2', type: 'income', purpose: longName, amount: 100000, used: 40000 },
     ],
   },
-  actual: { expense: 336000, fee: 40000, depositCount: 2, refundPendingCount: 1 },
+  actual: { expense: 336000, fee: 40000, income: 0, depositCount: 2, refundPendingCount: 1 },
   difference: 164000,
   remaining: [
     {

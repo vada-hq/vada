@@ -48,6 +48,8 @@ export interface EventSettlement {
     expense: number
     // 취소하지 않은 입금 − 환불
     fee: number
+    // 이 행사의 수입 예산 항목을 고른, 취소하지 않은 수입 합(참가비 수입은 항목이 없어 들지 않는다)
+    income: number
     depositCount: number
     refundPendingCount: number
   }

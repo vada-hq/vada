@@ -38,14 +38,7 @@ export {
   type RoomSummary,
   type RoomType,
 } from './chat.js'
-export {
-  ERROR_STATUS,
-  NO_CONTENT,
-  SERVER_ERROR_FROM,
-  statusOf,
-  type ErrorCode,
-  type ErrorStatus,
-} from './errors.js'
+export * from './errors.js'
 export {
   codePoints,
   EmptyRequestSchema,
@@ -208,6 +201,7 @@ export {
   type TasksResponse,
 } from './tasks.js'
 export * from './accounts.js'
+export * from './closing.js'
 export * from './incomes.js'
 export * from './home.js'
 export {

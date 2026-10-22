@@ -8,7 +8,7 @@ export const settlementOf = (extra: Partial<EventSettlement> = {}): SettlementRe
       income: 0,
       items: [{ id: 'b1', type: 'expense', purpose: '간식', amount: 300000, used: 36000 }],
     },
-    actual: { expense: 36000, fee: 40000, depositCount: 2, refundPendingCount: 0 },
+    actual: { expense: 36000, fee: 40000, income: 0, depositCount: 2, refundPendingCount: 0 },
     difference: 464000,
     remaining: [
       { kind: 'pending_items', count: 0, targets: [] },

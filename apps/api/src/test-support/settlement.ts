@@ -6,6 +6,7 @@ import { createDepositRoutes } from '../deposits/routes.js'
 import { createEventRoutes } from '../events/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
+import { createClosingRoutes } from '../closing/routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { createPurchaseRoutes } from '../purchases/routes.js'
@@ -52,6 +53,7 @@ async function startSettlement(options: { limit?: number } = {}) {
         storage: store.storage,
       }),
       incomes: createIncomeRoutes(db, testSession, { clock, writeLimiter }),
+      closing: createClosingRoutes(db, testSession, { clock }),
       registrations: createRegistrationRoutes(db, testSession, { clock, writeLimiter }),
       deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
       publicRegistrations: createPublicRegistrationRoutes(db, { clock }),

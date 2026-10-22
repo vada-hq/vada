@@ -62,25 +62,17 @@ async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<Settl
   }
 }
 
-// 이 행사의 취소하지 않은 지출 가운데 조건에 맞는 것. 수는 전체, 목록은 상한까지다.
-async function expensesOf(
+// 취소하지 않은 지출 가운데 범위(where)와 조건에 맞는 것. 수는 전체, 목록은 상한까지다. 학생회 경계는 부르는 쪽이 where에 둔다.
+export async function expenseTargetsOf(
   db: Reader,
-  scope: Scope,
-  kind: SettlementRemaining['kind'],
+  where: SQL | undefined,
   condition: SQL,
-): Promise<SettlementRemaining> {
+): Promise<{ count: number; targets: SettlementTarget[] }> {
   const rows = await db
     .select({ id: expense.id, vendor: expense.vendor, amount: expense.amount, total })
     .from(expense)
     .innerJoin(record, eq(record.id, expense.id))
-    .where(
-      and(
-        eq(record.councilId, scope.councilId),
-        eq(expense.eventId, scope.eventId),
-        isNull(expense.cancelledAt),
-        condition,
-      ),
-    )
+    .where(and(where, isNull(expense.cancelledAt), condition))
     .orderBy(asc(record.createdAt), asc(expense.id))
     .limit(SETTLEMENT_TARGET_LIMIT)
   const targets: SettlementTarget[] = rows.map(row => ({
@@ -89,7 +81,17 @@ async function expensesOf(
     vendor: row.vendor,
     amount: Number(row.amount),
   }))
-  return { kind, count: rows[0]?.total ?? 0, targets }
+  return { count: rows[0]?.total ?? 0, targets }
+}
+
+async function expensesOf(
+  db: Reader,
+  scope: Scope,
+  kind: SettlementRemaining['kind'],
+  condition: SQL,
+): Promise<SettlementRemaining> {
+  const where = and(eq(record.councilId, scope.councilId), eq(expense.eventId, scope.eventId))
+  return { kind, ...(await expenseTargetsOf(db, where, condition)) }
 }
 
 // 환불 대기: 취소한 신청에 취소하지 않은 환불 전 입금이 있는 것. 신청자 이름·휴대폰은 읽지 않는다.
@@ -110,21 +112,27 @@ async function refundPendingOf(db: Reader, scope: Scope): Promise<SettlementRema
   return { kind: 'refund_pending', count: row?.count ?? 0, targets: [] }
 }
 
-export async function remainingOf(db: Reader, scope: Scope): Promise<SettlementRemaining[]> {
+// 증빙, 사유, 환급: 정산 남은 것과 결산 점검이 같은 조건을 본다.
+export function expenseConditions(db: Reader) {
   const noEvidence = notExists(
     db
       .select({ one: sql`1` })
       .from(evidence)
       .where(eq(evidence.expenseId, expense.id)),
   )
-  const noReason = or(isNull(expense.reason), sql`btrim(${expense.reason}) = ''`)
-  const unreimbursed = and(isNotNull(expense.paidBy), isNull(expense.reimbursedAt))
+  const noReason = or(isNull(expense.reason), sql`btrim(${expense.reason}) = ''`)!
+  const unreimbursed = and(isNotNull(expense.paidBy), isNull(expense.reimbursedAt))!
+  return { noEvidence, noReason, unreimbursed }
+}
+
+export async function remainingOf(db: Reader, scope: Scope): Promise<SettlementRemaining[]> {
+  const { noEvidence, noReason, unreimbursed } = expenseConditions(db)
   return [
     await itemsOf(db, scope, false),
     await itemsOf(db, scope, true),
     await expensesOf(db, scope, 'no_evidence', noEvidence),
-    await expensesOf(db, scope, 'no_reason', noReason!),
-    await expensesOf(db, scope, 'unreimbursed', unreimbursed!),
+    await expensesOf(db, scope, 'no_reason', noReason),
+    await expensesOf(db, scope, 'unreimbursed', unreimbursed),
     await refundPendingOf(db, scope),
   ]
 }

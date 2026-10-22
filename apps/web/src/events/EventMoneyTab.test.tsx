@@ -77,7 +77,7 @@ test('남은 것은 종류별 수와 대상이고, 환불 대기는 수만 보�
     event(),
     settlementOf({
       remaining: [{ kind: 'refund_pending', count: 2, targets: [] }],
-      actual: { expense: 0, fee: 0, depositCount: 3, refundPendingCount: 2 },
+      actual: { expense: 0, fee: 0, income: 0, depositCount: 3, refundPendingCount: 2 },
     }),
   )
   const region = await screen.findByRole('region', { name: '정산에 남은 것' })

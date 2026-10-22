@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql, type AnyColumn } from 'drizzle-orm'
+import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import type { EventSettlement, SettlementBudgetItem } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { completedEventIdsAmong, completionApprovalsOf } from '../events/completion.js'
@@ -14,13 +14,11 @@ import {
   registration,
   registrationForm,
 } from '../db/schema.js'
+import { sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
 import { remainingOf } from './remaining.js'
 
 type Reader = Pick<Db, 'select'>
-
-// 합은 정수 원이다. numeric은 문자열로 와서 Number로 바꾼다(14자리라 안전하다).
-const sumOf = (column: AnyColumn) => sql<number>`coalesce(sum(${column}), 0)`.mapWith(Number)
 
 // 항목마다 쓴 돈(logical-model '예산 항목별로 쓴 돈'): 그 항목에 잡힌 품목의 결제 내역 금액과 직접 이은 지출. 취소한 지출은 뺀다.
 // 수입 항목은 이은 수입 가운데 취소하지 않은 것이다.
@@ -103,12 +101,16 @@ export async function settlementOf(
   const budget = await budgetOf(db, actor, eventId)
   const spent = await expenseTotalOf(db, actor, eventId)
   const fee = await feeOf(db, actor, eventId)
+  const income = budget.items
+    .filter(item => item.type === 'income')
+    .reduce((sum, item) => sum + item.used, 0)
   const remaining = await remainingOf(db, scope)
   return {
     budget,
     actual: {
       expense: spent,
       fee: fee.net,
+      income,
       depositCount: fee.count,
       refundPendingCount: remaining.find(item => item.kind === 'refund_pending')?.count ?? 0,
     },

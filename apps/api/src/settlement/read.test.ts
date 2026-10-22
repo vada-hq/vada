@@ -43,6 +43,23 @@ test(
       receivedOn: '2026-10-21',
       budgetItemId: incomeItem,
     })
+    // 취소한 수입, 항목을 고르지 않은 수입, 다른 행사 항목의 수입은 이 행사의 실제 수입에 들지 않는다
+    const otherItem = await t.budgetItem(budget, {
+      type: 'income',
+      eventId: await t.event({ name: '다른 행사' }),
+    })
+    for (const values of [
+      { budgetItemId: incomeItem, cancelledAt: clockNow },
+      {},
+      { budgetItemId: otherItem },
+    ])
+      await t.make(t.council, 'income', {
+        fiscalPeriodId: period,
+        source: 'donation',
+        amount: '777',
+        receivedOn: '2026-10-21',
+        ...values,
+      })
     const f = await t.form(ev)
     const r1 = await t.registration(f)
     const r2 = await t.registration(f)
@@ -60,6 +77,7 @@ test(
     )
     assert.equal(s.actual.expense, 10000)
     assert.equal(s.actual.fee, 8000)
+    assert.equal(s.actual.income, 12000)
     assert.equal(s.actual.depositCount, 2)
     assert.equal(s.difference, 90000)
     assert.equal(typeof s.actual.fee, 'number')
