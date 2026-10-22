@@ -70,6 +70,22 @@ async function sceneOf(t: SettlementKit, shared: Shared) {
   })
   const expenseViaLines = await t.expense({ budgetItemId: null })
   await t.pay(expenseViaLines, paid.line)
+  // 행사가 없는 요청이어도 그 행사 예산 항목으로 승인한 품목과 그 항목을 고른 지출은 그 행사의 기록이다
+  const expenseViaItem = await t.expense({
+    budgetItemId: item,
+    paidBy: people.planningMember.memberId,
+  })
+  const byItem = await t.requestWithItem(null)
+  await t.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [item, byItem.line])
+  await t.approve(byItem.line)
+  const expenseViaItemLine = await t.expense({ budgetItemId: null })
+  await t.pay(expenseViaItemLine, byItem.line)
+  const openByItem = await t.requestWithItem(null)
+  await t.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [
+    item,
+    openByItem.line,
+  ])
+  await t.approve(openByItem.line)
   return {
     event,
     item,
@@ -86,6 +102,9 @@ async function sceneOf(t: SettlementKit, shared: Shared) {
     attended,
     expenseOfEvent,
     expenseViaLines,
+    expenseViaItem,
+    expenseViaItemLine,
+    openByItem,
   }
 }
 
@@ -94,7 +113,8 @@ const post =
   (path: string, body: unknown, user = PRESIDENT) =>
     t.api.post(`/api/organizations/${t.council.councilId}${path}`, body, user)
 
-type Row = [string, (t: SettlementKit, s: Scene) => Promise<Response> | Response]
+// 셋째는 잠금 때의 오류 코드다. 신청자가 보는 경로는 007의 닫힘 코드를 낸다(EVENT_COMPLETED를 내지 않는다).
+type Row = [string, (t: SettlementKit, s: Scene) => Promise<Response> | Response, string?]
 
 const rows: Row[] = [
   // 행사
@@ -158,6 +178,36 @@ const rows: Row[] = [
     '그 행사 품목을 결제한 지출 취소(지출에는 행사가 없다)',
     (t, s) => post(t)(`/expenses/${s.expenseViaLines}/cancel`, { reason: '잘못' }, FINANCE),
   ],
+  [
+    '그 행사 예산 항목을 고른 지출 취소',
+    (t, s) => post(t)(`/expenses/${s.expenseViaItem}/cancel`, { reason: '잘못' }, FINANCE),
+  ],
+  [
+    '그 행사 예산 항목을 고른 지출 환급',
+    (t, s) => post(t)(`/expenses/${s.expenseViaItem}/reimburse`, {}, FINANCE),
+  ],
+  [
+    '그 행사 예산 항목으로 승인한 품목을 결제한 지출 취소',
+    (t, s) => post(t)(`/expenses/${s.expenseViaItemLine}/cancel`, { reason: '잘못' }, FINANCE),
+  ],
+  [
+    '그 행사 예산 항목으로 승인한 품목을 결제하는 지출 적기',
+    (t, s) =>
+      post(t)(
+        '/expenses',
+        { ...EXPENSE, lines: [{ lineItemId: s.openByItem.line, amount: 10000 }] },
+        FINANCE,
+      ),
+  ],
+  [
+    '그 행사 예산 항목을 고른 지출 증빙 붙이기',
+    async (t, s) => {
+      const issued = await post(t)(`/expenses/${s.expenseViaItem}/uploads`, {}, FINANCE)
+      const { key } = (await issued.json()) as PhotoUploadResponse
+      t.store.put(key)
+      return post(t)(`/expenses/${s.expenseViaItem}/evidence`, { key }, FINANCE)
+    },
+  ],
   ['그 행사 지출 환급', (t, s) => post(t)(`/expenses/${s.expenseOfEvent}/reimburse`, {}, FINANCE)],
   [
     '그 행사 지출 증빙 붙이기',
@@ -200,8 +250,13 @@ const rows: Row[] = [
     '공개 신청',
     (t, s) =>
       t.api.post(`/api/public/registration-forms/${s.publicCode}/apply`, { name: '박신청' }),
+    'REGISTRATION_NOT_OPEN',
   ],
-  ['스스로 취소', (t, s) => t.api.post('/api/public/registrations/cancel', { token: s.token })],
+  [
+    '스스로 취소',
+    (t, s) => t.api.post('/api/public/registrations/cancel', { token: s.token }),
+    'CANCEL_CLOSED',
+  ],
   ['운영진 취소', (t, s) => post(t)(`/registrations/${s.live}/cancel`, {})],
   ['QR 출석', (t, s) => post(t)(`/events/${s.event}/check-in`, { tokenHash: hashOf(s.token) })],
   ['이름 출석', (t, s) => post(t)(`/registrations/${s.live}/attendance`, {})],
@@ -227,13 +282,13 @@ test(
   '완료한 행사에서 잠금 범위의 모든 쓰기 경로는 409 EVENT_COMPLETED이고 아무것도 쓰지 않으며, 완료를 취소하면 다시 된다',
   withSettlement(async t => {
     const shared = await sharedOf(t)
-    for (const [name, run] of rows) {
+    for (const [name, run, code = 'EVENT_COMPLETED'] of rows) {
       const s = await sceneOf(t, shared)
       await t.completion(s.event, 'completed', DAY('2026-10-24T03:00'))
       const before = await writes(t)
       const locked = await run(t, s)
       assert.equal(locked.status, 409, name)
-      assert.equal(await errorOf(locked), 'EVENT_COMPLETED', name)
+      assert.equal(await errorOf(locked), code, name)
       assert.equal(await writes(t), before, `${name}: 기록이 남았다`)
       await t.completion(s.event, 'completion_cancelled', DAY('2026-10-24T04:00'), '되돌림')
       const reopened = await run(t, s)
@@ -292,5 +347,63 @@ test(
       OWNER,
     )
     assert.equal(update.status, 200)
+  }),
+)
+
+test(
+  '완료한 행사의 신청자 화면과 운영진 동작: 공개 양식은 닫힘, 내 신청은 취소할 수 없음, 양식과 목록의 동작은 비어 있다',
+  withSettlement(async t => {
+    const s = await sceneOf(t, await sharedOf(t))
+    type Body = {
+      status: string
+      cancellable: boolean
+      form: { actions: string[] }
+      actions: string[]
+    }
+    const json = async (response: Response) => (await response.json()) as Body
+    const publicStatus = async () =>
+      (await json(await t.api.get(`/api/public/registration-forms/${s.publicCode}`))).status
+    const mineCancellable = async () =>
+      (await json(await t.api.post('/api/public/registrations/lookup', { token: s.token })))
+        .cancellable
+    const actions = async () => {
+      const base = `/api/organizations/${t.council.councilId}`
+      const form = await json(await t.api.get(`${base}/registration-forms/${s.form}`, PRESIDENT))
+      const list = await json(
+        await t.api.get(`${base}/events/${s.event}/registration-forms`, PRESIDENT),
+      )
+      return [form.form.actions.length, list.actions.length]
+    }
+    assert.equal(await publicStatus(), 'open')
+    assert.equal(await mineCancellable(), true)
+    assert.ok((await actions()).every(n => n > 0))
+    await t.completion(s.event, 'completed', DAY('2026-10-24T03:00'))
+    assert.equal(await publicStatus(), 'closed')
+    assert.equal(await mineCancellable(), false)
+    assert.deepEqual(await actions(), [0, 0])
+  }),
+)
+
+test(
+  '다른 학생회의 완료한 행사는 우리 지출 적기를 잠그지 않는다: 남의 품목은 EVENT_COMPLETED가 아니라 LINE_ITEM_NOT_PAYABLE이다',
+  withSettlement(async t => {
+    const theirEvent = await t.event({}, t.other)
+    const theirs = await t.requestWithItem(theirEvent, {}, t.other)
+    await t.approve(theirs.line, 'approved', t.other)
+    await t.make(t.other, 'approval', {
+      targetId: theirEvent,
+      targetKind: 'event',
+      outcome: 'completed',
+      actorId: t.other.people.president.memberId,
+      actorKind: 'member',
+      actedAt: DAY('2026-10-24T03:00'),
+    })
+    const response = await post(t)(
+      '/expenses',
+      { ...EXPENSE, lines: [{ lineItemId: theirs.line, amount: 10000 }] },
+      FINANCE,
+    )
+    assert.equal(response.status, 409)
+    assert.equal(await errorOf(response), 'LINE_ITEM_NOT_PAYABLE')
   }),
 )

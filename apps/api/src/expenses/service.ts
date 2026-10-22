@@ -13,7 +13,7 @@ import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { assertExpenseEventOpen, requestEventsOfLines } from './event-lock.js'
+import { assertExpenseEventOpen, eventsOfLines } from './event-lock.js'
 import { assertPayable } from './payable.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
@@ -33,7 +33,7 @@ async function assertCurrentMembers(tx: Tx, actor: Actor, ids: (string | null)[]
 async function assertEventsOpenFor(tx: Tx, actor: Actor, input: CreateExpense) {
   const itemIds = input.lines.map(line => line.lineItemId)
   await assertEventsOpen(tx, [
-    ...(await requestEventsOfLines(tx, itemIds)),
+    ...(await eventsOfLines(tx, actor, itemIds)),
     ...(input.budgetItemId ? await budgetItemEventsOf(tx, actor, [input.budgetItemId]) : []),
   ])
 }
@@ -119,7 +119,7 @@ export async function cancelExpense(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, expenseId)
+  await assertExpenseEventOpen(tx, actor, expenseId)
   if (!canCancelExpense(actor, factsOf(row))) throw new ApiError('EXPENSE_CANCELLED')
   await updateRecord(tx, {
     kind: 'expense',
@@ -139,7 +139,7 @@ export async function reimburseExpense(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, expenseId)
+  await assertExpenseEventOpen(tx, actor, expenseId)
   if (!canReimburse(actor, factsOf(row))) throw new ApiError('NOT_REIMBURSABLE')
   await updateRecord(tx, {
     kind: 'expense',

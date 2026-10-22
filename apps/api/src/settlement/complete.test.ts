@@ -209,3 +209,28 @@ test(
     )
   }),
 )
+
+test(
+  '완료와 완료 취소의 사유 입력: 상한+1(이모지), NUL, 홀로 쓰인 서러게이트, 모르는 키는 400이고 다른 학생회 사용자는 403이다',
+  withSettlement(async t => {
+    const event = await t.event()
+    const bad = ['가'.repeat(501), '😀'.repeat(501), 'a\u0000b', 'a\uD800b']
+    for (const reason of bad) {
+      assert.equal((await call(t, event, 'complete', { reason })).status, 400)
+      assert.equal((await call(t, event, 'cancel-completion', { reason })).status, 400)
+    }
+    assert.equal((await call(t, event, 'complete', { extra: 1 })).status, 400)
+    assert.equal(
+      (await call(t, event, 'cancel-completion', { reason: '가', extra: 1 })).status,
+      400,
+    )
+    for (const action of ['complete', 'cancel-completion'])
+      assert.equal((await call(t, event, action, { reason: '가' }, 'o-president')).status, 403)
+    const none = await t.pg.query(
+      "SELECT count(*)::int AS n FROM approval WHERE target_kind = 'event'",
+    )
+    assert.equal((none.rows[0] as { n: number }).n, 0)
+    // 상한 그대로는 된다
+    assert.equal((await call(t, event, 'complete', { reason: '😀'.repeat(500) })).status, 200)
+  }),
+)

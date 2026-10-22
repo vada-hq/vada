@@ -10,6 +10,7 @@ import type { Actor } from '../access/actor.js'
 import { can, type Context } from '../access/permissions.js'
 import { account, attendance, event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { registrationContextOf } from './permission-context.js'
@@ -86,6 +87,7 @@ type Counts = { applicants: number; attended: number }
 function formOf(
   row: FormRow,
   { actor, counts, context, now }: { actor: Actor; counts: Counts; context: Context; now: Date },
+  completed: boolean,
 ): RegistrationForm {
   const { applicants, attended } = counts
   return {
@@ -119,7 +121,8 @@ function formOf(
     attendedCount: attended,
     remaining: remainingOf(row.capacity, applicants),
     purgeOn: purgeOnOf(row),
-    actions: REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
+    // 완료한 행사는 쓰기가 잠겨 있어 줄 수 있는 동작이 없다(DEC-68).
+    actions: completed ? [] : REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
   }
 }
 
@@ -134,6 +137,10 @@ async function formsOf(
     db,
     rows.map(row => row.id),
   )
+  const completed = await completedEventIdsAmong(
+    db,
+    rows.map(row => row.eventId),
+  )
   const contexts = new Map<string, Context>()
   for (const row of rows)
     if (!contexts.has(row.eventId))
@@ -142,12 +149,16 @@ async function formsOf(
         await registrationContextOf(db, actor, { id: row.eventId, ownerId: row.eventOwnerId }),
       )
   return rows.map(row =>
-    formOf(row, {
-      actor,
-      counts: counts.get(row.id)!,
-      context: contexts.get(row.eventId)!,
-      now,
-    }),
+    formOf(
+      row,
+      {
+        actor,
+        counts: counts.get(row.id)!,
+        context: contexts.get(row.eventId)!,
+        now,
+      },
+      completed.has(row.eventId),
+    ),
   )
 }
 
@@ -179,6 +190,8 @@ export async function formListOf(
   return {
     forms: await formsOf(db, actor, rows.slice(0, REGISTRATION_FORM_LIST_LIMIT), now),
     truncated: rows.length > REGISTRATION_FORM_LIST_LIMIT,
-    actions: REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
+    actions: (await completedEventIdsAmong(db, [target.id])).has(target.id)
+      ? []
+      : REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
   }
 }

@@ -26,7 +26,7 @@ export async function attachEvidence(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, expenseId)
+  await assertExpenseEventOpen(tx, actor, expenseId)
   if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
   const [held] = await tx
     .select({ n: count() })

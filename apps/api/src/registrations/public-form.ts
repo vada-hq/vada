@@ -2,6 +2,7 @@ import { and, count, eq, isNull } from 'drizzle-orm'
 import { koreanOf, PUBLIC_CODE_PATTERN, type PublicRegistrationForm } from '@vada/contracts'
 import { council, event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { purgeOnOf } from './purge-date.js'
 import { registrationStatusOf, remainingOf } from './state.js'
@@ -62,6 +63,7 @@ export async function publicFormOf(
   if (!PUBLIC_CODE_PATTERN.test(code)) throw new ApiError('NOT_FOUND')
   const row = await publicRowOf(db, code)
   const applicantCount = await applicantCountOf(db, row.id)
+  const completed = await completedEventIdsAmong(db, [row.eventId])
   const payerFee = feeOf(row.payerFee)
   const nonPayerFee = feeOf(row.nonPayerFee)
   return {
@@ -78,16 +80,19 @@ export async function publicFormOf(
       closesAt: koreanOf(row.closesAt),
       notice: row.notice,
     },
-    status: registrationStatusOf(
-      {
-        opensAt: row.opensAt,
-        closesAt: row.closesAt,
-        paused: row.pausedAt !== null,
-        capacity: row.capacity,
-        applicantCount,
-      },
-      now,
-    ),
+    // 완료한 행사의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN).
+    status: completed.has(row.eventId)
+      ? 'closed'
+      : registrationStatusOf(
+          {
+            opensAt: row.opensAt,
+            closesAt: row.closesAt,
+            paused: row.pausedAt !== null,
+            capacity: row.capacity,
+            applicantCount,
+          },
+          now,
+        ),
     remaining: remainingOf(row.capacity, applicantCount),
     payerFee,
     nonPayerFee,

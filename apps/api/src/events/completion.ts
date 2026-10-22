@@ -68,15 +68,23 @@ export async function assertEventsOpen(
   tx: Tx,
   eventIds: readonly (string | null | undefined)[],
 ): Promise<void> {
+  if (await lockedCompleted(tx, eventIds)) throw new ApiError('EVENT_COMPLETED')
+}
+
+// 행사 행을 FOR SHARE로 잠근 뒤 그 가운데 완료한 행사가 있는지 본다. 신청자가 보는 경로는 EVENT_COMPLETED 대신 007의 닫힘 코드를 내려고 이것을 쓴다.
+export async function lockedCompleted(
+  tx: Tx,
+  eventIds: readonly (string | null | undefined)[],
+): Promise<boolean> {
   const ids = [...new Set(eventIds.filter((id): id is string => !!id))].sort()
-  if (!ids.length) return
+  if (!ids.length) return false
   await tx
     .select({ id: event.id })
     .from(event)
     .where(inArray(event.id, ids))
     .orderBy(asc(event.id))
     .for('share')
-  if ((await completedEventIdsAmong(tx, ids)).size) throw new ApiError('EVENT_COMPLETED')
+  return (await completedEventIdsAmong(tx, ids)).size > 0
 }
 
 // 행사 하나가 열려 있어야 하는 쓰기

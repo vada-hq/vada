@@ -56,7 +56,7 @@ for (const [smokeCase, detail] of [
   [confirmAndCancelTogetherCase, /환불 대기/],
   [completeAndSpendCase, /EVENT_COMPLETED/],
   [completeAndConfirmCase, /입금 확인/],
-  [completeAndApplyCase, /EVENT_COMPLETED/],
+  [completeAndApplyCase, /REGISTRATION_NOT_OPEN/],
 ] as const)
   test(`${smokeCase.name}: 준비와 판정이 맞다 (PGlite는 순서대로 돌려 모양만 본다)`, async () => {
     const testDb = await createTestDb()

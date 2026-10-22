@@ -1,5 +1,5 @@
 import type { Tx } from '../db/types.js'
-import { assertEventOpen } from '../events/completion.js'
+import { lockedCompleted } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { isAttended, mineRowOf } from './my-registration.js'
 import { lockRegistration } from './registration-lock.js'
@@ -11,7 +11,7 @@ export async function cancelMine(tx: Tx, token: string, now: Date) {
   const first = await mineRowOf(tx, token)
   if (!first) throw new ApiError('NOT_FOUND')
   // 학생회 행을 잠그지 않는 경로라 완료와는 행사 행에서 만난다(DEC-68). 신청 행 잠금보다 먼저다.
-  await assertEventOpen(tx, first.eventId)
+  if (await lockedCompleted(tx, [first.eventId])) throw new ApiError('CANCEL_CLOSED')
   await lockRegistration(tx, first.id)
   // 잠금을 기다리는 사이 다른 취소가 끝났을 수 있어 잠금 뒤에 다시 읽는다.
   const row = await mineRowOf(tx, token)

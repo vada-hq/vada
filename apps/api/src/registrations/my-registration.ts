@@ -11,6 +11,7 @@ import {
   registrationLink,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { hashOfToken } from './link.js'
 import { purgeOnOf } from './purge-date.js'
@@ -72,6 +73,7 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
   const row = await mineRowOf(db, token)
   if (!row) throw new ApiError('NOT_FOUND')
   const attended = await isAttended(db, row.id)
+  const completed = (await completedEventIdsAmong(db, [row.eventId])).has(row.eventId)
   const appliedFee = Number(row.appliedFee)
   const hasAccount = row.bank !== null && row.accountNumber !== null && row.holder !== null
   return {
@@ -96,7 +98,7 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
         : null,
     qrText: qrTextOf(row.tokenHash),
     attended,
-    cancellable: !attended && now.getTime() < row.closesAt.getTime(),
+    cancellable: !attended && !completed && now.getTime() < row.closesAt.getTime(),
     purgeOn: purgeOnOf({
       eventEndsAt: row.eventEndsAt,
       eventStartsAt: row.eventStartsAt,

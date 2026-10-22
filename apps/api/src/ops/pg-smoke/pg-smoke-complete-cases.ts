@@ -1,132 +1,31 @@
 import { koreanDateOf } from '@vada/contracts'
-import type { Actor } from '../../access/actor.js'
 import type { Db } from '../../db/types.js'
 import { confirmDeposit } from '../../deposits/service.js'
 import { createExpense } from '../../expenses/service.js'
-import { clockNow, createRecord } from '../../records/records.js'
+import { clockNow } from '../../records/records.js'
 import { applyToForm } from '../../registrations/apply.js'
-import { completeEvent } from '../../settlement/complete.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
-import {
-  createdCouncil,
-  fail,
-  googleUser,
-  memberIdOf,
-  pass,
-  unexpectedFailures,
-  withConnections,
-  type SmokeCase,
-  type SmokeContext,
-} from './pg-smoke-kit.js'
+import { fail, pass, unexpectedFailures, withConnections, type SmokeCase } from './pg-smoke-kit.js'
 import { outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
+import {
+  completeAs,
+  completeFirst,
+  count,
+  make,
+  newEvent,
+  PAIR,
+  worldOf,
+  type World,
+} from './pg-smoke-complete-kit.js'
 
 // 행사 완료(기능 008 조각 4)와 그 행사에 닿는 쓰기가 겹치는 사례 x, y, z. 서비스 함수를 라우트와 같은 거래로 부르되 학생회 행 잠금(inCouncilChange)은 걸지 않는다.
 // 공개 신청은 학생회 행을 잠그지 않아 완료와는 행사 행에서만 만난다(DEC-68). 나머지도 그 잠금 하나로 하나로 정해지는지 본다.
 // PGlite는 거래를 하나씩 돌려 이것을 증명하지 못한다. 시험은 준비와 판정의 모양만 본다.
 // 사용자 이름 글자(x, y, z)는 다른 사례(a~e, g~q, s, t, u, w)와 겹치지 않아야 한다. 공개 코드도 사례마다 다르다.
 const ROUNDS = 4
-const PAIR = 2
-const DAY_MS = 86_400_000
 const HOUR_MS = 3_600_000
-const WIDE_PERIOD = { startsOn: '2000-01-01', endsOn: '2099-12-31' }
 const DEPOSIT_WON = 5000
 const LINE_WON = 1000
-
-type World = { main: SmokeConnection; context: SmokeContext; leader: Actor; finance: Actor }
-
-const actorOf = (memberId: string, councilId: string, finance: boolean): Actor => ({
-  memberId,
-  councilId,
-  cohortId: memberId,
-  membershipId: memberId,
-  councilRank: finance ? null : 'president',
-  departments: finance ? [{ departmentId: memberId, role: 'finance', rank: null }] : [],
-})
-
-async function worldOf(main: SmokeConnection, context: SmokeContext, host: string): Promise<World> {
-  await googleUser(main.db, host)
-  const councilId = await createdCouncil(main.db, context, host, `점검 ${host} 학생회`)
-  const memberId = await memberIdOf(main.db, host)
-  await main.db.transaction(tx =>
-    createRecord(tx, {
-      kind: 'fiscal_period',
-      councilId,
-      actor: memberId,
-      values: { name: '점검 기간', ...WIDE_PERIOD },
-    }),
-  )
-  return {
-    main,
-    context,
-    leader: actorOf(memberId, councilId, false),
-    finance: actorOf(memberId, councilId, true),
-  }
-}
-
-// 이미 시작한 행사 하나
-const newEvent = (world: World) =>
-  world.main.db.transaction(tx =>
-    createRecord(tx, {
-      kind: 'event',
-      councilId: world.leader.councilId,
-      actor: world.leader.memberId,
-      values: { name: '점검 행사', startsAt: new Date(world.context.now.getTime() - DAY_MS) },
-    }),
-  )
-
-const make = (
-  world: World,
-  kind:
-    | 'request'
-    | 'line_item'
-    | 'approval'
-    | 'expense'
-    | 'payment_line'
-    | 'evidence'
-    | 'registration_form'
-    | 'registration',
-  values: Record<string, unknown>,
-) =>
-  world.main.db.transaction(tx =>
-    createRecord(tx, {
-      kind,
-      councilId: world.leader.councilId,
-      actor: world.leader.memberId,
-      values,
-    }),
-  )
-
-const completeAs = (db: Db, world: World, eventId: string, hold?: () => Promise<void>) =>
-  db.transaction(async tx => {
-    const done = await completeEvent(
-      tx,
-      world.leader,
-      { eventId, now: world.context.now },
-      { reason: null },
-    )
-    await hold?.()
-    return done
-  })
-
-// 완료가 행사 행을 쥔 채 기다리는 동안 다른 쓰기가 들어온다: 완료가 끝난 값을 읽어 EVENT_COMPLETED여야 하고 아무것도 쓰지 않는다.
-async function completeFirst(
-  open: () => SmokeConnection,
-  world: World,
-  eventId: string,
-  other: (db: Db) => Promise<unknown>,
-) {
-  const [first, second] = (await warmed(open, PAIR)) as [Db, Db]
-  const results = await raceHolding(
-    hold => completeAs(first, world, eventId, hold),
-    [() => other(second)],
-  )
-  const bad = unexpectedFailures(results, new Set(['EVENT_COMPLETED']))
-  if (bad.length > 0) return fail('예상하지 못한 오류로 끝났다', bad[0])
-  return outcomeProblem(results, ['ok', 'EVENT_COMPLETED'])
-}
-
-const count = async (main: SmokeConnection, sql: string, params: unknown[] = []) =>
-  Number((await main.sql.unsafe(sql, params as never[]))[0]?.n)
 
 // 그 행사의 요청 품목 하나가 이미 증빙과 사유가 있는 지출로 결제된 상태(완료할 수 있다)
 async function settledLine(world: World, eventId: string) {
@@ -188,7 +87,7 @@ async function expenseRound(world: World, open: () => SmokeConnection) {
         world.context.now,
       ),
     )
-  const problem = await completeFirst(open, world, eventId, spend)
+  const problem = await completeFirst(open, world, { eventId, other: spend })
   if (problem) return problem
   const lines = await count(
     world.main,
@@ -217,7 +116,7 @@ async function depositScene(world: World) {
     eventId,
     name: '점검 양식',
     closesAt: new Date(world.context.now.getTime() + HOUR_MS),
-    publicCode: `MAKEYA${await nextDigit(world)}2`,
+    publicCode: `MAKEYA${nextDigit()}2`,
   })
   const registrationId = await make(world, 'registration', {
     formId,
@@ -229,7 +128,7 @@ async function depositScene(world: World) {
 
 let digit = 0
 const DIGITS = '23456789'
-const nextDigit = (_world: World) => Promise.resolve(DIGITS[digit++ % DIGITS.length])
+const nextDigit = () => DIGITS[digit++ % DIGITS.length]
 
 // 사례 y: 완료와 입금 확인. 완료가 먼저면 입금 확인은 409, 입금 확인이 먼저면 둘 다 되고 그 입금이 완료 때 만든 수입에 이어진다.
 async function depositRound(world: World, open: () => SmokeConnection, round: number) {
@@ -241,7 +140,7 @@ async function depositRound(world: World, open: () => SmokeConnection, round: nu
       return done
     })
   if (round % PAIR === 0) {
-    const problem = await completeFirst(open, world, eventId, db => confirm(db))
+    const problem = await completeFirst(open, world, { eventId, other: db => confirm(db) })
     if (problem) return problem
     const live = await count(
       world.main,
@@ -288,7 +187,7 @@ async function applyRound(world: World, open: () => SmokeConnection) {
       eventId: id,
       name: '점검 양식',
       closesAt: new Date(world.context.now.getTime() + HOUR_MS),
-      publicCode: `MAKEZA${await nextDigit(world)}2`,
+      publicCode: `MAKEZA${nextDigit()}2`,
     })
     return { eventId: id, formId: form }
   })()
@@ -304,7 +203,11 @@ async function applyRound(world: World, open: () => SmokeConnection) {
         { name: '점검 신청자', studentId: null, phone: null },
       ),
     )
-  const problem = await completeFirst(open, world, eventId, apply)
+  const problem = await completeFirst(open, world, {
+    eventId,
+    other: apply,
+    blocked: 'REGISTRATION_NOT_OPEN',
+  })
   if (problem) return problem
   const made = await count(
     world.main,
@@ -323,6 +226,6 @@ export const completeAndApplyCase: SmokeCase = {
         const problem = await applyRound(world, open)
         if (problem) return typeof problem === 'string' ? fail(`${round}번째: ${problem}`) : problem
       }
-      return pass(`${ROUNDS}번 모두 완료가 되고 공개 신청은 EVENT_COMPLETED였다`)
+      return pass(`${ROUNDS}번 모두 완료가 되고 공개 신청은 REGISTRATION_NOT_OPEN이었다`)
     }),
 }
