@@ -1,5 +1,6 @@
 import {
   PURCHASE_STATUSES,
+  type BudgetItemView,
   type PurchaseLineItem,
   type PurchaseRequestSummary,
 } from '@vada/contracts'
@@ -20,6 +21,7 @@ const request = (id: string, extra: Partial<PurchaseRequestSummary>): PurchaseRe
   neededBy: '2026-10-25',
   itemCount: 3,
   createdAt: '2026-10-21T05:03:00.000Z',
+  event: null,
   ...extra,
 })
 
@@ -36,9 +38,9 @@ const lineItem = (name: string): PurchaseLineItem => ({
   status: 'pending',
   paid: false,
 })
-const budgetItems = [
-  { id: 'b1', purpose: '행사 홍보', amount: 300000 },
-  { id: 'b2', purpose: longName, amount: 50000 },
+const budgetItems: BudgetItemView[] = [
+  { id: 'b1', purpose: '행사 홍보', amount: 300000, type: 'expense', event: null },
+  { id: 'b2', purpose: longName, amount: 50000, type: 'expense', event: null },
 ]
 
 export function FinanceSection() {

@@ -2,7 +2,9 @@ import { Hono, type Context } from 'hono'
 import {
   CancelExpenseSchema,
   CreateExpenseSchema,
+  ExpenseListQuerySchema,
   ReimburseExpenseSchema,
+  UpdateExpenseSchema,
   type ExpenseResponse,
   type ExpensesResponse,
 } from '@vada/contracts'
@@ -11,6 +13,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
+import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
 import type { FileStorage } from '../storage/storage.js'
@@ -18,6 +21,7 @@ import { PHOTO_UPLOAD_LIMIT } from '../storage/uploads.js'
 import { addEvidenceRoutes } from './evidence-routes.js'
 import { expenseDetailOf, expenseListOf } from './queries.js'
 import { cancelExpense, createExpense, reimburseExpense } from './service.js'
+import { updateExpense } from './update.js'
 
 const root = '/organizations/:councilId/expenses'
 const CREATED = 201
@@ -52,6 +56,13 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
     )
     return c.json({ expense: detail } satisfies ExpenseResponse, CREATED)
   })
+  routes.post(`${root}/:expenseId`, json(UpdateExpenseSchema), auth, async c => {
+    const input = c.req.valid('json')
+    const detail = await inCouncilChange(db, changing(c), (tx, actor) =>
+      updateExpense(tx, actor, expenseIdOf(c), input),
+    )
+    return c.json({ expense: detail } satisfies ExpenseResponse)
+  })
   routes.post(`${root}/:expenseId/cancel`, json(CancelExpenseSchema), auth, async c => {
     const { reason } = c.req.valid('json')
     const detail = await inCouncilChange(db, changing(c), (tx, actor) =>
@@ -67,7 +78,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
   })
 }
 
-// 지출: 모든 운영진이 읽고(PRIN-5), 적고 취소하고 환급 표시하는 것은 재정부만이다(DEC-28).
+// 지출: 모든 운영진이 읽고(PRIN-5), 적고 고치고 취소하고 환급 표시하는 것은 재정부만이다(DEC-28).
 export function createExpenseRoutes(
   db: Db,
   getSession: SessionReader,
@@ -91,8 +102,9 @@ export function createExpenseRoutes(
   })
   routes.get(root, auth, async c => {
     const request = asked(c)
+    const query = parseQuery(ExpenseListQuerySchema, c.req.queries())
     const list = await db.transaction(
-      async tx => expenseListOf(tx, await authorize(tx, request)),
+      async tx => expenseListOf(tx, await authorize(tx, request), query),
       snapshot,
     )
     return c.json(list satisfies ExpensesResponse)

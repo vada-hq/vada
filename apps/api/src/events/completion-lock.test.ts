@@ -86,6 +86,7 @@ async function sceneOf(t: SettlementKit, shared: Shared) {
     openByItem.line,
   ])
   await t.approve(openByItem.line)
+  const looseExpense = await t.expense({})
   return {
     event,
     item,
@@ -105,6 +106,7 @@ async function sceneOf(t: SettlementKit, shared: Shared) {
     expenseViaItem,
     expenseViaItemLine,
     openByItem,
+    looseExpense,
   }
 }
 
@@ -129,6 +131,20 @@ const rows: Row[] = [
   ],
   ['책임자 바꾸기', (t, s) => post(t)(`/events/${s.event}/owner`, { ownerId: null })],
   // 요청
+  [
+    '그 행사에 요청 내기',
+    (t, s) =>
+      post(t)(
+        '/purchase-requests',
+        { title: '새 요청', eventId: s.event, items: [{ name: '테이프', quantity: 1 }] },
+        OWNER,
+      ),
+  ],
+  [
+    '그 행사에 예산 항목 더하기',
+    (t, s) =>
+      post(t)('/budget-items', { purpose: '행사비', amount: 1000, eventId: s.event }, FINANCE),
+  ],
   ['요청 취소', (t, s) => post(t)(`/purchase-requests/${s.pending.request}/cancel`, {}, OWNER)],
   [
     '결재(그 행사 요청)',
@@ -167,8 +183,20 @@ const rows: Row[] = [
       ),
   ],
   [
+    '그 행사를 이은 지출 적기',
+    (t, s) => post(t)('/expenses', { ...EXPENSE, eventId: s.event }, FINANCE),
+  ],
+  [
     '그 행사 예산 항목을 고른 지출 적기',
     (t, s) => post(t)('/expenses', { ...EXPENSE, budgetItemId: s.item }, FINANCE),
+  ],
+  [
+    '그 행사 지출 사유 고치기(바꾸기 전 행사)',
+    (t, s) => post(t)(`/expenses/${s.expenseOfEvent}`, { reason: '고침' }, FINANCE),
+  ],
+  [
+    '지출의 행사를 그 행사로 옮기기(옮길 행사)',
+    (t, s) => post(t)(`/expenses/${s.looseExpense}`, { eventId: s.event }, FINANCE),
   ],
   [
     '그 행사 지출 취소',

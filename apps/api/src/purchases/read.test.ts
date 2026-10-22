@@ -50,6 +50,7 @@ test(
         requestedBy: { id: s.council.people.plain.memberId, name: 's plain' },
         neededBy: null,
         itemCount: 1,
+        event: null,
         createdAt: undefined,
       },
     )

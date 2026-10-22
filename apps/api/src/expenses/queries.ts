@@ -6,6 +6,7 @@ import {
   type EvidenceType,
   type ExpenseApproval,
   type ExpenseDetail,
+  type ExpenseListQuery,
   type ExpenseMethod,
   type ExpenseSummary,
   type ExpensesResponse,
@@ -15,6 +16,7 @@ import {
   account,
   approval,
   budgetItem,
+  event,
   evidence,
   expense,
   file,
@@ -25,6 +27,7 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { expenseHistoryOf } from './history.js'
 import { expenseActionsOf } from './status.js'
@@ -51,6 +54,8 @@ function expenseRows(
       paidAt: expense.paidAt,
       method: expense.method,
       reason: expense.reason,
+      eventId: expense.eventId,
+      eventName: event.name,
       paidById: expense.paidBy,
       payerName: payer.name,
       requestedById: expense.requestedBy,
@@ -69,6 +74,7 @@ function expenseRows(
     .leftJoin(requester, eq(requester.id, expense.requestedBy))
     .leftJoin(budgetItem, eq(budgetItem.id, expense.budgetItemId))
     .leftJoin(account, eq(account.id, expense.accountId))
+    .leftJoin(event, eq(event.id, expense.eventId))
     .where(and(eq(record.councilId, actor.councilId), options.where))
     .orderBy(desc(expense.paidAt), desc(expense.id))
     .limit(options.limit)
@@ -89,12 +95,22 @@ function summaryOf(row: Row): ExpenseSummary {
     reimbursed: row.reimbursedAt !== null,
     evidenceCount: row.evidenceCount,
     cancelled: row.cancelledAt !== null,
+    event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
   }
 }
 
 // 결제일 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
-export async function expenseListOf(db: Reader, actor: Actor): Promise<ExpensesResponse> {
-  const rows = await expenseRows(db, actor, { limit: EXPENSE_LIST_LIMIT + 1 })
+// 행사를 주면 그 행사의 지출만 준다. 다른 학생회 행사는 없는 것과 같아 404다.
+export async function expenseListOf(
+  db: Reader,
+  actor: Actor,
+  query: ExpenseListQuery,
+): Promise<ExpensesResponse> {
+  if (query.event) await eventRowOf(db, actor, query.event)
+  const rows = await expenseRows(db, actor, {
+    where: query.event ? eq(expense.eventId, query.event) : undefined,
+    limit: EXPENSE_LIST_LIMIT + 1,
+  })
   return {
     expenses: rows.slice(0, EXPENSE_LIST_LIMIT).map(summaryOf),
     truncated: rows.length > EXPENSE_LIST_LIMIT,

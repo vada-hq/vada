@@ -95,6 +95,7 @@ async function expenseIn(db: Db, run: Run, label: string) {
       actor,
       {
         vendor: '문구점',
+        eventId: null,
         description: label,
         amount: EXPENSE_AMOUNT,
         paidOn: koreanDateOf(context.now),

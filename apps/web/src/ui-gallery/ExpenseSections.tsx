@@ -14,6 +14,7 @@ const expense = (id: string, extra: Partial<ExpenseSummary>): ExpenseSummary => 
   reimbursed: false,
   evidenceCount: 1,
   cancelled: false,
+  event: null,
   ...extra,
 })
 

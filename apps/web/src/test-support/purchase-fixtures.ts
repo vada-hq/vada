@@ -12,6 +12,7 @@ export const purchaseSummary = (
   neededBy: '2026-10-25',
   itemCount: 2,
   createdAt: '2026-10-21T05:03:00.000Z',
+  event: null,
   ...extra,
 })
 

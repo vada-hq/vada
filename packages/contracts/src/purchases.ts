@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { WON_MAX } from './budget.js'
+import { WON_MAX, type EventRef } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import type { Action } from './permissions.js'
@@ -19,7 +19,11 @@ export const PURCHASE_RECENT_LIMIT = 100
 
 export const PURCHASE_VIEWS = ['mine', 'pending', 'all'] as const
 export type PurchaseView = (typeof PURCHASE_VIEWS)[number]
-export const PurchaseRequestListQuerySchema = z.strictObject({ view: z.enum(PURCHASE_VIEWS) })
+// 행사를 주면 그 행사에 이은 요청만 준다.
+export const PurchaseRequestListQuerySchema = z.strictObject({
+  view: z.enum(PURCHASE_VIEWS),
+  event: recordIdInput.optional(),
+})
 export type PurchaseRequestListQuery = z.infer<typeof PurchaseRequestListQuerySchema>
 
 // 품목 하나의 결재 상태와 요청 전체의 상태(결재 안 된 품목이 있으면 대기, 섞이면 일부 승인)
@@ -59,9 +63,10 @@ const CreateLineItemSchema = z.strictObject({
   options: text(PURCHASE_ITEM_OPTIONS_MAX).nullable().default(null),
 })
 
-// 요청 내기. 금액, 예산 항목, 사유는 받지 않는다(DEC-40).
+// 요청 내기. 금액, 예산 항목, 사유는 받지 않는다(DEC-40). 행사는 낼 때 고르고 바꾸지 않는다(DEC-68).
 export const CreatePurchaseRequestSchema = z.strictObject({
   title: text(PURCHASE_TITLE_MAX),
+  eventId: recordIdInput.nullable().default(null),
   body: text(PURCHASE_BODY_MAX).nullable().default(null),
   neededBy: koreanDate.nullable().default(null),
   items: z.array(CreateLineItemSchema).min(1).max(PURCHASE_ITEMS_MAX),
@@ -107,6 +112,7 @@ export interface PurchaseRequestSummary {
   neededBy: string | null
   itemCount: number
   createdAt: string
+  event: EventRef | null
 }
 
 export interface PurchaseLineItem {

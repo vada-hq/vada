@@ -7,6 +7,8 @@ const CHANGE_TEXT: Record<ExpenseChange['field'], string> = {
   created: '적음',
   cancelled: '취소함',
   reimbursed: '환급함',
+  reason: '사유를 고침',
+  event: '행사를 바꿈',
 }
 
 // 결재 한 줄: '이름 · 10월 21일 14:03 · 승인'. 지출은 적은 사람의 승인이 같이 남는다(DEC-41).

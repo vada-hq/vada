@@ -3,6 +3,7 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
 import { assertEventOpen } from '../events/completion.js'
+import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { currentFinanceMembers } from './finance-members.js'
@@ -47,6 +48,9 @@ export async function createPurchaseRequest(
 ): Promise<{ request: PurchaseRequestDetail; notice: PurchaseNotice | null }> {
   // 403이 다른 실패보다 먼저다. 요청한 사람은 늘 나다(DEC-40의 대신 내기는 미뤘다).
   if (!can(actor, 'purchase.request')) throw new ApiError('FORBIDDEN')
+  // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
+  await assertCouncilEvent(tx, actor, input.eventId)
+  await assertEventOpen(tx, input.eventId)
   const requestId = await createRecord(tx, {
     kind: 'request',
     councilId: actor.councilId,
@@ -54,6 +58,7 @@ export async function createPurchaseRequest(
     values: {
       type: 'purchase',
       title: input.title,
+      eventId: input.eventId,
       body: input.body,
       requestedBy: actor.memberId,
       neededBy: input.neededBy,

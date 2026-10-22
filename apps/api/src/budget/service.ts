@@ -4,6 +4,8 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { fiscalPeriod } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { assertEventOpen } from '../events/completion.js'
+import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import { budgetViewOf, currentPeriodOf, periodById } from './queries.js'
@@ -52,7 +54,7 @@ export async function createFiscalPeriod(
   return budgetViewOf(tx, (await periodById(tx, periodId))!)
 }
 
-// 지출 예산 항목은 오늘이 든 기간에 더한다. 기간이 없으면 409다.
+// 예산 항목(지출 기본, 수입)은 오늘이 든 기간에 더한다. 기간이 없으면 409다. 행사를 이으면 그 행사가 완료 전이어야 한다(DEC-68).
 export async function addBudgetItem(
   tx: Tx,
   actor: Actor,
@@ -60,6 +62,8 @@ export async function addBudgetItem(
   now: Date,
 ): Promise<BudgetResponse> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+  await assertCouncilEvent(tx, actor, input.eventId)
+  await assertEventOpen(tx, input.eventId)
   const period = await currentPeriodOf(tx, actor, now)
   if (!period) throw new ApiError('NO_FISCAL_PERIOD')
   await createRecord(tx, {
@@ -68,7 +72,8 @@ export async function addBudgetItem(
     actor: actor.memberId,
     values: {
       budgetId: period.budgetId,
-      type: 'expense',
+      type: input.type,
+      eventId: input.eventId,
       purpose: input.purpose,
       amount: String(input.amount),
     },

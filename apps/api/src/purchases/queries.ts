@@ -12,6 +12,7 @@ import type { Actor } from '../access/actor.js'
 import {
   approval,
   budgetItem,
+  event,
   expense,
   lineItem,
   member,
@@ -20,6 +21,7 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
 import { actionsOf, lineItemStatusOf, requestStatusOf } from './status.js'
@@ -48,6 +50,7 @@ function summaryRows(
       neededBy: request.neededBy,
       cancelledAt: request.cancelledAt,
       eventId: request.eventId,
+      eventName: event.name,
       requestedBy: request.requestedBy,
       requesterName: member.name,
       createdAt: record.createdAt,
@@ -60,8 +63,9 @@ function summaryRows(
     .innerJoin(member, eq(member.id, request.requestedBy))
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
     .leftJoin(approval, decidedOn)
+    .leftJoin(event, eq(event.id, request.eventId))
     .where(and(eq(record.councilId, actor.councilId), options.where))
-    .groupBy(request.id, record.id, member.id)
+    .groupBy(request.id, record.id, member.id, event.id)
     .having(options.having)
     .orderBy(...options.order)
     .limit(options.limit)
@@ -79,6 +83,7 @@ function summaryOf(row: Row): PurchaseRequestSummary {
     neededBy: row.neededBy,
     itemCount: row.items,
     createdAt: row.createdAt.toISOString(),
+    event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
   }
 }
 
@@ -105,7 +110,10 @@ export async function requestListOf(
   query: PurchaseRequestListQuery,
 ): Promise<PurchaseRequestsResponse> {
   const options = listOptions(actor, query.view)
-  const rows = await summaryRows(db, actor, { ...options, limit: options.limit + 1 })
+  // 다른 학생회 행사는 없는 것과 같아 404다.
+  if (query.event) await eventRowOf(db, actor, query.event)
+  const where = query.event ? and(options.where, eq(request.eventId, query.event)) : options.where
+  const rows = await summaryRows(db, actor, { ...options, where, limit: options.limit + 1 })
   return {
     requests: rows.slice(0, options.limit).map(summaryOf),
     truncated: rows.length > options.limit,

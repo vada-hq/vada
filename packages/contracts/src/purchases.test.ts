@@ -24,6 +24,7 @@ test('CreatePurchaseRequestSchema: 비운 칸은 null이고 링크는 http와 ht
   assert.deepEqual(parsed, {
     title: 'a',
     body: null,
+    eventId: null,
     neededBy: null,
     items: [{ name: '마커', quantity: 1, link: null, options: null }],
   })

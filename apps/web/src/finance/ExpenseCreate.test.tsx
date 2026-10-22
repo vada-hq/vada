@@ -131,6 +131,7 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     vendor: '인쇄소',
     description: '포스터 인쇄',
+    eventId: null,
     amount: 31000,
     paidOn: today(),
     method: 'card',
@@ -188,6 +189,7 @@ test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     vendor: '편의점',
     description: '간식',
+    eventId: null,
     amount: 12000,
     paidOn: today(),
     method: 'cash',

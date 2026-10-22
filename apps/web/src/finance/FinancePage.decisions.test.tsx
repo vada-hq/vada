@@ -159,7 +159,7 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
   // 기간이 바뀌어 그 항목이 사라지면(같은 값으로 다시 와도 목록에 없으면) 기본은 비어 있다.
   cleanup()
   const other = budgetWithPeriod()
-  other.items = [{ id: BUDGET_A, purpose: '행사 홍보', amount: 1 }]
+  other.items = [{ id: BUDGET_A, purpose: '행사 홍보', amount: 1, type: 'expense', event: null }]
   api.on('GET', `${ORG}/budget`, () => json(other))
   render(
     <FinancePage

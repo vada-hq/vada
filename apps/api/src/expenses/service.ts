@@ -11,9 +11,11 @@ import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries
 import { currentMembersAmong } from '../chat/current-members.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
+import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { assertExpenseEventOpen, eventsOfLines } from './event-lock.js'
+import { assertExpenseEventOpen, eventsOfLines, requestEventsOfLines } from './event-lock.js'
+import { eventOfNewExpense } from './event-rule.js'
 import { assertPayable } from './payable.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
@@ -29,13 +31,16 @@ async function assertCurrentMembers(tx: Tx, actor: Actor, ids: (string | null)[]
   if (wanted.some(id => !alive.has(id))) throw new ApiError('MEMBER_INVALID')
 }
 
-// 완료한 행사의 기록은 잠겼다. 결제하는 품목 요청의 행사와 고른 예산 항목의 행사를 본다(DEC-68).
+// 완료한 행사의 기록은 잠겼다. 결제하는 품목 요청의 행사, 고른 예산 항목의 행사, 적는 행사를 본다(DEC-68).
+// 품목을 낸 요청들의 행사를 돌려줘 지출의 행사를 정하는 데 쓴다.
 async function assertEventsOpenFor(tx: Tx, actor: Actor, input: CreateExpense) {
   const itemIds = input.lines.map(line => line.lineItemId)
   await assertEventsOpen(tx, [
     ...(await eventsOfLines(tx, actor, itemIds)),
+    input.eventId,
     ...(input.budgetItemId ? await budgetItemEventsOf(tx, actor, [input.budgetItemId]) : []),
   ])
+  return requestEventsOfLines(tx, actor, itemIds)
 }
 
 async function assertInputAllowed(tx: Tx, actor: Actor, input: CreateExpense, now: Date) {
@@ -52,6 +57,23 @@ async function assertInputAllowed(tx: Tx, actor: Actor, input: CreateExpense, no
   )
 }
 
+// 결제일은 그날 한국 0시로 저장한다.
+function expenseValuesOf(input: CreateExpense, eventId: string | null) {
+  return {
+    amount: String(input.amount),
+    paidAt: dateFromKorean(`${input.paidOn}T00:00`),
+    description: input.description,
+    vendor: input.vendor,
+    method: input.method,
+    reason: input.reason,
+    eventId,
+    budgetItemId: input.budgetItemId,
+    requestedBy: input.requestedBy,
+    paidBy: input.paidBy,
+    accountId: input.accountId,
+  }
+}
+
 // 지출을 적으면 같은 거래에서 적은 사람의 승인 결재 기록이 생긴다(DEC-41). 따로 결재하는 단계는 없다.
 export async function createExpense(
   tx: Tx,
@@ -60,25 +82,15 @@ export async function createExpense(
   now: Date,
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
-  await assertEventsOpenFor(tx, actor, input)
+  // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
+  await assertCouncilEvent(tx, actor, input.eventId)
+  const eventId = eventOfNewExpense(await assertEventsOpenFor(tx, actor, input), input.eventId)
   await assertInputAllowed(tx, actor, input, now)
   const expenseId = await createRecord(tx, {
     kind: 'expense',
     councilId: actor.councilId,
     actor: actor.memberId,
-    values: {
-      amount: String(input.amount),
-      // 결제일은 그날 한국 0시로 저장한다.
-      paidAt: dateFromKorean(`${input.paidOn}T00:00`),
-      description: input.description,
-      vendor: input.vendor,
-      method: input.method,
-      reason: input.reason,
-      budgetItemId: input.budgetItemId,
-      requestedBy: input.requestedBy,
-      paidBy: input.paidBy,
-      accountId: input.accountId,
-    },
+    values: expenseValuesOf(input, eventId),
   })
   for (const line of input.lines)
     await createRecord(tx, {

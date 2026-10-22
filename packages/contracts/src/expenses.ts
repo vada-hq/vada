@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { WON_MAX } from './budget.js'
+import { WON_MAX, type EventRef } from './budget.js'
 import { PHOTO_KEY_MAX } from './chat.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
@@ -51,6 +51,8 @@ export const CreateExpenseSchema = z
     paidBy: recordIdInput.nullable().default(null),
     reason: text(EXPENSE_REASON_MAX).nullable().default(null),
     budgetItemId: recordIdInput.nullable().default(null),
+    // 결제 내역의 요청에 행사가 있으면 그 행사로 채우고, 다르게 주면 409 EVENT_MISMATCH다.
+    eventId: recordIdInput.nullable().default(null),
     requestedBy: recordIdInput.nullable().default(null),
     // 돈이 나간 계좌. 닫지 않은 이 학생회의 계좌만 받는다.
     accountId: recordIdInput.nullable().default(null),
@@ -69,6 +71,19 @@ export type CreateExpense = z.infer<typeof CreateExpenseSchema>
 // 취소는 사유를 받아 판에 남긴다. 환급은 본문이 없다.
 export const CancelExpenseSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
 export const ReimburseExpenseSchema = EmptyRequestSchema
+
+// 사유와 행사 고치기(재정부, 정산 전). 칸을 빼면 그대로이고 null은 비운다. 하나는 꼭 있어야 한다.
+export const UpdateExpenseSchema = z
+  .strictObject({
+    reason: text(EXPENSE_REASON_MAX).nullable().optional(),
+    eventId: recordIdInput.nullable().optional(),
+  })
+  .refine(input => input.reason !== undefined || input.eventId !== undefined)
+export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>
+
+// 행사를 주면 그 행사의 지출만 준다.
+export const ExpenseListQuerySchema = z.strictObject({ event: recordIdInput.optional() })
+export type ExpenseListQuery = z.infer<typeof ExpenseListQuerySchema>
 
 // 증빙 붙이기. 키는 올리기 주소(POST uploads)가 준 것이고, 종류를 고르지 않으면 영수증이다.
 export const AttachEvidenceSchema = z.strictObject({
@@ -94,6 +109,7 @@ export interface ExpenseSummary {
   reimbursed: boolean
   evidenceCount: number
   cancelled: boolean
+  event: EventRef | null
 }
 
 export interface ExpensePaymentLine {
@@ -120,7 +136,12 @@ export interface ExpenseApproval {
   outcome: 'approved' | 'rejected'
 }
 
-export type ExpenseChange = { field: 'created' } | { field: 'cancelled' } | { field: 'reimbursed' }
+export type ExpenseChange =
+  | { field: 'created' }
+  | { field: 'cancelled' }
+  | { field: 'reimbursed' }
+  | { field: 'reason' }
+  | { field: 'event' }
 
 export interface ExpenseVersion {
   versionNo: number

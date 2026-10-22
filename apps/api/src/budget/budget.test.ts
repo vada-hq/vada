@@ -163,7 +163,9 @@ test(
       ['금액 소수', { purpose: 'a', amount: 1.5 }],
       ['금액 글자', { purpose: 'a', amount: '1' }],
       ['금액 10억+1', { purpose: 'a', amount: 1_000_000_001 }],
-      ['모르는 키', { purpose: 'a', amount: 1, type: 'income' }],
+      ['모르는 키', { purpose: 'a', amount: 1, kind: 'income' }],
+      ['모르는 종류', { purpose: 'a', amount: 1, type: 'other' }],
+      ['행사 번호 아님', { purpose: 'a', amount: 1, eventId: 'x' }],
     ]
     for (const [label, body] of bad) {
       const response = await makeItem(s, body)
@@ -212,7 +214,7 @@ test(
 )
 
 test(
-  '수입 항목은 지출 예산 항목 목록에 보이지 않는다',
+  '수입 항목은 종류와 함께 예산 목록에 보인다',
   runPurchases(async s => {
     const view = await viewOf(await makePeriod(s))
     await makeItem(s, { purpose: '지출', amount: 1 })
@@ -231,8 +233,11 @@ test(
     )
     const read = await viewOf(await s.api.get(`${root(s)}/budget`, FINANCE))
     assert.deepEqual(
-      read.items.map(item => item.purpose),
-      ['지출'],
+      read.items.map(item => [item.purpose, item.type]),
+      [
+        ['수입', 'income'],
+        ['지출', 'expense'],
+      ],
     )
   }),
 )

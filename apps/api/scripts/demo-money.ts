@@ -45,7 +45,9 @@ async function addBudget(tx: Tx, cast: DemoCast, now: Date) {
   })
   let items: { id: string; purpose: string }[] = []
   for (const item of BUDGET_ITEMS)
-    items = (await addBudgetItem(tx, cast.financeHead, item, now)).items
+    items = (
+      await addBudgetItem(tx, cast.financeHead, { ...item, type: 'expense', eventId: null }, now)
+    ).items
   const idOf = (purpose: string) => items.find(item => item.purpose === purpose)?.id
   const events = idOf(BUDGET_ITEMS[0].purpose)
   if (!events) throw new Error('Demo budget item is missing')
@@ -59,6 +61,7 @@ async function addRequests(tx: Tx, cast: DemoCast, ctx: { eventsBudgetItemId: st
     cast.publicityMember,
     {
       title: '총회 홍보 포스터 인쇄',
+      eventId: null,
       body: '학과 게시판 열 곳에 붙일 포스터입니다.',
       neededBy: demoDay(now, 'posterNeededBy'),
       items: [{ name: 'A2 포스터 인쇄', quantity: 10, link: null, options: '무광' }],
@@ -70,6 +73,7 @@ async function addRequests(tx: Tx, cast: DemoCast, ctx: { eventsBudgetItemId: st
     cast.planningMember,
     {
       title: '환영회 간식',
+      eventId: null,
       body: null,
       neededBy: null,
       items: [
@@ -108,6 +112,7 @@ async function addExpense(
     cast.financeHead,
     {
       vendor: '시연마트',
+      eventId: null,
       description: '환영회 현수막과 장식',
       amount: 85_000,
       paidOn: demoDay(ctx.now, 'expensePaid'),

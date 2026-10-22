@@ -15,6 +15,7 @@ export const expenseSummary = (
   reimbursed: false,
   evidenceCount: 1,
   cancelled: false,
+  event: null,
   ...extra,
 })
 

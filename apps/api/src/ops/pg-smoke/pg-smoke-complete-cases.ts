@@ -66,27 +66,22 @@ async function settledLine(world: World, eventId: string) {
 async function expenseRound(world: World, open: () => SmokeConnection) {
   const eventId = await newEvent(world)
   const lineId = await settledLine(world, eventId)
+  const input = {
+    vendor: '문구점',
+    eventId: null,
+    description: '마커 더',
+    amount: LINE_WON,
+    paidOn: koreanDateOf(world.context.now),
+    method: 'card' as const,
+    paidBy: null,
+    reason: null,
+    budgetItemId: null,
+    requestedBy: null,
+    accountId: null,
+    lines: [{ lineItemId: lineId, amount: LINE_WON }],
+  }
   const spend = (db: Db) =>
-    db.transaction(tx =>
-      createExpense(
-        tx,
-        world.finance,
-        {
-          vendor: '문구점',
-          description: '마커 더',
-          amount: LINE_WON,
-          paidOn: koreanDateOf(world.context.now),
-          method: 'card',
-          paidBy: null,
-          reason: null,
-          budgetItemId: null,
-          requestedBy: null,
-          accountId: null,
-          lines: [{ lineItemId: lineId, amount: LINE_WON }],
-        },
-        world.context.now,
-      ),
-    )
+    db.transaction(tx => createExpense(tx, world.finance, input, world.context.now))
   const problem = await completeFirst(open, world, { eventId, other: spend })
   if (problem) return problem
   const lines = await count(

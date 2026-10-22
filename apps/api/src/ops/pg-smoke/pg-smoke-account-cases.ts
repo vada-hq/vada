@@ -119,6 +119,7 @@ const spending = (db: Db, run: Run, accountId: string, hold?: () => Promise<void
       actor,
       {
         vendor: '문구점',
+        eventId: null,
         description: '계좌 점검',
         amount: EXPENSE_AMOUNT,
         paidOn: koreanDateOf(run.context.now),

@@ -63,6 +63,7 @@ test(
       reimbursed: false,
       evidenceCount: 0,
       cancelled: false,
+      event: null,
     })
     // 내보낸 사람과 다른 학생회 사람은 읽지 못하고, 로그인하지 않으면 401이다.
     assert.equal((await s.api.get(url(s), 's-ended')).status, 403)
