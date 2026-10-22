@@ -104,18 +104,29 @@ test(
     assert.deepEqual(titles('no_evidence'), [bare])
     assert.deepEqual(titles('refund_pending'), [])
 
+    const left = {
+      pending_items: 1,
+      unpaid_items: 1,
+      no_evidence: 1,
+      no_reason: 1,
+      unreimbursed: 1,
+      refund_pending: 1,
+    }
     await t.pg.query('UPDATE expense SET reimbursed_at = now() WHERE id = $1', [bare])
-    assert.deepEqual(await t.remainingOf(ev), { ...(await t.remainingOf(ev)), unreimbursed: 0 })
-    assert.equal((await t.remainingOf(ev)).no_reason, 1)
+    Object.assign(left, { unreimbursed: 0 })
+    assert.deepEqual(await t.remainingOf(ev), left)
     await t.pg.query("UPDATE expense SET reason = '행사 준비' WHERE id = $1", [bare])
-    assert.equal((await t.remainingOf(ev)).no_reason, 0)
+    Object.assign(left, { no_reason: 0 })
+    assert.deepEqual(await t.remainingOf(ev), left)
     await t.evidence(bare)
-    assert.equal((await t.remainingOf(ev)).no_evidence, 0)
+    Object.assign(left, { no_evidence: 0 })
+    assert.deepEqual(await t.remainingOf(ev), left)
     await t.pay(bare, unpaid.line)
-    assert.equal((await t.remainingOf(ev)).unpaid_items, 0)
+    Object.assign(left, { unpaid_items: 0 })
+    assert.deepEqual(await t.remainingOf(ev), left)
     await t.approve(pending.line, 'rejected')
-    assert.equal((await t.remainingOf(ev)).pending_items, 0)
-    assert.equal((await t.remainingOf(ev)).refund_pending, 1)
+    Object.assign(left, { pending_items: 0 })
+    assert.deepEqual(await t.remainingOf(ev), left)
     await t.pg.query('UPDATE deposit SET refunded_at = now(), refund_amount = 5000 WHERE id = $1', [
       refund,
     ])
@@ -270,5 +281,94 @@ test(
     const ok = await t.read(ev, 's-plain')
     assert.equal(ok.status, 200)
     assert.equal(ok.headers.get('cache-control'), 'no-store')
+  }),
+)
+
+test(
+  '취소하지 않은 신청의 입금은 환불 대기가 아니다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    const f = await t.form(ev)
+    await t.deposit(await t.registration(f))
+    assert.equal((await t.remainingOf(ev)).refund_pending, 0)
+    assert.equal((await t.settlement(ev)).actual.fee, 5000)
+  }),
+)
+
+test(
+  '취소한 지출로만 결제한 품목은 결제 전이고, 취소하지 않은 지출로 결제하면 빠진다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    const { line } = await t.requestWithItem(ev)
+    await t.approve(line)
+    const paid = await t.expense({ eventId: ev, cancelledAt: clockNow })
+    await t.pay(paid, line)
+    assert.equal((await t.remainingOf(ev)).unpaid_items, 1)
+    await t.pay(await t.expense({ eventId: ev }), line)
+    assert.equal((await t.remainingOf(ev)).unpaid_items, 0)
+  }),
+)
+
+test(
+  '항목마다 쓴 돈과 들어온 돈에서 취소한 지출·수입은 빠진다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    const { budget, period } = await t.budgetOf()
+    const spend = await t.budgetItem(budget, { eventId: ev })
+    const income = await t.budgetItem(budget, { eventId: ev, type: 'income', amount: '1' })
+    const { line } = await t.requestWithItem(ev)
+    await t.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [spend, line])
+    await t.approve(line)
+    const viaLine = await t.expense({ eventId: ev, amount: '300', cancelledAt: clockNow })
+    await t.pay(viaLine, line, '300')
+    await t.expense({ eventId: ev, amount: '700', budgetItemId: spend, cancelledAt: clockNow })
+    await t.expense({ eventId: ev, amount: '20', budgetItemId: spend })
+    for (const [amount, cancelledAt] of [
+      ['5', clockNow],
+      ['9', null],
+    ] as const)
+      await t.make(t.council, 'income', {
+        fiscalPeriodId: period,
+        source: 'donation',
+        amount,
+        receivedOn: '2026-10-21',
+        budgetItemId: income,
+        ...(cancelledAt ? { cancelledAt } : {}),
+      })
+    const s = await t.settlement(ev)
+    assert.deepEqual(
+      s.budget.items.map(item => item.used),
+      [20, 9],
+    )
+  }),
+)
+
+test(
+  '남은 것 목록은 50개까지이고 수는 전체다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    for (let i = 0; i < 55; i++) await t.expense({ eventId: ev })
+    const item = (await t.settlement(ev)).remaining.find(r => r.kind === 'no_evidence')
+    assert.equal(item?.count, 55)
+    assert.equal(item?.targets.length, 50)
+  }),
+)
+
+test(
+  '완료한 행사는 목록에서 끝남 자리에 있다(진행 중인 행사보다 뒤)',
+  withSettlement(async t => {
+    const done = await t.event({ name: '완료한 것', startsAt: new Date('2026-10-25T00:00:00Z') })
+    const live = await t.event({ name: '진행 중', startsAt: new Date('2026-10-25T01:00:00Z') })
+    await t.completion(done, 'completed', new Date('2026-10-25T02:00:00Z'))
+    const { events } = (await (await t.api.get(t.base, 's-president')).json()) as {
+      events: { id: string; status: string }[]
+    }
+    assert.deepEqual(
+      events.map(item => [item.id, item.status]),
+      [
+        [live, 'ongoing'],
+        [done, 'completed'],
+      ],
+    )
   }),
 )

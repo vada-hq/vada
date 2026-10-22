@@ -4,6 +4,7 @@ import {
   type SettlementRemaining,
   type SettlementTarget,
 } from '@vada/contracts'
+import { refundPendingSql } from '../deposits/refund-pending.js'
 import {
   approval,
   deposit,
@@ -103,9 +104,7 @@ async function refundPendingOf(db: Reader, scope: Scope): Promise<SettlementRema
       and(
         eq(record.councilId, scope.councilId),
         eq(registrationForm.eventId, scope.eventId),
-        isNotNull(registration.cancelledAt),
-        isNull(deposit.cancelledAt),
-        isNull(deposit.refundedAt),
+        refundPendingSql,
       ),
     )
   return { kind: 'refund_pending', count: row?.count ?? 0, targets: [] }

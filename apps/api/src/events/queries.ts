@@ -21,8 +21,16 @@ type Reader = Pick<Db, 'select'>
 
 // 끝나는 때와 목록 묶음의 SQL. status.ts의 eventEndOf, eventStatusOf와 같은 규칙이다(끝이 없으면 시작한 날 한국 23:59:59).
 const endsAtSql = sql`coalesce(${event.endsAt}, (date_trunc('day', ${event.startsAt} at time zone 'Asia/Seoul') + interval '1 day') at time zone 'Asia/Seoul' - interval '1 second')`
-// 0 진행 중, 1 예정, 2 날짜 미정, 3 끝남
+// 마지막 결재(완료, 완료 취소)가 완료인 행사. completion.ts의 completedEventIdsAmong과 같은 규칙이다.
+const completedSql = sql`exists (select 1 from approval done
+  where done.target_id = ${event.id} and done.target_kind = 'event' and done.outcome = 'completed'
+  and not exists (select 1 from approval later
+    where later.target_id = done.target_id and later.target_kind = 'event'
+    and later.outcome in ('completed', 'completion_cancelled')
+    and (later.acted_at, later.id) > (done.acted_at, done.id)))`
+// 0 진행 중, 1 예정, 2 날짜 미정, 3 끝남(완료한 행사도 끝남 자리)
 const groupSql = (now: Date) => sql`(case
+  when ${completedSql} then 3
   when ${event.startsAt} is null then 2
   when date_trunc('second', ${now.toISOString()}::timestamptz) > ${endsAtSql} then 3
   when ${now.toISOString()}::timestamptz < ${event.startsAt} then 1

@@ -5,6 +5,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { clearVersionValues } from '../registrations/personal-values.js'
 import { liveOrNotFound, lockedRegistration } from '../registrations/staff-registration.js'
+import { refundPendingFacts } from './refund-pending.js'
 import { assertConfirm, assertRefund } from './permission.js'
 import { activeDepositOf } from './queries.js'
 
@@ -73,7 +74,15 @@ export async function refundDeposit(
 ): Promise<ApplicantDeposit> {
   const row = await lockedRegistration(tx, actor, registrationId, assertRefund)
   const active = await activeDepositOf(tx, row.id)
-  if (!row.cancelledAt || !active || active.refundedAt) throw new ApiError('NOT_REFUNDABLE')
+  if (
+    !active ||
+    !refundPendingFacts({
+      registrationCancelledAt: row.cancelledAt,
+      hasDeposit: true,
+      refundedAt: active.refundedAt,
+    })
+  )
+    throw new ApiError('NOT_REFUNDABLE')
   const amount = input.amount ?? active.amount
   if (amount < MIN_WON || amount > active.amount) throw new ApiError('INVALID_INPUT')
   await updateRecord(tx, {

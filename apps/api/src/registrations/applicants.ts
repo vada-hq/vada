@@ -12,6 +12,7 @@ import { can } from '../access/permissions.js'
 import { attendance, deposit, record, registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { refundPendingFacts, refundPendingSql } from '../deposits/refund-pending.js'
 import { recordApplicantAccess } from './access-log.js'
 import { registrationContextOf } from './permission-context.js'
 import { formRowOf } from './queries.js'
@@ -46,13 +47,18 @@ function depositOf(row: {
   if (row.depositId === null) return { status: 'none', amount: null }
   const amount = Number(row.depositAmount)
   if (row.refundedAt !== null) return { status: 'refunded', amount }
-  return { status: row.cancelledAt === null ? 'confirmed' : 'refund_pending', amount }
+  const pending = refundPendingFacts({
+    registrationCancelledAt: row.cancelledAt,
+    hasDeposit: true,
+    refundedAt: row.refundedAt,
+  })
+  return { status: pending ? 'refund_pending' : 'confirmed', amount }
 }
 
 // 거르기: 입금 확인한 신청, 환불 대기 신청
 function filterOf(filter: ApplicantFilter | undefined): SQL | undefined {
   if (filter === 'deposited') return and(unrefunded, isNull(registration.cancelledAt))
-  if (filter === 'refund_pending') return and(unrefunded, isNotNull(registration.cancelledAt))
+  if (filter === 'refund_pending') return refundPendingSql
   return undefined
 }
 
