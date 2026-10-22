@@ -18,14 +18,15 @@ concurrency:
 
 jobs:
   # API 시험이 한 작업에서 8분, 전체가 10~15분이 되어 상한(15분)에 걸려 main이 취소됐다(2026-10-22).
-  # 시험을 나눠 나란히 돌린다. 나누는 수는 API 시험이 늘면 올린다.
+  # 시험을 나눠 나란히 돌린다. 비공개 저장소라 Actions 시간이 작업마다 분 단위로 올림되어 청구되므로
+  # 작업 수는 최소로 둔다(다섯으로 나눴을 때 한 번에 약 17~20분, 그날 무료 시간 2,000분을 넘겼다).
   test-api:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -34,21 +35,7 @@ jobs:
           cache: npm
       - run: npm ci
       - working-directory: apps/api
-        run: npx tsx --test --test-shard=${{ matrix.shard }}/3 "src/**/*.test.ts" "scripts/**/*.test.ts"
-
-  test-other:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      - run: npm test --workspace @vada/contracts
-      - run: npm test --workspace @vada/web
-      - run: node --test .claude/hooks/block-db-commands.test.mjs
+        run: npx tsx --test --test-shard=${{ matrix.shard }}/2 "src/**/*.test.ts" "scripts/**/*.test.ts"
 
   check:
     runs-on: ubuntu-latest
@@ -64,6 +51,9 @@ jobs:
       - run: npm run lint -- --format github
       - run: npm run typecheck
       - run: npm run knip
+      - run: npm test --workspace @vada/contracts
+      - run: npm test --workspace @vada/web
+      - run: node --test .claude/hooks/block-db-commands.test.mjs
       - run: npm run build --workspace @vada/web
       # Render와 같은 명령(npm start)으로 운영 모드를 띄워 health 응답까지 본다. 시작 시 예외·빌드 누락·설정 오류처럼 어디서나 나는 문제를 배포 전에 잡는다.
       # Render 무료 인스턴스에서만 난 시작 멈춤(2026-10-07)은 여기서 재현되지 않았다. 그런 문제까지 막아 주지는 못한다.
