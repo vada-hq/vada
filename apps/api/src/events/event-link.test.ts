@@ -323,3 +323,17 @@ test(
       assert.equal((await post(t, '/expenses', { ...EXPENSE, ...body })).status, 201)
   }),
 )
+
+test(
+  '지출 적기: 행사를 빼도 고른 예산 항목에 행사가 있으면 그 행사로 채운다',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const first = await t.event({ name: '봄 축제' })
+    const tied = await t.budgetItem(budget, { eventId: first })
+    const loose = await t.budgetItem(budget, {})
+    const filled = await post(t, '/expenses', { ...EXPENSE, budgetItemId: tied })
+    assert.equal(((await filled.json()) as ExpenseResponse).expense.event?.name, '봄 축제')
+    const bare = await post(t, '/expenses', { ...EXPENSE, budgetItemId: loose })
+    assert.equal(((await bare.json()) as ExpenseResponse).expense.event, null)
+  }),
+)

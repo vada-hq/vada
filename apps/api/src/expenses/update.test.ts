@@ -189,3 +189,16 @@ test(
     assert.equal((await post(t, id, { eventId: first, reason: '고침' })).status, 200)
   }),
 )
+
+test(
+  '지출의 행사가 비었고 예산 항목에 행사가 있으면 고칠 때 그 행사로 채운다: 비우려 해도 채운다',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const first = await t.event({ name: '봄 축제' })
+    const item = await t.budgetItem(budget, { eventId: first })
+    const id = await t.expense({ eventId: null, budgetItemId: item })
+    const filled = await detailOf(await post(t, id, { reason: '채움' }))
+    assert.equal(filled.event?.name, '봄 축제')
+    assert.equal((await detailOf(await post(t, id, { eventId: null }))).event?.name, '봄 축제')
+  }),
+)

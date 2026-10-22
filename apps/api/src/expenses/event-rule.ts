@@ -27,3 +27,8 @@ export function assertEventMatchesItem(itemEvents: readonly string[], eventId: s
   if (eventId !== null && itemEvents.some(itemEvent => itemEvent !== eventId))
     throw new ApiError('EVENT_MISMATCH')
 }
+
+// 지출의 행사가 비었고 고른 예산 항목에 행사가 있으면 그 행사로 채운다(요청의 행사로 채우는 것과 같은 규칙).
+export function eventFilledFromItem(itemEvents: readonly string[], eventId: string | null) {
+  return eventId ?? itemEvents[0] ?? null
+}
