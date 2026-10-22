@@ -220,3 +220,53 @@ test(
     assert.equal((await t.api.get(`${root(t)}/not-an-id`, FINANCE)).status, 404)
   }),
 )
+
+test(
+  '회장단·기획이 보는 상세에는 취소 동작이 없고 재정부에게만 있다',
+  withSettlement(async t => {
+    const { period } = await t.budgetOf()
+    const id = await raw(t, period)
+    for (const [user, actions] of [
+      ['s-president', []],
+      ['s-planningMember', []],
+      [FINANCE, ['income.cancel']],
+    ] as const) {
+      const detail = await incomeOf(await t.api.get(`${root(t)}/${id}`, user))
+      assert.deepEqual(detail.actions, actions, user)
+    }
+  }),
+)
+
+test(
+  '로그에 금액과 내용이 남지 않는다',
+  withSettlement(async t => {
+    await t.budgetOf()
+    const lines: string[] = []
+    const originals = {
+      log: console.log,
+      info: console.info,
+      warn: console.warn,
+      error: console.error,
+    }
+    for (const key of Object.keys(originals) as (keyof typeof originals)[])
+      console[key] = (...args: unknown[]) => void lines.push(args.map(String).join(' '))
+    try {
+      const body = {
+        source: 'grant',
+        amount: 7654321,
+        receivedOn: '2026-10-20',
+        description: '비밀내용',
+      }
+      const made = await incomeOf(await t.api.post(root(t), body, FINANCE))
+      await cancel(t, made.id, FINANCE, '비밀취소')
+      await cancel(t, MISSING, FINANCE, '비밀취소')
+      await t.api.post(root(t), { ...body, description: '' }, FINANCE)
+      await t.api.post(root(t), { ...body, receivedOn: '2026-10-30' }, FINANCE)
+    } finally {
+      Object.assign(console, originals)
+    }
+    const text = lines.join('\n')
+    for (const secret of ['비밀내용', '비밀취소', '7654321'])
+      assert.ok(!text.includes(secret), secret)
+  }),
+)

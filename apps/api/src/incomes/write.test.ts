@@ -198,3 +198,12 @@ test(
     assert.equal((await t.api.get(`${root(t)}?period=${theirs.period}`, 's-president')).status, 404)
   }),
 )
+
+test(
+  '다른 학생회만 그 날이 든 기간을 가지면 409 NO_FISCAL_PERIOD다',
+  withSettlement(async t => {
+    await t.budgetOf(t.other)
+    assert.equal(await errorOf(await post(t, BASE)), 'NO_FISCAL_PERIOD')
+    assert.equal(await incomeCount(t), 0)
+  }),
+)
