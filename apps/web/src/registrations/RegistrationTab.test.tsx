@@ -37,7 +37,13 @@ type Options = {
 function setup(options: Options = {}) {
   const api = mockApi()
   const forms = options.forms ?? [staffForm()]
-  api.on('GET', FORMS_PATH, () => json({ forms, truncated: false, actions: options.actions ?? [] }))
+  api.on('GET', FORMS_PATH, () =>
+    json({
+      forms,
+      truncated: false,
+      actions: options.actions ?? ['registration.manage', 'registration.view_applicants'],
+    }),
+  )
   api.on('GET', ACCOUNTS_PATH, () =>
     json({
       accounts: [

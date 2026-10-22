@@ -6,6 +6,7 @@ import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { REGISTRATION_FORMS_LOAD_FAILED } from '@/lib/messages'
 import { FormCard } from './FormCard'
 import { TabDialogs, type TabDialog } from './TabDialogs'
+import { useDialogGuard } from './useDialogGuard'
 import { useRegistrationForms } from './useRegistrationForms'
 
 type Props = EventDialogHandlers & {
@@ -14,11 +15,18 @@ type Props = EventDialogHandlers & {
 }
 
 // 이 화면에서 바꾼 출석(스캐너 포함). 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
+// 목록을 서버에서 새로 읽으면 그 신청들의 값은 서버 값이 더 새롭다(다른 운영진이 바꿨을 수 있다).
 function useAttendanceOverrides() {
   const [attendance, setAttendance] = useState<ReadonlyMap<string, boolean>>(new Map())
   const markAttended = (id: string, attended: boolean) =>
     setAttendance(before => new Map(before).set(id, attended))
-  return { attendance, markAttended }
+  const forget = (ids: string[]) =>
+    setAttendance(before => {
+      const next = new Map(before)
+      for (const id of ids) next.delete(id)
+      return next
+    })
+  return { attendance, markAttended, forget }
 }
 
 // 열린 대화상자와 이유 글. 대상이 사라졌거나(404) 권한을 잃었으면(403) 대화상자를 닫고 이유를 보이고 양식을 다시 읽는다.
@@ -61,11 +69,13 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
   const councilId = view.council.id
   const read = useRegistrationForms(councilId, eventId, parent)
   const reload = () => void read.reload()
-  const { attendance, markAttended } = useAttendanceOverrides()
+  const { attendance, markAttended, forget } = useAttendanceOverrides()
   const tab = useTabDialogs(parent.onForbidden, reload, markAttended)
   const { setDialog, handlers } = tab
-  const forms = read.state.kind === 'ready' ? read.state.data.forms : []
-  const actions = read.state.kind === 'ready' ? read.state.data.actions : []
+  const ready = read.state.kind === 'ready' ? read.state.data : null
+  const forms = ready?.forms ?? []
+  const actions = ready?.actions ?? []
+  useDialogGuard(tab.dialog, ready, handlers.onLost)
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar
@@ -82,6 +92,7 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
             form={form}
             attendance={attendance}
             onAttendance={markAttended}
+            onLoaded={forget}
             onEdit={() => setDialog({ kind: 'edit', formId: form.id })}
             onChanged={reload}
             {...handlers}

@@ -38,6 +38,7 @@ function Card({ data }: { data: RegistrationForm }) {
       form={data}
       attendance={attendance}
       onAttendance={noop}
+      onLoaded={noop}
       onEdit={noop}
       onChanged={noop}
       {...handlers}

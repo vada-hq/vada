@@ -14,6 +14,8 @@ type Props = EventDialogHandlers & {
   canManage: boolean
   // 이 화면에서 바꾼 출석(스캐너 포함). 목록을 다시 읽지 않고 이것으로 덮는다.
   attendance: ReadonlyMap<string, boolean>
+  // 서버에서 읽은 신청자들(이 화면에서 바꾼 출석 값을 버린다)
+  onLoaded: (registrationIds: string[]) => void
   onAttendance: (registrationId: string, attended: boolean) => void
   // 신청을 취소했다(양식의 신청 수를 다시 읽는다).
   onCancelled: () => void
@@ -24,8 +26,10 @@ const matches = (query: string, ...values: (string | null)[]) =>
 
 // 신청자 목록: 신청 순. 읽을 때마다 열람 기록이 남으므로 [신청자 보기]를 눌러 이 화면이 열려야 읽는다.
 export function ApplicantList({ councilId, formId, ...rest }: Props) {
-  const { canManage, attendance, onAttendance, onCancelled, ...handlers } = rest
-  const list = useApplicants(councilId, formId, handlers)
+  const { canManage, attendance, onAttendance, onCancelled, onLoaded, ...handlers } = rest
+  const list = useApplicants(councilId, formId, handlers, data =>
+    onLoaded(data.applicants.map(item => item.id)),
+  )
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중이에요</StateMessage>
   if (state.kind === 'failed')

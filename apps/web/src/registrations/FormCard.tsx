@@ -17,13 +17,22 @@ type Props = EventDialogHandlers & {
   form: RegistrationForm
   attendance: ReadonlyMap<string, boolean>
   onAttendance: (registrationId: string, attended: boolean) => void
+  onLoaded: (registrationIds: string[]) => void
   onEdit: () => void
   // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
   onChanged: () => void
 }
 
 // 신청 양식 카드: 이름, 기간, 신청 수/정원, 상태. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-export function FormCard({ councilId, form, attendance, onAttendance, onEdit, ...rest }: Props) {
+export function FormCard({
+  councilId,
+  form,
+  attendance,
+  onAttendance,
+  onLoaded,
+  onEdit,
+  ...rest
+}: Props) {
   const { onChanged, ...handlers } = rest
   const [open, setOpen] = useState(false)
   const post = useStaffPost(handlers)
@@ -36,14 +45,7 @@ export function FormCard({ councilId, form, attendance, onAttendance, onEdit, ..
 
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <div className="flex items-start gap-2">
-        <h3 className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
-          {form.name}
-        </h3>
-        <Badge tone={STATUS_TONE[form.status]}>{STATUS_LABEL[form.status]}</Badge>
-      </div>
-      <p className="text-xs text-gray-500">{periodLabel(form)}</p>
-      <p className="text-xs text-gray-700">{countLabel(form)}</p>
+      <FormSummary form={form} />
       <FormActions
         form={form}
         busy={post.busy}
@@ -61,12 +63,29 @@ export function FormCard({ councilId, form, attendance, onAttendance, onEdit, ..
             form={form}
             attendance={attendance}
             onAttendance={onAttendance}
+            onLoaded={onLoaded}
             onCancelled={onChanged}
             {...handlers}
           />
         </div>
       )}
     </Card>
+  )
+}
+
+// 이름(긴 글은 줄바꿈), 상태, 기간, 신청 수/정원.
+function FormSummary({ form }: { form: RegistrationForm }) {
+  return (
+    <>
+      <div className="flex items-start gap-2">
+        <h3 className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
+          {form.name}
+        </h3>
+        <Badge tone={STATUS_TONE[form.status]}>{STATUS_LABEL[form.status]}</Badge>
+      </div>
+      <p className="text-xs text-gray-500">{periodLabel(form)}</p>
+      <p className="text-xs text-gray-700">{countLabel(form)}</p>
+    </>
   )
 }
 
@@ -102,7 +121,9 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
 }
 
 type ApplicantsProps = EventDialogHandlers &
-  Pick<Props, 'councilId' | 'form' | 'attendance' | 'onAttendance'> & { onCancelled: () => void }
+  Pick<Props, 'councilId' | 'form' | 'attendance' | 'onAttendance' | 'onLoaded'> & {
+    onCancelled: () => void
+  }
 
 // 신청자 정보(이름, 학번, 휴대폰)는 열람 권한자에게만 보이고, 아니면 신청 수만 보인다. 열람은 기록이 남아 눌러야 읽는다.
 function Applicants({ form, ...rest }: ApplicantsProps) {

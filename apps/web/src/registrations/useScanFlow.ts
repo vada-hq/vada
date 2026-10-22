@@ -44,9 +44,11 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
     setHint(false)
     setChecking(true)
     const result = await checkInByHash(councilId, eventId, tokenHash, handlers)
-    if (!alive.current || result === 'lost') return
-    setChecking(false)
+    if (result === 'lost') return
+    // 요청 중에 창을 닫았어도 서버에 남은 출석은 목록에 반영한다.
     if (result.kind === 'checked' || result.kind === 'already') onChecked(result.registrationId)
+    if (!alive.current) return
+    setChecking(false)
     setOutcome(result)
   }
 
