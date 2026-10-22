@@ -2,16 +2,23 @@ import { useState } from 'react'
 import { CreateBudgetItemSchema } from '@vada/contracts'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NativeSelect } from '@/components/ui/native-select'
 import { budgetItemOf, emptyBudgetItem } from './budget-form'
+import { EventField } from './EventField'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { budgetItemsPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
-type Props = BudgetChangeHandlers & { councilId: string; onClose: () => void }
+type Props = BudgetChangeHandlers & {
+  councilId: string
+  // 행사 화면에서 열면 그 행사로 채운다.
+  eventId?: string | null
+  onClose: () => void
+}
 
-// 지출 예산 항목 더하기. 목적과 금액만 받는다.
-export function BudgetItemDialog({ councilId, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState(emptyBudgetItem)
+// 예산 항목 더하기. 목적, 금액, 종류(지출이 기본), 행사(선택)를 받고 더한 뒤에는 종류와 행사를 바꾸지 않는다.
+export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: Props) {
+  const [values, setValues] = useState(() => emptyBudgetItem(eventId ?? null))
   const [saving, setSaving] = useState(false)
   const change = useBudgetChange(
     budgetItemsPath(councilId),
@@ -23,7 +30,7 @@ export function BudgetItemDialog({ councilId, onClose, ...handlers }: Props) {
   return (
     <BudgetFormDialog
       title="예산 항목 더하기"
-      description="지금 회계 기간의 지출 예산 항목이에요. 구매 요청을 결재할 때 이 목록에서 골라요."
+      description="지금 회계 기간의 예산 항목이에요. 지출 항목은 구매 요청을 결재할 때 이 목록에서 골라요. 종류와 행사는 더한 뒤에 바꿀 수 없어요."
       submitLabel="더하기"
       saving={saving}
       valid={change.valid}
@@ -48,6 +55,24 @@ export function BudgetItemDialog({ councilId, onClose, ...handlers }: Props) {
           onChange={event => set({ amount: event.target.value })}
         />
       </Label>
+      <Label className="flex flex-col gap-2">
+        종류
+        <NativeSelect
+          value={values.type}
+          disabled={saving}
+          onChange={event => set({ type: event.target.value === 'income' ? 'income' : 'expense' })}
+        >
+          <option value="expense">지출</option>
+          <option value="income">수입</option>
+        </NativeSelect>
+      </Label>
+      <EventField
+        councilId={councilId}
+        value={values.eventId}
+        disabled={saving}
+        onChange={next => set({ eventId: next })}
+        onForbidden={handlers.onForbidden}
+      />
     </BudgetFormDialog>
   )
 }

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
+import { expenseItems } from './budget-form'
 import { budgetPath } from './finance-api'
 import type { ExpenseValues } from './expense-form'
 import { wonLabel } from './purchase-view'
@@ -24,7 +25,7 @@ function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Om
   const budget = usePolledRead<BudgetResponse>(budgetPath(councilId), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
-  const items = budget.state.kind === 'ready' ? budget.state.data.items : []
+  const items = budget.state.kind === 'ready' ? expenseItems(budget.state.data.items) : []
   const loaded = budget.state.kind === 'ready'
   const gone =
     loaded && values.budgetItemId !== null && !items.some(i => i.id === values.budgetItemId)

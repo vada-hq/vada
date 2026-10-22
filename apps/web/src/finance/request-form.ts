@@ -7,7 +7,14 @@ export type ItemValues = {
   link: string
   options: string
 }
-export type RequestValues = { title: string; body: string; neededBy: string; items: ItemValues[] }
+export type RequestValues = {
+  title: string
+  body: string
+  neededBy: string
+  // 낼 때 고르고 바꾸지 않는다. 비면 행사에 잇지 않는다.
+  eventId: string | null
+  items: ItemValues[]
+}
 
 let lastKey = 0
 export const newItem = (): ItemValues => ({
@@ -17,10 +24,11 @@ export const newItem = (): ItemValues => ({
   link: '',
   options: '',
 })
-export const emptyRequest = (): RequestValues => ({
+export const emptyRequest = (eventId: string | null = null): RequestValues => ({
   title: '',
   body: '',
   neededBy: '',
+  eventId,
   items: [newItem()],
 })
 
@@ -29,6 +37,7 @@ const orNull = (value: string) => (value.trim() === '' ? null : value)
 // 수량이 비었거나 숫자가 아니면 NaN이라 계약 검사가 막는다.
 export const requestOf = (values: RequestValues) => ({
   title: values.title,
+  eventId: values.eventId,
   body: orNull(values.body),
   neededBy: orNull(values.neededBy),
   items: values.items.map(item => ({

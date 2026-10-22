@@ -3,6 +3,7 @@ import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
+import { expenseItems } from './budget-form'
 import { decidable } from './decision-form'
 import { DecisionRow } from './DecisionRow'
 import { useDecisionRows } from './use-decision-rows'
@@ -103,7 +104,8 @@ function Body({
         </Button>
       </div>
     )
-  const { period, items } = state.budget
+  const { period } = state.budget
+  const items = expenseItems(state.budget.items)
   if (!period || items.length === 0)
     return <NeedsBudget hasPeriod={period !== null} onOpenBudget={rest.onOpenBudget} />
   return (

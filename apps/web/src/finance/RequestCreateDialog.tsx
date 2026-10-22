@@ -21,11 +21,14 @@ import {
   type ItemValues,
   type RequestValues,
 } from './request-form'
+import { EventField } from './EventField'
 import { RequestItemFields } from './RequestItemFields'
 import { useRequestCreate } from './useRequestCreate'
 
 type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
+  // 행사 화면에서 열면 그 행사로 채운다.
+  eventId?: string | null
   // 열림 상태는 부모가 가진다([구매 요청 내기] 버튼이 연다).
   open: boolean
   onClose: () => void
@@ -110,8 +113,8 @@ function WhenAndBody({
 
 type FormProps = Omit<Props, 'open'> & { saving: boolean; setSaving: (saving: boolean) => void }
 
-function CreateForm({ saving, setSaving, ...props }: FormProps) {
-  const [values, setValues] = useState(emptyRequest)
+function CreateForm({ saving, setSaving, eventId, ...props }: FormProps) {
+  const [values, setValues] = useState(() => emptyRequest(eventId ?? null))
   const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
   return (
@@ -131,6 +134,13 @@ function CreateForm({ saving, setSaving, ...props }: FormProps) {
           onChange={event => set({ title: event.target.value })}
         />
       </Label>
+      <EventField
+        councilId={props.councilId}
+        value={values.eventId}
+        disabled={saving}
+        onChange={next => set({ eventId: next })}
+        onForbidden={props.onForbidden}
+      />
       <ItemList items={values.items} disabled={saving} onChange={items => set({ items })} />
       <WhenAndBody values={values} disabled={saving} onChange={set} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}

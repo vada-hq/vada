@@ -33,6 +33,7 @@ import {
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
 import { METHOD_LABEL } from './expense-view'
+import { EventField } from './EventField'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { ExpenseDirectFields } from './ExpenseDirectFields'
 import { ExpenseRequestFields } from './ExpenseRequestFields'
@@ -43,6 +44,8 @@ type Props = Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
   // 내 운영진 번호. 먼저 낸 사람 고르기에서 '나'로 보인다.
   memberId: string
+  // 행사 화면에서 열면 그 행사로 채운다.
+  eventId?: string | null
   // 열림 상태는 부모가 가진다([지출 적기] 버튼이 연다).
   open: boolean
   onClose: () => void
@@ -169,11 +172,27 @@ type ModeProps = Omit<FieldsProps, 'today'> & {
 
 // 방식마다 다른 칸. 요청한 품목 결제는 요청과 품목을 고르고, 요청 없이는 금액과 예산 항목과 부탁한 사람을 적는다.
 function ModeFields({ team, ...props }: ModeProps) {
-  if (props.values.mode === 'direct') return <ExpenseDirectFields {...props} team={team} />
+  const { values, disabled, onChange } = props
+  const modeFields =
+    values.mode === 'direct' ? (
+      <ExpenseDirectFields {...props} team={team} />
+    ) : (
+      <>
+        <ExpenseRequestFields {...props} />
+        <p className="text-sm text-gray-700">합계 {wonLabel(linesTotal(values.lines))}</p>
+      </>
+    )
   return (
     <>
-      <ExpenseRequestFields {...props} />
-      <p className="text-sm text-gray-700">합계 {wonLabel(linesTotal(props.values.lines))}</p>
+      {modeFields}
+      <EventField
+        councilId={props.councilId}
+        value={values.eventId}
+        disabled={disabled}
+        locked={values.eventLocked}
+        onChange={eventId => onChange({ ...values, eventId })}
+        onForbidden={props.onForbidden}
+      />
     </>
   )
 }
@@ -213,9 +232,9 @@ type FormProps = Omit<Props, 'open'> & {
   setSaving: (saving: boolean) => void
 }
 
-function CreateForm({ team, saving, setSaving, memberId, ...props }: FormProps) {
+function CreateForm({ team, saving, setSaving, memberId, eventId, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [values, setValues] = useState(() => emptyExpense(today))
+  const [values, setValues] = useState(() => emptyExpense(today, eventId ?? null))
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })

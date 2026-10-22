@@ -20,9 +20,12 @@ export type ExpenseValues = {
   accountId: string | null | undefined
   requestId: string | null
   lines: PayLine[]
+  eventId: string | null
+  // 결제한 요청에 행사가 있으면 지출의 행사는 그것과 같아 바꿀 수 없다(서버가 다르면 409).
+  eventLocked: boolean
 }
 
-export const emptyExpense = (today: string): ExpenseValues => ({
+export const emptyExpense = (today: string, eventId: string | null = null): ExpenseValues => ({
   mode: 'request',
   vendor: '',
   description: '',
@@ -36,6 +39,8 @@ export const emptyExpense = (today: string): ExpenseValues => ({
   accountId: undefined,
   requestId: null,
   lines: [],
+  eventId,
+  eventLocked: false,
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
@@ -56,6 +61,7 @@ export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValue
   amount: '',
   budgetItemId: null,
   requestedBy: null,
+  eventLocked: false,
 })
 
 // 품목을 고르면 결제 금액이 승인 금액으로 채워진다. 다시 누르면 뺀다.
@@ -86,6 +92,7 @@ export function expenseOf(values: ExpenseValues) {
     paidBy: values.paidBy,
     accountId: values.accountId ?? null,
     reason: orNull(values.reason),
+    eventId: values.eventId,
     budgetItemId: requested ? null : values.budgetItemId,
     requestedBy: requested ? null : values.requestedBy,
     lines: requested

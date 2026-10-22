@@ -51,6 +51,7 @@ test('제목과 품목 이름을 쓰면 [내기]가 켜지고, 보내면 닫히�
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     title: '  테이프  ',
+    eventId: null,
     body: null,
     neededBy: null,
     items: [{ name: '박스 테이프', quantity: 1, link: null, options: null }],
@@ -95,6 +96,7 @@ test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이�
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     title: '포스터',
+    eventId: null,
     body: '행사용',
     neededBy: '2026-10-30',
     items: [{ name: 'A2 포스터', quantity: 3, link: 'https://example.com/p', options: '무광' }],

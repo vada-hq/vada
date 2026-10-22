@@ -29,6 +29,22 @@ type Common = {
 const payable = (requests: PurchaseRequestsResponse['requests']) =>
   requests.filter(request => request.status !== 'cancelled' && request.status !== 'rejected')
 
+// 요청을 고르면 지출의 행사가 그 요청의 행사로 채워지고 잠긴다(행사가 없는 요청이면 고른 행사를 그대로 둔다).
+function withRequest(
+  values: ExpenseValues,
+  requestId: string | null,
+  requests: PurchaseRequestsResponse['requests'],
+): ExpenseValues {
+  const event = requests.find(request => request.id === requestId)?.event ?? null
+  return {
+    ...values,
+    requestId,
+    lines: [],
+    eventId: event ? event.id : values.eventId,
+    eventLocked: event !== null,
+  }
+}
+
 function loadingOr<T>(state: PolledState<T>, show: (data: T) => ReactNode): ReactNode {
   if (state.kind === 'ready') return show(state.data)
   return (
@@ -130,7 +146,7 @@ export function ExpenseRequestFields(props: Common) {
         ]}
         value={values.requestId}
         disabled={disabled}
-        onChange={requestId => onChange({ ...values, requestId, lines: [] })}
+        onChange={requestId => onChange(withRequest(values, requestId, requests))}
       />
       {values.requestId && <ItemPicker {...props} requestId={values.requestId} />}
     </>

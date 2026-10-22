@@ -139,6 +139,8 @@ test('항목 더하기는 목적과 금액을 계약대로 검사해 보낸다',
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     purpose: '간식',
     amount: 12000,
+    type: 'expense',
+    eventId: null,
   })
 })
 

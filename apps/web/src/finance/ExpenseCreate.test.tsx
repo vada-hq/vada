@@ -16,6 +16,8 @@ import {
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { settle } from '@/test-support/settle'
+import { eventSummary } from '@/test-support/event-fixtures'
+import { EXPENSE_ERRORS } from '@/lib/messages'
 
 afterEach(() => {
   cleanup()
@@ -76,7 +78,7 @@ function serve() {
   api.on('GET', `${BASE}/budget`, () =>
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
-      items: [{ id: BUDGET, purpose: '행사 홍보', amount: 500000 }],
+      items: [{ id: BUDGET, purpose: '행사 홍보', amount: 500000, type: 'expense', event: null }],
       suggested: null,
     }),
   )
@@ -351,4 +353,95 @@ test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비
   expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
     budgetItemId: null,
   })
+})
+
+const SPRING = '00000000-0000-4000-8000-0000000000e1'
+
+function serveWithEvent() {
+  const api = serve()
+  api.on('GET', `${REQUESTS}?view=all`, () =>
+    json({
+      requests: [
+        purchaseSummary('r1', {
+          title: '행사 포스터',
+          status: 'approved',
+          event: { id: SPRING, name: '봄 축제' },
+        }),
+      ],
+      truncated: false,
+    }),
+  )
+  api.on('GET', `${BASE}/events`, () =>
+    json({
+      events: [
+        eventSummary({ id: SPRING, name: '봄 축제' }),
+        eventSummary({ id: '00000000-0000-4000-8000-0000000000e2', name: '가을 축제' }),
+      ],
+      truncated: false,
+    }),
+  )
+  return api
+}
+
+test('행사가 있는 요청을 고르면 지출의 행사가 그 행사로 채워지고 잠기며, 그 행사를 보낸다', async () => {
+  const api = serveWithEvent()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  showFinance()
+  await openForm()
+  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  await waitFor(() => expect(select().disabled).toBe(false))
+  expect(select().value).toBe('')
+  fill('사용처', '인쇄소')
+  fill('내역', '포스터 인쇄')
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', 'r1')
+  await waitFor(() => expect(select().value).toBe(SPRING))
+  expect(select().disabled).toBe(true)
+  fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
+  fireEvent.click(submit())
+  await screen.findByRole('button', { name: '사진 올리기' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ eventId: SPRING })
+})
+
+test('요청을 비우면 지출의 행사 잠금이 풀린다', async () => {
+  serveWithEvent()
+  showFinance()
+  await openForm()
+  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  await waitFor(() => expect(select().disabled).toBe(false))
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', 'r1')
+  await waitFor(() => expect(select().disabled).toBe(true))
+  choose('결제할 요청', '')
+  await waitFor(() => expect(select().disabled).toBe(false))
+})
+
+test('요청 없이 적을 때 예산 항목 고르기에는 지출 항목만 보인다', async () => {
+  const api = serve()
+  api.on('GET', `${BASE}/budget`, () =>
+    json({
+      period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+      items: [
+        { id: BUDGET, purpose: '행사 홍보', amount: 500000, type: 'expense', event: null },
+        { id: 'in1', purpose: '참가비 수입', amount: 1, type: 'income', event: null },
+      ],
+      suggested: null,
+    }),
+  )
+  showFinance()
+  await openForm()
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  await screen.findByRole('option', { name: /행사 홍보/ })
+  expect(screen.queryByRole('option', { name: /참가비 수입/ })).toBeNull()
+})
+
+test('지출 적기가 409 EVENT_MISMATCH면 그 창 안에 문구가 보인다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ error: 'EVENT_MISMATCH' }, 409))
+  showFinance()
+  await fillRequestPayment()
+  fireEvent.click(submit())
+  expect(await screen.findByText(EXPENSE_ERRORS.EVENT_MISMATCH!)).toBeTruthy()
+  expect(screen.getByRole('form', { name: '지출 적기' })).toBeTruthy()
 })
