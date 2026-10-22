@@ -6,8 +6,12 @@ import { MISSING, withSettlement, type SettlementKit } from '../test-support/set
 const PRESIDENT = 's-president'
 const DAY = (value: string) => new Date(`${value}:00Z`)
 
-const call = (t: SettlementKit, event: string, action: string, body: unknown, user = PRESIDENT) =>
-  t.api.post(`/api/organizations/${t.council.councilId}/events/${event}/${action}`, body, user)
+const call = (t: SettlementKit, event: string, action: string, ...rest: [unknown, string?]) =>
+  t.api.post(
+    `/api/organizations/${t.council.councilId}/events/${event}/${action}`,
+    rest[0],
+    rest.length > 1 ? rest[1] : PRESIDENT,
+  )
 const errorOf = async (response: Response) => ((await response.json()) as { error: string }).error
 const detailOf = async (response: Response) =>
   ((await response.json()) as { event: EventDetail }).event
@@ -167,5 +171,41 @@ test(
     assert.equal((await call(t, own, 'complete', {})).status, 200)
     const n = await t.pg.query('SELECT count(*)::int AS n FROM income')
     assert.equal((n.rows[0] as { n: number }).n, 0)
+  }),
+)
+
+test(
+  '목록 묶음: 완료한 행사는 끝남 자리로 가고, 완료를 취소한 진행 중 행사는 진행 중 자리로 돌아온다',
+  withSettlement(async t => {
+    const during = { endsAt: new Date('2026-10-30T00:00:00Z') }
+    const reopened = await t.event({
+      name: '되돌린 행사',
+      startsAt: new Date('2026-10-20T00:00:00Z'),
+      ...during,
+    })
+    const running = await t.event({
+      name: '진행 행사',
+      startsAt: new Date('2026-10-21T00:00:00Z'),
+      ...during,
+    })
+    const done = await t.event({
+      name: '완료한 행사',
+      startsAt: new Date('2026-10-19T00:00:00Z'),
+      ...during,
+    })
+    await t.completion(reopened, 'completed', DAY('2026-10-22T03:00'))
+    await t.completion(reopened, 'completion_cancelled', DAY('2026-10-23T03:00'), '되돌림')
+    await t.completion(done, 'completed', DAY('2026-10-22T03:00'))
+    assert.ok(running)
+    const response = await t.api.get(t.base, PRESIDENT)
+    const { events } = (await response.json()) as { events: { name: string; status: string }[] }
+    assert.deepEqual(
+      events.map(item => [item.name, item.status]),
+      [
+        ['되돌린 행사', 'ongoing'],
+        ['진행 행사', 'ongoing'],
+        ['완료한 행사', 'completed'],
+      ],
+    )
   }),
 )

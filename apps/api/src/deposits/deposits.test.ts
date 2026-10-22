@@ -506,3 +506,26 @@ test(
     assert.equal(await t.count('SELECT count(*) AS n FROM applicant_access_log'), 0)
   }),
 )
+
+test(
+  '다른 학생회 사용자의 입금 확인 취소와 환불함은 403이고 입금 기록은 그대로다',
+  withRegistrations(async t => {
+    const { id } = await started(t)
+    assert.equal((await confirm(t, id)).status, 201)
+    const versions = () =>
+      t.count(
+        'SELECT count(*) AS n FROM record_version WHERE record_id IN (SELECT id FROM deposit)',
+      )
+    const before = await versions()
+    for (const user of ['o-president', 'o-financeMember']) {
+      assert.equal((await cancelDeposit(t, id, { reason: '남의 것' }, user)).status, 403, user)
+      assert.equal((await refund(t, id, {}, user)).status, 403, user)
+    }
+    assert.equal(await versions(), before)
+    assert.equal(await allDeposits(t), 1)
+    assert.equal(
+      await t.count('SELECT count(*) AS n FROM deposit WHERE cancelled_at IS NOT NULL'),
+      0,
+    )
+  }),
+)

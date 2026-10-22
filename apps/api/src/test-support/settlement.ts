@@ -159,7 +159,7 @@ async function startSettlement() {
         actor: council.people.president.memberId,
         reason: null,
         changes,
-      } as Parameters<typeof updateRecord>[1]),
+      }),
     )
   const read = (eventId: string, user = 's-president') =>
     api.get(`${base}/${eventId}/settlement`, user)

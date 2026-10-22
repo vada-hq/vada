@@ -35,7 +35,7 @@ test(
     )
     assert.equal(await t.versions(event.id), 1)
     // 회장은 책임자가 아니어서 고칠 수는 없고 책임자만 바꿀 수 있다.
-    assert.deepEqual(event.actions, ['event.set_owner'])
+    assert.deepEqual(event.actions, ['event.set_owner', 'event.complete'])
   }),
 )
 

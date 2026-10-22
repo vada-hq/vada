@@ -21,6 +21,22 @@ async function lockForm(tx: Tx, code: string) {
   if (!locked) throw new ApiError('NOT_FOUND')
 }
 
+// 받는 중이 아니면 던진다. 정원은 양식 행을 잠근 뒤에 센다.
+async function assertOpen(tx: Tx, form: Awaited<ReturnType<typeof publicRowOf>>, now: Date) {
+  const status = registrationStatusOf(
+    {
+      opensAt: form.opensAt,
+      closesAt: form.closesAt,
+      paused: form.pausedAt !== null,
+      capacity: form.capacity,
+      applicantCount: await applicantCountOf(tx, form.id),
+    },
+    now,
+  )
+  if (status === 'full') throw new ApiError('REGISTRATION_FULL')
+  if (status !== 'open') throw new ApiError('REGISTRATION_NOT_OPEN')
+}
+
 // 받지 않는 칸이 오거나 받는 칸이 없으면 열린 화면이 낡았다는 뜻이다(409 FORM_CHANGED).
 function assertFieldsMatch(input: ApplyRequest, wants: { studentId: boolean; phone: boolean }) {
   if ((input.studentId !== null) !== wants.studentId || (input.phone !== null) !== wants.phone)
@@ -41,18 +57,7 @@ export async function applyToForm(
   await assertEventOpen(tx, (await publicRowOf(tx, code)).eventId)
   await lockForm(tx, code)
   const form = await publicRowOf(tx, code)
-  const status = registrationStatusOf(
-    {
-      opensAt: form.opensAt,
-      closesAt: form.closesAt,
-      paused: form.pausedAt !== null,
-      capacity: form.capacity,
-      applicantCount: await applicantCountOf(tx, form.id),
-    },
-    target.now,
-  )
-  if (status === 'full') throw new ApiError('REGISTRATION_FULL')
-  if (status !== 'open') throw new ApiError('REGISTRATION_NOT_OPEN')
+  await assertOpen(tx, form, target.now)
   // 학번은 두 참가비가 다를 때만 받는다(DEC-62).
   assertFieldsMatch(input, {
     studentId: form.payerFee !== form.nonPayerFee,
