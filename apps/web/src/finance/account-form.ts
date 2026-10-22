@@ -35,5 +35,16 @@ export const openAccounts = (accounts: AccountItem[]) =>
   accounts.filter(account => account.closedOn === null)
 
 // 지출 적기가 채우는 계좌: 닫지 않은 대표 계좌(DEC-45).
-export const mainAccountOf = (accounts: AccountItem[]) =>
+const mainAccountOf = (accounts: AccountItem[]) =>
   openAccounts(accounts).find(account => account.type === 'main') ?? null
+
+// 지출 적기의 계좌. 고르지 않았으면(undefined) 닫지 않은 대표 계좌로 보고, '없음'(null)이면 비운다.
+// 상태에 채워 넣지 않고 그때그때 구하므로 목록이 늦게 와도 다른 칸을 바꾸는 일과 겹치지 않는다.
+// 고른 계좌가 목록에서 닫혔으면 비우고 closed로 알린다. 목록을 아직 못 읽었으면 고른 그대로다.
+export function pickAccount(chosen: string | null | undefined, accounts: AccountItem[] | null) {
+  if (accounts === null) return { id: chosen ?? null, closed: false }
+  if (chosen === undefined) return { id: mainAccountOf(accounts)?.id ?? null, closed: false }
+  if (chosen === null) return { id: null, closed: false }
+  const open = openAccounts(accounts).some(account => account.id === chosen)
+  return { id: open ? chosen : null, closed: !open }
+}

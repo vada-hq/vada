@@ -16,8 +16,8 @@ export type ExpenseValues = {
   reason: string
   budgetItemId: string | null
   requestedBy: string | null
-  // 돈이 나간 계좌. 비울 수 있다. 대표 계좌로 채우는 것은 계좌 칸이 목록을 읽은 뒤에 한다.
-  accountId: string | null
+  // 돈이 나간 계좌. undefined는 사람이 아직 고르지 않은 것이라 화면이 대표 계좌로 보고, null은 '없음'을 고른 것이다(account-form.ts의 pickAccount).
+  accountId: string | null | undefined
   requestId: string | null
   lines: PayLine[]
 }
@@ -33,7 +33,7 @@ export const emptyExpense = (today: string): ExpenseValues => ({
   reason: '',
   budgetItemId: null,
   requestedBy: null,
-  accountId: null,
+  accountId: undefined,
   requestId: null,
   lines: [],
 })
@@ -84,7 +84,7 @@ export function expenseOf(values: ExpenseValues) {
     paidOn: values.paidOn,
     method: values.method,
     paidBy: values.paidBy,
-    accountId: values.accountId,
+    accountId: values.accountId ?? null,
     reason: orNull(values.reason),
     budgetItemId: requested ? null : values.budgetItemId,
     requestedBy: requested ? null : values.requestedBy,

@@ -33,7 +33,7 @@ import {
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
 import { METHOD_LABEL } from './expense-view'
-import { ExpenseAccountSelect } from './ExpenseAccountSelect'
+import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { ExpenseDirectFields } from './ExpenseDirectFields'
 import { ExpenseRequestFields } from './ExpenseRequestFields'
 import { wonLabel } from './purchase-view'
@@ -216,7 +216,9 @@ type FormProps = Omit<Props, 'open'> & {
 function CreateForm({ team, saving, setSaving, memberId, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
   const [values, setValues] = useState(() => emptyExpense(today))
-  const create = useExpenseCreate(props.councilId, expenseOf(values), { ...props, setSaving })
+  const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
+  const body = expenseOf({ ...values, accountId: account.pick.id })
+  const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })
   const shared = { values, disabled: saving, onChange: setValues }
   return (
     <form
@@ -241,9 +243,9 @@ function CreateForm({ team, saving, setSaving, memberId, ...props }: FormProps) 
       />
       <PaymentFields {...shared} today={today} />
       <ExpenseAccountSelect
-        {...shared}
-        councilId={props.councilId}
-        onForbidden={props.onForbidden}
+        account={account}
+        disabled={saving}
+        onPick={accountId => setValues({ ...values, accountId })}
       />
       <PayerFields {...shared} team={team} memberId={memberId} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}

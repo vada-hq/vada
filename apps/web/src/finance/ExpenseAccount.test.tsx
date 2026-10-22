@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import {
   accountItem,
   accountsResponse,
@@ -19,7 +19,7 @@ import {
   serveFinance,
   showFinance,
 } from '@/test-support/expense-harness'
-import { json } from '@/test-support/mock-api'
+import { deferredResponse, json } from '@/test-support/mock-api'
 
 afterEach(() => {
   cleanup()
@@ -133,4 +133,49 @@ test('지출 상세에 계좌 이름이 보인다', async () => {
   openExpensesTab()
   fireEvent.click(await screen.findByRole('button', { name: /사용처 e1/ }))
   expect(await screen.findByText('계좌 학생회비 통장')).toBeTruthy()
+})
+
+test('목록 응답과 거의 동시에 다른 칸을 바꿔도 대표 계좌가 남는다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('GET', `${BASE}/accounts`, () => pending.promise)
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  showFinance()
+  await openForm()
+  await act(async () => {
+    pending.resolve(json(standardAccounts()))
+    fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  })
+  await waitFor(() => expect(account().value).toBe(MAIN_ACCOUNT_ID))
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  fireEvent.change(screen.getByLabelText('사용처'), { target: { value: '편의점' } })
+  fireEvent.change(screen.getByLabelText('내역'), { target: { value: '간식' } })
+  fireEvent.change(screen.getByLabelText('금액(원)'), { target: { value: '1000' } })
+  fireEvent.click(screen.getByRole('button', { name: '적기' }))
+  await screen.findByRole('button', { name: '사진 올리기' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    accountId: MAIN_ACCOUNT_ID,
+  })
+})
+
+test('고른 계좌가 다시 읽은 목록에서 닫혔으면 칸 옆에 이유가 보이고 계좌 없이 나간다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  showFinance()
+  await openForm()
+  await waitFor(() => expect(account().value).toBe(MAIN_ACCOUNT_ID))
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  fireEvent.change(screen.getByLabelText('사용처'), { target: { value: '편의점' } })
+  fireEvent.change(screen.getByLabelText('내역'), { target: { value: '간식' } })
+  fireEvent.change(screen.getByLabelText('금액(원)'), { target: { value: '1000' } })
+  fireEvent.change(account(), { target: { value: BUSINESS_ACCOUNT_ID } })
+  api.on('GET', `${BASE}/accounts`, () => json(accountsResponse([accountItem(MAIN_ACCOUNT_ID)])))
+  // 화면이 다시 보이면 목록을 다시 읽는다.
+  fireEvent(document, new Event('visibilitychange'))
+  expect(await screen.findByText(/고른 계좌를 닫았어요/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '적기' }))
+  await screen.findByRole('button', { name: '사진 올리기' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ accountId: null })
 })
