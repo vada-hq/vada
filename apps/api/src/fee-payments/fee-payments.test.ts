@@ -185,3 +185,39 @@ test(
     assert.deepEqual(await (await t.upload(body('20260001'))).json(), { added: 1, skipped: 0 })
   }),
 )
+
+test(
+  '다른 학생회에 같은 학번·시작일이 있어도 우리 올리기는 더해지고, 우리 주소로 남의 살아 있는 줄을 빼려 하면 404이며 값이 남는다',
+  withFeePayments(async t => {
+    const otherBase = `/api/organizations/${t.other.councilId}/fee-payments`
+    assert.deepEqual(
+      await (await t.upload(body('20260001'), 'o-financeMember', otherBase)).json(),
+      {
+        added: 1,
+        skipped: 0,
+      },
+    )
+    // 건너뛰기는 같은 학생회 안에서만 본다.
+    assert.deepEqual(await (await t.upload(body('20260001'))).json(), { added: 1, skipped: 0 })
+    assert.equal(await t.count('SELECT count(*) AS n FROM fee_payment'), 2)
+    const foreign = (
+      await t.pg.query('SELECT id FROM fee_payment WHERE council_id = $1', [t.other.councilId])
+    ).rows[0] as { id: string }
+    const response = await t.api.post(`${t.base}/${foreign.id}/remove`, {}, 's-financeMember')
+    assert.equal(response.status, 404)
+    assert.equal(
+      await t.count(
+        `SELECT count(*) AS n FROM fee_payment WHERE id = $1 AND student_id = '20260001'`,
+        [foreign.id],
+      ),
+      1,
+    )
+    assert.equal(
+      await t.count(
+        `SELECT count(*) AS n FROM record_version WHERE record_id = $1 AND data ->> 'student_id' = '20260001'`,
+        [foreign.id],
+      ),
+      1,
+    )
+  }),
+)

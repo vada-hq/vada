@@ -49,10 +49,14 @@ function logFailure(c: Context, error: Error, fields: Record<string, unknown>) {
   reporter?.(error, line)
 }
 
+// 이름도 임의로 바뀔 수 있어 형식이 맞을 때만 쓴다.
+const errorNameOf = (error: Error) =>
+  /^[A-Za-z][A-Za-z0-9]{0,59}$/.test(error.name) ? error.name : 'Error'
+
 // 예상하지 못한 오류는 클래스 이름과 SQLSTATE만 남긴다. 이름도 임의로 바뀔 수 있어 형식이 맞을 때만 쓴다.
 export function logUnexpectedError(c: Context, error: Error) {
   logFailure(c, error, {
-    error: /^[A-Za-z][A-Za-z0-9]{0,59}$/.test(error.name) ? error.name : 'Error',
+    error: errorNameOf(error),
     sqlState: sqlState(error),
   })
 }
@@ -65,7 +69,7 @@ export function reportBackgroundFailure(task: string, error: unknown) {
     Object.entries({
       event: 'background_failed',
       route: `background:${task}`,
-      error: /^[A-Za-z][A-Za-z0-9]{0,59}$/.test(failure.name) ? failure.name : 'Error',
+      error: errorNameOf(failure),
       sqlState: sqlState(failure),
     }).filter(([, value]) => value !== undefined),
   )

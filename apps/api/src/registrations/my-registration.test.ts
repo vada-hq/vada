@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { test } from 'node:test'
 import { qrTextOf, tokenHashOfQr, type MyRegistration } from '@vada/contracts'
+import { createRecord } from '../records/records.js'
 import { korean, withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex')
@@ -140,6 +141,17 @@ test(
     await t.change('registration', id.id, { appliedFee: '5000' })
     const before = await t.versions(id.id)
     assert.equal(before, 2)
+    // 다른 학생회의 신청도 하나 둔다. 취소는 이 신청의 판만 비워야 한다.
+    const foreignEvent = await t.makeEvent({}, t.other)
+    const foreignForm = await t.makeForm(foreignEvent, {}, t.other)
+    await t.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'registration',
+        councilId: t.other.councilId,
+        actor: null,
+        values: { formId: foreignForm, ...person, name: '남신청', appliedFee: '0' },
+      }),
+    )
     const response = await t.cancelMine(token)
     assert.equal(response.status, 200)
     assert.deepEqual(await response.json(), { cancelled: true })
@@ -177,6 +189,17 @@ test(
     }
     // 다른 신청은 그대로다.
     assert.equal((await mineOf(t, other)).mine.name, '이신청')
+    // 같은 양식의 다른 신청과 다른 학생회 신청은 판에도 값이 남아 있다.
+    for (const name of ['이신청', '남신청'])
+      assert.equal(
+        await t.count(
+          `SELECT count(*) AS n FROM record_version v WHERE v.data ->> 'name' = $1
+             AND v.data ->> 'student_id' IS NOT NULL AND v.data ->> 'phone' IS NOT NULL`,
+          [name],
+        ),
+        1,
+        name,
+      )
     assert.equal(await t.count(`SELECT count(*) AS n FROM registration WHERE name = '이신청'`), 1)
   }),
 )

@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNotNull, or, sql } from 'drizzle-orm'
 import { koreanDateOf } from '@vada/contracts'
-import { event, registration, registrationForm } from '../db/schema.js'
+import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { removeLinks } from './link.js'
 import { clearVersionValues, idList } from './personal-values.js'
@@ -22,7 +22,10 @@ async function clearApplicants(tx: Tx, formIds: string[]) {
 }
 
 // 지울 것이 남은 양식(값이 있는 신청이나 개인 링크가 남은 양식)과 지울 날 계산에 쓰는 날짜들
-async function candidatesOf(tx: Pick<Db, 'selectDistinct'>, formId?: string) {
+async function candidatesOf(
+  tx: Pick<Db, 'selectDistinct'>,
+  scope?: { councilId: string; formId: string },
+) {
   const live = or(
     isNotNull(registration.name),
     isNotNull(registration.studentId),
@@ -39,7 +42,15 @@ async function candidatesOf(tx: Pick<Db, 'selectDistinct'>, formId?: string) {
     .from(registrationForm)
     .innerJoin(event, eq(event.id, registrationForm.eventId))
     .innerJoin(registration, eq(registration.formId, registrationForm.id))
-    .where(and(live, formId ? eq(registrationForm.id, formId) : undefined))
+    .innerJoin(record, eq(record.id, event.id))
+    .where(
+      and(
+        live,
+        scope
+          ? and(eq(registrationForm.id, scope.formId), eq(record.councilId, scope.councilId))
+          : undefined,
+      ),
+    )
 }
 
 // 지울 날(행사 끝+1년의 한국 날짜)이 오늘이거나 지났다. 날짜는 한국 날짜로 견주므로 한국 자정에 바뀐다.
@@ -52,11 +63,11 @@ export async function purgeRegistrations(tx: Tx, now: Date) {
   if (due.length) await clearApplicants(tx, due)
 }
 
-// 양식 하나(와 그 신청자 목록)를 읽기 전에 그 양식의 지울 것을 먼저 지운다. 없는 번호는 아무 일도 하지 않는다.
+// 양식 하나(와 그 신청자 목록)를 읽기 전에 그 양식의 지울 것을 먼저 지운다. 없는 번호와 다른 학생회 양식은 아무 일도 하지 않는다.
 // 읽기 거래는 쓰지 못하므로 부르는 쪽이 읽기 거래 앞에서 따로 부른다.
-export async function purgeFormIfDue(db: Db, formId: string, now: Date) {
+export async function purgeFormIfDue(db: Db, councilId: string, formId: string, now: Date) {
   await db.transaction(async tx => {
-    const due = (await candidatesOf(tx, formId))
+    const due = (await candidatesOf(tx, { councilId, formId }))
       .filter(form => isDue(form, now))
       .map(form => form.id)
     if (due.length) await clearApplicants(tx, due)

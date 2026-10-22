@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { updateRecord } from '../records/records.js'
+import { createRecord, updateRecord } from '../records/records.js'
 import { setErrorReporter } from '../http/on-error.js'
 import { startFeePayments } from '../test-support/fee-payments.js'
 import { korean, withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
@@ -115,6 +115,8 @@ test(
     assert.equal(await linksOf(t, cancelled), 0)
     assert.equal((await valuesOf(t, early.id)).name, '김학생')
     assert.equal(await linksOf(t, early.id), 1)
+    // 지울 때가 아닌 신청은 모든 판에 값이 그대로다(대상 거르기).
+    assert.equal(await leftInVersions(t, early.id), 2)
   }),
 )
 
@@ -139,6 +141,28 @@ test(
     )
     assert.equal((await t.api.get(`${t.orgBase}/registration-forms/${other.form}`)).status, 401)
     assert.equal((await valuesOf(t, other.id)).name, '김학생')
+
+    // 다른 학생회의 지울 때가 된 양식은 우리 학생회 주소로 읽어도 지우지 않는다(404).
+    const foreignEvent = await t.makeEvent(
+      { startsAt: korean('2025-03-01T10:00'), endsAt: korean('2025-03-01T18:00') },
+      t.other,
+    )
+    const foreignForm = await t.makeForm(foreignEvent, {}, t.other)
+    const foreign = await t.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'registration',
+        councilId: t.other.councilId,
+        actor: null,
+        values: { formId: foreignForm, ...PERSON, appliedFee: '0' },
+      }),
+    )
+    const foreignRead = await t.api.get(
+      `${t.orgBase}/registration-forms/${foreignForm}`,
+      's-planningMember',
+    )
+    assert.equal(foreignRead.status, 404)
+    assert.equal((await valuesOf(t, foreign)).name, '김학생')
+    assert.equal(await leftInVersions(t, foreign), 1)
   }),
 )
 
