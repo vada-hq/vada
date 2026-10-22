@@ -15,6 +15,7 @@ import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
+import { FeePaymentsTab } from './FeePaymentsTab'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
@@ -73,6 +74,29 @@ function Body({
   )
 }
 
+// 재정부가 고치는 탭(납부자 명단, 계좌, 예산). 보는 것은 탭마다 정한 권한이 가른다.
+function ManagedTab({
+  tab,
+  view,
+  onForbidden,
+}: {
+  tab: 'fees' | 'accounts' | 'budget'
+  view: CouncilView
+  onForbidden: () => void
+}) {
+  const shared = { councilId: view.council.id, onForbidden }
+  if (tab === 'fees')
+    return (
+      <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
+    )
+  const canManage = view.permissions.includes('finance.manage')
+  return tab === 'accounts' ? (
+    <AccountsTab {...shared} canManage={canManage} />
+  ) : (
+    <BudgetTab {...shared} canManage={canManage} />
+  )
+}
+
 function FinanceTabPanel({
   tab,
   filter,
@@ -103,18 +127,8 @@ function FinanceTabPanel({
         </>
       ) : tab === 'expenses' ? (
         <ExpensesPanel list={expenses} onOpen={onOpenExpense} />
-      ) : tab === 'accounts' ? (
-        <AccountsTab
-          councilId={view.council.id}
-          canManage={view.permissions.includes('finance.manage')}
-          onForbidden={onForbidden}
-        />
       ) : (
-        <BudgetTab
-          councilId={view.council.id}
-          canManage={view.permissions.includes('finance.manage')}
-          onForbidden={onForbidden}
-        />
+        <ManagedTab tab={tab} view={view} onForbidden={onForbidden} />
       )}
     </div>
   )
@@ -199,16 +213,17 @@ function RequestDialogs({
 }
 
 // 옆 메뉴 '재정': 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)과 예산 탭. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
+// 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
 export default function FinancePage(props: Props) {
   const [filter, setFilter] = useState<PurchaseView>('mine')
   const [tab, setTab] = useState<FinanceTab>('requests')
   const dialogs = useRecordDialogs(props.initialRequestId)
   const expenseDialogs = useRecordDialogs()
-  const councilId = props.view.council.id
-  const list = usePurchases(councilId, filter, props.onForbidden)
+  const list = usePurchases(props.view.council.id, filter, props.onForbidden)
   // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
-  const expenses = useExpenses(councilId, props.onForbidden, tab === 'expenses')
+  const expenses = useExpenses(props.view.council.id, props.onForbidden, tab === 'expenses')
   const can = (action: Action) => props.view.permissions.includes(action)
+  const shownTab = tab === 'fees' && !can('fee_payment.view') ? 'requests' : tab
   return (
     <PageColumn>
       <CreateRow
@@ -225,7 +240,7 @@ export default function FinancePage(props: Props) {
         onForbidden={props.onForbidden}
       />
       <RequestDialogs
-        councilId={councilId}
+        councilId={props.view.council.id}
         dialogs={dialogs}
         onChanged={() => {
           void list.reload()
@@ -235,9 +250,9 @@ export default function FinancePage(props: Props) {
         onOpenBudget={() => setTab('budget')}
         onOpenExpense={expenseDialogs.openRecord}
       />
-      <FinanceTabs tab={tab} onTab={setTab} />
+      <FinanceTabs tab={shownTab} onTab={setTab} showFees={can('fee_payment.view')} />
       <FinanceTabPanel
-        tab={tab}
+        tab={shownTab}
         filter={filter}
         onFilter={setFilter}
         list={list}

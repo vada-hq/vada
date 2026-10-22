@@ -182,6 +182,17 @@ export const ACCOUNT_ERRORS: Record<string, string> = {
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
 export const ACCOUNT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
+
+// 납부자 명단 탭: 올리기와 빼기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const FEE_PAYMENTS_LOAD_FAILED = '납부자 명단을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const FEE_PAYMENT_LOST = '이 학번은 이미 비워졌어요. 명단을 새로 불러왔어요.'
+export const FEE_PAYMENT_ERRORS: Record<string, string> = {
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT:
+    '올릴 수 없는 내용이에요. 학번이 비었거나 한 번에 올릴 수 있는 수를 넘었는지 확인해 주세요.',
+  BODY_TOO_LARGE: '한 번에 올리기에는 너무 많아요. 나누어서 올려 주세요.',
+}
+export const FEE_PAYMENT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 export const EXPENSE_ACCOUNTS_FAILED =
   '계좌 목록을 불러오지 못했어요. 계좌 없이 적을 수 있어요. 계좌를 정하려면 이 창을 닫았다가 다시 열어 주세요.'
 export const EXPENSE_ACCOUNT_CLOSED =

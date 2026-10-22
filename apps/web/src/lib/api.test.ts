@@ -35,6 +35,19 @@ test('4xx는 서버의 오류 코드를, 5xx와 연결 실패와 코드 없는 �
   expect(await postJson('/api/d', {})).toEqual({ ok: false, status: 0, code: 'FAILED' })
 })
 
+test('400이 틀린 줄 번호를 주면 lines로 돌려주고, 숫자가 아니면 버린다', async () => {
+  const api = mockApi()
+  api.on('POST', '/api/a', () => json({ error: 'INVALID_INPUT', lines: [2, 5] }, 400))
+  api.on('POST', '/api/b', () => json({ error: 'INVALID_INPUT', lines: ['x'] }, 400))
+  expect(await postJson('/api/a', {})).toEqual({
+    ok: false,
+    status: 400,
+    code: 'INVALID_INPUT',
+    lines: [2, 5],
+  })
+  expect(await postJson('/api/b', {})).toEqual({ ok: false, status: 400, code: 'INVALID_INPUT' })
+})
+
 test('401이면 로그인이 풀렸다고 등록된 처리기에 알리고, 다른 실패에는 알리지 않는다', async () => {
   const api = mockApi()
   api.on('GET', '/api/a', () => json({ error: 'UNAUTHENTICATED' }, 401))

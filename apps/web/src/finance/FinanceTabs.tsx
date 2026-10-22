@@ -3,9 +3,16 @@ import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { VIEW_LABEL } from './purchase-view'
 
-export type FinanceTab = 'requests' | 'expenses' | 'budget' | 'accounts'
+export type FinanceTab = 'requests' | 'expenses' | 'budget' | 'accounts' | 'fees'
 
-export function FinanceTabs({ tab, onTab }: { tab: FinanceTab; onTab: (tab: FinanceTab) => void }) {
+type TabsProps = {
+  tab: FinanceTab
+  onTab: (tab: FinanceTab) => void
+  // 납부자 명단 탭은 `fee_payment.view`가 있는 재정부와 회장단에게만 보인다.
+  showFees: boolean
+}
+
+export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
   return (
     <div role="tablist" aria-label="재정 보기" className="flex border-b">
       <TabButton aria-selected={tab === 'requests'} onClick={() => onTab('requests')}>
@@ -20,6 +27,11 @@ export function FinanceTabs({ tab, onTab }: { tab: FinanceTab; onTab: (tab: Fina
       <TabButton aria-selected={tab === 'accounts'} onClick={() => onTab('accounts')}>
         계좌
       </TabButton>
+      {showFees && (
+        <TabButton aria-selected={tab === 'fees'} onClick={() => onTab('fees')}>
+          납부자 명단
+        </TabButton>
+      )}
     </div>
   )
 }

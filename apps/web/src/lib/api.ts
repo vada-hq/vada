@@ -8,7 +8,9 @@ const trusted = (status: number, code: unknown): code is string =>
   typeof code === 'string' &&
   (status < SERVER_ERROR_FROM || (status === statusOf(STORAGE_OFF) && code === STORAGE_OFF))
 
-export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; code: string }
+// lines는 형식이 틀린 입력의 줄 번호를 알려 주는 응답(명단 붙여 넣기)에만 있다.
+export type ApiResult<T> =
+  { ok: true; data: T } | { ok: false; status: number; code: string; lines?: number[] }
 
 // 로그인이 풀리면(쿠키 만료) 어느 API든 UNAUTHENTICATED를 준다. 화면이 "서버 연결을 확인해 주세요"로 보이지 않도록, 앱이 등록한 처리기가 세션을 다시 읽어 로그인 화면으로 돌려보낸다.
 let onUnauthorized: (() => void) | null = null
@@ -27,9 +29,15 @@ export function noteTermsRequired(status: number, code: unknown) {
   if (status === statusOf('TERMS_REQUIRED') && code === 'TERMS_REQUIRED') onTermsRequired?.()
 }
 
-function failure(status: number, code: unknown) {
-  noteTermsRequired(status, code)
-  return { ok: false as const, status, code: trusted(status, code) ? code : 'FAILED' }
+const isLines = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every(item => typeof item === 'number')
+
+function failure(status: number, body: { error?: unknown; lines?: unknown } | null) {
+  const error = body?.error
+  const lines = body?.lines
+  noteTermsRequired(status, error)
+  const code = trusted(status, error) ? error : 'FAILED'
+  return { ok: false as const, status, code, ...(isLines(lines) ? { lines } : {}) }
 }
 
 async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
@@ -39,7 +47,7 @@ async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
     if (response.status === NO_CONTENT) return { ok: true, data: undefined as T }
     const body: unknown = await response.json().catch(() => null)
     if (response.ok && body !== null) return { ok: true, data: body as T }
-    return failure(response.status, (body as { error?: unknown } | null)?.error)
+    return failure(response.status, body as { error?: unknown; lines?: unknown } | null)
   } catch {
     return { ok: false, status: 0, code: 'FAILED' }
   }
