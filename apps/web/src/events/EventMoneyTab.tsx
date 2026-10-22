@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { EventCompletion } from './EventCompletion'
+import { EventMoneyAdd } from './EventMoneyAdd'
 import { MoneyRecordDialogs } from './MoneyRecordDialogs'
 import { SettlementRemaining } from './SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from './SettlementSummary'
@@ -68,6 +69,7 @@ export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...han
   return (
     <div className="flex flex-col gap-6">
       {lost && <StateMessage kind="error">{lost}</StateMessage>}
+      <EventMoneyAdd view={view} event={event} onAdded={refresh} {...handlers} />
       <SettlementBody
         settlement={settlement}
         onOpenRequest={requests.openRecord}

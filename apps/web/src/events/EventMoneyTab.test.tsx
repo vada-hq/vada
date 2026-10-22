@@ -3,7 +3,8 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventAction, EventDetail } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
-import { eventDetail } from '@/test-support/event-fixtures'
+import { budgetWithPeriod } from '@/test-support/budget-fixtures'
+import { eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { expenseDetail } from '@/test-support/expense-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { budgetWithoutPeriod } from '@/test-support/budget-fixtures'
@@ -38,7 +39,9 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
   }
   render(
     <EventDetailView
-      view={councilView('c1', { permissions: ['council.view', 'finance.manage'] })}
+      view={councilView('c1', {
+        permissions: ['council.view', 'finance.manage', 'purchase.request'],
+      })}
       eventId="e1"
       onBack={vi.fn()}
       {...handlers}
@@ -363,4 +366,32 @@ test('열어 둔 요청을 잃으면(404) 정산을 다시 읽는다', async () 
   const before = reads(api, `${EVENT}/settlement`)
   fireEvent.click(await screen.findByRole('button', { name: '포스터 인쇄' }))
   await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
+
+test('돈 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
+  const { api } = openMoney(event({ name: '봄 축제' }))
+  api.on('GET', `${ORG}/events`, () =>
+    json({ events: [eventSummary({ id: 'e1', name: '봄 축제' })], truncated: false }),
+  )
+  api.on('GET', `${ORG}/budget`, () => json(budgetWithPeriod()))
+  api.on('GET', `${ORG}/members`, () => json({ members: [], departments: [] }))
+  const select = async () => {
+    const field = (await screen.findByLabelText('행사')) as HTMLSelectElement
+    await waitFor(() => expect(field.disabled).toBe(false))
+    return field
+  }
+  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  expect((await select()).value).toBe('e1')
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 항목 더하기' }))
+  expect((await select()).value).toBe('e1')
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  fireEvent.click(screen.getByRole('button', { name: '지출 적기' }))
+  expect((await select()).value).toBe('e1')
+})
+
+test('완료한 행사의 돈 탭에는 더하기 버튼이 없다', async () => {
+  openMoney(event({ status: 'completed' }, []))
+  await screen.findByText('지출 예산')
+  expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '예산 항목 더하기' })).toBeNull()
 })

@@ -159,6 +159,8 @@ export const PURCHASE_LOAD_FAILED = '이 요청을 불러오지 못했어요. �
 export const PURCHASE_LOST = '이 요청을 볼 수 없어요. 다른 학생회의 요청이거나 없어졌을 수 있어요.'
 export const PURCHASE_ERRORS: Record<string, string> = {
   REQUEST_CLOSED: '이미 결재가 시작됐거나 취소된 요청이라 취소할 수 없어요. 새로 불러왔어요.',
+  EVENT_COMPLETED: '완료한 행사라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 할 수 있어요.',
+  EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   LINE_ITEM_DECIDED: '이미 결재된 품목이 있어요. 요청을 새로 불러왔으니 확인해 주세요.',
   BUDGET_ITEM_INVALID: '이 예산 항목은 지금 쓸 수 없어요. 항목을 다시 골라 주세요.',
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.',
@@ -181,6 +183,8 @@ export const BUDGET_ERRORS: Record<string, string> = {
   FISCAL_PERIOD_CONFLICT:
     '기간이 겹치거나 같은 이름의 회계 기간이 있어요. 이름과 날짜를 확인해 주세요.',
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 먼저 회계 기간을 만들어 주세요.',
+  EVENT_COMPLETED: '완료한 행사라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 할 수 있어요.',
+  EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }

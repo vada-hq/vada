@@ -5,7 +5,8 @@ import { BUDGET_A, budgetWithPeriod, LINE_1 } from '@/test-support/budget-fixtur
 import { councilView, FINANCE_PERMISSIONS } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import { eventSummary } from '@/test-support/event-fixtures'
-import { json, mockApi } from '@/test-support/mock-api'
+import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { BUDGET_ERRORS, PURCHASE_ERRORS } from '@/lib/messages'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { forgetRememberedItems } from './decision-form'
 import FinancePage from './FinancePage'
@@ -128,4 +129,32 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
   expect(names.some(name => name.includes('행사 홍보'))).toBe(true)
   expect(names.some(name => name.includes('참가비 수입'))).toBe(false)
   expect(BUDGET_A).toBeTruthy()
+})
+
+test('요청 내기가 409면 그 창 안에 문구가 보이고, 보내는 동안 두 번 눌러도 한 번만 간다', async () => {
+  const api = setup('requests')
+  const slow = deferredResponse()
+  api.on('POST', `${ORG}/purchase-requests`, () => slow.promise)
+  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.change(await eventSelect(), { target: { value: SPRING } })
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '포스터' } })
+  fireEvent.change(screen.getByLabelText('품목 1 이름'), { target: { value: 'A2' } })
+  const submit = screen.getByRole('button', { name: '내기' })
+  fireEvent.click(submit)
+  fireEvent.click(submit)
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+  slow.resolve(json({ error: 'EVENT_COMPLETED' }, 409))
+  expect(await screen.findByText(PURCHASE_ERRORS.EVENT_COMPLETED!)).toBeTruthy()
+  expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
+})
+
+test('예산 항목 더하기가 409면 그 창 안에 문구가 보인다', async () => {
+  const api = setup('예산')
+  api.on('POST', `${ORG}/budget-items`, () => json({ error: 'EVENT_INVALID' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
+  await screen.findByRole('form', { name: '예산 항목 더하기' })
+  fireEvent.change(screen.getByLabelText('목적'), { target: { value: '간식' } })
+  fireEvent.change(screen.getByLabelText('금액(원)'), { target: { value: '1000' } })
+  fireEvent.click(screen.getByRole('button', { name: '더하기' }))
+  expect(await screen.findByText(BUDGET_ERRORS.EVENT_INVALID!)).toBeTruthy()
 })
