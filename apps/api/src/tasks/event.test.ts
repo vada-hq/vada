@@ -273,3 +273,22 @@ test(
     assert.equal(rows.find(row => row.id === bare.id)?.event, null)
   }),
 )
+
+test(
+  '업무 이력에 행사 변경이 전·후 이름과 함께 남고, 비우기와 처음 값도 보인다',
+  run(async s => {
+    const first = await s.event(null, '첫 행사')
+    const second = await s.event(null, '둘째 행사')
+    const task = await s.made({ title: 'a', eventId: first })
+    for (const eventId of [second, null, first])
+      assert.equal((await s.post(`/${task.id}`, { ...EDIT, title: 'a', eventId })).status, 200)
+    const ref = (id: string, name: string) => ({ id, name })
+    const changes = (await s.detail(task.id)).history.map(version => version.changes)
+    assert.deepEqual(changes, [
+      [{ field: 'created' }],
+      [{ field: 'event', from: ref(first, '첫 행사'), to: ref(second, '둘째 행사') }],
+      [{ field: 'event', from: ref(second, '둘째 행사'), to: null }],
+      [{ field: 'event', from: null, to: ref(first, '첫 행사') }],
+    ])
+  }),
+)

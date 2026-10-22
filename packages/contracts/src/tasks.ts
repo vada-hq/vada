@@ -66,7 +66,7 @@ export type TaskChange =
   | { field: 'dueDate'; from: string | null; to: string | null }
   | { field: 'status'; from: TaskStatus; to: TaskStatus }
   | {
-      field: 'department' | 'assignee'
+      field: 'department' | 'assignee' | 'event'
       from: { id: string; name: string | null } | null
       to: { id: string; name: string | null } | null
     }

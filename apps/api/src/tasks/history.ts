@@ -1,6 +1,6 @@
 import { asc, eq, inArray, sql } from 'drizzle-orm'
 import type { TaskChange, TaskStatus, TaskVersion } from '@vada/contracts'
-import { department, member, recordVersion } from '../db/schema.js'
+import { department, event, member, recordVersion } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { dueDateOf } from './due.js'
 
@@ -14,8 +14,13 @@ type Snapshot = {
   status: TaskStatus
   department_id: string | null
   assignee_id: string | null
+  event_id: string | null
 }
-type Names = { members: Map<string, string>; departments: Map<string, string> }
+type Names = {
+  members: Map<string, string>
+  departments: Map<string, string>
+  events: Map<string, string>
+}
 
 const dueOf = (snapshot: Snapshot) => dueDateOf(snapshot.due_at ? new Date(snapshot.due_at) : null)
 
@@ -44,10 +49,20 @@ function changesBetween(before: Snapshot, after: Snapshot, names: Names): TaskCh
       from: refOf(before.assignee_id, names.members),
       to: refOf(after.assignee_id, names.members),
     })
+  if (before.event_id !== after.event_id)
+    changes.push({
+      field: 'event',
+      from: refOf(before.event_id, names.events),
+      to: refOf(after.event_id, names.events),
+    })
   return changes
 }
 
-async function namesOf(db: Reader, memberIds: Set<string>, departmentIds: Set<string>) {
+async function namesOf(
+  db: Reader,
+  ids: { members: Set<string>; departments: Set<string>; events: Set<string> },
+) {
+  const { members: memberIds, departments: departmentIds, events: eventIds } = ids
   const members = memberIds.size
     ? await db
         .select({ id: member.id, name: member.name })
@@ -60,7 +75,14 @@ async function namesOf(db: Reader, memberIds: Set<string>, departmentIds: Set<st
         .from(department)
         .where(inArray(department.id, [...departmentIds]))
     : []
+  const events = eventIds.size
+    ? await db
+        .select({ id: event.id, name: event.name })
+        .from(event)
+        .where(inArray(event.id, [...eventIds]))
+    : []
   return {
+    events: new Map(events.map(row => [row.id, row.name])),
     members: new Map(members.map(row => [row.id, row.name])),
     departments: new Map(departments.map(row => [row.id, row.name])),
   }
@@ -84,13 +106,19 @@ export async function historyOf(db: Reader, taskId: string): Promise<TaskVersion
   const snapshots = rows.map(row => row.data as Snapshot)
   const memberIds = new Set<string>()
   const departmentIds = new Set<string>()
+  const eventIds = new Set<string>()
   for (const [index, row] of rows.entries()) {
     const snapshot = snapshots[index]!
     if (row.changedBy) memberIds.add(row.changedBy)
     if (snapshot.assignee_id) memberIds.add(snapshot.assignee_id)
     if (snapshot.department_id) departmentIds.add(snapshot.department_id)
+    if (snapshot.event_id) eventIds.add(snapshot.event_id)
   }
-  const names = await namesOf(db, memberIds, departmentIds)
+  const names = await namesOf(db, {
+    members: memberIds,
+    departments: departmentIds,
+    events: eventIds,
+  })
   return rows.map((row, index) => {
     const previous = snapshots[index - 1]
     const by = row.changedBy
