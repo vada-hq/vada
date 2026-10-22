@@ -109,10 +109,10 @@ export async function incomeDetailOf(
 ): Promise<IncomeDetail> {
   const row = await incomeRowOf(db, actor, incomeId)
   const summary = summaryOf(row)
-  // 완료한 행사의 수입 항목을 고른 수입은 잠겨 있어 취소 동작을 주지 않는다(DEC-68).
+  // 완료한 행사의 수입 항목을 고른 수입과 공개한 기간의 수입은 잠겨 있어 취소 동작을 주지 않는다(DEC-68, DEC-70).
   const cancellable =
     canCancelIncome(actor, { cancelled: summary.cancelled, source: row.source }) &&
-    !(await isIncomeLocked(db, actor, { budgetItemId: row.budgetItemId }))
+    !(await isIncomeLocked(db, actor, { budgetItemId: row.budgetItemId, periodId: row.periodId }))
   const actions: IncomeAction[] = cancellable ? ['income.cancel'] : []
   return {
     ...summary,

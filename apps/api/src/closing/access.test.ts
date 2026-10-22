@@ -84,11 +84,8 @@ test(
     }
     const draft = await readClosing(t, period)
     assert.deepEqual([draft.status, draft.publishedAt], ['draft', null])
-    assert.deepEqual(draft.actions, [
-      'closing.publish',
-      'closing.export_public',
-      'closing.export_audit',
-    ])
+    // 지금 기간은 아직 끝나지 않아 공개 동작이 없다(공개와 같은 판단, 조건은 publish.test.ts)
+    assert.deepEqual(draft.actions, ['closing.export_public', 'closing.export_audit'])
     await t.make(t.council, 'account_closing', { fiscalPeriodId: period, publishedAt: clockNow })
     for (const user of ['s-president', 's-planningMember']) {
       const closing = await readClosing(t, period, user)

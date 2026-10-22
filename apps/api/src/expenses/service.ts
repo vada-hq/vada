@@ -9,6 +9,7 @@ import { assertUsableAccount } from '../accounts/queries.js'
 import { can } from '../access/permissions.js'
 import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries.js'
 import { currentMembersAmong } from '../chat/current-members.js'
+import { assertDayOpen } from '../closing/lock.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
@@ -85,6 +86,8 @@ export async function createExpense(
   // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
   await assertCouncilEvent(tx, actor, input.eventId)
   const requested = eventOfNewExpense(await assertEventsOpenFor(tx, actor, input), input.eventId)
+  // 결제일이 든 기간을 공개했으면 적지 못한다(DEC-70). 행사 완료 잠금 뒤에 본다.
+  await assertDayOpen(tx, actor, input.paidOn)
   const itemEvents = input.budgetItemId
     ? await budgetItemEventsOf(tx, actor, [input.budgetItemId])
     : []
@@ -137,6 +140,8 @@ export async function cancelExpense(
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
   await assertExpenseEventOpen(tx, actor, expenseId)
+  // 결제일이 든 기간을 공개했으면 취소하지 못한다(DEC-70). 증빙·사유·환급은 열어 둔다.
+  await assertDayOpen(tx, actor, koreanDateOf(row.paidAt))
   if (!canCancelExpense(actor, factsOf(row))) throw new ApiError('EXPENSE_CANCELLED')
   await updateRecord(tx, {
     kind: 'expense',

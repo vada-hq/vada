@@ -1,4 +1,7 @@
+import { z } from 'zod'
+import { text } from './input.js'
 import type { IncomeSource } from './incomes.js'
+import { PURCHASE_REASON_MAX } from './purchases.js'
 import type { SettlementTarget } from './settlement.js'
 
 // 결산서 읽기(기능 009). 돈은 모두 정수 원이다.
@@ -137,3 +140,7 @@ export interface Closing {
 export interface ClosingResponse {
   closing: Closing
 }
+
+// 공개는 본문이 없다. 다시 열기는 사유가 꼭 있고 판과 이월금 취소에 남는다(PRIN-3).
+export const PublishClosingSchema = z.strictObject({})
+export const ReopenClosingSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })

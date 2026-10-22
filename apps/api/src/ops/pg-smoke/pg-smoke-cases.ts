@@ -17,6 +17,11 @@ import {
   completeAndConfirmCase,
   completeAndSpendCase,
 } from './pg-smoke-complete-cases.js'
+import {
+  publishAndCompleteCase,
+  publishAndSpendCase,
+  publishTogetherCase,
+} from './pg-smoke-closing-cases.js'
 import { lastSeatTogetherCase } from './pg-smoke-registration-cases.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
@@ -44,6 +49,9 @@ export {
   joinTwiceCase,
   lastSeatTogetherCase,
   ownerChangeAndWriteCase,
+  publishAndCompleteCase,
+  publishAndSpendCase,
+  publishTogetherCase,
   rotateTogetherCase,
   sameQrTogetherCase,
   sendAndRemoveCase,
@@ -78,4 +86,7 @@ export const smokeCases: readonly SmokeCase[] = [
   completeAndSpendCase,
   completeAndConfirmCase,
   completeAndApplyCase,
+  publishTogetherCase,
+  publishAndSpendCase,
+  publishAndCompleteCase,
 ]

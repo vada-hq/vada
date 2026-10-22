@@ -1,10 +1,11 @@
 import { and, eq, isNull, lt } from 'drizzle-orm'
-import { koreanDateOf, type ClosingFeePending, type ClosingPendingEvent } from '@vada/contracts'
+import type { ClosingFeePending, ClosingPendingEvent } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { deposit, event, record, registration, registrationForm } from '../db/schema.js'
 import { countAll, sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
+import { eventEndDayOf } from '../events/end-day.js'
 import { koreanDayRange, type ClosingPeriod } from './period.js'
 
 type Reader = Pick<Db, 'select'>
@@ -52,9 +53,9 @@ export async function feePendingOf(
   const blocking: ClosingPendingEvent[] = []
   const next = { eventCount: 0, depositCount: 0, amount: 0 }
   for (const row of rows.filter(row => !completed.has(row.id))) {
-    const ended = row.endsAt ?? row.startsAt
+    const endDay = eventEndDayOf(row)
     const amount = row.received - row.refunded
-    if (!ended || koreanDateOf(ended) <= period.endsOn) {
+    if (!endDay || endDay <= period.endsOn) {
       blocking.push({ event: { id: row.id, name: row.name }, depositCount: row.count, amount })
     } else {
       next.eventCount += 1

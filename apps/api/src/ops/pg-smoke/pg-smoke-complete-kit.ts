@@ -18,7 +18,15 @@ export const PAIR = 2
 const DAY_MS = 86_400_000
 const WIDE_PERIOD = { startsOn: '2000-01-01', endsOn: '2099-12-31' }
 
-export type World = { main: SmokeConnection; context: SmokeContext; leader: Actor; finance: Actor }
+export type World = {
+  main: SmokeConnection
+  context: SmokeContext
+  leader: Actor
+  finance: Actor
+  periodIds: string[]
+}
+
+type PeriodSpec = { name: string; startsOn: string; endsOn: string }
 
 const actorOf = (memberId: string, councilId: string, finance: boolean): Actor => ({
   memberId,
@@ -33,23 +41,30 @@ export async function worldOf(
   main: SmokeConnection,
   context: SmokeContext,
   host: string,
+  periods: readonly PeriodSpec[] = [{ name: '점검 기간', ...WIDE_PERIOD }],
 ): Promise<World> {
   await googleUser(main.db, host)
   const councilId = await createdCouncil(main.db, context, host, `점검 ${host} 학생회`)
   const memberId = await memberIdOf(main.db, host)
-  await main.db.transaction(tx =>
-    createRecord(tx, {
-      kind: 'fiscal_period',
-      councilId,
-      actor: memberId,
-      values: { name: '점검 기간', ...WIDE_PERIOD },
-    }),
-  )
+  // 기간은 주어진 차례로 이어진다(앞 기간이 이전 기간이다).
+  const periodIds: string[] = []
+  for (const period of periods)
+    periodIds.push(
+      await main.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'fiscal_period',
+          councilId,
+          actor: memberId,
+          values: { ...period, previousPeriodId: periodIds.at(-1) ?? null },
+        }),
+      ),
+    )
   return {
     main,
     context,
     leader: actorOf(memberId, councilId, false),
     finance: actorOf(memberId, councilId, true),
+    periodIds,
   }
 }
 
@@ -74,7 +89,10 @@ export const make = (
     | 'payment_line'
     | 'evidence'
     | 'registration_form'
-    | 'registration',
+    | 'registration'
+    | 'deposit'
+    | 'event'
+    | 'income',
   values: Record<string, unknown>,
 ) =>
   world.main.db.transaction(tx =>

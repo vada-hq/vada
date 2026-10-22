@@ -15,17 +15,11 @@ import { accountClosing, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { expenseChecksOf } from './checks.js'
-import { closingNumbersOf } from './numbers.js'
+import { closingFiguresOf } from './figures.js'
+import { publishGateOf, reopenGateOf } from './gates.js'
 import { closingPeriodOf, type ClosingPeriod } from './period.js'
 import { feePendingOf } from './pending.js'
-import {
-  accountRowsOf,
-  budgetItemsOf,
-  expenseCountOf,
-  expenseRowsOf,
-  incomeRowsOf,
-  photoTotalsOf,
-} from './totals.js'
+import { expenseCountOf, photoTotalsOf } from './totals.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -73,13 +67,20 @@ export async function fiscalPeriodsOf(
   }
 }
 
-// 보이는 동작. 공개와 다시 열기는 재정부만이고, 공개용 내보내기는 공개한 뒤 모든 운영진이, 감사용은 재정부만이 받는다.
-// 공개할 수 있는 조건(끝난 기간, 이전 기간, 남은 돈, 행사 완료)은 공개 쓰기가 본다.
-function actionsOf(actor: Actor, status: ClosingStatus): ClosingAction[] {
+// 보이는 동작. 공개와 다시 열기는 재정부만이고 되는 때만 준다(막는 판단은 gates.ts 하나다). 공개용 내보내기는 공개한 뒤 모든 운영진이, 감사용은 재정부만이 받는다.
+async function actionsOf(
+  db: Reader,
+  actor: Actor,
+  period: ClosingPeriod,
+  facts: { status: ClosingStatus; now: Date },
+): Promise<ClosingAction[]> {
   const finance = can(actor, 'finance.manage')
-  const published = status === 'published'
+  const published = facts.status === 'published'
   const actions: ClosingAction[] = []
-  if (finance) actions.push(published ? 'closing.reopen' : 'closing.publish')
+  if (finance && published && !(await reopenGateOf(db, actor, period)))
+    actions.push('closing.reopen')
+  if (finance && !published && !(await publishGateOf(db, actor, period, facts.now)).blocker)
+    actions.push('closing.publish')
   if (finance || published) actions.push('closing.export_public')
   if (finance) actions.push('closing.export_audit')
   return actions
@@ -102,18 +103,17 @@ async function exportInfoOf(db: Reader, actor: Actor, period: ClosingPeriod, inc
 }
 
 // 결산서 하나. 공개 전에는 재정부만 본다(403). 한 읽기 거래에서 모두 만든다.
-export async function closingOf(db: Reader, actor: Actor, periodId: string): Promise<Closing> {
+export async function closingOf(
+  db: Reader,
+  actor: Actor,
+  periodId: string,
+  now: Date,
+): Promise<Closing> {
   const period = await closingPeriodOf(db, actor, periodId)
   const publishedAt = (await publishedAtOf(db, actor)).get(period.id) ?? null
   const status = statusOf(publishedAt)
   if (status === 'draft' && !can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
-  const incomes = await incomeRowsOf(db, actor, period)
-  const numbers = closingNumbersOf({
-    items: await budgetItemsOf(db, period),
-    incomes,
-    expenses: await expenseRowsOf(db, actor, period),
-    accounts: await accountRowsOf(db, actor),
-  })
+  const { incomes, numbers } = await closingFiguresOf(db, actor, period)
   return {
     period: { id: period.id, name: period.name, startsOn: period.startsOn, endsOn: period.endsOn },
     status,
@@ -127,6 +127,6 @@ export async function closingOf(db: Reader, actor: Actor, periodId: string): Pro
       period,
       incomes.reduce((all, row) => all + row.count, 0),
     ),
-    actions: actionsOf(actor, status),
+    actions: await actionsOf(db, actor, period, { status, now }),
   }
 }

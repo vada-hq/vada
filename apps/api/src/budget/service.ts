@@ -2,6 +2,7 @@ import { and, eq, gte, lte, or } from 'drizzle-orm'
 import type { BudgetResponse, CreateBudgetItem, CreateFiscalPeriod } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
+import { carryoverIntoNewPeriod } from '../closing/carryover.js'
 import { fiscalPeriod } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { assertEventOpen } from '../events/completion.js'
@@ -39,20 +40,24 @@ export async function createFiscalPeriod(
 ): Promise<BudgetResponse> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   await assertNoConflict(tx, actor, input)
+  const previousPeriodId = await previousPeriodIdFor(tx, actor.councilId, input.startsOn)
   const periodId = await createRecord(tx, {
     kind: 'fiscal_period',
     councilId: actor.councilId,
     actor: actor.memberId,
-    values: {
-      ...input,
-      previousPeriodId: await previousPeriodIdFor(tx, actor.councilId, input.startsOn),
-    },
+    values: { ...input, previousPeriodId },
   })
   await createRecord(tx, {
     kind: 'budget',
     councilId: actor.councilId,
     actor: actor.memberId,
     values: { fiscalPeriodId: periodId },
+  })
+  // 이전 기간이 이미 공개됐으면 그 남은 돈이 이 기간의 이월금이 된다(DEC-70).
+  await carryoverIntoNewPeriod(tx, actor, {
+    id: periodId,
+    startsOn: input.startsOn,
+    previousPeriodId,
   })
   return budgetViewOf(tx, (await periodById(tx, periodId))!)
 }

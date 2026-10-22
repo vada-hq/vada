@@ -40,7 +40,7 @@ export async function createIncome(
   if (input.budgetItemId) await assertPeriodIncomeItem(tx, actor, input.budgetItemId, periodId)
   // 학생회 행을 잠근 뒤에 읽으므로 계좌 닫기와 겹쳐도 하나로 정해진다.
   if (input.accountId) await assertUsableAccount(tx, actor, input.accountId)
-  await assertIncomeWritable(tx, actor, { budgetItemId: input.budgetItemId })
+  await assertIncomeWritable(tx, actor, { budgetItemId: input.budgetItemId, periodId })
   const incomeId = await createRecord(tx, {
     kind: 'income',
     councilId: actor.councilId,
@@ -69,7 +69,7 @@ export async function cancelIncome(
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedIncomeRow(tx, actor, incomeId)
   if (isAutomaticSource(row.source)) throw new ApiError('INCOME_AUTOMATIC')
-  await assertIncomeWritable(tx, actor, { budgetItemId: row.budgetItemId })
+  await assertIncomeWritable(tx, actor, { budgetItemId: row.budgetItemId, periodId: row.periodId })
   if (!canCancelIncome(actor, { cancelled: row.cancelledAt !== null, source: row.source }))
     throw new ApiError('INCOME_CANCELLED')
   await updateRecord(tx, {
