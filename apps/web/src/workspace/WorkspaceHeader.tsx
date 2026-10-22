@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 
 type Props = {
   councilName: string
-  section: string
+  section: string | null
   title: string
   onMenu: () => void
   menuRef?: Ref<HTMLButtonElement>
@@ -27,8 +27,12 @@ export default function WorkspaceHeader({ councilName, section, title, onMenu, m
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 text-xs text-gray-400">
           <span className="truncate">{councilName}</span>
-          <ChevronRight aria-hidden className="size-3 shrink-0" />
-          <span className="shrink-0 text-gray-600">{section}</span>
+          {section && (
+            <>
+              <ChevronRight aria-hidden className="size-3 shrink-0" />
+              <span className="shrink-0 text-gray-600">{section}</span>
+            </>
+          )}
         </p>
         <h1 className="mt-0.5 truncate text-base font-semibold text-gray-900">{title}</h1>
       </div>
