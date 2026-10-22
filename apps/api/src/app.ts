@@ -10,6 +10,7 @@ import type { createBudgetRoutes } from './budget/routes.js'
 import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
 import type { createPublicRegistrationRoutes } from './registrations/public-routes.js'
+import type { createDepositRoutes } from './deposits/routes.js'
 import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
@@ -51,6 +52,8 @@ export type AppOptions = {
   accounts?: ReturnType<typeof createAccountRoutes>
   // 신청 양식: 목록, 하나 읽기, 만들기, 고치기, 멈추기와 다시 받기
   registrations?: ReturnType<typeof createRegistrationRoutes>
+  // 입금 확인, 확인 취소, 환불함
+  deposits?: ReturnType<typeof createDepositRoutes>
   // 학생회비 납부자 명단: 보기, 올리기, 빼기
   feePayments?: ReturnType<typeof createFeePaymentRoutes>
   // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기
@@ -74,6 +77,7 @@ export function createApp({
   events,
   accounts,
   registrations,
+  deposits,
   feePayments,
   publicRegistrations,
 }: AppOptions) {
@@ -104,6 +108,7 @@ export function createApp({
     events,
     accounts,
     registrations,
+    deposits,
     feePayments,
   ])
     if (routes) app.route('/api', routes)

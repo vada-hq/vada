@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { EmptyRequestSchema, text, token } from './input.js'
+import type { ApplicantDeposit } from './deposits.js'
 import { koreanDateTime } from './korean-time.js'
 import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
@@ -66,6 +67,7 @@ export const ResumeFormSchema = EmptyRequestSchema
 export const REGISTRATION_ACTIONS = [
   'registration.manage',
   'registration.view_applicants',
+  'deposit.confirm',
 ] as const satisfies readonly Action[]
 export type RegistrationAction = (typeof REGISTRATION_ACTIONS)[number]
 
@@ -196,6 +198,9 @@ export interface Applicant {
   duplicateStudentId: boolean
   attended: boolean
   appliedAt: string
+  // 취소했지만 입금이 남아 환불을 기다리는 신청이면 true다(이름·휴대폰 번호가 남고 학번은 비었다).
+  cancelled: boolean
+  deposit: ApplicantDeposit
 }
 export interface ApplicantsResponse {
   applicants: Applicant[]

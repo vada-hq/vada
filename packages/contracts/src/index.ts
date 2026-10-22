@@ -283,3 +283,4 @@ export {
 // 신청 양식은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
 export * from './registrations.js'
 export * from './fee-payments.js'
+export * from './deposits.js'

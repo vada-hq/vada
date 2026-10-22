@@ -8,6 +8,7 @@ import { createTestDb } from '../db/test-db.js'
 import type { RateLimiter } from '../http/rate-limit.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
+import { createDepositRoutes } from '../deposits/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { seedCouncil } from './council.js'
 import { caller, ORIGIN, testSession } from './http.js'
@@ -41,6 +42,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       registrations: createRegistrationRoutes(db, testSession, { clock, ...options }),
+      deposits: createDepositRoutes(db, testSession, { clock, ...options }),
       publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
     }),
   )

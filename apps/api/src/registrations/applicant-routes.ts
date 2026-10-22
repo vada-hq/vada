@@ -1,4 +1,5 @@
 import {
+  ApplicantsQuerySchema,
   CheckInSchema,
   EmptyRequestSchema,
   type ApplicantsResponse,
@@ -7,6 +8,7 @@ import {
 } from '@vada/contracts'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { clientIpOf } from '../http/client-ip.js'
+import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { purgeFormIfDue } from './purge.js'
 import { applicantsOf } from './applicants.js'
@@ -34,11 +36,12 @@ export function addApplicantRoutes(kit: RouteKit) {
       now: clock(),
     }
     const ip = clientIpOf(c)
+    const filter = parseQuery(ApplicantsQuerySchema, c.req.queries())
     // 운영진인지 먼저 본 뒤(403), 읽기 전에 이 양식의 기한이 지난 신청자 정보를 지운다. 열람 권한은 목록 안에서 본다.
     await db.transaction(tx => authorize(tx, request))
     await purgeFormIfDue(db, request.councilId, formIdOf(c), request.now)
     const list = await db.transaction(async tx =>
-      applicantsOf(tx, await authorize(tx, request), { formId: formIdOf(c), ip }),
+      applicantsOf(tx, await authorize(tx, request), { formId: formIdOf(c), ip, ...filter }),
     )
     return c.json(list satisfies ApplicantsResponse)
   })

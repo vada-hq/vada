@@ -24,6 +24,7 @@ import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { createAccountRoutes } from './accounts/routes.js'
 import { createEventRoutes } from './events/routes.js'
+import { createDepositRoutes } from './deposits/routes.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { startPurge } from './purge/run.js'
@@ -101,6 +102,7 @@ function appOf(env: Env, db: Db) {
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
     registrations: createRegistrationRoutes(db, session),
+    deposits: createDepositRoutes(db, session),
     feePayments: createFeePaymentRoutes(db, session),
     publicRegistrations: createPublicRegistrationRoutes(db),
   })

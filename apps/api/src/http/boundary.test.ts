@@ -13,6 +13,7 @@ import { createTeamRoutes } from '../team/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createAccountRoutes } from '../accounts/routes.js'
 import { createEventRoutes } from '../events/routes.js'
+import { createDepositRoutes } from '../deposits/routes.js'
 import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
@@ -35,7 +36,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 57
+const MUTATING_ROUTES = 60
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 function modulesOf(session: () => Promise<null>) {
@@ -60,6 +61,7 @@ function modulesOf(session: () => Promise<null>) {
     events: createEventRoutes(db, session),
     accounts: createAccountRoutes(db, session),
     registrations: createRegistrationRoutes(db, session),
+    deposits: createDepositRoutes(db, session),
     feePayments: createFeePaymentRoutes(db, session),
     publicRegistrations: createPublicRegistrationRoutes(db),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
