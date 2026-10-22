@@ -237,13 +237,14 @@ test('업무의 행사는 다른 학생회 것이면 만들 때와 바꿀 때 �
   }
 })
 
-test('지출의 계좌는 다른 학생회 것이면 만들 때 막고, 지출의 행사와 계좌는 만든 뒤 바꾸지 못한다', async () => {
+test('지출의 계좌는 다른 학생회 것이면 만들 때 막고 만든 뒤 바꾸지 못하며, 지출의 행사는 같은 학생회 것으로 바꿀 수 있다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const s = await db.transaction(seed)
     const mineAccount = await db.transaction(tx => makeAccount(tx, s))
     const theirAccount = await db.transaction(tx => makeAccount(tx, s, {}, s.theirs))
     const mineEvent = await db.transaction(tx => makeEvent(tx, s))
+    const theirEvent = await db.transaction(tx => makeEvent(tx, s, {}, s.theirs))
     const before = await recordCount(pg)
     await assert.rejects(
       db.transaction(tx => makeExpense(tx, s, { accountId: theirAccount })),
@@ -253,13 +254,27 @@ test('지출의 계좌는 다른 학생회 것이면 만들 때 막고, 지출�
     const expense = await db.transaction(tx =>
       makeExpense(tx, s, { accountId: mineAccount, eventId: mineEvent }),
     )
-    for (const key of ['accountId', 'account_id', 'eventId', 'event_id'])
+    for (const key of ['accountId', 'account_id'])
       await assert.rejects(
         db.transaction(tx => updateRecords(tx, [change(s, 'expense', expense, { [key]: null })])),
         /주인 칸/,
         key,
       )
+    for (const key of ['eventId', 'event_id'])
+      await assert.rejects(
+        db.transaction(tx =>
+          updateRecords(tx, [change(s, 'expense', expense, { [key]: theirEvent })]),
+        ),
+        /학생회/,
+        key,
+      )
     assert.equal(await versionCount(pg, expense), 1)
+    const other = await db.transaction(tx => makeEvent(tx, s, { name: '다른 행사' }))
+    await db.transaction(tx =>
+      updateRecords(tx, [change(s, 'expense', expense, { eventId: other })]),
+    )
+    assert.equal((await rowOf(pg, 'expense', expense)).event_id, other)
+    assert.equal(await versionCount(pg, expense), 2)
   } finally {
     await close()
   }

@@ -12,12 +12,14 @@ import {
   councilMembership,
   department,
   departmentMembership,
+  deposit,
   event,
   evidence,
   expense,
   feePayment,
   file,
   fiscalPeriod,
+  income,
   lineItem,
   member,
   message,
@@ -65,6 +67,8 @@ const tables = {
   registration_form: registrationForm,
   registration,
   attendance,
+  deposit,
+  income,
   fee_payment: feePayment,
 }
 export type RecordKind = keyof typeof tables
@@ -154,8 +158,10 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   fiscal_period: new Set(['previousPeriodId', 'previous_period_id']),
   budget: new Set(['fiscalPeriodId', 'fiscal_period_id']),
   budget_item: new Set(['budgetId', 'budget_id', 'eventId', 'event_id']),
-  // 지출의 행사와 계좌는 적을 때 정하고 만든 뒤 바꾸지 않는다.
+  // 지출의 계좌는 적을 때 정하고 바꾸지 않는다. 지출의 행사는 바꿀 수 있다(changeableKeysOf).
   expense: new Set(['eventId', 'event_id', 'accountId', 'account_id']),
+  // 요청의 행사는 낼 때 고르고 바꾸지 않는다(DEC-68).
+  request: new Set(['eventId', 'event_id']),
   line_item: new Set(['requestId', 'request_id']),
   payment_line: new Set(['expenseId', 'expense_id', 'lineItemId', 'line_item_id']),
   evidence: new Set(['expenseId', 'expense_id']),
@@ -176,12 +182,28 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   registration_form: new Set(['eventId', 'event_id', 'feeAccountId', 'fee_account_id']),
   registration: new Set(['formId', 'form_id']),
   attendance: new Set(['registrationId', 'registration_id']),
+  // 입금 기록의 신청과 금액, 수입의 회계 기간·출처·금액은 바꾸지 않는다. 입금 기록의 수입과 수입의 예산 항목·계좌는 바꾼다(changeableKeysOf).
+  deposit: new Set(['registrationId', 'registration_id', 'amount', 'incomeId', 'income_id']),
+  income: new Set([
+    'fiscalPeriodId',
+    'fiscal_period_id',
+    'source',
+    'amount',
+    'budgetItemId',
+    'budget_item_id',
+    'accountId',
+    'account_id',
+  ]),
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서와 행사, 행사의 책임자는 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
 const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   task: new Set(['departmentId', 'department_id', 'eventId', 'event_id']),
   event: new Set(['ownerId', 'owner_id']),
   registration_form: new Set(['feeAccountId', 'fee_account_id']),
+  // 지출의 행사는 재정부가 바꾼다. 바꾸기 전과 뒤가 완료 전인지는 서비스가 본다(DEC-68).
+  expense: new Set(['eventId', 'event_id']),
+  deposit: new Set(['incomeId', 'income_id']),
+  income: new Set(['budgetItemId', 'budget_item_id', 'accountId', 'account_id']),
 }
 
 // 쿼리가 돌려준 행 수. drizzle의 execute는 드라이버가 준 모양 그대로 돌려준다: postgres-js는 배열, PGlite는 { rows }다.

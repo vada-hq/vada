@@ -268,10 +268,10 @@ test('행사 칸: 고치기는 책임자가 나일 때만 맞고 회장단도 �
   }
 })
 
-test('내 권한 목록: 회장단은 행사 만들기와 책임자 정하기를 받고 고치기는 받지 않으며, 나머지는 행사 칸이 없다', () => {
+test('내 권한 목록: 회장단은 행사 만들기·책임자 정하기·완료를 받고 고치기는 받지 않으며, 나머지는 행사 칸이 없다', () => {
   const events = (who: Actor) => permissionsOf(who).filter(action => action.startsWith('event.'))
   for (const who of [president, vicePresident])
-    assert.deepEqual(events(who), ['event.create', 'event.set_owner'])
+    assert.deepEqual(events(who), ['event.create', 'event.set_owner', 'event.complete'])
   for (const who of [planningHead, planningMember, financeMember, plain])
     assert.deepEqual(events(who), [])
 })
@@ -304,6 +304,35 @@ test('참가 신청 관리: 책임자, 그 행사 담당 부서 사람, 회장�
     assert.equal(can(denied, 'registration.manage', inEvent), false, denied.memberId)
   // 책임자는 어느 부서든 된다.
   assert.equal(can(actor('owner', null), 'registration.manage', inEvent), true)
+})
+
+// 행사 완료는 회장단만(기능 008, DEC-39). 입금 확인은 신청 관리와 같은 기준이라 책임자와 담당 부서, 회장단이다.
+test('행사 완료: 회장단만 하고 책임자도 부장도 재정부도 못 한다', () => {
+  for (const who of [president, vicePresident]) assert.equal(can(who, 'event.complete'), true)
+  for (const who of [planningHead, planningMember, financeMember, plain])
+    assert.equal(can(who, 'event.complete', { eventOwnerId: who.memberId }), false, who.memberId)
+})
+
+test('입금 확인: 신청 관리와 같은 사람이 하고, 맥락이 없으면 책임자와 담당 부서 기준은 거부한다', () => {
+  const inEvent = { eventOwnerId: 'owner', eventDepartmentIds: ['planning'] }
+  for (const allowed of [president, vicePresident, planningHead, planningMember])
+    assert.equal(can(allowed, 'deposit.confirm', inEvent), true, allowed.memberId)
+  assert.equal(can(actor('owner', null), 'deposit.confirm', inEvent), true)
+  for (const denied of [financeMember, plain, designHead])
+    assert.equal(can(denied, 'deposit.confirm', inEvent), false, denied.memberId)
+  for (const context of [undefined, {}, { eventDepartmentIds: [] }, { eventOwnerId: 'x' }]) {
+    for (const denied of [planningHead, planningMember, plain, designHead])
+      assert.equal(can(denied, 'deposit.confirm', context), false, denied.memberId)
+    for (const allowed of [president, vicePresident])
+      assert.equal(can(allowed, 'deposit.confirm', context), true, allowed.memberId)
+  }
+})
+
+test('내 권한 목록: 회장단은 입금 확인을 받고 나머지는 받지 않는다', () => {
+  const deposit = (who: Actor) => permissionsOf(who).filter(action => action.startsWith('deposit.'))
+  for (const who of [president, vicePresident]) assert.deepEqual(deposit(who), ['deposit.confirm'])
+  for (const who of [planningHead, planningMember, financeMember, plain])
+    assert.deepEqual(deposit(who), [])
 })
 
 test('참가 신청 칸의 행사 담당 부서 기준은 맥락이 없거나 빈 목록이면 거부한다(회장단만 맞는다)', () => {

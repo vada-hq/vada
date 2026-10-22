@@ -4,7 +4,7 @@ import type { Tx } from '../db/types.js'
 import type { AnyRecordChange, RecordKind } from './records.js'
 
 // 기록이 가리키는 다른 기록과 사람은 같은 학생회의 것이어야 한다. 외래 키는 학생회까지 맞추지 못해 여기서 막는다.
-// 이 검사는 만들 때 하고, 만든 뒤에도 바꿀 수 있는 칸(업무의 부서·담당자·행사, 행사의 책임자, 요청한 사람, 품목과 지출의 예산 항목, 지출의 부탁한 사람과 먼저 낸 사람, 양식의 참가비 계좌)은 바꿀 때 다시 한다(assertChangeStaysInCouncil).
+// 이 검사는 만들 때 하고, 만든 뒤에도 바꿀 수 있는 칸(업무의 부서·담당자·행사, 행사의 책임자, 요청한 사람, 품목과 지출의 예산 항목, 지출의 행사·부탁한 사람·먼저 낸 사람, 양식의 참가비 계좌, 입금 기록의 수입, 수입의 예산 항목과 계좌)은 바꿀 때 다시 한다(assertChangeStaysInCouncil).
 // 가리키는 곳이 없거나(null) 학생회를 알 수 없으면 ''를 돌려줘 기록의 학생회와 달라지게 한다.
 
 type Values = Record<string, unknown>
@@ -87,6 +87,7 @@ const ownersOf: Partial<
   request: async (tx, councilId, v) => [
     ...(await members(tx, councilId, [field(v, 'requestedBy', 'requested_by')])),
     ...(await optional(tx, field(v, 'defaultBudgetItemId', 'default_budget_item_id'))),
+    ...(await optional(tx, field(v, 'eventId', 'event_id'))),
   ],
   line_item: async (tx, _, v) => [
     ...(await optional(tx, field(v, 'requestId', 'request_id'))),
@@ -121,6 +122,15 @@ const ownersOf: Partial<
   ],
   registration: (tx, _, v) => optional(tx, field(v, 'formId', 'form_id')),
   attendance: (tx, _, v) => optional(tx, field(v, 'registrationId', 'registration_id')),
+  deposit: async (tx, _, v) => [
+    ...(await optional(tx, field(v, 'registrationId', 'registration_id'))),
+    ...(await optional(tx, field(v, 'incomeId', 'income_id'))),
+  ],
+  income: async (tx, _, v) => [
+    ...(await optional(tx, field(v, 'fiscalPeriodId', 'fiscal_period_id'))),
+    ...(await optional(tx, field(v, 'budgetItemId', 'budget_item_id'))),
+    ...(await optional(tx, field(v, 'accountId', 'account_id'))),
+  ],
   notification: async (tx, councilId, v) => [
     await councilOfRecord(tx, v.recordId),
     await councilOfMember(tx, v.recipientId, councilId),
@@ -146,6 +156,8 @@ const changeChecked: ReadonlySet<RecordKind> = new Set([
   'line_item',
   'expense',
   'registration_form',
+  'deposit',
+  'income',
 ])
 // 바꿀 때 다시 본다. 기록의 학생회는 이미 있는 기록에서 읽는다.
 export async function assertChangeStaysInCouncil(tx: Tx, change: AnyRecordChange) {

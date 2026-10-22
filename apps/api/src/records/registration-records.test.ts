@@ -407,3 +407,214 @@ test('개인 링크는 신청마다 하나이고 해시는 소문자 16진 64자
     await close()
   }
 })
+
+// 행사 정산(기능 008 조각 1): 입금 기록, 수입, 요청의 행사.
+async function periodOf(tx: Tx, councilId: string, actor: string, year: number) {
+  const base = { councilId, actor }
+  const fiscalPeriodId = await createRecord(tx, {
+    ...base,
+    kind: 'fiscal_period',
+    values: { name: `${year}`, startsOn: `${year}-01-01`, endsOn: `${year}-12-31` },
+  })
+  const budgetId = await createRecord(tx, { ...base, kind: 'budget', values: { fiscalPeriodId } })
+  const budgetItemId = await createRecord(tx, {
+    ...base,
+    kind: 'budget_item',
+    values: { budgetId, type: 'income', purpose: '참가비', amount: '1000' },
+  })
+  return { fiscalPeriodId, budgetItemId }
+}
+const makeIncome = (
+  tx: Tx,
+  councilId: string,
+  actor: string,
+  values: { fiscalPeriodId: string } & Record<string, unknown>,
+) =>
+  createRecord(tx, {
+    kind: 'income',
+    councilId,
+    actor,
+    values: { source: 'participation_fee', amount: '1000', receivedOn: '2026-05-01', ...values },
+  })
+const makeDeposit = (tx: Tx, s: Seed, registrationId: string, values = {}) =>
+  createRecord(tx, {
+    kind: 'deposit',
+    councilId: s.mine,
+    actor: s.kim,
+    values: { registrationId, amount: '5000', confirmedAt: clockNow, ...values },
+  })
+const makeRequest = (tx: Tx, s: Seed, values = {}) =>
+  createRecord(tx, {
+    kind: 'request',
+    councilId: s.mine,
+    actor: s.kim,
+    values: { type: 'purchase', title: '요청', requestedBy: s.kim, ...values },
+  })
+
+test('입금 기록과 수입을 만들면 판이 하나이고, 입금 기록의 수입은 바꾸면 판이 는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const form = await db.transaction(tx => makeForm(tx, s))
+    const registration = await db.transaction(tx => makeRegistration(tx, s, form))
+    const mineOf = await db.transaction(tx => periodOf(tx, s.mine, s.kim, 2026))
+    const income = await db.transaction(tx =>
+      makeIncome(tx, s.mine, s.kim, { ...mineOf, accountId: s.account }),
+    )
+    const deposit = await db.transaction(tx => makeDeposit(tx, s, registration))
+    for (const id of [income, deposit]) assert.equal(await versionCount(pg, id), 1)
+    await db.transaction(tx =>
+      updateRecords(tx, [
+        change(s, 'deposit', deposit, { incomeId: income }),
+        change(s, 'income', income, { description: '고침', cancelledAt: clockNow }),
+      ]),
+    )
+    for (const id of [income, deposit]) assert.equal(await versionCount(pg, id), 2)
+    const { rows } = await pg.query<{ income_id: string }>(
+      'SELECT income_id FROM deposit WHERE id = $1',
+      [deposit],
+    )
+    assert.equal(rows[0]!.income_id, income)
+  } finally {
+    await close()
+  }
+})
+
+test('다른 학생회의 신청, 회계 기간, 예산 항목, 계좌, 행사로 입금 기록·수입·요청을 만들면 실패하고 하위 행과 판이 없다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const theirForm = await db.transaction(tx =>
+      makeForm(tx, { ...s, event: s.theirEvent }, {}, s.theirs),
+    )
+    const theirRegistration = await db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'registration',
+        councilId: s.theirs,
+        actor: null,
+        values: { formId: theirForm, name: '학생', appliedFee: '0' },
+      }),
+    )
+    const mineOf = await db.transaction(tx => periodOf(tx, s.mine, s.kim, 2026))
+    const theirOf = await db.transaction(tx => periodOf(tx, s.theirs, s.kim, 2026))
+    const before = await recordCount(pg)
+    const income = (values: { fiscalPeriodId: string } & Record<string, unknown>) =>
+      db.transaction(tx => makeIncome(tx, s.mine, s.kim, values))
+    const attempts: [string, () => Promise<string>][] = [
+      ['입금 기록의 신청', () => db.transaction(tx => makeDeposit(tx, s, theirRegistration))],
+      ['수입의 회계 기간', () => income({ fiscalPeriodId: theirOf.fiscalPeriodId })],
+      [
+        '수입의 예산 항목',
+        () =>
+          income({
+            fiscalPeriodId: mineOf.fiscalPeriodId,
+            budgetItemId: theirOf.budgetItemId,
+          }),
+      ],
+      [
+        '수입의 계좌',
+        () => income({ fiscalPeriodId: mineOf.fiscalPeriodId, accountId: s.theirAccount }),
+      ],
+      ['요청의 행사', () => db.transaction(tx => makeRequest(tx, s, { eventId: s.theirEvent }))],
+    ]
+    for (const [label, attempt] of attempts) {
+      await assert.rejects(attempt(), /학생회/, label)
+      assert.equal(await recordCount(pg), before, label)
+    }
+    for (const table of ['deposit', 'income', 'request'])
+      assert.equal((await pg.query(`SELECT 1 FROM ${table}`)).rows.length, 0, table)
+  } finally {
+    await close()
+  }
+})
+
+test('입금 기록의 신청·금액, 수입의 회계 기간·출처·금액, 요청의 행사는 바꾸지 못하고, 수입의 예산 항목·계좌와 입금 기록의 수입은 바꿀 때도 같은 학생회여야 한다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const form = await db.transaction(tx => makeForm(tx, s))
+    const registration = await db.transaction(tx => makeRegistration(tx, s, form))
+    const mineOf = await db.transaction(tx => periodOf(tx, s.mine, s.kim, 2026))
+    const theirOf = await db.transaction(tx => periodOf(tx, s.theirs, s.kim, 2026))
+    const income = await db.transaction(tx => makeIncome(tx, s.mine, s.kim, mineOf))
+    const theirIncome = await db.transaction(tx =>
+      makeIncome(tx, s.theirs, s.kim, { fiscalPeriodId: theirOf.fiscalPeriodId }),
+    )
+    const deposit = await db.transaction(tx => makeDeposit(tx, s, registration))
+    const request = await db.transaction(tx => makeRequest(tx, s, { eventId: s.event }))
+    const owned: [string, string, string[]][] = [
+      ['deposit', deposit, ['registrationId', 'registration_id', 'amount']],
+      ['income', income, ['fiscalPeriodId', 'fiscal_period_id', 'source', 'amount']],
+      ['request', request, ['eventId', 'event_id']],
+    ]
+    for (const [kind, id, keys] of owned)
+      for (const key of keys)
+        await assert.rejects(
+          db.transaction(tx => updateRecords(tx, [change(s, kind, id, { [key]: null })])),
+          /주인 칸/,
+          `${kind} ${key}`,
+        )
+    const foreign: [string, string, object][] = [
+      ['deposit', deposit, { incomeId: theirIncome }],
+      ['deposit', deposit, { income_id: theirIncome }],
+      ['income', income, { budgetItemId: theirOf.budgetItemId }],
+      ['income', income, { budget_item_id: theirOf.budgetItemId }],
+      ['income', income, { accountId: s.theirAccount }],
+      ['income', income, { account_id: s.theirAccount }],
+    ]
+    for (const [kind, id, changes] of foreign)
+      await assert.rejects(
+        db.transaction(tx => updateRecords(tx, [change(s, kind, id, changes)])),
+        /학생회/,
+        `${kind} ${JSON.stringify(changes)}`,
+      )
+    for (const id of [deposit, income, request]) assert.equal(await versionCount(pg, id), 1)
+    await db.transaction(tx =>
+      updateRecords(tx, [
+        change(s, 'deposit', deposit, { incomeId: income }),
+        change(s, 'income', income, { accountId: s.account, budgetItemId: mineOf.budgetItemId }),
+      ]),
+    )
+    assert.equal(await versionCount(pg, deposit), 2)
+  } finally {
+    await close()
+  }
+})
+
+test('취소하지 않은 입금 기록은 신청마다 하나이고 취소하면 다시 둘 수 있다. 환불 시각과 금액은 함께이고 환불액은 입금액 이하다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const form = await db.transaction(tx => makeForm(tx, s))
+    const registration = await db.transaction(tx => makeRegistration(tx, s, form))
+    const first = await db.transaction(tx => makeDeposit(tx, s, registration))
+    await assert.rejects(
+      db.transaction(tx => makeDeposit(tx, s, registration)),
+      constraint('deposit_registration_id_idx'),
+    )
+    const bad: [string, object][] = [
+      ['환불액이 입금액보다 큼', { refundAmount: '5001', refundedAt: clockNow }],
+      ['금액만 있음', { refundAmount: '1' }],
+      ['시각만 있음', { refundedAt: clockNow }],
+    ]
+    for (const [label, changes] of bad)
+      await assert.rejects(
+        db.transaction(tx => updateRecords(tx, [change(s, 'deposit', first, changes)])),
+        constraint('deposit_'),
+        label,
+      )
+    assert.equal(await versionCount(pg, first), 1)
+    await db.transaction(tx =>
+      updateRecords(tx, [
+        change(s, 'deposit', first, { refundAmount: '5000', refundedAt: clockNow }),
+      ]),
+    )
+    await db.transaction(tx =>
+      updateRecords(tx, [change(s, 'deposit', first, { cancelledAt: clockNow })]),
+    )
+    await db.transaction(tx => makeDeposit(tx, s, registration))
+    assert.equal((await pg.query('SELECT 1 FROM deposit')).rows.length, 2)
+  } finally {
+    await close()
+  }
+})

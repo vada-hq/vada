@@ -55,6 +55,8 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'event.create': { who: ['leadership'] },
   'event.set_owner': { who: ['leadership'] },
   'event.update': { who: ['event_owner'] },
+  // 행사 완료와 완료 취소는 회장단이다(DEC-39). 책임자도 물려받지 않는다.
+  'event.complete': { who: ['leadership'] },
   // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).
   'purchase.request': { who: ['member'] },
   'purchase.cancel': { who: ['requester'] },
@@ -63,6 +65,8 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   // 참가 신청 칸(DEC-28 '행사', DEC-25). 관리는 그 행사의 책임자와 담당 부서, 회장단(기준 3 상속)이고 신청자 정보 보기는 거기에 재정부를 더한다.
   // 납부자 명단은 재정부가 올리고, 재정부와 회장단이 본다. 재정은 직급으로 물려받지 않는다(기준 3).
   'registration.manage': { who: ['event_owner', 'event_department', 'leadership'] },
+  // 입금 확인과 확인 취소는 신청 관리와 같은 기준이다(DEC-28, DEC-67). 환불함은 재정부(finance.manage)다.
+  'deposit.confirm': { who: ['event_owner', 'event_department', 'leadership'] },
   'registration.view_applicants': {
     who: ['event_owner', 'event_department', 'leadership', 'finance'],
   },

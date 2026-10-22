@@ -64,6 +64,20 @@
       "when": 1792674703282,
       "tag": "0008_registration_attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792688358331,
+      "tag": "0009_settlement_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792688362670,
+      "tag": "0010_deposit_unique",
+      "breakpoints": true
     }
   ]
 }

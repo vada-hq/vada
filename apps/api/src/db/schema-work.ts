@@ -26,6 +26,7 @@ export const request = pgTable('request', {
   requestedBy: uuid('requested_by').notNull(),
   neededBy: day('needed_by'),
   defaultBudgetItemId: uuid('default_budget_item_id'),
+  eventId: uuid('event_id'),
   cancelledAt: at('cancelled_at'),
 })
 
@@ -84,6 +85,9 @@ export const deposit = pgTable('deposit', {
   amount: won('amount').notNull(),
   confirmedAt: at('confirmed_at').notNull(),
   incomeId: uuid('income_id'),
+  refundedAt: at('refunded_at'),
+  refundAmount: won('refund_amount'),
+  cancelledAt: at('cancelled_at'),
 })
 
 export const attendance = pgTable('attendance', {
