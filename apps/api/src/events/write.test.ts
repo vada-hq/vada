@@ -186,6 +186,45 @@ test(
 )
 
 test(
+  '고치기도 만들기와 같은 입력 경우를 400으로 거절하고 아무것도 바꾸지 않는다',
+  withEvents(async t => {
+    const owner = t.council.people.planningMember
+    const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
+    const bad: Record<string, unknown>[] = [
+      { name: '' },
+      { name: '   ' },
+      { name: '😀'.repeat(EVENT_NAME_MAX + 1) },
+      { name: '가\u0000나' },
+      { name: '가\ud800' },
+      { place: '😀'.repeat(EVENT_PLACE_MAX + 1) },
+      { place: '   ' },
+      { place: '장\u0000소' },
+      { startsAt: '2026-11-05' },
+      { startsAt: '2026-02-30T10:00' },
+      { startsAt: null },
+      { endsAt: '2026-11-05T14:00' },
+      { endsAt: '2026-11-05T13:59' },
+      { startsAt: null, endsAt: '2026-11-05T18:00' },
+      { extra: 1 },
+    ]
+    for (const patch of bad) {
+      const response = await t.post(`/${event.id}`, { ...FULL, ...patch }, 's-planningMember')
+      assert.equal(response.status, 400, JSON.stringify(patch))
+    }
+    assert.equal(await t.versions(event.id), 1)
+  }),
+)
+
+test(
+  '책임자 바꾸기와 고치기는 로그인하지 않으면 401이다',
+  withEvents(async t => {
+    const id = await t.make({})
+    assert.equal((await t.api.post(`${t.base}/${id}/owner`, { ownerId: null })).status, 401)
+    assert.equal((await t.api.post(`${t.base}/${id}`, FULL)).status, 401)
+  }),
+)
+
+test(
   '고치기는 일시를 비우거나 바꾸고, 끝만 남기면 400이며, 다른 학생회 행사와 틀린 번호는 404이다',
   withEvents(async t => {
     const owner = t.council.people.planningMember

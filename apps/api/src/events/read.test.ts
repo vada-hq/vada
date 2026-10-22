@@ -165,3 +165,44 @@ test(
     })
   }),
 )
+
+test(
+  '끝 시각 0.5초 뒤에도 그 초가 끝나지 않았으면 진행 중으로 묶여 날짜 미정보다 앞이다',
+  withEvents(async t => {
+    await t.make({ name: '미정' })
+    await t.make({
+      name: '끝 있는 행사',
+      startsAt: korean('2026-10-25T09:00'),
+      endsAt: korean('2026-10-25T12:00'),
+    })
+    await t.make({ name: '끝 없는 행사', startsAt: korean('2026-10-24T14:00') })
+    t.setNow(new Date(korean('2026-10-25T12:00:00').getTime() + 500))
+    assert.deepEqual(
+      (await t.list()).events.map(item => [item.name, item.status]),
+      [
+        ['끝 있는 행사', 'ongoing'],
+        ['미정', 'tbd'],
+        ['끝 없는 행사', 'ended'],
+      ],
+    )
+    t.setNow(new Date(korean('2026-10-24T23:59:59').getTime() + 500))
+    const names = (await t.list()).events.map(item => item.name)
+    assert.deepEqual(names, ['끝 없는 행사', '끝 있는 행사', '미정'])
+  }),
+)
+
+test(
+  '행사 응답은 no-store이다',
+  withEvents(async t => {
+    const id = await t.make({})
+    const responses = [
+      await t.api.get(t.base, 's-president'),
+      await t.api.get(`${t.base}/${id}`, 's-president'),
+      await t.post('', { name: '새 행사' }),
+      await t.post(`/${id}/owner`, { ownerId: null }),
+    ]
+    for (const response of responses) {
+      assert.equal(response.headers.get('Cache-Control'), 'no-store')
+    }
+  }),
+)
