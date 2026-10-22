@@ -33,12 +33,10 @@ function changesOf(
 async function assertMoveAllowed(
   tx: Tx,
   actor: Actor,
-  row: { id: string },
-  itemEvents: readonly string[],
-  eventId: string | null,
+  move: { expenseId: string; itemEvents: readonly string[]; eventId: string | null },
 ) {
-  assertEventMatchesRequests(await requestEventsOfExpense(tx, actor, row.id), eventId)
-  assertEventMatchesItem(itemEvents, eventId)
+  assertEventMatchesRequests(await requestEventsOfExpense(tx, actor, move.expenseId), move.eventId)
+  assertEventMatchesItem(move.itemEvents, move.eventId)
 }
 
 // 정산 전에 재정부가 사유와 행사를 고친다. 학생회 행 잠금과 운영진 확인 뒤에 부르고, 지출 행을 잠근다. 403이 409보다 먼저다.
@@ -67,7 +65,7 @@ export async function updateExpense(
     moving ? eventId : null,
   ])
   if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
-  if (moving) await assertMoveAllowed(tx, actor, row, itemEvents, eventId)
+  if (moving) await assertMoveAllowed(tx, actor, { expenseId, itemEvents, eventId })
   const changes = changesOf(row, input, { moving, eventId })
   if (Object.keys(changes).length)
     await updateRecord(tx, {

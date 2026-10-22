@@ -47,16 +47,54 @@ function useDepositPost({ councilId, applicant, onDeposit, ...handlers }: Props)
   return { post, step, open, run }
 }
 
-// 신청자 한 줄의 [입금 확인]·[확인 취소]·[환불함]. 보이는 조건은 서버가 준 동작과 입금 상태다. 확인을 거쳐 보낸다.
-export function DepositActions(props: Props) {
-  const { applicant, can } = props
-  const { post, step, open, run } = useDepositPost(props)
+type Allowed = { confirm: boolean; undo: boolean; refund: boolean }
+
+// 보이는 조건: 서버가 준 동작(can)과 입금 상태. 참가비가 없는 신청과 취소한 신청은 입금을 확인하지 않는다.
+function allowedOf({ applicant, can }: Pick<Props, 'applicant' | 'can'>): Allowed {
   const { status, amount } = applicant.deposit
-  const canConfirm =
-    can.deposit && status === 'none' && !applicant.cancelled && applicant.appliedFee > 0
-  const canUndo = can.deposit && (status === 'confirmed' || status === 'refund_pending')
-  const canRefund = can.refund && status === 'refund_pending' && amount !== null
-  if (!canConfirm && !canUndo && !canRefund) return null
+  return {
+    confirm: can.deposit && status === 'none' && !applicant.cancelled && applicant.appliedFee > 0,
+    undo: can.deposit && (status === 'confirmed' || status === 'refund_pending'),
+    refund: can.refund && status === 'refund_pending' && amount !== null,
+  }
+}
+
+type Open = (next: Step) => void
+
+function DepositButtons({ allowed, busy, open }: { allowed: Allowed; busy: boolean; open: Open }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {allowed.confirm && (
+        <Button size="sm" disabled={busy} onClick={() => open('confirm')}>
+          입금 확인
+        </Button>
+      )}
+      {allowed.undo && (
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => open('cancel')}>
+          확인 취소
+        </Button>
+      )}
+      {allowed.refund && (
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => open('refund')}>
+          환불함
+        </Button>
+      )}
+    </div>
+  )
+}
+
+type StepsProps = {
+  applicant: Applicant
+  allowed: Allowed
+  step: Step
+  post: ReturnType<typeof useStaffPost>
+  open: Open
+  run: (tail: string, body: unknown) => Promise<void>
+}
+
+// 열린 확인 창 하나. 권한이나 입금 상태가 바뀌어 동작이 사라졌으면 열지 않는다.
+function DepositSteps({ applicant, allowed, step, post, open, run }: StepsProps) {
+  const { status, amount } = applicant.deposit
   const shared = {
     name: applicant.name,
     busy: post.busy,
@@ -65,26 +103,8 @@ export function DepositActions(props: Props) {
   }
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        {canConfirm && (
-          <Button size="sm" disabled={post.busy} onClick={() => open('confirm')}>
-            입금 확인
-          </Button>
-        )}
-        {canUndo && (
-          <Button variant="outline" size="sm" disabled={post.busy} onClick={() => open('cancel')}>
-            확인 취소
-          </Button>
-        )}
-        {canRefund && (
-          <Button variant="outline" size="sm" disabled={post.busy} onClick={() => open('refund')}>
-            환불함
-          </Button>
-        )}
-      </div>
-      {post.problem && step === null && <StateMessage kind="error">{post.problem}</StateMessage>}
       <ConfirmDialog
-        open={step === 'confirm' && canConfirm}
+        open={step === 'confirm' && allowed.confirm}
         title={`${applicant.name}님의 입금을 확인할까요?`}
         description={`${won(applicant.appliedFee)}이 통장에 들어온 것을 확인한 뒤에 눌러 주세요. VADA는 돈을 옮기지 않고 표시만 해요.`}
         confirmLabel="입금 확인"
@@ -93,20 +113,41 @@ export function DepositActions(props: Props) {
         onConfirm={() => void run('deposit', { amount: applicant.appliedFee })}
         onCancel={() => open(null)}
       />
-      {step === 'cancel' && canUndo && (
+      {step === 'cancel' && allowed.undo && (
         <CancelDepositDialog
           refund={status === 'refund_pending'}
           onSubmit={reason => void run('deposit/cancel', { reason })}
           {...shared}
         />
       )}
-      {step === 'refund' && canRefund && amount !== null && (
+      {step === 'refund' && allowed.refund && amount !== null && (
         <RefundDialog
           deposited={amount}
           onSubmit={refunded => void run('refund', { amount: refunded })}
           {...shared}
         />
       )}
+    </>
+  )
+}
+
+// 신청자 한 줄의 [입금 확인]·[확인 취소]·[환불함]. 확인을 거쳐 보낸다.
+export function DepositActions(props: Props) {
+  const { post, step, open, run } = useDepositPost(props)
+  const allowed = allowedOf(props)
+  if (!allowed.confirm && !allowed.undo && !allowed.refund) return null
+  return (
+    <>
+      <DepositButtons allowed={allowed} busy={post.busy} open={open} />
+      {post.problem && step === null && <StateMessage kind="error">{post.problem}</StateMessage>}
+      <DepositSteps
+        applicant={props.applicant}
+        allowed={allowed}
+        step={step}
+        post={post}
+        open={open}
+        run={run}
+      />
     </>
   )
 }
