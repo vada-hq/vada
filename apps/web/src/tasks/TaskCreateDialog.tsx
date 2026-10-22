@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { MissingHint, missingLabels } from '@/components/ui/field'
 import { EVENTS_LOAD_FAILED, TASK_TEAM_FAILED } from '@/lib/messages'
 import { useTeam } from '@/team/useTeam'
 import { useEvents } from '../events/useEvents'
@@ -122,6 +123,7 @@ function CreateForm({ view, team, events, saving, setSaving, ...props }: FormPro
       />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
+        <MissingHint missing={missingLabels([['제목', form.fields.title]])} />
         <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
           취소
         </Button>

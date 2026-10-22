@@ -8,6 +8,7 @@ import {
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
+import { MissingHint, missingLabels } from '@/components/ui/field'
 import { EventDialogShell } from '@/events/EventDialogShell'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { FeeAccountSelect, useFeeAccount } from './FeeAccountSelect'
@@ -81,6 +82,12 @@ export function FormDialog({ councilId, eventId, form, onClose, onDone, ...handl
         )}
         {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
         <DialogFooter>
+          <MissingHint
+            missing={missingLabels([
+              ['이름', values.name],
+              ['신청 마감', values.closesAt],
+            ])}
+          />
           <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
             취소
           </Button>

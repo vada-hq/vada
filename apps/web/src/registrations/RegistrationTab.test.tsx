@@ -159,9 +159,12 @@ test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이
   const { dialog } = await openCreate(api)
   fireEvent.change(within(dialog).getByLabelText('신청 마감'), { target: { value: '' } })
   expect(submit(dialog)).toHaveProperty('disabled', true)
+  // 꺼진 버튼 옆에 무엇이 비었는지 보인다.
+  expect(within(dialog).getByText('넣어야 할 칸: 신청 마감')).toBeTruthy()
   fireEvent.change(within(dialog).getByLabelText('신청 마감'), {
     target: { value: '2026-10-23T18:00' },
   })
+  expect(within(dialog).queryByText(/넣어야 할 칸/)).toBeNull()
   fireEvent.click(submit(dialog))
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]?.body).toMatchObject({

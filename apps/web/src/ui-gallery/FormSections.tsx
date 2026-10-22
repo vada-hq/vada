@@ -3,6 +3,7 @@ import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Field, MissingHint } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -33,9 +34,28 @@ export function ButtonsSection() {
   )
 }
 
+// 선택 표시와 꺼진 버튼의 이유(Field, MissingHint).
+function FieldExample() {
+  return (
+    <div className="flex w-72 flex-col gap-3">
+      <Field label="행사 이름">
+        <Input aria-required />
+      </Field>
+      <Field label="장소" optional>
+        <Input />
+      </Field>
+      <div className="flex flex-wrap justify-end gap-2">
+        <MissingHint missing={['행사 이름']} />
+        <Button disabled>만들기</Button>
+      </div>
+    </div>
+  )
+}
+
 export function InputsSection() {
   return (
     <Section title="입력">
+      <FieldExample />
       <div className="flex w-72 flex-col gap-1.5">
         <Label htmlFor="g-input">행사 이름</Label>
         <Input id="g-input" placeholder="새 행사 이름" />

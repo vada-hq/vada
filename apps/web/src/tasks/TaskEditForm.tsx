@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { UpdateTaskSchema, type TaskDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { MissingHint, missingLabels } from '@/components/ui/field'
 import { useEvents } from '../events/useEvents'
 import { fieldsOf, fieldsRequest } from './task-fields'
 import { eventChoices } from './task-form-options'
@@ -51,6 +52,7 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
       />
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       <div className="flex justify-end gap-2">
+        <MissingHint missing={missingLabels([['제목', values.title]])} />
         <Button type="button" variant="outline" disabled={saving} onClick={rest.onCancel}>
           취소
         </Button>

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
+import { MissingHint, missingLabels } from '@/components/ui/field'
 import type { EventFieldValues } from './event-fields'
 import { EventFields } from './EventFields'
 
@@ -34,6 +35,7 @@ export function EventForm(props: Props) {
       {props.extra}
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
+        <MissingHint missing={missingLabels([['이름', props.values.name]])} />
         <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
           취소
         </Button>
