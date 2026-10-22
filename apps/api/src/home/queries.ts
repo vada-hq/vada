@@ -6,7 +6,6 @@ import {
   type HomeMine,
   type HomeResponse,
   type HomeTask,
-  type TaskStatus,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { record, task } from '../db/schema.js'
@@ -25,7 +24,7 @@ async function mineOf(db: Reader, actor: Actor, now: Date): Promise<HomeMine> {
   const counts = { overdue: 0, today: 0, soon: 0, later: 0, noDue: 0 }
   const tasks: HomeTask[] = []
   for (const row of rows) {
-    const group = dueGroupOf(row.dueAt, row.status as TaskStatus, now, HOME_SOON_DAYS)
+    const group = dueGroupOf(row.dueAt, now, HOME_SOON_DAYS)
     if (group === 'none') counts.noDue++
     else counts[group]++
     if (group !== 'later' && group !== 'none' && tasks.length < HOME_LIST_LIMIT)

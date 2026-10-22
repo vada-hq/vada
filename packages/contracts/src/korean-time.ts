@@ -18,6 +18,8 @@ export const koreanDateTime = token(KOREAN_DATE_TIME_LENGTH).refine(value => {
     value <= '2999-12-31T23:59'
   )
 })
+// 한국은 일광절약시간이 없어 하루는 24시간이다.
+export const DAY_MS = 86_400_000
 export const dateFromKorean = (value: string) => new Date(`${value}:00+09:00`)
 export const koreanOf = (date: Date) =>
   date

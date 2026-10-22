@@ -1,7 +1,6 @@
-import { dateFromKorean, koreanDateOf, type EventStatus } from '@vada/contracts'
+import { DAY_MS, dateFromKorean, koreanDateOf, type EventStatus } from '@vada/contracts'
 
 const SECOND_MS = 1000
-const DAY_MS = 86_400_000
 
 // 행사가 끝나는 때. 끝을 정하지 않았으면 시작한 날(한국) 23:59:59까지다. 한국은 일광절약시간이 없어 하루는 24시간이다.
 // 목록 정렬의 SQL(queries.ts의 endsAtSql)이 같은 규칙을 쓴다. 한쪽을 고치면 다른 쪽도 고친다.

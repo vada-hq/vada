@@ -85,7 +85,7 @@ test('내 업무는 나에게 맡긴 끝나지 않은 업무를 지남·오늘·
   }
 })
 
-test('끝난 업무, 지운 업무, 남의 업무, 다른 학생회 업무는 없다', async () => {
+test('끝난 업무, 지운 업무, 남의 업무, 다른 학생회 사람의 업무는 없다', async () => {
   const t = await start()
   try {
     const { planningHead } = t.council.people
@@ -97,12 +97,13 @@ test('끝난 업무, 지운 업무, 남의 업무, 다른 학생회 업무는 �
     await t.make({ title: '담당자 없음', dueAt: due('2026-10-24'), assigneeId: null })
     await t.make(
       {
-        title: '다른 학생회 것',
+        title: '다른 학생회 사람의 것',
         dueAt: due('2026-10-24'),
         assigneeId: t.other.people.president.memberId,
       },
       t.other,
     )
+    // 다른 학생회 업무를 내 담당으로 잇는 일은 DB 트리거가 막는다. 그래서 학생회 거르기는 SQL로 시험할 수 없고, 여기서는 담당자가 다른 학생회 사람인 업무가 섞이지 않는지만 본다.
     const { mine } = await t.home()
     assert.deepEqual(
       mine.tasks.map(row => row.title),

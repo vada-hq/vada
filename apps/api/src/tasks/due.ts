@@ -1,4 +1,4 @@
-import { koreanDateOf, type TaskStatus } from '@vada/contracts'
+import { DAY_MS, koreanDateOf, type TaskStatus } from '@vada/contracts'
 
 export const dueDateOf = (dueAt: Date | null) => (dueAt ? koreanDateOf(dueAt) : null)
 
@@ -7,20 +7,13 @@ export function isOverdue(dueAt: Date | null, status: TaskStatus, now: Date) {
   return status !== 'done' && dueAt !== null && koreanDateOf(now) > koreanDateOf(dueAt)
 }
 
-const DAY_MS = 86_400_000
-
 export type DueGroup = 'overdue' | 'today' | 'soon' | 'later' | 'none'
 
-// 끝나지 않은 업무가 마감으로 어느 묶음인가(홈). 지남은 isOverdue와 같은 판단이라 업무 화면의 overdue와 어긋나지 않는다.
+// 끝나지 않은 업무가 마감으로 어느 묶음인가(홈). 끝난 업무는 받지 않는다(부르는 쪽이 거른다). 지남은 isOverdue와 같은 판단이라 업무 화면의 overdue와 어긋나지 않는다.
 // 한국에는 서머타임이 없어 날수를 시각에 더해도 날짜가 밀리지 않는다.
-export function dueGroupOf(
-  dueAt: Date | null,
-  status: TaskStatus,
-  now: Date,
-  soonDays: number,
-): DueGroup {
+export function dueGroupOf(dueAt: Date | null, now: Date, soonDays: number): DueGroup {
   if (dueAt === null) return 'none'
-  if (isOverdue(dueAt, status, now)) return 'overdue'
+  if (isOverdue(dueAt, 'todo', now)) return 'overdue'
   const due = koreanDateOf(dueAt)
   if (due === koreanDateOf(now)) return 'today'
   return due <= koreanDateOf(new Date(now.getTime() + soonDays * DAY_MS)) ? 'soon' : 'later'

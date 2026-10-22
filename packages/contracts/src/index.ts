@@ -56,6 +56,7 @@ export {
   UUID_LENGTH,
 } from './input.js'
 export {
+  DAY_MS,
   KOREAN_DATE_LENGTH,
   koreanDate,
   koreanDateTime,
