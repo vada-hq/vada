@@ -154,6 +154,21 @@ export const BUDGET_ERRORS: Record<string, string> = {
 }
 export const BUDGET_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 
+// 계좌 탭: 더하기, 고치기, 닫기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
+export const ACCOUNTS_LOAD_FAILED = '계좌를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const ACCOUNT_LOST = '이 계좌를 볼 수 없어요. 계좌를 새로 불러왔어요.'
+export const ACCOUNT_ERRORS: Record<string, string> = {
+  MAIN_ACCOUNT_EXISTS:
+    '대표 계좌가 이미 있어요. 그 계좌를 먼저 사업용으로 바꾸거나 닫은 뒤에 정해 주세요.',
+  ACCOUNT_NAME_TAKEN: '같은 이름의 계좌가 있어요. 다른 이름을 적어 주세요.',
+  ACCOUNT_CLOSED: '이미 닫은 계좌예요. 계좌를 새로 불러왔어요.',
+  TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+  INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+}
+export const ACCOUNT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
+export const EXPENSE_ACCOUNTS_FAILED =
+  '계좌 목록을 불러오지 못했어요. 계좌 없이 적을 수 있고, 나중에 알려 주세요.'
+
 // 지출 목록, 적기, 상세, 취소·환급, 증빙 사진. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const EXPENSES_LOAD_FAILED = '지출을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EXPENSE_LOAD_FAILED = '이 지출을 불러오지 못했어요. 연결을 확인해 주세요.'
@@ -172,6 +187,7 @@ export const EXPENSE_ERRORS: Record<string, string> = {
   STORAGE_NOT_CONFIGURED:
     '지금은 사진을 올릴 수 없어요. 지출은 적을 수 있어요. 나중에 다시 해 주세요.',
   BUDGET_ITEM_INVALID: '고를 수 없는 예산 항목이에요. 다른 항목을 골라 주세요.',
+  ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }

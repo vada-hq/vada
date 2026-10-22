@@ -33,6 +33,7 @@ import {
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
 import { METHOD_LABEL } from './expense-view'
+import { ExpenseAccountSelect } from './ExpenseAccountSelect'
 import { ExpenseDirectFields } from './ExpenseDirectFields'
 import { ExpenseRequestFields } from './ExpenseRequestFields'
 import { wonLabel } from './purchase-view'
@@ -239,6 +240,11 @@ function CreateForm({ team, saving, setSaving, memberId, ...props }: FormProps) 
         onForbidden={props.onForbidden}
       />
       <PaymentFields {...shared} today={today} />
+      <ExpenseAccountSelect
+        {...shared}
+        councilId={props.councilId}
+        onForbidden={props.onForbidden}
+      />
       <PayerFields {...shared} team={team} memberId={memberId} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>

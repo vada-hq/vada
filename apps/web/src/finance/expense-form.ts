@@ -16,6 +16,8 @@ export type ExpenseValues = {
   reason: string
   budgetItemId: string | null
   requestedBy: string | null
+  // 돈이 나간 계좌. 비울 수 있다. 대표 계좌로 채우는 것은 계좌 칸이 목록을 읽은 뒤에 한다.
+  accountId: string | null
   requestId: string | null
   lines: PayLine[]
 }
@@ -31,6 +33,7 @@ export const emptyExpense = (today: string): ExpenseValues => ({
   reason: '',
   budgetItemId: null,
   requestedBy: null,
+  accountId: null,
   requestId: null,
   lines: [],
 })
@@ -81,6 +84,7 @@ export function expenseOf(values: ExpenseValues) {
     paidOn: values.paidOn,
     method: values.method,
     paidBy: values.paidBy,
+    accountId: values.accountId,
     reason: orNull(values.reason),
     budgetItemId: requested ? null : values.budgetItemId,
     requestedBy: requested ? null : values.requestedBy,

@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { Action } from '@vada/contracts'
 import FinancePage from '@/finance/FinancePage'
+import { accountsResponse } from './account-fixtures'
 import { councilView, FINANCE_PERMISSIONS } from './council-fixtures'
 import { json, mockApi } from './mock-api'
 
@@ -13,6 +14,8 @@ export const REQUESTS = `${BASE}/purchase-requests`
 export function serveFinance() {
   const api = mockApi()
   api.on('GET', `${REQUESTS}?view=mine`, () => json({ requests: [], truncated: false }))
+  // 지출 적기가 계좌 목록을 읽는다. 따로 정하지 않은 시험에서는 계좌가 없는 학생회다.
+  api.on('GET', `${BASE}/accounts`, () => json(accountsResponse()))
   return api
 }
 

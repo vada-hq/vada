@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { VIEW_LABEL } from './purchase-view'
 
-export type FinanceTab = 'requests' | 'expenses' | 'budget'
+export type FinanceTab = 'requests' | 'expenses' | 'budget' | 'accounts'
 
 export function FinanceTabs({ tab, onTab }: { tab: FinanceTab; onTab: (tab: FinanceTab) => void }) {
   return (
@@ -16,6 +16,9 @@ export function FinanceTabs({ tab, onTab }: { tab: FinanceTab; onTab: (tab: Fina
       </TabButton>
       <TabButton aria-selected={tab === 'budget'} onClick={() => onTab('budget')}>
         예산
+      </TabButton>
+      <TabButton aria-selected={tab === 'accounts'} onClick={() => onTab('accounts')}>
+        계좌
       </TabButton>
     </div>
   )

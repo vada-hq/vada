@@ -11,6 +11,7 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
+import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
@@ -102,6 +103,12 @@ function FinanceTabPanel({
         </>
       ) : tab === 'expenses' ? (
         <ExpensesPanel list={expenses} onOpen={onOpenExpense} />
+      ) : tab === 'accounts' ? (
+        <AccountsTab
+          councilId={view.council.id}
+          canManage={view.permissions.includes('finance.manage')}
+          onForbidden={onForbidden}
+        />
       ) : (
         <BudgetTab
           councilId={view.council.id}
