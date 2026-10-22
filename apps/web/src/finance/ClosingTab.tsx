@@ -110,13 +110,21 @@ function PeriodClosing({
   return <ClosingBody read={read} change={change} exportReady={exportReady} {...rest} />
 }
 
+// 기본 기간은 목록을 처음 읽었을 때 한 번만 정해 둔다. 공개해서 목록이 바뀌어도 보던 기간에 남는다.
+function usePinnedPeriod(list: FiscalPeriodSummary[], today: string) {
+  const [chosenId, setChosenId] = useState<string | null>(null)
+  if (chosenId === null && list.length > 0)
+    setChosenId(defaultClosingPeriod(list, today) ?? chosenPeriod(list, null)?.id ?? null)
+  return [chosenId, setChosenId] as const
+}
+
 // 결산 탭: 기간을 고르고(기본은 끝났고 공개하지 않은 가장 이른 기간, 없으면 지금 기간) 그 기간의 결산서를 본다.
 export function ClosingTab({ exportReady = CLOSING_EXPORT_READY, ...props }: Props) {
   const periods = usePeriods(props.councilId, props.onForbidden)
-  const [chosenId, setChosenId] = useState<string | null>(null)
   const today = koreanDateOf(useNow())
   const list = periods.state.kind === 'ready' ? periods.state.data.periods : []
-  const period = chosenPeriod(list, chosenId ?? defaultClosingPeriod(list, today))
+  const [chosenId, setChosenId] = usePinnedPeriod(list, today)
+  const period = chosenPeriod(list, chosenId)
   if (periods.state.kind === 'failed')
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
   if (periods.state.kind === 'loading')

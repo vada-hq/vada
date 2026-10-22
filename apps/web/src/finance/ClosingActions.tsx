@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Closing } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { ACTION_GONE } from '@/lib/messages'
+import { ACTION_GONE, CLOSING_ERRORS } from '@/lib/messages'
+import { useLatest } from '@/lib/use-latest'
 import { useAskingGuard } from '@/lib/use-asking-guard'
 import { ReopenDialog } from './ReopenDialog'
 import type { ClosingChange, ClosingOutcome } from './useClosing'
@@ -60,9 +61,24 @@ function ReopenAsk({ change, available, onClose, onDone, onGone }: AskProps) {
 }
 
 // 공개를 막는 것이 완료하지 않은 행사라면 그 문구가 버튼 자리에 보인다(행사 줄은 점검에 있다). 점검 자체는 공개를 막지 않는다.
+const blockingShown = (closing: Closing, canManage: boolean) =>
+  canManage && closing.status === 'draft' && closing.feePending.blocking.length > 0
+
+// 거절 문구는 다시 읽은 값이 온 뒤 다음 읽기 때 지운다(그 값이 같은 이유를 이미 보여 준다).
+function useClearStaleProblem(closing: Closing, change: ClosingChange) {
+  const latestProblem = useLatest(change.problem)
+  const seen = useRef<string | null>(null)
+  const { report } = change
+  useEffect(() => {
+    const problem = latestProblem.current
+    if (problem === null || seen.current !== problem) seen.current = problem
+    else report(null)
+  }, [closing, latestProblem, report])
+}
+
 function BlockingNotice({ closing, canManage }: { closing: Closing; canManage: boolean }) {
   const count = closing.feePending.blocking.length
-  if (!canManage || closing.status !== 'draft' || count === 0) return null
+  if (!blockingShown(closing, canManage)) return null
   return (
     <StateMessage kind="notice">
       완료하지 않은 행사 {count}개의 참가비가 아직 수입에 없어요. 아래 점검의 행사를 완료하면 공개할
@@ -83,6 +99,9 @@ export function ClosingActions({ closing, change, canManage }: Props) {
     change.report(null)
     setAsking(null)
   }
+  useClearStaleProblem(closing, change)
+  const hideProblem =
+    blockingShown(closing, canManage) && change.problem === CLOSING_ERRORS.FEE_INCOME_PENDING
   const ask = { change, onClose: close, onDone: () => setAsking(null) }
   const onGone = () => {
     setAsking(null)
@@ -101,7 +120,7 @@ export function ClosingActions({ closing, change, canManage }: Props) {
         </Button>
       )}
       <BlockingNotice closing={closing} canManage={canManage} />
-      {asking === null && change.problem && (
+      {asking === null && change.problem && !hideProblem && (
         <StateMessage kind="error">{change.problem}</StateMessage>
       )}
       {asking === 'publish' && <PublishAsk {...ask} available={canPublish} onGone={onGone} />}

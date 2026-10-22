@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { setTermsRequiredHandler } from './api'
-import { downloadFile, downloadName } from './download'
+import { downloadFile, downloadName, saveByFrame } from './download'
 
 afterEach(() => {
+  document.querySelectorAll('iframe').forEach(frame => frame.remove())
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -93,5 +94,45 @@ test('내려받기가 403 TERMS_REQUIRED로 막히면 동의 화면 처리기에
     expect(handler).toHaveBeenCalledOnce()
   } finally {
     setTermsRequiredHandler(null)
+  }
+})
+
+// 서버가 문서로 답해 iframe에 뜬 모습. 주소를 실제로 받지는 않으므로 본문을 직접 쓴다.
+function showIn(frame: HTMLIFrameElement, text: string) {
+  const doc = frame.contentDocument!
+  doc.open()
+  doc.write(`<body>${text}</body>`)
+  doc.close()
+}
+
+test('묶음 iframe에 JSON 오류 문서가 뜨면 오류 코드를 돌려주고 iframe을 지운다', async () => {
+  const result = saveByFrame('/api/x/audit.zip')
+  const frame = document.querySelector('iframe')!
+  expect(frame.hidden).toBe(true)
+  expect(frame.getAttribute('src')).toBe('/api/x/audit.zip')
+  showIn(frame, JSON.stringify({ error: 'EXPORT_TOO_LARGE' }))
+  frame.dispatchEvent(new Event('load'))
+  expect(await result).toEqual({ ok: false, code: 'EXPORT_TOO_LARGE' })
+  expect(document.querySelector('iframe')).toBeNull()
+})
+
+test('묶음 iframe에 JSON이 아닌 문서가 뜨면 코드 없이 실패한다', async () => {
+  const result = saveByFrame('/api/x/audit.zip')
+  const frame = document.querySelector('iframe')!
+  showIn(frame, 'not json')
+  frame.dispatchEvent(new Event('load'))
+  expect(await result).toEqual({ ok: false, code: null })
+})
+
+test('묶음 iframe에 문서가 뜨지 않으면(첨부) 기다린 뒤 성공으로 보고 iframe을 지운다', async () => {
+  vi.useFakeTimers()
+  try {
+    const result = saveByFrame('/api/x/audit.zip')
+    expect(document.querySelector('iframe')).not.toBeNull()
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await result).toEqual({ ok: true })
+    expect(document.querySelector('iframe')).toBeNull()
+  } finally {
+    vi.useRealTimers()
   }
 })

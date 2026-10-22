@@ -1,11 +1,19 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { ACTION_GONE, CLOSING_ERRORS, CLOSING_HIDDEN, CLOSING_LOST } from '@/lib/messages'
+import {
+  ACTION_GONE,
+  CLOSING_ERRORS,
+  CLOSING_HIDDEN,
+  CLOSING_LOST,
+  PERMISSION_CHANGED,
+} from '@/lib/messages'
+import { purchaseDetail } from '@/test-support/purchase-fixtures'
+import { settle } from '@/test-support/settle'
 import { closingFixture } from '@/test-support/closing-fixtures'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { expenseDetail } from '@/test-support/expense-fixtures'
-import { EXPENSES, serveFinance, showFinance } from '@/test-support/expense-harness'
+import { BASE, EXPENSES, serveFinance, showFinance } from '@/test-support/expense-harness'
 import { CURRENT_PERIOD, periodSummary, standardPeriods } from '@/test-support/income-fixtures'
 import { PERIODS } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
@@ -238,4 +246,103 @@ test('내보내기 버튼은 서버가 파일을 주기 전까지 숨겨져 있�
   await screen.findByText('작성 중')
   expect(screen.queryByRole('button', { name: '공개용 엑셀' })).toBeNull()
   expect(screen.queryByRole('button', { name: '증빙 묶음 받기' })).toBeNull()
+})
+
+test('기본 기간은 처음 한 번만 정한다: 공개해서 목록이 바뀌어도 보던 기간에 남는다', async () => {
+  const ended = (id: string, name: string, startsOn: string, endsOn: string) =>
+    periodSummary(id, { name, startsOn, endsOn, current: false })
+  let published = false
+  const api = serveFinance()
+  api.on('GET', PERIODS, () =>
+    json({
+      periods: [
+        periodSummary(CURRENT_PERIOD),
+        ended('pb', '2021년', '2021-01-01', '2021-12-31'),
+        {
+          ...ended('pa', '2020년', '2020-01-01', '2020-12-31'),
+          ...(published ? { status: 'published' as const } : {}),
+        },
+      ],
+    }),
+  )
+  api.on('GET', `${PERIODS}/pa/closing`, () => json({ closing: closingFixture() }))
+  api.on('GET', `${PERIODS}/pb/closing`, () => json({ closing: closingFixture() }))
+  showFinance()
+  openTab()
+  await screen.findByText('작성 중')
+  expect(screen.getByLabelText('회계 기간')).toHaveProperty('value', 'pa')
+  const before = api.calls.filter(call => call.path === PERIODS).length
+  published = true
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() =>
+    expect(api.calls.filter(call => call.path === PERIODS).length).toBeGreaterThan(before),
+  )
+  await settle()
+  expect(screen.getByLabelText('회계 기간')).toHaveProperty('value', 'pa')
+})
+
+test.each([
+  [403, 'FORBIDDEN', PERMISSION_CHANGED],
+  [404, 'NOT_FOUND', CLOSING_LOST],
+])('공개가 %i로 거절되면 확인을 닫고 문구를 보인다', async (status, error, message) => {
+  const api = serve(PUBLISHABLE)
+  api.on('POST', PUBLISH, () => json({ error }, status))
+  const handlers = await show()
+  fireEvent.click(await screen.findByRole('button', { name: '공개' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '공개' }))
+  expect((await screen.findByRole('alert')).textContent).toBe(message)
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(handlers.onForbidden).toHaveBeenCalledTimes(status === 403 ? 1 : 0)
+})
+
+test.each([
+  [403, 'FORBIDDEN', PERMISSION_CHANGED],
+  [404, 'NOT_FOUND', CLOSING_LOST],
+])('다시 열기가 %i로 거절되면 확인을 닫고 문구를 보인다', async (status, error, message) => {
+  const api = serve(PUBLISHED, {
+    periods: [{ ...standardPeriods().periods[0]!, status: 'published' }],
+  })
+  api.on('POST', REOPEN, () => json({ error }, status))
+  const handlers = await show()
+  fireEvent.click(await screen.findByRole('button', { name: '다시 열기' }))
+  const dialog = screen.getByRole('dialog')
+  fireEvent.change(within(dialog).getByLabelText('다시 여는 사유'), { target: { value: '보완' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '다시 열기' }))
+  expect((await screen.findByRole('alert')).textContent).toBe(message)
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(handlers.onForbidden).toHaveBeenCalledTimes(status === 403 ? 1 : 0)
+})
+
+test('거절 문구는 다시 읽은 값이 온 뒤 다음 읽기 때 지워진다', async () => {
+  const api = serve(PUBLISHABLE)
+  api.on('POST', PUBLISH, () => json({ error: 'CLOSING_PUBLISHED' }, 409))
+  await show()
+  fireEvent.click(await screen.findByRole('button', { name: '공개' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '공개' }))
+  await screen.findByRole('alert')
+  await waitFor(() =>
+    expect(api.calls.filter(call => call.path === CLOSING).length).toBeGreaterThan(1),
+  )
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+})
+
+test('점검의 요청 줄을 누르면 그 요청이 열린다', async () => {
+  const api = serve(
+    closingFixture({
+      checks: [
+        {
+          kind: 'no_reason',
+          count: 1,
+          targets: [{ type: 'request', id: 'r1', title: '포스터 요청' }],
+        },
+      ],
+    }),
+  )
+  api.on('GET', `${BASE}/purchase-requests/r1`, () => json({ request: purchaseDetail('r1') }))
+  await show()
+  fireEvent.click(await screen.findByRole('button', { name: '포스터 요청' }))
+  await waitFor(() =>
+    expect(api.calls.some(call => call.path === `${BASE}/purchase-requests/r1`)).toBe(true),
+  )
 })

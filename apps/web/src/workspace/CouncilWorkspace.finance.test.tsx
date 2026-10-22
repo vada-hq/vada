@@ -10,6 +10,9 @@ import {
 import { roomList } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { BUDGET_A, budgetWithPeriod, LINE_1 } from '@/test-support/budget-fixtures'
+import { closingFixture } from '@/test-support/closing-fixtures'
+import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
+import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import type { Page } from './pages'
 import CouncilWorkspace from './CouncilWorkspace'
@@ -139,4 +142,27 @@ test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다
   fireEvent.change(screen.getByLabelText('포스터 예산 항목'), { target: { value: BUDGET_A } })
   fireEvent.click(screen.getByRole('button', { name: '포스터 승인' }))
   expect((await screen.findAllByLabelText('결재 대기 요청 1개'))[0]!.textContent).toBe('1')
+})
+
+test('결산 점검의 행사 줄을 누르면 행사 화면에서 그 행사가 열린다', async () => {
+  const api = open({ finance: true, startPage: 'finance' })
+  api.on('GET', `${base}/fiscal-periods`, () => json(standardPeriods()))
+  api.on('GET', `${base}/fiscal-periods/${CURRENT_PERIOD}/closing`, () =>
+    json({
+      closing: closingFixture({
+        feePending: {
+          blocking: [
+            { event: { id: EVENT_ID, name: '신입생 환영회' }, depositCount: 1, amount: 1000 },
+          ],
+          nextPeriod: { eventCount: 0, depositCount: 0, amount: 0 },
+        },
+      }),
+    }),
+  )
+  api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
+  api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  fireEvent.click(await screen.findByRole('tab', { name: '결산' }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  expect(await screen.findByRole('tab', { name: '개요' })).toBeTruthy()
+  expect(screen.queryByRole('tab', { name: '결산' })).toBeNull()
 })

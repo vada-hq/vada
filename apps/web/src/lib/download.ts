@@ -41,7 +41,34 @@ export async function downloadFile(
   }
 }
 
-// 큰 파일(증빙 묶음)은 메모리에 받지 않고 주소로 이동해 브라우저가 바로 저장하게 한다. 서버가 Content-Disposition으로 내려받기를 지시하므로 화면은 그대로 남는다.
-export function saveByNavigation(url: string) {
-  window.location.assign(url)
+// 서버가 첨부로 답하면 브라우저는 내려받기만 하고 iframe에 문서가 뜨지 않으므로 load가 오지 않는다. 이만큼 기다려도 문서가 안 뜨면 내려받기가 시작된 것으로 본다.
+const FRAME_GRACE_MS = 8_000
+
+// 큰 파일(증빙 묶음)은 메모리에 받지 않고 숨은 iframe의 주소로 받아 브라우저가 바로 저장하게 한다. 화면은 그대로 남는다.
+// iframe에 문서가 뜨면(load) 서버가 JSON 오류로 답한 것이다. 같은 출처이므로 본문의 오류 코드를 읽어 돌려주고 iframe을 지운다.
+export function saveByFrame(url: string): Promise<{ ok: true } | { ok: false; code: unknown }> {
+  return new Promise(done => {
+    const frame = document.createElement('iframe')
+    frame.hidden = true
+    frame.setAttribute('aria-hidden', 'true')
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const finish = (result: { ok: true } | { ok: false; code: unknown }) => {
+      clearTimeout(timer)
+      frame.remove()
+      done(result)
+    }
+    frame.addEventListener('load', () => {
+      let code: unknown = null
+      try {
+        const text = frame.contentDocument?.body?.textContent ?? ''
+        code = (JSON.parse(text) as { error?: unknown }).error ?? null
+      } catch {
+        code = null
+      }
+      finish({ ok: false, code })
+    })
+    timer = setTimeout(() => finish({ ok: true }), FRAME_GRACE_MS)
+    frame.src = url
+    document.body.append(frame)
+  })
 }

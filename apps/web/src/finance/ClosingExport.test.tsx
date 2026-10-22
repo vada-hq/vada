@@ -1,20 +1,20 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { downloadFile, saveByNavigation } from '@/lib/download'
+import { downloadFile, saveByFrame } from '@/lib/download'
 import { CLOSING_ERRORS, CLOSING_EXPORT_FAILED } from '@/lib/messages'
 import { closingFixture } from '@/test-support/closing-fixtures'
 import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { ClosingTab } from './ClosingTab'
 
-vi.mock('@/lib/download', () => ({ downloadFile: vi.fn(), saveByNavigation: vi.fn() }))
+vi.mock('@/lib/download', () => ({ downloadFile: vi.fn(), saveByFrame: vi.fn() }))
 
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
   vi.mocked(downloadFile).mockReset()
-  vi.mocked(saveByNavigation).mockReset()
+  vi.mocked(saveByFrame).mockReset()
 })
 
 const ORG = '/api/organizations/c1'
@@ -72,12 +72,27 @@ test('감사용 엑셀은 개인정보 경고를 확인한 뒤에야 받는다',
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
-test('증빙 묶음은 경고를 확인한 뒤 주소로 이동해 받는다', async () => {
+test('증빙 묶음은 경고를 확인한 뒤 숨은 iframe으로 받고, 받는 동안 버튼이 막힌다', async () => {
+  let finish!: (value: { ok: false; code: unknown } | { ok: true }) => void
+  vi.mocked(saveByFrame).mockReturnValue(new Promise(done => (finish = done)))
+  show(closingFixture({ actions: [...FINANCE] }))
+  const bundle = await screen.findByRole('button', { name: '증빙 묶음 받기' })
+  fireEvent.click(bundle)
+  expect(saveByFrame).not.toHaveBeenCalled()
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '받기' }))
+  await waitFor(() => expect(saveByFrame).toHaveBeenCalledWith(`${CLOSING}/audit.zip`))
+  await waitFor(() => expect(bundle).toHaveProperty('disabled', true))
+  finish({ ok: true })
+  await waitFor(() => expect(bundle).toHaveProperty('disabled', false))
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+
+test('증빙 묶음이 오류 코드로 거절되면 문구를 버튼 옆에 보인다', async () => {
+  vi.mocked(saveByFrame).mockResolvedValue({ ok: false, code: 'EXPORT_TOO_LARGE' })
   show(closingFixture({ actions: [...FINANCE] }))
   fireEvent.click(await screen.findByRole('button', { name: '증빙 묶음 받기' }))
-  expect(saveByNavigation).not.toHaveBeenCalled()
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '받기' }))
-  await waitFor(() => expect(saveByNavigation).toHaveBeenCalledWith(`${CLOSING}/audit.zip`))
+  expect((await screen.findByRole('alert')).textContent).toBe(CLOSING_ERRORS.EXPORT_TOO_LARGE)
 })
 
 test('상한을 넘으면 묶음 버튼이 꺼지고 이유가 보인다', async () => {
