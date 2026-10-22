@@ -73,7 +73,7 @@
 - `engines`에 위가 열린 범위(`>=22`)를 쓰지 않는다. Render는 열린 범위를 항상 최신 Node로 해석해, 테스트한 버전과 운영 버전이 달라진다.
 
 ## 검사
-- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다. 전체 시험은 CI가 `work/**` 가지와 main에서 돈다
+- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다. 전체 시험은 CI가 main에서 돈다(가지는 손으로만, `docs/work-method.md` 원칙 8)
 - 형식: `npm run format`. 형식은 Prettier가 정한다. 손으로 맞추거나 검토에서 지적하지 않는다
 - 린트: `npm run lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
 - blame에서 형식 커밋 빼기(한 번): `git config blame.ignoreRevsFile .git-blame-ignore-revs`

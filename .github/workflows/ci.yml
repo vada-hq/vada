@@ -4,8 +4,9 @@ name: CI
 on:
   pull_request:
   push:
-    # work/** 는 조각 가지다(docs/work-method.md). 전체 시험은 이 컴퓨터가 아니라 CI가 돈다.
-    branches: [main, 'work/**']
+    # 조각 가지는 로컬 검사와 관련 시험만 돌고, 전체 시험은 main에서 한 번 돈다(docs/work-method.md 원칙 8).
+    # 가지에서 꼭 필요하면 손으로 돌린다: gh workflow run CI --ref <가지>
+    branches: [main]
   workflow_dispatch:
 
 permissions:
