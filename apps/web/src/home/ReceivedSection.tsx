@@ -18,7 +18,7 @@ export default function ReceivedSection({ received, onOpenRequest, onSeeAll }: P
     <Card className="flex flex-col gap-3 p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-gray-900">
-          받은 것{total > 0 && ` ${total}${truncated ? '개 이상' : ''}`}
+          받은 것{total > 0 && ` ${total}${truncated ? '개 이상' : '개'}`}
         </h2>
         {total > requests.length && (
           <Button variant="link" size="sm" className="px-0" onClick={onSeeAll}>

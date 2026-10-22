@@ -69,6 +69,15 @@ test('홈에서 연 행사는 정한 탭으로 시작하고, 목록에서 연 �
   expect(overview.getAttribute('aria-selected')).toBe('true')
 })
 
+test('홈에서 돈 탭으로 연 행사를 닫고 목록에서 다시 열면 개요로 열린다', async () => {
+  setup({ initialEventId: EVENT_ID, initialTab: 'money' })
+  await screen.findByRole('tab', { name: '돈' })
+  fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const overview = await screen.findByRole('tab', { name: '개요' })
+  expect(overview.getAttribute('aria-selected')).toBe('true')
+})
+
 test('목록 카드에 이름, 일시, 상태, 책임자가 보이고 날짜 미정도 보인다', async () => {
   setup()
   const card = (await screen.findByRole('button', { name: '신입생 환영회' })).closest('div')

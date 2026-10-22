@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { EVENT_LIST_LIMIT, type CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -52,6 +53,18 @@ function Cards({ list, onOpen }: { list: EventList; onOpen: (eventId: string) =>
   )
 }
 
+// 홈에서 정한 탭은 처음 연 그 행사에 한 번만 쓴다. 닫고 다시 열면 개요다.
+function useFirstTab(eventId: string | undefined, tab: EventTab | undefined) {
+  const [first, setFirst] = useState(tab)
+  return {
+    tabFor: (openId: string) => (openId === eventId ? first : undefined),
+    consume: (then: () => void) => {
+      setFirst(undefined)
+      then()
+    },
+  }
+}
+
 // 옆 메뉴 '행사': 진행 중 → 예정 → 날짜 미정 → 끝남 순서의 목록(서버가 센다). 행사를 누르면 그 행사가 열린다.
 export default function EventsPage({
   view,
@@ -61,6 +74,7 @@ export default function EventsPage({
   onTasksChanged,
 }: Props) {
   const dialogs = useRecordDialogs(initialEventId)
+  const first = useFirstTab(initialEventId, initialTab)
   const list = useEvents(view.council.id, onForbidden)
   const lost = { onLost: dialogs.lose, onForbidden }
   if (dialogs.openId !== null)
@@ -70,8 +84,8 @@ export default function EventsPage({
           key={dialogs.openId}
           view={view}
           eventId={dialogs.openId}
-          initialTab={dialogs.openId === initialEventId ? initialTab : undefined}
-          onBack={dialogs.closeDetail}
+          initialTab={first.tabFor(dialogs.openId)}
+          onBack={() => first.consume(dialogs.closeDetail)}
           onChanged={() => void list.reload()}
           onTasksChanged={onTasksChanged}
           {...lost}

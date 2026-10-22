@@ -63,7 +63,7 @@ test('부분은 받은 것, 학생회, 내 부서, 정산할 행사, 내 업무 
   )
   await screen.findByText('내 업무')
   const titles = screen.getAllByRole('heading', { level: 2 }).map(item => item.textContent)
-  expect(titles).toEqual(['받은 것 1', '학생회', '기획부', '정산할 행사', '내 업무'])
+  expect(titles).toEqual(['받은 것 1개', '학생회', '기획부', '정산할 행사', '내 업무'])
 })
 
 test('부분이 없는 사람에게는 내 업무만 보인다', async () => {
@@ -222,5 +222,5 @@ test('정산할 행사 줄을 누르면 그 행사의 돈 탭이 열린다', asy
   fireEvent.click(await screen.findByRole('button', { name: /행사 e9/ }))
   expect(onOpenEvent).toHaveBeenCalledWith('e9', 'money')
   expect(screen.getByText('정산에 남은 것 2')).toBeTruthy()
-  expect(screen.getByRole('heading', { name: '정산할 행사 12' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '정산할 행사 12개' })).toBeTruthy()
 })

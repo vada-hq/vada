@@ -19,7 +19,7 @@ export default function SettlingSection({ settling, onOpenEvent, onSeeAll }: Pro
     <Card className="flex flex-col gap-3 p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-gray-900">
-          정산할 행사{total > 0 && ` ${total}`}
+          정산할 행사{total > 0 && ` ${total}개`}
         </h2>
         {total > events.length && (
           <Button variant="link" size="sm" className="px-0" onClick={onSeeAll}>
