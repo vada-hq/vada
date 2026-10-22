@@ -138,6 +138,7 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
     reason: null,
     budgetItemId: null,
     requestedBy: null,
+    accountId: null,
     lines: [
       { lineItemId: ITEM_1, amount: 25000 },
       { lineItemId: ITEM_2, amount: 6000 },
@@ -194,6 +195,7 @@ test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목
     reason: '급해서 먼저 결제',
     budgetItemId: BUDGET,
     requestedBy: JAEJEONG,
+    accountId: null,
     lines: [],
   })
 })
