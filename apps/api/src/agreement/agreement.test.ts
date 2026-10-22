@@ -216,6 +216,30 @@ test('판 상수를 올리면 동의한 계정도 다시 403이고, 새 판에 �
   }
 })
 
+test('처리방침 판만 올려도 동의한 계정은 다시 403이다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const old = await setup(testDb)
+    await old.post('/api/me/agreement', current, 'u1')
+    const api = caller(
+      createApp({
+        auth: { handler: async () => new Response() },
+        trustedOrigin: ORIGIN,
+        councils: createCouncilRoutes(testDb.db, testSession),
+        agreement: createAgreement(testDb.db, testSession, {
+          ...terms,
+          privacyVersion: '2026-12-01',
+        }),
+      }),
+    )
+    const response = await api.post('/api/organizations/create', council, 'u1')
+    assert.equal(response.status, 403)
+    assert.deepEqual(await response.json(), { error: 'TERMS_REQUIRED' })
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('주소 상수가 비면 막지 않고 동의가 필요 없다고 주며, 동의를 보내도 남기지 않는다', async () => {
   const testDb = await createTestDb()
   try {
