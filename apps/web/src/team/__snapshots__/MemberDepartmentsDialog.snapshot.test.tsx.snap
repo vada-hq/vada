@@ -12,7 +12,7 @@ exports[`만들어 둔 부서가 없음 1`] = `
 <p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
-<p class="text-sm text-gray-500">아직 부서가 없어요.</p>
+<p class="text-sm text-gray-500">아직 어느 부서에도 없어요.</p>
 </section>
 <p class="text-sm text-gray-500">부서가 없어요. 운영진 &gt; 부서에서 먼저 만들어 주세요.</p>
 <button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
@@ -100,7 +100,7 @@ exports[`부서가 없는 사람 1`] = `
 <p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
-<p class="text-sm text-gray-500">아직 부서가 없어요.</p>
+<p class="text-sm text-gray-500">아직 어느 부서에도 없어요.</p>
 </section>
 <section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
 <div class="grid grid-cols-2 gap-2">

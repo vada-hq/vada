@@ -369,7 +369,7 @@ test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부
   })
   expect(row('박새내').textContent).toContain('기획부 차장')
   fireEvent.click(within(dialog).getByRole('button', { name: '기획부에서 빼기' }))
-  await waitFor(() => expect(within(dialog).getByText('아직 부서가 없어요.')).toBeTruthy())
+  await waitFor(() => expect(within(dialog).getByText('아직 어느 부서에도 없어요.')).toBeTruthy())
 })
 
 // 부서 직급(부장·부부장)을 바꾸는 일은 member.manage에 더해 rank.manage도 본다(P19).
@@ -426,7 +426,7 @@ test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () =>
   }) as HTMLButtonElement
   expect(remove.disabled).toBe(false)
   fireEvent.click(remove)
-  await waitFor(() => expect(within(dialog).getByText('아직 부서가 없어요.')).toBeTruthy())
+  await waitFor(() => expect(within(dialog).getByText('아직 어느 부서에도 없어요.')).toBeTruthy())
   expect(posts(api)).toHaveLength(1)
 })
 
