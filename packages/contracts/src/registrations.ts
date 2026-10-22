@@ -99,6 +99,8 @@ export interface RegistrationForm {
 export interface RegistrationFormsResponse {
   forms: RegistrationForm[]
   truncated: boolean
+  // 이 행사에서 지금 사람이 할 수 있는 동작. 양식이 없어도 [신청 양식 만들기]를 보일지 가른다.
+  actions: RegistrationAction[]
 }
 export interface RegistrationFormResponse {
   form: RegistrationForm

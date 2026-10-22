@@ -20,6 +20,7 @@ import {
   REGISTRATION_STAFF_ERRORS,
   REGISTRATION_STAFF_LOST,
 } from '@/lib/messages'
+import type { RegistrationAction } from '@vada/contracts'
 import { RegistrationTab } from './RegistrationTab'
 
 afterEach(() => {
@@ -29,15 +30,14 @@ afterEach(() => {
 
 type Options = {
   forms?: ReturnType<typeof staffForm>[]
-  permissions?: string[]
-  councilRank?: 'president' | null
-  ownerId?: string | null
+  // 이 행사에서 지금 사람이 할 수 있는 동작(양식 목록 응답). 양식이 없어도 온다.
+  actions?: RegistrationAction[]
 }
 
 function setup(options: Options = {}) {
   const api = mockApi()
   const forms = options.forms ?? [staffForm()]
-  api.on('GET', FORMS_PATH, () => json({ forms, truncated: false }))
+  api.on('GET', FORMS_PATH, () => json({ forms, truncated: false, actions: options.actions ?? [] }))
   api.on('GET', ACCOUNTS_PATH, () =>
     json({
       accounts: [
@@ -58,11 +58,9 @@ function setup(options: Options = {}) {
       truncated: false,
     }),
   )
-  const view = councilView('c1', { councilRank: options.councilRank ?? null, memberId: 'm9' })
-  if (options.permissions) view.permissions = options.permissions as typeof view.permissions
+  const view = councilView('c1', { councilRank: null, memberId: 'm9' })
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
-  const owner = options.ownerId ? { id: options.ownerId, name: '책임자', current: true } : null
-  render(<RegistrationTab view={view} eventId={STAFF_EVENT_ID} owner={owner} {...handlers} />)
+  render(<RegistrationTab view={view} eventId={STAFF_EVENT_ID} {...handlers} />)
   return { api, handlers }
 }
 
@@ -91,15 +89,15 @@ test('고치기·멈추기·다시 받기는 actions가 있을 때만, 멈춘 �
   expect(screen.queryByRole('button', { name: '멈추기' })).toBeNull()
 })
 
-test('[신청 양식 만들기]는 회장단 권한이나 행사 책임자일 때만 보이고, [QR로 출석 확인]은 관리 권한이 있을 때만 보인다', async () => {
-  setup({ forms: [staffForm({ actions: [] })] })
+test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한이 있을 때만 보이고(양식이 없어도), [QR로 출석 확인]도 같다', async () => {
+  setup({ forms: [staffForm({ actions: [] })], actions: ['registration.view_applicants'] })
   await screen.findByRole('heading', { name: '환영회 참가 신청' })
   expect(screen.queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
   cleanup()
-  setup({ forms: [], ownerId: 'm9' })
+  setup({ forms: [], actions: ['registration.manage'] })
   expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
   expect(screen.getByText('아직 신청 양식이 없어요.')).toBeTruthy()
 })
 
@@ -115,7 +113,7 @@ async function openCreate(api: ReturnType<typeof mockApi>) {
 const submit = (dialog: HTMLElement) => within(dialog).getByRole('button', { name: '만들기' })
 
 test('만들기: 참가비가 있으면 대표 계좌가 채워지고, 보내는 동안 다시 보내지 않으며, 만든 뒤 닫고 다시 읽는다', async () => {
-  const { api } = setup({ forms: [], ownerId: 'm9' })
+  const { api } = setup({ forms: [], actions: ['registration.manage'] })
   const pending = deferredResponse()
   api.on('POST', FORMS_PATH, () => pending.promise)
   const { dialog } = await openCreate(api)
@@ -150,7 +148,7 @@ test('만들기: 참가비가 있으면 대표 계좌가 채워지고, 보내는
 })
 
 test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 버튼이 꺼진다', async () => {
-  const { api } = setup({ forms: [], ownerId: 'm9' })
+  const { api } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
   const { dialog } = await openCreate(api)
   fireEvent.change(within(dialog).getByLabelText('신청 마감'), { target: { value: '' } })
@@ -168,7 +166,7 @@ test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이
 })
 
 test('만들기 409는 버튼 옆에 문구를 보이고 열어 둔다', async () => {
-  const { api } = setup({ forms: [], ownerId: 'm9' })
+  const { api } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'FEE_ACCOUNT_REQUIRED' }, 409))
   const { dialog } = await openCreate(api)
   fireEvent.click(submit(dialog))
@@ -179,7 +177,7 @@ test('만들기 409는 버튼 옆에 문구를 보이고 열어 둔다', async (
 })
 
 test('만들기 429는 문구를, 403은 학생회를 다시 읽게 하고 대화상자를 닫는다', async () => {
-  const { api, handlers } = setup({ forms: [], ownerId: 'm9' })
+  const { api, handlers } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   const { dialog } = await openCreate(api)
   fireEvent.click(submit(dialog))

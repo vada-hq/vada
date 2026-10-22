@@ -73,12 +73,7 @@ export default function EventDetailView({ view, eventId, onBack, ...props }: Pro
             }}
           />
         ) : tab === 'registrations' ? (
-          <RegistrationTab
-            view={view}
-            eventId={eventId}
-            owner={event?.owner ?? null}
-            {...handlers}
-          />
+          <RegistrationTab view={view} eventId={eventId} {...handlers} />
         ) : (
           <Overview
             councilId={view.council.id}

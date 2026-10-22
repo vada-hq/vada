@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import type { CouncilView, EventSummary, RegistrationForm } from '@vada/contracts'
+import type { CouncilView, RegistrationAction, RegistrationForm } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
@@ -11,7 +11,6 @@ import { useRegistrationForms } from './useRegistrationForms'
 type Props = EventDialogHandlers & {
   view: CouncilView
   eventId: string
-  owner: EventSummary['owner']
 }
 
 // 이 화면에서 바꾼 출석(스캐너 포함). 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
@@ -58,7 +57,7 @@ function useTabDialogs(
 
 // 행사의 '참가 신청' 탭: 신청 양식 카드, 양식 만들기, QR로 출석 확인. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 // 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다.
-export function RegistrationTab({ view, eventId, owner, ...parent }: Props) {
+export function RegistrationTab({ view, eventId, ...parent }: Props) {
   const councilId = view.council.id
   const read = useRegistrationForms(councilId, eventId, parent)
   const reload = () => void read.reload()
@@ -66,12 +65,11 @@ export function RegistrationTab({ view, eventId, owner, ...parent }: Props) {
   const tab = useTabDialogs(parent.onForbidden, reload, markAttended)
   const { setDialog, handlers } = tab
   const forms = read.state.kind === 'ready' ? read.state.data.forms : []
+  const actions = read.state.kind === 'ready' ? read.state.data.actions : []
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar
-        view={view}
-        owner={owner}
-        forms={forms}
+        actions={actions}
         onCreate={() => setDialog({ kind: 'create' })}
         onScan={() => setDialog({ kind: 'scan' })}
       />
@@ -104,23 +102,15 @@ export function RegistrationTab({ view, eventId, owner, ...parent }: Props) {
   )
 }
 
-type ToolbarProps = {
-  view: CouncilView
-  owner: EventSummary['owner']
-  forms: RegistrationForm[]
-  onCreate: () => void
-  onScan: () => void
-}
+type ToolbarProps = { actions: RegistrationAction[]; onCreate: () => void; onScan: () => void }
 
-// [신청 양식 만들기]와 [QR로 출석 확인]. 양식이 없으면 서버가 행사 단위 권한을 알려 주지 않아, 학생회 권한(회장단)과 행사 책임자로 가늠한다. 막히면 서버가 403으로 거절한다.
-function TabToolbar({ view, owner, forms, onCreate, onScan }: ToolbarProps) {
-  const canManage = forms.some(form => form.actions.includes('registration.manage'))
-  const canCreate =
-    canManage || view.permissions.includes('registration.manage') || owner?.id === view.me.memberId
+// [신청 양식 만들기]와 [QR로 출석 확인]. 서버가 이 행사에서 지금 사람이 할 수 있는 동작을 준다(양식이 없어도).
+function TabToolbar({ actions, onCreate, onScan }: ToolbarProps) {
+  const manage = actions.includes('registration.manage')
   return (
     <div className="flex flex-wrap gap-2">
-      {canCreate && <Button onClick={onCreate}>신청 양식 만들기</Button>}
-      {canManage && (
+      {manage && <Button onClick={onCreate}>신청 양식 만들기</Button>}
+      {manage && (
         <Button variant="outline" onClick={onScan}>
           QR로 출석 확인
         </Button>

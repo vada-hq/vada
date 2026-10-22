@@ -179,3 +179,26 @@ test(
     assert.equal((await t.api.get(crossed, 'o-president')).status, 404)
   }),
 )
+
+test(
+  '양식 목록은 양식이 없어도 이 행사에서 할 수 있는 동작을 준다: 담당 부서 true, 다른 부서와 취소한 업무의 부서 false',
+  withRegistrations(async t => {
+    const { departments } = t.council
+    const event = await t.makeEvent()
+    const actionsOf = async (user: string) => (await t.list(event, user)).actions
+    assert.deepEqual(await actionsOf('s-planningMember'), [])
+    const task = await t.makeTask(event, departments.planning)
+    assert.deepEqual(await actionsOf('s-planningMember'), [
+      'registration.manage',
+      'registration.view_applicants',
+    ])
+    assert.deepEqual(await actionsOf('s-financeMember'), ['registration.view_applicants'])
+    assert.deepEqual(await actionsOf('s-plain'), [])
+    assert.deepEqual(await actionsOf('s-president'), [
+      'registration.manage',
+      'registration.view_applicants',
+    ])
+    await t.change('task', task, { cancelledAt: new Date() })
+    assert.deepEqual(await actionsOf('s-planningMember'), [])
+  }),
+)
