@@ -133,8 +133,8 @@ test(
       return Object.fromEntries(rows.map(row => [row.name, row.prev]))
     }
     await make('2025', '2025-01-01', '2025-12-31')
-    // 다른 학생회의 더 이른 기간이 있어도 잡히지 않는다.
-    await make('남의 2026', '2025-06-01', '2025-12-31', 'o-financeMember')
+    // 다른 학생회의 기간이 내 앞 기간보다 늦게 끝나도 잡히지 않는다.
+    await make('남의 2026', '2026-01-01', '2026-06-30', 'o-financeMember')
     await make('2027', '2027-01-01', '2027-12-31')
     // 사이에 끼운 기간은 비고, 뒤 기간의 이전 기간도 그대로다.
     await make('2026', '2026-01-01', '2026-12-31')
@@ -145,6 +145,63 @@ test(
       '2027': '2025',
       '2026': null,
       '2028': '2027',
+    })
+  }),
+)
+
+test(
+  '이전 기간은 가장 늦은 앞 기간만 본다. 그 기간에 이미 다음이 있으면 비운다',
+  runPurchases(async s => {
+    const make = async (name: string, year: number) =>
+      assert.equal(
+        (
+          await s.api.post(
+            `${root(s)}/fiscal-periods`,
+            { name, startsOn: `${year}-01-01`, endsOn: `${year}-12-31` },
+            FINANCE,
+          )
+        ).status,
+        201,
+      )
+    const previousOf = async () => {
+      const { rows } = await s.pg.query<{ name: string; prev: string | null }>(
+        'SELECT p.name, q.name AS prev FROM fiscal_period p LEFT JOIN fiscal_period q ON q.id = p.previous_period_id',
+      )
+      return Object.fromEntries(rows.map(row => [row.name, row.prev]))
+    }
+    // 2025 -> 2024 -> 2027(2025에 이음) -> 2026은 비운다. 더 오래된 2024가 다음 없는 채여도 잡지 않는다.
+    for (const [name, year] of [
+      ['2025', 2025],
+      ['2024', 2024],
+      ['2027', 2027],
+      ['2026', 2026],
+    ] as const)
+      await make(name, year)
+    assert.deepEqual(await previousOf(), {
+      '2025': null,
+      '2024': null,
+      '2027': '2025',
+      '2026': null,
+    })
+  }),
+)
+
+test(
+  '2027 -> 2025 -> 2026 순서로 만들면 2026은 2025에 이어진다',
+  runPurchases(async s => {
+    for (const year of [2027, 2025, 2026])
+      await s.api.post(
+        `${root(s)}/fiscal-periods`,
+        { name: `${year}`, startsOn: `${year}-01-01`, endsOn: `${year}-12-31` },
+        FINANCE,
+      )
+    const { rows } = await s.pg.query<{ name: string; prev: string | null }>(
+      'SELECT p.name, q.name AS prev FROM fiscal_period p LEFT JOIN fiscal_period q ON q.id = p.previous_period_id',
+    )
+    assert.deepEqual(Object.fromEntries(rows.map(row => [row.name, row.prev])), {
+      '2027': null,
+      '2025': null,
+      '2026': '2025',
     })
   }),
 )
