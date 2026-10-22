@@ -12,4 +12,3 @@ export function useAccounts(councilId: string, onForbidden: () => void, enabled 
     enabled,
   )
 }
-export type AccountList = ReturnType<typeof useAccounts>
