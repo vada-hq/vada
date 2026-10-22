@@ -7,6 +7,7 @@ import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
+import type { createEventRoutes } from './events/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
@@ -40,6 +41,8 @@ export type AppOptions = {
   expenses?: ReturnType<typeof createExpenseRoutes>
   // 가입 동의: 지금 판 읽기, 동의하기, 그리고 동의 전 막기(/api/organizations/ 아래 모든 경로에 접두어로 건다). 둘이 한 쌍이라 따로 연결하지 못한다.
   agreement?: ReturnType<typeof createAgreement>
+  // 행사: 목록, 하나 읽기, 만들기, 고치기, 책임자
+  events?: ReturnType<typeof createEventRoutes>
 }
 
 export function createApp({
@@ -56,6 +59,7 @@ export function createApp({
   budget,
   expenses,
   agreement,
+  events,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -81,6 +85,7 @@ export function createApp({
     budget,
     expenses,
     agreement?.routes,
+    events,
   ])
     if (routes) app.route('/api', routes)
   app.onError(handleError)

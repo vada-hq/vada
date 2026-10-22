@@ -148,6 +148,27 @@ export interface HealthResponse {
   status: 'ok'
 }
 export {
+  EVENT_ACTIONS,
+  EVENT_LIST_LIMIT,
+  EVENT_NAME_MAX,
+  EVENT_PLACE_MAX,
+  EVENT_STATUSES,
+  CreateEventSchema,
+  SetEventOwnerSchema,
+  UpdateEventSchema,
+  type CreateEventRequest,
+  type EventAction,
+  type EventChange,
+  type EventDetail,
+  type EventResponse,
+  type EventStatus,
+  type EventSummary,
+  type EventVersion,
+  type EventsResponse,
+  type SetEventOwnerRequest,
+  type UpdateEventRequest,
+} from './events.js'
+export {
   TASK_ACTIONS,
   TASK_BODY_MAX,
   TASK_DONE_LIMIT,

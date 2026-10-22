@@ -88,7 +88,7 @@
 - 닿는 곳: `apps/api/migrations/0006_*.sql`(새 표 `terms_agreement`: 계정, 약관 판, 처리방침 판, 시각, 앞의 셋으로 유일), `scripts/design-sql.ts`(설계 밖 표 목록), `db/schema-auth.ts`, contracts `agreement.ts`(새: 판과 주소 상수, `AgreeSchema`, `AgreementResponse`), `errors.ts`, `apps/api/src/agreement/`(새), `app.ts`(접두어 미들웨어), `serve.ts`, `http/boundary.test.ts`, `test-support/`.
 - 검토: 깊게(인증). 마이그레이션: 있음(새 표). 두 DB에 먼저 적용한 뒤 올린다.
 
-### 3. 행사 만들기, 읽기, 고치기, 책임자 [ ]
+### 3. 행사 만들기, 읽기, 고치기, 책임자 [x]
 - 할 수 있게 되는 것: 회장단이 행사를 만들고 책임자를 정하며, 책임자가 행사를 고치고, 모든 운영진이 행사를 읽는다.
 - 수용 기준: 회장단만 만든다(201, 판 1, 부장·부원 403). 책임자가 내보낸 사람이나 다른 학생회 사람이면 409 `MEMBER_INVALID`. 끝만 있거나 끝이 시작과 같거나 이르면 400이다. `GET events`의 순서, 개수, `truncated`, 상태는 '정한 것'대로이고 한국 자정 ±1초로 시험한다(끝이 없는 행사가 끝남으로 바뀌는 때 포함). 행사 하나는 칸, 책임자(떠났으면 `current: false`), 끝나지 않은 업무 수와 전체 수, 이력, 그 사람의 `actions`를 준다. 책임자만 고치고(책임자가 아닌 회장단 403), 회장단만 책임자를 바꾸거나 비운다. 같은 값이면 판이 늘지 않는다. 다른 학생회 행사와 형식이 틀린 번호 404, 운영진 아님 403, 401. 계정마다 10초에 21번째 만들기는 429다. 학생회 행 잠금이 행사 행 읽기보다 먼저고, 응답은 거래 안에서 만든다. JSON은 `no-store`다. AGENTS.md의 입력 경우를 모두 시험한다.
 - 닿는 곳: contracts `events.ts`(새: 상한, `CreateEventSchema`, `UpdateEventSchema`, `SetEventOwnerSchema`, `EventSummary`, `EventDetail`, `EventsResponse`), `errors.ts`. `apps/api/src/events/`(새: `routes.ts`, `service.ts`, `queries.ts`, `status.ts`), `app.ts`, `serve.ts`, `boundary.test.ts`. 경로는 `/api/organizations/:councilId/` 아래 `GET events`, `GET events/:eventId`, `POST events`, `POST events/:eventId`, `POST events/:eventId/owner`.
