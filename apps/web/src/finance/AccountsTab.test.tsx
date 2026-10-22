@@ -5,13 +5,13 @@ import {
   accountItem,
   accountsResponse,
   BUSINESS_ACCOUNT_ID,
-  CLOSED_ACCOUNT_ID,
   MAIN_ACCOUNT_ID,
   standardAccounts,
 } from '@/test-support/account-fixtures'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
+import { ACCOUNT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
 afterEach(() => {
@@ -179,17 +179,30 @@ test('이미 닫은 계좌(409)면 닫고 이유를 보이며 목록을 다시 �
   await waitFor(() => expect(reads().length).toBeGreaterThan(before))
 })
 
-test('계좌가 없어졌거나(404) 권한을 잃으면(403) 이유를 보인다', async () => {
+test('고치다 계좌가 없어졌으면(404) 이유를 보이고 대화상자를 닫고 목록을 다시 읽는다', async () => {
+  const { api } = await open()
+  api.on('POST', `${ACCOUNTS}/${BUSINESS_ACCOUNT_ID}`, () => json({ error: 'NOT_FOUND' }, 404))
+  const reads = () => api.calls.filter(call => call.method === 'GET' && call.path === ACCOUNTS)
+  const before = reads().length
+  fireEvent.click(within(cardOf('행사 통장')).getByRole('button', { name: '고치기' }))
+  await screen.findByRole('form', { name: '계좌 고치기' })
+  fireEvent.click(button('고치기'))
+  expect(await screen.findByText(ACCOUNT_LOST)).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  await waitFor(() => expect(reads().length).toBeGreaterThan(before))
+})
+
+test('닫다 권한을 잃으면(403) 학생회를 다시 읽게 하고 이유를 보인다', async () => {
   const { api, handlers } = await open()
-  api.on('POST', `${ACCOUNTS}/${CLOSED_ACCOUNT_ID}`, () => json({ error: 'NOT_FOUND' }, 404))
   api.on('POST', `${ACCOUNTS}/${BUSINESS_ACCOUNT_ID}/close`, () =>
     json({ error: 'FORBIDDEN' }, 403),
   )
   fireEvent.click(within(cardOf('행사 통장')).getByRole('button', { name: '닫기' }))
   await screen.findByText(/행사 통장 계좌를 닫을까요/)
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '계좌 닫기' }))
-  await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
-  expect(await screen.findByText(/권한이 바뀌었어요|권한/)).toBeTruthy()
+  expect(await screen.findByText(PERMISSION_CHANGED)).toBeTruthy()
+  expect(handlers.onForbidden).toHaveBeenCalled()
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
 
 test('불러오지 못하면 오류와 [다시 시도]가 보인다', async () => {
