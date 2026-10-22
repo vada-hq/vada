@@ -7,6 +7,7 @@ import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
+import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
@@ -43,6 +44,8 @@ export type AppOptions = {
   agreement?: ReturnType<typeof createAgreement>
   // 행사: 목록, 하나 읽기, 만들기, 고치기, 책임자
   events?: ReturnType<typeof createEventRoutes>
+  // 계좌: 목록, 만들기, 고치기, 닫기
+  accounts?: ReturnType<typeof createAccountRoutes>
 }
 
 export function createApp({
@@ -60,6 +63,7 @@ export function createApp({
   expenses,
   agreement,
   events,
+  accounts,
 }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
@@ -86,6 +90,7 @@ export function createApp({
     expenses,
     agreement?.routes,
     events,
+    accounts,
   ])
     if (routes) app.route('/api', routes)
   app.onError(handleError)

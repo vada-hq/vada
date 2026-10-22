@@ -1,4 +1,5 @@
 import { ownerChangeAndWriteCase } from './pg-smoke-event-cases.js'
+import { closeAndSpendCase, mainAccountTogetherCase } from './pg-smoke-account-cases.js'
 import { expenseTogetherCase } from './pg-smoke-expense-cases.js'
 import { sendAndRemoveCase, sendTogetherCase } from './pg-smoke-chat-cases.js'
 import {
@@ -51,4 +52,6 @@ export const smokeCases: readonly SmokeCase[] = [
   cancelAndDecideCase,
   expenseTogetherCase,
   ownerChangeAndWriteCase,
+  mainAccountTogetherCase,
+  closeAndSpendCase,
 ]

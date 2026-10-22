@@ -103,6 +103,7 @@ async function expenseIn(db: Db, run: Run, label: string) {
         reason: null,
         budgetItemId: null,
         requestedBy: null,
+        accountId: null,
         lines: [],
       },
       context.now,

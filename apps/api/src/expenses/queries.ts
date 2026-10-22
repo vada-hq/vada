@@ -12,6 +12,7 @@ import {
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import {
+  account,
   approval,
   budgetItem,
   evidence,
@@ -58,6 +59,8 @@ function expenseRows(
       cancelledAt: expense.cancelledAt,
       budgetItemId: expense.budgetItemId,
       purpose: budgetItem.purpose,
+      accountId: expense.accountId,
+      accountName: account.name,
       evidenceCount: evidenceCount.mapWith(Number),
     })
     .from(expense)
@@ -65,6 +68,7 @@ function expenseRows(
     .leftJoin(payer, eq(payer.id, expense.paidBy))
     .leftJoin(requester, eq(requester.id, expense.requestedBy))
     .leftJoin(budgetItem, eq(budgetItem.id, expense.budgetItemId))
+    .leftJoin(account, eq(account.id, expense.accountId))
     .where(and(eq(record.councilId, actor.councilId), options.where))
     .orderBy(desc(expense.paidAt), desc(expense.id))
     .limit(options.limit)
@@ -202,6 +206,7 @@ export async function expenseDetailOf(
     requestedBy: person(row.requestedById, row.requesterName),
     budgetItem:
       row.budgetItemId && row.purpose ? { id: row.budgetItemId, purpose: row.purpose } : null,
+    account: row.accountId && row.accountName ? { id: row.accountId, name: row.accountName } : null,
     lines: await linesOf(db, expenseId),
     evidence: await evidenceOf(db, expenseId),
     approvals: await approvalsOf(db, expenseId),

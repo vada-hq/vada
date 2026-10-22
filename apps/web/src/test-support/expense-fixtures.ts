@@ -23,6 +23,7 @@ export const expenseDetail = (id = 'e1', extra: Partial<ExpenseDetail> = {}): Ex
   reason: null,
   requestedBy: null,
   budgetItem: null,
+  account: null,
   lines: [],
   evidence: [],
   approvals: [
