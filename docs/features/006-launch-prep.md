@@ -100,7 +100,7 @@
 - 닿는 곳: contracts `tasks.ts`(행사 칸, 목록 거르기, 줄의 행사), `errors.ts`. `tasks/service.ts`, `tasks/queries.ts`, `tasks/list-query.ts`, `tasks/actions.ts`, `tasks/write-routes.ts`, `ops/pg-smoke/`(책임자 바꾸기와 겹치기).
 - 검토: 깊게. 마이그레이션: 없음.
 
-### 5. 계좌와 지출의 계좌(서버) [ ]
+### 5. 계좌와 지출의 계좌(서버) [x]
 - 할 수 있게 되는 것: 재정부가 계좌를 두고 고치고 닫으며, 지출에 돈이 나간 계좌가 남는다.
 - 수용 기준: 재정부만 만들고 고치고 닫는다(회장단 403). 모든 운영진이 `GET accounts`로 본다(닫은 것은 뒤에 닫은 날과 함께). 계좌번호에 숫자와 '-' 밖의 글자는 400이다. 닫지 않은 대표 계좌가 있는데 대표를 만들거나 바꾸면 409 `MAIN_ACCOUNT_EXISTS`이고 동시에 둘이 해도 하나만 된다. 같은 이름은 409 `ACCOUNT_NAME_TAKEN`, 닫은 계좌를 고치거나 다시 닫으면 409 `ACCOUNT_CLOSED`다. 지출 적기에 계좌를 보내면 남고 상세에 계좌 이름이 보인다. 다른 학생회나 닫은 계좌는 409 `ACCOUNT_INVALID`이고 지출이 생기지 않는다. 계좌 없이 적는 기존 시험은 그대로 통과한다. 다른 학생회 계좌 404, 403, 401. 로그에 계좌번호와 예금주가 없다.
 - 닿는 곳: contracts `accounts.ts`(새), `expenses.ts`(계좌 칸, 상세의 계좌), `errors.ts`. `apps/api/src/accounts/`(새), `expenses/service.ts`, `expenses/queries.ts`, `app.ts`, `serve.ts`, `boundary.test.ts`, `ops/pg-smoke/`. 경로는 `GET accounts`, `POST accounts`, `POST accounts/:accountId`, `POST accounts/:accountId/close`.

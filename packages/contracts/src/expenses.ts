@@ -52,6 +52,8 @@ export const CreateExpenseSchema = z
     reason: text(EXPENSE_REASON_MAX).nullable().default(null),
     budgetItemId: recordIdInput.nullable().default(null),
     requestedBy: recordIdInput.nullable().default(null),
+    // 돈이 나간 계좌. 닫지 않은 이 학생회의 계좌만 받는다.
+    accountId: recordIdInput.nullable().default(null),
     lines: z.array(PaymentLineSchema).max(PURCHASE_ITEMS_MAX).default([]),
   })
   .refine(
@@ -133,6 +135,8 @@ export interface ExpenseDetail extends ExpenseSummary {
   reason: string | null
   requestedBy: PurchasePerson | null
   budgetItem: { id: string; purpose: string } | null
+  // 돈이 나간 계좌. 닫은 계좌도 이름이 보인다.
+  account: { id: string; name: string } | null
   lines: ExpensePaymentLine[]
   evidence: ExpenseEvidence[]
   approvals: ExpenseApproval[]

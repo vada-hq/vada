@@ -5,6 +5,7 @@ import {
   type ExpenseDetail,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { assertUsableAccount } from '../accounts/queries.js'
 import { can } from '../access/permissions.js'
 import { assertCurrentExpenseItems } from '../budget/queries.js'
 import { currentMembersAmong } from '../chat/current-members.js'
@@ -31,6 +32,8 @@ async function assertInputAllowed(tx: Tx, actor: Actor, input: CreateExpense, no
   if (input.paidOn > koreanDateOf(now)) throw new ApiError('INVALID_INPUT')
   await assertCurrentMembers(tx, actor, [input.paidBy, input.requestedBy], now)
   if (input.budgetItemId) await assertCurrentExpenseItems(tx, actor, [input.budgetItemId], now)
+  // 학생회 행을 잠근 뒤에 읽으므로 계좌 닫기와 겹쳐도 하나로 정해진다.
+  if (input.accountId) await assertUsableAccount(tx, actor, input.accountId)
   await assertPayable(
     tx,
     actor,
@@ -62,6 +65,7 @@ export async function createExpense(
       budgetItemId: input.budgetItemId,
       requestedBy: input.requestedBy,
       paidBy: input.paidBy,
+      accountId: input.accountId,
     },
   })
   for (const line of input.lines)
