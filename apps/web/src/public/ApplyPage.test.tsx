@@ -41,6 +41,16 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText(/지우는 날: 2027년 10월 24일/)).toBeTruthy()
 })
 
+// 학생이 언제까지 신청할지 알아야 미루지 않는다(notes/frontend-findings.md RG-4).
+test('받는 중이면 신청 마감이 보이고, 마감된 양식에는 없다', async () => {
+  setup()
+  expect(await screen.findByText('10월 23일 (금) 18:00까지')).toBeTruthy()
+  cleanup()
+  setup(publicForm({ status: 'closed' }))
+  await screen.findByText('신청이 마감됐어요.')
+  expect(screen.queryByText(/18:00까지/)).toBeNull()
+})
+
 test('참가비가 같으면 학번 칸이 없고 휴대폰을 받으면 칸이 생긴다', async () => {
   setup(publicForm({ payerFee: 0, nonPayerFee: 0, collectsStudentId: false, collectsPhone: true }))
   await screen.findByLabelText('이름')

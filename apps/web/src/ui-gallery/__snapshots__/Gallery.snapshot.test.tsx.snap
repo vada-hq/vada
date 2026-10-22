@@ -774,6 +774,10 @@ exports[`대화상자 열기 1`] = `
 </div>
 <dl class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
+<div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
 </div>
@@ -2330,6 +2334,10 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 <dl class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
+<div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
 </div>
@@ -3882,6 +3890,10 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 <dl class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
+<div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
 </div>
@@ -5431,6 +5443,10 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 <dl class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
+<div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
 </div>
@@ -6976,6 +6992,10 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500">남은 자리 12</span>
 </div>
 <dl class="flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
 <div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
@@ -8527,6 +8547,10 @@ exports[`처음 모양 1`] = `
 </div>
 <dl class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
+<div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
 </div>
@@ -10056,6 +10080,10 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500">남은 자리 12</span>
 </div>
 <dl class="flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<dt class="text-xs font-medium text-gray-500">신청 마감</dt>
+<dd class="text-sm text-gray-800 wrap-anywhere">10월 23일 (금) 18:00까지</dd>
+</div>
 <div class="flex flex-col gap-1">
 <dt class="text-xs font-medium text-gray-500">일시</dt>
 <dd class="text-sm text-gray-800 wrap-anywhere">10월 24일 (토) 14:00 ~ 18:00</dd>
