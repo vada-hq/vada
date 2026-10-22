@@ -201,7 +201,7 @@
 - **외부 webhook과 콜백**: 서명 확인과 재전송 막기, `boundary.test.ts`의 `outsideGuard`에 이유.
 - **새 비밀 값이나 환경 변수**: `runtime.ts` 필수 목록, CI 운영 모드 시작의 가짜 값, Render 설정, `.env.example`을 함께.
 - **새 의존성**: 정확한 버전, 관리 여부와 라이선스, 운영 의존성이면 `npm audit`.
-- **새 표, 칸, 제약**: AGENTS.md '마이그레이션' 순서.
+- **새 표, 칸, 제약**: AGENTS.md '마이그레이션' 순서. 새 표를 더하면 `apps/api/src/ops/migrate`의 public 표 수 시험(`migrate-check.test.ts`, `migrate-run.test.ts`)도 같이 고치고 돌린다. 기능 007에서 이것이 빠져 main CI가 4번 실패했다.
 - **새로 저장하는 개인정보**: 로그와 Sentry에 넣지 않고(`scrubEvent`), 보관 기간을 정한다.
 - **새 라우트 모듈**: `AppOptions`로 연결하고 경계 시험을 둔다.
 - **새 경계 규칙**: 문장 대신 `no-restricted-imports` override로 강제할 수 있는지.
@@ -211,7 +211,7 @@
 
 기능 2, 3, 4의 검토에서 두 작업 이상 다시 잡힌 것이다. 작업자는 커밋 전에 스스로 확인하고, 검토자는 같은 목록으로 본다([Google 코드 리뷰, 작성자 안내](https://google.github.io/eng-practices/review/developer/)).
 
-1. 대상이 사라지거나 권한을 잃은 대화상자와 양식은 닫고 이유를 보인다.
+1. 대상이 사라지거나 권한을 잃은 대화상자와 양식은 닫고 이유를 보인다. 기능 007의 조각 6, 7에서 다시 나왔고, 조각 7이 만든 `apps/web/src/registrations/useDialogGuard.ts`(404·403을 받으면 닫고 이유를 남긴다)를 쓴다. 다른 기능이 쓰게 되면 `src/lib`로 옮긴다(9번).
 2. 진행 중인 버튼은 막는다(두 번 보내기 금지).
 3. 오류는 그 동작 옆에 보인다(390px에서 보이는 곳).
 4. 401·403·404 경로마다 시험을 둔다.
