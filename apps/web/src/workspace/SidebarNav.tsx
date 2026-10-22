@@ -1,4 +1,12 @@
-import { CalendarDays, ListChecks, MessageSquare, Network, Users, Wallet } from 'lucide-react'
+import {
+  CalendarDays,
+  House,
+  ListChecks,
+  MessageSquare,
+  Network,
+  Users,
+  Wallet,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
@@ -76,25 +84,28 @@ function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void 
   )
 }
 
-// 옆 메뉴 가운데: 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
-export default function SidebarNav({
+// 홈(배지 없음), 대화(안 읽은 수 합계), 행사.
+function LeadItems({
   page,
   unread,
-  taskCount,
-  pendingCount,
   onPage,
 }: {
   page: Page
   unread: number
-  taskCount: TaskCount | null
-  pendingCount: PendingCount | null
   onPage: (page: Page) => void
 }) {
   return (
-    <nav aria-label="학생회 메뉴" className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+    <>
+      <NavItem
+        active={page === 'home'}
+        className="flex items-center gap-2"
+        onClick={() => onPage('home')}
+      >
+        <House aria-hidden className="size-4" />홈
+      </NavItem>
       <NavItem
         active={page === 'chat'}
-        className="flex items-center gap-2"
+        className="mt-1 flex items-center gap-2"
         onClick={() => onPage('chat')}
       >
         <MessageSquare aria-hidden className="size-4" />
@@ -113,6 +124,27 @@ export default function SidebarNav({
         <CalendarDays aria-hidden className="size-4" />
         행사
       </NavItem>
+    </>
+  )
+}
+
+// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
+export default function SidebarNav({
+  page,
+  unread,
+  taskCount,
+  pendingCount,
+  onPage,
+}: {
+  page: Page
+  unread: number
+  taskCount: TaskCount | null
+  pendingCount: PendingCount | null
+  onPage: (page: Page) => void
+}) {
+  return (
+    <nav aria-label="학생회 메뉴" className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      <LeadItems page={page} unread={unread} onPage={onPage} />
       <TasksItem active={page === 'tasks'} count={taskCount} onClick={() => onPage('tasks')} />
       <FinanceItem
         active={page === 'finance'}

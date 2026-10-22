@@ -4,6 +4,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
+import { homeTask, homeWithTasks } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { snapshotHtml } from './test-support/snapshot-html'
 
@@ -108,6 +109,7 @@ function openWorkspace() {
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
   api.on('GET', '/api/organizations/c1/rooms', () => json(roomList()))
+  api.on('GET', '/api/organizations/c1/home', () => json(homeWithTasks([homeTask('a', 'today')])))
   api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
     json({ tasks: [], truncated: false }),
   )
@@ -116,7 +118,10 @@ function openWorkspace() {
   api.on('POST', '/api/organizations/c1/rooms/r1/read', () => new Response(null, { status: 204 }))
   return api
 }
-// 대화가 첫 화면이다. 운영진 화면을 찍는 시험은 옆 메뉴로 사람을 연다.
+// 홈이 첫 화면이다. 대화나 운영진 화면을 찍는 시험은 옆 메뉴로 연다.
+async function openChat() {
+  fireEvent.click(await screen.findByRole('button', { name: /^대화/ }))
+}
 async function openPeople() {
   fireEvent.click(await screen.findByRole('button', { name: '사람' }))
 }
@@ -152,9 +157,17 @@ test('작업 공간: 부서', async () => {
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
+test('작업 공간: 홈', async () => {
+  openWorkspace()
+  await renderApp()
+  await screen.findByRole('button', { name: /업무 a/ })
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
 test('작업 공간: 대화 방 목록', async () => {
   openWorkspace()
   await renderApp()
+  await openChat()
   await screen.findByText('재정부')
   expect(snapshotHtml()).toMatchSnapshot()
 })
@@ -162,6 +175,7 @@ test('작업 공간: 대화 방 목록', async () => {
 test('작업 공간: 대화 방', async () => {
   openWorkspace()
   await renderApp()
+  await openChat()
   fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
   await screen.findByText('모레 회의 있어요')
   expect(snapshotHtml()).toMatchSnapshot()

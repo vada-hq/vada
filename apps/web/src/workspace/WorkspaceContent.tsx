@@ -2,6 +2,7 @@ import type { CouncilView } from '@vada/contracts'
 import ChatPage from '../chat/ChatPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
+import HomePage from '../home/HomePage'
 import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
@@ -30,6 +31,9 @@ type Props = {
   eventId?: string | undefined
   // 업무 카드·상세에서 행사 이름을 눌렀다.
   onOpenEvent: (eventId: string) => void
+  // 홈에서 업무 줄을 눌렀다(업무 화면이 그 업무의 상세를 열고 시작한다).
+  onOpenTask: (taskId: string) => void
+  onOpenPage: (page: Page) => void
 }
 
 // 알림으로 열 업무나 요청을 받는 목록 화면 둘(업무, 재정).
@@ -66,6 +70,40 @@ function RecordsPage({
   )
 }
 
+// 홈과 대화. 홈이 첫 화면이다.
+function LeadPage({
+  data,
+  rooms,
+  page,
+  roomId,
+  onOpenTask,
+  onOpenPage,
+  view,
+}: Pick<Props, 'data' | 'rooms' | 'roomId' | 'onOpenTask' | 'onOpenPage'> & {
+  page: 'home' | 'chat'
+  view: CouncilView
+}) {
+  if (page === 'home')
+    return (
+      <HomePage
+        view={view}
+        onOpenTask={onOpenTask}
+        onOpenPage={onOpenPage}
+        onForbidden={data.reload}
+      />
+    )
+  return (
+    <ChatPage
+      councilId={view.council.id}
+      view={view}
+      team={data.team}
+      rooms={rooms}
+      initialRoomId={roomId}
+      onForbidden={data.reload}
+    />
+  )
+}
+
 function PageOf({
   data,
   rooms,
@@ -77,20 +115,13 @@ function PageOf({
   requestId,
   eventId,
   onOpenEvent,
+  onOpenTask,
+  onOpenPage,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
-  if (page === 'chat')
-    return (
-      <ChatPage
-        councilId={view.council.id}
-        view={view}
-        team={data.team}
-        rooms={rooms}
-        initialRoomId={roomId}
-        onForbidden={data.reload}
-      />
-    )
+  if (page === 'home' || page === 'chat')
+    return <LeadPage {...{ data, rooms, page, roomId, onOpenTask, onOpenPage, view }} />
   if (page === 'events')
     return (
       <EventsPage

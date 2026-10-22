@@ -6,6 +6,7 @@ import type { MyCouncil } from '@vada/contracts'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
+import { homeResponse } from './test-support/home-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
@@ -52,8 +53,9 @@ function councilsInSequence(...lists: MyCouncil[][]) {
     json({ councils: lists[Math.min(call++, lists.length - 1)] }),
   )
 }
-// 대화가 첫 화면이라 학생회를 열면 방 목록을 읽는다. 이 시험들은 운영진 화면을 보므로 방은 비어 있다.
+// 홈이 첫 화면이라 학생회를 열면 홈을 읽는다. 이 시험들은 운영진 화면을 보므로 홈과 방은 비어 있다.
 function emptyRooms(id: string) {
+  api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
   api.on('GET', `/api/organizations/${id}/rooms`, () =>
     json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
   )
@@ -61,7 +63,7 @@ function emptyRooms(id: string) {
     json({ tasks: [], truncated: false }),
   )
 }
-// 만든 직후가 아니면 대화가 첫 화면이다. 옆 메뉴로 운영진 > 사람을 연다.
+// 만든 직후가 아니면 홈이 첫 화면이다. 옆 메뉴로 운영진 > 사람을 연다.
 async function openPeople() {
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(await within(aside).findByRole('button', { name: '사람' }))
@@ -571,7 +573,7 @@ test('회장 넘기기 뒤 내 다시 읽기가 늦게 와도 버려지고, 그 
   expect(screen.getByText(LOST)).toBeTruthy()
 })
 
-test('학생회를 열면 첫 화면이 대화이고, 옆 메뉴의 대화에 안 읽은 수 합계가 보이며 99를 넘으면 99+다', async () => {
+test('학생회를 열면 첫 화면이 홈이고, 옆 메뉴의 대화에 안 읽은 수 합계가 보이며 99를 넘으면 99+다', async () => {
   councilsInSequence([myCouncil()])
   openCouncil()
   api.on('GET', '/api/organizations/c1/rooms', () =>
@@ -581,7 +583,7 @@ test('학생회를 열면 첫 화면이 대화이고, 옆 메뉴의 대화에 �
     json({ tasks: [], truncated: false }),
   )
   await renderApp()
-  expect(await screen.findByRole('heading', { level: 1, name: '대화' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   expect((await within(aside).findByLabelText('안 읽은 메시지 120개')).textContent).toBe('99+')
 })

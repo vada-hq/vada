@@ -28,19 +28,25 @@ type Props = Omit<WorkspaceProps, 'initialCouncilId' | 'chatLink'> & {
 function useOnceLinked(linked: string | undefined, page: Page, own: Page) {
   const [id, setId] = useState(linked)
   if (id && page !== own) setId(undefined)
-  return id
-}
-
-// 알림으로 열 방, 업무, 요청. 각각 한 번만 쓴다.
-function useLinkedIds(page: Page, room?: string, task?: string, request?: string) {
-  return {
-    roomId: useOnceLinked(room, page, 'chat'),
-    taskId: useOnceLinked(task, page, 'tasks'),
-    requestId: useOnceLinked(request, page, 'finance'),
-  }
+  return [id, setId] as const
 }
 
 type Nav = ReturnType<typeof useWorkspaceNav>
+
+// 알림으로 열 방, 업무, 요청. 각각 한 번만 쓴다. 업무는 홈의 줄을 눌러서도 연다(onOpenTask).
+function useLinkedIds(nav: Nav, room?: string, task?: string, request?: string) {
+  const [taskId, setTaskId] = useOnceLinked(task, nav.page, 'tasks')
+  return {
+    roomId: useOnceLinked(room, nav.page, 'chat')[0],
+    taskId,
+    requestId: useOnceLinked(request, nav.page, 'finance')[0],
+    onOpenPage: nav.openPage,
+    onOpenTask: (id: string) => {
+      setTaskId(id)
+      nav.openPage('tasks')
+    },
+  }
+}
 
 // 업무에서 눌러 연 행사. 행사 화면으로 가면서 한 번만 쓰고, 다른 화면으로 가면 버린다.
 function useEventLink(nav: Nav) {
@@ -97,7 +103,7 @@ export default function CouncilWorkspace({
 }: Props) {
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo, startPage)
-  const linked = useLinkedIds(nav.page, linkedRoom, linkedTask, linkedRequest)
+  const linked = useLinkedIds(nav, linkedRoom, linkedTask, linkedRequest)
   const { lists, counts } = useWorkspaceLists(council.id, data)
   const eventLink = useEventLink(nav)
   const sidebar = (from: Opener) => (

@@ -1,11 +1,13 @@
 import type { MyCouncil } from '@vada/contracts'
 import type { ChatLink } from './useChatLink'
 
-export type Page = 'chat' | 'events' | 'tasks' | 'finance' | 'people' | 'departments' | 'settings'
+export type Page =
+  'home' | 'chat' | 'events' | 'tasks' | 'finance' | 'people' | 'departments' | 'settings'
 // 학생회를 고른 곳. 작업 공간이 새로 그려진 뒤 포커스를 그 자리의 버튼으로 돌려놓는다.
 export type Opener = 'sidebar' | 'header'
 
 export const pageTitles: Record<Page, { section: string; title: string }> = {
+  home: { section: '홈', title: '홈' },
   chat: { section: '대화', title: '대화' },
   events: { section: '업무', title: '행사' },
   tasks: { section: '업무', title: '업무' },

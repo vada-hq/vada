@@ -139,6 +139,9 @@ export const PHOTO_CANNOT_OPEN = '이 사진을 열 수 없어요. 다른 사진
 export const PHOTO_UPLOAD_FAILED = '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'
 export const PHOTO_TOO_MANY = (max: number) => `사진은 한 번에 ${max}장까지 보낼 수 있어요.`
 
+// 홈(운영진의 첫 화면).
+export const HOME_LOAD_FAILED = '홈을 불러오지 못했어요. 연결을 확인해 주세요.'
+
 // 업무 목록과 카드. 상태 바꾸기 오류는 그 카드 안에 보인다. 표에 없는 코드는 일반 문구다.
 export const TASKS_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const TASK_STATUS_ERRORS: Record<string, string> = {

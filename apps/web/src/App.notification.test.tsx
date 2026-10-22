@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
+import { homeResponse } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
@@ -41,6 +42,7 @@ beforeEach(() => {
     api.on('GET', `/api/organizations/${id}`, () => json(councilView(id)))
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
+    api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
     api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
       json({ tasks: [], truncated: false }),
     )
@@ -72,21 +74,21 @@ test('앱이 닫혀 있다가 알림 주소로 열리면 그 학생회의 그 �
 test('내 학생회가 아닌 학생회의 방 주소는 무시하고 첫 학생회의 방 목록을 연다', async () => {
   window.history.replaceState(null, '', '/chat/other/r1')
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
   expect(api.calls.some(call => call.path.includes('/other/'))).toBe(false)
 })
 
 test('열려 있는 동안 알림을 누르면 보던 곳에서 그 방으로 옮겨 간다', async () => {
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c1/r1' } }))
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
 })
 
 test('내 학생회가 아닌 방 알림을 눌러도 열려 있는 방과 화면은 그대로다', async () => {
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c1/r1' } }))
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
   const before = api.calls.length
@@ -138,7 +140,7 @@ test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무
 test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던 곳에서 그 업무 상세로 옮겨 간다', async () => {
   taskApi()
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
   expect(await taskDialog()).toContain('현수막 주문')
   expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
@@ -147,7 +149,7 @@ test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던
 test('같은 업무 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
   taskApi()
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   const press = () =>
     act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/c1/${T1}` } }))
   press()
@@ -164,12 +166,12 @@ test.each([
   ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
 ])('%s 업무 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   const before = api.calls.length
   act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(screen.getByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(api.calls.length).toBe(before)
   expect(taskCalls()).toEqual([])
 })
@@ -177,10 +179,10 @@ test.each([
 test.each([
   ['내 학생회가 아닌', `/tasks/other/${T1}`],
   ['번호가 uuid가 아닌', '/tasks/c1/not-a-uuid'],
-])('%s 업무 주소로 열면 첫 학생회의 대화가 열리고 업무는 읽지 않는다', async (_name, path) => {
+])('%s 업무 주소로 열면 첫 학생회의 홈이 열리고 업무는 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(taskCalls()).toEqual([])
 })
@@ -241,7 +243,7 @@ test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정
 test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던 곳에서 그 요청 상세로 옮겨 간다', async () => {
   requestApi()
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
   await requestDialog()
   expect(await financeHeading()).toBeTruthy()
@@ -250,7 +252,7 @@ test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던
 test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
   requestApi()
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   const press = () =>
     act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/c1/${R1}` } }))
   press()
@@ -267,22 +269,22 @@ test.each([
   ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
 ])('%s 요청 알림을 눌러도 아무것도 바뀌지 않는다', async (_name, url) => {
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   const before = api.calls.length
   act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(screen.getByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(api.calls.length).toBe(before)
 })
 
 test.each([
   ['내 학생회가 아닌', `/purchases/other/${R1}`],
   ['번호가 uuid가 아닌', '/purchases/c1/not-a-uuid'],
-])('%s 요청 주소로 열면 첫 학생회의 대화가 열리고 요청은 읽지 않는다', async (_name, path) => {
+])('%s 요청 주소로 열면 첫 학생회의 홈이 열리고 요청은 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
   await renderApp()
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(requestCalls()).toEqual([])
 })
