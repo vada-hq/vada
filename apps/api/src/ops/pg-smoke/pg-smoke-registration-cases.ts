@@ -21,7 +21,8 @@ import { outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
 // PGlite는 거래를 하나씩 돌려 이것을 증명하지 못한다. 시험은 준비와 판정의 모양만 본다.
 
 const EXPECTED = new Set(['REGISTRATION_FULL'])
-const O = { host: 'smoke-o-host' }
+// 계좌 사례가 moneyScene 글자 o, p를 쓰므로 겹치지 않는 글자를 쓴다(겹치면 사용자 만들기가 23505로 멈춘다).
+const O = { host: 'smoke-s-host' }
 const ROUNDS = 4
 const PAIR = 2
 const HOUR_MS = 3_600_000

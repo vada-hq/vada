@@ -24,7 +24,8 @@ import { outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
 // 그래야 학생회 잠금이 줄을 세워 주는 것이 아니라 신청 행 잠금과 부분 유일 인덱스가 스스로 지키는지 본다(스스로 취소는 학생회 잠금을 쓰지 않는다).
 // PGlite는 거래를 하나씩 돌려 이것을 증명하지 못한다. 시험은 준비와 판정의 모양만 본다.
 
-const P = { host: 'smoke-p-host' }
+// 계좌 사례가 moneyScene 글자 o, p를 쓰므로 겹치지 않는 글자를 쓴다.
+const P = { host: 'smoke-t-host' }
 const Q = { host: 'smoke-q-host' }
 const ROUNDS = 4
 const PAIR = 2
