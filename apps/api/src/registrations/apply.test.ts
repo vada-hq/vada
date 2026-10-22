@@ -87,7 +87,10 @@ test(
     const form = await splitForm(t, { collectsPhone: false })
     const phoneless = { name: '김신청', studentId: '202612345' }
     await t.makeFeePayment({ paidFrom: '2026-10-20', paidUntil: '2026-10-25' })
-    await t.makeFeePayment({ studentId: '202699999' }, t.other)
+    await t.makeFeePayment(
+      { studentId: '202699999', paidFrom: '2026-10-01', paidUntil: '2026-10-31' },
+      t.other,
+    )
     await t.makeFeePayment({ studentId: null, paidFrom: '2026-10-20', paidUntil: '2026-10-25' })
     const feeAt = async (at: string, studentId = '202612345') => {
       t.setNow(korean(at))
