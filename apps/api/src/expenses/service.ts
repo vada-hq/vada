@@ -8,7 +8,8 @@ import type { Actor } from '../access/actor.js'
 import { assertUsableAccount } from '../accounts/queries.js'
 import { can } from '../access/permissions.js'
 import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries.js'
-import { currentMembersAmong } from '../chat/current-members.js'
+import { assertCurrentMembers } from '../chat/current-members.js'
+import { linkSourceMessage } from '../chat/source-message.js'
 import { assertDayOpen } from '../closing/lock.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
@@ -25,13 +26,6 @@ import { canCancelExpense, canReimburse } from './status.js'
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 지출 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
 // 재정부만 쓴다(회장단도 403). 403이 다른 실패보다 먼저다.
 
-// 먼저 낸 사람과 부탁한 사람은 지금 이 학생회의 운영진이어야 한다. 기록 모듈은 떠난 운영진도 허용하므로 여기서 따로 본다.
-async function assertCurrentMembers(tx: Tx, actor: Actor, ids: (string | null)[], now: Date) {
-  const wanted = [...new Set(ids.filter((id): id is string => id !== null))]
-  const alive = await currentMembersAmong(tx, actor.councilId, wanted, now)
-  if (wanted.some(id => !alive.has(id))) throw new ApiError('MEMBER_INVALID')
-}
-
 // 완료한 행사의 기록은 잠겼다. 결제하는 품목 요청의 행사, 고른 예산 항목의 행사, 적는 행사를 본다(DEC-68).
 // 품목을 낸 요청들의 행사를 돌려줘 지출의 행사를 정하는 데 쓴다.
 async function assertEventsOpenFor(tx: Tx, actor: Actor, input: CreateExpense) {
@@ -47,7 +41,7 @@ async function assertEventsOpenFor(tx: Tx, actor: Actor, input: CreateExpense) {
 async function assertInputAllowed(tx: Tx, actor: Actor, input: CreateExpense, now: Date) {
   // 결제일은 오늘(한국)까지다. 오늘 23:59:59는 받고 내일은 받지 않는다.
   if (input.paidOn > koreanDateOf(now)) throw new ApiError('INVALID_INPUT')
-  await assertCurrentMembers(tx, actor, [input.paidBy, input.requestedBy], now)
+  await assertCurrentMembers(tx, actor.councilId, [input.paidBy, input.requestedBy], now)
   if (input.budgetItemId) await assertCurrentExpenseItems(tx, actor, [input.budgetItemId], now)
   // 학생회 행을 잠근 뒤에 읽으므로 계좌 닫기와 겹쳐도 하나로 정해진다.
   if (input.accountId) await assertUsableAccount(tx, actor, input.accountId)
@@ -100,6 +94,7 @@ export async function createExpense(
     actor: actor.memberId,
     values: expenseValuesOf(input, eventId),
   })
+  await linkSourceMessage(tx, actor, expenseId, input.sourceMessageId)
   for (const line of input.lines)
     await createRecord(tx, {
       kind: 'payment_line',

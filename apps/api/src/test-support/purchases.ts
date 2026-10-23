@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import type { PurchaseRequestDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createBudgetRoutes } from '../budget/routes.js'
+import { createChatRoutes } from '../chat/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createTestDb } from '../db/test-db.js'
 import type { RateLimiter } from '../http/rate-limit.js'
@@ -74,6 +75,7 @@ export async function startPurchases(
         writeLimiter,
       }),
       budget: createBudgetRoutes(db, testSession, { clock }),
+      chat: createChatRoutes(db, testSession, { clock, storage: store.storage }),
       expenses: createExpenseRoutes(db, testSession, {
         clock,
         writeLimiter,

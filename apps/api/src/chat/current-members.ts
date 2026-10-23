@@ -2,6 +2,7 @@ import { and, asc, eq, inArray } from 'drizzle-orm'
 import { currentCouncilMembership } from '../access/current-cohort.js'
 import { cohort, councilMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
 
 // 이 중 지금 이 학생회의 운영진인 사람. 1:1의 참여 줄은 학생회를 떠난 뒤에도 남고 기록 모듈은 끝난 소속에게도 알림 기록을 허용하므로,
 // 상대가 지금도 운영진인지는 참여 줄과 따로 여기서 본다.
@@ -24,6 +25,18 @@ export async function currentMembersAmong(
       ),
     )
   return new Set(rows.map(row => row.memberId))
+}
+
+// 요청한 사람·먼저 낸 사람·부탁한 사람은 지금 이 학생회의 운영진이어야 한다. 기록 모듈은 떠난 운영진도 허용하므로 여기서 따로 본다.
+export async function assertCurrentMembers(
+  db: Pick<Db, 'select'>,
+  councilId: string,
+  ids: (string | null)[],
+  now: Date,
+) {
+  const wanted = [...new Set(ids.filter((id): id is string => id !== null))]
+  const alive = await currentMembersAmong(db, councilId, wanted, now)
+  if (wanted.some(id => !alive.has(id))) throw new ApiError('MEMBER_INVALID')
 }
 
 // currentMembersAmong과 같되 소속 줄을 FOR SHARE로 잠근다. 내보내기는 소속 줄을 바꾸므로(FOR NO KEY UPDATE) 이 거래가 끝나기를 기다리고,

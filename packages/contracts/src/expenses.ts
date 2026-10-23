@@ -56,6 +56,8 @@ export const CreateExpenseSchema = z
     requestedBy: recordIdInput.nullable().default(null),
     // 돈이 나간 계좌. 닫지 않은 이 학생회의 계좌만 받는다.
     accountId: recordIdInput.nullable().default(null),
+    // 이 지출의 근거가 된 메시지. 내가 지금 볼 수 있는 것만 된다. 응답에는 싣지 않는다.
+    sourceMessageId: recordIdInput.nullable().default(null),
     lines: z.array(PaymentLineSchema).max(PURCHASE_ITEMS_MAX).default([]),
   })
   .refine(

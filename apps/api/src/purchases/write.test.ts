@@ -117,7 +117,6 @@ test(
       ['링크 줄바꿈', { title: 'a', items: [{ ...ITEM, link: 'https://a.example/\nx' }] }],
       ['모르는 키', { title: 'a', items: [ITEM], extra: 1 }],
       ['금액 키', { title: 'a', items: [{ ...ITEM, amount: 1000 }] }],
-      ['요청한 사람 키', { title: 'a', requestedBy: MISSING, items: [ITEM] }],
       ['품목 모르는 키', { title: 'a', items: [{ ...ITEM, extra: 1 }] }],
     ]
     for (const [label, body] of bad) {

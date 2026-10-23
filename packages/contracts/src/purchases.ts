@@ -69,6 +69,10 @@ export const CreatePurchaseRequestSchema = z.strictObject({
   eventId: recordIdInput.nullable().default(null),
   body: text(PURCHASE_BODY_MAX).nullable().default(null),
   neededBy: koreanDate.nullable().default(null),
+  // 재정부가 부탁한 사람 대신 낼 때의 요청한 사람. 비우면 나다.
+  requestedBy: recordIdInput.nullable().default(null),
+  // 이 요청의 근거가 된 메시지. 내가 지금 볼 수 있는 것만 된다. 응답에는 싣지 않는다.
+  sourceMessageId: recordIdInput.nullable().default(null),
   items: z.array(CreateLineItemSchema).min(1).max(PURCHASE_ITEMS_MAX),
 })
 export type CreatePurchaseRequest = z.infer<typeof CreatePurchaseRequestSchema>

@@ -46,6 +46,22 @@ export async function attachPhotos(
 const visibleMessage = (actor: Actor) =>
   and(eq(record.councilId, actor.councilId), or(sinceJoined(actor.memberId), shownNotice(actor)))
 
+// 내가 볼 수 있는 메시지 하나(요청·지출의 근거로 고를 수 있는 메시지). 사진 보기와 같은 조건이다.
+// 없는 번호, 메시지가 아닌 기록, 다른 학생회, 안 들어간 방, 들어오기 전은 모두 false다.
+export async function canSeeMessage(db: Reader, actor: Actor, messageId: string) {
+  const [found] = await db
+    .select({ id: message.id })
+    .from(message)
+    .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
+    .innerJoin(
+      roomMembership,
+      and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
+    )
+    .where(and(eq(message.id, messageId), visibleMessage(actor)))
+  return found !== undefined
+}
+
 // 내가 볼 수 있는 대화 사진 하나. 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전, 증빙 파일은 모두 undefined다.
 export async function visiblePhoto(db: Reader, actor: Actor, fileId: string) {
   const [found] = await db

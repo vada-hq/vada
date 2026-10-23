@@ -67,7 +67,7 @@
 - 닿는 곳: contracts `expenses.ts`(새 `AttachChatEvidenceSchema`), `errors.ts`(`MESSAGE_INVALID`). `storage/storage.ts`(복사), `test-support/storage.ts`, `chat/photos.ts`(볼 수 있는 메시지·사진 도우미), `records/`(근거 잇기 도우미: 같은 학생회 확인), `expenses/evidence.ts`, `expenses/evidence-routes.ts`, `http/boundary.test.ts`.
 - 검토: 깊게(파일, 격리). 마이그레이션: 없음.
 
-### 2. 대신 내기와 근거 메시지(서버) [ ]
+### 2. 대신 내기와 근거 메시지(서버) [x]
 - 할 수 있게 되는 것: 재정부가 남의 메시지로 그 사람의 구매 요청을 대신 내고, 메시지에서 만든 요청과 지출이 그 메시지를 근거로 남긴다.
 - 수용 기준: 요청 내기에 `requestedBy`를 주지 않거나 나면 지금과 같다. 재정부가 다른 지금 운영진을 주면 201이고 요청한 사람은 그 사람, 만든 사람과 판 1의 사람은 나다. 재정부가 아니면 403이고 아무것도 생기지 않는다. 내보낸 사람·다른 학생회 사람은 409 `MEMBER_INVALID`. 대신 낸 요청은 그 사람의 `view=mine`에 있고, 그 사람만 취소한다(만든 재정부원 403). 마지막 품목을 결재하면 결과 알림이 요청한 사람에게 간다. 새 요청 알림은 만든 사람과 요청한 사람에게 가지 않는다. 요청 내기와 지출 적기에 `sourceMessageId`를 주면 같은 거래에 `evidence_link` 한 줄이 생기고, 주지 않으면 없다. 볼 수 없는 메시지(1과 같은 경우들)는 409 `MESSAGE_INVALID`이고 요청·품목·지출·알림이 없다. 응답 모양은 그대로이고 근거 메시지가 실리지 않는다. 기존 요청·지출 시험이 그대로 통과한다. AGENTS.md의 입력 경우를 새 칸마다 시험한다.
 - 닿는 곳: contracts `purchases.ts`(`CreatePurchaseRequestSchema`), `expenses.ts`(`CreateExpenseSchema`). `purchases/service.ts`(대신 내기, 알림 받는 사람), `expenses/service.ts`, 1의 도우미.
