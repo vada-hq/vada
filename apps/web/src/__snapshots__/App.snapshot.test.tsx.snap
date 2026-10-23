@@ -273,11 +273,6 @@ exports[`작업 공간: 대화 방 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex items-center gap-1 text-xs text-gray-400">
 <span class="truncate">컴퓨터학부 학생회</span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
-<path d="m9 18 6-6-6-6">
-</path>
-</svg>
-<span class="shrink-0 text-gray-600">대화</span>
 </p>
 <h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">대화</h1>
 </div>
@@ -540,11 +535,6 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex items-center gap-1 text-xs text-gray-400">
 <span class="truncate">컴퓨터학부 학생회</span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
-<path d="m9 18 6-6-6-6">
-</path>
-</svg>
-<span class="shrink-0 text-gray-600">대화</span>
 </p>
 <h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">대화</h1>
 </div>
@@ -1717,11 +1707,6 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex items-center gap-1 text-xs text-gray-400">
 <span class="truncate">컴퓨터학부 학생회</span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
-<path d="m9 18 6-6-6-6">
-</path>
-</svg>
-<span class="shrink-0 text-gray-600">홈</span>
 </p>
 <h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
 </div>
@@ -1889,11 +1874,6 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex items-center gap-1 text-xs text-gray-400">
 <span class="truncate">컴퓨터학부 학생회</span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
-<path d="m9 18 6-6-6-6">
-</path>
-</svg>
-<span class="shrink-0 text-gray-600">홈</span>
 </p>
 <h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
 </div>
@@ -2066,17 +2046,12 @@ exports[`작업 공간: 홈 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex items-center gap-1 text-xs text-gray-400">
 <span class="truncate">컴퓨터학부 학생회</span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
-<path d="m9 18 6-6-6-6">
-</path>
-</svg>
-<span class="shrink-0 text-gray-600">홈</span>
 </p>
 <h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex max-w-3xl flex-col gap-4">
+<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <h2 class="text-sm font-semibold text-gray-900">내 업무</h2>
 <div role="group" aria-label="오늘 1개" class="flex flex-col gap-1">
