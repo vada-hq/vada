@@ -1,8 +1,9 @@
 import { Check } from 'lucide-react'
 import { filePath } from '@/chat/chat-api'
 import StateMessage from '@/components/StateMessage'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { cardClass } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { useMessageEvidence } from './useMessageEvidence'
 
 type Message = ReturnType<typeof useMessageEvidence>
@@ -45,7 +46,7 @@ function PhotoItem({
 export function MessageEvidence({ councilId, message }: { councilId: string; message: Message }) {
   if (message.photoIds.length === 0) return null
   return (
-    <Card role="region" aria-label="이 메시지의 사진" className="flex flex-col gap-3 p-3">
+    <section aria-label="이 메시지의 사진" className={cn(cardClass, 'flex flex-col gap-3 p-3')}>
       <h3 className="text-sm font-medium text-gray-700">
         이 메시지의 사진 {message.photoIds.length}장
       </h3>
@@ -72,6 +73,6 @@ export function MessageEvidence({ councilId, message }: { councilId: string; mes
           </Button>
         </div>
       )}
-    </Card>
+    </section>
   )
 }

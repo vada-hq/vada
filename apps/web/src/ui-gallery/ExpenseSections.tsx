@@ -65,6 +65,7 @@ const message = (
   status: {},
   left: 3,
   attaching: false,
+  problem: null,
   attachAll: () => Promise.resolve(),
   ...extra,
 })
