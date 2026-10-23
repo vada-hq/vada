@@ -102,7 +102,7 @@
 - 닿는 곳: contracts `closing.ts`(`ReopenClosingSchema`), `errors.ts`. `closing/`(`service.ts`, 기간 잠금 공유 도우미, 잠금 표 시험), `expenses/service.ts`·`queries.ts`(`actions`), `incomes/service.ts`·`queries.ts`, `settlement/fee-income.ts`(`createFeeIncomes`·`cancelFeeIncomes`), `budget/service.ts`(기간을 만들 때 이월금), `ops/pg-smoke/`(새 `pg-smoke-closing-cases.ts`와 `pg-smoke-cases.ts` 목록). 경로는 `POST fiscal-periods/:periodId/closing/publish`, `POST fiscal-periods/:periodId/closing/reopen`.
 - 검토: 깊게(돈, 잠금, 동시 처리). 마이그레이션: 없음.
 
-### 5. 결산서 엑셀과 증빙 묶음(서버) [ ]
+### 5. 결산서 엑셀과 증빙 묶음(서버) [x]
 - 할 수 있게 되는 것: 재정부가 감사용 엑셀과 영수증 사진 묶음을, 운영진이 공개 뒤 공개용 엑셀을 받는다.
 - 수용 기준: `GET fiscal-periods/:periodId/closing/export?type=public|audit`은 '정한 것'의 시트와 권한대로 xlsx를 주고, 숫자는 3의 결산서와 같다. 공개용 파일 안에 시험 운영진 이름, 계좌번호, 예금주가 없다. '='·'+'·'-'·'@'로 시작하는 내용이 문자 칸으로 들어간다. 파일 이름은 `{기간 이름} 결산(공개용|감사용) {한국 날짜}.xlsx`이고 윈도에서 못 쓰는 글자는 `_`, 머리글은 `filename*`과 `no-store`다. `GET fiscal-periods/:periodId/closing/audit.zip`은 재정부만이고, 풀면 감사용 엑셀과 증빙번호로 이름 붙은 사진이 있으며 사진 바이트가 저장소와 같다. 저장소가 한 장을 주지 못하면 `빠진 증빙.txt`에 그 증빙번호가 있고 나머지는 든다. 상한을 넘으면 409 `EXPORT_TOO_LARGE`(엑셀 포함), R2가 없으면 묶음만 503, 같은 학생회의 묶음이 도는 중이거나 한도를 넘으면 429다. 다른 학생회 404, 401. 로그에 파일 이름과 키가 없다.
 - 닿는 곳: `apps/api/package.json`(새 의존성 둘), `storage/storage.ts`(`FileStorage`에 객체 읽기), `test-support/storage.ts`, `closing/`(`workbook.ts`, `bundle.ts`, `export-routes.ts`), `http/`(내려받기 머리글 도우미), `app.ts`, `serve.ts`, contracts `errors.ts`.
@@ -114,7 +114,7 @@
 - 닿는 곳: `apps/web/src/finance/`(`FinanceTabs.tsx`, `FinancePage.tsx`, 수입 탭·카드·적기·상세 새, `finance-api.ts`), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(부품 주석 조건, 특히 `tab-button.tsx`). 마이그레이션: 없음.
 
-### 7. 결산 화면과 내보내기 [ ]
+### 7. 결산 화면과 내보내기 [x]
 - 할 수 있게 되는 것: 재정부가 휴대폰에서 결산서를 보고 공개하거나 다시 열며, 데스크톱에서 감사용 파일을 받고, 운영진이 공개된 결산을 본다.
 - 수용 기준: '결산' 탭이 있고 기간을 고른다(기본은 끝났고 공개되지 않은 가장 이른 기간, 없으면 지금 기간). 상태 배지(작성 중, 공개됨), 요약, 계좌별 금액, 점검이 보이고 점검 줄을 누르면 그 지출이, 완료하지 않은 행사 줄을 누르면 그 행사가 열린다. 공개 전 재정부가 아니면 "결산이 공개되면 보여요"만 보인다. [공개]는 잠금과 이월금을 알리는 확인을, [다시 열기]는 사유를 거친다(`actions`대로). `FEE_INCOME_PENDING`이면 완료할 행사(끝 날짜가 이 기간 안이거나 날짜 미정)를 알리는 문구가 버튼 옆에 보이고, 다음 기간 행사에 받은 입금은 점검의 정보 줄로만 보이며 [공개]를 끄지 않는다. [공개용 엑셀]은 `lib/download.ts`로 받는다. 재정부에게 [감사용 엑셀]과 [증빙 묶음 받기]가 있고 개인정보 경고를 확인한 뒤 받는다. 묶음은 주소로 이동해 브라우저가 저장하고, 상한을 넘으면 버튼이 꺼지고 이유가 보인다. 두 번 누름, 409 문구, 403을 시험한다. 부품 확인 화면에 결산 상태 배지가 있다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/finance/`(결산 탭 새, `FinanceTabs.tsx`, `FinancePage.tsx`), `lib/download.ts`, `lib/messages.ts`, `ui-gallery/`.
@@ -133,7 +133,7 @@
 
 ## 닫기
 
-마지막 조각을 배포한 뒤 진행 에이전트가 dev 시험 학생회에 끝난 기간("시험 1학기")과 지금 기간을 두고(`test-data`에 없으면 그 명령에 더한다) 사람에게 아래를 맡긴다. 결과(날짜, 기기, OS, 브라우저, 단계마다 됨·안 됨)를 `docs/device-checks.md`의 새 절 '결산과 감사 묶음'에 옮긴다.
+마지막 조각을 배포한 뒤 사람에게 아래를 맡긴다. 끝난 기간("시험 1학기")은 재정부가 예산 탭의 회계 기간 만들기로 직접 둔다(Ruling: `test-data`에 기간 명령을 더하지 않는다. 화면에 이미 있는 길이라 리허설도 된다). 결과(날짜, 기기, OS, 브라우저, 단계마다 됨·안 됨)를 `docs/device-checks.md`의 새 절 '결산과 감사 묶음'에 옮긴다.
 
 1. 재정부(갤럭시 Chrome)가 끝난 기간에 학생회비 수입을 적고 결산 탭에서 점검을 본 뒤 공개한다 → 지금 기간 수입 탭에 이월금이 보이고, 끝난 기간에 지출을 적으면 막힌다.
 2. 기획부원(아이폰 홈 화면 앱)이 공개된 결산을 보고 공개용 엑셀을 받는다.
