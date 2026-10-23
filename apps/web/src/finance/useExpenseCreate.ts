@@ -2,7 +2,11 @@ import { useRef, useState } from 'react'
 import { CreateExpenseSchema, type ExpenseResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { expensesPath } from './expense-api'
-import { expenseProblem, reportExpenseLost, type ExpenseDialogHandlers } from './expense-requests'
+import {
+  expenseCreateProblem,
+  reportExpenseLost,
+  type ExpenseDialogHandlers,
+} from './expense-requests'
 
 type Handlers = Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'> & {
   onCreated: (expense: ExpenseResponse['expense']) => void
@@ -25,7 +29,7 @@ export function useExpenseCreate(councilId: string, request: unknown, handlers: 
     sending.current = false
     handlers.setSaving(false)
     if (result.ok) return handlers.onCreated(result.data.expense)
-    if (!reportExpenseLost(handlers, result.status)) setProblem(expenseProblem(result.code))
+    if (!reportExpenseLost(handlers, result.status)) setProblem(expenseCreateProblem(result.code))
   }
 
   return { valid: parsed.success, problem, submit }

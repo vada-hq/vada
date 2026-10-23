@@ -9,6 +9,7 @@ import type { ExpenseDialogHandlers } from './expense-requests'
 import { EvidenceSection } from './EvidenceSection'
 import { useChatEvidence } from './useChatEvidence'
 import { useEvidenceUpload } from './useEvidenceUpload'
+import { useMessageEvidence } from './useMessageEvidence'
 import { useExpenseDetail } from './useExpenseDetail'
 
 type Props = ExpenseDialogHandlers & {
@@ -18,6 +19,8 @@ type Props = ExpenseDialogHandlers & {
   // 열린 지출의 번호. null이면 닫혀 있다.
   expenseId: string | null
   onClose: () => void
+  // 메시지에서 지출을 적고 열었으면 그 메시지의 사진 번호들. 먼저 붙이자고 보인다.
+  messagePhotoIds?: string[] | undefined
 }
 
 // 지출 상세 대화상자. 열려 있을 때만 읽고, 지출이 바뀌면 처음부터 다시 읽는다.
@@ -26,11 +29,14 @@ export function ExpenseDetailDialog({ expenseId, ...props }: Props) {
   return <OpenExpenseDialog key={expenseId} expenseId={expenseId} {...props} />
 }
 
+const NO_PHOTOS: string[] = []
+
 function OpenExpenseDialog({
   councilId,
   canManage,
   expenseId,
   onClose,
+  messagePhotoIds = NO_PHOTOS,
   ...handlers
 }: Props & { expenseId: string }) {
   const detail = useExpenseDetail(councilId, expenseId, handlers)
@@ -41,7 +47,8 @@ function OpenExpenseDialog({
   }
   const upload = useEvidenceUpload(councilId, expenseId, evidenceHooks)
   const chat = useChatEvidence(councilId, expenseId, evidenceHooks)
-  const busy = detail.saving || upload.attaching || chat.attaching
+  const message = useMessageEvidence(councilId, expenseId, messagePhotoIds, evidenceHooks)
+  const busy = detail.saving || upload.attaching || chat.attaching || message.attaching
   return (
     <Dialog
       open
@@ -55,7 +62,7 @@ function OpenExpenseDialog({
         </DialogHeader>
         {detail.expense ? (
           <Loaded
-            {...{ councilId, canManage, detail, upload, chat }}
+            {...{ councilId, canManage, detail, upload, chat, message }}
             expense={detail.expense}
             onForbidden={handlers.onForbidden}
           />
@@ -81,6 +88,7 @@ function Loaded({
   detail,
   upload,
   chat,
+  message,
   onForbidden,
 }: {
   onForbidden: () => void
@@ -90,12 +98,13 @@ function Loaded({
   detail: ReturnType<typeof useExpenseDetail>
   upload: ReturnType<typeof useEvidenceUpload>
   chat: ReturnType<typeof useChatEvidence>
+  message: ReturnType<typeof useMessageEvidence>
 }) {
   return (
     <div className="flex flex-col gap-6">
       <ExpenseFacts expense={expense} />
       <ExpenseLines lines={expense.lines} />
-      <EvidenceSection {...{ councilId, expense, canManage, upload, chat }} />
+      <EvidenceSection {...{ councilId, expense, canManage, upload, chat, message }} />
       <ExpenseActions
         councilId={councilId}
         expense={expense}

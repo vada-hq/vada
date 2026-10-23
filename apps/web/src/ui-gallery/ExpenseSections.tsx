@@ -1,7 +1,9 @@
 import type { ChatPhotoListResponse, ExpenseSummary } from '@vada/contracts'
 import { ChatPhotoPicker } from '@/finance/ChatPhotoPicker'
 import ExpenseCard from '@/finance/ExpenseCard'
+import { MessageEvidence } from '@/finance/MessageEvidence'
 import type { useChatEvidence } from '@/finance/useChatEvidence'
+import type { useMessageEvidence } from '@/finance/useMessageEvidence'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -55,6 +57,17 @@ const sample = [
   photo('p2', { room: { id: 'r2', type: 'department', name: '기획부' }, senderName: longName }),
   photo('p3', { room: { id: 'r3', type: 'direct', name: unbroken }, senderName: null }),
 ]
+// 메시지의 사진 붙이기 칸의 상태 모음(처음, 붙는 중·붙음·실패).
+const message = (
+  extra: Partial<ReturnType<typeof useMessageEvidence>>,
+): ReturnType<typeof useMessageEvidence> => ({
+  photoIds: ['q1', 'q2', 'q3'],
+  status: {},
+  left: 3,
+  attaching: false,
+  attachAll: () => Promise.resolve(),
+  ...extra,
+})
 const payer = { id: 'm3', name: '박새내' }
 
 export function ExpenseSection() {
@@ -83,6 +96,23 @@ export function ExpenseSection() {
           <ChatPhotoPicker
             councilId="c1"
             chat={chat({ chosen: sample[0]!, problem: '이 사진은 붙일 수 없어요.' })}
+          />
+        </div>
+      </Section>
+      <Section title="증빙 메시지 사진 붙이기">
+        <div className="flex w-80 flex-col gap-6">
+          <MessageEvidence councilId="c1" message={message({})} />
+          <MessageEvidence
+            councilId="c1"
+            message={message({
+              status: {
+                q1: { state: 'done' },
+                q2: { state: 'attaching' },
+                q3: { state: 'failed', problem: '지금은 사진을 올릴 수 없어요.' },
+              },
+              left: 2,
+              attaching: true,
+            })}
           />
         </div>
       </Section>

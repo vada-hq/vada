@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ChatMessage } from '@vada/contracts'
-import { Megaphone, ShoppingCart } from 'lucide-react'
+import { Megaphone, Receipt, ShoppingCart } from 'lucide-react'
 import type { MessageAction } from './MessageMenu'
 
 export type MessageActionSet = {
@@ -11,6 +11,9 @@ export type MessageActionSet = {
   // 구매 요청 만들기는 `purchase.request`가 있을 때만 메뉴에 있다.
   canRequest: boolean
   onRequest: (message: ChatMessage) => void
+  // 지출 적기는 `finance.manage`가 있을 때만 메뉴에 있다.
+  canWriteExpense: boolean
+  onWriteExpense: (message: ChatMessage) => void
 }
 
 export type MessageActionArgs = MessageActionSet & { message: ChatMessage }
@@ -22,6 +25,8 @@ export function useMessageActions({
   onMarkNotice,
   canRequest,
   onRequest,
+  canWriteExpense,
+  onWriteExpense,
 }: MessageActionArgs) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +42,13 @@ export function useMessageActions({
       label: '구매 요청 만들기',
       icon: ShoppingCart,
       onSelect: () => onRequest(message),
+    })
+  if (canWriteExpense)
+    actions.push({
+      key: 'expense',
+      label: '지출 적기',
+      icon: Receipt,
+      onSelect: () => onWriteExpense(message),
     })
   if (canMarkNotice)
     actions.push({

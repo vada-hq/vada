@@ -16,11 +16,11 @@ import { roomName } from './chat-view'
 import Composer from './Composer'
 import MessageItem from './MessageItem'
 import NoticeBand from './NoticeBand'
-import RequestFlowView, { type RequestAccess } from './RequestFlowView'
+import { useMessageFlows } from './MessageFlows'
+import type { RequestAccess } from './RequestFlowView'
 import type { RoomList } from './useRoomList'
 import type { MessageActionSet } from './useMessageActions'
 import { useNoticeMark } from './useNoticeMark'
-import { useRequestFlow } from './useRequestFlow'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
 import { useStickToBottom } from './useStickToBottom'
@@ -33,6 +33,8 @@ type Props = {
   canMarkNotice: boolean
   // 메시지에서 구매 요청 만들기: 권한(`purchase.request`, 대신 내기 `finance.manage`)은 받은 값 그대로다.
   request: RequestAccess
+  // 메시지에서 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
+  canWriteExpense: boolean
   onBack: () => void
   onOpenNotices: () => void
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
@@ -191,6 +193,7 @@ export default function RoomView({
   rooms,
   canMarkNotice,
   request,
+  canWriteExpense,
   onBack,
   onOpenNotices,
   onForbidden,
@@ -199,7 +202,7 @@ export default function RoomView({
   const { state } = room
   const now = useNow()
   const { note, markNotice } = useNoticeMark({ councilId, room, rooms, onForbidden })
-  const flow = useRequestFlow()
+  const flows = useMessageFlows({ councilId, meId, request, canWriteExpense, onForbidden })
   useReadMarker({ councilId, roomId }, state, {
     onRead: () => void rooms.reload(),
     onLost: room.lose,
@@ -213,7 +216,7 @@ export default function RoomView({
     <PageColumn className="h-full gap-3">
       <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
       {note && <StateMessage kind="notice">{note}</StateMessage>}
-      <RequestFlowView {...request} {...{ councilId, meId, flow, onForbidden }} />
+      {flows.views}
       {allMembers && band && <NoticeBand notice={band} now={now} onOpenNotices={onOpenNotices} />}
       <Messages
         councilId={councilId}
@@ -223,8 +226,7 @@ export default function RoomView({
         menu={{
           canMarkNotice: canMarkNotice && allMembers,
           onMarkNotice: markNotice,
-          canRequest: request.canRequest,
-          onRequest: flow.start,
+          ...flows.menu,
         }}
       />
       <Bottom {...{ state, councilId, roomId, meId, room, rooms }} />

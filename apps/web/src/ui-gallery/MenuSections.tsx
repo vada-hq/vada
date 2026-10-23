@@ -96,7 +96,7 @@ export function EmptyAvatarSection() {
   )
 }
 
-// 대화방 메시지의 '…' 메뉴. 구매 요청 만들기와 회장단의 공지 항목이 같은 메뉴에 있다.
+// 대화방 메시지의 ... 메뉴. 구매 요청 만들기, 지출 적기와 회장단의 공지 항목이 같은 메뉴에 있다.
 export function MessageMenuSection() {
   const message = {
     id: 'sample-message',
@@ -118,6 +118,8 @@ export function MessageMenuSection() {
           onMarkNotice={() => Promise.resolve(null)}
           canRequest
           onRequest={() => {}}
+          canWriteExpense
+          onWriteExpense={() => {}}
         />
       </ul>
     </Section>

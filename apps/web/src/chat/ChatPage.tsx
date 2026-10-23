@@ -99,6 +99,7 @@ export default function ChatPage(props: Omit<Props, 'onScreen'>) {
           team: props.team.data,
           onOpenRequest: props.onOpenRequest,
         }}
+        canWriteExpense={props.view.permissions.includes('finance.manage')}
         onBack={list}
         onOpenNotices={() => setScreen({ kind: 'notices' })}
         onForbidden={props.onForbidden}

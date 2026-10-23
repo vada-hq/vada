@@ -23,16 +23,27 @@ export type ExpenseValues = {
   eventId: string | null
   // 결제한 요청에 행사가 있으면 지출의 행사는 그것과 같아 바꿀 수 없다(서버가 다르면 409).
   eventLocked: boolean
+  // 메시지에서 열었으면 그 메시지. 사람이 고르지 않고 서버가 볼 수 있는지 본다.
+  sourceMessageId: string | null
 }
 
-export const emptyExpense = (today: string, eventId: string | null = null): ExpenseValues => ({
+// 메시지에서 열 때 미리 채우는 값
+export type ExpenseStart = Partial<
+  Pick<ExpenseValues, 'description' | 'paidOn' | 'paidBy' | 'sourceMessageId'>
+>
+
+export const emptyExpense = (
+  today: string,
+  eventId: string | null = null,
+  start: ExpenseStart = {},
+): ExpenseValues => ({
   mode: 'request',
   vendor: '',
-  description: '',
+  description: start.description ?? '',
   amount: '',
-  paidOn: today,
+  paidOn: start.paidOn ?? today,
   method: 'card',
-  paidBy: null,
+  paidBy: start.paidBy ?? null,
   reason: '',
   budgetItemId: null,
   requestedBy: null,
@@ -41,6 +52,7 @@ export const emptyExpense = (today: string, eventId: string | null = null): Expe
   lines: [],
   eventId,
   eventLocked: false,
+  sourceMessageId: start.sourceMessageId ?? null,
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
@@ -96,6 +108,7 @@ export function expenseOf(values: ExpenseValues) {
     eventId: values.eventId,
     budgetItemId: requested ? null : values.budgetItemId,
     requestedBy: requested ? null : values.requestedBy,
+    sourceMessageId: values.sourceMessageId,
     lines: requested
       ? values.lines.map(line => ({ lineItemId: line.lineItemId, amount: numberOf(line.amount) }))
       : [],

@@ -10,8 +10,15 @@ import { useActive } from '@/lib/use-active'
 import { useLatest } from '@/lib/use-latest'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { chatEvidencePath, chatPhotosPath } from './expense-api'
-import { expenseProblem, isStale, reportExpenseLost } from './expense-requests'
+import { chatEvidenceProblem, isStale, reportExpenseLost } from './expense-requests'
 import type { EvidenceHooks } from './useEvidenceUpload'
+
+// 대화 사진 한 장을 증빙으로 붙이는 요청(조각 1 경로). 지출 상세의 고르기와 메시지의 사진 붙이기가 함께 쓴다.
+export const sendChatEvidence = (
+  councilId: string,
+  expenseId: string,
+  body: { photoId: string; type: EvidenceType },
+) => postJson<ExpenseResponse>(chatEvidencePath(councilId, expenseId), body)
 
 type Latest = { current: EvidenceHooks }
 
@@ -75,10 +82,7 @@ export function useChatEvidence(councilId: string, expenseId: string, hooks: Evi
     busy.current = true
     setAttaching(true)
     setProblem(null)
-    const result = await postJson<ExpenseResponse>(
-      chatEvidencePath(councilId, expenseId),
-      body.data,
-    )
+    const result = await sendChatEvidence(councilId, expenseId, body.data)
     busy.current = false
     if (!isActive()) return
     setAttaching(false)
@@ -87,7 +91,7 @@ export function useChatEvidence(councilId: string, expenseId: string, hooks: Evi
       return latest.current.onAttached(result.data)
     }
     if (reportExpenseLost(latest.current.handlers, result.status)) return
-    setProblem(expenseProblem(result.code))
+    setProblem(chatEvidenceProblem(result.code))
     if (result.code === 'MESSAGE_INVALID') {
       setChosenId(null)
       void list.reload()

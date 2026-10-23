@@ -130,6 +130,7 @@ test.each([
   ['MESSAGE_INVALID', 409, '볼 수 없는 대화의 사진'],
   ['EVIDENCE_LIMIT', 409, '20장까지'],
   ['STORAGE_NOT_CONFIGURED', 503, '지금은 사진을 올릴 수 없어요'],
+  ['UPLOAD_MISMATCH', 400, '증빙으로 붙일 수 없는 파일이에요. 다른 사진을 골라'],
 ])('붙이기가 %s로 거절되면 그 자리에 문구가 뜬다', async (code, status, text) => {
   const api = serve()
   api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: code }, status))

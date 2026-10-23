@@ -15,7 +15,7 @@ export type RequestSeed = {
 }
 
 // 글자 수는 계약과 같은 단위(코드 포인트)로 센다. 이모지를 반으로 자르지 않는다.
-function clipText(value: string, max: number) {
+export function clipText(value: string, max: number) {
   return Array.from(value).slice(0, max).join('').trim()
 }
 
@@ -34,8 +34,12 @@ function requesterOf(message: ChatMessage, { meId, members, canAssign }: Context
   return stillHere ? sender : meId
 }
 
+// 메시지의 첫 줄(비지 않은 첫 줄). 지출 내역도 같은 줄을 쓴다.
+export const firstLineOf = (message: ChatMessage) =>
+  message.body.split('\n').find(line => line.trim() !== '') ?? ''
+
 export function requestSeedOf(message: ChatMessage, context: Context): RequestSeed {
-  const firstLine = message.body.split('\n').find(line => line.trim() !== '') ?? ''
+  const firstLine = firstLineOf(message)
   return {
     title: clipText(firstLine, PURCHASE_TITLE_MAX),
     body: clipText(message.body, PURCHASE_BODY_MAX),

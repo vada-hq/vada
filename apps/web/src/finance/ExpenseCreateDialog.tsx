@@ -29,6 +29,7 @@ import {
   linesTotal,
   withMode,
   type ExpenseMode,
+  type ExpenseStart,
   type ExpenseValues,
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
@@ -46,6 +47,8 @@ type Props = Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'> & {
   memberId: string
   // 행사 화면에서 열면 그 행사로 채운다.
   eventId?: string | null
+  // 대화의 메시지에서 열면 그 메시지로 채운 값(내역, 결제일, 먼저 낸 사람, 근거 메시지).
+  start?: ExpenseStart | undefined
   // 열림 상태는 부모가 가진다([지출 적기] 버튼이 연다).
   open: boolean
   onClose: () => void
@@ -232,9 +235,9 @@ type FormProps = Omit<Props, 'open'> & {
   setSaving: (saving: boolean) => void
 }
 
-function CreateForm({ team, saving, setSaving, memberId, eventId, ...props }: FormProps) {
+function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [values, setValues] = useState(() => emptyExpense(today, eventId ?? null))
+  const [values, setValues] = useState(() => emptyExpense(today, eventId ?? null, start))
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })

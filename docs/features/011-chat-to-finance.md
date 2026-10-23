@@ -85,7 +85,7 @@
 - 닿는 곳: `apps/web/src/chat/MessageItem.tsx`(메뉴), `RoomView.tsx`, `finance/RequestCreateDialog.tsx`·요청 폼(처음 값, 요청한 사람), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 5. 메시지 메뉴에서 지출 적기(화면) [ ]
+### 5. 메시지 메뉴에서 지출 적기(화면) [x]
 - 할 수 있게 되는 것: 재정부가 영수증 메시지에서 지출을 적고 그 메시지의 사진을 바로 증빙으로 붙인다.
 - 수용 기준: '지출 적기'는 `finance.manage`가 있을 때만 메뉴에 있다. 누르면 지출 대화상자가 열리고 내역, 결제일(메시지 보낸 날), 먼저 낸 사람(보낸 사람이 내가 아니면 그 사람), 계좌(대표 계좌)가 채워진다. 두 방식('요청 없이', '요청한 품목 결제') 모두 같다. 저장하면 그 메시지 번호가 같이 가고 지출 상세가 열리며, 메시지에 사진이 있으면 "이 메시지의 사진 N장 붙이기"와 "증빙은 모든 운영진이 봐요"가 먼저 보인다. 붙이면 사진마다 1의 경로를 부르고 붙는 중·실패·503이 그 자리에 보인다. 두 번 누름, 409, 403·404 닫기를 시험한다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: `apps/web/src/chat/MessageItem.tsx`, `finance/ExpenseCreateDialog.tsx`·`expense-form.ts`(처음 값), `ExpenseDetailDialog.tsx`·`EvidenceSection.tsx`, `lib/messages.ts`, `ui-gallery/`.
