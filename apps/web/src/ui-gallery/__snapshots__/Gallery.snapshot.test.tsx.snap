@@ -317,7 +317,6 @@ exports[`대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -334,7 +333,6 @@ exports[`대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -351,7 +349,6 @@ exports[`대화상자 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -368,7 +365,6 @@ exports[`대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -386,7 +382,6 @@ exports[`대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -410,7 +405,6 @@ exports[`대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -660,7 +654,6 @@ exports[`대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -680,7 +673,6 @@ exports[`대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -698,7 +690,6 @@ exports[`대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -2128,7 +2119,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -2145,7 +2135,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -2162,7 +2151,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -2179,7 +2167,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -2197,7 +2184,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -2221,7 +2207,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -2471,7 +2456,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -2491,7 +2475,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -2509,7 +2492,6 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -3935,7 +3917,6 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -3952,7 +3933,6 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -3969,7 +3949,6 @@ exports[`옆 메뉴 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -3986,7 +3965,6 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -4004,7 +3982,6 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -4028,7 +4005,6 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -4278,7 +4254,6 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -4298,7 +4273,6 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -4316,7 +4290,6 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -5739,7 +5712,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -5756,7 +5728,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -5773,7 +5744,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -5790,7 +5760,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -5808,7 +5777,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -5832,7 +5800,6 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -6082,7 +6049,6 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -6102,7 +6068,6 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -6120,7 +6085,6 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -7540,7 +7504,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -7557,7 +7520,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -7574,7 +7536,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -7591,7 +7552,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -7609,7 +7569,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -7633,7 +7592,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -7883,7 +7841,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -7903,7 +7860,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -7921,7 +7877,6 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -9345,7 +9300,6 @@ exports[`처음 모양 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -9362,7 +9316,6 @@ exports[`처음 모양 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -9379,7 +9332,6 @@ exports[`처음 모양 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -9396,7 +9348,6 @@ exports[`처음 모양 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -9414,7 +9365,6 @@ exports[`처음 모양 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -9438,7 +9388,6 @@ exports[`처음 모양 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -9688,7 +9637,6 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -9708,7 +9656,6 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -9726,7 +9673,6 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>
@@ -11130,7 +11076,6 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 </div>
@@ -11147,7 +11092,6 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
@@ -11164,7 +11108,6 @@ exports[`확인 대화상자 열기 1`] = `
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">책임자 없음</span>
 </p>
 </div>
 </div>
@@ -11181,7 +11124,6 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 10월 25일 (일) 02:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">떠난 사람: 이떠남</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
@@ -11199,7 +11141,6 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </p>
 </div>
 </div>
@@ -11223,7 +11164,6 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
 <span aria-hidden="true">토요일 14:00 ~ 18:00</span>
 <span class="wrap-anywhere">대강당</span>
-<span class="wrap-anywhere">김새내</span>
 </p>
 </div>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
@@ -11473,7 +11413,6 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 1/4</span>
@@ -11493,7 +11432,6 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 2/2</span>
@@ -11511,7 +11449,6 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>10월 20일 (화) 10:00 ~ 12:00</span>
-<span class="wrap-anywhere">김회장</span>
 </div>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
 <span>업무 0/5</span>

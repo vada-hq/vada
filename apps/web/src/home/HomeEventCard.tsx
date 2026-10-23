@@ -2,7 +2,7 @@ import type { HomeEventCard as Card } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card as Box } from '@/components/ui/card'
-import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, ownerLabel, whenLabel } from '../events/event-view'
+import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from '../events/event-view'
 import { NO_ASSIGNEE_LABEL } from '../tasks/task-view'
 import { settlementLabel } from './home-view'
 
@@ -30,7 +30,6 @@ export default function HomeEventCard({ card, onOpen }: Props) {
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
         <span>{whenLabel(event)}</span>
-        <span className="wrap-anywhere">{ownerLabel(event.owner)}</span>
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
         <span>

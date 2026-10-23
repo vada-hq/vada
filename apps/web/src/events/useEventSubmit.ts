@@ -16,7 +16,7 @@ type Handlers = EventDialogHandlers & {
   setSaving: (saving: boolean) => void
 }
 
-// 행사 쓰기 요청 하나(만들기, 고치기, 책임자 바꾸기). 버튼은 계약의 safeParse로 켜고, 보내는 동안 다시 보내지 않는다.
+// 행사 쓰기 요청 하나(만들기, 고치기). 버튼은 계약의 safeParse로 켜고, 보내는 동안 다시 보내지 않는다.
 export function useEventSubmit(
   path: string,
   schema: { safeParse: (input: unknown) => { success: boolean } },

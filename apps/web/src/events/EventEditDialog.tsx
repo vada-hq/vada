@@ -15,7 +15,7 @@ type Props = EventDialogHandlers & {
   focus?: EventFieldFocus | undefined
 }
 
-// 이름, 일시, 장소 고치기(책임자). 책임자는 여기서 바꾸지 않는다.
+// 이름, 일시, 장소 고치기.
 export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...handlers }: Props) {
   const [values, setValues] = useState(eventFieldsOf(event))
   const [saving, setSaving] = useState(false)

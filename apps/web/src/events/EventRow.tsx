@@ -6,7 +6,6 @@ import {
   dateBlock,
   EVENT_STATUS_LABEL,
   EVENT_STATUS_TONE,
-  ownerLabel,
   spanLabel,
   whenLabel,
 } from './event-view'
@@ -36,7 +35,7 @@ function DateBox({ event }: { event: EventSummary }) {
   )
 }
 
-// 행사 목록의 한 줄: 날짜 칸, 이름, 시각·장소·책임자, 진행 중·끝남·완료 배지. 줄 어디를 눌러도 행사가 열린다.
+// 행사 목록의 한 줄: 날짜 칸, 이름, 시각·장소, 진행 중·끝남·완료 배지. 줄 어디를 눌러도 행사가 열린다.
 export default function EventRow({ event, onOpen }: Props) {
   const span = spanLabel(event)
   return (
@@ -57,7 +56,6 @@ export default function EventRow({ event, onOpen }: Props) {
           <span className="sr-only">{whenLabel(event)}</span>
           {span && <span aria-hidden>{span}</span>}
           {event.place && <span className="wrap-anywhere">{event.place}</span>}
-          <span className="wrap-anywhere">{ownerLabel(event.owner)}</span>
         </p>
       </div>
       {BADGED.has(event.status) && (

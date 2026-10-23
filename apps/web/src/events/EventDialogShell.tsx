@@ -9,7 +9,7 @@ type Props = {
   children: ReactNode
 }
 
-// 행사 대화상자 셋(만들기, 고치기, 책임자 바꾸기)의 겉. 열림 상태는 부모가 가진다.
+// 행사 대화상자 둘(만들기, 고치기)의 겉. 열림 상태는 부모가 가진다.
 export function EventDialogShell({ title, saving, onClose, children }: Props) {
   return (
     <Dialog

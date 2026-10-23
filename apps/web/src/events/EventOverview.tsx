@@ -5,11 +5,10 @@ import { Fact } from '@/components/Fact'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, ownerLabel, whenLabel } from './event-view'
+import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from './event-view'
 import { EventEditDialog } from './EventEditDialog'
 import type { EventFieldFocus } from './EventFields'
 import { EventHistory } from './EventHistory'
-import { EventOwnerDialog } from './EventOwnerDialog'
 import type { EventDialogHandlers } from './useEventSubmit'
 
 type Props = EventDialogHandlers & {
@@ -38,7 +37,7 @@ function EmptyFact({
   )
 }
 
-// 상태, 일시, 장소, 책임자, 업무 수. 빈 일시·장소는 고칠 수 있으면 채우는 버튼이다.
+// 상태, 일시, 장소, 업무 수. 빈 일시·장소는 고칠 수 있으면 채우는 버튼이다.
 function OverviewFacts({
   event,
   canEdit,
@@ -73,7 +72,6 @@ function OverviewFacts({
           />
         )}
       </Fact>
-      <Fact label="책임자">{ownerLabel(event.owner)}</Fact>
       <Fact label="업무">
         {event.tasks.total === 0
           ? '업무 없음'
@@ -83,9 +81,9 @@ function OverviewFacts({
   )
 }
 
-// 개요 탭: 일시, 장소, 책임자, 상태, 업무 수, 이력. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
+// 개요 탭: 일시, 장소, 상태, 업무 수, 이력. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 export function EventOverview({ councilId, event, onChanged, ...handlers }: Props) {
-  const [dialog, setDialog] = useState<'edit' | 'owner' | null>(null)
+  const [dialog, setDialog] = useState<'edit' | null>(null)
   const [focus, setFocus] = useState<EventFieldFocus | undefined>(undefined)
   const canEdit = event.actions.includes('event.update')
   const openEdit = (field?: EventFieldFocus) => {
@@ -97,9 +95,7 @@ export function EventOverview({ councilId, event, onChanged, ...handlers }: Prop
     onChanged(next)
   }
   // 열려 있는 동안 다시 읽은 actions에서 권한이 빠지면 닫고 이유를 보인다.
-  const allowed =
-    dialog === null ||
-    event.actions.includes(dialog === 'edit' ? 'event.update' : 'event.set_owner')
+  const allowed = dialog === null || canEdit
   const { onLost } = handlers
   useEffect(() => {
     if (allowed) return
@@ -116,14 +112,8 @@ export function EventOverview({ councilId, event, onChanged, ...handlers }: Prop
             고치기
           </Button>
         )}
-        {event.actions.includes('event.set_owner') && (
-          <Button variant="outline" onClick={() => setDialog('owner')}>
-            책임자 바꾸기
-          </Button>
-        )}
       </div>
       {dialog === 'edit' && <EventEditDialog {...shared} focus={focus} />}
-      {dialog === 'owner' && <EventOwnerDialog {...shared} />}
       <EventHistory history={event.history} />
     </div>
   )

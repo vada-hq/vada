@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { CalendarDays } from 'lucide-react'
 import { EVENT_LIST_LIMIT, type CouncilView } from '@vada/contracts'
+import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -25,7 +27,32 @@ type Props = {
   onTasksChanged: () => void
 }
 
-function Cards({ list, onOpen }: { list: EventList; onOpen: (eventId: string) => void }) {
+// 빈 목록: 무엇이 여기에 오는지와 첫 행사를 어떻게 만드는지 말한다(NN/g, 빈 화면).
+function NoEvents({ canCreate }: { canCreate: boolean }) {
+  return (
+    <Card>
+      <EmptyState
+        icon={CalendarDays}
+        title="아직 행사가 없어요"
+        description={
+          canCreate
+            ? "오른쪽 위 '행사 만들기'로 첫 행사를 만들어 보세요. 이름만 넣으면 돼요."
+            : '회장단이 행사를 만들면 여기에 보여요.'
+        }
+      />
+    </Card>
+  )
+}
+
+function Cards({
+  list,
+  view,
+  onOpen,
+}: {
+  list: EventList
+  view: CouncilView
+  onOpen: (eventId: string) => void
+}) {
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">행사 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
@@ -38,7 +65,7 @@ function Cards({ list, onOpen }: { list: EventList; onOpen: (eventId: string) =>
       </div>
     )
   const { events, truncated } = state.data
-  if (events.length === 0) return <StateMessage kind="empty">아직 행사가 없어요.</StateMessage>
+  if (events.length === 0) return <NoEvents canCreate={view.permissions.includes('event.create')} />
   return (
     <>
       {eventGroups(events).map(group => (
@@ -127,7 +154,7 @@ export default function EventsPage({
           {...lost}
         />
       )}
-      <Cards list={list} onOpen={dialogs.openRecord} />
+      <Cards list={list} view={view} onOpen={dialogs.openRecord} />
     </PageColumn>
   )
 }

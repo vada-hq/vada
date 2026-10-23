@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
@@ -11,8 +11,6 @@ type Props = {
   submitLabel: string
   values: EventFieldValues
   onValues: (values: EventFieldValues) => void
-  // 책임자 고르기 같은 칸. 만들기에만 있다.
-  extra?: ReactNode
   // 만들기는 이름만 받는다(EventFields).
   nameOnly?: boolean
   focus?: EventFieldFocus | undefined
@@ -49,14 +47,20 @@ export function EventForm(props: Props) {
         nameOnly={props.nameOnly}
         focus={props.focus}
       />
-      {props.extra}
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
-        <MissingHint id={hintId} missing={missingOf(props.values)} blocked={!props.valid} />
+        {/* 이름 한 칸뿐인 만들기에서는 꺼진 이유가 눈에 보이므로 적지 않는다. */}
+        {!props.nameOnly && (
+          <MissingHint id={hintId} missing={missingOf(props.values)} blocked={!props.valid} />
+        )}
         <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
           닫기
         </Button>
-        <Button type="submit" aria-describedby={hintId} disabled={!props.valid || props.saving}>
+        <Button
+          type="submit"
+          aria-describedby={props.nameOnly ? undefined : hintId}
+          disabled={!props.valid || props.saving}
+        >
           {props.submitLabel}
         </Button>
       </DialogFooter>

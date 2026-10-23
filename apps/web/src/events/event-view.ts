@@ -40,11 +40,6 @@ export function whenLabel(event: Pick<EventSummary, 'startsAt' | 'endsAt'>) {
   return `${start.text} ~ ${end.date === start.date ? end.time : end.text}`
 }
 
-export function ownerLabel(owner: EventSummary['owner']) {
-  if (!owner) return NO_OWNER_LABEL
-  return owner.current ? owner.name : `떠난 사람: ${owner.name}`
-}
-
 // 목록 왼쪽 날짜 칸: '11월' / '1'. 시작이 없으면 칸을 비운다(상태 배지가 '날짜 미정'을 말한다).
 export function dateBlock(startsAt: string | null) {
   if (startsAt === null) return null
