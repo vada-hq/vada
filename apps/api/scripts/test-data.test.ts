@@ -4,6 +4,8 @@ import type { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
 import type { Db, Tx } from '../src/db/types.js'
 import { createTestDb } from '../src/db/test-db.js'
+import { actorOf } from '../src/access/actor.js'
+import { createFiscalPeriod } from '../src/budget/service.js'
 import { roomMap } from '../src/test-support/chat.js'
 import {
   assignTestMember,
@@ -12,6 +14,7 @@ import {
   stepOf,
   TEST_INVITE_CODE,
 } from './test-data.js'
+import { seedTestPeriods } from './test-data-periods.js'
 import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/ops/migrate/migrate-check.js'
 
 const now = new Date('2026-10-19T03:00:00Z')
@@ -210,4 +213,67 @@ test('시험 데이터는 --apply가 없으면 미리 보기로 -- --apply를 �
     step: 'stop',
     message: UNSHOWN_TARGET_MESSAGE,
   })
+})
+
+test('시험 기간 두기: 끝난 기간을 지금 기간의 이전 기간으로 잇고, 다시 돌려도 바꾸지 않는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    for (const user of ['u1', 'u2']) await googleUser(pg, user)
+    await seedTestCouncil(db, 'u1', now)
+    await assignTestMember(db, 'u2', 'finance', now)
+    // 회장은 재정부가 아니라 예산 서비스가 막는다.
+    await assert.rejects(seedTestPeriods(db, 'u1', now))
+    assert.equal(await seedTestPeriods(db, 'u2', now), 'created')
+    const periods = async () =>
+      (
+        await pg.query(`SELECT p.name, p.starts_on::text AS starts_on, p.ends_on::text AS ends_on, prev.name AS previous
+          FROM fiscal_period p LEFT JOIN fiscal_period prev ON prev.id = p.previous_period_id ORDER BY p.starts_on`)
+      ).rows
+    const created = [
+      { name: '시험 1학기', starts_on: '2025-07-04', ends_on: '2025-12-31', previous: null },
+      { name: '2026', starts_on: '2026-01-01', ends_on: '2026-12-31', previous: '시험 1학기' },
+    ]
+    assert.deepEqual(await periods(), created)
+    assert.equal((await pg.query('SELECT 1 FROM budget')).rows.length, 2)
+    assert.equal(await seedTestPeriods(db, 'u2', now), 'unchanged')
+    assert.deepEqual(await periods(), created)
+  } finally {
+    await close()
+  }
+})
+
+test('시험 기간 두기: 시험 학생회가 없거나 겹치는 기간이 있으면 멈춘다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    for (const user of ['u1', 'u2']) await googleUser(pg, user)
+    await assert.rejects(seedTestPeriods(db, 'u2', now), /Seed the test council first/)
+    await seedTestCouncil(db, 'u1', now)
+    await assignTestMember(db, 'u2', 'finance', now)
+    // 지금 기간이 없고 앞쪽 날짜가 겹치는 기간이 있다.
+    const councilId = (await pg.query<{ id: string }>('SELECT id FROM council')).rows[0]!.id
+    await db.transaction(async tx => {
+      await createFiscalPeriod(tx, (await actorOf(tx, 'u2', councilId, now))!, {
+        name: '겹침',
+        startsOn: '2025-10-01',
+        endsOn: '2025-12-01',
+      })
+    })
+    await assert.rejects(seedTestPeriods(db, 'u2', now), { code: 'FISCAL_PERIOD_CONFLICT' })
+    assert.equal((await pg.query('SELECT 1 FROM fiscal_period')).rows.length, 1)
+  } finally {
+    await close()
+  }
+})
+
+test('시험 기간 인자와 안내', () => {
+  assert.deepEqual(parseTestDataArgs(['periods', 'u2', '--apply']), {
+    command: 'periods',
+    userId: 'u2',
+    apply: true,
+  })
+  assert.equal(parseTestDataArgs(['periods', 'u2', 'finance']), null)
+  assert.equal(parseTestDataArgs(['periods', '--apply']), null)
+  const preview = stepOf({ command: 'periods', userId: 'u2', apply: false }, 'host/db')
+  assert.equal(preview.step, 'preview')
+  assert.match(preview.step === 'preview' ? preview.message : '', /-- periods u2 --apply/)
 })

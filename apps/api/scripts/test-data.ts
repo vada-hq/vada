@@ -30,33 +30,39 @@ export type TestDepartment = keyof typeof TEST_DEPARTMENTS
 export type TestDataCommand =
   | { command: 'seed'; userId: string; apply: boolean }
   | { command: 'assign'; userId: string; department: TestDepartment; apply: boolean }
+  | { command: 'periods'; userId: string; apply: boolean }
 const isTestDepartment = (value: string | undefined): value is TestDepartment =>
   value !== undefined && Object.hasOwn(TEST_DEPARTMENTS, value)
+
+// 계정 번호 자리에 플래그가 들어오면(seed --apply) 계정 번호가 빠진 것이다.
+const isUserArg = (value: string | undefined): value is string =>
+  !!value?.trim() && !value.startsWith('-')
 
 export function parseTestDataArgs(args: readonly string[]): TestDataCommand | null {
   const apply = args.at(-1) === '--apply'
   const rest = apply ? args.slice(0, -1) : args
   const [command, userId, department, ...extra] = rest
-  // 계정 번호 자리에 플래그가 들어오면(seed --apply) 계정 번호가 빠진 것이다.
-  if (extra.length > 0 || !userId?.trim() || userId.startsWith('-')) return null
-  if (command === 'seed' && department === undefined) return { command, userId, apply }
-  if (command === 'assign' && isTestDepartment(department))
-    return { command, userId, department, apply }
-  return null
+  if (extra.length > 0 || !isUserArg(userId)) return null
+  if (command === 'assign')
+    return isTestDepartment(department) ? { command, userId, department, apply } : null
+  if (department !== undefined) return null
+  return command === 'seed' || command === 'periods' ? { command, userId, apply } : null
 }
 
 // 하려는 일 한 줄
-const planOf = (command: TestDataCommand) =>
-  command.command === 'seed'
-    ? '시험 학생회를 두고 그 계정을 회장으로 둔다'
-    : `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[command.department]}에 넣는다`
+const planOf = (command: TestDataCommand) => {
+  if (command.command === 'seed') return '시험 학생회를 두고 그 계정을 회장으로 둔다'
+  if (command.command === 'periods')
+    return '시험 학생회에 끝난 기간(시험 1학기)과 지금 기간을 둔다(이미 있으면 바꾸지 않는다)'
+  return `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[command.department]}에 넣는다`
+}
 
 // 그대로 붙여 칠 수 있는 적용 명령
 const applyCommandOf = (command: TestDataCommand) =>
   `npm run test-data --workspace @vada/api -- ${
-    command.command === 'seed'
-      ? `seed ${command.userId}`
-      : `assign ${command.userId} ${command.department}`
+    command.command === 'assign'
+      ? `assign ${command.userId} ${command.department}`
+      : `${command.command} ${command.userId}`
   } --apply`
 
 // 다음에 할 일. 미리 보기(--apply 없음)는 하려는 일만 보여 준다. 적용은 대상(describeTarget)을 보여 줄 수 있을 때만 한다.
@@ -81,7 +87,7 @@ export async function requireGoogleUser(tx: Tx, userId: string) {
   if (!account) throw new Error('An existing Google user is required')
 }
 
-async function testCouncilId(tx: Tx) {
+export async function testCouncilId(tx: Tx) {
   const found = await tx
     .select({ id: council.id })
     .from(council)
