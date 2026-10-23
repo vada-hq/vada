@@ -424,6 +424,13 @@ test(
     )
     const response = await s.api.get(`${s.base}/files/${foreign.photos[0]!.id}`, 's-president')
     assert.equal(response.status, 404)
+    // 내가 그 방의 참여 줄을 가져도(같은 시각) 학생회 거르기가 막는다.
+    await s.pg.query(
+      'INSERT INTO room_membership (room_id, member_id, joined_at) VALUES ($1, $2, $3)',
+      [foreignRoom, s.council.people.president.memberId, JOINED],
+    )
+    const joined = await s.api.get(`${s.base}/files/${foreign.photos[0]!.id}`, 's-president')
+    assert.equal(joined.status, 404)
   }),
 )
 

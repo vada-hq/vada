@@ -127,6 +127,6 @@ test('복사는 새 키에 PUT하고 복사 원본을 버킷과 키로 건네며
   const [first] = seen
   assert.equal(first!.method, 'PUT')
   assert.equal(new URL(first!.url).pathname, '/vada-receipts/evidence/a/b/c')
-  assert.equal(first!.headers.get('x-amz-copy-source'), '/vada-receipts/chat/a/b/c%20d')
+  assert.equal(first!.headers.get('x-amz-copy-source'), 'vada-receipts/chat/a/b/c%20d')
   assert.ok(first!.headers.get('Authorization')?.includes('x-amz-copy-source'))
 })

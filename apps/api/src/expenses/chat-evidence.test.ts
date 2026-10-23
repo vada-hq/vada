@@ -340,6 +340,29 @@ test(
 )
 
 test(
+  '복사하는 사이 사진을 볼 수 없게 되면 거래 안 다시 보기가 409 MESSAGE_INVALID로 막고 복사본을 지운다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const photo = await s.photoIn(s.base, all, 's-president')
+    const made = await s.make()
+    const real = s.store.storage.copy.bind(s.store.storage)
+    s.store.storage.copy = async (from, to) => {
+      await real(from, to)
+      await s.pg.query('DELETE FROM room_membership WHERE member_id = $1 AND room_id = $2', [
+        s.council.people.financeMember.memberId,
+        all,
+      ])
+    }
+    const response = await s.attach(made.id, { photoId: photo.fileId })
+    assert.equal(response.status, 409)
+    assert.equal(await errorOf(response), 'MESSAGE_INVALID')
+    assert.equal(s.store.copied.length, 1)
+    await assertNothingKept(s)
+    assert.equal(s.store.has(photo.key), true)
+  }),
+)
+
+test(
   '원본이 JPEG 1바이트~10MB가 아니면 400 UPLOAD_MISMATCH이고 원본을 지우지 않으며 복사하지 않는다. 경계 값은 된다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')

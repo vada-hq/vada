@@ -97,7 +97,7 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
       }),
     )
   }
-  const copy = (fromKey: string, toKey: string) => copyObject(call, pathOf(fromKey), toKey)
+  const copy = (fromKey: string, toKey: string) => copyObject(call, pathOf(fromKey).slice(1), toKey)
   return { objectUrl, presign, call, copy }
 }
 
