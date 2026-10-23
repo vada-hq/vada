@@ -168,6 +168,9 @@ export const PURCHASE_ERRORS: Record<string, string> = {
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.',
   EVENT_COMPLETED:
     '완료한 행사의 요청이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
+  MEMBER_INVALID: '요청한 사람이 지금 운영진이 아니에요. 다른 사람을 골라 주세요.',
+  MESSAGE_INVALID:
+    '이 메시지를 더는 볼 수 없어 요청을 낼 수 없어요. 방에서 나갔는지 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }

@@ -98,6 +98,7 @@ function LeadPage({
       rooms={rooms}
       initialRoomId={roomId}
       onForbidden={data.reload}
+      onOpenRequest={openers.onOpenRequest}
     />
   )
 }

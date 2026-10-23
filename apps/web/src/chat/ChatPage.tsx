@@ -20,6 +20,8 @@ type Props = {
   rooms: RoomListHook
   // 권한이 바뀌었을 때 학생회를 다시 읽게 한다.
   onForbidden: () => void
+  // 메시지에서 낸 요청을 재정 화면에서 연다.
+  onOpenRequest: (requestId: string) => void
   // 알림으로 열면 방 목록 대신 이 방에서 시작한다.
   initialRoomId?: string | undefined
   onScreen: (screen: Screen) => void
@@ -91,6 +93,12 @@ export default function ChatPage(props: Omit<Props, 'onScreen'>) {
         meId={props.view.me.memberId}
         rooms={props.rooms}
         canMarkNotice={props.view.permissions.includes('chat.notice')}
+        request={{
+          canRequest: props.view.permissions.includes('purchase.request'),
+          canAssign: props.view.permissions.includes('finance.manage'),
+          team: props.team.data,
+          onOpenRequest: props.onOpenRequest,
+        }}
         onBack={list}
         onOpenNotices={() => setScreen({ kind: 'notices' })}
         onForbidden={props.onForbidden}

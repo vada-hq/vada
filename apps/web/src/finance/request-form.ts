@@ -13,8 +13,16 @@ export type RequestValues = {
   neededBy: string
   // 낼 때 고르고 바꾸지 않는다. 비면 행사에 잇지 않는다.
   eventId: string | null
+  // 재정부가 남을 대신해 낼 때의 요청한 사람. 비면 나다.
+  requestedBy: string | null
+  // 메시지에서 열었으면 그 메시지. 사람이 고르지 않고 서버가 볼 수 있는지 본다.
+  sourceMessageId: string | null
   items: ItemValues[]
 }
+// 메시지에서 열 때 미리 채우는 값
+export type RequestStart = Partial<
+  Pick<RequestValues, 'title' | 'body' | 'requestedBy' | 'sourceMessageId'>
+>
 
 let lastKey = 0
 export const newItem = (): ItemValues => ({
@@ -24,11 +32,16 @@ export const newItem = (): ItemValues => ({
   link: '',
   options: '',
 })
-export const emptyRequest = (eventId: string | null = null): RequestValues => ({
-  title: '',
-  body: '',
+export const emptyRequest = (
+  eventId: string | null = null,
+  start: RequestStart = {},
+): RequestValues => ({
+  title: start.title ?? '',
+  body: start.body ?? '',
   neededBy: '',
   eventId,
+  requestedBy: start.requestedBy ?? null,
+  sourceMessageId: start.sourceMessageId ?? null,
   items: [newItem()],
 })
 
@@ -38,6 +51,9 @@ const orNull = (value: string) => (value.trim() === '' ? null : value)
 export const requestOf = (values: RequestValues) => ({
   title: values.title,
   eventId: values.eventId,
+  // 비면 키를 보내지 않는다(서버 기본값이 같다).
+  ...(values.requestedBy === null ? {} : { requestedBy: values.requestedBy }),
+  ...(values.sourceMessageId === null ? {} : { sourceMessageId: values.sourceMessageId }),
   body: orNull(values.body),
   neededBy: orNull(values.neededBy),
   items: values.items.map(item => ({

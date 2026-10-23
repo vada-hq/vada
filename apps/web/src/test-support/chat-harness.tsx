@@ -11,17 +11,26 @@ import { json, mockApi } from './mock-api'
 export const chatBase = '/api/organizations/c1'
 
 // 권한이 바뀌면(403) 학생회를 다시 읽어 권한이 줄어든 모습을 받는다.
-export function ChatHarness({ permissions = MEMBER_PERMISSIONS }: { permissions?: Action[] }) {
+export function ChatHarness({
+  permissions = MEMBER_PERMISSIONS,
+  memberId,
+  onOpenRequest = () => {},
+}: {
+  permissions?: Action[]
+  memberId?: string
+  onOpenRequest?: (requestId: string) => void
+}) {
   const [granted, setGranted] = useState(permissions)
   const team = useTeam('c1', () => {})
   const rooms = useRoomList('c1', () => {}, true)
   return (
     <ChatPage
       councilId="c1"
-      view={councilView('c1', { permissions: granted })}
+      view={councilView('c1', { permissions: granted, memberId })}
       team={team}
       rooms={rooms}
       onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
+      onOpenRequest={onOpenRequest}
     />
   )
 }

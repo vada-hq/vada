@@ -8,7 +8,12 @@ import {
   StateSection,
 } from './AppSections'
 import { ButtonsSection, CardsSection, ChipsSection, InputsSection } from './FormSections'
-import { ActionMenuSection, EmptyAvatarSection, MenuTabsSection } from './MenuSections'
+import {
+  ActionMenuSection,
+  EmptyAvatarSection,
+  MenuTabsSection,
+  MessageMenuSection,
+} from './MenuSections'
 import { AccountSection } from './AccountSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
@@ -33,6 +38,7 @@ export default function Gallery() {
       <CardsSection />
       <MenuTabsSection />
       <ActionMenuSection />
+      <MessageMenuSection />
       <EmptyAvatarSection />
       <DialogSheetSection />
       <ConfirmSection />

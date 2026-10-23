@@ -17,6 +17,7 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 
 afterEach(() => {
@@ -155,7 +156,11 @@ test('공지 메뉴는 회장단에게만 보이고, 붙이면 공지 표시와 
   const view = render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await openAll()
   await screen.findByText('모레 회의 있어요')
-  expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull()
+  fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
+    key: 'Enter',
+  })
+  await screen.findByRole('menuitem', { name: '구매 요청 만들기' })
+  expect(screen.queryByRole('menuitem', { name: '공지로 표시' })).toBeNull()
   view.unmount()
 
   render(<Harness permissions={LEADER_PERMISSIONS} />)
@@ -234,7 +239,12 @@ test('공지 표시가 403이면 학생회를 다시 읽어 공지 메뉴가 사
   })
   fireEvent.click(await screen.findByRole('menuitem', { name: '공지로 표시' }))
   expect(await screen.findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
-  await waitFor(() => expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull())
+  await waitFor(() => expect(screen.getAllByText(PERMISSION_CHANGED)).toHaveLength(1))
+  fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
+    key: 'Enter',
+  })
+  await screen.findByRole('menuitem', { name: '구매 요청 만들기' })
+  expect(screen.queryByRole('menuitem', { name: '공지로 표시' })).toBeNull()
 })
 
 test('방 정보와 메시지 중 하나만 403이어도 방을 잃은 것으로 본다', async () => {

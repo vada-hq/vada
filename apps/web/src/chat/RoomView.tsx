@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { ChatMessage } from '@vada/contracts'
 import { ArrowLeft } from 'lucide-react'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -17,8 +16,11 @@ import { roomName } from './chat-view'
 import Composer from './Composer'
 import MessageItem from './MessageItem'
 import NoticeBand from './NoticeBand'
+import RequestFlowView, { type RequestAccess } from './RequestFlowView'
 import type { RoomList } from './useRoomList'
+import type { MessageActionSet } from './useMessageActions'
 import { useNoticeMark } from './useNoticeMark'
+import { useRequestFlow } from './useRequestFlow'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
 import { useStickToBottom } from './useStickToBottom'
@@ -29,6 +31,8 @@ type Props = {
   meId: string
   rooms: RoomList
   canMarkNotice: boolean
+  // 메시지에서 구매 요청 만들기: 권한(`purchase.request`, 대신 내기 `finance.manage`)은 받은 값 그대로다.
+  request: RequestAccess
   onBack: () => void
   onOpenNotices: () => void
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
@@ -111,15 +115,14 @@ function Messages({
   state,
   room,
   meId,
-  canMarkNotice,
-  onMarkNotice,
+  menu,
 }: {
   councilId: string
   meId: string
   state: Ready
   room: Room
-  canMarkNotice: boolean
-  onMarkNotice: (message: ChatMessage, isNotice: boolean) => Promise<string | null>
+  // 메시지 '…' 메뉴에 들어갈 동작들(공지, 구매 요청)
+  menu: MessageActionSet
 }) {
   const now = useNow()
   const last = state.messages.at(-1)
@@ -142,8 +145,7 @@ function Messages({
               councilId={councilId}
               message={message}
               now={now}
-              canMarkNotice={canMarkNotice}
-              onMarkNotice={onMarkNotice}
+              {...menu}
             />
           ))}
         </ul>
@@ -188,6 +190,7 @@ export default function RoomView({
   meId,
   rooms,
   canMarkNotice,
+  request,
   onBack,
   onOpenNotices,
   onForbidden,
@@ -196,6 +199,7 @@ export default function RoomView({
   const { state } = room
   const now = useNow()
   const { note, markNotice } = useNoticeMark({ councilId, room, rooms, onForbidden })
+  const flow = useRequestFlow()
   useReadMarker({ councilId, roomId }, state, {
     onRead: () => void rooms.reload(),
     onLost: room.lose,
@@ -209,23 +213,21 @@ export default function RoomView({
     <PageColumn className="h-full gap-3">
       <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
       {note && <StateMessage kind="notice">{note}</StateMessage>}
+      <RequestFlowView {...request} {...{ councilId, meId, flow, onForbidden }} />
       {allMembers && band && <NoticeBand notice={band} now={now} onOpenNotices={onOpenNotices} />}
       <Messages
         councilId={councilId}
         meId={meId}
         state={state}
         room={room}
-        canMarkNotice={canMarkNotice && allMembers}
-        onMarkNotice={markNotice}
+        menu={{
+          canMarkNotice: canMarkNotice && allMembers,
+          onMarkNotice: markNotice,
+          canRequest: request.canRequest,
+          onRequest: flow.start,
+        }}
       />
-      <Bottom
-        state={state}
-        councilId={councilId}
-        roomId={roomId}
-        meId={meId}
-        room={room}
-        rooms={rooms}
-      />
+      <Bottom {...{ state, councilId, roomId, meId, room, rooms }} />
     </PageColumn>
   )
 }

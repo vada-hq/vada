@@ -13,15 +13,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import {
   emptyRequest,
   newItem,
   requestOf,
   type ItemValues,
+  type RequestStart,
   type RequestValues,
 } from './request-form'
 import { EventField } from './EventField'
+import { RequesterField } from './RequesterField'
 import { RequestItemFields } from './RequestItemFields'
 import { useRequestCreate } from './useRequestCreate'
 
@@ -29,6 +32,10 @@ type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
   // 행사 화면에서 열면 그 행사로 채운다.
   eventId?: string | null
+  // 대화의 메시지에서 열면 그 메시지로 채운 값(제목, 내용, 요청한 사람, 근거 메시지).
+  start?: RequestStart
+  // 재정부가 대신 낼 때 고르는 요청한 사람들. 없으면 칸이 없다.
+  requesters?: Choice[] | null
   // 열림 상태는 부모가 가진다([구매 요청 내기] 버튼이 연다).
   open: boolean
   onClose: () => void
@@ -113,8 +120,8 @@ function WhenAndBody({
 
 type FormProps = Omit<Props, 'open'> & { saving: boolean; setSaving: (saving: boolean) => void }
 
-function CreateForm({ saving, setSaving, eventId, ...props }: FormProps) {
-  const [values, setValues] = useState(() => emptyRequest(eventId ?? null))
+function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }: FormProps) {
+  const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
   const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
   return (
@@ -134,6 +141,12 @@ function CreateForm({ saving, setSaving, eventId, ...props }: FormProps) {
           onChange={event => set({ title: event.target.value })}
         />
       </Label>
+      <RequesterField
+        choices={requesters ?? null}
+        value={values.requestedBy}
+        disabled={saving}
+        onChange={requestedBy => set({ requestedBy })}
+      />
       <EventField
         councilId={props.councilId}
         value={values.eventId}

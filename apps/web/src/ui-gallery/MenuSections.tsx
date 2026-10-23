@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/menu'
 import { NavItem } from '@/components/ui/nav-item'
 import { TabButton } from '@/components/ui/tab-button'
+import MessageItem from '@/chat/MessageItem'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
@@ -91,6 +92,34 @@ export function EmptyAvatarSection() {
         <BrandMark />
         <span className="text-base font-semibold">VADA</span>
       </div>
+    </Section>
+  )
+}
+
+// 대화방 메시지의 '…' 메뉴. 구매 요청 만들기와 회장단의 공지 항목이 같은 메뉴에 있다.
+export function MessageMenuSection() {
+  const message = {
+    id: 'sample-message',
+    senderId: 'sample-sender',
+    senderName: '박해랑',
+    body: '현수막 2개 사 주세요\n색은 파랑이면 좋겠어요',
+    sentAt: '2026-10-23T01:30:00Z',
+    isNotice: false,
+    photos: [],
+  }
+  return (
+    <Section title="메시지 메뉴">
+      <ul className="w-96 divide-y rounded-lg border bg-white p-2">
+        <MessageItem
+          councilId="sample"
+          message={message}
+          now={new Date('2026-10-23T05:00:00Z')}
+          canMarkNotice
+          onMarkNotice={() => Promise.resolve(null)}
+          canRequest
+          onRequest={() => {}}
+        />
+      </ul>
     </Section>
   )
 }
