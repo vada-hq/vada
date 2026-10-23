@@ -26,6 +26,8 @@ test('CreatePurchaseRequestSchema: 비운 칸은 null이고 링크는 http와 ht
     body: null,
     eventId: null,
     neededBy: null,
+    requestedBy: null,
+    sourceMessageId: null,
     items: [{ name: '마커', quantity: 1, link: null, options: null }],
   })
   for (const link of ['http://a.example/x', 'https://a.example/x'])
