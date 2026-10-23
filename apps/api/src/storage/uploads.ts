@@ -28,13 +28,17 @@ const prefixOf = (area: string, actor: Actor) => `${area}/${actor.councilId}/${a
 const isOwnKey = (area: string, actor: Actor, key: string) =>
   key.startsWith(prefixOf(area, actor)) && isUuid(key.slice(prefixOf(area, actor).length))
 
+// 새 저장소 키. 올리기 주소와 저장소 안 복사가 같은 모양을 쓴다.
+export const newStorageKey = (area: string, actor: Actor) =>
+  `${prefixOf(area, actor)}${randomUUID()}`
+
 // 올리기 주소. 서버가 파일 바이트를 받지 않으므로 형식은 서명으로, 크기는 보낼 때 저장소에서 확인한다.
 export async function issueUpload(
   storage: FileStorage,
   area: string,
   actor: Actor,
 ): Promise<PhotoUploadResponse> {
-  const key = `${prefixOf(area, actor)}${randomUUID()}`
+  const key = newStorageKey(area, actor)
   const signed = await storage.uploadUrl(key, PHOTO_MEDIA_TYPE)
   return {
     key,

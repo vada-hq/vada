@@ -206,6 +206,7 @@ export * from './labels.js'
 export * from './incomes.js'
 export * from './home.js'
 export {
+  AttachChatEvidenceSchema,
   AttachEvidenceSchema,
   CancelExpenseSchema,
   ExpenseListQuerySchema,

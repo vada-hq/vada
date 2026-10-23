@@ -1,5 +1,6 @@
 import type { Context, Hono } from 'hono'
 import {
+  AttachChatEvidenceSchema,
   AttachEvidenceSchema,
   CreatePhotoUploadSchema,
   type ExpenseResponse,
@@ -18,14 +19,13 @@ import {
   requireStorage,
   verifyUploads,
 } from '../storage/uploads.js'
-import { attachEvidence } from './evidence.js'
+import { copyChatPhoto, dropCopyOnFailure } from './chat-evidence.js'
+import { attachEvidence, EVIDENCE_AREA } from './evidence.js'
 import { evidenceFileToView, expenseRowOf } from './queries.js'
 
 const root = '/organizations/:councilId/expenses/:expenseId'
 const CREATED = 201
 const FOUND = 302
-// 키의 맨 앞. 대화 사진(chat/)과 섞이지 않는다.
-const EVIDENCE_AREA = 'evidence'
 
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
 
@@ -73,29 +73,50 @@ function addViewRoute({ routes, auth, db, clock, storage }: Kit) {
   })
 }
 
+// 403이 404와 503보다 먼저다. 재정부이고 이 학생회의 지출일 때만 지나간다.
+function financeOf({ db, clock }: Kit, c: Context<SessionEnv>) {
+  const asked = requestOf(c, 'finance.manage', clock)
+  const expenseId = recordIdOf(c.req.param('expenseId'))
+  return db.transaction(async tx => {
+    const actor = await authorize(tx, asked)
+    await expenseRowOf(tx, actor, expenseId)
+    return actor
+  }, snapshot)
+}
+
+// 대화 사진을 저장소 안에서 복사해 증빙으로 붙인다. 복사는 거래 밖에서 기다리고, 거래가 실패하면 복사본을 지운다.
+function addChatEvidenceRoute(kit: Kit) {
+  const { routes, auth, db, clock, storage, uploadLimiter } = kit
+  routes.post(`${root}/evidence/from-chat`, json(AttachChatEvidenceSchema), auth, async c => {
+    const { photoId, type } = c.req.valid('json')
+    const expenseId = recordIdOf(c.req.param('expenseId'))
+    if (!uploadLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
+    const actor = await financeOf(kit, c)
+    const store = requireStorage(storage)
+    const photo = await copyChatPhoto(db, store, actor, photoId)
+    const asked = requestOf(c, 'council.view', clock)
+    const detail = await dropCopyOnFailure(store, photo, () =>
+      inCouncilChange(db, asked, (tx, changer) =>
+        attachEvidence(tx, changer, expenseId, { photo, type, chat: { photoId } }),
+      ),
+    )
+    return c.json({ expense: detail } satisfies ExpenseResponse, CREATED)
+  })
+}
+
 // 올리기 주소와 붙이기는 재정부만이다(DEC-28).
 export function addEvidenceRoutes(kit: Kit) {
   const { routes, auth, db, clock, storage, uploadLimiter } = kit
-  // 403이 404와 503보다 먼저다. 재정부이고 이 학생회의 지출일 때만 지나간다.
-  const financeOf = (c: Context<SessionEnv>) => {
-    const asked = requestOf(c, 'finance.manage', clock)
-    const expenseId = recordIdOf(c.req.param('expenseId'))
-    return db.transaction(async tx => {
-      const actor = await authorize(tx, asked)
-      await expenseRowOf(tx, actor, expenseId)
-      return actor
-    }, snapshot)
-  }
   routes.post(`${root}/uploads`, json(CreatePhotoUploadSchema), auth, async c => {
     if (!uploadLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
-    const actor = await financeOf(c)
+    const actor = await financeOf(kit, c)
     const issued = await issueUpload(requireStorage(storage), EVIDENCE_AREA, actor)
     return c.json(issued satisfies PhotoUploadResponse)
   })
   routes.post(`${root}/evidence`, json(AttachEvidenceSchema), auth, async c => {
     const { key, type } = c.req.valid('json')
     const expenseId = recordIdOf(c.req.param('expenseId'))
-    const actor = await financeOf(c)
+    const actor = await financeOf(kit, c)
     // 저장소는 거래 밖에서 확인한다(저장소를 기다리는 동안 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
     const owner = { area: EVIDENCE_AREA, actor }
     const [photo] = await verifyUploads(db, requireStorage(storage), owner, [key])
@@ -108,5 +129,6 @@ export function addEvidenceRoutes(kit: Kit) {
     )
     return c.json({ expense: detail } satisfies ExpenseResponse, CREATED)
   })
+  addChatEvidenceRoute(kit)
   addViewRoute(kit)
 }

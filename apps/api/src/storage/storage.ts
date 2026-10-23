@@ -15,6 +15,8 @@ export interface FileStorage {
   head(key: string): Promise<StoredObject | null>
   // 객체 바이트를 한 번에 읽는다(증빙 묶음이 한 장씩). 없으면 null이고, 읽지 못하면 던진다.
   read(key: string): Promise<Uint8Array | null>
+  // 저장소 안에서 객체를 새 키로 복사한다(서버가 바이트를 받지 않는다). 새 키는 새로 만든 것이어야 한다(조건부 쓰기 헤더는 복사에서 보장되지 않아 쓰지 않는다). 원본은 건드리지 않는다.
+  copy(fromKey: string, toKey: string): Promise<void>
   remove(key: string): Promise<void>
 }
 export interface R2Config {
@@ -39,6 +41,17 @@ export function r2ConfigFrom(env: NodeJS.ProcessEnv): R2Config | null {
   return Object.values(config).every(Boolean) ? config : null
 }
 
+type Call = (
+  method: 'PUT',
+  key: string,
+  extra: { headers: Record<string, string> },
+) => Promise<Response>
+// 200 안에 오류가 담길 수 있어 상태만 믿지 않는다. 부른 쪽이 새 객체의 크기와 형식을 다시 확인한다.
+async function copyObject(call: Call, source: string, toKey: string) {
+  const response = await call('PUT', toKey, { headers: { 'x-amz-copy-source': source } })
+  if (!response.ok) throw new Error('STORAGE_COPY_FAILED')
+}
+
 // Cloudflare R2의 S3 호환 주소에 SigV4로 서명한다. 버킷은 비공개다.
 function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
   const client = new AwsClient({
@@ -47,13 +60,10 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     service: 's3',
     region: 'auto',
   })
+  const pathOf = (key: string) =>
+    `/${encodeURIComponent(config.bucket)}/${key.split('/').map(encodeURIComponent).join('/')}`
   const objectUrl = (key: string) =>
-    new URL(
-      `https://${config.accountId}.r2.cloudflarestorage.com/${encodeURIComponent(config.bucket)}/${key
-        .split('/')
-        .map(encodeURIComponent)
-        .join('/')}`,
-    )
+    new URL(`https://${config.accountId}.r2.cloudflarestorage.com${pathOf(key)}`)
   const stamp = () =>
     now()
       .toISOString()
@@ -73,16 +83,22 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     })
     return signed.url
   }
-  async function call(method: 'HEAD' | 'DELETE' | 'GET', key: string, signal?: AbortSignal) {
+  async function call(
+    method: 'HEAD' | 'DELETE' | 'GET' | 'PUT',
+    key: string,
+    extra: { signal?: AbortSignal; headers?: Record<string, string> } = {},
+  ) {
     return fetcher(
       await client.sign(objectUrl(key).toString(), {
         method,
-        ...(signal ? { signal } : {}),
+        ...(extra.signal ? { signal: extra.signal } : {}),
+        ...(extra.headers ? { headers: extra.headers } : {}),
         aws: { datetime: stamp() },
       }),
     )
   }
-  return { objectUrl, presign, call }
+  const copy = (fromKey: string, toKey: string) => copyObject(call, pathOf(fromKey), toKey)
+  return { objectUrl, presign, call, copy }
 }
 
 export function createR2Storage(
@@ -90,7 +106,7 @@ export function createR2Storage(
   fetcher: typeof fetch = fetch,
   now: () => Date = () => new Date(),
 ): FileStorage {
-  const { objectUrl, presign, call } = r2Access(config, fetcher, now)
+  const { objectUrl, presign, call, copy } = r2Access(config, fetcher, now)
   return {
     async uploadUrl(key, contentType) {
       // If-None-Match: *를 서명해 이미 있는 키에는 올리지 못하게 한다(덮어쓰기 금지).
@@ -122,11 +138,12 @@ export function createR2Storage(
     },
     async read(key) {
       // 저장소가 멈춰도 묶음 하나가 영원히 자리를 잡지 않게 시간을 제한한다.
-      const response = await call('GET', key, AbortSignal.timeout(READ_TIMEOUT_MS))
+      const response = await call('GET', key, { signal: AbortSignal.timeout(READ_TIMEOUT_MS) })
       if (response.status === NOT_FOUND) return null
       if (!response.ok) throw new Error('STORAGE_READ_FAILED')
       return new Uint8Array(await response.arrayBuffer())
     },
+    copy,
     async remove(key) {
       const response = await call('DELETE', key)
       if (!response.ok && response.status !== NOT_FOUND) throw new Error('STORAGE_DELETE_FAILED')

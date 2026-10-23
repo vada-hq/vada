@@ -7,6 +7,9 @@ export function fakeStorage() {
   // 읽기에 실패하게 할 키
   const unreadable = new Set<string>()
   const removed: string[] = []
+  const copied: [string, string][] = []
+  // 복사 뒤 새 객체를 원본과 다르게 만들거나(corruptCopy), 복사 자체를 실패시킨다(failCopy)
+  const flags = { corruptCopy: false, failCopy: false }
   const issued: string[] = []
   const storage: FileStorage = {
     uploadUrl(key, contentType) {
@@ -26,6 +29,16 @@ export function fakeStorage() {
       if (unreadable.has(key)) return Promise.reject(new Error('STORAGE_READ_FAILED'))
       return Promise.resolve(bodies.get(key) ?? null)
     },
+    copy(fromKey, toKey) {
+      const source = objects.get(fromKey)
+      if (flags.failCopy || !source || objects.has(toKey))
+        return Promise.reject(new Error('STORAGE_COPY_FAILED'))
+      copied.push([fromKey, toKey])
+      objects.set(toKey, flags.corruptCopy ? { ...source, size: source.size + 1 } : source)
+      const body = bodies.get(fromKey)
+      if (body) bodies.set(toKey, body)
+      return Promise.resolve()
+    },
     remove(key) {
       removed.push(key)
       objects.delete(key)
@@ -35,6 +48,8 @@ export function fakeStorage() {
   return {
     storage,
     removed,
+    copied,
+    flags,
     issued,
     put: (key: string, size = 1000, contentType = 'image/jpeg') =>
       void objects.set(key, { size, contentType }),

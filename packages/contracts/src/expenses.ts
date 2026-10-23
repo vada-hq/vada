@@ -92,6 +92,12 @@ export const AttachEvidenceSchema = z.strictObject({
 })
 export type AttachEvidence = z.infer<typeof AttachEvidenceSchema>
 
+// 대화 사진을 증빙으로 붙이기. 사진 번호는 대화 사진의 파일 번호이고, 서버가 저장소 안에서 복사한다.
+export const AttachChatEvidenceSchema = z.strictObject({
+  photoId: recordIdInput,
+  type: z.enum(EVIDENCE_TYPES).default('receipt'),
+})
+
 // 지출마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
 export const EXPENSE_ACTIONS = ['expense.cancel', 'expense.reimburse', 'expense.update'] as const
 export type ExpenseAction = (typeof EXPENSE_ACTIONS)[number]

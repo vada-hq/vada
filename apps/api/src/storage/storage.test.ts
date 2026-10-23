@@ -107,3 +107,26 @@ test('읽기는 바이트를 주고 404는 없음으로 보며 다른 실패는 
     error => error instanceof Error && error.message === 'STORAGE_READ_FAILED',
   )
 })
+
+test('복사는 새 키에 PUT하고 복사 원본을 버킷과 키로 건네며, 실패는 키를 담지 않은 오류로 던진다', async () => {
+  const seen: Request[] = []
+  const responses = [
+    new Response('<CopyObjectResult/>', { status: 200 }),
+    new Response(null, { status: 500 }),
+  ]
+  const fetcher = (async (input: RequestInfo | URL) => {
+    seen.push(input as Request)
+    return responses.shift()!
+  }) as typeof fetch
+  const storage = createR2Storage(config, fetcher, fixed)
+  await storage.copy('chat/a/b/c d', 'evidence/a/b/c')
+  await assert.rejects(
+    () => storage.copy('chat/a/b/c', 'evidence/a/b/d'),
+    error => error instanceof Error && error.message === 'STORAGE_COPY_FAILED',
+  )
+  const [first] = seen
+  assert.equal(first!.method, 'PUT')
+  assert.equal(new URL(first!.url).pathname, '/vada-receipts/evidence/a/b/c')
+  assert.equal(first!.headers.get('x-amz-copy-source'), '/vada-receipts/chat/a/b/c%20d')
+  assert.ok(first!.headers.get('Authorization')?.includes('x-amz-copy-source'))
+})
