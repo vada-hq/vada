@@ -4,6 +4,7 @@ import StateMessage from '@/components/StateMessage'
 import { evidenceFilePath } from './expense-api'
 import { canAttachEvidence, EVIDENCE_TYPE_LABEL } from './expense-view'
 import { EvidenceAdder } from './EvidenceAdder'
+import type { useChatEvidence } from './useChatEvidence'
 import type { useEvidenceUpload } from './useEvidenceUpload'
 
 type Props = {
@@ -12,10 +13,11 @@ type Props = {
   expense: ExpenseDetail
   canManage: boolean
   upload: ReturnType<typeof useEvidenceUpload>
+  chat: ReturnType<typeof useChatEvidence>
 }
 
 // 증빙 사진. 모든 운영진이 보고 누르면 크게 보인다. 붙이는 칸은 재정부에게, 취소되지 않았고 한도 안일 때만 보인다.
-export function EvidenceSection({ councilId, expense, canManage, upload }: Props) {
+export function EvidenceSection({ councilId, expense, canManage, upload, chat }: Props) {
   const photos = expense.evidence.map((item, index) => ({
     id: item.id,
     src: evidenceFilePath(councilId, expense.id, item.fileId),
@@ -31,9 +33,10 @@ export function EvidenceSection({ councilId, expense, canManage, upload }: Props
           {canManage ? '영수증이나 이체 확인 사진을 붙여 주세요.' : '아직 붙은 사진이 없어요.'}
         </StateMessage>
       )}
-      {attachable && <EvidenceAdder upload={upload} />}
+      {attachable && <EvidenceAdder councilId={councilId} upload={upload} chat={chat} />}
       {/* 다시 읽은 지출이 취소됐거나 한도에 닿아 올리기 칸이 사라져도 거절 이유는 남긴다. */}
       {upload.problem && <StateMessage kind="error">{upload.problem}</StateMessage>}
+      {!attachable && chat.problem && <StateMessage kind="error">{chat.problem}</StateMessage>}
     </section>
   )
 }

@@ -7,6 +7,7 @@ import { ExpenseActions } from './ExpenseActions'
 import { ExpenseFacts, ExpenseLines, ExpenseRecords } from './ExpenseFacts'
 import type { ExpenseDialogHandlers } from './expense-requests'
 import { EvidenceSection } from './EvidenceSection'
+import { useChatEvidence } from './useChatEvidence'
 import { useEvidenceUpload } from './useEvidenceUpload'
 import { useExpenseDetail } from './useExpenseDetail'
 
@@ -33,12 +34,14 @@ function OpenExpenseDialog({
   ...handlers
 }: Props & { expenseId: string }) {
   const detail = useExpenseDetail(councilId, expenseId, handlers)
-  const upload = useEvidenceUpload(councilId, expenseId, {
+  const evidenceHooks = {
     handlers,
     onAttached: detail.apply,
     onStale: () => void detail.reload(),
-  })
-  const busy = detail.saving || upload.attaching
+  }
+  const upload = useEvidenceUpload(councilId, expenseId, evidenceHooks)
+  const chat = useChatEvidence(councilId, expenseId, evidenceHooks)
+  const busy = detail.saving || upload.attaching || chat.attaching
   return (
     <Dialog
       open
@@ -52,7 +55,7 @@ function OpenExpenseDialog({
         </DialogHeader>
         {detail.expense ? (
           <Loaded
-            {...{ councilId, canManage, detail, upload }}
+            {...{ councilId, canManage, detail, upload, chat }}
             expense={detail.expense}
             onForbidden={handlers.onForbidden}
           />
@@ -77,6 +80,7 @@ function Loaded({
   expense,
   detail,
   upload,
+  chat,
   onForbidden,
 }: {
   onForbidden: () => void
@@ -85,12 +89,13 @@ function Loaded({
   expense: ExpenseDetail
   detail: ReturnType<typeof useExpenseDetail>
   upload: ReturnType<typeof useEvidenceUpload>
+  chat: ReturnType<typeof useChatEvidence>
 }) {
   return (
     <div className="flex flex-col gap-6">
       <ExpenseFacts expense={expense} />
       <ExpenseLines lines={expense.lines} />
-      <EvidenceSection {...{ councilId, expense, canManage, upload }} />
+      <EvidenceSection {...{ councilId, expense, canManage, upload, chat }} />
       <ExpenseActions
         councilId={councilId}
         expense={expense}

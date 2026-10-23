@@ -1,17 +1,20 @@
 import { useRef, type ChangeEvent } from 'react'
 import { EVIDENCE_TYPES, type EvidenceType } from '@vada/contracts'
-import { ImagePlus, X } from 'lucide-react'
+import { ImagePlus, MessageSquare, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { ChatPhotoPicker } from './ChatPhotoPicker'
 import { EVIDENCE_TYPE_LABEL } from './expense-view'
+import type { useChatEvidence } from './useChatEvidence'
 import type { useEvidenceUpload } from './useEvidenceUpload'
 
 type Upload = ReturnType<typeof useEvidenceUpload>
+type Chat = ReturnType<typeof useChatEvidence>
 
 // 카메라나 앨범에서 고르는 숨은 파일 입력. 같은 사진을 다시 골라도 알 수 있게 고른 뒤 비운다.
-function PhotoPicker({ onPick }: { onPick: (file: File) => void }) {
+function PhotoPicker({ onPick, onChat }: { onPick: (file: File) => void; onChat: () => void }) {
   const input = useRef<HTMLInputElement>(null)
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -19,7 +22,7 @@ function PhotoPicker({ onPick }: { onPick: (file: File) => void }) {
     if (file) onPick(file)
   }
   return (
-    <>
+    <div className="flex flex-wrap gap-2">
       <Input
         ref={input}
         type="file"
@@ -29,16 +32,15 @@ function PhotoPicker({ onPick }: { onPick: (file: File) => void }) {
         aria-label="증빙 사진 고르기"
         onChange={onChange}
       />
-      <Button
-        type="button"
-        variant="outline"
-        className="self-start"
-        onClick={() => input.current?.click()}
-      >
+      <Button type="button" variant="outline" onClick={() => input.current?.click()}>
         <ImagePlus aria-hidden />
         사진 올리기
       </Button>
-    </>
+      <Button type="button" variant="outline" onClick={onChat}>
+        <MessageSquare aria-hidden />
+        대화에서 고르기
+      </Button>
+    </div>
   )
 }
 
@@ -89,12 +91,23 @@ function PendingCard({ upload }: { upload: Upload }) {
   )
 }
 
-// 증빙 사진 붙이기. 한 장씩 고르고, 미리 본 뒤 종류를 정해 붙인다. 오류는 이 칸 안에 보인다.
-export function EvidenceAdder({ upload }: { upload: Upload }) {
+// 증빙 사진 붙이기. 올리거나 대화에서 골라 한 장씩, 미리 본 뒤 종류를 정해 붙인다. 오류는 이 칸 안에 보인다.
+export function EvidenceAdder({
+  councilId,
+  upload,
+  chat,
+}: {
+  councilId: string
+  upload: Upload
+  chat: Chat
+}) {
   return (
     <div className="flex flex-col gap-3">
-      {!upload.photo && <PhotoPicker onPick={file => void upload.pick(file)} />}
+      {!upload.photo && !chat.open && (
+        <PhotoPicker onPick={file => void upload.pick(file)} onChat={chat.show} />
+      )}
       <PendingCard upload={upload} />
+      {chat.open && !upload.photo && <ChatPhotoPicker councilId={councilId} chat={chat} />}
     </div>
   )
 }

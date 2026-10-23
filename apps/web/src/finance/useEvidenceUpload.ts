@@ -26,7 +26,7 @@ type PendingPhoto = {
   key?: string
 }
 
-type Hooks = {
+export type EvidenceHooks = {
   handlers: Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'>
   // 붙이면 돌려받은 지출을 놓는다.
   onAttached: (data: ExpenseResponse) => void
@@ -68,7 +68,7 @@ function usePendingPhoto() {
 }
 
 // 증빙 사진 한 장씩: 고르기 → 줄여 올리기 → 종류 고르기 → 붙이기. 올리는 중이거나 붙이는 중에는 다른 사진을 받지 않는다.
-export function useEvidenceUpload(councilId: string, expenseId: string, hooks: Hooks) {
+export function useEvidenceUpload(councilId: string, expenseId: string, hooks: EvidenceHooks) {
   const pending = usePendingPhoto()
   const [type, setType] = useState<EvidenceType>('receipt')
   const [problem, setProblem] = useState<string | null>(null)

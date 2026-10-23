@@ -91,7 +91,7 @@
 - 닿는 곳: `apps/web/src/chat/MessageItem.tsx`, `finance/ExpenseCreateDialog.tsx`·`expense-form.ts`(처음 값), `ExpenseDetailDialog.tsx`·`EvidenceSection.tsx`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 6. 지출 상세에서 대화 사진 고르기(화면) [ ]
+### 6. 지출 상세에서 대화 사진 고르기(화면) [x]
 - 할 수 있게 되는 것: 재정부가 이미 적은 지출에 대화의 사진을 골라 증빙으로 붙인다.
 - 수용 기준: 증빙 붙이기에 [사진 올리기] 옆 [대화에서 고르기]가 있고, 누르면 3의 사진이 방·보낸 사람·시각과 함께 작은 사진으로 보인다. 하나를 고르면 미리 보기, 종류(기본 영수증), "증빙은 모든 운영진이 봐요", [붙이기]가 보이고 붙이면 지출 상세가 새로 그려진다. 비었으면 한 줄 상태, 잘렸으면 알린다. 409 `MESSAGE_INVALID`·`EVIDENCE_LIMIT`·503 문구가 그 자리에 보이고 두 번 누름을 막는다. 390px에서 가로 넘침이 없다.
 - 닿는 곳: `apps/web/src/finance/EvidenceAdder.tsx`(고르기), 새 대화 사진 고르기 부품과 훅, `lib/messages.ts`, `ui-gallery/`.

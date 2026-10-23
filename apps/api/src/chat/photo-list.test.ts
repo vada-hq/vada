@@ -242,3 +242,38 @@ test(
     assert.equal((await s.list()).status, 401)
   }),
 )
+
+test(
+  '한 메시지의 사진은 보낸 차례대로 나온다',
+  run(async s => {
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const head = s.person.planningHead.memberId
+    const councilId = s.council.councilId
+    const sent = await s.db.transaction(async tx => {
+      const messageId = await createRecord(tx, {
+        kind: 'message',
+        councilId,
+        actor: head,
+        values: { roomId: planning, body: '', sentAt: new Date(SAME_TIME), isNotice: false },
+      })
+      const ids: string[] = []
+      for (const index of [1, 2, 3])
+        ids.push(
+          await createRecord(tx, {
+            kind: 'file',
+            councilId,
+            actor: head,
+            values: {
+              name: `photo-${index}.jpg`,
+              mediaType: 'image/jpeg',
+              sizeBytes: 10,
+              storageKey: `chat/${crypto.randomUUID()}`,
+              attachedToId: messageId,
+            },
+          }),
+        )
+      return ids
+    })
+    assert.deepEqual(ids(await s.listed('s-planningHead')), sent)
+  }),
+)

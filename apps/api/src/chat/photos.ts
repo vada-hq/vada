@@ -1,4 +1,5 @@
-import { and, desc, eq, or, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, or, type SQL } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import { CHAT_PHOTO_LIST_MAX, PHOTO_MEDIA_TYPE, type ChatPhotoListResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { chatRoom, file, member, message, record, roomMembership } from '../db/schema.js'
@@ -13,6 +14,7 @@ import { namedRooms } from './queries.js'
 type Reader = Pick<Db, 'select'>
 
 const CHAT_AREA = 'chat'
+const fileRecord = alias(record, 'file_record')
 
 export const issuePhotoUpload = (storage: FileStorage, actor: Actor) =>
   issueUpload(storage, CHAT_AREA, actor)
@@ -109,7 +111,9 @@ export async function visiblePhotoList(
   now: Date,
 ): Promise<ChatPhotoListResponse> {
   const rows = await visiblePhotoRows(db, actor)
-    .orderBy(desc(message.sentAt), desc(message.id), desc(file.id))
+    .innerJoin(fileRecord, eq(fileRecord.id, file.id))
+    // 한 메시지 안의 사진은 보낸 차례(만든 시각)대로다. 메시지끼리만 최근 것이 먼저다.
+    .orderBy(desc(message.sentAt), desc(message.id), asc(fileRecord.createdAt), asc(file.id))
     .limit(CHAT_PHOTO_LIST_MAX + 1)
   const shown = rows.slice(0, CHAT_PHOTO_LIST_MAX)
   const rooms = await namedRooms(db, actor, now, [...new Set(shown.map(row => row.roomId))])

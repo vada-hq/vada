@@ -240,6 +240,8 @@ export const EXPENSE_ERRORS: Record<string, string> = {
   EXPENSE_CANCELLED: '이미 취소된 지출이에요. 새로 불러왔어요.',
   NOT_REIMBURSABLE:
     '환급할 수 없는 지출이에요. 먼저 낸 사람이 없거나 이미 환급했어요. 새로 불러왔어요.',
+  MESSAGE_INVALID:
+    '이 사진은 붙일 수 없어요. 볼 수 없는 대화의 사진이에요. 목록을 새로 불러왔어요. 다른 사진을 골라 주세요.',
   EVIDENCE_LIMIT: '증빙 사진은 한 지출에 20장까지 붙일 수 있어요.',
   UPLOAD_MISMATCH: '올린 사진을 확인하지 못했어요. 그 사진을 빼고 다시 올려 주세요.',
   PHOTO_ALREADY_SENT: '이미 붙인 사진이에요. 그 사진을 빼고 다시 올려 주세요.',
@@ -257,6 +259,7 @@ export const EXPENSE_ERRORS: Record<string, string> = {
 }
 export const ACTION_GONE = '지금은 할 수 없는 동작이에요. 화면을 새로 불러왔어요.'
 export const EXPENSE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const CHAT_PHOTOS_FAILED = '대화 사진을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EVIDENCE_UPLOAD_FAILED =
   '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'
 
