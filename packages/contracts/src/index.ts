@@ -9,6 +9,7 @@ export {
 } from './agreement.js'
 export {
   CreatePhotoUploadSchema,
+  CHAT_PHOTO_LIST_MAX,
   FILE_NAME_MAX,
   PHOTO_KEY_MAX,
   PHOTO_MAX_BYTES,
@@ -27,6 +28,7 @@ export {
   ROOM_TYPES,
   type ChatMessage,
   type ChatPhoto,
+  type ChatPhotoListResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
   type NoticeListResponse,

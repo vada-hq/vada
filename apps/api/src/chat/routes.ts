@@ -10,6 +10,7 @@ import {
   SendMessageSchema,
   type Action,
   type ChatMessage,
+  type ChatPhotoListResponse,
   type OpenDirectResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
@@ -30,7 +31,7 @@ import { openDirect } from './direct.js'
 import { messagePage, noticesOf } from './messages.js'
 import { markNotice } from './notice.js'
 import type { ChatPush } from './notify.js'
-import { issuePhotoUpload, photoToView, verifyPhotos } from './photos.js'
+import { issuePhotoUpload, photoToView, verifyPhotos, visiblePhotoList } from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
@@ -184,6 +185,14 @@ function photoRoutes({ routes, auth, db, asked, uploadLimiter, storage }: Kit) {
       return asking
     }, snapshot)
     return c.json((await issuePhotoUpload(files, actor)) satisfies PhotoUploadResponse)
+  })
+  routes.get(`${root}/chat/photos`, auth, async c => {
+    const request = asked(c)
+    const list = await db.transaction(
+      async tx => visiblePhotoList(tx, await authorize(tx, request), request.now),
+      snapshot,
+    )
+    return c.json(list satisfies ChatPhotoListResponse)
   })
   routes.get(`${root}/files/:fileId`, auth, async c => {
     const request = asked(c)

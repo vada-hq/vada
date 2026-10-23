@@ -1,13 +1,14 @@
-import { and, eq, or } from 'drizzle-orm'
-import { PHOTO_MEDIA_TYPE } from '@vada/contracts'
+import { and, desc, eq, or, type SQL } from 'drizzle-orm'
+import { CHAT_PHOTO_LIST_MAX, PHOTO_MEDIA_TYPE, type ChatPhotoListResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { chatRoom, file, message, record, roomMembership } from '../db/schema.js'
+import { chatRoom, file, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import type { FileStorage } from '../storage/storage.js'
 import { issueUpload, verifyUploads, type VerifiedPhoto } from '../storage/uploads.js'
 import { shownNotice, sinceJoined } from './messages.js'
+import { namedRooms } from './queries.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -62,14 +63,20 @@ export async function canSeeMessage(db: Reader, actor: Actor, messageId: string)
   return found !== undefined
 }
 
-// 내가 볼 수 있는 대화 사진 하나. 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전, 증빙 파일은 모두 undefined다.
-export async function visiblePhoto(db: Reader, actor: Actor, fileId: string) {
-  const [found] = await db
+// 내가 볼 수 있는 대화 사진을 고르는 조회. 사진 하나 보기와 사진 목록이 같은 연결과 같은 조건을 쓴다.
+// 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전, 증빙 파일은 모두 빠진다. 호출하는 쪽이 정렬과 개수를 더한다.
+function visiblePhotoRows(db: Reader, actor: Actor, extra?: SQL) {
+  return db
     .select({
+      id: file.id,
       key: file.storageKey,
       name: file.name,
       mediaType: file.mediaType,
       messageId: message.id,
+      roomId: message.roomId,
+      senderId: record.createdBy,
+      senderName: member.name,
+      sentAt: message.sentAt,
     })
     .from(file)
     .innerJoin(message, eq(message.id, file.attachedToId))
@@ -79,8 +86,44 @@ export async function visiblePhoto(db: Reader, actor: Actor, fileId: string) {
       roomMembership,
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
     )
-    .where(and(eq(file.id, fileId), visibleMessage(actor)))
-  return found
+    .leftJoin(member, eq(member.id, record.createdBy))
+    .where(and(visibleMessage(actor), extra))
+}
+
+export async function visiblePhoto(db: Reader, actor: Actor, fileId: string) {
+  const [found] = await visiblePhotoRows(db, actor, eq(file.id, fileId))
+  return (
+    found && {
+      key: found.key,
+      name: found.name,
+      mediaType: found.mediaType,
+      messageId: found.messageId,
+    }
+  )
+}
+
+// 증빙으로 고를 대화 사진: 최근 것부터 한 장 더 읽어 넘침을 안다.
+export async function visiblePhotoList(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+): Promise<ChatPhotoListResponse> {
+  const rows = await visiblePhotoRows(db, actor)
+    .orderBy(desc(message.sentAt), desc(message.id), desc(file.id))
+    .limit(CHAT_PHOTO_LIST_MAX + 1)
+  const shown = rows.slice(0, CHAT_PHOTO_LIST_MAX)
+  const rooms = await namedRooms(db, actor, now, [...new Set(shown.map(row => row.roomId))])
+  return {
+    photos: shown.map(row => ({
+      id: row.id,
+      messageId: row.messageId,
+      room: rooms.get(row.roomId)!,
+      senderId: row.senderId,
+      senderName: row.senderName,
+      sentAt: row.sentAt.toISOString(),
+    })),
+    truncated: rows.length > CHAT_PHOTO_LIST_MAX,
+  }
 }
 
 // 사진 보기: 그 사진이 붙은 메시지를 내가 볼 수 있을 때만. 아니면 있는지도 드러내지 않는 404다.

@@ -73,7 +73,7 @@
 - 닿는 곳: contracts `purchases.ts`(`CreatePurchaseRequestSchema`), `expenses.ts`(`CreateExpenseSchema`). `purchases/service.ts`(대신 내기, 알림 받는 사람), `expenses/service.ts`, 1의 도우미.
 - 검토: 깊게(권한, 격리). 마이그레이션: 없음.
 
-### 3. 고를 수 있는 대화 사진(서버) [ ]
+### 3. 고를 수 있는 대화 사진(서버) [x]
 - 할 수 있게 되는 것: 운영진이 내가 볼 수 있는 대화 사진을 최근 것부터 받는다.
 - 수용 기준: `GET chat/photos`는 내가 참여한 방의 들어온 뒤 사진과 같은 기수 공지의 사진을 최근 것부터 60장 주고, 줄마다 사진 번호, 메시지 번호, 방(번호와 이름), 보낸 사람, 보낸 시각이 있다. 넘치면 `truncated`. 다른 학생회, 안 들어간 방, 들어오기 전 사진은 없다(1의 도우미, 조건을 지우면 실패). 운영진이 아니면 403, 미인증 401, JSON은 `no-store`.
 - 닿는 곳: contracts `chat.ts`(새 `ChatPhotosResponse`와 상한), `chat/photos.ts`, `chat/routes.ts`.

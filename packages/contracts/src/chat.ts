@@ -35,6 +35,23 @@ export interface ChatPhoto {
   id: string
 }
 
+// 증빙으로 고를 대화 사진 목록의 상한(기능 011). 넘치면 truncated다.
+export const CHAT_PHOTO_LIST_MAX = 60
+
+// 고를 수 있는 대화 사진 한 장. 방 이름은 부서방·1:1만 있고 나머지는 화면이 종류로 이름을 붙인다.
+interface ChatPhotoChoice {
+  id: string
+  messageId: string
+  room: { id: string; type: RoomType; name: string | null }
+  senderId: string | null
+  senderName: string | null
+  sentAt: string
+}
+export interface ChatPhotoListResponse {
+  photos: ChatPhotoChoice[]
+  truncated: boolean
+}
+
 export interface ChatMessage {
   id: string
   // 보낸 운영진. 시스템이 만든 메시지는 비어 있다.

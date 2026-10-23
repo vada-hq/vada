@@ -108,6 +108,28 @@ async function directPeers(db: Reader, actor: Actor, now: Date, roomIds: string[
 const nameOf = (type: string, departmentName: string | null, peer: { name: string } | undefined) =>
   type === 'direct' ? (peer?.name ?? null) : departmentName
 
+// 내가 참여한 방 몇 개의 번호·종류·이름. 사진 고르기 목록이 방을 보이는 데 쓴다.
+export async function namedRooms(db: Reader, actor: Actor, now: Date, roomIds: string[]) {
+  if (!roomIds.length) return new Map<string, { id: string; type: RoomType; name: string | null }>()
+  const rooms = (await myRooms(db, actor)).filter(room => roomIds.includes(room.id))
+  const peers = await directPeers(
+    db,
+    actor,
+    now,
+    rooms.filter(room => room.type === 'direct').map(room => room.id),
+  )
+  return new Map(
+    rooms.map(room => [
+      room.id,
+      {
+        id: room.id,
+        type: room.type as RoomType,
+        name: nameOf(room.type, room.departmentName, peers.get(room.id)),
+      },
+    ]),
+  )
+}
+
 async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSummary[]> {
   const rooms = await myRooms(db, actor)
   const [stats, mentions, peers] = await Promise.all([
