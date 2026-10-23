@@ -12,11 +12,8 @@ import {
   applicant,
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
-import {
-  PERMISSION_CHANGED,
-  REGISTRATION_STAFF_ERRORS,
-  REGISTRATION_STAFF_LOST,
-} from '@/lib/messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
 import { RegistrationTab } from './RegistrationTab'
 
 afterEach(() => {

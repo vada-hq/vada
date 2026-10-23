@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { statusOf } from '@vada/contracts'
 import { postJson } from '@/lib/api'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import {
-  PERMISSION_CHANGED,
   REGISTRATION_STAFF_ERRORS,
   REGISTRATION_STAFF_FAILED,
   REGISTRATION_STAFF_LOST,
-} from '@/lib/messages'
+} from '@/lib/registration-messages'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 
 export type StaffPostResult<T> = { ok: true; data: T } | { ok: false; status: number }

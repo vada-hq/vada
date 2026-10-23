@@ -3,11 +3,11 @@ import type { CouncilView, RegistrationAction, RegistrationForm } from '@vada/co
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import {
-  PERMISSION_CHANGED,
   REGISTRATION_FORMS_LOAD_FAILED,
   REGISTRATION_STAFF_LOST,
-} from '@/lib/messages'
+} from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { FormCard } from './FormCard'
 import { TabDialogs, type TabDialog } from './TabDialogs'

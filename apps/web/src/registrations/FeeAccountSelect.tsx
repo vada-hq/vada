@@ -1,7 +1,7 @@
 import StateMessage from '@/components/StateMessage'
 import { openAccounts, pickAccount } from '@/finance/account-form'
 import { useAccounts } from '@/finance/useAccounts'
-import { FEE_ACCOUNT_CLOSED, FEE_ACCOUNTS_FAILED } from '@/lib/messages'
+import { FEE_ACCOUNT_CLOSED, FEE_ACCOUNTS_FAILED } from '@/lib/registration-messages'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 
 // 참가비를 받을 계좌와 그 목록에서 본 지금 계좌(고르지 않았으면 닫지 않은 대표 계좌). 상태에 채워 넣지 않고 그때그때 구한다(pickAccount).

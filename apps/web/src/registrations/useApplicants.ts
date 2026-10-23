@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { statusOf, type ApplicantsResponse } from '@vada/contracts'
 import { getJson } from '@/lib/api'
-import { PERMISSION_CHANGED, REGISTRATION_STAFF_LOST } from '@/lib/messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { applicantsPath } from './registration-api'
 

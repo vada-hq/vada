@@ -7,7 +7,7 @@ import {
   type PublicRegistrationForm,
 } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import { APPLY_ERRORS, APPLY_FAILED } from '@/lib/messages'
+import { APPLY_ERRORS, APPLY_FAILED } from '@/lib/registration-messages'
 
 export type ApplyValues = { name: string; studentId: string; phone: string }
 export const EMPTY_VALUES: ApplyValues = { name: '', studentId: '', phone: '' }

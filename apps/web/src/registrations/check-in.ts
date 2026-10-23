@@ -1,10 +1,7 @@
 import { statusOf, type CheckInResult } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import {
-  PERMISSION_CHANGED,
-  REGISTRATION_STAFF_ERRORS,
-  REGISTRATION_STAFF_FAILED,
-} from '@/lib/messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_FAILED } from '@/lib/registration-messages'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { checkInPath } from './registration-api'
 

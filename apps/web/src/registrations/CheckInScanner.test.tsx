@@ -8,7 +8,8 @@ import {
   REGISTRATION_ID,
   STAFF_EVENT_ID,
 } from '@/test-support/staff-registration-fixtures'
-import { PERMISSION_CHANGED, REGISTRATION_STAFF_ERRORS } from '@/lib/messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { REGISTRATION_STAFF_ERRORS } from '@/lib/registration-messages'
 import { CameraError, openCamera } from './camera'
 import { CheckInScanner } from './CheckInScanner'
 import { loadQrReader, type QrReader } from './qr-reader'

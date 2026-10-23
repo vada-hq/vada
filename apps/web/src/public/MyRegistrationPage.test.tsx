@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { CANCEL_PATH, LOOKUP_PATH, myRegistration } from '@/test-support/registration-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
-import { CANCEL_REGISTRATION_ERRORS, REGISTRATION_LOST } from '@/lib/messages'
+import { CANCEL_REGISTRATION_ERRORS, REGISTRATION_LOST } from '@/lib/registration-messages'
 import MyRegistrationPage from './MyRegistrationPage'
 
 const SAVED_KEY = 'vada.registration.ABCD2345'

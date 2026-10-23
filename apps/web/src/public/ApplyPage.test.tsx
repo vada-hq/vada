@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { APPLY_PATH, FORM_CODE, FORM_PATH, publicForm } from '@/test-support/registration-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
-import { APPLY_ERRORS, REGISTRATION_FORM_LOST } from '@/lib/messages'
+import { APPLY_ERRORS, REGISTRATION_FORM_LOST } from '@/lib/registration-messages'
 import ApplyPage from './ApplyPage'
 
 beforeEach(() => {

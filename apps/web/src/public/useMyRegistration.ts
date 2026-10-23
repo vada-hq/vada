@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { statusOf, type CancelRegistrationResponse, type MyRegistration } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import { CANCEL_REGISTRATION_ERRORS, CANCEL_REGISTRATION_FAILED } from '@/lib/messages'
+import { CANCEL_REGISTRATION_ERRORS, CANCEL_REGISTRATION_FAILED } from '@/lib/registration-messages'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
 import { forgetToken } from './saved-links'
 
