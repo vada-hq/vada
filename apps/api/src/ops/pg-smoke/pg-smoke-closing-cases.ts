@@ -111,6 +111,7 @@ export const publishTogetherCase: SmokeCase = {
 const expenseInput = (world: World) => ({
   vendor: '문구점',
   eventId: null,
+  sourceMessageId: null,
   description: '마커',
   amount: EXPENSE_WON,
   paidOn: PAID_ON,

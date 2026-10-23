@@ -96,6 +96,7 @@ async function expenseIn(db: Db, run: Run, label: string) {
       {
         vendor: '문구점',
         eventId: null,
+        sourceMessageId: null,
         description: label,
         amount: EXPENSE_AMOUNT,
         paidOn: koreanDateOf(context.now),

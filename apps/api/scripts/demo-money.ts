@@ -62,6 +62,8 @@ async function addRequests(tx: Tx, cast: DemoCast, ctx: { eventsBudgetItemId: st
     {
       title: '총회 홍보 포스터 인쇄',
       eventId: null,
+      requestedBy: null,
+      sourceMessageId: null,
       body: '학과 게시판 열 곳에 붙일 포스터입니다.',
       neededBy: demoDay(now, 'posterNeededBy'),
       items: [{ name: 'A2 포스터 인쇄', quantity: 10, link: null, options: '무광' }],
@@ -74,6 +76,8 @@ async function addRequests(tx: Tx, cast: DemoCast, ctx: { eventsBudgetItemId: st
     {
       title: '환영회 간식',
       eventId: null,
+      requestedBy: null,
+      sourceMessageId: null,
       body: null,
       neededBy: null,
       items: [
@@ -113,6 +117,7 @@ async function addExpense(
     {
       vendor: '시연마트',
       eventId: null,
+      sourceMessageId: null,
       description: '환영회 현수막과 장식',
       amount: 85_000,
       paidOn: demoDay(ctx.now, 'expensePaid'),

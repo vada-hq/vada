@@ -102,6 +102,8 @@ export async function purchaseOf(db: Db, context: SmokeContext, scene: MoneyScen
       {
         title,
         eventId: null,
+        requestedBy: null,
+        sourceMessageId: null,
         body: null,
         neededBy: null,
         items: [{ name: '마커', quantity: 1, link: null, options: null }],

@@ -69,6 +69,7 @@ async function expenseRound(world: World, open: () => SmokeConnection) {
   const input = {
     vendor: '문구점',
     eventId: null,
+    sourceMessageId: null,
     description: '마커 더',
     amount: LINE_WON,
     paidOn: koreanDateOf(world.context.now),
