@@ -1,5 +1,13 @@
 import { expect, test } from 'vitest'
-import { NO_OWNER_LABEL, ownerLabel, whenLabel } from './event-view'
+import type { EventSummary } from '@vada/contracts'
+import {
+  dateBlock,
+  eventGroups,
+  NO_OWNER_LABEL,
+  ownerLabel,
+  spanLabel,
+  whenLabel,
+} from './event-view'
 
 test('일시는 요일과 함께 한 줄로 보인다', () => {
   expect(whenLabel({ startsAt: '2026-10-25T14:00', endsAt: '2026-10-25T18:00' })).toBe(
@@ -19,4 +27,36 @@ test('책임자가 없거나 떠났으면 그대로 알린다', () => {
   expect(ownerLabel(null)).toBe(NO_OWNER_LABEL)
   expect(ownerLabel({ id: 'm1', name: '김회장', current: true })).toBe('김회장')
   expect(ownerLabel({ id: 'm1', name: '김회장', current: false })).toBe('떠난 사람: 김회장')
+})
+
+test('목록의 날짜 칸은 시작한 달과 날이고, 시작이 없으면 비운다', () => {
+  expect(dateBlock('2026-11-01T18:00')).toEqual({ month: '11월', day: '1' })
+  expect(dateBlock('2026-10-15T09:30')).toEqual({ month: '10월', day: '15' })
+  expect(dateBlock(null)).toBeNull()
+})
+
+test('날짜 칸 옆의 시각은 날짜를 되풀이하지 않고, 다른 날에 끝나면 끝의 날짜를 쓴다', () => {
+  expect(spanLabel({ startsAt: '2026-11-01T18:00', endsAt: '2026-11-01T20:00' })).toBe(
+    '일요일 18:00 ~ 20:00',
+  )
+  expect(spanLabel({ startsAt: '2026-11-01T18:00', endsAt: null })).toBe('일요일 18:00')
+  expect(spanLabel({ startsAt: '2026-10-24T20:00', endsAt: '2026-10-25T02:00' })).toBe(
+    '토요일 20:00 ~ 10월 25일 (일) 02:00',
+  )
+  expect(spanLabel({ startsAt: null, endsAt: null })).toBeNull()
+})
+
+test('목록은 다가오는 행사, 날짜 미정, 지난 행사로 묶고 빈 묶음은 뺀다', () => {
+  const of = (id: string, status: EventSummary['status']) => ({ id, status }) as EventSummary
+  const groups = eventGroups([
+    of('a', 'ongoing'),
+    of('b', 'upcoming'),
+    of('c', 'ended'),
+    of('d', 'completed'),
+  ])
+  expect(groups.map(group => [group.title, group.events.map(event => event.id)])).toEqual([
+    ['다가오는 행사', ['a', 'b']],
+    ['지난 행사', ['c', 'd']],
+  ])
+  expect(eventGroups([of('e', 'tbd')]).map(group => group.title)).toEqual(['날짜 미정'])
 })

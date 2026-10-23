@@ -259,7 +259,8 @@ exports[`작업 공간: 대화 방 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -271,14 +272,17 @@ exports[`작업 공간: 대화 방 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">대화</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">대화</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col h-full gap-3">
+<div class="mx-auto w-full max-w-5xl flex flex-col h-full gap-3">
 <div class="flex items-center gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="대화방 목록">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left" aria-hidden="true">
@@ -521,7 +525,8 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -533,14 +538,17 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">대화</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">대화</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-center gap-2">
 <h2 class="flex-1 text-sm font-semibold text-gray-900">최근 공지</h2>
@@ -754,7 +762,8 @@ exports[`작업 공간: 부서 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -766,7 +775,7 @@ exports[`작업 공간: 부서 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
 <path d="m9 18 6-6-6-6">
@@ -774,11 +783,14 @@ exports[`작업 공간: 부서 1`] = `
 </svg>
 <span class="shrink-0 text-gray-600">운영진</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">부서</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">부서</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 2개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <ul aria-label="부서" class="divide-y">
@@ -979,7 +991,8 @@ exports[`작업 공간: 사람 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -991,7 +1004,7 @@ exports[`작업 공간: 사람 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
 <path d="m9 18 6-6-6-6">
@@ -999,11 +1012,14 @@ exports[`작업 공간: 사람 1`] = `
 </svg>
 <span class="shrink-0 text-gray-600">운영진</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">사람</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">사람</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <section aria-label="초대 링크" class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
@@ -1263,7 +1279,8 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1275,7 +1292,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
 <path d="m9 18 6-6-6-6">
@@ -1283,11 +1300,14 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 <span class="shrink-0 text-gray-600">운영진</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">사람</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">사람</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <section aria-label="초대 링크" class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
@@ -1693,7 +1713,8 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1705,10 +1726,13 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">홈</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
@@ -1860,7 +1884,8 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1872,10 +1897,13 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">홈</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
@@ -2032,7 +2060,8 @@ exports[`작업 공간: 홈 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-3 border-b bg-white px-4 sm:px-6">
+<header class="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
+<div class="mx-auto w-full max-w-5xl flex min-h-11 items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -2044,14 +2073,17 @@ exports[`작업 공간: 홈 1`] = `
 </svg>
 </button>
 <div class="min-w-0 flex-1">
-<p class="flex items-center gap-1 text-xs text-gray-400">
+<p class="flex items-center gap-1 text-xs text-gray-500">
 <span class="truncate">컴퓨터학부 학생회</span>
 </p>
-<h1 class="mt-0.5 truncate text-base font-semibold text-gray-900">홈</h1>
+<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900">홈</h1>
+</div>
+<div class="flex shrink-0 items-center gap-2">
+</div>
 </div>
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <h2 class="text-sm font-semibold text-gray-900">내 업무</h2>
 <div role="group" aria-label="오늘 1개" class="flex flex-col gap-1">

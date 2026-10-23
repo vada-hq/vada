@@ -1,5 +1,6 @@
 import { useState, type ComponentProps } from 'react'
 import type { MyCouncil } from '@vada/contracts'
+import { PageActionsProvider } from '@/components/PageActions'
 import type { EventTab } from '../events/event-view'
 import PagePushBand from './PagePushBand'
 import type { Opener, Page, WorkspaceProps } from './pages'
@@ -68,7 +69,7 @@ function useEventLink(nav: Nav) {
   }
 }
 
-// 위 줄(학생회 이름, 화면 이름), 휴대폰 알림 안내, 본문.
+// 위 줄(학생회 이름, 화면 이름, 페이지 행동), 휴대폰 알림 안내, 본문.
 function CouncilMain({
   council,
   nav,
@@ -78,6 +79,7 @@ function CouncilMain({
   nav: Nav
   content: Omit<ComponentProps<typeof WorkspaceContent>, 'page'>
 }) {
+  const [actions, setActions] = useState<HTMLDivElement | null>(null)
   return (
     <>
       <WorkspaceHeader
@@ -86,9 +88,12 @@ function CouncilMain({
         title={pageTitles[nav.page].title}
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
+        actionsRef={setActions}
       />
       <PagePushBand page={nav.page} />
-      <WorkspaceContent {...content} page={nav.page} />
+      <PageActionsProvider value={actions}>
+        <WorkspaceContent {...content} page={nav.page} />
+      </PageActionsProvider>
     </>
   )
 }

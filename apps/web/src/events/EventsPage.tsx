@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { EVENT_LIST_LIMIT, type CouncilView } from '@vada/contracts'
+import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { EVENTS_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import EventCard from './EventCard'
+import EventRow from './EventRow'
 import { EventCreateDialog } from './EventCreateDialog'
 import EventDetailView from './EventDetailView'
-import type { EventTab } from './event-view'
+import { eventGroups, type EventTab } from './event-view'
 import { useEvents, type EventList } from './useEvents'
 
 type Props = {
@@ -39,13 +41,26 @@ function Cards({ list, onOpen }: { list: EventList; onOpen: (eventId: string) =>
   if (events.length === 0) return <StateMessage kind="empty">아직 행사가 없어요.</StateMessage>
   return (
     <>
-      <ul className="flex flex-col gap-2">
-        {events.map(event => (
-          <li key={event.id}>
-            <EventCard event={event} onOpen={() => onOpen(event.id)} />
-          </li>
-        ))}
-      </ul>
+      {eventGroups(events).map(group => (
+        <section
+          key={group.key}
+          aria-labelledby={`events-${group.key}`}
+          className="flex flex-col gap-2"
+        >
+          <h2 id={`events-${group.key}`} className="text-sm font-semibold text-gray-600">
+            {group.title} <span className="font-normal text-gray-400">{group.events.length}</span>
+          </h2>
+          <Card className="overflow-hidden">
+            <ul className="divide-y">
+              {group.events.map(event => (
+                <li key={event.id}>
+                  <EventRow event={event} onOpen={() => onOpen(event.id)} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+      ))}
       {truncated && (
         <StateMessage kind="notice">{`행사가 많아서 ${EVENT_LIST_LIMIT}개만 보여요.`}</StateMessage>
       )}
@@ -65,7 +80,7 @@ function useFirstTab(eventId: string | undefined, tab: EventTab | undefined) {
   }
 }
 
-// 옆 메뉴 '행사': 진행 중 → 예정 → 날짜 미정 → 끝남 순서의 목록(서버가 센다). 행사를 누르면 그 행사가 열린다.
+// 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사가 열린다.
 export default function EventsPage({
   view,
   initialEventId,
@@ -94,12 +109,12 @@ export default function EventsPage({
     )
   return (
     <PageColumn>
-      <div className="flex flex-wrap items-center gap-3">
-        {view.permissions.includes('event.create') && (
+      {view.permissions.includes('event.create') && (
+        <PageActions>
           <Button onClick={dialogs.startCreate}>행사 만들기</Button>
-        )}
-        {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
-      </div>
+        </PageActions>
+      )}
+      {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       {dialogs.creating && (
         <EventCreateDialog
           view={view}

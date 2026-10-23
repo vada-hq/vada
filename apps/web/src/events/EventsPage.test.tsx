@@ -78,14 +78,17 @@ test('홈에서 돈 탭으로 연 행사를 닫고 목록에서 다시 열면 �
   expect(overview.getAttribute('aria-selected')).toBe('true')
 })
 
-test('목록 카드에 이름, 일시, 상태, 책임자가 보이고 날짜 미정도 보인다', async () => {
+test('목록 줄에 이름, 일시, 책임자가 보이고, 예정과 날짜 미정은 묶음으로 나뉜다', async () => {
   setup()
-  const card = (await screen.findByRole('button', { name: '신입생 환영회' })).closest('div')
-  expect(card?.parentElement?.textContent).toMatch(/10월 24일 \(토\) 14:00 ~ 18:00/)
-  expect(card?.parentElement?.textContent).toMatch(/예정/)
-  expect(card?.parentElement?.textContent).toMatch(/이재정/)
-  const tbd = (await screen.findByRole('button', { name: '날짜 미정 행사' })).closest('div')
-  expect(tbd?.parentElement?.textContent).toMatch(/책임자 없음/)
+  const row = (await screen.findByRole('button', { name: '신입생 환영회' })).closest('li')
+  expect(row?.textContent).toMatch(/10월 24일 \(토\) 14:00 ~ 18:00/)
+  expect(row?.textContent).toMatch(/이재정/)
+  const coming = screen.getByRole('region', { name: /다가오는 행사/ })
+  expect(within(coming).getByRole('button', { name: '신입생 환영회' })).toBeTruthy()
+  const tbd = screen.getByRole('region', { name: /날짜 미정/ })
+  expect(
+    within(tbd).getByRole('button', { name: '날짜 미정 행사' }).closest('li')?.textContent,
+  ).toMatch(/책임자 없음/)
 })
 
 test('[행사 만들기]는 event.create가 있을 때만 보인다', async () => {

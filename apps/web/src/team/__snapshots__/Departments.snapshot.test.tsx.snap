@@ -4,7 +4,7 @@ exports[`대화상자: 없애기 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 2개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <ul aria-label="부서" class="divide-y">
@@ -85,7 +85,7 @@ exports[`대화상자: 이름 바꾸기 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 2개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <ul aria-label="부서" class="divide-y">
@@ -167,7 +167,7 @@ exports[`대화상자: 이름 바꾸기 1`] = `
 
 exports[`목록: 권한 없음 1`] = `
 "<div>
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 2개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <ul aria-label="부서" class="divide-y">
@@ -192,7 +192,7 @@ exports[`목록: 권한 없음 1`] = `
 
 exports[`목록: 회장단 1`] = `
 "<div>
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 2개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <ul aria-label="부서" class="divide-y">
@@ -264,7 +264,7 @@ exports[`불러오는 중 1`] = `
 
 exports[`빈 목록 1`] = `
 "<div>
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">부서 0개</h2>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
 <p class="px-4 py-6 text-sm text-gray-500">아직 부서가 없어요.</p>

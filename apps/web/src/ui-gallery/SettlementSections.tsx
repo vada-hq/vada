@@ -1,5 +1,5 @@
 import type { EventSettlement } from '@vada/contracts'
-import EventCard from '@/events/EventCard'
+import EventRow from '@/events/EventRow'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
 import { Alert } from '@/components/ui/alert'
@@ -44,7 +44,7 @@ export function SettlementSection() {
   return (
     <Section title="행사 정산(돈 탭)">
       <div className="flex w-80 flex-col gap-4">
-        <EventCard
+        <EventRow
           event={{
             id: '1',
             name: '신입생 환영회',
