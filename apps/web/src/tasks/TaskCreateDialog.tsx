@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { CouncilView, EventSummary, TaskDetail, TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -10,12 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { MissingHint, missingLabels } from '@/components/ui/field'
+import { MissingHint } from '@/components/ui/field'
 import { EVENTS_LOAD_FAILED, TASK_TEAM_FAILED } from '@/lib/messages'
 import { useTeam } from '@/team/useTeam'
 import { useEvents } from '../events/useEvents'
 import type { TaskDialogHandlers } from './task-requests'
 import { ChoiceSelect } from './ChoiceSelect'
+import { missingTaskFields } from './task-fields'
 import { TaskFields } from './TaskFields'
 import { useTaskCreate } from './useTaskCreate'
 import { useTaskCreateForm } from './useTaskCreateForm'
@@ -89,6 +90,7 @@ type FormProps = Omit<Props, 'open'> & {
 function CreateForm({ view, team, events, saving, setSaving, ...props }: FormProps) {
   const form = useTaskCreateForm(view, team, events, props.eventId)
   const create = useTaskCreate(view.council.id, form.request, { ...props, setSaving })
+  const hintId = useId()
 
   return (
     <form
@@ -123,11 +125,11 @@ function CreateForm({ view, team, events, saving, setSaving, ...props }: FormPro
       />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
-        <MissingHint missing={missingLabels([['제목', form.fields.title]])} />
+        <MissingHint id={hintId} missing={missingTaskFields(form.fields)} blocked={!create.valid} />
         <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={!create.valid || saving}>
+        <Button type="submit" aria-describedby={hintId} disabled={!create.valid || saving}>
           만들기
         </Button>
       </DialogFooter>

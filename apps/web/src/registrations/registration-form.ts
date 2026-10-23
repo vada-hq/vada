@@ -1,4 +1,5 @@
 import type { RegistrationForm } from '@vada/contracts'
+import { missingLabels } from '@/components/ui/field'
 
 // 양식 만들기·고치기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
 // 일시는 datetime-local 값('YYYY-MM-DDTHH:mm')이라 계약의 한국 시각과 글자가 같다.
@@ -60,3 +61,10 @@ export const formRequest = (values: FormValues, feeAccountId: string | null) => 
   nonPayerFee: numberOf(values.nonPayerFee),
   feeAccountId: hasFee(values) ? feeAccountId : null,
 })
+
+// 값이 빈 필수 칸(꺼진 버튼의 이유). 계약에서 이름과 마감만 nullable이 아니다.
+export const missingFormFields = (values: FormValues) =>
+  missingLabels([
+    ['이름', values.name],
+    ['신청 마감', values.closesAt],
+  ])

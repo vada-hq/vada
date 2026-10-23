@@ -143,9 +143,10 @@ test('[바꾸기]를 누르면 책임자 선택칸이 펼쳐지고, 고른 사�
   api.on('POST', BASE, () => json({ event: eventDetail({ id: 'e9' }) }, 201))
   api.on('GET', `${BASE}/e9`, () => json({ event: eventDetail({ id: 'e9' }) }))
   const form = await openCreate()
-  fireEvent.click(await within(form).findByRole('button', { name: '책임자 고르기' }))
+  fireEvent.click(await within(form).findByRole('button', { name: '책임자 바꾸기' }))
   const select = within(form).getByRole('combobox', { name: '책임자' })
   expect(select).toHaveProperty('value', MEMBER.m1)
+  expect(document.activeElement).toBe(select)
   fireEvent.change(select, { target: { value: '' } })
   fireEvent.change(within(form).getByLabelText('이름'), { target: { value: '행사' } })
   fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
@@ -246,7 +247,23 @@ test('고치기에서 끝이 시작보다 이르면 저장 버튼이 꺼져 있�
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
   fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-24T13:00' } })
+  const save = screen.getByRole('button', { name: '저장' })
+  expect(save).toHaveProperty('disabled', true)
+  expect(screen.getByText('입력한 값을 다시 확인해 주세요.').id).toBe(
+    save.getAttribute('aria-describedby'),
+  )
+})
+
+test('고치기에서 시작 없이 끝만 넣으면 시작을 넣으라고 보인다', async () => {
+  const { api } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () =>
+    json({ event: eventDetail({ startsAt: null, endsAt: null }, ['event.update']) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-24T13:00' } })
   expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
+  expect(screen.getByText('넣어야 할 칸: 시작')).toBeTruthy()
 })
 
 test('책임자를 바꾸면 owner 경로로 보내고, 같은 사람이면 저장이 꺼져 있다', async () => {

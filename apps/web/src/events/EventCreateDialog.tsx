@@ -72,6 +72,8 @@ function OwnerPick({
         choices={choices}
         value={ownerId}
         disabled={saving}
+        // [바꾸기]가 사라지며 포커스를 잃지 않게 펼친 선택칸으로 옮긴다.
+        autoFocus
         onChange={onChange}
       />
     )
@@ -84,7 +86,7 @@ function OwnerPick({
         type="button"
         variant="link"
         size="sm"
-        aria-label="책임자 고르기"
+        aria-label="책임자 바꾸기"
         disabled={saving}
         onClick={() => setPicking(true)}
       >

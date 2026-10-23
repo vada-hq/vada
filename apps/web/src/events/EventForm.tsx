@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
@@ -23,8 +23,16 @@ type Props = {
   onCancel: () => void
 }
 
+// 이름은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝 칸의 '(선택)'만 보고 끝만 넣는 경우를 짚는다.
+const missingOf = (values: EventFieldValues) =>
+  missingLabels([
+    ['이름', values.name],
+    ...(values.endsAt === '' ? [] : [['시작', values.startsAt] as const]),
+  ])
+
 // 행사 만들기·고치기 폼. 오류는 버튼 옆에 보이고, 보내는 동안 모든 칸과 버튼을 막는다.
 export function EventForm(props: Props) {
+  const hintId = useId()
   return (
     <form
       aria-label={props.label}
@@ -44,11 +52,11 @@ export function EventForm(props: Props) {
       {props.extra}
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
-        <MissingHint missing={missingLabels([['이름', props.values.name]])} />
+        <MissingHint id={hintId} missing={missingOf(props.values)} blocked={!props.valid} />
         <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
           닫기
         </Button>
-        <Button type="submit" disabled={!props.valid || props.saving}>
+        <Button type="submit" aria-describedby={hintId} disabled={!props.valid || props.saving}>
           {props.submitLabel}
         </Button>
       </DialogFooter>

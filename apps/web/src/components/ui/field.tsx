@@ -19,7 +19,7 @@ export function Field({ label, optional, className, children }: Props) {
     <div className={cn('flex flex-col gap-2', className)}>
       <div className="flex items-baseline gap-1">
         <Label htmlFor={id}>{label}</Label>
-        {optional && <span className="text-xs text-gray-400">(선택)</span>}
+        {optional && <span className="text-xs text-gray-500">(선택)</span>}
       </div>
       {cloneElement(children, { id })}
     </div>
@@ -30,11 +30,24 @@ export function Field({ label, optional, className, children }: Props) {
 export const missingLabels = (fields: readonly (readonly [string, string])[]) =>
   fields.filter(([, value]) => value.trim() === '').map(([label]) => label)
 
+type HintProps = {
+  // 제출 버튼의 aria-describedby와 같은 값. 화면 읽기 프로그램이 꺼진 버튼에서 이유를 읽는다.
+  id: string
+  missing: readonly string[]
+  // 계약(safeParse)이 받지 않아 버튼이 꺼졌는지.
+  blocked: boolean
+}
+
 // 제출 버튼이 꺼진 이유. 버튼 줄 왼쪽에 두어, 회색 버튼만 보고 막히지 않게 한다.
 // 조사(Atlassian, Fluent): 꺼진 버튼은 왜 꺼졌는지 말하지 않는다. 버튼을 켜 둘지는 저장소 규칙이라 따로 정한다.
-export function MissingHint({ missing }: { missing: readonly string[] }) {
-  if (missing.length === 0) return null
+// 빈 칸이 없는데도 꺼졌으면(순서, 짝, 길이) 값을 다시 보라고만 한다. 어느 규칙인지는 계약이 판단하므로 여기서 다시 따지지 않는다.
+export function MissingHint({ id, missing, blocked }: HintProps) {
+  if (!blocked) return null
   return (
-    <p className="mr-auto self-center text-xs text-gray-500">넣어야 할 칸: {missing.join(', ')}</p>
+    <p id={id} className="mr-auto self-center text-xs text-gray-500">
+      {missing.length > 0
+        ? `넣어야 할 칸: ${missing.join(', ')}`
+        : '입력한 값을 다시 확인해 주세요.'}
+    </p>
   )
 }

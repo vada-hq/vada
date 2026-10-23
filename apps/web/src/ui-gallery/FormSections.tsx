@@ -45,8 +45,10 @@ function FieldExample() {
         <Input />
       </Field>
       <div className="flex flex-wrap justify-end gap-2">
-        <MissingHint missing={['행사 이름']} />
-        <Button disabled>만들기</Button>
+        <MissingHint id="field-example-hint" missing={['행사 이름']} blocked />
+        <Button aria-describedby="field-example-hint" disabled>
+          만들기
+        </Button>
       </div>
     </div>
   )

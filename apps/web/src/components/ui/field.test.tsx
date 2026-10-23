@@ -26,9 +26,13 @@ test('필수 칸은 표시가 없고 입력칸이 필수로 알려진다', () =>
   expect(screen.getByLabelText('이름').getAttribute('aria-required')).toBe('true')
 })
 
-test('빠진 필수 칸이 있으면 무엇을 넣어야 하는지 한 줄로 보이고, 없으면 아무것도 없다', () => {
-  const { rerender, container } = render(<MissingHint missing={['이름', '신청 마감']} />)
-  expect(screen.getByText('넣어야 할 칸: 이름, 신청 마감')).toBeTruthy()
-  rerender(<MissingHint missing={[]} />)
+test('꺼진 버튼이면 빠진 필수 칸을, 빈 칸 없이 꺼졌으면 값을 다시 보라고, 켜져 있으면 아무것도 보이지 않는다', () => {
+  const { rerender, container } = render(
+    <MissingHint id="hint" missing={['이름', '신청 마감']} blocked />,
+  )
+  expect(screen.getByText('넣어야 할 칸: 이름, 신청 마감').id).toBe('hint')
+  rerender(<MissingHint id="hint" missing={[]} blocked />)
+  expect(screen.getByText('입력한 값을 다시 확인해 주세요.')).toBeTruthy()
+  rerender(<MissingHint id="hint" missing={[]} blocked={false} />)
   expect(container.textContent).toBe('')
 })

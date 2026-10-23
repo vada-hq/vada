@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { UpdateTaskSchema, type TaskDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { MissingHint, missingLabels } from '@/components/ui/field'
+import { MissingHint } from '@/components/ui/field'
 import { useEvents } from '../events/useEvents'
-import { fieldsOf, fieldsRequest } from './task-fields'
+import { fieldsOf, fieldsRequest, missingTaskFields } from './task-fields'
 import { eventChoices } from './task-form-options'
 import { ChoiceSelect } from './ChoiceSelect'
 import { TaskFields } from './TaskFields'
@@ -27,6 +27,7 @@ type Props = {
 export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ...rest }: Props) {
   const [values, setValues] = useState(fieldsOf(task))
   const [eventId, setEventId] = useState(task.event?.id ?? null)
+  const hintId = useId()
   const events = useEvents(councilId, onForbidden)
   const ready = events.state.kind === 'ready'
   const list = events.state.kind === 'ready' ? events.state.data.events : []
@@ -52,11 +53,11 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
       />
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       <div className="flex justify-end gap-2">
-        <MissingHint missing={missingLabels([['제목', values.title]])} />
+        <MissingHint id={hintId} missing={missingTaskFields(values)} blocked={!valid} />
         <Button type="button" variant="outline" disabled={saving} onClick={rest.onCancel}>
           취소
         </Button>
-        <Button type="submit" disabled={!valid || saving}>
+        <Button type="submit" aria-describedby={hintId} disabled={!valid || saving}>
           저장
         </Button>
       </div>

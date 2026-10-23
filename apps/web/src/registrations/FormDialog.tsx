@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import {
   CreateFormSchema,
   UpdateFormSchema,
@@ -8,13 +8,19 @@ import {
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
-import { MissingHint, missingLabels } from '@/components/ui/field'
+import { MissingHint } from '@/components/ui/field'
 import { EventDialogShell } from '@/events/EventDialogShell'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { FeeAccountSelect, useFeeAccount } from './FeeAccountSelect'
 import { FormFields } from './FormFields'
 import { formPath, formsPath } from './registration-api'
-import { emptyFormValues, formRequest, hasFee, valuesOfForm } from './registration-form'
+import {
+  emptyFormValues,
+  formRequest,
+  hasFee,
+  missingFormFields,
+  valuesOfForm,
+} from './registration-form'
 import { useStaffPost } from './useStaffPost'
 
 type Props = EventDialogHandlers & {
@@ -54,6 +60,7 @@ export function FormDialog({ councilId, eventId, form, onClose, onDone, ...handl
   const [values, setValues] = useState(mode.values)
   const [chosen, setChosen] = useState(mode.chosen)
   const [saving, setSaving] = useState(false)
+  const hintId = useId()
   const account = useFeeAccount(councilId, handlers.onForbidden, chosen)
   const post = useStaffPost(handlers, setSaving)
   const request = formRequest(values, account.pick.id)
@@ -82,16 +89,11 @@ export function FormDialog({ councilId, eventId, form, onClose, onDone, ...handl
         )}
         {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
         <DialogFooter>
-          <MissingHint
-            missing={missingLabels([
-              ['이름', values.name],
-              ['신청 마감', values.closesAt],
-            ])}
-          />
+          <MissingHint id={hintId} blocked={!valid} missing={missingFormFields(values)} />
           <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
             닫기
           </Button>
-          <Button type="submit" disabled={!valid || saving}>
+          <Button type="submit" aria-describedby={hintId} disabled={!valid || saving}>
             {mode.submit}
           </Button>
         </DialogFooter>
