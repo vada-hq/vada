@@ -52,5 +52,8 @@ export function useMessageEvidence(
   }
 
   const left = photoIds.filter(id => status[id]?.state !== 'done').length
-  return { photoIds, status, left, attaching, attachAll }
+  // 붙이는 칸이 사라져도(취소, 사진 한도) 거절 이유는 남긴다.
+  const failure = photoIds.map(id => status[id]).find(item => item?.state === 'failed')
+  const problem = failure?.state === 'failed' ? failure.problem : null
+  return { photoIds, status, left, attaching, problem, attachAll }
 }

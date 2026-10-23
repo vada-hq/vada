@@ -1455,7 +1455,7 @@ exports[`대화상자 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -1478,8 +1478,8 @@ exports[`대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -1509,7 +1509,7 @@ exports[`대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -3234,7 +3234,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -3257,8 +3257,8 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -3288,7 +3288,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -5009,7 +5009,7 @@ exports[`옆 메뉴 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -5032,8 +5032,8 @@ exports[`옆 메뉴 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -5063,7 +5063,7 @@ exports[`옆 메뉴 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -6781,7 +6781,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -6804,8 +6804,8 @@ exports[`오른쪽 패널 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -6835,7 +6835,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -8550,7 +8550,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -8573,8 +8573,8 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -8604,7 +8604,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -10323,7 +10323,7 @@ exports[`처음 모양 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -10346,8 +10346,8 @@ exports[`처음 모양 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -10377,7 +10377,7 @@ exports[`처음 모양 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>
@@ -12076,7 +12076,7 @@ exports[`확인 대화상자 열기 1`] = `
 <h2 class="text-base">증빙 메시지 사진 붙이기</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-6">
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -12099,8 +12099,8 @@ exports[`확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">이 메시지의 사진 3장 붙이기</button>
 </div>
-</section>
-<section aria-label="이 메시지의 사진" class="flex flex-col gap-3 rounded-sm border bg-gray-50 p-3">
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-3" role="region" aria-label="이 메시지의 사진">
 <h3 class="text-sm font-medium text-gray-700">이 메시지의 사진 3장</h3>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">증빙은 모든 운영진이 봐요.</p>
 <ul aria-label="이 메시지의 사진 목록" class="flex flex-col gap-2">
@@ -12130,7 +12130,7 @@ exports[`확인 대화상자 열기 1`] = `
 <div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" disabled="">이 메시지의 사진 2장 붙이기</button>
 </div>
-</section>
+</div>
 </div>
 </div>
 </section>

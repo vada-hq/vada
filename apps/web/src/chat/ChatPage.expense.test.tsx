@@ -172,28 +172,94 @@ test('사진이 없는 메시지는 사진 붙이기 칸이 없다', async () =>
   expect(screen.queryByRole('region', { name: '이 메시지의 사진' })).toBeNull()
 })
 
-test('붙이다 실패하면 그 자리에 이유가 보이고 멈추며, 다시 누르면 남은 사진부터 붙인다', async () => {
-  const api = serve(
+const twoPhotos = () =>
+  serve(
     message(MSG, '영수증', {
       senderId: JAE,
       sentAt: SENT,
       photos: [{ id: PHOTO_1 }, { id: PHOTO_2 }],
     }),
   )
+const photoIdsSent = (api: ReturnType<typeof serve>, path: string) =>
+  api.calls
+    .filter(call => call.path === path)
+    .map(call => (call.body as { photoId: string }).photoId)
+
+test('1번은 붙고 2번이 실패하면 이유가 그 자리에 보이고, 다시 누르면 2번만 보낸다', async () => {
+  const api = twoPhotos()
   api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e7') }, 201))
   const attach = `${EXPENSES}/e7/evidence/from-chat`
-  api.on('POST', attach, () => json({ error: 'STORAGE_NOT_CONFIGURED' }, 503))
+  let calls = 0
+  api.on('POST', attach, () => {
+    calls += 1
+    return calls === 2
+      ? json({ error: 'STORAGE_NOT_CONFIGURED' }, 503)
+      : json({ expense: withPhotos }, 201)
+  })
   render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
   await writeDirect(api)
   fireEvent.click(submit())
   const section = await screen.findByRole('region', { name: '이 메시지의 사진' })
   fireEvent.click(within(section).getByRole('button', { name: '이 메시지의 사진 2장 붙이기' }))
   expect(await within(section).findByText(/지금은 사진을 올릴 수 없어요/)).toBeTruthy()
-  expect(api.calls.filter(call => call.path === attach)).toHaveLength(1)
-  api.on('POST', attach, () => json({ expense: withPhotos }, 201))
-  fireEvent.click(within(section).getByRole('button', { name: '이 메시지의 사진 2장 붙이기' }))
+  expect(within(section).getAllByText('붙였어요')).toHaveLength(1)
+  fireEvent.click(within(section).getByRole('button', { name: '이 메시지의 사진 1장 붙이기' }))
   await waitFor(() => expect(within(section).getAllByText('붙였어요')).toHaveLength(2))
+  expect(photoIdsSent(api, attach)).toEqual([PHOTO_1, PHOTO_2, PHOTO_2])
 })
+
+test('붙이는 중에는 두 번 눌러도 보내지 않는다', async () => {
+  const api = twoPhotos()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e7') }, 201))
+  const attach = `${EXPENSES}/e7/evidence/from-chat`
+  const pending = deferredResponse()
+  api.on('POST', attach, () => pending.promise)
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await writeDirect(api)
+  fireEvent.click(submit())
+  const section = await screen.findByRole('region', { name: '이 메시지의 사진' })
+  const button = within(section).getByRole('button', { name: '이 메시지의 사진 2장 붙이기' })
+  fireEvent.click(button)
+  fireEvent.click(button)
+  await waitFor(() => expect(photoIdsSent(api, attach)).toEqual([PHOTO_1]))
+  expect(asElement(button, HTMLButtonElement).disabled).toBe(true)
+  pending.resolve(json({ expense: withPhotos }, 201))
+  await waitFor(() => expect(photoIdsSent(api, attach)).toEqual([PHOTO_1, PHOTO_2]))
+})
+
+test.each(['EXPENSE_CANCELLED', 'EVIDENCE_LIMIT'])(
+  '붙이는 중 %s로 거절되면 멈추고, 붙이는 칸이 사라져도 이유가 남는다',
+  async code => {
+    const api = twoPhotos()
+    api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e7') }, 201))
+    const attach = `${EXPENSES}/e7/evidence/from-chat`
+    api.on('POST', attach, () => json({ error: code }, 409))
+    render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+    await writeDirect(api)
+    fireEvent.click(submit())
+    const section = await screen.findByRole('region', { name: '이 메시지의 사진' })
+    api.on('GET', `${EXPENSES}/e7`, () =>
+      json({
+        expense: expenseDetail('e7', {
+          cancelled: code === 'EXPENSE_CANCELLED',
+          evidence: Array.from({ length: code === 'EVIDENCE_LIMIT' ? 20 : 0 }, (_, index) => ({
+            id: `v${index}`,
+            type: 'receipt' as const,
+            fileId: `f${index}`,
+          })),
+        }),
+      }),
+    )
+    fireEvent.click(within(section).getByRole('button', { name: '이 메시지의 사진 2장 붙이기' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: '이 메시지의 사진' })).toBeNull(),
+    )
+    expect(
+      await screen.findByText(code === 'EXPENSE_CANCELLED' ? /이미 취소된 지출/ : /20장까지/),
+    ).toBeTruthy()
+    expect(photoIdsSent(api, attach)).toEqual([PHOTO_1])
+  },
+)
 
 test('대화 사진 붙이기의 파일 오류는 사진용 문구다', async () => {
   const api = serve(

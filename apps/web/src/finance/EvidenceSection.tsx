@@ -20,6 +20,21 @@ type Props = {
   message: ReturnType<typeof useMessageEvidence>
 }
 
+type Hooks = Pick<Props, 'upload' | 'chat' | 'message'>
+
+// 다시 읽은 지출이 취소됐거나 한도에 닿아 붙이는 칸이 사라져도 거절 이유는 남긴다.
+function Problems({ attachable, upload, chat, message }: Hooks & { attachable: boolean }) {
+  const shown = [upload.problem, attachable ? null : (message.problem ?? chat.problem)]
+  return shown.map(
+    text =>
+      text && (
+        <StateMessage key={text} kind="error">
+          {text}
+        </StateMessage>
+      ),
+  )
+}
+
 // 증빙 사진. 모든 운영진이 보고 누르면 크게 보인다. 붙이는 칸은 재정부에게, 취소되지 않았고 한도 안일 때만 보인다.
 export function EvidenceSection({ councilId, expense, canManage, upload, chat, message }: Props) {
   const photos = expense.evidence.map((item, index) => ({
@@ -39,9 +54,7 @@ export function EvidenceSection({ councilId, expense, canManage, upload, chat, m
         </StateMessage>
       )}
       {attachable && <EvidenceAdder councilId={councilId} upload={upload} chat={chat} />}
-      {/* 다시 읽은 지출이 취소됐거나 한도에 닿아 올리기 칸이 사라져도 거절 이유는 남긴다. */}
-      {upload.problem && <StateMessage kind="error">{upload.problem}</StateMessage>}
-      {!attachable && chat.problem && <StateMessage kind="error">{chat.problem}</StateMessage>}
+      <Problems {...{ attachable, upload, chat, message }} />
     </section>
   )
 }
