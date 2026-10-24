@@ -75,7 +75,7 @@
 - 닿는 곳: `apps/api/migrations/`(새 `task_result`), `src/db/schema.ts`, `ops/migrate/*.test.ts`(표 수), contracts `purchases.ts`, `tasks.ts`(`TaskDetail.results`·`canMake`, `TaskVersion.cause`), `errors.ts`(`TASK_INVALID`), api `records/records.ts`(고리), `tasks/result-sync.ts`(새), `tasks/results.ts`(새, 잇기·읽기), `purchases/service.ts`, 요청 단계 셈(`purchases/`), `tasks/history.ts`, `tasks/queries.ts`.
 - 검토: 깊게(운영 DB, 격리). 마이그레이션: 있음.
 
-### 3. 품목이 모두 끝나면 업무 끝남(서버) [ ]
+### 3. 품목이 모두 끝나면 업무 끝남(서버) [x]
 - 할 수 있게 되는 것: 이어진 요청의 물건을 다 사면(또는 반려되면) 업무가 저절로 끝난다.
 - 수용 기준: 이어진 요청의 마지막 남은 품목이 결제(지출 적기)·반려되는 쓰기에서 업무가 끝남이 되고 `cause`는 `request_finished`다. 승인만으로는 바뀌지 않는다. 사람이 끝남을 할 일로 되돌린 뒤 같은 요청에 감사 결재·증빙 붙이기·지출 고치기가 있어도 덮지 않는다. 지출을 취소해 결제가 없어져도 뒤로 가지 않고, 다시 결제해 모두 끝나면 다시 끝남이 된다. 요청을 취소하면 업무는 그대로다. 결과물이 여럿이면 빠지지 않은 것이 모두 끝나야 끝남이다(요청 둘 중 하나만 끝나면 진행 중). 취소한 업무는 바뀌지 않는다. 다른 학생회의 같은 모양 자료로 거르기를 시험한다.
 - 닿는 곳: 요청 단계 셈(`purchases/`, `purchases/status.ts`), `expenses/service.ts`(지출 적기·취소가 고리에 닿는지), `tasks/result-sync.ts`, `ops/pg-smoke/`(겹치는 결재 경우, 진행 에이전트가 돌림).
