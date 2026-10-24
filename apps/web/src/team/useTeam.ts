@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { statusOf, type TeamResponse } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
+import { sameJson } from '@/lib/same-json'
 import { useLatest } from '@/lib/use-latest'
 
 // 운영진과 부서 목록(운영진 > 사람, 부서가 같이 쓴다). onForbidden은 권한이나 소속이 바뀌었을 때 학생회를 다시 읽게 한다.
@@ -24,7 +25,8 @@ export function useTeam(councilId: string, onForbidden: () => void) {
     setLoadFailed(false)
     void getJson<TeamResponse>(`${base}/members`, controller.signal).then(result => {
       if (controller.signal.aborted) return
-      if (result.ok) return setData(result.data)
+      if (result.ok)
+        return setData(current => (sameJson(current, result.data) ? current : result.data))
       if (result.status === statusOf('FORBIDDEN')) forbidden.current()
       setLoadFailed(true)
     })
@@ -39,7 +41,7 @@ export function useTeam(councilId: string, onForbidden: () => void) {
     if (!active.current) return null
     setSaving(false)
     if (result.ok) {
-      setData(result.data)
+      setData(current => (sameJson(current, result.data) ? current : result.data))
       return null
     }
     if (result.status === statusOf('FORBIDDEN')) forbidden.current()

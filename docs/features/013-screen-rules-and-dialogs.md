@@ -96,7 +96,7 @@
 - 닿는 곳: 새 공용 이력 창 부품(`src/components`), `tasks/TaskDetailDialog.tsx`·`TaskHistory.tsx`, `finance/ExpenseDetailDialog.tsx`·`ExpenseFacts.tsx`, `IncomeDetailDialog.tsx`·`IncomeFacts.tsx`, `RequestDetailDialog.tsx`·`RequestRecords.tsx`, `events/EventHeader.tsx`, contracts `EventVersion`(읽기만), `ui-gallery/`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 6. 권한과 운영진 목록 다시 읽기 [ ]
+### 6. 권한과 운영진 목록 다시 읽기 [x]
 - 할 수 있게 되는 것: 다른 사람이 바꾼 내 권한과 새로 들어온 운영진이 화면을 다시 열지 않아도 보인다.
 - 수용 기준: 회장단이 부원에게 재정 역할을 주면, 그 부원의 화면이 보이는 동안 15초 안에(앱으로 돌아오면 바로) 재정 관리 버튼과 결재 대기가 보인다. 역할을 빼면 버튼이 사라지고 열려 있던 관리 창은 닫히며 이유가 보인다. 초대 링크로 누가 들어오면 회장의 사람 목록과 1:1 상대 목록에 15초 안에 보이고, 1:1 창을 열면 바로 다시 읽는다. 내가 운영진·부서를 바꾼 요청이 성공하면 학생회를 다시 읽는다. 화면이 숨으면 읽지 않는다. 다시 읽은 값이 같으면 열린 탭, 거르기, 쓰던 폼, 고르던 칸이 그대로다(값이 같은데 다시 그리지 않는 것을 시험한다). 다시 읽다 실패하면 보던 것을 그대로 둔다. 시험은 두 사용자 흐름으로 둔다: 처음에 권한 없는 응답으로 열고, 다음 읽기에 권한을 주면 버튼이 생긴다. 다시 읽기를 끊으면 시험이 실패한다(자주 잡힌 것 14).
 - 닿는 곳: `apps/web/src/workspace/useCouncilView.ts`, `useCouncilData.ts`, `team/useTeam.ts`, `team/People.tsx`, `chat/DirectDialog.tsx`, `lib/use-visible-poll.ts`(쓰기만), `workspace/CouncilWorkspace.finance.test.tsx`.

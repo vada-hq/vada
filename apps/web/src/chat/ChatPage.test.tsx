@@ -5,6 +5,7 @@ import {
   LEADER_PERMISSIONS,
   MEMBER_PERMISSIONS,
   PRESIDENT_PERMISSIONS,
+  teamResponse,
 } from '@/test-support/council-fixtures'
 import {
   messagePage,
@@ -243,6 +244,30 @@ test('공지 표시가 실패하면 그 메시지 옆에 까닭을 보이고, �
   )
   pending.resolve(json({ error: 'X' }, 500))
   expect(await screen.findByText('공지 표시를 바꾸지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
+})
+
+test('1:1 창을 열면 운영진을 다시 읽어 방금 들어온 사람이 보인다', async () => {
+  const api = serve()
+  render(<Harness />)
+  const before = api.calls.filter(call => call.path === `${base}/members`).length
+  const joined = {
+    ...teamResponse(),
+    members: [
+      ...teamResponse().members,
+      {
+        id: 'm9',
+        name: '신입',
+        councilRank: null,
+        departments: [],
+        joinedAt: '2026-10-25T01:00:00.000Z',
+      },
+    ],
+  }
+  api.on('GET', `${base}/members`, () => json(joined))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(await within(dialog).findByRole('button', { name: '신입' })).toBeTruthy()
+  expect(api.calls.filter(call => call.path === `${base}/members`).length).toBeGreaterThan(before)
 })
 
 test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열린다', async () => {

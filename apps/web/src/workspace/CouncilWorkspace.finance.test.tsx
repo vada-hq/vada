@@ -168,3 +168,27 @@ test('결산 점검의 행사 줄을 누르면 행사 화면에서 그 행사가
   expect(await screen.findByRole('tab', { name: '개요' })).toBeTruthy()
   expect(screen.queryByRole('tab', { name: '결산' })).toBeNull()
 })
+
+function setVisibility(state: 'visible' | 'hidden') {
+  Object.defineProperty(document, 'visibilityState', { configurable: true, value: state })
+  document.dispatchEvent(new Event('visibilitychange'))
+}
+
+test('다른 사람이 재정 역할을 주면 화면이 다시 보일 때 결재 대기가 생기고, 숨어 있는 동안은 읽지 않는다', async () => {
+  const api = open()
+  const viewCalls = () => api.calls.filter(call => call.path === base).length
+  await screen.findAllByText('재정')
+  await waitFor(() => expect(viewCalls()).toBe(1))
+  expect(screen.queryByLabelText(/결재 대기 요청/)).toBeNull()
+
+  api.on('GET', base, () => json(councilView('c1', { permissions: FINANCE_PERMISSIONS })))
+  api.on('GET', pendingPath, () => json(pending(2)()))
+  setVisibility('hidden')
+  await new Promise(resolve => setTimeout(resolve, 20))
+  expect(viewCalls()).toBe(1)
+
+  setVisibility('visible')
+  expect((await screen.findAllByLabelText('결재 대기 요청 2개'))[0]!.textContent).toBe('2')
+  const membersCalls = api.calls.filter(call => call.path === `${base}/members`).length
+  expect(membersCalls).toBeGreaterThan(1)
+})

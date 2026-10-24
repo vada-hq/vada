@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { statusOf, type CouncilView } from '@vada/contracts'
 import { getJson } from '@/lib/api'
+import { sameJson } from '@/lib/same-json'
 import type { Reading } from '@/lib/use-lost'
 
 // ready의 reading은 이 view를 가져온 읽기다. 내 요청이 성공해 부른 다시 읽기면 own이다.
@@ -23,7 +24,13 @@ export function useCouncilView(councilId: string) {
       controller.signal,
     ).then(result => {
       if (controller.signal.aborted) return
-      if (result.ok) setState({ kind: 'ready', view: result.data, reading: request })
+      // 같은 값이면 지금 상태를 그대로 둔다(다시 그리지 않는다).
+      if (result.ok)
+        setState(current =>
+          current.kind === 'ready' && sameJson(current.view, result.data)
+            ? current
+            : { kind: 'ready', view: result.data, reading: request },
+        )
       else if (result.status === statusOf('FORBIDDEN')) setState({ kind: 'lost' })
       else setState(current => (current.kind === 'ready' ? current : { kind: 'failed' }))
     })

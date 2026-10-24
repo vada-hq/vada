@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { statusOf, type TeamMember } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -67,6 +67,11 @@ export default function DirectDialog({
 }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 창을 열 때 운영진을 바로 다시 읽는다(방금 들어온 사람이 보이게).
+  const reloadTeam = team.reload
+  useEffect(() => {
+    if (open) reloadTeam()
+  }, [open, reloadTeam])
   const members = (team.data?.members ?? []).filter(member => member.id !== meId)
   const pick = async (member: TeamMember) => {
     setBusy(true)
