@@ -118,7 +118,9 @@ test(
     const none = await confirm(t, free)
     assert.equal(none.status, 400)
     assert.equal(await allDeposits(t), 1)
-    assert.equal((await confirm(t, free, { amount: 1 })).status, 201)
+    // 참가비 없는 신청은 금액을 적어도 입금을 확인하지 않는다(읽기 actions와 같은 판정).
+    assert.equal((await confirm(t, free, { amount: 1 })).status, 400)
+    assert.equal(await allDeposits(t), 1)
   }),
 )
 

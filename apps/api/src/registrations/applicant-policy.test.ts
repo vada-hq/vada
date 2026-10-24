@@ -23,8 +23,8 @@ const FINANCE = 's-financeMember'
 const PLAIN = 's-plain'
 const FEE = 5000
 
-type State = 'live' | 'attended' | 'paid' | 'pending' | 'done'
-const STATES: State[] = ['live', 'attended', 'paid', 'pending', 'done']
+type State = 'free' | 'live' | 'attended' | 'paid' | 'pending' | 'done'
+const STATES: State[] = ['free', 'live', 'attended', 'paid', 'pending', 'done']
 
 const PATH: Record<ApplicantAction, [string, unknown]> = {
   'registration.check_in': ['attendance', {}],
@@ -39,6 +39,13 @@ const ACTIONS = Object.keys(PATH) as ApplicantAction[]
 // 권한이 있는데 상태가 막을 때 쓰기가 내는 코드. 빠진 칸은 허용이다.
 // 출석한 신청의 출석은 조용히 already로 넘어가는 쓰기라 표에서 뺀다(버튼은 주지 않는다).
 const BLOCKED: Record<State, Partial<Record<ApplicantAction, string>>> = {
+  // 참가비 없는 신청은 입금을 확인하지 않는다(쓰기는 400).
+  free: {
+    'registration.cancel_check_in': 'NOT_CHECKED_IN',
+    'deposit.confirm': 'INVALID_INPUT',
+    'deposit.cancel': 'NO_DEPOSIT',
+    'deposit.refund': 'NOT_REFUNDABLE',
+  },
   live: {
     'registration.cancel_check_in': 'NOT_CHECKED_IN',
     'deposit.cancel': 'NO_DEPOSIT',
@@ -65,6 +72,7 @@ const BLOCKED: Record<State, Partial<Record<ApplicantAction, string>>> = {
 
 // 읽기 actions(사람마다). 출석 안 한 신청의 [출석]은 이미 출석이면 숨긴다.
 const SHOWN: Record<State, Record<string, ApplicantAction[]>> = {
+  free: { [PRESIDENT]: ['registration.check_in', 'registration.cancel'], [FINANCE]: [] },
   live: {
     [PRESIDENT]: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
     [FINANCE]: [],
@@ -78,11 +86,30 @@ const SHOWN: Record<State, Record<string, ApplicantAction[]>> = {
   done: { [PRESIDENT]: [], [FINANCE]: [] },
 }
 
+// 상태마다 신청에 해 둘 쓰기
+const STEPS: Partial<Record<State, [string, unknown][]>> = {
+  attended: [['attendance', {}]],
+  paid: [['deposit', { amount: FEE }]],
+  pending: [
+    ['deposit', { amount: FEE }],
+    ['cancel', {}],
+  ],
+  done: [['deposit', { amount: FEE }]],
+}
+async function setUp(state: State, post: (tail: string, body: unknown) => Promise<void>) {
+  for (const [tail, body] of STEPS[state] ?? []) await post(tail, body)
+}
+
 async function build(t: RegistrationKit, state: State, name: string) {
   const event = await t.makeEvent()
   const [existing] = (await t.pg.query('SELECT id FROM account LIMIT 1')).rows as { id: string }[]
   const feeAccountId = existing?.id ?? (await t.makeAccount())
-  const made = await t.created(event, { payerFee: FEE, nonPayerFee: FEE, feeAccountId })
+  const fee = state === 'free' ? 0 : FEE
+  const made = await t.created(event, {
+    payerFee: fee,
+    nonPayerFee: fee,
+    ...(fee ? { feeAccountId } : {}),
+  })
   const { form } = made
   await t.applied(form.publicCode, { name, studentId: '202612345' })
   const id = (
@@ -92,10 +119,7 @@ async function build(t: RegistrationKit, state: State, name: string) {
   ).id
   const post = async (tail: string, body: unknown = {}) =>
     assert.ok((await t.post(`/registrations/${id}/${tail}`, body)).ok, tail)
-  if (state === 'attended') await post('attendance')
-  if (state === 'paid' || state === 'pending' || state === 'done')
-    await post('deposit', { amount: FEE })
-  if (state === 'pending') await post('cancel')
+  await setUp(state, post)
   if (state === 'done') await t.complete(event)
   return { form, id }
 }

@@ -44,13 +44,24 @@ export type FormFacts = EventFacts & {
   paused: boolean
 }
 
+const APPLICANT_PERMISSION: Record<ApplicantAction, Action> = {
+  'registration.check_in': 'registration.manage',
+  'registration.cancel_check_in': 'registration.manage',
+  'registration.cancel': 'registration.manage',
+  'deposit.confirm': 'deposit.confirm',
+  'deposit.cancel': 'deposit.confirm',
+  // 환불함은 돈을 다루므로 재정부만 한다.
+  'deposit.refund': 'finance.manage',
+}
+
 // 동작 → 권한 키. 상태 조건은 decide가 붙인다.
 const PERMISSION: Record<FormPolicyAction, Action> = {
   'form.create': 'registration.manage',
   'form.update': 'registration.manage',
   'form.pause': 'registration.manage',
   'form.resume': 'registration.manage',
-  'form.check_in': 'registration.manage',
+  // QR 출석은 신청자 한 줄의 출석과 같은 권한이다(규칙이 한 곳에만 있게).
+  'form.check_in': APPLICANT_PERMISSION['registration.check_in'],
   'form.view_applicants': 'registration.view_applicants',
 }
 
@@ -146,28 +157,22 @@ export type ApplicantFacts = EventFacts & {
   // 취소하지 않았고 기한이 지나 비우지도 않았다
   live: boolean
   cancelledAt: Date | null
+  // 적용 참가비가 없다. 참가비 없는 신청은 입금을 확인하지 않는다.
+  free: boolean
   attended: boolean
   // 취소하지 않은 입금 기록
   deposit: { id: string; amount: number; refundedAt: Date | null } | null
 }
 
-const APPLICANT_PERMISSION: Record<ApplicantAction, Action> = {
-  'registration.check_in': 'registration.manage',
-  'registration.cancel_check_in': 'registration.manage',
-  'registration.cancel': 'registration.manage',
-  'deposit.confirm': 'deposit.confirm',
-  'deposit.cancel': 'deposit.confirm',
-  // 환불함은 돈을 다루므로 재정부만 한다.
-  'deposit.refund': 'finance.manage',
-}
-
 // 살아 있는 신청에만 하는 동작. 취소했거나 비운 신청은 없는 것과 같아 404다.
-const NEEDS_LIVE = new Set<ApplicantAction>([
+const LIVE_ACTIONS = [
   'registration.check_in',
   'registration.cancel_check_in',
   'registration.cancel',
   'deposit.confirm',
-])
+] as const
+export type LiveApplicantAction = (typeof LIVE_ACTIONS)[number]
+const NEEDS_LIVE = new Set<ApplicantAction>(LIVE_ACTIONS)
 
 export const mayApplicant = (actor: Actor, context: Context, action: ApplicantAction) =>
   can(actor, APPLICANT_PERMISSION[action], context)
@@ -177,7 +182,11 @@ const STATE_CODE: Record<ApplicantAction, (facts: ApplicantFacts) => ErrorCode |
   'registration.check_in': () => null,
   'registration.cancel_check_in': facts => (facts.attended ? null : 'NOT_CHECKED_IN'),
   'registration.cancel': facts => (facts.attended ? 'CHECKED_IN' : null),
-  'deposit.confirm': facts => (facts.deposit ? 'DEPOSIT_EXISTS' : null),
+  'deposit.confirm': facts => {
+    if (facts.deposit) return 'DEPOSIT_EXISTS'
+    // 금액이 1원 이상이어야 하는데 적용 참가비가 0이면 쓰기가 400을 내던 칸이다. 읽기도 같은 판정으로 숨긴다.
+    return facts.free ? 'INVALID_INPUT' : null
+  },
   'deposit.cancel': ({ deposit }) => {
     if (!deposit) return 'NO_DEPOSIT'
     return deposit.refundedAt ? 'DEPOSIT_CLOSED' : null
@@ -214,11 +223,15 @@ export const applicantActionsOf = (actor: Actor, facts: ApplicantFacts): Applica
 // 이미 읽은 행사 사실에 신청 한 줄의 값을 얹는다(목록은 줄마다 같은 행사 사실을 쓴다).
 export const applicantFactsFrom = (
   event: EventFacts,
-  row: Pick<ApplicantFacts, 'attended' | 'cancelledAt' | 'deposit'> & { name: string | null },
+  row: Pick<ApplicantFacts, 'attended' | 'cancelledAt' | 'deposit'> & {
+    name: string | null
+    appliedFee: number | string
+  },
 ): ApplicantFacts => ({
   ...event,
   live: row.cancelledAt === null && row.name !== null,
   cancelledAt: row.cancelledAt,
+  free: Number(row.appliedFee) <= 0,
   attended: row.attended,
   deposit: row.deposit,
 })
@@ -232,6 +245,7 @@ export async function applicantFactsOf(
     eventId: string
     ownerId: string | null
     name: string | null
+    appliedFee: string
     cancelledAt: Date | null
   },
 ) {
@@ -239,6 +253,7 @@ export async function applicantFactsOf(
     await eventFactsOf(db, actor, { eventId: row.eventId, eventOwnerId: row.ownerId }),
     {
       name: row.name,
+      appliedFee: row.appliedFee,
       cancelledAt: row.cancelledAt,
       attended: await isAttended(db, row.id),
       deposit: await activeDepositOf(db, row.id),

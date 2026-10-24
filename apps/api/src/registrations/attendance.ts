@@ -8,7 +8,6 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { recordApplicantAccess } from './access-log.js'
 import { assertEventAction } from './policy.js'
-import { lockRegistration } from './registration-lock.js'
 import { lockedLiveRegistration } from './staff-registration.js'
 
 type Method = 'qr' | 'manual'
@@ -90,7 +89,8 @@ export async function checkInByQr(
   })
   const first = await linkedRegistration(tx, event.id, target.tokenHash)
   if (!first) throw new ApiError('NOT_FOUND')
-  await lockRegistration(tx, first.registrationId)
+  // 신청 행을 잠그고 수동 출석과 같은 판정(권한, 완료, 살아 있음)을 지난다.
+  await lockedLiveRegistration(tx, actor, first.registrationId, 'registration.check_in')
   // 잠금을 기다리는 사이 스스로 취소가 끝났을 수 있어(링크가 지워진다) 잠근 뒤에 다시 읽는다.
   const row = await linkedRegistration(tx, event.id, target.tokenHash)
   if (!row) throw new ApiError('NOT_FOUND')
