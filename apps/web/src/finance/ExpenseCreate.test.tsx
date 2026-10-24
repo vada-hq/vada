@@ -382,6 +382,53 @@ test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비
   })
 })
 
+test('고른 요청이 다시 읽은 목록에서 결제할 수 없게 되면 요청과 품목을 비워 숨은 줄이 나가지 않는다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  showFinance()
+  await fillRequestPayment()
+  api.on('GET', `${REQUESTS}?view=all`, () =>
+    json({
+      requests: [purchaseSummary('r1', { title: '행사 포스터', status: 'approved' })],
+      truncated: false,
+    }),
+  )
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('checkbox', { name: /A2 포스터/ })).toBeNull())
+  expect(asElement(screen.getByLabelText('결제할 요청'), HTMLSelectElement).value).toBe('')
+  fireEvent.click(submit())
+  await screen.findByText('결제할 요청을 골라 주세요')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('고른 품목이 다시 읽은 상세에서 결제할 수 없게 되면 그 줄을 비워 보내지 않는다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  showFinance()
+  await fillRequestPayment()
+  fireEvent.click(await screen.findByRole('checkbox', { name: /테이프/ }))
+  api.on('GET', `${REQUESTS}/r1`, () =>
+    json({
+      request: purchaseDetail('r1', {
+        items: [
+          { ...approvedItem(ITEM_1, 'A2 포스터', 30000), payable: false },
+          approvedItem(ITEM_2, '테이프', 6000),
+        ],
+      }),
+    }),
+  )
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('checkbox', { name: /A2 포스터/ })).toBeNull())
+  await settle()
+  fireEvent.click(submit())
+  await screen.findByRole('button', { name: '사진 올리기' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    lines: [{ lineItemId: ITEM_2, amount: 6000 }],
+    amount: 6000,
+  })
+})
+
 const SPRING = '00000000-0000-4000-8000-0000000000e1'
 
 function serveWithEvent() {
