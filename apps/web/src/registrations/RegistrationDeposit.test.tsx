@@ -22,13 +22,7 @@ afterEach(() => {
 })
 
 const ROW = `/api/organizations/c1/registrations/${REGISTRATION_ID}`
-const ALL: FormAction[] = [
-  'form.update',
-  'form.pause',
-  'form.check_in',
-  'form.view_applicants',
-  'deposit.confirm',
-]
+const ALL: FormAction[] = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
 const PAID = { status: 'confirmed', amount: 5000 } as const
 const PENDING = { status: 'refund_pending', amount: 5000 } as const
 
@@ -77,10 +71,8 @@ async function open(options: Options = {}) {
 const button = (scope: HTMLElement, name: string) => within(scope).getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('입금 상태 칩과 [입금 확인]은 서버가 준 deposit.confirm이 있을 때만 보인다', async () => {
-  const { row } = await open({
-    actions: ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants'],
-  })
+test('입금 상태 칩과 [입금 확인]은 줄에 서버가 준 deposit.confirm이 있을 때만 보인다', async () => {
+  const { row } = await open({ applicants: [applicant({ actions: ['registration.cancel'] })] })
   expect(within(row).getByText('입금 안 함')).toBeTruthy()
   expect(within(row).queryByRole('button', { name: '입금 확인' })).toBeNull()
   cleanup()

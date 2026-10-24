@@ -22,7 +22,11 @@ async function lockForm(tx: Tx, code: string) {
 }
 
 // 받는 중이 아니면 던진다. 정원은 양식 행을 잠근 뒤에 센다.
-async function assertOpen(tx: Tx, form: Awaited<ReturnType<typeof publicRowOf>>, now: Date) {
+async function assertOpen(
+  tx: Tx,
+  form: Awaited<ReturnType<typeof publicRowOf>>,
+  facts: { now: Date; eventCompleted: boolean },
+) {
   const status = registrationStatusOf(
     {
       opensAt: form.opensAt,
@@ -30,10 +34,9 @@ async function assertOpen(tx: Tx, form: Awaited<ReturnType<typeof publicRowOf>>,
       paused: form.pausedAt !== null,
       capacity: form.capacity,
       applicantCount: await applicantCountOf(tx, form.id),
-      // 완료한 행사는 이 앞에서 이미 거절했다(행사 행 잠금 아래에서).
-      eventCompleted: false,
+      eventCompleted: facts.eventCompleted,
     },
-    now,
+    facts.now,
   )
   if (status === 'full') throw new ApiError('REGISTRATION_FULL')
   if (status !== 'open') throw new ApiError('REGISTRATION_NOT_OPEN')
@@ -56,12 +59,11 @@ export async function applyToForm(
   const code = target.code.toUpperCase()
   if (!PUBLIC_CODE_PATTERN.test(code)) throw new ApiError('NOT_FOUND')
   // 학생회 행을 잠그지 않는 경로(선착순이 다른 변경 뒤에 줄 서지 않게)라 완료와는 행사 행에서 만난다(DEC-68). 양식 행 잠금보다 먼저다.
-  // 신청자에게는 완료가 아니라 받지 않는 양식으로 보인다.
-  if (await lockedCompleted(tx, [(await publicRowOf(tx, code)).eventId]))
-    throw new ApiError('REGISTRATION_NOT_OPEN')
+  // 신청자에게는 완료가 아니라 받지 않는 양식(닫힘)으로 보이고, 상태는 다른 곳과 같은 함수가 센다.
+  const eventCompleted = await lockedCompleted(tx, [(await publicRowOf(tx, code)).eventId])
   await lockForm(tx, code)
   const form = await publicRowOf(tx, code)
-  await assertOpen(tx, form, target.now)
+  await assertOpen(tx, form, { now: target.now, eventCompleted })
   // 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75).
   assertFieldsMatch(input, { studentId: form.collectsStudentId, phone: form.collectsPhone })
   // 양식 기록은 늘 학생회 번호가 있다(학생회 번호가 없는 것은 학생회와 운영진뿐이다).

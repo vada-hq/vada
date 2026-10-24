@@ -7,7 +7,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { recordApplicantAccess } from './access-log.js'
-import { assertFormAction } from './policy.js'
+import { assertEventAction } from './policy.js'
 import { lockRegistration } from './registration-lock.js'
 import { lockedLiveRegistration } from './staff-registration.js'
 
@@ -83,13 +83,10 @@ export async function checkInByQr(
   target: { eventId: string; tokenHash: string; ip: string },
 ): Promise<CheckInResult> {
   const event = await eventRowOf(tx, actor, target.eventId)
-  // 출석은 마감을 보지 않아(마감 뒤 행사 날에 한다) 시각이 판정에 쓰이지 않는다.
-  await assertFormAction(tx, actor, 'form.check_in', {
+  // 출석은 양식의 마감·멈춤을 보지 않아(마감 뒤 행사 날에 한다) 행사 단위 판정이다.
+  await assertEventAction(tx, actor, 'form.check_in', {
     eventId: event.id,
     eventOwnerId: event.ownerId,
-    closesAt: null,
-    pausedAt: null,
-    now: new Date(),
   })
   const first = await linkedRegistration(tx, event.id, target.tokenHash)
   if (!first) throw new ApiError('NOT_FOUND')
@@ -106,7 +103,12 @@ export async function checkInManually(
   actor: Actor,
   target: { registrationId: string; ip: string },
 ): Promise<CheckInResult> {
-  const row = await lockedLiveRegistration(tx, actor, target.registrationId)
+  const row = await lockedLiveRegistration(
+    tx,
+    actor,
+    target.registrationId,
+    'registration.check_in',
+  )
   return confirm(
     tx,
     actor,
@@ -115,11 +117,16 @@ export async function checkInManually(
   )
 }
 
-// 출석 취소. 출석이 없으면 409다. 취소하면 같은 신청이 다시 출석할 수 있다(부분 유일 인덱스).
+// 출석 취소. 출석이 없으면 정책이 409(NOT_CHECKED_IN)로 막는다. 취소하면 같은 신청이 다시 출석할 수 있다(부분 유일 인덱스).
 export async function cancelAttendance(tx: Tx, actor: Actor, registrationId: string) {
-  const row = await lockedLiveRegistration(tx, actor, registrationId)
-  const id = await activeAttendanceId(tx, row.id)
-  if (!id) throw new ApiError('NOT_CHECKED_IN')
+  const row = await lockedLiveRegistration(
+    tx,
+    actor,
+    registrationId,
+    'registration.cancel_check_in',
+  )
+  // 출석이 있음은 정책이 보장했다.
+  const id = (await activeAttendanceId(tx, row.id))!
   await updateRecord(tx, {
     kind: 'attendance',
     id,

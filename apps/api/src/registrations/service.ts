@@ -12,7 +12,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { clearPhones } from './personal-values.js'
-import { assertFormAction } from './policy.js'
+import { assertEventAction, assertFormAction } from './policy.js'
 import { freshPublicCode } from './public-code.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
@@ -41,12 +41,9 @@ export async function createForm(
   input: CreateFormRequest,
 ): Promise<RegistrationForm> {
   const eventRow = await eventRowOf(tx, actor, target.eventId)
-  await assertFormAction(tx, actor, 'form.create', {
+  await assertEventAction(tx, actor, 'form.create', {
     eventId: eventRow.id,
     eventOwnerId: eventRow.ownerId,
-    closesAt: null,
-    pausedAt: null,
-    now: target.now,
   })
   await assertFeeAccount(tx, actor, input)
   const id = await createRecord(tx, {
@@ -109,7 +106,7 @@ export async function updateForm(
   input: UpdateFormRequest,
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
-  await assertFormAction(tx, actor, 'form.update', { ...row, now: target.now })
+  await assertEventAction(tx, actor, 'form.update', row)
   await assertFeeAccount(tx, actor, input)
   const changes = changesOf(row, input)
   if (Object.keys(changes).length)

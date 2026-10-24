@@ -3,6 +3,7 @@ import { lockedCompleted } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { isAttended, mineRowOf } from './my-registration.js'
 import { lockRegistration } from './registration-lock.js'
+import { isFormClosed } from './state.js'
 import { voidRegistration } from './void-registration.js'
 
 // 스스로 취소(DEC-44). 마감 전이고 출석 전이면 되고(멈춤이어도), 이름·학번·휴대폰을 지금 값과 모든 판에서 바로 비우고 링크를 지운다.
@@ -17,7 +18,7 @@ export async function cancelMine(tx: Tx, token: string, now: Date) {
   const row = await mineRowOf(tx, token)
   if (!row) throw new ApiError('NOT_FOUND')
   if (await isAttended(tx, row.id)) throw new ApiError('CHECKED_IN')
-  if (now.getTime() >= row.closesAt.getTime()) throw new ApiError('CANCEL_CLOSED')
+  if (isFormClosed(row.closesAt, now)) throw new ApiError('CANCEL_CLOSED')
   // 판의 바꾼 사람은 신청자라 비어 있다.
   await voidRegistration(tx, row.id, null)
 }

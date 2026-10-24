@@ -4,10 +4,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { clearVersionValues } from '../registrations/personal-values.js'
-import { liveOrNotFound, lockedRegistration } from '../registrations/staff-registration.js'
-import { refundPendingFacts } from './refund-pending.js'
-import { assertConfirm, assertRefund } from './permission.js'
-import { activeDepositOf } from './queries.js'
+import { lockedLiveRegistration, lockedRegistration } from '../registrations/staff-registration.js'
 
 const MIN_WON = 1
 
@@ -30,8 +27,7 @@ export async function confirmDeposit(
   registrationId: string,
   input: { amount: number | null },
 ): Promise<ApplicantDeposit> {
-  const row = liveOrNotFound(await lockedRegistration(tx, actor, registrationId, assertConfirm))
-  if (await activeDepositOf(tx, row.id)) throw new ApiError('DEPOSIT_EXISTS')
+  const row = await lockedLiveRegistration(tx, actor, registrationId, 'deposit.confirm')
   const amount = input.amount ?? Number(row.appliedFee)
   if (amount < MIN_WON) throw new ApiError('INVALID_INPUT')
   await createRecord(tx, {
@@ -50,10 +46,9 @@ export async function cancelDeposit(
   registrationId: string,
   input: { reason: string },
 ): Promise<ApplicantDeposit> {
-  const row = await lockedRegistration(tx, actor, registrationId, assertConfirm)
-  const active = await activeDepositOf(tx, row.id)
-  if (!active) throw new ApiError('NO_DEPOSIT')
-  if (active.refundedAt) throw new ApiError('DEPOSIT_CLOSED')
+  const row = await lockedRegistration(tx, actor, registrationId, 'deposit.cancel')
+  // 환불 전 입금이 있음은 정책이 보장했다.
+  const active = row.deposit!
   await updateRecord(tx, {
     kind: 'deposit',
     id: active.id,
@@ -72,17 +67,9 @@ export async function refundDeposit(
   registrationId: string,
   input: { amount: number | null },
 ): Promise<ApplicantDeposit> {
-  const row = await lockedRegistration(tx, actor, registrationId, assertRefund)
-  const active = await activeDepositOf(tx, row.id)
-  if (
-    !active ||
-    !refundPendingFacts({
-      registrationCancelledAt: row.cancelledAt,
-      hasDeposit: true,
-      refundedAt: active.refundedAt,
-    })
-  )
-    throw new ApiError('NOT_REFUNDABLE')
+  const row = await lockedRegistration(tx, actor, registrationId, 'deposit.refund')
+  // 환불 대기(취소한 신청에 환불 전 입금)임은 정책이 보장했다.
+  const active = row.deposit!
   const amount = input.amount ?? active.amount
   if (amount < MIN_WON || amount > active.amount) throw new ApiError('INVALID_INPUT')
   await updateRecord(tx, {

@@ -85,7 +85,7 @@
 - 닿는 곳: contracts `registrations.ts`(양식·목록 동작 목록), `errors.ts`(`FORM_CLOSED`). api `registrations/policy.ts`(새), `queries.ts`, `state.ts`, `public-form.ts`, `apply.ts`, `service.ts`(`setPaused`), `applicants.ts`, `completion-lock.test.ts`. web은 이름만(`FormCard.tsx`, `RegistrationTab.tsx`, `events/EventOverview.tsx`).
 - 검토: 깊게(신청자 개인정보 열람, 공개 신청 경로). 마이그레이션: 없음.
 
-### 4. 신청자 한 줄 정책(서버) [ ]
+### 4. 신청자 한 줄 정책(서버) [x]
 - 할 수 있게 되는 것: 신청자마다 할 수 있는 동작을 서버가 주고, 출석·취소·입금·환불 쓰기가 같은 판정으로 막힌다.
 - 수용 기준: 신청자 목록의 줄마다 `actions`가 있다. 출석 안 한 살아 있는 신청은 `registration.check_in`·`registration.cancel`, 출석한 신청은 `registration.cancel_check_in`만(N10), 입금이 없으면 입금 확인 권한자에게 `deposit.confirm`, 확인한 입금(환불 전)이면 `deposit.cancel`, 환불 대기면 재정부에게만 `deposit.refund`(N12)다. 완료한 행사의 줄은 모두 비어 있다. 쓰기(출석, QR 출석, 출석 취소, 신청 취소, 입금 확인, 확인 취소, 환불함)는 같은 `decide`로 거절하고 코드와 순서(403 → 404 → 409)는 지금과 같다(`CHECKED_IN`, `NOT_CHECKED_IN`, `DEPOSIT_EXISTS`, `NO_DEPOSIT`, `NOT_REFUNDABLE`, `EVENT_COMPLETED`). 환불함과 확인 취소의 신청자 정보 비우기(RULE-20)는 그대로다.
 - 닿는 곳: contracts `registrations.ts`(`Applicant.actions`와 목록). api `registrations/policy.ts`, `applicants.ts`, `attendance.ts`, `cancel-by-staff.ts`, `staff-registration.ts`, `deposits/service.ts`, `deposits/permission.ts`, `deposits/refund-pending.ts`. web은 이름만.

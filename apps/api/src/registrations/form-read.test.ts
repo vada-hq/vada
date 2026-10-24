@@ -4,13 +4,7 @@ import { REGISTRATION_FORM_LIST_LIMIT, type RegistrationForm } from '@vada/contr
 import { korean, MISSING, withRegistrations } from '../test-support/registrations.js'
 
 // 받는 중인 양식에서 관리 권한자가 받는 동작(멈추기만 있고 다시 받기는 없다)
-const MANAGER = [
-  'form.update',
-  'form.pause',
-  'form.check_in',
-  'form.view_applicants',
-  'deposit.confirm',
-]
+const MANAGER = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
 
 test(
   '모든 운영진이 행사의 양식 목록과 양식 하나를 읽고, 동작은 사람마다 다르다',

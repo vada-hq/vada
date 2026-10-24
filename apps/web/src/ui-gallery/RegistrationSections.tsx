@@ -61,10 +61,11 @@ const applicant = (id: string, extra: Partial<Applicant>): Applicant => ({
   appliedAt: '2026-10-20T05:00:00.000Z',
   cancelled: false,
   deposit: { status: 'none', amount: null },
+  actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm', 'deposit.cancel'],
   ...extra,
 })
 
-const can = { manage: true, deposit: true, refund: true }
+const can = { manage: true, refund: true }
 
 // 신청자 줄: 입금 안 함, 입금 확인, 환불 대기(취소함), 참가비 없음, 긴 이름. 390px 폭에서 본다.
 export function ApplicantRowSection() {

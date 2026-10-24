@@ -44,7 +44,6 @@ export function addApplicantRoutes(kit: RouteKit) {
       applicantsOf(tx, await authorize(tx, request), {
         formId: formIdOf(c),
         ip,
-        now: request.now,
         ...filter,
       }),
     )

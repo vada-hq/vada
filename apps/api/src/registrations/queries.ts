@@ -13,7 +13,7 @@ import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { registrationContextOf } from './permission-context.js'
-import { actionsOf, factsFrom, listActionsOf } from './policy.js'
+import { actionsOf, eventFactsOf, factsFrom, listActionsOf } from './policy.js'
 import { purgeOnOf } from './purge-date.js'
 import { registrationStatusOf, remainingOf } from './state.js'
 
@@ -195,21 +195,12 @@ export async function formListOf(
     .orderBy(registrationForm.id)
     .limit(REGISTRATION_FORM_LIST_LIMIT + 1)
   // 양식이 없어도 이 행사에서 지금 사람이 할 수 있는 동작을 준다(양식 만들기 버튼). 양식 하나의 동작과 같은 맥락에서 나온다.
-  const context = await registrationContextOf(db, actor, target)
   return {
     forms: await formsOf(db, actor, rows.slice(0, REGISTRATION_FORM_LIST_LIMIT), now),
     truncated: rows.length > REGISTRATION_FORM_LIST_LIMIT,
     actions: listActionsOf(
       actor,
-      factsFrom(
-        {
-          context,
-          eventCompleted: (await completedEventIdsAmong(db, [target.id])).has(target.id),
-          closesAt: null,
-          pausedAt: null,
-        },
-        now,
-      ),
+      await eventFactsOf(db, actor, { eventId: target.id, eventOwnerId: target.ownerId }),
     ),
   }
 }
