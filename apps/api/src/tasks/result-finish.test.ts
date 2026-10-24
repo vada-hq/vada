@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { TaskDetail } from '@vada/contracts'
+import { clockNow, createRecord } from '../records/records.js'
 import { ITEM, detailOf, runPurchases, type PurchaseKit } from '../test-support/purchases.js'
 
 const PLANNER = 's-planningMember'
@@ -46,6 +47,11 @@ async function pay(s: PurchaseKit, itemIds: string[], councilId = s.council.coun
   assert.equal(response.status, 201)
   return ((await response.json()) as { expense: { id: string } }).expense.id
 }
+const finishedVersions = (s: PurchaseKit, taskId: string) =>
+  s.count(
+    "SELECT count(*) AS n FROM record_version WHERE record_id = $1 AND reason = 'request_finished'",
+    [taskId],
+  )
 const cancelExpense = (s: PurchaseKit, id: string) =>
   s.api.post(
     `/api/organizations/${s.council.councilId}/expenses/${id}/cancel`,
@@ -74,24 +80,51 @@ test(
     const last = (await detailOfTask(s, taskId)).history.at(-1)!
     assert.equal(last.cause, 'request_finished')
     assert.equal(last.by, null)
+    // 끝남은 한 번만 남고, 무관한 쓰기가 더 있어도 판이 늘지 않는다.
+    const versions = await s.versions(taskId)
+    assert.equal(await finishedVersions(s, taskId), 1)
+    await s.api.post(
+      `${tasksBase(s)}/${taskId}`,
+      { title: '현수막 다시 사기', body: null, dueDate: null },
+      PRESIDENT,
+    )
+    assert.equal(await s.versions(taskId), versions + 1)
+    assert.equal(await finishedVersions(s, taskId), 1)
   }),
 )
 
 test(
-  '한 지출이 품목을 모두 결제해도 한 번에 끝나고, 끝남을 되돌린 뒤 증빙·지출 고치기·결제 취소는 덮지 않는다',
+  '한 지출이 품목을 모두 결제해도 한 번에 끝나고, 끝남을 되돌린 뒤 증빙 붙이기·감사 결재·지출 고치기·결제 취소는 덮지 않는다',
   runPurchases(async s => {
     const { taskId, ids } = await linked(s)
     for (const id of ids) await s.decide(id, 'approved')
     const expenseId = await pay(s, ids)
     assert.equal(await statusOf(s, taskId), 'done')
+    assert.equal(await finishedVersions(s, taskId), 1)
     assert.equal((await setStatus(s, taskId, 'todo')).status, 200)
     const versions = await s.versions(taskId)
-    const edit = await s.api.post(
-      `/api/organizations/${s.council.councilId}/expenses/${expenseId}`,
-      { reason: '고침' },
-      FINANCE,
+    const root = `/api/organizations/${s.council.councilId}/expenses/${expenseId}`
+    const upload = await s.api.post(`${root}/uploads`, {}, FINANCE)
+    const { key } = (await upload.json()) as { key: string }
+    s.store.put(key, 1000, 'image/jpeg')
+    assert.equal((await s.api.post(`${root}/evidence`, { key }, FINANCE)).status, 201)
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'approval',
+        councilId: s.council.councilId,
+        actor: s.council.people.financeMember.memberId,
+        values: {
+          targetId: expenseId,
+          targetKind: 'expense',
+          outcome: 'approved',
+          actorId: s.council.people.financeMember.memberId,
+          actorKind: 'member',
+          actedAt: clockNow,
+          reason: null,
+        },
+      }),
     )
-    assert.equal(edit.status, 200)
+    assert.equal((await s.api.post(root, { reason: '고침' }, FINANCE)).status, 200)
     assert.equal((await cancelExpense(s, expenseId)).status, 200)
     assert.equal(await statusOf(s, taskId), 'todo')
     assert.equal(await s.versions(taskId), versions)
@@ -111,6 +144,7 @@ test(
     await pay(s, ids)
     assert.equal(await statusOf(s, taskId), 'done')
     assert.equal((await detailOfTask(s, taskId)).history.at(-1)!.cause, 'request_finished')
+    assert.equal(await finishedVersions(s, taskId), 2)
   }),
 )
 
@@ -152,19 +186,11 @@ test(
 )
 
 test(
-  '결과물이 둘이면 둘 다 결제해야 끝나고, 다른 학생회의 같은 모양 자료는 건드리지 않는다',
+  '결과물이 둘이면 둘 다 결제해야 끝난다',
   runPurchases(async s => {
     const taskId = await taskFor(s)
     const first = await s.made({ ...two, taskId }, PLANNER)
     const second = await s.made({ title: '둘째', items: [ITEM], taskId }, PLANNER)
-    const foreignTask = await taskFor(s, 'o-president', s.other.councilId)
-    const foreignResponse = await s.api.post(
-      `/api/organizations/${s.other.councilId}/purchase-requests`,
-      { title: '남의 요청', items: [ITEM], taskId: foreignTask },
-      'o-planningMember',
-    )
-    assert.equal(foreignResponse.status, 201)
-    const foreign = await detailOf(foreignResponse)
     for (const item of [...first.items, ...second.items]) await s.decide(item.id, 'approved')
     await pay(
       s,
@@ -176,7 +202,83 @@ test(
       second.items.map(item => item.id),
     )
     assert.equal(await statusOf(s, taskId), 'done')
-    assert.equal(await statusOf(s, foreignTask), 'in_progress')
-    assert.equal(foreign.items.length, 1)
+  }),
+)
+
+test(
+  '마지막 품목이 반려되어도 끝난다: 반려 직전에는 진행 중이고, 모두 반려해도 끝난다',
+  runPurchases(async s => {
+    const { taskId, ids } = await linked(s)
+    await s.decide(ids[0]!, 'approved')
+    await pay(s, [ids[0]!])
+    assert.equal(await statusOf(s, taskId), 'in_progress')
+    await s.decide(ids[1]!, 'rejected')
+    assert.equal(await statusOf(s, taskId), 'done')
+    assert.equal(await finishedVersions(s, taskId), 1)
+    const all = await linked(s)
+    await s.decide(all.ids[0]!, 'rejected')
+    assert.equal(await statusOf(s, all.taskId), 'in_progress')
+    await s.decide(all.ids[1]!, 'rejected')
+    assert.equal(await statusOf(s, all.taskId), 'done')
+  }),
+)
+
+test(
+  '취소한 업무는 마지막 결제가 있어도 바뀌지 않는다',
+  runPurchases(async s => {
+    const { taskId, ids } = await linked(s)
+    for (const id of ids) await s.decide(id, 'approved')
+    await pay(s, [ids[0]!])
+    assert.equal((await s.api.post(`${tasksBase(s)}/${taskId}/delete`, {}, PRESIDENT)).status, 204)
+    const versions = await s.versions(taskId)
+    await pay(s, [ids[1]!])
+    assert.equal(await s.versions(taskId), versions)
+    assert.equal(await statusOf(s, taskId), 'in_progress')
+  }),
+)
+
+test(
+  '다른 학생회의 같은 모양 요청이 결제까지 끝나도 내 업무는 그대로고, 그 반대도 같다',
+  runPurchases(async s => {
+    const mine = await linked(s)
+    const foreignTask = await taskFor(s, 'o-president', s.other.councilId)
+    const response = await s.api.post(
+      `/api/organizations/${s.other.councilId}/purchase-requests`,
+      { ...two, taskId: foreignTask },
+      'o-planningMember',
+    )
+    assert.equal(response.status, 201)
+    const foreign = await detailOf(response)
+    const approver = s.other.people.financeMember.memberId
+    for (const item of foreign.items)
+      await s.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'approval',
+          councilId: s.other.councilId,
+          actor: approver,
+          values: {
+            targetId: item.id,
+            targetKind: 'line_item',
+            outcome: 'approved',
+            actorId: approver,
+            actorKind: 'member',
+            actedAt: clockNow,
+            reason: null,
+          },
+        }),
+      )
+    for (const id of mine.ids) await s.decide(id, 'approved')
+    const versions = await s.versions(mine.taskId)
+    await pay(
+      s,
+      foreign.items.map(item => item.id),
+      s.other.councilId,
+    )
+    assert.equal(await statusOf(s, foreignTask), 'done')
+    assert.equal(await statusOf(s, mine.taskId), 'in_progress')
+    assert.equal(await s.versions(mine.taskId), versions)
+    await pay(s, mine.ids)
+    assert.equal(await statusOf(s, mine.taskId), 'done')
+    assert.equal(await finishedVersions(s, foreignTask), 1)
   }),
 )
