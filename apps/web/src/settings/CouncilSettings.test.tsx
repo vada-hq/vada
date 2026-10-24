@@ -108,12 +108,11 @@ test('직급 없는 운영진은 보기만 하고 저장 버튼이 없다', () =
 })
 
 // 같은 화면이 열린 채 학생회가 다시 읽히면(403 뒤 다시 읽기, 다른 곳의 저장) 입력칸이 서버의 새 값으로 다시 채워진다.
-test('열린 채 학생회가 바뀌면 바뀐 쪽의 입력칸을 서버 값으로 다시 채우고, 고치던 다른 쪽과 같은 값의 다시 읽기는 건드리지 않는다', () => {
+test('열린 채 학생회가 바뀌면 고치지 않던 쪽의 입력칸을 서버 값으로 다시 채우고, 고치던 다른 쪽과 같은 값의 다시 읽기는 건드리지 않는다', () => {
   mockApi()
   const first = councilView('c1', { permissions: LEADER_PERMISSIONS })
   const view = render(<CouncilSettings view={first} onSaved={() => {}} onForbidden={() => {}} />)
   fireEvent.change(screen.getByLabelText('기수 이름'), { target: { value: '2027' } })
-  fireEvent.change(screen.getByLabelText('학교'), { target: { value: '고치던 학교' } })
   // 내용이 같은 새 학생회 객체(다시 읽기)는 고치던 값을 지우지 않는다.
   view.rerender(
     <CouncilSettings
@@ -122,7 +121,6 @@ test('열린 채 학생회가 바뀌면 바뀐 쪽의 입력칸을 서버 값으
       onForbidden={() => {}}
     />,
   )
-  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('고치던 학교')
   // 학생회 정보만 바뀌면 그 쪽만 서버 값으로 채우고, 기수 쪽에서 고치던 값은 그대로 둔다.
   view.rerender(
     <CouncilSettings
@@ -134,14 +132,31 @@ test('열린 채 학생회가 바뀌면 바뀐 쪽의 입력칸을 서버 값으
   expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).value).toBe(
     '소프트웨어학부 학생회',
   )
-  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
   expect(asElement(screen.getByLabelText('기수 이름'), HTMLInputElement).value).toBe('2027')
-  // 기수가 바뀌면 기수 쪽을 채운다.
-  const next = councilView('c1', { permissions: LEADER_PERMISSIONS, name: '소프트웨어학부 학생회' })
-  next.cohort = { ...next.cohort, name: '2028', startsOn: '2028-01-01', endsOn: '2028-12-31' }
-  view.rerender(<CouncilSettings view={next} onSaved={() => {}} onForbidden={() => {}} />)
-  expect(asElement(screen.getByLabelText('기수 이름'), HTMLInputElement).value).toBe('2028')
-  expect(asElement(screen.getByLabelText('임기 시작'), HTMLInputElement).value).toBe('2028-01-01')
+})
+
+test('고치던 중인 쪽은 다시 읽은 서버 값으로 덮지 않고, 내 저장이 돌려준 값과 같아지면 다시 채운다', () => {
+  mockApi()
+  const first = councilView('c1', { permissions: LEADER_PERMISSIONS })
+  const view = render(<CouncilSettings view={first} onSaved={() => {}} onForbidden={() => {}} />)
+  fireEvent.change(screen.getByLabelText('학교'), { target: { value: '고치던 학교' } })
+  const other = councilView('c1', { permissions: LEADER_PERMISSIONS, name: '다른 회장단이 바꿈' })
+  view.rerender(<CouncilSettings view={other} onSaved={() => {}} onForbidden={() => {}} />)
+  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('고치던 학교')
+  expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).value).not.toBe(
+    '다른 회장단이 바꿈',
+  )
+  fireEvent.change(screen.getByLabelText('학생회 이름'), {
+    target: { value: '다른 회장단이 바꿈' },
+  })
+  // 저장이 돌려준 값은 쓰던 값과 같으므로 기준이 새 값으로 옮겨 가, 다음 바깥 변경은 다시 채운다.
+  const saved = councilView('c1', { permissions: LEADER_PERMISSIONS, name: '다른 회장단이 바꿈' })
+  saved.council = { ...saved.council, schoolName: '고치던 학교' }
+  view.rerender(<CouncilSettings view={saved} onSaved={() => {}} onForbidden={() => {}} />)
+  const later = councilView('c1', { permissions: LEADER_PERMISSIONS, name: '또 바뀜' })
+  later.council = { ...later.council, schoolName: '고치던 학교' }
+  view.rerender(<CouncilSettings view={later} onSaved={() => {}} onForbidden={() => {}} />)
+  expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).value).toBe('또 바뀜')
 })
 
 test('저장했어요 문구는 다시 고치는 순간 사라진다', async () => {
