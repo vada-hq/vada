@@ -3,17 +3,17 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
 import { budgetItemEventsOf } from '../budget/queries.js'
-import { assertEventsOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { updateRecord } from '../records/records.js'
-import { eventsOfExpense, requestEventsOfExpense } from './event-lock.js'
+import { requestEventsOfExpense } from './event-lock.js'
 import {
   assertEventMatchesItem,
   assertEventMatchesRequests,
   eventFilledFromItem,
 } from './event-rule.js'
 import { lockedExpenseRow } from './lock.js'
+import { assertAllowed } from './policy.js'
 import { expenseDetailOf } from './queries.js'
 
 // 바뀌는 칸만 모은다: 칸을 빼거나 지금과 같은 값이면 넣지 않는다.
@@ -60,11 +60,10 @@ export async function updateExpense(
   )
   const moving = eventId !== row.eventId
   // 바꾸기 전 행사(지출과 결제한 요청의 행사)와 옮길 행사 모두 완료 전이어야 한다.
-  await assertEventsOpen(tx, [
-    ...(await eventsOfExpense(tx, actor, expenseId)),
-    moving ? eventId : null,
-  ])
-  if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
+  await assertAllowed(tx, actor, row, {
+    action: 'expense.update',
+    extraEvents: [moving ? eventId : null],
+  })
   if (moving) await assertMoveAllowed(tx, actor, { expenseId, itemEvents, eventId })
   const changes = changesOf(row, input, { moving, eventId })
   if (Object.keys(changes).length)

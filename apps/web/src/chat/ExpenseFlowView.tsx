@@ -51,7 +51,6 @@ export default function ExpenseFlowView({
       />
       <ExpenseDetailDialog
         councilId={councilId}
-        canManage={canManage}
         expenseId={made?.expenseId ?? null}
         messagePhotoIds={made?.photoIds}
         onClose={flow.closeDetail}

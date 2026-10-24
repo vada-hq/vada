@@ -242,6 +242,7 @@ test.each(['EXPENSE_CANCELLED', 'EVIDENCE_LIMIT'])(
       json({
         expense: expenseDetail('e7', {
           cancelled: code === 'EXPENSE_CANCELLED',
+          actions: [],
           evidence: Array.from({ length: code === 'EVIDENCE_LIMIT' ? 20 : 0 }, (_, index) => ({
             id: `v${index}`,
             type: 'receipt' as const,

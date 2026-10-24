@@ -16,12 +16,12 @@ import { assertEventsOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { assertExpenseEventOpen, eventsOfLines, requestEventsOfLines } from './event-lock.js'
+import { eventsOfLines, requestEventsOfLines } from './event-lock.js'
 import { assertEventMatchesItem, eventFilledFromItem, eventOfNewExpense } from './event-rule.js'
 import { assertPayable } from './payable.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
-import { canCancelExpense, canReimburse } from './status.js'
+import { assertAllowed } from './policy.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 지출 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
 // 재정부만 쓴다(회장단도 403). 403이 다른 실패보다 먼저다.
@@ -119,12 +119,6 @@ export async function createExpense(
   return expenseDetailOf(tx, actor, expenseId)
 }
 
-const factsOf = (row: Awaited<ReturnType<typeof lockedExpenseRow>>) => ({
-  cancelled: row.cancelledAt !== null,
-  paidBy: row.paidById,
-  reimbursed: row.reimbursedAt !== null,
-})
-
 // 취소는 지우지 않고 취소한 시각을 채운다. 사유는 판에 남는다. 이미 취소했으면 409다.
 export async function cancelExpense(
   tx: Tx,
@@ -134,10 +128,8 @@ export async function cancelExpense(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, actor, expenseId)
   // 결제일이 든 기간을 공개했으면 취소하지 못한다(DEC-70). 증빙·사유·환급은 열어 둔다.
-  await assertDayOpen(tx, actor, koreanDateOf(row.paidAt))
-  if (!canCancelExpense(actor, factsOf(row))) throw new ApiError('EXPENSE_CANCELLED')
+  await assertAllowed(tx, actor, row, { action: 'expense.cancel' })
   await updateRecord(tx, {
     kind: 'expense',
     id: expenseId,
@@ -156,8 +148,7 @@ export async function reimburseExpense(
 ): Promise<ExpenseDetail> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, actor, expenseId)
-  if (!canReimburse(actor, factsOf(row))) throw new ApiError('NOT_REIMBURSABLE')
+  await assertAllowed(tx, actor, row, { action: 'expense.reimburse' })
   await updateRecord(tx, {
     kind: 'expense',
     id: expenseId,

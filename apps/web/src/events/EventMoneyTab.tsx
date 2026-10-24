@@ -87,7 +87,6 @@ export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...han
       />
       <MoneyRecordDialogs
         councilId={councilId}
-        canManage={view.permissions.includes('finance.manage')}
         requests={requests}
         expenses={expenses}
         onChanged={refresh}

@@ -87,6 +87,7 @@ test(
       'expense.cancel',
       'expense.reimburse',
       'expense.update',
+      'expense.attach_evidence',
     ])
     for (const id of [MISSING, 'not-a-uuid'])
       assert.equal((await s.api.get(`${url(s)}/${id}`, FINANCE)).status, 404, id)
@@ -209,7 +210,11 @@ test(
     assert.equal(response.status, 200)
     const detail = await expenseOf(response)
     assert.equal(detail.reimbursed, true)
-    assert.deepEqual(detail.actions, ['expense.cancel', 'expense.update'])
+    assert.deepEqual(detail.actions, [
+      'expense.cancel',
+      'expense.update',
+      'expense.attach_evidence',
+    ])
     assert.deepEqual(
       detail.history.map(version => version.changes),
       [[{ field: 'created' }], [{ field: 'reimbursed' }]],

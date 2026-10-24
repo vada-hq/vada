@@ -97,7 +97,7 @@
 - Ruling: 조각 3의 '화면이 같은 술어를 쓴다' 몫(결재 창 항목 고르기를 요청 행사와 맞는 항목만, 기억한 항목이 안 맞으면 비우기)은 이 조각이 한다. 조각 3은 결재 화면의 `EVENT_MISMATCH` 문구까지만 냈다.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 6. 지출 정책과 증빙 붙이기(N5) [ ]
+### 6. 지출 정책과 증빙 붙이기(N5) [x]
 - 할 수 있게 되는 것: 완료한 행사의 지출에는 [증빙 붙이기]가 보이지 않고, 지출의 버튼과 서버 거절이 같은 판정에서 나온다.
 - 수용 기준: 지출 상세의 `actions`에 `expense.attach_evidence`가 있다: 재정부, 취소 안 됨, 증빙 20장 미만, 지출의 어느 행사도 완료 전. 공개한 기간의 지출에는 있다. 완료한 행사의 지출은 증빙 버튼과 대화 사진 붙이기가 보이지 않는다. 증빙 올리기·대화 사진 증빙·취소·환급·고치기의 쓰기가 새 `expenses/policy.ts`의 같은 decide로 거절하고 코드는 지금과 같다(`EXPENSE_CANCELLED`, `EVIDENCE_LIMIT`, `EVENT_COMPLETED`, `PERIOD_CLOSED`, 403 먼저). 웹의 `canAttachEvidence` 셈은 없어진다. 판정 조건 하나를 지우면 읽기와 쓰기 시험이 함께 실패한다.
 - 닿는 곳: contracts `expenses.ts`(`EXPENSE_ACTIONS`), `expenses/status.ts` → `policy.ts`, `expenses/queries.ts`, `expenses/evidence.ts`, `expenses/service.ts`·`update.ts`, 웹 `finance/expense-view.ts`, `EvidenceSection.tsx`.

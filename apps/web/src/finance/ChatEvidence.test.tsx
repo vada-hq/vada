@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import type { ChatPhotoListResponse } from '@vada/contracts'
+import type { ChatPhotoListResponse, ExpenseAction } from '@vada/contracts'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import { expenseDetail, expenseSummary } from '@/test-support/expense-fixtures'
@@ -40,10 +40,13 @@ const withPhoto = expenseDetail('e1', {
 
 function serve(
   list: ChatPhotoListResponse = { photos: [choice(P1), choice(P2)], truncated: false },
+  actions?: ExpenseAction[],
 ) {
   const api = serveFinance()
   api.on('GET', EXPENSES, () => json({ expenses: [expenseSummary('e1')], truncated: false }))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('GET', `${EXPENSES}/e1`, () =>
+    json({ expense: expenseDetail('e1', actions ? { actions } : {}) }),
+  )
   api.on('GET', PHOTOS, () => json(list))
   return api
 }
@@ -163,7 +166,9 @@ test('한도에 닿아 올리기 칸이 사라져도 거절 문구는 남고 지
       type: 'receipt' as const,
       fileId: `f${index}`,
     }))
-    return json({ expense: reads > 1 ? expenseDetail('e1', { evidence }) : expenseDetail('e1') })
+    return json({
+      expense: reads > 1 ? expenseDetail('e1', { evidence, actions: [] }) : expenseDetail('e1'),
+    })
   })
   api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: 'EVIDENCE_LIMIT' }, 409))
   await openList()
@@ -197,7 +202,7 @@ test('목록을 읽다 권한을 잃으면(403) 닫고, 읽기 실패는 다시 
 })
 
 test('재정부가 아니면 [대화에서 고르기]가 없다', async () => {
-  serve()
+  serve(undefined, [])
   await open(MEMBER_PERMISSIONS)
   expect(screen.queryByRole('button', { name: '대화에서 고르기' })).toBeNull()
 })

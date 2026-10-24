@@ -2,8 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
 import { budgetItemEventsOf } from '../budget/queries.js'
 import { budgetItem, expense, lineItem, paymentLine, record, request } from '../db/schema.js'
-import type { Db, Tx } from '../db/types.js'
-import { assertEventsOpen, completedEventIdsAmong } from '../events/completion.js'
+import type { Db } from '../db/types.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -70,15 +69,4 @@ export async function eventsOfExpense(tx: Reader, actor: Actor, expenseId: strin
       lines.map(line => line.lineItemId),
     )),
   ]
-}
-
-// 이미 있는 지출을 취소·환급·증빙으로 바꾸는 거래가 지출 행을 잠근 뒤에 부른다.
-export async function assertExpenseEventOpen(tx: Tx, actor: Actor, expenseId: string) {
-  await assertEventsOpen(tx, await eventsOfExpense(tx, actor, expenseId))
-}
-
-// 읽기: 지출의 어느 행사든 완료했으면 잠겼다. 취소·환급 같은 잠금 범위의 동작을 보여 주지 않는 데 쓴다. 쓰기와 같은 판단(eventsOfExpense)이다.
-export async function isExpenseLocked(db: Reader, actor: Actor, expenseId: string) {
-  const ids = (await eventsOfExpense(db, actor, expenseId)).filter((id): id is string => !!id)
-  return (await completedEventIdsAmong(db, ids)).size > 0
 }
