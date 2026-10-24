@@ -37,6 +37,10 @@ type Props = EventDialogHandlers & {
   event: EventDetail | null
   // 있으면 고치기, 없으면 만들기
   form?: RegistrationForm
+  // 업무 상세에서 만들면 그 업무(기능 015). 만든 양식이 업무에 이어진다. 고치기에는 보내지 않는다.
+  taskId?: string
+  // 맨 위 되돌아가기 버튼의 글. 기본은 양식 목록이다.
+  backLabel?: string
   onEditEvent: (focus: EventFieldFocus) => void
   onClose: () => void
   // 만들었거나 고친 양식. 만들었으면 부모가 링크와 QR을 바로 보인다.
@@ -72,7 +76,7 @@ const FORM_CONTRACT_MESSAGES = {
 }
 
 function useFormEditor(props: Props) {
-  const { councilId, eventId, form, onDone, ...rest } = props
+  const { councilId, eventId, form, taskId, onDone, ...rest } = props
   const handlers = { onForbidden: rest.onForbidden, onLost: rest.onLost }
   const mode = modeOf(councilId, eventId, form)
   const [values, setValues] = useState(mode.values)
@@ -80,7 +84,10 @@ function useFormEditor(props: Props) {
   const [saving, setSaving] = useState(false)
   const account = useFeeAccount(councilId, handlers.onForbidden, chosen)
   const post = useStaffPost(handlers, setSaving)
-  const request = formRequest(values, account.pick.id)
+  const request = {
+    ...formRequest(values, account.pick.id),
+    ...(!form && taskId ? { taskId } : {}),
+  }
   const parsed = mode.schema.safeParse(request)
   const { formRef, errors, attempt } = useFormCheck(() =>
     withContract(
@@ -153,7 +160,7 @@ export function FormEditor(props: Props) {
       <div className="flex flex-col items-start gap-1">
         <Button variant="ghost" size="sm" className="-ml-2" busy={saving} onClick={props.onClose}>
           <ChevronLeft aria-hidden />
-          신청 양식 목록
+          {props.backLabel ?? '신청 양식 목록'}
         </Button>
         <h2 className="text-lg font-semibold text-gray-900">{mode.label}</h2>
       </div>

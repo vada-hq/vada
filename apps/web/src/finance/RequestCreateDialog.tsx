@@ -34,6 +34,8 @@ type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   eventId?: string | null
   // 대화의 메시지에서 열면 그 메시지로 채운 값(제목, 내용, 요청한 사람, 근거 메시지).
   start?: RequestStart
+  // 업무 상세에서 열면 그 업무(기능 015). 낸 요청이 업무에 이어진다.
+  taskId?: string
   // 재정부가 대신 낼 때 고르는 요청한 사람들. 없으면 칸이 없다.
   requesters?: Choice[] | null
   // 열림 상태는 부모가 가진다([구매 요청 내기] 버튼이 연다).
@@ -184,9 +186,18 @@ function CreateFooter(props: { problem: string | null; saving: boolean; onClose:
   )
 }
 
-function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }: FormProps) {
+function CreateForm({
+  saving,
+  setSaving,
+  eventId,
+  start,
+  requesters,
+  taskId,
+  ...props
+}: FormProps) {
   const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
-  const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
+  const request = { ...requestOf(values), ...(taskId ? { taskId } : {}) }
+  const create = useRequestCreate(props.councilId, request, { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
   const {
     formRef,

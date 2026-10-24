@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { countOf } from '@/tasks/task-view'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { TaskResults } from '@/tasks/TaskResults'
 import { TaskRow } from '@/tasks/TaskRow'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -66,6 +67,30 @@ export function TaskSection() {
           error="상태를 바꾸지 못했어요. 다시 시도해 주세요."
         />
       </ul>
+    </Section>
+  )
+}
+
+export function TaskResultsSection() {
+  return (
+    <Section title="업무 상세 결과물">
+      <div className="flex w-96 flex-col gap-6">
+        <TaskResults
+          task={{
+            results: [
+              { kind: 'request', id: 'r1', title: '현수막 구매', stage: 'in_progress' },
+              { kind: 'message', id: 'm1', title: `${unbroken} ${longName}`, stage: 'finished' },
+              { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
+              { kind: 'event', id: 'e1', title: '신입생 환영회', stage: 'none' },
+            ],
+            canMake: ['request', 'registration_form', 'message', 'event'],
+          }}
+          saving={false}
+          onMake={noop}
+        />
+        <TaskResults task={{ results: [], canMake: ['request'] }} saving onMake={noop} />
+        <TaskResults task={{ results: [], canMake: [] }} saving={false} onMake={noop} />
+      </div>
     </Section>
   )
 }

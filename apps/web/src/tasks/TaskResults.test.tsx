@@ -1,0 +1,194 @@
+// @vitest-environment jsdom
+import { afterEach, expect, test, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { TaskDetail } from '@vada/contracts'
+import { asElement } from '@/test-support/elements'
+import { councilView } from '@/test-support/council-fixtures'
+import { json, mockApi } from '@/test-support/mock-api'
+import { eventSummary } from '@/test-support/event-fixtures'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { TASK_INVALID } from '@/lib/messages'
+import { TaskDetailDialog } from './TaskDetailDialog'
+
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
+
+const TASK_ID = '00000000-0000-4000-8000-0000000000a1'
+const EVENT_ID = '00000000-0000-4000-8000-0000000000e1'
+const ROOM_ID = '00000000-0000-4000-8000-0000000000b1'
+const BASE = '/api/organizations/c1'
+const URL_TASK = `${BASE}/tasks/${TASK_ID}`
+
+const MEMBER_ID = '00000000-0000-4000-8000-0000000000c1'
+
+function setup(task: TaskDetail) {
+  const api = mockApi()
+  let current = task
+  api.on('GET', URL_TASK, () => json({ task: current }))
+  api.on('GET', `${BASE}/events`, () =>
+    json({ events: [eventSummary({ id: EVENT_ID, name: '환영회' })], truncated: false }),
+  )
+  const handlers = {
+    onClose: vi.fn(),
+    onChanged: vi.fn(),
+    onLost: vi.fn(),
+    onForbidden: vi.fn(),
+  }
+  render(
+    <TaskDetailDialog
+      view={councilView('c1', { memberId: MEMBER_ID })}
+      taskId={TASK_ID}
+      {...handlers}
+    />,
+  )
+  return { api, handlers, change: (next: TaskDetail) => (current = next) }
+}
+
+const detail = (extra: Partial<TaskDetail> = {}) =>
+  taskDetail({ id: TASK_ID, title: '현수막 사기', ...extra })
+const submitIn = (name: string) =>
+  fireEvent.submit(within(screen.getByRole('dialog', { name })).getByRole('form'))
+
+test('결과물이 없고 만들 수 있는 것도 없으면 결과물 없음만 보인다', async () => {
+  setup(detail())
+  const region = await screen.findByRole('region', { name: '결과물' })
+  expect(within(region).getByText('결과물 없음')).toBeTruthy()
+  expect(within(region).queryByRole('button')).toBeNull()
+})
+
+test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있는 버튼만 보인다', async () => {
+  setup(
+    detail({
+      results: [
+        { kind: 'request', id: 'r1', title: '현수막 요청', stage: 'in_progress' },
+        { kind: 'message', id: 'm1', title: '내일 총회', stage: 'finished' },
+        { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
+        { kind: 'event', id: 'e1', title: '봄 행사', stage: 'none' },
+      ],
+      canMake: ['request', 'message'],
+    }),
+  )
+  const region = await screen.findByRole('region', { name: '결과물' })
+  const lines = within(region)
+    .getAllByRole('listitem')
+    .map(item => item.textContent)
+  expect(lines).toEqual([
+    '구매 요청 · 현수막 요청진행 중',
+    '공지 · 내일 총회끝남',
+    '구매 요청 · 옛 요청취소',
+    '행사 · 봄 행사',
+  ])
+  expect(within(region).getByRole('button', { name: '구매 요청 만들기' })).toBeTruthy()
+  expect(within(region).getByRole('button', { name: '공지 만들기' })).toBeTruthy()
+  expect(within(region).queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
+  expect(within(region).queryByRole('button', { name: '행사 만들기' })).toBeNull()
+})
+
+test('구매 요청 만들기는 제목이 채워진 기존 창을 열고 taskId를 보내며, 만들면 업무를 다시 읽는다', async () => {
+  const { api, handlers, change } = setup(detail({ canMake: ['request'], event: null }))
+  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  const form = await screen.findByRole('form', { name: '구매 요청 내기' })
+  expect(asElement(within(form).getByLabelText(/제목/), HTMLInputElement).value).toBe('현수막 사기')
+  fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
+  api.on('POST', `${BASE}/purchase-requests`, () => json({ request: { id: 'r1' } }, 201))
+  change(
+    detail({
+      status: 'in_progress',
+      results: [{ kind: 'request', id: 'r1', title: '현수막 사기', stage: 'in_progress' }],
+    }),
+  )
+  fireEvent.submit(form)
+  await waitFor(() => expect(screen.queryByRole('form', { name: '구매 요청 내기' })).toBeNull())
+  const post = api.calls.find(call => call.method === 'POST')!
+  expect(post.body).toMatchObject({ title: '현수막 사기', taskId: TASK_ID })
+  const region = screen.getByRole('region', { name: '결과물' })
+  expect(await within(region).findByText('진행 중')).toBeTruthy()
+  expect(handlers.onChanged).toHaveBeenCalled()
+})
+
+test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그대로다', async () => {
+  const { api } = setup(detail({ canMake: ['request'] }))
+  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  const form = await screen.findByRole('form', { name: '구매 요청 내기' })
+  fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
+  api.on('POST', `${BASE}/purchase-requests`, () => json({ error: 'TASK_INVALID' }, 409))
+  fireEvent.submit(form)
+  expect(await within(form).findByText(TASK_INVALID)).toBeTruthy()
+  expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
+})
+
+test('403이면 창을 닫고 이유를 부모에게 넘긴다', async () => {
+  const { api, handlers } = setup(detail({ canMake: ['request'] }))
+  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  const form = await screen.findByRole('form', { name: '구매 요청 내기' })
+  fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
+  api.on('POST', `${BASE}/purchase-requests`, () => json({ error: 'FORBIDDEN' }, 403))
+  fireEvent.submit(form)
+  await waitFor(() => expect(handlers.onLost).toHaveBeenCalled())
+  expect(handlers.onForbidden).toHaveBeenCalled()
+})
+
+test('공지 만들기는 전체방에 notice와 taskId를 보낸다. 내용이 비면 보내지 않는다', async () => {
+  const { api } = setup(detail({ canMake: ['message'] }))
+  api.on('GET', `${BASE}/rooms`, () =>
+    json({
+      rooms: [
+        { id: 'x', type: 'leadership', name: null, departmentId: null, readOnly: false },
+        { id: ROOM_ID, type: 'all_members', name: null, departmentId: null, readOnly: false },
+      ],
+      notices: [],
+      unreadTotal: 0,
+      mentionTotal: 0,
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
+  await waitFor(() => expect(api.calls.some(call => call.path === `${BASE}/rooms`)).toBe(true))
+  fireEvent.submit(within(dialog).getByRole('form'))
+  expect(await within(dialog).findByText('내용을 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 총회' } })
+  api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ id: 'm1' }, 201))
+  await waitFor(() => {
+    submitIn('공지 만들기')
+    expect(api.calls.some(call => call.method === 'POST')).toBe(true)
+  })
+  expect(api.calls.find(call => call.method === 'POST')!.body).toEqual({
+    body: '내일 총회',
+    notice: true,
+    taskId: TASK_ID,
+  })
+})
+
+test('행사 만들기는 이름과 taskId를 보낸다', async () => {
+  const { api } = setup(detail({ canMake: ['event'] }))
+  fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '행사 만들기' })
+  fireEvent.change(within(dialog).getByLabelText(/이름/), { target: { value: '봄 축제' } })
+  api.on('POST', `${BASE}/events`, () => json({ event: { id: EVENT_ID } }, 201))
+  fireEvent.submit(within(dialog).getByRole('form'))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  expect(api.calls.find(call => call.method === 'POST')!.body).toMatchObject({
+    name: '봄 축제',
+    taskId: TASK_ID,
+  })
+})
+
+test('신청 양식 만들기는 업무의 행사로 양식 화면을 대화상자에 열고 taskId를 보낸다', async () => {
+  const { api } = setup(
+    detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  fireEvent.change(within(form).getByLabelText(/신청 마감/), {
+    target: { value: '2026-11-01T18:00' },
+  })
+  api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
+    json({ form: { id: 'f1' } }, 201),
+  )
+  fireEvent.submit(form)
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  expect(api.calls.find(call => call.method === 'POST')!.body).toMatchObject({ taskId: TASK_ID })
+})
