@@ -62,12 +62,10 @@ function modeOf(councilId: string, eventId: string, form?: RegistrationForm) {
   }
 }
 
-// 신청 양식 만들기·고치기 화면. 대화상자가 아니라 탭 안의 한 화면이다: 칸이 열 개 가까이 되고 학생 화면 미리보기를 옆에 두어야 한다.
-// 왼쪽은 운영진이 정하는 순서의 묶음, 오른쪽(휴대폰은 아래)은 학생에게 보이는 화면이다.
-// 버튼은 늘 켜 두고 누를 때 확인한다: 문제가 있으면 칸 아래에 보이고 첫 칸으로 옮긴다(GOV.UK는 버튼을 끄지 않는다).
-// 보내는 동안 모든 칸과 버튼을 막는다.
-export function FormEditor(props: Props) {
-  const { councilId, councilName, event, form, onEditEvent, onClose, onDone, ...handlers } = props
+// 화면의 상태와 보내기: 값, 계좌, 보내는 중, 누를 때 확인(참가비가 있으면 받을 계좌가 있어야 한다, 서버 규칙).
+function useFormEditor(props: Props) {
+  const { councilId, event, form, onDone, ...rest } = props
+  const handlers = { onForbidden: rest.onForbidden, onLost: rest.onLost }
   const mode = modeOf(councilId, form?.eventId ?? event?.id ?? '', form)
   const [values, setValues] = useState(mode.values)
   const [chosen, setChosen] = useState(mode.chosen)
@@ -75,73 +73,96 @@ export function FormEditor(props: Props) {
   const account = useFeeAccount(councilId, handlers.onForbidden, chosen)
   const post = useStaffPost(handlers, setSaving)
   const request = formRequest(values, account.pick.id)
-  // 참가비가 있으면 받을 계좌가 있어야 한다(서버 규칙).
-  const check = useFormCheck(() => ({
+  const { formRef, errors, attempt } = useFormCheck(() => ({
     ...formErrors(values),
     account:
       hasFee(values) && account.pick.id === null ? '참가비 받을 계좌를 골라 주세요' : undefined,
   }))
-  const fields = { values, disabled: saving, onChange: setValues, errors: check.errors }
-
   async function submit() {
-    if (saving || !check.attempt()) return
+    if (saving || !attempt()) return
     if (!mode.schema.safeParse(request).success) return
     const result = await post.send<RegistrationFormResponse>(mode.path, request)
     if (result.ok) onDone(result.data.form)
   }
+  return { mode, values, setValues, setChosen, saving, account, post, formRef, errors, submit }
+}
 
+type Editor = ReturnType<typeof useFormEditor>
+
+// 왼쪽 칸 묶음: 행사 정보 → 신청 받기 → 참가비 → 받는 항목, 그리고 버튼.
+function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
+  const { values, setValues, saving, account, post, errors, mode } = editor
+  const fields = { values, disabled: saving, onChange: setValues, errors }
+  return (
+    <div className="flex flex-col gap-4 lg:col-span-3">
+      {props.event && <FormEventFacts event={props.event} onEdit={props.onEditEvent} />}
+      <FormSection title="신청 받기">
+        <BasicFields {...fields} />
+      </FormSection>
+      <FormSection title="참가비">
+        <FeeFields {...fields}>
+          {hasFee(values) && (
+            <FeeAccountSelect
+              account={account}
+              disabled={saving}
+              error={errors.account}
+              onPick={editor.setChosen}
+            />
+          )}
+        </FeeFields>
+      </FormSection>
+      <FormSection title="받는 항목">
+        <CollectFields {...fields} />
+      </FormSection>
+      {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
+          닫기
+        </Button>
+        <Button type="submit" disabled={saving}>
+          {mode.submit}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// 신청 양식 만들기·고치기 화면. 대화상자가 아니라 탭 안의 한 화면이다: 칸이 열 개 가까이 되고 학생 화면 미리보기를 옆에 두어야 한다.
+// 왼쪽은 운영진이 정하는 순서의 묶음, 오른쪽(휴대폰은 아래)은 학생에게 보이는 화면이다.
+// 버튼은 늘 켜 두고 누를 때 확인한다: 문제가 있으면 칸 아래에 보이고 첫 칸으로 옮긴다(GOV.UK는 버튼을 끄지 않는다).
+// 보내는 동안 모든 칸과 버튼을 막는다.
+export function FormEditor(props: Props) {
+  const editor = useFormEditor(props)
+  const { mode, saving, formRef } = editor
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-start gap-1">
-        <Button variant="ghost" size="sm" className="-ml-2" disabled={saving} onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-2"
+          disabled={saving}
+          onClick={props.onClose}
+        >
           <ChevronLeft aria-hidden />
           신청 양식 목록
         </Button>
         <h2 className="text-lg font-semibold text-gray-900">{mode.label}</h2>
       </div>
       <form
-        ref={check.formRef}
+        ref={formRef}
         noValidate
         aria-label={mode.label}
         className="grid items-start gap-6 lg:grid-cols-5"
         onSubmit={submitEvent => {
           submitEvent.preventDefault()
-          void submit()
+          void editor.submit()
         }}
       >
-        <div className="flex flex-col gap-4 lg:col-span-3">
-          {event && <FormEventFacts event={event} onEdit={onEditEvent} />}
-          <FormSection title="신청 받기">
-            <BasicFields {...fields} />
-          </FormSection>
-          <FormSection title="참가비">
-            <FeeFields {...fields}>
-              {hasFee(values) && (
-                <FeeAccountSelect
-                  account={account}
-                  disabled={saving}
-                  error={check.errors.account}
-                  onPick={setChosen}
-                />
-              )}
-            </FeeFields>
-          </FormSection>
-          <FormSection title="받는 항목">
-            <CollectFields {...fields} />
-          </FormSection>
-          {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
-              닫기
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {mode.submit}
-            </Button>
-          </div>
-        </div>
-        {event && (
+        <EditorFields editor={editor} props={props} />
+        {props.event && (
           <div className="lg:sticky lg:top-4 lg:col-span-2">
-            <FormPreview data={previewOf(values, event, councilName)} />
+            <FormPreview data={previewOf(editor.values, props.event, props.councilName)} />
           </div>
         )}
       </form>

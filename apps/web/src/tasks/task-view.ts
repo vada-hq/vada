@@ -51,30 +51,3 @@ export function countOf(mine: TaskSummary[], truncated: boolean): TaskCount | nu
     description: `남은 업무 ${mine.length}개${more}`,
   }
 }
-
-export interface TaskGroup {
-  key: string
-  name: string
-  tasks: TaskSummary[]
-}
-
-// 부서 이름순으로 묶고 부서 없는 업무('학생회 업무')는 맨 뒤에 둔다. 묶음 안의 순서는 서버가 준 대로다.
-export function groupByDepartment(tasks: TaskSummary[]): TaskGroup[] {
-  const groups = new Map<string, TaskGroup>()
-  for (const task of tasks) {
-    const key = task.department?.id ?? ''
-    const group = groups.get(key) ?? {
-      key,
-      name: task.department?.name ?? COUNCIL_TASK_LABEL,
-      tasks: [],
-    }
-    group.tasks.push(task)
-    groups.set(key, group)
-  }
-  return [...groups.values()].sort((a, b) => {
-    if (a.key === b.key) return 0
-    if (a.key === '') return 1
-    if (b.key === '') return -1
-    return a.name.localeCompare(b.name, 'ko')
-  })
-}

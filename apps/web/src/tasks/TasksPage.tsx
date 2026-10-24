@@ -1,30 +1,17 @@
 import { useState } from 'react'
-import {
-  TASK_DONE_LIMIT,
-  TASK_OPEN_LIMIT,
-  type CouncilView,
-  type TaskFilter,
-  type TaskSummary,
-  type TaskView,
-} from '@vada/contracts'
+import type { CouncilView, TaskFilter, TaskView } from '@vada/contracts'
+import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { TASKS_LOAD_FAILED } from '@/lib/messages'
-import TaskCard from './TaskCard'
-import { TaskDialogs } from './TaskDialogs'
-import { TaskTabs } from './TaskTabs'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import TaskGroups from './TaskGroups'
+import { useTeam } from '@/team/useTeam'
+import { TaskDialogs } from './TaskDialogs'
+import { TaskListBody } from './TaskListBody'
+import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
-import { useTasks, type TaskList } from './useTasks'
-
-const EMPTY: Record<TaskFilter, string> = {
-  open: '끝나지 않은 업무가 없어요.',
-  done: '끝난 업무가 없어요.',
-}
-const overflow = (filter: TaskFilter) =>
-  `업무가 많아서 ${filter === 'open' ? TASK_OPEN_LIMIT : TASK_DONE_LIMIT}개만 보여요.`
+import { useTaskAssign } from './useTaskAssign'
+import { useTasks } from './useTasks'
 
 type Props = {
   view: CouncilView
@@ -42,97 +29,35 @@ type Props = {
   onChanged: () => void
 }
 
-type Change = ReturnType<typeof useStatusChange>
-
-function Cards({
-  tasks,
-  view,
-  change,
-  onOpenTask,
-  onOpenEvent,
+// 만들기 버튼과, 열려 있던 업무를 잃었을 때의 이유. 업무 화면에서는 버튼을 머리글 오른쪽(PageActions)에 두고,
+// 행사의 업무 탭에서는 그 탭 안에 둔다(머리글은 행사 화면 전체의 것이다).
+function CreateRow({
+  inEvent,
+  lost,
+  onCreate,
 }: {
-  tasks: TaskSummary[]
-  view: TaskView
-  change: Change
-  onOpenTask: (taskId: string) => void
-  onOpenEvent: Props['onOpenEvent']
+  inEvent: boolean
+  lost: string | null
+  onCreate: () => void
 }) {
-  const card = (task: TaskSummary, headingLevel: 'h2' | 'h3') => (
-    <TaskCard
-      key={task.id}
-      task={task}
-      headingLevel={headingLevel}
-      busy={change.busy.has(task.id)}
-      error={change.errors[task.id]}
-      onChangeStatus={status => void change.change(task.id, status)}
-      onOpen={() => onOpenTask(task.id)}
-      onOpenEvent={onOpenEvent}
-    />
+  const button = (
+    <Button className="self-start" onClick={onCreate}>
+      업무 만들기
+    </Button>
   )
-  if (view !== 'mine') return <TaskGroups tasks={tasks} card={task => card(task, 'h3')} />
-  return (
-    <ul className="flex flex-col gap-2">
-      {tasks.map(task => (
-        <li key={task.id}>{card(task, 'h2')}</li>
-      ))}
-    </ul>
-  )
-}
-
-function Body({
-  list,
-  view,
-  filter,
-  change,
-  onOpenTask,
-  onOpenEvent,
-}: {
-  list: TaskList
-  view: TaskView
-  filter: TaskFilter
-  change: Change
-  onOpenTask: (taskId: string) => void
-  onOpenEvent: Props['onOpenEvent']
-}) {
-  const { state } = list
-  if (state.kind === 'loading') return <StateMessage kind="loading">업무 불러오는 중…</StateMessage>
-  if (state.kind === 'failed')
-    return (
-      <div className="flex flex-col gap-3">
-        <StateMessage kind="error">{TASKS_LOAD_FAILED}</StateMessage>
-        <Button variant="outline" className="self-start" onClick={() => void list.reload()}>
-          다시 시도
-        </Button>
-      </div>
-    )
-  if (state.tasks.length === 0) return <StateMessage kind="empty">{EMPTY[filter]}</StateMessage>
   return (
     <>
-      <Cards
-        tasks={state.tasks}
-        view={view}
-        change={change}
-        onOpenTask={onOpenTask}
-        onOpenEvent={onOpenEvent}
-      />
-      {state.truncated && <StateMessage kind="notice">{overflow(filter)}</StateMessage>}
+      {inEvent ? button : <PageActions>{button}</PageActions>}
+      {lost && <StateMessage kind="error">{lost}</StateMessage>}
     </>
   )
 }
 
-// 만들기 버튼과, 열려 있던 업무를 잃었을 때의 이유(좁은 화면에서도 버튼 바로 옆에 보인다).
-function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: () => void }) {
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button onClick={onCreate}>업무 만들기</Button>
-      {lost && <StateMessage kind="error">{lost}</StateMessage>}
-    </div>
-  )
-}
-
 // 옆 메뉴 '업무': 탭 셋(내 업무, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남). 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
+// 내 업무는 급한 순(지남·오늘·7일 안·나중·마감 없음), 전체와 담당자 없음은 부서 묶음에 진행 상황 수를 단다(요구 1, 14, 15, 20).
 // 행사 화면의 업무 탭은 같은 화면을 그 행사로 좁힌 것이다.
-export default function TasksPage(props: Props) {
+// 화면의 상태: 보기, 거르기, 대화상자, 목록, 상태 바꾸기, 줄에서 맡기기와 그때 고를 사람들.
+function useTasksPage(props: Props) {
   const [view, setView] = useState<TaskView>(props.eventId ? 'all' : 'mine')
   const [filter, setFilter] = useState<TaskFilter>('open')
   const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
@@ -143,9 +68,19 @@ export default function TasksPage(props: Props) {
     props.onChanged()
   }
   const change = useStatusChange(councilId, changed, props.onForbidden)
+  const assign = useTaskAssign(councilId, changed, props.onForbidden)
+  const team = useTeam(councilId, props.onForbidden)
+  return { view, setView, filter, setFilter, dialogs, list, changed, change, assign, team }
+}
+
+export default function TasksPage(props: Props) {
+  const page = useTasksPage(props)
+  const { view, filter, dialogs, list, changed, change, assign, team } = page
   return (
     <PageColumn>
-      <CreateRow lost={dialogs.lost} onCreate={dialogs.startCreate} />
+      {!props.eventId && (
+        <CreateRow inEvent={false} lost={dialogs.lost} onCreate={dialogs.startCreate} />
+      )}
       <TaskDialogs
         view={props.view}
         openId={dialogs.openId}
@@ -163,17 +98,23 @@ export default function TasksPage(props: Props) {
       />
       <TaskTabs
         showViews={!props.eventId}
+        start={
+          props.eventId && <CreateRow inEvent lost={dialogs.lost} onCreate={dialogs.startCreate} />
+        }
         view={view}
         filter={filter}
-        onView={setView}
-        onFilter={setFilter}
+        onView={page.setView}
+        onFilter={page.setFilter}
       />
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
-        <Body
+        <TaskListBody
           list={list}
           view={view}
           filter={filter}
           change={change}
+          assign={assign}
+          team={team.data}
+          inEvent={props.eventId !== undefined}
           onOpenTask={dialogs.openRecord}
           onOpenEvent={props.onOpenEvent}
         />

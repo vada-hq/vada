@@ -95,42 +95,53 @@ function useTabDialogs(
   }
 }
 
-// 행사의 '참가 신청' 탭: 신청 양식 카드, 양식 만들기, QR로 출석 확인. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-// 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다.
-export function RegistrationTab({ view, eventId, event, onEditEvent, ...parent }: Props) {
-  const councilId = view.council.id
-  const read = useRegistrationForms(councilId, eventId, parent)
-  const reload = () => void read.reload()
-  const { attendance, markAttended, forget } = useAttendanceOverrides()
-  const tab = useTabDialogs(parent.onForbidden, reload, markAttended)
-  const { setDialog, handlers } = tab
-  const ready = read.state.kind === 'ready' ? read.state.data : null
-  const forms = ready?.forms ?? []
-  const actions = ready?.actions ?? []
-  useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), handlers.onLost)
+type Tab = ReturnType<typeof useTabDialogs>
+type FormsRead = ReturnType<typeof useRegistrationForms>
+
+// 양식 만들기·고치기 화면. 고치는 동안 양식이 사라졌으면(다시 읽은 목록에 없다) 열지 않는다. 가드가 닫고 이유를 보인다.
+function EditorScreen({
+  props,
+  tab,
+  forms,
+}: {
+  props: Props
+  tab: Tab
+  forms: RegistrationForm[]
+}) {
   const editing = tab.dialog?.kind === 'edit' ? tab.dialog.formId : null
-  if (tab.dialog?.kind === 'create' || editing !== null) {
-    // 고치는 동안 양식이 사라졌으면(다시 읽은 목록에 없다) 열지 않는다. 가드가 닫고 이유를 보인다.
-    const form = forms.find(item => item.id === editing)
-    if (editing !== null && !form) return null
-    return (
-      <FormEditor
-        councilId={councilId}
-        councilName={view.council.name}
-        event={event}
-        {...(form && { form })}
-        onEditEvent={onEditEvent}
-        onClose={tab.close}
-        onDone={tab.saved}
-        {...handlers}
-      />
-    )
-  }
-  if (tab.created) return <FormCreated form={tab.created} onDone={tab.closeCreated} />
+  const form = forms.find(item => item.id === editing)
+  if (editing !== null && !form) return null
+  return (
+    <FormEditor
+      councilId={props.view.council.id}
+      councilName={props.view.council.name}
+      event={props.event}
+      {...(form && { form })}
+      onEditEvent={props.onEditEvent}
+      onClose={tab.close}
+      onDone={tab.saved}
+      {...tab.handlers}
+    />
+  )
+}
+
+// 양식 목록: 도구 줄, 이유 글, 양식 카드, QR 스캐너.
+type ViewProps = {
+  props: Props
+  tab: Tab
+  read: FormsRead
+  ready: Read | null
+  overrides: ReturnType<typeof useAttendanceOverrides>
+}
+
+function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
+  const councilId = props.view.council.id
+  const { setDialog, handlers } = tab
+  const reload = () => void read.reload()
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar
-        actions={actions}
+        actions={ready?.actions ?? []}
         onCreate={() => setDialog({ kind: 'create' })}
         onScan={() => setDialog({ kind: 'scan' })}
       />
@@ -141,10 +152,10 @@ export function RegistrationTab({ view, eventId, event, onEditEvent, ...parent }
             key={form.id}
             councilId={councilId}
             form={form}
-            canRefund={view.permissions.includes('finance.manage')}
-            attendance={attendance}
-            onAttendance={markAttended}
-            onLoaded={forget}
+            canRefund={props.view.permissions.includes('finance.manage')}
+            attendance={overrides.attendance}
+            onAttendance={overrides.markAttended}
+            onLoaded={overrides.forget}
             onEdit={() => setDialog({ kind: 'edit', formId: form.id })}
             onChanged={reload}
             {...handlers}
@@ -153,7 +164,7 @@ export function RegistrationTab({ view, eventId, event, onEditEvent, ...parent }
       </FormList>
       <TabDialogs
         councilId={councilId}
-        eventId={eventId}
+        eventId={props.eventId}
         dialog={tab.dialog}
         onClose={tab.close}
         onChecked={tab.checked}
@@ -161,6 +172,21 @@ export function RegistrationTab({ view, eventId, event, onEditEvent, ...parent }
       />
     </div>
   )
+}
+
+// 행사의 '참가 신청' 탭: 신청 양식 카드, 양식 만들기(탭 안 화면), QR로 출석 확인. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
+// 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다. 양식을 만든 바로 뒤에는 링크와 QR을 보인다.
+export function RegistrationTab(props: Props) {
+  const { view, eventId, event: _event, onEditEvent: _edit, ...parent } = props
+  const read = useRegistrationForms(view.council.id, eventId, parent)
+  const overrides = useAttendanceOverrides()
+  const tab = useTabDialogs(parent.onForbidden, () => void read.reload(), overrides.markAttended)
+  const ready = read.state.kind === 'ready' ? read.state.data : null
+  useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), tab.handlers.onLost)
+  if (tab.dialog?.kind === 'create' || tab.dialog?.kind === 'edit')
+    return <EditorScreen props={props} tab={tab} forms={ready?.forms ?? []} />
+  if (tab.created) return <FormCreated form={tab.created} onDone={tab.closeCreated} />
+  return <FormsView props={props} tab={tab} read={read} ready={ready} overrides={overrides} />
 }
 
 type ToolbarProps = { actions: RegistrationAction[]; onCreate: () => void; onScan: () => void }

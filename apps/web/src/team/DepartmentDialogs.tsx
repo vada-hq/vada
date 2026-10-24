@@ -41,7 +41,11 @@ export function DepartmentDialogs({ state, saving }: Props) {
 
 function RenameDialog({ state, saving }: Props) {
   const rename = state.problemIn('rename')
-  const check = useFormCheck(() => ({ name: requiredText(state.name, '부서 이름을') }))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => ({ name: requiredText(state.name, '부서 이름을') }))
   return (
     <Dialog
       open={state.renamingDepartment !== null}
@@ -54,16 +58,16 @@ function RenameDialog({ state, saving }: Props) {
           <DialogTitle>부서 이름 바꾸기</DialogTitle>
         </DialogHeader>
         <form
-          ref={check.formRef}
+          ref={formRef}
           noValidate
           aria-label="부서 이름 바꾸기"
           className="flex flex-col gap-4"
           onSubmit={event => {
-            if (check.attempt()) void state.rename(event)
+            if (attempt()) void state.rename(event)
             else event.preventDefault()
           }}
         >
-          <Field label="부서 이름" error={check.errors.name}>
+          <Field label="부서 이름" error={fieldErrors.name}>
             <Input value={state.name} onChange={event => state.setName(event.target.value)} />
           </Field>
           {rename && <StateMessage kind="error">{rename}</StateMessage>}

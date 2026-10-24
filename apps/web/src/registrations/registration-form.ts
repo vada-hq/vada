@@ -1,4 +1,9 @@
-import type { EventDetail, PublicRegistrationForm, RegistrationForm } from '@vada/contracts'
+import {
+  KOREAN_DATE_LENGTH,
+  type EventDetail,
+  type PublicRegistrationForm,
+  type RegistrationForm,
+} from '@vada/contracts'
 
 // 참가비를 어떻게 받는지. 공지 사례는 참가비 하나가 가장 많고(13건), 학생회비 납부로 나누는 것은 적다(5건, RFC-11).
 // 그래서 하나를 먼저 두고, 나눌 때만 두 칸을 연다. 나누면 학생이 학번을 낸다(DEC-67).
@@ -155,10 +160,10 @@ export function formErrors(values: FormValues): FormErrors {
 
 // 신청자 정보를 지우는 날(DEC-55): 행사 끝(없으면 시작, 없으면 양식 마감)의 날짜 + 1년. 서버 purgeOnOf와 같은 규칙이다.
 function purgeOnOf(event: Pick<EventDetail, 'startsAt' | 'endsAt'>, closesAt: string) {
-  const base = (event.endsAt ?? event.startsAt ?? closesAt).slice(0, 10)
+  const base = (event.endsAt ?? event.startsAt ?? closesAt).slice(0, KOREAN_DATE_LENGTH)
   const [year, month, day] = base.split('-').map(Number)
   if (!year || !month || !day) return null
-  return new Date(Date.UTC(year + 1, month - 1, day)).toISOString().slice(0, 10)
+  return new Date(Date.UTC(year + 1, month - 1, day)).toISOString().slice(0, KOREAN_DATE_LENGTH)
 }
 
 // 만드는 중인 양식이 학생에게 어떻게 보이는지. 공개 신청 화면과 같은 모양의 값을 만든다(받는 중으로 본다).

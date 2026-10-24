@@ -89,13 +89,14 @@ export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: P
     CreateBudgetItemSchema,
     { ...handlers, setSaving },
   )
-  const check = useFormCheck(() => budgetItemErrors(values))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => budgetItemErrors(values))
   return (
     <BudgetFormDialog
       title="예산 항목 더하기"
       submitLabel="더하기"
       saving={saving}
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
@@ -106,7 +107,7 @@ export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: P
         saving={saving}
         onChange={patch => setValues({ ...values, ...patch })}
         onForbidden={handlers.onForbidden}
-        errors={check.errors}
+        errors={fieldErrors}
       />
     </BudgetFormDialog>
   )

@@ -11,3 +11,5 @@ export const tasksPath = (
   `${tasksBase(councilId)}?view=${view}&status=${status}${eventId ? `&event=${encodeURIComponent(eventId)}` : ''}`
 export const taskStatusPath = (councilId: string, taskId: string) =>
   `${tasksBase(councilId)}/${encodeURIComponent(taskId)}/status`
+export const taskAssigneePath = (councilId: string, taskId: string) =>
+  `${tasksBase(councilId)}/${encodeURIComponent(taskId)}/assignee`

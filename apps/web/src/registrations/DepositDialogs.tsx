@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode, type RefObject } from 'react'
 import { CancelDepositSchema, RefundSchema } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,8 @@ type FrameProps = Omit<Shared, 'name'> & {
   // 되돌릴 수 없는 결과만 적는다. 없으면 두지 않는다.
   description?: string | undefined
   submitLabel: string
-  check: ReturnType<typeof useFormCheck<HTMLDivElement>>
+  formRef: RefObject<HTMLDivElement | null>
+  attempt: () => boolean
   // 계약까지 맞는지(맞지 않으면 누르지 않은 것처럼 둔다).
   valid: boolean
   onSubmit: () => void
@@ -40,7 +41,8 @@ function Frame({
   title,
   description,
   submitLabel,
-  check,
+  formRef,
+  attempt,
   valid,
   onSubmit,
   children,
@@ -61,7 +63,7 @@ function Frame({
             <DialogDescription className="wrap-anywhere">{description}</DialogDescription>
           )}
         </DialogHeader>
-        <div ref={check.formRef} className="flex flex-col gap-4">
+        <div ref={formRef} className="flex flex-col gap-4">
           {children}
         </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
@@ -69,7 +71,7 @@ function Frame({
           <Button variant="outline" disabled={busy} onClick={onClose}>
             닫기
           </Button>
-          <Button disabled={busy} onClick={() => check.attempt() && valid && onSubmit()}>
+          <Button disabled={busy} onClick={() => attempt() && valid && onSubmit()}>
             {submitLabel}
           </Button>
         </DialogFooter>
@@ -84,7 +86,11 @@ type ReasonProps = Shared & { refund: boolean; onSubmit: (reason: string) => voi
 export function CancelDepositDialog({ name, refund, onSubmit, ...shared }: ReasonProps) {
   const [reason, setReason] = useState('')
   const valid = CancelDepositSchema.safeParse({ reason }).success
-  const check = useFormCheck<HTMLDivElement>(() => ({
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck<HTMLDivElement>(() => ({
     reason: requiredText(reason, '취소 사유를'),
   }))
   return (
@@ -94,12 +100,13 @@ export function CancelDepositDialog({ name, refund, onSubmit, ...shared }: Reaso
         refund ? '환불 대기 신청이라 이름과 휴대폰 번호도 지워지고 되돌릴 수 없어요.' : undefined
       }
       submitLabel="확인 취소"
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       valid={valid}
       onSubmit={() => onSubmit(reason)}
       {...shared}
     >
-      <Field label="취소 사유" required error={check.errors.reason}>
+      <Field label="취소 사유" required error={fieldErrors.reason}>
         <Textarea
           value={reason}
           disabled={shared.busy}
@@ -117,7 +124,11 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
   const [text, setText] = useState(String(deposited))
   const amount = text.trim() === '' ? Number.NaN : Number(text)
   const valid = RefundSchema.safeParse({ amount }).success && amount <= deposited
-  const check = useFormCheck<HTMLDivElement>(() => ({
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck<HTMLDivElement>(() => ({
     amount:
       requiredText(text, '환불한 금액을') ??
       (Number.isInteger(amount) && amount > 0 && amount <= deposited
@@ -129,7 +140,8 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
       title={`${name}님에게 환불했나요?`}
       description="이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요."
       submitLabel="환불함"
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       valid={valid}
       onSubmit={() => onSubmit(amount)}
       {...shared}
@@ -138,7 +150,7 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
         label="환불한 금액(원)"
         required
         hint={`입금액 ${won(deposited)}`}
-        error={check.errors.amount}
+        error={fieldErrors.amount}
       >
         <Input
           inputMode="numeric"

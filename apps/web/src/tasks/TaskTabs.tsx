@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { TaskFilter, TaskView } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
@@ -15,18 +16,21 @@ const FILTERS: { filter: TaskFilter; label: string }[] = [
 type Props = {
   // 행사의 업무 탭은 그 행사의 업무 전체만 보이므로 보기 탭이 없다.
   showViews?: boolean
+  // 보기 탭이 없을 때 왼쪽에 둘 것(행사의 업무 탭의 [업무 만들기])
+  start?: ReactNode
   view: TaskView
   filter: TaskFilter
   onView: (view: TaskView) => void
   onFilter: (filter: TaskFilter) => void
 }
 
-// 탭 셋(내 업무, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남)
-export function TaskTabs({ showViews = true, view, filter, onView, onFilter }: Props) {
+// 탭 셋(내 업무, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남). 거르기는 탭 줄 오른쪽에 두어 버튼 줄을 하나 줄인다.
+export function TaskTabs({ showViews = true, start, view, filter, onView, onFilter }: Props) {
   return (
-    <>
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b">
+      {!showViews && start && <div className="pb-2">{start}</div>}
       {showViews && (
-        <div role="tablist" aria-label="업무 보기" className="flex border-b">
+        <div role="tablist" aria-label="업무 보기" className="flex">
           {TABS.map(tab => (
             <TabButton
               key={tab.view}
@@ -38,7 +42,7 @@ export function TaskTabs({ showViews = true, view, filter, onView, onFilter }: P
           ))}
         </div>
       )}
-      <div role="group" aria-label="업무 거르기" className="flex gap-2">
+      <div role="group" aria-label="업무 거르기" className="ml-auto flex gap-2 pb-2">
         {FILTERS.map(item => (
           <Button
             key={item.filter}
@@ -51,6 +55,6 @@ export function TaskTabs({ showViews = true, view, filter, onView, onFilter }: P
           </Button>
         ))}
       </div>
-    </>
+    </div>
   )
 }

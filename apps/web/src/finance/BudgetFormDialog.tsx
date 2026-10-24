@@ -8,15 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { useFormCheck } from '@/lib/use-form-check'
+import type { RefObject } from 'react'
 
 type Props = {
   title: string
   submitLabel: string
   // 보내는 동안은 닫히지 않고 입력과 버튼이 막힌다.
   saving: boolean
-  // 누를 때 확인한다. 칸 아래 글은 부모가 check.errors로 그린다.
-  check: ReturnType<typeof useFormCheck<HTMLFormElement>>
+  // 누를 때 확인한다(useFormCheck). 칸 아래 글은 부모가 그린다.
+  formRef: RefObject<HTMLFormElement | null>
+  attempt: () => boolean
   problem: string | null
   onSubmit: () => void
   onClose: () => void
@@ -29,7 +30,8 @@ export function BudgetFormDialog({
   title,
   submitLabel,
   saving,
-  check,
+  formRef,
+  attempt,
   problem,
   onSubmit,
   onClose,
@@ -47,13 +49,13 @@ export function BudgetFormDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form
-          ref={check.formRef}
+          ref={formRef}
           noValidate
           aria-label={title}
           className="flex flex-col gap-4"
           onSubmit={event => {
             event.preventDefault()
-            if (check.attempt()) onSubmit()
+            if (attempt()) onSubmit()
           }}
         >
           {children}

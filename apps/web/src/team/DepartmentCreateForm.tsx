@@ -21,16 +21,20 @@ type Props = {
 // 부서 만들기 칸. 버튼은 끄지 않고 누를 때 확인한다(계약 검사도 보내기 전에 한 번 더 한다).
 export function DepartmentCreateForm({ saving, error, name, onName, onCreate, onEdit }: Props) {
   const created = CreateDepartmentSchema.safeParse({ name })
-  const check = useFormCheck(() => ({ name: requiredText(name, '부서 이름을') }))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => ({ name: requiredText(name, '부서 이름을') }))
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!check.attempt()) return
+    if (!attempt()) return
     if (created.success && !saving && (await onCreate(name))) onName('')
   }
   return (
     <div className="flex flex-col gap-2">
       <form
-        ref={check.formRef}
+        ref={formRef}
         noValidate
         aria-label="부서 만들기"
         className="flex items-start gap-2"
@@ -38,7 +42,7 @@ export function DepartmentCreateForm({ saving, error, name, onName, onCreate, on
           void submit(event)
         }}
       >
-        <Field label="새 부서 이름" error={check.errors.name} className="flex-1">
+        <Field label="새 부서 이름" error={fieldErrors.name} className="flex-1">
           <Input
             value={name}
             onChange={event => {

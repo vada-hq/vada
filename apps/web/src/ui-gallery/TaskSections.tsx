@@ -1,7 +1,9 @@
 import type { TaskSummary } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { countOf } from '@/tasks/task-view'
-import TaskCard from '@/tasks/TaskCard'
+import { cardClass } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { TaskRow } from '@/tasks/TaskRow'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -19,45 +21,40 @@ const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
 })
 
 const noop = () => {}
+const rowProps = {
+  show: { assignee: true, department: true, event: true },
+  busy: false,
+  onChangeStatus: noop,
+  onOpen: noop,
+  onOpenEvent: noop,
+}
 
 export function TaskSection() {
   const overdue = countOf([task('a', { overdue: true })], false)
   const open = countOf([task('b', {}), task('c', {})], true)
   return (
-    <Section title="업무 카드·수 배지">
+    <Section title="업무 줄·수 배지">
       <div className="flex w-full items-center gap-2">
         {overdue && <Badge tone={overdue.tone}>{overdue.label}</Badge>}
         {open && <Badge tone={open.tone}>{open.label}</Badge>}
       </div>
-      <div className="flex w-80 flex-col gap-2">
-        <TaskCard task={task('1', {})} busy={false} onChangeStatus={noop} />
-        <TaskCard
-          task={task('2', { status: 'in_progress', overdue: true })}
-          busy
-          onChangeStatus={noop}
-        />
-        <TaskCard
+      <ul className={cn(cardClass, 'w-96 divide-y')}>
+        <TaskRow task={task('1', {})} {...rowProps} />
+        <TaskRow task={task('2', { status: 'in_progress', overdue: true })} {...rowProps} busy />
+        <TaskRow
           task={task('3', { status: 'done', actions: [], assignee: null, dueDate: null })}
-          busy={false}
-          onChangeStatus={noop}
+          {...rowProps}
         />
-        <TaskCard
-          task={task('5', { event: { id: 'e1', name: '신입생 환영회' } })}
-          busy={false}
-          onChangeStatus={noop}
-          onOpenEvent={noop}
-        />
-        <TaskCard
+        <TaskRow task={task('5', { event: { id: 'e1', name: '신입생 환영회' } })} {...rowProps} />
+        <TaskRow
           task={task('4', {
             title: `${unbroken} ${longName}`,
             assignee: { id: 'p2', name: longName, current: false },
           })}
-          busy={false}
+          {...rowProps}
           error="상태를 바꾸지 못했어요. 다시 시도해 주세요."
-          onChangeStatus={noop}
-          onOpen={noop}
         />
-      </div>
+      </ul>
     </Section>
   )
 }

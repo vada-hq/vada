@@ -56,28 +56,28 @@ export default function CohortForm({
   onEdit,
   onSubmit,
 }: Props) {
-  const check = useFormCheck(() => termErrors(value))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => termErrors(value))
   return (
     <Card className="p-6">
       <form
-        ref={check.formRef}
+        ref={formRef}
         noValidate
         aria-label="지금 기수"
         className="flex flex-col gap-4"
         onSubmit={event => {
           event.preventDefault()
-          if (check.attempt()) onSubmit(event)
+          if (attempt()) onSubmit(event)
         }}
       >
         <h2 className="text-base font-semibold text-gray-900">지금 기수</h2>
-        <Field label="기수 이름" required={canEdit} error={check.errors.cohortName}>
+        <Field label="기수 이름" required={canEdit} error={fieldErrors.cohortName}>
           <Input
             value={value.name}
             readOnly={!canEdit}
             onChange={event => onEdit({ name: event.target.value })}
           />
         </Field>
-        <TermFields value={value} canEdit={canEdit} onEdit={onEdit} errors={check.errors} />
+        <TermFields value={value} canEdit={canEdit} onEdit={onEdit} errors={fieldErrors} />
         {note}
         {canEdit && (
           <Button type="submit" className="self-start" disabled={busy}>

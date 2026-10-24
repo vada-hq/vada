@@ -20,11 +20,12 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { useTeam } from '@/team/useTeam'
 import {
   emptyExpense,
+  expenseErrors,
   expenseOf,
   linesTotal,
   withMode,
@@ -93,36 +94,6 @@ function ModeToggle({
       ))}
     </div>
   )
-}
-
-const DIGITS = /^[0-9]+$/
-
-// 누를 때 확인하는 칸. 사용처·내역·결제일은 늘, 금액은 요청 없이 적을 때, 요청과 품목은 요청한 품목을 결제할 때 필수다.
-// 결제일은 오늘 뒤일 수 없다(서버도 막는다).
-function expenseErrors(values: ExpenseValues, today: string) {
-  const amount = values.amount.trim()
-  return {
-    vendor: requiredText(values.vendor, '사용처를'),
-    description: requiredText(values.description, '내역을'),
-    paidOn:
-      requiredText(values.paidOn, '결제일을') ??
-      (values.paidOn > today ? '오늘이나 그 전 날짜를 입력해 주세요' : undefined),
-    ...(values.mode === 'direct'
-      ? {
-          amount:
-            requiredText(amount, '금액을') ??
-            (DIGITS.test(amount) && Number(amount) > 0
-              ? undefined
-              : '1 이상의 숫자를 입력해 주세요'),
-        }
-      : {
-          requestId: values.requestId === null ? '결제할 요청을 골라 주세요' : undefined,
-          lines:
-            values.requestId !== null && values.lines.length === 0
-              ? '결제한 품목을 골라 주세요'
-              : undefined,
-        }),
-  }
 }
 
 // 먼저 낸 사람: 학생회 돈, 나, 다른 운영진.
@@ -268,17 +239,17 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })
-  const check = useFormCheck(() => expenseErrors(values, today))
-  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => expenseErrors(values, today))
+  const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <form
-      ref={check.formRef}
+      ref={formRef}
       noValidate
       aria-label="지출 적기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (check.attempt()) void create.submit()
+        if (attempt()) void create.submit()
       }}
     >
       <ModeToggle

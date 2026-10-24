@@ -41,16 +41,20 @@ const COPY = {
 }
 
 // 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). [확인]은 끄지 않고 누를 때 확인한다.
-export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConfirm }: Props) {
+// 사유와 보낼 본문, 누를 때 확인. 완료 취소만 사유가 꼭 있다(계약과 같은 규칙).
+function useReason(mode: Props['mode']) {
   const [reason, setReason] = useState('')
-  const copy = COPY[mode]
   const body = mode === 'complete' ? { reason: reason.trim() === '' ? null : reason } : { reason }
-  const valid = (mode === 'complete' ? CompleteEventSchema : CancelCompletionSchema).safeParse(
-    body,
-  ).success
+  const schema = mode === 'complete' ? CompleteEventSchema : CancelCompletionSchema
   const check = useFormCheck<HTMLDivElement>(() => ({
     reason: mode === 'cancel' ? requiredText(reason, '취소 사유를') : undefined,
   }))
+  return { reason, setReason, body, valid: schema.safeParse(body).success, ...check }
+}
+
+export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConfirm }: Props) {
+  const copy = COPY[mode]
+  const { reason, setReason, body, valid, formRef, errors: fieldErrors, attempt } = useReason(mode)
   return (
     <Dialog
       open
@@ -66,12 +70,12 @@ export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConf
         {mode === 'complete' && openTasks > 0 && (
           <StateMessage kind="notice">{`끝나지 않은 업무 ${openTasks}개`}</StateMessage>
         )}
-        <div ref={check.formRef}>
+        <div ref={formRef}>
           <Field
             label={copy.reasonLabel}
             optional={mode === 'complete'}
             required={mode === 'cancel'}
-            error={check.errors.reason}
+            error={fieldErrors.reason}
           >
             <Textarea value={reason} disabled={busy} onChange={e => setReason(e.target.value)} />
           </Field>
@@ -84,7 +88,7 @@ export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConf
           <Button
             variant={mode === 'cancel' ? 'destructive' : 'default'}
             disabled={busy}
-            onClick={() => check.attempt() && valid && onConfirm(body.reason)}
+            onClick={() => attempt() && valid && onConfirm(body.reason)}
           >
             {copy.confirm}
           </Button>

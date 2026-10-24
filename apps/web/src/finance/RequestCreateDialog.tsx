@@ -147,23 +147,40 @@ function WhenAndBody({
 
 type FormProps = Omit<Props, 'open'> & { saving: boolean; setSaving: (saving: boolean) => void }
 
+// 오류와 [취소]·[내기]
+function CreateFooter(props: { problem: string | null; saving: boolean; onClose: () => void }) {
+  return (
+    <>
+      {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
+      <DialogFooter>
+        <Button type="button" variant="outline" disabled={props.saving} onClick={props.onClose}>
+          취소
+        </Button>
+        <Button type="submit" disabled={props.saving}>
+          내기
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
 function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }: FormProps) {
   const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
   const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
-  const check = useFormCheck(() => requestErrors(values))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => requestErrors(values))
   return (
     <form
-      ref={check.formRef}
+      ref={formRef}
       noValidate
       aria-label="구매 요청 내기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (check.attempt()) void create.submit()
+        if (attempt()) void create.submit()
       }}
     >
-      <Field label="제목" required error={check.errors.title}>
+      <Field label="제목" required error={fieldErrors.title}>
         <Input
           value={values.title}
           disabled={saving}
@@ -186,19 +203,11 @@ function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }:
       <ItemList
         items={values.items}
         disabled={saving}
-        errors={check.errors}
+        errors={fieldErrors}
         onChange={items => set({ items })}
       />
       <WhenAndBody values={values} disabled={saving} onChange={set} />
-      {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
-      <DialogFooter>
-        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
-          취소
-        </Button>
-        <Button type="submit" disabled={saving}>
-          내기
-        </Button>
-      </DialogFooter>
+      <CreateFooter problem={create.problem} saving={saving} onClose={props.onClose} />
     </form>
   )
 }

@@ -169,17 +169,17 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
     incomeOf({ ...values, accountId: account.pick.id }),
     { ...props, setSaving },
   )
-  const check = useFormCheck(() => incomeErrors(values, range))
-  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => incomeErrors(values, range))
+  const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <form
-      ref={check.formRef}
+      ref={formRef}
       noValidate
       aria-label="수입 적기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (check.attempt()) void create.submit()
+        if (attempt()) void create.submit()
       }}
     >
       <SourceAndAmount {...shared} />

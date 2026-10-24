@@ -97,26 +97,26 @@ const councilErrors = (value: CouncilDraft) => ({
 // 설정 > 학생회 정보 양식: 이름, 단위, 학교, 직급 표시 이름 4개. 저장은 누를 때 확인한다.
 export default function CouncilInfoForm(props: Props) {
   const { value, canEdit, saving, busy, note, onEdit, onEditTitle, onSubmit } = props
-  const check = useFormCheck(() => councilErrors(value))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => councilErrors(value))
   return (
     <Card className="p-6">
       <form
-        ref={check.formRef}
+        ref={formRef}
         noValidate
         aria-label="학생회 정보"
         className="flex flex-col gap-4"
         onSubmit={event => {
           event.preventDefault()
-          if (check.attempt()) onSubmit(event)
+          if (attempt()) onSubmit(event)
         }}
       >
         <h2 className="text-base font-semibold text-gray-900">학생회 정보</h2>
-        <BasicFields value={value} canEdit={canEdit} onEdit={onEdit} errors={check.errors} />
+        <BasicFields value={value} canEdit={canEdit} onEdit={onEdit} errors={fieldErrors} />
         <TitleFields
           titles={value.titles}
           canEdit={canEdit}
           onEdit={onEditTitle}
-          errors={check.errors}
+          errors={fieldErrors}
         />
         {note}
         {canEdit && (

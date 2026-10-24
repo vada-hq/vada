@@ -1,4 +1,5 @@
 import type { ExpenseMethod, PurchaseLineItem } from '@vada/contracts'
+import { requiredText } from '@/lib/use-form-check'
 
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
 // 요청한 품목 결제(request)는 승인된 품목을 골라 결제 금액을 적고, 요청 없이(direct)는 금액과 예산 항목을 직접 적는다.
@@ -112,5 +113,35 @@ export function expenseOf(values: ExpenseValues) {
     lines: requested
       ? values.lines.map(line => ({ lineItemId: line.lineItemId, amount: numberOf(line.amount) }))
       : [],
+  }
+}
+
+const DIGITS = /^[0-9]+$/
+
+// 누를 때 확인하는 칸. 사용처·내역·결제일은 늘, 금액은 요청 없이 적을 때, 요청과 품목은 요청한 품목을 결제할 때 필수다.
+// 결제일은 오늘 뒤일 수 없다(서버도 막는다).
+export function expenseErrors(values: ExpenseValues, today: string) {
+  const amount = values.amount.trim()
+  return {
+    vendor: requiredText(values.vendor, '사용처를'),
+    description: requiredText(values.description, '내역을'),
+    paidOn:
+      requiredText(values.paidOn, '결제일을') ??
+      (values.paidOn > today ? '오늘이나 그 전 날짜를 입력해 주세요' : undefined),
+    ...(values.mode === 'direct'
+      ? {
+          amount:
+            requiredText(amount, '금액을') ??
+            (DIGITS.test(amount) && Number(amount) > 0
+              ? undefined
+              : '1 이상의 숫자를 입력해 주세요'),
+        }
+      : {
+          requestId: values.requestId === null ? '결제할 요청을 골라 주세요' : undefined,
+          lines:
+            values.requestId !== null && values.lines.length === 0
+              ? '결제한 품목을 골라 주세요'
+              : undefined,
+        }),
   }
 }

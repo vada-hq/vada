@@ -14,6 +14,17 @@ type Props = BudgetChangeHandlers & {
   onClose: () => void
 }
 
+// 세 칸 모두 필수이고 끝일은 시작일보다 뒤다(계약과 같은 규칙).
+const periodErrors = (values: { name: string; startsOn: string; endsOn: string }) => ({
+  name: requiredText(values.name, '이름을'),
+  startsOn: requiredText(values.startsOn, '시작일을'),
+  endsOn:
+    requiredText(values.endsOn, '끝일을') ??
+    (values.startsOn !== '' && values.endsOn <= values.startsOn
+      ? '시작일보다 뒤의 날짜를 입력해 주세요'
+      : undefined),
+})
+
 // 회계 기간 만들기. 지금 기수의 이름과 날짜로 채워 두고 고칠 수 있다.
 export function PeriodCreateDialog({ councilId, suggested, onClose, ...handlers }: Props) {
   const [values, setValues] = useState(() => periodDefaults(suggested))
@@ -23,34 +34,26 @@ export function PeriodCreateDialog({ councilId, suggested, onClose, ...handlers 
     setSaving,
   })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
-  // 세 칸 모두 필수이고 끝일은 시작일보다 뒤다(계약과 같은 규칙).
-  const check = useFormCheck(() => ({
-    name: requiredText(values.name, '이름을'),
-    startsOn: requiredText(values.startsOn, '시작일을'),
-    endsOn:
-      requiredText(values.endsOn, '끝일을') ??
-      (values.startsOn !== '' && values.endsOn <= values.startsOn
-        ? '시작일보다 뒤의 날짜를 입력해 주세요'
-        : undefined),
-  }))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => periodErrors(values))
   return (
     <BudgetFormDialog
       title="회계 기간 만들기"
       submitLabel="만들기"
       saving={saving}
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
     >
-      <Field label="이름" required error={check.errors.name}>
+      <Field label="이름" required error={fieldErrors.name}>
         <Input
           value={values.name}
           disabled={saving}
           onChange={event => set({ name: event.target.value })}
         />
       </Field>
-      <Field label="시작일" required error={check.errors.startsOn}>
+      <Field label="시작일" required error={fieldErrors.startsOn}>
         <Input
           type="date"
           value={values.startsOn}
@@ -58,7 +61,7 @@ export function PeriodCreateDialog({ councilId, suggested, onClose, ...handlers 
           onChange={event => set({ startsOn: event.target.value })}
         />
       </Field>
-      <Field label="끝일" required error={check.errors.endsOn}>
+      <Field label="끝일" required error={fieldErrors.endsOn}>
         <Input
           type="date"
           value={values.endsOn}

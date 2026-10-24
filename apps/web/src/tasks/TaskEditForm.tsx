@@ -27,7 +27,7 @@ type Props = {
 export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ...rest }: Props) {
   const [values, setValues] = useState(fieldsOf(task))
   const [eventId, setEventId] = useState(task.event?.id ?? null)
-  const check = useFormCheck(() => taskErrors(values))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => taskErrors(values))
   const events = useEvents(councilId, onForbidden)
   const ready = events.state.kind === 'ready'
   const list = events.state.kind === 'ready' ? events.state.data.events : []
@@ -36,16 +36,16 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
   const valid = UpdateTaskSchema.safeParse(request).success
   return (
     <form
-      ref={check.formRef}
+      ref={formRef}
       noValidate
       aria-label="업무 고치기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (check.attempt() && valid && !saving) void rest.onSave(request)
+        if (attempt() && valid && !saving) void rest.onSave(request)
       }}
     >
-      <TaskFields values={values} disabled={saving} onChange={setValues} errors={check.errors} />
+      <TaskFields values={values} disabled={saving} onChange={setValues} errors={fieldErrors} />
       <ChoiceSelect
         label="행사"
         optional

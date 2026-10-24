@@ -115,19 +115,20 @@ export function FeePaymentUploadDialog({ councilId, onClose, ...handlers }: Prop
     AddFeePaymentsSchema,
     { ...handlers, setSaving, onDone: setResult },
   )
-  const check = useFormCheck(() => uploadErrors(values))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => uploadErrors(values))
   if (result) return <Done result={result} onClose={() => onClose(true)} />
   return (
     <BudgetFormDialog
       title="납부자 명단 올리기"
       submitLabel="올리기"
       saving={saving}
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       problem={post.lines.length > 0 ? linesText(post.lines) : post.problem}
       onSubmit={() => void post.submit()}
       onClose={() => onClose(false)}
     >
-      <UploadFields values={values} saving={saving} errors={check.errors} onChange={setValues} />
+      <UploadFields values={values} saving={saving} errors={fieldErrors} onChange={setValues} />
     </BudgetFormDialog>
   )
 }

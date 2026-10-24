@@ -32,16 +32,16 @@ const eventErrors = (values: EventFieldValues) => ({
 
 // 행사 만들기·고치기 폼. 버튼은 끄지 않고 누를 때 확인한다. 보내는 동안 모든 칸과 버튼을 막는다.
 export function EventForm(props: Props) {
-  const check = useFormCheck(() => eventErrors(props.values))
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => eventErrors(props.values))
   return (
     <form
-      ref={check.formRef}
+      ref={formRef}
       noValidate
       aria-label={props.label}
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (check.attempt() && props.valid) props.onSubmit()
+        if (attempt() && props.valid) props.onSubmit()
       }}
     >
       <EventFields
@@ -50,7 +50,7 @@ export function EventForm(props: Props) {
         onChange={props.onValues}
         nameOnly={props.nameOnly}
         focus={props.focus}
-        errors={check.errors}
+        errors={fieldErrors}
       />
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>

@@ -78,14 +78,15 @@ export function AccountFormDialog({ councilId, account, onClose, ...handlers }: 
     account ? UpdateAccountSchema : CreateAccountSchema,
     { ...handlers, setSaving },
   )
-  const check = useFormCheck(() => accountErrors(values))
-  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
+  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => accountErrors(values))
+  const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <BudgetFormDialog
       title={account ? '계좌 고치기' : '계좌 더하기'}
       submitLabel={account ? '고치기' : '더하기'}
       saving={saving}
-      check={check}
+      formRef={formRef}
+      attempt={attempt}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
