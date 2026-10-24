@@ -58,3 +58,21 @@ test('조회용 표 정의가 마이그레이션 DB의 표·칸·타입·NULL �
     await close()
   }
 })
+
+// 결재 기록의 결과 허용 값(0013): 품목 취소를 더했고 기존 값은 그대로다.
+test('결재 기록의 결과 CHECK가 cancelled를 허용하고 모르는 값은 막는다', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const { rows } = await pg.query<{ def: string }>(
+      `SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint
+       WHERE conrelid = 'approval'::regclass AND conname = 'approval_outcome_check'`,
+    )
+    const allowed = [...(rows[0]?.def.matchAll(/'([a-z_]+)'/g) ?? [])].map(match => match[1])
+    assert.deepEqual(
+      allowed.sort((a, b) => (a ?? '').localeCompare(b ?? '')),
+      ['approved', 'audited', 'cancelled', 'completed', 'completion_cancelled', 'rejected'],
+    )
+  } finally {
+    await close()
+  }
+})

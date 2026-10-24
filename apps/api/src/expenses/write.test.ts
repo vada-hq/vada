@@ -219,6 +219,10 @@ test(
       204,
     )
     await s.decide(cancelled.items[0]!.id, 'approved')
+    // 승인한 뒤 재정부가 취소한 품목은 마지막 결과가 취소라 결제할 수 없다(기능 014).
+    const revoked = await s.made({ title: '취소됨', items: [{ name: 'd', quantity: 1 }] })
+    await s.decide(revoked.items[0]!.id, 'approved')
+    await s.decide(revoked.items[0]!.id, 'cancelled')
     const foreign = await s.api.post(
       `/api/organizations/${s.other.councilId}/purchase-requests`,
       { title: '남의 것', items: [{ name: 'c', quantity: 1 }] },
@@ -243,7 +247,14 @@ test(
       }),
     )
     const before = await counts(s)
-    const unpayable = [p.third, pending.items[0]!.id, cancelled.items[0]!.id, foreignItem, MISSING]
+    const unpayable = [
+      p.third,
+      pending.items[0]!.id,
+      cancelled.items[0]!.id,
+      revoked.items[0]!.id,
+      foreignItem,
+      MISSING,
+    ]
     for (const id of unpayable) {
       const response = await post(s, lineBody(p, { lines: [{ lineItemId: id, amount: 15000 }] }))
       assert.equal(response.status, 409, id)

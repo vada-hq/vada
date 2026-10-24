@@ -27,11 +27,13 @@ export const ITEM_STATUS_LABEL: Record<LineItemStatus, string> = {
   pending: '대기',
   approved: '승인',
   rejected: '반려',
+  cancelled: '취소됨',
 }
 export const ITEM_STATUS_TONE: Record<LineItemStatus, Tone> = {
   pending: 'warning',
   approved: 'success',
   rejected: 'danger',
+  cancelled: 'neutral',
 }
 
 export const VIEW_LABEL: Record<PurchaseView, string> = {

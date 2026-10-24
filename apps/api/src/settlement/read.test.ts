@@ -390,3 +390,16 @@ test(
     )
   }),
 )
+
+test(
+  '승인한 뒤 취소한 품목은 결제 전에도 결재 대기에도 들지 않는다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    const revoked = await t.requestWithItem(ev, { title: '취소 요청' })
+    await t.approve(revoked.line)
+    assert.equal((await t.remainingOf(ev)).unpaid_items, 1)
+    await t.approve(revoked.line, 'cancelled')
+    assert.equal((await t.remainingOf(ev)).unpaid_items, 0)
+    assert.equal((await t.remainingOf(ev)).pending_items, 0)
+  }),
+)

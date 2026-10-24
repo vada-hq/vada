@@ -10,8 +10,8 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { currentFinanceMembers } from './finance-members.js'
 import { lockedRequestRow } from './lock.js'
-import { decidedCountOf, requestDetailOf } from './queries.js'
-import { canCancel, requestStatusOf } from './status.js'
+import { decide, factsOf, roleAllows } from './policy.js'
+import { requestDetailOf } from './queries.js'
 
 // 휴대폰 알림에 쓰는 값. 알림 기록은 같은 거래에서 이미 남겼고, 휴대폰 알림은 커밋 뒤에 보낸다.
 // decidedBy가 없으면 새 요청(재정부에게), 있으면 결재 결과(요청한 사람에게)이고 결재한 사람의 운영진 번호다.
@@ -88,15 +88,11 @@ export async function createPurchaseRequest(
 // 결재와 겹치면 하나만 된다: 요청 행을 잠근 뒤에 결재 수를 다시 센다.
 export async function cancelPurchaseRequest(tx: Tx, actor: Actor, requestId: string) {
   const row = await lockedRequestRow(tx, actor, requestId)
-  const facts = {
-    requestedBy: row.requestedBy,
-    status: requestStatusOf(row.cancelledAt !== null, row),
-    decided: await decidedCountOf(tx, requestId),
-  }
-  if (!can(actor, 'purchase.cancel', { requestedBy: row.requestedBy }))
-    throw new ApiError('FORBIDDEN')
+  // 403은 행사 행을 잠그기 전에 낸다. 완료한 행사와 요청 상태는 잠근 뒤에 읽은 값으로 같은 decide가 본다.
+  if (!roleAllows(actor, 'purchase.cancel', row.requestedBy)) throw new ApiError('FORBIDDEN')
   await assertEventOpen(tx, row.eventId)
-  if (!canCancel(actor, facts)) throw new ApiError('REQUEST_CLOSED')
+  const code = decide(actor, await factsOf(tx, row), 'purchase.cancel')
+  if (code) throw new ApiError(code)
   await updateRecord(tx, {
     kind: 'request',
     id: requestId,

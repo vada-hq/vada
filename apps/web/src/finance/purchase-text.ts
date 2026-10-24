@@ -3,12 +3,11 @@ import { monthDayTime } from '@/lib/korean-date-text'
 
 const UNKNOWN_PERSON = '알 수 없는 사람'
 
-// 결재 한 줄: '이름 · 10월 21일 14:03 · 반려: 사유'
+const OUTCOME_TEXT = { approved: '승인', rejected: '반려', cancelled: '취소' } as const
+
+// 결재 한 줄: '이름 · 10월 21일 14:03 · 반려: 사유' (취소도 사유가 있다)
 export function decisionLine(decision: PurchaseDecision) {
-  const outcome =
-    decision.outcome === 'approved'
-      ? '승인'
-      : `반려${decision.reason ? `: ${decision.reason}` : ''}`
+  const outcome = `${OUTCOME_TEXT[decision.outcome]}${decision.reason ? `: ${decision.reason}` : ''}`
   return [decision.by?.name ?? UNKNOWN_PERSON, monthDayTime(decision.at), outcome].join(' · ')
 }
 

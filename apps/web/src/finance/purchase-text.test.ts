@@ -12,6 +12,9 @@ test('결재 줄은 이름, 한국 시각, 결과이고 반려는 사유가 붙�
   expect(decisionLine({ ...base, outcome: 'rejected', reason: '이미 있어요' })).toBe(
     '이재정 · 10월 21일 14:03 · 반려: 이미 있어요',
   )
+  expect(decisionLine({ ...base, outcome: 'cancelled', reason: '사지 않아요' })).toBe(
+    '이재정 · 10월 21일 14:03 · 취소: 사지 않아요',
+  )
   expect(decisionLine({ ...base, outcome: 'approved', by: null })).toContain('알 수 없는 사람')
 })
 

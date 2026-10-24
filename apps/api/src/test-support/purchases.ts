@@ -100,8 +100,12 @@ export async function startPurchases(
     assert.equal(response.status, 201)
     return detailOf(response)
   }
-  // 결재는 조각 3의 일이라 시험이 결재 기록을 직접 남긴다.
-  const decide = (itemId: string, outcome: 'approved' | 'rejected', by = 'financeMember') =>
+  // 결재 결과(승인, 반려, 승인 뒤 취소)를 시험이 결재 기록으로 직접 남긴다.
+  const decide = (
+    itemId: string,
+    outcome: 'approved' | 'rejected' | 'cancelled',
+    by = 'financeMember',
+  ) =>
     db.transaction(tx =>
       createRecord(tx, {
         kind: 'approval',
@@ -114,7 +118,7 @@ export async function startPurchases(
           actorId: council.people[by as 'financeMember'].memberId,
           actorKind: 'member',
           actedAt: clockNow,
-          reason: outcome === 'rejected' ? '비싸요' : null,
+          reason: outcome === 'approved' ? null : outcome === 'rejected' ? '비싸요' : '사지 않아요',
         },
       }),
     )

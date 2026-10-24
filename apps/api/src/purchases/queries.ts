@@ -21,21 +21,13 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
-import { actionsOf, lineItemStatusOf, requestStatusOf } from './status.js'
+import { itemCountColumns, lastOutcomeSql } from './last-outcome.js'
+import { actionsOf, factsOf, lineItemStatusOf, requestStatusOf } from './policy.js'
 
 type Reader = Pick<Db, 'select'>
-
-// 품목마다 결재는 한 번이라(되돌리지 않는다) 품목에 붙는 결재 줄은 많아야 하나다.
-export const decidedOn = and(
-  eq(approval.targetId, lineItem.id),
-  eq(approval.targetKind, 'line_item'),
-)
-export const decidedAs = (outcome: 'approved' | 'rejected') =>
-  sql<number>`count(${approval.id}) filter (where ${approval.outcome} = ${outcome})`.mapWith(Number)
 
 // 요청 줄과 품목·결재 수. 학생회 경계는 기록의 학생회 번호로 건다. 기본 키로 묶어 다른 표의 칸은 그 기본 키에 딸린 값이다.
 function summaryRows(
@@ -55,15 +47,12 @@ function summaryRows(
       requestedBy: request.requestedBy,
       requesterName: member.name,
       createdAt: record.createdAt,
-      items: sql<number>`count(distinct ${lineItem.id})`.mapWith(Number),
-      approved: decidedAs('approved'),
-      rejected: decidedAs('rejected'),
+      ...itemCountColumns(),
     })
     .from(request)
     .innerJoin(record, eq(record.id, request.id))
     .innerJoin(member, eq(member.id, request.requestedBy))
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
-    .leftJoin(approval, decidedOn)
     .leftJoin(event, eq(event.id, request.eventId))
     .where(and(eq(record.councilId, actor.councilId), options.where))
     .groupBy(request.id, record.id, member.id, event.id)
@@ -93,7 +82,7 @@ function listOptions(actor: Actor, view: PurchaseRequestListQuery['view']) {
   if (view === 'pending')
     return {
       where: isNull(request.cancelledAt),
-      having: sql`count(distinct ${lineItem.id}) > count(${approval.id})`,
+      having: sql`count(*) filter (where ${lastOutcomeSql} is null) > 0`,
       order: [asc(record.createdAt), asc(request.id)],
       limit: PURCHASE_PENDING_LIMIT,
     }
@@ -146,13 +135,12 @@ async function itemsOf(db: Reader, requestId: string) {
       amount: lineItem.amount,
       budgetItemId: lineItem.budgetItemId,
       purpose: budgetItem.purpose,
-      outcome: approval.outcome,
+      outcome: lastOutcomeSql,
       paid: isPaid.mapWith(Boolean),
     })
     .from(lineItem)
     .innerJoin(record, eq(record.id, lineItem.id))
     .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
-    .leftJoin(approval, decidedOn)
     .where(eq(lineItem.requestId, requestId))
     .orderBy(asc(record.createdAt), asc(lineItem.id))
   return rows.map(row => ({
@@ -187,7 +175,7 @@ async function decisionsOf(db: Reader, requestId: string) {
     .orderBy(asc(approval.actedAt), asc(approval.id))
   const decisions: PurchaseDecision[] = []
   for (const row of rows)
-    if (row.outcome === 'approved' || row.outcome === 'rejected')
+    if (row.outcome === 'approved' || row.outcome === 'rejected' || row.outcome === 'cancelled')
       decisions.push({
         id: row.id,
         lineItemId: row.lineItemId,
@@ -224,10 +212,6 @@ async function expensesOf(db: Reader, requestId: string) {
   }))
 }
 
-async function isLocked(db: Reader, eventId: string | null) {
-  return !!eventId && (await completedEventIdsAmong(db, [eventId])).size > 0
-}
-
 export async function requestDetailOf(
   db: Reader,
   actor: Actor,
@@ -235,7 +219,6 @@ export async function requestDetailOf(
 ): Promise<PurchaseRequestDetail> {
   const row = await requestRowOf(db, actor, requestId)
   const decisions = await decisionsOf(db, requestId)
-  const status = statusOfRow(row)
   return {
     ...summaryOf(row),
     body: row.body,
@@ -243,23 +226,7 @@ export async function requestDetailOf(
     decisions,
     expenses: await expensesOf(db, requestId),
     history: await requestHistoryOf(db, requestId),
-    // 완료한 행사의 요청은 취소도 결재도 잠겨 있어 동작을 주지 않는다(DEC-68). 결재에서 고른 예산 항목의 행사는 그 선택만 막는다.
-    actions: (await isLocked(db, row.eventId))
-      ? []
-      : actionsOf(actor, {
-          requestedBy: row.requestedBy,
-          status,
-          decided: decisions.length,
-        }),
+    // 완료한 행사의 요청은 취소도 결재도 잠겨 있어 동작을 주지 않는다(DEC-68). 쓰기와 같은 decide다.
+    actions: actionsOf(actor, await factsOf(db, row)),
   }
-}
-
-// 결재가 시작됐는지 센다. 취소 거래가 요청 행을 잠근 뒤에 읽는다.
-export async function decidedCountOf(db: Reader, requestId: string) {
-  const [found] = await db
-    .select({ n: sql<number>`count(${approval.id})`.mapWith(Number) })
-    .from(approval)
-    .innerJoin(lineItem, and(eq(lineItem.id, approval.targetId), eq(lineItem.requestId, requestId)))
-    .where(eq(approval.targetKind, 'line_item'))
-  return found?.n ?? 0
 }
