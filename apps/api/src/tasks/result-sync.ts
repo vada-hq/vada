@@ -99,8 +99,9 @@ export async function linkResult(
 }
 
 // 어떤 쓰기가 단계를 올렸을 때 업무 상태에 남기는 까닭 코드
-function causeOf(kind: TaskResultKind, stage: TaskResultStage): TaskCause | null {
-  if (kind === 'request') return stage === 'finished' ? 'request_finished' : 'request_submitted'
+// 옮긴 상태에 맞춘다: 끝남으로 옮기면 끝난 까닭, 진행 중으로 옮기면 낸 까닭(다른 결과물이 아직 남은 경우도 같다).
+function causeOf(kind: TaskResultKind, status: TaskStatus): TaskCause | null {
+  if (kind === 'request') return status === 'done' ? 'request_finished' : 'request_submitted'
   return null
 }
 
@@ -142,7 +143,7 @@ export async function syncAfter(tx: Tx, before: Watch, write: StatusWriter) {
     const target = targetOf(all.map(result => stages.get(result.id) ?? 'none'))
     const status = target && autoMoveOf(row.status as TaskStatus, target)
     const first = raised.find(result => links.some(l => l.taskId === taskId && l.id === result.id))!
-    const cause = causeOf(first.kind, after.get(first.id)!)
+    const cause = status ? causeOf(first.kind, status) : null
     if (status && cause) await write(tx, { taskId, status, cause })
   }
 }
