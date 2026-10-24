@@ -12,6 +12,7 @@ import {
   createAndJoinCase,
   decideTogetherCase,
   expenseTogetherCase,
+  finishTogetherCase,
   joinTwiceCase,
   rotateTogetherCase,
   sendAndRemoveCase,
@@ -403,6 +404,15 @@ test('승인한 품목 취소와 결제를 동시에: 예상하지 못한 DB 오
       contextOf(testDb, failingParticipants(testDb, '40P01')),
     )
     assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('이어진 요청의 마지막 두 품목을 동시에 결제: 업무가 한 번만 끝남이 된다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await finishTogetherCase.run(contextOf(testDb))), /한 번만 끝남/)
   } finally {
     await testDb.close()
   }

@@ -23,6 +23,7 @@ import {
 // 구매 요청과 지출(기능 005) 사례가 함께 쓰는 틀: 재정부원 둘과 요청한 사람이 있는 학생회, 그리고 "먼저 잠근 쪽이 확실히 잠근 뒤 다른 쪽이 시작"하는 순서 강제.
 
 export type MoneyScene = {
+  host: Who
   requester: Who
   finance: readonly [Who, Who]
   financeIds: readonly [string, string]
@@ -79,6 +80,7 @@ export async function moneyScene(
     addBudgetItem(tx, actor, BUDGET_ITEM, context.now),
   )
   return {
+    host: { userId: host, councilId },
     requester: { userId: requester, councilId },
     finance: [
       { userId: f1, councilId },
