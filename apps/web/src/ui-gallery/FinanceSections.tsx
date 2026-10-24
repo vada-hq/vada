@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   PURCHASE_STATUSES,
   type BudgetItemView,
@@ -5,10 +6,13 @@ import {
   type PurchaseRequestSummary,
 } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { emptyRow } from '@/finance/decision-form'
 import { DecisionRow } from '@/finance/DecisionRow'
 import { pendingCountOf } from '@/finance/purchase-view'
+import { ItemCancelDialog } from '@/finance/ItemCancel'
 import RequestCard from '@/finance/RequestCard'
+import { RequestItems } from '@/finance/RequestItems'
 import { StatusBadge } from '@/finance/StatusBadge'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -101,6 +105,48 @@ export function DecisionSection() {
           />
         ))}
       </div>
+    </Section>
+  )
+}
+
+const noCancel = {
+  saving: false,
+  problem: null,
+  cancelItem: () => Promise.resolve('done' as const),
+  clearProblem: noop,
+}
+
+export function ItemCancelSection() {
+  const [open, setOpen] = useState(false)
+  const items: PurchaseLineItem[] = [
+    { ...lineItem('A2 포스터'), status: 'approved', amount: 15000, actions: ['line_item.cancel'] },
+    { ...lineItem('테이프'), status: 'cancelled', amount: 3000 },
+    { ...lineItem(longName), status: 'approved', amount: 3000, paid: true },
+  ]
+  const blocked = {
+    ...noCancel,
+    problem: {
+      lineItemId: 'A2 포스터',
+      message: '취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.',
+    },
+  }
+  return (
+    <Section title="품목 취소">
+      <div className="flex w-80 flex-col gap-4">
+        <RequestItems items={items} cancel={noCancel} />
+        <RequestItems items={items.slice(0, 1)} cancel={blocked} />
+      </div>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        품목 취소 창 열기
+      </Button>
+      {open && (
+        <ItemCancelDialog
+          busy={false}
+          error={null}
+          onClose={() => setOpen(false)}
+          onConfirm={noop}
+        />
+      )}
     </Section>
   )
 }

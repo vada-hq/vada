@@ -1571,6 +1571,68 @@ exports[`대화상자 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">지출 카드</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
@@ -3679,6 +3741,68 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">지출 카드</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
@@ -5783,6 +5907,68 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">지출 카드</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
@@ -7884,6 +8070,68 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">지출 카드</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
@@ -9979,6 +10227,68 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 </div>
 </div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
@@ -12084,6 +12394,68 @@ exports[`처음 모양 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">지출 카드</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
@@ -14161,6 +14533,68 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 </div>
 </div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">품목 취소</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-4">
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">테이프 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">결제함</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>3,000원</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="품목" class="flex flex-col gap-2">
+<h3 class="text-sm font-medium text-gray-700">품목</h3>
+<ul class="flex flex-col gap-2">
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<div class="flex items-start gap-2">
+<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">A2 포스터 × 3</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
+</div>
+<div class="flex flex-col gap-1 text-xs text-gray-500">
+<span>15,000원</span>
+</div>
+<div class="flex flex-col items-start gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">품목 취소</button>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">품목 취소 창 열기</button>
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
