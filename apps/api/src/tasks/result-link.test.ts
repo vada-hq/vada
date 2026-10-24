@@ -75,6 +75,7 @@ test(
     assert.equal(await links(s), 2)
     assert.equal(await s.versions(taskId), versions)
     await s.made({ title: '마커', items: [ITEM] }, PLANNER)
+    await s.made({ title: '마커', items: [ITEM], taskId: null }, PLANNER)
     assert.equal(await links(s), 2)
   }),
 )
@@ -105,7 +106,8 @@ test(
       )
     const baseline = await counts()
     const cases: [string, string, string][] = [
-      ['다른 학생회 업무', foreign, PLANNER],
+      // 학생회 조건이 빠지면 새는 경우: 회장은 부서 없는 업무에 상태 권한이 있다.
+      ['다른 학생회 업무', foreign, PRESIDENT],
       ['없는 번호', MISSING, PLANNER],
       ['취소한 업무', cancelled, PLANNER],
       ['끝난 업무', done, PLANNER],
@@ -226,5 +228,64 @@ test(
     const detail = await detailOf(s, taskId)
     assert.equal(detail.history.at(-1)!.cause, 'request_finished')
     assert.deepEqual(detail.canMake, [])
+  }),
+)
+
+test(
+  '옮긴 상태가 진행 중이면 까닭도 request_submitted다(다른 결과물이 남은 경우)',
+  runPurchases(async s => {
+    const taskId = await taskFor(s, 'planningMember')
+    const first = await s.made(request(taskId), PLANNER)
+    await s.made(request(taskId, { title: '둘째' }), PLANNER)
+    await setStatus(s, taskId, 'todo')
+    await s.decide(first.items[0]!.id, 'rejected')
+    assert.equal(await statusOf(s, taskId), 'in_progress')
+    assert.equal((await detailOf(s, taskId)).history.at(-1)!.cause, 'request_submitted')
+  }),
+)
+
+test(
+  '취소한 업무는 결과물이 끝나도 옮기지 않는다',
+  runPurchases(async s => {
+    const taskId = await taskFor(s, 'planningMember')
+    const made = await s.made(request(taskId), PLANNER)
+    assert.equal((await s.api.post(`${tasksBase(s)}/${taskId}/delete`, {}, PRESIDENT)).status, 204)
+    const versions = await s.versions(taskId)
+    await s.decide(made.items[0]!.id, 'rejected')
+    assert.equal(await s.versions(taskId), versions)
+    assert.equal(await statusOf(s, taskId), 'in_progress')
+  }),
+)
+
+test(
+  '기록 모듈도 다른 학생회 업무와 잇기를 막고 아무것도 만들지 않는다',
+  runPurchases(async s => {
+    const foreign = await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'task',
+        councilId: s.other.councilId,
+        actor: s.other.people.president.memberId,
+        values: { title: '남의 업무' },
+      }),
+    )
+    const before = await s.count('SELECT count(*) AS n FROM request')
+    await assert.rejects(
+      s.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'request',
+          councilId: s.council.councilId,
+          actor: s.council.people.president.memberId,
+          taskId: foreign,
+          values: {
+            type: 'purchase',
+            title: 'a',
+            requestedBy: s.council.people.president.memberId,
+          },
+        }),
+      ),
+      { message: 'TASK_INVALID' },
+    )
+    assert.equal(await s.count('SELECT count(*) AS n FROM request'), before)
+    assert.equal(await links(s), 0)
   }),
 )

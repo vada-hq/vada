@@ -36,7 +36,11 @@ import {
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { linkResult, syncAfter, watchBefore, type StatusWriter } from '../tasks/result-sync.js'
-import { assertChangeStaysInCouncil, assertSameCouncil } from './same-council.js'
+import {
+  assertChangeStaysInCouncil,
+  assertSameCouncil,
+  assertTaskInCouncil,
+} from './same-council.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
 // 지금 상태도 판이다. 만들 때 판 1을 열고, 바꿀 때 지금 판을 닫고 새 판을 연다. 판에는 하위 행의 칸 값 전체를 담는다.
@@ -149,6 +153,7 @@ export async function createRecord<K extends RecordKind>(
     SELECT r.id, 1, tstzrange(r.created_at, NULL), to_jsonb(t), r.created_by FROM record r JOIN ${table} t ON t.id = r.id WHERE r.id = ${id}`)
   if (taskId) {
     if (kind !== 'request') throw new Error(`${kind}: 업무에 잇는 결과물 종류가 아니다`)
+    await assertTaskInCouncil(tx, councilId, taskId)
     for (const [resultId, value] of await linkResult(tx, { taskId, resultId: id, kind }))
       watch.set(resultId, value)
   }
