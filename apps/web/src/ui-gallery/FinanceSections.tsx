@@ -77,11 +77,13 @@ export function FinanceSection() {
 export function DecisionSection() {
   const filled = { ...emptyRow(), amount: '15000' }
   const rejecting = { ...emptyRow(), rejecting: true, reason: '이미 있어요' }
+  // 누르고 난 뒤의 모양: 비운 칸 아래에 이유가 보인다.
+  const tried = { amount: '금액을 입력해 주세요', budgetItemId: '예산 항목을 골라 주세요' }
   const rows = [
-    { item: lineItem('A2 포스터'), values: filled, chosen: 'b1', canApprove: true },
-    { item: lineItem('테이프'), values: emptyRow(), chosen: '', canApprove: false },
-    { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: 'b2', canApprove: true },
-    { item: lineItem(longName), values: filled, chosen: 'b2', canApprove: true },
+    { item: lineItem('A2 포스터'), values: filled, chosen: 'b1', errors: {} },
+    { item: lineItem('테이프'), values: emptyRow(), chosen: '', errors: tried },
+    { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: 'b2', errors: {} },
+    { item: lineItem(longName), values: filled, chosen: 'b2', errors: {} },
   ]
   return (
     <Section title="결재 줄">
@@ -92,7 +94,6 @@ export function DecisionSection() {
             {...row}
             budgetItems={budgetItems}
             disabled={false}
-            canReject
             onChange={noop}
             onApprove={noop}
             onReject={noop}

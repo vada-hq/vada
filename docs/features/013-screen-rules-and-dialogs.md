@@ -78,7 +78,7 @@
 - 닿는 곳: `apps/web/src/components/ConfirmDialog.tsx`, `CancelReasonDialog.tsx`, `finance/ReopenDialog.tsx`, `ExpenseCancelDialog.tsx`, `ExpenseActions.tsx`, `IncomeActions.tsx`, `RequestDetailDialog.tsx`, `registrations/DepositDialogs.tsx`, `events/CompletionDialog.tsx`, `public/MyRegistrationPage.tsx`, 확인 창을 쓰는 나머지(`ConfirmDialog` 사용처 11곳), `ui-gallery/OverlaySections.tsx`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 3. 재정 결재·찾기·고치기의 누를 때 확인 [ ]
+### 3. 재정 결재·찾기·고치기의 누를 때 확인 [x]
 - 할 수 있게 되는 것: 재정부가 결재·학생회비 찾기·지출 고치기에서 버튼을 눌러 무엇이 틀렸는지 본다.
 - 수용 기준: 요청 결재 줄의 [승인]·[반려 보내기]와 [모두 승인]이 늘 켜져 있고, 금액이나 예산 항목이 비었거나 계약이 받지 않는 값이면 그 줄의 칸 아래에 이유가 보이고 첫 문제 칸으로 옮긴다(아무것도 보내지 않는다). 계약이 받는 금액(0원 포함 여부는 계약대로)이면 보낸다. 반려 사유가 비면 사유 칸 아래에 이유가 보인다. 결재 칸의 날것 라벨은 `Field`다. 학생회비 [찾기]는 늘 켜져 있고, 학번 형식이 아니면 누를 때 칸 아래에 이유가 보인다(쓰는 동안 회색 글을 보이지 않는다). 지출 고치기에서 사유를 계약 상한보다 길게 쓰고 [저장]을 누르면 사유 칸 아래에 이유가 보인다(지금은 아무 일이 없다). 바꾼 것이 없으면 지금처럼 닫힌다. `FinancePage.decisions.test.tsx`, `FeePaymentsTab.test.tsx`의 꺼진 버튼 시험을 누를 때 확인으로 뒤집는다.
 - 닿는 곳: `apps/web/src/finance/DecisionRow.tsx`, `DecisionPanel.tsx`, `FeePaymentsTab.tsx`, `ExpenseUpdateDialog.tsx`, 그 시험들.
