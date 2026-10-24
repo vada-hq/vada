@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Db } from '../../db/types.js'
 import { createRecord } from '../../records/records.js'
 import { applyToForm } from '../../registrations/apply.js'
@@ -28,21 +29,22 @@ const PAIR = 2
 const HOUR_MS = 3_600_000
 const CLOSES_IN_HOURS = 24
 const FIRST_CODE_DIGIT = 2
-// 공개 코드 형식(^[2-9A-HJ-NP-Z]{8}$)에 맞는, 점검 DB 안에서 겹치지 않는 코드
-const codeOf = (round: number) => `RACE222${round + FIRST_CODE_DIGIT}`
+// 공개 코드 형식(^[2-9A-HJ-NP-Z]{8}$)에 맞는, 점검 DB 안에서 겹치지 않는 코드. 사례마다 앞 일곱 글자가 다르다.
+const codeOf = (prefix: string, round: number) => `${prefix}${round + FIRST_CODE_DIGIT}`
 
-type Race = {
+export type Race = {
   main: SmokeConnection
   open: () => SmokeConnection
   context: SmokeContext
   councilId: string
   memberId: string
   eventId: string
+  codePrefix: string
 }
 
 // 정원 1인 양식 하나(자리가 하나 남은 양식)
-async function oneSeatForm(run: Race, round: number) {
-  const code = codeOf(round)
+export async function oneSeatForm(run: Race, round: number) {
+  const code = codeOf(run.codePrefix, round)
   await run.main.db.transaction(tx =>
     createRecord(tx, {
       kind: 'registration_form',
@@ -62,23 +64,29 @@ async function oneSeatForm(run: Race, round: number) {
   return code
 }
 
-const applyAs = (db: Db, run: Race, code: string, hold?: () => Promise<void>) =>
+export const applyAs = (
+  db: Db,
+  run: Race,
+  code: string,
+  options: { hold?: () => Promise<void>; commandId?: string } = {},
+) =>
   db.transaction(async tx => {
     const done = await applyToForm(
       tx,
       { code, now: run.context.now },
       {
+        commandId: options.commandId ?? randomUUID(),
         name: '점검 신청자',
         studentId: null,
         phone: null,
       },
     )
-    await hold?.()
+    await options.hold?.()
     return done
   })
 
 // 신청이 하나만 남았는지: 취소하지 않은 신청과 개인 링크가 모두 하나다.
-async function savedProblem(run: Race, code: string) {
+export async function savedProblem(run: Race, code: string) {
   const [saved] = await run.main.sql.unsafe(
     `SELECT count(*)::text AS n, count(l.registration_id)::text AS links
      FROM registration r JOIN registration_form f ON f.id = r.form_id
@@ -96,7 +104,7 @@ async function holdingRound(run: Race, round: number) {
   const code = await oneSeatForm(run, round)
   const [first, second] = (await warmed(run.open, PAIR)) as [Db, Db]
   const results = await raceHolding(
-    hold => applyAs(first, run, code, hold),
+    hold => applyAs(first, run, code, { hold }),
     [() => applyAs(second, run, code)],
   )
   const bad = unexpectedFailures(results, EXPECTED)
@@ -117,23 +125,36 @@ async function plainRound(run: Race, round: number) {
     : `결과가 ${outcomes}(기대 REGISTRATION_FULL,ok)`
 }
 
+// 점검용 학생회 하나와 행사 하나를 만든다. host 계정과 학생회 이름은 사례마다 달라야 한다(점검 DB를 사례끼리 나눠 쓴다).
+export async function raceSceneOf(
+  context: SmokeContext,
+  open: () => SmokeConnection,
+  who: { host: string; councilName: string; codePrefix: string },
+): Promise<Race> {
+  const main = open()
+  await googleUser(main.db, who.host)
+  const councilId = await createdCouncil(main.db, context, who.host, who.councilName)
+  const memberId = await memberIdOf(main.db, who.host)
+  const eventId = await main.db.transaction(tx =>
+    createRecord(tx, {
+      kind: 'event',
+      councilId,
+      actor: memberId,
+      values: { name: '점검 행사' },
+    }),
+  )
+  return { main, open, context, councilId, memberId, eventId, codePrefix: who.codePrefix }
+}
+
 export const lastSeatTogetherCase: SmokeCase = {
   name: '마지막 한 자리에 두 신청을 동시에',
   run: context =>
     withConnections(context, async open => {
-      const main = open()
-      await googleUser(main.db, O.host)
-      const councilId = await createdCouncil(main.db, context, O.host, '점검 o 학생회')
-      const memberId = await memberIdOf(main.db, O.host)
-      const eventId = await main.db.transaction(tx =>
-        createRecord(tx, {
-          kind: 'event',
-          councilId,
-          actor: memberId,
-          values: { name: '점검 행사' },
-        }),
-      )
-      const run = { main, open, context, councilId, memberId, eventId }
+      const run = await raceSceneOf(context, open, {
+        host: O.host,
+        councilName: '점검 o 학생회',
+        codePrefix: 'RACE222',
+      })
       for (let round = 0; round < ROUNDS; round++) {
         const problem =
           round % PAIR === 0 ? await holdingRound(run, round) : await plainRound(run, round)

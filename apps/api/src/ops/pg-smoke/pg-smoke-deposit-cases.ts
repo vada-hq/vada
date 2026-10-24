@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Actor } from '../../access/actor.js'
 import type { Db } from '../../db/types.js'
 import { confirmDeposit } from '../../deposits/service.js'
@@ -89,7 +90,7 @@ export const confirmTogetherCase: SmokeCase = {
           applyToForm(
             tx,
             { code: 'DEPSTU22', now: context.now },
-            { name: '점검 신청자', studentId: null, phone: null },
+            { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
           ),
         )
         const [link] = await main.sql.unsafe(
@@ -131,7 +132,7 @@ async function newApplication(main: SmokeConnection, context: SmokeContext) {
     applyToForm(
       tx,
       { code: 'DEPSTV22', now: context.now },
-      { name: '점검 신청자', studentId: null, phone: null },
+      { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
     ),
   )
   const [link] = await main.sql.unsafe(

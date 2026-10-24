@@ -4,10 +4,12 @@ import { registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { lockedCompleted } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
+import { saveReceipt } from '../commands/receipt.js'
 import { createRecord } from '../records/records.js'
 import { appliedFeeOf } from './fee-match.js'
 import { addLink, newToken } from './link.js'
 import { applicantCountOf, publicRowOf } from './public-form.js'
+import { applyBodyHashOf, applyKeyOf, resendApply } from './resend.js'
 import { registrationStatusOf } from './state.js'
 
 // 양식 행을 잠근다. 마지막 자리에 두 신청이 겹쳐도 하나씩 줄을 서고, 잠금을 얻은 뒤에 읽어야 앞 신청이 센 수에 들어온다(READ COMMITTED 다시 읽기).
@@ -63,6 +65,11 @@ export async function applyToForm(
   const eventCompleted = await lockedCompleted(tx, [(await publicRowOf(tx, code)).eventId])
   await lockForm(tx, code)
   const form = await publicRowOf(tx, code)
+  // 같은 명령의 재전송은 마감·정원과 상관없이 처음 신청의 새 링크를 받는다(DEC-84). 검사·상태로 거절한 요청은 영수증이 없다.
+  const key = applyKeyOf(form.id, input.commandId)
+  const bodyHash = applyBodyHashOf(input)
+  const resent = await resendApply(tx, key, bodyHash, target.now)
+  if (resent) return resent
   await assertOpen(tx, form, { now: target.now, eventCompleted })
   // 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75).
   assertFieldsMatch(input, { studentId: form.collectsStudentId, phone: form.collectsPhone })
@@ -90,5 +97,6 @@ export async function applyToForm(
   })
   const token = newToken()
   await addLink(tx, registrationId, token)
+  await saveReceipt(tx, key, { bodyHash, resultId: registrationId }, target.now)
   return { token }
 }

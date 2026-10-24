@@ -22,7 +22,9 @@ type Collects = Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhon
 
 // 받지 않는 칸은 보내지 않는다. 버튼을 켜는 판단과 보내는 본문이 같은 스키마에서 나온다.
 export function parseApply(form: Collects, values: ApplyValues) {
+  // 조각 3(화면이 명령 번호를 기억해 재전송에 같은 번호를 보냄) 전까지는 누를 때마다 새 번호다.
   return ApplySchema.safeParse({
+    commandId: crypto.randomUUID(),
     name: values.name,
     studentId: form.collectsStudentId ? values.studentId : null,
     phone: form.collectsPhone ? values.phone : null,

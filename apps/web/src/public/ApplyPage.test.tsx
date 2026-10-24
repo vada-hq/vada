@@ -96,7 +96,9 @@ test('신청하면 본문을 보내고 토큰을 기억하며 두 번 눌러도 
   await settle()
   const posts = api.calls.filter(call => call.method === 'POST')
   expect(posts).toHaveLength(1)
-  expect(posts[0]?.body).toEqual({ name: '김새내', studentId: '20260001', phone: '01012345678' })
+  const { commandId, ...rest } = (posts[0]?.body ?? {}) as Record<string, string>
+  expect(commandId).toMatch(/^[0-9a-f-]{36}$/)
+  expect(rest).toEqual({ name: '김새내', studentId: '20260001', phone: '01012345678' })
   expect((button as HTMLButtonElement).disabled).toBe(true)
   await act(async () => pending.resolve(json({ token: 'tok123' }, 201)))
   await waitFor(() => expect(onApplied).toHaveBeenCalledWith('tok123'))

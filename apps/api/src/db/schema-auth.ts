@@ -139,3 +139,16 @@ export const applicantAccessLog = pgTable('applicant_access_log', {
   accessedAt: at('accessed_at').notNull().defaultNow(),
   ip: text('ip').notNull(),
 })
+
+// 명령 영수증(기능 017, DEC-84). 같은 명령 번호의 재전송에 처음 결과를 돌려주려는 기록이다. 본문 해시는 가명 정보라 24시간 뒤 지운다.
+export const commandReceipt = pgTable('command_receipt', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
+  kind: text('kind').notNull(),
+  scopeKey: text('scope_key').notNull(),
+  commandId: uuid('command_id').notNull(),
+  bodyHash: text('body_hash').notNull(),
+  resultId: uuid('result_id').notNull(),
+  createdAt: at('created_at').notNull().defaultNow(),
+})

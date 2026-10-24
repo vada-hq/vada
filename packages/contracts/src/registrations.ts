@@ -147,7 +147,10 @@ const STUDENT_ID_INPUT_MAX = 12
 const phone = token(PHONE_INPUT_MAX)
   .transform(value => value.replace(/[\s-]/g, ''))
   .refine(value => PHONE_PATTERN.test(value))
+// 명령 번호: 화면이 보내기 전에 만드는 UUID v4다(DEC-84). 같은 번호를 다시 보내면 신청은 하나만 남는다. 토큰을 다시 받을 수 있는 값이라 토큰처럼 다룬다.
+export const commandIdInput = z.uuid({ version: 'v4' })
 export const ApplySchema = z.strictObject({
+  commandId: commandIdInput,
   name: text(REGISTRATION_FORM_NAME_MAX),
   studentId: token(STUDENT_ID_INPUT_MAX)
     .refine(value => STUDENT_ID_PATTERN.test(value))

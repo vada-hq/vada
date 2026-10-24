@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { koreanDateOf } from '@vada/contracts'
 import type { Db } from '../../db/types.js'
 import { confirmDeposit } from '../../deposits/service.js'
@@ -198,7 +199,7 @@ async function applyRound(world: World, open: () => SmokeConnection) {
       applyToForm(
         tx,
         { code: String(row?.public_code), now: world.context.now },
-        { name: '점검 신청자', studentId: null, phone: null },
+        { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
       ),
     )
   const problem = await completeFirst(open, world, {

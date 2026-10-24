@@ -30,14 +30,32 @@ test('VADA 글자가 아니거나 해시 모양이 아니면 null이다', () => 
     assert.equal(tokenHashOfQr(value), null, value)
 })
 
+const COMMAND_ID = '3f2b8a52-6c1e-4d0b-9a7e-2d5c8f1b4a60'
+
 test('신청 본문: 휴대폰은 공백과 -를 빼고, 안 보낸 칸은 null이다', () => {
-  assert.deepEqual(ApplySchema.parse({ name: ' 김 ', phone: '010-1234 5678' }), {
-    name: '김',
-    studentId: null,
-    phone: '01012345678',
-  })
-  assert.equal(ApplySchema.safeParse({ name: '김', studentId: '12345' }).success, false)
-  assert.equal(ApplySchema.safeParse({ name: '김', x: 1 }).success, false)
+  assert.deepEqual(
+    ApplySchema.parse({ commandId: COMMAND_ID, name: ' 김 ', phone: '010-1234 5678' }),
+    { commandId: COMMAND_ID, name: '김', studentId: null, phone: '01012345678' },
+  )
+  assert.equal(
+    ApplySchema.safeParse({ commandId: COMMAND_ID, name: '김', studentId: '12345' }).success,
+    false,
+  )
+  assert.equal(ApplySchema.safeParse({ commandId: COMMAND_ID, name: '김', x: 1 }).success, false)
+})
+
+test('신청 본문: 명령 번호는 UUID v4만 받고 없으면 거절한다', () => {
+  assert.equal(ApplySchema.safeParse({ name: '김' }).success, false)
+  for (const bad of [
+    '',
+    'abc',
+    // v7(시간 순서 UUID)과 UUID가 아닌 글자
+    '019e0000-0000-7000-8000-000000000000',
+    `${COMMAND_ID}0`,
+    ' ',
+  ])
+    assert.equal(ApplySchema.safeParse({ commandId: bad, name: '김' }).success, false, bad)
+  assert.equal(ApplySchema.safeParse({ commandId: COMMAND_ID, name: '김' }).success, true)
 })
 
 const FORM = { name: '가을 축제', closesAt: '2026-11-01T18:00' }

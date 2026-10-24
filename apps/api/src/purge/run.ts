@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import type { Db, Tx } from '../db/types.js'
+import { purgeReceipts } from '../commands/receipt.js'
 import { purgeDuesStudentIds } from '../fee-payments/purge.js'
 import { reportBackgroundFailure } from '../http/on-error.js'
 import { purgeAccessLogs, purgeRegistrations } from '../registrations/purge.js'
@@ -21,7 +22,7 @@ const tryPurgeLock: Lock = async tx => {
   return (rows?.[0] as { locked?: boolean } | undefined)?.locked === true
 }
 
-// 기한이 지난 개인정보와 열람 기록을 지운다(DEC-55, DEC-56). 같은 일을 두 번 해도 같다.
+// 기한이 지난 개인정보와 열람 기록, 24시간이 지난 명령 영수증을 지운다(DEC-55, DEC-56, DEC-84). 같은 일을 두 번 해도 같다.
 // 잠금을 다른 실행이 쥐고 있으면 건너뛰고 false를 돌려준다.
 export async function runPurge(db: Db, now: Date, lock: Lock = tryPurgeLock) {
   return db.transaction(async tx => {
@@ -29,6 +30,7 @@ export async function runPurge(db: Db, now: Date, lock: Lock = tryPurgeLock) {
     await purgeRegistrations(tx, now)
     await purgeDuesStudentIds(tx, now)
     await purgeAccessLogs(tx, now)
+    await purgeReceipts(tx, now)
     return true
   })
 }
