@@ -51,24 +51,24 @@ test('CreatePurchaseRequestSchema: 비운 칸은 null이고 링크는 http와 ht
 })
 
 test('구매 요청 주소 한 쌍: 만든 주소를 그대로 읽고 다른 모양은 읽지 않는다', () => {
-  assert.deepEqual(purchaseRequestFromPath(purchaseRequestUrl('c-1', 'r-1')), {
-    councilId: 'c-1',
-    requestId: 'r-1',
-  })
-  assert.deepEqual(purchaseRequestFromPath('/purchases/c%201/r'), {
-    councilId: 'c 1',
-    requestId: 'r',
+  const council = '0199d1a0-0000-7000-8000-00000000000a'
+  const request = '0199d1a0-0000-7000-8000-00000000000b'
+  assert.deepEqual(purchaseRequestFromPath(purchaseRequestUrl(council, request)), {
+    councilId: council,
+    requestId: request,
   })
   assert.equal(purchaseRequestTag('r-1'), 'request:r-1')
   for (const path of [
     '/',
     '/purchases',
-    '/purchases/c',
-    '/purchases/c/',
-    '/purchases//r',
-    '/purchases/c/r/x',
-    '/tasks/c/r',
+    `/purchases/${council}`,
+    `/purchases/${council}/`,
+    `/purchases//${request}`,
+    `/purchases/${council}/${request}/x`,
+    `/purchases/c%201/${request}`,
+    '/purchases/c/r',
+    `/tasks/${council}/${request}`,
   ])
     assert.equal(purchaseRequestFromPath(path), null, path)
-  assert.equal(purchaseRequestFromPath('/purchases/%E0%A4%A/r'), null)
+  assert.equal(purchaseRequestFromPath(`/purchases/%E0%A4%A/${request}`), null)
 })
