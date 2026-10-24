@@ -16,6 +16,32 @@
 - 문서 맨 위에는 읽을 사람을 적는다(`독자: 사람` 또는 `독자: 에이전트`). 규칙은 vada-docs `CONTRIBUTING.md` '형식'을 따른다.
 - 작업을 시작해 배포할 때까지 사람에게 묻거나 승인받지 않는다. 결정은 유사 서비스 벤치마킹과 업계 표준 근거로 권장대로 정하고 근거와 함께 기록한다. 사람은 배포된 제품을 써 보고 다른 곳을 버그로 알린다.
 
+## 메뉴 작업 폴더에서 바로 고치기
+
+사람이 배포된 사이트를 보다가 메뉴 작업 폴더에서 세션을 열고 "~ 고쳐 줘"라고 하면, 명세·조각·검토 없이 아래 차례로 고쳐 main에 올린다. 메뉴마다 세션을 나란히 연다(trunk 기반 개발에서 아주 작은 팀이 main에 바로 올리는 방식, [trunkbaseddevelopment.com](https://trunkbaseddevelopment.com/)).
+
+| 작업 폴더(`vada-hq/`) | 메뉴 | 주로 닿는 코드 |
+|---|---|---|
+| `vada-home` | 홈 | web `home`, api `home` |
+| `vada-chat` | 대화 | web·api `chat`, `push` |
+| `vada-events` | 행사(신청 양식 포함) | web `events`, `registrations`, `public`, api `events`, `registrations`, `settlement`, `deposits` |
+| `vada-tasks` | 업무 | web·api `tasks` |
+| `vada-finance` | 재정 | web `finance`, api `budget`, `expenses`, `incomes`, `purchases`, `closing`, `fee-payments`, `accounts` |
+
+- 폴더는 늘 main 위의 detached HEAD로 둔다. 가지를 만들지 않는다. `git worktree lock`으로 잠가 두었다(`tools/clean-merged.sh`가 main과 같은 폴더를 지우지 않게). `.env`는 `vada/.env`의 복사본이다.
+- 같은 폴더에 세션을 둘 열지 않는다. 다른 메뉴의 코드도 고쳐도 되지만 필요한 줄만 고친다. 공통 파일(`workspace`, `components`, `lib/messages.ts`, contracts `index.ts`, `serve.ts`·`app.ts`의 등록)은 여러 폴더가 함께 고치므로 특히 그렇다.
+- 여러 메뉴에 걸친 기능, 권한·돈 계산·학생회 격리를 새로 정하는 일, 칸·표를 지우거나 이름을 바꾸는 마이그레이션은 여기서 하지 않는다. 그런 요청이면 그렇다고 말하고 `docs/work-method.md`대로 하자고 한다.
+
+차례
+
+1. 시작: `git status`가 깨끗한지 본다(이어서 하던 수정이 남았으면 그것부터 끝낸다). `git fetch origin && git switch --detach origin/main`. `gh run list --branch main --limit 3`에서 이 폴더가 올린 커밋이 실패했으면 그것부터 고친다.
+2. 고친다. 전체 시험은 돌리지 않는다. 바꾼 모듈의 시험 파일만 돌리고, 화면 문구나 부품을 바꿨으면 `src/ui-gallery` 시험도 돌린다(스냅숏이 바뀌면 `-u`로 갱신하고 차이를 본다). 그다음 `npm run check`.
+3. 커밋한다. 수정 하나에 커밋 하나다.
+4. `git fetch origin && git rebase origin/main`. 충돌을 풀었으면 `git diff --check`와 `npm run check`를 다시 돌린다. 스냅숏 충돌은 손으로 고치지 않고 다시 만든다. `git push origin HEAD:main`이 거절되면(그사이 다른 폴더가 올림) 4를 되풀이한다.
+5. 올린 커밋의 main CI를 뒤에서 지켜본다(`gh run watch <id> --exit-status`를 백그라운드로). 사람에게는 무엇을 고쳤고 약 10분 뒤 배포되면 어느 화면에서 보면 되는지 한 줄로 알리고, 기다리지 않고 다음 요청을 받는다. CI가 실패하면 다음 일보다 먼저 고친다(배포는 멈추고 운영은 그대로다).
+
+- 마이그레이션은 칸·표를 더하는 것만 만든다. 번호와 `migrations/meta/_journal.json`이 순번이라 두 폴더가 같은 번호를 만들면 부딪친다. 그래서 만들기 직전에 4의 fetch·rebase를 하고, 만들면 바로 개발 DB에 적용(`-- --apply`)한 뒤 다른 수정을 기다리지 않고 올린다. 운영 DB는 main CI가 배포 전에 적용한다. 나머지 순서는 아래 '마이그레이션'을 따른다.
+
 ## 새 API를 만들 때
 
 - 요청 본문 스키마는 `packages/contracts`에 zod `z.strictObject`로 정의한다. 문자열은 `text(max)`(사람이 쓰는 글) 또는 `token(max)`(식별자·키)로만 만들고, 모든 문자열·배열·숫자에 상한을 둔다.
