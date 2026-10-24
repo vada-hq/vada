@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { CancelExpenseSchema } from '@vada/contracts'
 import { CancelReasonDialog } from './CancelReasonDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 
@@ -34,10 +35,8 @@ test('보내는 동안 두 버튼이 막히고 Esc로도 닫히지 않는다', (
 
 test('사유가 꼭인 창은 비우거나 길게 쓰고 누르면 칸 아래에 알리고 보내지 않는다', () => {
   const onConfirm = vi.fn()
-  const parse = (reason: string) =>
-    reason.length > 3
-      ? { success: false, error: { issues: [{ code: 'too_big', path: ['reason'] }] } }
-      : { success: true }
+  // 실제 계약이 내는 문제로 확인한다(text()는 code가 custom이다).
+  const parse = (reason: string) => CancelExpenseSchema.safeParse({ reason })
   render(
     <CancelReasonDialog
       title="제목"
@@ -55,9 +54,11 @@ test('사유가 꼭인 창은 비우거나 길게 쓰고 누르면 칸 아래에
   expect(within(dialog).getByLabelText('취소 사유').getAttribute('aria-required')).toBe('true')
   fireEvent.click(confirm)
   expect(within(dialog).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
-  fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '12345' } })
+  fireEvent.change(within(dialog).getByLabelText('취소 사유'), {
+    target: { value: '가'.repeat(501) },
+  })
   fireEvent.click(confirm)
-  expect(within(dialog).getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
+  expect(within(dialog).getByText('더 짧게 입력해 주세요')).toBeTruthy()
   expect(onConfirm).not.toHaveBeenCalled()
   fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '123' } })
   fireEvent.click(confirm)

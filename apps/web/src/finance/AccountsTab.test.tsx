@@ -163,14 +163,15 @@ test('고치기는 지금 값으로 채워지고 칸을 모두 보낸다', async
   })
 })
 
-test('닫기는 확인을 거치고, 취소하면 아무것도 보내지 않는다', async () => {
+test('닫기는 확인을 거치고, 창을 닫으면 아무것도 보내지 않는다', async () => {
   const { api } = await open()
   api.on('POST', `${ACCOUNTS}/${BUSINESS_ACCOUNT_ID}/close`, () =>
     json({ account: accountItem(BUSINESS_ACCOUNT_ID, { closedOn: '2026-10-22', actions: [] }) }),
   )
   fireEvent.click(within(cardOf('행사 통장')).getByRole('button', { name: '닫기' }))
   await screen.findByText(/행사 통장 계좌를 닫을까요/)
-  fireEvent.click(button('취소'))
+  // 나가는 버튼은 [닫기]다(오른쪽 위 X도 같은 이름이라 첫 번째가 푸터의 것이다).
+  fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fireEvent.click(within(cardOf('행사 통장')).getByRole('button', { name: '닫기' }))
