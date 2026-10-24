@@ -47,12 +47,6 @@ const assigneeIsCurrent = (db: Reader, actor: Actor, now: Date) =>
       ),
   )
 
-// 업무를 만든 사람: 판 1의 바꾼 사람. 지우기 권한(담당자이면서 만든 사람)이 묻는다.
-const createdByOf = () =>
-  sql<
-    string | null
-  >`(select ${recordVersion.changedBy} from ${recordVersion} where ${recordVersion.recordId} = ${task.id} and ${recordVersion.versionNo} = 1)`
-
 // 읽기 바탕(조각 3·4의 쓰기가 같은 줄과 권한 맥락을 다시 쓴다): 이 학생회의 업무와 그 줄에 필요한 이름, 담당자 현재 여부.
 // 학생회 경계는 기록(record)의 학생회 번호로 건다. 조건(where)은 부르는 쪽이 inCouncil과 함께 더한다.
 export function taskSelect(db: Reader, actor: Actor, now: Date) {
@@ -72,7 +66,7 @@ export function taskSelect(db: Reader, actor: Actor, now: Date) {
       assigneeName: member.name,
       assigneeCurrent: sql<boolean>`${assigneeIsCurrent(db, actor, now)}`.mapWith(Boolean),
       createdAt: record.createdAt,
-      createdBy: createdByOf(),
+      createdBy: record.createdBy,
     })
     .from(task)
     .innerJoin(record, eq(record.id, task.id))

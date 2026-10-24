@@ -83,6 +83,7 @@ function createFacts(
     (!input.departmentId ||
       actor.departments.some(item => item.departmentId === input.departmentId))
   return factsOf({
+    createdBy: null,
     departmentId: input.departmentId,
     assigneeId: mine ? input.assigneeId : null,
     eventOwnerId,
