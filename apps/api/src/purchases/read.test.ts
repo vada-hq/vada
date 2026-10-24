@@ -209,7 +209,9 @@ test(
     // 동작: 요청한 사람은 결재가 시작돼 취소가 닫혔고, 재정부는 결재할 수 있다. 다른 사람은 없다.
     assert.deepEqual(detail.actions, [])
     assert.deepEqual((await read(s, request.id, 's-planningMember')).actions, [])
-    assert.deepEqual((await read(s, request.id, 's-financeMember')).actions, ['purchase.approve'])
+    assert.deepEqual((await read(s, request.id, 's-financeMember')).actions, [
+      'purchase_request.decide',
+    ])
     // 취소된 지출은 '결제함'이 아니다.
     await s.pg.query('UPDATE expense SET cancelled_at = now() WHERE id = $1', [expenseId])
     const after = await read(s, request.id, 's-plain')
@@ -222,11 +224,13 @@ test(
   '동작: 결재 전에는 요청한 사람이 취소하고 재정부가 결재하며, 재정부가 낸 요청은 둘 다 한다',
   runPurchases(async s => {
     const mine = await s.made({ ...two, title: '내 것' }, 's-planningMember')
-    assert.deepEqual(mine.actions, ['purchase.cancel'])
-    assert.deepEqual((await read(s, mine.id, 's-financeMember')).actions, ['purchase.approve'])
+    assert.deepEqual(mine.actions, ['purchase_request.cancel'])
+    assert.deepEqual((await read(s, mine.id, 's-financeMember')).actions, [
+      'purchase_request.decide',
+    ])
     assert.deepEqual((await read(s, mine.id, 's-president')).actions, [])
     const own = await s.made({ ...two, title: '재정부 것' }, 's-financeMember')
-    assert.deepEqual(own.actions, ['purchase.cancel', 'purchase.approve'])
+    assert.deepEqual(own.actions, ['purchase_request.cancel', 'purchase_request.decide'])
   }),
 )
 

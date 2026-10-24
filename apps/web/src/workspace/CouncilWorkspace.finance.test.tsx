@@ -128,7 +128,7 @@ test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다
           },
         ],
         decisions: [],
-        actions: ['purchase.approve'],
+        actions: ['purchase_request.decide'],
       }),
     }),
   )

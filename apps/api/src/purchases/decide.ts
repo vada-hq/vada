@@ -110,7 +110,7 @@ export async function decideLineItems(
     ...(await budgetItemEventIds(tx, actor, input.decisions)),
   ])
   // 요청 단위의 판정(취소한 요청 REQUEST_CLOSED, 결재할 품목이 없으면 LINE_ITEM_DECIDED)은 읽기의 actions와 같은 decide다.
-  const code = decide(actor, await factsOf(tx, row), 'purchase.approve')
+  const code = decide(actor, await factsOf(tx, row), 'purchase_request.decide')
   if (code) throw new ApiError(code)
   const own = await lockedItemIds(tx, requestId)
   const ids = input.decisions.map(item => item.lineItemId)

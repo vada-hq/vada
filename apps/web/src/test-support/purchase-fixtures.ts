@@ -67,6 +67,6 @@ export const purchaseDetail = (
       changes: [{ field: 'created' }],
     },
   ],
-  actions: ['purchase.cancel'],
+  actions: ['purchase_request.cancel'],
   ...extra,
 })

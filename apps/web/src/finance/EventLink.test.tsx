@@ -44,7 +44,7 @@ function setup(tab: string, budget = budgetWithPeriod()) {
           },
         ],
         decisions: [],
-        actions: ['purchase.approve'],
+        actions: ['purchase_request.decide'],
       }),
     }),
   )

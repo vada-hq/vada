@@ -69,9 +69,11 @@ export async function factsOf(db: Reader, row: FactsRow): Promise<RequestFacts> 
   }
 }
 
-// 동작 → 권한. 취소는 요청한 사람만이다(회장단도 아니다).
+// 동작 → 권한. 동작 이름은 권한 키와 다르다(화면에 닿는 동작만 센다). 취소는 요청한 사람만이다(회장단도 아니다).
 export const roleAllows = (actor: Actor, action: PurchaseAction, requestedBy: string) =>
-  action === 'purchase.cancel' ? can(actor, action, { requestedBy }) : can(actor, action)
+  action === 'purchase_request.cancel'
+    ? can(actor, 'purchase.cancel', { requestedBy })
+    : can(actor, 'purchase.approve')
 
 // 허용이면 null, 막으면 그 쓰기가 내는 첫 코드. 권한(403) → 완료한 행사 → 요청 상태 순서다.
 // 취소는 요청한 사람만이고 결재가 시작되면 닫힌다. 승인(결재)은 재정부가 대기 품목이 남은 요청에서 한다.
@@ -84,7 +86,7 @@ export function decide(
   if (!roleAllows(actor, action, facts.requestedBy)) return 'FORBIDDEN'
   if (facts.eventCompleted) return 'EVENT_COMPLETED'
   if (facts.requestCancelled) return 'REQUEST_CLOSED'
-  if (action === 'purchase.cancel') return facts.decided ? 'REQUEST_CLOSED' : null
+  if (action === 'purchase_request.cancel') return facts.decided ? 'REQUEST_CLOSED' : null
   return facts.status === 'pending' ? null : 'LINE_ITEM_DECIDED'
 }
 

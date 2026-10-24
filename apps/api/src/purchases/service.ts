@@ -91,9 +91,10 @@ export async function createPurchaseRequest(
 export async function cancelPurchaseRequest(tx: Tx, actor: Actor, requestId: string) {
   const row = await lockedRequestRow(tx, actor, requestId)
   // 403은 행사 행을 잠그기 전에 낸다. 완료한 행사와 요청 상태는 잠근 뒤에 읽은 값으로 같은 decide가 본다.
-  if (!roleAllows(actor, 'purchase.cancel', row.requestedBy)) throw new ApiError('FORBIDDEN')
+  if (!roleAllows(actor, 'purchase_request.cancel', row.requestedBy))
+    throw new ApiError('FORBIDDEN')
   await assertEventOpen(tx, row.eventId)
-  const code = decide(actor, await factsOf(tx, row), 'purchase.cancel')
+  const code = decide(actor, await factsOf(tx, row), 'purchase_request.cancel')
   if (code) throw new ApiError(code)
   await updateRecord(tx, {
     kind: 'request',

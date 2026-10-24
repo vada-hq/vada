@@ -450,7 +450,7 @@ test('예산·정산 탭에서 연 요청 상세에는 예산 탭으로 가기 �
   const { api } = openMoney()
   api.on('GET', `${ORG}/budget`, () => json(budgetWithoutPeriod()))
   api.on('GET', `${ORG}/purchase-requests/r1`, () =>
-    json({ request: purchaseDetail('r1', { actions: ['purchase.approve'] }) }),
+    json({ request: purchaseDetail('r1', { actions: ['purchase_request.decide'] }) }),
   )
   fireEvent.click(await screen.findByRole('button', { name: '포스터 인쇄' }))
   await screen.findByRole('dialog')

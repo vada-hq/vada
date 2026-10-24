@@ -116,7 +116,7 @@ function Body({
   )
 }
 
-// 요청 상세의 결재 칸(`purchase.approve`가 있을 때만 보인다). 대기 품목마다 금액과 예산 항목을 골라 승인하거나 사유를 적어 반려한다.
+// 요청 상세의 결재 칸(`purchase_request.decide`가 있을 때만 보인다). 대기 품목마다 금액과 예산 항목을 골라 승인하거나 사유를 적어 반려한다.
 export function DecisionPanel({ items, onForbidden, ...rest }: Props) {
   const budget = useBudget(rest.councilId, onForbidden)
   const pending = items.filter(item => item.status === 'pending')

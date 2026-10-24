@@ -54,31 +54,41 @@ test(
   runPurchases(async s => {
     const finance = await actorFor(s, 'financeMember')
     const plain = await actorFor(s, 'plain')
-    assert.equal(decide(finance, facts(), 'purchase.approve'), null)
-    assert.equal(decide(plain, facts(), 'purchase.approve'), 'FORBIDDEN')
+    assert.equal(decide(finance, facts(), 'purchase_request.decide'), null)
+    assert.equal(decide(plain, facts(), 'purchase_request.decide'), 'FORBIDDEN')
     assert.equal(
-      decide(finance, facts({ eventCompleted: true }), 'purchase.approve'),
+      decide(finance, facts({ eventCompleted: true }), 'purchase_request.decide'),
       'EVENT_COMPLETED',
     )
     assert.equal(
-      decide(finance, facts({ requestCancelled: true, status: 'cancelled' }), 'purchase.approve'),
+      decide(
+        finance,
+        facts({ requestCancelled: true, status: 'cancelled' }),
+        'purchase_request.decide',
+      ),
       'REQUEST_CLOSED',
     )
     // 품목이 모두 취소돼 상태가 취소여도 요청 자체는 열려 있다: 결재하려 하면 이미 결재된 품목이다.
     assert.equal(
-      decide(finance, facts({ status: 'cancelled', decided: true }), 'purchase.approve'),
+      decide(finance, facts({ status: 'cancelled', decided: true }), 'purchase_request.decide'),
       'LINE_ITEM_DECIDED',
     )
     assert.equal(
-      decide(finance, facts({ status: 'partial' }), 'purchase.approve'),
+      decide(finance, facts({ status: 'partial' }), 'purchase_request.decide'),
       'LINE_ITEM_DECIDED',
     )
     // 요청 취소는 요청한 사람만, 결재가 시작되면 닫힌다.
-    assert.equal(decide(finance, facts(), 'purchase.cancel'), 'FORBIDDEN')
+    assert.equal(decide(finance, facts(), 'purchase_request.cancel'), 'FORBIDDEN')
     const mine = facts({ requestedBy: finance.memberId })
-    assert.equal(decide(finance, mine, 'purchase.cancel'), null)
-    assert.equal(decide(finance, { ...mine, decided: true }, 'purchase.cancel'), 'REQUEST_CLOSED')
-    assert.deepEqual(actionsOf(finance, mine), ['purchase.cancel', 'purchase.approve'])
+    assert.equal(decide(finance, mine, 'purchase_request.cancel'), null)
+    assert.equal(
+      decide(finance, { ...mine, decided: true }, 'purchase_request.cancel'),
+      'REQUEST_CLOSED',
+    )
+    assert.deepEqual(actionsOf(finance, mine), [
+      'purchase_request.cancel',
+      'purchase_request.decide',
+    ])
     assert.deepEqual(actionsOf(finance, { ...mine, eventCompleted: true }), [])
   }),
 )
