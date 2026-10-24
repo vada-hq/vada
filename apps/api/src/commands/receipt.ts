@@ -1,7 +1,10 @@
-import { createHash } from 'node:crypto'
+import { createHmac } from 'node:crypto'
 import { and, eq, sql } from 'drizzle-orm'
 import { commandReceipt } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
+import { uniqueViolationOf } from '../db/error-code.js'
+import { idList } from '../registrations/personal-values.js'
 
 // 명령 영수증(기능 017, DEC-84, RULE-45): 같은 명령 번호의 재전송에 처음 결과를 돌려주려고 남긴다. 기록(record)이 아니다.
 // 본문 해시는 신청 본문(이름·학번·휴대폰)에서 나온 가명 정보라 로그·오류·응답에 넣지 않고 24시간 뒤 지운다.
@@ -16,9 +19,10 @@ export type ReceiptKey = {
   commandId: string
 }
 
-// 번호를 뺀 본문의 해시. 같은 값은 같은 해시이고, 칸 사이를 JSON으로 갈라 '가나'+'다'와 '가'+'나다'가 같아지지 않는다.
-export const bodyHashOf = (parts: readonly (string | null)[]) =>
-  createHash('sha256').update(JSON.stringify(parts)).digest('hex')
+// 번호를 뺀 본문의 HMAC(서버 비밀 값 키). 소금 없는 해시는 이름·휴대폰 목록으로 되돌릴 수 있어 쓰지 않는다.
+// 칸 사이를 JSON으로 갈라 '가나'+'다'와 '가'+'나다'가 같아지지 않는다.
+export const bodyHashOf = (secret: string, parts: readonly (string | null)[]) =>
+  createHmac('sha256', secret).update(JSON.stringify(parts)).digest('hex')
 
 const matches = (key: ReceiptKey) =>
   and(
@@ -47,10 +51,21 @@ export async function dropReceipt(tx: Tx, key: ReceiptKey) {
 export async function saveReceipt(
   tx: Tx,
   key: ReceiptKey,
-  saved: { bodyHash: string; resultId: string },
+  saved: { bodyHash: string; resultId: string; resultKind: 'registration' | 'expense' },
   now: Date,
 ) {
-  await tx.insert(commandReceipt).values({ ...key, ...saved, createdAt: now })
+  try {
+    await tx.insert(commandReceipt).values({ ...key, ...saved, createdAt: now })
+  } catch (error) {
+    // 잠금이 틀려 같은 명령 둘이 겹쳐도 UNIQUE가 하나만 남긴다. 500이 아니라 정한 코드로 돌려주고 거래는 물러난다.
+    if (uniqueViolationOf(error)) throw new ApiError('COMMAND_REUSED')
+    throw error
+  }
+}
+
+// 신청을 취소하거나 신청자 정보를 비울 때 그 신청의 영수증도 바로 지운다(DEC-44, DEC-55). 본문 해시도 신청 본문에서 나온 값이다.
+export async function removeReceiptsOf(tx: Pick<Tx, 'execute'>, resultIds: string[]) {
+  await tx.execute(sql`DELETE FROM command_receipt WHERE result_id IN ${idList(resultIds)}`)
 }
 
 // 24시간이 지난 영수증을 지운다. 같은 일을 두 번 해도 같다.

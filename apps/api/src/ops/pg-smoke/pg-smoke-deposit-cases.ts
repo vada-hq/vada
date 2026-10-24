@@ -89,7 +89,7 @@ export const confirmTogetherCase: SmokeCase = {
         const { token } = await main.db.transaction(tx =>
           applyToForm(
             tx,
-            { code: 'DEPSTU22', now: context.now },
+            { code: 'DEPSTU22', now: context.now, receiptKey: 'smoke-receipt-key' },
             { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
           ),
         )
@@ -131,7 +131,7 @@ async function newApplication(main: SmokeConnection, context: SmokeContext) {
   const { token } = await main.db.transaction(tx =>
     applyToForm(
       tx,
-      { code: 'DEPSTV22', now: context.now },
+      { code: 'DEPSTV22', now: context.now, receiptKey: 'smoke-receipt-key' },
       { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
     ),
   )

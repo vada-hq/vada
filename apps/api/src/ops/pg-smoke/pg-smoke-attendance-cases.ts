@@ -86,7 +86,7 @@ async function newRegistration(run: Race) {
   const { token } = await run.main.db.transaction(tx =>
     applyToForm(
       tx,
-      { code: run.code, now: run.context.now },
+      { code: run.code, now: run.context.now, receiptKey: 'smoke-receipt-key' },
       { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
     ),
   )

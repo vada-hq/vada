@@ -44,7 +44,10 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
       trustedOrigin: ORIGIN,
       registrations: createRegistrationRoutes(db, testSession, { clock, ...options }),
       deposits: createDepositRoutes(db, testSession, { clock, ...options }),
-      publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
+      publicRegistrations: createPublicRegistrationRoutes(db, {
+        clock,
+        receiptKey: 'test-receipt-key',
+      }),
     }),
   )
   const orgBase = `/api/organizations/${council.councilId}`

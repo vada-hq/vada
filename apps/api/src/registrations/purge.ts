@@ -2,6 +2,7 @@ import { and, eq, inArray, isNotNull, or, sql } from 'drizzle-orm'
 import { koreanDateOf } from '@vada/contracts'
 import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
+import { removeReceiptsOf } from '../commands/receipt.js'
 import { removeLinks } from './link.js'
 import { clearVersionValues, idList } from './personal-values.js'
 import { purgeOnOf } from './purge-date.js'
@@ -19,6 +20,7 @@ async function clearApplicants(tx: Tx, formIds: string[]) {
   await tx.execute(sql`UPDATE registration SET name = NULL, student_id = NULL, phone = NULL
     WHERE id IN ${idList(ids)} AND (name IS NOT NULL OR student_id IS NOT NULL OR phone IS NOT NULL)`)
   await removeLinks(tx, ids)
+  await removeReceiptsOf(tx, ids)
 }
 
 // 지울 것이 남은 양식(값이 있는 신청이나 개인 링크가 남은 양식)과 지울 날 계산에 쓰는 날짜들

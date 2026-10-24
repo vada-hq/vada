@@ -114,7 +114,9 @@ function appOf(env: Env, db: Db) {
     deposits: createDepositRoutes(db, session),
     settlement: createSettlementRoutes(db, session),
     feePayments: createFeePaymentRoutes(db, session),
-    publicRegistrations: createPublicRegistrationRoutes(db),
+    publicRegistrations: createPublicRegistrationRoutes(db, {
+      receiptKey: env.BETTER_AUTH_SECRET!,
+    }),
   })
 }
 

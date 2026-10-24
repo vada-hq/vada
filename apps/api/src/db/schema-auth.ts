@@ -150,5 +150,6 @@ export const commandReceipt = pgTable('command_receipt', {
   commandId: uuid('command_id').notNull(),
   bodyHash: text('body_hash').notNull(),
   resultId: uuid('result_id').notNull(),
+  resultKind: text('result_kind').notNull(),
   createdAt: at('created_at').notNull().defaultNow(),
 })

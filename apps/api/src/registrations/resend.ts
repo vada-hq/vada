@@ -13,11 +13,10 @@ export const applyKeyOf = (formId: string, commandId: string): ReceiptKey => ({
 })
 
 // 신청 본문(번호는 뺀다)의 해시. 휴대폰은 계약이 이미 공백과 -를 뺀 값이다.
-export const applyBodyHashOf = (input: {
-  name: string
-  studentId: string | null
-  phone: string | null
-}) => bodyHashOf([input.name, input.studentId, input.phone])
+export const applyBodyHashOf = (
+  secret: string,
+  input: { name: string; studentId: string | null; phone: string | null },
+) => bodyHashOf(secret, [input.name, input.studentId, input.phone])
 
 // 이 번호의 신청이 이미 있으면 새 신청을 만들지 않고 같은 신청에 새 개인 링크를 준다(DEC-84).
 // 같은 번호에 다른 본문은 COMMAND_REUSED이고 아무것도 바꾸지 않는다. 신청이 그사이 취소됐으면 영수증을 버려 새 신청으로 받는다(undefined).

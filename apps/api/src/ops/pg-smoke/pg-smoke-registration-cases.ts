@@ -73,7 +73,7 @@ export const applyAs = (
   db.transaction(async tx => {
     const done = await applyToForm(
       tx,
-      { code, now: run.context.now },
+      { code, now: run.context.now, receiptKey: 'smoke-receipt-key' },
       {
         commandId: options.commandId ?? randomUUID(),
         name: '점검 신청자',
