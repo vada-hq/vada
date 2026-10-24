@@ -139,7 +139,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!sendLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
     const roomId = recordIdOf(c.req.param('roomId'))
-    const { body, mentions, photos: keys } = c.req.valid('json')
+    const { body, mentions, photos: keys, notice, taskId } = c.req.valid('json')
     // 사진은 거래 밖에서 저장소를 확인한다(저장소를 기다리는 동안 참여 줄 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
     const photos = keys.length
       ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
@@ -148,7 +148,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
       sendMessage(
         tx,
         await authorize(tx, request),
-        { roomId, body: body ?? '', mentions, photos },
+        { roomId, body: body ?? '', mentions, photos, notice, taskId },
         request.now,
       ),
     )

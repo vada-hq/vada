@@ -58,6 +58,8 @@ export const CreateFormSchema = z
     payerFee: fields.payerFee.default(null),
     nonPayerFee: fields.nonPayerFee.default(null),
     feeAccountId: fields.feeAccountId.default(null),
+    // 이 양식을 이을 업무(기능 015). 이 학생회의 끝나지 않은 업무로 내가 상태를 바꿀 수 있는 것만 된다. 비우거나 빼면 잇지 않는다.
+    taskId: recordIdInput.nullish(),
   })
   .refine(isValidForm)
 export type CreateFormRequest = z.infer<typeof CreateFormSchema>

@@ -1,21 +1,34 @@
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 import type { TaskResult, TaskResultKind } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
-import { record, request, taskResult } from '../db/schema.js'
+import { event, message, record, registrationForm, request, taskResult } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { eventFactsOf, listActionsOf } from '../registrations/policy.js'
 import { stagesOf } from './result-sync.js'
 
 type Reader = Pick<Db, 'select'>
 
+// 공지 결과물의 제목으로 보이는 첫 줄의 길이(글자)
+const TITLE_MAX = 60
+
 // 업무 상세의 결과물: 이 업무에서 만든 것을 만든 순으로, 제목은 지금 제목이고 단계는 그때그때 센다(저장하지 않는다).
-// 지금은 구매 요청만이다. 신청 양식·공지·행사는 조각 4가 종류별 줄을 더한다.
+// 제목은 요청의 제목, 양식과 행사의 이름, 공지의 첫 줄이다.
+const messageTitle = sql<string>`left(split_part(${message.body}, E'
+', 1), ${TITLE_MAX})`
 export async function resultsOf(db: Reader, taskId: string): Promise<TaskResult[]> {
   const rows = await db
-    .select({ id: taskResult.resultId, kind: taskResult.resultKind, title: request.title })
+    .select({
+      id: taskResult.resultId,
+      kind: taskResult.resultKind,
+      title: sql<string>`coalesce(${request.title}, ${registrationForm.name}, ${event.name}, ${messageTitle}, '')`,
+    })
     .from(taskResult)
-    .innerJoin(request, eq(request.id, taskResult.resultId))
     .innerJoin(record, eq(record.id, taskResult.resultId))
+    .leftJoin(request, eq(request.id, taskResult.resultId))
+    .leftJoin(registrationForm, eq(registrationForm.id, taskResult.resultId))
+    .leftJoin(event, eq(event.id, taskResult.resultId))
+    .leftJoin(message, eq(message.id, taskResult.resultId))
     .where(eq(taskResult.taskId, taskId))
     .orderBy(asc(record.createdAt), asc(taskResult.resultId))
   const results = rows.map(row => ({ id: row.id, kind: row.kind as TaskResultKind }))
@@ -29,7 +42,24 @@ export async function resultsOf(db: Reader, taskId: string): Promise<TaskResult[
 }
 
 // 이 업무에서 만들 수 있는 결과물 종류. 업무를 이을 수 있고(canLinkResult를 부르는 쪽이 넘긴다) 그 결과물을 만들 권한이 있을 때다.
-// 지금은 구매 요청(purchase.request)뿐이다.
-export function canMakeOf(actor: Actor, linkable: boolean): TaskResultKind[] {
-  return linkable && can(actor, 'purchase.request') ? ['request'] : []
+// 요청 purchase.request, 양식은 업무의 행사에 만들 수 있을 때(행사 책임자·담당 부서·회장단이고 완료 전, 그 행사에 만든다),
+// 공지 chat.notice, 행사 event.create다. 만든 행사를 업무의 행사로 바꾸지 않는다(권한 맥락이 바뀐다).
+export async function canMakeOf(
+  db: Reader,
+  actor: Actor,
+  task: { linkable: boolean; eventId: string | null; eventOwnerId: string | null },
+): Promise<TaskResultKind[]> {
+  if (!task.linkable) return []
+  const kinds: TaskResultKind[] = []
+  if (can(actor, 'purchase.request')) kinds.push('request')
+  if (task.eventId && (await canMakeForm(db, actor, task.eventId, task.eventOwnerId)))
+    kinds.push('registration_form')
+  if (can(actor, 'chat.notice')) kinds.push('message')
+  if (can(actor, 'event.create')) kinds.push('event')
+  return kinds
+}
+
+async function canMakeForm(db: Reader, actor: Actor, eventId: string, eventOwnerId: string | null) {
+  const facts = await eventFactsOf(db, actor, { eventId, eventOwnerId })
+  return listActionsOf(actor, facts).includes('form.create')
 }
