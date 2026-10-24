@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { EventDetail } from '@vada/contracts'
+import type { ErrorCode, EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { COMPLETION_ERRORS, PERMISSION_CHANGED } from '@/lib/messages'
+import { COMPLETION_ERRORS, COMPLETION_FAILED, PERMISSION_CHANGED } from '@/lib/messages'
 import { useAskingGuard } from '@/lib/use-asking-guard'
 import { CompletionDialog } from './CompletionDialog'
 import { useCompletionPost } from './useCompletionPost'
@@ -19,21 +19,25 @@ type Props = EventDialogHandlers & {
 
 type Asking = 'complete' | 'cancel' | null
 
-type Gone = 'permission' | 'completed' | 'not_completed'
+// 닫는 이유: 권한이 빠졌거나(permission), 서버가 막은 그 쓰기의 오류 코드다.
+type Gone = 'permission' | 'EVENT_COMPLETED' | 'EVENT_NOT_COMPLETED' | ErrorCode
 
-// 서버가 주는 동작 이름: 완료하지 않은 행사는 완료, 완료한 행사는 완료 취소(화면 규칙은 기능 012 조각 2가 고친다).
-const completionActionOf = (event: EventDetail) =>
-  event.status === 'completed' ? 'event.cancel_completion' : 'event.complete'
+const ACTION_OF = { complete: 'event.complete', cancel: 'event.cancel_completion' } as const
 
-// 열려 있는 동안 다시 읽은 행사가 바뀌면 닫고 이유를 보인다: 권한이 빠졌거나, 다른 사람이 이미 완료(또는 완료 취소)했다.
+// 열려 있는 동안 다시 읽은 행사가 그 동작을 빼면 닫고 이유를 보인다. 이유는 서버가 준 blockers(상태가 막음)가 먼저이고,
+// 없으면 다른 사람이 이미 완료(또는 완료 취소)했거나 권한이 빠진 것이다. 상태 때문에 빠진 동작을 권한 잃음으로 다루지 않는다.
 function goneOf(asking: Asking, event: EventDetail): Gone | null {
-  const completed = event.status === 'completed'
-  if (asking === 'complete' && completed) return 'completed'
-  if (asking === 'cancel' && !completed) return 'not_completed'
-  return event.actions.includes(completionActionOf(event)) ? null : 'permission'
+  if (asking === null) return null
+  const action = ACTION_OF[asking]
+  if (event.actions.includes(action)) return null
+  const blocked = event.blockers[action]
+  if (blocked) return blocked
+  if (asking === 'complete' && event.status === 'completed') return 'EVENT_COMPLETED'
+  if (asking === 'cancel' && event.status !== 'completed') return 'EVENT_NOT_COMPLETED'
+  return 'permission'
 }
 
-// 막힌 이유에 맞는 문구로 확인을 닫는다. 권한을 잃었으면 부모에게도 알린다.
+// 닫고 이유를 보인다. 권한을 잃었으면 부모에게도 알린다.
 function closeFor(
   gone: Gone,
   close: (message: string | null) => void,
@@ -43,12 +47,46 @@ function closeFor(
     close(null)
     return onLost(PERMISSION_CHANGED)
   }
-  const code = gone === 'completed' ? 'EVENT_COMPLETED' : 'EVENT_NOT_COMPLETED'
-  close(COMPLETION_ERRORS[code] ?? null)
+  close(COMPLETION_ERRORS[gone] ?? COMPLETION_FAILED)
 }
 
-// 완료와 완료 취소(회장단). 버튼은 서버가 준 동작(event.complete, event.cancel_completion)이 있을 때만 보이고, 완료한 행사에서는 [완료 취소]가 된다.
-// 거절 문구는 버튼 옆에 보인다. 두 번 눌러도 요청은 한 번만 나간다.
+// 지금 보일 버튼: 서버가 준 동작이 정한다. 둘 다 없으면 null이다.
+function modeOf(event: EventDetail): Asking {
+  if (event.actions.includes('event.cancel_completion')) return 'cancel'
+  return event.actions.includes('event.complete') ? 'complete' : null
+}
+
+// 버튼이 없을 때 자리를 채우는 한 줄: 방금 거절 문구가 먼저이고, 없으면 상태가 막은 이유(blockers)다.
+function lineOf(event: EventDetail, problem: string | null) {
+  if (problem) return { kind: 'error' as const, text: problem }
+  const code = event.blockers['event.complete'] ?? event.blockers['event.cancel_completion']
+  return code
+    ? { kind: 'notice' as const, text: COMPLETION_ERRORS[code] ?? COMPLETION_FAILED }
+    : null
+}
+
+type Line = ReturnType<typeof lineOf>
+
+// 버튼 하나, 또는 버튼이 없을 때 그 자리의 한 줄. 버튼이 있으면 거절 문구만 곁에 보인다.
+function CompletionTrigger(props: { mode: Asking; busy: boolean; line: Line; onAsk: () => void }) {
+  const { mode, busy, line, onAsk } = props
+  return (
+    <>
+      {mode !== null && (
+        <Button variant={mode === 'cancel' ? 'outline' : 'default'} disabled={busy} onClick={onAsk}>
+          {mode === 'cancel' ? '완료 취소' : '완료'}
+        </Button>
+      )}
+      {line && (mode === null || line.kind === 'error') && (
+        <StateMessage kind={line.kind}>{line.text}</StateMessage>
+      )}
+    </>
+  )
+}
+
+// 완료와 완료 취소(회장단). 버튼은 서버가 준 동작(event.complete, event.cancel_completion)이 있을 때만 보인다.
+// 둘 다 없고 상태가 막았으면(blockers) 버튼 대신 그 이유 한 줄을 보인다. 거절 문구는 같은 자리에 보이고, 버튼이 사라져도 남는다.
+// 두 번 눌러도 요청은 한 번만 나간다.
 export function EventCompletion({ councilId, event, onDone, onStale, ...handlers }: Props) {
   const [asking, setAsking] = useState<Asking>(null)
   const post = useCompletionPost(councilId, event.id, { ...handlers, onDone })
@@ -60,32 +98,28 @@ export function EventCompletion({ councilId, event, onDone, onStale, ...handlers
   const guarded = useAskingGuard(asking !== null, goneOf(asking, event), gone =>
     closeFor(gone, close, handlers.onLost),
   )
-  if (!event.actions.includes(completionActionOf(event))) return null
-  const completed = event.status === 'completed'
+  const mode = modeOf(event)
+  const line = asking === null ? lineOf(event, post.problem) : null
   async function confirm(reason: string | null) {
     const outcome = await guarded(
-      () => post.send(completed ? 'cancel-completion' : 'complete', { reason }),
+      () => post.send(asking === 'cancel' ? 'cancel-completion' : 'complete', { reason }),
       result => result !== 'failed',
     )
-    if (outcome === 'done' || outcome === 'lost') setAsking(null)
-    if (outcome === 'rejected') {
-      setAsking(null)
-      onStale()
-    }
+    if (outcome !== 'failed') setAsking(null)
+    if (outcome === 'rejected') onStale()
   }
+  if (mode === null && asking === null && !line) return null
   return (
     <div className="flex flex-col items-start gap-2">
-      <Button
-        variant={completed ? 'outline' : 'default'}
-        disabled={post.busy}
-        onClick={() => {
+      <CompletionTrigger
+        mode={mode}
+        busy={post.busy}
+        line={line}
+        onAsk={() => {
           post.report(null)
-          setAsking(completed ? 'cancel' : 'complete')
+          setAsking(mode)
         }}
-      >
-        {completed ? '완료 취소' : '완료'}
-      </Button>
-      {asking === null && post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
+      />
       {asking !== null && (
         <CompletionDialog
           mode={asking}

@@ -73,7 +73,7 @@
 - 닿는 곳: contracts `events.ts`(`EVENT_ACTIONS`, `EventDetail.blockers`, `SetEventOwnerSchema` 뺌), `permissions.ts`, `errors.ts`(`EVENT_NOT_ENDED`). api `policy/locks.ts`(새), `events/policy.ts`(새), `events/completion.ts`, `events/queries.ts`, `events/service.ts`, `events/routes.ts`, `closing/lock.ts`, `settlement/complete.ts`, `settlement/fee-income.ts`, `settlement/queries.ts`, `settlement/routes.ts`, `home/settling.ts`, `access/permissions.ts`, `ops/pg-smoke/pg-smoke-event-cases.ts`. web은 이름만(`lib/messages.ts`, `test-support/event-fixtures.ts`).
 - 검토: 깊게(권한, 돈, 동시 처리). 마이그레이션: 없음.
 
-### 2. 행사 화면이 판정만 쓰기(화면) [ ]
+### 2. 행사 화면이 판정만 쓰기(화면) [x]
 - 할 수 있게 되는 것: 회장단이 끝난 행사에서만 [완료]를, 완료한 행사에서 [완료 취소]를 보고, 막혔으면 이유를 보며, 상태 옆에서 완료 사유를 본다.
 - 수용 기준: [완료]는 `event.complete`, [완료 취소]는 `event.cancel_completion`이 있을 때만 보이고, 둘 다 없고 `blockers`에 있으면 그 자리에 그 코드의 문구 한 줄이 보인다. 화면은 완료 버튼을 `status`·`settled`로 가르지 않는다(`EventCompletion.tsx`, `overview-view.ts`). 확인창이 열린 동안 다시 읽은 행사에서 그 동작이 사라지면 닫고 이유를 보인다(자주 잡힌 것 1, 지금의 `useAskingGuard`). 개요 '챙길 것'의 정산 끝 알림은 `event.complete`가 있을 때만, 예정 행사의 돈 탭에 '정산이 끝났어요'가 없다. 회장단이 남이 만든 행사에서 [고치기]로 저장한다. 완료·완료 취소가 `PERIOD_CLOSED`·`EVENT_NOT_ENDED`·`NO_FISCAL_PERIOD`로 거절되면 '연결 확인' 대신 그 문구가 버튼 옆에 보인다(N4). 상단 상태 배지 옆에 '완료 · 10월 25일 (토) · 이름'과 사유가, 완료를 취소했으면 '완료 취소 · …'와 사유가 보이고, 결재가 없으면 없다. 시험 fixture는 서버가 줄 수 있는 조합만 쓴다. 390px과 데스크톱으로 확인한다.
 - 닿는 곳: web `events/EventCompletion.tsx`, `CompletionDialog.tsx`, `useCompletionPost.ts`, `overview-view.ts`, `EventHeader.tsx`, `SettlementRemaining.tsx`, `lib/messages.ts`, `test-support/event-fixtures.ts`, `ui-gallery/EventSections.tsx`.

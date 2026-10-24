@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { EventAction, EventDetail } from '@vada/contracts'
+import { actorOf } from '../access/actor.js'
 import { isSettled } from '../settlement/remaining.js'
+import { decide, factsOf } from './policy.js'
 import { MISSING, withSettlement, type SettlementKit } from '../test-support/settlement.js'
 
 // 행사 정책(기능 012 조각 1): 화면에 주는 actions·blockers와 서버의 거절이 같은 판정에서 나온다(자주 잡힌 것 11·12).
@@ -173,5 +175,33 @@ test(
     assert.equal((await post(t, `${MISSING}/complete`, {})).status, 404)
     const own = await t.event()
     assert.equal((await post(t, `${own}/owner`, { ownerId: null })).status, 404)
+  }),
+)
+
+test(
+  '읽지 않은 사실은 막는 쪽이다: 고치기만 읽은 사실로 완료·완료 취소를 판정하면 허용이 나오지 않는다',
+  withSettlement(async t => {
+    const pending = await t.event()
+    await t.requestWithItem(pending)
+    const done = await t.event()
+    await t.completion(done, 'completed', new Date('2026-10-24T03:00:00Z'))
+    const { people, councilId } = t.council
+    const actor = await actorOf(
+      t.db,
+      people.president.userId,
+      councilId,
+      new Date('2026-10-25T03:00:00Z'),
+    )
+    assert.ok(actor)
+    const read = async (id: string) => {
+      return factsOf(
+        t.db,
+        actor,
+        { id, name: 'x', ownerId: null, startsAt: new Date('2026-10-24T00:00:00Z'), endsAt: null },
+        { now: new Date('2026-10-25T03:00:00Z'), actions: ['event.update'] },
+      )
+    }
+    assert.notEqual(decide(actor, await read(pending), 'event.complete'), null)
+    assert.notEqual(decide(actor, await read(done), 'event.cancel_completion'), null)
   }),
 )

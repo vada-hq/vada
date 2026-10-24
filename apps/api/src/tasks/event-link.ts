@@ -9,7 +9,7 @@ import { taskContext } from './actions.js'
 // 업무가 이을 행사. 이 학생회의 행사만 valid다. 다른 학생회 행사의 책임자는 맥락에 넣지 않는다(권한이 없는 사람에게 행사가 있는지 드러내지 않는다).
 type EventLink = { valid: boolean; ownerId: string | null }
 
-// 쓰기 거래 안에서 부른다. 학생회 행 잠금이 책임자 바꾸기와 줄을 세우므로, 여기서 읽은 책임자는 거래가 끝날 때까지 바뀌지 않는다.
+// 쓰기 거래 안에서 부른다. 행사를 고치는 쓰기와 학생회 행 잠금으로 줄을 서므로, 여기서 읽은 행사는 거래가 끝날 때까지 바뀌지 않는다.
 export async function eventLinkOf(
   tx: Tx,
   actor: Actor,

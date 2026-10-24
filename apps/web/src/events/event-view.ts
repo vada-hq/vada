@@ -1,4 +1,4 @@
-import type { EventStatus, EventSummary } from '@vada/contracts'
+import { koreanOf, type EventStatus, type EventSummary } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
 export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
@@ -18,6 +18,7 @@ export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'succes
 
 export type EventTab = 'overview' | 'tasks' | 'registrations' | 'money'
 
+const YEAR_LENGTH = 4
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 // 한국 시각 'YYYY-MM-DDTHH:mm' → '10월 25일 (토) 14:00'. 요일은 날짜만으로 센다(시간대에 기대지 않는다).
@@ -29,6 +30,14 @@ function dayTime(value: string) {
 }
 
 export const momentLabel = (value: string) => dayTime(value).text
+
+// ISO 시각 → '10월 25일 (토)'(한국 날짜). 올해가 아니면 앞에 '2026년'을 붙인다.
+export function dayLabel(iso: string, now: Date = new Date()) {
+  const { date, weekday } = dayTime(koreanOf(new Date(iso)))
+  const label = `${monthDay(date)} (${weekday})`
+  const year = date.slice(0, YEAR_LENGTH)
+  return year === koreanOf(now).slice(0, YEAR_LENGTH) ? label : `${year}년 ${label}`
+}
 
 // '10월 25일 (토) 14:00 ~ 18:00'. 끝이 다른 날이면 끝에도 날짜를 쓴다. 시작이 없으면 '날짜 미정'이다.
 export function whenLabel(event: Pick<EventSummary, 'startsAt' | 'endsAt'>) {

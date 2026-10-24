@@ -4,6 +4,7 @@ import type { EventDetail } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
+import { ApprovalNote } from './ApprovalNote'
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from './event-view'
 import { EventEditDialog } from './EventEditDialog'
 import type { EventFieldFocus } from './EventFields'
@@ -109,6 +110,7 @@ export function EventHeader({
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
           <h2 className="min-w-0 text-xl font-bold text-gray-900 wrap-anywhere">{event.name}</h2>
           <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
+          <ApprovalNote approvals={event.approvals} />
         </div>
         {canEdit && (
           <Button variant="outline" onClick={() => setEditing({ focus: undefined })}>

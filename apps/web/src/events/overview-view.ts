@@ -44,8 +44,17 @@ function taskAttention(tasks: TaskSummary[]): Attention[] {
   return items
 }
 
-// 끝난 행사만 정산을 챙긴다. 끝나기 전의 남은 것은 아직 진행 중인 일이다(홈 회장단 카드와 같다, screens.md).
+// 정산이 끝나 완료할 수 있으면(서버가 event.complete를 줌) 완료를 알리고, 끝난 행사의 남은 정산은 챙긴다.
+// 끝나기 전의 남은 것은 아직 진행 중인 일이다(홈 회장단 카드와 같다, screens.md).
 function settlementAttention(event: EventDetail, settlement: EventSettlement): Attention | null {
+  if (event.actions.includes('event.complete'))
+    return {
+      key: 'complete',
+      title: '정산이 끝났어요',
+      value: null,
+      detail: '예산·정산 탭에서 행사를 완료할 수 있어요.',
+      tone: 'info',
+    }
   if (event.status !== 'ended') return null
   const left = settlement.remaining.filter(row => row.count > 0)
   if (!settlement.settled && left.length > 0)
@@ -55,14 +64,6 @@ function settlementAttention(event: EventDetail, settlement: EventSettlement): A
       value: `${left.reduce((sum, row) => sum + row.count, 0)}개`,
       detail: left.map(row => REMAINING_LABEL[row.kind]).join(' · '),
       tone: 'warning',
-    }
-  if (settlement.settled && !settlement.completed && event.actions.includes('event.complete'))
-    return {
-      key: 'complete',
-      title: '정산이 끝났어요',
-      value: null,
-      detail: '예산·정산 탭에서 행사를 완료할 수 있어요.',
-      tone: 'info',
     }
   return null
 }

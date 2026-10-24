@@ -21,7 +21,7 @@ type Reader = Pick<Db, 'select'>
 
 type FeePeriodProblem = Awaited<ReturnType<typeof feePeriodProblemOf>>
 
-// 판정에 드는 사실. 동작 하나가 보지 않는 사실은 읽지 않아 기본값이다(decide는 앞선 검사가 막으면 그 사실에 닿지 않는다).
+// 판정에 드는 사실. 동작 하나가 보지 않는 사실은 읽지 않아 막는 쪽 기본값이다: 읽지 않은 사실로 판정하면 허용이 아니라 거절이 나온다(맥락이 없으면 거부).
 export type EventFacts = {
   ownerId: string | null
   status: EventStatus
@@ -77,9 +77,9 @@ export async function factsOf(
   const facts: EventFacts = {
     ownerId: row.ownerId,
     status,
-    settlementPending: false,
-    feePeriodProblem: null,
-    completionPeriodClosed: false,
+    settlementPending: true,
+    feePeriodProblem: 'PERIOD_CLOSED',
+    completionPeriodClosed: true,
   }
   if (!roleAllows(actor, 'event.complete')) return facts
   if (status === 'completed' && actions.includes('event.cancel_completion'))

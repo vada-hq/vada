@@ -5,6 +5,9 @@ import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { EVENT_COMPLETED_NOTICE } from '@/lib/messages'
+import StateMessage from '@/components/StateMessage'
+import { ApprovalNote } from '@/events/ApprovalNote'
+import { COMPLETION_ERRORS } from '@/lib/messages'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
@@ -65,6 +68,18 @@ export function SettlementSection() {
           onOpenRequest={noop}
           onOpenExpense={noop}
         />
+        <ApprovalNote
+          now={new Date('2026-10-25T03:00:00.000Z')}
+          approvals={[
+            {
+              outcome: 'completion_cancelled',
+              by: { id: 'p1', name: '김새내' },
+              at: '2026-10-25T03:00:00.000Z',
+              reason: longName,
+            },
+          ]}
+        />
+        <StateMessage kind="notice">{COMPLETION_ERRORS.EVENT_NOT_ENDED}</StateMessage>
         <div className="flex gap-2">
           <Button>완료</Button>
           <Button variant="outline">완료 취소</Button>

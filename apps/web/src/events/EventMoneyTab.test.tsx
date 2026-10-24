@@ -13,6 +13,7 @@ import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
 import { COMPLETION_ERRORS, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 import EventDetailView from './EventDetailView'
+import { dayLabel } from './event-view'
 
 afterEach(() => {
   cleanup()
@@ -248,6 +249,70 @@ test('확인을 열어 둔 사이 다른 사람이 완료하면 닫고 이미 �
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.EVENT_COMPLETED)
   await settle()
+})
+
+test('상태가 막은 완료는 버튼 대신 그 이유 한 줄이 보이고, 정산이 끝났어요는 없다', async () => {
+  openMoney(event({ status: 'upcoming', blockers: { 'event.complete': 'EVENT_NOT_ENDED' } }, []))
+  await screen.findByText('지출 예산')
+  expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
+  expect(screen.getByText(COMPLETION_ERRORS.EVENT_NOT_ENDED!)).toBeTruthy()
+  expect(screen.queryByText('정산이 끝났어요')).toBeNull()
+})
+
+test('기간이 공개돼 막힌 완료 취소도 버튼 대신 이유 한 줄이 보인다', async () => {
+  const blockers = { 'event.cancel_completion': 'PERIOD_CLOSED' } as const
+  openMoney(event({ status: 'completed', blockers }, []))
+  await screen.findByText('지출 예산')
+  expect(screen.queryByRole('button', { name: '완료 취소' })).toBeNull()
+  expect(screen.getByText(COMPLETION_ERRORS.PERIOD_CLOSED!)).toBeTruthy()
+})
+
+test('거절 뒤 다시 읽은 행사에서 버튼이 사라져도 거절 문구는 남는다', async () => {
+  const { api, serve } = openMoney()
+  api.on('POST', `${EVENT}/complete`, () => json({ error: 'SETTLEMENT_PENDING' }, 409))
+  await screen.findByText('지출 예산')
+  fireEvent.click(await screen.findByRole('button', { name: '완료' }))
+  serve(event({ blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }, []))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
+  await waitFor(() => expect(screen.queryByRole('button', { name: '완료' })).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.SETTLEMENT_PENDING)
+})
+
+test('확인을 열어 둔 사이 정산이 다시 생겨 막히면 권한 문구 없이 그 이유로 닫는다', async () => {
+  const { handlers, serve } = openMoney()
+  fireEvent.click(await screen.findByRole('button', { name: '완료' }))
+  await screen.findByRole('dialog')
+  serve(event({ blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }, []))
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.SETTLEMENT_PENDING)
+  expect(handlers.onLost).not.toHaveBeenCalled()
+})
+
+test('상태 옆에 마지막 완료·완료 취소 결재의 이름, 날짜, 사람, 사유가 보이고, 결재가 없으면 없다', async () => {
+  const approvals = [
+    {
+      outcome: 'completed',
+      by: { id: 'm1', name: '김회장' },
+      at: '2026-10-24T03:00:00.000Z',
+      reason: null,
+    },
+    {
+      outcome: 'completion_cancelled',
+      by: { id: 'm1', name: '김회장' },
+      at: '2026-10-25T03:00:00.000Z',
+      reason: '금액을 잘못 적음',
+    },
+  ] as const
+  openMoney(event({ approvals: [...approvals] }, []))
+  const note = await screen.findByLabelText('완료 사유')
+  expect(note.textContent).toBe(
+    `완료 취소 · ${dayLabel('2026-10-25T03:00:00.000Z')} · 김회장금액을 잘못 적음`,
+  )
+  cleanup()
+  openMoney(event({}, []))
+  await screen.findByText('지출 예산')
+  expect(screen.queryByLabelText('완료 사유')).toBeNull()
 })
 
 test('정산을 불러오지 못하면 다시 시도할 수 있다', async () => {
