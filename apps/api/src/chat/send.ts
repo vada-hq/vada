@@ -3,7 +3,6 @@ import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { chatRoom, message, roomMembership } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
-import { lockCouncil } from '../access/authorize.js'
 import { can } from '../access/permissions.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
@@ -13,6 +12,7 @@ import { messageOf } from './messages.js'
 import type { VerifiedPhoto } from '../storage/uploads.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
+import { isNoticeRoom } from './plan-room.js'
 import { roomAccess } from './room-access.js'
 
 type SendInput = {
@@ -85,11 +85,10 @@ export async function sendMessage(
   input: SendInput,
   now: Date,
 ): Promise<ChatMessage> {
-  // 공지에 업무를 이으면 업무 상태를 옮기는 쓰기라, 다른 직원 쓰기처럼 학생회 행을 먼저 잠근다(맨 앞 잠금).
-  if (input.taskId) await lockCouncil(tx, actor.councilId)
+  // 업무를 잇는 보내기는 부르는 쪽(routes)이 학생회 행을 잠근 뒤 권한을 다시 본 actor(authorizeChange)로 부른다.
   const room = await roomAccess(tx, actor, input.roomId)
   // 공지는 전체방에서 chat.notice만 올린다(DEC-14). 공지 표시를 붙이고 떼는 길(markNotice)과 같은 조건이다.
-  if (input.notice && (room.type !== 'all_members' || !can(actor, 'chat.notice')))
+  if (input.notice && (!isNoticeRoom(room) || !can(actor, 'chat.notice')))
     throw new ApiError('FORBIDDEN')
   const [mine] = await tx
     .select({ memberId: roomMembership.memberId })

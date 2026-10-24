@@ -12,7 +12,12 @@ type Reader = Pick<Db, 'select'>
 // 다른 학생회의 방은 있는지조차 드러내지 않아 없는 방과 같은 답이다.
 export async function roomAccess(db: Reader, actor: Actor, roomId: string) {
   const [room] = await db
-    .select({ id: chatRoom.id, type: chatRoom.type, departmentId: chatRoom.departmentId })
+    .select({
+      id: chatRoom.id,
+      type: chatRoom.type,
+      departmentId: chatRoom.departmentId,
+      eventId: chatRoom.eventId,
+    })
     .from(chatRoom)
     .innerJoin(record, eq(record.id, chatRoom.id))
     .where(and(eq(chatRoom.id, roomId), eq(record.councilId, actor.councilId)))

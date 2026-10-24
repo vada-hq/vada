@@ -1,5 +1,6 @@
 import { closeAndSpendCase, mainAccountTogetherCase } from './pg-smoke-account-cases.js'
 import { finishTogetherCase } from './pg-smoke-finish-case.js'
+import { noticeAndRequestTogetherCase } from './pg-smoke-notice-case.js'
 import { expenseTogetherCase } from './pg-smoke-expense-cases.js'
 import { sendAndRemoveCase, sendTogetherCase } from './pg-smoke-chat-cases.js'
 import {
@@ -52,6 +53,7 @@ export {
   decideTogetherCase,
   expenseTogetherCase,
   finishTogetherCase,
+  noticeAndRequestTogetherCase,
   joinTwiceCase,
   lastSeatTogetherCase,
   publishAndCompleteCase,
@@ -81,6 +83,7 @@ export const smokeCases: readonly SmokeCase[] = [
   cancelAndDecideCase,
   cancelItemAndPayCase,
   finishTogetherCase,
+  noticeAndRequestTogetherCase,
   expenseTogetherCase,
   mainAccountTogetherCase,
   closeAndSpendCase,

@@ -18,7 +18,13 @@ import {
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
-import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
+import {
+  authorize,
+  authorizeChange,
+  councilIdOf,
+  inCouncilChange,
+  recordIdOf,
+} from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
@@ -144,10 +150,11 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
     const photos = keys.length
       ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
       : []
+    // 업무를 잇는 공지는 업무 상태를 옮기는 쓰기라 다른 직원 쓰기처럼 학생회 행을 잠근 뒤 권한을 다시 본다.
     const sent = await sentIn(db, async tx =>
       sendMessage(
         tx,
-        await authorize(tx, request),
+        await (taskId ? authorizeChange(tx, request) : authorize(tx, request)),
         { roomId, body: body ?? '', mentions, photos, notice, taskId },
         request.now,
       ),
