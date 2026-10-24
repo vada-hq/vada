@@ -12,6 +12,9 @@ const EMAIL_IN_USE =
 // 화면마다 서버 오류 코드를 문구로 바꾸는 표. 표에 없는 코드는 그 화면의 일반 실패 문구로 보인다.
 export const NOT_FOUND_RELOADED = '이미 바뀌었어요. 목록을 새로 불러왔어요.'
 
+// 업무에서 결과물을 만들 때 그 업무를 이을 수 없다(없어졌거나 끝났거나 취소됐거나 권한이 없다).
+export const TASK_INVALID = '이 업무에는 결과물을 만들 수 없어요. 끝났거나 취소됐을 수 있어요.'
+
 // 가입 동의 화면: 보여 준 뒤 약관이 바뀌었다(서버 TERMS_OUTDATED). 새 판을 다시 읽어 보인다.
 export const AGREEMENT_ERRORS: Record<string, string> = {
   TERMS_OUTDATED: '약관이 바뀌었어요. 새 내용을 확인하고 다시 동의해 주세요.',
@@ -86,6 +89,7 @@ export const DIRECT_PEOPLE_FAILED = '운영진을 불러오지 못했어요. 연
 // 행사(목록, 상세, 만들기, 고치기). 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const EVENT_ERRORS: Record<string, string> = {
   MEMBER_INVALID: '이 학생회의 지금 운영진만 행사를 만들 수 있어요.',
+  TASK_INVALID,
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
@@ -134,6 +138,7 @@ export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어�
 export const SEND_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 보내 주세요.',
   ROOM_READ_ONLY: '이 방은 보기만 할 수 있어요.',
+  TASK_INVALID,
   INVALID_INPUT: '보낼 수 없는 내용이에요. 글과 사진을 확인해 주세요.',
   UPLOAD_MISMATCH: '올린 사진을 확인하지 못했어요. 그 사진을 빼고 다시 올려 주세요.',
   STORAGE_NOT_CONFIGURED:
@@ -177,6 +182,7 @@ export const PURCHASE_ERRORS: Record<string, string> = {
   EVENT_COMPLETED:
     '완료한 행사의 요청이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
   MEMBER_INVALID: '요청한 사람이 지금 운영진이 아니에요. 다른 사람을 골라 주세요.',
+  TASK_INVALID,
   MESSAGE_INVALID:
     '이 메시지를 더는 볼 수 없어 요청을 낼 수 없어요. 방에서 나갔는지 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',

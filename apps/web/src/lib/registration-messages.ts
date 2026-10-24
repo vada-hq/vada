@@ -1,4 +1,5 @@
 // 참가 신청(기능 007)의 안내 문구. 여러 화면이 같이 쓰는 문구는 messages.ts에 있다.
+import { TASK_INVALID } from './messages'
 
 // 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.
 export const REGISTRATION_LOST = '신청 정보를 찾을 수 없어요. 링크를 다시 확인해 주세요.'
@@ -23,6 +24,7 @@ export const CANCEL_REGISTRATION_FAILED = '취소하지 못했어요. 연결을 
 
 // 운영진의 참가 신청 화면(기능 007): 양식 만들기·고치기·멈추기, 신청자, 출석
 export const REGISTRATION_STAFF_ERRORS: Record<string, string> = {
+  TASK_INVALID,
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   CHECKED_IN: '이미 출석한 신청이에요. 출석을 먼저 취소해 주세요.',

@@ -8,6 +8,8 @@ import { useEventSubmit, type EventDialogHandlers } from './useEventSubmit'
 
 type Props = EventDialogHandlers & {
   view: CouncilView
+  // 업무 상세에서 열면 그 업무(기능 015). 만든 행사가 업무에 이어진다.
+  taskId?: string
   onClose: () => void
   onDone: (event: EventDetail) => void
 }
@@ -33,9 +35,13 @@ type FormProps = Props & {
   setSaving: (saving: boolean) => void
 }
 
-function CreateForm({ view, saving, setSaving, onClose, ...handlers }: FormProps) {
+function CreateForm({ view, saving, setSaving, onClose, taskId, ...handlers }: FormProps) {
   const [values, setValues] = useState(emptyEventFields)
-  const request = { ...eventFieldsRequest(values), ownerId: view.me.memberId }
+  const request = {
+    ...eventFieldsRequest(values),
+    ownerId: view.me.memberId,
+    ...(taskId ? { taskId } : {}),
+  }
   const submit = useEventSubmit(eventsPath(view.council.id), CreateEventSchema, request, {
     ...handlers,
     setSaving,

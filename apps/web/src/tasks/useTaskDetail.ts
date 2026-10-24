@@ -8,17 +8,10 @@ import { problemText, reportLost, type TaskDialogHandlers } from './task-request
 export type TaskWhere = 'status' | 'department' | 'assignee' | 'edit' | 'delete'
 export type TaskProblem = { where: TaskWhere; text: string }
 
-// 업무 하나를 읽고 바꾼다. 바꾸는 요청은 한 번에 하나만 나가고, 응답으로 받은 업무가 화면의 값이 된다.
-export function useTaskDetail(councilId: string, taskId: string, handlers: TaskDialogHandlers) {
-  const base = `/api/organizations/${encodeURIComponent(councilId)}/tasks/${encodeURIComponent(taskId)}`
+// 업무 하나를 읽는다. attempt가 바뀌면 다시 읽고, 읽는 동안에도 이미 받은 업무는 그대로 둔다.
+function useTaskRead(base: string, attempt: number, latest: { current: TaskDialogHandlers }) {
   const [task, setTask] = useState<TaskDetail | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
-  const [attempt, setAttempt] = useState(0)
-  const [saving, setSaving] = useState(false)
-  const [problem, setProblem] = useState<TaskProblem | null>(null)
-  const sending = useRef(false)
-  const latest = useLatest(handlers)
-
   useEffect(() => {
     const controller = new AbortController()
     setLoadFailed(false)
@@ -29,6 +22,18 @@ export function useTaskDetail(councilId: string, taskId: string, handlers: TaskD
     })
     return () => controller.abort()
   }, [base, attempt, latest])
+  return { task, setTask, loadFailed }
+}
+
+// 업무 하나를 읽고 바꾼다. 바꾸는 요청은 한 번에 하나만 나가고, 응답으로 받은 업무가 화면의 값이 된다.
+export function useTaskDetail(councilId: string, taskId: string, handlers: TaskDialogHandlers) {
+  const base = `/api/organizations/${encodeURIComponent(councilId)}/tasks/${encodeURIComponent(taskId)}`
+  const [attempt, setAttempt] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [problem, setProblem] = useState<TaskProblem | null>(null)
+  const sending = useRef(false)
+  const latest = useLatest(handlers)
+  const { task, setTask, loadFailed } = useTaskRead(base, attempt, latest)
 
   // 성공하면 true다. 지우기는 본문 없는 204라 받은 업무가 없다.
   const send = useCallback(
@@ -49,7 +54,7 @@ export function useTaskDetail(councilId: string, taskId: string, handlers: TaskD
         setProblem({ where, text: problemText(result.code) })
       return false
     },
-    [base, latest],
+    [base, latest, setTask],
   )
 
   return {
@@ -59,6 +64,11 @@ export function useTaskDetail(councilId: string, taskId: string, handlers: TaskD
     problem,
     send,
     retry: () => setAttempt(value => value + 1),
+    // 결과물을 만든 뒤: 업무와 목록을 다시 읽는다(상태가 저절로 바뀌었을 수 있다).
+    refresh: () => {
+      latest.current.onChanged()
+      setAttempt(value => value + 1)
+    },
     clearProblem: () => setProblem(null),
   }
 }

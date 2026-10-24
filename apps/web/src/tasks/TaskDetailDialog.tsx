@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CouncilView, TaskAction, TaskDetail } from '@vada/contracts'
+import type { CouncilView, TaskAction, TaskDetail, TaskResultKind } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,8 @@ import type { TaskDialogHandlers } from './task-requests'
 import { versionLine } from './task-text'
 import { TaskEditForm } from './TaskEditForm'
 import { TaskFacts } from './TaskFacts'
+import { TaskMake } from './TaskMake'
+import { TaskResults } from './TaskResults'
 import { useTaskDetail } from './useTaskDetail'
 
 type Props = TaskDialogHandlers & {
@@ -52,6 +54,7 @@ function OpenTaskDialog({
             task={detail.task}
             detail={detail}
             onForbidden={handlers.onForbidden}
+            onLost={handlers.onLost}
             onOpenEvent={onOpenEvent}
             onClose={onClose}
           />
@@ -75,12 +78,14 @@ type LoadedProps = {
   task: TaskDetail
   detail: ReturnType<typeof useTaskDetail>
   onForbidden: () => void
+  onLost: (message: string) => void
   onOpenEvent: Props['onOpenEvent']
   onClose: () => void
 }
 
-function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: LoadedProps) {
+function Loaded({ view, task, detail, onForbidden, onLost, onOpenEvent, onClose }: LoadedProps) {
   const [editing, setEditing] = useState(false)
+  const [making, setMaking] = useState<TaskResultKind | null>(null)
   if (editing)
     return (
       <TaskEditForm
@@ -113,6 +118,21 @@ function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: Loade
       />
       {task.body && (
         <p className="text-sm wrap-anywhere whitespace-pre-wrap text-gray-800">{task.body}</p>
+      )}
+      <TaskResults task={task} saving={detail.saving} onMake={setMaking} />
+      {making && (
+        <TaskMake
+          view={view}
+          task={task}
+          kind={making}
+          onClose={() => setMaking(null)}
+          onMade={() => {
+            setMaking(null)
+            detail.refresh()
+          }}
+          onLost={onLost}
+          onForbidden={onForbidden}
+        />
       )}
       {(task.actions.includes('task.edit') || task.actions.includes('task.remove')) && (
         <ManageButtons

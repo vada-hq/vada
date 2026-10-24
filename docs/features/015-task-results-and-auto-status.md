@@ -87,7 +87,7 @@
 - 닿는 곳: contracts `registrations.ts`, `chat.ts`(`SendMessageSchema`), `events.ts`, api `registrations/service.ts`, `chat/send.ts`·`routes.ts`, `events/service.ts`, 각 도메인의 단계 셈, `tasks/result-sync.ts`, `http/boundary.test.ts`.
 - 검토: 깊게(권한, 대화 보내기 경로). 마이그레이션: 없음.
 
-### 5. 업무 상세의 결과물과 만들기(화면) [ ]
+### 5. 업무 상세의 결과물과 만들기(화면) [x]
 - 할 수 있게 되는 것: 운영진이 업무 상세에서 결과물을 보고 '○○ 만들기'로 바로 만든다.
 - 수용 기준: 업무 상세에 '결과물' 묶음이 있고 줄마다 종류·제목·단계('진행 중', '끝남', '취소')가 보이며, 없으면 '결과물 없음'이다. `canMake`에 있는 것만 [구매 요청 만들기]·[신청 양식 만들기]·[공지 만들기]·[행사 만들기]가 보인다. 각 버튼은 지금의 만들기 대화상자를 열고(요청은 제목·행사가 업무에서 채워짐, 양식은 업무의 행사로, 공지는 글 하나), 만들면 업무 상세가 새로 그려져 결과물과 바뀐 상태가 보인다. 이력에 저절로 바뀐 판이 '저절로: 구매 요청 냄' 꼴로 보인다(이름 없는 사람 문구가 아니다). 409 `TASK_INVALID`는 버튼 옆 문구, 403·404는 닫고 이유(자주 잡힌 것 1, `useDialogGuard`), 두 번 누름을 막는다. 390px과 데스크톱으로 확인하고 와이어프레임 업무 상세와 비교한다.
 - 닿는 곳: `apps/web/src/tasks/TaskDetailDialog.tsx`, 새 결과물 묶음 부품, `TaskHistory.tsx`·`task-text.ts`, `finance/RequestCreateDialog.tsx`, `events/EventCreateDialog.tsx`, 신청 양식 만들기 부품(`events/FormEditor.tsx` 쪽), 공지 대화상자(새), `lib/messages.ts`, `ui-gallery/`.
