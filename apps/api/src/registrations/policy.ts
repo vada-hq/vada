@@ -17,7 +17,7 @@ type Reader = Pick<Db, 'select'>
 
 // 신청 양식 정책(기능 012): 화면에 주는 동작(actions)과 서버의 거절이 같은 decide에서 나온다.
 // 읽기는 factsOf(또는 이미 읽은 값으로 factsFrom) → actionsOf, 쓰기는 행사 행 잠금을 잡은 뒤 같은 거래에서 factsOf → decide → 던짐이다.
-// 규칙의 원문은 logical-model RULE-11(완료한 행사는 바꾸지 않는다: 신청자 보기는 읽기라 남는다)과 RULE-27(양식 상태)이다.
+// 규칙의 원문은 logical-model RULE-11(완료한 행사는 바꾸지 않는다: 신청자 보기는 읽기라 남는다)과 RULE-27, RULE-43(양식 상태)이다.
 
 type FormPolicyAction = FormAction | FormListAction
 
