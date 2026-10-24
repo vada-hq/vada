@@ -23,13 +23,16 @@ const fee = z.number().int().min(0).max(REGISTRATION_FEE_MAX)
 const capacity = z.number().int().min(1).max(REGISTRATION_CAPACITY_MAX)
 
 // 마감은 필수이고 시작 뒤다. 참가비 두 값은 둘 다 있거나 둘 다 없다. 일시는 한국 시각이라 글자 순서가 시간 순서다.
+// 두 참가비가 다르면 학번을 꼭 받는다. 적용 참가비를 납부자 명단과 학번으로 정하기 때문이다(DEC-75, DB CHECK와 같다).
+type FeePair = { payerFee: number | null; nonPayerFee: number | null }
 const hasValidSpan = (input: { opensAt: string | null; closesAt: string }) =>
   input.opensAt === null || input.closesAt > input.opensAt
-const hasFeePair = (input: { payerFee: number | null; nonPayerFee: number | null }) =>
-  (input.payerFee === null) === (input.nonPayerFee === null)
+const hasFeePair = (input: FeePair) => (input.payerFee === null) === (input.nonPayerFee === null)
+const collectsNeededStudentId = (input: FeePair & { collectsStudentId: boolean }) =>
+  input.collectsStudentId || input.payerFee === input.nonPayerFee
 const isValidForm = (
-  input: Parameters<typeof hasValidSpan>[0] & Parameters<typeof hasFeePair>[0],
-) => hasValidSpan(input) && hasFeePair(input)
+  input: Parameters<typeof hasValidSpan>[0] & Parameters<typeof collectsNeededStudentId>[0],
+) => hasValidSpan(input) && hasFeePair(input) && collectsNeededStudentId(input)
 
 // 양식 만들기와 고치기(관리 권한자). 고치기도 칸을 모두 받아 그대로 바꾼다. 공개 코드는 만들 때 정해 바꾸지 않으므로 받지 않는다.
 const fields = {
@@ -39,6 +42,7 @@ const fields = {
   capacity: capacity.nullable(),
   notice: text(REGISTRATION_NOTICE_MAX).nullable(),
   collectsPhone: z.boolean(),
+  collectsStudentId: z.boolean(),
   payerFee: fee.nullable(),
   nonPayerFee: fee.nullable(),
   feeAccountId: recordIdInput.nullable(),
@@ -50,6 +54,8 @@ export const CreateFormSchema = z
     capacity: fields.capacity.default(null),
     notice: fields.notice.default(null),
     collectsPhone: fields.collectsPhone.default(false),
+    // 새 양식은 학번을 받는다(DEC-75). 같은 이름의 신청자를 가리고 입금을 대조하는 데 쓴다.
+    collectsStudentId: fields.collectsStudentId.default(true),
     payerFee: fields.payerFee.default(null),
     nonPayerFee: fields.nonPayerFee.default(null),
     feeAccountId: fields.feeAccountId.default(null),
@@ -81,6 +87,7 @@ export interface RegistrationForm {
   capacity: number | null
   notice: string | null
   collectsPhone: boolean
+  collectsStudentId: boolean
   paused: boolean
   // 포스터와 QR에 찍히므로 만들 때 정하고 바꾸지 않는다.
   publicCode: string
@@ -117,13 +124,13 @@ export interface PublicRegistrationForm {
   remaining: number | null
   payerFee: number | null
   nonPayerFee: number | null
-  // 두 참가비가 다를 때만 학번을 받는다(DEC-62).
+  // 양식의 학번 받기(DEC-75). 두 참가비가 다르면 늘 true다.
   collectsStudentId: boolean
   collectsPhone: boolean
   purgeOn: string
 }
 
-// 신청(기능 007 조각 3). 학번은 두 참가비가 다를 때만, 휴대폰은 받을 때만 받는다. 받는 칸인지는 서버가 양식으로 본다(409 FORM_CHANGED).
+// 신청(기능 007 조각 3). 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75). 받는 칸인지는 서버가 양식으로 본다(409 FORM_CHANGED).
 export const STUDENT_ID_PATTERN = /^[0-9]{6,12}$/
 export const PHONE_PATTERN = /^01[0-9]{8,9}$/
 // 휴대폰은 공백과 '-'가 섞여 와도 받는다(010-1234-5678). 줄이기 전 글자 수의 상한이다.
@@ -188,7 +195,7 @@ export const APPLICANT_LIST_LIMIT = 5000
 export interface Applicant {
   id: string
   name: string
-  // 학번은 두 참가비가 다른 양식에서만 받는다.
+  // 학번은 학번을 받는 양식에서만 있다(DEC-75). 받기를 끄기 전에 받은 학번은 남는다.
   studentId: string | null
   phone: string | null
   appliedFee: number

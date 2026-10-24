@@ -54,6 +54,8 @@ async function oneSeatForm(run: Race, round: number) {
         closesAt: new Date(run.context.now.getTime() + CLOSES_IN_HOURS * HOUR_MS),
         capacity: 1,
         publicCode: code,
+        // 이름만으로 신청하므로 학번 받기를 끈다(DEC-75).
+        collectsStudentId: false,
       },
     }),
   )

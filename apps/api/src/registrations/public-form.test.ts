@@ -115,7 +115,7 @@ test(
 )
 
 test(
-  '학번은 두 참가비가 다를 때만 받는다. 참가비가 없거나 같으면 받지 않고 두 값은 null이거나 그 값이다',
+  '학번 받기는 양식의 칸 그대로다: 빼면 받고 끄면 받지 않으며, 두 참가비는 null이거나 그 값이다(DEC-75)',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const account = await t.makeAccount()
@@ -124,12 +124,19 @@ test(
     const none = await read({})
     assert.deepEqual(
       [none.collectsStudentId, none.payerFee, none.nonPayerFee, none.collectsPhone],
-      [false, null, null, false],
+      [true, null, null, false],
     )
-    const same = await read({ payerFee: 3000, nonPayerFee: 3000, feeAccountId: account })
+    const off = await read({ collectsStudentId: false })
+    assert.equal(off.collectsStudentId, false)
+    const same = await read({
+      payerFee: 3000,
+      nonPayerFee: 3000,
+      feeAccountId: account,
+      collectsStudentId: false,
+    })
     assert.deepEqual([same.collectsStudentId, same.payerFee, same.nonPayerFee], [false, 3000, 3000])
     const free = await read({ payerFee: 0, nonPayerFee: 0 })
-    assert.equal(free.collectsStudentId, false)
+    assert.equal(free.collectsStudentId, true)
     const differ = await read({ payerFee: 0, nonPayerFee: 3000, feeAccountId: account })
     assert.equal(differ.collectsStudentId, true)
   }),

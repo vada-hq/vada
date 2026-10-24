@@ -64,7 +64,7 @@ test(
   '참가비가 같은 양식은 납부자 여부가 null이고, 취소한 신청은 없으며, 같은 행사의 같은 학번은 양식이 달라도 표시된다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const first = (await t.created(event, { name: '하나' })).form
+    const first = (await t.created(event, { name: '하나', collectsStudentId: false })).form
     const gone = await t.applied(first.publicCode, { name: '취소함', studentId: null, phone: null })
     await t.applied(first.publicCode, { name: '가', studentId: null, phone: null })
     assert.equal((await t.cancelMine(gone)).status, 200)

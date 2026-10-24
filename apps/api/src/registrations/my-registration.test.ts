@@ -208,7 +208,7 @@ test(
   '취소하면 자리가 돌아온다. 멈춘 양식에서도 취소된다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event, { capacity: 1 })
+    const { form } = await t.created(event, { capacity: 1, collectsStudentId: false })
     const token = await t.applied(form.publicCode, { name: '가' })
     assert.equal((await t.apply(form.publicCode, { name: '나' })).status, 409)
     await t.post(`/registration-forms/${form.id}/pause`, {})

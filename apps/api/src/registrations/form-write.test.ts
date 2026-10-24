@@ -232,6 +232,8 @@ test(
       { ...FORM, capacity: 1.5 },
       { ...FORM, capacity: '3' },
       { ...FORM, collectsPhone: 'yes' },
+      { ...FORM, collectsStudentId: 'yes' },
+      { ...FORM, collectsStudentId: null },
       { ...FORM, feeAccountId: 'not-a-uuid' },
       { ...FORM, extra: 1 },
       { ...FORM, publicCode: 'AAAAAAAA' },
@@ -260,10 +262,60 @@ const EDIT = {
   capacity: 10,
   notice: null,
   collectsPhone: false,
+  collectsStudentId: true,
   payerFee: null,
   nonPayerFee: null,
   feeAccountId: null,
 }
+
+test(
+  '학번 받기: 빼면 받기로 저장하고 끌 수 있다. 두 참가비가 다르면 끌 수 없어 400이고 아무것도 남지 않는다(DEC-75)',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const account = await t.makeAccount()
+    const column = async (id: string) =>
+      (
+        (await t.pg.query('SELECT collects_student_id FROM registration_form WHERE id = $1', [id]))
+          .rows[0] as { collects_student_id: boolean }
+      ).collects_student_id
+    const byDefault = await t.created(event)
+    assert.equal(byDefault.status, 201)
+    assert.equal(byDefault.form.collectsStudentId, true)
+    assert.equal(await column(byDefault.form.id), true)
+    for (const fees of [{}, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account }]) {
+      const off = await t.created(event, { ...fees, collectsStudentId: false })
+      assert.equal(off.status, 201, JSON.stringify(fees))
+      assert.equal(off.form.collectsStudentId, false)
+      assert.equal(await column(off.form.id), false)
+      assert.equal((await t.detail(off.form.id)).collectsStudentId, false)
+    }
+    const before = await t.count('SELECT count(*) AS n FROM registration_form')
+    const split = { payerFee: 0, nonPayerFee: 5000, feeAccountId: account }
+    assert.equal(
+      (await t.create(event, { ...FORM, ...split, collectsStudentId: false })).status,
+      400,
+    )
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_form'), before)
+    const splitForm = await t.created(event, split)
+    assert.equal(splitForm.form.collectsStudentId, true)
+    // 고치기도 같다: 두 참가비가 다르면 끌 수 없고, 같게 고치면서 끄면 된다.
+    const edit = { ...EDIT, ...split, collectsStudentId: false }
+    assert.equal((await t.post(`/registration-forms/${splitForm.form.id}`, edit)).status, 400)
+    assert.equal(await t.versions(splitForm.form.id), 1)
+    const turnedOff = await t.post(`/registration-forms/${splitForm.form.id}`, {
+      ...edit,
+      nonPayerFee: 0,
+    })
+    assert.equal(turnedOff.status, 200)
+    assert.equal(
+      ((await turnedOff.json()) as { form: { collectsStudentId: boolean } }).form.collectsStudentId,
+      false,
+    )
+    assert.equal(await t.versions(splitForm.form.id), 2)
+    const listed = (await t.list(event)).forms.find(form => form.id === splitForm.form.id)
+    assert.equal(listed?.collectsStudentId, false)
+  }),
+)
 
 test(
   '고치기는 칸을 모두 받아 그대로 바꾸고 판을 하나 더 연다. 같은 값이면 판이 늘지 않는다',
@@ -290,10 +342,12 @@ test(
     const event = await t.makeEvent()
     const { form } = await t.created(event)
     const { notice: _notice, ...withoutNotice } = EDIT
+    const { collectsStudentId: _collects, ...withoutStudentId } = EDIT
     for (const body of [
       { ...EDIT, publicCode: 'BBBBBBBB' },
       { ...EDIT, extra: 1 },
       withoutNotice,
+      withoutStudentId,
       { ...EDIT, closesAt: null },
       { ...EDIT, opensAt: '2026-11-02T18:00' },
       { ...EDIT, payerFee: 100 },

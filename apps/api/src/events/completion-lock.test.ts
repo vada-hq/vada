@@ -267,6 +267,7 @@ const rows: Row[] = [
         capacity: null,
         notice: null,
         collectsPhone: false,
+        collectsStudentId: true,
         payerFee: 5000,
         nonPayerFee: 5000,
         feeAccountId: s.account,
@@ -277,7 +278,10 @@ const rows: Row[] = [
   [
     '공개 신청',
     (t, s) =>
-      t.api.post(`/api/public/registration-forms/${s.publicCode}/apply`, { name: '박신청' }),
+      t.api.post(`/api/public/registration-forms/${s.publicCode}/apply`, {
+        name: '박신청',
+        studentId: '202612345',
+      }),
     'REGISTRATION_NOT_OPEN',
   ],
   [

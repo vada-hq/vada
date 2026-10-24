@@ -194,6 +194,42 @@ test('형식이 틀린 공개 코드, 학번, 휴대폰과 한쪽만 있는 참�
   }
 })
 
+test('양식의 학번 받기는 빼면 받기이고, 두 참가비가 다르면 받지 않기를 DB가 거절한다(DEC-75)', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const s = await db.transaction(seed)
+    const collects = async (id: string) =>
+      (
+        await pg.query<{ collects_student_id: boolean }>(
+          'SELECT collects_student_id FROM registration_form WHERE id = $1',
+          [id],
+        )
+      ).rows[0]!.collects_student_id
+    assert.equal(await collects(await db.transaction(tx => makeForm(tx, s))), true)
+    const split = { payerFee: '0', nonPayerFee: '5000' }
+    await assert.rejects(
+      db.transaction(tx => makeForm(tx, s, { ...split, collectsStudentId: false })),
+      constraint('registration_form_check2'),
+    )
+    for (const fees of [{}, { payerFee: '3000', nonPayerFee: '3000' }])
+      assert.equal(
+        await collects(
+          await db.transaction(tx => makeForm(tx, s, { ...fees, collectsStudentId: false })),
+        ),
+        false,
+      )
+    const form = await db.transaction(tx => makeForm(tx, s, split))
+    await assert.rejects(
+      db.transaction(tx =>
+        updateRecords(tx, [change(s, 'registration_form', form, { collectsStudentId: false })]),
+      ),
+      constraint('registration_form_check2'),
+    )
+  } finally {
+    await close()
+  }
+})
+
 test('취소한 신청은 학번만 비우면 되고(이름과 휴대폰은 환불 때까지 남을 수 있다), 학번이 남으면 DB가 거절한다', async () => {
   const { db, close } = await createTestDb()
   try {

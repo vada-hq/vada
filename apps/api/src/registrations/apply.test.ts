@@ -55,13 +55,14 @@ test(
 )
 
 test(
-  '적용 참가비: 참가비가 없으면 0, 두 값이 같으면 그 값이고 학번은 받지 않는다',
+  '적용 참가비: 참가비가 없으면 0, 두 값이 같으면 그 값이다. 학번을 받지 않는 양식에 학번이 오면 409이다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const account = await t.makeAccount()
-    const none = (await t.created(event, {})).form
+    const off = { collectsStudentId: false }
+    const none = (await t.created(event, off)).form
     const same = (
-      await t.created(event, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account })
+      await t.created(event, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account, ...off })
     ).form
     const lastFee = async () =>
       Number(
@@ -133,12 +134,22 @@ test(
       assert.deepEqual(await body(response), { error: 'FORM_CHANGED' })
     }
     // 학번도 휴대폰도 받지 않는 양식에 보내면 같다.
-    const plain = (await t.created(await t.makeEvent(), {})).form
+    const plain = (await t.created(await t.makeEvent(), { collectsStudentId: false })).form
     for (const input of [
       { name: '가', phone: '01012345678' },
       { name: '가', studentId: '202612345' },
     ])
       assert.equal((await t.apply(plain.publicCode, input)).status, 409)
+    // 학번을 받는 양식은 참가비가 없거나 하나여도 학번이 없으면 409이다(DEC-75).
+    // splitForm이 대표 계좌를 이미 만들었다.
+    const account = await t.makeAccount({ name: '행사', type: 'business' })
+    for (const fees of [{}, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account }]) {
+      const collecting = (await t.created(await t.makeEvent(), fees)).form
+      assert.equal(collecting.collectsStudentId, true)
+      const response = await t.apply(collecting.publicCode, { name: '가' })
+      assert.equal(response.status, 409, JSON.stringify(fees))
+      assert.deepEqual(await body(response), { error: 'FORM_CHANGED' })
+    }
     assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 0)
     assert.equal(await t.count('SELECT count(*) AS n FROM registration_link'), 0)
   }),
@@ -254,5 +265,44 @@ test(
     const all = logged.join('\n')
     for (const secret of ['김신청', '202612345', '01012345678', '010-1234'])
       assert.ok(!all.includes(secret), secret)
+  }),
+)
+
+test(
+  '학번 받기를 바꾸면 그 뒤의 신청부터 따르고, 이미 받은 학번은 그대로다(DEC-75)',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const { form } = await t.created(event)
+    assert.equal(form.collectsStudentId, true)
+    await t.applied(form.publicCode, { name: '가', studentId: '202612345' })
+    const edit = {
+      name: form.name,
+      opensAt: form.opensAt,
+      closesAt: form.closesAt,
+      capacity: form.capacity,
+      notice: form.notice,
+      collectsPhone: form.collectsPhone,
+      collectsStudentId: false,
+      payerFee: null,
+      nonPayerFee: null,
+      feeAccountId: null,
+    }
+    assert.equal((await t.post(`/registration-forms/${form.id}`, edit)).status, 200)
+    const late = await t.apply(form.publicCode, { name: '나', studentId: '202654321' })
+    assert.equal(late.status, 409)
+    assert.deepEqual(await body(late), { error: 'FORM_CHANGED' })
+    await t.applied(form.publicCode, { name: '나' })
+    const rows = (await t.pg.query('SELECT name, student_id FROM registration ORDER BY id')).rows
+    assert.deepEqual(rows, [
+      { name: '가', student_id: '202612345' },
+      { name: '나', student_id: null },
+    ])
+    // 다시 켜면 그 뒤의 신청은 학번이 있어야 한다.
+    assert.equal(
+      (await t.post(`/registration-forms/${form.id}`, { ...edit, collectsStudentId: true })).status,
+      200,
+    )
+    assert.equal((await t.apply(form.publicCode, { name: '다' })).status, 409)
+    await t.applied(form.publicCode, { name: '다', studentId: '202600001' })
   }),
 )

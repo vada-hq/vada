@@ -60,6 +60,7 @@ export const registrationForm = pgTable('registration_form', {
   capacity: integer('capacity'),
   notice: text('notice'),
   collectsPhone: boolean('collects_phone').notNull().default(false),
+  collectsStudentId: boolean('collects_student_id').notNull().default(true),
   pausedAt: at('paused_at'),
   publicCode: text('public_code').notNull(),
   payerFee: won('payer_fee'),

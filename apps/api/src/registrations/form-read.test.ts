@@ -83,6 +83,7 @@ test(
       capacity: 2,
       notice: null,
       collectsPhone: false,
+      collectsStudentId: true,
       payerFee: null,
       nonPayerFee: null,
       feeAccountId: null,

@@ -30,6 +30,7 @@ export async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
       notice: registrationForm.notice,
       capacity: registrationForm.capacity,
       collectsPhone: registrationForm.collectsPhone,
+      collectsStudentId: registrationForm.collectsStudentId,
       pausedAt: registrationForm.pausedAt,
       payerFee: registrationForm.payerFee,
       nonPayerFee: registrationForm.nonPayerFee,
@@ -96,8 +97,8 @@ export async function publicFormOf(
     remaining: remainingOf(row.capacity, applicantCount),
     payerFee,
     nonPayerFee,
-    // 학번은 두 참가비가 다를 때만 받는다(DEC-62, 개인정보 최소 수집).
-    collectsStudentId: payerFee !== nonPayerFee,
+    // 양식의 학번 받기(DEC-75). 두 참가비가 다르면 DB CHECK가 받기로 묶는다.
+    collectsStudentId: row.collectsStudentId,
     collectsPhone: row.collectsPhone,
     purgeOn: purgeOnOf({ ...row, eventStartsAt: row.eventStartsAt, eventEndsAt: row.eventEndsAt }),
   }

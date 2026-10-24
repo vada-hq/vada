@@ -51,6 +51,8 @@ async function scene(main: Db, context: SmokeContext, code: string, who = U) {
         name: '점검 양식',
         closesAt: new Date(now.getTime() + CLOSES_IN_HOURS * HOUR_MS),
         publicCode: code,
+        // 이름만으로 신청하므로 학번 받기를 끈다(DEC-75).
+        collectsStudentId: false,
       },
     }),
   )

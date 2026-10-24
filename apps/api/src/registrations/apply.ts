@@ -60,11 +60,8 @@ export async function applyToForm(
   await lockForm(tx, code)
   const form = await publicRowOf(tx, code)
   await assertOpen(tx, form, target.now)
-  // 학번은 두 참가비가 다를 때만 받는다(DEC-62).
-  assertFieldsMatch(input, {
-    studentId: form.payerFee !== form.nonPayerFee,
-    phone: form.collectsPhone,
-  })
+  // 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75).
+  assertFieldsMatch(input, { studentId: form.collectsStudentId, phone: form.collectsPhone })
   // 양식 기록은 늘 학생회 번호가 있다(학생회 번호가 없는 것은 학생회와 운영진뿐이다).
   const councilId = form.councilId
   if (councilId === null) throw new ApiError('NOT_FOUND')

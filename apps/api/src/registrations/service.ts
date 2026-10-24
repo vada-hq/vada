@@ -57,6 +57,7 @@ export async function createForm(
       capacity: input.capacity,
       notice: input.notice,
       collectsPhone: input.collectsPhone,
+      collectsStudentId: input.collectsStudentId,
       publicCode: await freshPublicCode(tx),
       payerFee: feeText(input.payerFee),
       nonPayerFee: feeText(input.nonPayerFee),
@@ -64,6 +65,16 @@ export async function createForm(
     },
   })
   return formDetailOf(tx, actor, id, target.now)
+}
+
+// 받는 칸. 학번 받기를 바꾸면 그 뒤의 신청부터 따른다(DEC-75).
+function collectChangesOf(row: FormRow, input: UpdateFormRequest) {
+  return {
+    ...(input.collectsPhone !== row.collectsPhone ? { collectsPhone: input.collectsPhone } : {}),
+    ...(input.collectsStudentId !== row.collectsStudentId
+      ? { collectsStudentId: input.collectsStudentId }
+      : {}),
+  }
 }
 
 function changesOf(row: FormRow, input: UpdateFormRequest) {
@@ -75,7 +86,7 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
       : {}),
     ...(input.capacity !== row.capacity ? { capacity: input.capacity } : {}),
     ...(input.notice !== row.notice ? { notice: input.notice } : {}),
-    ...(input.collectsPhone !== row.collectsPhone ? { collectsPhone: input.collectsPhone } : {}),
+    ...collectChangesOf(row, input),
     ...(input.payerFee !== feeOf(row.payerFee) ? { payerFee: feeText(input.payerFee) } : {}),
     ...(input.nonPayerFee !== feeOf(row.nonPayerFee)
       ? { nonPayerFee: feeText(input.nonPayerFee) }
@@ -86,6 +97,7 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
 
 // 고치기. 칸을 모두 받아 그대로 바꾸고, 같은 값이면 판을 만들지 않는다.
 // 휴대폰 받기를 끄면 이미 받은 번호를 지금 값과 판에서 비운다(받지 않는 칸의 값이 남지 않게).
+// 학번 받기는 꺼도 이미 받은 학번을 비우지 않는다. 입금 대조와 같은 이름 가리기에 쓰고 보관 기간(DEC-55)대로 지운다(DEC-75).
 export async function updateForm(
   tx: Tx,
   actor: Actor,

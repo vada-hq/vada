@@ -184,6 +184,8 @@ async function applyRound(world: World, open: () => SmokeConnection) {
       name: '점검 양식',
       closesAt: new Date(world.context.now.getTime() + HOUR_MS),
       publicCode: `MAKEZA${nextDigit()}2`,
+      // 이름만으로 신청하므로 학번 받기를 끈다(DEC-75).
+      collectsStudentId: false,
     })
     return { eventId: id, formId: form }
   })()

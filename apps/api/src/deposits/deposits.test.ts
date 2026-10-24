@@ -108,7 +108,7 @@ test(
     assert.equal(await t.count('SELECT amount::int AS n FROM deposit'), 3000)
     // 참가비가 없는 양식의 신청
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.created(event, { collectsStudentId: false })
     await t.applied(form.publicCode, { name: '무료', studentId: null, phone: null })
     const free = (
       (await t.pg.query('SELECT id FROM registration ORDER BY id DESC LIMIT 1')).rows[0] as {
