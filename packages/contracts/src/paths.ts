@@ -107,31 +107,33 @@ function decodeId(segment: string | undefined) {
   }
 }
 
-// 경로(와 쿼리)를 읽는다. 끝 슬래시 하나는 같은 화면이다. 모르는 꼴은 null이다.
-// '//'나 역슬래시로 시작하는 주소, 바깥 주소는 메뉴·종류가 아니라 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
-export function parseAppPath(input: string): AppLocation | null {
-  if (!input.startsWith('/')) return null
+function splitTarget(input: string) {
   const [target = ''] = input.split('#', 1)
   const mark = target.indexOf('?')
   const pathname = mark < 0 ? target : target.slice(0, mark)
   const params = new URLSearchParams(mark < 0 ? '' : target.slice(mark + 1))
-  const segments = (pathname.endsWith('/') ? pathname.slice(0, -1) : pathname).slice(1).split('/')
+  return {
+    segments: (pathname.endsWith('/') ? pathname.slice(0, -1) : pathname).slice(1).split('/'),
+    params,
+  }
+}
+
+// 경로(와 쿼리)를 읽는다. 끝 슬래시 하나는 같은 화면이다. 모르는 꼴은 null이다.
+// '//'나 역슬래시로 시작하는 주소, 바깥 주소는 메뉴·종류가 아니라 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
+export function parseAppPath(input: string): AppLocation | null {
+  if (!input.startsWith('/')) return null
+  const { segments, params } = splitTarget(input)
   const [head, council, record, ...rest] = segments
   const councilId = decodeId(council)
   if (!councilId || rest.length > 0) return null
-  if (record === undefined) {
-    if (!isMenu(head)) return null
-    return { type: 'menu', menu: head, councilId, query: cleanQuery(MENU_QUERY[head], params) }
-  }
+  if (record === undefined)
+    return isMenu(head)
+      ? { type: 'menu', menu: head, councilId, query: cleanQuery(MENU_QUERY[head], params) }
+      : null
   const recordId = decodeId(record)
   if (!recordId || !isRecordKind(head)) return null
-  return {
-    type: 'record',
-    record: head,
-    councilId,
-    recordId,
-    query: cleanQuery(RECORD_QUERY[head], params),
-  }
+  const query = cleanQuery(RECORD_QUERY[head], params)
+  return { type: 'record', record: head, councilId, recordId, query }
 }
 
 // 주소 만들기. 읽기의 거울이라 만든 주소를 다시 읽으면 같은 값이 나온다.
