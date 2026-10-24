@@ -134,7 +134,7 @@ test(
             actor: t.council.people.president.memberId,
             taskId: foreign,
             values,
-          } as Parameters<typeof createRecord>[1]),
+          }),
         ),
         { code: 'TASK_INVALID' },
       )

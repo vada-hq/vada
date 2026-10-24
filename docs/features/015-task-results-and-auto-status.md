@@ -81,7 +81,7 @@
 - 닿는 곳: 요청 단계 셈(`purchases/`, `purchases/status.ts`), `expenses/service.ts`(지출 적기·취소가 고리에 닿는지), `tasks/result-sync.ts`, `ops/pg-smoke/`(겹치는 결재 경우, 진행 에이전트가 돌림).
 - 검토: 깊게(동시 처리, 돈 기록). 마이그레이션: 없음.
 
-### 4. 신청 양식·공지·행사 잇기(서버) [ ]
+### 4. 신청 양식·공지·행사 잇기(서버) [x]
 - 할 수 있게 되는 것: 업무에서 만든 신청 양식·공지는 업무를 끝내고, 업무에서 만든 행사는 완료하면 업무를 끝낸다.
 - 수용 기준: 양식 만들기에 `taskId`를 주면 연결이 생기고 업무가 끝남(`form_created`)이다. 전체방에 `notice: true`로 보내면 공지 표시가 붙은 메시지가 되고(`chat.notice`가 아니거나 전체방이 아니면 403), `taskId`가 있으면 업무가 끝남(`notice_posted`)이다. 공지를 떼면 그 결과물은 빠지고 다시 붙이면 다시 끝남이 될 수 있다. 행사 만들기에 `taskId`를 주면 이어지되 업무는 그대로이고, 그 행사를 완료하는 쓰기에서 끝남(`event_completed`)이다. 완료 취소는 뒤로 가지 않는다. 409 `TASK_INVALID` 경우는 2와 같다. 기존 양식·메시지·행사 시험이 그대로 통과한다.
 - 닿는 곳: contracts `registrations.ts`, `chat.ts`(`SendMessageSchema`), `events.ts`, api `registrations/service.ts`, `chat/send.ts`·`routes.ts`, `events/service.ts`, 각 도메인의 단계 셈, `tasks/result-sync.ts`, `http/boundary.test.ts`.
