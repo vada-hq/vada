@@ -53,6 +53,9 @@ async function scene(main: Db, context: SmokeContext, code: string, who = U) {
         publicCode: code,
         // 이름만으로 신청하므로 학번 받기를 끈다(DEC-75).
         collectsStudentId: false,
+        // 입금을 확인하려면 적용 참가비가 있어야 한다(참가비 없는 신청은 입금 확인이 막힌다).
+        payerFee: AMOUNT,
+        nonPayerFee: AMOUNT,
       },
     }),
   )
