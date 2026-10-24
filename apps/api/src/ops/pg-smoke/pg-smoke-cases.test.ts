@@ -7,6 +7,7 @@ import type { SmokeConnection } from './pg-smoke-connection.js'
 import {
   assignAndRemoveCase,
   cancelAndDecideCase,
+  cancelItemAndPayCase,
   changeStatusTogetherCase,
   createAndJoinCase,
   decideTogetherCase,
@@ -378,6 +379,27 @@ test('구매 요청 취소와 결재를 동시에: 예상하지 못한 DB 오류
   const testDb = await createTestDb()
   try {
     const verdict = await cancelAndDecideCase.run(
+      contextOf(testDb, failingParticipants(testDb, '40P01')),
+    )
+    assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('승인한 품목 취소와 결제를 동시에: 취소 뒤엔 결제 내역 0개, 결제 뒤엔 취소 기록 0개 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    assert.match(passed(await cancelItemAndPayCase.run(contextOf(testDb))), /하나만 됐다/)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('승인한 품목 취소와 결제를 동시에: 예상하지 못한 DB 오류는 코드와 함께 실패다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const verdict = await cancelItemAndPayCase.run(
       contextOf(testDb, failingParticipants(testDb, '40P01')),
     )
     assert.ok(!verdict.ok && verdict.code === '40P01', JSON.stringify(verdict))

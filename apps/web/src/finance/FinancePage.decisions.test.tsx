@@ -37,6 +37,7 @@ const pendingItem = (id: string, name: string) => ({
   budgetItem: null,
   status: 'pending' as const,
   paid: false,
+  actions: [],
 })
 const twoPending = (extra: Partial<PurchaseRequestDetail> = {}) =>
   purchaseDetail('r1', {

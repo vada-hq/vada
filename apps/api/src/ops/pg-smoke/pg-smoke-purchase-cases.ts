@@ -1,4 +1,7 @@
+import { koreanDateOf } from '@vada/contracts'
 import type { Db } from '../../db/types.js'
+import { createExpense } from '../../expenses/service.js'
+import { cancelLineItem } from '../../purchases/cancel-item.js'
 import { decideLineItems } from '../../purchases/decide.js'
 import { cancelPurchaseRequest } from '../../purchases/service.js'
 import type { SmokeConnection, SmokeSql } from './pg-smoke-connection.js'
@@ -188,6 +191,137 @@ export const cancelAndDecideCase: SmokeCase = {
       }
       return pass(
         '취소가 먼저면 결재 기록 0개, 결재가 먼저면 취소되지 않고, 어느 쪽이든 하나만 됐다',
+      )
+    }),
+}
+
+// 사례 n: 승인한 품목 취소와 그 품목을 결제하는 지출 적기를 동시에 -------------------------------
+
+const N_ROUNDS = 4
+const N_EXPECTED = new Set(['LINE_ITEM_NOT_CANCELLABLE', 'LINE_ITEM_NOT_PAYABLE'])
+
+const cancelItemAs = (run: Race, db: Db, target: Target, hold?: Hold) =>
+  changer(
+    db,
+    run.context,
+    run.scene.finance[0],
+  )('council.view', async (tx, actor) => {
+    await cancelLineItem(
+      tx,
+      actor,
+      { requestId: target.requestId, lineItemId: target.itemId },
+      { input: { reason: '점검' }, now: run.context.now },
+    )
+    await hold?.()
+  })
+
+const payItemAs = (run: Race, db: Db, target: Target, hold?: Hold) =>
+  changer(
+    db,
+    run.context,
+    run.scene.finance[1],
+  )('council.view', async (tx, actor) => {
+    await createExpense(
+      tx,
+      actor,
+      {
+        vendor: '문구점',
+        eventId: null,
+        sourceMessageId: null,
+        description: '점검',
+        amount: APPROVED_AMOUNT,
+        paidOn: koreanDateOf(run.context.now),
+        method: 'card',
+        paidBy: null,
+        reason: null,
+        budgetItemId: null,
+        requestedBy: null,
+        accountId: null,
+        lines: [{ lineItemId: target.itemId, amount: APPROVED_AMOUNT }],
+      },
+      run.context.now,
+    )
+    await hold?.()
+  })
+
+async function paymentsOf(sql: SmokeSql, itemId: string) {
+  const [row] = await sql.unsafe(
+    'SELECT count(*)::text AS n FROM payment_line WHERE line_item_id = $1',
+    [itemId],
+  )
+  return Number(row?.n)
+}
+
+async function cancelsOf(sql: SmokeSql, itemId: string) {
+  const [row] = await sql.unsafe(
+    `SELECT count(*)::text AS n FROM approval WHERE target_kind = 'line_item' AND target_id = $1 AND outcome = 'cancelled'`,
+    [itemId],
+  )
+  return Number(row?.n)
+}
+
+// 승인한 품목을 두고, 먼저 잠그는 쪽이 취소인 판과 결제인 판을 번갈아 돌린다. 하나만 되고 다른 쪽은 막힌다:
+// 취소가 되면 결제 내역 0개, 결제가 되면 취소 기록 0개다. 둘 다 학생회 행 잠금 뒤에 결제 가능·취소 가능을 읽는다.
+async function cancelPayRound(run: Race, round: number) {
+  const { main, open, context, scene } = run
+  const cancelFirst = round % PAIR === 0
+  const target = await purchaseOf(main.db, context, scene, `취소·결제 ${round}`)
+  await changer(
+    main.db,
+    context,
+    scene.finance[0],
+  )('council.view', (tx, actor) =>
+    decideLineItems(tx, actor, target.requestId, {
+      now: context.now,
+      input: {
+        decisions: [
+          {
+            lineItemId: target.itemId,
+            outcome: 'approved',
+            amount: APPROVED_AMOUNT,
+            budgetItemId: scene.budgetItemId,
+          },
+        ],
+      },
+    }),
+  )
+  const [first, second] = (await warmed(open, PAIR)) as [Db, Db]
+  const results = cancelFirst
+    ? await raceHolding(
+        hold => cancelItemAs(run, first, target, hold),
+        [() => payItemAs(run, second, target)],
+      )
+    : await raceHolding(
+        hold => payItemAs(run, first, target, hold),
+        [() => cancelItemAs(run, second, target)],
+      )
+  const bad = unexpectedFailures(results, N_EXPECTED)
+  if (bad.length > 0) return fail('품목 취소나 결제가 예상하지 못한 오류로 끝났다', bad[0])
+  const label = `${round}번째(${cancelFirst ? '취소' : '결제'}가 먼저)`
+  const problem = outcomeProblem(results, [
+    'ok',
+    cancelFirst ? 'LINE_ITEM_NOT_PAYABLE' : 'LINE_ITEM_NOT_CANCELLABLE',
+  ])
+  if (problem) return fail(`${label}: ${problem}`)
+  const payments = await paymentsOf(main.sql, target.itemId)
+  const cancels = await cancelsOf(main.sql, target.itemId)
+  return payments === (cancelFirst ? 0 : 1) && cancels === (cancelFirst ? 1 : 0)
+    ? undefined
+    : fail(`${label}: 결제 내역 ${payments}개, 취소 기록 ${cancels}개`)
+}
+
+export const cancelItemAndPayCase: SmokeCase = {
+  name: '승인한 품목 취소와 그 품목의 결제를 동시에',
+  run: context =>
+    withConnections(context, async open => {
+      const main = open()
+      const scene = await moneyScene(main, context, 'n')
+      for (let round = 0; round < N_ROUNDS; round++) {
+        const problem = await cancelPayRound({ main, open, context, scene }, round)
+        if (problem) return problem
+      }
+      return pass(
+        '취소가 먼저면 결제 내역 0개, 결제가 먼저면 취소 기록 0개이고, 어느 쪽이든 하나만 됐다',
       )
     }),
 }

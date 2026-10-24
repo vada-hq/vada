@@ -33,6 +33,7 @@ export const purchaseDetail = (
       budgetItem: null,
       status: 'pending',
       paid: false,
+      actions: [],
     },
     {
       id: 'i2',
@@ -44,6 +45,7 @@ export const purchaseDetail = (
       budgetItem: { id: 'b1', purpose: '행사 홍보' },
       status: 'rejected',
       paid: false,
+      actions: [],
     },
   ],
   decisions: [

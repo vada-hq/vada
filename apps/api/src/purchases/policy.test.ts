@@ -5,6 +5,9 @@ import { runPurchases, type PurchaseKit } from '../test-support/purchases.js'
 import {
   actionsOf,
   decide,
+  decideLineItem,
+  lineItemActionsOf,
+  type LineItemFacts,
   lineItemStatusOf,
   requestStatusOf,
   type RequestFacts,
@@ -77,5 +80,37 @@ test(
     assert.equal(decide(finance, { ...mine, decided: true }, 'purchase.cancel'), 'REQUEST_CLOSED')
     assert.deepEqual(actionsOf(finance, mine), ['purchase.cancel', 'purchase.approve'])
     assert.deepEqual(actionsOf(finance, { ...mine, eventCompleted: true }), [])
+  }),
+)
+
+const itemFacts = (over: Partial<LineItemFacts> = {}): LineItemFacts => ({
+  status: 'approved',
+  paid: false,
+  requestCancelled: false,
+  eventCompleted: false,
+  ...over,
+})
+
+test(
+  'decideLineItem: 403 → 완료한 행사 → 품목 상태 순서이고 읽기 동작과 같다',
+  runPurchases(async s => {
+    const finance = await actorFor(s, 'financeMember')
+    const requester = await actorFor(s, 'planningMember')
+    const cancel = (actor: typeof finance, over: Partial<LineItemFacts>) =>
+      decideLineItem(actor, itemFacts(over), 'line_item.cancel')
+    assert.equal(cancel(finance, {}), null)
+    assert.equal(cancel(requester, { status: 'pending' }), 'FORBIDDEN')
+    assert.equal(cancel(finance, { eventCompleted: true, paid: true }), 'EVENT_COMPLETED')
+    for (const over of [
+      { status: 'pending' },
+      { status: 'rejected' },
+      { status: 'cancelled' },
+      { paid: true },
+      { requestCancelled: true },
+    ] as const)
+      assert.equal(cancel(finance, over), 'LINE_ITEM_NOT_CANCELLABLE', JSON.stringify(over))
+    assert.deepEqual(lineItemActionsOf(finance, itemFacts()), ['line_item.cancel'])
+    assert.deepEqual(lineItemActionsOf(finance, itemFacts({ paid: true })), [])
+    assert.deepEqual(lineItemActionsOf(requester, itemFacts()), [])
   }),
 )

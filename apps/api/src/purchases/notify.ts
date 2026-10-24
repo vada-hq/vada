@@ -12,6 +12,7 @@ import type { PurchaseNotice } from './service.js'
 
 const NEW_REQUEST_TITLE = '구매 요청이 왔어요'
 // 결과 알림의 제목. 마지막 대기 품목이 결재된 뒤라 대기는 없다.
+const ITEM_CANCELLED_TITLE = '구매 품목이 취소됐어요'
 const RESULT_TITLES: Partial<Record<PurchaseStatus, string>> = {
   approved: '구매 요청이 승인됐어요',
   partial: '구매 요청이 일부 승인됐어요',
@@ -50,9 +51,11 @@ function newRequestMessage(found: Facts, requestId: string): PushMessage | null 
   }
 }
 
-// "B: 제목". 결재한 사람과 제목만 담는다. 아직 대기가 남았거나 취소됐으면 보내지 않는다.
+// "B: 제목". 결재한 사람과 제목만 담는다. 아직 대기가 남았거나 취소됐으면 보내지 않는다. 품목 취소는 요청 상태와 무관하게 보낸다.
 async function resultMessage(db: Db, found: Facts, notice: PurchaseNotice) {
-  const title = RESULT_TITLES[requestStatusOf(found.cancelledAt !== null, found)]
+  const title = notice.itemCancelled
+    ? ITEM_CANCELLED_TITLE
+    : RESULT_TITLES[requestStatusOf(found.cancelledAt !== null, found)]
   if (!title || !notice.decidedBy) return null
   const [decider] = await db
     .select({ name: member.name })

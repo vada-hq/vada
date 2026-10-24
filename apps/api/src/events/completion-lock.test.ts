@@ -171,6 +171,24 @@ const rows: Row[] = [
         FINANCE,
       ),
   ],
+  [
+    '승인 품목 취소(그 행사 요청)',
+    (t, s) =>
+      post(t)(
+        `/purchase-requests/${s.approved.request}/items/${s.approved.line}/cancel`,
+        { reason: '사지 않아요' },
+        FINANCE,
+      ),
+  ],
+  [
+    '승인 품목 취소(그 행사 예산 항목, 행사 없는 요청)',
+    (t, s) =>
+      post(t)(
+        `/purchase-requests/${s.openByItem.request}/items/${s.openByItem.line}/cancel`,
+        { reason: '사지 않아요' },
+        FINANCE,
+      ),
+  ],
   // 지출
   [
     '그 행사 품목을 결제하는 지출 적기',

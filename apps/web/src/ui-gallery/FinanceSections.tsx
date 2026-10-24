@@ -37,6 +37,7 @@ const lineItem = (name: string): PurchaseLineItem => ({
   budgetItem: null,
   status: 'pending',
   paid: false,
+  actions: [],
 })
 const budgetItems: BudgetItemView[] = [
   { id: 'b1', purpose: '행사 홍보', amount: 300000, type: 'expense', event: null },

@@ -25,7 +25,14 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
 import { itemCountColumns, lastOutcomeOf } from './last-outcome.js'
-import { actionsOf, factsOf, lineItemStatusOf, requestStatusOf } from './policy.js'
+import { completedEventIdsAmong } from '../policy/locks.js'
+import {
+  actionsOf,
+  factsOf,
+  lineItemActionsOf,
+  lineItemStatusOf,
+  requestStatusOf,
+} from './policy.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -122,9 +129,10 @@ export async function requestRowOf(db: Reader, actor: Actor, requestId: string) 
 }
 
 // 취소되지 않은 결제 내역이 있는 품목은 '결제함'이다(DEC-24).
-const isPaid = sql<boolean>`exists (select 1 from ${paymentLine} inner join ${expense} on ${expense.id} = ${paymentLine.expenseId} where ${paymentLine.lineItemId} = ${lineItem.id} and ${expense.cancelledAt} is null)`
+export const isPaid = sql<boolean>`exists (select 1 from ${paymentLine} inner join ${expense} on ${expense.id} = ${paymentLine.expenseId} where ${paymentLine.lineItemId} = ${lineItem.id} and ${expense.cancelledAt} is null)`
 
-async function itemsOf(db: Reader, requestId: string) {
+async function itemsOf(db: Reader, actor: Actor, row: Row) {
+  const requestId = row.id
   const rows = await db
     .select({
       id: lineItem.id,
@@ -135,6 +143,7 @@ async function itemsOf(db: Reader, requestId: string) {
       amount: lineItem.amount,
       budgetItemId: lineItem.budgetItemId,
       purpose: budgetItem.purpose,
+      budgetEventId: budgetItem.eventId,
       outcome: lastOutcomeOf(lineItem.id),
       paid: isPaid.mapWith(Boolean),
     })
@@ -143,18 +152,32 @@ async function itemsOf(db: Reader, requestId: string) {
     .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
     .where(eq(lineItem.requestId, requestId))
     .orderBy(asc(record.createdAt), asc(lineItem.id))
-  return rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    quantity: row.quantity,
-    link: row.link,
-    options: row.options,
-    amount: row.amount === null ? null : Number(row.amount),
-    budgetItem:
-      row.budgetItemId && row.purpose ? { id: row.budgetItemId, purpose: row.purpose } : null,
-    status: lineItemStatusOf(row.outcome),
-    paid: row.paid,
-  }))
+  // 쓰기와 같은 판정(decideLineItem)으로 품목 동작을 준다.
+  const completed = await completedEventIdsAmong(db, [
+    ...new Set([row.eventId, ...rows.map(item => item.budgetEventId)].filter(id => id !== null)),
+  ])
+  const isCompleted = (id: string | null) => id !== null && completed.has(id)
+  return rows.map(item => {
+    const status = lineItemStatusOf(item.outcome)
+    return {
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      link: item.link,
+      options: item.options,
+      amount: item.amount === null ? null : Number(item.amount),
+      budgetItem:
+        item.budgetItemId && item.purpose ? { id: item.budgetItemId, purpose: item.purpose } : null,
+      status,
+      paid: item.paid,
+      actions: lineItemActionsOf(actor, {
+        status,
+        paid: item.paid,
+        requestCancelled: row.cancelledAt !== null,
+        eventCompleted: isCompleted(row.eventId) || isCompleted(item.budgetEventId),
+      }),
+    }
+  })
 }
 
 async function decisionsOf(db: Reader, requestId: string) {
@@ -222,7 +245,7 @@ export async function requestDetailOf(
   return {
     ...summaryOf(row),
     body: row.body,
-    items: await itemsOf(db, requestId),
+    items: await itemsOf(db, actor, row),
     decisions,
     expenses: await expensesOf(db, requestId),
     history: await requestHistoryOf(db, requestId),

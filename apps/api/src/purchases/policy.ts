@@ -1,6 +1,8 @@
 import {
+  LINE_ITEM_ACTIONS,
   PURCHASE_ACTIONS,
   type ErrorCode,
+  type LineItemAction,
   type LineItemStatus,
   type PurchaseAction,
   type PurchaseStatus,
@@ -88,3 +90,29 @@ export function decide(
 
 export const actionsOf = (actor: Actor, facts: RequestFacts): PurchaseAction[] =>
   PURCHASE_ACTIONS.filter(action => decide(actor, facts, action) === null)
+
+// 품목 하나의 판정에 드는 사실(DEC-73). 취소는 마지막 결과가 승인이고 결제하지 않은 품목만이다.
+export type LineItemFacts = {
+  status: LineItemStatus
+  // 취소하지 않은 결제 내역이 있다.
+  paid: boolean
+  requestCancelled: boolean
+  // 요청의 행사 또는 품목 예산 항목의 행사가 완료됐다.
+  eventCompleted: boolean
+}
+
+// 허용이면 null. 권한(403) → 완료한 행사 → 품목 상태 순서다. 기간 잠금은 보지 않는다: 돈이 움직이지 않는다.
+// 지출을 취소해 결제가 없어지면 다시 취소할 수 있다.
+export function decideLineItem(
+  actor: Actor,
+  facts: LineItemFacts,
+  action: LineItemAction,
+): ErrorCode | null {
+  if (!can(actor, 'purchase.approve')) return 'FORBIDDEN'
+  if (facts.eventCompleted) return 'EVENT_COMPLETED'
+  const open = facts.status === 'approved' && !facts.paid && !facts.requestCancelled
+  return action === 'line_item.cancel' && open ? null : 'LINE_ITEM_NOT_CANCELLABLE'
+}
+
+export const lineItemActionsOf = (actor: Actor, facts: LineItemFacts): LineItemAction[] =>
+  LINE_ITEM_ACTIONS.filter(action => decideLineItem(actor, facts, action) === null)

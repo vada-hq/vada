@@ -1,5 +1,6 @@
 import { Hono, type Context } from 'hono'
 import {
+  CancelLineItemSchema,
   CancelPurchaseRequestSchema,
   CreatePurchaseRequestSchema,
   DecideLineItemsSchema,
@@ -15,6 +16,7 @@ import { ApiError } from '../http/errors.js'
 import type { RateLimiter } from '../http/rate-limit.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
+import { cancelLineItem } from './cancel-item.js'
 import { decideLineItems } from './decide.js'
 import type { PurchasePush } from './notify.js'
 import { requestDetailOf, requestListOf } from './queries.js'
@@ -75,6 +77,37 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, push, db }: WriteKi
   })
 }
 
+// 승인한 품목 취소(DEC-73): 재정부가 사유와 함께 한 품목을 취소한다.
+function addCancelItemRoute({ routes, auth, clock, push, db }: WriteKit) {
+  routes.post(
+    `${root}/:requestId/items/:lineItemId/cancel`,
+    json(CancelLineItemSchema),
+    auth,
+    async c => {
+      const input = c.req.valid('json')
+      const now = clock()
+      const { request, notice } = await inCouncilChange(
+        db,
+        {
+          userId: c.get('userId'),
+          councilId: c.req.param('councilId'),
+          action: 'council.view',
+          now,
+        },
+        (tx, actor) =>
+          cancelLineItem(
+            tx,
+            actor,
+            { requestId: requestIdOf(c), lineItemId: recordIdOf(c.req.param('lineItemId')) },
+            { input, now },
+          ),
+      )
+      if (notice) void push?.notify(notice)
+      return c.json({ request } satisfies PurchaseRequestResponse)
+    },
+  )
+}
+
 // 구매 요청: 모든 운영진이 본다(DEC-27 기준 1, PRIN-5). 내는 것도 모든 운영진이고, 취소는 요청한 사람만이다.
 export function createPurchaseRoutes(
   db: Db,
@@ -109,6 +142,8 @@ export function createPurchaseRoutes(
     )
     return c.json({ request: detail } satisfies PurchaseRequestResponse)
   })
-  addWriteRoutes({ routes, auth, writeLimiter, clock, push: options.push, db })
+  const kit = { routes, auth, writeLimiter, clock, push: options.push, db }
+  addWriteRoutes(kit)
+  addCancelItemRoute(kit)
   return routes
 }

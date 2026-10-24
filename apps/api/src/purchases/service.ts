@@ -19,6 +19,8 @@ export type PurchaseNotice = {
   requestId: string
   recipientIds: string[]
   decidedBy: string | null
+  // 승인한 품목을 취소한 알림이다(결재 결과 알림과 제목이 다르다)
+  itemCancelled?: boolean
 }
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 요청 행 → 품목 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.

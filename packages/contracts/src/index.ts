@@ -254,43 +254,8 @@ export {
   type CreateFiscalPeriod,
   type FiscalPeriodView,
 } from './budget.js'
-export {
-  CancelPurchaseRequestSchema,
-  DecideLineItemsSchema,
-  PURCHASE_REASON_MAX,
-  type DecideLineItems,
-  CreatePurchaseRequestSchema,
-  LINE_ITEM_STATUSES,
-  PURCHASE_ACTIONS,
-  PURCHASE_BODY_MAX,
-  PURCHASE_ITEMS_MAX,
-  PURCHASE_ITEM_LINK_MAX,
-  PURCHASE_ITEM_NAME_MAX,
-  PURCHASE_ITEM_OPTIONS_MAX,
-  PURCHASE_PENDING_LIMIT,
-  PURCHASE_QUANTITY_MAX,
-  PURCHASE_RECENT_LIMIT,
-  PURCHASE_STATUSES,
-  PURCHASE_TITLE_MAX,
-  PURCHASE_VIEWS,
-  PurchaseRequestListQuerySchema,
-  type CreatePurchaseRequest,
-  type LineItemStatus,
-  type PurchaseAction,
-  type PurchaseChange,
-  type PurchaseDecision,
-  type PurchaseExpenseRef,
-  type PurchaseLineItem,
-  type PurchasePerson,
-  type PurchaseRequestDetail,
-  type PurchaseRequestListQuery,
-  type PurchaseRequestResponse,
-  type PurchaseRequestSummary,
-  type PurchaseRequestsResponse,
-  type PurchaseStatus,
-  type PurchaseVersion,
-  type PurchaseView,
-} from './purchases.js'
+// 구매 요청은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
+export * from './purchases.js'
 // 신청 양식은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
 export * from './registrations.js'
 export * from './fee-payments.js'
