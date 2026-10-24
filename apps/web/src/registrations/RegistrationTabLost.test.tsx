@@ -11,6 +11,7 @@ import {
   REGISTRATION_ID,
   STAFF_EVENT_ID,
   applicant,
+  applicantChange,
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -115,7 +116,13 @@ test('[출석]이 404면 이유를 보이고 그 행을 뺀다', async () => {
 test('목록을 서버에서 새로 읽으면 이 화면에서 바꾼 출석보다 서버 값이 앞선다', async () => {
   const { api, server } = setup()
   api.on('POST', `${ROW}/attendance`, () =>
-    json({ registrationId: REGISTRATION_ID, name: '김새내', studentId: null, already: false }),
+    json({
+      registrationId: REGISTRATION_ID,
+      applicant: applicantChange(),
+      name: '김새내',
+      studentId: null,
+      already: false,
+    }),
   )
   const row = await openList()
   fireEvent.click(within(row).getByRole('button', { name: '출석' }))
@@ -135,6 +142,7 @@ test('스캐너가 출석을 확인하면 열려 있는 신청자 목록에 바�
     await held
     return json({
       registrationId: REGISTRATION_ID,
+      applicant: applicantChange(),
       name: '김새내',
       studentId: null,
       already: false,

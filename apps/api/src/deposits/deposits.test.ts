@@ -4,7 +4,10 @@ import {
   PURCHASE_REASON_MAX,
   WON_MAX,
   type ApplicantsResponse,
-  type DepositResponse,
+  type ApplicantChange,
+  type CheckInResult,
+  type StaffCancelResponse,
+  type StaffDepositResponse,
 } from '@vada/contracts'
 import { MISSING, type RegistrationKit, withRegistrations } from '../test-support/registrations.js'
 
@@ -75,9 +78,15 @@ test(
     const { form, id } = await started(t)
     const response = await confirm(t, id)
     assert.equal(response.status, 201)
-    assert.deepEqual(await response.json(), {
+    const body = (await response.json()) as StaffDepositResponse
+    assert.deepEqual(body.deposit, { status: 'confirmed', amount: FEE })
+    assert.deepEqual(body.applicant, {
+      id,
+      attended: false,
+      cancelled: false,
       deposit: { status: 'confirmed', amount: FEE },
-    } satisfies DepositResponse)
+      actions: ['registration.check_in', 'registration.cancel', 'deposit.cancel'],
+    })
     const { rows } = await t.pg.query<{
       registration_id: string
       amount: number
@@ -220,7 +229,13 @@ test(
     const depositId = ((await t.pg.query('SELECT id FROM deposit')).rows[0] as { id: string }).id
     const response = await cancelDeposit(t, id, { reason: '다른 사람 입금이었다' })
     assert.equal(response.status, 200)
-    assert.deepEqual(await response.json(), { deposit: { status: 'none', amount: null } })
+    const body = (await response.json()) as StaffDepositResponse
+    assert.deepEqual(body.deposit, { status: 'none', amount: null })
+    assert.deepEqual(body.applicant.actions, [
+      'registration.check_in',
+      'registration.cancel',
+      'deposit.confirm',
+    ])
     const { rows } = await t.pg.query<{ cancelled_at: Date | null }>(
       'SELECT cancelled_at FROM deposit',
     )
@@ -368,9 +383,10 @@ test(
     assert.equal((await rowOf(t, id)).name, kim.name)
     const response = await refund(t, id)
     assert.equal(response.status, 200)
-    assert.deepEqual(await response.json(), {
-      deposit: { status: 'refunded', amount: FEE },
-    } satisfies DepositResponse)
+    const body = (await response.json()) as StaffDepositResponse
+    assert.deepEqual(body.deposit, { status: 'refunded', amount: FEE })
+    // 환불함으로 줄이 목록에서 빠지며 동작도 없다
+    assert.deepEqual(body.applicant.actions, [])
     const { rows } = await t.pg.query(
       'SELECT amount::int AS amount, refund_amount::int AS refund_amount, refunded_at IS NOT NULL AS refunded FROM deposit',
     )
@@ -529,5 +545,49 @@ test(
       await t.count('SELECT count(*) AS n FROM deposit WHERE cancelled_at IS NOT NULL'),
       0,
     )
+  }),
+)
+
+// 신청자 줄을 바꾸는 쓰기의 응답은 같은 거래에서 센 그 줄의 새 모습이고, 이어서 읽은 목록의 그 줄과 같다.
+test(
+  '쓰기 응답의 applicant(상태 칸과 actions)는 이어서 읽은 목록의 같은 줄과 같고 신청자 정보를 담지 않는다',
+  withRegistrations(async t => {
+    const { form, id } = await started(t)
+    const inList = async (): Promise<ApplicantChange> => {
+      const row = (await listOf(t, form.id)).applicants.find(item => item.id === id)!
+      return {
+        id,
+        attended: row.attended,
+        cancelled: row.cancelled,
+        deposit: row.deposit,
+        actions: row.actions,
+      }
+    }
+    const attended = (await (
+      await t.post(`/registrations/${id}/attendance`, {})
+    ).json()) as CheckInResult
+    assert.deepEqual(attended.applicant, await inList())
+    assert.deepEqual(attended.applicant.actions, [
+      'registration.cancel_check_in',
+      'deposit.confirm',
+    ])
+    const undone = (await (
+      await t.post(`/registrations/${id}/attendance/cancel`, {})
+    ).json()) as StaffCancelResponse
+    assert.deepEqual(undone.applicant, await inList())
+    const confirmed = (await (await confirm(t, id)).json()) as StaffDepositResponse
+    assert.deepEqual(confirmed.applicant, await inList())
+    const cancelled = (await (await cancelStaff(t, id)).json()) as StaffCancelResponse
+    assert.deepEqual(cancelled.applicant, await inList())
+    assert.equal(cancelled.applicant.deposit.status, 'refund_pending')
+    assert.deepEqual(cancelled.applicant.actions, ['deposit.cancel'])
+    // 신청자 정보(이름, 학번, 휴대폰)는 담지 않는다.
+    assert.deepEqual(Object.keys(cancelled.applicant).sort(), [
+      'actions',
+      'attended',
+      'cancelled',
+      'deposit',
+      'id',
+    ])
   }),
 )

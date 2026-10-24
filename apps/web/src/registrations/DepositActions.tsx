@@ -3,8 +3,8 @@ import {
   statusOf,
   type Applicant,
   type ApplicantAction,
-  type ApplicantDeposit,
-  type DepositResponse,
+  type ApplicantChange,
+  type StaffDepositResponse,
 } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
@@ -20,8 +20,8 @@ import { useStaffPost } from './useStaffPost'
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: Applicant
-  // 서버가 돌려준 입금 상태. 환불함이면 이름이 비어 줄이 빠진다(부모가 정한다).
-  onDeposit: (registrationId: string, deposit: ApplicantDeposit) => void
+  // 서버가 돌려준 줄의 새 모습. 환불함이면 이름이 비어 줄이 빠진다(부모가 정한다).
+  onChange: (change: ApplicantChange) => void
   // 신청이 없어졌다(404). 줄을 뺀다.
   onGone: () => void
 }
@@ -29,14 +29,14 @@ type Props = EventDialogHandlers & {
 type Step = 'confirm' | 'cancel' | 'refund' | null
 
 // 입금 쓰기 셋. 404·403은 useStaffPost가 부모에게 알려 닫고, 그 밖의 실패는 창 안(없으면 버튼 아래)에 보인다.
-function useDepositPost({ councilId, applicant, onDeposit, onGone, ...handlers }: Props) {
+function useDepositPost({ councilId, applicant, onChange, onGone, ...handlers }: Props) {
   const post = useStaffPost(handlers)
   const [step, setStep] = useState<Step>(null)
   const path = (tail: string) => `${registrationPath(councilId, applicant.id)}/${tail}`
   async function run(tail: string, body: unknown) {
-    const result = await post.send<DepositResponse>(path(tail), body)
+    const result = await post.send<StaffDepositResponse>(path(tail), body)
     if (result.ok) {
-      onDeposit(applicant.id, result.data.deposit)
+      onChange(result.data.applicant)
       return setStep(null)
     }
     // 대상이 없어졌거나(404) 권한을 잃었으면(403) 부모가 이유를 보이므로 창만 닫는다.

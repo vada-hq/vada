@@ -1,4 +1,10 @@
-import type { AccountItem, Applicant, FormAction, RegistrationForm } from '@vada/contracts'
+import type {
+  AccountItem,
+  Applicant,
+  ApplicantChange,
+  FormAction,
+  RegistrationForm,
+} from '@vada/contracts'
 
 export const STAFF_EVENT_ID = '00000000-0000-4000-8000-0000000000e1'
 const FORM_ID = '00000000-0000-4000-8000-0000000000f1'
@@ -52,6 +58,16 @@ export const applicant = (extra: Partial<Applicant> = {}): Applicant => ({
   cancelled: false,
   deposit: { status: 'none', amount: null },
   actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
+  ...extra,
+})
+
+// 쓰기가 돌려주는 줄의 새 모습(서버가 센 것). 기본은 출석한 줄이다.
+export const applicantChange = (extra: Partial<ApplicantChange> = {}): ApplicantChange => ({
+  id: REGISTRATION_ID,
+  attended: true,
+  cancelled: false,
+  deposit: { status: 'none', amount: null },
+  actions: ['registration.cancel_check_in', 'deposit.confirm'],
   ...extra,
 })
 

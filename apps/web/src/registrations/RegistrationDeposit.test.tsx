@@ -10,6 +10,7 @@ import {
   REGISTRATION_ID,
   STAFF_EVENT_ID,
   applicant,
+  applicantChange,
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -108,7 +109,15 @@ test('입금 확인은 적용 참가비로 한 번만 보내고, 끝나면 칩�
   fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인' }))
   expect(posts(api)).toHaveLength(1)
   expect(posts(api)[0]?.body).toEqual({ amount: 5000 })
-  pending.resolve(json({ deposit: PAID }, 201))
+  pending.resolve(
+    json(
+      {
+        deposit: PAID,
+        applicant: applicantChange({ attended: false, deposit: PAID, actions: PAID_ACTIONS }),
+      },
+      201,
+    ),
+  )
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(within(row).getByText('입금 확인 5,000원')).toBeTruthy()
   expect(button(row, '확인 취소')).toBeTruthy()
@@ -129,7 +138,15 @@ test('입금 확인이 409면 그 창 안에 문구가 보이고 창은 열려 �
 
 test('확인 취소는 사유 없이 누르면 보내지 않고 사유 칸 아래에 알리며, 사유를 적으면 보낸다', async () => {
   const { api, row } = await open({ applicants: [paidRow()] })
-  api.on('POST', `${ROW}/deposit/cancel`, () => json({ deposit: { status: 'none', amount: null } }))
+  api.on('POST', `${ROW}/deposit/cancel`, () =>
+    json({
+      deposit: { status: 'none', amount: null },
+      applicant: applicantChange({
+        attended: false,
+        actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
+      }),
+    }),
+  )
   fireEvent.click(button(row, '확인 취소'))
   const dialog = await screen.findByRole('dialog')
   // 환불 대기가 아니면 결과 안내가 없다.
@@ -156,7 +173,17 @@ test('환불 대기 줄에는 [환불함]이 줄에 deposit.refund가 있을 때
   expect(within(none.row).queryByRole('button', { name: '신청 취소' })).toBeNull()
   cleanup()
   const { api, row } = await open({ applicants: [pendingRow()] })
-  api.on('POST', `${ROW}/refund`, () => json({ deposit: { status: 'refunded', amount: 5000 } }))
+  api.on('POST', `${ROW}/refund`, () =>
+    json({
+      deposit: { status: 'refunded', amount: 5000 },
+      applicant: applicantChange({
+        attended: false,
+        cancelled: true,
+        deposit: { status: 'refunded', amount: 5000 },
+        actions: [],
+      }),
+    }),
+  )
   fireEvent.click(button(row, '환불함'))
   const dialog = await screen.findByRole('dialog')
   expect(dialog.textContent).toContain('이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요.')
@@ -177,11 +204,18 @@ test('환불 대기 줄에는 [환불함]이 줄에 deposit.refund가 있을 때
 
 test('입금한 신청을 취소하면 줄이 환불 대기로 바뀌고 학번만 지워진다고 알린다', async () => {
   const { api, row } = await open({ applicants: [paidRow()] })
-  // 취소하면 환불함을 누를 수 있는지는 서버만 알아 목록을 다시 읽는다.
-  api.on('POST', `${ROW}/cancel`, () => {
-    api.on('GET', APPLICANTS_PATH, () => json({ applicants: [pendingRow()], truncated: false }))
-    return json({ cancelled: true })
-  })
+  // 환불함을 누를 수 있는지는 서버가 응답에 센 actions로 안다(목록을 다시 읽지 않는다).
+  api.on('POST', `${ROW}/cancel`, () =>
+    json({
+      cancelled: true,
+      applicant: applicantChange({
+        attended: false,
+        cancelled: true,
+        deposit: PENDING,
+        actions: PENDING_ACTIONS,
+      }),
+    }),
+  )
   fireEvent.click(button(row, '신청 취소'))
   const dialog = await screen.findByRole('dialog')
   expect(dialog.textContent).toContain('학번이 바로 지워지고')

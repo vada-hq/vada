@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { tokenHashOfQr } from '@vada/contracts'
+import { tokenHashOfQr, type ApplicantChange } from '@vada/contracts'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { checkInByHash, type ScanOutcome } from './check-in'
 
@@ -10,7 +10,7 @@ type Options = EventDialogHandlers & {
   councilId: string
   eventId: string
   // 출석이 확인됐거나 이미 출석이다.
-  onChecked: (registrationId: string) => void
+  onChecked: (applicant: ApplicantChange) => void
 }
 
 // 찍은 글자 하나의 흐름: 우리 QR이 아니면 안내만, 맞으면 판독을 멈추고 출석을 보내 결과를 보인다. [다음]이 판독을 다시 연다.
@@ -46,7 +46,7 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
     const result = await checkInByHash(councilId, eventId, tokenHash, handlers)
     if (result === 'lost') return
     // 요청 중에 창을 닫았어도 서버에 남은 출석은 목록에 반영한다.
-    if (result.kind === 'checked' || result.kind === 'already') onChecked(result.registrationId)
+    if (result.kind === 'checked' || result.kind === 'already') onChecked(result.applicant)
     if (!alive.current) return
     setChecking(false)
     setOutcome(result)

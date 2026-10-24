@@ -1,12 +1,14 @@
 import { and, eq } from 'drizzle-orm'
-import type { ApplicantAction } from '@vada/contracts'
+import type { ApplicantAction, ApplicantChange } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
+import { refundPendingFacts } from '../deposits/refund-pending.js'
 import { ApiError } from '../http/errors.js'
 import { lockEventsShared } from '../policy/locks.js'
 import { registrationContextOf } from './permission-context.js'
 import {
+  applicantActionsOf,
   applicantFactsOf,
   decideApplicant,
   mayApplicant,
@@ -72,4 +74,30 @@ export async function lockedLiveRegistration(
 ) {
   const row = await lockedRegistration(tx, actor, registrationId, action)
   return { ...row, name: row.name! }
+}
+
+// 쓰기가 끝난 뒤 같은 거래에서 그 줄의 새 모습을 센다. 목록과 같은 판정(applicantActionsOf)이고, 신청자 정보는 읽어 담지 않는다.
+// 신청 행을 잠근 거래 안에서 불러야 한다. 환불함이나 입금 없는 취소로 줄이 목록에서 빠져도 판정은 같은 규칙으로 센다(빈 동작).
+export async function applicantChangeOf(
+  tx: Tx,
+  actor: Actor,
+  registrationId: string,
+): Promise<ApplicantChange> {
+  const row = (await rowOf(tx, actor, registrationId))!
+  const facts = await applicantFactsOf(tx, actor, row)
+  const held = facts.deposit
+  const pending = refundPendingFacts({
+    registrationCancelledAt: facts.cancelledAt,
+    hasDeposit: held !== null,
+    refundedAt: held?.refundedAt ?? null,
+  })
+  const status =
+    held === null ? 'none' : held.refundedAt ? 'refunded' : pending ? 'refund_pending' : 'confirmed'
+  return {
+    id: row.id,
+    attended: facts.attended,
+    cancelled: facts.cancelledAt !== null,
+    deposit: { status, amount: held?.amount ?? null },
+    actions: applicantActionsOf(actor, facts),
+  }
 }

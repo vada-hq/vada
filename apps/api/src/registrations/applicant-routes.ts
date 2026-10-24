@@ -3,8 +3,8 @@ import {
   CheckInSchema,
   EmptyRequestSchema,
   type ApplicantsResponse,
-  type CancelRegistrationResponse,
   type CheckInResult,
+  type StaffCancelResponse,
 } from '@vada/contracts'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { clientIpOf } from '../http/client-ip.js'
@@ -14,6 +14,7 @@ import { purgeFormIfDue } from './purge.js'
 import { applicantsOf } from './applicants.js'
 import { cancelAttendance, checkInByQr, checkInManually } from './attendance.js'
 import { cancelByStaff } from './cancel-by-staff.js'
+import { applicantChangeOf } from './staff-registration.js'
 import {
   eventIdOf,
   formIdOf,
@@ -88,8 +89,11 @@ function addCancelRoutes(kit: RouteKit) {
       auth,
       async c => {
         limited(c)
-        await inCouncilChange(db, changing(c), (tx, actor) => run(tx, actor, registrationIdOf(c)))
-        return c.json({ cancelled: true } satisfies CancelRegistrationResponse)
+        const applicant = await inCouncilChange(db, changing(c), async (tx, actor) => {
+          await run(tx, actor, registrationIdOf(c))
+          return applicantChangeOf(tx, actor, registrationIdOf(c))
+        })
+        return c.json({ cancelled: true, applicant } satisfies StaffCancelResponse)
       },
     )
 }

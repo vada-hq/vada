@@ -1,4 +1,5 @@
 import { useRef, type RefObject } from 'react'
+import type { ApplicantChange } from '@vada/contracts'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,7 +21,7 @@ type Props = EventDialogHandlers & {
   councilId: string
   eventId: string
   // 출석이 확인됐거나 이미 출석이다(목록의 출석 표시와 양식의 출석 수를 맞춘다).
-  onChecked: (registrationId: string) => void
+  onChecked: (applicant: ApplicantChange) => void
   onClose: () => void
 }
 

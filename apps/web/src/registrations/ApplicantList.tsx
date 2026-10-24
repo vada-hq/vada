@@ -1,23 +1,23 @@
 import { useState } from 'react'
-import type { ApplicantsResponse } from '@vada/contracts'
+import type { ApplicantChange, ApplicantsResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { APPLICANTS_LOAD_FAILED } from '@/lib/registration-messages'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { ApplicantRow } from './ApplicantRow'
-import { actionsWhenAttended, inView, type ApplicantView } from './registration-view'
+import { inView, type ApplicantView } from './registration-view'
 import { useApplicantRows } from './useApplicantRows'
 import { useApplicants } from './useApplicants'
 
 type Props = EventDialogHandlers & {
   councilId: string
   formId: string
-  // 이 화면에서 바꾼 출석(스캐너 포함). 목록을 다시 읽지 않고 이것으로 덮는다.
-  attendance: ReadonlyMap<string, boolean>
+  // 이 화면에서 한 쓰기(스캐너 포함)가 돌려준 줄의 새 모습. 목록을 다시 읽지 않고 이것으로 덮는다.
+  changes: ReadonlyMap<string, ApplicantChange>
   // 서버에서 읽은 신청자들(이 화면에서 바꾼 출석 값을 버린다)
   onLoaded: (registrationIds: string[]) => void
-  onAttendance: (registrationId: string, attended: boolean) => void
+  onChange: (change: ApplicantChange) => void
   // 신청을 취소했다(양식의 신청 수를 다시 읽는다).
   onCancelled: () => void
 }
@@ -27,7 +27,7 @@ const matches = (query: string, ...values: (string | null)[]) =>
 
 // 신청자 목록: 신청 순. 읽을 때마다 열람 기록이 남으므로 [신청자 보기]를 눌러 이 화면이 열려야 읽는다.
 export function ApplicantList({ councilId, formId, ...rest }: Props) {
-  const { attendance, onAttendance, onCancelled, onLoaded, ...handlers } = rest
+  const { changes, onChange, onCancelled, onLoaded, ...handlers } = rest
   const list = useApplicants(councilId, formId, handlers, data =>
     onLoaded(data.applicants.map(item => item.id)),
   )
@@ -47,13 +47,13 @@ export function ApplicantList({ councilId, formId, ...rest }: Props) {
       councilId={councilId}
       data={state.data}
       onReload={() => void list.reload()}
-      {...{ attendance, onAttendance, onCancelled, ...handlers }}
+      {...{ changes, onChange, onCancelled, ...handlers }}
     />
   )
 }
 
 type ItemsProps = EventDialogHandlers &
-  Pick<Props, 'councilId' | 'attendance' | 'onAttendance' | 'onCancelled'> & {
+  Pick<Props, 'councilId' | 'changes' | 'onChange' | 'onCancelled'> & {
     data: ApplicantsResponse
     onReload: () => void
   }
@@ -112,16 +112,23 @@ function ListNotices({
   )
 }
 
-function ApplicantItems({ data, onReload, attendance, onCancelled, ...rest }: ItemsProps) {
+function ApplicantItems({ data, onReload, changes, onChange, onCancelled, ...rest }: ItemsProps) {
   const [query, setQuery] = useState('')
   const [view, setView] = useState<ApplicantView>('all')
-  const { rows, cancelled, deposited } = useApplicantRows(data.applicants, onCancelled, onReload)
+  const { rows, gone } = useApplicantRows(data.applicants, changes)
   const [notice, setNotice] = useState<string | null>(null)
   const word = query.trim()
   const filtered = word !== '' || view !== 'all'
-  const onDeposit: typeof deposited = (id, deposit) => {
-    deposited(id, deposit)
-    setNotice(deposit.status === 'refunded' ? '환불을 표시했어요.' : null)
+  const changed = (change: ApplicantChange) => {
+    const before = rows.find(item => item.id === change.id)
+    onChange(change)
+    // 신청을 취소했다(양식의 신청 수를 다시 읽는다).
+    if (change.cancelled && !before?.cancelled) onCancelled()
+    setNotice(change.deposit.status === 'refunded' ? '환불을 표시했어요.' : null)
+  }
+  const missing = (id: string) => {
+    gone(id)
+    onCancelled()
   }
   const shown = rows.filter(
     item => inView(item, view) && (word === '' || matches(word, item.name, item.studentId)),
@@ -147,19 +154,15 @@ function ApplicantItems({ data, onReload, attendance, onCancelled, ...rest }: It
         </StateMessage>
       ) : (
         <ul className="flex flex-col gap-2">
-          {shown.map(item => {
-            const attended = attendance.get(item.id) ?? item.attended
-            return (
-              <ApplicantRow
-                key={item.id}
-                applicant={{ ...item, actions: actionsWhenAttended(item.actions, attended) }}
-                attended={attended}
-                onCancelled={cancelled}
-                onDeposit={onDeposit}
-                {...rest}
-              />
-            )
-          })}
+          {shown.map(item => (
+            <ApplicantRow
+              key={item.id}
+              applicant={item}
+              onChange={changed}
+              onGone={() => missing(item.id)}
+              {...rest}
+            />
+          ))}
         </ul>
       )}
     </div>

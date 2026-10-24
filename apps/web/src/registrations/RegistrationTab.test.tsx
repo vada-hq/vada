@@ -13,6 +13,7 @@ import {
   STAFF_EVENT_ID,
   accountItem,
   applicant,
+  applicantChange,
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -426,13 +427,27 @@ test('이름으로 [출석]을 누르면 출석이 되고 [출석 취소]로 되
   fireEvent.click(within(row).getByRole('button', { name: '출석' }))
   expect(posts(api)).toHaveLength(1)
   pending.resolve(
-    json({ registrationId: 'x', name: '김새내', studentId: '20260001', already: false }),
+    json({
+      registrationId: 'x',
+      applicant: applicantChange(),
+      name: '김새내',
+      studentId: '20260001',
+      already: false,
+    }),
   )
   await within(row).findByRole('button', { name: '출석 취소' })
   expect(within(row).getByText('출석')).toBeTruthy()
   // 출석한 신청에는 [신청 취소]가 없다(N10).
   expect(within(row).queryByRole('button', { name: '신청 취소' })).toBeNull()
-  api.on('POST', `${base}/attendance/cancel`, () => json({ cancelled: true }))
+  api.on('POST', `${base}/attendance/cancel`, () =>
+    json({
+      cancelled: true,
+      applicant: applicantChange({
+        attended: false,
+        actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
+      }),
+    }),
+  )
   fireEvent.click(within(row).getByRole('button', { name: '출석 취소' }))
   await within(row).findByRole('button', { name: '출석' })
   expect(within(row).getByRole('button', { name: '신청 취소' })).toBeTruthy()
@@ -450,7 +465,12 @@ test('신청 취소는 확인을 거치고, 취소하면 목록에서 빠진다.
   expect(dialog.textContent).toContain('되돌릴 수 없어요')
   fireEvent.click(within(dialog).getByRole('button', { name: '신청 취소' }))
   expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.CHECKED_IN!)).toBeTruthy()
-  api.on('POST', `${base}/cancel`, () => json({ cancelled: true }))
+  api.on('POST', `${base}/cancel`, () =>
+    json({
+      cancelled: true,
+      applicant: applicantChange({ attended: false, cancelled: true, actions: [] }),
+    }),
+  )
   fireEvent.click(within(dialog).getByRole('button', { name: '신청 취소' }))
   await waitFor(() => expect(screen.queryByText('김새내')).toBeNull())
   expect(screen.getByText('이미납')).toBeTruthy()
