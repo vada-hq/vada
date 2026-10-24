@@ -24,6 +24,7 @@ import {
   type RequestValues,
 } from './request-form'
 import { EventField } from './EventField'
+import { TaskField } from './TaskField'
 import { RequesterField } from './RequesterField'
 import { RequestItemFields } from './RequestItemFields'
 import { useRequestCreate } from './useRequestCreate'
@@ -36,6 +37,8 @@ type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   start?: RequestStart
   // 업무 상세에서 열면 그 업무(기능 015). 낸 요청이 업무에 이어진다.
   taskId?: string
+  // 대화에서 열면 내 업무 가운데 하나를 고르는 칸을 둔다.
+  pickTask?: boolean
   // 재정부가 대신 낼 때 고르는 요청한 사람들. 없으면 칸이 없다.
   requesters?: Choice[] | null
   // 열림 상태는 부모가 가진다([구매 요청 내기] 버튼이 연다).
@@ -193,10 +196,13 @@ function CreateForm({
   start,
   requesters,
   taskId,
+  pickTask = false,
   ...props
 }: FormProps) {
   const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
-  const request = { ...requestOf(values), ...(taskId ? { taskId } : {}) }
+  const [picked, setPicked] = useState<Choice | null>(null)
+  const linked = taskId ?? picked?.id
+  const request = { ...requestOf(values), ...(linked ? { taskId: linked } : {}) }
   const create = useRequestCreate(props.councilId, request, { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
   const {
@@ -235,6 +241,15 @@ function CreateForm({
         onChange={next => set({ eventId: next })}
         onForbidden={props.onForbidden}
       />
+      {pickTask && (
+        <TaskField
+          councilId={props.councilId}
+          value={picked}
+          disabled={saving}
+          onChange={setPicked}
+          onForbidden={props.onForbidden}
+        />
+      )}
       <ItemList
         items={values.items}
         disabled={saving}
