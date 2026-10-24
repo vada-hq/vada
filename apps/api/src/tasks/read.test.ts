@@ -75,6 +75,31 @@ test('내 업무는 나에게 맡긴 것만, 전체는 지운 것만 빼고 모�
   }
 })
 
+test('내 부서는 내가 속한 부서가 맡은 업무만 주고, 부서가 없으면 빈 목록이다', async () => {
+  const t = await start()
+  try {
+    const { planning, finance } = t.council.departments
+    const { financeMember } = t.council.people
+    await t.make({ title: '기획 담당자 없음', departmentId: planning })
+    await t.make({
+      title: '기획 남이 맡음',
+      departmentId: planning,
+      assigneeId: financeMember.memberId,
+    })
+    await t.make({ title: '재정', departmentId: finance })
+    await t.make({ title: '부서 없음' })
+    await t.make({ title: '다른 학생회 기획', departmentId: t.other.departments.planning }, t.other)
+    assert.deepEqual((await t.titles('view=department', 's-planningMember')).sort(), [
+      '기획 남이 맡음',
+      '기획 담당자 없음',
+    ])
+    assert.deepEqual(await t.titles('view=department', 's-financeMember'), ['재정'])
+    assert.deepEqual(await t.titles('view=department', 's-president'), [])
+  } finally {
+    await t.close()
+  }
+})
+
 test('담당자 없음은 담당자 없는 것, 떠난 담당자(current:false), 부서 없는 업무를 준다', async () => {
   const t = await start()
   try {

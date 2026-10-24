@@ -47,36 +47,54 @@ function sectionsOf(tasks: TaskSummary[], view: TaskView, filter: TaskFilter, to
   return view === 'mine' ? groupByDue(tasks, today) : groupByDepartment(tasks)
 }
 
+type RowProps = Pick<
+  Props,
+  'view' | 'change' | 'assign' | 'team' | 'onOpenTask' | 'onOpenEvent' | 'inEvent'
+>
+
+// 업무 한 줄을 그리는 함수. 목록과 달력 아래 목록이 같이 쓴다.
+// 목록은 전체·내 부서·담당자 없음을 부서로 묶어 줄에 부서를 적지 않는다. 달력 아래 목록은 묶음이 없어 '내 부서' 밖에서는 적는다.
+// 달력 아래 목록은 머리가 그날이라 마감도 적지 않는다.
+export function taskRowOf(props: RowProps, calendar = false) {
+  const { view, change, assign, team } = props
+  const show = {
+    assignee: view !== 'mine',
+    department: view === 'mine' || (calendar && view !== 'department'),
+    event: !props.inEvent,
+    due: !calendar,
+  }
+  return (task: TaskSummary) => (
+    <TaskRow
+      key={task.id}
+      task={task}
+      show={show}
+      busy={change.busy.has(task.id) || assign.busy.has(task.id)}
+      error={change.errors[task.id] ?? assign.errors[task.id]}
+      onChangeStatus={status => void change.change(task.id, status)}
+      onOpen={() => props.onOpenTask(task.id)}
+      onOpenEvent={props.onOpenEvent}
+      assign={
+        team && task.assignee === null && task.actions.includes('task.assign')
+          ? { team, onPick: id => void assign.assign(task.id, id) }
+          : undefined
+      }
+    />
+  )
+}
+
 function Ready({
   tasks,
   truncated,
   ...props
 }: Props & { tasks: TaskSummary[]; truncated: boolean }) {
-  const { view, filter, change, assign, team } = props
+  const { view, filter } = props
   const [today] = useState(() => koreanDateOf(new Date()))
-  const show = { assignee: view !== 'mine', department: view === 'mine', event: !props.inEvent }
   return (
     <>
       <TaskSectionList
         sections={sectionsOf(tasks, view, filter, today)}
         summary={view !== 'mine' && filter === 'open'}
-        row={task => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            show={show}
-            busy={change.busy.has(task.id) || assign.busy.has(task.id)}
-            error={change.errors[task.id] ?? assign.errors[task.id]}
-            onChangeStatus={status => void change.change(task.id, status)}
-            onOpen={() => props.onOpenTask(task.id)}
-            onOpenEvent={props.onOpenEvent}
-            assign={
-              team && task.assignee === null && task.actions.includes('task.assign')
-                ? { team, onPick: id => void assign.assign(task.id, id) }
-                : undefined
-            }
-          />
-        )}
+        row={taskRowOf(props)}
       />
       {truncated && <StateMessage kind="notice">{overflow(filter)}</StateMessage>}
     </>

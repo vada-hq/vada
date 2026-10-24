@@ -1,4 +1,4 @@
-import { and, asc, eq, exists, isNull, ne, or, sql, type SQL } from 'drizzle-orm'
+import { and, asc, eq, exists, inArray, isNull, ne, or, sql, type SQL } from 'drizzle-orm'
 import {
   TASK_DONE_LIMIT,
   TASK_OPEN_LIMIT,
@@ -103,6 +103,12 @@ export function summaryOf(actor: Actor, row: Row, now: Date): TaskSummary {
 // 나에게 맡긴 업무. 업무 화면의 '내 업무'와 홈이 같이 쓴다.
 export const assignedTo = (actor: Actor) => eq(task.assigneeId, actor.memberId)
 
+// 업무 화면의 '내 부서'. 부서가 없으면 빈 목록이다.
+const inMyDepartments = (actor: Actor) => {
+  const ids = actor.departments.map(item => item.departmentId)
+  return ids.length > 0 ? inArray(task.departmentId, ids) : sql`false`
+}
+
 // 업무 화면의 '담당자 없음'. 담당자 없음, 떠난 담당자, 부서 없는 업무. 홈이 같이 쓴다.
 export const unassignedCondition = (db: Reader, actor: Actor, now: Date) =>
   or(
@@ -113,6 +119,7 @@ export const unassignedCondition = (db: Reader, actor: Actor, now: Date) =>
 
 function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL | undefined {
   if (view === 'mine') return assignedTo(actor)
+  if (view === 'department') return inMyDepartments(actor)
   if (view === 'all') return undefined
   return unassignedCondition(db, actor, now)
 }

@@ -13,7 +13,8 @@ export const TASK_BODY_MAX = 1000
 export const TASK_OPEN_LIMIT = 300
 export const TASK_DONE_LIMIT = 50
 
-export const TASK_VIEWS = ['mine', 'all', 'unassigned'] as const
+// department는 내가 지금 속한 부서(들)가 맡은 업무다.
+export const TASK_VIEWS = ['mine', 'department', 'all', 'unassigned'] as const
 export type TaskView = (typeof TASK_VIEWS)[number]
 export const TASK_FILTERS = ['open', 'done'] as const
 export type TaskFilter = (typeof TASK_FILTERS)[number]

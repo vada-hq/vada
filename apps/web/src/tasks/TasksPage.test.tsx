@@ -5,6 +5,7 @@ import type { TaskSummary } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
+import { eventSummary } from '@/test-support/event-fixtures'
 import TasksPage from './TasksPage'
 
 function readsOf(api: ReturnType<typeof mockApi>) {
@@ -178,6 +179,70 @@ test('전체의 부서 묶음 머리 오른쪽에 진행 중·지남·담당자 
   expect(within(section).getByText('담당자 없음 2')).toBeTruthy()
   const other = screen.getByRole('region', { name: '홍보부' })
   expect(within(other).queryByText(/^(진행 중|지남|담당자 없음) \d+$/)).toBeNull()
+})
+
+const planningHead = councilView('c1', {
+  departments: [{ id: 'd2', name: '기획부', role: null, rank: 'head' }],
+})
+
+test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무를 부서로 묶어 담당자와 함께 보인다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([]))
+  api.on('GET', listPath('department'), () =>
+    list([task('1', { department: { id: 'd2', name: '기획부' }, status: 'in_progress' })]),
+  )
+  const { unmount } = render(
+    <TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />,
+  )
+  await screen.findByRole('tab', { name: '전체' })
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+    '내 업무',
+    '전체',
+    '담당자 없음',
+  ])
+  unmount()
+  render(<TasksPage view={planningHead} onForbidden={() => {}} onChanged={() => {}} />)
+  fireEvent.click(await screen.findByRole('tab', { name: '내 부서' }))
+  const section = await screen.findByRole('region', { name: '기획부' })
+  expect(within(section).getByText('진행 중 1')).toBeTruthy()
+  expect(rowOf('업무 1').textContent).toContain('김새내')
+})
+
+test('달력은 끝나지 않은 업무와 끝난 업무, 행사를 함께 그리고, 날을 고르면 그날의 행사와 업무를 아래에 보인다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([task('a'), task('c', { dueDate: null })]))
+  api.on('GET', listPath('mine', 'done'), () => list([task('b', { status: 'done', actions: [] })]))
+  api.on('GET', '/api/organizations/c1/events', () =>
+    json({
+      events: [
+        eventSummary({ name: '가을 MT', startsAt: '2026-10-30T14:00', endsAt: '2026-11-01T12:00' }),
+      ],
+      truncated: false,
+    }),
+  )
+  render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
+  await screen.findByRole('button', { name: '업무 a' })
+  fireEvent.click(screen.getByRole('button', { name: '달력' }))
+  expect(await screen.findByRole('heading', { name: '2026년 10월' })).toBeTruthy()
+  // 달력에는 거르기가 없다. 오늘이 골라져 있고 그날의 업무가 끝난 것까지 아래에 보인다.
+  expect(screen.queryByRole('group', { name: '업무 거르기' })).toBeNull()
+  const today = await screen.findByRole('region', { name: '10월 25일 (일)' })
+  await within(today).findByRole('button', { name: '업무 b' })
+  expect(
+    within(today)
+      .getAllByRole('button', { name: /^업무 / })
+      .map(b => b.textContent),
+  ).toEqual(['업무 a', '업무 b'])
+  // 여러 날 행사는 걸친 날마다 보인다.
+  fireEvent.click(screen.getByRole('button', { name: '10월 31일 (토) 업무 0개, 행사 1개' }))
+  const day = screen.getByRole('region', { name: '10월 31일 (토)' })
+  expect(day.textContent).toContain('가을 MT')
+  expect(day.textContent).toContain('10월 30일 14:00 – 11월 1일 12:00')
+  fireEvent.click(screen.getByRole('button', { name: '마감 없음 1' }))
+  const undated = screen.getByRole('region', { name: '마감 없음' })
+  expect(within(undated).getByRole('button', { name: '업무 c' })).toBeTruthy()
 })
 
 test('빈 목록, 넘침, 불러오기 실패 문구가 있다', async () => {

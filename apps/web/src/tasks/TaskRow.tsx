@@ -13,6 +13,8 @@ type RowShow = {
   department: boolean
   // 행사의 업무 탭에서는 그 행사 이름을 되풀이하지 않는다.
   event: boolean
+  // 달력의 고른 날 목록에서는 마감이 머리의 날짜와 같아 적지 않는다.
+  due?: boolean
 }
 
 type Props = {
@@ -57,6 +59,19 @@ function Meta({ task, show, onOpenEvent }: Pick<Props, 'task' | 'show' | 'onOpen
   )
 }
 
+function DueText({ task }: Pick<Props, 'task'>) {
+  return (
+    <span
+      className={cn(
+        'shrink-0 text-xs',
+        task.overdue ? 'font-medium text-red-600' : 'text-gray-500',
+      )}
+    >
+      {dueLabel(task.dueDate)}
+    </span>
+  )
+}
+
 function AssignSelect({ task, assign, busy }: Pick<Props, 'task' | 'assign' | 'busy'>) {
   if (!assign) return null
   const choices = detailAssigneeChoices(assign.team, task).filter(item => item.id !== null)
@@ -96,17 +111,11 @@ export function TaskRow(props: Props) {
               {task.title}
             </Button>
             {task.status === 'in_progress' && <Badge tone="info">진행 중</Badge>}
+            {props.show.due === false && task.overdue && <Badge tone="danger">지남</Badge>}
           </div>
           <Meta task={task} show={props.show} onOpenEvent={props.onOpenEvent} />
         </div>
-        <span
-          className={cn(
-            'shrink-0 text-xs',
-            task.overdue ? 'font-medium text-red-600' : 'text-gray-500',
-          )}
-        >
-          {dueLabel(task.dueDate)}
-        </span>
+        {props.show.due !== false && <DueText task={task} />}
         <AssignSelect task={task} assign={props.assign} busy={busy} />
         {next && (
           <Button

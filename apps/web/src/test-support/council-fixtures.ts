@@ -49,6 +49,7 @@ export function councilView(
     councilRank?: CouncilRank | null
     permissions?: Action[]
     memberId?: string | undefined
+    departments?: CouncilView['me']['departments']
   } = {},
 ): CouncilView {
   const councilRank = options.councilRank === undefined ? 'president' : options.councilRank
@@ -61,7 +62,12 @@ export function councilView(
       titles: defaultTitles,
     },
     cohort: { id: `${id}-2026`, name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
-    me: { memberId: options.memberId ?? 'm1', name: '김회장', councilRank, departments: [] },
+    me: {
+      memberId: options.memberId ?? 'm1',
+      name: '김회장',
+      councilRank,
+      departments: options.departments ?? [],
+    },
     permissions:
       options.permissions ??
       (councilRank === 'president'
