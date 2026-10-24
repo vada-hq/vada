@@ -78,7 +78,7 @@
 - 닿는 곳: contracts `purchases.ts`(`CancelLineItemSchema`, `LineItemAction`), `errors.ts`, `purchases/policy.ts`, `purchases/routes.ts`, 새 `purchases/cancel-item.ts`, `purchases/notify.ts`, `http/boundary.test.ts`.
 - 검토: 깊게(돈, 권한, 동시 처리). 마이그레이션: 없음.
 
-### 3. 승인할 때 행사 귀속 검사 [ ]
+### 3. 승인할 때 행사 귀속 검사 [x]
 - 할 수 있게 되는 것: 요청과 다른 행사의 예산 항목으로는 품목을 승인할 수 없다.
 - 수용 기준: 요청 행사 없음·A와 예산 항목 행사 없음·A·B를 엇갈아 승인하면 A↔B만 409 `EVENT_MISMATCH`이고 결재 기록·품목 금액이 하나도 바뀌지 않는다(한 번에 보낸 다른 품목 포함). 같은 표로 직접 지출(지출 행사 × 항목 행사)이 지금처럼 동작한다. 승인·직접 지출·화면이 contracts의 같은 술어를 쓰고, 술어를 지우면 두 서버 시험이 함께 실패한다. A 요청을 A 항목으로 승인한 뒤 다른 행사 B를 완료해도 A 품목을 결제할 수 있다. 진행 에이전트는 이 조각을 올리기 전에 개발·운영 DB에서 (a) 요청 행사와 품목 예산 항목 행사가 둘 다 있고 다른 승인 품목, (b) 지출 행사와 예산 항목 행사가 다른 취소 안 된 직접 지출을 읽기로만 세어 진행 기록에 남긴다('정한 것' 기존 불일치).
 - 닿는 곳: contracts(새 술어, 파일은 `budget.ts` 근처), `purchases/decide.ts`, `purchases/policy.ts`, `expenses/event-rule.ts`.
