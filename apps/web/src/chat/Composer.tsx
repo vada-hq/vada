@@ -1,6 +1,6 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useRef, type ChangeEvent, type KeyboardEvent } from 'react'
 import type { RoomParticipant } from '@vada/contracts'
-import { ImagePlus } from 'lucide-react'
+import { ImagePlus, SendHorizontal } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -84,6 +84,27 @@ function PhotoPicker({ onPick }: { onPick: (files: File[]) => void }) {
   )
 }
 
+// 마우스와 키보드로 쓰면 Enter가 보내기, Shift+Enter가 줄바꿈이다. 휴대폰은 Enter가 줄바꿈이고 버튼으로 보낸다.
+// 한글을 조합하는 중의 Enter는 글자를 끝내는 것이라 보내지 않는다.
+function sendsOnEnter(event: KeyboardEvent<HTMLTextAreaElement>) {
+  if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return false
+  return window.matchMedia?.('(pointer: fine)').matches ?? false
+}
+
+function SendButton({ sending, disabled }: { sending: boolean; disabled: boolean }) {
+  return (
+    <Button
+      type="submit"
+      size="icon"
+      className="size-10"
+      aria-label={sending ? '보내는 중' : '보내기'}
+      disabled={disabled}
+    >
+      <SendHorizontal />
+    </Button>
+  )
+}
+
 // 입력칸: 글, '@' 부르기, 사진 붙이기, 보내기. 버튼은 계약의 검사로 켜고 끈다.
 export default function Composer({ participants, meId, ...args }: Props) {
   const composer = useComposer(args)
@@ -111,15 +132,18 @@ export default function Composer({ participants, meId, ...args }: Props) {
           ref={field}
           rows={1}
           aria-label="메시지"
-          placeholder="메시지를 입력하세요. @로 사람을 부를 수 있어요."
+          placeholder="메시지"
           className="min-h-10 flex-1"
           value={body}
           onChange={onChange}
+          onKeyDown={event => {
+            if (!sendsOnEnter(event) || people.length > 0) return
+            event.preventDefault()
+            if (canSend) void send()
+          }}
           onSelect={event => onSelect(event.currentTarget.selectionStart)}
         />
-        <Button type="submit" disabled={!canSend}>
-          {sending ? '보내는 중…' : '보내기'}
-        </Button>
+        <SendButton sending={sending} disabled={!canSend} />
       </div>
       {error && <StateMessage kind="error">{error}</StateMessage>}
     </form>

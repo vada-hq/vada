@@ -28,7 +28,10 @@ export function dateLabel(iso: string, now: Date) {
     : `${year}년 ${month}월 ${day}일`
 }
 
-// 방 카드와 메시지의 시각. 오늘(한국)이면 시각, 아니면 날짜다.
+// 메시지 흐름의 시각. 날짜는 구분선이 맡아 시각만 보인다.
+export const clockLabel = (iso: string) => korean(iso).time
+
+// 방 목록의 시각. 오늘(한국)이면 시각, 아니면 날짜다.
 export function timeLabel(iso: string | null, now: Date) {
   if (iso === null) return ''
   const { date, time } = korean(iso)

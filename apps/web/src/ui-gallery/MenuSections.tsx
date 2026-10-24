@@ -109,11 +109,12 @@ export function MessageMenuSection() {
   }
   return (
     <Section title="메시지 메뉴">
-      <ul className="w-96 divide-y rounded-lg border bg-white p-2">
+      <ul className="w-96 rounded-lg border bg-white p-2">
         <MessageItem
           councilId="sample"
           message={message}
-          now={new Date('2026-10-23T05:00:00Z')}
+          continued={false}
+          mine={false}
           canMarkNotice
           onMarkNotice={() => Promise.resolve(null)}
           canRequest
