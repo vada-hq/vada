@@ -1,4 +1,10 @@
-import { TASK_ACTIONS, type Action, type ErrorCode, type TaskAction } from '@vada/contracts'
+import {
+  TASK_ACTIONS,
+  type Action,
+  type ErrorCode,
+  type TaskAction,
+  type TaskStatus,
+} from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can, type Context } from '../access/permissions.js'
 
@@ -54,3 +60,8 @@ export const decide = (actor: Actor, facts: TaskFacts, action: TaskAction): Erro
 // 화면에 줄 동작: decide가 허용하는 것
 export const actionsOf = (actor: Actor, facts: TaskFacts): TaskAction[] =>
   TASK_ACTIONS.filter(action => decide(actor, facts, action) === null)
+
+// 결과물을 이을 수 있는 업무인가(기능 015): 끝나지 않았고(취소한 업무는 읽기에서 이미 없다) 내가 그 업무의 상태를 바꿀 수 있다.
+// 상세의 canMake와 만들기 경로의 확인이 같은 판정을 쓴다.
+export const canLinkResult = (actor: Actor, facts: TaskFacts, status: TaskStatus) =>
+  status !== 'done' && decide(actor, facts, 'task.change_status') === null

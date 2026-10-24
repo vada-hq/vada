@@ -35,6 +35,7 @@ import {
 } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { linkResult, syncAfter, watchBefore, type StatusWriter } from '../tasks/result-sync.js'
 import { assertChangeStaysInCouncil, assertSameCouncil } from './same-council.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
@@ -105,7 +106,14 @@ export type AnyRecordChange = { [K in RecordKind]: RecordChange<K> }[RecordKind]
 // 지금 시각. 거래 시작 시각(now())이 아니라 실제 시계 시각이다.
 export const clockNow = sql`clock_timestamp()`
 
+// 결과물에 일이 생겨 업무 상태가 저절로 앞으로 갈 때의 쓰기: 바꾼 사람 없이 까닭 코드를 판의 사유에 남긴다(DEC-82).
+// 업무는 결과물 종류가 아니라 이 쓰기는 고리를 다시 돌리지 않는다.
+const writeTaskStatus: StatusWriter = (tx, { taskId, status, cause }) =>
+  updateRecords(tx, [{ kind: 'task', id: taskId, actor: null, reason: cause, changes: { status } }])
+
 // 기록 하나와 하위 행 하나, 판 1을 함께 만들고 식별자를 돌려준다. actor는 만든 사람이고, 신청자나 시스템이면 null이다.
+// taskId가 있으면 결과물과 업무를 같은 거래에서 잇고, 그때 오른 단계로 업무 상태를 옮긴다(결과물 종류만, 기능 015).
+// 결과물 단계를 올릴 수 있는 쓰기(요청, 품목, 결재, 결제 내역)는 끝에서 이어진 업무를 다시 센다. 그 밖의 쓰기는 아무것도 하지 않는다.
 export async function createRecord<K extends RecordKind>(
   tx: Tx,
   {
@@ -113,11 +121,19 @@ export async function createRecord<K extends RecordKind>(
     councilId,
     actor,
     values,
-  }: { kind: K; councilId: string | null; actor: string | null; values: RecordValues<K> },
+    taskId,
+  }: {
+    kind: K
+    councilId: string | null
+    actor: string | null
+    values: RecordValues<K>
+    taskId?: string
+  },
 ): Promise<string> {
   if (withoutCouncil.has(kind) !== (councilId === null))
     throw new Error(`${kind}: 학생회 번호 규칙에 어긋난다`)
   await assertSameCouncil(tx, kind, councilId, values)
+  const watch = await watchBefore(tx, [{ kind, values }])
   const [created] = await tx
     .insert(record)
     .values({ kind, councilId, createdBy: actor, createdAt: clockNow })
@@ -131,6 +147,12 @@ export async function createRecord<K extends RecordKind>(
     >)
   await tx.execute(sql`INSERT INTO record_version (record_id, version_no, valid, data, changed_by)
     SELECT r.id, 1, tstzrange(r.created_at, NULL), to_jsonb(t), r.created_by FROM record r JOIN ${table} t ON t.id = r.id WHERE r.id = ${id}`)
+  if (taskId) {
+    if (kind !== 'request') throw new Error(`${kind}: 업무에 잇는 결과물 종류가 아니다`)
+    for (const [resultId, value] of await linkResult(tx, { taskId, resultId: id, kind }))
+      watch.set(resultId, value)
+  }
+  await syncAfter(tx, watch, writeTaskStatus)
   return id
 }
 
@@ -303,6 +325,7 @@ async function assertPresidentRemains(tx: Tx, cohortId: string) {
 export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[]) {
   assertNoOwnershipChange(changes)
   const presidentCohorts = new Set<string>()
+  const watch = await watchBefore(tx, changes)
   for (const change of changes) {
     const table: Table<RecordKind> = tables[change.kind]
     await lockRecord(tx, table, change.id)
@@ -315,6 +338,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
     await openNextVersion(tx, table, change)
   }
   for (const cohortId of presidentCohorts) await assertPresidentRemains(tx, cohortId)
+  await syncAfter(tx, watch, writeTaskStatus)
 }
 
 export const updateRecord = <K extends RecordKind>(tx: Tx, change: RecordChange<K>) =>

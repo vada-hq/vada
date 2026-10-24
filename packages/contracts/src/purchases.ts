@@ -74,6 +74,8 @@ export const CreatePurchaseRequestSchema = z.strictObject({
   requestedBy: recordIdInput.nullable().default(null),
   // 이 요청의 근거가 된 메시지. 내가 지금 볼 수 있는 것만 된다. 응답에는 싣지 않는다.
   sourceMessageId: recordIdInput.nullable().default(null),
+  // 이 요청을 이을 업무(기능 015). 이 학생회의 끝나지 않은 업무로 내가 상태를 바꿀 수 있는 것만 된다. 빼면 잇지 않는다.
+  taskId: recordIdInput.optional(),
   items: z.array(CreateLineItemSchema).min(1).max(PURCHASE_ITEMS_MAX),
 })
 export type CreatePurchaseRequest = z.infer<typeof CreatePurchaseRequestSchema>

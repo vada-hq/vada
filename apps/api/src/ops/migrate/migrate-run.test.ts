@@ -216,7 +216,7 @@ test('--apply는 빈 DB에 적용하고, 다시 읽은 기록 수로 실제 적�
       again.lines.join(' | '),
     )
     assert.ok(
-      again.lines.some(line => line.startsWith('public 표 55개, 적용 기록 ')),
+      again.lines.some(line => line.startsWith('public 표 56개, 적용 기록 ')),
       again.lines.join(' | '),
     )
   } finally {
