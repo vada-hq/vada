@@ -64,6 +64,8 @@ exports[`대화상자: 없애기 1`] = `
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
 <div role="dialog" id="radix-_id4_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" style="pointer-events: auto;" aria-labelledby="radix-_id5_" aria-describedby="radix-_id6_">
+<button type="button" hidden="" tabindex="-1" aria-hidden="true">
+</button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id5_" class="text-base font-semibold text-gray-900 wrap-anywhere">기획부 부서를 없앨까요?</h2>
 <p id="radix-_id6_" class="text-sm text-gray-500 wrap-anywhere">없앤 부서는 되돌릴 수 없어요.</p>
@@ -150,6 +152,8 @@ exports[`대화상자: 이름 바꾸기 1`] = `
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
 <div role="dialog" id="radix-_id4_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" style="pointer-events: auto;" aria-labelledby="radix-_id5_">
+<button type="button" hidden="" tabindex="-1" aria-hidden="true">
+</button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id5_" class="text-base font-semibold text-gray-900">부서 이름 바꾸기</h2>
 </div>
