@@ -130,6 +130,21 @@
         "typescript/unbound-method": "error"
       }
     },
+    // 화면 컴포넌트는 함수 100줄. JSX는 칸 하나가 여러 줄이라 50줄은 뜻 없는 쪼개기를 부른다.
+    // 줄 수 상한은 ESLint·Oxlint 권장 규칙이 아니고 결함과의 관련 근거도 약하다. 복잡도·인자·중첩 상한은 그대로다.
+    {
+      "files": ["**/*.tsx"],
+      "rules": {
+        "max-lines-per-function": [
+          "error",
+          {
+            "max": 100,
+            "skipBlankLines": true,
+            "skipComments": true
+          }
+        ]
+      }
+    },
     {
       "files": ["**/*.test.ts", "**/*.test.tsx", "**/test-support/**"],
       "rules": {
