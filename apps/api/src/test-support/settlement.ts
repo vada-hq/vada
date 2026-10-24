@@ -1,6 +1,7 @@
 import type { SettlementRemainingKind, SettlementResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createBudgetRoutes } from '../budget/routes.js'
+import { createChatRoutes } from '../chat/routes.js'
 import { createTestDb } from '../db/test-db.js'
 import { createDepositRoutes } from '../deposits/routes.js'
 import { createEventRoutes } from '../events/routes.js'
@@ -69,6 +70,7 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
       deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
       publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
       tasks: createTaskRoutes(db, testSession, { clock, writeLimiter }),
+      chat: createChatRoutes(db, testSession, { clock }),
       feePayments: createFeePaymentRoutes(db, testSession, { clock, writeLimiter }),
     }),
   )

@@ -125,8 +125,12 @@ export const SendMessageSchema = z
     body: text(MESSAGE_BODY_MAX).optional(),
     mentions: z.array(recordIdInput).max(MENTION_MAX).default([]),
     photos: z.array(token(PHOTO_KEY_MAX)).max(PHOTO_MAX_COUNT).default([]),
+    // 전체방에서 공지 표시를 붙여 보낸다(chat.notice만). taskId는 이 공지를 이을 업무(기능 015)라 notice 없이는 받지 않는다.
+    notice: z.boolean().default(false),
+    taskId: recordIdInput.nullish(),
   })
   .refine(value => value.body !== undefined || value.photos.length > 0)
+  .refine(value => !value.taskId || value.notice)
   .refine(value => new Set(value.photos).size === value.photos.length)
 export type SendMessageRequest = z.input<typeof SendMessageSchema>
 

@@ -3,14 +3,27 @@ import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { chatRoom, message, roomMembership } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
+import { lockCouncil } from '../access/authorize.js'
+import { can } from '../access/permissions.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
+import { assertLinkableTask } from '../tasks/link.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
 import { messageOf } from './messages.js'
 import type { VerifiedPhoto } from '../storage/uploads.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
+
+type SendInput = {
+  roomId: string
+  body: string
+  mentions: string[]
+  photos: VerifiedPhoto[]
+  // 공지 표시를 붙여 보낸다. taskId는 그 공지를 이을 업무(기능 015)다.
+  notice?: boolean
+  taskId?: string | null | undefined
+}
 
 // 보내기 속도 제한: 계정마다 10초에 20개(기능 003 '속도 제한'). 넘으면 TOO_MANY_REQUESTS다.
 export const SEND_LIMIT = { limit: 20, windowMs: 10_000 }
@@ -69,10 +82,15 @@ async function calledFrom(
 export async function sendMessage(
   tx: Tx,
   actor: Actor,
-  input: { roomId: string; body: string; mentions: string[]; photos: VerifiedPhoto[] },
+  input: SendInput,
   now: Date,
 ): Promise<ChatMessage> {
+  // 공지에 업무를 이으면 업무 상태를 옮기는 쓰기라, 다른 직원 쓰기처럼 학생회 행을 먼저 잠근다(맨 앞 잠금).
+  if (input.taskId) await lockCouncil(tx, actor.councilId)
   const room = await roomAccess(tx, actor, input.roomId)
+  // 공지는 전체방에서 chat.notice만 올린다(DEC-14). 공지 표시를 붙이고 떼는 길(markNotice)과 같은 조건이다.
+  if (input.notice && (room.type !== 'all_members' || !can(actor, 'chat.notice')))
+    throw new ApiError('FORBIDDEN')
   const [mine] = await tx
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
@@ -80,6 +98,7 @@ export async function sendMessage(
     .for('no key update')
   if (!mine) throw new ApiError('FORBIDDEN')
   await assertWritable(tx, actor, room, now)
+  if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const called = await calledFrom(tx, actor, { roomId: room.id, mentions: input.mentions }, now)
   // 방 행을 잠가 같은 방의 보내기를 줄 세운다(잠금 순서: 내 참여 줄 → 방 행). 보낸 시각은 잠근 뒤에 DB 시계로 정하고
   // 방의 가장 늦은 메시지보다 뒤로 둬서, 커서와 읽음이 기대는 "보낸 시각 순서 = 커밋 순서"가 같은 방에서 틀리지 않게 한다.
@@ -94,7 +113,8 @@ export async function sendMessage(
     kind: 'message',
     councilId: actor.councilId,
     actor: actor.memberId,
-    values: { roomId: room.id, body: input.body, sentAt, isNotice: false },
+    ...(input.taskId ? { taskId: input.taskId } : {}),
+    values: { roomId: room.id, body: input.body, sentAt, isNotice: input.notice ?? false },
   })
   await attachPhotos(tx, actor, messageId, input.photos)
   await advanceRead(tx, room.id, actor.memberId, messageId)

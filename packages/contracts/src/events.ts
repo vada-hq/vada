@@ -28,6 +28,8 @@ export const CreateEventSchema = z
     endsAt: koreanDateTime.nullable().default(null),
     place: text(EVENT_PLACE_MAX).nullable().default(null),
     ownerId: recordIdInput.nullable().default(null),
+    // 이 행사를 이을 업무(기능 015). 업무 자신의 행사는 바뀌지 않는다. 비우거나 빼면 잇지 않는다.
+    taskId: recordIdInput.nullish(),
   })
   .refine(hasValidSpan)
 export type CreateEventRequest = z.infer<typeof CreateEventSchema>

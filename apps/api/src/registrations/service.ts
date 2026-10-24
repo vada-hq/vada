@@ -11,6 +11,7 @@ import type { Tx } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { assertLinkableTask } from '../tasks/link.js'
 import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
 import { freshPublicCode } from './public-code.js'
@@ -46,10 +47,13 @@ export async function createForm(
     eventOwnerId: eventRow.ownerId,
   })
   await assertFeeAccount(tx, actor, input)
+  // 업무를 이으면 양식과 연결 한 줄이 한 거래에서 생기고 업무가 끝남이 된다. 거절이면 아무것도 생기지 않는다.
+  if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, target.now)
   const id = await createRecord(tx, {
     kind: 'registration_form',
     councilId: actor.councilId,
     actor: actor.memberId,
+    ...(input.taskId ? { taskId: input.taskId } : {}),
     values: {
       eventId: eventRow.id,
       name: input.name,

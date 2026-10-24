@@ -11,6 +11,7 @@ import { lockCurrentMembers } from '../chat/current-members.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
+import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
 import { decide, factsOf } from './policy.js'
 import { eventDetailOf, eventRowOf } from './queries.js'
@@ -36,10 +37,13 @@ export async function createEvent(
 ): Promise<EventDetail> {
   if (!can(actor, 'event.create')) throw new ApiError('FORBIDDEN')
   await assertOwner(tx, actor, input.ownerId, now)
+  // 업무를 이으면 행사와 연결 한 줄이 한 거래에서 생긴다. 업무는 그대로이고 완료할 때 끝남이 된다. 거절이면 아무것도 생기지 않는다.
+  if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const id = await createRecord(tx, {
     kind: 'event',
     councilId: actor.councilId,
     actor: actor.memberId,
+    ...(input.taskId ? { taskId: input.taskId } : {}),
     values: {
       name: input.name,
       startsAt: fromKorean(input.startsAt),

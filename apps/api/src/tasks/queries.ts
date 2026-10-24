@@ -190,7 +190,11 @@ export async function taskDetailOf(
     createdBy: history[0]?.by ?? null,
     createdAt: row.createdAt.toISOString(),
     results: await resultsOf(db, taskId),
-    canMake: canMakeOf(actor, linkable),
+    canMake: await canMakeOf(db, actor, {
+      linkable,
+      eventId: row.eventId,
+      eventOwnerId: row.eventOwnerId,
+    }),
     history,
   }
 }
