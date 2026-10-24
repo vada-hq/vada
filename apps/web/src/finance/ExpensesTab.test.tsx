@@ -2,6 +2,7 @@
 import { PURCHASE_REASON_MAX } from '@vada/contracts'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { openHistory } from '@/test-support/history'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { expenseDetail, expenseSummary } from '@/test-support/expense-fixtures'
 import {
@@ -122,7 +123,12 @@ test('상세에 칸, 결제한 품목, 결재, 이력이 보이고 환급함을 
   expect(dialog.textContent).toContain('행사 포스터')
   expect(dialog.textContent).toContain('사유 급해서 먼저 결제')
   expect(dialog.textContent).toContain('이재정 · 10월 20일 14:03 · 승인')
-  expect(dialog.textContent).toContain('이재정 · 10월 20일 14:03 · 적음')
+  expect(within(dialog).getByRole('region', { name: '결재' })).toBeTruthy()
+  expect(dialog.textContent).not.toContain('이재정 · 10월 20일 14:03 · 적음')
+  const history = await openHistory()
+  expect(history.textContent).toContain('이재정 · 10월 20일 14:03 · 적음')
+  fireEvent.click(within(history).getByText('닫기'))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '이력' })).toBeNull())
   fireEvent.click(within(dialog).getByRole('button', { name: '환급함' }))
   expect(api.calls.some(call => call.path.endsWith('/reimburse'))).toBe(false)
   const confirm = screen.getByText('환급했다고 표시할까요?').closest('[role="dialog"]')!

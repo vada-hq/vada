@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import type { PurchaseRequestDetail } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { PURCHASE_LOAD_FAILED } from '@/lib/messages'
+import { versionLine } from './purchase-text'
 import { neededByLabel } from './purchase-view'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import { DecisionPanel } from './DecisionPanel'
 import { RequestExpenses } from './RequestExpenses'
 import { RequestItems } from './RequestItems'
-import { RequestDecisions, RequestHistory } from './RequestRecords'
+import { RequestDecisions } from './RequestRecords'
 import { StatusBadge } from './StatusBadge'
 import { useRequestDetail } from './useRequestDetail'
 
@@ -48,10 +50,11 @@ function OpenRequestDialog({
       }}
     >
       <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">
             {detail.request?.title ?? '구매 요청'}
           </DialogTitle>
+          {detail.request && <HistoryMenu history={detail.request.history} line={versionLine} />}
         </DialogHeader>
         {detail.request ? (
           <Loaded
@@ -165,7 +168,6 @@ function Loaded({
       {detail.problem && !request.actions.includes('purchase_request.cancel') && (
         <StateMessage kind="error">{detail.problem}</StateMessage>
       )}
-      <RequestHistory history={request.history} />
     </div>
   )
 }

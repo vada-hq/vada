@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { PURCHASE_ITEMS_MAX } from '@vada/contracts'
+import { openHistory } from '@/test-support/history'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
@@ -163,7 +164,7 @@ test('내다가 권한을 잃으면(403) 학생회를 다시 읽게 하고 이�
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
 })
 
-test('카드를 누르면 상세에 요청, 품목, 결재 이력, 이력이 보인다', async () => {
+test('카드를 누르면 상세에 요청, 품목, 결재가 보이고 이력은 메뉴 뒤에서 열린다', async () => {
   setup()
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   const dialog = await screen.findByRole('dialog')
@@ -176,7 +177,10 @@ test('카드를 누르면 상세에 요청, 품목, 결재 이력, 이력이 보
   expect(link.getAttribute('target')).toBe('_blank')
   expect(link.getAttribute('rel')).toBe('noopener noreferrer')
   expect(within(dialog).getByText(/이재정 · 10월 21일 14:03 · 반려: 이미 있어요/)).toBeTruthy()
-  expect(within(dialog).getByText('김회장 · 10월 20일 14:03 · 요청함')).toBeTruthy()
+  expect(within(dialog).getByRole('region', { name: '결재' })).toBeTruthy()
+  expect(within(dialog).queryByText('김회장 · 10월 20일 14:03 · 요청함')).toBeNull()
+  const history = await openHistory()
+  expect(within(history).getByText('김회장 · 10월 20일 14:03 · 요청함')).toBeTruthy()
 })
 
 test('결제한 품목에는 결제함이 보인다', async () => {

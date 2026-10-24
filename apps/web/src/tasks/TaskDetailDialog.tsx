@@ -3,12 +3,13 @@ import type { CouncilView, TaskAction, TaskDetail } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { TASK_LOAD_FAILED } from '@/lib/messages'
 import type { TaskDialogHandlers } from './task-requests'
+import { versionLine } from './task-text'
 import { TaskEditForm } from './TaskEditForm'
 import { TaskFacts } from './TaskFacts'
-import { TaskHistory } from './TaskHistory'
 import { useTaskDetail } from './useTaskDetail'
 
 type Props = TaskDialogHandlers & {
@@ -41,8 +42,9 @@ function OpenTaskDialog({
       }}
     >
       <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">{detail.task?.title ?? '업무'}</DialogTitle>
+          {detail.task && <HistoryMenu history={detail.task.history} line={versionLine} />}
         </DialogHeader>
         {detail.task ? (
           <Loaded
@@ -120,7 +122,6 @@ function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: Loade
           onDeleted={onClose}
         />
       )}
-      <TaskHistory history={task.history} />
     </div>
   )
 }

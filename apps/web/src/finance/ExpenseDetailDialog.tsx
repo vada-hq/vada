@@ -1,11 +1,13 @@
 import type { ExpenseDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EXPENSE_LOAD_FAILED } from '@/lib/messages'
 import { ExpenseActions } from './ExpenseActions'
-import { ExpenseFacts, ExpenseLines, ExpenseRecords } from './ExpenseFacts'
+import { ExpenseApprovals, ExpenseFacts, ExpenseLines } from './ExpenseFacts'
 import type { ExpenseDialogHandlers } from './expense-requests'
+import { versionLine } from './expense-text'
 import { EvidenceSection } from './EvidenceSection'
 import { useChatEvidence } from './useChatEvidence'
 import { useEvidenceUpload } from './useEvidenceUpload'
@@ -54,8 +56,9 @@ function OpenExpenseDialog({
       }}
     >
       <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">{detail.expense?.vendor ?? '지출'}</DialogTitle>
+          {detail.expense && <HistoryMenu history={detail.expense.history} line={versionLine} />}
         </DialogHeader>
         {detail.expense ? (
           <Loaded
@@ -106,7 +109,7 @@ function Loaded({
         detail={detail}
         onForbidden={onForbidden}
       />
-      <ExpenseRecords expense={expense} />
+      <ExpenseApprovals approvals={expense.approvals} />
     </div>
   )
 }

@@ -13,6 +13,16 @@ test('이력 줄은 이름, 한국 시각, 바뀐 칸 차례다', () => {
   )
 })
 
+test('바꾼 사람이 없는 판은 이름 자리에 저절로와 까닭이 온다', () => {
+  const base = { versionNo: 3, at: '2026-10-20T05:03:00.000Z', by: null }
+  const changes: TaskChange[] = [{ field: 'status', from: 'todo', to: 'in_progress' }]
+  expect(versionLine({ ...base, cause: 'request_submitted', changes })).toBe(
+    '저절로: 구매 요청 냄 · 10월 20일 14:03 · 상태 할 일 → 진행 중',
+  )
+  expect(versionLine({ ...base, cause: 'event_completed', changes })).toContain('저절로: 행사 완료')
+  expect(versionLine({ ...base, by, cause: 'form_created', changes })).toMatch(/^김회장 · /)
+})
+
 test('판 1은 만듦이고 만든 사람이 없으면 알 수 없는 사람이다', () => {
   expect(
     versionLine({

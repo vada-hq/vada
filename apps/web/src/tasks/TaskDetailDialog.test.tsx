@@ -6,6 +6,7 @@ import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { eventSummary } from '@/test-support/event-fixtures'
+import { openHistory } from '@/test-support/history'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { TASK_LOST } from '@/lib/messages'
 import { TaskDetailDialog } from './TaskDetailDialog'
@@ -55,10 +56,11 @@ test('상세는 제목, 상태, 마감, 담당 부서, 담당자, 내용, 이력
     '재정부',
     '이재정',
     '크기는 3m로 해 주세요.',
-    '김회장 · 10월 20일 14:03 · 만듦',
   ].map(part => text.indexOf(part))
   expect(order.every(index => index >= 0)).toBe(true)
   expect([...order].sort((a, b) => a - b)).toEqual(order)
+  expect(text).not.toContain('김회장 · 10월 20일 14:03 · 만듦')
+  expect(within(dialog).queryByRole('region', { name: '이력' })).toBeNull()
   api.assertNoUnexpectedRequests()
 })
 
@@ -338,7 +340,22 @@ test('이력 줄이 판마다 보인다', async () => {
       ],
     }),
   )
-  await screen.findByText('이재정 · 10월 20일 23:59 · 상태 할 일 → 진행 중')
+  const history = await openHistory()
+  expect(
+    within(history)
+      .getAllByRole('listitem')
+      .map(item => item.textContent),
+  ).toEqual(['김회장 · 10월 20일 14:03 · 만듦', '이재정 · 10월 20일 23:59 · 상태 할 일 → 진행 중'])
+  expect(within(history).queryByRole('button', { name: /고치기|지우기/ })).toBeNull()
+})
+
+test('[닫기]를 누르면 이력 창만 닫힌다', async () => {
+  setup()
+  await screen.findByText('크기는 3m로 해 주세요.')
+  const history = await openHistory()
+  fireEvent.click(within(history).getByText('닫기'))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '이력' })).toBeNull())
+  expect(screen.getByRole('dialog')).toBeTruthy()
 })
 
 test('지남과 떠난 담당자가 보인다', async () => {

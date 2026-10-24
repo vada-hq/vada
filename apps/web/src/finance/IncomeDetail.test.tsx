@@ -2,6 +2,7 @@
 import { PURCHASE_REASON_MAX } from '@vada/contracts'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { openHistory } from '@/test-support/history'
 import { asElement } from '@/test-support/elements'
 import {
   councilView,
@@ -71,7 +72,8 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
   )
   show()
   const dialog = await openDetail()
-  await within(dialog).findByText(/이재정 · 10월 20일 14:03 · 적음/)
+  await within(dialog).findByText('500,000원')
+  expect(dialog.textContent).not.toContain('적음')
   expect(dialog.textContent).toContain('500,000원')
   expect(dialog.textContent).toContain('내용 i1')
   expect(dialog.textContent).toContain('회계 기간 2026년 2학기')
@@ -79,7 +81,8 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
   expect(dialog.textContent).toContain('예산 항목 지원금 예산')
   expect(dialog.textContent).toContain('적은 사람 이재정')
   expect(within(dialog).getByText('취소됨')).toBeTruthy()
-  const lines = within(dialog)
+  const history = await openHistory()
+  const lines = within(history)
     .getAllByRole('listitem')
     .map(item => item.textContent)
   expect(lines).toEqual([
@@ -87,6 +90,7 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
     '김회장 · 10월 21일 14:03 · 취소함: 중복 입력',
   ])
   // 서버가 준 동작이 없으면 [취소]가 없다.
+  expect(within(history).queryByRole('button', { name: '수입 취소' })).toBeNull()
   expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
 })
 
@@ -94,7 +98,7 @@ test('운영진에게는 서버가 동작을 주지 않으면 [취소]가 없다
   serve(incomeDetail('i1', { actions: [] }))
   show(MEMBER_PERMISSIONS)
   const dialog = await openDetail()
-  await within(dialog).findByText(/적음/)
+  await within(dialog).findByText('500,000원')
   expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
 })
 

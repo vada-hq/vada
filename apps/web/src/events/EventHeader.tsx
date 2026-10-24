@@ -1,10 +1,12 @@
 import { useEffect, type ReactNode } from 'react'
 import { CalendarDays, MapPin, Plus, type LucideIcon } from 'lucide-react'
 import type { EventDetail } from '@vada/contracts'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { ApprovalNote } from './ApprovalNote'
+import { versionLine } from './event-history'
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from './event-view'
 import { EventEditDialog } from './EventEditDialog'
 import type { EventFieldFocus } from './EventFields'
@@ -117,6 +119,7 @@ export function EventHeader({
             고치기
           </Button>
         )}
+        <HistoryMenu history={event.history} line={versionLine} />
       </div>
       <EventMeta event={event} canEdit={canEdit} onFill={focus => setEditing({ focus })} />
       {editing && (
