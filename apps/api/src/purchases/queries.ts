@@ -137,7 +137,6 @@ export async function requestRowOf(db: Reader, actor: Actor, requestId: string) 
 export const isPaid = sql<boolean>`exists (select 1 from ${paymentLine} inner join ${expense} on ${expense.id} = ${paymentLine.expenseId} where ${paymentLine.lineItemId} = ${lineItem.id} and ${expense.cancelledAt} is null)`
 
 async function itemsOf(db: Reader, actor: Actor, row: Row) {
-  const requestId = row.id
   const rows = await db
     .select({
       id: lineItem.id,
@@ -155,7 +154,7 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
     .from(lineItem)
     .innerJoin(record, eq(record.id, lineItem.id))
     .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
-    .where(eq(lineItem.requestId, requestId))
+    .where(eq(lineItem.requestId, row.id))
     .orderBy(asc(record.createdAt), asc(lineItem.id))
   // 쓰기와 같은 판정(decideLineItem)으로 품목 동작을 준다.
   const completed = await completedEventIdsAmong(db, [

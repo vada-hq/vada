@@ -90,7 +90,7 @@
 - 닿는 곳: `apps/web/src/finance/RequestItems.tsx`, `RequestDetailDialog.tsx`, `RequestRecords.tsx`, `useRequestDetail.ts`, `purchase-text.ts`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 5. 고를 수 있는 예산 항목과 요청(N6, N7) [ ]
+### 5. 고를 수 있는 예산 항목과 요청(N6, N7) [x]
 - 할 수 있게 되는 것: 결재·지출·수입의 고르기 목록에 고를 수 있는 것만 나와 고른 뒤 실패하지 않는다.
 - 수용 기준: 예산 응답의 항목마다 `selectable`(완료한 행사의 항목이면 false)이, 요청 목록과 상세에 `payable`(품목마다: 마지막 결과 승인이고 요청·항목 행사가 완료 전, 요청마다: 그런 품목이 하나라도)이 실린다. 결재 창의 항목 고르기는 `selectable`이고 3의 술어로 그 요청 행사와 맞는 항목만, 직접 지출과 수입의 항목 고르기는 `selectable`만(직접 지출은 고른 행사와 술어로도), 지출의 '결제할 요청'과 품목 고르기는 `payable`만 보인다. 이미 고른 값이 고를 수 없게 되면 지금처럼 비운다. 예산 탭 목록은 그대로 모든 항목을 보인다. 서버가 같은 판정으로 거절하는지(완료 행사 항목으로 결재 409, 취소 품목 결제 409) 시험이 같은 policy를 거친다. 화면 시험은 판정이 false인 항목·요청이 목록에 없음을 본다.
 - 닿는 곳: contracts `budget.ts`, `purchases.ts`, `budget/policy.ts`, `budget/queries.ts`, `purchases/queries.ts`, 웹 `finance/DecisionRow.tsx`·`DecisionPanel.tsx`·`ExpenseDirectFields.tsx`·`IncomeItemSelect.tsx`·`ExpenseRequestFields.tsx`·`budget-form.ts`.

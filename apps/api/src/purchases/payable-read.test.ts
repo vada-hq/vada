@@ -16,8 +16,7 @@ const EXPENSE = { vendor: '문구점', description: '마커', amount: 1000, paid
 const path = (t: SettlementKit, rest: string) => `/api/organizations/${t.council.councilId}${rest}`
 const get = async <T>(t: SettlementKit, rest: string) =>
   (await (await t.api.get(path(t, rest), FINANCE)).json()) as T
-const budgetItems = async (t: SettlementKit) =>
-  (await get<BudgetResponse>(t, '/budget')).items
+const budgetItems = async (t: SettlementKit) => (await get<BudgetResponse>(t, '/budget')).items
 const requests = async (t: SettlementKit) =>
   (await get<PurchaseRequestsResponse>(t, '/purchase-requests?view=all')).requests
 const detail = async (t: SettlementKit, id: string) =>
