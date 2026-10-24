@@ -84,7 +84,7 @@
 - 닿는 곳: contracts(새 술어, 파일은 `budget.ts` 근처), `purchases/decide.ts`, `purchases/policy.ts`, `expenses/event-rule.ts`.
 - 검토: 깊게(돈). 마이그레이션: 없음.
 
-### 4. 품목 취소(화면) [ ]
+### 4. 품목 취소(화면) [x]
 - 할 수 있게 되는 것: 재정부가 요청 상세에서 품목을 취소하고, 모두가 취소된 품목과 사유를 본다.
 - 수용 기준: `line_item.cancel`이 있는 품목에만 [품목 취소]가 있다. 누르면 사유(필수 별표) 창이 열리고 비우고 누르면 칸 아래 문제와 첫 칸 이동, 보내는 중에는 버튼을 막고, 성공하면 상세가 새로 그려져 품목 칩이 '취소됨', 결재 이력에 '취소'와 사유가 보인다. 409 `LINE_ITEM_NOT_CANCELLABLE`·`EVENT_COMPLETED` 문구가 버튼 옆에 보이고 상세를 다시 읽는다. 403·404면 닫고 이유를 보인다(자주 잡힌 것 1). 창에서 나가는 버튼은 '닫기'다. 요청 목록 칩은 서버 상태를 그대로 쓴다. 390px과 데스크톱으로 확인하고 부품 확인 화면에 취소 창과 취소된 품목이 있다.
 - 닿는 곳: `apps/web/src/finance/RequestItems.tsx`, `RequestDetailDialog.tsx`, `RequestRecords.tsx`, `useRequestDetail.ts`, `purchase-text.ts`, `lib/messages.ts`, `ui-gallery/`.

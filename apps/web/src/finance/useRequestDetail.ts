@@ -5,6 +5,7 @@ import { useLatest } from '@/lib/use-latest'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
 import { purchaseCancelPath, purchasePath } from './finance-api'
 import { problemText, reportLost, type PurchaseDialogHandlers } from './purchase-requests'
+import { useCancelItem } from './useCancelItem'
 import { useDecide } from './useDecide'
 
 // 취소의 결과. 이미 닫힌 요청(409 REQUEST_CLOSED, 행사 완료)이면 요청을 다시 읽어 보이고 확인을 닫는다.
@@ -84,14 +85,16 @@ export function useRequestDetail(
 
   const cancel = useCancel(councilId, requestId, latest, load)
   const decide = useDecide(councilId, requestId, latest, load)
+  const itemCancel = useCancelItem(councilId, requestId, latest, load)
 
   return {
     request,
     loadFailed,
     ...cancel,
     // 취소와 결재는 서로 막는다(대화상자는 보내는 동안 닫히지 않는다).
-    saving: cancel.saving || decide.saving,
+    saving: cancel.saving || decide.saving || itemCancel.saving,
     decide,
+    itemCancel,
     retry: () => void load(),
   }
 }

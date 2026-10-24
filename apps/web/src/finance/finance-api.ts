@@ -10,6 +10,8 @@ export const purchasePath = (councilId: string, requestId: string) =>
   `${base(councilId)}/${encodeURIComponent(requestId)}`
 export const purchaseCancelPath = (councilId: string, requestId: string) =>
   `${purchasePath(councilId, requestId)}/cancel`
+export const purchaseItemCancelPath = (councilId: string, requestId: string, lineItemId: string) =>
+  `${purchasePath(councilId, requestId)}/items/${encodeURIComponent(lineItemId)}/cancel`
 export const purchaseDecisionsPath = (councilId: string, requestId: string) =>
   `${purchasePath(councilId, requestId)}/decisions`
 

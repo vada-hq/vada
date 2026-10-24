@@ -18,7 +18,7 @@ import { AccountSection } from './AccountSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
-import { DecisionSection, FinanceSection } from './FinanceSections'
+import { DecisionSection, FinanceSection, ItemCancelSection } from './FinanceSections'
 import { EventSection } from './EventSections'
 import { SettlementSection } from './SettlementSections'
 import { TaskSection } from './TaskSections'
@@ -54,6 +54,7 @@ export default function Gallery() {
       <ApplicantRowSection />
       <FinanceSection />
       <DecisionSection />
+      <ItemCancelSection />
       <ExpenseSection />
       <IncomeSection />
       <ClosingSection />

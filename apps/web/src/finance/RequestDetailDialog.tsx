@@ -144,7 +144,7 @@ function Loaded({
   return (
     <div className="flex flex-col gap-6">
       <Facts request={request} />
-      <RequestItems items={request.items} />
+      <RequestItems items={request.items} cancel={detail.itemCancel} />
       <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
       {deciding && (
         <DecisionPanel
