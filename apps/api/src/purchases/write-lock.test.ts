@@ -60,7 +60,10 @@ test('구매 요청 쓰기 둘은 학생회 행을 FOR NO KEY UPDATE로 잠근 �
     const requestLock = queries.findIndex(
       query => query.includes('from "request"') && query.endsWith(' for no key update'),
     )
-    const decided = queries.findIndex(query => query.includes('from "approval"'))
+    // 결재 시작 여부는 품목의 마지막 결과(last-outcome.ts)를 읽는 요청 줄 질의로 센다.
+    const decided = queries.findIndex(
+      (query, index) => index > requestLock && query.includes('from approval d'),
+    )
     assert.ok(councilLock >= 0 && actor > councilLock, '취소: 학생회 잠금 뒤에 운영진 확인')
     assert.ok(requestLock > actor, '취소: 요청 행 잠금이 운영진 확인보다 앞선다')
     assert.ok(decided > requestLock, '취소: 결재 수는 요청 행을 잠근 뒤에 센다')
@@ -127,7 +130,7 @@ test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으�
     const requestLock = locked('request')
     const itemLock = locked('line_item')
     const decidedRead = queries.findIndex(
-      query => query.includes('from "approval"') && query.includes('"target_id" in'),
+      query => query.includes('from approval d') && query.includes('"line_item"."id" in'),
     )
     const write = queries.findIndex(query => query.includes('insert into "approval"'))
     assert.ok(councilLock >= 0 && actor > councilLock, '학생회 잠금 뒤에 운영진 확인')

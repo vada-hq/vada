@@ -113,7 +113,11 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
     const line = await make(owner, 'line_item', { requestId: request, name: '마커', quantity: 1 })
     return { request, line }
   }
-  const approve = (line: string, outcome: 'approved' | 'rejected' = 'approved', owner = council) =>
+  const approve = (
+    line: string,
+    outcome: 'approved' | 'rejected' | 'cancelled' = 'approved',
+    owner = council,
+  ) =>
     make(owner, 'approval', {
       targetId: line,
       targetKind: 'line_item',

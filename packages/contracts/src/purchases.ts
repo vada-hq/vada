@@ -26,8 +26,8 @@ export const PurchaseRequestListQuerySchema = z.strictObject({
 })
 export type PurchaseRequestListQuery = z.infer<typeof PurchaseRequestListQuerySchema>
 
-// 품목 하나의 결재 상태와 요청 전체의 상태(결재 안 된 품목이 있으면 대기, 섞이면 일부 승인)
-export const LINE_ITEM_STATUSES = ['pending', 'approved', 'rejected'] as const
+// 품목 하나의 상태(품목의 마지막 결재 결과, 없으면 대기)와 요청 전체의 상태(결재 안 된 품목이 있으면 대기, 섞이면 일부 승인)
+export const LINE_ITEM_STATUSES = ['pending', 'approved', 'rejected', 'cancelled'] as const
 export type LineItemStatus = (typeof LINE_ITEM_STATUSES)[number]
 export const PURCHASE_STATUSES = [
   'pending',
@@ -136,7 +136,7 @@ export interface PurchaseLineItem {
 export interface PurchaseDecision {
   id: string
   lineItemId: string
-  outcome: 'approved' | 'rejected'
+  outcome: 'approved' | 'rejected' | 'cancelled'
   by: PurchasePerson | null
   at: string
   reason: string | null

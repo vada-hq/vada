@@ -1,14 +1,14 @@
-import { count, eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { purchaseRequestTag, purchaseRequestUrl, type PurchaseStatus } from '@vada/contracts'
-import { approval, lineItem, member, record, request } from '../db/schema.js'
+import { lineItem, member, record, request } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
-import { decidedAs, decidedOn } from './queries.js'
+import { itemCountColumns } from './last-outcome.js'
+import { requestStatusOf } from './policy.js'
 import type { PurchaseNotice } from './service.js'
-import { requestStatusOf } from './status.js'
 
 const NEW_REQUEST_TITLE = '구매 요청이 왔어요'
 // 결과 알림의 제목. 마지막 대기 품목이 결재된 뒤라 대기는 없다.
@@ -26,15 +26,12 @@ async function requestFactsOf(db: Db, requestId: string) {
       cancelledAt: request.cancelledAt,
       councilId: record.councilId,
       requester: member.name,
-      items: count(sql`distinct ${lineItem.id}`),
-      approved: decidedAs('approved'),
-      rejected: decidedAs('rejected'),
+      ...itemCountColumns(),
     })
     .from(request)
     .innerJoin(record, eq(record.id, request.id))
     .innerJoin(member, eq(member.id, request.requestedBy))
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
-    .leftJoin(approval, decidedOn)
     .where(eq(request.id, requestId))
     .groupBy(request.id, record.id, member.id)
   return found?.councilId ? { ...found, councilId: found.councilId } : null

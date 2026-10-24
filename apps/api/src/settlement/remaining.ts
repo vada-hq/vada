@@ -7,7 +7,6 @@ import {
 } from '@vada/contracts'
 import { refundPendingSql } from '../deposits/refund-pending.js'
 import {
-  approval,
   deposit,
   evidence,
   expense,
@@ -19,6 +18,7 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { lastOutcomeSql } from '../purchases/last-outcome.js'
 
 type Reader = Pick<Db, 'select'>
 type Scope = { councilId: string; eventId: string }
@@ -28,7 +28,7 @@ const total = sql<number>`count(*) over ()`.mapWith(Number)
 // 정산에 남은 것(DEC-39, DEC-40, DEC-55). 저장하지 않고 센다. 취소한 요청·지출·입금은 보지 않고,
 // 학생회와 행사로 거른다(품목은 요청의 행사로 센다. 다른 행사와 상시 지출이 섞이지 않게).
 
-// 요청의 행사로 센 품목. 결재가 없으면 대기, 승인했는데 취소하지 않은 결제 내역이 없으면 결제 전이다.
+// 요청의 행사로 센 품목. 마지막 결과가 없으면 대기, 승인(취소하지 않은)이고 취소하지 않은 결제 내역이 없으면 결제 전이다.
 async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<SettlementRemaining> {
   const paid = db
     .select({ one: sql`1` })
@@ -40,16 +40,14 @@ async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<Settl
     .from(lineItem)
     .innerJoin(request, eq(request.id, lineItem.requestId))
     .innerJoin(record, eq(record.id, request.id))
-    .leftJoin(
-      approval,
-      and(eq(approval.targetId, lineItem.id), eq(approval.targetKind, 'line_item')),
-    )
     .where(
       and(
         eq(record.councilId, scope.councilId),
         eq(request.eventId, scope.eventId),
         isNull(request.cancelledAt),
-        unpaid ? and(eq(approval.outcome, 'approved'), notExists(paid)) : isNull(approval.id),
+        unpaid
+          ? and(sql`${lastOutcomeSql} = 'approved'`, notExists(paid))
+          : sql`${lastOutcomeSql} is null`,
       ),
     )
     .groupBy(request.id, record.createdAt)

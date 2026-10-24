@@ -66,7 +66,7 @@
 
 1 → 2 → 3은 서버이고 차례로 한다(셋 다 `purchases/`). 4는 2가, 5는 1·3이 main에 오른 뒤 시작한다. 6과 7은 파일이 겹치지 않아 4·5와 나란히 해도 된다(시험 돌리는 에이전트 둘까지). 시간이 모자라면 7을 뺀다.
 
-### 1. 품목 결재 정책과 마지막 결과 [ ]
+### 1. 품목 결재 정책과 마지막 결과 [x]
 - 할 수 있게 되는 것: 품목의 상태가 마지막 결재 기록 하나로 정해지고, 요청 상태·정산·결제 가능이 같은 판정을 쓴다.
 - 수용 기준: 결재 기록에 결과 `cancelled`를 넣을 수 있다(마이그레이션). 시험 도우미로 승인 → 취소한 품목을 두면, 요청 상세의 품목 상태가 `cancelled`, 결재 이력에 승인과 취소(사유)가 차례로 보이고, 요청 상태가 '정한 것'대로이며(모두 취소 → 취소, 승인+취소 → 일부 승인, 반려+취소 → 반려), 행사 정산 남은 것의 `unpaid_items`에 들지 않고, 그 품목으로 지출을 적으면 409 `LINE_ITEM_NOT_PAYABLE`, 결재하려 하면 409 `LINE_ITEM_DECIDED`다. 취소 없는 기존 시험은 그대로 통과한다. 요청의 동작(`purchase.cancel`, `purchase.approve`)은 새 `purchases/policy.ts`의 decide에서 나오고 쓰기 경로도 같은 decide를 부른다.
 - 닿는 곳: `apps/api/migrations/`(새 파일), `db/schema.ts`, contracts `purchases.ts`(`LINE_ITEM_STATUSES`, `PurchaseDecision.outcome`), `purchases/status.ts` → `policy.ts`, `purchases/queries.ts`, `purchases/notify.ts`, `purchases/decide.ts`, `settlement/remaining.ts`, `expenses/payable.ts`, `test-support/purchases.ts`, 웹의 결과 문구(`finance/purchase-text.ts`).

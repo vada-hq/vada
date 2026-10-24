@@ -1,15 +1,17 @@
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { asc, eq, inArray, sql } from 'drizzle-orm'
 import type { DecideLineItems, PurchaseRequestDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries.js'
-import { approval, lineItem } from '../db/schema.js'
+import { lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { lastOutcomeSql } from './last-outcome.js'
 import { lockedRequestRow } from './lock.js'
+import { decide, factsOf } from './policy.js'
 import { requestDetailOf, requestRowOf } from './queries.js'
 import type { PurchaseNotice } from './service.js'
 
@@ -32,11 +34,12 @@ async function lockedItemIds(tx: Tx, requestId: string) {
   return new Set(rows.map(row => row.id))
 }
 
+// 마지막 결과가 있는(결재·취소된) 품목이 하나라도 있는가
 async function decidedAmong(tx: Tx, ids: string[]) {
   const rows = await tx
-    .select({ id: approval.targetId })
-    .from(approval)
-    .where(and(eq(approval.targetKind, 'line_item'), inArray(approval.targetId, ids)))
+    .select({ id: lineItem.id })
+    .from(lineItem)
+    .where(sql`${inArray(lineItem.id, ids)} and ${lastOutcomeSql} is not null`)
   return rows.length > 0
 }
 
@@ -74,8 +77,7 @@ async function noticeResult(
 ): Promise<PurchaseNotice | null> {
   const { pendingBefore, now } = when
   const after = await requestRowOf(tx, actor, requestId)
-  const pendingAfter = after.items - after.approved - after.rejected
-  if (pendingBefore === 0 || pendingAfter > 0 || after.requestedBy === actor.memberId) return null
+  if (pendingBefore === 0 || after.pending > 0 || after.requestedBy === actor.memberId) return null
   const alive = await currentMembersAmong(tx, actor.councilId, [after.requestedBy], now)
   if (!alive.has(after.requestedBy)) return null
   await createRecord(tx, {
@@ -107,7 +109,9 @@ export async function decideLineItems(
     row.eventId,
     ...(await budgetItemEventIds(tx, actor, input.decisions)),
   ])
-  if (row.cancelledAt) throw new ApiError('REQUEST_CLOSED')
+  // 요청 단위의 판정(취소한 요청 REQUEST_CLOSED, 결재할 품목이 없으면 LINE_ITEM_DECIDED)은 읽기의 actions와 같은 decide다.
+  const code = decide(actor, await factsOf(tx, row), 'purchase.approve')
+  if (code) throw new ApiError(code)
   const own = await lockedItemIds(tx, requestId)
   const ids = input.decisions.map(item => item.lineItemId)
   // 다른 요청이나 다른 학생회의 품목도 이 요청에서는 결재할 수 없는 품목이다.
@@ -120,7 +124,6 @@ export async function decideLineItems(
     now,
   )
   for (const item of input.decisions) await writeDecision(tx, actor, item)
-  const pendingBefore = row.items - row.approved - row.rejected
-  const notice = await noticeResult(tx, actor, requestId, { pendingBefore, now })
+  const notice = await noticeResult(tx, actor, requestId, { pendingBefore: row.pending, now })
   return { request: await requestDetailOf(tx, actor, requestId), notice }
 }

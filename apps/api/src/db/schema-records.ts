@@ -46,6 +46,7 @@ export const approval = pgTable('approval', {
   kind: text('kind').notNull().default('approval'),
   targetId: uuid('target_id').notNull(),
   targetKind: text('target_kind').notNull(),
+  // approved, rejected, cancelled(승인한 품목의 취소, 기능 014), audited, completed, completion_cancelled
   outcome: text('outcome').notNull(),
   actorId: uuid('actor_id').notNull(),
   actorKind: text('actor_kind').notNull(),
