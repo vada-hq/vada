@@ -22,7 +22,7 @@ export function TaskStatusRow({ status, canChange, saving, onChange }: Props) {
           size="sm"
           variant={item === status ? 'default' : 'outline'}
           aria-pressed={item === status}
-          disabled={saving}
+          busy={saving}
           onClick={() => {
             if (item !== status) onChange(item)
           }}

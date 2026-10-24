@@ -61,10 +61,10 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
       />
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" disabled={saving} onClick={rest.onCancel}>
+        <Button type="button" variant="outline" busy={saving} onClick={rest.onCancel}>
           취소
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" busy={saving}>
           저장
         </Button>
       </div>

@@ -64,11 +64,7 @@ export function MessageEvidence({ councilId, message }: { councilId: string; mes
       </ul>
       {message.left > 0 && (
         <div>
-          <Button
-            type="button"
-            disabled={message.attaching}
-            onClick={() => void message.attachAll()}
-          >
+          <Button type="button" busy={message.attaching} onClick={() => void message.attachAll()}>
             이 메시지의 사진 {message.left}장 붙이기
           </Button>
         </div>

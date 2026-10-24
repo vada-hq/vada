@@ -35,10 +35,10 @@ export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
       <CouncilFields form={form} set={set} errors={fieldErrors} />
       {error && <StateMessage kind="error">{error}</StateMessage>}
       <div className="flex gap-2">
-        <Button type="button" variant="outline" disabled={saving} onClick={onCancel}>
+        <Button type="button" variant="outline" busy={saving} onClick={onCancel}>
           취소
         </Button>
-        <Button type="submit" className="flex-1" disabled={saving}>
+        <Button type="submit" className="flex-1" busy={saving}>
           {saving ? '만드는 중…' : '학생회 만들기'}
         </Button>
       </div>

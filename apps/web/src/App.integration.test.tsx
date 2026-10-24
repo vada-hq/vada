@@ -83,10 +83,14 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   api.on('POST', '/api/organizations/create', () => json({ council: myCouncil() }, 201))
   await renderApp()
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
-  expect(
-    asElement(screen.getByRole('button', { name: '초대 코드로 들어가기' }), HTMLButtonElement)
-      .disabled,
-  ).toBe(true)
+  const enter = asElement(
+    screen.getByRole('button', { name: '초대 코드로 들어가기' }),
+    HTMLButtonElement,
+  )
+  expect(enter.disabled).toBe(false)
+  fireEvent.click(enter)
+  expect(screen.getByText('초대 코드를 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   const submit = within(form).getByRole('button', { name: '학생회 만들기' }) as HTMLButtonElement

@@ -97,7 +97,7 @@ function CancelButton({ detail }: { detail: ReturnType<typeof useRequestDetail> 
   const [confirming, setConfirming] = useState(false)
   return (
     <div className="flex flex-col items-start gap-2">
-      <Button variant="outline" disabled={detail.saving} onClick={() => setConfirming(true)}>
+      <Button variant="outline" busy={detail.saving} onClick={() => setConfirming(true)}>
         요청 취소
       </Button>
       {!confirming && detail.problem && <StateMessage kind="error">{detail.problem}</StateMessage>}

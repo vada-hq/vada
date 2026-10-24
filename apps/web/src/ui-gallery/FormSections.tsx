@@ -26,7 +26,7 @@ export function ButtonsSection() {
         <Copy />
         코드 복사
       </Button>
-      <Button disabled>비활성</Button>
+      <Button busy>보내는 중</Button>
       <Button variant="ghost" size="icon" aria-label="달력">
         <CalendarDays />
       </Button>
@@ -60,7 +60,7 @@ export function InputsSection() {
       <FieldExample />
       <div className="flex w-72 flex-col gap-1.5">
         <Label htmlFor="g-input">행사 이름</Label>
-        <Input id="g-input" placeholder="새 행사 이름" />
+        <Input id="g-input" />
       </div>
       <div className="flex w-72 flex-col gap-1.5">
         <Label htmlFor="g-code">초대 코드</Label>
@@ -84,7 +84,7 @@ export function InputsSection() {
       </div>
       <div className="flex w-72 flex-col gap-1.5">
         <Label htmlFor="g-textarea">메시지</Label>
-        <Textarea id="g-textarea" placeholder="행사 준비 이야기를 나눠 주세요" />
+        <Textarea id="g-textarea" />
       </div>
       <div className="flex w-72 flex-col gap-1.5">
         <Label htmlFor="g-disabled">비활성</Label>

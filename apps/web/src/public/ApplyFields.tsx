@@ -3,9 +3,10 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { useReveal } from '@/lib/use-reveal'
 import { collectedItems, dateText } from './registration-text'
-import { parseApply, type ApplyValues } from './useApply'
+import { applyErrors, type ApplyValues } from './useApply'
 
 type Props = {
   data: PublicRegistrationForm
@@ -38,13 +39,14 @@ function OptionalFields(props: {
   data: PublicRegistrationForm
   values: ApplyValues
   busy: boolean
+  errors: FieldErrors
   set: (patch: Partial<ApplyValues>) => void
 }) {
-  const { data, values, busy, set } = props
+  const { data, values, busy, errors, set } = props
   return (
     <>
       {data.collectsStudentId && (
-        <Field label="학번" required>
+        <Field label="학번" required error={errors.studentId}>
           <Input
             value={values.studentId}
             disabled={busy}
@@ -54,7 +56,7 @@ function OptionalFields(props: {
         </Field>
       )}
       {data.collectsPhone && (
-        <Field label="휴대폰 번호" required hint="010-1234-5678처럼 써도 돼요.">
+        <Field label="휴대폰 번호" required error={errors.phone}>
           <Input
             value={values.phone}
             disabled={busy}
@@ -78,19 +80,21 @@ export default function ApplyFields({
   onSubmit,
   notice = true,
 }: Props) {
-  const valid = parseApply(data, values).success
+  const { formRef, errors, attempt } = useFormCheck(() => applyErrors(data, values))
   const problemRef = useReveal<HTMLDivElement>(problem)
   const set = (patch: Partial<ApplyValues>) => onValues({ ...values, ...patch })
   return (
     <form
+      ref={formRef}
+      noValidate
       aria-label="참가 신청"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (valid) onSubmit()
+        if (attempt()) onSubmit()
       }}
     >
-      <Field label="이름" required>
+      <Field label="이름" required error={errors.name}>
         <Input
           value={values.name}
           disabled={busy}
@@ -98,8 +102,8 @@ export default function ApplyFields({
           onChange={event => set({ name: event.target.value })}
         />
       </Field>
-      <OptionalFields data={data} values={values} busy={busy} set={set} />
-      <Button type="submit" disabled={!valid || busy}>
+      <OptionalFields data={data} values={values} busy={busy} errors={errors} set={set} />
+      <Button type="submit" busy={busy}>
         신청하기
       </Button>
       <div ref={problemRef}>{problem && <StateMessage kind="error">{problem}</StateMessage>}</div>

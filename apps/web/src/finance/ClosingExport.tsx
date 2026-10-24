@@ -24,8 +24,8 @@ const AUDIT_TITLE: Record<AuditKind, string> = {
   bundle: '증빙 묶음을 받을까요?',
 }
 
-// 버튼을 끌지와 그 이유는 이 함수 하나다. 엑셀은 줄 수 상한만, 묶음은 사진 수·크기 상한과 파일 저장소 유무도 본다.
-// 끄지 않으면 null이다.
+// 버튼을 숨길지와 그 이유는 이 함수 하나다. 엑셀은 줄 수 상한만, 묶음은 사진 수·크기 상한과 파일 저장소 유무도 본다.
+// 숨기지 않으면 null이다. 숨긴 이유는 ExportNotes가 보인다.
 function blockedReason(closing: Closing, kind: AuditKind) {
   const info = closing.exportInfo
   if (kind === 'audit') return info.workbookTooLarge ? WORKBOOK_TOO_LARGE_NOTE : null
@@ -47,25 +47,17 @@ function ExportButtons({ closing, busy, onPublic, onAudit }: ButtonsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {canPublic && (
-        <Button variant="outline" disabled={busy} onClick={onPublic}>
+        <Button variant="outline" busy={busy} onClick={onPublic}>
           공개용 엑셀
         </Button>
       )}
-      {canAudit && (
-        <Button
-          variant="outline"
-          disabled={busy || blockedReason(closing, 'audit') !== null}
-          onClick={() => onAudit('audit')}
-        >
+      {canAudit && blockedReason(closing, 'audit') === null && (
+        <Button variant="outline" busy={busy} onClick={() => onAudit('audit')}>
           감사용 엑셀
         </Button>
       )}
-      {canAudit && (
-        <Button
-          variant="outline"
-          disabled={busy || blockedReason(closing, 'bundle') !== null}
-          onClick={() => onAudit('bundle')}
-        >
+      {canAudit && blockedReason(closing, 'bundle') === null && (
+        <Button variant="outline" busy={busy} onClick={() => onAudit('bundle')}>
           증빙 묶음 받기
         </Button>
       )}
@@ -97,7 +89,7 @@ function ExportNotes({ closing }: { closing: Closing }) {
 
 type Props = { councilId: string; closing: Closing }
 
-// 내보내기. 감사용 엑셀과 묶음은 개인정보 경고를 확인한 뒤 받는다. 상한을 넘으면 묶음 버튼이 꺼지고 이유가 보인다.
+// 내보내기. 감사용 엑셀과 묶음은 개인정보 경고를 확인한 뒤 받는다. 상한을 넘으면 그 버튼이 숨고 이유가 보인다.
 export function ClosingExport({ councilId, closing }: Props) {
   const exporter = useClosingExport(councilId, closing.period.id)
   const [confirming, setConfirming] = useState<AuditKind | null>(null)

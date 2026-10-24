@@ -28,7 +28,7 @@ export function IncomeActions({ income, detail }: Props) {
   return (
     <div className="flex flex-col items-start gap-2">
       {canCancel && (
-        <Button variant="outline" disabled={detail.saving} onClick={() => setAsking(true)}>
+        <Button variant="outline" busy={detail.saving} onClick={() => setAsking(true)}>
           수입 취소
         </Button>
       )}

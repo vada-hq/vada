@@ -75,14 +75,16 @@ function PendingCard({ upload }: { upload: Upload }) {
         </NativeSelect>
       </Label>
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          disabled={photo.state !== 'ready' || attaching}
-          onClick={() => void upload.attach()}
-        >
-          붙이기
-        </Button>
-        <Button type="button" variant="outline" disabled={attaching} onClick={upload.clear}>
+        {photo.state !== 'failed' && (
+          <Button
+            type="button"
+            busy={photo.state === 'uploading' || attaching}
+            onClick={() => void upload.attach()}
+          >
+            붙이기
+          </Button>
+        )}
+        <Button type="button" variant="outline" busy={attaching} onClick={upload.clear}>
           <X aria-hidden />
           빼기
         </Button>

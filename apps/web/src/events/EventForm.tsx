@@ -54,10 +54,10 @@ export function EventForm(props: Props) {
       />
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
+        <Button type="button" variant="outline" busy={props.saving} onClick={props.onCancel}>
           닫기
         </Button>
-        <Button type="submit" disabled={props.saving}>
+        <Button type="submit" busy={props.saving}>
           {props.submitLabel}
         </Button>
       </DialogFooter>

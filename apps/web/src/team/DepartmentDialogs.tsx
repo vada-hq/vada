@@ -72,10 +72,10 @@ function RenameDialog({ state, saving }: Props) {
           </Field>
           {rename && <StateMessage kind="error">{rename}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" disabled={saving} onClick={state.closeRename}>
+            <Button type="button" variant="outline" busy={saving} onClick={state.closeRename}>
               닫기
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" busy={saving}>
               바꾸기
             </Button>
           </DialogFooter>

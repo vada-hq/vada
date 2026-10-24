@@ -122,7 +122,7 @@ export function TaskRow(props: Props) {
             size="sm"
             variant="outline"
             className="shrink-0"
-            disabled={busy}
+            busy={busy}
             onClick={() => props.onChangeStatus(next)}
           >
             {nextLabel(next)}

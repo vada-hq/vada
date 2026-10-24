@@ -84,10 +84,10 @@
 화면 문구와 폼 규칙의 원문은 이 절이다. 다른 곳에 옮겨 적지 않는다.
 
 - 설명 글(도움말, 묶음 설명, 결과 안내)은 대부분의 사용자가 그것 없이 막힐 때만 짧은 한 문장으로 쓴다. 먼저 라벨을 고쳐 본다. 사용자가 판단할 일에 경고나 권유를 덧붙이지 않는다(GOV.UK hint text, NN/g "Concise, Scannable, and Objective"). 법이 요구하는 고지는 예외다.
-- 입력칸 안의 예시 글(placeholder)은 쓰지 않는다(GOV.UK text input, NN/g "Placeholders in Form Fields Are Harmful"). 예외는 제출과 칸 확인이 없는 검색칸의 짧은 안내다(예: '이름이나 학번으로 찾기').
+- 입력칸 안의 예시 글(placeholder)은 쓰지 않는다(GOV.UK text input, NN/g "Placeholders in Form Fields Are Harmful"). 예외는 제출과 칸 확인이 없는 검색칸의 짧은 안내다(예: '이름이나 학번으로 찾기'). 린트가 `Input`·`Textarea`·날것 요소의 `placeholder`를 막으므로 예외는 한 줄 끄기와 이유로 적는다.
 - 추가 질문은 그것이 필요한 선택을 했을 때만 보인다. 펼치는 라디오는 세로로 둔다(NN/g "Progressive Disclosure", GOV.UK radios).
 - 가장 흔한 값을 기본으로 골라 둔다(NN/g "The Power of Defaults").
-- 필수 칸은 별표(`Field`의 `required`), 선택 칸은 '(선택)'(`optional`)으로 표시한다. 제출 버튼은 끄지 않고 누를 때 확인해, 문제를 칸 아래(`Field`의 `error`)에 보이고 첫 칸으로 옮긴다(NN/g "Marking Required Fields in Forms", GOV.UK). 보내는 중에만 끈다. 예외는 대화 입력칸의 [보내기]로, 빈 메시지일 때 끈다(채팅 앱의 관례).
+- 필수 칸은 별표(`Field`의 `required`), 선택 칸은 '(선택)'(`optional`)으로 표시한다. 제출 버튼은 끄지 않고 누를 때 확인해, 문제를 칸 아래(`Field`의 `error`)에 보이고 첫 칸으로 옮긴다(NN/g "Marking Required Fields in Forms", GOV.UK). 보내는 중에만 끈다(린트가 `Button`의 `disabled`를 막는다, 보내는 중은 `busy`). 예외는 대화 입력칸의 [보내기]로, 빈 메시지일 때 끈다(채팅 앱의 관례).
 - 말투는 해요체다. 라벨, 상태, 제목은 문장 대신 명사형으로 쓴다(예: '신청 양식 생성 완료', '계좌 선택'). 오류처럼 문장이 필요한 곳만 해요체로 짧게 쓴다.
 - 빈 화면은 명사형 '○○ 없음'이다. 그 일을 할 수 있는 사람에게는 하는 버튼을 함께 둔다(vada-docs DEC-78 이동 규칙 9).
 - 창에서 나가는 버튼은 '닫기'다. 기록을 없애는 동작의 이름은 '○○ 취소'로 대상을 붙인다.

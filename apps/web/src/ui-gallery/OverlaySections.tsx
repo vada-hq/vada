@@ -36,7 +36,7 @@ export function DialogSheetSection() {
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="g-dialog-name">행사 이름</Label>
-            <Input id="g-dialog-name" placeholder="새 행사 이름" />
+            <Input id="g-dialog-name" />
           </div>
           <DialogFooter>
             <DialogClose asChild>

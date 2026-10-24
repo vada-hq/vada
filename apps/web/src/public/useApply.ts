@@ -7,7 +7,13 @@ import {
   type PublicRegistrationForm,
 } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import { APPLY_ERRORS, APPLY_FAILED } from '@/lib/registration-messages'
+import {
+  APPLY_ERRORS,
+  APPLY_FAILED,
+  APPLY_PHONE_INVALID,
+  APPLY_STUDENT_ID_INVALID,
+} from '@/lib/registration-messages'
+import { requiredText, withContract } from '@/lib/use-form-check'
 
 export type ApplyValues = { name: string; studentId: string; phone: string }
 export const EMPTY_VALUES: ApplyValues = { name: '', studentId: '', phone: '' }
@@ -21,6 +27,19 @@ export function parseApply(form: Collects, values: ApplyValues) {
     studentId: form.collectsStudentId ? values.studentId : null,
     phone: form.collectsPhone ? values.phone : null,
   })
+}
+
+// 누를 때 확인한 문제(칸 이름 → 글). 비었는지는 여기서, 형식과 길이는 보낼 때와 같은 스키마가 정한다.
+export function applyErrors(form: Collects, values: ApplyValues) {
+  return withContract(
+    {
+      name: requiredText(values.name, '이름을'),
+      studentId: form.collectsStudentId ? requiredText(values.studentId, '학번을') : undefined,
+      phone: form.collectsPhone ? requiredText(values.phone, '휴대폰 번호를') : undefined,
+    },
+    parseApply(form, values),
+    { studentId: APPLY_STUDENT_ID_INVALID, phone: APPLY_PHONE_INVALID },
+  )
 }
 
 type Handlers = {

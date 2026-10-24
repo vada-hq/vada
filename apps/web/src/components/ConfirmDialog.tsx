@@ -87,12 +87,12 @@ export function ConfirmDialog({
         )}
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
-          <Button variant="outline" disabled={busy} onClick={onClose}>
+          <Button variant="outline" busy={busy} onClick={onClose}>
             닫기
           </Button>
           <Button
             variant={destructive ? 'destructive' : 'default'}
-            disabled={busy}
+            busy={busy}
             onClick={() => attempt() && onConfirm()}
           >
             {confirmLabel}

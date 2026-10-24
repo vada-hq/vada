@@ -120,7 +120,7 @@ export default function CouncilInfoForm(props: Props) {
         />
         {note}
         {canEdit && (
-          <Button type="submit" className="self-start" disabled={busy}>
+          <Button type="submit" className="self-start" busy={busy}>
             {saving ? '저장하는 중…' : '학생회 정보 저장'}
           </Button>
         )}

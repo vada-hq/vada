@@ -103,7 +103,7 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
         </Button>
       )}
       {canToggle && (
-        <Button variant="outline" size="sm" disabled={busy} onClick={onPause}>
+        <Button variant="outline" size="sm" busy={busy} onClick={onPause}>
           {form.paused ? '다시 받기' : '멈추기'}
         </Button>
       )}

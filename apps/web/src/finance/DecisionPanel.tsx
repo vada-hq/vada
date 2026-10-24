@@ -75,7 +75,7 @@ function Rows({
       {items.length > 1 && (
         <Button
           className="self-start"
-          disabled={decide.saving}
+          busy={decide.saving}
           onClick={() => void state.submit('approve', items)}
         >
           모두 승인

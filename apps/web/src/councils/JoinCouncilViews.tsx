@@ -56,10 +56,10 @@ export function AskToJoin({ council, joining, error, onJoin, onLeave }: AskProps
       </p>
       {error && <StateMessage kind="error">{error}</StateMessage>}
       <div className="flex flex-col gap-2">
-        <Button disabled={joining} onClick={onJoin}>
+        <Button busy={joining} onClick={onJoin}>
           {joining ? '들어가는 중…' : '들어가기'}
         </Button>
-        <Button variant="ghost" size="sm" disabled={joining} onClick={onLeave}>
+        <Button variant="ghost" size="sm" busy={joining} onClick={onLeave}>
           들어가지 않기
         </Button>
       </div>

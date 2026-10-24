@@ -72,17 +72,17 @@ function DepositButtons({ allowed, busy, open }: { allowed: Allowed; busy: boole
   return (
     <div className="flex flex-wrap gap-2">
       {allowed.confirm && (
-        <Button size="sm" disabled={busy} onClick={() => open('confirm')}>
+        <Button size="sm" busy={busy} onClick={() => open('confirm')}>
           입금 확인
         </Button>
       )}
       {allowed.undo && (
-        <Button variant="outline" size="sm" disabled={busy} onClick={() => open('cancel')}>
+        <Button variant="outline" size="sm" busy={busy} onClick={() => open('cancel')}>
           확인 취소
         </Button>
       )}
       {allowed.refund && (
-        <Button variant="outline" size="sm" disabled={busy} onClick={() => open('refund')}>
+        <Button variant="outline" size="sm" busy={busy} onClick={() => open('refund')}>
           환불함
         </Button>
       )}

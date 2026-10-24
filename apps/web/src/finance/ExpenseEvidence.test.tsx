@@ -115,12 +115,12 @@ test('열 수 없는 사진과 저장소 거절은 그 자리에 문구가 뜨�
   await open()
   pick('bad.heic')
   expect((await screen.findByRole('alert')).textContent).toContain('이 사진을 열 수 없어요')
-  expect(attachButton().disabled).toBe(true)
+  expect(screen.queryByRole('button', { name: '붙이기' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '빼기' }))
   api.on('PUT', '/r2/k1', () => new Response(null, { status: 403 }))
   pick()
   expect((await screen.findByRole('alert')).textContent).toContain('사진을 올리지 못했어요')
-  expect(attachButton().disabled).toBe(true)
+  expect(screen.queryByRole('button', { name: '붙이기' })).toBeNull()
 })
 
 test('사진 저장소가 없으면(503) 올리기 문구가 뜨고 지출은 그대로 보인다', async () => {
@@ -148,7 +148,10 @@ test.each([
   expect((await screen.findByRole('alert')).textContent).toContain(text)
   // 쓸 수 없는 사진은 빼고 다시 올려야 하고, 그 밖은 같은 사진으로 다시 누를 수 있다.
   if (code === 'EXPENSE_CANCELLED' || code === 'EVIDENCE_LIMIT') return
-  await waitFor(() => expect(attachButton().disabled).toBe(unusable))
+  // 쓸 수 없는 사진은 [붙이기]가 숨는다.
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: '붙이기' }) === null).toBe(unusable),
+  )
 })
 
 test('붙이는 중에 지출이 취소돼 올리기 칸이 사라져도 거절 문구는 남는다', async () => {

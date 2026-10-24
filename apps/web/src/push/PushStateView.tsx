@@ -72,7 +72,7 @@ function On({ sending, onTest }: { sending: boolean; onTest: () => void }) {
   return (
     <>
       <p className="text-gray-900">이 기기에서 알림을 받아요.</p>
-      <Button variant="outline" className="self-start" disabled={sending} onClick={onTest}>
+      <Button variant="outline" className="self-start" busy={sending} onClick={onTest}>
         시험 알림 보내기
       </Button>
     </>

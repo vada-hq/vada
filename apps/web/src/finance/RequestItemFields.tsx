@@ -85,7 +85,7 @@ export function RequestItemFields({
           size="sm"
           variant="outline"
           className="self-start"
-          disabled={disabled}
+          busy={disabled}
           aria-label={`${item} 빼기`}
           onClick={onRemove}
         >

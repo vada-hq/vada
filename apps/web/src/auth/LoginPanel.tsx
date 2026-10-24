@@ -18,10 +18,10 @@ export default function LoginPanel({ kakao, homeScreenApp, busy, onLogin, onLogi
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
-        <Button disabled={busy} onClick={onLoginInApp}>
+        <Button busy={busy} onClick={onLoginInApp}>
           {label}
         </Button>
-        <Button variant="link" disabled={busy} onClick={onLogin}>
+        <Button variant="link" busy={busy} onClick={onLogin}>
           다른 방법으로 로그인
         </Button>
         <p className="text-xs text-gray-500">
@@ -33,7 +33,7 @@ export default function LoginPanel({ kakao, homeScreenApp, busy, onLogin, onLogi
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
-      <Button disabled={busy} onClick={onLogin}>
+      <Button busy={busy} onClick={onLogin}>
         {label}
       </Button>
     </div>

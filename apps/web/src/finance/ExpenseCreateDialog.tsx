@@ -86,7 +86,7 @@ function ModeToggle({
           size="sm"
           variant={mode === item ? 'secondary' : 'outline'}
           aria-pressed={mode === item}
-          disabled={disabled}
+          busy={disabled}
           onClick={() => item !== mode && onMode(item)}
         >
           {MODE_LABEL[item]}
@@ -278,10 +278,10 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
       <PayerFields {...shared} team={team} memberId={memberId} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
+        <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" busy={saving}>
           적기
         </Button>
       </DialogFooter>

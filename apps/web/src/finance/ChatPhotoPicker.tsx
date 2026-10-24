@@ -34,7 +34,7 @@ function PhotoRow({
       <Button
         type="button"
         variant="ghost"
-        disabled={disabled}
+        busy={disabled}
         onClick={onChoose}
         className="h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal"
       >
@@ -83,13 +83,13 @@ function ChosenCard({ councilId, photo, chat }: { councilId: string; photo: Phot
       </Label>
       <StateMessage kind="notice">증빙은 모든 운영진이 봐요.</StateMessage>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={chat.attaching} onClick={() => void chat.attach()}>
+        <Button type="button" busy={chat.attaching} onClick={() => void chat.attach()}>
           붙이기
         </Button>
         <Button
           type="button"
           variant="outline"
-          disabled={chat.attaching}
+          busy={chat.attaching}
           onClick={() => chat.choose(null)}
         >
           다시 고르기
@@ -142,13 +142,7 @@ export function ChatPhotoPicker({ councilId, chat }: { councilId: string; chat: 
     <div role="group" aria-label="대화에서 사진 고르기" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-sm font-medium text-gray-700">대화에서 고르기</h4>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={chat.attaching}
-          onClick={chat.close}
-        >
+        <Button type="button" variant="ghost" size="sm" busy={chat.attaching} onClick={chat.close}>
           <X aria-hidden />
           닫기
         </Button>

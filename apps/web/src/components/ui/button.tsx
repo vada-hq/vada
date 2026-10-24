@@ -27,15 +27,20 @@ export const buttonVariants = cva(
 )
 
 // type을 따로 정하지 않는다. form 안의 버튼은 브라우저 기본값(submit)을 그대로 쓴다.
+// busy는 보내는 중이라 다시 누르지 못하게 막는다. 그 밖의 이유로 버튼을 끄지 않는다(린트가 disabled를 막는다, AGENTS.md '화면 문구와 폼').
 export function Button({
   className,
   variant,
   size,
+  busy,
+  disabled,
   ...props
-}: ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
+}: ComponentProps<'button'> & VariantProps<typeof buttonVariants> & { busy?: boolean }) {
   return (
     <button
       data-slot="button"
+      disabled={busy || disabled}
+      aria-busy={busy || undefined}
       className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />

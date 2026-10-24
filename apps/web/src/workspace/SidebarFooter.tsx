@@ -34,7 +34,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout }: Prop
         variant="ghost"
         size="icon"
         aria-label="로그아웃"
-        disabled={logoutBusy}
+        busy={logoutBusy}
         onClick={onLogout}
       >
         <LogOut />

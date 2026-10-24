@@ -67,12 +67,12 @@ function ActionButtons({ applicant, attended, busy, onToggle, onCancel }: Button
   return (
     <div className="flex flex-wrap gap-2">
       {applicant.actions.includes(toggle) && (
-        <Button variant="outline" size="sm" disabled={busy} onClick={onToggle}>
+        <Button variant="outline" size="sm" busy={busy} onClick={onToggle}>
           {attended ? '출석 취소' : '출석'}
         </Button>
       )}
       {applicant.actions.includes('registration.cancel') && (
-        <Button variant="outline" size="sm" disabled={busy} onClick={onCancel}>
+        <Button variant="outline" size="sm" busy={busy} onClick={onCancel}>
           신청 취소
         </Button>
       )}

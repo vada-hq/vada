@@ -60,6 +60,9 @@ function ItemList({
   errors: FieldErrors
   onChange: (items: ItemValues[]) => void
 }) {
+  // 상한에서도 버튼은 켜 두고, 누르면 옆에 이유를 보인다.
+  const [pressedAtMax, setPressedAtMax] = useState(false)
+  const atMax = items.length >= PURCHASE_ITEMS_MAX
   return (
     <div className="flex flex-col gap-3">
       {items.map((item, index) => (
@@ -74,16 +77,25 @@ function ItemList({
           errors={itemErrors(errors, index)}
         />
       ))}
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        className="self-start"
-        disabled={disabled || items.length >= PURCHASE_ITEMS_MAX}
-        onClick={() => onChange([...items, newItem()])}
-      >
-        품목 더하기
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          busy={disabled}
+          onClick={() => {
+            setPressedAtMax(atMax)
+            if (!atMax) onChange([...items, newItem()])
+          }}
+        >
+          품목 더하기
+        </Button>
+        {atMax && pressedAtMax && (
+          <p role="alert" className="text-xs text-red-600">
+            {`품목은 ${PURCHASE_ITEMS_MAX}개까지 더할 수 있어요`}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -161,10 +173,10 @@ function CreateFooter(props: { problem: string | null; saving: boolean; onClose:
     <>
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={props.saving} onClick={props.onClose}>
+        <Button type="button" variant="outline" busy={props.saving} onClick={props.onClose}>
           취소
         </Button>
-        <Button type="submit" disabled={props.saving}>
+        <Button type="submit" busy={props.saving}>
           내기
         </Button>
       </DialogFooter>

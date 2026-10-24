@@ -138,6 +138,7 @@ function ApplicantItems({ data, onReload, changes, onChange, onCancelled, ...res
       <div className="flex items-center gap-2">
         <Input
           aria-label="이름이나 학번으로 찾기"
+          // oxlint-disable-next-line react/forbid-component-props -- 제출과 칸 확인이 없는 검색칸의 짧은 안내만 예외다(AGENTS.md '화면 문구와 폼').
           placeholder="이름이나 학번으로 찾기"
           value={query}
           onChange={event => setQuery(event.target.value)}

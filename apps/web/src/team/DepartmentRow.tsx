@@ -35,7 +35,7 @@ export function DepartmentRow({ department, manage, saving, triggerRef, ...on }:
               variant="ghost"
               size="icon"
               aria-label={`${department.name} 동작`}
-              disabled={saving}
+              busy={saving}
             >
               <Ellipsis />
             </Button>

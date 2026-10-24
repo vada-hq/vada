@@ -52,7 +52,7 @@ function MemberMenu({ member, titles, actions, saving, triggerRef, ...on }: Prop
           variant="ghost"
           size="icon"
           aria-label={`${member.name} 동작`}
-          disabled={saving}
+          busy={saving}
         >
           <Ellipsis />
         </Button>

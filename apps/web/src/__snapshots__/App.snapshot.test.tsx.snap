@@ -378,9 +378,9 @@ exports[`작업 공간: 대화 방 1`] = `
 </circle>
 </svg>
 </button>
-<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive resize-y read-only:border-border read-only:bg-gray-50 min-h-10 flex-1" rows="1" aria-label="메시지" placeholder="메시지">
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive resize-y read-only:border-border read-only:bg-gray-50 min-h-10 flex-1" rows="1" aria-label="메시지">
 </textarea>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 p-2 [&amp;_svg]:size-4 size-10" type="submit" aria-label="보내기" disabled="">
+<button data-slot="button" disabled="" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 p-2 [&amp;_svg]:size-4 size-10" type="submit" aria-label="보내기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal lucide-send-horizonal" aria-hidden="true">
 <path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z">
 </path>
@@ -2184,14 +2184,19 @@ exports[`학생회 없음 1`] = `
 <p class="text-xs wrap-anywhere text-gray-500">kim@example.test</p>
 </div>
 <div class="flex flex-col gap-6">
-<form aria-label="초대 코드로 들어가기" class="flex flex-col gap-4">
+<form novalidate="" aria-label="초대 코드로 들어가기" class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
 <h2 class="text-lg font-semibold">아직 들어간 학생회가 없어요</h2>
 <p class="text-sm text-gray-500">학생회에서 받은 초대 링크를 누르거나, 초대 코드를 입력해 주세요.</p>
 </div>
-<label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">초대 코드<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" value="">
-</label>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit" disabled="">초대 코드로 들어가기</button>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id1_">초대 코드</label>
+<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+</div>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" id="_id1_" aria-required="true" value="">
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit">초대 코드로 들어가기</button>
 </form>
 <div class="flex flex-col items-center gap-2 border-t pt-4 text-center">
 <p class="text-sm text-gray-500">학생회를 처음 시작하나요?</p>

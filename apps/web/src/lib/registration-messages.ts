@@ -11,6 +11,8 @@ export const APPLY_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
+export const APPLY_STUDENT_ID_INVALID = '학번은 숫자 6자리에서 12자리로 입력해 주세요'
+export const APPLY_PHONE_INVALID = '휴대폰 번호를 확인해 주세요'
 export const APPLY_FAILED = '신청하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const CANCEL_REGISTRATION_ERRORS: Record<string, string> = {
   CANCEL_CLOSED: '마감되어 스스로 취소할 수 없어요. 취소가 필요하면 운영진에게 알려 주세요.',

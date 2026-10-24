@@ -152,10 +152,10 @@ function CreateForm({ view, team, events, saving, setSaving, ...props }: FormPro
       <PlacementFields form={form} saving={saving} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
+        <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" busy={saving}>
           만들기
         </Button>
       </DialogFooter>

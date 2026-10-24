@@ -29,17 +29,17 @@ function ActionButtons({
   return (
     <div className="flex flex-wrap gap-2">
       {actions.includes('expense.reimburse') && (
-        <Button disabled={saving} onClick={() => onAsk('reimburse')}>
+        <Button busy={saving} onClick={() => onAsk('reimburse')}>
           환급함
         </Button>
       )}
       {actions.includes('expense.update') && (
-        <Button variant="outline" disabled={saving} onClick={() => onAsk('update')}>
+        <Button variant="outline" busy={saving} onClick={() => onAsk('update')}>
           고치기
         </Button>
       )}
       {actions.includes('expense.cancel') && (
-        <Button variant="outline" disabled={saving} onClick={() => onAsk('cancel')}>
+        <Button variant="outline" busy={saving} onClick={() => onAsk('cancel')}>
           지출 취소
         </Button>
       )}

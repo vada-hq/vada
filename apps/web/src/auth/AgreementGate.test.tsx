@@ -44,12 +44,20 @@ const open = () =>
 const needed = () => agreementResponse({ required: true })
 const startButton = () => screen.getByRole('button', { name: '시작하기' })
 
-test('동의가 필요하면 안쪽 화면보다 먼저 동의 화면이 보이고, 체크해야 시작하기가 켜진다', async () => {
+test('동의가 필요하면 안쪽 화면보다 먼저 동의 화면이 보이고, 체크 없이 시작하기를 누르면 이유가 보인다', async () => {
   api.on('GET', '/api/me/agreement', () => json(needed()))
   open()
   await screen.findByText('이용약관에 동의합니다')
   expect(screen.queryByRole('button', { name: '학생회 열기' })).toBeNull()
-  expect(startButton().hasAttribute('disabled')).toBe(true)
+  expect(startButton().hasAttribute('disabled')).toBe(false)
+  fireEvent.click(startButton())
+  expect(screen.getByText('이용약관에 동의해 주세요')).toBeTruthy()
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }),
+    ),
+  )
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
   for (const [name, href] of [
     ['약관 보기', 'https://docs.example.test/terms'],
     ['처리방침 보기', 'https://docs.example.test/privacy'],
@@ -60,7 +68,7 @@ test('동의가 필요하면 안쪽 화면보다 먼저 동의 화면이 보이�
     expect(link.getAttribute('rel')).toBe('noopener noreferrer')
   }
   fireEvent.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
-  expect(startButton().hasAttribute('disabled')).toBe(false)
+  expect(screen.queryByText('이용약관에 동의해 주세요')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   expect(onLogout).toHaveBeenCalledOnce()
 })
@@ -141,7 +149,7 @@ test('409 TERMS_OUTDATED면 판을 다시 읽고, 체크를 풀고, 문구를 �
   await screen.findByText('약관이 바뀌었어요. 새 내용을 확인하고 다시 동의해 주세요.')
   const box = screen.getByRole<HTMLInputElement>('checkbox')
   expect(box.checked).toBe(false)
-  expect(startButton().hasAttribute('disabled')).toBe(true)
+  expect(screen.queryByText('이용약관에 동의해 주세요')).toBeNull()
   fireEvent.click(box)
   api.on('POST', '/api/me/agreement', () =>
     json(agreementResponse({ required: true, agreed: true, termsVersion: version })),

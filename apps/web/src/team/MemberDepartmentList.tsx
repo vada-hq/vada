@@ -44,15 +44,17 @@ export function MemberDepartmentList({
             >
               <RankOptions titles={titles} />
             </NativeSelect>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`${name}에서 빼기`}
-              disabled={saving || (item.rank !== null && !canRank)}
-              onClick={() => onRemove(item.id)}
-            >
-              <X />
-            </Button>
+            {(item.rank === null || canRank) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`${name}에서 빼기`}
+                busy={saving}
+                onClick={() => onRemove(item.id)}
+              >
+                <X />
+              </Button>
+            )}
           </div>
         )
       })}

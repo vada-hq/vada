@@ -55,7 +55,7 @@ export function MemberDepartmentAdd({ others, titles, saving, canRank, add, onAs
       <Button
         variant="outline"
         className="self-start"
-        disabled={saving}
+        busy={saving}
         onClick={() => onAssign(add.selected, canRank ? rankOf(add.rank) : null)}
       >
         부서에 넣기

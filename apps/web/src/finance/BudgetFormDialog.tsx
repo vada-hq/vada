@@ -61,10 +61,10 @@ export function BudgetFormDialog({
           {children}
           {problem && <StateMessage kind="error">{problem}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
+            <Button type="button" variant="outline" busy={saving} onClick={onClose}>
               취소
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" busy={saving}>
               {submitLabel}
             </Button>
           </DialogFooter>

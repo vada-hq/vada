@@ -111,11 +111,11 @@ test.each([
     reason: '묶음을 만들 수 없어요',
     on: '감사용 엑셀',
   },
-])('$name이면 그 버튼만 꺼지고 이유가 보인다', async ({ info, off, reason, on }) => {
+])('$name이면 그 버튼만 숨고 이유가 보인다', async ({ info, off, reason, on }) => {
   const closing = closingFixture({ actions: [...FINANCE] })
   show({ ...closing, exportInfo: { ...closing.exportInfo, ...info } })
-  expect(await screen.findByRole('button', { name: off })).toHaveProperty('disabled', true)
-  expect(screen.getByRole('button', { name: on })).toHaveProperty('disabled', false)
+  expect(await screen.findByRole('button', { name: on })).toHaveProperty('disabled', false)
+  expect(screen.queryByRole('button', { name: off })).toBeNull()
   expect(screen.getByText(new RegExp(reason))).toBeTruthy()
 })
 

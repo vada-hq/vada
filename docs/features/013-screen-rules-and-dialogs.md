@@ -84,7 +84,7 @@
 - 닿는 곳: `apps/web/src/finance/DecisionRow.tsx`, `DecisionPanel.tsx`, `FeePaymentsTab.tsx`, `ExpenseUpdateDialog.tsx`, 그 시험들.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 4. 신청·가입·업무 칸 확인과 린트 켜기 [ ]
+### 4. 신청·가입·업무 칸 확인과 린트 켜기 [x]
 - 할 수 있게 되는 것: 남은 꺼진 버튼과 예시 글이 사라지고, 새 코드가 버튼을 끄거나 예시 글을 쓰면 `pnpm check`가 실패한다.
 - 수용 기준: 참가 신청 [신청하기], 초대 코드 [초대 코드로 들어가기], 약관 [시작하기], 업무 담당자·행사 고르기 [저장]이 늘 켜져 있고, 누르면 문제 칸(약관은 동의 칸) 아래에 이유가 보이고 그 칸으로 옮긴다. 업무 고르기에서 바꾼 것이 없으면 [저장]이 그냥 닫는다. 품목 [추가]는 상한에 닿으면 누를 때 옆에 이유를 보인다. 부서원 빼기처럼 권한이 없어 못 하는 버튼은 숨긴다. 휴대폰 칸 안내 '010-1234-5678처럼 써도 돼요.'와 대화 입력칸의 '메시지' 안내, 부품 확인 화면의 예시 글이 없다. 대화 [보내기]는 빈 메시지일 때 꺼지고, 지원자 검색칸 안내는 남는다(두 곳만 한 줄 끄기와 이유). 보내는 중인 버튼은 모두 `busy`로 막힌다. `Button`에 `disabled`를, `Input`·`Textarea`·날것 요소에 `placeholder`를 쓰면 린트가 AGENTS.md를 가리키는 글로 실패한다(일부러 넣어 실패하는지 본다). `ApplyPage.test.tsx`, `AgreementGate.test.tsx`의 꺼진 버튼 시험을 뒤집고 `Composer.test.tsx`는 그대로 통과한다. AGENTS.md '화면 문구와 폼'의 제출 버튼 줄에 "린트가 막는다, 보내는 중은 `busy`" 한 마디를 더한다.
 - 닿는 곳: `.oxlintrc.json`, `apps/web/src/components/ui/button.tsx`, `public/ApplyFields.tsx`, `councils/NoCouncil.tsx`, `auth/AgreementPanel.tsx`, `tasks/TaskPickerRow.tsx`, `finance/RequestCreateDialog.tsx`, `team/MemberDepartmentList.tsx`, `finance/EvidenceAdder.tsx`, `chat/Composer.tsx`, `registrations/ApplicantList.tsx`, `ui-gallery/FormSections.tsx`·`OverlaySections.tsx`, `Button`의 `disabled`를 쓰는 모든 화면 파일(이름 바꾸기), `AGENTS.md`.

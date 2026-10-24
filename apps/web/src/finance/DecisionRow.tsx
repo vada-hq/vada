@@ -81,14 +81,14 @@ function Buttons({
 }: Omit<Props, 'chosen' | 'budgetItems' | 'errors'>) {
   return (
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" disabled={disabled} aria-label={`${item.name} 승인`} onClick={onApprove}>
+      <Button size="sm" busy={disabled} aria-label={`${item.name} 승인`} onClick={onApprove}>
         승인
       </Button>
       {values.rejecting ? (
         <Button
           size="sm"
           variant="destructive"
-          disabled={disabled}
+          busy={disabled}
           aria-label={`${item.name} 반려 보내기`}
           onClick={onReject}
         >
@@ -98,7 +98,7 @@ function Buttons({
         <Button
           size="sm"
           variant="outline"
-          disabled={disabled}
+          busy={disabled}
           aria-label={`${item.name} 반려`}
           onClick={() => onChange({ rejecting: true })}
         >

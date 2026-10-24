@@ -351,8 +351,14 @@ test('떠난 담당자 업무는 아무도 골라지지 않은 채 열리고 다
   fireEvent.click(await screen.findByRole('button', { name: '담당자 바꾸기' }))
   const select = await screen.findByRole('combobox', { name: '담당자' })
   expect(select).toHaveProperty('value', '__current__')
-  expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
-  fireEvent.change(select, { target: { value: 'm3' } })
+  // 아무도 고르지 않은 채 [저장]은 보내지 않고 그냥 닫는다.
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  expect(screen.queryByRole('combobox', { name: '담당자' })).toBeNull()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.click(await screen.findByRole('button', { name: '담당자 바꾸기' }))
+  fireEvent.change(await screen.findByRole('combobox', { name: '담당자' }), {
+    target: { value: 'm3' },
+  })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(api.calls.at(-1)?.body).toEqual({ assigneeId: 'm3' }))
 })

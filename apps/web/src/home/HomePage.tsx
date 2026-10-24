@@ -34,7 +34,7 @@ export default function HomePage({ view, onForbidden, ...openers }: Props) {
         <Button
           variant="outline"
           className="self-start"
-          disabled={retrying}
+          busy={retrying}
           onClick={() => void retry()}
         >
           다시 불러오기

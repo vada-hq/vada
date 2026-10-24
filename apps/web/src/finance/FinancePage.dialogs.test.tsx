@@ -83,9 +83,11 @@ test('품목은 더하고 뺄 수 있고 한 줄은 못 빼며 상한에서 더�
   for (let count = 1; count < PURCHASE_ITEMS_MAX; count += 1)
     fireEvent.click(screen.getByRole('button', { name: '품목 더하기' }))
   expect(screen.getAllByRole('group', { name: /^품목 \d+$/ })).toHaveLength(PURCHASE_ITEMS_MAX)
-  expect(
-    asElement(screen.getByRole('button', { name: '품목 더하기' }), HTMLButtonElement).disabled,
-  ).toBe(true)
+  const add = asElement(screen.getByRole('button', { name: '품목 더하기' }), HTMLButtonElement)
+  expect(add.disabled).toBe(false)
+  fireEvent.click(add)
+  expect(screen.getByText(`품목은 ${PURCHASE_ITEMS_MAX}개까지 더할 수 있어요`)).toBeTruthy()
+  expect(screen.getAllByRole('group', { name: /^품목 \d+$/ })).toHaveLength(PURCHASE_ITEMS_MAX)
 })
 
 test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이면 [내기]를 눌러도 보내지 않는다', async () => {

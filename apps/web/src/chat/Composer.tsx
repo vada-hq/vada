@@ -98,6 +98,7 @@ function SendButton({ sending, disabled }: { sending: boolean; disabled: boolean
       size="icon"
       className="size-10"
       aria-label={sending ? '보내는 중' : '보내기'}
+      // oxlint-disable-next-line react/forbid-component-props -- 대화 [보내기]는 빈 메시지일 때 꺼진다(채팅 앱의 관례, AGENTS.md '화면 문구와 폼'의 예외).
       disabled={disabled}
     >
       <SendHorizontal />
@@ -132,7 +133,6 @@ export default function Composer({ participants, meId, ...args }: Props) {
           ref={field}
           rows={1}
           aria-label="메시지"
-          placeholder="메시지"
           className="min-h-10 flex-1"
           value={body}
           onChange={onChange}

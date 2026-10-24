@@ -73,7 +73,7 @@ function CompletionTrigger(props: { mode: Asking; busy: boolean; line: Line; onA
   return (
     <>
       {mode !== null && (
-        <Button variant={mode === 'cancel' ? 'outline' : 'default'} disabled={busy} onClick={onAsk}>
+        <Button variant={mode === 'cancel' ? 'outline' : 'default'} busy={busy} onClick={onAsk}>
           {mode === 'cancel' ? '완료 취소' : '완료'}
         </Button>
       )}

@@ -137,10 +137,10 @@ export function ExpenseUpdateDialog({
         </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
-          <Button variant="outline" disabled={busy} onClick={onClose}>
+          <Button variant="outline" busy={busy} onClick={onClose}>
             닫기
           </Button>
-          <Button disabled={busy} onClick={save}>
+          <Button busy={busy} onClick={save}>
             저장
           </Button>
         </DialogFooter>

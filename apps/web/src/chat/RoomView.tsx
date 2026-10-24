@@ -76,7 +76,7 @@ function Older({ onLoad }: { onLoad: () => Promise<boolean> }) {
   }
   return (
     <div className="flex flex-col items-center gap-1">
-      <Button variant="outline" size="sm" disabled={busy} onClick={() => void load()}>
+      <Button variant="outline" size="sm" busy={busy} onClick={() => void load()}>
         이전 메시지 보기
       </Button>
       {failed && <StateMessage kind="error">{OLDER_LOAD_FAILED}</StateMessage>}

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { AgreeSchema, type AgreementResponse } from '@vada/contracts'
-import { AGREEMENT_ERRORS, AGREEMENT_FAILED } from '@/lib/messages'
+import { AGREEMENT_ERRORS, AGREEMENT_FAILED, AGREEMENT_REQUIRED } from '@/lib/messages'
+import { useFormCheck } from '@/lib/use-form-check'
 import { getJson, postJson } from '@/lib/api'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -27,11 +28,13 @@ function AgreementFields({
   terms,
   checked,
   disabled,
+  error,
   onChecked,
 }: {
   terms: AgreementResponse
   checked: boolean
   disabled: boolean
+  error: string | undefined
   onChecked: (checked: boolean) => void
 }) {
   const checkId = useId()
@@ -50,12 +53,19 @@ function AgreementFields({
           className="size-4 accent-blue-600"
           checked={checked}
           disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${checkId}-error` : undefined}
           onChange={event => {
             onChecked(event.target.checked)
           }}
         />
         이용약관에 동의합니다
       </Label>
+      {error && (
+        <p id={`${checkId}-error`} className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -75,14 +85,20 @@ export default function AgreementPanel({ terms, logoutBusy, onTerms, onLogout }:
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const body = { termsVersion: terms.termsVersion, privacyVersion: terms.privacyVersion }
-  const canAgree = checkedFor === versions && AgreeSchema.safeParse(body).success
+  const checked = checkedFor === versions
+  // 시작하기는 늘 켜져 있고, 동의 칸이 비었으면 누를 때 그 칸 아래에 이유가 보인다.
+  const { formRef, errors, attempt, reset } = useFormCheck<HTMLDivElement>(() => ({
+    agree: checked ? undefined : AGREEMENT_REQUIRED,
+  }))
 
   async function agree() {
+    if (!attempt() || !AgreeSchema.safeParse(body).success) return
     setBusy(true)
     setMessage('')
     const result = await postJson<AgreementResponse>(AGREEMENT_PATH, body)
     if (result.ok) return onTerms(result.data)
     if (result.code === 'TERMS_OUTDATED') {
+      reset()
       const fresh = await getJson<AgreementResponse>(AGREEMENT_PATH)
       if (fresh.ok) onTerms(fresh.data)
     }
@@ -91,11 +107,12 @@ export default function AgreementPanel({ terms, logoutBusy, onTerms, onLogout }:
   }
 
   return (
-    <>
+    <div ref={formRef} className="contents">
       <AgreementFields
         terms={terms}
-        checked={checkedFor === versions}
+        checked={checked}
         disabled={busy}
+        error={errors.agree}
         onChecked={checked => {
           setCheckedFor(checked ? versions : null)
         }}
@@ -104,19 +121,19 @@ export default function AgreementPanel({ terms, logoutBusy, onTerms, onLogout }:
         <div className="flex items-center gap-2">
           <Button
             className="flex-1"
-            disabled={!canAgree || busy}
+            busy={busy}
             onClick={() => {
               void agree()
             }}
           >
             {busy ? '확인 중…' : '시작하기'}
           </Button>
-          <Button variant="outline" disabled={logoutBusy} onClick={onLogout}>
+          <Button variant="outline" busy={logoutBusy} onClick={onLogout}>
             로그아웃
           </Button>
         </div>
         {message && <StateMessage kind="error">{message}</StateMessage>}
       </div>
-    </>
+    </div>
   )
 }

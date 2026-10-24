@@ -44,7 +44,7 @@ function People({
           <Button
             variant="ghost"
             className="w-full justify-start font-normal wrap-anywhere whitespace-normal text-gray-800"
-            disabled={busy}
+            busy={busy}
             onClick={() => onPick(member)}
           >
             {member.name}

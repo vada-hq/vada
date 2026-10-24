@@ -130,10 +130,10 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
       </FormSection>
       {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
+        <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" busy={saving}>
           {mode.submit}
         </Button>
       </div>
@@ -151,13 +151,7 @@ export function FormEditor(props: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-start gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-2"
-          disabled={saving}
-          onClick={props.onClose}
-        >
+        <Button variant="ghost" size="sm" className="-ml-2" busy={saving} onClick={props.onClose}>
           <ChevronLeft aria-hidden />
           신청 양식 목록
         </Button>

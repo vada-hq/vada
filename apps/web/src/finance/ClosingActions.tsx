@@ -110,12 +110,12 @@ export function ClosingActions({ closing, change, canManage }: Props) {
   return (
     <div className="flex flex-col items-start gap-2">
       {canPublish && (
-        <Button disabled={change.saving} onClick={() => setAsking('publish')}>
+        <Button busy={change.saving} onClick={() => setAsking('publish')}>
           공개
         </Button>
       )}
       {canReopen && (
-        <Button variant="outline" disabled={change.saving} onClick={() => setAsking('reopen')}>
+        <Button variant="outline" busy={change.saving} onClick={() => setAsking('reopen')}>
           다시 열기
         </Button>
       )}

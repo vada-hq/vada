@@ -79,8 +79,10 @@ function Picker({ onDone, ...props }: Props & { onDone: () => void }) {
       </NativeSelect>
       <Button
         size="sm"
-        disabled={props.saving || value === UNSET || value === choiceValue(props.currentId)}
+        busy={props.saving}
         onClick={() => {
+          // 바꾼 것이 없으면 보내지 않고 그냥 닫는다.
+          if (value === UNSET || value === choiceValue(props.currentId)) return onDone()
           void props.onSave(choiceId(value)).then(done => {
             if (done) onDone()
           })
@@ -88,7 +90,7 @@ function Picker({ onDone, ...props }: Props & { onDone: () => void }) {
       >
         저장
       </Button>
-      <Button size="sm" variant="outline" disabled={props.saving} onClick={onDone}>
+      <Button size="sm" variant="outline" busy={props.saving} onClick={onDone}>
         취소
       </Button>
     </div>

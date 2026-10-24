@@ -405,10 +405,7 @@ test('부서 직급 선택칸과 직급이 붙은 소속 빼기는 rank.manage�
     asElement(within(dialog).getByRole('button', { name: '부서에 넣기' }), HTMLButtonElement)
       .disabled,
   ).toBe(false)
-  expect(
-    asElement(within(dialog).getByRole('button', { name: '재정부에서 빼기' }), HTMLButtonElement)
-      .disabled,
-  ).toBe(true)
+  expect(within(dialog).queryByRole('button', { name: '재정부에서 빼기' })).toBeNull()
 })
 
 test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () => {

@@ -131,7 +131,7 @@ exports[`켜짐: 보내는 중 1`] = `
 "<div>
 <div class="flex flex-col gap-3 text-sm text-gray-700">
 <p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" disabled="">시험 알림 보내기</button>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">시험 알림 보내기</button>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">5초 뒤에 알림이 와요. 화면을 끄거나 홈으로 나가 기다려 보세요.</p>
 </div>
 </div>"

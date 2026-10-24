@@ -147,10 +147,10 @@ function FormFooter({
       {notStarted && <StateMessage kind="notice">{INCOME_PERIOD_NOT_STARTED}</StateMessage>}
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
+        <Button type="button" variant="outline" busy={saving} onClick={onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" busy={saving}>
           적기
         </Button>
       </DialogFooter>

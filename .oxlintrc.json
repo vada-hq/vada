@@ -42,6 +42,34 @@
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "error",
     "react/set-state-in-effect": "off",
+    "react/forbid-component-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "disabled",
+            "disallowedFor": ["Button"],
+            "message": "제출 버튼은 끄지 않는다. 누를 때 확인하고, 보내는 중에는 busy를 쓴다(AGENTS.md '화면 문구와 폼'). 권한이나 상태로 못 하는 버튼은 숨긴다."
+          },
+          {
+            "propName": "placeholder",
+            "disallowedFor": ["Input", "Textarea"],
+            "message": "입력칸 안의 예시 글(placeholder)은 쓰지 않는다. 라벨을 고친다(AGENTS.md '화면 문구와 폼')."
+          }
+        ]
+      }
+    ],
+    "react/forbid-dom-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "placeholder",
+            "message": "입력칸 안의 예시 글(placeholder)은 쓰지 않는다. 라벨을 고친다(AGENTS.md '화면 문구와 폼')."
+          }
+        ]
+      }
+    ],
     "complexity": [
       "error",
       {

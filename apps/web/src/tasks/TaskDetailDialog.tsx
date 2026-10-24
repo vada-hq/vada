@@ -138,12 +138,12 @@ function ManageButtons({ detail, actions, onEdit, onDeleted }: ManageProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {actions.includes('task.edit') && (
-        <Button variant="outline" disabled={detail.saving} onClick={onEdit}>
+        <Button variant="outline" busy={detail.saving} onClick={onEdit}>
           고치기
         </Button>
       )}
       {actions.includes('task.remove') && (
-        <Button variant="outline" disabled={detail.saving} onClick={() => setDeleting(true)}>
+        <Button variant="outline" busy={detail.saving} onClick={() => setDeleting(true)}>
           지우기
         </Button>
       )}

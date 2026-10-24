@@ -43,7 +43,7 @@ function SignedInCard({
         <Button
           variant="outline"
           className="flex-1"
-          disabled={busy}
+          busy={busy}
           onClick={() => {
             onLogout()
           }}

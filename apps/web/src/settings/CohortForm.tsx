@@ -80,7 +80,7 @@ export default function CohortForm({
         <TermFields value={value} canEdit={canEdit} onEdit={onEdit} errors={fieldErrors} />
         {note}
         {canEdit && (
-          <Button type="submit" className="self-start" disabled={busy}>
+          <Button type="submit" className="self-start" busy={busy}>
             {saving ? '저장하는 중…' : '기수 저장'}
           </Button>
         )}

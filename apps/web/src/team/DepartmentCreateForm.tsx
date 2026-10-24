@@ -52,7 +52,7 @@ export function DepartmentCreateForm({ saving, error, name, onName, onCreate, on
             }}
           />
         </Field>
-        <Button type="submit" variant="outline" className="mt-7" disabled={saving}>
+        <Button type="submit" variant="outline" className="mt-7" busy={saving}>
           <Plus />
           부서 만들기
         </Button>

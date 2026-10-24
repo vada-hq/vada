@@ -85,7 +85,7 @@ function InviteLinkSection({ link, rotating, notice, onCopy, onRotate }: Section
           <Copy />
           링크 복사
         </Button>
-        <Button variant="outline" size="sm" disabled={rotating} onClick={onRotate}>
+        <Button variant="outline" size="sm" busy={rotating} onClick={onRotate}>
           <RefreshCw />
           {rotating ? '바꾸는 중…' : '코드 바꾸기'}
         </Button>

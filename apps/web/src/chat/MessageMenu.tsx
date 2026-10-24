@@ -23,7 +23,7 @@ export default function MessageMenu({ actions, busy }: Props) {
   return (
     <Menu>
       <MenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="메시지 동작" disabled={busy}>
+        <Button variant="ghost" size="icon" aria-label="메시지 동작" busy={busy}>
           <Ellipsis />
         </Button>
       </MenuTrigger>
