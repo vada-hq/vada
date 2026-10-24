@@ -12,6 +12,7 @@ export type Criterion =
   | 'finance'
   | 'room_member'
   | 'assignee'
+  | 'assigned_creator'
   | 'requester'
   | 'event_owner'
   | 'event_department'
@@ -20,6 +21,7 @@ export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
 // assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
+// createdBy는 업무를 만든 사람이다: 담당자이면서 만든 사람 기준(assigned_creator)은 담당자와 만든 사람이 모두 나일 때만 맞다.
 // eventOwnerId는 행사 칸이 보는 대상이다: 행사(업무가 이어진 행사 포함)의 책임자. 행사 책임자 기준은 이것이 나일 때만 맞다.
 // eventDepartmentIds는 신청 칸이 보는 대상이다: 그 행사의 취소하지 않은 업무가 가리키는 부서들(eventDepartmentIdsOf). 행사 담당 부서 기준은 내 지금 소속 부서가 이 가운데 있을 때만 맞는다.
 // requestedBy는 구매 요청의 요청한 사람이기도 하다: 요청한 사람 기준(requester)은 이것이 나일 때만 맞다.
@@ -28,6 +30,7 @@ export type Context = {
   requestedBy?: string
   inRoom?: boolean
   assigneeId?: string
+  createdBy?: string
   eventOwnerId?: string
   eventDepartmentIds?: readonly string[]
 }
@@ -48,6 +51,8 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   // 업무 칸. 부장 기준은 업무의 부서(없으면 회장단만)를 맥락으로 묻는다. 담당자 기준은 회장단도 물려받지 않는다.
   // 그 행사의 업무는 책임자가 어느 부서로든 다룬다(DEC-28 '행사'의 이어진 업무 다루기).
   'task.manage': { who: ['department_head', 'assignee', 'event_owner'] },
+  // 지우기: 담당자는 자기가 만든 업무만 지운다. 남이 맡긴 업무는 지우지 못한다(DEC-73).
+  'task.delete': { who: ['department_head', 'assigned_creator', 'event_owner'] },
   'task.set_department': { who: ['leadership', 'event_owner'] },
   'task.assign': { who: ['department_head', 'event_owner'] },
   'task.status': { who: ['department_head', 'assignee', 'event_owner'] },
@@ -96,6 +101,8 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
         (context.departmentId !== undefined &&
           headDepartmentIds(actor).includes(context.departmentId))
       )
+    case 'assigned_creator':
+      return meetsContext(actor, 'assignee', context) && context.createdBy === actor.memberId
     // 재정 권한은 직급으로 물려받지 않는다(기준 3).
     case 'finance':
       return isFinanceMember(actor)

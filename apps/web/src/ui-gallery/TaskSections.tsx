@@ -11,6 +11,7 @@ const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
   id,
   title: '신입생 환영회 장소 예약',
   status: 'todo',
+  next: 'in_progress',
   dueDate: '2026-10-25',
   overdue: false,
   department: { id: 'd1', name: '기획부' },
@@ -40,9 +41,19 @@ export function TaskSection() {
       </div>
       <ul className={cn(cardClass, 'w-96 divide-y')}>
         <TaskRow task={task('1', {})} {...rowProps} />
-        <TaskRow task={task('2', { status: 'in_progress', overdue: true })} {...rowProps} busy />
         <TaskRow
-          task={task('3', { status: 'done', actions: [], assignee: null, dueDate: null })}
+          task={task('2', { status: 'in_progress', next: 'done', overdue: true })}
+          {...rowProps}
+          busy
+        />
+        <TaskRow
+          task={task('3', {
+            status: 'done',
+            next: null,
+            actions: [],
+            assignee: null,
+            dueDate: null,
+          })}
           {...rowProps}
         />
         <TaskRow task={task('5', { event: { id: 'e1', name: '신입생 환영회' } })} {...rowProps} />

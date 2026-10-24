@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CouncilView, TaskDetail } from '@vada/contracts'
+import type { CouncilView, TaskAction, TaskDetail } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -112,8 +112,13 @@ function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: Loade
       {task.body && (
         <p className="text-sm wrap-anywhere whitespace-pre-wrap text-gray-800">{task.body}</p>
       )}
-      {task.actions.includes('task.manage') && (
-        <ManageButtons detail={detail} onEdit={() => setEditing(true)} onDeleted={onClose} />
+      {(task.actions.includes('task.manage') || task.actions.includes('task.delete')) && (
+        <ManageButtons
+          detail={detail}
+          actions={task.actions}
+          onEdit={() => setEditing(true)}
+          onDeleted={onClose}
+        />
       )}
       <TaskHistory history={task.history} />
     </div>
@@ -122,21 +127,26 @@ function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: Loade
 
 type ManageProps = {
   detail: ReturnType<typeof useTaskDetail>
+  actions: TaskAction[]
   onEdit: () => void
   onDeleted: () => void
 }
 
 // [고치기]와 [지우기]. 지우기는 확인을 한 번 거친다.
-function ManageButtons({ detail, onEdit, onDeleted }: ManageProps) {
+function ManageButtons({ detail, actions, onEdit, onDeleted }: ManageProps) {
   const [deleting, setDeleting] = useState(false)
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="outline" disabled={detail.saving} onClick={onEdit}>
-        고치기
-      </Button>
-      <Button variant="outline" disabled={detail.saving} onClick={() => setDeleting(true)}>
-        지우기
-      </Button>
+      {actions.includes('task.manage') && (
+        <Button variant="outline" disabled={detail.saving} onClick={onEdit}>
+          고치기
+        </Button>
+      )}
+      {actions.includes('task.delete') && (
+        <Button variant="outline" disabled={detail.saving} onClick={() => setDeleting(true)}>
+          지우기
+        </Button>
+      )}
       <ConfirmDialog
         open={deleting}
         destructive

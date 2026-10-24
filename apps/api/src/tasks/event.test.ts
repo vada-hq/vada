@@ -81,6 +81,7 @@ test(
       assert.deepEqual(task.event, { id: eventId, name: '봄 축제' })
       assert.deepEqual(task.actions, [
         'task.manage',
+        'task.delete',
         'task.set_department',
         'task.assign',
         'task.status',

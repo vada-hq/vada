@@ -63,7 +63,7 @@
 
 1 → 2 → 3 → 4는 서버라 차례로 한다(같은 고리 모듈을 고친다). 5는 2와 4가, 6은 2가 main에 오른 뒤 시작한다. 시간이 모자라면 4를 빼고 5에서 요청 버튼만 둔다(구매만, `plan.md`).
 
-### 1. 업무 상태 규칙 한 곳과 지우기 권한 [ ]
+### 1. 업무 상태 규칙 한 곳과 지우기 권한 [x]
 - 할 수 있게 되는 것: 업무의 다음 단계와 할 수 있는 동작을 서버가 한 곳에서 정하고, 담당자는 자기가 만든 업무만 지운다.
 - 수용 기준: 업무 목록·상세의 줄마다 `next`가 할 일이면 진행 중, 진행 중이면 끝남, 끝남이면 null이고 카드의 [시작]·[끝내기]가 이것으로 보인다. 상태 바꾸기는 셋 중 어디로든 되고 같은 값이면 판이 늘지 않는다. 부장이 맡긴 업무의 담당자에게 `actions`에 `task.delete`가 없고 지우기는 403이며 업무가 그대로다. 담당자가 직접 만든 업무, 그 부서 부장, 회장단, 행사 책임자는 지운다(204). 고치기(`task.manage`)는 담당자에게 그대로 된다. 응답의 `actions`와 쓰기 경로가 같은 판정을 쓰고, 판정을 바꾸면 두 시험이 함께 실패한다. 웹에 `NEXT_STEP`이 없다.
 - 닿는 곳: contracts `tasks.ts`(`TASK_ACTIONS`에 `task.delete`, `TaskSummary.next`), `permissions.ts`(contracts `Action`), api `tasks/lifecycle.ts`(새), `tasks/policy.ts`(새, `actions.ts` 대신), `tasks/service.ts`, `access/permissions.ts`, web `tasks/task-view.ts`, `TaskRow.tsx`, 지우기 버튼이 있는 상세 부품.

@@ -20,12 +20,8 @@ export function assigneeLabel(assignee: TaskPerson | null) {
   return assignee.current ? assignee.name : `떠난 사람: ${assignee.name}`
 }
 
-// 카드의 상태 바꾸기 버튼. 할 일은 시작, 진행 중은 끝내기다. 끝난 업무를 되돌리는 것은 상세에서 한다.
-export const NEXT_STEP: Record<TaskStatus, { label: string; to: TaskStatus } | null> = {
-  todo: { label: '시작', to: 'in_progress' },
-  in_progress: { label: '끝내기', to: 'done' },
-  done: null,
-}
+// 카드의 상태 바꾸기 버튼 이름. 어디로 가는지(next)는 서버가 정하고 화면은 이름만 붙인다.
+export const nextLabel = (next: TaskStatus) => (next === 'done' ? '끝내기' : '시작')
 
 export interface TaskCount {
   label: string

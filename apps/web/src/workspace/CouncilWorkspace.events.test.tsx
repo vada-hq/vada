@@ -20,6 +20,7 @@ const eventTask: TaskSummary = {
   id: 't1',
   title: '현수막 주문',
   status: 'todo',
+  next: 'in_progress',
   dueDate: null,
   overdue: false,
   department: null,

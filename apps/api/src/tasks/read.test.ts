@@ -238,12 +238,14 @@ test('줄마다 actions가 그 사람의 권한과 같다', async () => {
     const actionsFor = async (user: string, id: string) => (await t.detail(id, user)).actions
     assert.deepEqual(await actionsFor('s-president', mine), [
       'task.manage',
+      'task.delete',
       'task.set_department',
       'task.assign',
       'task.status',
     ])
     assert.deepEqual(await actionsFor('s-planningHead', mine), [
       'task.manage',
+      'task.delete',
       'task.assign',
       'task.status',
     ])

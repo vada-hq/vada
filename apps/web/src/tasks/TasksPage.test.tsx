@@ -27,6 +27,7 @@ const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   id,
   title: `업무 ${id}`,
   status: 'todo',
+  next: 'in_progress',
   dueDate: '2026-10-25',
   overdue: false,
   department: null,
@@ -45,7 +46,7 @@ test('내 업무 줄에 제목, 진행 중, 부서, 마감(지나면 빨강)이 
   api.on('GET', listPath('mine'), () =>
     list([
       task('a', { overdue: true, department: { id: 'd1', name: '기획부' } }),
-      task('b', { status: 'in_progress', dueDate: null }),
+      task('b', { status: 'in_progress', next: 'done', dueDate: null }),
       task('c', { status: 'done', actions: [] }),
     ]),
   )
@@ -111,7 +112,7 @@ test('[시작]은 보내는 동안 막히고 두 번 눌러도 한 번만 가며
   let reads = 0
   api.on('GET', listPath('mine'), () => {
     reads += 1
-    return list([task('a', { status: reads > 1 ? 'in_progress' : 'todo' })])
+    return list([task('a', reads > 1 ? { status: 'in_progress', next: 'done' } : {})])
   })
   const pending = deferredResponse()
   api.on('POST', `${base}/a/status`, () => pending.promise)
@@ -165,7 +166,7 @@ test('전체의 부서 묶음 머리 오른쪽에 진행 중·지남·담당자 
   const planning = { id: 'd1', name: '기획부' }
   api.on('GET', listPath('all'), () =>
     list([
-      task('1', { department: planning, status: 'in_progress' }),
+      task('1', { department: planning, status: 'in_progress', next: 'done' }),
       task('2', { department: planning, overdue: true, assignee: null }),
       task('3', { department: planning, assignee: null }),
       task('4', { department: { id: 'd2', name: '홍보부' } }),
@@ -189,7 +190,9 @@ test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무�
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   api.on('GET', listPath('department'), () =>
-    list([task('1', { department: { id: 'd2', name: '기획부' }, status: 'in_progress' })]),
+    list([
+      task('1', { department: { id: 'd2', name: '기획부' }, status: 'in_progress', next: 'done' }),
+    ]),
   )
   const { unmount } = render(
     <TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />,

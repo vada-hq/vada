@@ -2,6 +2,7 @@ import type { TaskAction, TaskDetail } from '@vada/contracts'
 
 const ALL_TASK_ACTIONS: TaskAction[] = [
   'task.manage',
+  'task.delete',
   'task.set_department',
   'task.assign',
   'task.status',
@@ -13,6 +14,7 @@ export function taskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
     id: 't1',
     title: '현수막 주문',
     status: 'todo',
+    next: 'in_progress',
     dueDate: '2026-10-25',
     overdue: false,
     department: { id: 'd1', name: '재정부' },
