@@ -1,5 +1,5 @@
-// 초대 링크 형식은 {origin}/join/{code}다. 코드가 맞는지는 서버가 판단한다(지금 vada와 같다).
-const pattern = /^\/join\/([^/]+)$/
+// 초대 링크 형식은 {origin}/join/{code}다(서버가 여는 꼴이라 끝 슬래시 하나도 같은 초대다). 코드가 맞는지는 서버가 판단한다(지금 vada와 같다).
+const pattern = /^\/join\/([^/]+)\/?$/
 const decode = (segment: string) => {
   try {
     return decodeURIComponent(segment)
