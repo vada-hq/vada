@@ -124,7 +124,7 @@
 
 - 작업자는 커밋 전에 `pnpm check`(형식, 린트, 타입)와 영향받는 시험만 돌린다. 전체 시험은 CI가 돈다. 이 컴퓨터에서 전체 시험을 여럿 겹쳐 돌리지 않는다(기능 2에서 겹치면 2~3배 느려졌다. 로컬은 관련 시험만, 전체는 CI가 업계 기본이다: [Software Engineering at Google 시험 장](https://abseil.io/resources/swe-book/html/ch11.html)).
 - CI는 main에 올릴 때만 돈다. 10분 안에 끝나야 한다([DORA CI](https://dora.dev/capabilities/continuous-integration/)). 지금 약 4분이다. 가지에서 전체 시험이 꼭 필요하면(여러 모듈에 닿는 바탕 바꾸기) Actions에서 그 가지로 손으로 돌린다(`gh workflow run CI --ref <가지>`).
-- 저장소가 비공개인 동안 Actions는 한 달 2,000분이 무료이고 지출 한도가 0이라 넘으면 CI가 서고 배포도 선다. 진행 에이전트는 기능을 시작할 때 이달 사용량을 본다. 기능 006에서 확인하지 않아 17:33~19:41에 CI가 서 있었다.
+- 저장소는 공개다. 비공개일 때 한 달 무료 Actions 2,000분을 다 써서 CI와 배포가 서자(기능 006, 2026-10-22) 공개로 바꿨다(주인 결정). 공개 저장소의 표준 러너는 시간 제한 없이 무료다([GitHub Actions 청구](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions)). 그래서 코드와 커밋에 비밀 값, 개인정보, 학생회 실제 자료를 넣지 않는 것을 특히 지킨다.
 - 흔들리는 시험은 다시 돌려 넘기지 않는다. 고칠 때까지 그 조각을 닫지 않는다.
 - 주인이 알린 버그는 가장 낮은 층의 시험으로 먼저 재현한다.
 - 시험의 층은 넷이다. 2026-10-24 구조 점검에서 기능마다의 시험은 모두 통과했는데 기능을 이어 쓰면 끊기는 곳이 여럿 나와서 셋째와 넷째를 둔다.
