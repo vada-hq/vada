@@ -76,16 +76,26 @@ test('purchase.approve가 없으면 결재 칸이 없고 예산도 읽지 않는
   expect(api.calls.some(call => call.path === `${ORG}/budget`)).toBe(false)
 })
 
-test('대기 품목마다 금액, 예산 항목, [승인], [반려]가 있고 금액과 항목이 있어야 [승인]이 켜진다', async () => {
-  setup()
-  await open()
-  expect(btn('포스터 승인').disabled).toBe(true)
-  fill('포스터 금액', '15000')
-  expect(btn('포스터 승인').disabled).toBe(true)
-  fill('포스터 예산 항목', BUDGET_A)
+test('[승인]은 늘 켜져 있고 누르면 비운 칸 아래에 이유가 보이며 아무것도 보내지 않는다', async () => {
+  const { api } = setup()
+  const group = within(await open())
   expect(btn('포스터 승인').disabled).toBe(false)
+  fireEvent.click(btn('포스터 승인'))
+  expect(group.getByText('금액을 입력해 주세요')).toBeTruthy()
+  expect(group.getByText('예산 항목을 골라 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('포스터 금액')))
+  // 다른 줄에는 보이지 않는다.
+  expect(
+    within(screen.getByRole('group', { name: '결재 테이프' })).queryByText(/입력해 주세요/),
+  ).toBeNull()
+  fill('포스터 금액', '15000')
+  expect(group.queryByText('금액을 입력해 주세요')).toBeNull()
+  fill('포스터 예산 항목', BUDGET_A)
+  expect(group.queryByText('예산 항목을 골라 주세요')).toBeNull()
   fill('포스터 금액', '0')
-  expect(btn('포스터 승인').disabled).toBe(true)
+  expect(group.getByText('더 큰 값을 입력해 주세요')).toBeTruthy()
+  fireEvent.click(btn('포스터 승인'))
+  expect(posts(api)).toHaveLength(0)
   expect(btn('테이프 반려')).toBeTruthy()
 })
 
@@ -108,15 +118,17 @@ test('승인하면 금액과 항목을 그 품목만 보내고 요청과 수를 
   expect(handlers.onChanged).toHaveBeenCalled()
 })
 
-test('반려는 사유 칸이 열리고 사유가 비면 꺼진다', async () => {
+test('반려는 사유 칸이 열리고 사유가 비면 누를 때 이유가 보인다', async () => {
   const { api } = setup()
   api.on('POST', `${BASE}/r1/decisions`, () => json({ request: twoPending() }))
   await open()
   expect(screen.queryByLabelText('테이프 반려 사유')).toBeNull()
   fireEvent.click(btn('테이프 반려'))
-  expect(btn('테이프 반려 보내기').disabled).toBe(true)
+  expect(btn('테이프 반려 보내기').disabled).toBe(false)
   fill('테이프 반려 사유', '   ')
-  expect(btn('테이프 반려 보내기').disabled).toBe(true)
+  fireEvent.click(btn('테이프 반려 보내기'))
+  expect(screen.getByText('반려 사유를 입력해 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
   fill('테이프 반려 사유', '이미 있어요')
   fireEvent.click(btn('테이프 반려 보내기'))
   await waitFor(() => expect(posts(api)).toHaveLength(1))
@@ -125,17 +137,20 @@ test('반려는 사유 칸이 열리고 사유가 비면 꺼진다', async () =>
   })
 })
 
-test('모든 대기 품목에 금액과 항목이 있어야 [모두 승인]이 켜지고 한 번에 보낸다', async () => {
+test('[모두 승인]은 늘 켜져 있고 비운 줄마다 이유가 보인 뒤 다 채우면 한 번에 보낸다', async () => {
   const { api } = setup()
   api.on('POST', `${BASE}/r1/decisions`, () => json({ request: twoPending() }))
   await open()
-  expect(btn('모두 승인').disabled).toBe(true)
+  expect(btn('모두 승인').disabled).toBe(false)
+  fireEvent.click(btn('모두 승인'))
+  expect(screen.getAllByText('금액을 입력해 주세요')).toHaveLength(2)
   fill('포스터 금액', '1000')
   fill('포스터 예산 항목', BUDGET_A)
   fill('테이프 금액', '500')
-  expect(btn('모두 승인').disabled).toBe(true)
+  fireEvent.click(btn('모두 승인'))
+  expect(screen.getByText('예산 항목을 골라 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
   fill('테이프 예산 항목', BUDGET_B)
-  expect(btn('모두 승인').disabled).toBe(false)
   fireEvent.click(btn('모두 승인'))
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]?.body).toEqual({
@@ -171,9 +186,12 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
   )
   await open()
   expect(select().value).toBe('')
-  // 낡은 항목으로는 보낼 수 없다(금액만 써서는 [승인]이 켜지지 않는다).
+  // 낡은 항목으로는 보낼 수 없다(금액만 써서는 누를 때 항목을 고르라고 한다).
   fill('포스터 금액', '1000')
-  expect(btn('포스터 승인').disabled).toBe(true)
+  const sent = posts(api).length
+  fireEvent.click(btn('포스터 승인'))
+  expect(screen.getByText('예산 항목을 골라 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(sent)
 })
 
 test('보내는 동안 줄이 막히고 두 번 눌러도 한 번만 간다', async () => {

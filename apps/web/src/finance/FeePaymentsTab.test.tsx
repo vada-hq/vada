@@ -68,10 +68,12 @@ test('기간마다 수가 보이고, 회장단(보기만)은 올리기가 없다
 test('학번을 찾으면 기록이 보이고, 보기만 하는 사람에게는 빼기가 없다', async () => {
   const { api } = await open(VIEWER)
   api.on('GET', `${FEES}?studentId=20261234`, () => json(found))
-  expect(button('찾기').disabled).toBe(true)
+  expect(button('찾기').disabled).toBe(false)
   fill('찾을 학번', '12가')
-  expect(button('찾기').disabled).toBe(true)
+  fireEvent.click(button('찾기'))
+  expect(screen.getByText(FEE_PAYMENT_SEARCH_INVALID)).toBeTruthy()
   fill('찾을 학번', '20261234')
+  expect(screen.queryByText(FEE_PAYMENT_SEARCH_INVALID)).toBeNull()
   fireEvent.click(button('찾기'))
   const matches = await screen.findByRole('list', { name: '찾은 학번' })
   expect(within(matches).getByText('20261234 · 2026-09-01 ~ 2026-12-31')).toBeTruthy()
@@ -115,12 +117,17 @@ test('연결이 끊겨 찾기가 실패해도 전체 보기가 남는다', async
   expect(button('전체 보기')).toBeTruthy()
 })
 
-test('학번이 맞지 않아 찾기가 꺼지면 이유가 보인다', async () => {
-  await open()
-  expect(screen.queryByText(FEE_PAYMENT_SEARCH_INVALID)).toBeNull()
+test('학번이 맞지 않으면 누를 때 칸 아래에 이유가 보이고 찾지 않는다', async () => {
+  const { api } = await open()
+  const reads = api.calls.length
   fill('찾을 학번', '1'.repeat(40))
-  expect(button('찾기').disabled).toBe(true)
+  expect(screen.queryByText(FEE_PAYMENT_SEARCH_INVALID)).toBeNull()
+  fireEvent.click(button('찾기'))
   expect(screen.getByText(FEE_PAYMENT_SEARCH_INVALID)).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('찾을 학번')))
+  expect(api.calls).toHaveLength(reads)
+  fill('찾을 학번', '')
+  expect(screen.getByText('학번을 입력해 주세요')).toBeTruthy()
 })
 
 async function openRemove() {

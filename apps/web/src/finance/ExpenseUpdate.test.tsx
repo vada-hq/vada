@@ -106,6 +106,19 @@ test('사유를 비우면 null로 보낸다', async () => {
   await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: null }))
 })
 
+test('사유가 계약 상한보다 길면 저장을 눌러도 보내지 않고 사유 칸 아래에 이유가 보인다', async () => {
+  const api = serve()
+  showFinance()
+  const dialog = await openUpdate()
+  const reason = within(dialog).getByLabelText('사유')
+  fireEvent.change(reason, { target: { value: '가'.repeat(1001) } })
+  expect(within(dialog).queryByText('더 짧게 입력해 주세요')).toBeNull()
+  fireEvent.click(save(dialog))
+  expect(within(dialog).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(reason))
+  expect(posts(api)).toHaveLength(0)
+})
+
 test('요청과 행사가 다르면(409 EVENT_MISMATCH) 창은 열려 있고 문구가 보인다', async () => {
   const api = serve()
   api.on('POST', `${EXPENSES}/e1`, () => json({ error: 'EVENT_MISMATCH' }, 409))

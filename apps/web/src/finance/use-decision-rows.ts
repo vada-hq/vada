@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { BudgetItemView, PurchaseLineItem } from '@vada/contracts'
+import { useFormCheck } from '@/lib/use-form-check'
 import {
   approvalOf,
   chosenItem,
+  decisionErrors,
   emptyRow,
   rejectionOf,
   rememberItem,
+  type DecisionAction,
   type RowValues,
 } from './decision-form'
 import type { useDecide } from './useDecide'
@@ -27,6 +30,29 @@ export function useDecisionRows(
     approvalOf(item.id, rowOf(item.id).amount, chosenOf(item.id))
   const rejection = (item: PurchaseLineItem) => rejectionOf(item.id, rowOf(item.id).reason)
 
+  // 누른 버튼이 다루는 줄. 문제는 이 줄들만 보인다.
+  const scope = useRef<{ action: DecisionAction; items: PurchaseLineItem[] }>({
+    action: 'approve',
+    items: [],
+  })
+  const decisionOf = (item: PurchaseLineItem, action: DecisionAction) =>
+    action === 'approve' ? approval(item) : rejection(item)
+  const { formRef, errors, attempt } = useFormCheck<HTMLDivElement>(() =>
+    decisionErrors(
+      scope.current.items.map(item => ({
+        id: item.id,
+        action: scope.current.action,
+        row: rowOf(item.id),
+        chosen: chosenOf(item.id),
+      })),
+    ),
+  )
+  const errorsOf = (id: string) => ({
+    amount: errors[`${id}.amount`],
+    budgetItemId: errors[`${id}.budgetItemId`],
+    reason: errors[`${id}.reason`],
+  })
+
   async function send(decisions: unknown[], approved: PurchaseLineItem[]) {
     const last = approved.at(-1)
     // 보내기 전의 줄 값으로 기억할 항목을 정한다(보내는 동안 다시 그려져도 같다).
@@ -36,12 +62,22 @@ export function useDecisionRows(
     if (!result.ok && REREAD_BUDGET.has(result.code)) onInvalidItem()
   }
 
+  // 버튼은 끄지 않는다. 누를 때 확인해 문제가 있으면 그 줄의 칸 아래에 보이고 아무것도 보내지 않는다.
+  async function submit(action: DecisionAction, items: PurchaseLineItem[]) {
+    scope.current = { action, items }
+    if (!attempt()) return
+    await send(
+      items.map(item => decisionOf(item, action)),
+      action === 'approve' ? items : [],
+    )
+  }
+
   return {
+    formRef,
+    errorsOf,
     rowOf,
     chosenOf,
-    approval,
-    rejection,
-    send,
+    submit,
     change: (id: string, patch: Partial<RowValues>) =>
       setRows({ ...rows, [id]: { ...rowOf(id), ...patch } }),
   }
