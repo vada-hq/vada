@@ -1,0 +1,47 @@
+import { TASK_ACTIONS, type ErrorCode, type TaskAction } from '@vada/contracts'
+import type { Actor } from '../access/actor.js'
+import { can, type Context } from '../access/permissions.js'
+
+// 업무 정책(기능 015, 012의 <도메인>/policy.ts 꼴): 화면에 주는 동작(actions)과 서버의 거절이 같은 decide에서 나온다.
+// 읽기는 factsOf → actionsOf, 쓰기는 업무 행을 읽은 거래에서 같은 factsOf → decide → 던짐이다.
+// 규칙의 원문은 logical-model RULE-41(상태), DEC-73(지우기), DEC-28(권한)이다.
+
+// 판정에 드는 사실. 비어 있으면 그 기준은 맞지 않는다(읽지 않은 사실은 허용이 아니라 거절이 나온다).
+export type TaskFacts = {
+  departmentId: string | null
+  assigneeId: string | null
+  // 업무를 만든 사람(판 1의 바꾼 사람). 담당자이면서 만든 사람만 지운다.
+  createdBy: string | null
+  // 이어진 행사의 책임자. 행사가 없거나 책임자가 없으면 null이다.
+  eventOwnerId: string | null
+}
+
+type FactsRow = {
+  departmentId: string | null
+  assigneeId: string | null
+  createdBy?: string | null
+  eventOwnerId: string | null
+}
+
+export const factsOf = (row: FactsRow): TaskFacts => ({
+  departmentId: row.departmentId,
+  assigneeId: row.assigneeId,
+  createdBy: row.createdBy ?? null,
+  eventOwnerId: row.eventOwnerId,
+})
+
+// 권한표가 묻는 맥락. 비어 있는 사실은 넣지 않아 그 기준이 맞지 않는다.
+const contextOf = (facts: TaskFacts): Context => ({
+  ...(facts.departmentId ? { departmentId: facts.departmentId } : {}),
+  ...(facts.assigneeId ? { assigneeId: facts.assigneeId } : {}),
+  ...(facts.createdBy ? { createdBy: facts.createdBy } : {}),
+  ...(facts.eventOwnerId ? { eventOwnerId: facts.eventOwnerId } : {}),
+})
+
+// 허용이면 null, 막으면 그 쓰기가 내는 코드. 업무 동작은 상태가 막지 않아(상태는 어디로든 옮긴다, DEC-39) 권한만 본다.
+export const decide = (actor: Actor, facts: TaskFacts, action: TaskAction): ErrorCode | null =>
+  can(actor, action, contextOf(facts)) ? null : 'FORBIDDEN'
+
+// 화면에 줄 동작: decide가 허용하는 것
+export const actionsOf = (actor: Actor, facts: TaskFacts): TaskAction[] =>
+  TASK_ACTIONS.filter(action => decide(actor, facts, action) === null)

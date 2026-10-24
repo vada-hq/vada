@@ -30,6 +30,7 @@ const task = (id: string, group: HomeTaskGroup, extra: Partial<HomeTask> = {}): 
   id,
   title: '신입생 환영회 장소 예약',
   status: 'todo',
+  next: 'in_progress',
   dueDate: DUE[group],
   overdue: group === 'overdue',
   department: null,

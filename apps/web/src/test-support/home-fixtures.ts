@@ -41,6 +41,7 @@ export const homeTask = (
   id,
   title: `업무 ${id}`,
   status: 'todo',
+  next: 'in_progress',
   dueDate: '2026-10-25',
   overdue: group === 'overdue',
   department: null,

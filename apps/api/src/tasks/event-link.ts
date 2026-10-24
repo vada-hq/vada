@@ -1,10 +1,9 @@
 import { and, eq } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { event, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { taskContext } from './actions.js'
+import { decide, factsOf } from './policy.js'
 
 // 업무가 이을 행사. 이 학생회의 행사만 valid다. 다른 학생회 행사의 책임자는 맥락에 넣지 않는다(권한이 없는 사람에게 행사가 있는지 드러내지 않는다).
 type EventLink = { valid: boolean; ownerId: string | null }
@@ -27,6 +26,7 @@ export async function eventLinkOf(
 type Row = {
   departmentId: string | null
   assigneeId: string | null
+  createdBy?: string | null
   eventId: string | null
 }
 
@@ -40,8 +40,8 @@ export async function eventChangeOf(
 ): Promise<{ eventId?: string | null }> {
   if (wanted === undefined || wanted === row.eventId) return {}
   const link = await eventLinkOf(tx, actor, wanted)
-  if (!can(actor, 'task.manage', taskContext({ ...row, eventOwnerId: link.ownerId })))
-    throw new ApiError('FORBIDDEN')
+  const denied = decide(actor, factsOf({ ...row, eventOwnerId: link.ownerId }), 'task.manage')
+  if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   return { eventId: wanted }
 }

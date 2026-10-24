@@ -5,19 +5,20 @@ import type {
   CreateTaskRequest,
   SetTaskDepartmentRequest,
   TaskAction,
+  TaskStatus,
   TaskDetail,
   UpdateTaskRequest,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { lockCurrentMembers } from '../chat/current-members.js'
 import { department, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { taskContext } from './actions.js'
 import { dueAtOf, dueDateOf } from './due.js'
 import { eventChangeOf, eventLinkOf } from './event-link.js'
+import { humanMoveOf } from './lifecycle.js'
+import { decide, factsOf, type TaskFacts } from './policy.js'
 import { taskDetailOf, taskRowOf } from './queries.js'
 
 // 고칠 업무와 요청 시각. 조각 4의 맡기기도 같은 모양으로 부른다.
@@ -28,7 +29,8 @@ export type Target = { taskId: string; now: Date }
 // 다른 학생회·지운 업무는 없는 것과 같아 404이고, 읽은 뒤 권한이 없으면 403이다.
 async function taskFor(tx: Tx, actor: Actor, target: Target, action: TaskAction) {
   const row = await taskRowOf(tx, actor, target.taskId, target.now)
-  if (!can(actor, action, taskContext(row))) throw new ApiError('FORBIDDEN')
+  const code = decide(actor, factsOf(row), action)
+  if (code) throw new ApiError(code)
   return row
 }
 
@@ -71,12 +73,16 @@ async function noticeAssignment(
 }
 
 // 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
-function createContext(actor: Actor, input: CreateTaskRequest, eventOwnerId: string | null) {
+function createFacts(
+  actor: Actor,
+  input: CreateTaskRequest,
+  eventOwnerId: string | null,
+): TaskFacts {
   const mine =
     input.assigneeId === actor.memberId &&
     (!input.departmentId ||
       actor.departments.some(item => item.departmentId === input.departmentId))
-  return taskContext({
+  return factsOf({
     departmentId: input.departmentId,
     assigneeId: mine ? input.assigneeId : null,
     eventOwnerId,
@@ -91,8 +97,8 @@ export async function createTask(
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
   // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다.
   const link = await eventLinkOf(tx, actor, input.eventId)
-  if (!can(actor, 'task.manage', createContext(actor, input, link.ownerId)))
-    throw new ApiError('FORBIDDEN')
+  const denied = decide(actor, createFacts(actor, input, link.ownerId), 'task.manage')
+  if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   await assertDepartment(tx, actor, input.departmentId)
   await assertAssignee(tx, actor, input.assigneeId, now)
@@ -145,20 +151,21 @@ export async function changeTaskStatus(
   input: ChangeTaskStatusRequest,
 ): Promise<TaskDetail> {
   const row = await taskFor(tx, actor, target, 'task.status')
-  if (input.status !== row.status)
+  const status = humanMoveOf(row.status as TaskStatus, input.status)
+  if (status)
     await updateRecord(tx, {
       kind: 'task',
       id: row.id,
       actor: actor.memberId,
       reason: null,
-      changes: { status: input.status },
+      changes: { status },
     })
   return taskDetailOf(tx, actor, row.id, target.now)
 }
 
 // 지우기는 취소한 시각을 채우는 것이다(DEC-49). 판과 알림 기록은 남는다.
 export async function deleteTask(tx: Tx, actor: Actor, target: Target) {
-  const row = await taskFor(tx, actor, target, 'task.manage')
+  const row = await taskFor(tx, actor, target, 'task.delete')
   await updateRecord(tx, {
     kind: 'task',
     id: row.id,

@@ -31,6 +31,7 @@ export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 // 업무마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨기고 권한을 다시 계산하지 않는다(DEC-38).
 export const TASK_ACTIONS = [
   'task.manage',
+  'task.delete',
   'task.set_department',
   'task.assign',
   'task.status',
@@ -48,6 +49,8 @@ export interface TaskSummary {
   id: string
   title: string
   status: TaskStatus
+  // 카드의 다음 단계(할 일 → 진행 중 → 끝남). 끝남이면 null이다. 서버가 정하고 화면은 다시 세지 않는다(DEC-38).
+  next: TaskStatus | null
   // 마감일(한국 날짜 YYYY-MM-DD). 마감이 없으면 null이다.
   dueDate: string | null
   // 끝나지 않았고 오늘(한국)이 마감일 뒤일 때만 참이다. 서버가 센다.

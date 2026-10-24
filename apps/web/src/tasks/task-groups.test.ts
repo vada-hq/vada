@@ -6,6 +6,7 @@ const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   id,
   title: id,
   status: 'todo',
+  next: 'in_progress',
   dueDate: null,
   overdue: false,
   department: null,

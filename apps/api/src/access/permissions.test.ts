@@ -233,6 +233,25 @@ test('업무 칸: 담당자는 고치기와 상태 바꾸기만 되고 맡기기
   assert.equal(allows(president, { who: ['assignee'] }, { assigneeId: 'president' }), true)
 })
 
+test('업무 칸: 지우기는 부장 기준과 담당자이면서 만든 사람이고, 담당자만으로는 안 된다(DEC-73)', () => {
+  const mine = { departmentId: 'planning', assigneeId: 'member', createdBy: 'member' }
+  assert.equal(can(planningMember, 'task.delete', mine), true)
+  assert.equal(can(planningMember, 'task.delete', { ...mine, createdBy: 'x' }), false)
+  assert.equal(
+    can(planningMember, 'task.delete', { departmentId: 'planning', assigneeId: 'member' }),
+    false,
+  )
+  assert.equal(can(planningMember, 'task.delete', { ...mine, assigneeId: 'x' }), false)
+  assert.equal(can(planningMember, 'task.delete', { createdBy: 'member' }), false)
+  assert.equal(can(planningHead, 'task.delete', { departmentId: 'planning' }), true)
+  assert.equal(can(planningHead, 'task.delete', { departmentId: 'finance' }), false)
+  assert.equal(can(president, 'task.delete', {}), true)
+  assert.equal(
+    can(planningMember, 'task.delete', { departmentId: 'finance', eventOwnerId: 'member' }),
+    true,
+  )
+})
+
 test('업무 칸: 부서 정하기는 회장단만이다', () => {
   for (const allowed of [president, vicePresident])
     assert.equal(can(allowed, 'task.set_department', { departmentId: 'planning' }), true)
@@ -240,8 +259,8 @@ test('업무 칸: 부서 정하기는 회장단만이다', () => {
     assert.equal(can(denied, 'task.set_department', { departmentId: 'planning' }), false)
 })
 
-test('내 권한 목록: 회장단은 업무 넷을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
-  const tasks = ['task.manage', 'task.set_department', 'task.assign', 'task.status']
+test('내 권한 목록: 회장단은 업무 다섯을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
+  const tasks = ['task.manage', 'task.delete', 'task.set_department', 'task.assign', 'task.status']
   const taskActions = (who: Actor) =>
     permissionsOf(who).filter(action => action.startsWith('task.'))
   for (const who of [president, vicePresident]) assert.deepEqual(taskActions(who), tasks)
