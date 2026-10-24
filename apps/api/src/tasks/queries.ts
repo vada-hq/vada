@@ -189,7 +189,7 @@ export async function taskDetailOf(
     body: row.body,
     createdBy: history[0]?.by ?? null,
     createdAt: row.createdAt.toISOString(),
-    results: await resultsOf(db, taskId),
+    results: await resultsOf(db, actor, taskId),
     canMake: await canMakeOf(db, actor, {
       linkable,
       eventId: row.eventId,

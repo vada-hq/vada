@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm'
 import {
   isUuid,
   MESSAGE_PAGE_SIZE,
@@ -139,6 +139,10 @@ export const shownNotice = (actor: Actor) =>
       between (select ${cohort.startsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)
       and (select ${cohort.endsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)`,
   )
+
+// 이 사람이 대화에서 볼 수 있는 메시지(전체방 메시지 기준): 들어온 뒤의 것이거나 같은 기수의 공지.
+// 다른 화면이 메시지를 모아 보일 때(업무 상세의 결과물)도 이 조건을 거친다(DEC-59). record, chat_room을 합친 조회에서 쓴다.
+export const visibleMessage = (actor: Actor) => or(sinceJoined(actor.memberId), shownNotice(actor))
 
 // 같은 기수의 공지. 최근 것부터다.
 export async function noticesOf(db: Reader, actor: Actor, limit: number): Promise<ChatMessage[]> {

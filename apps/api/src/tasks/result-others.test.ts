@@ -318,3 +318,43 @@ test(
     assert.equal(await count(t, versions), 1)
   }),
 )
+
+test(
+  'canMake의 양식은 그 행사의 양식 만들기 권한과 완료 여부를 따른다',
+  withSettlement(async t => {
+    const eventId = await t.event()
+    // 행사 담당 부서도 책임자도 아닌 담당자: 업무에 행사가 있어도 양식 버튼이 없다
+    const financeEvent = await taskFor(t, { eventId, departmentId: t.council.departments.finance })
+    assert.deepEqual((await detailOf(t, financeEvent, PLANNER)).canMake, ['request'])
+    // 완료한 행사에는 회장도 양식을 만들 수 없다
+    const withEvent = await taskFor(t, { eventId })
+    assert.ok((await detailOf(t, withEvent)).canMake.includes('registration_form'))
+    await t.completion(eventId, 'completed', new Date('2026-10-25T03:00:00Z'))
+    assert.ok(!(await detailOf(t, withEvent)).canMake.includes('registration_form'))
+  }),
+)
+
+test(
+  '업무 상세는 볼 수 없는 공지의 첫 줄을 싣지 않는다(다른 기수, 들어오기 전에 뗀 공지)',
+  withSettlement(async t => {
+    const room = await roomOf(t, 'all_members')
+    const hidden = [
+      ['다른 기수의 공지', true],
+      ['들어오기 전에 뗀 공지', false],
+    ] as const
+    for (const [name, isNotice] of hidden) {
+      const taskId = await taskFor(t)
+      const sent = (await (
+        await send(t, room, { body: '비밀 첫 줄\n둘째 줄', notice: true, taskId })
+      ).json()) as ChatMessage
+      assert.equal((await resultsOf(t, taskId))[0]!.title, '비밀 첫 줄', name)
+      await t.pg.query("UPDATE message SET sent_at = '2020-01-01', is_notice = $2 WHERE id = $1", [
+        sent.id,
+        isNotice,
+      ])
+      const [result] = (await detailOf(t, taskId)).results
+      assert.equal(result!.kind, 'message', name)
+      assert.equal(result!.title, '', name)
+    }
+  }),
+)
