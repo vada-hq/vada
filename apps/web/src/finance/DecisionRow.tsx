@@ -2,9 +2,10 @@ import type { BudgetItemView, PurchaseLineItem } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
+import type { FieldErrors } from '@/lib/use-form-check'
 import type { RowValues } from './decision-form'
 
 type Props = {
@@ -14,8 +15,8 @@ type Props = {
   chosen: string
   budgetItems: readonly BudgetItemView[]
   disabled: boolean
-  canApprove: boolean
-  canReject: boolean
+  // 누를 때 확인한 문제(amount, budgetItemId, reason)
+  errors: FieldErrors
   onChange: (patch: Partial<RowValues>) => void
   onApprove: () => void
   onReject: () => void
@@ -27,12 +28,12 @@ function Fields({
   chosen,
   budgetItems,
   disabled,
+  errors,
   onChange,
-}: Pick<Props, 'item' | 'values' | 'chosen' | 'budgetItems' | 'disabled' | 'onChange'>) {
+}: Pick<Props, 'item' | 'values' | 'chosen' | 'budgetItems' | 'disabled' | 'errors' | 'onChange'>) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        금액(합계, 원)
+      <Field label="금액(합계, 원)" required error={errors.amount}>
         <Input
           inputMode="numeric"
           aria-label={`${item.name} 금액`}
@@ -40,9 +41,8 @@ function Fields({
           value={values.amount}
           onChange={event => onChange({ amount: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        예산 항목
+      </Field>
+      <Field label="예산 항목" required error={errors.budgetItemId}>
         <NativeSelect
           aria-label={`${item.name} 예산 항목`}
           disabled={disabled}
@@ -56,17 +56,16 @@ function Fields({
             </option>
           ))}
         </NativeSelect>
-      </Label>
+      </Field>
       {values.rejecting && (
-        <Label className="flex flex-col gap-2">
-          반려 사유
+        <Field label="반려 사유" required error={errors.reason}>
           <Textarea
             aria-label={`${item.name} 반려 사유`}
             disabled={disabled}
             value={values.reason}
             onChange={event => onChange({ reason: event.target.value })}
           />
-        </Label>
+        </Field>
       )}
     </>
   )
@@ -76,27 +75,20 @@ function Buttons({
   item,
   values,
   disabled,
-  canApprove,
-  canReject,
   onChange,
   onApprove,
   onReject,
-}: Omit<Props, 'chosen' | 'budgetItems'>) {
+}: Omit<Props, 'chosen' | 'budgetItems' | 'errors'>) {
   return (
     <div className="flex flex-wrap gap-2">
-      <Button
-        size="sm"
-        disabled={disabled || !canApprove}
-        aria-label={`${item.name} 승인`}
-        onClick={onApprove}
-      >
+      <Button size="sm" disabled={disabled} aria-label={`${item.name} 승인`} onClick={onApprove}>
         승인
       </Button>
       {values.rejecting ? (
         <Button
           size="sm"
           variant="destructive"
-          disabled={disabled || !canReject}
+          disabled={disabled}
           aria-label={`${item.name} 반려 보내기`}
           onClick={onReject}
         >
@@ -118,7 +110,7 @@ function Buttons({
 }
 
 // 결재 줄 하나: 금액(그 줄 합계), 예산 항목, [승인], [반려](사유 칸이 열린다).
-// 버튼은 계약의 safeParse 결과(canApprove, canReject)로 켠다. 길이 숫자를 여기에 적지 않는다.
+// 버튼은 끄지 않는다. 누를 때 확인한 문제는 칸 아래에 보인다(errors).
 export function DecisionRow(props: Props) {
   const { item } = props
   return (

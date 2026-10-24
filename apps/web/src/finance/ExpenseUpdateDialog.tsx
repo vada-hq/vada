@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { useEvents } from '../events/useEvents'
 import { ChoiceSelect } from '../tasks/ChoiceSelect'
@@ -43,10 +44,19 @@ type FieldsProps = {
   onReason: (reason: string) => void
   onEvent: (eventId: string | null) => void
   onForbidden: () => void
+  reasonError: string | undefined
 }
 
 // 사유와 행사 칸. 행사는 완료하지 않은 행사만 고른다.
-function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: FieldsProps) {
+function UpdateFields({
+  councilId,
+  expense,
+  busy,
+  state,
+  onForbidden,
+  reasonError,
+  ...on
+}: FieldsProps) {
   const events = useEvents(councilId, onForbidden)
   const open =
     events.state.kind === 'ready'
@@ -54,7 +64,7 @@ function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: F
       : []
   return (
     <>
-      <Field label="사유" optional>
+      <Field label="사유" optional error={reasonError}>
         <Textarea
           value={state.reason}
           disabled={busy}
@@ -90,10 +100,17 @@ export function ExpenseUpdateDialog({
   const [reason, setReason] = useState(expense.reason ?? '')
   const [eventId, setEventId] = useState(expense.event?.id ?? null)
   const body = changesOf(expense, reason, eventId)
-  const valid = body !== null && UpdateExpenseSchema.safeParse(body).success
+  // 계약이 받지 않는 사유(너무 긴 글)는 사유 칸 아래에 보인다.
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck<HTMLDivElement>(() =>
+    withContract({}, body === null ? { success: true } : UpdateExpenseSchema.safeParse(body)),
+  )
   const save = () => {
     if (body === null) return onClose()
-    if (valid) onConfirm(body)
+    if (attempt()) onConfirm(body)
   }
   return (
     <Dialog
@@ -106,15 +123,18 @@ export function ExpenseUpdateDialog({
         <DialogHeader>
           <DialogTitle>지출 고치기</DialogTitle>
         </DialogHeader>
-        <UpdateFields
-          councilId={councilId}
-          expense={expense}
-          busy={busy}
-          state={{ reason, eventId }}
-          onReason={setReason}
-          onEvent={setEventId}
-          onForbidden={onForbidden}
-        />
+        <div ref={formRef} className="flex flex-col gap-4">
+          <UpdateFields
+            councilId={councilId}
+            expense={expense}
+            busy={busy}
+            state={{ reason, eventId }}
+            reasonError={fieldErrors.reason}
+            onReason={setReason}
+            onEvent={setEventId}
+            onForbidden={onForbidden}
+          />
+        </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={onClose}>

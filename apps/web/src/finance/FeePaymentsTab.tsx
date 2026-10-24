@@ -9,9 +9,10 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import { FEE_PAYMENT_SEARCH_INVALID, FEE_PAYMENTS_LOAD_FAILED } from '@/lib/messages'
 import type { PolledState } from '@/lib/use-polled-read'
+import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { FeePaymentRemoveDialog } from './FeePaymentRemoveDialog'
 import { FeePaymentUploadDialog } from './FeePaymentUploadDialog'
 import { useFeePayments } from './useFeePayments'
@@ -86,38 +87,49 @@ function SearchRow({
   onSearch: (studentId: string | undefined) => void
 }) {
   const [query, setQuery] = useState('')
-  const valid = FeePaymentSearchSchema.safeParse({ studentId: query }).success
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() =>
+    withContract(
+      { studentId: requiredText(query, '학번을') },
+      FeePaymentSearchSchema.safeParse({ studentId: query }),
+      { studentId: FEE_PAYMENT_SEARCH_INVALID },
+    ),
+  )
   return (
     <form
+      ref={formRef}
+      noValidate
       aria-label="학번 찾기"
-      className="flex flex-wrap items-end gap-2"
+      className="flex flex-wrap items-start gap-2"
       onSubmit={event => {
         event.preventDefault()
-        if (valid) onSearch(query.trim())
+        if (attempt()) onSearch(query.trim())
       }}
     >
-      <Label className="flex min-w-0 flex-1 flex-col gap-2">
-        찾을 학번
+      <Field label="찾을 학번" required error={fieldErrors.studentId} className="min-w-0 flex-1">
         <Input value={query} inputMode="numeric" onChange={event => setQuery(event.target.value)} />
-      </Label>
-      <Button type="submit" variant="outline" disabled={!valid}>
-        찾기
-      </Button>
-      {query.trim() !== '' && !valid && (
-        <p className="w-full text-sm text-gray-500">{FEE_PAYMENT_SEARCH_INVALID}</p>
-      )}
-      {applied && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            setQuery('')
-            onSearch(undefined)
-          }}
-        >
-          전체 보기
+      </Field>
+      {/* 라벨 줄 높이만큼 내려 입력칸과 맞춘다. 문제 글이 생겨도 버튼은 그대로다. */}
+      <div className="mt-6 flex gap-2">
+        <Button type="submit" variant="outline">
+          찾기
         </Button>
-      )}
+        {applied && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setQuery('')
+              onSearch(undefined)
+            }}
+          >
+            전체 보기
+          </Button>
+        )}
+      </div>
     </form>
   )
 }

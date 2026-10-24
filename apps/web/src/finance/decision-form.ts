@@ -1,4 +1,5 @@
 import { DecideLineItemsSchema, type BudgetItemView } from '@vada/contracts'
+import { withContract, type FieldErrors } from '@/lib/use-form-check'
 import { wonOf } from './budget-form'
 
 // 결재 줄 하나의 입력값. budgetItemId가 null이면 아직 고르지 않은 것이라 마지막에 고른 항목을 보인다.
@@ -43,6 +44,33 @@ export const rejectionOf = (lineItemId: string, reason: string) => ({
   reason,
 })
 
-// 보낼 수 있는 결재인지는 계약이 판단한다(금액 1원 이상, 항목, 사유 길이와 공백).
-export const decidable = (decisions: unknown[]) =>
-  DecideLineItemsSchema.safeParse({ decisions }).success
+export type DecisionAction = 'approve' | 'reject'
+export type DecisionEntry = { id: string; action: DecisionAction; row: RowValues; chosen: string }
+
+// 칸 이름은 '줄 id.칸'이다(amount, budgetItemId, reason).
+function emptyFields({ id, action, row, chosen }: DecisionEntry): FieldErrors {
+  if (action === 'reject')
+    return { [`${id}.reason`]: row.reason.trim() === '' ? '반려 사유를 입력해 주세요' : undefined }
+  return {
+    [`${id}.amount`]: row.amount.trim() === '' ? '금액을 입력해 주세요' : undefined,
+    [`${id}.budgetItemId`]: chosen === '' ? '예산 항목을 골라 주세요' : undefined,
+  }
+}
+
+// 줄 하나를 계약에 대 본 문제(금액 1원 이상, 사유 길이). 경로를 '줄 id.칸'으로 바꿔 withContract가 읽게 한다.
+function contractIssues({ id, action, row, chosen }: DecisionEntry) {
+  const decision =
+    action === 'approve' ? approvalOf(id, row.amount, chosen) : rejectionOf(id, row.reason)
+  const parsed = DecideLineItemsSchema.safeParse({ decisions: [decision] })
+  return (parsed.error?.issues ?? []).map(issue => ({
+    code: issue.code,
+    path: [id, ...issue.path.slice(2)],
+  }))
+}
+
+// 누를 때 확인: 비었으면 그 말을, 계약이 받지 않으면 계약의 문제를 칸 아래에 보인다. 길이 숫자는 적지 않는다.
+export function decisionErrors(entries: DecisionEntry[]): FieldErrors {
+  const own: FieldErrors = Object.assign({}, ...entries.map(emptyFields))
+  const issues = entries.flatMap(contractIssues)
+  return withContract(own, { success: issues.length === 0, error: { issues } })
+}

@@ -4,7 +4,6 @@ import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
 import { expenseItems } from './budget-form'
-import { decidable } from './decision-form'
 import { DecisionRow } from './DecisionRow'
 import { useDecisionRows } from './use-decision-rows'
 import { useBudget, type BudgetState } from './useBudget'
@@ -57,9 +56,8 @@ function Rows({
   onInvalidItem: () => void
 }) {
   const state = useDecisionRows(councilId, budgetItems, decide, onInvalidItem)
-  const everyApproval = items.map(state.approval)
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={state.formRef} className="flex flex-col gap-3">
       {items.map(item => (
         <DecisionRow
           key={item.id}
@@ -68,18 +66,17 @@ function Rows({
           chosen={state.chosenOf(item.id)}
           budgetItems={budgetItems}
           disabled={decide.saving}
-          canApprove={decidable([state.approval(item)])}
-          canReject={decidable([state.rejection(item)])}
+          errors={state.errorsOf(item.id)}
           onChange={patch => state.change(item.id, patch)}
-          onApprove={() => void state.send([state.approval(item)], [item])}
-          onReject={() => void state.send([state.rejection(item)], [])}
+          onApprove={() => void state.submit('approve', [item])}
+          onReject={() => void state.submit('reject', [item])}
         />
       ))}
       {items.length > 1 && (
         <Button
           className="self-start"
-          disabled={decide.saving || !decidable(everyApproval)}
-          onClick={() => void state.send(everyApproval, items)}
+          disabled={decide.saving}
+          onClick={() => void state.submit('approve', items)}
         >
           모두 승인
         </Button>
