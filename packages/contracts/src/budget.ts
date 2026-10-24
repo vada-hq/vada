@@ -54,6 +54,8 @@ export interface BudgetItemView {
   amount: number
   type: BudgetItemType
   event: EventRef | null
+  // 결재·지출·수입에서 고를 수 있는가. 완료한 행사의 항목이면 false다(RULE-11). 서버가 정책에서 정한다.
+  selectable: boolean
 }
 // 기간이 없으면 period가 null이고, 화면이 채워 둘 이름과 날짜(지금 기수)를 suggested로 준다.
 export interface BudgetResponse {

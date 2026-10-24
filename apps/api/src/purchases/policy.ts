@@ -147,3 +147,11 @@ export function decideLineItem(
 
 export const lineItemActionsOf = (actor: Actor, facts: LineItemFacts): LineItemAction[] =>
   LINE_ITEM_ACTIONS.filter(action => decideLineItem(actor, facts, action) === null)
+
+// 지출로 결제할 수 있는 품목(DEC-81 이후의 RULE-11): 마지막 결과가 승인이고, 요청을 취소하지 않았고, 요청과 예산 항목의 행사가 완료 전이다.
+// 결제했는지는 보지 않는다(일부씩 나눠 결제할 수 있다). 읽기의 payable과 지출 쓰기의 거절이 이 사실에서 나온다.
+export const lineItemPayable = (facts: LineItemFacts) =>
+  facts.status === 'approved' &&
+  !facts.requestCancelled &&
+  !facts.requestEventCompleted &&
+  !facts.budgetEventCompleted

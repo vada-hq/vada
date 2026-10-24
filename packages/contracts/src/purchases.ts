@@ -124,6 +124,8 @@ export interface PurchaseRequestSummary {
   itemCount: number
   createdAt: string
   event: EventRef | null
+  // 결제할 수 있는 품목이 하나라도 있는가(지출의 '결제할 요청'에 보인다). 서버가 정책에서 정한다.
+  payable: boolean
 }
 
 export interface PurchaseLineItem {
@@ -138,6 +140,8 @@ export interface PurchaseLineItem {
   status: LineItemStatus
   // 취소되지 않은 결제 내역이 있다.
   paid: boolean
+  // 지출로 결제할 수 있는가: 마지막 결과가 승인이고 요청과 예산 항목의 행사가 완료 전이다. 서버가 정책에서 정한다.
+  payable: boolean
   actions: LineItemAction[]
 }
 

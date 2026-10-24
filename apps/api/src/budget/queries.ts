@@ -4,6 +4,8 @@ import type { Actor } from '../access/actor.js'
 import { budget, budgetItem, cohort, event, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { completedEventIdsAmong } from '../policy/locks.js'
+import { budgetItemSelectable } from './policy.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -75,6 +77,9 @@ export async function budgetViewOf(
     .where(eq(budgetItem.budgetId, period.budgetId))
     .orderBy(asc(budgetItem.purpose), asc(budgetItem.id))
   const { id, name, startsOn, endsOn } = period
+  const completed = await completedEventIdsAmong(db, [
+    ...new Set(items.flatMap(item => (item.eventId ? [item.eventId] : []))),
+  ])
   return {
     period: { id, name, startsOn, endsOn },
     items: items.map(item => ({
@@ -83,6 +88,7 @@ export async function budgetViewOf(
       amount: Number(item.amount),
       type: item.type as BudgetItemType,
       event: item.eventId && item.eventName ? { id: item.eventId, name: item.eventName } : null,
+      selectable: budgetItemSelectable(item.eventId, completed),
     })),
     suggested: null,
   }

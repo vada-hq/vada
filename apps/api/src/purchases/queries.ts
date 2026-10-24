@@ -24,6 +24,7 @@ import type { Db } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
+import { payableRequestIds } from './payable-requests.js'
 import { itemCountColumns, lastOutcomeOf } from './last-outcome.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
 import {
@@ -31,6 +32,7 @@ import {
   factsOf,
   lineItemActionsOf,
   lineItemFactsOf,
+  lineItemPayable,
   requestStatusOf,
 } from './policy.js'
 
@@ -71,7 +73,7 @@ type Row = Awaited<ReturnType<typeof summaryRows>>[number]
 
 const statusOfRow = (row: Row) => requestStatusOf(row.cancelledAt !== null, row)
 
-function summaryOf(row: Row): PurchaseRequestSummary {
+function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
   return {
     id: row.id,
     title: row.title,
@@ -81,6 +83,7 @@ function summaryOf(row: Row): PurchaseRequestSummary {
     itemCount: row.items,
     createdAt: row.createdAt.toISOString(),
     event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
+    payable,
   }
 }
 
@@ -111,8 +114,10 @@ export async function requestListOf(
   if (query.event) await eventRowOf(db, actor, query.event)
   const where = query.event ? and(options.where, eq(request.eventId, query.event)) : options.where
   const rows = await summaryRows(db, actor, { ...options, where, limit: options.limit + 1 })
+  const shown = rows.slice(0, options.limit)
+  const payable = await payableRequestIds(db, shown)
   return {
-    requests: rows.slice(0, options.limit).map(summaryOf),
+    requests: shown.map(row => summaryOf(row, payable.has(row.id))),
     truncated: rows.length > options.limit,
   }
 }
@@ -178,6 +183,7 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
         item.budgetItemId && item.purpose ? { id: item.budgetItemId, purpose: item.purpose } : null,
       status: facts.status,
       paid: item.paid,
+      payable: lineItemPayable(facts),
       actions: lineItemActionsOf(actor, facts),
     }
   })
@@ -245,10 +251,14 @@ export async function requestDetailOf(
 ): Promise<PurchaseRequestDetail> {
   const row = await requestRowOf(db, actor, requestId)
   const decisions = await decisionsOf(db, requestId)
+  const items = await itemsOf(db, actor, row)
   return {
-    ...summaryOf(row),
+    ...summaryOf(
+      row,
+      items.some(item => item.payable),
+    ),
     body: row.body,
-    items: await itemsOf(db, actor, row),
+    items,
     decisions,
     expenses: await expensesOf(db, requestId),
     history: await requestHistoryOf(db, requestId),
