@@ -99,8 +99,30 @@ export type LineItemFacts = {
   // 취소하지 않은 결제 내역이 있다.
   paid: boolean
   requestCancelled: boolean
-  // 요청의 행사 또는 품목 예산 항목의 행사가 완료됐다.
-  eventCompleted: boolean
+  // 요청의 행사, 품목 예산 항목의 행사가 각각 완료됐다. 둘 중 하나만 완료해도 막는 것은 decideLineItem이다.
+  requestEventCompleted: boolean
+  budgetEventCompleted: boolean
+}
+
+// 품목 한 줄에서 읽은 값과 완료한 행사 집합으로 판정에 드는 사실을 만든다. 읽기(actions)와 쓰기(취소)가 같이 쓴다.
+export function lineItemFactsOf(
+  read: {
+    outcome: string | null
+    paid: boolean
+    requestCancelled: boolean
+    requestEventId: string | null
+    budgetEventId: string | null
+  },
+  completed: ReadonlySet<string>,
+): LineItemFacts {
+  const isCompleted = (id: string | null) => id !== null && completed.has(id)
+  return {
+    status: lineItemStatusOf(read.outcome),
+    paid: read.paid,
+    requestCancelled: read.requestCancelled,
+    requestEventCompleted: isCompleted(read.requestEventId),
+    budgetEventCompleted: isCompleted(read.budgetEventId),
+  }
 }
 
 // 허용이면 null. 권한(403) → 완료한 행사 → 품목 상태 순서다. 기간 잠금은 보지 않는다: 돈이 움직이지 않는다.
@@ -111,7 +133,7 @@ export function decideLineItem(
   action: LineItemAction,
 ): ErrorCode | null {
   if (!can(actor, 'purchase.approve')) return 'FORBIDDEN'
-  if (facts.eventCompleted) return 'EVENT_COMPLETED'
+  if (facts.requestEventCompleted || facts.budgetEventCompleted) return 'EVENT_COMPLETED'
   const open = facts.status === 'approved' && !facts.paid && !facts.requestCancelled
   return action === 'line_item.cancel' && open ? null : 'LINE_ITEM_NOT_CANCELLABLE'
 }
