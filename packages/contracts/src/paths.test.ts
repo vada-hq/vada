@@ -168,3 +168,27 @@ test('서버 진입 목록은 목록의 모든 꼴과 끝 슬래시를 담는다
     assert.ok(ENTRY_PATHS.includes(path), path)
   assert.equal(new Set(ENTRY_PATHS).size, ENTRY_PATHS.length)
 })
+
+const sameAfterRoundTrip = (location: NonNullable<ReturnType<typeof parseAppPath>>) =>
+  assert.deepEqual(parseAppPath(appPath(location)), location)
+
+test('만든 주소를 다시 읽으면 같은 값이다: 상위 목록, 대문자 id', () => {
+  for (const record of RECORD_KINDS) {
+    sameAfterRoundTrip(parentOf({ type: 'record', record, councilId: C, recordId: R, query: {} }))
+  }
+  // 대문자로 준 id도 소문자 한 가지 주소가 되어, 주소 문자열 비교로 같은 화면을 알아본다.
+  const upper = appPath({ type: 'menu', menu: 'chat', councilId: C.toUpperCase(), query: {} })
+  assert.equal(upper, `/chat/${C}`)
+  const record = appPath({
+    type: 'record',
+    record: 'tasks',
+    councilId: C.toUpperCase(),
+    recordId: R.toUpperCase(),
+    query: {},
+  })
+  assert.equal(record, `/tasks/${C}/${R}`)
+})
+
+test('uuid가 아닌 id로 만든 주소는 읽히지 않는다', () => {
+  assert.equal(parseAppPath(menuPath('home', 'c1')), null)
+})

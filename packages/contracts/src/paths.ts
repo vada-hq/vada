@@ -16,6 +16,12 @@ export const APP_MENUS = [
 ] as const
 export type AppMenu = (typeof APP_MENUS)[number]
 
+// 화면의 탭·보기 타입이 이 목록에서 나온다. 한쪽에만 탭을 더하면 주소가 그 탭을 기본값으로 읽는다.
+export const EVENT_TABS = ['overview', 'tasks', 'registrations', 'money'] as const
+export type EventTab = (typeof EVENT_TABS)[number]
+export const TASK_LAYOUTS = ['list', 'calendar'] as const
+export type TaskLayout = (typeof TASK_LAYOUTS)[number]
+
 export const FINANCE_TABS = [
   'requests',
   'expenses',
@@ -25,6 +31,7 @@ export const FINANCE_TABS = [
   'fees',
   'closing',
 ] as const
+export type FinanceTab = (typeof FINANCE_TABS)[number]
 
 // 기록 종류마다 여는 메뉴와 탭. purchases·expenses·incomes는 재정의 그 탭이다.
 const RECORD_PARENTS = {
@@ -49,7 +56,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   tasks: {
     view: { values: TASK_VIEWS, fallback: 'mine' },
     filter: { values: TASK_FILTERS, fallback: 'open' },
-    layout: { values: ['list', 'calendar'], fallback: 'list' },
+    layout: { values: TASK_LAYOUTS, fallback: 'list' },
     dept: { values: 'uuid', fallback: null },
   },
   finance: {
@@ -63,9 +70,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   chat: {},
-  events: {
-    tab: { values: ['overview', 'tasks', 'registrations', 'money'], fallback: 'overview' },
-  },
+  events: { tab: { values: EVENT_TABS, fallback: 'overview' } },
   tasks: {},
   purchases: {},
   expenses: {},
@@ -136,12 +141,14 @@ export function parseAppPath(input: string): AppLocation | null {
   return { type: 'record', record: head, councilId, recordId, query }
 }
 
-// 주소 만들기. 읽기의 거울이라 만든 주소를 다시 읽으면 같은 값이 나온다.
+// 주소 만들기. 읽기의 거울이라 만든 주소를 다시 읽으면 같은 값이 나온다(id는 읽기처럼 소문자 한 가지로 쓴다).
+// uuid가 아닌 id로 만든 주소는 읽히지 않는다.
 export function appPath(location: AppLocation) {
+  const council = encodeURIComponent(location.councilId.toLowerCase())
   const base =
     location.type === 'menu'
-      ? `/${location.menu}/${location.councilId}`
-      : `/${location.record}/${location.councilId}/${location.recordId}`
+      ? `/${location.menu}/${council}`
+      : `/${location.record}/${council}/${encodeURIComponent(location.recordId.toLowerCase())}`
   const spec = location.type === 'menu' ? MENU_QUERY[location.menu] : RECORD_QUERY[location.record]
   const query = cleanQuery(spec, new URLSearchParams(Object.entries(location.query)))
   const text = new URLSearchParams(query).toString()
@@ -154,14 +161,16 @@ export const recordPath = (record: RecordKind, councilId: string, recordId: stri
   appPath({ type: 'record', record, councilId, recordId, query: {} })
 
 // 기록 주소의 상위 목록. 없는 기록, 볼 수 없는 기록의 '찾을 수 없음'이 이리로 돌아간다.
+// 쿼리는 읽기가 돌려주는 꼴(기본값 없음)이라, 만든 주소를 다시 읽은 값과 같다.
 export function parentOf(location: AppLocation): AppLocation {
   if (location.type === 'menu') return location
   const parent: { menu: AppMenu; query?: AppQuery } = RECORD_PARENTS[location.record]
+  const params = new URLSearchParams(Object.entries(parent.query ?? {}))
   return {
     type: 'menu',
     menu: parent.menu,
-    councilId: location.councilId,
-    query: parent.query ?? {},
+    councilId: location.councilId.toLowerCase(),
+    query: cleanQuery(MENU_QUERY[parent.menu], params),
   }
 }
 
