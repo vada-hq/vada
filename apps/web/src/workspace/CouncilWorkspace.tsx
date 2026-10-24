@@ -120,7 +120,7 @@ export default function CouncilWorkspace({
           ...lists,
           ...openers,
           ...recordOf(target),
-          linkKey: target.record ? here.key : '',
+          linkKey: target.record || here.released ? here.key : '',
           mainRef: nav.main,
         }}
       />

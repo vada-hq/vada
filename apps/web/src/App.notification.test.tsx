@@ -1,13 +1,16 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import App from './App'
 import { renderApp } from './test-support/render-app'
+import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
-import { json, mockApi } from './test-support/mock-api'
+import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
+import { budgetWithoutPeriod } from './test-support/budget-fixtures'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
@@ -73,7 +76,8 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup()
   // 닫힌 창이 거두는 기록 이동(history.go)이 끝난 뒤에 다음 시험이 시작되게 한다.
-  await new Promise(resolve => setTimeout(resolve, 20))
+  await windowHistoryIdle()
+  resetWindowHistory()
   Reflect.deleteProperty(navigator, 'serviceWorker')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -179,6 +183,13 @@ test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대�
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
 })
 
+const C1 = '0199d1a0-0000-7000-8000-0000000000c1'
+// 끝난 일을 기다린다: 이유를 남기려고 칸을 상위 목록 주소로 바꿔 썼고, 창이 거두는 기록 이동이 모두 끝났다.
+const lostSettled = async (path: string) => {
+  await waitFor(() => expect(window.location.pathname + window.location.search).toBe(path))
+  await windowHistoryIdle()
+}
+const C2 = '0199d1a0-0000-7000-8000-0000000000c2'
 const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
 const taskCalls = () => api.calls.filter(call => call.path.includes('/tasks/'))
 function taskApi(id = '0199d1a0-0000-7000-8000-0000000000c1', taskId = T1) {
@@ -279,7 +290,20 @@ test('지운 업무의 알림을 누르면 "이 업무를 볼 수 없어요"가 
   window.history.replaceState(null, '', `/tasks/0199d1a0-0000-7000-8000-0000000000c1/${T1}`)
   await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
+  await lostSettled(`/tasks/${C1}`)
+  expect(screen.getByRole('alert').textContent).toBe(TASK_LOST)
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('홈에서 지운 업무의 알림을 누르면 업무 목록에서 이유가 남고 홈으로 돌아가지 않는다', async () => {
+  api.on('GET', `/api/organizations/${C1}/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
+  await renderApp()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/${C1}/${T1}` } }))
+  expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
+  await lostSettled(`/tasks/${C1}`)
+  expect(screen.getByRole('alert').textContent).toBe(TASK_LOST)
+  expect(screen.getByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
 })
 
 test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업무로 돌아오면 상세가 닫혀 있다', async () => {
@@ -406,7 +430,38 @@ test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}`)
   await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
+  await lostSettled(`/finance/${C1}`)
+  expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('홈에서 지운 요청의 알림을 눌러도 재정 목록에서 이유가 남는다', async () => {
+  requestApi()
+  api.on('GET', `/api/organizations/${C1}/purchase-requests/${R1}`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
+  await renderApp()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
+  expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
+  await lostSettled(`/finance/${C1}`)
+  expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
+})
+
+test('홈에서 연 요청의 예산 탭으로 가기는 재정의 예산 탭을 연다', async () => {
+  requestApi()
+  const detail = purchaseDetail(R1, { title: '테이프 구매', actions: ['purchase_request.decide'] })
+  api.on('GET', `/api/organizations/${C1}/purchase-requests/${R1}`, () => json({ request: detail }))
+  api.on('GET', `/api/organizations/${C1}/budget`, () => json(budgetWithoutPeriod()))
+  await renderApp()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
+  await requestDialog()
+  fireEvent.click(await screen.findByRole('button', { name: '예산 탭으로 가기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
+  await lostSettled(`/finance/${C1}`)
+  expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
 })
 
 test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재정으로 돌아오면 상세가 닫혀 있다', async () => {
@@ -423,6 +478,65 @@ test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재�
   expect(await financeHeading()).toBeTruthy()
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+const ROOM = '0199d1a0-0000-7000-8000-0000000000a1'
+const openRoomFromHome = async () => {
+  await renderApp()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/chat/${C1}/${ROOM}` } }))
+  expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
+}
+const roomPath = `/chat/${C1}/${ROOM}`
+
+test('방 알림으로 연 방에서 휴대폰 옆 메뉴를 열었다 닫아도 방에 남는다', async () => {
+  await openRoomFromHome()
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  fireEvent.keyDown(sheet, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await windowHistoryIdle()
+  expect(window.location.pathname).toBe(roomPath)
+  expect(screen.getByText('모레 회의 있어요')).toBeTruthy()
+})
+
+test('방에서 옆 메뉴를 연 채 기기 뒤로를 누르면 옆 메뉴만 닫히고 방에 남는다', async () => {
+  await openRoomFromHome()
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  act(() => window.history.back())
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await windowHistoryIdle()
+  expect(window.location.pathname).toBe(roomPath)
+})
+
+test('목록을 읽는 동안 받은 알림은 버리지 않고 준비되면 연다', async () => {
+  taskApi()
+  const councils = deferredResponse()
+  api.on('GET', '/api/me/councils', () => councils.promise)
+  await renderApp()
+  expect(screen.getByText('학생회 확인 중…')).toBeTruthy()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/${C1}/${T1}` } }))
+  await act(async () => {
+    councils.resolve(json({ councils: [myCouncil(C1), myCouncil(C2, '다른 학생회')] }))
+  })
+  expect(await taskDialog()).toContain('현수막 주문')
+})
+
+test('로그아웃 상태에서 받은 알림은 로그인해 준비되면 연다', async () => {
+  taskApi()
+  const session = {
+    data: { user: { id: 'u1', name: '김회장', email: 'kim@example.test' } },
+    isPending: false,
+    error: null,
+    refetch: vi.fn(),
+  }
+  auth.useSession.mockReturnValue({ data: null, isPending: false, error: null, refetch: vi.fn() })
+  const view = await renderApp()
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/${C1}/${T1}` } }))
+  auth.useSession.mockReturnValue(session)
+  view.rerender(<App />)
+  expect(await taskDialog()).toContain('현수막 주문')
 })
 
 test('로그아웃하는 동안 옆 메뉴의 로그아웃 단추는 막혀 한 번만 보낸다', async () => {
