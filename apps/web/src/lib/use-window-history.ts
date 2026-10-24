@@ -4,6 +4,11 @@ import { useLatest } from './use-latest'
 // 창과 옆 메뉴가 방문 기록 한 칸을 쓰게 해서, 뒤로 가기가 앱을 떠나지 않고 맨 위 창부터 닫게 한다(DEC-78 이동 4).
 // 상태 객체에는 KEY 하나만 더하고 다른 키는 그대로 둔다. 기능 016이 같은 기록에 주소 상태를 얹는다.
 const KEY = 'vadaWindow'
+// 주소 층이 기록 주소로 쌓은 칸의 표시. 그 칸에서 처음 열리는 창은 칸을 또 쌓지 않고 이 칸을 자기 칸으로 쓴다
+// (기록 상세 창이 주소 한 칸과 창 한 칸을 둘 다 쌓아 뒤로를 두 번 눌러야 닫히는 것을 막는다). 새로 고침으로 되살린 창도 같은 칸을 쓴다.
+export const ADOPT_KEY = 'vadaAdopt'
+// 주소 칸에 매기는 창 깊이: 이 칸을 자기 칸으로 쓰는 창이 base + 1이 되게, 지금 칸보다 하나 깊다.
+export const adoptDepth = (state: unknown) => depthOf(state) + 1
 
 type Entry = { back: () => void; mounted: boolean }
 
@@ -16,11 +21,17 @@ let base = 0
 let expectedPops = 0
 let scheduled = false
 let listening = false
+// 창이 모두 닫힌 뒤에 할 일(주소 이동).
+let waiting: (() => void)[] = []
 
 function depthOf(state: unknown): number {
   if (typeof state !== 'object' || state === null) return 0
   const depth = (state as Record<string, unknown>)[KEY]
   return typeof depth === 'number' ? depth : 0
+}
+
+function isAdoptable(state: unknown) {
+  return typeof state === 'object' && state !== null && ADOPT_KEY in state
 }
 
 function baseState(): Record<string, unknown> {
@@ -35,7 +46,12 @@ function sync() {
   scheduled = false
   // 거두는 이동이 끝나기 전에 칸을 더하면 순서가 꼬인다. 그 popstate가 다시 맞춘다.
   if (expectedPops > 0) return
-  if (have === 0) base = depthOf(window.history.state)
+  if (have === 0) {
+    const state: unknown = window.history.state
+    const adopt = stack.length > 0 && isAdoptable(state)
+    base = depthOf(state) - (adopt ? 1 : 0)
+    if (adopt) have = 1
+  }
   while (have < stack.length) {
     have += 1
     window.history.pushState({ ...baseState(), [KEY]: base + have }, '')
@@ -66,6 +82,7 @@ function closeEntry(entry: Entry) {
 function onPop(event: PopStateEvent) {
   if (expectedPops > 0) {
     expectedPops -= 1
+    if (expectedPops === 0) runWaiting()
     schedule()
     return
   }
@@ -76,6 +93,28 @@ function onPop(event: PopStateEvent) {
     have -= 1
     const entry = stack.pop()
     if (entry) closeEntry(entry)
+  }
+}
+
+function runWaiting() {
+  const tasks = waiting
+  waiting = []
+  for (const task of tasks) task()
+}
+
+// 열려 있는 창의 칸을 모두 거둔 뒤에 주소 이동을 한다. 창이 열린 채 주소를 쌓으면 창이 닫힐 때의 되돌리기가 새 주소까지 되돌린다.
+// 거둘 창이 없고 되돌리는 중도 아니면 바로 한다. 그 뒤에도 열려 있는 창은 새 주소 위에 칸을 다시 쌓는다.
+export function afterWindowsClosed(task: () => void) {
+  if (have === 0 && expectedPops === 0) {
+    task()
+    return
+  }
+  waiting.push(task)
+  if (have > 0) {
+    const extra = have
+    have = 0
+    expectedPops += 1
+    window.history.go(-extra)
   }
 }
 
