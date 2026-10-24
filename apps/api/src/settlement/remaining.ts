@@ -18,7 +18,7 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { lastOutcomeSql } from '../purchases/last-outcome.js'
+import { lastOutcomeOf } from '../purchases/last-outcome.js'
 
 type Reader = Pick<Db, 'select'>
 type Scope = { councilId: string; eventId: string }
@@ -46,8 +46,8 @@ async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<Settl
         eq(request.eventId, scope.eventId),
         isNull(request.cancelledAt),
         unpaid
-          ? and(sql`${lastOutcomeSql} = 'approved'`, notExists(paid))
-          : sql`${lastOutcomeSql} is null`,
+          ? and(sql`${lastOutcomeOf(lineItem.id)} = 'approved'`, notExists(paid))
+          : sql`${lastOutcomeOf(lineItem.id)} is null`,
       ),
     )
     .groupBy(request.id, record.createdAt)

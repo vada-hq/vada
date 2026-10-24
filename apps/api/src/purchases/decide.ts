@@ -9,7 +9,7 @@ import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { lastOutcomeSql } from './last-outcome.js'
+import { lastOutcomeOf } from './last-outcome.js'
 import { lockedRequestRow } from './lock.js'
 import { decide, factsOf } from './policy.js'
 import { requestDetailOf, requestRowOf } from './queries.js'
@@ -39,7 +39,7 @@ async function decidedAmong(tx: Tx, ids: string[]) {
   const rows = await tx
     .select({ id: lineItem.id })
     .from(lineItem)
-    .where(sql`${inArray(lineItem.id, ids)} and ${lastOutcomeSql} is not null`)
+    .where(sql`${inArray(lineItem.id, ids)} and ${lastOutcomeOf(lineItem.id)} is not null`)
   return rows.length > 0
 }
 

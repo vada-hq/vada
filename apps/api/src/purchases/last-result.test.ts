@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { PurchaseRequestsResponse } from '@vada/contracts'
+import { clockNow, createRecord } from '../records/records.js'
 import { detailOf, errorOf, ITEM, runPurchases } from '../test-support/purchases.js'
 
 // 품목의 상태는 마지막 결재 기록 하나다(기능 014 조각 1): 승인 뒤에 취소 줄이 붙어도 읽는 곳이 모두 같은 결과를 본다.
@@ -93,5 +94,59 @@ test(
     )
     assert.equal(await errorOf(all), 'LINE_ITEM_DECIDED')
     assert.equal(await s.count('SELECT count(*) AS n FROM approval'), before + 2)
+  }),
+)
+
+test(
+  '승인 → 취소 품목과 대기 품목이 있는 요청은 결재 대기 목록에 남고, 남은 품목을 결재하면 요청한 사람에게 알린다',
+  runPurchases(async s => {
+    const request = await s.made({ title: '마커', ...two })
+    const [first, second] = request.items
+    await s.decide(first!.id, 'approved')
+    await s.decide(first!.id, 'cancelled')
+    const pending = await s.api.get(`${s.base}?view=pending`, FINANCE)
+    assert.deepEqual(
+      ((await pending.json()) as PurchaseRequestsResponse).requests.map(item => item.id),
+      [request.id],
+    )
+    s.calls.length = 0
+    const before = await s.notices()
+    const response = await s.api.post(
+      `${s.base}/${request.id}/decisions`,
+      { decisions: [{ lineItemId: second!.id, outcome: 'rejected', reason: '비싸요' }] },
+      FINANCE,
+    )
+    assert.equal(response.status, 200)
+    await s.settled()
+    assert.equal(await s.notices(), before + 1)
+    assert.equal(s.calls.length, 1)
+    assert.equal(s.calls[0]![1].title, '구매 요청이 반려됐어요')
+  }),
+)
+test(
+  '품목 결과가 아닌 결재 줄(감사)이 마지막이어도 품목 상태와 요청 셈이 같다',
+  runPurchases(async s => {
+    const request = await s.made({ title: '마커', items: [ITEM] })
+    await s.decide(request.items[0]!.id, 'approved')
+    const who = s.council.people.financeMember.memberId
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'approval',
+        councilId: s.council.councilId,
+        actor: who,
+        values: {
+          targetId: request.items[0]!.id,
+          targetKind: 'line_item',
+          outcome: 'audited',
+          actorId: who,
+          actorKind: 'member',
+          actedAt: clockNow,
+          reason: null,
+        },
+      }),
+    )
+    const detail = detailOf(await s.api.get(`${s.base}/${request.id}`, FINANCE))
+    const after = await detail
+    assert.deepEqual([after.items[0]!.status, after.status], ['approved', 'approved'])
   }),
 )

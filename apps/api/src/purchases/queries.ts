@@ -24,7 +24,7 @@ import type { Db } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
-import { itemCountColumns, lastOutcomeSql } from './last-outcome.js'
+import { itemCountColumns, lastOutcomeOf } from './last-outcome.js'
 import { actionsOf, factsOf, lineItemStatusOf, requestStatusOf } from './policy.js'
 
 type Reader = Pick<Db, 'select'>
@@ -82,7 +82,7 @@ function listOptions(actor: Actor, view: PurchaseRequestListQuery['view']) {
   if (view === 'pending')
     return {
       where: isNull(request.cancelledAt),
-      having: sql`count(*) filter (where ${lastOutcomeSql} is null) > 0`,
+      having: sql`count(*) filter (where ${lastOutcomeOf(lineItem.id)} is null) > 0`,
       order: [asc(record.createdAt), asc(request.id)],
       limit: PURCHASE_PENDING_LIMIT,
     }
@@ -135,7 +135,7 @@ async function itemsOf(db: Reader, requestId: string) {
       amount: lineItem.amount,
       budgetItemId: lineItem.budgetItemId,
       purpose: budgetItem.purpose,
-      outcome: lastOutcomeSql,
+      outcome: lastOutcomeOf(lineItem.id),
       paid: isPaid.mapWith(Boolean),
     })
     .from(lineItem)
