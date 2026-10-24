@@ -115,7 +115,7 @@ test(
       decisions: [decision(request.line, items.A)],
     })
     assert.equal(approved.status, 200)
-    await t.completion(events.B!, 'completed', DAY('2026-10-24T03:00'))
+    await t.completion(events.B, 'completed', DAY('2026-10-24T03:00'))
     const paid = await post(t, '/expenses', {
       ...EXPENSE,
       amount: 1000,
