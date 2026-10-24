@@ -11,16 +11,16 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { useTeam } from '@/team/useTeam'
 import {
@@ -95,6 +95,36 @@ function ModeToggle({
   )
 }
 
+const DIGITS = /^[0-9]+$/
+
+// 누를 때 확인하는 칸. 사용처·내역·결제일은 늘, 금액은 요청 없이 적을 때, 요청과 품목은 요청한 품목을 결제할 때 필수다.
+// 결제일은 오늘 뒤일 수 없다(서버도 막는다).
+function expenseErrors(values: ExpenseValues, today: string) {
+  const amount = values.amount.trim()
+  return {
+    vendor: requiredText(values.vendor, '사용처를'),
+    description: requiredText(values.description, '내역을'),
+    paidOn:
+      requiredText(values.paidOn, '결제일을') ??
+      (values.paidOn > today ? '오늘이나 그 전 날짜를 입력해 주세요' : undefined),
+    ...(values.mode === 'direct'
+      ? {
+          amount:
+            requiredText(amount, '금액을') ??
+            (DIGITS.test(amount) && Number(amount) > 0
+              ? undefined
+              : '1 이상의 숫자를 입력해 주세요'),
+        }
+      : {
+          requestId: values.requestId === null ? '결제할 요청을 골라 주세요' : undefined,
+          lines:
+            values.requestId !== null && values.lines.length === 0
+              ? '결제한 품목을 골라 주세요'
+              : undefined,
+        }),
+  }
+}
+
 // 먼저 낸 사람: 학생회 돈, 나, 다른 운영진.
 function paidByChoices(team: TeamResponse, memberId: string) {
   return [
@@ -109,38 +139,36 @@ type FieldsProps = {
   disabled: boolean
   today: string
   onChange: (values: ExpenseValues) => void
+  errors: FieldErrors
 }
 
 // 사용처와 내역(위쪽 두 칸).
-function NameFields({ values, disabled, onChange }: Omit<FieldsProps, 'today'>) {
+function NameFields({ values, disabled, onChange, errors }: Omit<FieldsProps, 'today'>) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        사용처
+      <Field label="사용처" required error={errors.vendor}>
         <Input
           value={values.vendor}
           disabled={disabled}
           onChange={event => onChange({ ...values, vendor: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        내역
+      </Field>
+      <Field label="내역" required error={errors.description}>
         <Input
           value={values.description}
           disabled={disabled}
           onChange={event => onChange({ ...values, description: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
 
 // 결제일(오늘 뒤는 못 고른다), 결제 수단, 사유(아래쪽 칸).
-function PaymentFields({ values, disabled, today, onChange }: FieldsProps) {
+function PaymentFields({ values, disabled, today, onChange, errors }: FieldsProps) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        결제일
+      <Field label="결제일" required error={errors.paidOn}>
         <Input
           type="date"
           max={today}
@@ -148,9 +176,8 @@ function PaymentFields({ values, disabled, today, onChange }: FieldsProps) {
           disabled={disabled}
           onChange={event => onChange({ ...values, paidOn: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        결제 수단
+      </Field>
+      <Field label="결제 수단" required>
         <NativeSelect
           value={values.method}
           disabled={disabled}
@@ -162,7 +189,7 @@ function PaymentFields({ values, disabled, today, onChange }: FieldsProps) {
             </option>
           ))}
         </NativeSelect>
-      </Label>
+      </Field>
     </>
   )
 }
@@ -212,19 +239,19 @@ function PayerFields({
     <>
       <ChoiceSelect
         label="먼저 낸 사람"
+        required
         choices={paidByChoices(team, memberId)}
         value={values.paidBy}
         disabled={disabled}
         onChange={paidBy => onChange({ ...values, paidBy })}
       />
-      <Label className="flex flex-col gap-2">
-        사유(선택)
+      <Field label="사유" optional>
         <Textarea
           value={values.reason}
           disabled={disabled}
           onChange={event => onChange({ ...values, reason: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
@@ -241,14 +268,17 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })
-  const shared = { values, disabled: saving, onChange: setValues }
+  const check = useFormCheck(() => expenseErrors(values, today))
+  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
   return (
     <form
+      ref={check.formRef}
+      noValidate
       aria-label="지출 적기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        void create.submit()
+        if (check.attempt()) void create.submit()
       }}
     >
       <ModeToggle
@@ -275,7 +305,7 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
         <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={!create.valid || values.paidOn > today || saving}>
+        <Button type="submit" disabled={saving}>
           적기
         </Button>
       </DialogFooter>
@@ -293,12 +323,9 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
         if (!open && !saving) props.onClose()
       }}
     >
-      <DialogContent aria-describedby="expense-create-description">
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>지출 적기</DialogTitle>
-          <DialogDescription id="expense-create-description">
-            적고 나면 영수증 사진을 붙일 수 있어요.
-          </DialogDescription>
         </DialogHeader>
         {team.data ? (
           <CreateForm {...props} team={team.data} saving={saving} setSaving={setSaving} />

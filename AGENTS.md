@@ -53,6 +53,15 @@
 - 새 부품이나 변형은 개발용 부품 확인 화면(`/ui.html`, `src/ui-gallery`)에 더한다.
 - 화면을 바꾸면 와이어프레임(Figma `B5OHqrl9bbvXCUkhME4Sfo`)의 같은 화면 노드 스크린샷과 비교한다.
 
+### 화면 문구와 폼
+
+- 설명 글(도움말, 묶음 설명, 결과 안내)은 대부분의 사용자가 그것 없이 막힐 때만 짧은 한 문장으로 쓴다. 먼저 라벨을 고쳐 본다. 사용자가 판단할 일에 경고나 권유를 덧붙이지 않는다(GOV.UK hint text, NN/g "Concise, Scannable, and Objective"). 법이 요구하는 고지는 예외다.
+- 입력칸 안의 예시 글(placeholder)은 쓰지 않는다(GOV.UK text input, NN/g "Placeholders in Form Fields Are Harmful").
+- 추가 질문은 그것이 필요한 선택을 했을 때만 보인다. 펼치는 라디오는 세로로 둔다(NN/g "Progressive Disclosure", GOV.UK radios).
+- 가장 흔한 값을 기본으로 골라 둔다(NN/g "The Power of Defaults").
+- 필수 칸은 별표(`Field`의 `required`), 선택 칸은 '(선택)'(`optional`)으로 표시한다. 제출 버튼은 끄지 않고 누를 때 확인해, 문제를 칸 아래(`Field`의 `error`)에 보이고 첫 칸으로 옮긴다(NN/g "Marking Required Fields in Forms", GOV.UK).
+- 말투는 해요체다. 라벨, 상태, 제목은 문장 대신 명사형으로 쓴다(예: '신청 양식 생성 완료', '계좌 선택'). 오류처럼 문장이 필요한 곳만 해요체로 짧게 쓴다.
+
 ## 마이그레이션
 
 - 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `npm run db:generate --workspace @vada/api`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `npm run check:design --workspace @vada/api`가 마이그레이션 DB와 설계를 맞댄다.

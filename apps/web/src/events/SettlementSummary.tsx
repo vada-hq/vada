@@ -39,7 +39,7 @@ export function SettlementItems({ items }: { items: EventSettlement['budget']['i
               </Badge>
             </span>
             <span className="text-gray-500">
-              {item.type === 'income' ? '들어온 돈' : '쓴 돈'} {wonLabel(item.used)} / 예산{' '}
+              {item.type === 'income' ? '수입' : '지출'} {wonLabel(item.used)} / 예산{' '}
               {wonLabel(item.amount)}
             </span>
           </li>

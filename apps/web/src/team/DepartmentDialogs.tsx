@@ -9,7 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 import type { DepartmentsState } from './useDepartments'
 
 type Props = { state: DepartmentsState; saving: boolean }
@@ -26,7 +27,7 @@ export function DepartmentDialogs({ state, saving }: Props) {
         busy={saving}
         error={problemIn('remove')}
         title={`${removingDepartment?.name ?? ''} 부서를 없앨까요?`}
-        description="부서원이 있었던 적 없는 부서만 없앨 수 있어요. 없앤 부서는 되돌릴 수 없어요."
+        description="없앤 부서는 되돌릴 수 없어요."
         confirmLabel="없애기"
         onCloseAutoFocus={menuFocus.onCloseAutoFocus}
         onCancel={state.closeRemove}
@@ -40,6 +41,7 @@ export function DepartmentDialogs({ state, saving }: Props) {
 
 function RenameDialog({ state, saving }: Props) {
   const rename = state.problemIn('rename')
+  const check = useFormCheck(() => ({ name: requiredText(state.name, '부서 이름을') }))
   return (
     <Dialog
       open={state.renamingDepartment !== null}
@@ -52,22 +54,24 @@ function RenameDialog({ state, saving }: Props) {
           <DialogTitle>부서 이름 바꾸기</DialogTitle>
         </DialogHeader>
         <form
+          ref={check.formRef}
+          noValidate
           aria-label="부서 이름 바꾸기"
           className="flex flex-col gap-4"
           onSubmit={event => {
-            void state.rename(event)
+            if (check.attempt()) void state.rename(event)
+            else event.preventDefault()
           }}
         >
-          <Label className="flex flex-col gap-2">
-            부서 이름
+          <Field label="부서 이름" error={check.errors.name}>
             <Input value={state.name} onChange={event => state.setName(event.target.value)} />
-          </Label>
+          </Field>
           {rename && <StateMessage kind="error">{rename}</StateMessage>}
           <DialogFooter>
             <Button type="button" variant="outline" disabled={saving} onClick={state.closeRename}>
               닫기
             </Button>
-            <Button type="submit" disabled={!state.canRename || saving}>
+            <Button type="submit" disabled={saving}>
               바꾸기
             </Button>
           </DialogFooter>

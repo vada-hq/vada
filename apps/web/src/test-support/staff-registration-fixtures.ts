@@ -22,6 +22,7 @@ export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationFo
   capacity: 50,
   notice: null,
   collectsPhone: false,
+  collectsStudentId: true,
   paused: false,
   publicCode: 'ABCD2345',
   payerFee: 5000,

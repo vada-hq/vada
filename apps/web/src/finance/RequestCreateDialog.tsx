@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import {
@@ -52,10 +52,12 @@ export function RequestCreateDialog({ open, ...props }: Props) {
 function ItemList({
   items,
   disabled,
+  errors,
   onChange,
 }: {
   items: ItemValues[]
   disabled: boolean
+  errors: FieldErrors
   onChange: (items: ItemValues[]) => void
 }) {
   return (
@@ -69,6 +71,7 @@ function ItemList({
           removable={items.length > 1}
           onChange={next => onChange(items.map(it => (it.key === item.key ? next : it)))}
           onRemove={() => onChange(items.filter(it => it.key !== item.key))}
+          errors={itemErrors(errors, index)}
         />
       ))}
       <Button
@@ -85,6 +88,32 @@ function ItemList({
   )
 }
 
+const DIGITS = /^[0-9]+$/
+
+// 제목과 품목마다 이름·수량이 필수다. 수량은 1 이상의 정수(계약과 같은 규칙).
+function requestErrors(values: RequestValues) {
+  const items = values.items.flatMap((item, index) => {
+    const quantity = item.quantity.trim()
+    return [
+      [`items.${index}.name`, requiredText(item.name, '이름을')],
+      [
+        `items.${index}.quantity`,
+        requiredText(quantity, '수량을') ??
+          (DIGITS.test(quantity) && Number(quantity) > 0
+            ? undefined
+            : '1 이상의 숫자를 입력해 주세요'),
+      ],
+    ] as const
+  })
+  return { title: requiredText(values.title, '제목을'), ...Object.fromEntries(items) }
+}
+
+// 한 줄의 문제만 골라 그 줄에 넘긴다.
+const itemErrors = (errors: FieldErrors, index: number) => ({
+  name: errors[`items.${index}.name`],
+  quantity: errors[`items.${index}.quantity`],
+})
+
 // 필요한 때와 내용. 아래쪽 두 칸이다.
 function WhenAndBody({
   values,
@@ -97,23 +126,21 @@ function WhenAndBody({
 }) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        필요한 때
+      <Field label="필요한 때" optional>
         <Input
           type="date"
           value={values.neededBy}
           disabled={disabled}
           onChange={event => onChange({ neededBy: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        내용
+      </Field>
+      <Field label="내용" optional>
         <Textarea
           value={values.body}
           disabled={disabled}
           onChange={event => onChange({ body: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
@@ -124,23 +151,25 @@ function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }:
   const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
   const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
+  const check = useFormCheck(() => requestErrors(values))
   return (
     <form
+      ref={check.formRef}
+      noValidate
       aria-label="구매 요청 내기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        void create.submit()
+        if (check.attempt()) void create.submit()
       }}
     >
-      <Label className="flex flex-col gap-2">
-        제목
+      <Field label="제목" required error={check.errors.title}>
         <Input
           value={values.title}
           disabled={saving}
           onChange={event => set({ title: event.target.value })}
         />
-      </Label>
+      </Field>
       <RequesterField
         choices={requesters ?? null}
         value={values.requestedBy}
@@ -154,14 +183,19 @@ function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }:
         onChange={next => set({ eventId: next })}
         onForbidden={props.onForbidden}
       />
-      <ItemList items={values.items} disabled={saving} onChange={items => set({ items })} />
+      <ItemList
+        items={values.items}
+        disabled={saving}
+        errors={check.errors}
+        onChange={items => set({ items })}
+      />
       <WhenAndBody values={values} disabled={saving} onChange={set} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
         <Button type="button" variant="outline" disabled={saving} onClick={props.onClose}>
           취소
         </Button>
-        <Button type="submit" disabled={!create.valid || saving}>
+        <Button type="submit" disabled={saving}>
           내기
         </Button>
       </DialogFooter>
@@ -178,12 +212,9 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
         if (!open && !saving) props.onClose()
       }}
     >
-      <DialogContent aria-describedby="purchase-create-description">
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>구매 요청 내기</DialogTitle>
-          <DialogDescription id="purchase-create-description">
-            재정부의 휴대폰에 알림이 가요. 금액은 재정부가 결재할 때 정해요.
-          </DialogDescription>
         </DialogHeader>
         <CreateForm {...props} saving={saving} setSaving={setSaving} />
       </DialogContent>

@@ -9,7 +9,7 @@ import SettlingSection from './SettlingSection'
 export type HomeOpeners = {
   onOpenTask: (taskId: string) => void
   onOpenRequest: (requestId: string) => void
-  // 정산 수가 있는 행사는 '돈' 탭으로 연다.
+  // 정산 수가 있는 행사는 '예산·정산' 탭으로 연다.
   onOpenEvent: (eventId: string, tab?: 'money') => void
   onOpenPage: (page: Page) => void
 }

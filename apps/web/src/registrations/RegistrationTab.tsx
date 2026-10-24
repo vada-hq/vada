@@ -1,7 +1,13 @@
 import { useState, type ReactNode } from 'react'
-import type { CouncilView, RegistrationAction, RegistrationForm } from '@vada/contracts'
+import type {
+  CouncilView,
+  EventDetail,
+  RegistrationAction,
+  RegistrationForm,
+} from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import {
@@ -10,12 +16,18 @@ import {
 } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { FormCard } from './FormCard'
+import { FormCreated } from './FormCreated'
+import { FormEditor } from './FormEditor'
 import { TabDialogs, type TabDialog } from './TabDialogs'
 import { useRegistrationForms } from './useRegistrationForms'
 
 type Props = EventDialogHandlers & {
   view: CouncilView
   eventId: string
+  // 양식 화면의 행사 정보와 미리보기에 쓴다. 읽기 전이면 null이다.
+  event: EventDetail | null
+  // 양식 화면에서 빈 일시·장소를 넣는다(행사 머리의 고치기).
+  onEditEvent: (focus: EventFieldFocus) => void
 }
 
 type Read = { forms: RegistrationForm[]; actions: RegistrationAction[] }
@@ -52,6 +64,8 @@ function useTabDialogs(
 ) {
   const [dialog, setDialog] = useState<TabDialog>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  // 방금 만든 양식. 목록 대신 링크와 QR을 보인다.
+  const [created, setCreated] = useState<RegistrationForm | null>(null)
   const handlers: EventDialogHandlers = {
     onForbidden,
     onLost: message => {
@@ -65,12 +79,15 @@ function useTabDialogs(
     setDialog,
     notice,
     handlers,
+    created,
     close: () => setDialog(null),
-    saved: () => {
+    saved: (form: RegistrationForm) => {
+      if (dialog?.kind === 'create') setCreated(form)
       setDialog(null)
       setNotice(null)
       reload()
     },
+    closeCreated: () => setCreated(null),
     checked: (id: string) => {
       markAttended(id, true)
       reload()
@@ -80,7 +97,7 @@ function useTabDialogs(
 
 // 행사의 '참가 신청' 탭: 신청 양식 카드, 양식 만들기, QR로 출석 확인. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 // 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다.
-export function RegistrationTab({ view, eventId, ...parent }: Props) {
+export function RegistrationTab({ view, eventId, event, onEditEvent, ...parent }: Props) {
   const councilId = view.council.id
   const read = useRegistrationForms(councilId, eventId, parent)
   const reload = () => void read.reload()
@@ -91,6 +108,25 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
   const forms = ready?.forms ?? []
   const actions = ready?.actions ?? []
   useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), handlers.onLost)
+  const editing = tab.dialog?.kind === 'edit' ? tab.dialog.formId : null
+  if (tab.dialog?.kind === 'create' || editing !== null) {
+    // 고치는 동안 양식이 사라졌으면(다시 읽은 목록에 없다) 열지 않는다. 가드가 닫고 이유를 보인다.
+    const form = forms.find(item => item.id === editing)
+    if (editing !== null && !form) return null
+    return (
+      <FormEditor
+        councilId={councilId}
+        councilName={view.council.name}
+        event={event}
+        {...(form && { form })}
+        onEditEvent={onEditEvent}
+        onClose={tab.close}
+        onDone={tab.saved}
+        {...handlers}
+      />
+    )
+  }
+  if (tab.created) return <FormCreated form={tab.created} onDone={tab.closeCreated} />
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar
@@ -119,9 +155,7 @@ export function RegistrationTab({ view, eventId, ...parent }: Props) {
         councilId={councilId}
         eventId={eventId}
         dialog={tab.dialog}
-        forms={forms}
         onClose={tab.close}
-        onSaved={tab.saved}
         onChecked={tab.checked}
         {...handlers}
       />

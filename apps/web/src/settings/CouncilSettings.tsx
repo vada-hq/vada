@@ -21,7 +21,6 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
       <CouncilInfoForm
         value={settings.council}
         canEdit={canCouncil}
-        saveable={settings.councilValid}
         saving={saving === 'council'}
         busy={saving !== null}
         note={note('council')}
@@ -34,7 +33,6 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
       <CohortForm
         value={settings.cohort}
         canEdit={view.permissions.includes('cohort.update')}
-        saveable={settings.cohortValid}
         saving={saving === 'cohort'}
         busy={saving !== null}
         note={note('cohort')}

@@ -90,7 +90,7 @@ test('끝나지 않은 업무가 없는 부서는 한 줄로 말한다', async (
   expect(await screen.findByText('끝나지 않은 업무가 없어요.')).toBeTruthy()
 })
 
-test('학생회 행사 카드: 끝난 행사는 돈 탭으로, 그 밖은 개요로 열리고 정산 수가 보인다', async () => {
+test('학생회 행사 카드: 끝난 행사는 예산·정산 탭으로, 그 밖은 개요로 열리고 정산 수가 보인다', async () => {
   const { onOpenEvent } = open(
     homeResponse({
       council: council({
@@ -205,7 +205,7 @@ test('받은 것과 정산할 행사가 비면 한 줄로 말한다', async () =
   expect(screen.getByText('정산할 행사가 없어요.')).toBeTruthy()
 })
 
-test('정산할 행사 줄을 누르면 그 행사의 돈 탭이 열린다', async () => {
+test('정산할 행사 줄을 누르면 그 행사의 예산·정산 탭이 열린다', async () => {
   const { onOpenEvent } = open(
     homeResponse({
       settling: {

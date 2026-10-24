@@ -54,7 +54,7 @@ function SettlementBody({
   )
 }
 
-// 돈 탭: 예산·실제·차이, 예산 항목마다 쓴 돈, 정산에 남은 것, 완료. 보이는 동안 정산을 15초마다 다시 읽는다.
+// 예산·정산 탭: 예산·실제·차이, 예산 항목마다 쓴 돈, 정산에 남은 것, 완료. 보이는 동안 정산을 15초마다 다시 읽는다.
 // 정산 숫자와 남은 것은 모든 운영진이 보고, 완료 버튼은 서버가 준 동작이 있는 사람만 본다.
 export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...handlers }: Props) {
   const councilId = view.council.id

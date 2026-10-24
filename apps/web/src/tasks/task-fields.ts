@@ -1,5 +1,5 @@
 import type { TaskDetail } from '@vada/contracts'
-import { missingLabels } from '@/components/ui/field'
+import { requiredText } from '@/lib/use-form-check'
 
 // 만들기와 고치기 폼이 같이 쓰는 세 칸. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
 export type TaskFieldValues = { title: string; body: string; dueDate: string }
@@ -30,5 +30,6 @@ export const createRequest = (
 ) => ({ ...fieldsRequest(values), departmentId, assigneeId, eventId })
 
 // 값이 빈 필수 칸(꺼진 버튼의 이유). 만들기와 고치기 모두 제목만 필수다.
-export const missingTaskFields = (values: TaskFieldValues) =>
-  missingLabels([['제목', values.title]])
+export const taskErrors = (values: TaskFieldValues) => ({
+  title: requiredText(values.title, '제목을'),
+})

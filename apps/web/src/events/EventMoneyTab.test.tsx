@@ -47,20 +47,20 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
       {...handlers}
     />,
   )
-  fireEvent.click(screen.getByRole('tab', { name: '돈' }))
+  fireEvent.click(screen.getByRole('tab', { name: '예산·정산' }))
   return { api, handlers, serve: (next: EventDetail) => (current = next) }
 }
 
 const button = (name: string) => screen.getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('돈 탭이 개요, 업무, 참가 신청 옆에 있고 예산·실제·차이와 예산 항목이 보인다', async () => {
+test('예산·정산 탭이 개요, 업무, 참가 신청 옆에 있고 예산·실제·차이와 예산 항목이 보인다', async () => {
   openMoney()
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '개요',
     '업무',
     '참가 신청',
-    '돈',
+    '예산·정산',
   ])
   const text = (await screen.findByText('지출 예산')).closest('dl')?.textContent
   expect(text).toContain('500,000원')
@@ -250,7 +250,7 @@ test('정산을 불러오지 못하면 다시 시도할 수 있다', async () =>
       onTasksChanged={vi.fn()}
     />,
   )
-  fireEvent.click(screen.getByRole('tab', { name: '돈' }))
+  fireEvent.click(screen.getByRole('tab', { name: '예산·정산' }))
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('지출 예산')).toBeTruthy()
   expect(button('완료')).toBeTruthy()
@@ -347,7 +347,7 @@ test('완료 취소 확인을 열어 둔 사이 다른 사람이 이미 취소�
   expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.EVENT_NOT_COMPLETED)
 })
 
-test('돈 탭에서 연 요청 상세에는 예산 탭으로 가기 버튼이 없다', async () => {
+test('예산·정산 탭에서 연 요청 상세에는 예산 탭으로 가기 버튼이 없다', async () => {
   const { api } = openMoney()
   api.on('GET', `${ORG}/budget`, () => json(budgetWithoutPeriod()))
   api.on('GET', `${ORG}/purchase-requests/r1`, () =>
@@ -368,7 +368,7 @@ test('열어 둔 요청을 잃으면(404) 정산을 다시 읽는다', async () 
   await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
 })
 
-test('돈 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
+test('예산·정산 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
   const { api } = openMoney(event({ name: '봄 축제' }))
   api.on('GET', `${ORG}/events`, () =>
     json({ events: [eventSummary({ id: 'e1', name: '봄 축제' })], truncated: false }),
@@ -390,7 +390,7 @@ test('돈 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행�
   expect((await select()).value).toBe('e1')
 })
 
-test('완료한 행사의 돈 탭에는 더하기 버튼이 없다', async () => {
+test('완료한 행사의 예산·정산 탭에는 더하기 버튼이 없다', async () => {
   openMoney(event({ status: 'completed' }, []))
   await screen.findByText('지출 예산')
   expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()

@@ -30,6 +30,7 @@ export function ExpenseAccountSelect({ account, disabled, onPick }: Props) {
     <div className="flex flex-col gap-2">
       <ChoiceSelect
         label="계좌"
+        optional
         choices={[
           { id: null, label: '없음' },
           ...openAccounts(account.accounts ?? []).map(item => ({

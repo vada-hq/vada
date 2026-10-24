@@ -17,7 +17,7 @@ type Props = {
   items: PurchaseLineItem[]
   decide: Decide
   onForbidden: () => void
-  // 기간이나 항목이 없을 때 예산 탭으로 데려간다. 갈 곳이 없는 화면(행사의 돈 탭)은 주지 않고 버튼이 없다.
+  // 기간이나 항목이 없을 때 예산 탭으로 데려간다. 갈 곳이 없는 화면(행사의 예산·정산 탭)은 주지 않고 버튼이 없다.
   onOpenBudget?: (() => void) | undefined
 }
 

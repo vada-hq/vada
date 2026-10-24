@@ -3,7 +3,9 @@ import { Plus } from 'lucide-react'
 import { CreateDepartmentSchema } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 
 type Props = {
   saving: boolean
@@ -16,33 +18,36 @@ type Props = {
   onEdit: () => void
 }
 
-// 부서 만들기 칸. 버튼은 서버와 같은 스키마로 판단한다.
+// 부서 만들기 칸. 버튼은 끄지 않고 누를 때 확인한다(계약 검사도 보내기 전에 한 번 더 한다).
 export function DepartmentCreateForm({ saving, error, name, onName, onCreate, onEdit }: Props) {
   const created = CreateDepartmentSchema.safeParse({ name })
+  const check = useFormCheck(() => ({ name: requiredText(name, '부서 이름을') }))
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (!check.attempt()) return
     if (created.success && !saving && (await onCreate(name))) onName('')
   }
   return (
     <div className="flex flex-col gap-2">
       <form
+        ref={check.formRef}
+        noValidate
         aria-label="부서 만들기"
-        className="flex gap-2"
+        className="flex items-start gap-2"
         onSubmit={event => {
           void submit(event)
         }}
       >
-        <Input
-          aria-label="새 부서 이름"
-          placeholder="새 부서 이름"
-          value={name}
-          aria-invalid={error ? true : undefined}
-          onChange={event => {
-            onName(event.target.value)
-            onEdit()
-          }}
-        />
-        <Button type="submit" variant="outline" disabled={!created.success || saving}>
+        <Field label="새 부서 이름" error={check.errors.name} className="flex-1">
+          <Input
+            value={name}
+            onChange={event => {
+              onName(event.target.value)
+              onEdit()
+            }}
+          />
+        </Field>
+        <Button type="submit" variant="outline" className="mt-7" disabled={saving}>
           <Plus />
           부서 만들기
         </Button>

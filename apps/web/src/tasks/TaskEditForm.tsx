@@ -1,10 +1,10 @@
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { UpdateTaskSchema, type TaskDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { MissingHint } from '@/components/ui/field'
+import { useFormCheck } from '@/lib/use-form-check'
 import { useEvents } from '../events/useEvents'
-import { fieldsOf, fieldsRequest, missingTaskFields } from './task-fields'
+import { fieldsOf, fieldsRequest, taskErrors } from './task-fields'
 import { eventChoices } from './task-form-options'
 import { ChoiceSelect } from './ChoiceSelect'
 import { TaskFields } from './TaskFields'
@@ -23,11 +23,11 @@ type Props = {
   onCancel: () => void
 }
 
-// 제목, 내용, 마감, 행사 고치기. 저장 버튼은 계약의 safeParse로 켠다.
+// 제목, 내용, 마감, 행사 고치기. 저장 버튼은 끄지 않고 누를 때 확인한다.
 export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ...rest }: Props) {
   const [values, setValues] = useState(fieldsOf(task))
   const [eventId, setEventId] = useState(task.event?.id ?? null)
-  const hintId = useId()
+  const check = useFormCheck(() => taskErrors(values))
   const events = useEvents(councilId, onForbidden)
   const ready = events.state.kind === 'ready'
   const list = events.state.kind === 'ready' ? events.state.data.events : []
@@ -36,16 +36,19 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
   const valid = UpdateTaskSchema.safeParse(request).success
   return (
     <form
+      ref={check.formRef}
+      noValidate
       aria-label="업무 고치기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        if (valid && !saving) void rest.onSave(request)
+        if (check.attempt() && valid && !saving) void rest.onSave(request)
       }}
     >
-      <TaskFields values={values} disabled={saving} onChange={setValues} />
+      <TaskFields values={values} disabled={saving} onChange={setValues} errors={check.errors} />
       <ChoiceSelect
         label="행사"
+        optional
         choices={eventChoices(list, task.event)}
         value={eventId}
         disabled={saving || !ready}
@@ -53,11 +56,10 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
       />
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       <div className="flex justify-end gap-2">
-        <MissingHint id={hintId} missing={missingTaskFields(values)} blocked={!valid} />
         <Button type="button" variant="outline" disabled={saving} onClick={rest.onCancel}>
           취소
         </Button>
-        <Button type="submit" aria-describedby={hintId} disabled={!valid || saving}>
+        <Button type="submit" disabled={saving}>
           저장
         </Button>
       </div>

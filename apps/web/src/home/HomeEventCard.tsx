@@ -11,7 +11,7 @@ type Props = {
   onOpen: (eventId: string, tab?: 'money') => void
 }
 
-// 학생회 부분의 행사 카드. 눌러서 그 행사로 간다(정산 수가 있으면 '돈' 탭).
+// 학생회 부분의 행사 카드. 눌러서 그 행사로 간다(정산 수가 있으면 '예산·정산' 탭).
 export default function HomeEventCard({ card, onOpen }: Props) {
   const { event, tasks, settlement } = card
   return (

@@ -11,15 +11,15 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { emptyIncome, incomeOf, receivedRange, type IncomeValues } from './income-form'
 import type { IncomeDialogHandlers } from './income-requests'
@@ -48,13 +48,30 @@ type FieldsProps = {
   values: IncomeValues
   disabled: boolean
   onChange: (values: IncomeValues) => void
+  errors: FieldErrors
 }
 
-function SourceAndAmount({ values, disabled, onChange }: FieldsProps) {
+const DIGITS = /^[0-9]+$/
+
+// 금액은 1 이상의 정수, 받은 날은 그 회계 기간 안이고 오늘 뒤가 아니다(계약과 서버가 같은 규칙으로 막는다).
+function incomeErrors(values: IncomeValues, range: { min: string; max: string }) {
+  const amount = values.amount.trim()
+  return {
+    amount:
+      requiredText(amount, '금액을') ??
+      (DIGITS.test(amount) && Number(amount) > 0 ? undefined : '1 이상의 숫자를 입력해 주세요'),
+    receivedOn:
+      requiredText(values.receivedOn, '받은 날을') ??
+      (values.receivedOn < range.min || values.receivedOn > range.max
+        ? `${range.min}부터 ${range.max} 사이의 날짜를 입력해 주세요`
+        : undefined),
+  }
+}
+
+function SourceAndAmount({ values, disabled, onChange, errors }: FieldsProps) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        출처
+      <Field label="출처" required>
         <NativeSelect
           value={values.source}
           disabled={disabled}
@@ -68,16 +85,15 @@ function SourceAndAmount({ values, disabled, onChange }: FieldsProps) {
             </option>
           ))}
         </NativeSelect>
-      </Label>
-      <Label className="flex flex-col gap-2">
-        금액(원)
+      </Field>
+      <Field label="금액(원)" required error={errors.amount}>
         <Input
           inputMode="numeric"
           value={values.amount}
           disabled={disabled}
           onChange={event => onChange({ ...values, amount: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
@@ -87,11 +103,11 @@ function DateAndNote({
   disabled,
   range,
   onChange,
+  errors,
 }: FieldsProps & { range: { min: string; max: string } }) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        받은 날
+      <Field label="받은 날" required error={errors.receivedOn}>
         <Input
           type="date"
           {...range}
@@ -99,15 +115,14 @@ function DateAndNote({
           disabled={disabled}
           onChange={event => onChange({ ...values, receivedOn: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        내용(선택)
+      </Field>
+      <Field label="내용" optional>
         <Input
           value={values.description}
           disabled={disabled}
           onChange={event => onChange({ ...values, description: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
@@ -121,13 +136,11 @@ function FormFooter({
   notStarted,
   problem,
   saving,
-  canSubmit,
   onClose,
 }: {
   notStarted: boolean
   problem: string | null
   saving: boolean
-  canSubmit: boolean
   onClose: () => void
 }) {
   return (
@@ -138,7 +151,7 @@ function FormFooter({
         <Button type="button" variant="outline" disabled={saving} onClick={onClose}>
           닫기
         </Button>
-        <Button type="submit" disabled={!canSubmit || saving}>
+        <Button type="submit" disabled={saving}>
           적기
         </Button>
       </DialogFooter>
@@ -156,15 +169,17 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
     incomeOf({ ...values, accountId: account.pick.id }),
     { ...props, setSaving },
   )
-  const inRange = values.receivedOn >= range.min && values.receivedOn <= range.max
-  const shared = { values, disabled: saving, onChange: setValues }
+  const check = useFormCheck(() => incomeErrors(values, range))
+  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
   return (
     <form
+      ref={check.formRef}
+      noValidate
       aria-label="수입 적기"
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        void create.submit()
+        if (check.attempt()) void create.submit()
       }}
     >
       <SourceAndAmount {...shared} />
@@ -187,7 +202,6 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
         notStarted={range.min > range.max}
         problem={create.problem}
         saving={saving}
-        canSubmit={create.valid && inRange}
         onClose={props.onClose}
       />
     </form>
@@ -203,12 +217,9 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
         if (!open && !saving) props.onClose()
       }}
     >
-      <DialogContent aria-describedby="income-create-description">
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>수입 적기</DialogTitle>
-          <DialogDescription id="income-create-description">
-            {props.period.name}에 받은 수입이에요. 적은 수입은 고칠 수 없고 취소하고 다시 적어요.
-          </DialogDescription>
+          <DialogTitle>{`수입 적기 · ${props.period.name}`}</DialogTitle>
         </DialogHeader>
         <CreateForm {...props} saving={saving} setSaving={setSaving} />
       </DialogContent>

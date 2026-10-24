@@ -49,8 +49,6 @@ export function useCouncilSettings(
     ...drafts,
     saving,
     message,
-    councilValid: councilParsed.success,
-    cohortValid: cohortParsed.success,
     save,
   }
 }

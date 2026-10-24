@@ -29,6 +29,7 @@ export function EventField({
   return (
     <ChoiceSelect
       label="행사"
+      optional
       choices={eventChoices(open, current)}
       value={value}
       disabled={disabled || locked || !ready}

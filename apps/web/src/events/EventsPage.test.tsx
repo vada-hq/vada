@@ -11,6 +11,8 @@ import {
 } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { settlementOf } from '@/test-support/settlement-fixtures'
+import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { settle } from '@/test-support/settle'
 import { EVENT_ERRORS, EVENT_LOST } from '@/lib/messages'
 import EventsPage from './EventsPage'
@@ -22,6 +24,19 @@ afterEach(() => {
 })
 
 const BASE = '/api/organizations/c1/events'
+const OPEN_TASKS = `/api/organizations/c1/tasks?view=all&status=open&event=${EVENT_ID}`
+const openTask = (id: string, extra: Record<string, unknown> = {}) => ({
+  id,
+  title: '현수막 주문',
+  status: 'todo',
+  dueDate: null,
+  overdue: false,
+  department: null,
+  event: { id: EVENT_ID, name: '신입생 환영회' },
+  assignee: null,
+  actions: ['task.status'],
+  ...extra,
+})
 
 function setup(
   options: { permissions?: string[]; initialEventId?: string; initialTab?: EventTab } = {},
@@ -46,6 +61,14 @@ function setup(
   )
   // 업무 탭의 업무 만들기가 운영진을 읽는다.
   api.on('GET', '/api/organizations/c1/members', () => json(uuidTeam()))
+  // 개요가 같이 읽는 세 탭의 요약. 시험마다 바꿔 끼운다.
+  api.on('GET', OPEN_TASKS, () => json({ tasks: [], truncated: false }))
+  api.on('GET', `${BASE}/${EVENT_ID}/registration-forms`, () =>
+    json({ forms: [], truncated: false, actions: [] }),
+  )
+  api.on('GET', `${BASE}/${EVENT_ID}/settlement`, () =>
+    json(settlementOf({ remaining: [], settled: true })),
+  )
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
   const view = councilView('c1', { memberId: MEMBER.m1 })
   if (options.permissions) view.permissions = options.permissions as typeof view.permissions
@@ -62,7 +85,7 @@ function setup(
 
 test('홈에서 연 행사는 정한 탭으로 시작하고, 목록에서 연 다른 행사는 개요로 시작한다', async () => {
   setup({ initialEventId: 'e1', initialTab: 'money' })
-  const money = await screen.findByRole('tab', { name: '돈' })
+  const money = await screen.findByRole('tab', { name: '예산·정산' })
   expect(money.getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
@@ -70,9 +93,9 @@ test('홈에서 연 행사는 정한 탭으로 시작하고, 목록에서 연 �
   expect(overview.getAttribute('aria-selected')).toBe('true')
 })
 
-test('홈에서 돈 탭으로 연 행사를 닫고 목록에서 다시 열면 개요로 열린다', async () => {
+test('홈에서 예산·정산 탭으로 연 행사를 닫고 목록에서 다시 열면 개요로 열린다', async () => {
   setup({ initialEventId: EVENT_ID, initialTab: 'money' })
-  await screen.findByRole('tab', { name: '돈' })
+  await screen.findByRole('tab', { name: '예산·정산' })
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   const overview = await screen.findByRole('tab', { name: '개요' })
@@ -168,15 +191,27 @@ test('만들다 권한을 잃으면(403) 학생회를 다시 읽게 하고 이�
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
 })
 
-test('행사를 열면 개요에 칸과 이력이 보이고, 버튼은 actions대로만 보인다', async () => {
+test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 보이고 이력은 없으며, 버튼은 actions대로만 보인다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', `${BASE}/${EVENT_ID}/registration-forms`, () =>
+    json({
+      forms: [staffForm({ applicantCount: 42, attendedCount: 5, capacity: 60 })],
+      truncated: false,
+      actions: [],
+    }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  await screen.findByText(/끝나지 않은 업무 2개 · 전체 3개/)
+  const tasks = await screen.findByRole('region', { name: '업무' })
+  expect(within(tasks).getByText('1/3')).toBeTruthy()
+  expect(within(tasks).getByRole('progressbar', { name: '끝난 업무' })).toHaveProperty('value', 1)
+  expect(await screen.findByText('42명')).toBeTruthy()
+  expect(screen.getByText('정원 60명 · 출석 5명')).toBeTruthy()
+  expect(await screen.findByText('36,000원')).toBeTruthy()
   expect(screen.getByText('대강당')).toBeTruthy()
-  expect(screen.getByText(/김회장 · 10월 20일 14:03 · 만듦/)).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '이력' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '챙길 것' })).toBeNull()
   expect(screen.queryByText(/책임자/)).toBeNull()
-  expect(screen.queryByRole('button', { name: '책임자 바꾸기' })).toBeNull()
   expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
 })
 
@@ -215,9 +250,74 @@ test('빈 일시·장소는 고칠 수 있을 때 [넣기] 버튼이고, 누르�
   expect(document.activeElement).toBe(within(dialog).getByLabelText('장소'))
   fireEvent.keyDown(dialog, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  fireEvent.click(screen.getByRole('button', { name: '일시 넣기' }))
+  // 머리의 [일시 넣기]. 준비 단계에도 같은 링크가 있다.
+  fireEvent.click(screen.getAllByRole('button', { name: '일시 넣기' })[0]!)
   const again = await screen.findByRole('dialog', { name: '행사 고치기' })
   expect(document.activeElement).toBe(within(again).getByLabelText('시작'))
+})
+
+test('챙길 것은 지난 업무와 담당자 없는 업무를 보이고, [업무 보기]는 업무 탭으로 옮긴다', async () => {
+  const { api } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', OPEN_TASKS, () =>
+    json({
+      tasks: [
+        openTask('t1', { overdue: true, dueDate: '2026-10-20' }),
+        openTask('t2', { title: '의자 빌리기' }),
+      ],
+      truncated: false,
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const attention = await screen.findByRole('region', { name: '챙길 것' })
+  expect(within(attention).getByText('마감이 지난 업무')).toBeTruthy()
+  expect(within(attention).getByText('현수막 주문 · 의자 빌리기')).toBeTruthy()
+  fireEvent.click(within(attention).getAllByRole('button', { name: '업무 보기' })[0]!)
+  expect(screen.getByRole('tab', { name: '업무' }).getAttribute('aria-selected')).toBe('true')
+  await settle()
+})
+
+test('다음 업무의 제목을 누르면 업무 탭에서 그 업무가 열린다', async () => {
+  const { api } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', OPEN_TASKS, () => json({ tasks: [openTask('t1')], truncated: false }))
+  api.on('GET', '/api/organizations/c1/tasks/t1', () =>
+    json({ task: taskDetail({ event: { id: EVENT_ID, name: '신입생 환영회' } }) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const next = await screen.findByRole('region', { name: '다음 업무' })
+  fireEvent.click(await within(next).findByRole('button', { name: '현수막 주문' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
+  // 열린 대화상자 밖은 화면 낭독기에서 숨으므로 숨은 것까지 찾는다.
+  const tab = screen.getByRole('tab', { name: '업무', hidden: true })
+  expect(tab.getAttribute('aria-selected')).toBe('true')
+})
+
+test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 단계를 보이고, [업무 만들기]는 업무 탭에서 만들기를 연다', async () => {
+  const { api } = setup()
+  const blank = eventDetail(
+    { startsAt: null, endsAt: null, place: null, status: 'tbd', tasks: { open: 0, total: 0 } },
+    ['event.update'],
+  )
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: blank }))
+  api.on('GET', `${BASE}/${EVENT_ID}/settlement`, () =>
+    json(
+      settlementOf({
+        budget: { expense: 0, income: 0, items: [] },
+        actual: { expense: 0, fee: 0, income: 0, depositCount: 0, refundPendingCount: 0 },
+        remaining: [],
+      }),
+    ),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const steps = await screen.findByRole('region', { name: '준비 시작하기' })
+  expect(within(steps).getByText('4단계 중 0단계 끝남')).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '업무' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '다음 업무' })).toBeNull()
+  expect(within(steps).queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
+  fireEvent.click(within(steps).getByRole('button', { name: '업무 만들기' }))
+  expect(await screen.findByRole('dialog', { name: '업무 만들기' })).toBeTruthy()
+  await settle()
 })
 
 test('고칠 수 없으면 빈 칸은 글자로만 보인다', async () => {

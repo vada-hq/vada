@@ -6,9 +6,10 @@ import {
   type AccountItem,
   type AccountType,
 } from '@vada/contracts'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import {
   ACCOUNT_TYPE_LABEL,
   emptyAccount,
@@ -30,32 +31,42 @@ type TextKey = 'name' | 'bank' | 'accountNumber' | 'holder'
 
 function TextField({
   label,
-  hint,
   field,
   values,
   disabled,
+  errors,
   onChange,
 }: {
   label: string
-  hint?: string
   field: TextKey
   values: AccountValues
   disabled: boolean
+  errors: FieldErrors
   onChange: (values: AccountValues) => void
 }) {
   return (
-    <Label className="flex flex-col gap-2">
-      {label}
+    <Field label={label} required error={errors[field]}>
       <Input
         value={values[field]}
         disabled={disabled}
         inputMode={field === 'accountNumber' ? 'tel' : undefined}
-        placeholder={hint}
         onChange={event => onChange({ ...values, [field]: event.target.value })}
       />
-    </Label>
+    </Field>
   )
 }
+
+const ACCOUNT_NUMBER = /^[0-9-]*[0-9][0-9-]*$/
+
+// 네 칸 모두 필수다. 계좌번호는 통장에 적힌 대로 숫자와 '-'만 받는다(계약과 같은 규칙).
+const accountErrors = (values: AccountValues) => ({
+  name: requiredText(values.name, '이름을'),
+  bank: requiredText(values.bank, '은행을'),
+  accountNumber:
+    requiredText(values.accountNumber, '계좌번호를') ??
+    (ACCOUNT_NUMBER.test(values.accountNumber.trim()) ? undefined : '숫자와 -만 입력해 주세요'),
+  holder: requiredText(values.holder, '예금주를'),
+})
 
 // 계좌 더하기와 고치기. 고치기도 칸을 모두 보낸다. 계좌번호는 통장에 적힌 대로 숫자와 '-'만 받는다.
 export function AccountFormDialog({ councilId, account, onClose, ...handlers }: Props) {
@@ -67,24 +78,23 @@ export function AccountFormDialog({ councilId, account, onClose, ...handlers }: 
     account ? UpdateAccountSchema : CreateAccountSchema,
     { ...handlers, setSaving },
   )
-  const shared = { values, disabled: saving, onChange: setValues }
+  const check = useFormCheck(() => accountErrors(values))
+  const shared = { values, disabled: saving, onChange: setValues, errors: check.errors }
   return (
     <BudgetFormDialog
       title={account ? '계좌 고치기' : '계좌 더하기'}
-      description="통장에 적힌 대로 적어요. 지출을 적을 때 돈이 나간 계좌로 고를 수 있어요."
       submitLabel={account ? '고치기' : '더하기'}
       saving={saving}
-      valid={change.valid}
+      check={check}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
     >
-      <TextField {...shared} label="이름" field="name" hint="예: 학생회비 통장" />
+      <TextField {...shared} label="이름" field="name" />
       <TextField {...shared} label="은행" field="bank" />
-      <TextField {...shared} label="계좌번호" field="accountNumber" hint="숫자와 -만" />
+      <TextField {...shared} label="계좌번호" field="accountNumber" />
       <TextField {...shared} label="예금주" field="holder" />
-      <Label className="flex flex-col gap-2">
-        종류
+      <Field label="종류" required>
         <NativeSelect
           value={values.type}
           disabled={saving}
@@ -96,7 +106,7 @@ export function AccountFormDialog({ councilId, account, onClose, ...handlers }: 
             </option>
           ))}
         </NativeSelect>
-      </Label>
+      </Field>
     </BudgetFormDialog>
   )
 }

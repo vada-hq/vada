@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { statusOf, type BudgetResponse, type TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import type { FieldErrors } from '@/lib/use-form-check'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
@@ -18,10 +19,17 @@ type Props = {
   disabled: boolean
   onChange: (values: ExpenseValues) => void
   onForbidden: () => void
+  errors: FieldErrors
 }
 
 // 예산 항목 고르기. 지금 회계 기간의 지출 항목이고, 고르지 않을 수도 있다. 기간이 아직 없으면 고를 항목이 없다.
-function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Omit<Props, 'team'>) {
+function BudgetSelect({
+  councilId,
+  values,
+  disabled,
+  onChange,
+  onForbidden,
+}: Omit<Props, 'team' | 'errors'>) {
   const budget = usePolledRead<BudgetResponse>(budgetPath(councilId), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
@@ -38,6 +46,7 @@ function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Om
   return (
     <ChoiceSelect
       label="예산 항목"
+      optional
       choices={[
         { id: null, label: '고르지 않음' },
         ...items.map(item => ({
@@ -53,22 +62,22 @@ function BudgetSelect({ councilId, values, disabled, onChange, onForbidden }: Om
 }
 
 // 요청 없이 적는 지출: 금액, 예산 항목, 부탁한 사람(요청 없는 지출만 고른다).
-export function ExpenseDirectFields({ team, ...props }: Props) {
+export function ExpenseDirectFields({ team, errors, ...props }: Props) {
   const { values, disabled, onChange } = props
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        금액(원)
+      <Field label="금액(원)" required error={errors.amount}>
         <Input
           inputMode="numeric"
           value={values.amount}
           disabled={disabled}
           onChange={event => onChange({ ...values, amount: event.target.value })}
         />
-      </Label>
+      </Field>
       <BudgetSelect {...props} />
       <ChoiceSelect
         label="부탁한 사람"
+        optional
         choices={[
           { id: null, label: '없음' },
           ...team.members.map(member => ({ id: member.id, label: member.name })),

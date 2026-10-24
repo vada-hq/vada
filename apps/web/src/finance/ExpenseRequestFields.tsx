@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
+import type { FieldErrors } from '@/lib/use-form-check'
 import { usePolledRead, type PolledState } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { purchasePath, purchasesPath } from './finance-api'
@@ -132,7 +133,7 @@ function ItemPicker({
 }
 
 // 요청한 품목 결제: 요청을 고르고, 그 요청의 승인된 품목을 고른다. 요청을 바꾸면 고른 품목은 비운다.
-export function ExpenseRequestFields(props: Common) {
+export function ExpenseRequestFields({ errors, ...props }: Common & { errors: FieldErrors }) {
   const { councilId, values, disabled, onChange, onForbidden } = props
   const list = usePolledRead<PurchaseRequestsResponse>(purchasesPath(councilId, 'all'), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
@@ -141,8 +142,10 @@ export function ExpenseRequestFields(props: Common) {
     <>
       <ChoiceSelect
         label="결제할 요청"
+        required
+        error={errors.requestId}
         choices={[
-          { id: null, label: '요청을 고르세요' },
+          { id: null, label: '요청 선택' },
           ...payable(requests).map(request => ({ id: request.id, label: request.title })),
         ]}
         value={values.requestId}
@@ -150,6 +153,7 @@ export function ExpenseRequestFields(props: Common) {
         onChange={requestId => onChange(withRequest(values, requestId, requests))}
       />
       {values.requestId && <ItemPicker {...props} requestId={values.requestId} />}
+      {errors.lines && <p className="text-xs text-red-600">{errors.lines}</p>}
     </>
   ))
 }

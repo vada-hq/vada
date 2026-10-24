@@ -1,8 +1,9 @@
 import type { ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Field as LabeledField } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import type { FieldErrors } from '@/lib/use-form-check'
 import type { ItemValues } from './request-form'
 
 type Props = {
@@ -13,19 +14,27 @@ type Props = {
   removable: boolean
   onChange: (values: ItemValues) => void
   onRemove: () => void
+  // 이 줄의 문제(name, quantity)
+  errors: FieldErrors
 }
 
 // 라벨 안의 입력칸. 줄마다 같은 이름이 되풀이되므로 보조 기술에는 '품목 1 이름'처럼 줄 번호를 붙여 알린다.
 function Field({
   label,
   item,
+  required = false,
+  error,
   ...props
-}: { label: string; item: string } & ComponentProps<'input'>) {
+}: {
+  label: string
+  item: string
+  required?: boolean
+  error?: string | undefined
+} & ComponentProps<'input'>) {
   return (
-    <Label className="flex flex-col gap-2">
-      {label}
+    <LabeledField label={label} required={required} optional={!required} error={error}>
       <Input aria-label={`${item} ${label}`} {...props} />
-    </Label>
+    </LabeledField>
   )
 }
 
@@ -37,6 +46,7 @@ export function RequestItemFields({
   removable,
   onChange,
   onRemove,
+  errors,
 }: Props) {
   const item = `품목 ${index + 1}`
   const text = (field: 'name' | 'link' | 'options') => ({
@@ -48,9 +58,11 @@ export function RequestItemFields({
   })
   return (
     <Card role="group" aria-label={item} className="flex flex-col gap-3 p-3">
-      <Field label="이름" {...text('name')} />
+      <Field label="이름" required error={errors.name} {...text('name')} />
       <Field
         label="수량"
+        required
+        error={errors.quantity}
         type="number"
         inputMode="numeric"
         min={1}

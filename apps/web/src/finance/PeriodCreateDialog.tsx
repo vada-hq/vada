@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { CreateFiscalPeriodSchema, type BudgetResponse } from '@vada/contracts'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 import { periodDefaults } from './budget-form'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { fiscalPeriodsPath } from './finance-api'
@@ -22,43 +23,49 @@ export function PeriodCreateDialog({ councilId, suggested, onClose, ...handlers 
     setSaving,
   })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
+  // 세 칸 모두 필수이고 끝일은 시작일보다 뒤다(계약과 같은 규칙).
+  const check = useFormCheck(() => ({
+    name: requiredText(values.name, '이름을'),
+    startsOn: requiredText(values.startsOn, '시작일을'),
+    endsOn:
+      requiredText(values.endsOn, '끝일을') ??
+      (values.startsOn !== '' && values.endsOn <= values.startsOn
+        ? '시작일보다 뒤의 날짜를 입력해 주세요'
+        : undefined),
+  }))
   return (
     <BudgetFormDialog
       title="회계 기간 만들기"
-      description="예산은 회계 기간과 함께 생겨요. 결재는 오늘이 든 기간의 예산 항목에서 골라요."
       submitLabel="만들기"
       saving={saving}
-      valid={change.valid}
+      check={check}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
     >
-      <Label className="flex flex-col gap-2">
-        이름
+      <Field label="이름" required error={check.errors.name}>
         <Input
           value={values.name}
           disabled={saving}
           onChange={event => set({ name: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        시작일
+      </Field>
+      <Field label="시작일" required error={check.errors.startsOn}>
         <Input
           type="date"
           value={values.startsOn}
           disabled={saving}
           onChange={event => set({ startsOn: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        끝일
+      </Field>
+      <Field label="끝일" required error={check.errors.endsOn}>
         <Input
           type="date"
           value={values.endsOn}
           disabled={saving}
           onChange={event => set({ endsOn: event.target.value })}
         />
-      </Label>
+      </Field>
     </BudgetFormDialog>
   )
 }

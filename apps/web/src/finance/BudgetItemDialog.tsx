@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { CreateBudgetItemSchema } from '@vada/contracts'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { budgetItemOf, emptyBudgetItem, type BudgetItemValues } from './budget-form'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { EventField } from './EventField'
@@ -22,31 +23,40 @@ type FieldsProps = {
   saving: boolean
   onChange: (patch: Partial<BudgetItemValues>) => void
   onForbidden: () => void
+  errors: FieldErrors
 }
 
+const DIGITS = /^[0-9]+$/
+
+// 목적과 금액은 필수다. 금액은 0 이상의 정수(계약과 같은 규칙).
+const budgetItemErrors = (values: BudgetItemValues) => ({
+  purpose: requiredText(values.purpose, '목적을'),
+  amount:
+    requiredText(values.amount, '금액을') ??
+    (DIGITS.test(values.amount.trim()) ? undefined : '숫자만 입력해 주세요'),
+})
+
 // 목적, 금액, 종류(지출이 기본), 행사(선택).
-function BudgetItemFields({ councilId, values, saving, onChange, onForbidden }: FieldsProps) {
+function BudgetItemFields(props: FieldsProps) {
+  const { councilId, values, saving, onChange, onForbidden, errors } = props
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        목적
+      <Field label="목적" required error={errors.purpose}>
         <Input
           value={values.purpose}
           disabled={saving}
           onChange={event => onChange({ purpose: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        금액(원)
+      </Field>
+      <Field label="금액(원)" required error={errors.amount}>
         <Input
           inputMode="numeric"
           value={values.amount}
           disabled={saving}
           onChange={event => onChange({ amount: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        종류
+      </Field>
+      <Field label="종류" required>
         <NativeSelect
           value={values.type}
           disabled={saving}
@@ -57,7 +67,7 @@ function BudgetItemFields({ councilId, values, saving, onChange, onForbidden }: 
           <option value="expense">지출</option>
           <option value="income">수입</option>
         </NativeSelect>
-      </Label>
+      </Field>
       <EventField
         councilId={councilId}
         value={values.eventId}
@@ -79,13 +89,13 @@ export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: P
     CreateBudgetItemSchema,
     { ...handlers, setSaving },
   )
+  const check = useFormCheck(() => budgetItemErrors(values))
   return (
     <BudgetFormDialog
       title="예산 항목 더하기"
-      description="지금 회계 기간의 예산 항목이에요. 지출 항목은 구매 요청을 결재할 때 이 목록에서 골라요. 종류와 행사는 더한 뒤에 바꿀 수 없어요."
       submitLabel="더하기"
       saving={saving}
-      valid={change.valid}
+      check={check}
       problem={change.problem}
       onSubmit={() => void change.submit()}
       onClose={onClose}
@@ -96,6 +106,7 @@ export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: P
         saving={saving}
         onChange={patch => setValues({ ...values, ...patch })}
         onForbidden={handlers.onForbidden}
+        errors={check.errors}
       />
     </BudgetFormDialog>
   )

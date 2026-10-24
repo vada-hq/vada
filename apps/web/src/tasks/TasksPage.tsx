@@ -30,6 +30,8 @@ type Props = {
   view: CouncilView
   // 알림으로 연 업무. 있으면 그 업무의 상세를 열고 시작한다.
   initialTaskId?: string | undefined
+  // 만들기가 열린 채 시작한다(행사 개요의 준비 단계 '업무 만들기').
+  initialCreate?: boolean | undefined
   // 행사의 업무 탭이면 그 행사의 업무만 보이고, 만들기는 그 행사가 골라진 채 열린다.
   eventId?: string | undefined
   // 업무의 행사 이름을 눌렀다(행사 화면으로 간다). 행사의 업무 탭에서는 주지 않는다.
@@ -133,7 +135,7 @@ function CreateRow({ lost, onCreate }: { lost: string | null; onCreate: () => vo
 export default function TasksPage(props: Props) {
   const [view, setView] = useState<TaskView>(props.eventId ? 'all' : 'mine')
   const [filter, setFilter] = useState<TaskFilter>('open')
-  const dialogs = useRecordDialogs(props.initialTaskId)
+  const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
   const councilId = props.view.council.id
   const list = useTasks(councilId, { view, filter, eventId: props.eventId }, props.onForbidden)
   const changed = () => {

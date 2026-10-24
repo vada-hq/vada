@@ -1,120 +1,99 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { Plus } from 'lucide-react'
 import type { EventDetail } from '@vada/contracts'
-import { Fact } from '@/components/Fact'
-import { PERMISSION_CHANGED } from '@/lib/messages'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from './event-view'
-import { EventEditDialog } from './EventEditDialog'
+import type { EventTab } from './event-view'
 import type { EventFieldFocus } from './EventFields'
-import { EventHistory } from './EventHistory'
+import { OverviewAttention } from './OverviewAttention'
+import { OverviewNumbers } from './OverviewNumbers'
+import { OverviewSetup } from './OverviewSetup'
+import { OverviewTasks } from './OverviewTasks'
+import { attentionOf, isBlank, setupSteps } from './overview-view'
 import type { EventDialogHandlers } from './useEventSubmit'
+import { useEventOverview } from './useEventOverview'
 
 type Props = EventDialogHandlers & {
   councilId: string
   event: EventDetail
-  // 내 변경이 돌려준 행사. 부모가 화면의 값으로 놓고 목록을 다시 읽는다.
-  onChanged: (event: EventDetail) => void
+  // 다른 탭으로 옮긴다(카드의 '업무 보기', '예산·정산 보기').
+  onTab: (tab: EventTab) => void
+  // 업무 하나를 눌렀다. 업무 탭에서 그 업무를 연다.
+  onOpenTask: (taskId: string) => void
+  // 준비 단계의 '업무 만들기'. 업무 탭에서 만들기를 연 채 시작한다.
+  onCreateTask: () => void
+  // 준비 단계의 '일시 넣기'. 머리의 고치기를 그 칸에 포커스를 두고 연다.
+  onEdit: (focus: EventFieldFocus) => void
 }
 
-// 빈 칸. 고칠 수 있으면 그 칸을 채우는 버튼이고, 아니면 글자다. 만들기가 이름만 받아 빈 칸이 흔하다.
-function EmptyFact({
-  text,
-  fill,
-  onFill,
-}: {
-  text: string
-  fill: string | null
-  onFill: () => void
-}): ReactNode {
-  if (fill === null) return text
-  return (
-    <Button variant="link" size="sm" className="h-auto p-0" onClick={onFill}>
-      <Plus aria-hidden />
-      {fill}
-    </Button>
-  )
+type Data = ReturnType<typeof useEventOverview>
+
+// 준비 단계마다 그 일을 바로 하는 길. 권한이 없으면 링크를 두지 않는다(DEC-38).
+function setupActions(event: EventDetail, data: Data, props: Props) {
+  const manageForms =
+    data.forms.kind === 'ready' && data.forms.data.actions.includes('registration.manage')
+  return {
+    ...(event.actions.includes('event.update') && {
+      when: {
+        label: event.startsAt === null ? '일시 넣기' : '장소 넣기',
+        run: () => props.onEdit(event.startsAt === null ? 'startsAt' : 'place'),
+      },
+    }),
+    tasks: { label: '업무 만들기', run: props.onCreateTask },
+    budget: { label: '예산·정산 보기', run: () => props.onTab('money') },
+    ...(manageForms && {
+      registration: { label: '신청 양식 만들기', run: () => props.onTab('registrations') },
+    }),
+  }
 }
 
-// 상태, 일시, 장소, 업무 수. 빈 일시·장소는 고칠 수 있으면 채우는 버튼이다.
-function OverviewFacts({
+// 업무·신청·돈을 다 읽었을 때만 준비 단계를 센다. 읽는 동안 단계가 깜빡이지 않게 한다.
+function setupOf(event: EventDetail, data: Data) {
+  if (data.forms.kind !== 'ready' || data.settlement.kind !== 'ready') return null
+  const forms = data.forms.data.forms
+  const { settlement } = data.settlement.data
+  return { steps: setupSteps(event, forms, settlement), blank: isBlank(event, forms, settlement) }
+}
+
+// 일이 시작된 행사의 수 카드와 다음 업무. 아무것도 없는 새 행사에는 그리지 않는다(빈 카드를 늘어놓지 않는다).
+function Progress({
   event,
-  canEdit,
-  onFill,
-}: {
-  event: EventDetail
-  canEdit: boolean
-  onFill: (field: EventFieldFocus) => void
-}) {
+  data,
+  onTab,
+  onOpenTask,
+}: Pick<Props, 'event' | 'onTab' | 'onOpenTask'> & { data: Data }) {
   return (
-    <dl className="flex flex-col gap-4">
-      <Fact label="상태">
-        <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
-      </Fact>
-      <Fact label="일시">
-        {event.startsAt === null ? (
-          <EmptyFact
-            text={whenLabel(event)}
-            fill={canEdit ? '일시 넣기' : null}
-            onFill={() => onFill('startsAt')}
-          />
-        ) : (
-          whenLabel(event)
-        )}
-      </Fact>
-      <Fact label="장소">
-        {event.place ?? (
-          <EmptyFact
-            text="장소 없음"
-            fill={canEdit ? '장소 넣기' : null}
-            onFill={() => onFill('place')}
-          />
-        )}
-      </Fact>
-      <Fact label="업무">
-        {event.tasks.total === 0
-          ? '업무 없음'
-          : `끝나지 않은 업무 ${event.tasks.open}개 · 전체 ${event.tasks.total}개`}
-      </Fact>
-    </dl>
+    <>
+      <OverviewNumbers
+        tasks={event.tasks}
+        forms={data.forms}
+        settlement={data.settlement}
+        onTab={onTab}
+      />
+      <OverviewTasks
+        tasks={data.tasks.kind === 'ready' ? data.tasks.tasks : null}
+        failed={data.tasks.kind === 'failed'}
+        onOpenTask={onOpenTask}
+        onOpenAll={() => onTab('tasks')}
+      />
+    </>
   )
 }
 
-// 개요 탭: 일시, 장소, 상태, 업무 수, 이력. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-export function EventOverview({ councilId, event, onChanged, ...handlers }: Props) {
-  const [dialog, setDialog] = useState<'edit' | null>(null)
-  const [focus, setFocus] = useState<EventFieldFocus | undefined>(undefined)
-  const canEdit = event.actions.includes('event.update')
-  const openEdit = (field?: EventFieldFocus) => {
-    setFocus(field)
-    setDialog('edit')
-  }
-  const done = (next: EventDetail) => {
-    setDialog(null)
-    onChanged(next)
-  }
-  // 열려 있는 동안 다시 읽은 actions에서 권한이 빠지면 닫고 이유를 보인다.
-  const allowed = dialog === null || canEdit
-  const { onLost } = handlers
-  useEffect(() => {
-    if (allowed) return
-    setDialog(null)
-    onLost(PERMISSION_CHANGED)
-  }, [allowed, onLost])
-  const shared = { councilId, event, onClose: () => setDialog(null), onDone: done, ...handlers }
+// 개요 탭: 이 행사가 어디까지 왔고 무엇이 막혔는지(navigation.md 요구 11 '행사의 일정과 담당 보기').
+// 챙길 것 → 준비 단계(새 행사) → 세 탭의 수 → 다음 업무 순이다(와이어프레임 Event Overview).
+// 아무것도 없는 새 행사는 빈 수 카드를 늘어놓지 않고 준비 단계만 보인다.
+export function EventOverview(props: Props) {
+  const { councilId, event, onTab, onOpenTask, onCreateTask: _c, onEdit: _e, ...handlers } = props
+  const data = useEventOverview(councilId, event.id, handlers)
+  const openTasks = data.tasks.kind === 'ready' ? data.tasks.tasks : []
+  const settlement = data.settlement.kind === 'ready' ? data.settlement.data.settlement : null
+  const setup = setupOf(event, data)
   return (
     <div className="flex flex-col gap-6">
-      <OverviewFacts event={event} canEdit={canEdit} onFill={openEdit} />
-      <div className="flex flex-wrap items-center gap-2">
-        {canEdit && (
-          <Button variant="outline" onClick={() => openEdit()}>
-            고치기
-          </Button>
-        )}
-      </div>
-      {dialog === 'edit' && <EventEditDialog {...shared} focus={focus} />}
-      <EventHistory history={event.history} />
+      <OverviewAttention items={attentionOf(event, openTasks, settlement)} onTab={onTab} />
+      {setup?.steps && (
+        <OverviewSetup steps={setup.steps} actions={setupActions(event, data, props)} />
+      )}
+      {!setup?.blank && (
+        <Progress event={event} data={data} onTab={onTab} onOpenTask={onOpenTask} />
+      )}
     </div>
   )
 }

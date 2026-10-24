@@ -18,7 +18,6 @@ export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'succes
 
 export type EventTab = 'overview' | 'tasks' | 'registrations' | 'money'
 
-export const NO_OWNER_LABEL = '책임자 없음'
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 // 한국 시각 'YYYY-MM-DDTHH:mm' → '10월 25일 (토) 14:00'. 요일은 날짜만으로 센다(시간대에 기대지 않는다).

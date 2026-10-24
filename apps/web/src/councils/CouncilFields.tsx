@@ -1,25 +1,25 @@
 import { COUNCIL_UNITS } from '@vada/contracts'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import type { FieldErrors } from '@/lib/use-form-check'
 import type { CreateCouncilDraft } from './useCreateCouncil'
 import { unitLabels } from './unit-labels'
 
 type Props = {
   form: CreateCouncilDraft
   set: (key: keyof CreateCouncilDraft) => (event: { target: { value: string } }) => void
+  errors: FieldErrors
 }
 
 // 학생회 만들기의 입력칸: 이름, 단위, 학교, 첫 기수의 이름과 임기.
-export default function CouncilFields({ form, set }: Props) {
+export default function CouncilFields({ form, set, errors }: Props) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        학생회 이름
-        <Input value={form.name} placeholder="예: 소프트웨어학부 학생회" onChange={set('name')} />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        단위
+      <Field label="학생회 이름" required error={errors.name}>
+        <Input value={form.name} onChange={set('name')} />
+      </Field>
+      <Field label="단위" required>
         <NativeSelect value={form.unit} onChange={set('unit')}>
           {COUNCIL_UNITS.map(unit => (
             <option key={unit} value={unit}>
@@ -27,28 +27,20 @@ export default function CouncilFields({ form, set }: Props) {
             </option>
           ))}
         </NativeSelect>
-      </Label>
-      <Label className="flex flex-col gap-2">
-        학교
-        <Input
-          value={form.schoolName}
-          placeholder="예: 한양대학교 ERICA"
-          onChange={set('schoolName')}
-        />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        기수 이름
+      </Field>
+      <Field label="학교" required error={errors.schoolName}>
+        <Input value={form.schoolName} onChange={set('schoolName')} />
+      </Field>
+      <Field label="기수 이름" required error={errors.cohortName}>
         <Input value={form.cohortName} onChange={set('cohortName')} />
-      </Label>
+      </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Label className="flex flex-col gap-2">
-          임기 시작
+        <Field label="임기 시작" required error={errors.startsOn}>
           <Input type="date" value={form.startsOn} onChange={set('startsOn')} />
-        </Label>
-        <Label className="flex flex-col gap-2">
-          임기 끝
+        </Field>
+        <Field label="임기 끝" required error={errors.endsOn}>
           <Input type="date" value={form.endsOn} onChange={set('endsOn')} />
-        </Label>
+        </Field>
       </div>
     </>
   )

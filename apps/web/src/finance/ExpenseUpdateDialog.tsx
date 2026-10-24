@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { useEvents } from '../events/useEvents'
@@ -55,16 +54,16 @@ function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: F
       : []
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        사유
+      <Field label="사유" optional>
         <Textarea
           value={state.reason}
           disabled={busy}
           onChange={e => on.onReason(e.target.value)}
         />
-      </Label>
+      </Field>
       <ChoiceSelect
         label="행사"
+        optional
         choices={eventChoices(open, expense.event)}
         value={state.eventId}
         disabled={busy || events.state.kind !== 'ready'}
@@ -77,7 +76,8 @@ function UpdateFields({ councilId, expense, busy, state, onForbidden, ...on }: F
   )
 }
 
-// 지출 고치기(재정부, 정산 전): 사유와 행사. 행사는 완료하지 않은 행사만 고른다. [저장]은 계약의 검사로 켠다.
+// 지출 고치기(재정부, 정산 전): 사유와 행사. 행사는 완료하지 않은 행사만 고른다.
+// [저장]은 끄지 않는다. 바꾼 것이 없으면 그냥 닫는다.
 export function ExpenseUpdateDialog({
   councilId,
   expense,
@@ -91,6 +91,10 @@ export function ExpenseUpdateDialog({
   const [eventId, setEventId] = useState(expense.event?.id ?? null)
   const body = changesOf(expense, reason, eventId)
   const valid = body !== null && UpdateExpenseSchema.safeParse(body).success
+  const save = () => {
+    if (body === null) return onClose()
+    if (valid) onConfirm(body)
+  }
   return (
     <Dialog
       open
@@ -98,12 +102,9 @@ export function ExpenseUpdateDialog({
         if (!next && !busy) onClose()
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>지출 고치기</DialogTitle>
-          <DialogDescription className="wrap-anywhere">
-            사유와 행사를 고쳐요. 행사가 완료되면 바꿀 수 없어요. 고친 내용은 이력에 남아요.
-          </DialogDescription>
         </DialogHeader>
         <UpdateFields
           councilId={councilId}
@@ -119,7 +120,7 @@ export function ExpenseUpdateDialog({
           <Button variant="outline" disabled={busy} onClick={onClose}>
             닫기
           </Button>
-          <Button disabled={!valid || busy} onClick={() => body && onConfirm(body)}>
+          <Button disabled={busy} onClick={save}>
             저장
           </Button>
         </DialogFooter>

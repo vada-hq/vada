@@ -33,6 +33,7 @@ export function IncomeItemSelect({ councilId, value, disabled, onChange, onForbi
   return (
     <ChoiceSelect
       label="수입 예산 항목"
+      optional
       choices={[
         { id: null, label: '고르지 않음' },
         ...items.map(item => ({

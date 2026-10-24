@@ -4,7 +4,6 @@ import {
   INVALID_LINES_MAX,
   type AddFeePaymentsResponse,
 } from '@vada/contracts'
-import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,9 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { feePaymentsPath } from './finance-api'
 import { useFeePaymentPost, type FeePaymentHandlers } from './useFeePaymentPost'
@@ -35,9 +35,9 @@ function Done({ result, onClose }: { result: AddFeePaymentsResponse; onClose: ()
     <Dialog open onOpenChange={open => !open && onClose()}>
       <DialogContent aria-describedby="fee-payment-done">
         <DialogHeader>
-          <DialogTitle>명단을 올렸어요</DialogTitle>
+          <DialogTitle>명단 올리기 완료</DialogTitle>
           <DialogDescription id="fee-payment-done">
-            {result.added}개를 더했고, 이미 있는 {result.skipped}개는 건너뛰었어요.
+            {`추가 ${result.added}개 · 이미 있음 ${result.skipped}개`}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -50,49 +50,56 @@ function Done({ result, onClose }: { result: AddFeePaymentsResponse; onClose: ()
 
 type Values = { paidFrom: string; paidUntil: string; students: string }
 
+// 세 칸 모두 필수이고 끝일은 시작일과 같거나 뒤다(계약과 같은 규칙).
+const uploadErrors = (values: Values) => ({
+  paidFrom: requiredText(values.paidFrom, '납부 시작일을'),
+  paidUntil:
+    requiredText(values.paidUntil, '납부 끝일을') ??
+    (values.paidFrom !== '' && values.paidUntil < values.paidFrom
+      ? '시작일과 같거나 뒤의 날짜를 입력해 주세요'
+      : undefined),
+  students: requiredText(values.students, '학번을'),
+})
+
 function UploadFields({
   values,
   saving,
+  errors,
   onChange,
 }: {
   values: Values
   saving: boolean
+  errors: FieldErrors
   onChange: (values: Values) => void
 }) {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Label className="flex flex-col gap-2">
-          납부 시작일
+        <Field label="납부 시작일" required error={errors.paidFrom}>
           <Input
             type="date"
             value={values.paidFrom}
             disabled={saving}
             onChange={event => onChange({ ...values, paidFrom: event.target.value })}
           />
-        </Label>
-        <Label className="flex flex-col gap-2">
-          납부 끝일
+        </Field>
+        <Field label="납부 끝일" required error={errors.paidUntil}>
           <Input
             type="date"
             value={values.paidUntil}
             disabled={saving}
             onChange={event => onChange({ ...values, paidUntil: event.target.value })}
           />
-        </Label>
+        </Field>
       </div>
-      <Label className="flex flex-col gap-2">
-        학번
+      <Field label="학번" required hint="줄바꿈이나 쉼표로 구분" error={errors.students}>
         <Textarea
           rows={8}
           value={values.students}
           disabled={saving}
           onChange={event => onChange({ ...values, students: event.target.value })}
         />
-      </Label>
-      <StateMessage kind="notice">
-        같은 학번과 시작일이 이미 있으면 건너뛰어요. 끝일은 시작일과 같거나 뒤여야 해요.
-      </StateMessage>
+      </Field>
     </>
   )
 }
@@ -108,19 +115,19 @@ export function FeePaymentUploadDialog({ councilId, onClose, ...handlers }: Prop
     AddFeePaymentsSchema,
     { ...handlers, setSaving, onDone: setResult },
   )
+  const check = useFormCheck(() => uploadErrors(values))
   if (result) return <Done result={result} onClose={() => onClose(true)} />
   return (
     <BudgetFormDialog
       title="납부자 명단 올리기"
-      description="학생회비를 낸 학번을 줄바꿈이나 쉼표로 나누어 붙여 넣어요. 신청할 때 이 명단에서 학번을 찾아 참가비가 정해져요."
       submitLabel="올리기"
       saving={saving}
-      valid={post.valid}
+      check={check}
       problem={post.lines.length > 0 ? linesText(post.lines) : post.problem}
       onSubmit={() => void post.submit()}
       onClose={() => onClose(false)}
     >
-      <UploadFields values={values} saving={saving} onChange={setValues} />
+      <UploadFields values={values} saving={saving} errors={check.errors} onChange={setValues} />
     </BudgetFormDialog>
   )
 }

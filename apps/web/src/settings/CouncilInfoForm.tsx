@@ -3,15 +3,15 @@ import { COUNCIL_UNITS, type CouncilUnit } from '@vada/contracts'
 import { unitLabels } from '../councils/unit-labels'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { titleFields, type CouncilDraft, type TitleKey } from './council-settings-form'
 
 type Props = {
   value: CouncilDraft
   canEdit: boolean
-  saveable: boolean
   saving: boolean
   busy: boolean
   note: ReactNode
@@ -24,21 +24,21 @@ type TitleProps = {
   titles: CouncilDraft['titles']
   canEdit: boolean
   onEdit: (key: TitleKey, value: string) => void
+  errors: FieldErrors
 }
-function TitleFields({ titles, canEdit, onEdit }: TitleProps) {
+function TitleFields({ titles, canEdit, onEdit, errors }: TitleProps) {
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
       <div className="grid grid-cols-2 gap-3">
         {titleFields.map(([key, label]) => (
-          <Label key={key} className="flex flex-col gap-1.5 text-gray-500">
-            {label}
+          <Field key={key} label={label} required={canEdit} error={errors[key]}>
             <Input
               value={titles[key]}
               readOnly={!canEdit}
               onChange={event => onEdit(key, event.target.value)}
             />
-          </Label>
+          </Field>
         ))}
       </div>
     </fieldset>
@@ -49,20 +49,19 @@ type BasicProps = {
   value: CouncilDraft
   canEdit: boolean
   onEdit: (patch: Partial<CouncilDraft>) => void
+  errors: FieldErrors
 }
-function BasicFields({ value, canEdit, onEdit }: BasicProps) {
+function BasicFields({ value, canEdit, onEdit, errors }: BasicProps) {
   return (
     <>
-      <Label className="flex flex-col gap-2">
-        학생회 이름
+      <Field label="학생회 이름" required={canEdit} error={errors.name}>
         <Input
           value={value.name}
           readOnly={!canEdit}
           onChange={event => onEdit({ name: event.target.value })}
         />
-      </Label>
-      <Label className="flex flex-col gap-2">
-        단위
+      </Field>
+      <Field label="단위" required={canEdit}>
         <NativeSelect
           value={value.unit}
           disabled={!canEdit}
@@ -74,40 +73,54 @@ function BasicFields({ value, canEdit, onEdit }: BasicProps) {
             </option>
           ))}
         </NativeSelect>
-      </Label>
-      <Label className="flex flex-col gap-2">
-        학교
+      </Field>
+      <Field label="학교" required={canEdit} error={errors.schoolName}>
         <Input
           value={value.schoolName}
           readOnly={!canEdit}
           onChange={event => onEdit({ schoolName: event.target.value })}
         />
-      </Label>
+      </Field>
     </>
   )
 }
 
-// 설정 > 학생회 정보 양식: 이름, 단위, 학교, 직급 표시 이름 4개.
-export default function CouncilInfoForm({
-  value,
-  canEdit,
-  saveable,
-  saving,
-  busy,
-  note,
-  onEdit,
-  onEditTitle,
-  onSubmit,
-}: Props) {
+// 모든 칸이 필수다(직급 표시 이름 넷 포함).
+const councilErrors = (value: CouncilDraft) => ({
+  name: requiredText(value.name, '학생회 이름을'),
+  schoolName: requiredText(value.schoolName, '학교를'),
+  ...Object.fromEntries(
+    titleFields.map(([key, label]) => [key, requiredText(value.titles[key], `${label} 표시를`)]),
+  ),
+})
+
+// 설정 > 학생회 정보 양식: 이름, 단위, 학교, 직급 표시 이름 4개. 저장은 누를 때 확인한다.
+export default function CouncilInfoForm(props: Props) {
+  const { value, canEdit, saving, busy, note, onEdit, onEditTitle, onSubmit } = props
+  const check = useFormCheck(() => councilErrors(value))
   return (
     <Card className="p-6">
-      <form aria-label="학생회 정보" className="flex flex-col gap-4" onSubmit={onSubmit}>
+      <form
+        ref={check.formRef}
+        noValidate
+        aria-label="학생회 정보"
+        className="flex flex-col gap-4"
+        onSubmit={event => {
+          event.preventDefault()
+          if (check.attempt()) onSubmit(event)
+        }}
+      >
         <h2 className="text-base font-semibold text-gray-900">학생회 정보</h2>
-        <BasicFields value={value} canEdit={canEdit} onEdit={onEdit} />
-        <TitleFields titles={value.titles} canEdit={canEdit} onEdit={onEditTitle} />
+        <BasicFields value={value} canEdit={canEdit} onEdit={onEdit} errors={check.errors} />
+        <TitleFields
+          titles={value.titles}
+          canEdit={canEdit}
+          onEdit={onEditTitle}
+          errors={check.errors}
+        />
         {note}
         {canEdit && (
-          <Button type="submit" className="self-start" disabled={!saveable || busy}>
+          <Button type="submit" className="self-start" disabled={busy}>
             {saving ? '저장하는 중…' : '학생회 정보 저장'}
           </Button>
         )}

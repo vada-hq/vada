@@ -19,7 +19,7 @@ type Props = {
   view: CouncilView
   // 업무에서 눌러 연 행사. 있으면 그 행사를 열고 시작한다.
   initialEventId?: string | undefined
-  // 그 행사를 열 탭(홈에서 정산이 남은 행사는 '돈').
+  // 그 행사를 열 탭(홈에서 정산이 남은 행사는 '예산·정산').
   initialTab?: EventTab | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void

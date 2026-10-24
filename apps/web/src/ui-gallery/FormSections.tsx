@@ -3,7 +3,7 @@ import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Field, MissingHint } from '@/components/ui/field'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -34,21 +34,21 @@ export function ButtonsSection() {
   )
 }
 
-// 선택 표시와 꺼진 버튼의 이유(Field, MissingHint).
+// 필수 별표, 선택 표시, 형식 도움말, 누른 뒤의 문제(Field의 required, optional, hint, error).
 function FieldExample() {
   return (
     <div className="flex w-72 flex-col gap-3">
-      <Field label="행사 이름">
-        <Input aria-required />
+      <Field label="행사 이름" required error="이름을 입력해 주세요">
+        <Input />
       </Field>
       <Field label="장소" optional>
         <Input />
       </Field>
+      <Field label="학번" required hint="줄바꿈이나 쉼표로 구분">
+        <Input />
+      </Field>
       <div className="flex flex-wrap justify-end gap-2">
-        <MissingHint id="field-example-hint" missing={['행사 이름']} blocked />
-        <Button aria-describedby="field-example-hint" disabled>
-          만들기
-        </Button>
+        <Button>만들기</Button>
       </div>
     </div>
   )

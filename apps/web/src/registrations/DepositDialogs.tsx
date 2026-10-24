@@ -10,9 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 import { won } from '@/public/registration-text'
 
 type Shared = {
@@ -24,18 +25,22 @@ type Shared = {
 
 type FrameProps = Omit<Shared, 'name'> & {
   title: string
-  description: string
+  // 되돌릴 수 없는 결과만 적는다. 없으면 두지 않는다.
+  description?: string | undefined
   submitLabel: string
+  check: ReturnType<typeof useFormCheck<HTMLDivElement>>
+  // 계약까지 맞는지(맞지 않으면 누르지 않은 것처럼 둔다).
   valid: boolean
   onSubmit: () => void
   children: ReactNode
 }
 
-// 사유나 금액 한 칸을 받는 확인 창. 보내는 동안에는 닫지 않고 버튼을 막는다.
+// 사유나 금액 한 칸을 받는 확인 창. 버튼은 끄지 않고 누를 때 확인한다. 보내는 동안에는 닫지 않고 버튼을 막는다.
 function Frame({
   title,
   description,
   submitLabel,
+  check,
   valid,
   onSubmit,
   children,
@@ -49,18 +54,22 @@ function Frame({
         if (!open && !busy) onClose()
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="wrap-anywhere">{title}</DialogTitle>
-          <DialogDescription className="wrap-anywhere">{description}</DialogDescription>
+          {description && (
+            <DialogDescription className="wrap-anywhere">{description}</DialogDescription>
+          )}
         </DialogHeader>
-        {children}
+        <div ref={check.formRef} className="flex flex-col gap-4">
+          {children}
+        </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={onClose}>
             닫기
           </Button>
-          <Button disabled={!valid || busy} onClick={onSubmit}>
+          <Button disabled={busy} onClick={() => check.attempt() && valid && onSubmit()}>
             {submitLabel}
           </Button>
         </DialogFooter>
@@ -75,26 +84,28 @@ type ReasonProps = Shared & { refund: boolean; onSubmit: (reason: string) => voi
 export function CancelDepositDialog({ name, refund, onSubmit, ...shared }: ReasonProps) {
   const [reason, setReason] = useState('')
   const valid = CancelDepositSchema.safeParse({ reason }).success
-  const warning = refund
-    ? ' 환불 대기 신청이라 이름과 휴대폰 번호도 함께 지워지고 되돌릴 수 없어요.'
-    : ''
+  const check = useFormCheck<HTMLDivElement>(() => ({
+    reason: requiredText(reason, '취소 사유를'),
+  }))
   return (
     <Frame
       title={`${name}님의 입금 확인을 취소할까요?`}
-      description={`입금하지 않은 것으로 돌려요. 사유는 이력에 남아요.${warning}`}
+      description={
+        refund ? '환불 대기 신청이라 이름과 휴대폰 번호도 지워지고 되돌릴 수 없어요.' : undefined
+      }
       submitLabel="확인 취소"
+      check={check}
       valid={valid}
       onSubmit={() => onSubmit(reason)}
       {...shared}
     >
-      <Label className="flex flex-col gap-2">
-        취소 사유
+      <Field label="취소 사유" required error={check.errors.reason}>
         <Textarea
           value={reason}
           disabled={shared.busy}
           onChange={event => setReason(event.target.value)}
         />
-      </Label>
+      </Field>
     </Frame>
   )
 }
@@ -106,24 +117,36 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
   const [text, setText] = useState(String(deposited))
   const amount = text.trim() === '' ? Number.NaN : Number(text)
   const valid = RefundSchema.safeParse({ amount }).success && amount <= deposited
+  const check = useFormCheck<HTMLDivElement>(() => ({
+    amount:
+      requiredText(text, '환불한 금액을') ??
+      (Number.isInteger(amount) && amount > 0 && amount <= deposited
+        ? undefined
+        : `1원부터 ${won(deposited)} 사이로 입력해 주세요`),
+  }))
   return (
     <Frame
       title={`${name}님에게 환불했나요?`}
-      description={`통장에서 돌려준 뒤에 눌러 주세요. 이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요. 입금액은 ${won(deposited)}이에요.`}
+      description="이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요."
       submitLabel="환불함"
+      check={check}
       valid={valid}
       onSubmit={() => onSubmit(amount)}
       {...shared}
     >
-      <Label className="flex flex-col gap-2">
-        환불한 금액(원)
+      <Field
+        label="환불한 금액(원)"
+        required
+        hint={`입금액 ${won(deposited)}`}
+        error={check.errors.amount}
+      >
         <Input
           inputMode="numeric"
           value={text}
           disabled={shared.busy}
           onChange={event => setText(event.target.value)}
         />
-      </Label>
+      </Field>
     </Frame>
   )
 }

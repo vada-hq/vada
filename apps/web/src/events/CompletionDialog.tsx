@@ -10,8 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 
 type Props = {
   mode: 'complete' | 'cancel'
@@ -23,23 +24,23 @@ type Props = {
   onConfirm: (reason: string | null) => void
 }
 
+// 확인 창에는 그 행동의 결과만 적는다(NN/g, 확인 창은 결과를 구체적으로).
 const COPY = {
   complete: {
     title: '이 행사를 완료할까요?',
-    reasonLabel: '사유 (선택)',
+    reasonLabel: '사유',
     confirm: '완료',
-    description:
-      '완료하면 이 행사의 지출, 요청, 참가 신청, 입금을 바꿀 수 없어요. 참가비는 수입으로 모여요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
+    description: '완료하면 이 행사의 지출, 요청, 참가 신청, 입금을 바꿀 수 없어요.',
   },
   cancel: {
     title: '완료를 취소할까요?',
     reasonLabel: '취소 사유',
     confirm: '완료 취소',
-    description: '행사를 다시 열고, 완료할 때 모은 참가비 수입을 취소해요. 사유는 이력에 남아요.',
+    description: '완료할 때 모은 참가비 수입도 취소돼요.',
   },
 }
 
-// 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). [확인]은 계약의 검사로 켠다.
+// 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). [확인]은 끄지 않고 누를 때 확인한다.
 export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConfirm }: Props) {
   const [reason, setReason] = useState('')
   const copy = COPY[mode]
@@ -47,6 +48,9 @@ export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConf
   const valid = (mode === 'complete' ? CompleteEventSchema : CancelCompletionSchema).safeParse(
     body,
   ).success
+  const check = useFormCheck<HTMLDivElement>(() => ({
+    reason: mode === 'cancel' ? requiredText(reason, '취소 사유를') : undefined,
+  }))
   return (
     <Dialog
       open
@@ -54,20 +58,24 @@ export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConf
         if (!open && !busy) onClose()
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{copy.title}</DialogTitle>
           <DialogDescription className="wrap-anywhere">{copy.description}</DialogDescription>
         </DialogHeader>
         {mode === 'complete' && openTasks > 0 && (
-          <StateMessage kind="notice">
-            끝나지 않은 업무가 {openTasks}개 있어요. 업무는 완료해도 계속 바꿀 수 있어요.
-          </StateMessage>
+          <StateMessage kind="notice">{`끝나지 않은 업무 ${openTasks}개`}</StateMessage>
         )}
-        <Label className="flex flex-col gap-2">
-          {copy.reasonLabel}
-          <Textarea value={reason} disabled={busy} onChange={e => setReason(e.target.value)} />
-        </Label>
+        <div ref={check.formRef}>
+          <Field
+            label={copy.reasonLabel}
+            optional={mode === 'complete'}
+            required={mode === 'cancel'}
+            error={check.errors.reason}
+          >
+            <Textarea value={reason} disabled={busy} onChange={e => setReason(e.target.value)} />
+          </Field>
+        </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={onClose}>
@@ -75,8 +83,8 @@ export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConf
           </Button>
           <Button
             variant={mode === 'cancel' ? 'destructive' : 'default'}
-            disabled={!valid || busy}
-            onClick={() => onConfirm(body.reason)}
+            disabled={busy}
+            onClick={() => check.attempt() && valid && onConfirm(body.reason)}
           >
             {copy.confirm}
           </Button>

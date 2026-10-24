@@ -1,8 +1,7 @@
-import { useId } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
-import { MissingHint, missingLabels } from '@/components/ui/field'
+import { requiredText, useFormCheck } from '@/lib/use-form-check'
 import type { EventFieldValues } from './event-fields'
 import { EventFields, type EventFieldFocus } from './EventFields'
 
@@ -21,23 +20,28 @@ type Props = {
   onCancel: () => void
 }
 
-// 이름은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝 칸의 '(선택)'만 보고 끝만 넣는 경우를 짚는다.
-const missingOf = (values: EventFieldValues) =>
-  missingLabels([
-    ['이름', values.name],
-    ...(values.endsAt === '' ? [] : [['시작', values.startsAt] as const]),
-  ])
+// 이름은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝은 시작보다 늦어야 한다.
+const eventErrors = (values: EventFieldValues) => ({
+  name: requiredText(values.name, '이름을'),
+  startsAt: values.endsAt === '' ? undefined : requiredText(values.startsAt, '시작을'),
+  endsAt:
+    values.startsAt !== '' && values.endsAt !== '' && values.endsAt <= values.startsAt
+      ? '시작보다 늦은 시각을 입력해 주세요'
+      : undefined,
+})
 
-// 행사 만들기·고치기 폼. 오류는 버튼 옆에 보이고, 보내는 동안 모든 칸과 버튼을 막는다.
+// 행사 만들기·고치기 폼. 버튼은 끄지 않고 누를 때 확인한다. 보내는 동안 모든 칸과 버튼을 막는다.
 export function EventForm(props: Props) {
-  const hintId = useId()
+  const check = useFormCheck(() => eventErrors(props.values))
   return (
     <form
+      ref={check.formRef}
+      noValidate
       aria-label={props.label}
       className="flex flex-col gap-4"
       onSubmit={event => {
         event.preventDefault()
-        props.onSubmit()
+        if (check.attempt() && props.valid) props.onSubmit()
       }}
     >
       <EventFields
@@ -46,21 +50,14 @@ export function EventForm(props: Props) {
         onChange={props.onValues}
         nameOnly={props.nameOnly}
         focus={props.focus}
+        errors={check.errors}
       />
       {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
       <DialogFooter>
-        {/* 이름 한 칸뿐인 만들기에서는 꺼진 이유가 눈에 보이므로 적지 않는다. */}
-        {!props.nameOnly && (
-          <MissingHint id={hintId} missing={missingOf(props.values)} blocked={!props.valid} />
-        )}
         <Button type="button" variant="outline" disabled={props.saving} onClick={props.onCancel}>
           닫기
         </Button>
-        <Button
-          type="submit"
-          aria-describedby={props.nameOnly ? undefined : hintId}
-          disabled={!props.valid || props.saving}
-        >
+        <Button type="submit" disabled={props.saving}>
           {props.submitLabel}
         </Button>
       </DialogFooter>
