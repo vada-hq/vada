@@ -80,6 +80,15 @@ test(
     assert.equal(response.status, 409)
     assert.equal(await errorOf(response), 'EVENT_MISMATCH')
     assert.equal(await records(t), before)
+    // 어긋나지 않은 첫 품목의 금액과 예산 항목도 그대로다(updateRecord는 record 행을 늘리지 않는다).
+    const lines = await t.pg.query('SELECT amount, budget_item_id FROM line_item')
+    assert.deepEqual(
+      lines.rows.map(row => row as { amount: string | null; budget_item_id: string | null }),
+      [
+        { amount: null, budget_item_id: null },
+        { amount: null, budget_item_id: null },
+      ],
+    )
     const approvals = await t.pg.query('SELECT count(*)::int AS n FROM approval')
     assert.equal((approvals.rows[0] as { n: number }).n, 0)
   }),

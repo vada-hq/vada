@@ -247,6 +247,18 @@ test('항목이 맞지 않으면(409) 문구를 보이고 예산을 다시 읽�
   expect(asElement(screen.getByLabelText('포스터 금액'), HTMLInputElement).value).toBe('1000')
 })
 
+test('요청과 다른 행사의 항목이면(409 EVENT_MISMATCH) 결재 문구를 보이고 입력은 남는다', async () => {
+  const { api } = setup()
+  api.on('POST', `${BASE}/r1/decisions`, () => json({ error: 'EVENT_MISMATCH' }, 409))
+  await open()
+  fill('포스터 금액', '1000')
+  fill('포스터 예산 항목', BUDGET_A)
+  fireEvent.click(btn('포스터 승인'))
+  expect(await screen.findByText(/요청과 다른 행사의 예산 항목이에요/)).toBeTruthy()
+  expect(screen.queryByText(/연결을 확인하고/)).toBeNull()
+  expect(asElement(screen.getByLabelText('포스터 금액'), HTMLInputElement).value).toBe('1000')
+})
+
 test('결재하다 요청이 사라지면(404) 대화상자를 닫고 이유를 보인다', async () => {
   const { api } = setup()
   api.on('POST', `${BASE}/r1/decisions`, () => json({ error: 'NOT_FOUND' }, 404))

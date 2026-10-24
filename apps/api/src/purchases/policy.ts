@@ -70,10 +70,17 @@ export async function factsOf(db: Reader, row: FactsRow): Promise<RequestFacts> 
 }
 
 // 동작 → 권한. 동작 이름은 권한 키와 다르다(화면에 닿는 동작만 센다). 취소는 요청한 사람만이다(회장단도 아니다).
-export const roleAllows = (actor: Actor, action: PurchaseAction, requestedBy: string) =>
-  action === 'purchase_request.cancel'
-    ? can(actor, 'purchase.cancel', { requestedBy })
-    : can(actor, 'purchase.approve')
+// 모르는 동작은 막는다: 동작을 더하면 여기에 적기 전까지 아무도 못 한다(기본 거부).
+export function roleAllows(actor: Actor, action: PurchaseAction, requestedBy: string) {
+  switch (action) {
+    case 'purchase_request.cancel':
+      return can(actor, 'purchase.cancel', { requestedBy })
+    case 'purchase_request.decide':
+      return can(actor, 'purchase.approve')
+    default:
+      return false
+  }
+}
 
 // 허용이면 null, 막으면 그 쓰기가 내는 첫 코드. 권한(403) → 완료한 행사 → 요청 상태 순서다.
 // 취소는 요청한 사람만이고 결재가 시작되면 닫힌다. 승인(결재)은 재정부가 대기 품목이 남은 요청에서 한다.

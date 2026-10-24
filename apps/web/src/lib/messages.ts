@@ -184,6 +184,7 @@ export const PURCHASE_FAILED = '보내지 못했어요. 연결을 확인하고 �
 export const DECIDE_ERRORS: Record<string, string> = {
   ...PURCHASE_ERRORS,
   REQUEST_CLOSED: '취소된 요청이라 결재할 수 없어요. 새로 불러왔어요.',
+  EVENT_MISMATCH: '요청과 다른 행사의 예산 항목이에요. 다른 항목을 골라 주세요.',
 }
 
 // 예산 탭: 회계 기간 만들기와 예산 항목 더하기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
