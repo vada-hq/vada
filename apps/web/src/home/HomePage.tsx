@@ -43,7 +43,12 @@ export default function HomePage({ view, onForbidden, ...openers }: Props) {
     )
   return (
     <PageColumn>
-      <HomeBody home={state.home} {...openers} />
+      <HomeBody
+        home={state.home}
+        councilId={view.council.id}
+        onForbidden={onForbidden}
+        {...openers}
+      />
     </PageColumn>
   )
 }

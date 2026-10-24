@@ -6,7 +6,7 @@ import type { MyCouncil } from '@vada/contracts'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
-import { homeResponse } from './test-support/home-fixtures'
+import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
@@ -56,6 +56,7 @@ function councilsInSequence(...lists: MyCouncil[][]) {
 // 홈이 첫 화면이라 학생회를 열면 홈을 읽는다. 이 시험들은 운영진 화면을 보므로 홈과 방은 비어 있다.
 function emptyRooms(id: string) {
   api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
+  onHomeExtras(api, {}, id)
   api.on('GET', `/api/organizations/${id}/rooms`, () =>
     json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
   )

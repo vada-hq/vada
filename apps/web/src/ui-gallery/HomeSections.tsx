@@ -9,10 +9,12 @@ import type {
   HomeTaskGroup,
   PurchaseRequestSummary,
 } from '@vada/contracts'
-import CouncilSection from '@/home/CouncilSection'
+import AttentionTiles from '@/home/AttentionTiles'
+import { CouncilBlocked, CouncilEvents } from '@/home/CouncilSection'
 import DepartmentsSection from '@/home/DepartmentsSection'
 import MineSection from '@/home/MineSection'
 import ReceivedSection from '@/home/ReceivedSection'
+import RequestsSection from '@/home/RequestsSection'
 import SettlingSection from '@/home/SettlingSection'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -45,6 +47,8 @@ const empty: HomeMine = {
 }
 
 const noop = () => {}
+const today = '2026-10-23'
+const none = new Set<string>()
 const noTasks: HomeList = { tasks: [], total: 0 }
 
 const lateTask = task('late', 'overdue', { title: `${unbroken} ${longName}` })
@@ -111,21 +115,27 @@ export function HomeOtherSection() {
           onOpenRequest={noop}
           onSeeAll={noop}
         />
-        <CouncilSection
+        <CouncilEvents council={council} today={today} onOpenEvent={noop} onSeeEvents={noop} />
+        <CouncilBlocked
           council={council}
+          today={today}
+          mineIds={none}
           onOpenTask={noop}
-          onOpenEvent={noop}
           onSeeTasks={noop}
-          onSeeEvents={noop}
         />
-        <CouncilSection
+        <CouncilEvents
           council={{ ...council, events: [], endedTotal: 0, blocked: [], overdue: noTasks }}
-          onOpenTask={noop}
+          today={today}
           onOpenEvent={noop}
-          onSeeTasks={noop}
           onSeeEvents={noop}
         />
-        <DepartmentsSection departments={[department]} onOpenTask={noop} onSeeAll={noop} />
+        <DepartmentsSection
+          departments={[department]}
+          today={today}
+          mineIds={none}
+          onOpenTask={noop}
+          onSeeAll={noop}
+        />
         <SettlingSection
           settling={{
             events: [{ event: event('e1', 'ended'), settlement: { remaining: 2, settled: false } }],
@@ -142,10 +152,21 @@ export function HomeOtherSection() {
 
 export function HomeSection() {
   return (
-    <Section title="홈 · 내 업무">
+    <Section title="홈 · 숫자 카드, 내 업무, 내 요청">
       <div className="flex w-80 flex-col gap-3">
-        <MineSection mine={full} onOpenTask={noop} onSeeAll={noop} />
-        <MineSection mine={empty} onOpenTask={noop} onSeeAll={noop} />
+        <AttentionTiles
+          items={[
+            { key: 'a', label: '지난 내 업무', count: 2, tone: 'danger', target: 'x' },
+            { key: 'b', label: '오늘 마감', count: 0, tone: 'info', target: 'x' },
+          ]}
+        />
+        <MineSection mine={full} today={today} onOpenTask={noop} onSeeAll={noop} />
+        <MineSection mine={empty} today={today} onOpenTask={noop} onSeeAll={noop} />
+        <RequestsSection
+          requests={[request, { ...request, id: 'r2', status: 'rejected' }]}
+          onOpenRequest={noop}
+          onSeeAll={noop}
+        />
       </div>
     </Section>
   )

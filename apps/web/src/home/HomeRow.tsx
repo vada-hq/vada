@@ -1,0 +1,47 @@
+import type { ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
+
+type Props = {
+  title: string
+  // 제목 아래 한 줄. 없는 것(false·null)은 빼고 가운뎃점으로 잇는다.
+  meta?: ReactNode[]
+  // 오른쪽 끝: 마감, 상태, D-n
+  side?: ReactNode
+  // 왼쪽 끝: 행사의 날짜 칸
+  lead?: ReactNode
+  onOpen: () => void
+}
+
+// 홈의 한 줄. 줄 어디를 눌러도 원래 화면이 열린다(홈은 읽기만 한다, DEC-69).
+export default function HomeRow({ title, meta = [], side, lead, onOpen }: Props) {
+  const parts = meta.filter(part => part !== false && part !== null && part !== undefined)
+  return (
+    <li className="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
+      {lead}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <Button
+          variant="link"
+          className="h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
+          onClick={onOpen}
+        >
+          {title}
+        </Button>
+        {parts.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+            {parts.map((part, index) => [
+              index > 0 && (
+                <span key={`dot-${index}`} aria-hidden>
+                  ·
+                </span>
+              ),
+              <span key={index} className="wrap-anywhere">
+                {part}
+              </span>,
+            ])}
+          </div>
+        )}
+      </div>
+      {side && <div className="flex shrink-0 items-center gap-2 text-xs">{side}</div>}
+    </li>
+  )
+}

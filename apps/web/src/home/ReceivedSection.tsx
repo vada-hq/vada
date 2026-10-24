@@ -1,8 +1,8 @@
+import { Inbox } from 'lucide-react'
 import type { HomeReceived } from '@vada/contracts'
-import StateMessage from '@/components/StateMessage'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { createdDay } from './home-view'
+import HomeRow from './HomeRow'
+import HomeSection, { HomeEmpty } from './HomeSection'
 
 type Props = {
   received: HomeReceived
@@ -11,41 +11,30 @@ type Props = {
   onSeeAll: () => void
 }
 
-// 받은 것(재정부): 결재 대기 요청. 줄을 누르면 재정 화면에서 그 요청의 상세가 열린다.
+// 받은 것(재정부): 결재 대기 요청, 오래된 것부터. 결재는 요청 상세에서 한다(품목마다 정해야 한다).
 export default function ReceivedSection({ received, onOpenRequest, onSeeAll }: Props) {
   const { requests, total, truncated } = received
   return (
-    <Card className="flex flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-gray-900">
-          받은 것{total > 0 && ` ${total}${truncated ? '개 이상' : '개'}`}
-        </h2>
-        {total > requests.length && (
-          <Button variant="link" size="sm" className="px-0" onClick={onSeeAll}>
-            모두 보기
-          </Button>
-        )}
-      </div>
-      {requests.length === 0 && <StateMessage kind="empty">받은 것이 없어요.</StateMessage>}
-      <ul className="flex flex-col">
-        {requests.map(request => (
-          <li key={request.id}>
-            <Button
-              variant="ghost"
-              className="h-auto w-full flex-col items-start gap-0.5 px-2 py-2 text-left whitespace-normal"
-              onClick={() => onOpenRequest(request.id)}
-            >
-              <span className="text-sm font-medium text-gray-900 wrap-anywhere">
-                {request.title}
-              </span>
-              <span className="flex flex-wrap gap-x-2 text-xs font-normal text-gray-500">
-                <span className="wrap-anywhere">{request.requestedBy.name}</span>
-                <span>{createdDay(request.createdAt)}</span>
-              </span>
-            </Button>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    <HomeSection
+      id="home-received"
+      icon={Inbox}
+      title="받은 것"
+      count={total > 0 ? (truncated ? `${total}+` : total) : undefined}
+      onSeeAll={total > requests.length ? onSeeAll : undefined}
+    >
+      {requests.length === 0 && <HomeEmpty>받은 것 없음</HomeEmpty>}
+      {requests.map(request => (
+        <HomeRow
+          key={request.id}
+          title={request.title}
+          meta={[
+            request.requestedBy.name,
+            request.event?.name,
+            `${createdDay(request.createdAt)} 요청`,
+          ]}
+          onOpen={() => onOpenRequest(request.id)}
+        />
+      ))}
+    </HomeSection>
   )
 }

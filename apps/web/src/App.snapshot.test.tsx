@@ -4,7 +4,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
-import { homeTask, homeWithTasks } from './test-support/home-fixtures'
+import { homeTask, homeWithTasks, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { snapshotHtml } from './test-support/snapshot-html'
 
@@ -110,6 +110,7 @@ function openWorkspace() {
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
   api.on('GET', '/api/organizations/c1/rooms', () => json(roomList()))
   api.on('GET', '/api/organizations/c1/home', () => json(homeWithTasks([homeTask('a', 'today')])))
+  onHomeExtras(api)
   api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
     json({ tasks: [], truncated: false }),
   )

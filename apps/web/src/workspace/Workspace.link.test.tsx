@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { councilView, myCouncil, teamResponse } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
-import { homeResponse } from '@/test-support/home-fixtures'
+import { homeResponse, onHomeExtras } from '@/test-support/home-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import Workspace from './Workspace'
@@ -34,6 +34,7 @@ test('링크로 연 학생회를 잃어 다른 학생회로 넘어가면 그 요
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
+    onHomeExtras(api, {}, id)
     api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
       json({ tasks: [], truncated: false }),
     )
@@ -53,6 +54,6 @@ test('링크로 연 학생회를 잃어 다른 학생회로 넘어가면 그 요
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(
-    api.calls.some(call => call.path.startsWith('/api/organizations/c2/purchase-requests')),
+    api.calls.some(call => call.path.startsWith(`/api/organizations/c2/purchase-requests/${R1}`)),
   ).toBe(false)
 })

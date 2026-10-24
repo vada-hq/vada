@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
 import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
-import { homeResponse } from './test-support/home-fixtures'
+import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
@@ -43,6 +43,7 @@ beforeEach(() => {
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
+    onHomeExtras(api, {}, id)
     api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
       json({ tasks: [], truncated: false }),
     )

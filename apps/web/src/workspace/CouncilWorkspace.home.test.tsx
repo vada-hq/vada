@@ -10,7 +10,7 @@ import {
 } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
-import { homeResponse, homeTask, homeWithTasks } from '@/test-support/home-fixtures'
+import { homeResponse, homeTask, homeWithTasks, onHomeExtras } from '@/test-support/home-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
@@ -26,6 +26,7 @@ const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
 
 function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   const api = mockApi()
+  onHomeExtras(api)
   api.on('GET', base, () => json(councilView('c1', { permissions: FINANCE_PERMISSIONS })))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))

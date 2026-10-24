@@ -1,4 +1,5 @@
 import type {
+  ChatMessage,
   EventSummary,
   HomeList,
   HomeResponse,
@@ -6,6 +7,7 @@ import type {
   HomeTaskGroup,
   PurchaseRequestSummary,
 } from '@vada/contracts'
+import { json } from './mock-api'
 
 export const homeEvent = (id: string, extra: Partial<EventSummary> = {}): EventSummary => ({
   id,
@@ -63,3 +65,33 @@ export const homeWithTasks = (tasks: HomeTask[], counts: Partial<typeof noCounts
   for (const task of tasks) own[task.group] += 1
   return homeResponse({ mine: { tasks, counts: { ...own, ...counts } } })
 }
+
+type Extras = {
+  requests?: PurchaseRequestSummary[]
+  notices?: ChatMessage[]
+  events?: EventSummary[]
+}
+// 홈이 응답 밖에서 같이 읽는 내 요청, 공지, 행사 목록. 시험이 정하지 않으면 비어 있다.
+export function onHomeExtras(
+  api: { on: (method: string, path: string, handler: () => Response) => void },
+  extras: Extras = {},
+  councilId = 'c1',
+) {
+  const base = `/api/organizations/${councilId}`
+  api.on('GET', `${base}/purchase-requests?view=mine`, () =>
+    json({ requests: extras.requests ?? [], truncated: false }),
+  )
+  api.on('GET', `${base}/notices`, () => json({ notices: extras.notices ?? [] }))
+  api.on('GET', `${base}/events`, () => json({ events: extras.events ?? [], truncated: false }))
+}
+
+export const homeNotice = (id: string, extra: Partial<ChatMessage> = {}): ChatMessage => ({
+  id,
+  senderId: 'p1',
+  senderName: '김회장',
+  body: `공지 ${id}`,
+  sentAt: '2026-10-22T03:00:00.000Z',
+  isNotice: true,
+  photos: [],
+  ...extra,
+})
