@@ -8,7 +8,8 @@ import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/ch
 import { asElement } from '@/test-support/elements'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
-import { PERMISSION_CHANGED } from '@/lib/messages'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { PERMISSION_CHANGED, TASK_INVALID } from '@/lib/messages'
 
 afterEach(() => {
   cleanup()
@@ -16,12 +17,20 @@ afterEach(() => {
 })
 
 const PURCHASE = `${chatBase}/purchase-requests`
+const TASKS = `${chatBase}/tasks?view=mine&status=open`
 // 서버 계약이 번호를 uuid로 검사하므로 시험도 uuid를 쓴다.
 const ME = '11111111-1111-4111-8111-111111111111'
 const JAE = '22222222-2222-4222-8222-222222222222'
 const GONE = '99999999-9999-4999-8999-999999999999'
 const MSG = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const BUYING = message(MSG, '현수막 2개 사 주세요\n색은 파랑', { senderId: JAE })
+const TASK_A = '33333333-3333-4333-8333-333333333333'
+const TASK_B = '44444444-4444-4444-8444-444444444444'
+// 서버가 준 actions만 본다. 상태를 못 바꾸는 업무는 고를 수 없다.
+const MY_TASKS = [
+  taskDetail({ id: TASK_A, title: '현수막 주문' }),
+  taskDetail({ id: TASK_B, title: '남이 맡긴 일', actions: ['task.edit'] }),
+]
 const joined = '2026-10-01T01:00:00Z'
 const teamOf = () => ({
   members: [
@@ -36,6 +45,7 @@ function serve(sent = BUYING) {
   api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage([sent])))
   api.on('GET', `${chatBase}/members`, () => json(teamOf()))
   api.on('GET', `${chatBase}/events`, () => json({ events: [], truncated: false }))
+  api.on('GET', TASKS, () => json({ tasks: MY_TASKS, truncated: false }))
   return api
 }
 const menuOf = async (name: string) => {
@@ -167,4 +177,46 @@ test('긴 메시지는 계약 상한 안으로 채워 [내기]가 켜진다', as
   expect(submit().disabled).toBe(false)
   const form = screen.getByRole('form', { name: '구매 요청 내기' })
   expect(within(form).getByLabelText('제목')).toBeTruthy()
+})
+
+test('업무(선택)는 상태를 바꿀 수 있는 내 업무만 나오고 기본은 고르지 않음이다. 고르면 taskId가 가고 안 고르면 가지 않는다', async () => {
+  const api = serve()
+  api.on('POST', PURCHASE, () => json({ request: purchaseDetail('r7') }, 201))
+  render(<ChatHarness memberId={ME} permissions={MEMBER_PERMISSIONS} />)
+  await openDialog()
+  await screen.findByRole('option', { name: '현수막 주문' })
+  expect(screen.queryByRole('option', { name: '남이 맡긴 일' })).toBeNull()
+  const select = asElement(screen.getByLabelText('업무'), HTMLSelectElement)
+  expect(select.value).toBe('')
+  fill('품목 1 이름', '현수막')
+  fireEvent.click(submit())
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]?.body).not.toHaveProperty('taskId')
+  expect(api.calls.some(call => call.path === TASKS)).toBe(true)
+})
+
+test('업무를 고르고 내면 taskId가 같이 간다', async () => {
+  const api = serve()
+  api.on('POST', PURCHASE, () => json({ request: purchaseDetail('r7') }, 201))
+  render(<ChatHarness memberId={ME} permissions={MEMBER_PERMISSIONS} />)
+  await openDialog()
+  await screen.findByRole('option', { name: '현수막 주문' })
+  fireEvent.change(screen.getByLabelText('업무'), { target: { value: TASK_A } })
+  fill('품목 1 이름', '현수막')
+  fireEvent.click(submit())
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]?.body).toMatchObject({ taskId: TASK_A, sourceMessageId: MSG })
+})
+
+test('고른 업무가 그사이 끝났으면 409 문구가 버튼 옆에 보이고 대화상자는 열려 있다', async () => {
+  const api = serve()
+  api.on('POST', PURCHASE, () => json({ error: 'TASK_INVALID' }, 409))
+  render(<ChatHarness memberId={ME} permissions={MEMBER_PERMISSIONS} />)
+  await openDialog()
+  await screen.findByRole('option', { name: '현수막 주문' })
+  fireEvent.change(screen.getByLabelText('업무'), { target: { value: TASK_A } })
+  fill('품목 1 이름', '현수막')
+  fireEvent.click(submit())
+  expect(await screen.findByText(TASK_INVALID)).toBeTruthy()
+  expect(screen.getByRole('dialog')).toBeTruthy()
 })

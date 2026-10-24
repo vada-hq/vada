@@ -41,6 +41,7 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
   return (
     <RequestCreateDialog
       open
+      pickTask
       councilId={councilId}
       start={seed}
       requesters={canAssign ? requestersOf(team, meId) : null}

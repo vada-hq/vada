@@ -93,7 +93,7 @@
 - 닿는 곳: `apps/web/src/tasks/TaskDetailDialog.tsx`, 새 결과물 묶음 부품, `TaskHistory.tsx`·`task-text.ts`, `finance/RequestCreateDialog.tsx`, `events/EventCreateDialog.tsx`, 신청 양식 만들기 부품(`events/FormEditor.tsx` 쪽), 공지 대화상자(새), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 6. 대화에서 구매 요청을 낼 때 업무 고르기(화면) [ ]
+### 6. 대화에서 구매 요청을 낼 때 업무 고르기(화면) [x]
 - 할 수 있게 되는 것: 운영진이 메시지에서 요청을 낼 때 내 업무 하나를 골라 잇는다.
 - 수용 기준: 메시지 메뉴의 '구매 요청 만들기' 대화상자에 '업무(선택)'가 있고, 내 끝나지 않은 업무 가운데 `task.change_status`가 있는 것만 나오며 기본은 고르지 않음이다. 고르고 내면 `taskId`가 같이 가고, 그 업무가 진행 중이 된다(업무 화면에서 보인다). 고르지 않으면 지금과 같다. 그사이 업무가 끝났거나 취소되면 409 `TASK_INVALID` 문구가 버튼 옆에 보인다. 재정 화면의 [구매 요청 내기]는 지금과 같다. 390px에서 넘침이 없다.
 - 닿는 곳: `apps/web/src/finance/RequestCreateDialog.tsx`·`request-form.ts`, `chat/MessageItem.tsx`, `tasks/useTasks.ts`(내 업무 읽기), `lib/messages.ts`, `ui-gallery/`.
