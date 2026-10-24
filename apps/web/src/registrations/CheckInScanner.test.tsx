@@ -7,6 +7,7 @@ import {
   CHECK_IN_PATH,
   REGISTRATION_ID,
   STAFF_EVENT_ID,
+  applicantChange,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { REGISTRATION_STAFF_ERRORS } from '@/lib/registration-messages'
@@ -53,6 +54,7 @@ async function open() {
 }
 const result = (already: boolean) => ({
   registrationId: REGISTRATION_ID,
+  applicant: applicantChange(),
   name: '김새내',
   studentId: '20260001',
   already,
@@ -70,7 +72,7 @@ test('QR을 찍으면 해시(소문자)로 출석을 보내 이름·학번을 �
     path: CHECK_IN_PATH,
     body: { tokenHash: HASH },
   })
-  expect(handlers.onChecked).toHaveBeenCalledWith(REGISTRATION_ID)
+  expect(handlers.onChecked).toHaveBeenCalledWith(applicantChange())
   // 결과는 카메라 화면 위에 겹친다
   const view = within(dialog).getByLabelText('카메라 화면').parentElement as HTMLElement
   expect(view.contains(within(dialog).getByRole('status', { name: '찍은 결과' }))).toBe(true)

@@ -1,4 +1,4 @@
-import type { Applicant, ApplicantDeposit } from '@vada/contracts'
+import type { Applicant, ApplicantChange } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { won } from '@/public/registration-text'
@@ -9,10 +9,9 @@ import { DEPOSIT_LABEL } from './registration-view'
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: Applicant
-  attended: boolean
-  onAttendance: (registrationId: string, attended: boolean) => void
-  onCancelled: (registrationId: string, refundPending: boolean) => void
-  onDeposit: (registrationId: string, deposit: ApplicantDeposit) => void
+  // 쓰기가 돌려준 줄의 새 모습. 신청이 없어졌으면(404) onGone이다.
+  onChange: (change: ApplicantChange) => void
+  onGone: () => void
 }
 
 // 입금 칩. 참가비가 없는 신청의 '입금 안 함'은 보이지 않는다.
@@ -35,13 +34,12 @@ function DepositBadge({ applicant }: { applicant: Applicant }) {
 
 // 신청자 한 명: 이름, 학번, 휴대폰, 적용 참가비, 칩(입금·납부자·같은 학번·출석), 출석·취소와 입금 동작.
 // 버튼은 그 줄의 actions(서버가 준 동작)에 있는 것만 보인다.
-export function ApplicantRow({ applicant, attended, onDeposit, ...rest }: Props) {
+export function ApplicantRow({ applicant, ...rest }: Props) {
   const details = [
     applicant.studentId && `학번 ${applicant.studentId}`,
     applicant.phone,
     won(applicant.appliedFee),
   ]
-  const { onAttendance, onCancelled, ...handlers } = rest
   return (
     <li className="flex flex-col gap-2 rounded-md border bg-white p-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -56,22 +54,11 @@ export function ApplicantRow({ applicant, attended, onDeposit, ...rest }: Props)
           </Badge>
         )}
         {applicant.duplicateStudentId && <Badge tone="danger">같은 학번</Badge>}
-        {attended && <Badge tone="success">출석</Badge>}
+        {applicant.attended && <Badge tone="success">출석</Badge>}
       </div>
       <p className="text-xs text-gray-500 wrap-anywhere">{details.filter(Boolean).join(' · ')}</p>
-      <ApplicantActions
-        applicant={applicant}
-        attended={attended}
-        onAttendance={onAttendance}
-        onCancelled={onCancelled}
-        {...handlers}
-      />
-      <DepositActions
-        applicant={applicant}
-        onDeposit={onDeposit}
-        onGone={() => onCancelled(applicant.id, false)}
-        {...handlers}
-      />
+      <ApplicantActions applicant={applicant} {...rest} />
+      <DepositActions applicant={applicant} {...rest} />
     </li>
   )
 }

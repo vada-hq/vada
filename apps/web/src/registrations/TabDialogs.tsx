@@ -1,3 +1,4 @@
+import type { ApplicantChange } from '@vada/contracts'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { CheckInScanner } from './CheckInScanner'
 
@@ -11,7 +12,7 @@ type Props = EventDialogHandlers & {
   dialog: TabDialog
   onClose: () => void
   // 출석이 확인됐거나 이미 출석이다.
-  onChecked: (registrationId: string) => void
+  onChecked: (applicant: ApplicantChange) => void
 }
 
 // 참가 신청 탭의 대화상자(QR 스캐너).

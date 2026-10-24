@@ -1,4 +1,4 @@
-import { statusOf, type CheckInResult } from '@vada/contracts'
+import { statusOf, type ApplicantChange, type CheckInResult } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_FAILED } from '@/lib/registration-messages'
@@ -7,7 +7,12 @@ import { checkInPath } from './registration-api'
 
 // 찍은 결과. 이름과 학번은 스캔한 운영진이 사람을 알아보도록 크게 보인다.
 export type ScanOutcome =
-  | { kind: 'checked' | 'already'; registrationId: string; name: string; studentId: string | null }
+  | {
+      kind: 'checked' | 'already'
+      applicant: ApplicantChange
+      name: string
+      studentId: string | null
+    }
   | { kind: 'missing' }
   | { kind: 'failed'; message: string }
 
@@ -20,8 +25,8 @@ export async function checkInByHash(
 ): Promise<ScanOutcome | 'lost'> {
   const result = await postJson<CheckInResult>(checkInPath(councilId, eventId), { tokenHash })
   if (result.ok) {
-    const { registrationId, name, studentId, already } = result.data
-    return { kind: already ? 'already' : 'checked', registrationId, name, studentId }
+    const { applicant, name, studentId, already } = result.data
+    return { kind: already ? 'already' : 'checked', applicant, name, studentId }
   }
   if (result.status === statusOf('FORBIDDEN')) {
     handlers.onForbidden()

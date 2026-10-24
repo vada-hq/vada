@@ -8,7 +8,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { recordApplicantAccess } from './access-log.js'
 import { assertEventAction } from './policy.js'
-import { lockedLiveRegistration } from './staff-registration.js'
+import { applicantChangeOf, lockedLiveRegistration } from './staff-registration.js'
 
 type Method = 'qr' | 'manual'
 type Target = { registrationId: string; formId: string; name: string; studentId: string | null }
@@ -50,6 +50,7 @@ async function confirm(
     name: target.name,
     studentId: target.studentId,
     already,
+    applicant: await applicantChangeOf(tx, actor, target.registrationId),
   }
 }
 

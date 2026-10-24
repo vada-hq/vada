@@ -1,4 +1,9 @@
-import { REGISTRATION_STATUSES, type Applicant, type RegistrationForm } from '@vada/contracts'
+import {
+  REGISTRATION_STATUSES,
+  type Applicant,
+  type ApplicantChange,
+  type RegistrationForm,
+} from '@vada/contracts'
 import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
 import { ScanResultCard } from '@/registrations/ScanResultCard'
@@ -31,15 +36,15 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
 
 const noop = () => {}
 const handlers = { onForbidden: noop, onLost: noop }
-const attendance = new Map<string, boolean>()
+const changes = new Map<string, ApplicantChange>()
 
 function Card({ data }: { data: RegistrationForm }) {
   return (
     <FormCard
       councilId="c1"
       form={data}
-      attendance={attendance}
-      onAttendance={noop}
+      changes={changes}
+      onChange={noop}
       onLoaded={noop}
       onEdit={noop}
       onChanged={noop}
@@ -92,10 +97,8 @@ export function ApplicantRowSection() {
             key={row.id}
             councilId="c1"
             applicant={row}
-            attended={false}
-            onAttendance={noop}
-            onCancelled={noop}
-            onDeposit={noop}
+            onChange={noop}
+            onGone={noop}
             {...handlers}
           />
         ))}
@@ -128,7 +131,18 @@ export function RegistrationSection() {
         <Card data={form('view', { actions: [], capacity: null, opensAt: '2026-10-22T09:00' })} />
         <Card data={form('long', { name: `${unbroken} ${longName}` })} />
         <ScanResultCard
-          outcome={{ kind: 'checked', registrationId: 'r1', name: '김새내', studentId: '20260001' }}
+          outcome={{
+            kind: 'checked',
+            applicant: {
+              id: 'r1',
+              attended: true,
+              cancelled: false,
+              deposit: { status: 'none', amount: null },
+              actions: [],
+            },
+            name: '김새내',
+            studentId: '20260001',
+          }}
           onNext={noop}
         />
         <ScanResultCard outcome={{ kind: 'missing' }} onNext={noop} />

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { WON_MAX } from './budget.js'
 import { text } from './input.js'
+import type { ApplicantChangeResponse } from './registrations.js'
 import { PURCHASE_REASON_MAX } from './purchases.js'
 
 // 입금 확인과 환불함(기능 008, DEC-28, DEC-55). 금액은 정수 원이고 1원부터 10억 원까지다(입금 기록의 CHECK는 0 이상이라 API가 1원을 지킨다).
@@ -27,6 +28,8 @@ export interface ApplicantDeposit {
 export interface DepositResponse {
   deposit: ApplicantDeposit
 }
+// 운영진의 입금 쓰기 응답: 입금 상태와 그 줄의 새 모습(ApplicantChange)
+export type StaffDepositResponse = DepositResponse & ApplicantChangeResponse
 
 // 신청자 목록 거르기: 입금을 확인한 신청, 환불 대기 신청
 export const APPLICANT_FILTERS = ['deposited', 'refund_pending'] as const

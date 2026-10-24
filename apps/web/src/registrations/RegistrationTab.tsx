@@ -1,5 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import type { CouncilView, EventDetail, FormListAction, RegistrationForm } from '@vada/contracts'
+import type {
+  ApplicantChange,
+  CouncilView,
+  EventDetail,
+  FormListAction,
+  RegistrationForm,
+} from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventFieldFocus } from '@/events/EventFields'
@@ -43,26 +49,26 @@ function dialogLostReason(dialog: TabDialog, read: Read | null) {
   return form.actions.includes('form.update') ? null : PERMISSION_CHANGED
 }
 
-// 이 화면에서 바꾼 출석(스캐너 포함). 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
+// 이 화면에서 한 쓰기(스캐너 포함)가 돌려준 줄의 새 모습. 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
 // 목록을 서버에서 새로 읽으면 그 신청들의 값은 서버 값이 더 새롭다(다른 운영진이 바꿨을 수 있다).
-function useAttendanceOverrides() {
-  const [attendance, setAttendance] = useState<ReadonlyMap<string, boolean>>(new Map())
-  const markAttended = (id: string, attended: boolean) =>
-    setAttendance(before => new Map(before).set(id, attended))
+function useRowChanges() {
+  const [changes, setChanges] = useState<ReadonlyMap<string, ApplicantChange>>(new Map())
+  const apply = (change: ApplicantChange) =>
+    setChanges(before => new Map(before).set(change.id, change))
   const forget = (ids: string[]) =>
-    setAttendance(before => {
+    setChanges(before => {
       const next = new Map(before)
       for (const id of ids) next.delete(id)
       return next
     })
-  return { attendance, markAttended, forget }
+  return { changes, apply, forget }
 }
 
 // 열린 대화상자와 이유 글. 대상이 사라졌거나(404) 권한을 잃었으면(403) 대화상자를 닫고 이유를 보이고 양식을 다시 읽는다.
 function useTabDialogs(
   onForbidden: () => void,
   reload: () => void,
-  markAttended: (id: string, attended: boolean) => void,
+  apply: (change: ApplicantChange) => void,
 ) {
   const [dialog, setDialog] = useState<TabDialog>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -90,8 +96,8 @@ function useTabDialogs(
       reload()
     },
     closeCreated: () => setCreated(null),
-    checked: (id: string) => {
-      markAttended(id, true)
+    checked: (change: ApplicantChange) => {
+      apply(change)
       reload()
     },
   }
@@ -134,10 +140,10 @@ type ViewProps = {
   tab: Tab
   read: FormsRead
   ready: Read | null
-  overrides: ReturnType<typeof useAttendanceOverrides>
+  rows: ReturnType<typeof useRowChanges>
 }
 
-function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
+function FormsView({ props, tab, read, ready, rows }: ViewProps) {
   const councilId = props.view.council.id
   const { setDialog, handlers } = tab
   const reload = () => void read.reload()
@@ -156,9 +162,9 @@ function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
             key={form.id}
             councilId={councilId}
             form={form}
-            attendance={overrides.attendance}
-            onAttendance={overrides.markAttended}
-            onLoaded={overrides.forget}
+            changes={rows.changes}
+            onChange={rows.apply}
+            onLoaded={rows.forget}
             onEdit={() => setDialog({ kind: 'edit', formId: form.id })}
             onChanged={reload}
             {...handlers}
@@ -182,14 +188,14 @@ function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
 export function RegistrationTab(props: Props) {
   const { view, eventId, event: _event, onEditEvent: _edit, ...parent } = props
   const read = useRegistrationForms(view.council.id, eventId, parent)
-  const overrides = useAttendanceOverrides()
-  const tab = useTabDialogs(parent.onForbidden, () => void read.reload(), overrides.markAttended)
+  const rows = useRowChanges()
+  const tab = useTabDialogs(parent.onForbidden, () => void read.reload(), rows.apply)
   const ready = read.state.kind === 'ready' ? read.state.data : null
   useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), tab.handlers.onLost)
   if (tab.dialog?.kind === 'create' || tab.dialog?.kind === 'edit')
     return <EditorScreen props={props} tab={tab} forms={ready?.forms ?? []} />
   if (tab.created) return <FormCreated form={tab.created} onDone={tab.closeCreated} />
-  return <FormsView props={props} tab={tab} read={read} ready={ready} overrides={overrides} />
+  return <FormsView props={props} tab={tab} read={read} ready={ready} rows={rows} />
 }
 
 type ToolbarProps = {

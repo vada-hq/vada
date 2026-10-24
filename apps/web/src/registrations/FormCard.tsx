@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { RegistrationForm, RegistrationFormResponse } from '@vada/contracts'
+import type { ApplicantChange, RegistrationForm, RegistrationFormResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,8 +15,8 @@ import { useStaffPost } from './useStaffPost'
 type Props = EventDialogHandlers & {
   councilId: string
   form: RegistrationForm
-  attendance: ReadonlyMap<string, boolean>
-  onAttendance: (registrationId: string, attended: boolean) => void
+  changes: ReadonlyMap<string, ApplicantChange>
+  onChange: (change: ApplicantChange) => void
   onLoaded: (registrationIds: string[]) => void
   onEdit: () => void
   // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
@@ -24,15 +24,7 @@ type Props = EventDialogHandlers & {
 }
 
 // 신청 양식 카드: 이름, 기간, 신청 수/정원, 상태. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-export function FormCard({
-  councilId,
-  form,
-  attendance,
-  onAttendance,
-  onLoaded,
-  onEdit,
-  ...rest
-}: Props) {
+export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit, ...rest }: Props) {
   const { onChanged, ...handlers } = rest
   const [open, setOpen] = useState(false)
   const post = useStaffPost(handlers)
@@ -62,8 +54,8 @@ export function FormCard({
           <Applicants
             councilId={councilId}
             form={form}
-            attendance={attendance}
-            onAttendance={onAttendance}
+            changes={changes}
+            onChange={onChange}
             onLoaded={onLoaded}
             onCancelled={onChanged}
             {...handlers}
@@ -123,7 +115,7 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
 }
 
 type ApplicantsProps = EventDialogHandlers &
-  Pick<Props, 'councilId' | 'form' | 'attendance' | 'onAttendance' | 'onLoaded'> & {
+  Pick<Props, 'councilId' | 'form' | 'changes' | 'onChange' | 'onLoaded'> & {
     onCancelled: () => void
   }
 

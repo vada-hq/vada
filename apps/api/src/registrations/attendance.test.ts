@@ -41,6 +41,14 @@ test(
       name: kim.name,
       studentId: kim.studentId,
       already: false,
+      applicant: {
+        id,
+        attended: true,
+        cancelled: false,
+        deposit: { status: 'none', amount: null },
+        // 출석한 신청은 출석 취소만 있고 신청 취소가 없다(N10). 입금 확인은 참가비 있는 신청이라 남는다.
+        actions: ['registration.cancel_check_in', 'deposit.confirm'],
+      },
     } satisfies CheckInResult)
     const { rows } = await t.pg.query('SELECT method, cancelled_at FROM attendance')
     assert.deepEqual(rows, [{ method: 'qr', cancelled_at: null }])
