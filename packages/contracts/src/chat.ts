@@ -69,6 +69,8 @@ export interface RoomSummary {
   // 부서방은 부서 이름, 1:1은 상대 이름. 나머지는 화면이 종류로 이름을 붙인다.
   name: string | null
   departmentId: string | null
+  // 공지를 올릴 수 있는 방인가. 서버가 공지 조건(plan-room.ts)으로 정하고 화면은 이것만 본다.
+  noticeRoom: boolean
   // 상대가 학생회를 떠난 1:1처럼 보기만 되는 방
   readOnly: boolean
   // 내가 읽은 뒤 남이 보낸 메시지 수와, 그중 나를 부른 수

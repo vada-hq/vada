@@ -15,10 +15,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { getJson, postJson } from '@/lib/api'
 import {
   PERMISSION_CHANGED,
+  ROOM_LOST,
   ROOMS_LOAD_FAILED,
   SEND_ERRORS,
   SEND_FAILED,
-  TASK_LOST,
 } from '@/lib/messages'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import type { TaskDialogHandlers } from './task-requests'
@@ -30,7 +30,7 @@ type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
   onMade: () => void
 }
 
-// 전체방을 찾는다. 공지는 전체방에만 올릴 수 있고 서버가 방을 알려 주는 길은 방 목록뿐이다.
+// 공지를 올릴 방을 찾는다. 서버가 방마다 noticeRoom으로 알려 주고 화면은 방 종류를 다시 판정하지 않는다.
 function useAllRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbidden'>) {
   const [roomId, setRoomId] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
@@ -43,7 +43,7 @@ function useAllRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbi
       result => {
         if (controller.signal.aborted) return
         if (result.ok) {
-          const room = result.data.rooms.find(item => item.type === 'all_members')
+          const room = result.data.rooms.find(item => item.noticeRoom)
           return room ? setRoomId(room.id) : setFailed(true)
         }
         if (result.status === statusOf('FORBIDDEN')) {
@@ -84,7 +84,8 @@ export function NoticeMakeDialog({ councilId, taskId, onClose, onMade, ...handle
       handlers.onForbidden()
       return handlers.onLost(PERMISSION_CHANGED)
     }
-    if (result.status === statusOf('NOT_FOUND')) return handlers.onLost(TASK_LOST)
+    // 업무 문제는 서버가 409로 준다. 404는 방이 사라진 경우다.
+    if (result.status === statusOf('NOT_FOUND')) return handlers.onLost(ROOM_LOST)
     setProblem(SEND_ERRORS[result.code] ?? SEND_FAILED)
   }
 

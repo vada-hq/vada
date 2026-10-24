@@ -5,7 +5,15 @@ import { Card } from '@/components/ui/card'
 import { FormLink } from './FormLink'
 
 // 양식을 만든 바로 뒤. 운영진이 양식을 만드는 목적은 공지와 포스터에 붙일 링크와 QR이므로, 목록의 접힌 카드에 숨기지 않고 바로 보인다.
-export function FormCreated({ form, onDone }: { form: RegistrationForm; onDone: () => void }) {
+export function FormCreated({
+  form,
+  onDone,
+  doneLabel = '목록으로',
+}: {
+  form: RegistrationForm
+  onDone: () => void
+  doneLabel?: string
+}) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
@@ -20,7 +28,7 @@ export function FormCreated({ form, onDone }: { form: RegistrationForm; onDone: 
       </Card>
       <div>
         <Button variant="outline" onClick={onDone}>
-          목록으로
+          {doneLabel}
         </Button>
       </div>
     </div>

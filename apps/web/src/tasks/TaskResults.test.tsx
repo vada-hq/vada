@@ -7,7 +7,9 @@ import { councilView } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
-import { TASK_INVALID } from '@/lib/messages'
+import { ROOM_LOST, TASK_INVALID } from '@/lib/messages'
+import { eventDetail } from '@/test-support/event-fixtures'
+import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { TaskDetailDialog } from './TaskDetailDialog'
 
 afterEach(() => {
@@ -117,6 +119,11 @@ test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그�
   fireEvent.submit(form)
   expect(await within(form).findByText(TASK_INVALID)).toBeTruthy()
   expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
+  // 닫으면 업무를 다시 읽는다(낡은 만들기 버튼이 남지 않게).
+  const reads = () => api.calls.filter(call => call.path === URL_TASK).length
+  const before = reads()
+  fireEvent.click(within(form).getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
 test('403이면 창을 닫고 이유를 부모에게 넘긴다', async () => {
@@ -135,8 +142,10 @@ test('공지 만들기는 전체방에 notice와 taskId를 보낸다. 내용이 
   api.on('GET', `${BASE}/rooms`, () =>
     json({
       rooms: [
-        { id: 'x', type: 'leadership', name: null, departmentId: null, readOnly: false },
-        { id: ROOM_ID, type: 'all_members', name: null, departmentId: null, readOnly: false },
+        { id: 'x', type: 'leadership', noticeRoom: false },
+        // 종류가 전체방이어도 서버가 공지 방이 아니라고 하면 고르지 않는다.
+        { id: 'y', type: 'all_members', noticeRoom: false },
+        { id: ROOM_ID, type: 'all_members', noticeRoom: true },
       ],
       notices: [],
       unreadTotal: 0,
@@ -186,9 +195,55 @@ test('신청 양식 만들기는 업무의 행사로 양식 화면을 대화상�
     target: { value: '2026-11-01T18:00' },
   })
   api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
-    json({ form: { id: 'f1' } }, 201),
+    json({ form: staffForm({ id: 'f1' }) }, 201),
   )
   fireEvent.submit(form)
   await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
   expect(api.calls.find(call => call.method === 'POST')!.body).toMatchObject({ taskId: TASK_ID })
+})
+
+test('공지 보내기가 404이면 업무가 아니라 방을 잃었다고 알린다', async () => {
+  const { api, handlers } = setup(detail({ canMake: ['message'] }))
+  api.on('GET', `${BASE}/rooms`, () =>
+    json({
+      rooms: [{ id: ROOM_ID, type: 'all_members', noticeRoom: true }],
+      notices: [],
+      unreadTotal: 0,
+      mentionTotal: 0,
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
+  fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 총회' } })
+  api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ error: 'NOT_FOUND' }, 404))
+  await waitFor(() => {
+    submitIn('공지 만들기')
+    expect(handlers.onLost).toHaveBeenCalledWith(ROOM_LOST)
+  })
+})
+
+test('신청 양식 창은 행사의 일시·장소 미정을 알리고, 만든 뒤 링크를 보인 다음 닫으면 업무를 다시 읽는다', async () => {
+  const { api } = setup(
+    detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } }),
+  )
+  api.on('GET', `${BASE}/events/${EVENT_ID}`, () =>
+    json({ event: eventDetail({ id: EVENT_ID, startsAt: null, place: null }) }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  expect((await within(form).findAllByText('미정')).length).toBe(2)
+  fireEvent.change(within(form).getByLabelText(/신청 마감/), {
+    target: { value: '2026-11-01T18:00' },
+  })
+  api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
+    json({ form: staffForm({ id: 'f1', name: '환영회 신청' }) }, 201),
+  )
+  fireEvent.submit(form)
+  const heading = await screen.findByText('신청 양식 생성 완료')
+  const created = asElement(heading.parentElement!.parentElement!.parentElement!, HTMLElement)
+  const reads = () => api.calls.filter(call => call.path === URL_TASK).length
+  const before = reads()
+  fireEvent.click(within(created).getByRole('button', { name: '닫기' }))
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+  expect(screen.queryByText('신청 양식 생성 완료')).toBeNull()
 })

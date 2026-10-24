@@ -125,7 +125,11 @@ function Loaded({ view, task, detail, onForbidden, onLost, onOpenEvent, onClose 
           view={view}
           task={task}
           kind={making}
-          onClose={() => setMaking(null)}
+          onClose={() => {
+            setMaking(null)
+            // 409 뒤에는 업무가 바뀌었을 수 있다. 닫을 때 다시 읽어 낡은 만들기 버튼이 남지 않게 한다.
+            detail.refresh()
+          }}
           onMade={() => {
             setMaking(null)
             detail.refresh()
