@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { taskFromPath, taskUrl } from '@vada/contracts'
 import type { TaskDetail, TaskSummary, TasksResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
@@ -351,6 +352,28 @@ test('다른 학생회 업무, 지운 업무, 형식이 틀린 번호는 404이�
       assert.equal(response.status, 404, id)
       assert.deepEqual(await response.json(), { error: 'NOT_FOUND' }, id)
     }
+  } finally {
+    await t.close()
+  }
+})
+
+test('알림 주소만으로는 남의 업무를 볼 수 없다: 서버가 학생회를 요청마다 본다', async () => {
+  const t = await start()
+  try {
+    const foreign = await t.make({ title: '남의 업무' }, t.other)
+    const address = taskUrl(t.other.councilId, foreign)
+    const parsed = taskFromPath(address)
+    assert.deepEqual(parsed, { councilId: t.other.councilId, taskId: foreign })
+    // 주소의 학생회로 읽으면 그 학생회 사람이 아니라 403이고, 내 학생회 칸에 끼워 읽으면 없는 것과 같은 404이다.
+    const asIs = await t.api.get(
+      `/api/organizations/${parsed!.councilId}/tasks/${parsed!.taskId}`,
+      's-president',
+    )
+    assert.equal(asIs.status, 403)
+    const swapped = await t.api.get(`${t.base}/${parsed!.taskId}`, 's-president')
+    assert.equal(swapped.status, 404)
+    assert.equal(JSON.stringify(await asIs.json()).includes('남의 업무'), false)
+    assert.equal(JSON.stringify(await swapped.json()).includes('남의 업무'), false)
   } finally {
     await t.close()
   }

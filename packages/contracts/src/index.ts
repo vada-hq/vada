@@ -267,3 +267,5 @@ export * from './registrations.js'
 export * from './fee-payments.js'
 export * from './deposits.js'
 export * from './settlement.js'
+// 화면 주소의 원문(기능 016).
+export * from './paths.js'

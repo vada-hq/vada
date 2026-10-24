@@ -157,9 +157,17 @@ test('로그아웃은 이 기기 줄을 먼저 지운 뒤에 한다', async () =
 
 test('알림 주소(/chat/학생회/방)로 열면 그 방을 열라고 넘기고 주소는 맨 앞으로 되돌린다', async () => {
   signedIn()
-  window.history.replaceState(null, '', '/chat/c1/r1')
+  window.history.replaceState(
+    null,
+    '',
+    '/chat/0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1',
+  )
   await renderApp()
-  expect(screen.getByText('방 열기: c1/r1/0')).toBeTruthy()
+  expect(
+    screen.getByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
+    ),
+  ).toBeTruthy()
   await waitFor(() => expect(window.location.pathname).toBe('/'))
 })
 
@@ -176,12 +184,45 @@ test('열려 있는 동안 서비스 워커가 알리면 그 방으로 다시 �
   })
   await renderApp()
   expect(screen.queryByText(/방 열기/)).toBeNull()
-  act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c2/r9' } }))
-  expect(screen.getByText('방 열기: c2/r9/1')).toBeTruthy()
-  act(() => listeners[0]!({ data: { type: 'vada:open', url: '/chat/c2/r9' } }))
-  expect(screen.getByText('방 열기: c2/r9/2')).toBeTruthy()
-  act(() => listeners[0]!({ data: { type: 'vada:open', url: 'https://evil.test/chat/c2/r9' } }))
-  expect(screen.getByText('방 열기: c2/r9/2')).toBeTruthy()
+  act(() =>
+    listeners[0]!({
+      data: {
+        type: 'vada:open',
+        url: '/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
+      },
+    }),
+  )
+  expect(
+    screen.getByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/1',
+    ),
+  ).toBeTruthy()
+  act(() =>
+    listeners[0]!({
+      data: {
+        type: 'vada:open',
+        url: '/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
+      },
+    }),
+  )
+  expect(
+    screen.getByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/2',
+    ),
+  ).toBeTruthy()
+  act(() =>
+    listeners[0]!({
+      data: {
+        type: 'vada:open',
+        url: 'https://evil.test/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
+      },
+    }),
+  )
+  expect(
+    screen.getByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/2',
+    ),
+  ).toBeTruthy()
   Reflect.deleteProperty(navigator, 'serviceWorker')
 })
 
@@ -443,13 +484,25 @@ test('초대 링크로 시작해도 동의가 먼저고, 동의 뒤 초대 확�
 })
 
 test('알림 주소로 시작해도 동의가 먼저고, 동의 뒤 그 방을 연다', async () => {
-  window.history.replaceState(null, '', '/chat/c1/r1')
+  window.history.replaceState(
+    null,
+    '',
+    '/chat/0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1',
+  )
   signedIn()
   needAgreement()
   await renderApp()
-  expect(screen.queryByText('방 열기: c1/r1/0')).toBeNull()
+  expect(
+    screen.queryByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
+    ),
+  ).toBeNull()
   expect(screen.queryByText('학생회 목록 자리')).toBeNull()
   fireEvent.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
   fireEvent.click(screen.getByRole('button', { name: '시작하기' }))
-  expect(await screen.findByText('방 열기: c1/r1/0')).toBeTruthy()
+  expect(
+    await screen.findByText(
+      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
+    ),
+  ).toBeTruthy()
 })
