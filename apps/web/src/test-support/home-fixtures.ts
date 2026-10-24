@@ -47,7 +47,7 @@ export const homeTask = (
   department: null,
   event: null,
   assignee: { id: 'p1', name: '김새내', current: true },
-  actions: ['task.status'],
+  actions: ['task.change_status'],
   group,
   ...extra,
 })

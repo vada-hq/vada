@@ -1,11 +1,11 @@
 import type { TaskAction, TaskDetail } from '@vada/contracts'
 
 const ALL_TASK_ACTIONS: TaskAction[] = [
-  'task.manage',
-  'task.delete',
-  'task.set_department',
-  'task.assign',
-  'task.status',
+  'task.edit',
+  'task.remove',
+  'task.change_department',
+  'task.change_assignee',
+  'task.change_status',
 ]
 
 // 화면 시험이 같이 쓰는 업무 응답. 값은 서버 응답과 같은 모양이다.

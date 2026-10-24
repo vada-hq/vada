@@ -25,7 +25,7 @@ const summary: TaskSummary = {
   department: null,
   event: null,
   assignee: null,
-  actions: ['task.status', 'task.manage'],
+  actions: ['task.change_status', 'task.edit'],
 }
 
 function setup() {

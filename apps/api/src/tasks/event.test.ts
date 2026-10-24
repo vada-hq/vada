@@ -80,11 +80,11 @@ test(
       const task = await s.made({ title: 'a', eventId, departmentId }, 's-plain')
       assert.deepEqual(task.event, { id: eventId, name: '봄 축제' })
       assert.deepEqual(task.actions, [
-        'task.manage',
-        'task.delete',
-        'task.set_department',
-        'task.assign',
-        'task.status',
+        'task.edit',
+        'task.remove',
+        'task.change_department',
+        'task.change_assignee',
+        'task.change_status',
       ])
     }
     const ok = await s.made({ title: 'b', eventId, assigneeId: planningMember.memberId }, 's-plain')
@@ -171,7 +171,7 @@ test(
 )
 
 test(
-  '고치기로 행사를 바꾸거나 비우면 전과 뒤 모두에서 task.manage가 있어야 한다',
+  '고치기로 행사를 바꾸거나 비우면 전과 뒤 모두에서 task.edit가 있어야 한다',
   run(async s => {
     const { plain, planningMember } = s.council.people
     const mine = await s.event(plain.memberId, '내 행사')

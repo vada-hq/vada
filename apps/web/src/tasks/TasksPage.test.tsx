@@ -33,7 +33,7 @@ const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   department: null,
   event: null,
   assignee: { id: 'p1', name: '김새내', current: true },
-  actions: ['task.status'],
+  actions: ['task.change_status'],
   ...extra,
 })
 const list = (tasks: TaskSummary[], truncated = false) => json({ tasks, truncated })
@@ -98,7 +98,7 @@ test('전체의 줄에는 부서 대신 담당자(없으면 담당자 없음)와
   expect(within(rowOf('업무 b')).getByText('담당자 없음')).toBeTruthy()
 })
 
-test('권한 목록에 task.status가 없으면 [시작]이 없다', async () => {
+test('권한 목록에 task.change_status가 없으면 [시작]이 없다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([task('a', { actions: [] })]))
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
@@ -341,7 +341,7 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
   api.on('GET', listPath('mine'), () => list([]))
   api.on('GET', listPath('unassigned'), () =>
     list([
-      task('a', { assignee: null, actions: ['task.status', 'task.assign'] }),
+      task('a', { assignee: null, actions: ['task.change_status', 'task.change_assignee'] }),
       task('b', { assignee: null }),
     ]),
   )

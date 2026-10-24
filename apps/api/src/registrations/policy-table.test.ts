@@ -26,8 +26,11 @@ const EXCEPTIONS: Record<string, string> = {
     '출석한 신청의 [출석]은 decide 밖에서 숨기고 쓰기는 200 already다(012-4 M2)',
 }
 const usedExceptions = new Set<string>()
+// 돌아간 표(칸 이름의 첫 낱말: 양식, 신청자). 일부 시험만 돌려도 예외 목록 검사가 돌아간 표만 본다.
+const ranTables = new Set<string>()
 // 칸 하나를 맞춘다: 예외 칸은 읽기에 없고 쓰기가 expected(성공)인 것을, 아니면 읽기와 쓰기가 같은 것을 본다.
 function checkCell(cell: string, shown: boolean, code: string | null, expected: string | null) {
+  ranTables.add(cell.split(' ')[0]!)
   assert.equal(code, expected, `${cell} 쓰기`)
   if (cell in EXCEPTIONS) {
     usedExceptions.add(cell)
@@ -200,7 +203,7 @@ test(
 )
 
 test('표의 열은 계약의 동작 목록과 같다', () => {
-  assert.deepEqual(ACTIONS.sort(), [...APPLICANT_ACTIONS].sort())
+  assert.deepEqual([...ACTIONS].sort(), [...APPLICANT_ACTIONS].sort())
   assert.deepEqual(Object.keys(WRITE_FORM).sort(), [...FORM_LIST_ACTIONS, ...FORM_ACTIONS].sort())
   for (const state of STATES) {
     assert.deepEqual(Object.keys(SHOWN[state]).sort(), [FINANCE, PRESIDENT].sort(), state)
@@ -298,5 +301,6 @@ test(
 )
 
 test('예외 목록의 칸은 모두 표에서 만났고 여전히 읽기와 쓰기가 갈린다', () => {
-  assert.deepEqual([...usedExceptions].sort(), Object.keys(EXCEPTIONS).sort())
+  const ran = Object.keys(EXCEPTIONS).filter(cell => ranTables.has(cell.split(' ')[0]!))
+  assert.deepEqual([...usedExceptions].sort(), ran.sort())
 })

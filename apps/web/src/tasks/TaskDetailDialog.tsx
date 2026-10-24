@@ -112,7 +112,7 @@ function Loaded({ view, task, detail, onForbidden, onOpenEvent, onClose }: Loade
       {task.body && (
         <p className="text-sm wrap-anywhere whitespace-pre-wrap text-gray-800">{task.body}</p>
       )}
-      {(task.actions.includes('task.manage') || task.actions.includes('task.delete')) && (
+      {(task.actions.includes('task.edit') || task.actions.includes('task.remove')) && (
         <ManageButtons
           detail={detail}
           actions={task.actions}
@@ -137,12 +137,12 @@ function ManageButtons({ detail, actions, onEdit, onDeleted }: ManageProps) {
   const [deleting, setDeleting] = useState(false)
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {actions.includes('task.manage') && (
+      {actions.includes('task.edit') && (
         <Button variant="outline" disabled={detail.saving} onClick={onEdit}>
           고치기
         </Button>
       )}
-      {actions.includes('task.delete') && (
+      {actions.includes('task.remove') && (
         <Button variant="outline" disabled={detail.saving} onClick={() => setDeleting(true)}>
           지우기
         </Button>

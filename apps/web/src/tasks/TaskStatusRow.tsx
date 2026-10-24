@@ -5,7 +5,7 @@ import { STATUS_LABEL } from './task-view'
 
 type Props = {
   status: TaskStatus
-  // task.status가 있을 때만 바꿀 수 있다. 없으면 상태 배지만 보인다.
+  // task.change_status가 있을 때만 바꿀 수 있다. 없으면 상태 배지만 보인다.
   canChange: boolean
   saving: boolean
   onChange: (status: TaskStatus) => void

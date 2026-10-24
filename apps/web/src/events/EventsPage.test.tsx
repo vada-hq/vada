@@ -34,7 +34,7 @@ const openTask = (id: string, extra: Record<string, unknown> = {}) => ({
   department: null,
   event: { id: EVENT_ID, name: '신입생 환영회' },
   assignee: null,
-  actions: ['task.status'],
+  actions: ['task.change_status'],
   ...extra,
 })
 
@@ -396,7 +396,7 @@ test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이�
           department: null,
           event: { id: EVENT_ID, name: '신입생 환영회' },
           assignee: null,
-          actions: ['task.status'],
+          actions: ['task.change_status'],
         },
       ],
       truncated: false,

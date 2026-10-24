@@ -1,4 +1,4 @@
-import { TASK_ACTIONS, type ErrorCode, type TaskAction } from '@vada/contracts'
+import { TASK_ACTIONS, type Action, type ErrorCode, type TaskAction } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can, type Context } from '../access/permissions.js'
 
@@ -38,9 +38,18 @@ const contextOf = (facts: TaskFacts): Context => ({
   ...(facts.eventOwnerId ? { eventOwnerId: facts.eventOwnerId } : {}),
 })
 
+// 동작 → 권한 키. 동작 이름은 권한 키와 떼어 두고(012 원칙) 서버가 여기서 짝짓는다.
+const PERMISSION_OF: Record<TaskAction, Action> = {
+  'task.edit': 'task.manage',
+  'task.remove': 'task.delete',
+  'task.change_department': 'task.set_department',
+  'task.change_assignee': 'task.assign',
+  'task.change_status': 'task.status',
+}
+
 // 허용이면 null, 막으면 그 쓰기가 내는 코드. 업무 동작은 상태가 막지 않아(상태는 어디로든 옮긴다, DEC-39) 권한만 본다.
 export const decide = (actor: Actor, facts: TaskFacts, action: TaskAction): ErrorCode | null =>
-  can(actor, action, contextOf(facts)) ? null : 'FORBIDDEN'
+  can(actor, PERMISSION_OF[action], contextOf(facts)) ? null : 'FORBIDDEN'
 
 // 화면에 줄 동작: decide가 허용하는 것
 export const actionsOf = (actor: Actor, facts: TaskFacts): TaskAction[] =>

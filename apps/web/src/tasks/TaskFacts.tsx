@@ -32,7 +32,7 @@ function DepartmentFact({ view, task, saving, problem, onForbidden, send, can }:
         councilId={view.council.id}
         current={task.department?.name ?? COUNCIL_TASK_LABEL}
         currentId={task.department?.id ?? null}
-        canChange={can('task.set_department')}
+        canChange={can('task.change_department')}
         saving={saving}
         problem={errorIn(problem, 'department')}
         choicesOf={detailDepartmentChoices}
@@ -51,7 +51,7 @@ function AssigneeFact({ view, task, saving, problem, onForbidden, send, can }: R
         councilId={view.council.id}
         current={assigneeLabel(task.assignee)}
         currentId={task.assignee?.id ?? null}
-        canChange={can('task.assign')}
+        canChange={can('task.change_assignee')}
         saving={saving}
         problem={errorIn(problem, 'assignee')}
         choicesOf={team => detailAssigneeChoices(team, task)}
@@ -72,7 +72,7 @@ export function TaskFacts(props: Props) {
       <Fact label="상태">
         <TaskStatusRow
           status={task.status}
-          canChange={can('task.status')}
+          canChange={can('task.change_status')}
           saving={saving}
           onChange={(status: TaskStatus) => {
             void send('status', '/status', { status })
