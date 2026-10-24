@@ -53,7 +53,7 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
     )
     const names = rows.map(row => row.table_name)
-    assert.equal(names.length, 55)
+    assert.equal(names.length, 56)
     for (const name of [
       'users',
       'accounts',
@@ -95,9 +95,10 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
         '0011_income_limits_carryover_unique',
         '0012_registration_form_student_id',
         '0013_approval_outcome_cancelled',
+        '0014_task_result',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 14)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 15)
   } finally {
     await close()
   }
