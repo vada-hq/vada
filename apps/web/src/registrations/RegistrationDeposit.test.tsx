@@ -179,6 +179,7 @@ test('환불 대기 줄에는 [환불함]이 줄에 deposit.refund가 있을 때
       applicant: applicantChange({
         attended: false,
         cancelled: true,
+        listed: false,
         deposit: { status: 'refunded', amount: 5000 },
         actions: [],
       }),

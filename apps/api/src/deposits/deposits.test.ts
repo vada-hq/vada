@@ -85,6 +85,7 @@ test(
       attended: false,
       cancelled: false,
       deposit: { status: 'confirmed', amount: FEE },
+      listed: true,
       actions: ['registration.check_in', 'registration.cancel', 'deposit.cancel'],
     })
     const { rows } = await t.pg.query<{
@@ -553,13 +554,16 @@ test(
   '쓰기 응답의 applicant(상태 칸과 actions)는 이어서 읽은 목록의 같은 줄과 같고 신청자 정보를 담지 않는다',
   withRegistrations(async t => {
     const { form, id } = await started(t)
+    // 목록에 남은 줄은 응답과 값이 모두 같다(listed 포함).
     const inList = async (): Promise<ApplicantChange> => {
-      const row = (await listOf(t, form.id)).applicants.find(item => item.id === id)!
+      const row = (await listOf(t, form.id)).applicants.find(item => item.id === id)
+      if (!row) throw new Error('목록에 없다')
       return {
         id,
         attended: row.attended,
         cancelled: row.cancelled,
         deposit: row.deposit,
+        listed: true,
         actions: row.actions,
       }
     }
@@ -581,6 +585,32 @@ test(
     assert.deepEqual(cancelled.applicant, await inList())
     assert.equal(cancelled.applicant.deposit.status, 'refund_pending')
     assert.deepEqual(cancelled.applicant.actions, ['deposit.cancel'])
+    assert.equal(cancelled.applicant.listed, true)
+    // 환불함으로 목록에서 빠지면 listed도 거짓이다.
+    const refunded = (await (await refund(t, id)).json()) as StaffDepositResponse
+    assert.equal(refunded.applicant.listed, false)
+    assert.equal(
+      (await listOf(t, form.id)).applicants.some(item => item.id === id),
+      false,
+    )
+    // 입금 없이 취소해도 빠진다.
+    const second = await t.applied(form.publicCode, {
+      name: '이둘째',
+      studentId: '202600002',
+      phone: '01099998888',
+    })
+    assert.ok(second)
+    const secondId = (
+      (await t.pg.query('SELECT id FROM registration ORDER BY id DESC LIMIT 1')).rows[0] as {
+        id: string
+      }
+    ).id
+    const voided = (await (await cancelStaff(t, secondId)).json()) as StaffCancelResponse
+    assert.equal(voided.applicant.listed, false)
+    assert.equal(
+      (await listOf(t, form.id)).applicants.some(item => item.id === secondId),
+      false,
+    )
     // 신청자 정보(이름, 학번, 휴대폰)는 담지 않는다.
     assert.deepEqual(Object.keys(cancelled.applicant).sort(), [
       'actions',
@@ -588,6 +618,7 @@ test(
       'cancelled',
       'deposit',
       'id',
+      'listed',
     ])
   }),
 )

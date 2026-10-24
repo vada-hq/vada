@@ -67,6 +67,7 @@ export const applicantChange = (extra: Partial<ApplicantChange> = {}): Applicant
   attended: true,
   cancelled: false,
   deposit: { status: 'none', amount: null },
+  listed: true,
   actions: ['registration.cancel_check_in', 'deposit.confirm'],
   ...extra,
 })

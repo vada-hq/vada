@@ -6,6 +6,7 @@ import type { Db, Tx } from '../db/types.js'
 import { refundPendingFacts } from '../deposits/refund-pending.js'
 import { ApiError } from '../http/errors.js'
 import { lockEventsShared } from '../policy/locks.js'
+import { listedFacts } from './listed.js'
 import { registrationContextOf } from './permission-context.js'
 import {
   applicantActionsOf,
@@ -98,6 +99,12 @@ export async function applicantChangeOf(
     attended: facts.attended,
     cancelled: facts.cancelledAt !== null,
     deposit: { status, amount: held?.amount ?? null },
+    listed: listedFacts({
+      name: row.name,
+      cancelledAt: facts.cancelledAt,
+      hasDeposit: held !== null,
+      refundedAt: held?.refundedAt ?? null,
+    }),
     actions: applicantActionsOf(actor, facts),
   }
 }

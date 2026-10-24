@@ -216,6 +216,8 @@ export interface ApplicantChange {
   attended: boolean
   cancelled: boolean
   deposit: ApplicantDeposit
+  // 그 줄이 신청자 목록에 남는가. 환불함이나 입금 없는 취소는 목록에서 빠진다. 서버가 목록 조회와 같은 규칙으로 센다.
+  listed: boolean
   actions: ApplicantAction[]
 }
 export interface ApplicantChangeResponse {

@@ -138,6 +138,7 @@ export function RegistrationSection() {
               attended: true,
               cancelled: false,
               deposit: { status: 'none', amount: null },
+              listed: true,
               actions: [],
             },
             name: '김새내',

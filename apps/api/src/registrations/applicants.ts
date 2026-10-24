@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gt, isNotNull, isNull, or, type SQL } from 'drizzle-orm'
+import { and, asc, count, eq, gt, isNotNull, isNull, type SQL } from 'drizzle-orm'
 import {
   APPLICANT_LIST_LIMIT,
   koreanOf,
@@ -12,6 +12,7 @@ import { attendance, deposit, record, registration, registrationForm } from '../
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { refundPendingFacts, refundPendingSql } from '../deposits/refund-pending.js'
+import { listedSql } from './listed.js'
 import { recordApplicantAccess } from './access-log.js'
 import { applicantActionsOf, applicantFactsFrom, decideOnEvent, eventFactsOf } from './policy.js'
 import { formRowOf } from './queries.js'
@@ -89,14 +90,7 @@ function applicantRowsOf(tx: Tx, formId: string, filter: ApplicantFilter | undef
         deposit,
         and(eq(deposit.registrationId, registration.id), isNull(deposit.cancelledAt)),
       )
-      .where(
-        and(
-          eq(registration.formId, formId),
-          isNotNull(registration.name),
-          or(isNull(registration.cancelledAt), unrefunded),
-          filterOf(filter),
-        ),
-      )
+      .where(and(eq(registration.formId, formId), listedSql, filterOf(filter)))
       // 번호가 시각 순서다(uuidv7).
       .orderBy(asc(registration.id))
       .limit(APPLICANT_LIST_LIMIT + 1)

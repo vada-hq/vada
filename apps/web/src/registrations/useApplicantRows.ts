@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import type { Applicant, ApplicantChange } from '@vada/contracts'
 
-// 쓰기가 돌려준 줄의 새 모습으로 줄이 목록에서 빠지는가: 환불함이거나, 취소했는데 입금이 없다(이름이 비었다).
-const leaves = (change: ApplicantChange) =>
-  change.deposit.status === 'refunded' || (change.cancelled && change.deposit.status === 'none')
-
 // 서버에서 읽은 신청자 위에, 이 화면에서 한 쓰기가 돌려준 줄의 새 모습(상태 칸과 actions)을 덮는다.
 // 목록을 다시 읽지 않는다(읽을 때마다 열람 기록이 남는다). 동작은 서버가 센 것이라 화면이 다시 세지 않는다.
 // 신청이 없어졌으면(404) 그 줄도 뺀다.
@@ -24,7 +20,7 @@ export function useApplicantRows(
     .flatMap(item => {
       const change = changes.get(item.id)
       if (!change) return [item]
-      if (leaves(change)) return []
+      if (!change.listed) return []
       const { attended, cancelled, deposit, actions } = change
       return [{ ...item, attended, cancelled, deposit, actions }]
     })
