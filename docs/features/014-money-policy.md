@@ -103,7 +103,7 @@
 - 닿는 곳: contracts `expenses.ts`(`EXPENSE_ACTIONS`), `expenses/status.ts` → `policy.ts`, `expenses/queries.ts`, `expenses/evidence.ts`, `expenses/service.ts`·`update.ts`, 웹 `finance/expense-view.ts`, `EvidenceSection.tsx`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 7. 신청 양식이 쓰는 계좌 닫기(N8) [ ]
+### 7. 신청 양식이 쓰는 계좌 닫기(N8) [x]
 - 할 수 있게 되는 것: 열린 행사의 신청 양식이 참가비를 받는 계좌는 닫히지 않고, 재정부는 왜 닫을 수 없는지 카드에서 본다.
 - 수용 기준: 완료하지 않은 행사의 신청 양식(멈춤·마감 포함)이 참가비 받는 계좌로 가리키는 계좌를 닫으면 409 `ACCOUNT_IN_USE`이고 닫은 날이 없다. 그 행사를 완료했거나 양식의 계좌를 바꾸면 닫힌다. 계좌 응답의 동작은 `account.update`·`account.close`로 나뉘고, 쓰는 중이면 `account.close`가 없고 사용 양식 수가 실려 카드에 '신청 양식 N개에서 사용 중'이 보인다. 다른 학생회 양식은 세지 않는다(같은 값으로 두고 거르기를 지우면 실패). 진행 에이전트는 올리기 전에 두 DB에서 닫힌 계좌를 가리키는 완료 전 행사의 양식 수를 읽기로 세고 vada-docs RULE-34에 줄을 더한다.
 - 닿는 곳: contracts `accounts.ts`, `errors.ts`, 새 `accounts/policy.ts`, `accounts/service.ts`·`queries.ts`, 웹 `finance/AccountCard.tsx`, `AccountsTab.tsx`, `lib/messages.ts`.

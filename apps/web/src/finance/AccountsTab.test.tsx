@@ -72,6 +72,14 @@ test('재정부가 아니면 더하기·고치기·닫기가 없다', async () =
   expect(screen.queryByRole('button', { name: '닫기' })).toBeNull()
 })
 
+test('신청 양식이 쓰는 계좌는 사용 수가 보이고 서버가 닫기를 주지 않아 닫기 버튼이 없다', async () => {
+  const used = accountItem(MAIN_ACCOUNT_ID, { formsInUse: 2, actions: ['account.update'] })
+  await open(accountsResponse([used]))
+  expect(await screen.findByText('신청 양식 2개에서 사용 중')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '고치기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '닫기' })).toBeNull()
+})
+
 test('계좌가 없으면 빈 문구가 보인다', async () => {
   const api = serveFinance()
   api.on('GET', ACCOUNTS, () => json(accountsResponse()))

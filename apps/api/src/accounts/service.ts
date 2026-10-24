@@ -12,6 +12,7 @@ import { account } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
+import { assertAllowed } from './policy.js'
 import { accountItemOf, accountRowOf } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 권한표 → 계좌 행 읽기 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -78,7 +79,7 @@ export async function updateAccount(
 ): Promise<AccountItem> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await accountRowOf(tx, actor, accountId)
-  if (row.closedOn !== null) throw new ApiError('ACCOUNT_CLOSED')
+  await assertAllowed(tx, actor, row, 'account.update')
   await assertFree(tx, actor, input, row.id)
   const changes = {
     ...(input.name !== row.name ? { name: input.name } : {}),
@@ -100,7 +101,7 @@ export async function updateAccount(
   return accountItemOf(tx, actor, row.id)
 }
 
-// 닫으면 닫은 날(한국 오늘)이 남고 다시 열지 않는다. 이미 닫았으면 409다.
+// 닫으면 닫은 날(한국 오늘)이 남고 다시 열지 않는다. 이미 닫았으면 ACCOUNT_CLOSED, 완료 전 행사의 신청 양식이 쓰면 ACCOUNT_IN_USE(409)다.
 export async function closeAccount(
   tx: Tx,
   actor: Actor,
@@ -108,7 +109,7 @@ export async function closeAccount(
 ): Promise<AccountItem> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const row = await accountRowOf(tx, actor, target.accountId)
-  if (row.closedOn !== null) throw new ApiError('ACCOUNT_CLOSED')
+  await assertAllowed(tx, actor, row, 'account.close')
   await updateRecord(tx, {
     kind: 'account',
     id: row.id,
