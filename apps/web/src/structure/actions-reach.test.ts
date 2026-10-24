@@ -18,7 +18,10 @@ function sources(dir: string): string[] {
 }
 
 // 화면이 안 쓰는 것을 아직 고치지 않고 이유와 함께 허용하는 목록. 이유 없이 더하지 않는다.
-const ALLOWED_UNUSED: Record<string, string> = {}
+const ALLOWED_UNUSED: Record<string, string> = {
+  'LINE_ITEM_ACTIONS line_item.cancel':
+    '기능 014 조각 2가 서버를 먼저 냈고, 품목 취소 화면은 조각 4가 만든다',
+}
 
 // index.ts가 안 내보내는 목록도 놓치지 않게 계약의 모듈을 모두 읽는다.
 const modules = import.meta.glob<Record<string, unknown>>(
