@@ -468,7 +468,7 @@ test('신청 취소는 확인을 거치고, 취소하면 목록에서 빠진다.
   api.on('POST', `${base}/cancel`, () =>
     json({
       cancelled: true,
-      applicant: applicantChange({ attended: false, cancelled: true, actions: [] }),
+      applicant: applicantChange({ attended: false, cancelled: true, listed: false, actions: [] }),
     }),
   )
   fireEvent.click(within(dialog).getByRole('button', { name: '신청 취소' }))
