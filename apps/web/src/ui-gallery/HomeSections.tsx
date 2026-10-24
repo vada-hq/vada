@@ -19,11 +19,18 @@ import SettlingSection from '@/home/SettlingSection'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
+// 묶음과 마감일이 맞아야 'N일 지남'이 실제처럼 보인다. 기준일은 아래 today다.
+const DUE: Record<HomeTaskGroup, string> = {
+  overdue: '2026-10-21',
+  today: '2026-10-23',
+  soon: '2026-10-25',
+}
+
 const task = (id: string, group: HomeTaskGroup, extra: Partial<HomeTask> = {}): HomeTask => ({
   id,
   title: '신입생 환영회 장소 예약',
   status: 'todo',
-  dueDate: '2026-10-25',
+  dueDate: DUE[group],
   overdue: group === 'overdue',
   department: null,
   event: null,
