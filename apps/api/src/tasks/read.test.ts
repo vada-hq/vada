@@ -366,11 +366,11 @@ test('알림 주소만으로는 남의 업무를 볼 수 없다: 서버가 학�
     assert.deepEqual(parsed, { councilId: t.other.councilId, taskId: foreign })
     // 주소의 학생회로 읽으면 그 학생회 사람이 아니라 403이고, 내 학생회 칸에 끼워 읽으면 없는 것과 같은 404이다.
     const asIs = await t.api.get(
-      `/api/organizations/${parsed!.councilId}/tasks/${parsed!.taskId}`,
+      `/api/organizations/${parsed.councilId}/tasks/${parsed.taskId}`,
       's-president',
     )
     assert.equal(asIs.status, 403)
-    const swapped = await t.api.get(`${t.base}/${parsed!.taskId}`, 's-president')
+    const swapped = await t.api.get(`${t.base}/${parsed.taskId}`, 's-president')
     assert.equal(swapped.status, 404)
     assert.equal(JSON.stringify(await asIs.json()).includes('남의 업무'), false)
     assert.equal(JSON.stringify(await swapped.json()).includes('남의 업무'), false)
