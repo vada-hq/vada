@@ -16,6 +16,16 @@ export async function addLink(db: Pick<Db, 'insert'>, registrationId: string, to
   await db.insert(registrationLink).values({ registrationId, tokenHash: hashOfToken(token) })
 }
 
+// 링크를 다시 준다: 신청마다 한 줄이라 앞 줄을 지우고 새 토큰의 해시를 둔다(링크는 기록이 아니라 판이 생기지 않는다).
+export async function replaceLink(
+  tx: Pick<Db, 'insert' | 'execute'>,
+  registrationId: string,
+  token: string,
+) {
+  await removeLinks(tx, [registrationId])
+  await addLink(tx, registrationId, token)
+}
+
 // 취소하거나 신청자 정보를 비우면 줄을 지운다: 그 뒤 같은 토큰은 404다.
 export async function removeLinks(db: Pick<Db, 'execute'>, registrationIds: string[]) {
   await db.execute(

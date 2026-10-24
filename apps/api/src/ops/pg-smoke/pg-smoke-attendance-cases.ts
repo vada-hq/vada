@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Actor } from '../../access/actor.js'
 import type { Db } from '../../db/types.js'
 import { createRecord } from '../../records/records.js'
@@ -86,7 +87,7 @@ async function newRegistration(run: Race) {
     applyToForm(
       tx,
       { code: run.code, now: run.context.now },
-      { name: '점검 신청자', studentId: null, phone: null },
+      { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
     ),
   )
   return { token, hash: hashOfToken(token) }

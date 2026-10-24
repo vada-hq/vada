@@ -10,6 +10,7 @@ import {
   confirmAndCancelTogetherCase,
   confirmTogetherCase,
   lastSeatTogetherCase,
+  sameCommandTogetherCase,
   sameQrTogetherCase,
   smokeCases,
 } from './pg-smoke-cases.js'
@@ -37,6 +38,7 @@ test('마지막 한 자리 동시 신청: 신청 하나와 나머지의 REGISTRA
 })
 
 test('출석 동시 처리 사례 둘이 점검 목록에 있다', () => {
+  assert.ok(smokeCases.includes(sameCommandTogetherCase))
   assert.ok(smokeCases.includes(sameQrTogetherCase))
   assert.ok(smokeCases.includes(cancelAndCheckInCase))
   assert.ok(smokeCases.includes(confirmTogetherCase))
@@ -50,6 +52,7 @@ test('출석 동시 처리 사례 둘이 점검 목록에 있다', () => {
 })
 
 for (const [smokeCase, detail] of [
+  [sameCommandTogetherCase, /영수증이 하나만/],
   [sameQrTogetherCase, /already/],
   [cancelAndCheckInCase, /취소와 출석/],
   [confirmTogetherCase, /DEPOSIT_EXISTS/],

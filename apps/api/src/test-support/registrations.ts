@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type {
   PublicRegistrationForm,
   RegistrationForm,
@@ -191,8 +192,14 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     return { response, text: await response.text() }
   }
   const publicPost = (path: string, body: unknown) => api.post(`/api/public${path}`, body)
+  // 명령 번호가 없는 객체 본문에는 새 번호를 달아 보낸다(기능 017). 번호 자체를 시험할 때는 publicPost로 직접 보낸다.
   const apply = (code: string, body: unknown) =>
-    publicPost(`/registration-forms/${code}/apply`, body)
+    publicPost(
+      `/registration-forms/${code}/apply`,
+      typeof body === 'object' && body !== null && !('commandId' in body)
+        ? { commandId: randomUUID(), ...body }
+        : body,
+    )
   // 신청해서 토큰을 받는다. 성공(201)이 아니면 던진다.
   const applied = async (code: string, body: unknown) => {
     const response = await apply(code, body)

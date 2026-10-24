@@ -296,6 +296,7 @@ const rows: Row[] = [
     '공개 신청',
     (t, s) =>
       t.api.post(`/api/public/registration-forms/${s.publicCode}/apply`, {
+        commandId: '3f2b8a52-6c1e-4d0b-9a7e-2d5c8f1b4a60',
         name: '박신청',
         studentId: '202612345',
       }),
