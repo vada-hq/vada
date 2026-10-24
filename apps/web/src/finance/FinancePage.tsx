@@ -9,6 +9,7 @@ import {
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { releaseRecord } from '@/lib/app-location'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { AccountsTab } from './AccountsTab'
@@ -193,6 +194,7 @@ function RequestDialogs({
   }
   // 다른 화면으로 가기 전에 요청 상세를 닫는다.
   const leave = (go: () => void) => {
+    releaseRecord()
     dialogs.closeDetail()
     go()
   }

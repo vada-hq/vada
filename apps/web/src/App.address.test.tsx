@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
+import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
 import { roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
@@ -57,7 +58,8 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup()
   // 닫힌 창이 거두는 기록 이동(history.go)이 끝난 뒤에 다음 시험이 시작되게 한다.
-  await new Promise(resolve => setTimeout(resolve, 20))
+  await windowHistoryIdle()
+  resetWindowHistory()
   Reflect.deleteProperty(navigator, 'serviceWorker')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -67,7 +69,6 @@ const aside = () => screen.getByRole('complementary', { name: '학생회 작업 
 const menu = (name: string | RegExp) => within(aside()).getByRole('button', { name, hidden: true })
 const heading = (name: string) => screen.findByRole('heading', { level: 1, name, hidden: true })
 const council = (id: string) => api.calls.filter(call => call.path === `/api/organizations/${id}`)
-const settled = () => new Promise(resolve => setTimeout(resolve, 30))
 const pathNow = () => window.location.pathname + window.location.search
 // 기록 칸 수는 history.length로 못 센다(뒤로 간 뒤 쌓으면 앞 칸이 지워진다). 쌓은 횟수를 센다.
 const pushes = () => vi.spyOn(window.history, 'pushState')
@@ -158,6 +159,19 @@ test('모르는 주소는 찾을 수 없음이고 상위 목록으로 가는 버
   expect(pathNow()).toBe(`/home/${C1}`)
 })
 
+test('찾을 수 없음에서 홈으로 간 칸은 옆 메뉴를 열었다 닫아도 홈에 남는다', async () => {
+  window.history.replaceState(null, '', `/tasks/0199d1a0-0000-7000-8000-0000000000ee/${T1}`)
+  await renderApp()
+  fireEvent.click(await screen.findByRole('button', { name: '홈으로' }))
+  expect(await heading('홈')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  fireEvent.keyDown(sheet, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await windowHistoryIdle()
+  expect(pathNow()).toBe(`/home/${C1}`)
+})
+
 test('기록 주소로 바로 들어오면 상위 목록 칸이 깔려 뒤로가 목록으로 간다', async () => {
   window.history.replaceState(null, '', `/tasks/${C1}/${T1}`)
   const push = pushes()
@@ -179,10 +193,9 @@ test('새로 고침으로 되살린 창은 칸을 더 쌓지 않는다', async (
   // 새로 고침: 문서가 새로 열려도 기록 칸과 그 상태는 그대로다. 이 칸은 이미 주소 층이 쌓은 칸이다.
   // 화면을 내리면 창이 자기 칸을 거두므로, 그 칸으로 다시 가서 새 문서처럼 연다.
   cleanup()
-  await settled()
+  await windowHistoryIdle()
   act(() => window.history.forward())
-  await settled()
-  expect(pathNow()).toBe(`/tasks/${C1}/${T1}`)
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${C1}/${T1}`))
   const state: unknown = window.history.state
   const push = pushes()
   await renderApp()
@@ -198,7 +211,7 @@ test('창을 연 채 메뉴로 가도 뒤로가 두 번 걸리지 않는다', as
   await taskOpen()
   fireEvent.click(menu('사람'))
   expect(await heading('사람')).toBeTruthy()
-  await settled()
+  await windowHistoryIdle()
   expect(pathNow()).toBe(`/people/${C1}`)
   act(() => window.history.back())
   expect(await heading('홈')).toBeTruthy()

@@ -7,22 +7,28 @@ const KEY = 'vadaWindow'
 // 주소 층이 기록 주소로 쌓은 칸의 표시. 그 칸에서 처음 열리는 창은 칸을 또 쌓지 않고 이 칸을 자기 칸으로 쓴다
 // (기록 상세 창이 주소 한 칸과 창 한 칸을 둘 다 쌓아 뒤로를 두 번 눌러야 닫히는 것을 막는다). 새로 고침으로 되살린 창도 같은 칸을 쓴다.
 export const ADOPT_KEY = 'vadaAdopt'
+// 이어받기 표시의 값: 그 기록의 상세 창만 칸을 가져가도록 종류와 id를 적는다.
+export const adoptTag = (kind: string, id: string) => `${kind}/${id.toLowerCase()}`
 // 주소 칸에 매기는 창 깊이: 이 칸을 자기 칸으로 쓰는 창이 base + 1이 되게, 지금 칸보다 하나 깊다.
 export const adoptDepth = (state: unknown) => depthOf(state) + 1
 
-type Entry = { back: () => void; mounted: boolean }
+type Entry = { back: () => void; mounted: boolean; adopts: string | undefined }
 
 // 열려 있는 창, 위가 맨 위 창이다.
 const stack: Entry[] = []
 // 우리가 더한 기록 칸 수(have)와 그 아래 칸의 깊이(base). 새로 고침 뒤에는 이전 문서가 남긴 칸이 base로 잡힌다.
 let have = 0
 let base = 0
+// 주소 칸을 이어받은 창. 이 창이 칸을 쓰는 동안만 있다.
+let adopter: Entry | null = null
 // history.go가 일으키는 popstate는 사용자의 뒤로 가기가 아니다.
 let expectedPops = 0
 let scheduled = false
 let listening = false
 // 창이 모두 닫힌 뒤에 할 일(주소 이동).
 let waiting: (() => void)[] = []
+// 기록 이동이 모두 끝나길 기다리는 쪽(시험).
+let idleWaiters: (() => void)[] = []
 
 function depthOf(state: unknown): number {
   if (typeof state !== 'object' || state === null) return 0
@@ -30,8 +36,10 @@ function depthOf(state: unknown): number {
   return typeof depth === 'number' ? depth : 0
 }
 
-function isAdoptable(state: unknown) {
-  return typeof state === 'object' && state !== null && ADOPT_KEY in state
+// 칸의 이어받기 표시가 맨 아래 창이 말한 기록과 같을 때만 그 창이 칸을 가져간다.
+function isAdoptableBy(state: unknown, entry: Entry | undefined) {
+  if (!entry?.adopts || typeof state !== 'object' || state === null) return false
+  return (state as Record<string, unknown>)[ADOPT_KEY] === entry.adopts
 }
 
 function baseState(): Record<string, unknown> {
@@ -48,8 +56,9 @@ function sync() {
   if (expectedPops > 0) return
   if (have === 0) {
     const state: unknown = window.history.state
-    const adopt = stack.length > 0 && isAdoptable(state)
+    const adopt = isAdoptableBy(state, stack[0])
     base = depthOf(state) - (adopt ? 1 : 0)
+    adopter = adopt ? (stack[0] ?? null) : null
     if (adopt) have = 1
   }
   while (have < stack.length) {
@@ -62,6 +71,14 @@ function sync() {
     expectedPops += 1
     window.history.go(-extra)
   }
+  flushIdle()
+}
+
+function flushIdle() {
+  if (expectedPops > 0 || scheduled) return
+  const waiters = idleWaiters
+  idleWaiters = []
+  for (const resolve of waiters) resolve()
 }
 
 function schedule() {
@@ -118,11 +135,44 @@ export function afterWindowsClosed(task: () => void) {
   }
 }
 
+// 이어받은 칸을 창에서 떼어 평범한 앱 칸으로 둔다. 창을 닫으면서 같은 페이지에 남으려는 동작(다른 탭으로, 잃음)이
+// 뒤로 가기(go(-1))로 주소를 떠나지 않게, 칸의 주소를 바꿔 쓰기 직전에 부른다. 이어받은 창이 없으면 false다.
+export function releaseAdopted() {
+  if (!adopter || have === 0) return false
+  const index = stack.indexOf(adopter)
+  if (index >= 0) stack.splice(index, 1)
+  adopter = null
+  base += 1
+  have -= 1
+  return true
+}
+
+// 시험용: 창이 거두는 기록 이동(history.go)이 모두 끝나면 풀린다. 시간을 재지 않고 끝난 일을 기다린다.
+export function windowHistoryIdle() {
+  return new Promise<void>(resolve => {
+    idleWaiters.push(resolve)
+    queueMicrotask(flushIdle)
+  })
+}
+
+// 시험용: 앞 시험이 남긴 모듈 상태를 비운다.
+export function resetWindowHistory() {
+  stack.length = 0
+  have = 0
+  base = 0
+  adopter = null
+  expectedPops = 0
+  scheduled = false
+  waiting = []
+  flushIdle()
+}
+
 // 열려 있는 동안 기록 한 칸을 쓴다. back은 뒤로 가기가 이 창을 닫으라고 할 때 불린다.
-export function useWindowHistory(back: () => void) {
+// adopts는 기록 상세 창이 자기 기록(adoptTag)을 말하는 것으로, 주소 칸이 그 기록의 것일 때만 칸을 이어받는다.
+export function useWindowHistory(back: () => void, adopts?: string) {
   const latest = useLatest(back)
   useEffect(() => {
-    const entry: Entry = { back: () => latest.current(), mounted: true }
+    const entry: Entry = { back: () => latest.current(), mounted: true, adopts }
     if (!listening) {
       listening = true
       window.addEventListener('popstate', onPop)
@@ -135,5 +185,5 @@ export function useWindowHistory(back: () => void) {
       if (index >= 0) stack.splice(index, 1)
       schedule()
     }
-  }, [latest])
+  }, [latest, adopts])
 }

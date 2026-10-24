@@ -43,7 +43,7 @@ function OpenTaskDialog({
         if (!open && !detail.saving) onClose()
       }}
     >
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent aria-describedby={undefined} record={{ kind: 'tasks', id: taskId }}>
         <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">{detail.task?.title ?? '업무'}</DialogTitle>
           {detail.task && <HistoryMenu history={detail.task.history} line={versionLine} />}

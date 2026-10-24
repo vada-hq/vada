@@ -2,13 +2,17 @@ import { useRef, type ComponentProps } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useWindowHistory } from '@/lib/use-window-history'
+import type { RecordKind } from '@vada/contracts'
+import { adoptTag, useWindowHistory } from '@/lib/use-window-history'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
 export const DialogClose = DialogPrimitive.Close
 
-type ContentProps = ComponentProps<typeof DialogPrimitive.Content>
+type ContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
+  // 주소로 열리는 기록 상세 창이 자기 기록을 말한다. 주소 칸이 이 기록의 것일 때만 그 칸을 이어받는다.
+  record?: { kind: RecordKind; id: string } | undefined
+}
 
 // Radix는 Trigger로 연 대화상자만 닫을 때 포커스를 되돌린다. 상태로 여닫는 대화상자·옆 메뉴도 연 버튼으로 돌아가도록 연 순간의 포커스를 기억한다.
 export function useReturnFocus({
@@ -32,9 +36,13 @@ export function useReturnFocus({
 }
 
 // 뒤로 가기가 이 창을 닫게 한다. 닫는 길은 화면의 닫기 버튼과 같아서(눈에 보이지 않는 Close를 누른다), 부모가 보내는 중에 닫기를 거절하는 창도 그대로 따른다.
-export function WindowHistory() {
+export function WindowHistory({
+  record,
+}: {
+  record?: { kind: RecordKind; id: string } | undefined
+}) {
   const close = useRef<HTMLButtonElement>(null)
-  useWindowHistory(() => close.current?.click())
+  useWindowHistory(() => close.current?.click(), record && adoptTag(record.kind, record.id))
   return <DialogPrimitive.Close ref={close} hidden tabIndex={-1} aria-hidden="true" />
 }
 
@@ -45,6 +53,7 @@ export function DialogContent({
   children,
   onOpenAutoFocus,
   onCloseAutoFocus,
+  record,
   ...props
 }: ContentProps) {
   const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
@@ -60,7 +69,7 @@ export function DialogContent({
           {...props}
           {...returnFocus}
         >
-          <WindowHistory />
+          <WindowHistory record={record} />
           {children}
           <DialogPrimitive.Close
             aria-label="닫기"

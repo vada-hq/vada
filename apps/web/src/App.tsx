@@ -7,10 +7,12 @@ import { useAuthActions } from './auth/useAuthActions'
 import { useInviteEntry } from './auth/useInviteEntry'
 import { useSessionRecheck } from './auth/useSessionRecheck'
 import { isIosHomeScreenApp } from '@/lib/platform'
+import { useNotificationInbox } from './workspace/useNotificationOpen'
 
 export default function App() {
   const { data: session, isPending, error, refetch } = authClient.useSession()
   const { invite, opened, enterCode, leaveInvite, joined } = useInviteEntry()
+  useNotificationInbox()
   const { busy, message, login, loginInApp, logout } = useAuthActions(invite)
   const [homeScreenApp] = useState(() => isIosHomeScreenApp(navigator as { standalone?: boolean }))
   useSessionRecheck(homeScreenApp, Boolean(session), refetch)

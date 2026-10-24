@@ -49,7 +49,7 @@ function OpenRequestDialog({
         if (!open && !detail.saving) onClose()
       }}
     >
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent aria-describedby={undefined} record={{ kind: 'purchases', id: requestId }}>
         <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">
             {detail.request?.title ?? '구매 요청'}

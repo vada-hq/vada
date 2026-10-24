@@ -58,7 +58,7 @@ export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Pr
   useEffect(() => {
     latest.current = councils
   })
-  useNotificationOpen(councils)
+  useNotificationOpen(councils, state.kind === 'ready')
   // 링크로 바로 들어온 기록 주소는 그 아래에 상위 목록 칸을 깐다.
   useLayoutEffect(layerDirectRecord, [])
   // 방금 들어온 학생회는 운영진 화면으로 연다.
@@ -66,9 +66,10 @@ export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Pr
     if (initialCouncilId) navigate(menuPath('people', initialCouncilId), { replace: true })
   }, [initialCouncilId])
   const first = councils[0]
-  // '/'로 열렸으면 첫 학생회 홈 주소로 바꿔 쓴다.
+  // '/'로 열렸으면 첫 학생회 홈 주소로 바꿔 쓴다. 같은 때 받아 둔 알림이 먼저 주소를 쌓았을 수 있어 지금 주소로 다시 본다.
   useEffect(() => {
-    if (first && here.path === '/') navigate(menuPath('home', first.id), { replace: true })
+    if (first && here.path === '/' && window.location.pathname + window.location.search === '/')
+      navigate(menuPath('home', first.id), { replace: true })
   }, [first, here.path])
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고 남은 첫 학생회 홈으로 간다. 서버의 목록은 다시 읽는다.
   const lost = useCallback(
