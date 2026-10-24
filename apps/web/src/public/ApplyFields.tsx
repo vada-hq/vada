@@ -1,8 +1,8 @@
 import type { PublicRegistrationForm } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useReveal } from '@/lib/use-reveal'
 import { collectedItems, dateText } from './registration-text'
 import { parseApply, type ApplyValues } from './useApply'
@@ -16,32 +16,6 @@ type Props = {
   onSubmit: () => void
   // 버튼 아래 고지를 보일지. 운영진의 미리보기만 끈다(학생 화면에는 늘 있다, DEC-62).
   notice?: boolean
-}
-
-function Field(props: {
-  id: string
-  label: string
-  value: string
-  hint?: string
-  disabled: boolean
-  inputMode?: 'numeric' | 'tel'
-  autoComplete?: string
-  onChange: (value: string) => void
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label htmlFor={props.id}>{props.label}</Label>
-      <Input
-        id={props.id}
-        value={props.value}
-        disabled={props.disabled}
-        inputMode={props.inputMode}
-        autoComplete={props.autoComplete}
-        onChange={event => props.onChange(event.target.value)}
-      />
-      {props.hint && <p className="text-xs text-gray-500">{props.hint}</p>}
-    </div>
-  )
 }
 
 // 버튼 아래 고정 고지. 체크칸은 두지 않는다: 신청하기를 누르는 것이 이 고지를 읽고 낸다는 뜻이다.
@@ -70,26 +44,25 @@ function OptionalFields(props: {
   return (
     <>
       {data.collectsStudentId && (
-        <Field
-          id="apply-student-id"
-          label="학번"
-          value={values.studentId}
-          disabled={busy}
-          inputMode="numeric"
-          onChange={studentId => set({ studentId })}
-        />
+        <Field label="학번" required>
+          <Input
+            value={values.studentId}
+            disabled={busy}
+            inputMode="numeric"
+            onChange={event => set({ studentId: event.target.value })}
+          />
+        </Field>
       )}
       {data.collectsPhone && (
-        <Field
-          id="apply-phone"
-          label="휴대폰 번호"
-          hint="010-1234-5678처럼 써도 돼요."
-          value={values.phone}
-          disabled={busy}
-          inputMode="tel"
-          autoComplete="tel"
-          onChange={phone => set({ phone })}
-        />
+        <Field label="휴대폰 번호" required hint="010-1234-5678처럼 써도 돼요.">
+          <Input
+            value={values.phone}
+            disabled={busy}
+            inputMode="tel"
+            autoComplete="tel"
+            onChange={event => set({ phone: event.target.value })}
+          />
+        </Field>
       )}
     </>
   )
@@ -117,14 +90,14 @@ export default function ApplyFields({
         if (valid) onSubmit()
       }}
     >
-      <Field
-        id="apply-name"
-        label="이름"
-        value={values.name}
-        disabled={busy}
-        autoComplete="name"
-        onChange={name => set({ name })}
-      />
+      <Field label="이름" required>
+        <Input
+          value={values.name}
+          disabled={busy}
+          autoComplete="name"
+          onChange={event => set({ name: event.target.value })}
+        />
+      </Field>
       <OptionalFields data={data} values={values} busy={busy} set={set} />
       <Button type="submit" disabled={!valid || busy}>
         신청하기
