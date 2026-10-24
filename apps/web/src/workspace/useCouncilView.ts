@@ -27,8 +27,9 @@ export function useCouncilView(councilId: string) {
     ).then(result => {
       if (controller.signal.aborted) return
       const reading: Reading = { own: ownPending.current }
+      // 읽기가 끝나면(성공이든 실패든) 내 변경의 읽기는 지나간 것이다.
+      ownPending.current = false
       // 같은 값이면 지금 상태를 그대로 둔다(다시 그리지 않는다).
-      if (result.ok) ownPending.current = false
       if (result.ok)
         setState(current =>
           current.kind === 'ready' && sameJson(current.view, result.data)
@@ -40,7 +41,13 @@ export function useCouncilView(councilId: string) {
     })
     return () => controller.abort()
   }, [councilId, request])
-  const reload = useCallback(() => setRequest({ own: false }), [])
+  // 바깥 변경을 알게 돼(403) 다시 읽는다. 기다리던 내 변경의 읽기가 있었어도 이제 그 결과는 바깥 변경이 섞인 것이다.
+  const reload = useCallback(() => {
+    ownPending.current = false
+    setRequest({ own: false })
+  }, [])
+  // 주기 읽기. 기다리던 내 변경의 읽기가 있으면 그 표시를 이어 받는다.
+  const refresh = useCallback(() => setRequest({ own: ownPending.current }), [])
   // 내 요청이 성공해 내 권한이 바뀌었을 때 부른다. 이 읽기가 가져온 값으로 생긴 사라짐은 바깥 변경이 아니다.
   const reloadAfterOwnChange = useCallback(() => {
     ownPending.current = true
@@ -51,5 +58,5 @@ export function useCouncilView(councilId: string) {
     (view: CouncilView) => setState({ kind: 'ready', view, reading: { own: false } }),
     [],
   )
-  return { state, reload, reloadAfterOwnChange, replace }
+  return { state, reload, refresh, reloadAfterOwnChange, replace }
 }

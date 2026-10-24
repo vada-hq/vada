@@ -10,11 +10,11 @@ export function useCouncilData(
   onCouncilLost: (councilId: string) => void,
   onCouncilsChanged: () => void,
 ) {
-  const { state, reload, reloadAfterOwnChange, replace } = useCouncilView(councilId)
+  const { state, reload, refresh, reloadAfterOwnChange, replace } = useCouncilView(councilId)
   const team = useTeam(councilId, reload)
   // 다른 사람이 바꾼 내 권한과 새로 들어온 운영진을 화면을 다시 열지 않아도 보이게 한다.
   useVisiblePoll(() => {
-    reload()
+    refresh()
     team.reload()
   }, LIST_POLL_MS)
   useEffect(() => {

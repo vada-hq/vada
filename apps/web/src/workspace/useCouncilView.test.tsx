@@ -46,7 +46,7 @@ test('내 변경 뒤 읽기가 다른 다시 읽기에 취소돼도 그 결과�
   await waitFor(() => expect(result.current.state.kind).toBe('ready'))
   act(() => result.current.reloadAfterOwnChange())
   await waitFor(() => expect(calls).toBe(2))
-  act(() => result.current.reload())
+  act(() => result.current.refresh())
   await waitFor(() => expect(calls).toBe(3))
   await waitFor(() => {
     const state = result.current.state
