@@ -382,7 +382,7 @@ test(
 )
 
 test(
-  '완료한 행사의 신청자 화면과 운영진 동작: 공개 양식은 닫힘, 내 신청은 취소할 수 없음, 양식과 목록의 동작은 비어 있다',
+  '완료한 행사의 신청자 화면과 운영진 동작: 공개 양식은 닫힘, 내 신청은 취소할 수 없음, 양식에는 신청자 보기만 남고 목록의 동작은 비어 있다',
   withSettlement(async t => {
     const s = await sceneOf(t, await sharedOf(t))
     type Body = {
@@ -403,15 +403,15 @@ test(
       const list = await json(
         await t.api.get(`${base}/events/${s.event}/registration-forms`, PRESIDENT),
       )
-      return [form.form.actions.length, list.actions.length]
+      return [form.form.actions, list.actions]
     }
     assert.equal(await publicStatus(), 'open')
     assert.equal(await mineCancellable(), true)
-    assert.ok((await actions()).every(n => n > 0))
+    assert.ok((await actions()).every(list => list.length > 0))
     await t.completion(s.event, 'completed', DAY('2026-10-24T03:00'))
     assert.equal(await publicStatus(), 'closed')
     assert.equal(await mineCancellable(), false)
-    assert.deepEqual(await actions(), [0, 0])
+    assert.deepEqual(await actions(), [['form.view_applicants'], []])
   }),
 )
 

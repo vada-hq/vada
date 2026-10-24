@@ -10,6 +10,7 @@ const base: Parameters<typeof registrationStatusOf>[0] = {
   paused: false,
   capacity: 3,
   applicantCount: 0,
+  eventCompleted: false,
 }
 const at = (value: string, change: Partial<typeof base> = {}) =>
   registrationStatusOf({ ...base, ...change }, korean(value))
@@ -21,6 +22,11 @@ test('상태는 마감, 멈춤, 시작 전, 정원 참, 받는 중의 차례로 
   assert.equal(at('2026-10-31T10:00:00', { paused: true }), 'paused')
   assert.equal(at('2026-11-02T10:00:00', { paused: true, applicantCount: 3 }), 'paused')
   assert.equal(at('2026-11-09T10:00:00', { paused: true, applicantCount: 3 }), 'closed')
+})
+
+test('완료한 행사의 양식은 다른 상태와 상관없이 마감이다', () => {
+  assert.equal(at('2026-11-02T10:00:00', { eventCompleted: true }), 'closed')
+  assert.equal(at('2026-10-31T10:00:00', { eventCompleted: true, paused: true }), 'closed')
 })
 
 test('시작과 마감 경계는 ±1초로 갈린다: 시작 시각부터 받고 마감 시각부터 닫힌다', () => {

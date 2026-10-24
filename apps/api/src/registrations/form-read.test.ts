@@ -3,29 +3,25 @@ import { test } from 'node:test'
 import { REGISTRATION_FORM_LIST_LIMIT, type RegistrationForm } from '@vada/contracts'
 import { korean, MISSING, withRegistrations } from '../test-support/registrations.js'
 
+// 받는 중인 양식에서 관리 권한자가 받는 동작(멈추기만 있고 다시 받기는 없다)
+const MANAGER = [
+  'form.update',
+  'form.pause',
+  'form.check_in',
+  'form.view_applicants',
+  'deposit.confirm',
+]
+
 test(
   '모든 운영진이 행사의 양식 목록과 양식 하나를 읽고, 동작은 사람마다 다르다',
   withRegistrations(async t => {
     const event = await t.makeEvent({ ownerId: t.council.people.planningMember.memberId })
     const { form } = await t.created(event, { capacity: 5 })
     const actionsOf = async (user: string) => (await t.detail(form.id, user)).actions
-    assert.deepEqual(await actionsOf('s-president'), [
-      'registration.manage',
-      'registration.view_applicants',
-      'deposit.confirm',
-    ])
-    assert.deepEqual(await actionsOf('s-vicePresident'), [
-      'registration.manage',
-      'registration.view_applicants',
-      'deposit.confirm',
-    ])
-    assert.deepEqual(await actionsOf('s-planningMember'), [
-      'registration.manage',
-      'registration.view_applicants',
-      'deposit.confirm',
-    ])
+    for (const user of ['s-president', 's-vicePresident', 's-planningMember'])
+      assert.deepEqual(await actionsOf(user), MANAGER, user)
     // 재정부는 신청자 정보는 보지만 관리하지 못하고, 담당이 아닌 부장과 직급 없는 운영진은 둘 다 못 한다.
-    assert.deepEqual(await actionsOf('s-financeMember'), ['registration.view_applicants'])
+    assert.deepEqual(await actionsOf('s-financeMember'), ['form.view_applicants'])
     assert.deepEqual(await actionsOf('s-planningHead'), [])
     assert.deepEqual(await actionsOf('s-plain'), [])
     for (const user of ['s-plain', 's-financeMember']) {
@@ -192,18 +188,10 @@ test(
     const actionsOf = async (user: string) => (await t.list(event, user)).actions
     assert.deepEqual(await actionsOf('s-planningMember'), [])
     const task = await t.makeTask(event, departments.planning)
-    assert.deepEqual(await actionsOf('s-planningMember'), [
-      'registration.manage',
-      'registration.view_applicants',
-      'deposit.confirm',
-    ])
-    assert.deepEqual(await actionsOf('s-financeMember'), ['registration.view_applicants'])
+    assert.deepEqual(await actionsOf('s-planningMember'), ['form.create'])
+    assert.deepEqual(await actionsOf('s-financeMember'), [])
     assert.deepEqual(await actionsOf('s-plain'), [])
-    assert.deepEqual(await actionsOf('s-president'), [
-      'registration.manage',
-      'registration.view_applicants',
-      'deposit.confirm',
-    ])
+    assert.deepEqual(await actionsOf('s-president'), ['form.create'])
     await t.change('task', task, { cancelledAt: new Date() })
     assert.deepEqual(await actionsOf('s-planningMember'), [])
   }),

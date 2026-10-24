@@ -17,7 +17,7 @@ import {
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
-import type { EventDetail, RegistrationAction } from '@vada/contracts'
+import type { EventDetail, FormListAction } from '@vada/contracts'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
 
@@ -29,7 +29,7 @@ afterEach(() => {
 type Options = {
   forms?: ReturnType<typeof staffForm>[]
   // 이 행사에서 지금 사람이 할 수 있는 동작(양식 목록 응답). 양식이 없어도 온다.
-  actions?: RegistrationAction[]
+  actions?: FormListAction[]
   // 행사 상세. 읽기 전이면 null이다.
   event?: EventDetail | null
 }
@@ -41,7 +41,7 @@ function setup(options: Options = {}) {
     json({
       forms,
       truncated: false,
-      actions: options.actions ?? ['registration.manage', 'registration.view_applicants'],
+      actions: options.actions ?? ['form.create'],
     }),
   )
   api.on('GET', ACCOUNTS_PATH, () =>
@@ -105,12 +105,12 @@ test('고치기·멈추기·다시 받기는 actions가 있을 때만, 멈춘 �
 })
 
 test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한이 있을 때만 보이고(양식이 없어도), [QR로 출석 확인]도 같다', async () => {
-  setup({ forms: [staffForm({ actions: [] })], actions: ['registration.view_applicants'] })
+  setup({ forms: [staffForm({ actions: [] })], actions: [] })
   await screen.findByRole('heading', { name: '환영회 참가 신청' })
   expect(screen.queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
   cleanup()
-  setup({ forms: [], actions: ['registration.manage'] })
+  setup({ forms: [], actions: ['form.create'] })
   expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
   expect(screen.getByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
   expect(screen.getByText('신청 양식 없음')).toBeTruthy()
@@ -128,7 +128,7 @@ async function openCreate(api: ReturnType<typeof mockApi>) {
 const submit = (form: HTMLElement) => within(form).getByRole('button', { name: '만들기' })
 
 test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름은 참가 신청, 참가비는 없음, 학번은 받는 것으로 시작하며 [신청 양식 목록]으로 돌아간다', async () => {
-  setup({ forms: [], actions: ['registration.manage'] })
+  setup({ forms: [], actions: ['form.create'] })
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   expect(screen.queryByRole('dialog')).toBeNull()
@@ -151,7 +151,7 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
 test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의 [입력]은 행사 고치기를 그 칸으로 연다', async () => {
   const { onEditEvent } = setup({
     forms: [],
-    actions: ['registration.manage'],
+    actions: ['form.create'],
     event: eventDetail({ place: null }, ['event.update']),
   })
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
@@ -165,7 +165,7 @@ test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의
 })
 
 test('행사를 읽기 전이면 만들기 화면에 행사 정보와 미리보기가 없다', async () => {
-  setup({ forms: [], actions: ['registration.manage'], event: null })
+  setup({ forms: [], actions: ['form.create'], event: null })
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   expect(within(form).queryByText('행사 정보')).toBeNull()
@@ -173,7 +173,7 @@ test('행사를 읽기 전이면 만들기 화면에 행사 정보와 미리보�
 })
 
 test('행사를 읽기 전에 만들어도 이 행사의 양식으로 보낸다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'], event: null })
+  const { api } = setup({ forms: [], actions: ['form.create'], event: null })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
   const { form } = await openCreate(api)
   fireEvent.click(submit(form))
@@ -182,7 +182,7 @@ test('행사를 읽기 전에 만들어도 이 행사의 양식으로 보낸다'
 })
 
 test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은 잠겨 받으며, 대표 계좌가 채워지고, 보내는 동안 다시 보내지 않으며, 만든 뒤 링크와 QR을 보이고 다시 읽는다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api } = setup({ forms: [], actions: ['form.create'] })
   const pending = deferredResponse()
   api.on('POST', FORMS_PATH, () => pending.promise)
   const { form } = await openCreate(api)
@@ -239,7 +239,7 @@ test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은
 })
 
 test('만들기: 참가비가 있는데 계좌를 고르지 않으면 보내지 않고 계좌 칸 아래에 알린다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api } = setup({ forms: [], actions: ['form.create'] })
   const { form } = await openCreate(api)
   fireEvent.click(within(form).getByLabelText('있음'))
   fireEvent.change(within(form).getByLabelText('참가비(원)'), { target: { value: '5000' } })
@@ -255,7 +255,7 @@ test('만들기: 참가비가 있는데 계좌를 고르지 않으면 보내지 
 })
 
 test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 눌러도 보내지 않고 마감 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api } = setup({ forms: [], actions: ['form.create'] })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
   const { form } = await openCreate(api)
   const closes = within(form).getByLabelText('신청 마감')
@@ -278,7 +278,7 @@ test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이
 })
 
 test('만들기: 정원이 1 이상의 숫자가 아니면 보내지 않고 정원 칸 아래에 알린다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api } = setup({ forms: [], actions: ['form.create'] })
   const { form } = await openCreate(api)
   fireEvent.change(within(form).getByLabelText('정원'), { target: { value: '0' } })
   fireEvent.click(submit(form))
@@ -287,7 +287,7 @@ test('만들기: 정원이 1 이상의 숫자가 아니면 보내지 않고 정�
 })
 
 test('만들기 409는 버튼 옆에 문구를 보이고 열어 둔다', async () => {
-  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api } = setup({ forms: [], actions: ['form.create'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'FEE_ACCOUNT_REQUIRED' }, 409))
   const { form } = await openCreate(api)
   fireEvent.click(submit(form))
@@ -298,7 +298,7 @@ test('만들기 409는 버튼 옆에 문구를 보이고 열어 둔다', async (
 })
 
 test('만들기 429는 문구를, 403은 학생회를 다시 읽게 하고 만들기 화면을 닫는다', async () => {
-  const { api, handlers } = setup({ forms: [], actions: ['registration.manage'] })
+  const { api, handlers } = setup({ forms: [], actions: ['form.create'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   const { form } = await openCreate(api)
   fireEvent.click(submit(form))

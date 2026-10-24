@@ -8,13 +8,12 @@ import {
   type ApplicantsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { attendance, deposit, record, registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { refundPendingFacts, refundPendingSql } from '../deposits/refund-pending.js'
 import { recordApplicantAccess } from './access-log.js'
-import { registrationContextOf } from './permission-context.js'
+import { decide, factsOf } from './policy.js'
 import { formRowOf } from './queries.js'
 
 // 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번(DEC-26: 막지 않고 드러낸다)
@@ -109,14 +108,11 @@ function applicantRowsOf(tx: Tx, formId: string, filter: ApplicantFilter | undef
 export async function applicantsOf(
   tx: Tx,
   actor: Actor,
-  target: { formId: string; ip: string; filter?: ApplicantFilter | undefined },
+  target: { formId: string; ip: string; now: Date; filter?: ApplicantFilter | undefined },
 ): Promise<ApplicantsResponse> {
   const form = await formRowOf(tx, actor, target.formId)
-  const context = await registrationContextOf(tx, actor, {
-    id: form.eventId,
-    ownerId: form.eventOwnerId,
-  })
-  if (!can(actor, 'registration.view_applicants', context)) throw new ApiError('FORBIDDEN')
+  const code = decide(actor, await factsOf(tx, actor, form, target.now), 'form.view_applicants')
+  if (code) throw new ApiError(code)
   const rows = await applicantRowsOf(tx, form.id, target.filter)
   const duplicates = await duplicateStudentIds(tx, form.eventId)
   const splitFees = form.payerFee !== form.nonPayerFee

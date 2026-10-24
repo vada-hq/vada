@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { EmptyRequestSchema, text, token } from './input.js'
 import type { ApplicantDeposit } from './deposits.js'
 import { koreanDateTime } from './korean-time.js'
-import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
 
 // 신청 양식(기능 007, DEC-44). 값은 DB CHECK와 같다.
@@ -69,13 +68,21 @@ export const PauseFormSchema = EmptyRequestSchema
 export const ResumeFormSchema = EmptyRequestSchema
 
 // 양식마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
-// 신청자 보기는 관리보다 재정부만큼 넓어서, 둘을 따로 묻는다.
-export const REGISTRATION_ACTIONS = [
-  'registration.manage',
-  'registration.view_applicants',
+// 화면이 누르는 일 하나에 이름 하나다. 권한 키(Action)와 따로이고, 서버 정책(registrations/policy.ts)이 동작을 권한 키와 상태 조건으로 잇는다.
+// 신청자 보기는 관리보다 재정부만큼 넓어서 따로 묻는다. 신청자 보기만 완료한 행사에서도 남는다(RULE-11은 쓰기만 잠근다).
+// deposit.confirm은 신청자 줄 동작으로 옮기기 전까지(기능 012 조각 4) 양식에 둔다.
+export const FORM_ACTIONS = [
+  'form.update',
+  'form.pause',
+  'form.resume',
+  'form.check_in',
+  'form.view_applicants',
   'deposit.confirm',
-] as const satisfies readonly Action[]
-export type RegistrationAction = (typeof REGISTRATION_ACTIONS)[number]
+] as const
+export type FormAction = (typeof FORM_ACTIONS)[number]
+// 양식 목록(행사 하나)의 동작. 양식이 없어도 [신청 양식 만들기]를 보일지 가른다.
+export const FORM_LIST_ACTIONS = ['form.create'] as const
+export type FormListAction = (typeof FORM_LIST_ACTIONS)[number]
 
 export interface RegistrationForm {
   id: string
@@ -102,14 +109,14 @@ export interface RegistrationForm {
   remaining: number | null
   // 신청자 정보를 지우는 날(한국 날짜 YYYY-MM-DD)
   purgeOn: string
-  actions: RegistrationAction[]
+  actions: FormAction[]
 }
 
 export interface RegistrationFormsResponse {
   forms: RegistrationForm[]
   truncated: boolean
   // 이 행사에서 지금 사람이 할 수 있는 동작. 양식이 없어도 [신청 양식 만들기]를 보일지 가른다.
-  actions: RegistrationAction[]
+  actions: FormListAction[]
 }
 export interface RegistrationFormResponse {
   form: RegistrationForm

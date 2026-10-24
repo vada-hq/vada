@@ -26,8 +26,7 @@ type Data = ReturnType<typeof useEventOverview>
 
 // 준비 단계마다 그 일을 바로 하는 길. 권한이 없으면 링크를 두지 않는다(DEC-38).
 function setupActions(event: EventDetail, data: Data, props: Props) {
-  const manageForms =
-    data.forms.kind === 'ready' && data.forms.data.actions.includes('registration.manage')
+  const manageForms = data.forms.kind === 'ready' && data.forms.data.actions.includes('form.create')
   return {
     ...(event.actions.includes('event.update') && {
       when: {
