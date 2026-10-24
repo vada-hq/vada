@@ -27,7 +27,7 @@ type Props = EventDialogHandlers & {
 export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit, ...rest }: Props) {
   const { onChanged, ...handlers } = rest
   const [open, setOpen] = useState(false)
-  const post = useStaffPost(handlers)
+  const post = useStaffPost(handlers, undefined, form.actions)
 
   async function setPaused(paused: boolean) {
     const path = `${formPath(councilId, form.id)}/${paused ? 'pause' : 'resume'}`

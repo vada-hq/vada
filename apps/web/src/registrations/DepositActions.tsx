@@ -30,7 +30,7 @@ type Step = 'confirm' | 'cancel' | 'refund' | null
 
 // 입금 쓰기 셋. 404·403은 useStaffPost가 부모에게 알려 닫고, 그 밖의 실패는 창 안(없으면 버튼 아래)에 보인다.
 function useDepositPost({ councilId, applicant, onChange, onGone, ...handlers }: Props) {
-  const post = useStaffPost(handlers)
+  const post = useStaffPost(handlers, undefined, applicant.actions)
   const [step, setStep] = useState<Step>(null)
   const path = (tail: string) => `${registrationPath(councilId, applicant.id)}/${tail}`
   async function run(tail: string, body: unknown) {

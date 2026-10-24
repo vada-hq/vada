@@ -29,7 +29,7 @@ type Props = EventDialogHandlers & {
 
 // 이 신청자에게 보내는 쓰기 둘: 출석(취소)과 신청 취소. 404면 신청이 이미 없어졌으니 목록에서 뺀다(이유는 useStaffPost가 부모에게 알린다).
 function useApplicantPost({ councilId, applicant, onChange, onGone, ...handlers }: Props) {
-  const post = useStaffPost(handlers)
+  const post = useStaffPost(handlers, undefined, applicant.actions)
   const base = registrationPath(councilId, applicant.id)
   const isGone = (result: StaffPostResult<unknown>) =>
     !result.ok && result.status === statusOf('NOT_FOUND')

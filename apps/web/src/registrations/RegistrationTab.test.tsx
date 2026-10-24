@@ -521,3 +521,64 @@ test('입금 확인 창이 열린 동안 다시 읽은 줄에서 그 동작이 �
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(REGISTRATION_ACTION_GONE)).toBeTruthy()
 })
+
+test('양식의 거절 문구는 다시 읽은 양식이 그 버튼을 되살리면 지운다', async () => {
+  const forms = [staffForm()]
+  const { api } = setup({ forms })
+  api.on('POST', `${FORM_PATH}/pause`, () => {
+    forms[0] = staffForm({
+      status: 'closed',
+      actions: ['form.update', 'form.check_in', 'form.view_applicants'],
+    })
+    return json({ error: 'FORM_CLOSED' }, 409)
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '멈추기' }))
+  expect(await screen.findByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
+  await waitFor(() => expect(screen.queryByRole('button', { name: '멈추기' })).toBeNull())
+  // 마감 시각을 고쳐서 [멈추기]가 되살아난 양식을 15초 읽기가 가져온다.
+  forms[0] = staffForm()
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByRole('button', { name: '멈추기' })).toBeTruthy()
+  expect(screen.queryByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeNull()
+})
+
+test('신청자 줄의 거절 문구는 다시 읽은 줄에 새 동작이 나타나면 지운다', async () => {
+  const { api } = await openApplicants()
+  const base = '/api/organizations/c1/registrations/00000000-0000-4000-8000-0000000000a1'
+  api.on('POST', `${base}/attendance`, () => json({ error: 'EVENT_COMPLETED' }, 409))
+  const row = screen.getByText('김새내').closest('li') as HTMLElement
+  fireEvent.click(within(row).getByRole('button', { name: '출석' }))
+  expect(await screen.findByText(REGISTRATION_STAFF_ERRORS.EVENT_COMPLETED!)).toBeTruthy()
+  api.on('GET', APPLICANTS_PATH, () =>
+    json({
+      applicants: [applicant({ attended: true, actions: ['registration.cancel_check_in'] })],
+      truncated: false,
+    }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '새로 읽기', hidden: true }))
+  await waitFor(() =>
+    expect(screen.queryByText(REGISTRATION_STAFF_ERRORS.EVENT_COMPLETED!)).toBeNull(),
+  )
+})
+
+test('입금 줄의 거절 문구도 다시 읽은 줄에 새 동작이 나타나면 지운다', async () => {
+  const { api } = await openApplicants()
+  const base = '/api/organizations/c1/registrations/00000000-0000-4000-8000-0000000000a1'
+  api.on('POST', `${base}/deposit`, () => json({ error: 'DEPOSIT_EXISTS' }, 409))
+  const row = screen.getByText('김새내').closest('li') as HTMLElement
+  fireEvent.click(within(row).getByRole('button', { name: '입금 확인' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인' }))
+  expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.DEPOSIT_EXISTS!)).toBeTruthy()
+  api.on('GET', APPLICANTS_PATH, () =>
+    json({
+      applicants: [
+        applicant({ deposit: { status: 'confirmed', amount: 5000 }, actions: ['deposit.cancel'] }),
+      ],
+      truncated: false,
+    }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '새로 읽기', hidden: true }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.queryByText(REGISTRATION_STAFF_ERRORS.DEPOSIT_EXISTS!)).toBeNull()
+})

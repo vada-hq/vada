@@ -211,6 +211,7 @@ export type ApplicantAction = (typeof APPLICANT_ACTIONS)[number]
 
 // 신청자 줄을 바꾸는 쓰기(출석, 출석 취소, 신청 취소, 입금 확인, 확인 취소, 환불함)가 돌려주는 그 줄의 새 모습.
 // 바뀔 수 있는 상태 칸과, 서버가 같은 거래에서 목록과 같은 판정으로 센 새 actions만 담는다. 신청자 정보(이름, 학번, 휴대폰 번호)는 담지 않아 열람 기록이 필요 없다.
+// deposit.amount(사람마다의 입금액, DEC-70)는 담지만, 이 쓰기를 하는 역할(registration.manage, deposit.confirm, finance.manage)이 모두 registration.view_applicants에 포함되어 새로 보이는 사람이 없다.
 export interface ApplicantChange {
   id: string
   attended: boolean
