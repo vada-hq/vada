@@ -1,19 +1,19 @@
 import { and, count, eq, inArray, isNull } from 'drizzle-orm'
 import {
   koreanOf,
-  REGISTRATION_ACTIONS,
   REGISTRATION_FORM_LIST_LIMIT,
   type RegistrationForm,
   type RegistrationFormsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can, type Context } from '../access/permissions.js'
+import type { Context } from '../access/permissions.js'
 import { account, attendance, event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { registrationContextOf } from './permission-context.js'
+import { actionsOf, factsFrom, listActionsOf } from './policy.js'
 import { purgeOnOf } from './purge-date.js'
 import { registrationStatusOf, remainingOf } from './state.js'
 
@@ -116,6 +116,7 @@ function formOf(
         paused: row.pausedAt !== null,
         capacity: row.capacity,
         applicantCount: applicants,
+        eventCompleted: completed,
       },
       now,
     ),
@@ -123,8 +124,14 @@ function formOf(
     attendedCount: attended,
     remaining: remainingOf(row.capacity, applicants),
     purgeOn: purgeOnOf(row),
-    // 완료한 행사는 쓰기가 잠겨 있어 줄 수 있는 동작이 없다(DEC-68).
-    actions: completed ? [] : REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
+    // 쓰기 동작은 쓰기와 같은 판정에서 나온다(registrations/policy.ts). 완료한 행사는 신청자 보기만 남는다.
+    actions: actionsOf(
+      actor,
+      factsFrom(
+        { context, eventCompleted: completed, closesAt: row.closesAt, pausedAt: row.pausedAt },
+        now,
+      ),
+    ),
   }
 }
 
@@ -192,8 +199,17 @@ export async function formListOf(
   return {
     forms: await formsOf(db, actor, rows.slice(0, REGISTRATION_FORM_LIST_LIMIT), now),
     truncated: rows.length > REGISTRATION_FORM_LIST_LIMIT,
-    actions: (await completedEventIdsAmong(db, [target.id])).has(target.id)
-      ? []
-      : REGISTRATION_ACTIONS.filter(action => can(actor, action, context)),
+    actions: listActionsOf(
+      actor,
+      factsFrom(
+        {
+          context,
+          eventCompleted: (await completedEventIdsAmong(db, [target.id])).has(target.id),
+          closesAt: null,
+          pausedAt: null,
+        },
+        now,
+      ),
+    ),
   }
 }

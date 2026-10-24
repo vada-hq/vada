@@ -79,7 +79,7 @@
 - 닿는 곳: web `events/EventCompletion.tsx`, `CompletionDialog.tsx`, `useCompletionPost.ts`, `overview-view.ts`, `EventHeader.tsx`, `SettlementRemaining.tsx`, `lib/messages.ts`, `test-support/event-fixtures.ts`, `ui-gallery/EventSections.tsx`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 3. 신청 양식 정책(서버) [ ]
+### 3. 신청 양식 정책(서버) [x]
 - 할 수 있게 되는 것: 양식의 동작과 상태가 한 정책에서 나와, 완료 뒤에도 신청자를 보고 마감 양식에는 멈추기가 없다.
 - 수용 기준: 완료한 행사에서 열람 권한자의 양식 `actions`에 `form.view_applicants`가 남고 신청자 목록 GET이 200이며 열람 기록이 한 줄 남는다. 쓰기 동작(`form.create`, `form.update`, `form.pause`, `form.resume`, `form.check_in`)은 없고 그 쓰기는 지금처럼 `EVENT_COMPLETED`다. 완료한 행사의 양식 상태는 운영진 응답과 공개 응답 모두 `closed`다(N14). 마감이 지난 양식은 `form.pause`·`form.resume`이 없고 멈추기·다시 받기는 409 `FORM_CLOSED`이며 판이 생기지 않는다(마감 ±1초). 마감 전에는 멈춘 양식에 `form.resume`, 아니면 `form.pause`만 있다. `form.update`는 마감 뒤에도(완료 전) 있다. 목록 `actions`의 `form.create`는 관리 권한자에게 완료 전만. 열람 권한이 없으면 목록 GET은 403. 다른 학생회 양식 404.
 - 닿는 곳: contracts `registrations.ts`(양식·목록 동작 목록), `errors.ts`(`FORM_CLOSED`). api `registrations/policy.ts`(새), `queries.ts`, `state.ts`, `public-form.ts`, `apply.ts`, `service.ts`(`setPaused`), `applicants.ts`, `completion-lock.test.ts`. web은 이름만(`FormCard.tsx`, `RegistrationTab.tsx`, `events/EventOverview.tsx`).

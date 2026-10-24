@@ -147,6 +147,24 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
         changes,
       }),
     )
+  // 행사를 완료한 것으로 만든다(완료 결재 한 줄).
+  const complete = (eventId: string) =>
+    db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'approval',
+        councilId: council.councilId,
+        actor: council.people.president.memberId,
+        values: {
+          targetId: eventId,
+          targetKind: 'event',
+          outcome: 'completed',
+          actorId: council.people.president.memberId,
+          actorKind: 'member',
+          actedAt: new Date('2026-10-24T03:00:00Z'),
+          reason: null,
+        },
+      }),
+    )
   const post = (path: string, body: unknown, user = 's-president') =>
     api.post(`${orgBase}${path}`, body, user)
   const create = (eventId: string, body: unknown, user = 's-president') =>
@@ -200,6 +218,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     makeFeePayment,
     attend,
     change,
+    complete,
     post,
     create,
     created,

@@ -43,8 +43,10 @@ test(
     // 행사 끝도 시작도 없으면 양식 마감 날짜 + 1년이다.
     assert.equal(form.purgeOn, '2027-11-01')
     assert.deepEqual(form.actions, [
-      'registration.manage',
-      'registration.view_applicants',
+      'form.update',
+      'form.pause',
+      'form.check_in',
+      'form.view_applicants',
       'deposit.confirm',
     ])
     assert.equal(await t.versions(form.id), 1)

@@ -81,19 +81,18 @@ export async function publicFormOf(
       closesAt: koreanOf(row.closesAt),
       notice: row.notice,
     },
-    // 완료한 행사의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN).
-    status: completed.has(row.eventId)
-      ? 'closed'
-      : registrationStatusOf(
-          {
-            opensAt: row.opensAt,
-            closesAt: row.closesAt,
-            paused: row.pausedAt !== null,
-            capacity: row.capacity,
-            applicantCount,
-          },
-          now,
-        ),
+    // 완료한 행사의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN). 운영진 응답과 같은 함수가 센다.
+    status: registrationStatusOf(
+      {
+        opensAt: row.opensAt,
+        closesAt: row.closesAt,
+        paused: row.pausedAt !== null,
+        capacity: row.capacity,
+        applicantCount,
+        eventCompleted: completed.has(row.eventId),
+      },
+      now,
+    ),
     remaining: remainingOf(row.capacity, applicantCount),
     payerFee,
     nonPayerFee,

@@ -8,12 +8,11 @@ import {
 import type { Actor } from '../access/actor.js'
 import { assertUsableAccount } from '../accounts/queries.js'
 import type { Tx } from '../db/types.js'
-import { assertEventOpen } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
-import { assertManage } from './permission-context.js'
 import { clearPhones } from './personal-values.js'
+import { assertFormAction } from './policy.js'
 import { freshPublicCode } from './public-code.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
@@ -42,8 +41,13 @@ export async function createForm(
   input: CreateFormRequest,
 ): Promise<RegistrationForm> {
   const eventRow = await eventRowOf(tx, actor, target.eventId)
-  await assertManage(tx, actor, { id: eventRow.id, ownerId: eventRow.ownerId })
-  await assertEventOpen(tx, eventRow.id)
+  await assertFormAction(tx, actor, 'form.create', {
+    eventId: eventRow.id,
+    eventOwnerId: eventRow.ownerId,
+    closesAt: null,
+    pausedAt: null,
+    now: target.now,
+  })
   await assertFeeAccount(tx, actor, input)
   const id = await createRecord(tx, {
     kind: 'registration_form',
@@ -105,8 +109,7 @@ export async function updateForm(
   input: UpdateFormRequest,
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
-  await assertManage(tx, actor, { id: row.eventId, ownerId: row.eventOwnerId })
-  await assertEventOpen(tx, row.eventId)
+  await assertFormAction(tx, actor, 'form.update', { ...row, now: target.now })
   await assertFeeAccount(tx, actor, input)
   const changes = changesOf(row, input)
   if (Object.keys(changes).length)
@@ -121,15 +124,17 @@ export async function updateForm(
   return formDetailOf(tx, actor, row.id, target.now)
 }
 
-// 멈추기와 다시 받기. 이미 그 상태이면 판도 오류도 없다(멈춘 양식을 다시 멈춰도 그대로다).
+// 멈추기와 다시 받기. 이미 그 상태이면 판도 오류도 없다(멈춘 양식을 다시 멈춰도 그대로다). 마감 지난 양식은 409 FORM_CLOSED다.
 export async function setPaused(
   tx: Tx,
   actor: Actor,
   target: { formId: string; now: Date; paused: boolean },
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
-  await assertManage(tx, actor, { id: row.eventId, ownerId: row.eventOwnerId })
-  await assertEventOpen(tx, row.eventId)
+  await assertFormAction(tx, actor, target.paused ? 'form.pause' : 'form.resume', {
+    ...row,
+    now: target.now,
+  })
   if ((row.pausedAt !== null) !== target.paused)
     await updateRecord(tx, {
       kind: 'registration_form',

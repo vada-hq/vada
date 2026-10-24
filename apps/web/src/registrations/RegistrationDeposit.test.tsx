@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { Action, Applicant, RegistrationAction } from '@vada/contracts'
+import type { Action, Applicant, FormAction, FormListAction } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import {
@@ -22,16 +22,18 @@ afterEach(() => {
 })
 
 const ROW = `/api/organizations/c1/registrations/${REGISTRATION_ID}`
-const ALL: RegistrationAction[] = [
-  'registration.manage',
-  'registration.view_applicants',
+const ALL: FormAction[] = [
+  'form.update',
+  'form.pause',
+  'form.check_in',
+  'form.view_applicants',
   'deposit.confirm',
 ]
 const PAID = { status: 'confirmed', amount: 5000 } as const
 const PENDING = { status: 'refund_pending', amount: 5000 } as const
 
 type Options = {
-  actions?: RegistrationAction[]
+  actions?: FormAction[]
   permissions?: Action[]
   applicants?: Applicant[]
   truncated?: boolean
@@ -43,7 +45,7 @@ async function open(options: Options = {}) {
     json({
       forms: [staffForm({ actions: options.actions ?? ALL })],
       truncated: false,
-      actions: options.actions ?? ALL,
+      actions: ['form.create'] satisfies FormListAction[],
     }),
   )
   api.on('GET', APPLICANTS_PATH, () =>
@@ -76,7 +78,9 @@ const button = (scope: HTMLElement, name: string) => within(scope).getByRole('bu
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
 test('입금 상태 칩과 [입금 확인]은 서버가 준 deposit.confirm이 있을 때만 보인다', async () => {
-  const { row } = await open({ actions: ['registration.manage', 'registration.view_applicants'] })
+  const { row } = await open({
+    actions: ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants'],
+  })
   expect(within(row).getByText('입금 안 함')).toBeTruthy()
   expect(within(row).queryByRole('button', { name: '입금 확인' })).toBeNull()
   cleanup()

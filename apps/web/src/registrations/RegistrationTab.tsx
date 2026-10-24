@@ -1,10 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import type {
-  CouncilView,
-  EventDetail,
-  RegistrationAction,
-  RegistrationForm,
-} from '@vada/contracts'
+import type { CouncilView, EventDetail, FormListAction, RegistrationForm } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventFieldFocus } from '@/events/EventFields'
@@ -30,12 +25,12 @@ type Props = EventDialogHandlers & {
   onEditEvent: (focus: EventFieldFocus) => void
 }
 
-type Read = { forms: RegistrationForm[]; actions: RegistrationAction[] }
+type Read = { forms: RegistrationForm[]; actions: FormListAction[] }
 
 // 열려 있는 동안 15초 읽기가 바꾼 값: 관리 권한이 빠졌거나 고치던 양식이 사라졌으면 닫을 이유다. 읽기 전(null)에는 없다.
 function dialogLostReason(dialog: TabDialog, read: Read | null) {
   if (dialog === null || read === null) return null
-  if (!read.actions.includes('registration.manage')) return PERMISSION_CHANGED
+  if (!read.actions.includes('form.create')) return PERMISSION_CHANGED
   if (dialog.kind === 'edit' && !read.forms.some(form => form.id === dialog.formId))
     return REGISTRATION_STAFF_LOST
   return null
@@ -190,11 +185,11 @@ export function RegistrationTab(props: Props) {
   return <FormsView props={props} tab={tab} read={read} ready={ready} overrides={overrides} />
 }
 
-type ToolbarProps = { actions: RegistrationAction[]; onCreate: () => void; onScan: () => void }
+type ToolbarProps = { actions: FormListAction[]; onCreate: () => void; onScan: () => void }
 
 // [신청 양식 만들기]와 [QR로 출석 확인]. 서버가 이 행사에서 지금 사람이 할 수 있는 동작을 준다(양식이 없어도).
 function TabToolbar({ actions, onCreate, onScan }: ToolbarProps) {
-  const manage = actions.includes('registration.manage')
+  const manage = actions.includes('form.create')
   return (
     <div className="flex flex-wrap gap-2">
       {manage && <Button onClick={onCreate}>신청 양식 만들기</Button>}

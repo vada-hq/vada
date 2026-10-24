@@ -25,7 +25,7 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
   attendedCount: 0,
   remaining: 38,
   purgeOn: '2027-10-24',
-  actions: ['registration.manage', 'registration.view_applicants'],
+  actions: ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants'],
   ...extra,
 })
 
@@ -102,7 +102,16 @@ export function RegistrationSection() {
     <Section title="신청 양식 카드·상태 배지·스캔 결과">
       <div className="flex w-96 max-w-full flex-col gap-2">
         {REGISTRATION_STATUSES.map(status => (
-          <Card key={status} data={form(status, { status, paused: status === 'paused' })} />
+          <Card
+            key={status}
+            data={form(status, {
+              status,
+              paused: status === 'paused',
+              ...(status === 'paused' && {
+                actions: ['form.update', 'form.resume', 'form.check_in', 'form.view_applicants'],
+              }),
+            })}
+          />
         ))}
         <Card data={form('view', { actions: [], capacity: null, opensAt: '2026-10-22T09:00' })} />
         <Card data={form('long', { name: `${unbroken} ${longName}` })} />

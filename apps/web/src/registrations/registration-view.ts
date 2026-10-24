@@ -18,7 +18,7 @@ export const applyUrl = (publicCode: string) => `${window.location.origin}/apply
 
 // 신청자 줄에서 할 수 있는 동작. 모두 서버가 준 것(양식 actions, 내 권한 목록)으로만 켠다.
 export type StaffCan = {
-  // 출석·신청 취소(registration.manage)
+  // 출석·신청 취소(form.check_in)
   manage: boolean
   // 입금 확인·확인 취소(deposit.confirm)
   deposit: boolean

@@ -102,17 +102,18 @@ type ActionsProps = {
   onToggle: () => void
 }
 
-// 양식 카드의 버튼 줄. [고치기]와 [멈추기]·[다시 받기]는 관리 권한자(actions)에게만 보인다.
+// 양식 카드의 버튼 줄. [고치기]와 [멈추기]·[다시 받기]는 그 동작이 actions에 있을 때만 보인다.
 function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsProps) {
-  const manage = form.actions.includes('registration.manage')
+  const canEdit = form.actions.includes('form.update')
+  const canToggle = form.actions.includes(form.paused ? 'form.resume' : 'form.pause')
   return (
     <div className="flex flex-wrap gap-2">
-      {manage && (
+      {canEdit && (
         <Button variant="outline" size="sm" onClick={onEdit}>
           고치기
         </Button>
       )}
-      {manage && (
+      {canToggle && (
         <Button variant="outline" size="sm" disabled={busy} onClick={onPause}>
           {form.paused ? '다시 받기' : '멈추기'}
         </Button>
@@ -132,7 +133,7 @@ type ApplicantsProps = EventDialogHandlers &
 // 신청자 정보(이름, 학번, 휴대폰)는 열람 권한자에게만 보이고, 아니면 신청 수만 보인다. 열람은 기록이 남아 눌러야 읽는다.
 function Applicants({ form, canRefund, ...rest }: ApplicantsProps) {
   const [shown, setShown] = useState(false)
-  if (!form.actions.includes('registration.view_applicants'))
+  if (!form.actions.includes('form.view_applicants'))
     return (
       <StateMessage kind="notice">
         신청자 정보는 볼 수 있는 운영진에게만 보여요. 신청은 {form.applicantCount}명이에요.
@@ -151,7 +152,7 @@ function Applicants({ form, canRefund, ...rest }: ApplicantsProps) {
     <ApplicantList
       formId={form.id}
       can={{
-        manage: form.actions.includes('registration.manage'),
+        manage: form.actions.includes('form.check_in'),
         deposit: form.actions.includes('deposit.confirm'),
         refund: canRefund,
       }}

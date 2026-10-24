@@ -41,7 +41,12 @@ export function addApplicantRoutes(kit: RouteKit) {
     await db.transaction(tx => authorize(tx, request))
     await purgeFormIfDue(db, request.councilId, formIdOf(c), request.now)
     const list = await db.transaction(async tx =>
-      applicantsOf(tx, await authorize(tx, request), { formId: formIdOf(c), ip, ...filter }),
+      applicantsOf(tx, await authorize(tx, request), {
+        formId: formIdOf(c),
+        ip,
+        now: request.now,
+        ...filter,
+      }),
     )
     return c.json(list satisfies ApplicantsResponse)
   })

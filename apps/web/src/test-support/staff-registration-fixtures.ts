@@ -1,4 +1,4 @@
-import type { AccountItem, Applicant, RegistrationAction, RegistrationForm } from '@vada/contracts'
+import type { AccountItem, Applicant, FormAction, RegistrationForm } from '@vada/contracts'
 
 export const STAFF_EVENT_ID = '00000000-0000-4000-8000-0000000000e1'
 const FORM_ID = '00000000-0000-4000-8000-0000000000f1'
@@ -11,7 +11,9 @@ export const APPLICANTS_PATH = `${FORM_PATH}/applicants`
 export const CHECK_IN_PATH = `${BASE}/events/${STAFF_EVENT_ID}/check-in`
 export const ACCOUNTS_PATH = `${BASE}/accounts`
 
-const MANAGE: RegistrationAction[] = ['registration.manage', 'registration.view_applicants']
+// 서버가 줄 수 있는 조합: 멈춘 양식에는 멈추기 대신 다시 받기가 온다.
+const MANAGE: FormAction[] = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
+const MANAGE_PAUSED: FormAction[] = MANAGE.map(a => (a === 'form.pause' ? 'form.resume' : a))
 
 export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationForm => ({
   id: FORM_ID,
@@ -33,7 +35,7 @@ export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationFo
   attendedCount: 1,
   remaining: 47,
   purgeOn: '2027-10-24',
-  actions: MANAGE,
+  actions: extra.paused ? MANAGE_PAUSED : MANAGE,
   ...extra,
 })
 

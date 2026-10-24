@@ -3,12 +3,11 @@ import type { CheckInResult } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { attendance, registration, registrationForm, registrationLink } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
-import { assertEventOpen } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { recordApplicantAccess } from './access-log.js'
-import { assertManage } from './permission-context.js'
+import { assertFormAction } from './policy.js'
 import { lockRegistration } from './registration-lock.js'
 import { lockedLiveRegistration } from './staff-registration.js'
 
@@ -84,8 +83,14 @@ export async function checkInByQr(
   target: { eventId: string; tokenHash: string; ip: string },
 ): Promise<CheckInResult> {
   const event = await eventRowOf(tx, actor, target.eventId)
-  await assertManage(tx, actor, { id: event.id, ownerId: event.ownerId })
-  await assertEventOpen(tx, event.id)
+  // 출석은 마감을 보지 않아(마감 뒤 행사 날에 한다) 시각이 판정에 쓰이지 않는다.
+  await assertFormAction(tx, actor, 'form.check_in', {
+    eventId: event.id,
+    eventOwnerId: event.ownerId,
+    closesAt: null,
+    pausedAt: null,
+    now: new Date(),
+  })
   const first = await linkedRegistration(tx, event.id, target.tokenHash)
   if (!first) throw new ApiError('NOT_FOUND')
   await lockRegistration(tx, first.registrationId)

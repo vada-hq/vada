@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { qrTextOf, type RegistrationAction } from '@vada/contracts'
+import { qrTextOf, type FormListAction } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import {
@@ -26,7 +26,7 @@ vi.mock('./camera', async importActual => ({
 vi.mock('./qr-reader', () => ({ loadQrReader: vi.fn() }))
 
 const ROW = `/api/organizations/c1/registrations/${REGISTRATION_ID}`
-const MANAGE: RegistrationAction[] = ['registration.manage', 'registration.view_applicants']
+const LIST: FormListAction[] = ['form.create']
 let queue: string[] = []
 
 beforeEach(() => {
@@ -48,7 +48,7 @@ afterEach(() => {
 function setup() {
   const server = {
     forms: [staffForm()],
-    actions: MANAGE,
+    actions: LIST,
     applicants: [applicant()],
   }
   const api = mockApi()
@@ -167,7 +167,7 @@ test('관리 권한이 빠지면 열린 스캐너와 고치기 창을 닫고 이
   const { server } = setup()
   fireEvent.click(await screen.findByRole('button', { name: 'QR로 출석 확인' }))
   await screen.findByRole('dialog', { name: 'QR로 출석 확인' })
-  server.actions = ['registration.view_applicants']
+  server.actions = []
   await pollNow()
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()

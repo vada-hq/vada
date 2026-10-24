@@ -30,6 +30,8 @@ async function assertOpen(tx: Tx, form: Awaited<ReturnType<typeof publicRowOf>>,
       paused: form.pausedAt !== null,
       capacity: form.capacity,
       applicantCount: await applicantCountOf(tx, form.id),
+      // 완료한 행사는 이 앞에서 이미 거절했다(행사 행 잠금 아래에서).
+      eventCompleted: false,
     },
     now,
   )
