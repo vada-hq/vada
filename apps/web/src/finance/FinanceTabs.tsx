@@ -1,10 +1,9 @@
-import { PURCHASE_VIEWS, type PurchaseView } from '@vada/contracts'
+import { PURCHASE_VIEWS, type FinanceTab, type PurchaseView } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { VIEW_LABEL } from './purchase-view'
 
-export type FinanceTab =
-  'requests' | 'expenses' | 'incomes' | 'budget' | 'accounts' | 'fees' | 'closing'
+export type { FinanceTab }
 
 type TabsProps = {
   tab: FinanceTab

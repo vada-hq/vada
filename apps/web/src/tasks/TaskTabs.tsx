@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { CalendarDays, List } from 'lucide-react'
-import type { TaskFilter, TaskView } from '@vada/contracts'
+import type { TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 
@@ -10,7 +10,7 @@ const TABS: { view: TaskView; label: string }[] = [
   { view: 'all', label: '전체' },
   { view: 'unassigned', label: '담당자 없음' },
 ]
-export type TaskLayout = 'list' | 'calendar'
+export type { TaskLayout }
 const LAYOUTS = [
   { layout: 'list', label: '목록', Icon: List },
   { layout: 'calendar', label: '달력', Icon: CalendarDays },
