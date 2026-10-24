@@ -33,13 +33,15 @@ function targetOfUrl(url: string) {
 
 // 앱이 닫혀 있었다면 알림 주소(/chat/학생회/방, /tasks/학생회/업무, /purchases/학생회/요청)로 열리고, 열려 있었다면 서비스 워커가 주소를 알린다.
 // 읽은 주소는 맨 앞으로 되돌려, 새로 고쳐도 같은 곳이 다시 열리지 않게 한다.
+// 창 기록의 표시(use-window-history)를 지우지 않도록 상태는 그대로 둔다.
 export function useChatLink() {
   const [link, setLink] = useState<ChatLink | null>(() => {
     const target = targetOf(window.location.pathname)
     return target && { ...target, seq: 0 }
   })
   useEffect(() => {
-    if (targetOf(window.location.pathname)) window.history.replaceState(null, '', '/')
+    if (targetOf(window.location.pathname))
+      window.history.replaceState(window.history.state, '', '/')
     return listenServiceWorker(url => {
       const target = targetOfUrl(url)
       if (target) setLink(before => ({ ...target, seq: (before?.seq ?? 0) + 1 }))

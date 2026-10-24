@@ -1442,6 +1442,8 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </div>
 <div role="dialog" id="radix-_id6_" data-state="open" class="fixed inset-y-0 z-50 flex w-72 max-w-5/6 flex-col bg-white shadow-2xl outline-none data-[state=open]:animate-in left-0 data-[state=open]:slide-in-from-left" tabindex="-1" aria-labelledby="radix-_id7_" style="pointer-events: auto;">
 <h2 id="radix-_id7_" class="sr-only">학생회 작업 공간</h2>
+<button type="button" hidden="" tabindex="-1" aria-hidden="true">
+</button>
 <div class="flex h-full min-h-0 flex-col">
 <div class="flex shrink-0 items-center gap-2 border-b border-gray-100 py-3 pr-10 pl-4">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>

@@ -2,6 +2,7 @@ import { useRef, type ComponentProps } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useWindowHistory } from '@/lib/use-window-history'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
@@ -30,6 +31,13 @@ export function useReturnFocus({
   }
 }
 
+// 뒤로 가기가 이 창을 닫게 한다. 닫는 길은 화면의 닫기 버튼과 같아서(눈에 보이지 않는 Close를 누른다), 부모가 보내는 중에 닫기를 거절하는 창도 그대로 따른다.
+export function WindowHistory() {
+  const close = useRef<HTMLButtonElement>(null)
+  useWindowHistory(() => close.current?.click())
+  return <DialogPrimitive.Close ref={close} hidden tabIndex={-1} aria-hidden="true" />
+}
+
 // 통일 규칙: 오버레이 검정 45%, 반경 큰 값, 큰 그림자, 안쪽 여백 21px, 폭 약 440px.
 // 내용을 오버레이 안에 둔다(Radix 문서의 scrollable overlay). 좁거나 낮은 화면에서는 오버레이가 스크롤되어 내용이 잘리지 않는다.
 export function DialogContent({
@@ -52,6 +60,7 @@ export function DialogContent({
           {...props}
           {...returnFocus}
         >
+          <WindowHistory />
           {children}
           <DialogPrimitive.Close
             aria-label="닫기"

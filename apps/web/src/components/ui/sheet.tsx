@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useReturnFocus } from './dialog'
+import { useReturnFocus, WindowHistory } from './dialog'
 
 export const Sheet = DialogPrimitive.Root
 
@@ -39,6 +39,7 @@ export function SheetContent({
         {...returnFocus}
       >
         <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+        <WindowHistory />
         {children}
         <DialogPrimitive.Close
           aria-label={closeLabel}

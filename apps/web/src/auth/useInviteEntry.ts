@@ -12,7 +12,7 @@ export function useInviteEntry() {
   // 초대로 방금 들어온 학생회. 작업 공간이 그 학생회를 먼저 연다.
   const [opened, setOpened] = useState<string>()
   function leaveInvite() {
-    window.history.replaceState(null, '', '/')
+    window.history.replaceState(window.history.state, '', '/')
     setInvite(null)
   }
   return {
