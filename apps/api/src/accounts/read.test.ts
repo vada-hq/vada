@@ -34,7 +34,7 @@ test(
     )
     assert.deepEqual(
       (await t.list()).body.accounts.map(account => account.actions.length),
-      [1, 1, 1, 0, 0],
+      [2, 2, 2, 0, 0],
     )
   }),
 )

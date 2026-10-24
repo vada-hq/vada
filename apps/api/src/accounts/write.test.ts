@@ -17,7 +17,13 @@ test(
     assert.equal(status, 201)
     assert.deepEqual(
       { ...account, id: undefined },
-      { ...BODY, id: undefined, closedOn: null, actions: ['finance.manage'] },
+      {
+        ...BODY,
+        id: undefined,
+        closedOn: null,
+        formsInUse: 0,
+        actions: ['account.update', 'account.close'],
+      },
     )
     assert.equal(await t.versions(account!.id), 1)
   }),

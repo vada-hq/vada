@@ -212,6 +212,7 @@ export const ACCOUNT_ERRORS: Record<string, string> = {
     '대표 계좌가 이미 있어요. 그 계좌를 먼저 사업용으로 바꾸거나 닫은 뒤에 정해 주세요.',
   ACCOUNT_NAME_TAKEN: '같은 이름의 계좌가 있어요. 다른 이름을 적어 주세요.',
   ACCOUNT_CLOSED: '이미 닫은 계좌예요. 계좌를 새로 불러왔어요.',
+  ACCOUNT_IN_USE: '신청 양식이 쓰는 계좌예요. 계좌를 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }

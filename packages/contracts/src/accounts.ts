@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { EmptyRequestSchema, text, token } from './input.js'
-import type { Action } from './permissions.js'
 
 // 계좌(DEC-45). 값은 DB CHECK와 같다.
 export const ACCOUNT_NAME_MAX = 20
@@ -31,8 +30,9 @@ export type UpdateAccountRequest = z.infer<typeof UpdateAccountSchema>
 // 닫기는 본문이 없다. 닫은 날은 서버가 한국 오늘로 적는다.
 export const CloseAccountSchema = EmptyRequestSchema
 
-// 계좌마다 서버가 주는 할 수 있는 동작. 닫은 계좌는 아무것도 없다(DEC-38).
-export const ACCOUNT_ACTIONS = ['finance.manage'] as const satisfies readonly Action[]
+// 계좌마다 서버가 주는 할 수 있는 동작. 닫은 계좌는 아무것도 없고, 완료 전 행사의 신청 양식이 쓰는 계좌는 닫기가 없다(RULE-34, DEC-38).
+// 이름은 권한 키(finance.manage)와 떼어 둔다.
+export const ACCOUNT_ACTIONS = ['account.update', 'account.close'] as const
 export type AccountAction = (typeof ACCOUNT_ACTIONS)[number]
 
 export interface AccountItem {
@@ -44,6 +44,8 @@ export interface AccountItem {
   type: AccountType
   // 닫은 날(한국 날짜 YYYY-MM-DD). 닫지 않았으면 null이다.
   closedOn: string | null
+  // 이 계좌를 참가비 받는 계좌로 가리키는, 완료하지 않은 행사의 신청 양식 수(멈춤·마감 포함)
+  formsInUse: number
   actions: AccountAction[]
 }
 

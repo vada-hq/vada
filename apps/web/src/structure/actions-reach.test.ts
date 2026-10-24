@@ -24,7 +24,6 @@ const ALLOWED_UNUSED: Record<string, string> = {}
 // 동작 이름은 권한 키(Action)와 떼어 둔다(기능 012 원칙, 012 조각 6 검토 I1): 같은 글자면 `view.permissions.includes('이름')`이
 // 그 동작을 읽은 것으로 세어져, 동작을 안 읽는 화면도 위 검사를 통과한다. 지금 겹치는 동작을 이유와 함께 허용한다.
 const ALLOWED_PERMISSION_NAMES: Record<string, string> = {
-  'ACCOUNT_ACTIONS finance.manage': '기능 014에서 바꾼다',
   'EVENT_ACTIONS event.update': '기능 012가 권한 키와 같은 이름으로 냈다. 이름 바꾸기는 따로 한다',
   'EVENT_ACTIONS event.complete':
     '기능 012가 권한 키와 같은 이름으로 냈다. 이름 바꾸기는 따로 한다',

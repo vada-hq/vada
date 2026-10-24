@@ -14,6 +14,9 @@ export const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
   business: '사업용 계좌',
 }
 
+// 닫을 수 없는 까닭: 완료하지 않은 행사의 신청 양식이 참가비 받는 계좌로 쓴다(RULE-34).
+export const ACCOUNT_IN_USE_LABEL = (count: number) => `신청 양식 ${count}개에서 사용 중`
+
 export const emptyAccount = (): AccountValues => ({
   name: '',
   bank: '',

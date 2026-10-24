@@ -80,6 +80,7 @@ export const accountItem = (extra: Partial<AccountItem> = {}): AccountItem => ({
   holder: '소프트웨어학부 학생회',
   type: 'main',
   closedOn: null,
+  formsInUse: 0,
   actions: [],
   ...extra,
 })

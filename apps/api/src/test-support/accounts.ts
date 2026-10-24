@@ -59,6 +59,54 @@ async function startAccounts() {
         changes,
       }),
     )
+  // 신청 양식이 참가비 받는 계좌로 가리키는 계좌 시험용: 행사, 그 행사의 완료, 양식을 기록 모듈로 만든다.
+  const recordOf = (kind: string, values: Values, owner: typeof council = council) =>
+    db.transaction(tx =>
+      createRecord(tx, {
+        kind,
+        councilId: owner.councilId,
+        actor: owner.people.president.memberId,
+        values,
+      } as Parameters<typeof createRecord>[1]),
+    )
+  const event = (owner: typeof council = council) =>
+    recordOf('event', { name: '봄 축제', startsAt: new Date('2026-11-20T00:00:00Z') }, owner)
+  const complete = (eventId: string) =>
+    recordOf('approval', {
+      targetId: eventId,
+      targetKind: 'event',
+      outcome: 'completed',
+      actorId: council.people.president.memberId,
+      actorKind: 'member',
+      actedAt: NOON,
+      reason: null,
+    })
+  let codes = 0
+  const form = (eventId: string, accountId: string, values: Values = {}, owner = council) =>
+    recordOf(
+      'registration_form',
+      {
+        eventId,
+        name: '신청',
+        closesAt: new Date('2026-11-01T09:00:00Z'),
+        publicCode: `CCCCCC${'23456789'[Math.floor(codes / 8) % 8]}${'23456789'[codes++ % 8]}`,
+        payerFee: '5000',
+        nonPayerFee: '5000',
+        feeAccountId: accountId,
+        ...values,
+      },
+      owner,
+    )
+  const changeRecord = (kind: string, id: string, changes: Values) =>
+    db.transaction(tx =>
+      updateRecord(tx, {
+        kind,
+        id,
+        actor: council.people.president.memberId,
+        reason: null,
+        changes,
+      } as Parameters<typeof updateRecord>[1]),
+    )
   const post = (path: string, body: unknown, user = FINANCE) =>
     api.post(`${base}${path}`, body, user)
   const list = async (user = FINANCE) => {
@@ -97,6 +145,11 @@ async function startAccounts() {
     base,
     make,
     change,
+    recordOf,
+    changeRecord,
+    event,
+    complete,
+    form,
     post,
     list,
     created,

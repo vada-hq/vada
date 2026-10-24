@@ -11,7 +11,8 @@ const account = (id: string, extra: Partial<AccountItem>): AccountItem => ({
   holder: '소프트웨어학부 학생회',
   type: 'main',
   closedOn: null,
-  actions: ['finance.manage'],
+  formsInUse: 0,
+  actions: ['account.update', 'account.close'],
   ...extra,
 })
 
@@ -24,6 +25,15 @@ export function AccountSection() {
         <AccountCard account={account('1', {})} onEdit={noop} onClose={noop} />
         <AccountCard
           account={account('2', { name: '행사 통장', type: 'business', actions: [] })}
+          onEdit={noop}
+          onClose={noop}
+        />
+        <AccountCard
+          account={account('5', {
+            name: '참가비 통장',
+            formsInUse: 2,
+            actions: ['account.update'],
+          })}
           onEdit={noop}
           onClose={noop}
         />

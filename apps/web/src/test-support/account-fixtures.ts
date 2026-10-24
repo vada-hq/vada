@@ -13,7 +13,8 @@ export const accountItem = (id: string, extra: Partial<AccountItem> = {}): Accou
   holder: '소프트웨어학부 학생회',
   type: 'main',
   closedOn: null,
-  actions: ['finance.manage'],
+  formsInUse: 0,
+  actions: ['account.update', 'account.close'],
   ...extra,
 })
 

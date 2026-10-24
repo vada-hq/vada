@@ -1,16 +1,15 @@
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import {
-  ACCOUNT_ACTIONS,
   ACCOUNT_LIST_LIMIT,
   type AccountItem,
   type AccountType,
   type AccountsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { account } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { actionsOf, factsOf } from './policy.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -28,12 +27,20 @@ const accountSelect = (db: Reader) =>
     .from(account)
 type Row = Awaited<ReturnType<ReturnType<typeof accountSelect>['where']>>[number]
 
-// 닫은 계좌는 고치거나 닫을 수 없으므로 동작이 없다.
-const itemOf = (actor: Actor, row: Row): AccountItem => ({
-  ...row,
-  type: row.type as AccountType,
-  actions: row.closedOn === null ? ACCOUNT_ACTIONS.filter(action => can(actor, action)) : [],
-})
+// 동작은 정책(policy.ts)이 낸다: 닫은 계좌는 없고, 쓰는 중인 양식이 있으면 닫기가 없다.
+async function itemsOf(db: Reader, actor: Actor, rows: Row[]): Promise<AccountItem[]> {
+  const facts = await factsOf(db, actor, rows)
+  return rows.map(row => {
+    const own = facts.get(row.id)
+    if (!own) throw new Error('계좌 사실을 읽지 못했어요')
+    return {
+      ...row,
+      type: row.type as AccountType,
+      formsInUse: own.formsInUse ?? 0,
+      actions: actionsOf(actor, own),
+    }
+  })
+}
 
 // 이 학생회의 계좌 하나. 다른 학생회 계좌는 없는 것과 같아 404다.
 export async function accountRowOf(db: Reader, actor: Actor, accountId: string) {
@@ -45,7 +52,8 @@ export async function accountRowOf(db: Reader, actor: Actor, accountId: string) 
 }
 
 export async function accountItemOf(db: Reader, actor: Actor, accountId: string) {
-  return itemOf(actor, await accountRowOf(db, actor, accountId))
+  const [item] = await itemsOf(db, actor, [await accountRowOf(db, actor, accountId)])
+  return item!
 }
 
 // 닫지 않은 계좌(대표 먼저, 이름 순) 뒤에 닫은 계좌(최근에 닫은 순). 한 개 더 읽어 넘쳤는지 안다.
@@ -62,7 +70,7 @@ export async function accountListOf(db: Reader, actor: Actor): Promise<AccountsR
     )
     .limit(ACCOUNT_LIST_LIMIT + 1)
   return {
-    accounts: rows.slice(0, ACCOUNT_LIST_LIMIT).map(row => itemOf(actor, row)),
+    accounts: await itemsOf(db, actor, rows.slice(0, ACCOUNT_LIST_LIMIT)),
     truncated: rows.length > ACCOUNT_LIST_LIMIT,
   }
 }
