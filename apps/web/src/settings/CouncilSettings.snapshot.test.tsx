@@ -50,6 +50,8 @@ test('임기 순서 오류', () => {
   mockApi()
   show()
   fireEvent.change(screen.getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
+  // 문제는 누를 때 칸 아래에 보인다.
+  fireEvent.click(screen.getByRole('button', { name: '기수 저장' }))
   expect(html()).toMatchSnapshot()
 })
 

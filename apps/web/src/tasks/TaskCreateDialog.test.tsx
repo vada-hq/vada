@@ -108,14 +108,31 @@ test('부장은 자기 부서를 고르면 모든 운영진을, 학생회 업무
   expect(screen.getByRole('combobox', { name: '담당자' })).toHaveProperty('value', M2)
 })
 
-test('제목이 비어 있거나 공백뿐이면 만들기가 꺼져 있다', async () => {
-  setup()
+test('제목이 비어 있거나 공백뿐이면 만들기를 눌러도 보내지 않고 제목 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  const { api } = setup()
   const button = await screen.findByRole('button', { name: '만들기' })
-  expect(button).toHaveProperty('disabled', true)
-  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '   ' } })
-  expect(button).toHaveProperty('disabled', true)
-  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '현수막' } })
+  const title = screen.getByLabelText('제목')
   expect(button).toHaveProperty('disabled', false)
+  expect(title.getAttribute('aria-required')).toBe('true')
+  fireEvent.click(button)
+  expect(screen.getByText('제목을 입력해 주세요')).toBeTruthy()
+  expect(title.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(title))
+  fireEvent.change(title, { target: { value: '   ' } })
+  fireEvent.click(button)
+  expect(screen.getByText('제목을 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(title, { target: { value: '현수막' } })
+  expect(screen.queryByText('제목을 입력해 주세요')).toBeNull()
+  expect(title.getAttribute('aria-invalid')).toBeNull()
+})
+
+test('맡은 사람에게 알림이 간다는 설명 없이 칸만 있고, 선택 칸에는 (선택)이 붙는다', async () => {
+  setup()
+  const dialog = await screen.findByRole('dialog', { name: '업무 만들기' })
+  await screen.findByRole('combobox', { name: '담당 부서' })
+  expect(dialog.textContent).not.toContain('알림이 가요')
+  expect(within(dialog).getAllByText('(선택)').length).toBeGreaterThan(0)
 })
 
 test('내용과 마감과 담당을 채워 만들면 계약 모양으로 보내고 두 번 눌러도 한 번만 간다', async () => {

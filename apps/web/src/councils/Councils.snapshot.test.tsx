@@ -41,7 +41,11 @@ test('만들기: 입력 전', () => {
 test('만들기: 임기 순서 오류', () => {
   mockApi()
   createForm()
+  fireEvent.change(screen.getByLabelText('학생회 이름'), { target: { value: '소프트웨어학부' } })
+  fireEvent.change(screen.getByLabelText('학교'), { target: { value: '한양대학교' } })
   fireEvent.change(screen.getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
+  // 문제는 누를 때 칸 아래에 보인다.
+  fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
   expect(html()).toMatchSnapshot()
 })
 

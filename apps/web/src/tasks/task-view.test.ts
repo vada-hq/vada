@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { TaskSummary } from '@vada/contracts'
-import { assigneeLabel, countOf, dueLabel, groupByDepartment } from './task-view'
+import { assigneeLabel, countOf, dueLabel } from './task-view'
 
 const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   id,
@@ -32,15 +32,4 @@ test('옆 메뉴 수: 지난 것이 있으면 지남, 없으면 남은 수, 0이
   })
   expect(countOf([task('a')], true)?.label).toBe('1+')
   expect(countOf([task('a', { overdue: true })], true)?.label).toBe('지남 1+')
-})
-
-test('부서 이름순으로 묶고 학생회 업무는 맨 뒤다. 묶음 안 순서는 그대로다', () => {
-  const groups = groupByDepartment([
-    task('a'),
-    task('b', { department: { id: 'd2', name: '홍보부' } }),
-    task('c', { department: { id: 'd1', name: '기획부' } }),
-    task('d', { department: { id: 'd2', name: '홍보부' } }),
-  ])
-  expect(groups.map(group => group.name)).toEqual(['기획부', '홍보부', '학생회 업무'])
-  expect(groups[1]?.tasks.map(item => item.id)).toEqual(['b', 'd'])
 })

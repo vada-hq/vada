@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { TaskSummary } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
-import { councilView } from '@/test-support/council-fixtures'
+import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import TasksPage from './TasksPage'
 
 function readsOf(api: ReturnType<typeof mockApi>) {
@@ -16,6 +16,7 @@ function readsOf(api: ReturnType<typeof mockApi>) {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 const base = '/api/organizations/c1/tasks'
@@ -35,28 +36,64 @@ const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
 })
 const list = (tasks: TaskSummary[], truncated = false) => json({ tasks, truncated })
 
-test('카드에 제목, 마감, 지남, 상태, 담당자가 보이고 상태 바꾸기는 할 수 있는 사람에게만 보인다', async () => {
+// 업무 줄(li). 제목은 상세를 여는 버튼이다.
+const rowOf = (title: string) => screen.getByRole('button', { name: title }).closest('li')!
+
+test('내 업무 줄에 제목, 진행 중, 부서, 마감(지나면 빨강)이 보이고 담당자는 없으며, 상태 바꾸기는 할 수 있는 사람에게만 보인다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () =>
     list([
-      task('a', { overdue: true, assignee: { id: 'p9', name: '박떠남', current: false } }),
-      task('b', { status: 'in_progress', dueDate: null, assignee: null }),
+      task('a', { overdue: true, department: { id: 'd1', name: '기획부' } }),
+      task('b', { status: 'in_progress', dueDate: null }),
       task('c', { status: 'done', actions: [] }),
     ]),
   )
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
-  const a = (await screen.findByText('업무 a')).closest('div')!.parentElement!
-  expect(a.textContent).toContain('10월 25일')
-  expect(within(a).getByText('지남')).toBeTruthy()
-  expect(within(a).getByText('할 일')).toBeTruthy()
-  expect(within(a).getByText('떠난 사람: 박떠남')).toBeTruthy()
+  await screen.findByRole('button', { name: '업무 a' })
+  const a = rowOf('업무 a')
+  expect(a.textContent).toContain('기획부')
+  expect(within(a).getByText('10월 25일').className).toContain('text-red-600')
+  // 할 일은 배지 없이 [시작]이 말해 준다.
+  expect(within(a).queryByText('할 일')).toBeNull()
+  expect(within(a).queryByText('김새내')).toBeNull()
   expect(within(a).getByRole('button', { name: '시작' })).toBeTruthy()
-  const b = screen.getByText('업무 b').closest('div')!.parentElement!
-  expect(b.textContent).toContain('마감 없음')
-  expect(b.textContent).toContain('담당자 없음')
+  const b = rowOf('업무 b')
+  expect(within(b).getByText('진행 중')).toBeTruthy()
+  expect(b.textContent).toContain('학생회 업무')
+  expect(within(b).getByText('마감 없음').className).not.toContain('text-red-600')
   expect(within(b).getByRole('button', { name: '끝내기' })).toBeTruthy()
   // 끝난 업무에는 버튼이 없고, 권한이 없으면 할 일이어도 없다.
-  expect(screen.getAllByRole('button', { name: /시작|끝내기/ })).toHaveLength(2)
+  expect(screen.getAllByRole('button', { name: /^(시작|끝내기)$/ })).toHaveLength(2)
+})
+
+test('전체의 줄에는 부서 대신 담당자(없으면 담당자 없음)와 행사가 보이고, 행사를 누르면 행사로 간다', async () => {
+  const api = mockApi()
+  const onOpenEvent = vi.fn()
+  api.on('GET', listPath('mine'), () => list([]))
+  api.on('GET', listPath('all'), () =>
+    list([
+      task('a', {
+        assignee: { id: 'p9', name: '박떠남', current: false },
+        event: { id: 'e1', name: '신입생 환영회' },
+      }),
+      task('b', { assignee: null }),
+    ]),
+  )
+  render(
+    <TasksPage
+      view={councilView('c1')}
+      onOpenEvent={onOpenEvent}
+      onForbidden={() => {}}
+      onChanged={() => {}}
+    />,
+  )
+  fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  await screen.findByRole('button', { name: '업무 a' })
+  const a = rowOf('업무 a')
+  expect(within(a).getByText('떠난 사람: 박떠남')).toBeTruthy()
+  fireEvent.click(within(a).getByRole('button', { name: '신입생 환영회' }))
+  expect(onOpenEvent).toHaveBeenCalledWith('e1')
+  expect(within(rowOf('업무 b')).getByText('담당자 없음')).toBeTruthy()
 })
 
 test('권한 목록에 task.status가 없으면 [시작]이 없다', async () => {
@@ -89,7 +126,7 @@ test('[시작]은 보내는 동안 막히고 두 번 눌러도 한 번만 가며
   expect(onChanged).toHaveBeenCalled()
 })
 
-test('상태 바꾸기가 실패하면 그 카드에 문구가 보이고 지워진 업무는 목록을 다시 읽는다', async () => {
+test('상태 바꾸기가 실패하면 그 줄에 문구가 보이고 지워진 업무는 목록을 다시 읽는다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([task('a'), task('b')]))
   api.on('POST', `${base}/a/status`, () => json({ error: 'NOT_FOUND' }, 404))
@@ -102,7 +139,7 @@ test('상태 바꾸기가 실패하면 그 카드에 문구가 보이고 지워�
   expect(await screen.findByText('너무 빨리 바꾸고 있어요. 잠시 뒤에 다시 해 주세요.')).toBeTruthy()
 })
 
-test('전체는 부서 이름순으로 묶고 학생회 업무를 맨 뒤에 둔다', async () => {
+test('전체는 부서 이름순으로 묶고 학생회 업무를 맨 뒤에 두며, 묶음 머리에 업무 수가 보인다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   api.on('GET', listPath('all'), () =>
@@ -114,9 +151,33 @@ test('전체는 부서 이름순으로 묶고 학생회 업무를 맨 뒤에 둔
   )
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
   fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
-  await screen.findByText('업무 1')
+  await screen.findByRole('button', { name: '업무 1' })
   const names = screen.getAllByRole('heading', { level: 2 }).map(h => h.textContent)
-  expect(names).toEqual(['기획부', '홍보부', '학생회 업무'])
+  expect(names).toEqual(['기획부1', '홍보부1', '학생회 업무1'])
+  const sections = screen.getAllByRole('region').map(section => section.getAttribute('aria-label'))
+  expect(sections).toEqual(['기획부', '홍보부', '학생회 업무'])
+})
+
+test('전체의 부서 묶음 머리 오른쪽에 진행 중·지남·담당자 없음 수가 보이고, 0인 것은 빠진다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([]))
+  const planning = { id: 'd1', name: '기획부' }
+  api.on('GET', listPath('all'), () =>
+    list([
+      task('1', { department: planning, status: 'in_progress' }),
+      task('2', { department: planning, overdue: true, assignee: null }),
+      task('3', { department: planning, assignee: null }),
+      task('4', { department: { id: 'd2', name: '홍보부' } }),
+    ]),
+  )
+  render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
+  fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  const section = await screen.findByRole('region', { name: '기획부' })
+  expect(within(section).getByText('진행 중 1')).toBeTruthy()
+  expect(within(section).getByText('지남 1')).toBeTruthy()
+  expect(within(section).getByText('담당자 없음 2')).toBeTruthy()
+  const other = screen.getByRole('region', { name: '홍보부' })
+  expect(within(other).queryByText(/^(진행 중|지남|담당자 없음) \d+$/)).toBeNull()
 })
 
 test('빈 목록, 넘침, 불러오기 실패 문구가 있다', async () => {
@@ -125,9 +186,9 @@ test('빈 목록, 넘침, 불러오기 실패 문구가 있다', async () => {
   api.on('GET', listPath('all'), () => list([task('1')], true))
   api.on('GET', listPath('unassigned'), () => json({ error: 'INTERNAL' }, 500))
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
-  expect(await screen.findByText('끝나지 않은 업무가 없어요.')).toBeTruthy()
+  expect(await screen.findByText('끝나지 않은 업무 없음')).toBeTruthy()
   fireEvent.click(screen.getByRole('tab', { name: '전체' }))
-  expect(await screen.findByText(/업무가 많아서 .*개만 보여요/)).toBeTruthy()
+  expect(await screen.findByText(/^업무가 많아 \d+개만 보여요\.$/)).toBeTruthy()
   fireEvent.click(screen.getByRole('tab', { name: '담당자 없음' }))
   expect(await screen.findByText('업무를 불러오지 못했어요. 연결을 확인해 주세요.')).toBeTruthy()
   expect(screen.getByRole('button', { name: '다시 시도' })).toBeTruthy()
@@ -140,7 +201,7 @@ test('거르기를 바꾸면 끝난 업무를 읽는다', async () => {
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
   await screen.findByText('업무 a')
   fireEvent.click(screen.getByRole('button', { name: '끝남' }))
-  expect(await screen.findByText('끝난 업무가 없어요.')).toBeTruthy()
+  expect(await screen.findByText('끝난 업무 없음')).toBeTruthy()
 })
 
 test('탭을 바꾸면 이전 탭의 늦은 응답은 버린다', async () => {
@@ -165,14 +226,81 @@ test('403이면 학생회를 다시 읽게 한다', async () => {
   await waitFor(() => expect(onForbidden).toHaveBeenCalled())
 })
 
-test('내 업무의 제목은 h2이고, 부서 묶음 아래 카드의 제목은 h3이다', async () => {
+test('내 업무는 지남·오늘·7일 안·나중·마감 없음 묶음(h2와 수)으로 나뉘고, 묶음 안은 마감이 이른 순이다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-24T03:00:00.000Z'))
   const api = mockApi()
-  api.on('GET', listPath('mine'), () => list([task('a')]))
-  api.on('GET', listPath('all'), () => list([task('b')]))
+  api.on('GET', listPath('mine'), () =>
+    list([
+      task('없음', { dueDate: null }),
+      task('나중', { dueDate: '2026-11-20' }),
+      task('주2', { dueDate: '2026-10-31' }),
+      task('주1', { dueDate: '2026-10-25' }),
+      task('오늘', { dueDate: '2026-10-24' }),
+      task('지남', { dueDate: '2026-10-20', overdue: true }),
+    ]),
+  )
   render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
-  expect((await screen.findByRole('heading', { level: 2, name: '업무 a' })).tagName).toBe('H2')
-  fireEvent.click(screen.getByRole('tab', { name: '전체' }))
-  expect((await screen.findByRole('heading', { level: 3, name: '업무 b' })).tagName).toBe('H3')
+  await screen.findByRole('button', { name: '업무 지남' })
+  const sections = screen.getAllByRole('region')
+  expect(sections.map(section => section.getAttribute('aria-label'))).toEqual([
+    '지남',
+    '오늘',
+    '7일 안',
+    '나중',
+    '마감 없음',
+  ])
+  expect(screen.getAllByRole('heading', { level: 2 }).map(h => h.textContent)).toEqual([
+    '지남1',
+    '오늘1',
+    '7일 안2',
+    '나중1',
+    '마감 없음1',
+  ])
+  const week = within(sections[2]!).getAllByRole('listitem')
+  expect(week.map(row => within(row).getAllByRole('button')[0]?.textContent)).toEqual([
+    '업무 주1',
+    '업무 주2',
+  ])
+  // 내 업무 묶음에는 부서 묶음의 수(진행 중·지남·담당자 없음)가 없다.
+  expect(screen.queryByText(/^지남 \d+$/)).toBeNull()
+})
+
+test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자를 고르고, 고르면 맡기고 다시 읽는다', async () => {
+  const api = mockApi()
+  const onChanged = vi.fn()
+  api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
+  api.on('GET', listPath('mine'), () => list([]))
+  api.on('GET', listPath('unassigned'), () =>
+    list([
+      task('a', { assignee: null, actions: ['task.status', 'task.assign'] }),
+      task('b', { assignee: null }),
+    ]),
+  )
+  api.on('POST', `${base}/a/assignee`, () => json({ task: {} }))
+  render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={onChanged} />)
+  fireEvent.click(await screen.findByRole('tab', { name: '담당자 없음' }))
+  const select = await screen.findByRole('combobox', { name: '업무 a 담당자' })
+  expect(within(select).getByText('담당자 지정')).toBeTruthy()
+  expect(screen.queryByRole('combobox', { name: '업무 b 담당자' })).toBeNull()
+  const reads = () => api.calls.filter(call => call.path === listPath('unassigned')).length
+  const before = reads()
+  fireEvent.change(select, { target: { value: 'm2' } })
+  await waitFor(() =>
+    expect(api.calls.find(call => call.path === `${base}/a/assignee`)?.body).toEqual({
+      assigneeId: 'm2',
+    }),
+  )
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+  expect(onChanged).toHaveBeenCalled()
+})
+
+test('업무 화면은 머리글 자리에 [업무 만들기]를 두고, 누르면 만들기를 연다', async () => {
+  const api = mockApi()
+  api.on('GET', listPath('mine'), () => list([]))
+  render(<TasksPage view={councilView('c1')} onForbidden={() => {}} onChanged={() => {}} />)
+  fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
+  expect(await screen.findByRole('dialog', { name: '업무 만들기' })).toBeTruthy()
 })
 
 test('푸시가 오면 보이는 화면은 목록을 바로 다시 읽는다', async () => {

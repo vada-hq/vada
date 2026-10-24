@@ -240,7 +240,7 @@ test('읽기에 실패하면 다시 시도할 수 있다', async () => {
   await screen.findByText('크기는 3m로 해 주세요.')
 })
 
-test('고치기는 계약이 허락할 때만 저장하고 세 칸을 보낸다', async () => {
+test('고치기는 제목이 공백뿐이면 보내지 않고 제목 칸 아래에 알리며, 고치면 세 칸을 보낸다', async () => {
   const { api } = setup()
   api.on('POST', URL_TASK, () =>
     json({ task: taskDetail({ title: '새 제목', body: null, dueDate: null }) }),
@@ -249,8 +249,14 @@ test('고치기는 계약이 허락할 때만 저장하고 세 칸을 보낸다'
   const form = screen.getByRole('form', { name: '업무 고치기' })
   const title = within(form).getByLabelText('제목')
   fireEvent.change(title, { target: { value: '   ' } })
-  expect(within(form).getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
+  const posts = () => api.calls.filter(call => call.method === 'POST').length
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  expect(within(form).getByText('제목을 입력해 주세요')).toBeTruthy()
+  expect(title.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(title))
+  expect(posts()).toBe(0)
   fireEvent.change(title, { target: { value: '새 제목' } })
+  expect(within(form).queryByText('제목을 입력해 주세요')).toBeNull()
   fireEvent.change(within(form).getByLabelText('내용'), { target: { value: '' } })
   fireEvent.change(within(form).getByLabelText('마감'), { target: { value: '' } })
   fireEvent.click(within(form).getByRole('button', { name: '저장' }))

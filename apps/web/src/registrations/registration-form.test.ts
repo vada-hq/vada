@@ -1,50 +1,119 @@
 // @vitest-environment node
 import { expect, test } from 'vitest'
 import { CreateFormSchema } from '@vada/contracts'
-import { emptyFormValues, formRequest, hasFee, valuesOfForm } from './registration-form'
+import {
+  emptyFormValues,
+  formErrors,
+  formRequest,
+  hasFee,
+  previewOf,
+  valuesOfForm,
+} from './registration-form'
 import { ACCOUNT_ID, staffForm } from '@/test-support/staff-registration-fixtures'
 
-const filled = { ...emptyFormValues, name: '신청', closesAt: '2026-10-23T18:00' }
+const filled = { ...emptyFormValues, closesAt: '2026-10-23T18:00' }
 
-test('비운 칸은 null이 되고 참가비가 없으면 계좌를 보내지 않는다', () => {
+test('처음 값: 이름은 참가 신청, 참가비 없음, 학번은 받는다. 비운 칸은 null이고 계좌는 보내지 않는다', () => {
   expect(formRequest(filled, ACCOUNT_ID)).toEqual({
-    name: '신청',
+    name: '참가 신청',
     opensAt: null,
     closesAt: '2026-10-23T18:00',
     capacity: null,
     notice: null,
     collectsPhone: false,
+    collectsStudentId: true,
     payerFee: null,
     nonPayerFee: null,
     feeAccountId: null,
   })
 })
 
-test('참가비가 0보다 크면 계좌를 보내고, 둘 다 0이면 보내지 않는다', () => {
-  expect(hasFee({ payerFee: '0', nonPayerFee: '1000' })).toBe(true)
-  expect(hasFee({ payerFee: '0', nonPayerFee: '0' })).toBe(false)
-  expect(
-    formRequest({ ...filled, payerFee: '0', nonPayerFee: '0' }, ACCOUNT_ID).feeAccountId,
-  ).toBeNull()
+test('참가비 하나는 두 칸에 같은 값으로, 납부자 별도 금액은 두 값으로 보낸다. 0원뿐이면 계좌를 보내지 않는다', () => {
+  expect(formRequest({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID)).toMatchObject({
+    payerFee: 5000,
+    nonPayerFee: 5000,
+    feeAccountId: ACCOUNT_ID,
+  })
+  const split = { ...filled, feeKind: 'split' as const, payerFee: '0', nonPayerFee: '1000' }
+  expect(hasFee(split)).toBe(true)
+  expect(formRequest(split, ACCOUNT_ID)).toMatchObject({ payerFee: 0, nonPayerFee: 1000 })
+  expect(hasFee({ ...filled, feeKind: 'one', fee: '0' })).toBe(false)
 })
 
-test('숫자가 아닌 글과 한쪽만 적은 참가비는 계약이 거절한다', () => {
+test('납부자 별도 금액이면 학번 받기를 꺼도 학번을 받는다', () => {
+  const split = {
+    ...filled,
+    feeKind: 'split' as const,
+    payerFee: '5000',
+    nonPayerFee: '10000',
+    collectsStudentId: false,
+  }
+  expect(formRequest(split, ACCOUNT_ID).collectsStudentId).toBe(true)
+  expect(formRequest({ ...filled, collectsStudentId: false }, null).collectsStudentId).toBe(false)
+})
+
+test('누를 때 확인: 빈 필수 칸, 마감 순서, 숫자가 아닌 정원과 참가비를 칸마다 알린다', () => {
+  expect(formErrors({ ...emptyFormValues, name: ' ' })).toEqual({
+    name: '양식 이름을 입력해 주세요',
+    closesAt: '신청 마감을 입력해 주세요',
+  })
+  expect(
+    formErrors({
+      ...filled,
+      opensAt: '2026-10-24T09:00',
+      capacity: '열',
+      feeKind: 'one',
+      fee: '',
+    }),
+  ).toEqual({
+    closesAt: '신청 시작보다 늦은 시각을 입력해 주세요',
+    capacity: '1 이상의 숫자를 입력해 주세요',
+    fee: '참가비를 입력해 주세요',
+  })
+  expect(formErrors(filled)).toEqual({})
+})
+
+test('계약도 숫자가 아닌 글과 마감 순서를 거절한다', () => {
   const ok = (values: typeof filled) =>
     CreateFormSchema.safeParse(formRequest(values, null)).success
   expect(ok(filled)).toBe(true)
   expect(ok({ ...filled, capacity: '열' })).toBe(false)
-  expect(ok({ ...filled, payerFee: '5000' })).toBe(false)
   expect(ok({ ...filled, capacity: '0' })).toBe(false)
   expect(ok({ ...filled, opensAt: '2026-10-24T09:00' })).toBe(false)
 })
 
-test('양식의 값은 입력칸 글로 옮겨진다', () => {
+test('양식의 값은 입력칸 글로 옮겨지고 참가비 방식과 학번 받기를 되살린다', () => {
   expect(
     valuesOfForm(staffForm({ notice: null, capacity: null, payerFee: 0, nonPayerFee: 0 })),
-  ).toMatchObject({
-    capacity: '',
-    notice: '',
-    payerFee: '0',
-    nonPayerFee: '0',
+  ).toMatchObject({ capacity: '', notice: '', feeKind: 'one', fee: '0' })
+  expect(valuesOfForm(staffForm({ payerFee: null, nonPayerFee: null }))).toMatchObject({
+    feeKind: 'none',
+  })
+  expect(
+    valuesOfForm(staffForm({ collectsStudentId: false, payerFee: null, nonPayerFee: null })),
+  ).toMatchObject({ collectsStudentId: false })
+  expect(valuesOfForm(staffForm())).toMatchObject({
+    feeKind: 'split',
+    payerFee: '5000',
+    nonPayerFee: '10000',
+  })
+})
+
+test('미리보기는 행사 일시·장소와 받는 칸을 그대로 담고, 지우는 날은 행사 끝 + 1년이다', () => {
+  const event = {
+    name: '학과의 밤',
+    startsAt: '2026-11-07T18:00',
+    endsAt: '2026-11-07T21:00',
+    place: '학생회관',
+  }
+  const preview = previewOf({ ...filled, collectsPhone: true }, event, '학생회')
+  expect(preview).toMatchObject({
+    councilName: '학생회',
+    event,
+    status: 'open',
+    collectsStudentId: true,
+    collectsPhone: true,
+    payerFee: null,
+    purgeOn: '2027-11-07',
   })
 })

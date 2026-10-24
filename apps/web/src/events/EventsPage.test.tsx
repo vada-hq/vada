@@ -127,7 +127,7 @@ async function openCreate() {
   return screen.findByRole('form', { name: '행사 만들기' })
 }
 
-test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자와 넣어야 할 칸 안내는 없다', async () => {
+test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자는 없다', async () => {
   setup()
   const form = await openCreate()
   const name = await within(form).findByLabelText('이름')
@@ -135,10 +135,9 @@ test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자
   expect(within(form).queryByLabelText('시작')).toBeNull()
   expect(within(form).queryByLabelText('장소')).toBeNull()
   expect(within(form).queryByText(/책임자/)).toBeNull()
-  expect(within(form).queryByText(/넣어야 할 칸/)).toBeNull()
 })
 
-test('만들기는 보내는 동안 다시 보내지 않으며, 이름만 보내고 만든 행사를 연다', async () => {
+test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에 알리며, 보내는 동안 다시 보내지 않고 이름만 보내고 만든 행사를 연다', async () => {
   const { api } = setup()
   const created = eventDetail({ id: 'e9', name: '봄 축제' })
   let posts = 0
@@ -149,9 +148,13 @@ test('만들기는 보내는 동안 다시 보내지 않으며, 이름만 보내
   api.on('GET', `${BASE}/e9`, () => json({ event: created }))
   const form = await openCreate()
   const submit = within(form).getByRole('button', { name: '만들기' })
-  expect(submit).toHaveProperty('disabled', true)
-  fireEvent.change(await within(form).findByLabelText('이름'), { target: { value: '봄 축제' } })
-  expect(submit).toHaveProperty('disabled', false)
+  const name = await within(form).findByLabelText('이름')
+  fireEvent.click(submit)
+  expect(within(form).getByText('이름을 입력해 주세요')).toBeTruthy()
+  expect(name.getAttribute('aria-invalid')).toBe('true')
+  expect(posts).toBe(0)
+  fireEvent.change(name, { target: { value: '봄 축제' } })
+  expect(within(form).queryByText('이름을 입력해 주세요')).toBeNull()
   fireEvent.click(submit)
   fireEvent.click(submit)
   await screen.findByRole('heading', { name: '봄 축제' })
@@ -208,11 +211,22 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
   expect(await screen.findByText('42명')).toBeTruthy()
   expect(screen.getByText('정원 60명 · 출석 5명')).toBeTruthy()
   expect(await screen.findByText('36,000원')).toBeTruthy()
+  const money = screen.getByRole('region', { name: '지출' })
+  expect(within(money).getByText('36,000원')).toBeTruthy()
   expect(screen.getByText('대강당')).toBeTruthy()
   expect(screen.queryByRole('region', { name: '이력' })).toBeNull()
   expect(screen.queryByRole('region', { name: '챙길 것' })).toBeNull()
   expect(screen.queryByText(/책임자/)).toBeNull()
   expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+})
+
+test('개요의 지출 카드에서 [예산·정산 보기]를 누르면 예산·정산 탭이 열린다', async () => {
+  const { api } = setup()
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const money = await screen.findByRole('region', { name: '지출' })
+  fireEvent.click(within(money).getByRole('button', { name: '예산·정산 보기' }))
+  expect(screen.getByRole('tab', { name: '예산·정산' }).getAttribute('aria-selected')).toBe('true')
 })
 
 test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록을 다시 읽는다', async () => {
@@ -329,20 +343,23 @@ test('고칠 수 없으면 빈 칸은 글자로만 보인다', async () => {
   expect(screen.queryByRole('button', { name: '장소 넣기' })).toBeNull()
 })
 
-test('고치기에서 끝이 시작보다 이르면 저장 버튼이 꺼져 있다', async () => {
+test('고치기에서 끝이 시작보다 이르면 저장을 눌러도 보내지 않고 끝 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
-  fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-24T13:00' } })
+  const end = screen.getByLabelText('끝')
+  fireEvent.change(end, { target: { value: '2026-10-24T13:00' } })
   const save = screen.getByRole('button', { name: '저장' })
-  expect(save).toHaveProperty('disabled', true)
-  expect(screen.getByText('입력한 값을 다시 확인해 주세요.').id).toBe(
-    save.getAttribute('aria-describedby'),
-  )
+  expect(save).toHaveProperty('disabled', false)
+  fireEvent.click(save)
+  expect(screen.getByText('시작보다 늦은 시각을 입력해 주세요')).toBeTruthy()
+  expect(end.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(end))
+  expect(api.calls.some(call => call.method !== 'GET')).toBe(false)
 })
 
-test('고치기에서 시작 없이 끝만 넣으면 시작을 넣으라고 보인다', async () => {
+test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 않고 시작을 넣으라고 보인다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () =>
     json({ event: eventDetail({ startsAt: null, endsAt: null }, ['event.update']) }),
@@ -350,8 +367,10 @@ test('고치기에서 시작 없이 끝만 넣으면 시작을 넣으라고 보�
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
   fireEvent.change(screen.getByLabelText('끝'), { target: { value: '2026-10-24T13:00' } })
-  expect(screen.getByRole('button', { name: '저장' })).toHaveProperty('disabled', true)
-  expect(screen.getByText('넣어야 할 칸: 시작')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  expect(screen.getByText('시작을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('시작').getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.some(call => call.method !== 'GET')).toBe(false)
 })
 
 test('열린 행사가 사라지면(404) 목록으로 돌아가 이유를 보인다', async () => {

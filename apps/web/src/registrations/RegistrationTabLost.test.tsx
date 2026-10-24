@@ -62,6 +62,8 @@ function setup() {
     <RegistrationTab
       view={councilView('c1', { memberId: 'm9' })}
       eventId={STAFF_EVENT_ID}
+      event={null}
+      onEditEvent={vi.fn()}
       {...handlers}
     />,
   )
@@ -151,13 +153,13 @@ test('스캐너가 출석을 확인하면 열려 있는 신청자 목록에 바�
   await within(row).findByRole('button', { name: '출석 취소' })
 })
 
-test('고치는 중에 양식이 사라지면 창을 닫고 이유를 보인다', async () => {
+test('고치는 중에 양식이 사라지면 고치기 화면을 닫고 이유를 보인다', async () => {
   const { server } = setup()
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
-  await screen.findByRole('dialog', { name: '신청 양식 고치기' })
+  await screen.findByRole('form', { name: '신청 양식 고치기' })
   server.forms = []
   await pollNow()
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 고치기' })).toBeNull())
   expect(screen.getByText(REGISTRATION_STAFF_LOST)).toBeTruthy()
 })
 

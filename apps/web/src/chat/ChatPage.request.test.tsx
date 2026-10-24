@@ -75,7 +75,7 @@ test('권한이 없으면 메뉴 버튼이 없다', async () => {
   expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull()
 })
 
-test('메시지로 제목과 내용을 채우고, 일반 운영진에게는 요청한 사람 칸이 없다. 내면 메시지 번호가 가고 재정에서 볼 수 있다', async () => {
+test('메시지로 제목과 내용을 채우고, 일반 운영진에게는 요청한 사람 칸이 없다. 품목 이름이 비면 보내지 않고, 내면 메시지 번호가 가고 재정에서 볼 수 있다', async () => {
   const api = serve()
   api.on('POST', PURCHASE, () => json({ request: purchaseDetail('r7') }, 201))
   const onOpenRequest = vi.fn()
@@ -91,7 +91,11 @@ test('메시지로 제목과 내용을 채우고, 일반 운영진에게는 요�
   )
   expect(asElement(screen.getByLabelText('품목 1 이름'), HTMLInputElement).value).toBe('')
   expect(screen.queryByLabelText('요청한 사람')).toBeNull()
+  // 품목 이름이 비면 눌러도 보내지 않고 그 칸 아래에 알린다.
+  expect(submit().disabled).toBe(false)
   fireEvent.click(submit())
+  expect(screen.getByText('이름을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('품목 1 이름').getAttribute('aria-invalid')).toBe('true')
   expect(posts(api)).toHaveLength(0)
   fill('품목 1 이름', '현수막')
   fireEvent.click(submit())

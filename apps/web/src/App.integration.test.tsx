@@ -76,7 +76,7 @@ function openCouncil(id = 'c1', name = '컴퓨터학부 학생회') {
   api.on('GET', `/api/organizations/${id}/invite`, () => json({ code: 'ABCD2345' }))
 }
 
-test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 만들면 운영진 > 사람으로 간다', async () => {
+test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 빈 칸이면 보내지 않으며, 만들면 운영진 > 사람으로 간다', async () => {
   councilsInSequence([])
   openCouncil()
   api.on('POST', '/api/organizations/create', () => json({ council: myCouncil() }, 201))
@@ -89,13 +89,17 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   const submit = within(form).getByRole('button', { name: '학생회 만들기' }) as HTMLButtonElement
-  expect(submit.disabled).toBe(true)
+  // 비운 채 누르면 보내지 않고 칸 아래에 알린다.
+  expect(submit.disabled).toBe(false)
+  fireEvent.click(submit)
+  expect(within(form).getByText('학생회 이름을 입력해 주세요')).toBeTruthy()
+  expect(within(form).getByText('학교를 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fireEvent.change(within(form).getByLabelText('학생회 이름'), {
     target: { value: '컴퓨터학부 학생회' },
   })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
   fireEvent.change(within(form).getByLabelText('단위'), { target: { value: 'college' } })
-  expect(submit.disabled).toBe(false)
   fireEvent.click(submit)
   expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
   expect(await screen.findByText('운영진 3명')).toBeTruthy()
@@ -136,7 +140,7 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
-test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 버튼을 끄고 까닭을 보인다', async () => {
+test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 눌러도 보내지 않고 임기 끝 칸 아래에 까닭을 보인다', async () => {
   councilsInSequence([])
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
@@ -146,15 +150,19 @@ test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 버�
   })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
   const submit = within(form).getByRole('button', { name: '학생회 만들기' }) as HTMLButtonElement
-  expect(submit.disabled).toBe(false)
-  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
+  const reason = '임기 시작보다 뒤의 날짜를 입력해 주세요'
   fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2026-06-01' } })
   fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-05-01' } })
-  expect(within(form).getByText('임기 끝은 시작보다 뒤여야 해요.')).toBeTruthy()
-  expect(submit.disabled).toBe(true)
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-12-31' } })
-  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
+  expect(within(form).queryByText(reason)).toBeNull()
   expect(submit.disabled).toBe(false)
+  fireEvent.click(submit)
+  expect(within(form).getByText(reason)).toBeTruthy()
+  const end = within(form).getByLabelText('임기 끝')
+  expect(end.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(end))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(end, { target: { value: '2026-12-31' } })
+  expect(within(form).queryByText(reason)).toBeNull()
 })
 
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {

@@ -68,16 +68,21 @@ test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 �
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
 })
 
-test('끝일이 시작일보다 앞서거나 이름이 비면 [만들기]가 꺼진다', async () => {
-  show()
+test('끝일이 시작일보다 앞서거나 이름이 비면 [만들기]를 눌러도 보내지 않고 그 칸 아래에 알린다', async () => {
+  const { api } = show()
   fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
   await screen.findByRole('form', { name: '회계 기간 만들기' })
-  expect(button('만들기').disabled).toBe(false)
   fill('끝일', '2025-12-31')
-  expect(button('만들기').disabled).toBe(true)
+  fireEvent.click(button('만들기'))
+  expect(screen.getByText('시작일보다 뒤의 날짜를 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('끝일').getAttribute('aria-invalid')).toBe('true')
   fill('끝일', '2026-12-31')
+  expect(screen.queryByText('시작일보다 뒤의 날짜를 입력해 주세요')).toBeNull()
   fill('이름', '   ')
-  expect(button('만들기').disabled).toBe(true)
+  fireEvent.click(button('만들기'))
+  expect(screen.getByText('이름을 입력해 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('이름')))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
 test('기간이 겹치면(409) 문구가 보이고 입력이 남는다', async () => {
@@ -125,17 +130,21 @@ test('재정부가 아니면 보기만 하고 만들기와 더하기 버튼이 �
   expect(screen.queryByRole('button', { name: '회계 기간 만들기' })).toBeNull()
 })
 
-test('항목 더하기는 목적과 금액을 계약대로 검사해 보낸다', async () => {
+test('항목 더하기는 목적과 금액이 비거나 금액이 숫자가 아니면 보내지 않고 칸 아래에 알리며, 맞으면 보낸다', async () => {
   const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
   api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
   fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
   await screen.findByRole('form', { name: '예산 항목 더하기' })
-  expect(button('더하기').disabled).toBe(true)
+  fireEvent.click(button('더하기'))
+  expect(screen.getByText('목적을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByText('금액을 입력해 주세요')).toBeTruthy()
   fill('목적', '간식')
   fill('금액(원)', '-5')
-  expect(button('더하기').disabled).toBe(true)
-  fill('금액(원)', '12,000')
-  expect(button('더하기').disabled).toBe(false)
+  fireEvent.click(button('더하기'))
+  expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('금액(원)').getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fill('금액(원)', '12000')
   fireEvent.click(button('더하기'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
@@ -184,16 +193,33 @@ test('예산을 못 읽으면 다시 시도를 보인다', async () => {
 })
 
 test('금액 칸은 숫자만 받는다(1e3, 0x10 거부)', async () => {
-  show(FINANCE_PERMISSIONS, budgetWithPeriod())
+  const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
+  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
   fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
   await screen.findByRole('form', { name: '예산 항목 더하기' })
   fill('목적', '간식')
   for (const bad of ['1e3', '0x10', '1.5', '12원'] as const) {
     fill('금액(원)', bad)
-    expect(button('더하기').disabled).toBe(true)
+    fireEvent.click(button('더하기'))
+    expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
   }
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fill('금액(원)', '0')
-  expect(button('더하기').disabled).toBe(false)
+  fireEvent.click(button('더하기'))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+})
+
+test('금액에 쉼표를 써도(12,000) 더할 수 있다', async () => {
+  const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
+  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
+  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
+  await screen.findByRole('form', { name: '예산 항목 더하기' })
+  fill('목적', '간식')
+  fill('금액(원)', '12,000')
+  fireEvent.click(button('더하기'))
+  await waitFor(() =>
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ amount: 12000 }),
+  )
 })
 
 test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이름이 보인다', async () => {

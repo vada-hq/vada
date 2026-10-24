@@ -177,24 +177,35 @@ function fillUpload(students = '20261234\n20265678') {
   fill('학번', students)
 }
 
-test('올리기: 계약 검사로 버튼이 켜지고 두 번 눌러도 한 번만 가며 더한 수와 건너뛴 수를 보인다', async () => {
+test('올리기: 빈 칸이나 시작일보다 앞선 끝일은 보내지 않고 칸 아래에 알리며, 두 번 눌러도 한 번만 가고 완료 창에 추가 수와 이미 있는 수를 보인다', async () => {
   const { api } = await openUpload()
-  expect(button('올리기').disabled).toBe(true)
+  const pending = deferredResponse()
+  api.on('POST', FEES, () => pending.promise)
+  // 학번 칸에는 구분하는 법만 짧게 알린다.
+  expect(screen.getByText('줄바꿈이나 쉼표로 구분')).toBeTruthy()
+  expect(button('올리기').disabled).toBe(false)
+  fill('납부 시작일', '')
+  fill('납부 끝일', '')
+  fireEvent.click(button('올리기'))
+  expect(screen.getByText('납부 시작일을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByText('납부 끝일을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByText('학번을 입력해 주세요')).toBeTruthy()
   fill('납부 시작일', '2026-12-31')
   fill('납부 끝일', '2026-09-01')
   fill('학번', '20261234')
-  // 끝일이 시작일보다 앞이면 계약이 막는다.
-  expect(button('올리기').disabled).toBe(true)
+  fireEvent.click(button('올리기'))
+  expect(screen.getByText('시작일과 같거나 뒤의 날짜를 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('납부 끝일').getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
   fillUpload()
-  expect(button('올리기').disabled).toBe(false)
-  const pending = deferredResponse()
-  api.on('POST', FEES, () => pending.promise)
+  expect(screen.queryByText('시작일과 같거나 뒤의 날짜를 입력해 주세요')).toBeNull()
   fireEvent.click(button('올리기'))
   fireEvent.click(button('올리기'))
   await waitFor(() => expect(button('올리기').disabled).toBe(true))
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
   pending.resolve(json({ added: 1, skipped: 1 }))
-  expect(await screen.findByText(/1개를 더했고, 이미 있는 1개는 건너뛰었어요/)).toBeTruthy()
+  const done = await screen.findByRole('dialog', { name: '명단 올리기 완료' })
+  expect(within(done).getByText('추가 1개 · 이미 있음 1개')).toBeTruthy()
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     paidFrom: '2026-09-01',
     paidUntil: '2026-12-31',

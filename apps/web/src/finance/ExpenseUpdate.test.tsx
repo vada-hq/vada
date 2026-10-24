@@ -61,15 +61,18 @@ test('[고치기]는 서버 actions에 expense.update가 있을 때만 보인다
   expect(within(detail).queryByRole('button', { name: '고치기' })).toBeNull()
 })
 
-test('행사 고르기는 완료하지 않은 행사만 보이고, 바뀐 칸이 없으면 저장이 꺼져 있다', async () => {
-  serve()
+test('행사 고르기는 완료하지 않은 행사만 보이고, 바뀐 칸이 없으면 저장을 눌러도 보내지 않고 닫는다', async () => {
+  const api = serve()
   showFinance()
   const dialog = await openUpdate()
+  // 위에 설명 글 없이 제목만 있다.
+  expect(within(dialog).getByRole('heading').parentElement?.children).toHaveLength(1)
   const options = within(within(dialog).getByLabelText('행사')).getAllByRole('option')
   expect(options.map(option => option.textContent)).toEqual(['행사 없음', '신입생 환영회'])
-  expect(save(dialog)).toHaveProperty('disabled', true)
-  fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '급해서' } })
   expect(save(dialog)).toHaveProperty('disabled', false)
+  fireEvent.click(save(dialog))
+  await waitFor(() => expect(screen.queryByText('지출 고치기')).toBeNull())
+  expect(posts(api)).toHaveLength(0)
 })
 
 test('바뀐 칸만 보내고, 두 번 눌러도 한 번만 보내며, 저장하면 닫고 새 값과 목록 다시 읽기를 한다', async () => {

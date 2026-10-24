@@ -60,27 +60,36 @@ const fill = (label: string, value: string) =>
 const submit = () => asElement(screen.getByRole('button', { name: '적기' }), HTMLButtonElement)
 const today = () => koreanDateOf(new Date())
 
-test('출처는 사람이 적는 다섯만 보이고 금액을 적어야 켜진다. 받은 날은 오늘, 계좌는 대표 계좌다', async () => {
+test('출처는 사람이 적는 다섯만 보이고, 금액이 없거나 0이면 보내지 않고 금액 칸 아래에 알린다. 받은 날은 오늘, 계좌는 대표 계좌다', async () => {
   const api = serve()
   api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
   showFinance()
   await openForm()
+  // 제목에 적는 회계 기간이 있고, 위에 설명 글은 없다.
+  const dialog = screen.getByRole('dialog', { name: /^수입 적기 · .+/ })
+  expect(within(dialog).getByRole('heading').parentElement?.children).toHaveLength(1)
   const options = Array.from(
     asElement(screen.getByLabelText('출처'), HTMLSelectElement).options,
     option => option.textContent,
   )
   expect(options).toEqual(['학생회비', '지원금', '사업 수익', '후원금', '기타'])
   expect(asElement(screen.getByLabelText('받은 날'), HTMLInputElement).value).toBe(today())
-  expect(submit().disabled).toBe(true)
+  expect(submit().disabled).toBe(false)
+  fireEvent.click(submit())
+  expect(screen.getByText('금액을 입력해 주세요')).toBeTruthy()
+  const amount = screen.getByLabelText('금액(원)')
+  expect(amount.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(amount))
   fill('금액(원)', '0')
-  expect(submit().disabled).toBe(true)
-  fill('금액(원)', '500,000')
+  fireEvent.click(submit())
+  expect(screen.getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fill('금액(원)', '500000')
   // 수입 항목만 고를 수 있다.
   await screen.findByRole('option', { name: /지원금 예산/ })
   expect(screen.queryByRole('option', { name: /행사 홍보/ })).toBeNull()
   fill('출처', 'grant')
-  fill('내용(선택)', '  ')
-  expect(submit().disabled).toBe(false)
+  fill('내용', '  ')
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
@@ -101,7 +110,7 @@ test('예산 항목과 계좌와 내용을 골라 적는다. 계좌는 없음도
   showFinance()
   await openForm()
   fill('금액(원)', '1000')
-  fill('내용(선택)', '학생회비 2학기분')
+  fill('내용', '학생회비 2학기분')
   await screen.findByRole('option', { name: /지원금 예산/ })
   fill('수입 예산 항목', INCOME_ITEM)
   fill('계좌', BUSINESS_ACCOUNT_ID)
@@ -114,24 +123,44 @@ test('예산 항목과 계좌와 내용을 골라 적는다. 계좌는 없음도
   })
 })
 
-test('오늘 뒤의 받은 날과 계약의 상한을 넘는 내용은 적을 수 없다', async () => {
-  serve()
+test('오늘 뒤의 받은 날, 숫자가 아닌 금액, 계약의 상한을 넘는 내용은 보내지 않는다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
   showFinance()
   await openForm()
+  const posts = () => api.calls.filter(call => call.method === 'POST').length
   fill('금액(원)', '1000')
   const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
   expect(date.max).toBe(today())
   expect(date.min).toBe('2000-01-01')
   fill('받은 날', '2999-01-01')
-  expect(submit().disabled).toBe(true)
+  fireEvent.click(submit())
+  expect(screen.getByText(`2000-01-01부터 ${today()} 사이의 날짜를 입력해 주세요`)).toBeTruthy()
+  expect(date.getAttribute('aria-invalid')).toBe('true')
   fill('받은 날', today())
-  expect(submit().disabled).toBe(false)
-  fill('내용(선택)', '가'.repeat(201))
-  expect(submit().disabled).toBe(true)
-  fill('내용(선택)', '😀'.repeat(200))
-  expect(submit().disabled).toBe(false)
   fill('금액(원)', '1e3')
-  expect(submit().disabled).toBe(true)
+  fireEvent.click(submit())
+  expect(screen.getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
+  fill('금액(원)', '1000')
+  fill('내용', '가'.repeat(201))
+  fireEvent.click(submit())
+  await new Promise(resolve => setTimeout(resolve, 20))
+  expect(posts()).toBe(0)
+  fill('내용', '😀'.repeat(200))
+  fireEvent.click(submit())
+  await waitFor(() => expect(posts()).toBe(1))
+})
+
+test('금액에 쉼표를 써도(500,000) 적을 수 있다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
+  showFinance()
+  await openForm()
+  fill('금액(원)', '500,000')
+  fireEvent.click(submit())
+  await waitFor(() =>
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ amount: 500000 }),
+  )
 })
 
 test('두 번 눌러도 한 번만 보내고, 보내는 동안 닫지 못한다', async () => {
@@ -233,7 +262,7 @@ test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고 예
   })
 })
 
-test('시작 전 기간이면 이유를 한 줄 보이고 적을 수 없다', async () => {
+test('시작 전 기간이면 이유를 한 줄 보이고, 적기를 눌러도 보내지 않는다', async () => {
   const api = serve()
   const future = '77777777-7777-4777-8777-777777777773'
   api.on('GET', `${BASE}/fiscal-periods`, () =>
@@ -255,5 +284,7 @@ test('시작 전 기간이면 이유를 한 줄 보이고 적을 수 없다', as
   await screen.findByRole('form', { name: '수입 적기' })
   expect(screen.getByText(INCOME_PERIOD_NOT_STARTED)).toBeTruthy()
   fill('금액(원)', '1000')
-  expect(submit().disabled).toBe(true)
+  fireEvent.click(submit())
+  expect(screen.getByLabelText('받은 날').getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

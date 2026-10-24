@@ -69,7 +69,7 @@ test('예산·정산 탭이 개요, 업무, 참가 신청 옆에 있고 예산·
   expect(text).toContain('40,000원 · 입금 2건')
   const items = screen.getByRole('region', { name: '예산 항목' })
   expect(items.textContent).toContain('간식')
-  expect(items.textContent).toContain('쓴 돈 36,000원 / 예산 300,000원')
+  expect(items.textContent).toContain('지출 36,000원 / 예산 300,000원')
 })
 
 test('남은 것은 종류별 수와 대상이고, 환불 대기는 수만 보인다', async () => {
@@ -120,7 +120,10 @@ test('[완료]는 확인을 거치고 끝나지 않은 업무 수를 알리며, 
   api.on('POST', `${EVENT}/complete`, () => pending.promise)
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
   const dialog = await screen.findByRole('dialog')
-  expect(dialog.textContent).toContain('끝나지 않은 업무가 2개 있어요')
+  expect(dialog.textContent).toContain('끝나지 않은 업무 2개')
+  expect(dialog.textContent).toContain(
+    '완료하면 이 행사의 지출, 요청, 참가 신청, 입금을 바꿀 수 없어요.',
+  )
   const confirm = within(dialog).getByRole('button', { name: '완료' })
   fireEvent.click(confirm)
   fireEvent.click(confirm)
@@ -139,7 +142,7 @@ test('완료의 사유 칸은 적으면 그대로 보낸다', async () => {
   const { api } = openMoney()
   api.on('POST', `${EVENT}/complete`, () => json({ event: event({ status: 'completed' }) }))
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
-  fireEvent.change(screen.getByLabelText('사유 (선택)'), { target: { value: '정산 끝' } })
+  fireEvent.change(screen.getByLabelText('사유'), { target: { value: '정산 끝' } })
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
   await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: '정산 끝' }))
 })
@@ -174,17 +177,25 @@ test.each(['SETTLEMENT_PENDING', 'EVENT_NOT_STARTED', 'NO_FISCAL_PERIOD', 'EVENT
   },
 )
 
-test('완료 취소는 사유가 꼭 있어야 눌린다', async () => {
+test('완료 취소는 사유 없이(공백만도) 누르면 보내지 않고 사유 칸 아래에 알린다', async () => {
   const { api } = openMoney(event({ status: 'completed' }))
   api.on('POST', `${EVENT}/cancel-completion`, () => json({ event: event() }))
   fireEvent.click(await screen.findByRole('button', { name: '완료 취소' }))
   const dialog = await screen.findByRole('dialog')
   const confirm = within(dialog).getByRole('button', { name: '완료 취소' })
-  expect(confirm).toHaveProperty('disabled', true)
-  fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '   ' } })
-  expect(confirm).toHaveProperty('disabled', true)
-  fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '실수' } })
+  const reason = within(dialog).getByLabelText('취소 사유')
+  expect(dialog.textContent).toContain('완료할 때 모은 참가비 수입도 취소돼요.')
   expect(confirm).toHaveProperty('disabled', false)
+  fireEvent.click(confirm)
+  expect(within(dialog).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
+  expect(reason.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(reason))
+  fireEvent.change(reason, { target: { value: '   ' } })
+  fireEvent.click(confirm)
+  expect(within(dialog).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(reason, { target: { value: '실수' } })
+  expect(within(dialog).queryByText('취소 사유를 입력해 주세요')).toBeNull()
   fireEvent.click(confirm)
   await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: '실수' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

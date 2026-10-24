@@ -101,7 +101,7 @@ test('부서를 불러오지 못하면 다시 시도할 수 있다', async () =>
   expect(await screen.findByText('부서 2개')).toBeTruthy()
 })
 
-test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지고, 같은 이름이면 까닭을 만들기 칸 옆에 보인다', async () => {
+test('회장단은 부서를 만든다. 이름 없이 누르면 보내지 않고 칸 아래에 알리며, 같은 이름이면 까닭을 만들기 칸 옆에 보인다', async () => {
   const api = serve()
   let taken = false
   api.on('POST', '/api/organizations/c1/departments', () =>
@@ -114,9 +114,17 @@ test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   const form = await screen.findByRole('form', { name: '부서 만들기' })
   const submit = within(form).getByRole('button', { name: '부서 만들기' }) as HTMLButtonElement
-  expect(submit.disabled).toBe(true)
-  fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: ' 홍보부 ' } })
+  const input = within(form).getByLabelText('새 부서 이름')
+  // 보이는 라벨이 있고, 칸 안에 예시 글은 없다.
+  expect(within(form).getByText('새 부서 이름').tagName).toBe('LABEL')
+  expect(input.getAttribute('placeholder')).toBeNull()
   expect(submit.disabled).toBe(false)
+  fireEvent.click(submit)
+  expect(within(form).getByText('부서 이름을 입력해 주세요')).toBeTruthy()
+  expect(input.getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(input, { target: { value: ' 홍보부 ' } })
+  expect(within(form).queryByText('부서 이름을 입력해 주세요')).toBeNull()
   fireEvent.click(submit)
   expect(await screen.findByText('부서 3개')).toBeTruthy()
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ name: '홍보부' })
@@ -129,9 +137,21 @@ test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지
   expect(form.parentElement!.contains(reason)).toBe(true)
   expect(form.compareDocumentPosition(reason) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.getAllByText('같은 이름의 부서가 있어요.')).toHaveLength(1)
-  expect(within(form).getByLabelText('새 부서 이름').getAttribute('aria-invalid')).toBe('true')
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정국' } })
   expect(screen.queryByText('같은 이름의 부서가 있어요.')).toBeNull()
+})
+
+test('같은 이름이라 만들지 못하면 만들기 칸이 틀렸다고 알려진다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments', () =>
+    json({ error: 'DEPARTMENT_NAME_TAKEN' }, 409),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  const form = await screen.findByRole('form', { name: '부서 만들기' })
+  fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정부' } })
+  fireEvent.click(within(form).getByRole('button', { name: '부서 만들기' }))
+  await screen.findByText('같은 이름의 부서가 있어요.')
+  expect(within(form).getByLabelText('새 부서 이름').getAttribute('aria-invalid')).toBe('true')
 })
 
 // 검토 지적: 만들기 칸 아래 오류는 권한과 함께 칸이 사라지면 같이 사라진다. 권한이 바뀌었다는 답은 쪽 위에 보인다.
@@ -236,15 +256,22 @@ test('재정 역할을 주면 이름과 함께 role finance를, 거두면 role n
   ])
 })
 
-test('이름 바꾸기는 이름을 비우면 버튼이 꺼지고, 대화상자를 닫으면 포커스가 그 줄의 ⋯ 버튼으로 돌아간다', async () => {
+test('이름 바꾸기는 이름을 비우고 누르면 보내지 않고 칸 아래에 알리며, 대화상자를 닫으면 포커스가 그 줄의 ⋯ 버튼으로 돌아간다', async () => {
   const api = serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
   const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
-  fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '  ' } })
-  expect(
-    asElement(within(dialog).getByRole('button', { name: '바꾸기' }), HTMLButtonElement).disabled,
-  ).toBe(true)
+  const input = within(dialog).getByLabelText('부서 이름')
+  fireEvent.change(input, { target: { value: '  ' } })
+  const rename = asElement(
+    within(dialog).getByRole('button', { name: '바꾸기' }),
+    HTMLButtonElement,
+  )
+  expect(rename.disabled).toBe(false)
+  fireEvent.click(rename)
+  expect(within(dialog).getByText('부서 이름을 입력해 주세요')).toBeTruthy()
+  expect(input.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(input))
   // 버튼 줄의 [닫기]. 오른쪽 위 ×도 이름이 '닫기'라 첫째를 누른다.
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await noDialog()

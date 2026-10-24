@@ -58,7 +58,15 @@ async function open(options: Options = {}) {
     memberId: 'm9',
     permissions: options.permissions ?? ['finance.manage'],
   })
-  render(<RegistrationTab view={view} eventId={STAFF_EVENT_ID} {...handlers} />)
+  render(
+    <RegistrationTab
+      view={view}
+      eventId={STAFF_EVENT_ID}
+      event={null}
+      onEditEvent={vi.fn()}
+      {...handlers}
+    />,
+  )
   fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
   fireEvent.click(await screen.findByRole('button', { name: '신청자 보기' }))
   const row = (await screen.findByText('김새내')).closest('li') as HTMLElement
@@ -112,23 +120,28 @@ test('입금 확인이 409면 그 창 안에 문구가 보이고 창은 열려 �
   expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.EVENT_COMPLETED!)).toBeTruthy()
 })
 
-test('확인 취소는 사유가 있어야 켜지고 사유를 보낸다', async () => {
+test('확인 취소는 사유 없이 누르면 보내지 않고 사유 칸 아래에 알리며, 사유를 적으면 보낸다', async () => {
   const { api, row } = await open({ applicants: [applicant({ deposit: PAID })] })
   api.on('POST', `${ROW}/deposit/cancel`, () => json({ deposit: { status: 'none', amount: null } }))
   fireEvent.click(button(row, '확인 취소'))
   const dialog = await screen.findByRole('dialog')
+  // 환불 대기가 아니면 결과 안내가 없다.
+  expect(dialog.textContent).not.toContain('되돌릴 수 없어요')
   const submit = within(dialog).getByRole('button', { name: '확인 취소' })
-  expect(submit).toHaveProperty('disabled', true)
-  fireEvent.change(within(dialog).getByLabelText('취소 사유'), {
-    target: { value: '잘못 눌렀어요' },
-  })
+  const reason = within(dialog).getByLabelText('취소 사유')
+  fireEvent.click(submit)
+  expect(within(dialog).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
+  expect(reason.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(reason))
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(reason, { target: { value: '잘못 눌렀어요' } })
   fireEvent.click(submit)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posts(api)[0]?.body).toEqual({ reason: '잘못 눌렀어요' })
   expect(within(row).getByText('입금 안 함')).toBeTruthy()
 })
 
-test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 보이고, 환불하면 줄이 빠진다', async () => {
+test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 보이고, 입금액보다 큰 금액은 보내지 않으며, 환불하면 줄이 빠진다', async () => {
   const pendingRow = applicant({ cancelled: true, deposit: PENDING })
   const none = await open({ applicants: [pendingRow], permissions: [] })
   expect(within(none.row).queryByRole('button', { name: '환불함' })).toBeNull()
@@ -140,11 +153,15 @@ test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 
   api.on('POST', `${ROW}/refund`, () => json({ deposit: { status: 'refunded', amount: 5000 } }))
   fireEvent.click(button(row, '환불함'))
   const dialog = await screen.findByRole('dialog')
-  expect(dialog.textContent).toContain('되돌릴 수 없어요')
+  expect(dialog.textContent).toContain('이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요.')
+  expect(within(dialog).getByText('입금액 5,000원')).toBeTruthy()
   const amount = within(dialog).getByLabelText('환불한 금액(원)')
   expect(amount).toHaveProperty('value', '5000')
   fireEvent.change(amount, { target: { value: '6000' } })
-  expect(within(dialog).getByRole('button', { name: '환불함' })).toHaveProperty('disabled', true)
+  fireEvent.click(within(dialog).getByRole('button', { name: '환불함' }))
+  expect(within(dialog).getByText('1원부터 5,000원 사이로 입력해 주세요')).toBeTruthy()
+  expect(amount.getAttribute('aria-invalid')).toBe('true')
+  expect(posts(api)).toHaveLength(0)
   fireEvent.change(amount, { target: { value: '3000' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '환불함' }))
   await waitFor(() => expect(screen.queryByText('김새내')).toBeNull())

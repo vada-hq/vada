@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import {
   councilView,
   LEADER_PERMISSIONS,
@@ -44,8 +44,8 @@ test('회장단은 학생회 정보와 직급 표시 이름을 고쳐 저장하�
   expect(onSaved).toHaveBeenCalledWith(saved)
 })
 
-test('직급 표시 이름을 비우면 저장 버튼이 꺼진다', () => {
-  mockApi()
+test('직급 표시 이름을 비우고 저장을 누르면 보내지 않고 그 칸 아래에 알린다', async () => {
+  const api = mockApi()
   render(
     <CouncilSettings
       view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
@@ -54,11 +54,18 @@ test('직급 표시 이름을 비우면 저장 버튼이 꺼진다', () => {
     />,
   )
   const form = screen.getByRole('form', { name: '학생회 정보' })
-  fireEvent.change(within(form).getByLabelText('부부장'), { target: { value: '  ' } })
-  expect(
-    asElement(within(form).getByRole('button', { name: '학생회 정보 저장' }), HTMLButtonElement)
-      .disabled,
-  ).toBe(true)
+  const field = within(form).getByLabelText('부부장')
+  fireEvent.change(field, { target: { value: '  ' } })
+  const save = asElement(
+    within(form).getByRole('button', { name: '학생회 정보 저장' }),
+    HTMLButtonElement,
+  )
+  expect(save.disabled).toBe(false)
+  fireEvent.click(save)
+  expect(within(form).getByText('부부장 표시를 입력해 주세요')).toBeTruthy()
+  expect(field.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(field))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
 test('기수 기간이 오늘을 담지 않으면 저장하지 못한 까닭을 보인다', async () => {
@@ -162,8 +169,8 @@ test('저장했어요 문구는 다시 고치는 순간 사라진다', async () 
   expect(within(form).queryByText('저장했어요.')).toBeNull()
 })
 
-test('임기 끝이 시작보다 뒤가 아니면 저장 버튼을 끄고 까닭을 보인다', () => {
-  mockApi()
+test('임기 끝이 시작보다 뒤가 아니면 기수 저장을 눌러도 보내지 않고 임기 끝 칸 아래에 까닭을 보인다', () => {
+  const api = mockApi()
   render(
     <CouncilSettings
       view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
@@ -173,17 +180,20 @@ test('임기 끝이 시작보다 뒤가 아니면 저장 버튼을 끄고 까닭
   )
   const form = screen.getByRole('form', { name: '지금 기수' })
   const save = within(form).getByRole('button', { name: '기수 저장' }) as HTMLButtonElement
-  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
+  const reason = '임기 시작보다 뒤의 날짜를 입력해 주세요'
   fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
-  expect(within(form).getByText('임기 끝은 시작보다 뒤여야 해요.')).toBeTruthy()
-  expect(save.disabled).toBe(true)
+  // 누르기 전에는 보이지 않는다.
+  expect(within(form).queryByText(reason)).toBeNull()
+  expect(save.disabled).toBe(false)
+  fireEvent.click(save)
+  expect(within(form).getByText(reason)).toBeTruthy()
+  expect(within(form).getByLabelText('임기 끝').getAttribute('aria-invalid')).toBe('true')
   // 같은 날도 뒤가 아니다.
   fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-01-01' } })
-  expect(within(form).getByText('임기 끝은 시작보다 뒤여야 해요.')).toBeTruthy()
-  expect(save.disabled).toBe(true)
+  expect(within(form).getByText(reason)).toBeTruthy()
   fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-06-30' } })
-  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
-  expect(save.disabled).toBe(false)
+  expect(within(form).queryByText(reason)).toBeNull()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
 test('고치던 중 회장단 권한을 잃으면 양식이 보기만으로 바뀌고 까닭이 보인다', () => {

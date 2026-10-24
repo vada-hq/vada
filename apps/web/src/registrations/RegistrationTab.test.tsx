@@ -17,7 +17,8 @@ import {
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
-import type { RegistrationAction } from '@vada/contracts'
+import type { EventDetail, RegistrationAction } from '@vada/contracts'
+import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
 
 afterEach(() => {
@@ -29,6 +30,8 @@ type Options = {
   forms?: ReturnType<typeof staffForm>[]
   // 이 행사에서 지금 사람이 할 수 있는 동작(양식 목록 응답). 양식이 없어도 온다.
   actions?: RegistrationAction[]
+  // 행사 상세. 읽기 전이면 null이다.
+  event?: EventDetail | null
 }
 
 function setup(options: Options = {}) {
@@ -63,8 +66,17 @@ function setup(options: Options = {}) {
   )
   const view = councilView('c1', { councilRank: null, memberId: 'm9' })
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
-  render(<RegistrationTab view={view} eventId={STAFF_EVENT_ID} {...handlers} />)
-  return { api, handlers }
+  const onEditEvent = vi.fn()
+  render(
+    <RegistrationTab
+      view={view}
+      eventId={STAFF_EVENT_ID}
+      event={options.event === undefined ? eventDetail() : options.event}
+      onEditEvent={onEditEvent}
+      {...handlers}
+    />,
+  )
+  return { api, handlers, onEditEvent }
 }
 
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
@@ -106,30 +118,97 @@ test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한�
 
 async function openCreate(api: ReturnType<typeof mockApi>) {
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
-  const dialog = await screen.findByRole('dialog', { name: '신청 양식 만들기' })
-  fireEvent.change(within(dialog).getByLabelText('이름'), { target: { value: '환영회 신청' } })
-  fireEvent.change(within(dialog).getByLabelText('신청 마감'), {
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '환영회 신청' } })
+  fireEvent.change(within(form).getByLabelText('신청 마감'), {
     target: { value: '2026-10-23T18:00' },
   })
-  return { api, dialog }
+  return { api, form }
 }
-const submit = (dialog: HTMLElement) => within(dialog).getByRole('button', { name: '만들기' })
+const submit = (form: HTMLElement) => within(form).getByRole('button', { name: '만들기' })
 
-test('만들기: 참가비가 있으면 대표 계좌가 채워지고, 보내는 동안 다시 보내지 않으며, 만든 뒤 닫고 다시 읽는다', async () => {
+test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름은 참가 신청, 참가비는 없음, 학번은 받는 것으로 시작하며 [신청 양식 목록]으로 돌아간다', async () => {
+  setup({ forms: [], actions: ['registration.manage'] })
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.queryByText('아직 신청 양식이 없어요.')).toBeNull()
+  expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '참가 신청')
+  expect(within(form).getByLabelText('신청 마감').getAttribute('aria-required')).toBe('true')
+  expect(within(form).getByLabelText('없음')).toHaveProperty('checked', true)
+  expect(within(form).queryByLabelText('학생회비 납부자 별도 금액')).toBeNull()
+  expect(within(form).getByRole('checkbox', { name: '이름' })).toHaveProperty('disabled', true)
+  expect(within(form).getByRole('checkbox', { name: '학번' })).toHaveProperty('checked', true)
+  expect(within(form).getByRole('checkbox', { name: '휴대폰 번호' })).toHaveProperty(
+    'checked',
+    false,
+  )
+  fireEvent.click(screen.getByRole('button', { name: '신청 양식 목록' }))
+  expect(screen.queryByRole('form', { name: '신청 양식 만들기' })).toBeNull()
+  expect(screen.getByText('아직 신청 양식이 없어요.')).toBeTruthy()
+})
+
+test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의 [입력]은 행사 고치기를 그 칸으로 연다', async () => {
+  const { onEditEvent } = setup({
+    forms: [],
+    actions: ['registration.manage'],
+    event: eventDetail({ place: null }, ['event.update']),
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  expect(within(form).getByText('행사 정보')).toBeTruthy()
+  expect(within(form).getByText('미정')).toBeTruthy()
+  fireEvent.click(within(form).getByRole('button', { name: '입력' }))
+  expect(onEditEvent).toHaveBeenCalledWith('place')
+  const preview = within(form).getByRole('region', { name: '미리보기' })
+  expect(preview.textContent).toContain('신입생 환영회')
+})
+
+test('행사를 읽기 전이면 만들기 화면에 행사 정보와 미리보기가 없다', async () => {
+  setup({ forms: [], actions: ['registration.manage'], event: null })
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  expect(within(form).queryByText('행사 정보')).toBeNull()
+  expect(within(form).queryByRole('region', { name: '미리보기' })).toBeNull()
+})
+
+test('행사를 읽기 전에 만들어도 이 행사의 양식으로 보낸다', async () => {
+  const { api } = setup({ forms: [], actions: ['registration.manage'], event: null })
+  api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
+  const { form } = await openCreate(api)
+  fireEvent.click(submit(form))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  expect(posts(api).map(call => call.path)).toEqual([FORMS_PATH])
+})
+
+test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은 잠겨 받으며, 대표 계좌가 채워지고, 보내는 동안 다시 보내지 않으며, 만든 뒤 링크와 QR을 보이고 다시 읽는다', async () => {
   const { api } = setup({ forms: [], actions: ['registration.manage'] })
   const pending = deferredResponse()
   api.on('POST', FORMS_PATH, () => pending.promise)
-  const { dialog } = await openCreate(api)
+  const { form } = await openCreate(api)
   // 참가비를 적기 전에는 계좌 칸이 없다
-  expect(within(dialog).queryByRole('combobox')).toBeNull()
-  fireEvent.change(within(dialog).getByLabelText('납부자 참가비'), { target: { value: '5000' } })
-  expect(submit(dialog)).toHaveProperty('disabled', true)
-  fireEvent.change(within(dialog).getByLabelText('미납자 참가비'), { target: { value: '10000' } })
-  const select = await within(dialog).findByRole('combobox', { name: '참가비 받을 계좌' })
+  expect(within(form).queryByRole('combobox')).toBeNull()
+  fireEvent.click(within(form).getByLabelText('있음'))
+  fireEvent.click(within(form).getByLabelText('학생회비 납부자 별도 금액'))
+  expect(within(form).getByRole('checkbox', { name: '학번' })).toHaveProperty('disabled', true)
+  expect(within(form).getByRole('checkbox', { name: '학번' })).toHaveProperty('checked', true)
+  fireEvent.change(within(form).getByLabelText('납부자 참가비(원)'), {
+    target: { value: '5000' },
+  })
+  // 미납자 참가비가 비면 보내지 않고 그 칸 아래에 알린다.
+  fireEvent.click(submit(form))
+  const nonPayer = within(form).getByLabelText('미납자 참가비(원)')
+  expect(within(form).getByText('미납자 참가비를 입력해 주세요')).toBeTruthy()
+  expect(nonPayer.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(nonPayer))
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(nonPayer, { target: { value: '10000' } })
+  const select = await within(form).findByRole('combobox', { name: '참가비 받을 계좌' })
   await waitFor(() => expect(select).toHaveProperty('value', ACCOUNT_ID))
+  expect(within(select).getByText('계좌 선택')).toBeTruthy()
   expect(within(select).queryByText(/닫은 통장/)).toBeNull()
-  fireEvent.click(submit(dialog))
-  fireEvent.click(submit(dialog))
+  fireEvent.click(submit(form))
+  fireEvent.click(submit(form))
   expect(posts(api)).toHaveLength(1)
   expect(posts(api)[0]?.body).toEqual({
     name: '환영회 신청',
@@ -138,31 +217,58 @@ test('만들기: 참가비가 있으면 대표 계좌가 채워지고, 보내는
     capacity: null,
     notice: null,
     collectsPhone: false,
+    collectsStudentId: true,
     payerFee: 5000,
     nonPayerFee: 10000,
     feeAccountId: ACCOUNT_ID,
   })
-  expect(submit(dialog)).toHaveProperty('disabled', true)
+  expect(submit(form)).toHaveProperty('disabled', true)
   pending.resolve(json({ form: staffForm() }, 201))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(await screen.findByRole('heading', { name: '신청 양식 생성 완료' })).toBeTruthy()
+  expect(screen.queryByRole('form', { name: '신청 양식 만들기' })).toBeNull()
+  expect(screen.getByText('환영회 참가 신청')).toBeTruthy()
+  expect(screen.getByText(`${window.location.origin}/apply/ABCD2345`)).toBeTruthy()
+  expect(screen.getByRole('button', { name: '링크 복사' })).toBeTruthy()
+  expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
   expect(
     api.calls.filter(call => call.path === FORMS_PATH && call.method === 'GET').length,
   ).toBeGreaterThan(1)
+  fireEvent.click(screen.getByRole('button', { name: '목록으로' }))
+  expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: '신청 양식 생성 완료' })).toBeNull()
 })
 
-test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 버튼이 꺼진다', async () => {
+test('만들기: 참가비가 있는데 계좌를 고르지 않으면 보내지 않고 계좌 칸 아래에 알린다', async () => {
+  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { form } = await openCreate(api)
+  fireEvent.click(within(form).getByLabelText('있음'))
+  fireEvent.change(within(form).getByLabelText('참가비(원)'), { target: { value: '5000' } })
+  const select = await within(form).findByRole<HTMLSelectElement>('combobox', {
+    name: '참가비 받을 계좌',
+  })
+  await waitFor(() => expect(select).toHaveProperty('value', ACCOUNT_ID))
+  fireEvent.change(select, { target: { value: select.options[0]?.value } })
+  fireEvent.click(submit(form))
+  expect(within(form).getByText('참가비 받을 계좌를 골라 주세요')).toBeTruthy()
+  expect(select.getAttribute('aria-invalid')).toBe('true')
+  expect(posts(api)).toHaveLength(0)
+})
+
+test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 눌러도 보내지 않고 마감 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
   const { api } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
-  const { dialog } = await openCreate(api)
-  fireEvent.change(within(dialog).getByLabelText('신청 마감'), { target: { value: '' } })
-  expect(submit(dialog)).toHaveProperty('disabled', true)
-  // 꺼진 버튼 옆에 무엇이 비었는지 보인다.
-  expect(within(dialog).getByText('넣어야 할 칸: 신청 마감')).toBeTruthy()
-  fireEvent.change(within(dialog).getByLabelText('신청 마감'), {
-    target: { value: '2026-10-23T18:00' },
-  })
-  expect(within(dialog).queryByText(/넣어야 할 칸/)).toBeNull()
-  fireEvent.click(submit(dialog))
+  const { form } = await openCreate(api)
+  const closes = within(form).getByLabelText('신청 마감')
+  fireEvent.change(closes, { target: { value: '' } })
+  expect(submit(form)).toHaveProperty('disabled', false)
+  fireEvent.click(submit(form))
+  expect(within(form).getByText('신청 마감을 입력해 주세요')).toBeTruthy()
+  expect(closes.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(closes))
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(closes, { target: { value: '2026-10-23T18:00' } })
+  expect(within(form).queryByText('신청 마감을 입력해 주세요')).toBeNull()
+  fireEvent.click(submit(form))
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]?.body).toMatchObject({
     payerFee: null,
@@ -171,38 +277,48 @@ test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이
   })
 })
 
+test('만들기: 정원이 1 이상의 숫자가 아니면 보내지 않고 정원 칸 아래에 알린다', async () => {
+  const { api } = setup({ forms: [], actions: ['registration.manage'] })
+  const { form } = await openCreate(api)
+  fireEvent.change(within(form).getByLabelText('정원'), { target: { value: '0' } })
+  fireEvent.click(submit(form))
+  expect(within(form).getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+})
+
 test('만들기 409는 버튼 옆에 문구를 보이고 열어 둔다', async () => {
   const { api } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'FEE_ACCOUNT_REQUIRED' }, 409))
-  const { dialog } = await openCreate(api)
-  fireEvent.click(submit(dialog))
+  const { form } = await openCreate(api)
+  fireEvent.click(submit(form))
   expect(
-    await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.FEE_ACCOUNT_REQUIRED!),
+    await within(form).findByText(REGISTRATION_STAFF_ERRORS.FEE_ACCOUNT_REQUIRED!),
   ).toBeTruthy()
-  expect(submit(dialog)).toHaveProperty('disabled', false)
+  expect(submit(form)).toHaveProperty('disabled', false)
 })
 
-test('만들기 429는 문구를, 403은 학생회를 다시 읽게 하고 대화상자를 닫는다', async () => {
+test('만들기 429는 문구를, 403은 학생회를 다시 읽게 하고 만들기 화면을 닫는다', async () => {
   const { api, handlers } = setup({ forms: [], actions: ['registration.manage'] })
   api.on('POST', FORMS_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
-  const { dialog } = await openCreate(api)
-  fireEvent.click(submit(dialog))
-  expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
+  const { form } = await openCreate(api)
+  fireEvent.click(submit(form))
+  expect(await within(form).findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
   api.on('POST', FORMS_PATH, () => json({ error: 'FORBIDDEN' }, 403))
-  fireEvent.click(submit(dialog))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  fireEvent.click(submit(form))
+  await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 만들기' })).toBeNull())
   expect(handlers.onForbidden).toHaveBeenCalled()
   expect(await screen.findByText(PERMISSION_CHANGED)).toBeTruthy()
 })
 
-test('고치기 404는 대화상자를 닫고 이유를 보인다', async () => {
+test('고치기는 양식 값으로 채운 화면을 열고, 404면 화면을 닫고 이유를 보인다', async () => {
   const { api } = setup()
   api.on('POST', FORM_PATH, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
-  const dialog = await screen.findByRole('dialog', { name: '신청 양식 고치기' })
-  expect(within(dialog).getByLabelText('이름')).toHaveProperty('value', '환영회 참가 신청')
-  fireEvent.click(within(dialog).getByRole('button', { name: '저장' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '환영회 참가 신청')
+  expect(within(form).getByLabelText('학생회비 납부자 별도 금액')).toHaveProperty('checked', true)
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 고치기' })).toBeNull())
   expect(screen.getByText(REGISTRATION_STAFF_LOST)).toBeTruthy()
 })
 
