@@ -3,8 +3,12 @@ import { test } from 'node:test'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { APP_MENUS, RECORD_KINDS } from '@vada/contracts'
 import { createApp } from './app.js'
 import { attachWeb } from './web.js'
+
+const COUNCIL = '0199d1a0-0000-7000-8000-000000000001'
+const RECORD = '0199d1a0-0000-7000-8000-000000000002'
 
 test('built web and API share an origin, only web entry and assets are public', async () => {
   const root = mkdtempSync(join(tmpdir(), 'vada-static-test-'))
@@ -69,9 +73,14 @@ test('built web and API share an origin, only web entry and assets are public', 
       '/apply/ABCD2345',
       '/r',
       '/auth-done',
-      '/chat/council-1/room-1',
-      '/tasks/council-1/task-1',
-      '/purchases/council-1/request-1',
+      '/apply/ABCD2345/',
+      '/join/ABCD2345/',
+      ...APP_MENUS.map(menu => `/${menu}/${COUNCIL}`),
+      ...APP_MENUS.map(menu => `/${menu}/${COUNCIL}/`),
+      ...RECORD_KINDS.map(kind => `/${kind}/${COUNCIL}/${RECORD}`),
+      ...RECORD_KINDS.map(kind => `/${kind}/${COUNCIL}/${RECORD}/`),
+      `/chat/${COUNCIL.toUpperCase()}/${RECORD}`,
+      `/tasks/${COUNCIL}/${RECORD}?tab=x`,
     ]) {
       const entry = await app.request(path)
       assert.equal(entry.status, 200, path)
@@ -92,11 +101,22 @@ test('built web and API share an origin, only web entry and assets are public', 
       '/chat/a',
       '/chat/a/b/c',
       '/tasks/',
-      '/tasks/a',
-      '/tasks/a/b/c',
       '/purchases/',
-      '/purchases/a',
-      '/purchases/a/b/c',
+      // 학생회·기록 칸은 uuid만 받는다. 칸이 모자라거나 많거나, 모르는 메뉴·종류, 대문자 메뉴 이름은 404다.
+      '/chat/council-1/room-1',
+      '/tasks/council-1/task-1',
+      `/chat/${COUNCIL}/not-a-uuid`,
+      `/home/${COUNCIL}/${RECORD}`,
+      `/people/${COUNCIL}/${RECORD}`,
+      `/purchases/${COUNCIL}`,
+      `/chat/${COUNCIL}/${RECORD}/x`,
+      `/tasks/${COUNCIL}/${RECORD}//`,
+      `/Chat/${COUNCIL}`,
+      `/CHAT/${COUNCIL}/${RECORD}`,
+      `/unknown/${COUNCIL}`,
+      `/unknown/${COUNCIL}/${RECORD}`,
+      `//chat/${COUNCIL}`,
+      `/chat/${COUNCIL}//`,
       '/r/x',
       '/icons/',
       '/icons/a/b',

@@ -3,6 +3,8 @@ import { test } from 'node:test'
 import {
   chatRoomFromPath,
   chatRoomUrl,
+  purchaseRequestFromPath,
+  purchaseRequestUrl,
   PUSH_ENDPOINT_MAX,
   PushSubscriptionSchema,
   RemovePushDeviceSchema,
@@ -11,38 +13,45 @@ import {
   taskUrl,
 } from './push.js'
 
-test('chatRoomFromPath: 서버가 보내는 방 주소를 학생회와 방으로 읽는다', () => {
-  assert.deepEqual(chatRoomFromPath(chatRoomUrl('c-1', 'r-1')), {
-    councilId: 'c-1',
-    roomId: 'r-1',
+const C = '0199d1a0-0000-7000-8000-00000000000a'
+const R = '0199d1a0-0000-7000-8000-00000000000b'
+
+test('옛 알림 주소 셋은 영구히 같은 꼴이고 같은 값으로 읽힌다', () => {
+  assert.equal(chatRoomUrl(C, R), `/chat/${C}/${R}`)
+  assert.equal(taskUrl(C, R), `/tasks/${C}/${R}`)
+  assert.equal(purchaseRequestUrl(C, R), `/purchases/${C}/${R}`)
+  assert.deepEqual(chatRoomFromPath(`/chat/${C}/${R}`), { councilId: C, roomId: R })
+  assert.deepEqual(taskFromPath(`/tasks/${C}/${R}`), { councilId: C, taskId: R })
+  assert.deepEqual(purchaseRequestFromPath(`/purchases/${C}/${R}`), {
+    councilId: C,
+    requestId: R,
   })
-  assert.deepEqual(chatRoomFromPath('/chat/c%201/r'), { councilId: 'c 1', roomId: 'r' })
+  assert.equal(taskTag(R), `task:${R}`)
 })
 
-test('chatRoomFromPath: 다른 모양의 주소는 읽지 않는다', () => {
-  for (const path of ['/', '/chat', '/chat/c', '/chat/c/', '/chat//r', '/chat/c/r/x', '/join/c/r'])
-    assert.equal(chatRoomFromPath(path), null, path)
-  assert.equal(chatRoomFromPath('/chat/%E0%A4%A/r'), null)
-})
-
-test('taskFromPath: 서버가 보내는 업무 주소를 학생회와 업무로 읽는다', () => {
-  assert.deepEqual(taskFromPath(taskUrl('c-1', 't-1')), { councilId: 'c-1', taskId: 't-1' })
-  assert.deepEqual(taskFromPath('/tasks/c%201/t'), { councilId: 'c 1', taskId: 't' })
-  assert.equal(taskTag('t-1'), 'task:t-1')
-})
-
-test('taskFromPath: 다른 모양의 주소는 읽지 않는다', () => {
-  for (const path of [
-    '/',
-    '/tasks',
-    '/tasks/c',
-    '/tasks/c/',
-    '/tasks//t',
-    '/tasks/c/t/x',
-    '/chat/c/t',
-  ])
-    assert.equal(taskFromPath(path), null, path)
-  assert.equal(taskFromPath('/tasks/%E0%A4%A/t'), null)
+test('알림 주소 읽기: 다른 종류, uuid가 아닌 칸, 다른 모양은 읽지 않는다', () => {
+  const readers = [
+    ['chat', chatRoomFromPath],
+    ['tasks', taskFromPath],
+    ['purchases', purchaseRequestFromPath],
+  ] as const
+  for (const [kind, read] of readers) {
+    for (const path of [
+      '/',
+      `/${kind}`,
+      `/${kind}/${C}`,
+      `/${kind}/${C}/`,
+      `/${kind}//${R}`,
+      `/${kind}/${C}/${R}/x/`,
+      `/${kind}/c-1/r-1`,
+      `/${kind}/${C}/r-1`,
+      `/${kind}/%E0%A4%A/${R}`,
+      `/join/${C}/${R}`,
+      `/${kind === 'chat' ? 'tasks' : 'chat'}/${C}/${R}`,
+    ])
+      assert.equal(read(path), null, path)
+    assert.notEqual(read(`/${kind}/${C}/${R}/`), null)
+  }
 })
 
 const valid = {
