@@ -139,7 +139,8 @@ function Loaded({
   onOpenExpense: (expenseId: string) => void
 }) {
   const deciding =
-    request.actions.includes('purchase.approve') && request.items.some(i => i.status === 'pending')
+    request.actions.includes('purchase_request.decide') &&
+    request.items.some(i => i.status === 'pending')
   return (
     <div className="flex flex-col gap-6">
       <Facts request={request} />
@@ -159,8 +160,8 @@ function Loaded({
         <StateMessage kind="error">{detail.decide.problem}</StateMessage>
       )}
       <RequestDecisions decisions={request.decisions} items={request.items} />
-      {request.actions.includes('purchase.cancel') && <CancelButton detail={detail} />}
-      {detail.problem && !request.actions.includes('purchase.cancel') && (
+      {request.actions.includes('purchase_request.cancel') && <CancelButton detail={detail} />}
+      {detail.problem && !request.actions.includes('purchase_request.cancel') && (
         <StateMessage kind="error">{detail.problem}</StateMessage>
       )}
       <RequestHistory history={request.history} />

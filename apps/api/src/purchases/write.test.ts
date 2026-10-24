@@ -58,11 +58,11 @@ test(
       request.history.map(version => version.changes),
       [[{ field: 'created' }]],
     )
-    assert.deepEqual(request.actions, ['purchase.cancel'])
+    assert.deepEqual(request.actions, ['purchase_request.cancel'])
     const bare = await s.made({ title: 'a', items: [ITEM] }, 's-president')
     assert.equal(bare.body, null)
     assert.equal(bare.neededBy, null)
-    assert.deepEqual(bare.actions, ['purchase.cancel'])
+    assert.deepEqual(bare.actions, ['purchase_request.cancel'])
   }),
 )
 

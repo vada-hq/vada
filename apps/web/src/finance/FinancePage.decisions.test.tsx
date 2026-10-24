@@ -43,7 +43,7 @@ const twoPending = (extra: Partial<PurchaseRequestDetail> = {}) =>
   purchaseDetail('r1', {
     items: [pendingItem(LINE_1, '포스터'), pendingItem(LINE_2, '테이프')],
     decisions: [],
-    actions: ['purchase.approve'],
+    actions: ['purchase_request.decide'],
     ...extra,
   })
 
@@ -69,7 +69,7 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(c => c.method === 'POST')
 
-test('purchase.approve가 없으면 결재 칸이 없고 예산도 읽지 않는다', async () => {
+test('purchase_request.decide가 없으면 결재 칸이 없고 예산도 읽지 않는다', async () => {
   const { api } = setup(twoPending({ actions: [] }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   await screen.findByText('포스터 × 2')

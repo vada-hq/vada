@@ -208,7 +208,7 @@ test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 
   expect(handlers.onChanged).toHaveBeenCalled()
 })
 
-test('동작에 purchase.cancel이 없으면 [요청 취소]가 없다', async () => {
+test('동작에 purchase_request.cancel이 없으면 [요청 취소]가 없다', async () => {
   setup(purchaseDetail('r1', { actions: [] }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   await screen.findByText('A2 포스터 × 3')

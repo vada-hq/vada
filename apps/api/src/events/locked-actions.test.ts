@@ -59,14 +59,14 @@ test(
     const open = await t.event()
     const inDone = await t.requestWithItem(done)
     const inOpen = await t.requestWithItem(open)
-    assert.deepEqual(await requestActions(t, inDone.request, FINANCE), ['purchase.approve'])
-    assert.deepEqual(await requestActions(t, inDone.request, PLANNER), ['purchase.cancel'])
+    assert.deepEqual(await requestActions(t, inDone.request, FINANCE), ['purchase_request.decide'])
+    assert.deepEqual(await requestActions(t, inDone.request, PLANNER), ['purchase_request.cancel'])
     await t.completion(done, 'completed', DAY('2026-10-24T03:00'))
     assert.deepEqual(await requestActions(t, inDone.request, FINANCE), [])
     assert.deepEqual(await requestActions(t, inDone.request, PLANNER), [])
-    assert.deepEqual(await requestActions(t, inOpen.request, FINANCE), ['purchase.approve'])
+    assert.deepEqual(await requestActions(t, inOpen.request, FINANCE), ['purchase_request.decide'])
     await t.completion(done, 'completion_cancelled', DAY('2026-10-24T04:00'), '되돌림')
-    assert.deepEqual(await requestActions(t, inDone.request, FINANCE), ['purchase.approve'])
+    assert.deepEqual(await requestActions(t, inDone.request, FINANCE), ['purchase_request.decide'])
   }),
 )
 

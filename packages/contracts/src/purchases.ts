@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { WON_MAX, type EventRef } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
-import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
 
 // 구매 요청(DEC-15, DEC-40). 요청서 한 장에 품목 여럿이고, 상태는 저장하지 않고 품목의 결재로 센다. 값은 DB CHECK와 같다.
@@ -39,10 +38,8 @@ export const PURCHASE_STATUSES = [
 export type PurchaseStatus = (typeof PURCHASE_STATUSES)[number]
 
 // 요청마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨기고 권한을 다시 계산하지 않는다(DEC-38).
-export const PURCHASE_ACTIONS = [
-  'purchase.cancel',
-  'purchase.approve',
-] as const satisfies readonly Action[]
+// 권한 키(purchase.cancel, purchase.approve)와 이름이 겹치지 않아, 화면이 권한 목록을 읽는 코드로 이 동작을 쓴 것처럼 보이지 않는다.
+export const PURCHASE_ACTIONS = ['purchase_request.cancel', 'purchase_request.decide'] as const
 export type PurchaseAction = (typeof PURCHASE_ACTIONS)[number]
 
 // 품목마다 서버가 주는 동작. 승인했고 결제하지 않은 품목을 재정부가 취소한다(DEC-73).
