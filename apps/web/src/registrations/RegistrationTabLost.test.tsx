@@ -163,12 +163,24 @@ test('고치는 중에 양식이 사라지면 고치기 화면을 닫고 이유�
   expect(screen.getByText(REGISTRATION_STAFF_LOST)).toBeTruthy()
 })
 
-test('관리 권한이 빠지면 열린 스캐너와 고치기 창을 닫고 이유를 보인다', async () => {
+test('양식의 form.check_in이 빠지면 열린 스캐너를 닫고 이유를 보인다(목록의 form.create와 무관하다)', async () => {
   const { server } = setup()
   fireEvent.click(await screen.findByRole('button', { name: 'QR로 출석 확인' }))
   await screen.findByRole('dialog', { name: 'QR로 출석 확인' })
-  server.actions = []
+  server.forms = [staffForm({ actions: ['form.update', 'form.view_applicants'] })]
   await pollNow()
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
+  expect(screen.getByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
+})
+
+test('그 양식의 form.update가 빠지면 열린 고치기 화면을 닫고 이유를 보인다(목록의 form.create는 그대로)', async () => {
+  const { server } = setup()
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  await screen.findByRole('form', { name: '신청 양식 고치기' })
+  server.forms = [staffForm({ actions: ['form.check_in', 'form.view_applicants'] })]
+  await pollNow()
+  await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 고치기' })).toBeNull())
   expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
 })

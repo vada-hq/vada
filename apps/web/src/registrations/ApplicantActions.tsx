@@ -9,6 +9,8 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
+import { REGISTRATION_ACTION_GONE } from '@/lib/registration-messages'
+import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { registrationPath } from './registration-api'
 import { useStaffPost, type StaffPostResult } from './useStaffPost'
 
@@ -52,32 +54,70 @@ function useApplicantPost({ councilId, applicant, onAttendance, onCancelled, ...
   return { post, setAttended, cancel }
 }
 
-// 신청자 한 줄의 [출석]·[출석 취소]·[신청 취소]. 신청 취소는 확인을 거친다. 오류는 버튼 아래(확인 중에는 확인 창)에 보인다.
+type ButtonsProps = {
+  applicant: Applicant
+  attended: boolean
+  busy: boolean
+  onToggle: () => void
+  onCancel: () => void
+}
+
+// 그 줄의 actions에 있는 버튼만 보인다.
+function ActionButtons({ applicant, attended, busy, onToggle, onCancel }: ButtonsProps) {
+  const toggle = attended ? 'registration.cancel_check_in' : 'registration.check_in'
+  return (
+    <div className="flex flex-wrap gap-2">
+      {applicant.actions.includes(toggle) && (
+        <Button variant="outline" size="sm" disabled={busy} onClick={onToggle}>
+          {attended ? '출석 취소' : '출석'}
+        </Button>
+      )}
+      {applicant.actions.includes('registration.cancel') && (
+        <Button variant="outline" size="sm" disabled={busy} onClick={onCancel}>
+          신청 취소
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// 신청자 한 줄의 [출석]·[출석 취소]·[신청 취소]. 버튼은 그 줄의 actions에 있는 것만 보인다.
+// 신청 취소는 확인을 거친다. 확인 창이 열린 동안 그 동작이 사라지면 닫고 이유를 보인다. 오류는 버튼 아래(확인 중에는 확인 창)에 보인다.
 export function ApplicantActions(props: Props) {
   const { applicant, attended } = props
   const [confirming, setConfirming] = useState(false)
-  const { post, setAttended, cancel } = useApplicantPost(props)
+  const [gone, setGone] = useState<string | null>(null)
+  const { post, setAttended, cancel } = useApplicantPost({
+    ...props,
+    onCancelled: (id, refundPending) => {
+      setConfirming(false)
+      props.onCancelled(id, refundPending)
+    },
+  })
+  const canCancel = applicant.actions.includes('registration.cancel')
+  useDialogGuard(confirming, canCancel ? null : REGISTRATION_ACTION_GONE, message => {
+    setConfirming(false)
+    setGone(message)
+  })
+  const mine = applicant.actions.some(action => action.startsWith('registration.'))
+  if (!mine && !gone) return null
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={post.busy}
-          onClick={() => void setAttended(!attended)}
-        >
-          {attended ? '출석 취소' : '출석'}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={post.busy}
-          onClick={() => setConfirming(true)}
-        >
-          신청 취소
-        </Button>
-      </div>
+      <ActionButtons
+        applicant={applicant}
+        attended={attended}
+        busy={post.busy}
+        onToggle={() => {
+          setGone(null)
+          void setAttended(!attended)
+        }}
+        onCancel={() => {
+          setGone(null)
+          setConfirming(true)
+        }}
+      />
+      {gone && <StateMessage kind="error">{gone}</StateMessage>}
       {post.problem && !confirming && <StateMessage kind="error">{post.problem}</StateMessage>}
       <CancelDialog
         open={confirming}

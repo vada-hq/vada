@@ -99,6 +99,12 @@ export function EventCompletion({ councilId, event, onDone, onStale, ...handlers
     closeFor(gone, close, handlers.onLost),
   )
   const mode = modeOf(event)
+  // 거절 문구는 그 거절을 낳은 버튼 곁의 것이다. 다시 읽은 행사가 버튼을 되살리면(막힘이 풀림) 지운다.
+  const [hadMode, setHadMode] = useState(mode !== null)
+  if (hadMode !== (mode !== null)) {
+    setHadMode(mode !== null)
+    if (mode !== null) post.report(null)
+  }
   const line = asking === null ? lineOf(event, post.problem) : null
   async function confirm(reason: string | null) {
     const outcome = await guarded(

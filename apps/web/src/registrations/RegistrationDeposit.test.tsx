@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { Action, Applicant, FormAction, FormListAction } from '@vada/contracts'
+import type { Applicant, FormAction, FormListAction } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import {
@@ -25,10 +25,20 @@ const ROW = `/api/organizations/c1/registrations/${REGISTRATION_ID}`
 const ALL: FormAction[] = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
 const PAID = { status: 'confirmed', amount: 5000 } as const
 const PENDING = { status: 'refund_pending', amount: 5000 } as const
+// 서버가 줄에 줄 수 있는 동작 조합(registrations/policy.ts)
+const PAID_ACTIONS: Applicant['actions'] = [
+  'registration.check_in',
+  'registration.cancel',
+  'deposit.cancel',
+]
+const PENDING_ACTIONS: Applicant['actions'] = ['deposit.cancel', 'deposit.refund']
+const paidRow = (extra: Partial<Applicant> = {}) =>
+  applicant({ deposit: PAID, actions: PAID_ACTIONS, ...extra })
+const pendingRow = (extra: Partial<Applicant> = {}) =>
+  applicant({ cancelled: true, deposit: PENDING, actions: PENDING_ACTIONS, ...extra })
 
 type Options = {
   actions?: FormAction[]
-  permissions?: Action[]
   applicants?: Applicant[]
   truncated?: boolean
 }
@@ -50,10 +60,7 @@ async function open(options: Options = {}) {
   )
   api.on('GET', '/api/organizations/c1/accounts', () => json({ accounts: [], truncated: false }))
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
-  const view = councilView('c1', {
-    memberId: 'm9',
-    permissions: options.permissions ?? ['finance.manage'],
-  })
+  const view = councilView('c1', { memberId: 'm9' })
   render(
     <RegistrationTab
       view={view}
@@ -81,7 +88,11 @@ test('입금 상태 칩과 [입금 확인]은 줄에 서버가 준 deposit.confi
 })
 
 test('참가비가 없는 신청에는 입금 칩과 [입금 확인]이 없다', async () => {
-  const { row } = await open({ applicants: [applicant({ appliedFee: 0 })] })
+  const { row } = await open({
+    applicants: [
+      applicant({ appliedFee: 0, actions: ['registration.check_in', 'registration.cancel'] }),
+    ],
+  })
   expect(within(row).queryByText('입금 안 함')).toBeNull()
   expect(within(row).queryByRole('button', { name: '입금 확인' })).toBeNull()
 })
@@ -117,7 +128,7 @@ test('입금 확인이 409면 그 창 안에 문구가 보이고 창은 열려 �
 })
 
 test('확인 취소는 사유 없이 누르면 보내지 않고 사유 칸 아래에 알리며, 사유를 적으면 보낸다', async () => {
-  const { api, row } = await open({ applicants: [applicant({ deposit: PAID })] })
+  const { api, row } = await open({ applicants: [paidRow()] })
   api.on('POST', `${ROW}/deposit/cancel`, () => json({ deposit: { status: 'none', amount: null } }))
   fireEvent.click(button(row, '확인 취소'))
   const dialog = await screen.findByRole('dialog')
@@ -137,15 +148,14 @@ test('확인 취소는 사유 없이 누르면 보내지 않고 사유 칸 아�
   expect(within(row).getByText('입금 안 함')).toBeTruthy()
 })
 
-test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 보이고, 입금액보다 큰 금액은 보내지 않으며, 환불하면 줄이 빠진다', async () => {
-  const pendingRow = applicant({ cancelled: true, deposit: PENDING })
-  const none = await open({ applicants: [pendingRow], permissions: [] })
+test('환불 대기 줄에는 [환불함]이 줄에 deposit.refund가 있을 때만 보이고, 입금액보다 큰 금액은 보내지 않으며, 환불하면 줄이 빠진다', async () => {
+  const none = await open({ applicants: [pendingRow({ actions: ['deposit.cancel'] })] })
   expect(within(none.row).queryByRole('button', { name: '환불함' })).toBeNull()
   expect(button(none.row, '확인 취소')).toBeTruthy()
   expect(within(none.row).queryByRole('button', { name: '출석' })).toBeNull()
   expect(within(none.row).queryByRole('button', { name: '신청 취소' })).toBeNull()
   cleanup()
-  const { api, row } = await open({ applicants: [pendingRow] })
+  const { api, row } = await open({ applicants: [pendingRow()] })
   api.on('POST', `${ROW}/refund`, () => json({ deposit: { status: 'refunded', amount: 5000 } }))
   fireEvent.click(button(row, '환불함'))
   const dialog = await screen.findByRole('dialog')
@@ -166,8 +176,12 @@ test('환불 대기 줄에는 [환불함]이 재정부(finance.manage)에게만 
 })
 
 test('입금한 신청을 취소하면 줄이 환불 대기로 바뀌고 학번만 지워진다고 알린다', async () => {
-  const { api, row } = await open({ applicants: [applicant({ deposit: PAID })] })
-  api.on('POST', `${ROW}/cancel`, () => json({ cancelled: true }))
+  const { api, row } = await open({ applicants: [paidRow()] })
+  // 취소하면 환불함을 누를 수 있는지는 서버만 알아 목록을 다시 읽는다.
+  api.on('POST', `${ROW}/cancel`, () => {
+    api.on('GET', APPLICANTS_PATH, () => json({ applicants: [pendingRow()], truncated: false }))
+    return json({ cancelled: true })
+  })
   fireEvent.click(button(row, '신청 취소'))
   const dialog = await screen.findByRole('dialog')
   expect(dialog.textContent).toContain('학번이 바로 지워지고')
@@ -177,7 +191,7 @@ test('입금한 신청을 취소하면 줄이 환불 대기로 바뀌고 학번�
   expect(within(row).getByText('환불 대기 5,000원')).toBeTruthy()
   expect(within(row).getByText('취소함')).toBeTruthy()
   expect(within(row).queryByRole('button', { name: '출석' })).toBeNull()
-  expect(button(row, '환불함')).toBeTruthy()
+  expect(await screen.findByRole('button', { name: '환불함' })).toBeTruthy()
 })
 
 test('거르기: 입금 안 함과 환불 대기', async () => {
@@ -229,9 +243,7 @@ test.each(LOSSES)('입금 확인이 $status면 창을 닫고 이유를 부모에
 })
 
 test.each(LOSSES)('환불함이 $status면 창을 닫는다', async step => {
-  const { api, row } = await open({
-    applicants: [applicant({ cancelled: true, deposit: PENDING })],
-  })
+  const { api, row } = await open({ applicants: [pendingRow()] })
   api.on('POST', `${ROW}/refund`, () => json({ error: step.error }, step.status))
   fireEvent.click(button(row, '환불함'))
   const dialog = await screen.findByRole('dialog')
@@ -241,7 +253,7 @@ test.each(LOSSES)('환불함이 $status면 창을 닫는다', async step => {
 })
 
 test('확인 취소가 409(환불한 입금)면 창 안에 문구가 보인다', async () => {
-  const { api, row } = await open({ applicants: [applicant({ deposit: PAID })] })
+  const { api, row } = await open({ applicants: [paidRow()] })
   api.on('POST', `${ROW}/deposit/cancel`, () => json({ error: 'DEPOSIT_CLOSED' }, 409))
   fireEvent.click(button(row, '확인 취소'))
   const dialog = await screen.findByRole('dialog')

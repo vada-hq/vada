@@ -30,10 +30,15 @@ export const REGISTRATION_STAFF_ERRORS: Record<string, string> = {
   NOT_REFUNDABLE:
     '환불할 수 없는 신청이에요. 이미 환불했거나 취소하지 않은 신청이에요. [새로 읽기]로 확인해 주세요.',
   EVENT_COMPLETED: '완료한 행사라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
+  FORM_CLOSED:
+    '마감한 양식이라 멈추거나 다시 받을 수 없어요. 마감 시각을 고치면 다시 받을 수 있어요.',
   NOT_CHECKED_IN: '출석 기록이 없어요. 화면을 새로 불러와 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
+// 열어 둔 확인 창의 동작이 다시 읽은 줄에서 사라졌다.
+export const REGISTRATION_ACTION_GONE =
+  '지금은 할 수 없는 동작이라 닫았어요. 다른 운영진이 바꿨을 수 있어요.'
 export const REGISTRATION_STAFF_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const REGISTRATION_STAFF_LOST =
   '신청 양식이나 신청을 찾을 수 없어요. 취소했거나 지웠을 수 있어요.'

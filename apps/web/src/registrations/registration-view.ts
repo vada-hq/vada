@@ -1,4 +1,4 @@
-import type { Applicant, DepositStatus, RegistrationForm } from '@vada/contracts'
+import type { Applicant, ApplicantAction, DepositStatus, RegistrationForm } from '@vada/contracts'
 import { momentLabel } from '@/events/event-view'
 
 // '10월 24일 (토) 14:00 ~ 10월 25일 (일) 18:00'. 시작이 없으면 마감만 적는다.
@@ -16,13 +16,33 @@ export const countLabel = (
 // 학생이 여는 공개 링크. 카톡방에 올리고 포스터 QR로 찍는다.
 export const applyUrl = (publicCode: string) => `${window.location.origin}/apply/${publicCode}`
 
-// 신청자 줄에서 할 수 있는 동작. 모두 서버가 준 것(양식 actions, 내 권한 목록)으로만 켠다.
-export type StaffCan = {
-  // 출석·신청 취소(form.check_in)
-  manage: boolean
-  // 환불함(finance.manage)
-  refund: boolean
+// 이 화면에서 바꾼 출석·입금이 서버가 읽어 준 줄의 동작을 낡게 한다(목록을 다시 읽으면 열람 기록이 남아 읽지 않는다).
+// 서버 정책(registrations/policy.ts)이 한 줄에 주는 동작의 모양을 그 쓰기의 결과 하나만큼 옮긴다. 사람이 그 동작을 할 수 있는지는 줄이 가진 동작으로만 안다(없던 동작을 더하지 않는다).
+const swap = (actions: ApplicantAction[], drop: ApplicantAction[], add: ApplicantAction[]) => {
+  const rest = actions.filter(action => !drop.includes(action))
+  return actions.some(action => drop.includes(action)) ? [...rest, ...add] : rest
 }
+
+// 출석: 출석한 줄은 출석 취소만, 아닌 줄은 출석과 신청 취소다(N10).
+export function actionsWhenAttended(actions: ApplicantAction[], attended: boolean) {
+  const mine: ApplicantAction[] = ['registration.check_in', 'registration.cancel_check_in']
+  const has = actions.some(action => mine.includes(action))
+  const rest = actions.filter(action => !mine.includes(action) && action !== 'registration.cancel')
+  if (!has) return actions
+  return attended
+    ? [...rest, 'registration.cancel_check_in' as const]
+    : [...rest, 'registration.check_in' as const, 'registration.cancel' as const]
+}
+
+// 입금: 확인한 입금은 확인 취소만, 없으면 입금 확인이다. 환불 대기가 되면 환불함이 생기는지는 서버만 알아 목록을 다시 읽는다.
+export function actionsWhenDeposit(actions: ApplicantAction[], status: DepositStatus) {
+  const depositActions: ApplicantAction[] = ['deposit.confirm', 'deposit.cancel', 'deposit.refund']
+  return swap(actions, depositActions, [status === 'none' ? 'deposit.confirm' : 'deposit.cancel'])
+}
+
+// 취소한 줄에는 출석·신청 취소가 없다.
+export const actionsWhenCancelled = (actions: ApplicantAction[]) =>
+  actions.filter(action => !action.startsWith('registration.'))
 
 export const DEPOSIT_LABEL: Record<DepositStatus, string> = {
   none: '입금 안 함',
