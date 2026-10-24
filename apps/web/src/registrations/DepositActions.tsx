@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   statusOf,
   type Applicant,
+  type ApplicantAction,
   type ApplicantDeposit,
   type DepositResponse,
 } from '@vada/contracts'
@@ -9,16 +10,16 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
+import { REGISTRATION_ACTION_GONE } from '@/lib/registration-messages'
+import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { won } from '@/public/registration-text'
 import { CancelDepositDialog, RefundDialog } from './DepositDialogs'
 import { registrationPath } from './registration-api'
-import type { StaffCan } from './registration-view'
 import { useStaffPost } from './useStaffPost'
 
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: Applicant
-  can: StaffCan
   // 서버가 돌려준 입금 상태. 환불함이면 이름이 비어 줄이 빠진다(부모가 정한다).
   onDeposit: (registrationId: string, deposit: ApplicantDeposit) => void
   // 신청이 없어졌다(404). 줄을 뺀다.
@@ -47,22 +48,23 @@ function useDepositPost({ councilId, applicant, onDeposit, onGone, ...handlers }
     post.clear()
     setStep(next)
   }
-  return { post, step, open, run }
+  return { post, step, setStep, open, run }
 }
 
 type Allowed = { confirm: boolean; undo: boolean; refund: boolean }
 
-// 보이는 조건: 서버가 준 동작(can)과 입금 상태. 참가비가 없는 신청과 취소한 신청은 입금을 확인하지 않는다.
-function allowedOf({ applicant, can }: Pick<Props, 'applicant' | 'can'>): Allowed {
-  const { status, amount } = applicant.deposit
-  // 줄의 입금 동작은 서버가 준 것(applicant.actions). 입금 확인·취소 뒤에는 줄의 입금 상태만 먼저 바뀌므로 둘 중 하나라도 있으면 입금 권한이 있다.
-  const deposit = applicant.actions.some(a => a === 'deposit.confirm' || a === 'deposit.cancel')
+// 보이는 조건은 서버가 그 줄에 준 동작(applicant.actions)뿐이다. 참가비가 없는 신청, 취소한 신청, 완료한 행사의 줄은 서버가 주지 않는다.
+function allowedOf({ applicant }: Pick<Props, 'applicant'>): Allowed {
+  const has = (action: ApplicantAction) => applicant.actions.includes(action)
   return {
-    confirm: deposit && status === 'none' && !applicant.cancelled && applicant.appliedFee > 0,
-    undo: deposit && (status === 'confirmed' || status === 'refund_pending'),
-    refund: can.refund && status === 'refund_pending' && amount !== null,
+    confirm: has('deposit.confirm'),
+    undo: has('deposit.cancel'),
+    refund: has('deposit.refund'),
   }
 }
+
+// 열린 확인 창의 동작이 줄에서 사라졌는가.
+const STEP_ACTION = { confirm: 'confirm', cancel: 'undo', refund: 'refund' } as const
 
 type Open = (next: Step) => void
 
@@ -138,19 +140,30 @@ function DepositSteps({ applicant, allowed, step, post, open, run }: StepsProps)
 
 // 신청자 한 줄의 [입금 확인]·[확인 취소]·[환불함]. 확인을 거쳐 보낸다.
 export function DepositActions(props: Props) {
-  const { post, step, open, run } = useDepositPost(props)
+  const { post, step, setStep, open, run } = useDepositPost(props)
+  const [gone, setGone] = useState<string | null>(null)
   const allowed = allowedOf(props)
-  if (!allowed.confirm && !allowed.undo && !allowed.refund) return null
+  const lost = step !== null && !allowed[STEP_ACTION[step]]
+  useDialogGuard(step !== null, lost ? REGISTRATION_ACTION_GONE : null, message => {
+    setStep(null)
+    setGone(message)
+  })
+  if (!allowed.confirm && !allowed.undo && !allowed.refund && !gone) return null
+  const openStep: Open = next => {
+    setGone(null)
+    open(next)
+  }
   return (
     <>
-      <DepositButtons allowed={allowed} busy={post.busy} open={open} />
+      {gone && <StateMessage kind="error">{gone}</StateMessage>}
+      <DepositButtons allowed={allowed} busy={post.busy} open={openStep} />
       {post.problem && step === null && <StateMessage kind="error">{post.problem}</StateMessage>}
       <DepositSteps
         applicant={props.applicant}
         allowed={allowed}
         step={step}
         post={post}
-        open={open}
+        open={openStep}
         run={run}
       />
     </>

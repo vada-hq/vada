@@ -38,7 +38,6 @@ function Card({ data }: { data: RegistrationForm }) {
     <FormCard
       councilId="c1"
       form={data}
-      canRefund
       attendance={attendance}
       onAttendance={noop}
       onLoaded={noop}
@@ -61,19 +60,28 @@ const applicant = (id: string, extra: Partial<Applicant>): Applicant => ({
   appliedAt: '2026-10-20T05:00:00.000Z',
   cancelled: false,
   deposit: { status: 'none', amount: null },
-  actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm', 'deposit.cancel'],
+  actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
   ...extra,
 })
-
-const can = { manage: true, refund: true }
 
 // 신청자 줄: 입금 안 함, 입금 확인, 환불 대기(취소함), 참가비 없음, 긴 이름. 390px 폭에서 본다.
 export function ApplicantRowSection() {
   const rows = [
     applicant('none', {}),
-    applicant('paid', { deposit: { status: 'confirmed', amount: 5000 } }),
-    applicant('refund', { cancelled: true, deposit: { status: 'refund_pending', amount: 5000 } }),
-    applicant('free', { appliedFee: 0, payer: null }),
+    applicant('paid', {
+      deposit: { status: 'confirmed', amount: 5000 },
+      actions: ['registration.check_in', 'registration.cancel', 'deposit.cancel'],
+    }),
+    applicant('refund', {
+      cancelled: true,
+      deposit: { status: 'refund_pending', amount: 5000 },
+      actions: ['deposit.cancel', 'deposit.refund'],
+    }),
+    applicant('free', {
+      appliedFee: 0,
+      payer: null,
+      actions: ['registration.check_in', 'registration.cancel'],
+    }),
     applicant('long', { name: `${unbroken} ${longName}` }),
   ]
   return (
@@ -85,7 +93,6 @@ export function ApplicantRowSection() {
             councilId="c1"
             applicant={row}
             attended={false}
-            can={can}
             onAttendance={noop}
             onCancelled={noop}
             onDeposit={noop}
@@ -108,8 +115,12 @@ export function RegistrationSection() {
             data={form(status, {
               status,
               paused: status === 'paused',
+              // 마감한 양식은 멈추기·다시 받기가 없다(RULE-43).
               ...(status === 'paused' && {
                 actions: ['form.update', 'form.resume', 'form.check_in', 'form.view_applicants'],
+              }),
+              ...(status === 'closed' && {
+                actions: ['form.update', 'form.check_in', 'form.view_applicants'],
               }),
             })}
           />

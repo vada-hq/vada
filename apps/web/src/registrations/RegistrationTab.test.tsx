@@ -16,7 +16,11 @@ import {
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
-import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
+import {
+  REGISTRATION_ACTION_GONE,
+  REGISTRATION_STAFF_ERRORS,
+  REGISTRATION_STAFF_LOST,
+} from '@/lib/registration-messages'
 import type { EventDetail, FormListAction } from '@vada/contracts'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
@@ -112,8 +116,13 @@ test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한�
   cleanup()
   setup({ forms: [], actions: ['form.create'] })
   expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
-  expect(screen.getByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
   expect(screen.getByText('신청 양식 없음')).toBeTruthy()
+  // QR 출석은 목록이 아니라 양식의 form.check_in으로 가른다.
+  expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
+  cleanup()
+  setup({ forms: [staffForm({ actions: ['form.check_in'] })], actions: [] })
+  expect(await screen.findByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
 })
 
 async function openCreate(api: ReturnType<typeof mockApi>) {
@@ -333,6 +342,23 @@ test('[멈추기]는 보내는 동안 다시 보내지 않고, 409·429는 카�
   expect(await screen.findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
 })
 
+test('마감 지난 양식은 [멈추기]가 없다. 누르던 사이 마감되면 409 문구를 보이고 다시 읽어 버튼이 사라진다', async () => {
+  const forms = [staffForm()]
+  const { api } = setup({ forms })
+  api.on('POST', `${FORM_PATH}/pause`, () => {
+    forms[0] = staffForm({
+      status: 'closed',
+      actions: ['form.update', 'form.check_in', 'form.view_applicants'],
+    })
+    return json({ error: 'FORM_CLOSED' }, 409)
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '멈추기' }))
+  expect(await screen.findByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
+  await waitFor(() => expect(screen.queryByRole('button', { name: '멈추기' })).toBeNull())
+  expect(screen.queryByRole('button', { name: '다시 받기' })).toBeNull()
+  expect(screen.getByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
+})
+
 test('링크와 신청자: 공개 링크 복사와 QR, 지울 날이 보인다', async () => {
   setup({ forms: [staffForm({ actions: [] })] })
   fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
@@ -404,9 +430,12 @@ test('이름으로 [출석]을 누르면 출석이 되고 [출석 취소]로 되
   )
   await within(row).findByRole('button', { name: '출석 취소' })
   expect(within(row).getByText('출석')).toBeTruthy()
+  // 출석한 신청에는 [신청 취소]가 없다(N10).
+  expect(within(row).queryByRole('button', { name: '신청 취소' })).toBeNull()
   api.on('POST', `${base}/attendance/cancel`, () => json({ cancelled: true }))
   fireEvent.click(within(row).getByRole('button', { name: '출석 취소' }))
   await within(row).findByRole('button', { name: '출석' })
+  expect(within(row).getByRole('button', { name: '신청 취소' })).toBeTruthy()
   // 출석을 바꿔도 목록을 다시 읽지 않는다(열람 기록이 늘지 않는다)
   expect(api.calls.filter(call => call.path === APPLICANTS_PATH)).toHaveLength(1)
 })
@@ -434,4 +463,41 @@ test('신청자 목록을 읽다 403이면 학생회를 다시 읽게 하고 이
   fireEvent.click(screen.getByRole('button', { name: '신청자 보기' }))
   await waitFor(() => expect(view.handlers.onForbidden).toHaveBeenCalled())
   expect(await screen.findByText(PERMISSION_CHANGED)).toBeTruthy()
+})
+
+test('완료한 행사처럼 줄의 actions가 비면 명단은 보이고 버튼은 없다', async () => {
+  await openApplicants([applicant({ actions: [] })])
+  const row = screen.getByText('김새내').closest('li') as HTMLElement
+  expect(within(row).getByText('입금 안 함')).toBeTruthy()
+  expect(within(row).queryAllByRole('button')).toHaveLength(0)
+})
+
+test('신청 취소 확인 창이 열린 동안 다시 읽은 줄에서 그 동작이 사라지면 닫고 이유를 보인다', async () => {
+  const { api } = await openApplicants()
+  const row = screen.getByText('김새내').closest('li') as HTMLElement
+  fireEvent.click(within(row).getByRole('button', { name: '신청 취소' }))
+  await screen.findByRole('dialog')
+  api.on('GET', APPLICANTS_PATH, () =>
+    json({
+      applicants: [applicant({ attended: true, actions: ['registration.cancel_check_in'] })],
+      truncated: false,
+    }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '새로 읽기', hidden: true }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByText(REGISTRATION_ACTION_GONE)).toBeTruthy()
+  expect(within(row).queryByRole('button', { name: '신청 취소' })).toBeNull()
+})
+
+test('입금 확인 창이 열린 동안 다시 읽은 줄에서 그 동작이 사라지면 닫고 이유를 보인다', async () => {
+  const { api } = await openApplicants()
+  const row = screen.getByText('김새내').closest('li') as HTMLElement
+  fireEvent.click(within(row).getByRole('button', { name: '입금 확인' }))
+  await screen.findByRole('dialog')
+  api.on('GET', APPLICANTS_PATH, () =>
+    json({ applicants: [applicant({ actions: [] })], truncated: false }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '새로 읽기', hidden: true }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByText(REGISTRATION_ACTION_GONE)).toBeTruthy()
 })

@@ -278,6 +278,21 @@ test('거절 뒤 다시 읽은 행사에서 버튼이 사라져도 거절 문구
   expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.SETTLEMENT_PENDING)
 })
 
+test('거절 뒤 막힘이 풀려 다시 읽은 행사에 버튼이 되살아나면 낡은 거절 문구를 지운다', async () => {
+  const { api, serve } = openMoney()
+  api.on('POST', `${EVENT}/complete`, () => json({ error: 'SETTLEMENT_PENDING' }, 409))
+  await screen.findByText('지출 예산')
+  fireEvent.click(await screen.findByRole('button', { name: '완료' }))
+  serve(event({ blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }, []))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
+  await waitFor(() => expect(screen.queryByRole('button', { name: '완료' })).toBeNull())
+  expect(await screen.findByRole('alert')).toBeTruthy()
+  serve(event())
+  document.dispatchEvent(new Event('visibilitychange'))
+  await screen.findByRole('button', { name: '완료' })
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+
 test('확인을 열어 둔 사이 정산이 다시 생겨 막히면 권한 문구 없이 그 이유로 닫는다', async () => {
   const { handlers, serve } = openMoney()
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
@@ -305,7 +320,7 @@ test('상태 옆에 마지막 완료·완료 취소 결재의 이름, 날짜, �
     },
   ] as const
   openMoney(event({ approvals: [...approvals] }, []))
-  const note = await screen.findByLabelText('완료 사유')
+  const note = await screen.findByRole('group', { name: '완료 사유' })
   expect(note.textContent).toBe(
     `완료 취소 · ${dayLabel('2026-10-25T03:00:00.000Z')} · 김회장금액을 잘못 적음`,
   )

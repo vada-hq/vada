@@ -91,7 +91,7 @@
 - 닿는 곳: contracts `registrations.ts`(`Applicant.actions`와 목록). api `registrations/policy.ts`, `applicants.ts`, `attendance.ts`, `cancel-by-staff.ts`, `staff-registration.ts`, `deposits/service.ts`, `deposits/permission.ts`, `deposits/refund-pending.ts`. web은 이름만.
 - 검토: 깊게(돈, 개인정보 비우기). 마이그레이션: 없음.
 
-### 5. 신청 화면이 판정만 쓰기(화면) [ ]
+### 5. 신청 화면이 판정만 쓰기(화면) [x]
 - 할 수 있게 되는 것: 운영진이 완료한 행사의 신청자를 보고, 쓸 수 없는 버튼을 보지 않는다.
 - 수용 기준: 완료한 행사에서 열람 권한자가 [신청자 보기]를 누르면 명단이 버튼 없이 보인다(N1). 마감 양식에 [멈추기]·[다시 받기]가 없고 `FORM_CLOSED` 문구가 버튼 옆에 보인다(N9). 출석한 신청자에 [신청 취소]가 없다(N10). [환불함]은 그 줄의 `deposit.refund`가 있을 때만 보이고 완료한 행사에는 없다(N12). 버튼은 권한 목록(`view.permissions`)이나 `status`로 가르지 않고 `actions`만 본다. 완료한 행사의 양식 배지는 '마감'이다(N14). 확인창이 열린 동안 다시 읽은 줄에서 그 동작이 사라지면 닫고 이유를 보인다(자주 잡힌 것 1, `useDialogGuard`). 390px에서 확인한다.
 - 닿는 곳: web `registrations/FormCard.tsx`, `RegistrationTab.tsx`, `ApplicantRow.tsx`, `ApplicantActions.tsx`, `DepositActions.tsx`, `registration-view.ts`, `lib/messages.ts`, `ui-gallery/RegistrationSections.tsx`.

@@ -27,13 +27,20 @@ type Props = EventDialogHandlers & {
 
 type Read = { forms: RegistrationForm[]; actions: FormListAction[] }
 
-// 열려 있는 동안 15초 읽기가 바꾼 값: 관리 권한이 빠졌거나 고치던 양식이 사라졌으면 닫을 이유다. 읽기 전(null)에는 없다.
+// QR 출석은 양식 중 하나라도 form.check_in이 있을 때 쓴다(양식을 아직 못 읽었으면 없다).
+const canScan = (forms: RegistrationForm[]) =>
+  forms.some(form => form.actions.includes('form.check_in'))
+
+// 열려 있는 동안 15초 읽기가 바꾼 값: 그 대화상자의 쓰기 동작이 빠졌거나 고치던 양식이 사라졌으면 닫을 이유다. 읽기 전(null)에는 없다.
+// 만들기는 목록의 form.create, 고치기는 그 양식의 form.update, QR 출석은 양식의 form.check_in이다.
 function dialogLostReason(dialog: TabDialog, read: Read | null) {
   if (dialog === null || read === null) return null
-  if (!read.actions.includes('form.create')) return PERMISSION_CHANGED
-  if (dialog.kind === 'edit' && !read.forms.some(form => form.id === dialog.formId))
-    return REGISTRATION_STAFF_LOST
-  return null
+  if (dialog.kind === 'create')
+    return read.actions.includes('form.create') ? null : PERMISSION_CHANGED
+  if (dialog.kind === 'scan') return canScan(read.forms) ? null : PERMISSION_CHANGED
+  const form = read.forms.find(item => item.id === dialog.formId)
+  if (!form) return REGISTRATION_STAFF_LOST
+  return form.actions.includes('form.update') ? null : PERMISSION_CHANGED
 }
 
 // 이 화면에서 바꾼 출석(스캐너 포함). 신청자 목록을 다시 읽지 않고(읽을 때마다 열람 기록이 남는다) 이것으로 덮는다.
@@ -138,6 +145,7 @@ function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
     <div className="flex flex-col gap-3">
       <TabToolbar
         actions={ready?.actions ?? []}
+        scannable={canScan(ready?.forms ?? [])}
         onCreate={() => setDialog({ kind: 'create' })}
         onScan={() => setDialog({ kind: 'scan' })}
       />
@@ -148,7 +156,6 @@ function FormsView({ props, tab, read, ready, overrides }: ViewProps) {
             key={form.id}
             councilId={councilId}
             form={form}
-            canRefund={props.view.permissions.includes('finance.manage')}
             attendance={overrides.attendance}
             onAttendance={overrides.markAttended}
             onLoaded={overrides.forget}
@@ -185,15 +192,19 @@ export function RegistrationTab(props: Props) {
   return <FormsView props={props} tab={tab} read={read} ready={ready} overrides={overrides} />
 }
 
-type ToolbarProps = { actions: FormListAction[]; onCreate: () => void; onScan: () => void }
+type ToolbarProps = {
+  actions: FormListAction[]
+  scannable: boolean
+  onCreate: () => void
+  onScan: () => void
+}
 
-// [신청 양식 만들기]와 [QR로 출석 확인]. 서버가 이 행사에서 지금 사람이 할 수 있는 동작을 준다(양식이 없어도).
-function TabToolbar({ actions, onCreate, onScan }: ToolbarProps) {
-  const manage = actions.includes('form.create')
+// [신청 양식 만들기](목록의 form.create)와 [QR로 출석 확인](양식의 form.check_in). 서버가 지금 사람이 할 수 있는 동작을 준다.
+function TabToolbar({ actions, scannable, onCreate, onScan }: ToolbarProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {manage && <Button onClick={onCreate}>신청 양식 만들기</Button>}
-      {manage && (
+      {actions.includes('form.create') && <Button onClick={onCreate}>신청 양식 만들기</Button>}
+      {scannable && (
         <Button variant="outline" onClick={onScan}>
           QR로 출석 확인
         </Button>

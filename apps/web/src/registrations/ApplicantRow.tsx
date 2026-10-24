@@ -4,14 +4,12 @@ import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { won } from '@/public/registration-text'
 import { ApplicantActions } from './ApplicantActions'
 import { DepositActions } from './DepositActions'
-import { DEPOSIT_LABEL, type StaffCan } from './registration-view'
+import { DEPOSIT_LABEL } from './registration-view'
 
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: Applicant
   attended: boolean
-  // 출석·신청 취소는 관리 권한자에게, 입금 확인·확인 취소는 입금 확인 권한자에게, 환불함은 재정부에게만 있다.
-  can: StaffCan
   onAttendance: (registrationId: string, attended: boolean) => void
   onCancelled: (registrationId: string, refundPending: boolean) => void
   onDeposit: (registrationId: string, deposit: ApplicantDeposit) => void
@@ -36,8 +34,8 @@ function DepositBadge({ applicant }: { applicant: Applicant }) {
 }
 
 // 신청자 한 명: 이름, 학번, 휴대폰, 적용 참가비, 칩(입금·납부자·같은 학번·출석), 출석·취소와 입금 동작.
-// 취소했지만 입금이 남은 신청(환불 대기)은 출석과 신청 취소 대신 입금 동작만 있다.
-export function ApplicantRow({ applicant, attended, can, onDeposit, ...rest }: Props) {
+// 버튼은 그 줄의 actions(서버가 준 동작)에 있는 것만 보인다.
+export function ApplicantRow({ applicant, attended, onDeposit, ...rest }: Props) {
   const details = [
     applicant.studentId && `학번 ${applicant.studentId}`,
     applicant.phone,
@@ -61,18 +59,15 @@ export function ApplicantRow({ applicant, attended, can, onDeposit, ...rest }: P
         {attended && <Badge tone="success">출석</Badge>}
       </div>
       <p className="text-xs text-gray-500 wrap-anywhere">{details.filter(Boolean).join(' · ')}</p>
-      {can.manage && !applicant.cancelled && (
-        <ApplicantActions
-          applicant={applicant}
-          attended={attended}
-          onAttendance={onAttendance}
-          onCancelled={onCancelled}
-          {...handlers}
-        />
-      )}
+      <ApplicantActions
+        applicant={applicant}
+        attended={attended}
+        onAttendance={onAttendance}
+        onCancelled={onCancelled}
+        {...handlers}
+      />
       <DepositActions
         applicant={applicant}
-        can={can}
         onDeposit={onDeposit}
         onGone={() => onCancelled(applicant.id, false)}
         {...handlers}
