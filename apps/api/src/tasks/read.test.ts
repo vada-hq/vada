@@ -58,6 +58,29 @@ async function start(clock = () => noon) {
   return { pg, council, other, api, base, make, change, list, titles, detail, close }
 }
 
+test('목록과 상세의 줄마다 next가 상태에서 나온다: 할 일 → 진행 중 → 끝남 → null', async () => {
+  const t = await start()
+  try {
+    const todo = await t.make({ title: '할 일', status: 'todo' })
+    const doing = await t.make({ title: '진행 중', status: 'in_progress' })
+    const done = await t.make({ title: '끝남', status: 'done' })
+    const expected = new Map([
+      [todo, 'in_progress'],
+      [doing, 'done'],
+      [done, null],
+    ])
+    for (const [id, next] of expected) assert.equal((await t.detail(id)).next, next, id)
+    const rows = [
+      ...(await t.list('view=all')).tasks,
+      ...(await t.list('view=all&status=done')).tasks,
+    ]
+    assert.equal(rows.length, 3)
+    for (const row of rows) assert.equal(row.next, expected.get(row.id), row.title)
+  } finally {
+    await t.close()
+  }
+})
+
 test('내 업무는 나에게 맡긴 것만, 전체는 지운 것만 빼고 모두 준다', async () => {
   const t = await start()
   try {

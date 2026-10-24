@@ -33,7 +33,7 @@
 | 표 | 연결 표 `task_result`(`task_id` → task, `result_id`, `result_kind`). 기록이 아니다. PK (`task_id`, `result_id`), UNIQUE `result_id`(결과물 하나는 업무 하나에만), (`result_id`, `result_kind`) → record(id, kind), `result_kind` CHECK IN ('request', 'registration_form', 'message', 'event'). 만든 시각·사람은 두지 않는다(결과물 기록의 만든 사람·시각이 같다). 같은 학생회인지는 앱이 본다(`records/same-council.ts`) | logical-model '업무 결과물', AGENTS.md '마이그레이션'(연결 표, 여러 종류를 가리키는 칸), `evidence_link` 선례 | 어렵다(운영 DB의 표·데이터) |
 | 상태 규칙 한 곳 | `apps/api/src/tasks/lifecycle.ts`: 상태 차례(할 일 < 진행 중 < 끝남), 사람의 이동(셋 사이 어디로든, 같은 값은 판 없음), 카드의 다음 단계(할 일 → 진행 중 → 끝남, 끝남은 없음), 저절로 이동(목표가 지금보다 앞일 때만 목표로), 까닭 코드 목록. 웹 `NEXT_STEP`은 지우고 업무 응답의 `next`(다음 상태나 null)를 쓴다 | DEC-39, DEC-82, gap1 '자동 전환', [Jira 고급 워크플로](https://confluence.atlassian.com/display/JIRA/Advanced+workflow+configuration)(전이는 워크플로 한 곳) | 쉽다(코드) |
 | 업무 정책 | `tasks/policy.ts`를 012의 `<도메인>/policy.ts` 모양(사실 모으기 + 순수 판정)으로 둔다. 업무 응답의 `actions`·`canMake`와 쓰기 경로의 확인이 같은 판정을 부른다 | 012, gap1 대책 B, DEC-38 | 쉽다 |
-| 지우기 권한 | 새 동작 `task.delete`(`TASK_ACTIONS`에 더함): 그 부서 부장(회장단 상속), 행사 책임자, 그리고 담당자이면서 만든 사람. `task.manage`는 고치기만. 화면의 지우기 버튼은 `task.delete`로 보인다 | DEC-73, DEC-28(행사 책임자의 이어진 업무 다루기), [Jira 'Delete issues' 권한](https://support.atlassian.com/jira-cloud-administration/docs/manage-project-permissions/) | 쉽다 |
+| 지우기 권한 | 새 권한 키 `task.delete`와 화면 동작 `task.remove`(`TASK_ACTIONS`에 더함): 그 부서 부장(회장단 상속), 행사 책임자, 그리고 담당자이면서 만든 사람. `task.manage`(동작 `task.edit`)는 고치기만. 화면의 지우기 버튼은 `task.remove`로 보인다. 동작 이름은 권한 키와 떼어 두고 서버 `tasks/policy.ts`의 `PERMISSION_OF`가 짝짓는다: edit→manage, remove→delete, change_department→set_department, change_assignee→assign, change_status→status | DEC-73, DEC-28(행사 책임자의 이어진 업무 다루기), [Jira 'Delete issues' 권한](https://support.atlassian.com/jira-cloud-administration/docs/manage-project-permissions/) | 쉽다 |
 | 진행 단계 | 결과물마다 단계: 없음(살아 있고 일 없음), 진행 중, 끝남, 빠짐(목표 셈에서 뺀다). 요청: 냈으면 진행 중, 품목이 모두 결제(취소 안 한 지출에 결제 내역)·반려·취소(결재 기록 `cancelled`, 014가 더하면)면 끝남, 요청을 취소했으면 빠짐. 신청 양식: 있으면 끝남. 공지: 공지 표시가 있으면 끝남, 떼었거나 지웠으면 빠짐. 행사: 완료면 끝남, 아니면 없음. 단계는 도메인마다 낸다(`purchases/`, `registrations/`, `chat/`, `events/`의 단계 셈, 읽기만) | RULE-41, DEC-82(승인만으로는 끝나지 않음), DEC-73(취소), gap1 '결과물별 progressOf는 각 도메인이' | 쉽다 |
 | 요청 취소 | 낸 사람이 결재 전에 요청을 취소하면 끝남으로 보지 않고 빠짐이다(새 요청을 다시 낼 일이라). 업무는 그대로 둔다 | DEC-82(품목의 결제·반려·취소만), 앞으로만 | 쉽다 |
 | 결과물이 여럿 | 업무의 목표 = 빠지지 않은 결과물 단계 가운데 가장 낮은 것. 모두 끝나야 끝남 | [Linear GitHub 연동](https://linear.app/docs/github)("final linked PR moves to the required state"), DEC-82 맥락 | 쉽다 |
@@ -43,7 +43,7 @@
 | 잇는 길 | 만들기 계약에 `taskId`(선택): `CreatePurchaseRequestSchema`, `CreateFormSchema`, `CreateEventSchema`, 공지는 `SendMessageSchema`에 `notice`(참)과 `taskId`(전체방, `chat.notice`만, `notice` 없이 `taskId`면 400). 만드는 거래에서 결과물과 연결을 함께 쓰고 그때 단계가 오른 것으로 본다(요청 → 진행 중, 양식·공지 → 끝남, 행사 → 없음) | DEC-82('업무 안에서 만들면 저절로 이어진다', 배정할 때 고르게 하지 않음), 011 `sourceMessageId` 선례 | 쉽다(선택 칸) |
 | 이을 수 있는 업무 | 이 학생회의, 취소하지 않았고 끝나지 않은 업무이고, 만드는 사람이 그 업무에 `task.status`가 있다. 아니면(다른 학생회, 없는 번호, 취소·끝남, 권한 없음) 모두 409 `TASK_INVALID`이고 아무것도 생기지 않는다. 결과물 자체의 권한(403)이 먼저다 | 011 `MESSAGE_INVALID` 방식, 남의 업무 상태를 옮기지 않게 | 쉽다 |
 | 만들기 버튼 | 업무 상세의 `canMake`(서버가 셈): 위 조건 + 요청 `purchase.request`, 양식은 업무에 행사가 있고 그 행사에 `registration.manage`(그 행사에 만든다), 공지 `chat.notice`, 행사 `event.create`. 요청은 제목·행사를 업무에서 채운다. 만든 행사를 업무의 행사로 바꾸지 않는다(권한 맥락이 바뀐다) | DEC-38, DEC-28, PRIN-1 | 쉽다 |
-| 대화에서 고르기 | 011의 메시지 메뉴 '구매 요청 만들기' 대화상자에 '업무(선택)': 내 업무(`view=mine`, 끝나지 않음) 가운데 `actions`에 `task.status`가 있는 것. 기본은 고르지 않음 | 지시, NN/g 기본값 | 쉽다 |
+| 대화에서 고르기 | 011의 메시지 메뉴 '구매 요청 만들기' 대화상자에 '업무(선택)': 내 업무(`view=mine`, 끝나지 않음) 가운데 `actions`에 `task.change_status`가 있는 것. 기본은 고르지 않음 | 지시, NN/g 기본값 | 쉽다 |
 
 ## 위험
 
@@ -65,8 +65,8 @@
 
 ### 1. 업무 상태 규칙 한 곳과 지우기 권한 [x]
 - 할 수 있게 되는 것: 업무의 다음 단계와 할 수 있는 동작을 서버가 한 곳에서 정하고, 담당자는 자기가 만든 업무만 지운다.
-- 수용 기준: 업무 목록·상세의 줄마다 `next`가 할 일이면 진행 중, 진행 중이면 끝남, 끝남이면 null이고 카드의 [시작]·[끝내기]가 이것으로 보인다. 상태 바꾸기는 셋 중 어디로든 되고 같은 값이면 판이 늘지 않는다. 부장이 맡긴 업무의 담당자에게 `actions`에 `task.delete`가 없고 지우기는 403이며 업무가 그대로다. 담당자가 직접 만든 업무, 그 부서 부장, 회장단, 행사 책임자는 지운다(204). 고치기(`task.manage`)는 담당자에게 그대로 된다. 응답의 `actions`와 쓰기 경로가 같은 판정을 쓰고, 판정을 바꾸면 두 시험이 함께 실패한다. 웹에 `NEXT_STEP`이 없다.
-- 닿는 곳: contracts `tasks.ts`(`TASK_ACTIONS`에 `task.delete`, `TaskSummary.next`), `permissions.ts`(contracts `Action`), api `tasks/lifecycle.ts`(새), `tasks/policy.ts`(새, `actions.ts` 대신), `tasks/service.ts`, `access/permissions.ts`, web `tasks/task-view.ts`, `TaskRow.tsx`, 지우기 버튼이 있는 상세 부품.
+- 수용 기준: 업무 목록·상세의 줄마다 `next`가 할 일이면 진행 중, 진행 중이면 끝남, 끝남이면 null이고 카드의 [시작]·[끝내기]가 이것으로 보인다. 상태 바꾸기는 셋 중 어디로든 되고 같은 값이면 판이 늘지 않는다. 부장이 맡긴 업무의 담당자에게 `actions`에 `task.remove`가 없고 지우기는 403이며 업무가 그대로다. 담당자가 직접 만든 업무, 그 부서 부장, 회장단, 행사 책임자는 지운다(204). 고치기(`task.edit`)는 담당자에게 그대로 된다. 응답의 `actions`와 쓰기 경로가 같은 판정을 쓰고, 판정을 바꾸면 두 시험이 함께 실패한다. 웹에 `NEXT_STEP`이 없다.
+- 닿는 곳: contracts `tasks.ts`(`TASK_ACTIONS`에 `task.remove`, `TaskSummary.next`), `permissions.ts`(contracts `Action`), api `tasks/lifecycle.ts`(새), `tasks/policy.ts`(새, `actions.ts` 대신), `tasks/service.ts`, `access/permissions.ts`, web `tasks/task-view.ts`, `TaskRow.tsx`, 지우기 버튼이 있는 상세 부품.
 - 검토: 깊게(권한). 마이그레이션: 없음.
 
 ### 2. 업무 결과물 표와 구매 요청 잇기(서버) [ ]
@@ -95,7 +95,7 @@
 
 ### 6. 대화에서 구매 요청을 낼 때 업무 고르기(화면) [ ]
 - 할 수 있게 되는 것: 운영진이 메시지에서 요청을 낼 때 내 업무 하나를 골라 잇는다.
-- 수용 기준: 메시지 메뉴의 '구매 요청 만들기' 대화상자에 '업무(선택)'가 있고, 내 끝나지 않은 업무 가운데 `task.status`가 있는 것만 나오며 기본은 고르지 않음이다. 고르고 내면 `taskId`가 같이 가고, 그 업무가 진행 중이 된다(업무 화면에서 보인다). 고르지 않으면 지금과 같다. 그사이 업무가 끝났거나 취소되면 409 `TASK_INVALID` 문구가 버튼 옆에 보인다. 재정 화면의 [구매 요청 내기]는 지금과 같다. 390px에서 넘침이 없다.
+- 수용 기준: 메시지 메뉴의 '구매 요청 만들기' 대화상자에 '업무(선택)'가 있고, 내 끝나지 않은 업무 가운데 `task.change_status`가 있는 것만 나오며 기본은 고르지 않음이다. 고르고 내면 `taskId`가 같이 가고, 그 업무가 진행 중이 된다(업무 화면에서 보인다). 고르지 않으면 지금과 같다. 그사이 업무가 끝났거나 취소되면 409 `TASK_INVALID` 문구가 버튼 옆에 보인다. 재정 화면의 [구매 요청 내기]는 지금과 같다. 390px에서 넘침이 없다.
 - 닿는 곳: `apps/web/src/finance/RequestCreateDialog.tsx`·`request-form.ts`, `chat/MessageItem.tsx`, `tasks/useTasks.ts`(내 업무 읽기), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
 

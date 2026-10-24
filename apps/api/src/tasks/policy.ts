@@ -19,14 +19,14 @@ export type TaskFacts = {
 type FactsRow = {
   departmentId: string | null
   assigneeId: string | null
-  createdBy?: string | null
+  createdBy: string | null
   eventOwnerId: string | null
 }
 
 export const factsOf = (row: FactsRow): TaskFacts => ({
   departmentId: row.departmentId,
   assigneeId: row.assigneeId,
-  createdBy: row.createdBy ?? null,
+  createdBy: row.createdBy,
   eventOwnerId: row.eventOwnerId,
 })
 

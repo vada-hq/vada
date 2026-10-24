@@ -77,6 +77,20 @@ test('actions가 모두 있으면 상태 버튼 셋, 바꾸기 둘, 고치기, �
     expect(screen.getByRole('button', { name })).toBeTruthy()
 })
 
+test('task.edit만 있으면 [고치기]만 보이고 [지우기]는 없다(부장이 맡긴 업무의 담당자)', async () => {
+  setup(taskDetail({ actions: ['task.edit', 'task.change_status'] }))
+  await screen.findByText('크기는 3m로 해 주세요.')
+  expect(screen.getByRole('button', { name: '고치기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '지우기' })).toBeNull()
+})
+
+test('task.remove만 있으면 [지우기]만 보이고 [고치기]는 없다', async () => {
+  setup(taskDetail({ actions: ['task.remove'] }))
+  await screen.findByText('크기는 3m로 해 주세요.')
+  expect(screen.getByRole('button', { name: '지우기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+})
+
 test('actions가 없으면 버튼이 하나도 없고 상태는 배지로만 보인다', async () => {
   setup(taskDetail({ actions: [] }))
   await screen.findByText('크기는 3m로 해 주세요.')

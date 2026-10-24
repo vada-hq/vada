@@ -26,7 +26,7 @@ export async function eventLinkOf(
 type Row = {
   departmentId: string | null
   assigneeId: string | null
-  createdBy?: string | null
+  createdBy: string | null
   eventId: string | null
 }
 
