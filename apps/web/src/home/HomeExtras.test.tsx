@@ -115,7 +115,7 @@ test('숫자 카드는 그 사람의 것을 네 칸까지, 0도 같은 자리에
   expect(labels).toEqual(['지난 내 업무0', '오늘 마감0', '반려된 요청1', '이번 주 행사0'])
 })
 
-test('회장단의 숫자 카드는 막힌 부서와 지난 업무부터다', async () => {
+test('회장단의 숫자 카드는 막힌 곳과 지난 업무부터다', async () => {
   open(
     homeResponse({
       council: {
@@ -128,5 +128,5 @@ test('회장단의 숫자 카드는 막힌 부서와 지난 업무부터다', as
   const labels = within(tiles)
     .getAllByRole('button')
     .map(item => item.textContent)
-  expect(labels).toEqual(['막힌 부서1', '지난 업무0', '지난 내 업무0', '오늘 마감0'])
+  expect(labels).toEqual(['막힌 곳1', '지난 업무0', '지난 내 업무0', '오늘 마감0'])
 })

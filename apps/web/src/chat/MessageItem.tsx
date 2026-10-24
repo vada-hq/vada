@@ -16,9 +16,15 @@ type Props = MessageActionArgs & {
 }
 
 // 본문. 줄바꿈은 그대로 두고, 주소는 새 탭에서 여는 링크다(쓰던 입력과 흐름을 잃지 않게, NN/g 새 탭 지침).
-function Body({ body }: { body: string }) {
+// 내 메시지는 옅은 회색 말풍선에 담는다. 오른쪽 정렬만으로는 두 줄이 넘는 글이 한 덩어리로 읽히지 않는다(Teams, iMessage).
+function Body({ body, mine }: { body: string; mine: boolean }) {
   return (
-    <p className="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">
+    <p
+      className={cn(
+        'text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900',
+        mine && 'rounded-2xl rounded-tr-sm bg-gray-100 px-3 py-1.5',
+      )}
+    >
       {bodyParts(body).map((part, index) =>
         part.kind === 'link' ? (
           <a
@@ -90,7 +96,7 @@ function MineTime({ message, continued }: Pick<Props, 'message' | 'continued'>) 
 }
 
 // 메시지 하나: 보낸 사람, 시각, 공지 표시, 본문. 내 메시지는 오른쪽에 붙여 가른다(카카오톡, Teams 채팅).
-// 색으로 가르지 않는다. 파란색은 공지와 새 소식에 쓰여 내 메시지가 강조처럼 읽힌다.
+// 색으로 가르지 않는다. 파란색은 공지와 새 소식에 쓰여 내 메시지가 강조처럼 읽힌다. 말풍선은 옅은 회색이다.
 // '…'는 마우스로 쓰면 올리거나 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 export default function MessageItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
@@ -108,7 +114,7 @@ export default function MessageItem({ councilId, message, continued, mine, ...ac
       <div className={cn('flex min-w-0 gap-2', mine ? 'flex-row-reverse items-end' : 'flex-1')}>
         <div className={cn('flex min-w-0 flex-col gap-1', mine ? 'max-w-xl items-end' : 'flex-1')}>
           <Head message={message} mine={mine} continued={continued} />
-          {message.body !== '' && <Body body={message.body} />}
+          {message.body !== '' && <Body body={message.body} mine={mine} />}
           {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         </div>
         {mine && <MineTime message={message} continued={continued} />}

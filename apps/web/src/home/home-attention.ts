@@ -13,7 +13,7 @@ export type Attention = {
 }
 type Maybe = Attention | false | undefined
 
-// 역할 부분의 것: 받은 결재(재정부), 막힌 부서와 지난 업무(회장단), 담당자 없음(부장).
+// 역할 부분의 것: 받은 결재(재정부), 막힌 곳(부서 없는 학생회 업무도 한 곳으로 센다)과 지난 업무(회장단), 담당자 없음(부장).
 function roleItems(home: HomeResponse): Maybe[] {
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const departments = home.departments ?? []
@@ -28,7 +28,7 @@ function roleItems(home: HomeResponse): Maybe[] {
     },
     home.council && {
       key: 'blocked',
-      label: '막힌 부서',
+      label: '막힌 곳',
       count: home.council.blocked.length,
       tone: 'warning',
       target: 'home-blocked',
