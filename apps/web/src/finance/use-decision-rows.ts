@@ -18,11 +18,14 @@ const REREAD_BUDGET = new Set(['BUDGET_ITEM_INVALID', 'NO_FISCAL_PERIOD'])
 
 // 누른 버튼이 다루는 줄만 확인해, 문제는 그 줄에만 보인다.
 function useDecisionCheck(rowOf: (id: string) => RowValues, chosenOf: (id: string) => string) {
-  const scope = useRef<{ action: DecisionAction; items: PurchaseLineItem[] }>({
+  const first: { action: DecisionAction; items: PurchaseLineItem[] } = {
     action: 'approve',
     items: [],
-  })
-  const { formRef, errors, attempt } = useFormCheck<HTMLDivElement>(() =>
+  }
+  // 범위를 상태로도 둬서, 다른 줄·다른 버튼을 누르면 다시 그려 새 문제가 보이게 한다. ref는 누른 바로 그 확인에 쓴다.
+  const [, setScopeShown] = useState(first)
+  const scope = useRef(first)
+  const { formRef, errors, attempt, reset } = useFormCheck<HTMLDivElement>(() =>
     decisionErrors(
       scope.current.items.map(item => ({
         id: item.id,
@@ -40,9 +43,10 @@ function useDecisionCheck(rowOf: (id: string) => RowValues, chosenOf: (id: strin
   // 확인할 줄을 정하고 확인한다. 보내도 되면 true.
   const attemptFor = (action: DecisionAction, items: PurchaseLineItem[]) => {
     scope.current = { action, items }
+    setScopeShown(scope.current)
     return attempt()
   }
-  return { formRef, errorsOf, attemptFor }
+  return { formRef, errorsOf, attemptFor, reset }
 }
 
 // 결재 줄들의 입력값과 보내기. 승인이 되면 마지막에 승인한 항목을 기억하고, 항목이 맞지 않다고 하면(BUDGET_ITEM_INVALID) 예산을 다시 읽게 한다.
@@ -87,7 +91,10 @@ export function useDecisionRows(
     rowOf,
     chosenOf,
     submit,
-    change: (id: string, patch: Partial<RowValues>) =>
-      setRows({ ...rows, [id]: { ...rowOf(id), ...patch } }),
+    change: (id: string, patch: Partial<RowValues>) => {
+      // [반려]로 사유 칸을 열면 앞서 [승인]에서 본 문제는 걷는다.
+      if (patch.rejecting) check.reset()
+      setRows({ ...rows, [id]: { ...rowOf(id), ...patch } })
+    },
   }
 }

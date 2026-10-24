@@ -100,6 +100,33 @@ test('[승인]은 늘 켜져 있고 누르면 비운 칸 아래에 이유가 보
   expect(btn('테이프 반려')).toBeTruthy()
 })
 
+test('다른 줄의 [승인]을 누르면 그 줄의 문제가 보이고 앞 줄의 문제는 사라진다', async () => {
+  setup()
+  await open()
+  fireEvent.click(btn('포스터 승인'))
+  const poster = within(screen.getByRole('group', { name: '결재 포스터' }))
+  const tape = within(screen.getByRole('group', { name: '결재 테이프' }))
+  expect(poster.getByText('금액을 입력해 주세요')).toBeTruthy()
+  expect(tape.queryByText('금액을 입력해 주세요')).toBeNull()
+  fireEvent.click(btn('테이프 승인'))
+  expect(tape.getByText('금액을 입력해 주세요')).toBeTruthy()
+  expect(poster.queryByText('금액을 입력해 주세요')).toBeNull()
+  fireEvent.click(btn('모두 승인'))
+  expect(poster.getByText('금액을 입력해 주세요')).toBeTruthy()
+  expect(tape.getByText('금액을 입력해 주세요')).toBeTruthy()
+})
+
+test('[반려]로 사유 칸을 열면 [승인]의 문제는 사라진다', async () => {
+  setup()
+  await open()
+  fireEvent.click(btn('테이프 승인'))
+  const tape = within(screen.getByRole('group', { name: '결재 테이프' }))
+  expect(tape.getByText('금액을 입력해 주세요')).toBeTruthy()
+  fireEvent.click(btn('테이프 반려'))
+  expect(tape.queryByText('금액을 입력해 주세요')).toBeNull()
+  expect(tape.queryByText('반려 사유를 입력해 주세요')).toBeNull()
+})
+
 test('승인하면 금액과 항목을 그 품목만 보내고 요청과 수를 다시 읽는다', async () => {
   const { api, handlers } = setup()
   let reads = 0

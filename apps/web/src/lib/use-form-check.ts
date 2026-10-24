@@ -27,7 +27,10 @@ export function useFormCheck<T extends HTMLElement = HTMLFormElement>(check: () 
     return ok
   }
 
-  return { formRef, errors, attempt }
+  // 확인한 문제를 걷는다(칸을 새로 여는 때처럼, 앞의 문제가 새 칸과 상관없을 때).
+  const reset = () => setTried(false)
+
+  return { formRef, errors, attempt, reset }
 }
 
 // 숫자 칸의 문제 글. 그 밖(글자 칸의 refine 등)은 '더 짧게 입력해 주세요'다.
