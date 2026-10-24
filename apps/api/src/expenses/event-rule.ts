@@ -1,3 +1,4 @@
+import { eventsAgree } from '@vada/contracts'
 import { ApiError } from '../http/errors.js'
 
 // 지출의 행사는 결제 내역의 요청 행사와 같다(DEC-68). 요청에 행사가 없으면 묶이지 않는다.
@@ -24,7 +25,7 @@ export function assertEventMatchesRequests(lineEvents: readonly string[], wanted
 
 // 지출의 행사와 고른 예산 항목의 행사가 둘 다 있는데 다르면 409다. 어느 쪽 행사의 돈인지 갈린다.
 export function assertEventMatchesItem(itemEvents: readonly string[], eventId: string | null) {
-  if (eventId !== null && itemEvents.some(itemEvent => itemEvent !== eventId))
+  if (itemEvents.some(itemEvent => !eventsAgree(eventId, itemEvent)))
     throw new ApiError('EVENT_MISMATCH')
 }
 

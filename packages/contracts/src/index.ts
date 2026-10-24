@@ -244,6 +244,7 @@ export {
   BUDGET_PURPOSE_MAX,
   CreateBudgetItemSchema,
   CreateFiscalPeriodSchema,
+  eventsAgree,
   FISCAL_PERIOD_NAME_MAX,
   WON_MAX,
   type BudgetItemType,

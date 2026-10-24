@@ -1,9 +1,9 @@
 import { asc, eq, inArray, sql } from 'drizzle-orm'
-import type { DecideLineItems, PurchaseRequestDetail } from '@vada/contracts'
+import { eventsAgree, type DecideLineItems, type PurchaseRequestDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries.js'
+import { assertCurrentExpenseItems, budgetItemEventMap } from '../budget/queries.js'
 import { lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
@@ -18,9 +18,15 @@ import type { PurchaseNotice } from './service.js'
 type Decision = DecideLineItems['decisions'][number]
 
 // 승인하며 고른 예산 항목의 행사. 완료한 행사의 예산 항목은 결재에서 고를 수 없다(DEC-68).
-async function budgetItemEventIds(tx: Tx, actor: Actor, decisions: Decision[]) {
+async function budgetItemEvents(tx: Tx, actor: Actor, decisions: Decision[]) {
   const ids = decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : []))
-  return budgetItemEventsOf(tx, actor, ids)
+  return budgetItemEventMap(tx, actor, ids)
+}
+
+// 요청의 행사와 승인하며 고른 예산 항목의 행사가 둘 다 있는데 다르면 409다(DEC-81). 하나라도 어긋나면 모두 쓰지 않는다.
+function assertEventsBelong(requestEventId: string | null, itemEvents: Map<string, string | null>) {
+  for (const eventId of itemEvents.values())
+    if (!eventsAgree(requestEventId, eventId)) throw new ApiError('EVENT_MISMATCH')
 }
 
 // 이 요청의 품목을 id 순으로 잠근다. 같은 품목을 동시에 결재하는 거래는 여기서 한 줄로 서고, 뒤 거래는 앞 거래가 남긴 결재 기록을 본다.
@@ -105,10 +111,8 @@ export async function decideLineItems(
   const { input, now } = command
   if (!can(actor, 'purchase.approve')) throw new ApiError('FORBIDDEN')
   const row = await lockedRequestRow(tx, actor, requestId)
-  await assertEventsOpen(tx, [
-    row.eventId,
-    ...(await budgetItemEventIds(tx, actor, input.decisions)),
-  ])
+  const itemEvents = await budgetItemEvents(tx, actor, input.decisions)
+  await assertEventsOpen(tx, [row.eventId, ...itemEvents.values()])
   // 요청 단위의 판정(취소한 요청 REQUEST_CLOSED, 결재할 품목이 없으면 LINE_ITEM_DECIDED)은 읽기의 actions와 같은 decide다.
   const code = decide(actor, await factsOf(tx, row), 'purchase_request.decide')
   if (code) throw new ApiError(code)
@@ -117,6 +121,7 @@ export async function decideLineItems(
   // 다른 요청이나 다른 학생회의 품목도 이 요청에서는 결재할 수 없는 품목이다.
   if (ids.some(id => !own.has(id)) || (await decidedAmong(tx, ids)))
     throw new ApiError('LINE_ITEM_DECIDED')
+  assertEventsBelong(row.eventId, itemEvents)
   await assertCurrentExpenseItems(
     tx,
     actor,
