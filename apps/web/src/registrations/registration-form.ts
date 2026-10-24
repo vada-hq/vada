@@ -7,7 +7,7 @@ import {
 
 // 참가비를 어떻게 받는지. 공지 사례는 참가비 하나가 가장 많고(13건), 학생회비 납부로 나누는 것은 적다(5건, RFC-11).
 // 그래서 하나를 먼저 두고, 나눌 때만 두 칸을 연다. 나누면 학생이 학번을 낸다(DEC-67).
-export type FeeKind = 'none' | 'one' | 'split'
+type FeeKind = 'none' | 'one' | 'split'
 
 // 양식 만들기·고치기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
 // 일시는 datetime-local 값('YYYY-MM-DDTHH:mm')이라 계약의 한국 시각과 글자가 같다.
@@ -29,7 +29,7 @@ export type FormValues = {
 }
 
 // 행사에 양식은 보통 하나라서(DEC-44 결과) 이름을 짓지 않아도 되게 채워 둔다.
-export const DEFAULT_FORM_NAME = '참가 신청'
+const DEFAULT_FORM_NAME = '참가 신청'
 
 export const emptyFormValues: FormValues = {
   name: DEFAULT_FORM_NAME,
@@ -113,7 +113,7 @@ export const formRequest = (values: FormValues, feeAccountId: string | null) => 
   feeAccountId: hasFee(values) ? feeAccountId : null,
 })
 
-export type FormErrorKey = 'name' | 'closesAt' | 'capacity' | 'fee' | 'payerFee' | 'nonPayerFee'
+type FormErrorKey = 'name' | 'closesAt' | 'capacity' | 'fee' | 'payerFee' | 'nonPayerFee'
 // 문제가 없는 칸은 빠지거나 undefined다.
 export type FormErrors = Partial<Record<FormErrorKey, string | undefined>>
 

@@ -115,6 +115,7 @@ function EditorScreen({
     <FormEditor
       councilId={props.view.council.id}
       councilName={props.view.council.name}
+      eventId={props.eventId}
       event={props.event}
       {...(form && { form })}
       onEditEvent={props.onEditEvent}

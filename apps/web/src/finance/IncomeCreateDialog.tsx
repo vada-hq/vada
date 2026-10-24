@@ -21,6 +21,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
 import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
+import { wonOf } from './budget-form'
 import { emptyIncome, incomeOf, receivedRange, type IncomeValues } from './income-form'
 import type { IncomeDialogHandlers } from './income-requests'
 import { SOURCE_LABEL } from './income-view'
@@ -51,15 +52,13 @@ type FieldsProps = {
   errors: FieldErrors
 }
 
-const DIGITS = /^[0-9]+$/
-
-// 금액은 1 이상의 정수, 받은 날은 그 회계 기간 안이고 오늘 뒤가 아니다(계약과 서버가 같은 규칙으로 막는다).
+// 금액은 1 이상의 정수(쉼표는 받는다), 받은 날은 그 회계 기간 안이고 오늘 뒤가 아니다(계약과 서버가 같은 규칙으로 막는다).
 function incomeErrors(values: IncomeValues, range: { min: string; max: string }) {
   const amount = values.amount.trim()
   return {
     amount:
       requiredText(amount, '금액을') ??
-      (DIGITS.test(amount) && Number(amount) > 0 ? undefined : '1 이상의 숫자를 입력해 주세요'),
+      (wonOf(amount) > 0 ? undefined : '1 이상의 숫자를 입력해 주세요'),
     receivedOn:
       requiredText(values.receivedOn, '받은 날을') ??
       (values.receivedOn < range.min || values.receivedOn > range.max

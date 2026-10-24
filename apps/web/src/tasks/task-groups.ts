@@ -2,8 +2,8 @@ import type { TaskSummary } from '@vada/contracts'
 import { COUNCIL_TASK_LABEL } from './task-view'
 
 // 내 업무를 급한 순으로 나누는 묶음(screens.md 내 업무: 지남, 오늘, 7일 안, 그 뒤).
-export type DueGroupKey = 'overdue' | 'today' | 'week' | 'later' | 'none'
-export const DUE_GROUP_LABEL: Record<DueGroupKey, string> = {
+type DueGroupKey = 'overdue' | 'today' | 'week' | 'later' | 'none'
+const DUE_GROUP_LABEL: Record<DueGroupKey, string> = {
   overdue: '지남',
   today: '오늘',
   week: '7일 안',

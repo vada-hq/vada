@@ -45,6 +45,7 @@ export function DepartmentCreateForm({ saving, error, name, onName, onCreate, on
         <Field label="새 부서 이름" error={fieldErrors.name} className="flex-1">
           <Input
             value={name}
+            {...(error && { 'aria-invalid': true })}
             onChange={event => {
               onName(event.target.value)
               onEdit()

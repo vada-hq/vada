@@ -7,7 +7,7 @@ import { choiceValue, detailAssigneeChoices } from './task-form-options'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel, NEXT_STEP } from './task-view'
 import { TaskEventLink } from './TaskEventLink'
 
-export type RowShow = {
+type RowShow = {
   // 내 업무에서는 담당자(나)를 적지 않는다. 대신 부서를 적는다.
   assignee: boolean
   department: boolean

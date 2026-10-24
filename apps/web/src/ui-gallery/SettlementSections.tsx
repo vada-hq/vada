@@ -39,10 +39,10 @@ const settlement: EventSettlement = {
   approvals: [],
 }
 
-// 행사의 돈 탭: 예산 대비 실제, 예산 항목, 남은 것, 정산이 끝난 모습, 완료한 행사의 배지와 안내.
+// 행사의 예산·정산 탭: 예산 대비 실제, 예산 항목, 남은 것, 정산이 끝난 모습, 완료한 행사의 배지와 안내.
 export function SettlementSection() {
   return (
-    <Section title="행사 정산(돈 탭)">
+    <Section title="행사 예산·정산 탭">
       <div className="flex w-80 flex-col gap-4">
         <EventRow
           event={{

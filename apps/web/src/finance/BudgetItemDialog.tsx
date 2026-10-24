@@ -4,7 +4,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
-import { budgetItemOf, emptyBudgetItem, type BudgetItemValues } from './budget-form'
+import { budgetItemOf, emptyBudgetItem, wonOf, type BudgetItemValues } from './budget-form'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { EventField } from './EventField'
 import { budgetItemsPath } from './finance-api'
@@ -26,14 +26,12 @@ type FieldsProps = {
   errors: FieldErrors
 }
 
-const DIGITS = /^[0-9]+$/
-
-// 목적과 금액은 필수다. 금액은 0 이상의 정수(계약과 같은 규칙).
+// 목적과 금액은 필수다. 금액은 0 이상의 정수(계약과 같은 규칙)이고, 보낼 때처럼 쉼표는 받는다.
 const budgetItemErrors = (values: BudgetItemValues) => ({
   purpose: requiredText(values.purpose, '목적을'),
   amount:
     requiredText(values.amount, '금액을') ??
-    (DIGITS.test(values.amount.trim()) ? undefined : '숫자만 입력해 주세요'),
+    (Number.isNaN(wonOf(values.amount)) ? '숫자만 입력해 주세요' : undefined),
 })
 
 // 목적, 금액, 종류(지출이 기본), 행사(선택).

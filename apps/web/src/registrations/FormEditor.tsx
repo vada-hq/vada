@@ -31,6 +31,8 @@ import { useStaffPost } from './useStaffPost'
 type Props = EventDialogHandlers & {
   councilId: string
   councilName: string
+  // 행사를 읽기 전에도 이 행사의 양식으로 보내려고 따로 받는다.
+  eventId: string
   // 행사를 아직 읽지 못했으면 null이다. 행사 정보와 미리보기만 빠진다.
   event: EventDetail | null
   // 있으면 고치기, 없으면 만들기
@@ -64,9 +66,9 @@ function modeOf(councilId: string, eventId: string, form?: RegistrationForm) {
 
 // 화면의 상태와 보내기: 값, 계좌, 보내는 중, 누를 때 확인(참가비가 있으면 받을 계좌가 있어야 한다, 서버 규칙).
 function useFormEditor(props: Props) {
-  const { councilId, event, form, onDone, ...rest } = props
+  const { councilId, eventId, form, onDone, ...rest } = props
   const handlers = { onForbidden: rest.onForbidden, onLost: rest.onLost }
-  const mode = modeOf(councilId, form?.eventId ?? event?.id ?? '', form)
+  const mode = modeOf(councilId, eventId, form)
   const [values, setValues] = useState(mode.values)
   const [chosen, setChosen] = useState(mode.chosen)
   const [saving, setSaving] = useState(false)
