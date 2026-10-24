@@ -97,7 +97,7 @@
 - 닿는 곳: web `registrations/FormCard.tsx`, `RegistrationTab.tsx`, `ApplicantRow.tsx`, `ApplicantActions.tsx`, `DepositActions.tsx`, `registration-view.ts`, `lib/messages.ts`, `ui-gallery/RegistrationSections.tsx`.
 - 검토: 보통(부품 주석 조건). 마이그레이션: 없음.
 
-### 6. 구조 검사 [ ]
+### 6. 구조 검사 [x]
 - 할 수 있게 되는 것: 화면이 안 쓰는 서버 동작과, 상태마다 보이는 동작과 되는 동작의 어긋남을 CI가 잡는다.
 - 수용 기준: (가) 계약이 내보내는 모든 `*_ACTIONS` 값이 web의 시험·`test-support`·`ui-gallery` 아닌 코드에 하나 이상 쓰이고, 아니면 그 이름을 적고 실패한다. 동작 하나를 화면에서 지우면 실패한다. (나) 행사 표: 상태(미정, 예정, 진행 중, 끝남·남은 것 있음, 끝남·정산 끝, 끝남·수입 기간 공개, 완료, 완료·수입 기간 공개) × 사람(회장단, 책임자, 다른 운영진) × `EVENT_ACTIONS`. 신청 표: 양식(받는 중, 멈춤, 마감, 완료)과 신청자(살아 있음, 출석, 입금 확인, 환불 대기, 완료) × 사람(관리 권한, 열람만, 재정부) × 양식·신청자 동작. 칸마다 읽기 `actions`에 있으면 그 쓰기가 성공하고, 없으면 403이나 그 칸에 적은 코드로 거절된다(행사는 `blockers`와 같은 코드). 상태는 서비스 함수로 만든다. 정책의 조건 하나를 지우면 표가 실패하고, 계약 목록에 표 열이 없는 동작을 더하면 실패한다. work-method '검사와 시험'의 구조 검사 줄에 두 시험의 자리와 "동작이나 상태를 더하면 표에 줄을 더한다"를 적는다.
 - 닿는 곳: `apps/web/src/structure/actions-reach.test.ts`(새), `apps/api/src/events/policy-table.test.ts`(새), `apps/api/src/registrations/policy-table.test.ts`(새), `docs/work-method.md`.

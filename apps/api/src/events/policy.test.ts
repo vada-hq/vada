@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { EventAction, EventDetail } from '@vada/contracts'
+import type { EventDetail } from '@vada/contracts'
 import { actorOf } from '../access/actor.js'
 import { isSettled } from '../settlement/remaining.js'
 import { decide, factsOf } from './policy.js'
@@ -33,45 +33,6 @@ const publish = (t: SettlementKit, periodId: string) =>
     fiscalPeriodId: periodId,
     publishedAt: new Date('2026-10-25T00:00:00Z'),
   })
-
-test(
-  '상태 × 사람: 고치기는 회장단과 책임자, 완료는 끝났고 정산이 끝난 행사에서 회장단만, 완료 취소는 완료한 행사에서 회장단만',
-  withSettlement(async t => {
-    const owner = t.council.people.planningMember.memberId
-    const tbd = await t.event({ startsAt: null, ownerId: owner })
-    const upcoming = await t.event({ startsAt: new Date('2026-11-01T00:00:00Z'), ownerId: owner })
-    const ongoing = await t.event({
-      startsAt: new Date('2026-10-24T00:00:00Z'),
-      endsAt: new Date('2026-10-26T00:00:00Z'),
-      ownerId: owner,
-    })
-    const pending = await t.event({ ownerId: owner })
-    await t.requestWithItem(pending)
-    const ended = await t.event({ ownerId: owner })
-    const done = await t.event({ ownerId: owner })
-    await t.completion(done, 'completed', new Date('2026-10-24T03:00:00Z'))
-    const update: EventAction[] = ['event.update']
-    const notEnded = { 'event.complete': 'EVENT_NOT_ENDED' }
-    const rows: [string, string, EventAction[], EventAction[], Record<string, string>][] = [
-      ['날짜 미정', tbd, update, update, notEnded],
-      ['예정', upcoming, update, update, notEnded],
-      ['진행 중', ongoing, update, update, notEnded],
-      ['끝남, 정산 남음', pending, update, update, { 'event.complete': 'SETTLEMENT_PENDING' }],
-      ['끝남, 정산 끝', ended, ['event.update', 'event.complete'], update, {}],
-      ['완료', done, ['event.cancel_completion'], [], {}],
-    ]
-    for (const [name, id, byPresident, byOwner, blockers] of rows) {
-      const asPresident = await detail(t, id)
-      assert.deepEqual(asPresident.actions, byPresident, `${name} 회장단 actions`)
-      assert.deepEqual(asPresident.blockers, blockers, `${name} 회장단 blockers`)
-      const asOwner = await detail(t, id, OWNER)
-      assert.deepEqual(asOwner.actions, byOwner, `${name} 책임자 actions`)
-      assert.deepEqual(asOwner.blockers, {}, `${name} 책임자 blockers`)
-      const asOther = await detail(t, id, OTHER)
-      assert.deepEqual([asOther.actions, asOther.blockers], [[], {}], `${name} 다른 운영진`)
-    }
-  }),
-)
 
 test(
   '막힌 완료의 blockers 코드는 완료 쓰기가 내는 코드와 같고, 책임자와 다른 운영진은 403이다',
