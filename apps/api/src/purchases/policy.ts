@@ -33,7 +33,7 @@ export function requestStatusOf(
 export const lineItemStatusOf = (outcome: string | null): LineItemStatus =>
   outcome === 'approved' || outcome === 'rejected' || outcome === 'cancelled' ? outcome : 'pending'
 
-// 판정에 드는 사실. 읽지 않은 사실로 판정하면 허용이 아니라 거절이 나온다(eventCompleted의 기본값은 true).
+// 판정에 드는 사실. factsOf가 늘 모두 읽는다.
 export type RequestFacts = {
   requestedBy: string
   status: PurchaseStatus
