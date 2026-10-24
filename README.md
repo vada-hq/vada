@@ -8,8 +8,8 @@ vada-m1/
 ├─ .github/workflows/         # CI
 ├─ apps/
 │  ├─ api/                    # API 서버(Hono, better-auth, drizzle)
-│  │  ├─ migrations/          # 마이그레이션. 0000_baseline은 vada-docs physical-model.md에서 만든다(.sql은 LF)
-│  │  ├─ scripts/             # 첫 마이그레이션 만들기, 설계 검사(check:design), 시험 데이터
+│  │  ├─ migrations/          # 마이그레이션. 표 구현의 원문이다(.sql은 LF)
+│  │  ├─ scripts/             # 시험 데이터
 │  │  └─ src/
 │  │     ├─ access/           # 지금 소속(actorOf)과 권한표(can)
 │  │     ├─ auth/             # Google 로그인과 세션 확인

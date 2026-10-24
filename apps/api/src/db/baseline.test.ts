@@ -6,7 +6,7 @@ import type { PGlite } from '@electric-sql/pglite'
 import { FILE_NAME_MAX, MESSAGE_BODY_MAX } from '@vada/contracts'
 import { createTestDb, migrationsFolder } from './test-db.js'
 
-// 기록과 하위 행을 함께 넣는다(vada-docs tools/schema-check/setup.mjs의 recorder와 같다). 기록 모듈은 다음 작업에서 만든다.
+// 기록과 하위 행을 함께 넣는다(vada-docs archive/tools/schema-check/setup.mjs의 recorder와 같다). 기록 모듈은 다음 작업에서 만든다.
 const COUNCIL_COLUMN = new Set(['cohort', 'department'])
 async function add(
   pg: PGlite,

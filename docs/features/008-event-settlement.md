@@ -4,6 +4,8 @@
 
 # 008 행사 정산과 환급
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-23 01:55. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/008-조각번호`, 진행 기록은 `.superpowers/sdd/008/progress.md`, 이슈는 vada-hq/vada-docs#52다. 007(`docs/features/007-registration-attendance.md`, main 532e5c5)의 표(`registration`, `registration_link`, `attendance`), 경로(`apps/api/src/registrations/`), 권한 맥락(`registrations/permission-context.ts`의 `registrationContextOf`), 신청자 정보 비우기(`registrations/void-registration.ts`, `personal-values.ts`)에 기댄다. 007 명세나 코드가 이 문서와 어긋나면 007을 따르고 `Ruling:`으로 적는다. 이미 맞춘 것은 '위험'의 '007에 맞춘 것'에 있다.
 
 ## 왜

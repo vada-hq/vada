@@ -4,6 +4,8 @@
 
 # R01 유지보수성 정리(리팩터링)
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 예상: 6시간 안팎(실제로 도는 시간). 이 일은 기반이라 상한을 두지 않는다. 시간이 넘어도 조각을 빼거나 기준을 낮추지 않고, 예상이 틀린 까닭만 기록한다. 시작 2026-10-20 18:40. 양식은 `docs/work-method.md`의 기능 명세를 따른다. 가지는 `work/r01-조각번호`, 진행 기록은 `.superpowers/sdd/r01/progress.md`, 이슈는 vada-hq/vada-docs#8이다.
 
 ## 왜

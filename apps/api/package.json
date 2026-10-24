@@ -8,7 +8,6 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "db:generate": "drizzle-kit generate --custom",
-    "check:design": "tsx scripts/check-design.ts",
     "db:migrate": "tsx src/ops/migrate/migrate.ts",
     "test-data": "tsx scripts/manage-test-data.ts",
     "demo": "tsx scripts/manage-demo-data.ts",

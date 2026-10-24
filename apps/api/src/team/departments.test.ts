@@ -220,7 +220,7 @@ test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함�
   }
 })
 
-test('확정한 부서 기록은 쓰인 적 없어도 없애지 않는다(physical-model.md: 확정한 기록은 지우지 않는다)', async () => {
+test('확정한 부서 기록은 쓰인 적 없어도 없애지 않는다(DEC-27 기준 6: 확정한 기록은 지우지 않는다)', async () => {
   const testDb = await createTestDb()
   const { db, pg } = testDb
   try {

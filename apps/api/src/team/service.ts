@@ -253,7 +253,7 @@ export async function updateDepartment(
 
 // 쓰인 적 없는 부서만 없앤다(바탕 spec G8). 지우기는 기록 모듈의 일이 아니라서 여기서 판, 하위 행, 기록 행을 한 거래로 지운다.
 // 부서 소속이 한 번이라도 있었으면(끝난 소속 포함) 409다. 다른 기록이 이 부서를 가리키면 외래 키가 막고, 라우트가 409로 바꾼다.
-// 확정한 기록은 지우지 않는다(physical-model.md, DEC-27 기준 6). 바탕에는 부서를 확정하는 길이 없지만 여기서 지킨다.
+// 확정한 기록은 지우지 않는다(DEC-27 기준 6). 바탕에는 부서를 확정하는 길이 없지만 여기서 지킨다.
 export async function deleteDepartment(tx: Tx, actor: Actor, departmentId: string) {
   await departmentOf(tx, actor, departmentId)
   const [meta] = await tx

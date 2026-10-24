@@ -4,6 +4,8 @@
 
 # 011 대화에서 구매 요청과 지출 만들기
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-23 11:48. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/011-조각번호`, 진행 기록은 `.superpowers/sdd/011/progress.md`, 이슈: vada-hq/vada-docs#39(vada-hq/vada-docs#19 묶음 아래). 006 조각 10(대화 사진을 지출 증빙으로, 하지 않음)을 이 기능이 넘겨받는다.
 
 ## 왜

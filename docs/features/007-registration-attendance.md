@@ -4,6 +4,8 @@
 
 # 007 참가 신청과 출석
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-22 21:53. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/007-조각번호`, 진행 기록은 `.superpowers/sdd/007/progress.md`, 이슈는 vada-hq/vada-docs#52다. 옛 M3a·M3b-1·M3c 설계(`docs/superpowers/specs/2026-10-10-event-registration-design.md`, `2026-10-10-event-fees-design.md`, `2026-10-11-event-attendance-design.md`)는 무엇을 했는지만 참고한다.
 
 ## 왜

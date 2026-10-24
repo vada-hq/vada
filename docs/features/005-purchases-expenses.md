@@ -4,6 +4,8 @@
 
 # 005 구매와 지출
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-21 16:00. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/005-조각번호`, 진행 기록은 `.superpowers/sdd/005/progress.md`, 이슈는 vada-hq/vada-docs#11이다. `docs/superpowers/`의 2026-10-08~09 구매·지출 설계와 계획은 옛 vada 것이라 참고로만 읽었고 지우거나 고치지 않는다.
 
 ## 왜

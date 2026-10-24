@@ -4,6 +4,8 @@
 
 # 006 시작 준비
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-22 11:17. 양식은 `docs/work-method.md`를 따른다. 가지는 `work/006-조각번호`, 진행 기록은 `.superpowers/sdd/006/progress.md`, 이슈는 vada-hq/vada-docs#13이다.
 
 ## 왜

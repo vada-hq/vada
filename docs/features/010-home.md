@@ -4,6 +4,8 @@
 
 # 010 직급마다의 홈
 
+> 만들 때의 명세다. 지금의 규칙은 vada-docs `decisions/`와 `logical-model.md`, 동작은 코드가 원문이다(DEC-77).
+
 상한: 6시간(실제로 도는 시간). 시작 2026-10-23 05:40(008 조각 5~7과 겹쳐 시작). 양식은 `docs/work-method.md`를 따른다. 가지는 `work/010-조각번호`, 진행 기록은 `.superpowers/sdd/010/progress.md`, 이슈: vada-hq/vada-docs#63(vada-hq/vada-docs#19 묶음 아래). 주인이 2026-10-23 "홈 먼저"라고 정해 009보다 앞에 만든다. 정산·완료는 main에 있는 008 조각 1~3과 `docs/features/008-event-settlement.md`를 기준으로 하고, 어긋나면 008을 따르고 `Ruling:`으로 적는다.
 
 ## 왜

@@ -75,7 +75,7 @@ const tables = {
 }
 export type RecordKind = keyof typeof tables
 type Table<K extends RecordKind> = (typeof tables)[K]
-// 하위 표에도 학생회 번호를 두는 종류(physical-model.md 작성 규칙). 모듈이 기록의 학생회 번호를 그대로 넣는다.
+// 하위 표에도 학생회 번호를 두는 종류(AGENTS.md 마이그레이션). 모듈이 기록의 학생회 번호를 그대로 넣는다.
 const councilColumn: ReadonlySet<RecordKind> = new Set([
   'cohort',
   'department',

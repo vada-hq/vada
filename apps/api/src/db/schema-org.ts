@@ -3,7 +3,7 @@ import { integer, jsonb, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-
 
 import { at, day, tstzrange } from './schema-columns.js'
 
-// 공통(physical-model.md)
+// 공통(vada-docs logical-model.md 공통)
 export const record = pgTable('record', {
   id: uuid('id')
     .primaryKey()

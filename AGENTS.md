@@ -90,8 +90,18 @@
 
 ## 마이그레이션
 
-- 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `pnpm --filter @vada/api db:generate`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `pnpm --filter @vada/api check:design`이 마이그레이션 DB와 설계를 맞댄다.
-- 첫 마이그레이션 `0000_baseline.sql`은 `apps/api/scripts/baseline-from-design.ts`가 physical-model.md에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
+- 표 구현(이름, 자료형, 제약, 인덱스)의 원문은 `apps/api/migrations/`다. 무엇을 왜 저장하는지와 업무 규칙(RULE-)은 vada-docs `logical-model.md`가 원문이다. 저장하는 것이나 규칙이 바뀌면 같은 때에 그 문서를 고친다(DEC-77).
+- 표를 바꿀 때는 `pnpm --filter @vada/api db:generate`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를 맞댄다.
+- 첫 마이그레이션 `0000_baseline.sql`은 구현 전 설계(vada-docs `archive/physical-model.md`)에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
+- 표를 쓰는 관례(PostgreSQL 18 이상)
+  - 식별자는 `uuidv7()`로 만든다. 표와 칸 이름은 영어 snake_case이고, 엔티티와의 대응은 `logical-model.md` '이름 대응'에 있다.
+  - 시각은 `timestamptz`, 날짜는 `date`, 금액은 `numeric(14, 0)`(원), 문자는 `text`다. `timestamp`, `money`, `varchar(n)`, `serial`은 쓰지 않는다(PostgreSQL wiki "Don't Do This").
+  - 정해진 값 중 하나인 칸은 `CHECK`로 막는다. 사람이 쓰는 글의 길이 상한은 `CHECK (char_length(칸) <= n)`이고 n은 그 칸을 받는 계약의 상한과 같다.
+  - 엔티티 표는 기록(`record`)의 하위 표다. 하위 표의 `id`는 `record.id`를 가리키고 `kind` 칸과 `(id, kind)` 외래 키로 종류를 맞춘다. 여러 종류의 기록을 가리키는 칸은 `(대상 id, 대상 kind)` 외래 키와 허용 종류 `CHECK`로 막는다.
+  - 연결 표(근거, 문서 연결, 대화방 참여)는 기록이 아니고, 양쪽 키를 기본 키로 쓴다.
+  - 학생회 안에서 겹치면 안 되는 이름은 하위 표에 `council_id`를 두고 `(id, council_id)` 외래 키로 기록과 맞춘 뒤 `UNIQUE`로 막는다.
+  - 외래 키 칸에는 인덱스를 둔다. 판은 `record_version`에 두고 유효 기간(`tstzrange`)이 겹치지 않게 막는다(btree_gist).
+  - 계산되는 값(`logical-model.md`)은 저장하지 않는다.
 - 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 Neon 프로젝트 `vada`의 `dev` 가지(개발, 로컬 `.env`의 `DATABASE_URL`)와 `production` 가지(배포) 두 곳이다.
 - 운영 DB는 main CI의 `migrate-production` 작업이 저절로 적용한다. 시험과 검사가 통과한 뒤 돌고, Render는 CI가 통과해야 배포하므로 DB가 새 코드보다 먼저 바뀐다. 주소는 GitHub 저장소 비밀값 `PRODUCTION_DATABASE_URL`이다. 적용이 실패하면 CI가 실패해 배포도 멈춘다. 개발 DB는 진행 에이전트가 main에 올리기 전에 적용한다(작업자와 검토자는 하지 않는다). `pnpm --filter @vada/api db:migrate`는 미리 보기다. 대상(호스트와 DB 이름), 점검 결과, 적용할 개수만 보여 주고 아무것도 바꾸지 않는다(`--dry-run`은 같은 뜻을 분명히 적는 것). 실제 적용은 `pnpm --filter @vada/api db:migrate --apply`로만 한다. 인자는 `--apply`, `--dry-run`, `--from-shell`뿐이고(`--apply`와 `--dry-run`은 같이 줄 수 없다) 다른 인자는 `.env`를 읽거나 연결하기 전에 멈춘다. pnpm은 스크립트 이름 뒤의 인자를 그대로 넘기므로 `--`는 쓰지 않는다(맨 앞의 `--`는 무시한다).
 - 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(적용은 `--from-shell --apply`). 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면, 로컬 마이그레이션 시각이 커지는 순서가 아니면 적용하지 않는다. 적용 뒤에는 기록을 다시 읽어 실제로 적용된 개수를 보여 준다.
@@ -128,5 +138,4 @@
 - 계약 테스트: `pnpm --filter @vada/contracts test`
 - 화면 테스트: `pnpm --filter @vada/web test` (개별 파일은 `apps/web`에서 `pnpm exec vitest run <파일>`)
 - 타입 검사: `pnpm typecheck`
-- 설계 검사(로컬, 옆 폴더 `../vada-docs` 필요): `pnpm --filter @vada/api check:design`
 - 부품 확인 화면: `pnpm --filter @vada/web dev` 후 `http://127.0.0.1:5180/ui.html`
