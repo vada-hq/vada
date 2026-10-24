@@ -96,6 +96,7 @@ export default function SignedInView({
       <MyCouncils
         key={`${user.id}:${opened ?? ''}`}
         user={user}
+        userId={user.id}
         initialCouncilId={opened}
         card={content => (
           <SignedInCard user={user} busy={busy} onLogout={onLogout}>

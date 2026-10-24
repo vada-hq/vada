@@ -146,6 +146,7 @@ function mine() {
   render(
     <MyCouncils
       user={{ name: '김회장' }}
+      userId="u1"
       card={card}
       onEnterCode={() => {}}
       logoutBusy={false}

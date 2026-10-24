@@ -3,6 +3,7 @@ import { menuPath, type MyCouncil } from '@vada/contracts'
 import { layerDirectRecord, navigate, useHere } from '@/lib/app-location'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK } from '@/lib/messages'
 import { targetOf } from '../workspace/address'
+import { startPathOf, useRememberAddress } from '../workspace/useLastAddress'
 import { useNotificationOpen } from '../workspace/useNotificationOpen'
 import Workspace from '../workspace/Workspace'
 import StateMessage from '@/components/StateMessage'
@@ -12,6 +13,8 @@ import { useMyCouncils } from './useMyCouncils'
 
 type Props = {
   user: { name: string }
+  // 마지막에 본 주소를 사람마다 기억하는 열쇠.
+  userId: string
   // 방금 들어온 학생회. 있으면 그 학생회의 운영진 화면으로 연다.
   initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
@@ -49,7 +52,7 @@ function NotFound({ fallback }: { fallback: string }) {
 }
 
 // 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 주소가 가리키는 작업 공간이다.
-export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Props) {
+export default function MyCouncils({ user, userId, initialCouncilId, card, ...rest }: Props) {
   const { state, reload, add, remove } = useMyCouncils()
   const here = useHere()
   const councils = state.kind === 'ready' ? state.councils : NONE
@@ -65,12 +68,13 @@ export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Pr
   useEffect(() => {
     if (initialCouncilId) navigate(menuPath('people', initialCouncilId), { replace: true })
   }, [initialCouncilId])
-  const first = councils[0]
-  // '/'로 열렸으면 첫 학생회 홈 주소로 바꿔 쓴다. 같은 때 받아 둔 알림이 먼저 주소를 쌓았을 수 있어 지금 주소로 다시 본다.
+  useRememberAddress(userId, here, councils)
+  // '/'로 열렸으면(홈 화면 앱 시작) 마지막에 본 주소, 없으면 첫 학생회 홈 주소로 바꿔 쓴다. 같은 때 받아 둔 알림이 먼저 주소를 쌓았을 수 있어 지금 주소로 다시 본다.
+  const start = startPathOf(userId, councils)
   useEffect(() => {
-    if (first && here.path === '/' && window.location.pathname + window.location.search === '/')
-      navigate(menuPath('home', first.id), { replace: true })
-  }, [first, here.path])
+    if (start && here.path === '/' && window.location.pathname + window.location.search === '/')
+      navigate(start, { replace: true })
+  }, [start, here.path])
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고 남은 첫 학생회 홈으로 간다. 서버의 목록은 다시 읽는다.
   const lost = useCallback(
     (councilId: string) => {
@@ -94,7 +98,7 @@ export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Pr
         }}
       />,
     )
-  const target = targetOf(here, state.councils)
+  const target = targetOf(here, state.councils, start)
   if (target.kind === 'notFound') return card(<NotFound fallback={target.fallback} />)
   return (
     <Workspace

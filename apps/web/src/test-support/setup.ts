@@ -18,6 +18,11 @@ console.error = (...args: unknown[]) => {
   consoleError(...args)
 }
 afterEach(() => {
+  // 이 기기가 마지막에 본 주소(lib/last-address.ts)가 다음 시험의 '/' 시작을 바꾸지 않게 한다. node 환경 시험에는 window가 없다.
+  if (typeof window !== 'undefined') {
+    window.localStorage.clear()
+    window.sessionStorage.clear()
+  }
   const found = keyWarnings.splice(0)
   if (found.length) throw new Error(`React 키 경고: ${found.join(' / ')}`)
 })

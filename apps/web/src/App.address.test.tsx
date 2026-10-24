@@ -22,6 +22,7 @@ const listeners: ((event: { data: unknown }) => void)[] = []
 
 beforeEach(() => {
   listeners.length = 0
+  window.localStorage.clear()
   window.history.replaceState(null, '', '/')
   api = mockApi()
   auth.useSession.mockReturnValue({
@@ -79,6 +80,50 @@ test('주소가 없는 시작은 첫 학생회 홈 주소가 된다', async () =
   await renderApp()
   expect(await heading('홈')).toBeTruthy()
   expect(pathNow()).toBe(`/home/${C1}`)
+})
+
+const LAST = 'vada.last.address.u1'
+
+test('/로 열면 이 기기가 마지막에 본 학생회 안 주소로 바꿔 쓴다', async () => {
+  window.localStorage.setItem(LAST, `/tasks/${C2}?view=all`)
+  const push = pushes()
+  await renderApp()
+  expect(await heading('업무')).toBeTruthy()
+  expect(pathNow()).toBe(`/tasks/${C2}?view=all`)
+  expect(push).not.toHaveBeenCalled()
+  expect(council(C1)).toEqual([])
+})
+
+test('마지막 주소의 학생회를 잃었거나 기억이 없으면 첫 학생회 홈이 열린다', async () => {
+  window.localStorage.setItem(LAST, '/tasks/0199d1a0-0000-7000-8000-0000000000c9?view=all')
+  await renderApp()
+  expect(await heading('홈')).toBeTruthy()
+  expect(pathNow()).toBe(`/home/${C1}`)
+})
+
+test('/가 아닌 주소로 열면 마지막 주소를 쓰지 않는다', async () => {
+  window.localStorage.setItem(LAST, `/tasks/${C2}`)
+  window.history.replaceState(null, '', `/people/${C1}`)
+  await renderApp()
+  expect(await heading('사람')).toBeTruthy()
+  expect(pathNow()).toBe(`/people/${C1}`)
+})
+
+test('보는 곳이 바뀔 때마다 마지막 주소를 기억한다', async () => {
+  await renderApp()
+  expect(await heading('홈')).toBeTruthy()
+  expect(window.localStorage.getItem(LAST)).toBe(`/home/${C1}`)
+  fireEvent.click(menu('사람'))
+  expect(await heading('사람')).toBeTruthy()
+  expect(window.localStorage.getItem(LAST)).toBe(`/people/${C1}`)
+})
+
+test('찾을 수 없는 주소와 다른 사람의 학생회 주소는 기억하지 않는다', async () => {
+  window.localStorage.setItem(LAST, `/home/${C1}`)
+  window.history.replaceState(null, '', '/tasks/0199d1a0-0000-7000-8000-0000000000c9')
+  await renderApp()
+  expect(await screen.findByText('찾을 수 없음')).toBeTruthy()
+  expect(window.localStorage.getItem(LAST)).toBe(`/home/${C1}`)
 })
 
 test('메뉴를 누르면 주소가 바뀌고 브라우저 뒤로가 앞 메뉴로 간다', async () => {
