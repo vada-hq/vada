@@ -94,9 +94,10 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
         '0010_deposit_unique',
         '0011_income_limits_carryover_unique',
         '0012_registration_form_student_id',
+        '0013_member_profile',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 13)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 14)
   } finally {
     await close()
   }

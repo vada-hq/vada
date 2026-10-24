@@ -6,7 +6,7 @@ export const titleFields = [
   ['president', '회장'],
   ['vicePresident', '부회장'],
   ['head', '부장'],
-  ['viceHead', '부부장'],
+  ['viceHead', '부원'],
 ] as const
 export type TitleKey = (typeof titleFields)[number][0]
 

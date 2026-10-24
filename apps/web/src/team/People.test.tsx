@@ -298,6 +298,7 @@ test('직급이 붙은 사람은 member.manage와 rank.manage가 둘 다 있어�
     {
       id: 'm4',
       name: '최부회장',
+      profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
       councilRank: 'vice_president',
       departments: [],
       joinedAt: '2026-10-19T01:00:00.000Z',
@@ -305,6 +306,7 @@ test('직급이 붙은 사람은 member.manage와 rank.manage가 둘 다 있어�
     {
       id: 'm5',
       name: '정부원',
+      profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
       councilRank: null,
       departments: [{ id: 'd2', rank: null }],
       joinedAt: '2026-10-19T02:00:00.000Z',

@@ -157,6 +157,7 @@ test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직�
       'id',
       'joinedAt',
       'name',
+      'profile',
     ])
     assert.equal((await api.get(`${base}/members`, 'u5')).status, 403)
     assert.equal((await api.get(`${base}/members`)).status, 401)
@@ -363,8 +364,12 @@ test('내보내기: 회장은 409 PRESIDENT_CANNOT_LEAVE, 스스로는 409 CANNO
     assert.ok(!team.members.some(item => item.id === member.u4))
     assert.equal(team.departments[0]!.memberCount, 0)
     assert.equal(
-      (await testDb.pg.query('SELECT 1 FROM department_membership WHERE ends_at IS NULL')).rows
-        .length,
+      (
+        await testDb.pg.query(
+          'SELECT 1 FROM department_membership WHERE member_id = $1 AND ends_at IS NULL',
+          [member.u4],
+        )
+      ).rows.length,
       0,
     )
     assert.equal((await api.get(base, 'u4')).status, 403)
@@ -422,13 +427,15 @@ test('두 학생회에 든 사람: A에서 내보내도 B의 부서 소속과 �
       {
         id: a.xId,
         name: '이름 x',
+        profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
         councilRank: null,
         joinedAt: undefined,
         departments: [{ id: a.finance, rank: 'head' }],
       },
     )
     const inB = await xIn(b)
-    assert.deepEqual(inB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.equal(inB.departments.length, 1)
+    assert.equal(inB.departments.find(item => item.id === b.finance)?.rank, 'head')
     assert.equal(inB.councilRank, 'vice_president')
     // A에서 내보낸다. B의 소속은 그대로다.
     assert.equal((await api.post(`${a.base}/members/${a.xId}/remove`, {}, 'a')).status, 200)
@@ -442,7 +449,8 @@ test('두 학생회에 든 사람: A에서 내보내도 B의 부서 소속과 �
     assert.equal(placements.find(row => row.department_id === a.finance)?.ended, true)
     assert.equal(placements.find(row => row.department_id === b.finance)?.ended, false)
     const afterB = await xIn(b)
-    assert.deepEqual(afterB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.equal(afterB.departments.length, 1)
+    assert.equal(afterB.departments.find(item => item.id === b.finance)?.rank, 'head')
     assert.equal(afterB.councilRank, 'vice_president')
     assert.equal((await api.get(b.base, 'x')).status, 200)
     assert.equal((await api.get(a.base, 'x')).status, 403)

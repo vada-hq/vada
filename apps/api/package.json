@@ -12,6 +12,7 @@
     "db:migrate": "tsx src/ops/migrate/migrate.ts",
     "test-data": "tsx scripts/manage-test-data.ts",
     "demo": "tsx scripts/manage-demo-data.ts",
+    "organization-preview-data": "tsx scripts/organization-preview-data.ts",
     "pg-smoke": "tsx scripts/pg-smoke.ts"
   },
   "dependencies": {

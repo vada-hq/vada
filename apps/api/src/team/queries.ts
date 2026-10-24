@@ -1,8 +1,38 @@
-import { and, asc, eq, isNull } from 'drizzle-orm'
+import { and, asc, eq, isNull, ne } from 'drizzle-orm'
 import type { TeamResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { councilMembership, department, departmentMembership, member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+
+function memberResponse(
+  row: {
+    id: string
+    name: string
+    schoolName: string | null
+    collegeName: string | null
+    majorName: string | null
+    grade: number | null
+    councilRank: 'president' | 'vice_president' | null
+    joinedAt: Date
+  },
+  placements: { memberId: string; departmentId: string; rank: 'head' | 'vice_head' | null }[],
+) {
+  return {
+    id: row.id,
+    name: row.name,
+    profile: {
+      schoolName: row.schoolName,
+      collegeName: row.collegeName,
+      majorName: row.majorName,
+      grade: row.grade,
+    },
+    councilRank: row.councilRank,
+    joinedAt: row.joinedAt.toISOString(),
+    departments: placements
+      .filter(item => item.memberId === row.id)
+      .map(item => ({ id: item.departmentId, rank: item.rank })),
+  }
+}
 
 // 운영진과 부서 목록. 지금 기수의 끝나지 않은 소속만 보인다. 들어온 순서대로 놓고, 이메일은 넣지 않는다(바탕 spec G12).
 export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<TeamResponse> {
@@ -10,6 +40,10 @@ export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<Team
     .select({
       id: member.id,
       name: member.name,
+      schoolName: member.schoolName,
+      collegeName: member.collegeName,
+      majorName: member.majorName,
+      grade: member.grade,
       councilRank: councilMembership.councilRank,
       joinedAt: councilMembership.startsAt,
     })
@@ -31,18 +65,12 @@ export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<Team
   const departments = await db
     .select({ id: department.id, name: department.name, role: department.role })
     .from(department)
-    .where(eq(department.councilId, actor.councilId))
+    .where(
+      and(eq(department.councilId, actor.councilId), ne(department.name, '회장단')),
+    )
     .orderBy(asc(department.id))
   return {
-    members: members.map(row => ({
-      id: row.id,
-      name: row.name,
-      councilRank: row.councilRank,
-      joinedAt: row.joinedAt.toISOString(),
-      departments: placements
-        .filter(item => item.memberId === row.id)
-        .map(item => ({ id: item.departmentId, rank: item.rank })),
-    })),
+    members: members.map(row => memberResponse(row, placements)),
     departments: departments.map(row => ({
       ...row,
       memberCount: placements.filter(item => item.departmentId === row.id).length,

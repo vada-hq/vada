@@ -17,6 +17,12 @@ export const recordIdInput = token(UUID_LENGTH)
 export interface TeamMember {
   id: string
   name: string
+  profile: {
+    schoolName: string | null
+    collegeName: string | null
+    majorName: string | null
+    grade: number | null
+  }
   councilRank: CouncilRank | null
   departments: { id: string; rank: DepartmentRank | null }[]
   // 지금 소속을 연 시각(ISO). 다시 들어오면 다시 들어온 시각이다.

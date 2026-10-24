@@ -4,12 +4,12 @@ import CouncilWorkspace from './CouncilWorkspace'
 import type { ChatLink } from './useChatLink'
 import type { Opener, Page, WorkspaceProps } from './pages'
 
-// 방 알림이면 대화가, 업무 알림이면 업무 화면이, 구매 요청 알림이면 재정 화면이, 방금 만든 학생회면 운영진 화면이, 그 밖에는 홈이 첫 화면이다.
+// 방 알림이면 대화가, 업무 알림이면 업무 화면이, 구매 요청 알림이면 재정 화면이, 방금 만든 학생회면 조직 화면이, 그 밖에는 홈이 첫 화면이다.
 function startPageOf(fresh: boolean, linked: ChatLink | null): Page {
   if (linked?.roomId) return 'chat'
   if (linked?.taskId) return 'tasks'
   if (linked?.requestId) return 'finance'
-  return fresh ? 'people' : 'home'
+  return fresh ? 'organization' : 'home'
 }
 
 // 알림으로 연 학생회나 방금 만든 학생회가 내 목록에 있으면 그 학생회, 없으면 첫 학생회다.

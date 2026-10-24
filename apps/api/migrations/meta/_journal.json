@@ -92,6 +92,13 @@
       "when": 1792805018527,
       "tag": "0012_registration_form_student_id",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792820000000,
+      "tag": "0013_member_profile",
+      "breakpoints": true
     }
   ]
 }

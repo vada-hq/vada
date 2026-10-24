@@ -62,23 +62,39 @@ const placementOf = (tx: Tx, actor: Actor, memberId: string, departmentId: strin
       ),
     )
 
-// 부서 배정과 부서 직급. 처음이면 소속을 만들고, 빠졌던 부서면 같은 소속을 다시 열고, 이미 있으면 직급만 바꾼다.
-export async function assignDepartment(
+async function assertHeadAvailable(
   tx: Tx,
   actor: Actor,
-  {
-    memberId,
-    departmentId,
-    rank,
-  }: { memberId: string; departmentId: string; rank: DepartmentRank | null },
+  departmentId: string,
+  currentRank: DepartmentRank | null | undefined,
 ) {
-  await currentMembership(tx, actor, memberId)
-  await departmentOf(tx, actor, departmentId)
-  const [placement] = await placementOf(tx, actor, memberId, departmentId)
-  const current = placement && placement.endsAt === null ? placement : undefined
-  // 부장과 부부장 직급을 주고 거두는 것은 직급 칸이다(DEC-28).
-  if ((current?.rank ?? null) !== rank && !can(actor, 'rank.manage'))
-    throw new ApiError('FORBIDDEN')
+  if (currentRank === 'head') return
+  const [existingHead] = await tx
+    .select({ id: departmentMembership.id })
+    .from(departmentMembership)
+    .where(
+      and(
+        eq(departmentMembership.departmentId, departmentId),
+        eq(departmentMembership.cohortId, actor.cohortId),
+        eq(departmentMembership.departmentRank, 'head'),
+        isNull(departmentMembership.endsAt),
+      ),
+    )
+  if (existingHead) throw new ApiError('DEPARTMENT_HEAD_EXISTS')
+}
+
+async function saveDepartmentPlacement(
+  tx: Tx,
+  actor: Actor,
+  input: {
+    placement: { id: string; endsAt: Date | null; rank: DepartmentRank | null } | undefined
+    current: { id: string; endsAt: Date | null; rank: DepartmentRank | null } | undefined
+    memberId: string
+    departmentId: string
+    rank: DepartmentRank | null
+  },
+) {
+  const { placement, current, memberId, departmentId, rank } = input
   if (!placement) {
     await createRecord(tx, {
       kind: 'department_membership',
@@ -109,6 +125,27 @@ export async function assignDepartment(
       changes: { departmentRank: rank },
     })
   }
+}
+
+// 부서 배정과 부서 직급. 처음이면 소속을 만들고, 빠졌던 부서면 같은 소속을 다시 열고, 이미 있으면 직급만 바꾼다.
+export async function assignDepartment(
+  tx: Tx,
+  actor: Actor,
+  {
+    memberId,
+    departmentId,
+    rank,
+  }: { memberId: string; departmentId: string; rank: DepartmentRank | null },
+) {
+  await currentMembership(tx, actor, memberId)
+  await departmentOf(tx, actor, departmentId)
+  const [placement] = await placementOf(tx, actor, memberId, departmentId)
+  const current = placement && placement.endsAt === null ? placement : undefined
+  if (rank === 'head') await assertHeadAvailable(tx, actor, departmentId, current?.rank)
+  // 부장과 부부장 직급을 주고 거두는 것은 직급 칸이다(DEC-28).
+  if ((current?.rank ?? null) !== rank && !can(actor, 'rank.manage'))
+    throw new ApiError('FORBIDDEN')
+  await saveDepartmentPlacement(tx, actor, { placement, current, memberId, departmentId, rank })
 }
 
 // 부서에서 빼기. 소속을 지우지 않고 끝 시각을 적는다(DEC-27 기준 6).

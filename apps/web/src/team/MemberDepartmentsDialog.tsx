@@ -15,7 +15,7 @@ type Props = {
   departments: TeamDepartment[]
   titles: CouncilTitles
   saving: boolean
-  // 부서 직급(부장·부부장)을 바꿀 수 있는가(rank.manage). 부서에 직급 없이 넣는 일은 member.manage만으로 된다(P19).
+  // 부서 직급(부장·부원)을 바꿀 수 있는가(rank.manage). 부서에 직급 없이 넣는 일은 member.manage만으로 된다(P19).
   // 직급이 붙은 소속을 빼는 일은 그 직급을 거두는 일이기도 해서 서버는 rank.manage도 본다.
   canRank: boolean
   error: string

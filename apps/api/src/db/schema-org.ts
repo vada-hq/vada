@@ -39,7 +39,7 @@ export const council = pgTable('council', {
   presidentTitle: text('president_title').notNull().default('회장'),
   vicePresidentTitle: text('vice_president_title').notNull().default('부회장'),
   headTitle: text('head_title').notNull().default('부장'),
-  viceHeadTitle: text('vice_head_title').notNull().default('부부장'),
+  viceHeadTitle: text('vice_head_title').notNull().default('부원'),
 })
 
 export const member = pgTable('member', {
@@ -47,6 +47,10 @@ export const member = pgTable('member', {
   kind: text('kind').notNull().default('member'),
   name: text('name').notNull(),
   email: text('email').notNull(),
+  schoolName: text('school_name'),
+  collegeName: text('college_name'),
+  majorName: text('major_name'),
+  grade: integer('grade'),
 })
 
 export const cohort = pgTable('cohort', {

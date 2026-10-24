@@ -6,6 +6,7 @@ import { expenseSeedOf } from './expense-seed'
 const member = (id: string): TeamMember => ({
   id,
   name: id,
+  profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
   councilRank: null,
   departments: [],
   joinedAt: '2026-10-01T01:00:00.000Z',

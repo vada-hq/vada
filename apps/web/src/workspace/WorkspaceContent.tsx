@@ -11,6 +11,7 @@ import CouncilSettings from '../settings/CouncilSettings'
 import TasksPage from '../tasks/TasksPage'
 import type { TaskList } from '../tasks/useTasks'
 import Departments from '../team/Departments'
+import Organization from '../team/Organization'
 import People from '../team/People'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -139,19 +140,45 @@ function PageOf({
     )
   if (page === 'tasks' || page === 'finance')
     return <RecordsPage {...{ data, tasks, pending, page, taskId, requestId, onOpenEvent, view }} />
-  if (page === 'people')
-    return (
-      <People
-        view={view}
-        reading={reading}
-        team={data.team}
-        onCouncilChanged={data.reload}
-        onOwnChange={data.reloadAfterOwnChange}
-      />
-    )
-  if (page === 'departments') return <Departments view={view} team={data.team} />
+  if (page === 'organization')
+    return <OrganizationPage data={data} view={view} />
+  if (page === 'people' || page === 'departments')
+    return <LegacyTeamPage data={data} page={page} view={view} reading={reading} />
   // 학생회 이름이 바뀌면 옆 메뉴와 학생회 고르기의 이름도 바뀌도록 내 학생회 목록을 다시 읽는다.
   return <CouncilSettings view={view} onForbidden={data.reload} onSaved={data.saved} />
+}
+
+function OrganizationPage({
+  data,
+  view,
+}: {
+  data: CouncilData
+  view: CouncilView
+}) {
+  return <Organization view={view} team={data.team} />
+}
+
+function LegacyTeamPage({
+  data,
+  page,
+  view,
+  reading,
+}: {
+  data: CouncilData
+  page: 'people' | 'departments'
+  view: CouncilView
+  reading: Reading
+}) {
+  if (page === 'departments') return <Departments view={view} team={data.team} />
+  return (
+    <People
+      view={view}
+      reading={reading}
+      team={data.team}
+      onCouncilChanged={data.reload}
+      onOwnChange={data.reloadAfterOwnChange}
+    />
+  )
 }
 
 function Body({ data, ...props }: Props) {

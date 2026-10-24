@@ -85,6 +85,7 @@ export function teamResponse(): TeamResponse {
       {
         id: 'm1',
         name: '김회장',
+        profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
         councilRank: 'president',
         departments: [],
         joinedAt: '2026-10-01T01:00:00.000Z',
@@ -92,6 +93,7 @@ export function teamResponse(): TeamResponse {
       {
         id: 'm2',
         name: '이재정',
+        profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
         councilRank: null,
         departments: [{ id: 'd1', rank: 'head' }],
         joinedAt: '2026-10-02T01:00:00.000Z',
@@ -99,6 +101,7 @@ export function teamResponse(): TeamResponse {
       {
         id: 'm3',
         name: '박새내',
+        profile: { schoolName: null, collegeName: null, majorName: null, grade: null },
         councilRank: null,
         departments: [],
         joinedAt: '2026-10-18T15:30:00.000Z',

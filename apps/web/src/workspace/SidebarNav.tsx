@@ -4,7 +4,6 @@ import {
   ListChecks,
   MessageSquare,
   Network,
-  Users,
   Wallet,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -59,26 +58,18 @@ function FinanceItem({
   )
 }
 
-// 운영진: 사람, 부서
+// 운영진: 조직도에서 구성원과 부서를 함께 관리한다.
 function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void }) {
   return (
     <>
       <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
       <NavItem
-        active={page === 'people'}
+        active={page === 'organization'}
         className="flex items-center gap-2"
-        onClick={() => onPage('people')}
-      >
-        <Users aria-hidden className="size-4" />
-        사람
-      </NavItem>
-      <NavItem
-        active={page === 'departments'}
-        className="flex items-center gap-2"
-        onClick={() => onPage('departments')}
+        onClick={() => onPage('organization')}
       >
         <Network aria-hidden className="size-4" />
-        부서
+        조직
       </NavItem>
     </>
   )
@@ -128,7 +119,7 @@ function LeadItems({
   )
 }
 
-// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
+// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(조직).
 export default function SidebarNav({
   page,
   unread,

@@ -46,6 +46,7 @@ export const DEPARTMENT_ERRORS: Record<string, string> = {
 }
 
 export const PEOPLE_ERRORS: Record<string, string> = {
+  DEPARTMENT_HEAD_EXISTS: '부장이 이미 있습니다.',
   PRESIDENT_CANNOT_LEAVE: '회장은 내보낼 수 없어요. 먼저 회장을 넘겨 주세요.',
   CANNOT_REMOVE_SELF: '나를 내보낼 수는 없어요.',
   PRESIDENT_REQUIRED: '회장의 직급은 회장 넘기기로만 바꿀 수 있어요.',
