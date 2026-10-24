@@ -10,7 +10,7 @@ import { NOON } from '../test-support/events.js'
 import { createEventRoutes } from './routes.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 → 행사 행 읽기 순서다. 잠금을 빼면 이 시험이 실패한다.
-test('행사 쓰기 세 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 운영진을 확인하고 행사를 읽는다', async () => {
+test('행사 쓰기 두 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 운영진을 확인하고 행사를 읽는다', async () => {
   const { pg, close } = await createTestDb()
   try {
     const queries: string[] = []
@@ -35,7 +35,6 @@ test('행사 쓰기 세 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤�
     const calls: [string, unknown, number][] = [
       [base, { name: '새 행사' }, 201],
       [`${base}/${eventId}`, { name: '고침', startsAt: null, endsAt: null, place: null }, 200],
-      [`${base}/${eventId}/owner`, { ownerId: null }, 200],
     ]
     for (const [path, body, status] of calls) {
       queries.length = 0

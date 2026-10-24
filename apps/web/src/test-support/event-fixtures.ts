@@ -35,7 +35,7 @@ export function eventSummary(overrides: Partial<EventSummary> = {}): EventSummar
 
 export function eventDetail(
   overrides: Partial<EventDetail> = {},
-  actions: EventAction[] = ['event.set_owner'],
+  actions: EventAction[] = [],
 ): EventDetail {
   return {
     ...eventSummary(),
@@ -50,6 +50,7 @@ export function eventDetail(
     ],
     approvals: [],
     actions,
+    blockers: {},
     ...overrides,
   }
 }

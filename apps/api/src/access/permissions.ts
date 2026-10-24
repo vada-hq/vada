@@ -51,10 +51,9 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'task.set_department': { who: ['leadership', 'event_owner'] },
   'task.assign': { who: ['department_head', 'event_owner'] },
   'task.status': { who: ['department_head', 'assignee', 'event_owner'] },
-  // 행사 칸. 만들 때 책임자도 정한다. 고치기는 책임자만이라 회장단도 물려받지 않는다(회장단은 책임자를 자기로 바꿔 고친다).
+  // 행사 칸. 만들 때 책임자도 정한다. 고치기는 회장단과 그 행사의 책임자다(DEC-79). 책임자를 정하는 화면은 없다.
   'event.create': { who: ['leadership'] },
-  'event.set_owner': { who: ['leadership'] },
-  'event.update': { who: ['event_owner'] },
+  'event.update': { who: ['leadership', 'event_owner'] },
   // 행사 완료와 완료 취소는 회장단이다(DEC-39). 책임자도 물려받지 않는다.
   'event.complete': { who: ['leadership'] },
   // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).

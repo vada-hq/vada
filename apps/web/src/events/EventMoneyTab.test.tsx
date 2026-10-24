@@ -21,10 +21,12 @@ afterEach(() => {
 
 const ORG = '/api/organizations/c1'
 const EVENT = `${ORG}/events/e1`
-const COMPLETE: EventAction[] = ['event.complete']
-
-const event = (extra: Partial<EventDetail> = {}, actions: EventAction[] = COMPLETE) =>
-  eventDetail({ id: 'e1', ...extra }, actions)
+// 서버가 줄 수 있는 조합만 쓴다: 끝난 행사에는 완료, 완료한 행사에는 완료 취소다.
+const event = (extra: Partial<EventDetail> = {}, actions?: EventAction[]) =>
+  eventDetail(
+    { id: 'e1', status: 'ended', ...extra },
+    actions ?? [extra.status === 'completed' ? 'event.cancel_completion' : 'event.complete'],
+  )
 
 function openMoney(initial: EventDetail = event(), settlement = settlementOf()) {
   const api = mockApi()
@@ -161,7 +163,13 @@ test('완료 뒤 정산을 다시 읽는다', async () => {
   )
 })
 
-test.each(['SETTLEMENT_PENDING', 'EVENT_NOT_STARTED', 'NO_FISCAL_PERIOD', 'EVENT_COMPLETED'])(
+test.each([
+  'SETTLEMENT_PENDING',
+  'EVENT_NOT_ENDED',
+  'NO_FISCAL_PERIOD',
+  'PERIOD_CLOSED',
+  'EVENT_COMPLETED',
+])(
   '완료가 409 %s이면 확인을 닫고 문구를 버튼 옆에 보이며 행사와 정산을 다시 읽는다',
   async code => {
     const { api } = openMoney()

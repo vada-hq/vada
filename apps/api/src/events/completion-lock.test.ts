@@ -129,7 +129,6 @@ const rows: Row[] = [
         OWNER,
       ),
   ],
-  ['책임자 바꾸기', (t, s) => post(t)(`/events/${s.event}/owner`, { ownerId: null })],
   // 요청
   [
     '그 행사에 요청 내기',

@@ -69,7 +69,7 @@ export function createSettlementRoutes(
       now: clock(),
     }
     const settlement = await db.transaction(
-      async tx => settlementOf(tx, await authorize(tx, request), eventIdOf(c)),
+      async tx => settlementOf(tx, await authorize(tx, request), eventIdOf(c), request.now),
       snapshot,
     )
     return c.json({ settlement } satisfies SettlementResponse)

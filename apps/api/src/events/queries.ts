@@ -1,26 +1,22 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import {
-  EVENT_ACTIONS,
   EVENT_LIST_LIMIT,
   koreanOf,
-  type EventAction,
   type EventDetail,
   type EventSummary,
   type EventsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong, completionApprovalsOf } from './completion.js'
 import { eventHistoryOf } from './history.js'
+import { actionsOf, blockersOf, factsOf } from './policy.js'
 import { eventStatusOf } from './status.js'
 
 type Reader = Pick<Db, 'select'>
-
-const LOCKED_ACTIONS: ReadonlySet<EventAction> = new Set(['event.update', 'event.set_owner'])
 
 // 끝나는 때와 목록 묶음의 SQL. status.ts의 eventEndOf, eventStatusOf와 같은 규칙이다(끝이 없으면 시작한 날 한국 23:59:59).
 const endsAtSql = sql`coalesce(${event.endsAt}, (date_trunc('day', ${event.startsAt} at time zone 'Asia/Seoul') + interval '1 day') at time zone 'Asia/Seoul' - interval '1 second')`
@@ -175,7 +171,7 @@ export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
   return counts
 }
 
-// 행사 하나와 그 사람이 할 수 있는 동작. 동작은 책임자가 나일 때만 맞는 기준이라 책임자를 맥락으로 묻는다.
+// 행사 하나와 그 사람이 할 수 있는 동작(events/policy.ts). 쓰기의 거절과 같은 판정이다.
 export async function eventDetailOf(
   db: Reader,
   actor: Actor,
@@ -184,17 +180,13 @@ export async function eventDetailOf(
 ): Promise<EventDetail> {
   const row = await eventRowOf(db, actor, eventId)
   const [summary] = await summariesOf(db, actor, [row], now)
-  const context = row.ownerId ? { eventOwnerId: row.ownerId } : {}
+  const facts = await factsOf(db, actor, row, { now })
   return {
     ...summary!,
     tasks: (await taskCountsByEvent(db, [eventId])).get(eventId) ?? { open: 0, total: 0 },
     history: await eventHistoryOf(db, eventId),
     approvals: await completionApprovalsOf(db, eventId),
-    // 완료한 행사는 고치기와 책임자 바꾸기가 잠긴다(완료 취소로 다시 열린다).
-    actions: EVENT_ACTIONS.filter(
-      action =>
-        can(actor, action, context) &&
-        !(LOCKED_ACTIONS.has(action) && summary!.status === 'completed'),
-    ),
+    actions: actionsOf(actor, facts),
+    blockers: blockersOf(actor, facts),
   }
 }

@@ -3,6 +3,7 @@ import type { EventSettlement, SettlementBudgetItem } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { completedEventIdsAmong, completionApprovalsOf } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
+import { eventStatusOf } from '../events/status.js'
 import {
   budgetItem,
   deposit,
@@ -16,7 +17,7 @@ import {
 } from '../db/schema.js'
 import { sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
-import { remainingOf } from './remaining.js'
+import { isSettled, remainingOf } from './remaining.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -95,8 +96,10 @@ export async function settlementOf(
   db: Reader,
   actor: Actor,
   eventId: string,
+  now: Date,
 ): Promise<EventSettlement> {
-  await eventRowOf(db, actor, eventId)
+  const row = await eventRowOf(db, actor, eventId)
+  const completed = (await completedEventIdsAmong(db, [eventId])).has(eventId)
   const scope = { councilId: actor.councilId, eventId }
   const budget = await budgetOf(db, actor, eventId)
   const spent = await expenseTotalOf(db, actor, eventId)
@@ -116,8 +119,8 @@ export async function settlementOf(
     },
     difference: budget.expense - spent,
     remaining,
-    settled: remaining.every(item => item.count === 0),
-    completed: (await completedEventIdsAmong(db, [eventId])).has(eventId),
+    settled: isSettled(eventStatusOf(row.startsAt, row.endsAt, now, completed), remaining),
+    completed,
     approvals: await completionApprovalsOf(db, eventId),
   }
 }

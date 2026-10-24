@@ -3,7 +3,6 @@ import {
   koreanOf,
   type CreateEventRequest,
   type EventDetail,
-  type SetEventOwnerRequest,
   type UpdateEventRequest,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -12,7 +11,8 @@ import { lockCurrentMembers } from '../chat/current-members.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
-import { assertEventOpen } from './completion.js'
+import { lockEventsShared } from '../policy/locks.js'
+import { decide, factsOf } from './policy.js'
 import { eventDetailOf, eventRowOf } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 행사 행 읽기 → 권한표 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -51,7 +51,7 @@ export async function createEvent(
   return eventDetailOf(tx, actor, id, now)
 }
 
-// 이름, 일시, 장소 고치기. 책임자만 한다(회장단도 물려받지 않는다). 같은 값이면 판을 만들지 않는다.
+// 이름, 일시, 장소 고치기. 회장단과 책임자가 한다(DEC-79). 같은 값이면 판을 만들지 않는다.
 export async function updateEvent(
   tx: Tx,
   actor: Actor,
@@ -59,9 +59,14 @@ export async function updateEvent(
   input: UpdateEventRequest,
 ): Promise<EventDetail> {
   const row = await eventRowOf(tx, actor, target.eventId)
-  const context = row.ownerId ? { eventOwnerId: row.ownerId } : {}
-  if (!can(actor, 'event.update', context)) throw new ApiError('FORBIDDEN')
-  await assertEventOpen(tx, row.id)
+  // 행사 행을 FOR SHARE로 잠근 뒤 같은 거래에서 사실을 읽어 판정한다(완료와 겹치면 하나로 정해진다).
+  await lockEventsShared(tx, [row.id])
+  const facts = await factsOf(tx, actor, row, {
+    now: target.now,
+    actions: ['event.update'],
+  })
+  const refused = decide(actor, facts, 'event.update')
+  if (refused) throw new ApiError(refused)
   const same = (value: Date | null, wanted: string | null) =>
     (value ? koreanOf(value) : null) === wanted
   const changes = {
@@ -78,28 +83,5 @@ export async function updateEvent(
       reason: null,
       changes,
     })
-  return eventDetailOf(tx, actor, row.id, target.now)
-}
-
-// 책임자 바꾸기와 비우기. 회장단만 한다. 같은 사람이면 판도 확인도 없다(떠난 책임자를 같은 값으로 다시 보내도 409가 아니다).
-export async function setEventOwner(
-  tx: Tx,
-  actor: Actor,
-  target: { eventId: string; now: Date },
-  input: SetEventOwnerRequest,
-): Promise<EventDetail> {
-  if (!can(actor, 'event.set_owner')) throw new ApiError('FORBIDDEN')
-  const row = await eventRowOf(tx, actor, target.eventId)
-  await assertEventOpen(tx, row.id)
-  if (input.ownerId !== row.ownerId) {
-    await assertOwner(tx, actor, input.ownerId, target.now)
-    await updateRecord(tx, {
-      kind: 'event',
-      id: row.id,
-      actor: actor.memberId,
-      reason: null,
-      changes: { ownerId: input.ownerId },
-    })
-  }
   return eventDetailOf(tx, actor, row.id, target.now)
 }

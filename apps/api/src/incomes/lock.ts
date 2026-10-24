@@ -1,8 +1,13 @@
 import type { Actor } from '../access/actor.js'
 import { budgetItemEventsOf } from '../budget/queries.js'
-import { assertPeriodOpen, isPeriodClosed } from '../closing/lock.js'
 import type { Db, Tx } from '../db/types.js'
-import { assertEventsOpen, completedEventIdsAmong } from '../events/completion.js'
+import { ApiError } from '../http/errors.js'
+import {
+  completedEventIdsAmong,
+  isPeriodClosed,
+  lockCodeOf,
+  lockedCompleted,
+} from '../policy/locks.js'
 
 type Reader = Pick<Db, 'select'>
 type Target = { budgetItemId: string | null; periodId: string }
@@ -14,8 +19,11 @@ export async function assertIncomeWritable(tx: Tx, actor: Actor, target: Target)
   const events = target.budgetItemId
     ? await budgetItemEventsOf(tx, actor, [target.budgetItemId])
     : []
-  await assertEventsOpen(tx, events)
-  await assertPeriodOpen(tx, actor, target.periodId)
+  const code = lockCodeOf({
+    eventCompleted: await lockedCompleted(tx, events),
+    periodClosed: await isPeriodClosed(tx, actor, target.periodId),
+  })
+  if (code) throw new ApiError(code)
 }
 
 // 읽기: 쓰기와 같은 판단(그 항목의 행사가 완료인가, 그 기간이 공개됐는가)이다. 잠긴 취소를 actions에서 뺄 때 쓴다.
@@ -24,7 +32,9 @@ export async function isIncomeLocked(db: Reader, actor: Actor, target: Target) {
     ? await budgetItemEventsOf(db, actor, [target.budgetItemId])
     : []
   return (
-    (await completedEventIdsAmong(db, events)).size > 0 ||
-    (await isPeriodClosed(db, actor, target.periodId))
+    lockCodeOf({
+      eventCompleted: (await completedEventIdsAmong(db, events)).size > 0,
+      periodClosed: await isPeriodClosed(db, actor, target.periodId),
+    }) !== null
   )
 }

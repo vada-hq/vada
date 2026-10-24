@@ -141,11 +141,14 @@ test(
     )
     assert.deepEqual(asOwner.history[1]?.changes, [{ field: 'place', from: '운동장', to: '강당' }])
     assert.equal(asOwner.history[1]?.by?.id, president.memberId)
-    assert.deepEqual((await t.detail(id, 's-president')).actions, [
-      'event.set_owner',
-      'event.complete',
-    ])
-    assert.deepEqual((await t.detail(id, 's-plain')).actions, [])
+    // 회장단은 남이 책임자인 행사도 고친다(DEC-79). 날짜 미정 행사는 완료할 수 없어 이유가 blockers에 있다.
+    const asPresident = await t.detail(id, 's-president')
+    assert.deepEqual(asPresident.actions, ['event.update'])
+    assert.deepEqual(asPresident.blockers, { 'event.complete': 'EVENT_NOT_ENDED' })
+    assert.deepEqual(asOwner.blockers, {})
+    const asPlain = await t.detail(id, 's-plain')
+    assert.deepEqual(asPlain.actions, [])
+    assert.deepEqual(asPlain.blockers, {})
   }),
 )
 
@@ -202,7 +205,6 @@ test(
       await t.api.get(t.base, 's-president'),
       await t.api.get(`${t.base}/${id}`, 's-president'),
       await t.post('', { name: '새 행사' }),
-      await t.post(`/${id}/owner`, { ownerId: null }),
     ]
     for (const response of responses) {
       assert.equal(response.headers.get('Cache-Control'), 'no-store')

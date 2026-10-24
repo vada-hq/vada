@@ -65,7 +65,7 @@
 
 1 → 2, 1 → 3 → 4 → 5, 마지막에 6. 2와 3은 파일이 겹치지 않아 나란히 해도 된다. 시간이 모자라면 6의 신청 상태표를 '나중'으로 넘긴다.
 
-### 1. 공통 잠금과 행사 정책(서버) [ ]
+### 1. 공통 잠금과 행사 정책(서버) [x]
 - 할 수 있게 되는 것: 행사의 고치기·완료·완료 취소를 화면에 주는 판정과 서버의 거절이 한 정책에서 나오고, 회장단이 모든 행사를 고친다.
 - 수용 기준: 행사 상세 `actions`에 완료 전 행사의 `event.update`는 회장단과 책임자에게, `event.complete`는 끝났고 남은 것 0이고 수입 기간이 열린 행사에서 회장단에게, `event.cancel_completion`은 완료한 행사에서(수입 기간 공개 전) 회장단에게만 있다. `event.set_owner`는 어디에도 없고 `POST .../owner`는 404다. 회장단이 남이 만든 행사나 책임자가 떠난 행사를 고치면 200이고 판의 바꾼 사람이 회장단이다. 책임자도 회장단도 아니면 403. 예정·진행 중 행사의 완료는 409 `EVENT_NOT_ENDED`이고 끝 시각이 없는 행사는 시작한 날 23:59:59를 ±1초로 본다. 회장단이 볼 때 `blockers`의 코드는 그 쓰기가 낼 코드와 같고(예정 → `EVENT_NOT_ENDED`, 남은 것 → `SETTLEMENT_PENDING`, 기간 공개 → `PERIOD_CLOSED`), 회장단이 아니면 `blockers`가 비어 있다. 완료·완료 취소의 결과(결재, 참가비 수입, 수입 취소)는 지금과 같다. 예정·진행 중 행사의 `settled`는 남은 것이 0이어도 거짓이고 홈도 같다. 행사 완료·기간 공개 잠금의 기존 시험(`write-lock`, `locked-actions`, `completion-lock`, closing `lock`)이 그대로 통과한다. 정책의 조건 하나를 지우면 읽기 시험과 쓰기 시험이 함께 실패한다(자주 잡힌 것 11·12). 다른 학생회 행사는 404.
 - 닿는 곳: contracts `events.ts`(`EVENT_ACTIONS`, `EventDetail.blockers`, `SetEventOwnerSchema` 뺌), `permissions.ts`, `errors.ts`(`EVENT_NOT_ENDED`). api `policy/locks.ts`(새), `events/policy.ts`(새), `events/completion.ts`, `events/queries.ts`, `events/service.ts`, `events/routes.ts`, `closing/lock.ts`, `settlement/complete.ts`, `settlement/fee-income.ts`, `settlement/queries.ts`, `settlement/routes.ts`, `home/settling.ts`, `access/permissions.ts`, `ops/pg-smoke/pg-smoke-event-cases.ts`. web은 이름만(`lib/messages.ts`, `test-support/event-fixtures.ts`).

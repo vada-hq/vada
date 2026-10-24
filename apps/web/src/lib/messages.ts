@@ -92,9 +92,14 @@ export const EVENT_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을
 export const EVENT_LOST = '이 행사를 볼 수 없어요. 다른 학생회의 행사일 수 있어요.'
 // 행사의 돈 탭: 정산 읽기와 완료·완료 취소. 오류는 그 동작 옆에 보인다.
 export const SETTLEMENT_LOAD_FAILED = '정산을 불러오지 못했어요. 연결을 확인해 주세요.'
+// 결산을 공개한 기간에는 합계를 바꾸는 쓰기를 막는다(기능 009 조각 4가 서버에서 낸다). 수입과 지출이 같이 쓴다.
+const PERIOD_CLOSED =
+  '결산을 공개한 기간이라 바꿀 수 없어요. 재정부가 결산을 다시 열면 바꿀 수 있어요.'
+
 export const COMPLETION_ERRORS: Record<string, string> = {
   SETTLEMENT_PENDING: '아직 정산이 끝나지 않았어요. 남은 것을 처리한 뒤에 완료해 주세요.',
-  EVENT_NOT_STARTED: '시작하지 않은 행사는 완료할 수 없어요. 행사 일시를 확인해 주세요.',
+  EVENT_NOT_ENDED: '끝난 뒤에 완료할 수 있어요.',
+  PERIOD_CLOSED,
   NO_FISCAL_PERIOD:
     '참가비를 수입으로 넣을 회계 기간이 없어요. 재정의 예산 탭에서 회계 기간을 먼저 만들어 주세요.',
   EVENT_COMPLETED: '이미 완료한 행사예요. 새로 불러왔어요.',
@@ -222,10 +227,6 @@ export const EXPENSE_ACCOUNTS_FAILED =
   '계좌 목록을 불러오지 못했어요. 계좌 없이 적을 수 있어요. 계좌를 정하려면 이 창을 닫았다가 다시 열어 주세요.'
 export const EXPENSE_ACCOUNT_CLOSED =
   '고른 계좌를 닫았어요. 다른 계좌를 고르거나 없음으로 적어 주세요.'
-
-// 결산을 공개한 기간에는 합계를 바꾸는 쓰기를 막는다(기능 009 조각 4가 서버에서 낸다). 수입과 지출이 같이 쓴다.
-const PERIOD_CLOSED =
-  '결산을 공개한 기간이라 바꿀 수 없어요. 재정부가 결산을 다시 열면 바꿀 수 있어요.'
 
 // 지출 목록, 적기, 상세, 취소·환급, 증빙 사진. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const EXPENSES_LOAD_FAILED = '지출을 불러오지 못했어요. 연결을 확인해 주세요.'

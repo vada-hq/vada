@@ -152,12 +152,12 @@ export {
   CancelCompletionSchema,
   CompleteEventSchema,
   CreateEventSchema,
-  SetEventOwnerSchema,
   UpdateEventSchema,
   type CancelCompletionRequest,
   type CompleteEventRequest,
   type CreateEventRequest,
   type EventAction,
+  type EventBlockers,
   type EventChange,
   type EventDetail,
   type EventResponse,
@@ -165,7 +165,6 @@ export {
   type EventSummary,
   type EventVersion,
   type EventsResponse,
-  type SetEventOwnerRequest,
   type UpdateEventRequest,
 } from './events.js'
 export {

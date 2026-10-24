@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { text } from './input.js'
 import { koreanDateTime } from './korean-time.js'
-import type { Action } from './permissions.js'
+import type { ErrorCode } from './errors.js'
 import type { SettlementApproval } from './settlement.js'
 import { PURCHASE_REASON_MAX } from './purchases.js'
 import { recordIdInput } from './team.js'
@@ -31,7 +31,7 @@ export const CreateEventSchema = z
   })
   .refine(hasValidSpan)
 export type CreateEventRequest = z.infer<typeof CreateEventSchema>
-// 이름, 일시, 장소 고치기(책임자). 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
+// 이름, 일시, 장소 고치기(회장단과 책임자, DEC-79). 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
 export const UpdateEventSchema = z
   .strictObject({
     name: text(EVENT_NAME_MAX),
@@ -41,9 +41,6 @@ export const UpdateEventSchema = z
   })
   .refine(hasValidSpan)
 export type UpdateEventRequest = z.infer<typeof UpdateEventSchema>
-// 책임자 바꾸기와 비우기(회장단). 비우려면 null을 보낸다(키를 빼면 400).
-export const SetEventOwnerSchema = z.strictObject({ ownerId: recordIdInput.nullable() })
-export type SetEventOwnerRequest = z.infer<typeof SetEventOwnerSchema>
 
 // 완료(회장단). 사유는 적을 수만 있다(결재 기록에 남는다).
 export const CompleteEventSchema = z.strictObject({
@@ -55,12 +52,11 @@ export const CancelCompletionSchema = z.strictObject({ reason: text(PURCHASE_REA
 export type CancelCompletionRequest = z.infer<typeof CancelCompletionSchema>
 
 // 행사마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
-export const EVENT_ACTIONS = [
-  'event.update',
-  'event.set_owner',
-  'event.complete',
-] as const satisfies readonly Action[]
+// 화면이 누르는 일 하나에 이름 하나다. 권한 키(Action)와 따로이고, 서버 정책(events/policy.ts)이 동작을 권한 키와 상태 조건으로 잇는다.
+export const EVENT_ACTIONS = ['event.update', 'event.complete', 'event.cancel_completion'] as const
 export type EventAction = (typeof EVENT_ACTIONS)[number]
+// 역할은 있는데 상태가 막은 완료·완료 취소와 그 쓰기가 내는 오류 코드(회장단에게만). 풀릴 수 있는 막힘만 있다(끝나기 전, 정산 남음, 기간 없음, 기간 공개).
+export type EventBlockers = Partial<Record<'event.complete' | 'event.cancel_completion', ErrorCode>>
 
 export interface EventSummary {
   id: string
@@ -98,6 +94,7 @@ export interface EventDetail extends EventSummary {
   // 완료와 완료 취소 결재를 오래된 것부터 모두(DEC-68)
   approvals: SettlementApproval[]
   actions: EventAction[]
+  blockers: EventBlockers
 }
 
 export interface EventsResponse {

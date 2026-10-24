@@ -34,8 +34,9 @@ test(
       [[{ field: 'created' }]],
     )
     assert.equal(await t.versions(event.id), 1)
-    // 회장은 책임자가 아니어서 고칠 수는 없고 책임자만 바꿀 수 있다.
-    assert.deepEqual(event.actions, ['event.set_owner', 'event.complete'])
+    // 회장단은 책임자가 아니어도 고친다(DEC-79). 예정 행사는 완료할 수 없다.
+    assert.deepEqual(event.actions, ['event.update'])
+    assert.deepEqual(event.blockers, { 'event.complete': 'EVENT_NOT_ENDED' })
   }),
 )
 
@@ -163,13 +164,13 @@ test('계정마다 10초에 21번째 만들기는 429이고 다른 계정은 된
 })
 
 test(
-  '책임자만 고친다. 회장단이어도 책임자가 아니면 403이고, 같은 값이면 판이 늘지 않는다',
+  '회장단과 책임자가 고친다. 부장 같은 다른 운영진은 403이고, 같은 값이면 판이 늘지 않는다',
   withEvents(async t => {
     const owner = t.council.people.planningMember
     const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
     const edit = { ...FULL, place: '강당' }
-    assert.equal((await t.post(`/${event.id}`, edit, 's-president')).status, 403)
     assert.equal((await t.post(`/${event.id}`, edit, 's-planningHead')).status, 403)
+    assert.equal((await t.post(`/${event.id}`, edit, 's-financeMember')).status, 403)
     assert.equal(await t.versions(event.id), 1)
     const response = await t.post(`/${event.id}`, edit, 's-planningMember')
     assert.equal(response.status, 200)
@@ -182,6 +183,14 @@ test(
     assert.equal(await t.versions(event.id), 2)
     assert.equal((await t.post(`/${event.id}`, edit, 's-planningMember')).status, 200)
     assert.equal(await t.versions(event.id), 2)
+    // 회장단은 남이 만든 행사도 고치고 판의 바꾼 사람이 회장단이다.
+    const byPresident = await t.post(`/${event.id}`, { ...edit, place: '체육관' }, 's-president')
+    assert.equal(byPresident.status, 200)
+    const detail = await t.detail(event.id)
+    assert.equal(detail.history.at(-1)?.by?.id, t.council.people.president.memberId)
+    assert.deepEqual(detail.history.at(-1)?.changes, [
+      { field: 'place', from: '강당', to: '체육관' },
+    ])
   }),
 )
 
@@ -222,10 +231,9 @@ test(
 )
 
 test(
-  '책임자 바꾸기와 고치기는 로그인하지 않으면 401이다',
+  '고치기는 로그인하지 않으면 401이다',
   withEvents(async t => {
     const id = await t.make({})
-    assert.equal((await t.api.post(`${t.base}/${id}/owner`, { ownerId: null })).status, 401)
     assert.equal((await t.api.post(`${t.base}/${id}`, FULL)).status, 401)
   }),
 )
@@ -268,69 +276,12 @@ test(
 )
 
 test(
-  '책임자 없는 행사는 회장단도 고칠 수 없고, 회장단은 책임자를 자기로 바꿔 고친다',
+  '책임자가 없는 행사도 회장단이 고치고, 책임자를 정하는 길은 없다',
   withEvents(async t => {
     const event = await created(await t.post('', FULL))
-    assert.equal((await t.post(`/${event.id}`, FULL, 's-president')).status, 403)
-    const me = t.council.people.president.memberId
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: me })).status, 200)
+    assert.equal((await t.post(`/${event.id}`, FULL, 's-planningHead')).status, 403)
     assert.equal((await t.post(`/${event.id}`, { ...FULL, place: '강당' })).status, 200)
-  }),
-)
-
-test(
-  '회장단만 책임자를 바꾸거나 비운다. 바꾸면 전 책임자는 403이 되고 새 책임자가 고친다',
-  withEvents(async t => {
-    const { planningMember, planningHead } = t.council.people
-    const event = await created(await t.post('', { ...FULL, ownerId: planningMember.memberId }))
-    const set = (ownerId: string | null, user = 's-president') =>
-      t.post(`/${event.id}/owner`, { ownerId }, user)
-    assert.equal((await set(planningHead.memberId, 's-planningMember')).status, 403)
-    assert.equal((await set(planningHead.memberId, 's-planningHead')).status, 403)
-    assert.equal(await t.versions(event.id), 1)
-    const response = await set(planningHead.memberId, 's-vicePresident')
-    assert.equal(response.status, 200)
-    const body = ((await response.json()) as { event: EventDetail }).event
-    assert.deepEqual(body.history.at(-1)?.changes, [
-      {
-        field: 'owner',
-        from: { id: planningMember.memberId, name: 's planningMember' },
-        to: { id: planningHead.memberId, name: 's planningHead' },
-      },
-    ])
-    assert.equal((await t.post(`/${event.id}`, FULL, 's-planningMember')).status, 403)
-    assert.equal(
-      (await t.post(`/${event.id}`, { ...FULL, place: '강당' }, 's-planningHead')).status,
-      200,
-    )
-    // 같은 사람이면 판이 늘지 않는다.
-    const before = await t.versions(event.id)
-    assert.equal((await set(planningHead.memberId)).status, 200)
-    assert.equal(await t.versions(event.id), before)
-    assert.equal((await set(null)).status, 200)
-    assert.equal((await t.detail(event.id)).owner, null)
-    assert.equal(await t.versions(event.id), before + 1)
-    assert.equal((await set(null)).status, 200)
-    assert.equal(await t.versions(event.id), before + 1)
-  }),
-)
-
-test(
-  '책임자 바꾸기는 내보낸 사람, 다른 학생회 사람이면 409이고 판이 늘지 않으며 키를 빼면 400이다',
-  withEvents(async t => {
-    const event = await created(await t.post('', FULL))
-    for (const ownerId of [t.council.people.ended.memberId, t.other.people.president.memberId])
-      assert.equal((await t.post(`/${event.id}/owner`, { ownerId })).status, 409)
-    assert.equal((await t.post(`/${event.id}/owner`, {})).status, 400)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: 'x' })).status, 400)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null, extra: 1 })).status, 400)
-    assert.equal(await t.versions(event.id), 1)
-    const foreign = await t.make({}, t.other)
-    assert.equal((await t.post(`/${foreign}/owner`, { ownerId: null })).status, 404)
-    assert.equal((await t.post(`/${MISSING}/owner`, { ownerId: null })).status, 404)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null }, 'o-president')).status, 403)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null }, 's-plain')).status, 403)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null })).status, 200)
+    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null })).status, 404)
   }),
 )
 
@@ -348,7 +299,7 @@ test(
     assert.equal(detail.owner?.current, false)
     assert.equal(detail.owner?.id, owner.memberId)
     assert.equal((await t.post(`/${event.id}`, FULL, 's-planningMember')).status, 403)
-    assert.equal((await t.post(`/${event.id}/owner`, { ownerId: owner.memberId })).status, 200)
+    assert.equal((await t.post(`/${event.id}`, FULL)).status, 200)
     assert.equal(await t.versions(event.id), 1)
   }),
 )

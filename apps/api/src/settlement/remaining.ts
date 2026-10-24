@@ -1,6 +1,7 @@
 import { and, asc, eq, isNotNull, isNull, notExists, or, sql, type SQL } from 'drizzle-orm'
 import {
   SETTLEMENT_TARGET_LIMIT,
+  type EventStatus,
   type SettlementRemaining,
   type SettlementTarget,
 } from '@vada/contracts'
@@ -136,3 +137,8 @@ export async function remainingOf(db: Reader, scope: Scope): Promise<SettlementR
     await refundPendingOf(db, scope),
   ]
 }
+
+// 정산이 끝났는가(logical-model '행사의 정산이 끝났는가'): 끝났거나 완료한 행사이고 남은 것이 0일 때만 참이다.
+// 끝나기 전의 행사는 남은 것이 0이어도 아직 진행 중인 일이라 거짓이다. 정산 응답과 홈이 같이 쓴다.
+export const isSettled = (status: EventStatus, remaining: readonly SettlementRemaining[]) =>
+  (status === 'ended' || status === 'completed') && remaining.every(item => item.count === 0)

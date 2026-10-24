@@ -1,7 +1,6 @@
 import { Hono, type Context } from 'hono'
 import {
   CreateEventSchema,
-  SetEventOwnerSchema,
   UpdateEventSchema,
   type EventResponse,
   type EventsResponse,
@@ -13,7 +12,7 @@ import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { eventDetailOf, eventListOf } from './queries.js'
-import { createEvent, setEventOwner, updateEvent } from './service.js'
+import { createEvent, updateEvent } from './service.js'
 
 const root = '/organizations/:councilId/events'
 const CREATED = 201
@@ -60,17 +59,9 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
     )
     return c.json({ event } satisfies EventResponse)
   })
-  routes.post(`${root}/:eventId/owner`, json(SetEventOwnerSchema), auth, async c => {
-    const input = c.req.valid('json')
-    const asked = changing(c)
-    const event = await inCouncilChange(db, asked, (tx, actor) =>
-      setEventOwner(tx, actor, { eventId: eventIdOf(c), now: asked.now }, input),
-    )
-    return c.json({ event } satisfies EventResponse)
-  })
 }
 
-// 행사: 모든 운영진이 본다(DEC-28 기준 1, PRIN-5). 만들기와 책임자 바꾸기는 회장단, 고치기는 그 행사의 책임자다.
+// 행사: 모든 운영진이 본다(DEC-28 기준 1, PRIN-5). 만들기는 회장단, 고치기는 회장단과 그 행사의 책임자다(DEC-79).
 export function createEventRoutes(
   db: Db,
   getSession: SessionReader,

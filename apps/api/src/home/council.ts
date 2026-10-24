@@ -57,7 +57,7 @@ export async function councilOf(
         overdue: mine.filter(row => row.summary.overdue).length,
         unassigned: mine.filter(row => row.unassigned).length,
       },
-      ...(item.status === 'ended' ? { settlement: await settlementOf(db, actor, item.id) } : {}),
+      ...(item.status === 'ended' ? { settlement: await settlementOf(db, actor, item) } : {}),
     })
   }
   return {

@@ -95,12 +95,12 @@ test(
 )
 
 test(
-  '완료할 수 없을 때: 시작 전과 날짜 미정, 정산이 남음, 회계 기간 없음은 409이고 아무것도 생기지 않는다',
+  '완료할 수 없을 때: 끝나기 전(예정, 날짜 미정)과 정산이 남음, 회계 기간 없음은 409이고 아무것도 생기지 않는다',
   withSettlement(async t => {
     const future = await t.event({ startsAt: new Date('2027-01-01T00:00:00Z') })
-    assert.equal(await errorOf(await call(t, future, 'complete', {})), 'EVENT_NOT_STARTED')
+    assert.equal(await errorOf(await call(t, future, 'complete', {})), 'EVENT_NOT_ENDED')
     const tbd = await t.event({ startsAt: null })
-    assert.equal(await errorOf(await call(t, tbd, 'complete', {})), 'EVENT_NOT_STARTED')
+    assert.equal(await errorOf(await call(t, tbd, 'complete', {})), 'EVENT_NOT_ENDED')
     const open = await t.event()
     await t.requestWithItem(open)
     assert.equal(await errorOf(await call(t, open, 'complete', {})), 'SETTLEMENT_PENDING')
