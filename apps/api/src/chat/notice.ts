@@ -6,7 +6,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { updateRecord } from '../records/records.js'
 import { messageOf, visibleMessage } from './messages.js'
-import { isPlanRoom } from './plan-room.js'
+import { inNoticeRoom } from './plan-room.js'
 
 // 전체방 메시지에 공지 표시를 붙이거나 뗀다(DEC-14). 학생회 행을 잠근 거래 안에서 부른다.
 // 이 학생회 전체방의 메시지이고 내가 볼 수 있는(들어온 뒤의 것이거나 보이는 같은 기수의 공지) 것이어야 한다. 아니면 부서방·회장단방·다른 학생회·없는 메시지 모두 404다.
@@ -26,8 +26,7 @@ export async function markNotice(
       and(
         eq(message.id, messageId),
         eq(record.councilId, actor.councilId),
-        eq(chatRoom.type, 'all_members'),
-        isPlanRoom,
+        inNoticeRoom,
         // 들어온 뒤의 메시지이거나, 띠와 목록에 보이는 같은 기수의 공지다. 보이는 공지는 뗄 수도 있어야 한다.
         visibleMessage(actor),
       ),

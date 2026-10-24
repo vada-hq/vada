@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { chatRoom, record } from '../../db/schema.js'
 import type { Db } from '../../db/types.js'
-import { sendMessage } from '../../chat/send.js'
+import { sendAs } from '../../chat/send.js'
 import { createPurchaseRequest } from '../../purchases/service.js'
 import { createTask } from '../../tasks/service.js'
 import {
@@ -88,13 +88,11 @@ async function race(run: Run, scene: MoneyScene, taskId: string) {
   const [noticeDb, requestDb] = (await warmed(run.open, RACERS)) as [Db, Db]
   return raceHolding(
     hold =>
-      changer(
-        noticeDb,
-        context,
-        scene.host,
-      )('chat.notice', async (tx, actor) => {
+      // 라우트가 부르는 sendAs 그대로다: 업무를 잇는 보내기는 학생회 행을 먼저 잠근다.
+      noticeDb.transaction(async tx => {
+        const request = { ...scene.host, action: 'council.view' as const, now: context.now }
         const input = { roomId, body: '공지', mentions: [], photos: [], notice: true, taskId }
-        await sendMessage(tx, actor, input, context.now)
+        await sendAs(tx, request, input)
         await hold()
       }),
     [

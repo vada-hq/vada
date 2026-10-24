@@ -18,18 +18,12 @@ import {
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
-import {
-  authorize,
-  authorizeChange,
-  councilIdOf,
-  inCouncilChange,
-  recordIdOf,
-} from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import type { FileStorage } from '../storage/storage.js'
-import { isStorageKeyConflict, PHOTO_UPLOAD_LIMIT, requireStorage } from '../storage/uploads.js'
+import { PHOTO_UPLOAD_LIMIT, requireStorage } from '../storage/uploads.js'
 import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
@@ -42,7 +36,7 @@ import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
 import { ensureCouncilRooms } from './rooms.js'
-import { SEND_LIMIT, sendMessage } from './send.js'
+import { postMessage, SEND_LIMIT } from './send.js'
 
 const root = '/organizations/:councilId'
 const CREATED = 201
@@ -128,17 +122,6 @@ function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
   })
 }
 
-// 보내기 거래. 같은 사진 키가 동시에 두 번 들어와 저장소 위치 UNIQUE에 걸리면 이미 보낸 사진이다.
-async function sentIn(db: Db, run: (tx: Tx) => Promise<ChatMessage>) {
-  try {
-    // READ COMMITTED 거래: 보내기가 줄을 잠그고 기다린 뒤의 값을 봐야 한다(send.ts).
-    return await db.transaction(run)
-  } catch (error) {
-    if (isStorageKeyConflict(error)) throw new ApiError('PHOTO_ALREADY_SENT')
-    throw error
-  }
-}
-
 function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock, storage }: Kit) {
   routes.post(`${root}/rooms/:roomId/messages`, json(SendMessageSchema), auth, async c => {
     const request = asked(c)
@@ -150,15 +133,14 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
     const photos = keys.length
       ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
       : []
-    // 업무를 잇는 공지는 업무 상태를 옮기는 쓰기라 다른 직원 쓰기처럼 학생회 행을 잠근 뒤 권한을 다시 본다.
-    const sent = await sentIn(db, async tx =>
-      sendMessage(
-        tx,
-        await (taskId ? authorizeChange(tx, request) : authorize(tx, request)),
-        { roomId, body: body ?? '', mentions, photos, notice, taskId },
-        request.now,
-      ),
-    )
+    const sent = await postMessage(db, request, {
+      roomId,
+      body: body ?? '',
+      mentions,
+      photos,
+      notice,
+      taskId,
+    })
     // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
     void push?.notify(sent.id, clock())
     return c.json(sent satisfies ChatMessage, CREATED)
