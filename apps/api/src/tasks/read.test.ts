@@ -237,25 +237,28 @@ test('줄마다 actions가 그 사람의 권한과 같다', async () => {
     const orphan = await t.make({ title: '부서 없음' })
     const actionsFor = async (user: string, id: string) => (await t.detail(id, user)).actions
     assert.deepEqual(await actionsFor('s-president', mine), [
-      'task.manage',
-      'task.delete',
-      'task.set_department',
-      'task.assign',
-      'task.status',
+      'task.edit',
+      'task.remove',
+      'task.change_department',
+      'task.change_assignee',
+      'task.change_status',
     ])
     assert.deepEqual(await actionsFor('s-planningHead', mine), [
-      'task.manage',
-      'task.delete',
-      'task.assign',
-      'task.status',
+      'task.edit',
+      'task.remove',
+      'task.change_assignee',
+      'task.change_status',
     ])
     assert.deepEqual(await actionsFor('s-planningMember', mine), [])
-    assert.deepEqual(await actionsFor('s-planningMember', assigned), ['task.manage', 'task.status'])
+    assert.deepEqual(await actionsFor('s-planningMember', assigned), [
+      'task.edit',
+      'task.change_status',
+    ])
     assert.deepEqual(await actionsFor('s-planningHead', assigned), [])
     assert.deepEqual(await actionsFor('s-planningHead', orphan), [])
     assert.deepEqual(await actionsFor('s-plain', orphan), [])
     const row = (await t.list('view=all', 's-planningMember')).tasks.find(x => x.id === assigned)
-    assert.deepEqual((row as TaskSummary).actions, ['task.manage', 'task.status'])
+    assert.deepEqual((row as TaskSummary).actions, ['task.edit', 'task.change_status'])
   } finally {
     await t.close()
   }

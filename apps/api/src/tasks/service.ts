@@ -97,7 +97,7 @@ export async function createTask(
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
   // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다.
   const link = await eventLinkOf(tx, actor, input.eventId)
-  const denied = decide(actor, createFacts(actor, input, link.ownerId), 'task.manage')
+  const denied = decide(actor, createFacts(actor, input, link.ownerId), 'task.edit')
   if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   await assertDepartment(tx, actor, input.departmentId)
@@ -126,7 +126,7 @@ export async function updateTask(
   target: Target,
   input: UpdateTaskRequest,
 ): Promise<TaskDetail> {
-  const row = await taskFor(tx, actor, target, 'task.manage')
+  const row = await taskFor(tx, actor, target, 'task.edit')
   const changes = {
     ...(input.title !== row.title ? { title: input.title } : {}),
     ...(input.body !== row.body ? { body: input.body } : {}),
@@ -150,7 +150,7 @@ export async function changeTaskStatus(
   target: Target,
   input: ChangeTaskStatusRequest,
 ): Promise<TaskDetail> {
-  const row = await taskFor(tx, actor, target, 'task.status')
+  const row = await taskFor(tx, actor, target, 'task.change_status')
   const status = humanMoveOf(row.status as TaskStatus, input.status)
   if (status)
     await updateRecord(tx, {
@@ -165,7 +165,7 @@ export async function changeTaskStatus(
 
 // 지우기는 취소한 시각을 채우는 것이다(DEC-49). 판과 알림 기록은 남는다.
 export async function deleteTask(tx: Tx, actor: Actor, target: Target) {
-  const row = await taskFor(tx, actor, target, 'task.delete')
+  const row = await taskFor(tx, actor, target, 'task.remove')
   await updateRecord(tx, {
     kind: 'task',
     id: row.id,
@@ -182,7 +182,7 @@ export async function assignTask(
   target: Target,
   input: AssignTaskRequest,
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
-  const row = await taskFor(tx, actor, target, 'task.assign')
+  const row = await taskFor(tx, actor, target, 'task.change_assignee')
   await assertAssignee(tx, actor, input.assigneeId, target.now)
   if (input.assigneeId === row.assigneeId)
     return { task: await taskDetailOf(tx, actor, row.id, target.now), notice: null }
@@ -207,7 +207,7 @@ export async function setTaskDepartment(
   target: Target,
   input: SetTaskDepartmentRequest,
 ): Promise<TaskDetail> {
-  const row = await taskFor(tx, actor, target, 'task.set_department')
+  const row = await taskFor(tx, actor, target, 'task.change_department')
   await assertDepartment(tx, actor, input.departmentId)
   if (input.departmentId !== row.departmentId)
     await updateRecord(tx, {

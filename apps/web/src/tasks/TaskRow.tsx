@@ -97,7 +97,7 @@ function AssignSelect({ task, assign, busy }: Pick<Props, 'task' | 'assign' | 'b
 // 카드 대신 줄로 두어 한 화면에 더 많이 보인다(와이어프레임 MY-01). 할 일 상태는 따로 적지 않는다(버튼 '시작'이 말해 준다).
 export function TaskRow(props: Props) {
   const { task, busy, error } = props
-  const next = task.actions.includes('task.status') ? task.next : null
+  const next = task.actions.includes('task.change_status') ? task.next : null
   return (
     <li className="flex flex-col gap-1 px-4 py-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

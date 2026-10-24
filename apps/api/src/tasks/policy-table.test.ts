@@ -19,11 +19,11 @@ const ALL = [...TASK_ACTIONS]
 
 // 쓰기 요청. 동작 하나마다 한 칸이라, 목록에 동작을 더하면 여기도 더해야 한다.
 const WRITE: Record<TaskAction, (id: string) => [string, unknown]> = {
-  'task.manage': id => [id, { title: '고침', body: null, dueDate: null }],
-  'task.delete': id => [`${id}/delete`, {}],
-  'task.set_department': id => [`${id}/department`, { departmentId: null }],
-  'task.assign': id => [`${id}/assignee`, { assigneeId: null }],
-  'task.status': id => [`${id}/status`, { status: 'in_progress' }],
+  'task.edit': id => [id, { title: '고침', body: null, dueDate: null }],
+  'task.remove': id => [`${id}/delete`, {}],
+  'task.change_department': id => [`${id}/department`, { departmentId: null }],
+  'task.change_assignee': id => [`${id}/assignee`, { assigneeId: null }],
+  'task.change_status': id => [`${id}/status`, { status: 'in_progress' }],
 }
 
 type Scene = {
@@ -45,8 +45,8 @@ const SCENES: Scene[] = [
     eventOwner: null,
     expected: {
       president: ALL,
-      planningHead: ['task.manage', 'task.delete', 'task.assign', 'task.status'],
-      planningMember: ['task.manage', 'task.status'],
+      planningHead: ['task.edit', 'task.remove', 'task.change_assignee', 'task.change_status'],
+      planningMember: ['task.edit', 'task.change_status'],
       plain: [],
     },
   },
@@ -58,8 +58,8 @@ const SCENES: Scene[] = [
     eventOwner: null,
     expected: {
       president: ALL,
-      planningHead: ['task.manage', 'task.delete', 'task.assign', 'task.status'],
-      planningMember: ['task.manage', 'task.delete', 'task.status'],
+      planningHead: ['task.edit', 'task.remove', 'task.change_assignee', 'task.change_status'],
+      planningMember: ['task.edit', 'task.remove', 'task.change_status'],
       plain: [],
     },
   },
@@ -71,7 +71,7 @@ const SCENES: Scene[] = [
     eventOwner: null,
     expected: {
       president: ALL,
-      planningHead: ['task.manage', 'task.delete', 'task.assign', 'task.status'],
+      planningHead: ['task.edit', 'task.remove', 'task.change_assignee', 'task.change_status'],
       planningMember: [],
       plain: [],
     },

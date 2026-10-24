@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { EmptyRequestSchema, text } from './input.js'
 import { koreanDate } from './korean-time.js'
-import type { Action } from './permissions.js'
 import { recordIdInput } from './team.js'
 
 // 업무(DEC-22, DEC-39). 상태는 셋이고 새 업무는 할 일이다. 값은 DB CHECK와 같다.
@@ -28,14 +27,15 @@ export const TaskListQuerySchema = z.strictObject({
 })
 export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 
-// 업무마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨기고 권한을 다시 계산하지 않는다(DEC-38).
+// 업무마다 서버가 주는 할 수 있는 동작. 이름은 권한 키(permissions.ts)와 떼어 동작 하나에 이름 하나로 둔다(기능 012 원칙): 서버가 권한 키와 짝짓는다(tasks/policy.ts).
+// 화면은 이것으로 버튼을 보이거나 숨기고 권한을 다시 계산하지 않는다(DEC-38).
 export const TASK_ACTIONS = [
-  'task.manage',
-  'task.delete',
-  'task.set_department',
-  'task.assign',
-  'task.status',
-] as const satisfies readonly Action[]
+  'task.edit',
+  'task.remove',
+  'task.change_department',
+  'task.change_assignee',
+  'task.change_status',
+] as const
 export type TaskAction = (typeof TASK_ACTIONS)[number]
 
 export interface TaskPerson {

@@ -74,7 +74,7 @@ export function taskRowOf(props: RowProps, calendar = false) {
       onOpen={() => props.onOpenTask(task.id)}
       onOpenEvent={props.onOpenEvent}
       assign={
-        team && task.assignee === null && task.actions.includes('task.assign')
+        team && task.assignee === null && task.actions.includes('task.change_assignee')
           ? { team, onPick: id => void assign.assign(task.id, id) }
           : undefined
       }

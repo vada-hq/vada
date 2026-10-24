@@ -17,7 +17,7 @@ const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
   department: { id: 'd1', name: '기획부' },
   event: null,
   assignee: { id: 'p1', name: '김새내', current: true },
-  actions: ['task.status'],
+  actions: ['task.change_status'],
   ...extra,
 })
 

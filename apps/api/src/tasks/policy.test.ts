@@ -28,7 +28,7 @@ test('actions는 decide가 허용하는 동작과 같다', () => {
 })
 
 test('만든 사실을 읽지 않았으면 담당자도 지우지 못한다(막는 쪽)', () => {
-  assert.equal(decide(member('a'), facts(), 'task.delete'), null)
-  assert.equal(decide(member('a'), facts({ createdBy: null }), 'task.delete'), 'FORBIDDEN')
-  assert.equal(decide(member('a'), facts({ createdBy: 'b' }), 'task.delete'), 'FORBIDDEN')
+  assert.equal(decide(member('a'), facts(), 'task.remove'), null)
+  assert.equal(decide(member('a'), facts({ createdBy: null }), 'task.remove'), 'FORBIDDEN')
+  assert.equal(decide(member('a'), facts({ createdBy: 'b' }), 'task.remove'), 'FORBIDDEN')
 })

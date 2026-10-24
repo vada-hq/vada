@@ -88,7 +88,7 @@ test('actions가 없으면 버튼이 하나도 없고 상태는 배지로만 보
 })
 
 test('task.status만 있으면 상태 버튼만 보인다', async () => {
-  setup(taskDetail({ actions: ['task.status'] }))
+  setup(taskDetail({ actions: ['task.change_status'] }))
   await screen.findByText('크기는 3m로 해 주세요.')
   expect(screen.getByRole('button', { name: '진행 중' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
