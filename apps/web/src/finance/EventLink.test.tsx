@@ -40,6 +40,7 @@ function setup(tab: string, budget = budgetWithPeriod()) {
             budgetItem: null,
             status: 'pending',
             paid: false,
+            actions: [],
           },
         ],
         decisions: [],

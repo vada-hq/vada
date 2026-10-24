@@ -45,6 +45,10 @@ export const PURCHASE_ACTIONS = [
 ] as const satisfies readonly Action[]
 export type PurchaseAction = (typeof PURCHASE_ACTIONS)[number]
 
+// 품목마다 서버가 주는 동작. 승인했고 결제하지 않은 품목을 재정부가 취소한다(DEC-73).
+export const LINE_ITEM_ACTIONS = ['line_item.cancel'] as const
+export type LineItemAction = (typeof LINE_ITEM_ACTIONS)[number]
+
 const isWebUrl = (value: string) => {
   try {
     const { protocol } = new URL(value)
@@ -102,6 +106,10 @@ export const DecideLineItemsSchema = z.strictObject({
 })
 export type DecideLineItems = z.infer<typeof DecideLineItemsSchema>
 
+// 승인한 품목 취소(DEC-73). 사유가 꼭 있다.
+export const CancelLineItemSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
+export type CancelLineItem = z.infer<typeof CancelLineItemSchema>
+
 export interface PurchasePerson {
   id: string
   name: string
@@ -131,6 +139,7 @@ export interface PurchaseLineItem {
   status: LineItemStatus
   // 취소되지 않은 결제 내역이 있다.
   paid: boolean
+  actions: LineItemAction[]
 }
 
 export interface PurchaseDecision {

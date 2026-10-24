@@ -8,7 +8,11 @@ import {
   transferAndRemoveCase,
 } from './pg-smoke-join-cases.js'
 import type { SmokeCase } from './pg-smoke-kit.js'
-import { cancelAndDecideCase, decideTogetherCase } from './pg-smoke-purchase-cases.js'
+import {
+  cancelAndDecideCase,
+  cancelItemAndPayCase,
+  decideTogetherCase,
+} from './pg-smoke-purchase-cases.js'
 import { cancelAndCheckInCase, sameQrTogetherCase } from './pg-smoke-attendance-cases.js'
 import { confirmAndCancelTogetherCase, confirmTogetherCase } from './pg-smoke-deposit-cases.js'
 import {
@@ -40,6 +44,7 @@ export {
   confirmAndCancelTogetherCase,
   cancelAndCheckInCase,
   cancelAndDecideCase,
+  cancelItemAndPayCase,
   changeStatusTogetherCase,
   confirmTogetherCase,
   createAndJoinCase,
@@ -72,6 +77,7 @@ export const smokeCases: readonly SmokeCase[] = [
   changeStatusTogetherCase,
   decideTogetherCase,
   cancelAndDecideCase,
+  cancelItemAndPayCase,
   expenseTogetherCase,
   mainAccountTogetherCase,
   closeAndSpendCase,

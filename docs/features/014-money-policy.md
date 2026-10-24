@@ -72,7 +72,7 @@
 - 닿는 곳: `apps/api/migrations/`(새 파일), `db/schema.ts`, contracts `purchases.ts`(`LINE_ITEM_STATUSES`, `PurchaseDecision.outcome`), `purchases/status.ts` → `policy.ts`, `purchases/queries.ts`, `purchases/notify.ts`, `purchases/decide.ts`, `settlement/remaining.ts`, `expenses/payable.ts`, `test-support/purchases.ts`, 웹의 결과 문구(`finance/purchase-text.ts`).
 - 검토: 깊게(마이그레이션, 돈). 마이그레이션: 있음.
 
-### 2. 승인 품목 취소(서버) [ ]
+### 2. 승인 품목 취소(서버) [x]
 - 할 수 있게 되는 것: 재정부가 승인했고 결제하지 않은 품목을 사유와 함께 취소하고, 그 품목이 행사 완료를 막지 않는다.
 - 수용 기준: 위 경로에 사유를 보내면 200이고 요청 상세가 오며 그 품목은 `cancelled`, 결재 이력에 취소·사유·나, 그 행사의 남은 것에서 빠져 다른 남은 것이 없으면 행사를 완료할 수 있다. 요청한 사람(내가 아니고 지금 운영진)에게 알림 기록과 휴대폰 알림이 간다. 대기·반려·이미 취소·결제한 품목, 취소한 요청은 409 `LINE_ITEM_NOT_CANCELLABLE`, 지출을 취소해 결제가 없어진 품목은 200. 완료한 행사(요청의 행사 또는 품목 예산 항목의 행사)면 409 `EVENT_COMPLETED`. 재정부가 아니면 403(요청한 사람·회장단 포함, 403이 먼저), 다른 요청의 품목·다른 학생회는 404, 미인증 401. 실패마다 결재 기록과 알림이 없다. 품목 응답의 `actions`에 `line_item.cancel`이 같은 decide로 실린다. 사유는 AGENTS.md의 입력 경우를 모두 시험한다.
 - 닿는 곳: contracts `purchases.ts`(`CancelLineItemSchema`, `LineItemAction`), `errors.ts`, `purchases/policy.ts`, `purchases/routes.ts`, 새 `purchases/cancel-item.ts`, `purchases/notify.ts`, `http/boundary.test.ts`.
