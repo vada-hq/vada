@@ -133,6 +133,7 @@ export async function applicantsOf(
       actor,
       applicantFactsFrom(eventFacts, {
         name: row.name,
+        appliedFee: row.appliedFee,
         cancelledAt: row.cancelledAt,
         attended: row.attendanceId !== null,
         deposit:

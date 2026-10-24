@@ -51,7 +51,7 @@ export const applicant = (extra: Partial<Applicant> = {}): Applicant => ({
   appliedAt: '2026-10-20T05:00:00.000Z',
   cancelled: false,
   deposit: { status: 'none', amount: null },
-  actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm', 'deposit.cancel'],
+  actions: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
   ...extra,
 })
 

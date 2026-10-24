@@ -6,7 +6,12 @@ import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { lockEventsShared } from '../policy/locks.js'
 import { registrationContextOf } from './permission-context.js'
-import { applicantFactsOf, decideApplicant, mayApplicant } from './policy.js'
+import {
+  applicantFactsOf,
+  decideApplicant,
+  mayApplicant,
+  type LiveApplicantAction,
+} from './policy.js'
 import { lockRegistration } from './registration-lock.js'
 
 // 운영진이 번호로 가리키는 신청 하나. 학생회 경계는 행사 기록의 학생회 번호로 건다(다른 학생회 신청은 없는 것과 같아 404).
@@ -32,7 +37,7 @@ async function rowOf(db: Pick<Db, 'select'>, actor: Actor, registrationId: strin
 
 // 권한을 보고 행사 행과 신청 행을 잠근 뒤 다시 읽어 같은 판정(registrations/policy.ts)으로 거른다.
 // 다른 학생회 신청은 권한을 묻기 전에 404이고, 같은 학생회 신청은 권한이 없으면 잠그기 전에 403이다.
-// 완료(409)는 신청 행 잠금 앞이다(공개 경로와 같은 차례). 스스로 취소와 같은 신청 행 잠금 뒤 다시 읽기라 겹쳐도 하나만 된다.
+// 잠금 순서는 행사 → 신청(공개 경로와 같다)이고 완료(409)는 두 잠금을 잡은 뒤 같은 거래에서 읽어 판정한다. 스스로 취소와 같은 신청 행 잠금 뒤 다시 읽기라 겹쳐도 하나만 된다.
 // 쓰기가 이어서 쓸 신청 행과 취소하지 않은 입금 기록을 돌려준다.
 export async function lockedRegistration(
   tx: Tx,
@@ -63,7 +68,7 @@ export async function lockedLiveRegistration(
   tx: Tx,
   actor: Actor,
   registrationId: string,
-  action: ApplicantAction,
+  action: LiveApplicantAction,
 ) {
   const row = await lockedRegistration(tx, actor, registrationId, action)
   return { ...row, name: row.name! }
