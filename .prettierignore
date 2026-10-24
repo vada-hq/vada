@@ -1,5 +1,5 @@
-package-lock.json
 apps/api/migrations/
 docs/
 .superpowers/
 *.md
+pnpm-lock.yaml

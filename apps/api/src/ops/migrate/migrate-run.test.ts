@@ -127,7 +127,7 @@ test('미리 보기는 기본이다: 대상과 점검만 보여 주고 아무것
           line =>
             line.includes(`적용할 마이그레이션 ${real.length}개`) &&
             line.includes('미리 보기') &&
-            line.includes('npm run db:migrate --workspace @vada/api -- --apply'),
+            line.includes('pnpm --filter @vada/api db:migrate --apply'),
         ),
         lines.join(' | '),
       )
@@ -145,7 +145,7 @@ test('미리 보기는 기본이다: 대상과 점검만 보여 주고 아무것
     // 안내는 그대로 붙여 칠 수 있는 명령 하나다. 셸 주소로 돌렸으면 --from-shell도 넣는다.
     assert.ok(
       shell.lines.some(line =>
-        line.includes('npm run db:migrate --workspace @vada/api -- --from-shell --apply'),
+        line.includes('pnpm --filter @vada/api db:migrate --from-shell --apply'),
       ),
       shell.lines.join(' | '),
     )

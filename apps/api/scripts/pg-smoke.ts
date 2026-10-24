@@ -5,8 +5,8 @@ import { migrationsFolder } from '../src/ops/migrate/migrations-folder.js'
 import { smokeCases } from '../src/ops/pg-smoke/pg-smoke-cases.js'
 import { runPgSmoke } from '../src/ops/pg-smoke/pg-smoke.js'
 
-// 사용법(apps/api에서): npx tsx --env-file=../../.env scripts/pg-smoke.ts   (운영 서버는 --env-file=../../.env.production)
-// 이 도구는 .env를 읽지 않고 환경 변수 DATABASE_URL만 쓴다(같은 서버의 관리 주소). npm run pg-smoke --workspace @vada/api는 셸에 DATABASE_URL이 있을 때만 쓴다.
+// 사용법(apps/api에서): pnpm exec tsx --env-file=../../.env scripts/pg-smoke.ts   (운영 서버는 --env-file=../../.env.production)
+// 이 도구는 .env를 읽지 않고 환경 변수 DATABASE_URL만 쓴다(같은 서버의 관리 주소). pnpm --filter @vada/api pg-smoke는 셸에 DATABASE_URL이 있을 때만 쓴다.
 // 같은 서버에 잠깐 쓸 DB를 만들어 마이그레이션하고, 운영 드라이버(postgres-js)로 쓰기 길과 동시 처리 사례를 돌린 뒤 지운다.
 // 판단은 모두 src/ops/pg-smoke/pg-smoke.ts와 pg-smoke-cases.ts에 있다. 여기는 실제 연결을 이어 주기만 한다. 에이전트 가운데 진행을 맡은 쪽만 실행한다(실제 서버에 DB를 만든다).
 const options = {

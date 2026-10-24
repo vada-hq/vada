@@ -24,7 +24,7 @@ export function parseDemoArgs(args: readonly string[]): DemoArgs | null {
 }
 
 const USAGE =
-  '사용법: <user-id> [--apply] [--from-shell] (npm run demo --workspace @vada/api -- ...). 아무것도 하지 않았다.'
+  '사용법: <user-id> [--apply] [--from-shell] (pnpm --filter @vada/api demo ...). 아무것도 하지 않았다.'
 const SHELL_URL_WITHOUT_FLAG =
   '셸에 DATABASE_URL이 있다. 그 DB에 넣으려면 --from-shell을 붙이고, .env의 DB에 넣으려면 셸의 DATABASE_URL을 지운다. 아무것도 하지 않았다.'
 const FLAG_WITHOUT_SHELL_URL =
@@ -46,9 +46,9 @@ export type DemoRun = {
   log: { info: (line: string) => void; error: (line: string) => void }
 }
 
-// 그대로 붙여 칠 수 있는 적용 명령. npm이 플래그를 가져가지 않게 -- 를 앞에 둔다.
+// 그대로 붙여 칠 수 있는 적용 명령
 const applyCommandOf = ({ userId, fromShell }: DemoArgs) =>
-  `npm run demo --workspace @vada/api -- ${userId}${fromShell ? ' --from-shell' : ''} --apply`
+  `pnpm --filter @vada/api demo ${userId}${fromShell ? ' --from-shell' : ''} --apply`
 
 // .env가 없거나 읽을 수 없으면 주소가 없는 것과 같다. 오류 원문은 보이지 않는다.
 function envUrlOf(run: DemoRun) {

@@ -194,7 +194,7 @@ test('시험 데이터는 --apply가 없으면 미리 보기로 -- --apply를 �
   assert.equal(preview.step, 'preview')
   assert.ok(
     'message' in preview &&
-      preview.message.includes('npm run test-data --workspace @vada/api -- seed u1 --apply'),
+      preview.message.includes('pnpm --filter @vada/api test-data seed u1 --apply'),
     JSON.stringify(preview),
   )
   const assignPreview = stepOf(assign, UNREADABLE_TARGET)
@@ -203,7 +203,7 @@ test('시험 데이터는 --apply가 없으면 미리 보기로 -- --apply를 �
     'message' in assignPreview &&
       assignPreview.message.includes('기획부') &&
       assignPreview.message.includes(
-        'npm run test-data --workspace @vada/api -- assign u2 planning --apply',
+        'pnpm --filter @vada/api test-data assign u2 planning --apply',
       ),
     JSON.stringify(assignPreview),
   )
@@ -275,5 +275,5 @@ test('시험 기간 인자와 안내', () => {
   assert.equal(parseTestDataArgs(['periods', '--apply']), null)
   const preview = stepOf({ command: 'periods', userId: 'u2', apply: false }, 'host/db')
   assert.equal(preview.step, 'preview')
-  assert.match(preview.step === 'preview' ? preview.message : '', /-- periods u2 --apply/)
+  assert.match(preview.step === 'preview' ? preview.message : '', /test-data periods u2 --apply/)
 })

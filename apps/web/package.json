@@ -9,7 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vada/contracts": "*",
+    "@vada/contracts": "workspace:*",
     "better-auth": "1.7.6",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

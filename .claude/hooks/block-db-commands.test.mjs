@@ -21,6 +21,12 @@ const blocked = [
   'npx tsx scripts/pg-smoke.ts',
   'tsx scripts/manage-test-data.ts seed',
   'npx drizzle-kit push',
+  'pnpm --filter @vada/api db:migrate',
+  'pnpm --filter @vada/api db:migrate -- --apply',
+  'pnpm run test-data -- seed x',
+  'pnpm --filter @vada/api demo -- x --apply',
+  'cd apps/api && pnpm pg-smoke',
+  'pnpm exec tsx scripts/manage-demo-data.ts x',
 ]
 
 const allowed = [
@@ -30,6 +36,10 @@ const allowed = [
   'npx tsx --test src/ops/migrate/migrate.test.ts',
   'npm run db:generate --workspace @vada/api',
   'npm test --workspace @vada/api',
+  'pnpm --filter @vada/api db:generate',
+  'pnpm --filter @vada/api test',
+  'pnpm exec oxlint apps/api/scripts/pg-smoke-cases.ts',
+  'pnpm exec tsx --test scripts/demo-command.test.ts',
   'cat scripts/manage-test-data.ts | head',
   'echo db:migrate',
   'out=$(git diff --stat); echo $? ; for f in a b; do echo $f; done',

@@ -59,14 +59,13 @@ const planOf = (command: TestDataCommand) => {
 
 // 그대로 붙여 칠 수 있는 적용 명령
 const applyCommandOf = (command: TestDataCommand) =>
-  `npm run test-data --workspace @vada/api -- ${
+  `pnpm --filter @vada/api test-data ${
     command.command === 'assign'
       ? `assign ${command.userId} ${command.department}`
       : `${command.command} ${command.userId}`
   } --apply`
 
 // 다음에 할 일. 미리 보기(--apply 없음)는 하려는 일만 보여 준다. 적용은 대상(describeTarget)을 보여 줄 수 있을 때만 한다.
-// npm이 --apply를 가져가지 않도록 안내에는 -- 를 앞에 붙여 적는다.
 export type TestDataStep = { step: 'preview' | 'stop'; message: string } | { step: 'apply' }
 export function stepOf(command: TestDataCommand, target: string): TestDataStep {
   if (!command.apply)

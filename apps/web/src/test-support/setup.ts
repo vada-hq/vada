@@ -1,7 +1,7 @@
 import { afterEach } from 'vitest'
 import { configure } from '@testing-library/react'
 
-// 파일을 병렬로 돌리면(npm test, CI) 첫 화면이 기본 대기 1초를 넘길 때가 있다. findBy·waitFor의 상한을 테스트 제한 시간 안에서 늘린다.
+// 파일을 병렬로 돌리면(pnpm test, CI) 첫 화면이 기본 대기 1초를 넘길 때가 있다. findBy·waitFor의 상한을 테스트 제한 시간 안에서 늘린다.
 configure({ asyncUtilTimeout: 5_000 })
 
 // React의 키 경고(형제끼리 같은 키, 목록에 키 없음)는 화면 테스트를 실패시킨다.

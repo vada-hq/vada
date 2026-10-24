@@ -52,7 +52,7 @@ test('미리 보기는 대상과 넣을 것만 보이고 연결하지 않으며 
   const out = [...t.info, ...t.error].join('\n')
   assert.match(out, /대상: db\.example\.test\/vada \(\.env\)/)
   assert.match(out, /미리 보기라 바꾸지 않았다/)
-  assert.match(out, /demo --workspace @vada\/api -- u1 --apply/)
+  assert.match(out, /--filter @vada\/api demo u1 --apply/)
   assert.doesNotMatch(out, /hunter2/)
 })
 

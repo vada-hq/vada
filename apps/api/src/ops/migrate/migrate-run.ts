@@ -49,10 +49,10 @@ const CHECK_MESSAGES = {
 } as const
 
 // 종료 코드를 돌려준다(0이 성공). 인자와 대상이 어긋나면 .env를 읽지도 연결하지도 않고 멈춘다.
-// 안내에 적는 명령. 그대로 붙여 칠 수 있게 `--`와 플래그를 모두 넣는다(npm이 -- 없는 플래그를 가져간다).
+// 안내에 적는 명령. 그대로 붙여 칠 수 있게 플래그를 모두 넣는다.
 const commandOf = (fromShell: boolean, apply: boolean) => {
   const flags = [...(fromShell ? ['--from-shell'] : []), ...(apply ? ['--apply'] : [])]
-  return `npm run db:migrate --workspace @vada/api${flags.length > 0 ? ` -- ${flags.join(' ')}` : ''}`
+  return `pnpm --filter @vada/api db:migrate${flags.length > 0 ? ` ${flags.join(' ')}` : ''}`
 }
 
 type Options = Exclude<MigrateArgs, { stop: string }>

@@ -2,6 +2,7 @@ import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { describeTarget } from '../src/ops/migrate/migrate-check.js'
 import { readLocalEnv } from '../src/local-env.js'
+import { withoutSeparator } from '../src/ops/script-args.js'
 import type { Db } from '../src/db/types.js'
 import { seedTestPeriods } from './test-data-periods.js'
 import {
@@ -13,9 +14,9 @@ import {
 } from './test-data.js'
 
 // 사용법(저장소 맨 위에서, 플래그 앞의 --를 빠뜨리지 않는다):
-//   npm run test-data --workspace @vada/api -- seed <user-id> [--apply]                        시험 학생회를 두고 그 계정을 회장으로 둔다
-//   npm run test-data --workspace @vada/api -- periods <user-id> [--apply]                     끝난 기간(시험 1학기)과 지금 기간을 둔다(재정부 계정)
-//   npm run test-data --workspace @vada/api -- assign <user-id> <planning|finance> [--apply]   그 계정을 부서원으로 넣는다
+//   pnpm --filter @vada/api test-data seed <user-id> [--apply]                        시험 학생회를 두고 그 계정을 회장으로 둔다
+//   pnpm --filter @vada/api test-data periods <user-id> [--apply]                     끝난 기간(시험 1학기)과 지금 기간을 둔다(재정부 계정)
+//   pnpm --filter @vada/api test-data assign <user-id> <planning|finance> [--apply]   그 계정을 부서원으로 넣는다
 // --apply가 없으면 대상(호스트와 DB 이름)과 하려는 일만 보여 주고 아무것도 쓰지 않는다. 인자가 맞지 않으면 .env를 읽기 전에 멈춘다.
 // 이 프로젝트 .env의 개발 DB에 연결한다. 사람만 실행한다(실제 DB에 연결한다).
 async function run(db: Db, parsed: TestDataCommand) {
@@ -34,7 +35,7 @@ async function run(db: Db, parsed: TestDataCommand) {
 
 const FIRST_USER_ARG = 2 // argv[0]은 node, argv[1]은 이 파일이다.
 async function main() {
-  const parsed = parseTestDataArgs(process.argv.slice(FIRST_USER_ARG))
+  const parsed = parseTestDataArgs(withoutSeparator(process.argv.slice(FIRST_USER_ARG)))
   if (!parsed) {
     console.error(
       '사용법: seed <user-id> [--apply], periods <user-id> [--apply] 또는 assign <user-id> <planning|finance> [--apply]. 아무것도 하지 않았다.',

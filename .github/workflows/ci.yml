@@ -30,33 +30,37 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # pnpm 버전은 package.json의 packageManager를 따른다.
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - working-directory: apps/api
-        run: npx tsx --test --test-shard=${{ matrix.shard }}/2 "src/**/*.test.ts" "scripts/**/*.test.ts"
+        run: pnpm exec tsx --test --test-shard=${{ matrix.shard }}/2 "src/**/*.test.ts" "scripts/**/*.test.ts"
 
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # pnpm 버전은 package.json의 packageManager를 따른다.
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint -- --format github
-      - run: npm run typecheck
-      - run: npm run knip
-      - run: npm test --workspace @vada/contracts
-      - run: npm test --workspace @vada/web
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint --format github
+      - run: pnpm typecheck
+      - run: pnpm knip
+      - run: pnpm --filter @vada/contracts test
+      - run: pnpm --filter @vada/web test
       - run: node --test .claude/hooks/block-db-commands.test.mjs
-      - run: npm run build --workspace @vada/web
-      # Render와 같은 명령(npm start)으로 운영 모드를 띄워 health 응답까지 본다. 시작 시 예외·빌드 누락·설정 오류처럼 어디서나 나는 문제를 배포 전에 잡는다.
+      - run: pnpm --filter @vada/web build
+      # Render와 같은 시작 명령(npm --prefix apps/api start)으로 운영 모드를 띄워 health 응답까지 본다. 시작 시 예외·빌드 누락·설정 오류처럼 어디서나 나는 문제를 배포 전에 잡는다.
       # Render 무료 인스턴스에서만 난 시작 멈춤(2026-10-07)은 여기서 재현되지 않았다. 그런 문제까지 막아 주지는 못한다.
       # 값은 모두 가짜이고, DB에는 연결하지 않으며 SENTRY_DSN은 존재하지 않는 도메인을 가리켜 외부로 아무것도 보내지 않는다.
       - name: Start in production mode
@@ -71,9 +75,9 @@ jobs:
           HOST: 127.0.0.1
         run: |
           # 알림 열쇠는 형식 검사를 받으므로 실행할 때마다 새로 만든다. 어디에도 남지 않는다.
-          eval "$(node -e "const k=require('web-push').generateVAPIDKeys();console.log('export VAPID_PUBLIC_KEY='+k.publicKey+' VAPID_PRIVATE_KEY='+k.privateKey)")"
+          eval "$(node -e "const k=require('./apps/api/node_modules/web-push').generateVAPIDKeys();console.log('export VAPID_PUBLIC_KEY='+k.publicKey+' VAPID_PRIVATE_KEY='+k.privateKey)")"
           export VAPID_SUBJECT=mailto:ci@vada.invalid
-          npm start > start.log 2>&1 &
+          npm --prefix apps/api start > start.log 2>&1 &
           for i in $(seq 1 90); do
             if curl -sf http://127.0.0.1:8899/api/health > /dev/null; then
               echo "started in ${i}s"; cat start.log
@@ -98,12 +102,14 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # pnpm 버전은 package.json의 packageManager를 따른다.
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Apply migrations to production
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
-        run: npm run db:migrate --workspace @vada/api -- --from-shell --apply
+        run: pnpm --filter @vada/api db:migrate --from-shell --apply

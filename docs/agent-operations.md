@@ -40,7 +40,7 @@
 ## 나란히 하기와 작업 폴더
 
 - 작업자는 `isolation: worktree`로 임시 작업 폴더에서 일한다. 진행 세션의 파일을 건드리지 못한다. 작업 폴더는 진행 세션의 HEAD에서 딴다(프로젝트 설정 `worktree.baseRef: "head"`). 그래야 아직 올리지 않은 명세 커밋과 앞 조각 가지가 보인다. 이 컴퓨터의 전역 설정은 `fresh`(원격 main에서 딴다)라서 프로젝트 설정으로 덮는다.
-- 작업자는 시작할 때 가지 이름을 `work/NNN-조각번호`로 바꾸고(`git branch -m`), `npm ci --prefer-offline`으로 의존성을 깐다. 다른 폴더의 `node_modules`를 연결하지 않는다. npm 워크스페이스 링크가 그 폴더의 `packages/`를 가리켜, 작업 폴더에서 고친 계약 대신 main의 계약으로 시험하게 된다.
+- 작업자는 시작할 때 가지 이름을 `work/NNN-조각번호`로 바꾸고(`git branch -m`), `pnpm install --frozen-lockfile --prefer-offline`으로 의존성을 깐다. 다른 폴더의 `node_modules`를 연결하지 않는다. 작업공간 링크가 그 폴더의 `packages/`를 가리켜, 작업 폴더에서 고친 계약 대신 main의 계약으로 시험하게 된다.
 - 동시에 시험을 돌리는 에이전트는 작업자와 깊은 검토를 합쳐 둘까지다(`docs/work-method.md` '동시에 하는 일'). 이 컴퓨터는 논리 코어가 8개이고, 시험이 겹치면 2~3배 느려졌다. 깊은 검토는 코드를 고장 내 시험을 여러 번 돌리므로 같이 센다. 조사와 보통 검토는 시험을 돌리지 않고 읽기만 하므로 더 많이 돌려도 된다.
 - 워크플로의 동시 에이전트는 4로 둔다(`CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`). 문서에 코어당 기준이 없어 처음 값이다.
 - 팀원이 함께 일하면 사람마다 다른 기능을 맡고, 각자의 클론이나 작업 폴더에서 일한다. 같은 파일을 두 세션이 동시에 고치지 않는다([Codex 긴 작업](https://learn.chatgpt.com/docs/long-running-work.md)도 같다).
@@ -118,7 +118,7 @@
 
 ### 훅
 
-- 지금 이 컴퓨터의 전역 Stop 훅(품질 게이트)은 응답이 끝날 때마다 돈다. 기능 2에서 60번, 모두 15분이 걸렸다. 문서상 Stop 훅은 횟수를 줄일 설정이 없고, 스크립트 안에서 일찍 끝내는 것만 된다([hooks-guide](https://code.claude.com/docs/en/hooks-guide#limitations)). 저장소에는 같은 검사가 이미 있다(커밋 전 `npm run check`, 전체 시험은 CI). 그래서 저장소에는 Stop 훅을 두지 않는다. 전역 훅을 고치는 일은 개인 전역 설정(`~/agent-config`)에서 따로 한다.
+- 지금 이 컴퓨터의 전역 Stop 훅(품질 게이트)은 응답이 끝날 때마다 돈다. 기능 2에서 60번, 모두 15분이 걸렸다. 문서상 Stop 훅은 횟수를 줄일 설정이 없고, 스크립트 안에서 일찍 끝내는 것만 된다([hooks-guide](https://code.claude.com/docs/en/hooks-guide#limitations)). 저장소에는 같은 검사가 이미 있다(커밋 전 `pnpm check`, 전체 시험은 CI). 그래서 저장소에는 Stop 훅을 두지 않는다. 전역 훅을 고치는 일은 개인 전역 설정(`~/agent-config`)에서 따로 한다.
 
 ### 스킬 후보
 

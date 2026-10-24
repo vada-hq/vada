@@ -73,7 +73,7 @@ function targetOf(run: SmokeRun): { url: string } | { exit: number } {
   const url = run.databaseUrl?.trim()
   if (!url) {
     run.log.error(
-      'DATABASE_URL이 없다. apps/api에서 npx tsx --env-file=../../.env scripts/pg-smoke.ts처럼 환경 파일을 넘겨 실행한다. 아무것도 하지 않았다.',
+      'DATABASE_URL이 없다. apps/api에서 pnpm exec tsx --env-file=../../.env scripts/pg-smoke.ts처럼 환경 파일을 넘겨 실행한다. 아무것도 하지 않았다.',
     )
     return { exit: 1 }
   }

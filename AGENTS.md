@@ -34,13 +34,13 @@
 
 차례
 
-1. 시작: `git status`가 깨끗한지 본다(이어서 하던 수정이 남았으면 그것부터 끝낸다). `git fetch origin && git switch --detach origin/main`. `gh run list --branch main --limit 3`에서 이 폴더가 올린 커밋이 실패했으면 그것부터 고친다.
-2. 고친다. 전체 시험은 돌리지 않는다. 바꾼 모듈의 시험 파일만 돌리고, 화면 문구나 부품을 바꿨으면 `src/ui-gallery` 시험도 돌린다(스냅숏이 바뀌면 `-u`로 갱신하고 차이를 본다). 그다음 `npm run check`.
+1. 시작: `git status`가 깨끗한지 본다(이어서 하던 수정이 남았으면 그것부터 끝낸다). `git fetch origin && git switch --detach origin/main && pnpm install --frozen-lockfile`(바뀐 의존성이 없으면 1초 안에 끝난다). `gh run list --branch main --limit 3`에서 이 폴더가 올린 커밋이 실패했으면 그것부터 고친다.
+2. 고친다. 전체 시험은 돌리지 않는다. 바꾼 모듈의 시험 파일만 돌리고, 화면 문구나 부품을 바꿨으면 `src/ui-gallery` 시험도 돌린다(스냅숏이 바뀌면 `-u`로 갱신하고 차이를 본다). 그다음 `pnpm check`.
 3. 커밋한다. 수정 하나에 커밋 하나다.
-4. `git fetch origin && git rebase origin/main`. 충돌을 풀었으면 `git diff --check`와 `npm run check`를 다시 돌린다. 스냅숏 충돌은 손으로 고치지 않고 다시 만든다. `git push origin HEAD:main`이 거절되면(그사이 다른 폴더가 올림) 4를 되풀이한다.
+4. `git fetch origin && git rebase origin/main`. 충돌을 풀었으면 `git diff --check`와 `pnpm check`를 다시 돌린다. 스냅숏 충돌은 손으로 고치지 않고 다시 만든다. `git push origin HEAD:main`이 거절되면(그사이 다른 폴더가 올림) 4를 되풀이한다.
 5. 올린 커밋의 main CI를 뒤에서 지켜본다(`gh run watch <id> --exit-status`를 백그라운드로). 사람에게는 무엇을 고쳤고 약 10분 뒤 배포되면 어느 화면에서 보면 되는지 한 줄로 알리고, 기다리지 않고 다음 요청을 받는다. CI가 실패하면 다음 일보다 먼저 고친다(배포는 멈추고 운영은 그대로다).
 
-- 마이그레이션은 칸·표를 더하는 것만 만든다. 번호와 `migrations/meta/_journal.json`이 순번이라 두 폴더가 같은 번호를 만들면 부딪친다. 그래서 만들기 직전에 4의 fetch·rebase를 하고, 만들면 바로 개발 DB에 적용(`-- --apply`)한 뒤 다른 수정을 기다리지 않고 올린다. 운영 DB는 main CI가 배포 전에 적용한다. 나머지 순서는 아래 '마이그레이션'을 따른다.
+- 마이그레이션은 칸·표를 더하는 것만 만든다. 번호와 `migrations/meta/_journal.json`이 순번이라 두 폴더가 같은 번호를 만들면 부딪친다. 그래서 만들기 직전에 4의 fetch·rebase를 하고, 만들면 바로 개발 DB에 적용(`pnpm --filter @vada/api db:migrate --apply`)한 뒤 다른 수정을 기다리지 않고 올린다. 운영 DB는 main CI가 배포 전에 적용한다. 나머지 순서는 아래 '마이그레이션'을 따른다.
 
 ## 새 API를 만들 때
 
@@ -62,7 +62,7 @@
 - 같은 규칙이나 계산이 두 번째로 필요해지면 복사하지 않고 공유 도우미로 옮긴다. 요청 모양은 `packages/contracts`, 서버 공통은 `apps/api/src/http`, 화면 공통은 `src/lib`·`src/components`에 둔다.
 - 진입점(`serve.ts`, `main.tsx`, 각 `routes.ts`)은 읽고 연결만 한다. 판단과 계산은 시험이 있는 모듈(`service.ts`, `queries.ts`, `lib/`)에 둔다.
 - 린트와 타입 검사를 통째로 끄지 않는다. 꼭 필요하면 한 줄, 한 규칙만 `// oxlint-disable-next-line 규칙 -- 이유`로 끈다. `@ts-ignore`는 쓰지 않고 `@ts-expect-error 이유`를 쓴다. 쓸모없어진 끄기는 린트가 실패시킨다.
-- 크기 상한은 `.oxlintrc.json`이 건다. 함수는 복잡도 10, 길이 50줄(화면 컴포넌트 `.tsx`는 100줄), 인자 4개, 중첩 4단, 파일은 300줄(빈 줄과 주석 제외)이다. 줄 수 상한은 린터 권장 규칙이 아니고 결함과의 관련 근거가 약해서, JSX가 길어지는 화면 컴포넌트는 느슨하게 둔다(복잡도가 결함과 더 관련 있다). 이름 없는 숫자(-1, 0, 1 제외)는 `const`로 이름을 붙인다. 시험 파일과 `test-support`는 함수·파일 길이와 숫자를 걸지 않는다. 임시 예외 목록은 없고, 상한을 넘는 새 코드는 린트가 바로 막는다. 안 쓰는 파일·의존성·내보내기는 knip(`knip.jsonc`)이 막는다(`npm run check`에 들어 있다).
+- 크기 상한은 `.oxlintrc.json`이 건다. 함수는 복잡도 10, 길이 50줄(화면 컴포넌트 `.tsx`는 100줄), 인자 4개, 중첩 4단, 파일은 300줄(빈 줄과 주석 제외)이다. 줄 수 상한은 린터 권장 규칙이 아니고 결함과의 관련 근거가 약해서, JSX가 길어지는 화면 컴포넌트는 느슨하게 둔다(복잡도가 결함과 더 관련 있다). 이름 없는 숫자(-1, 0, 1 제외)는 `const`로 이름을 붙인다. 시험 파일과 `test-support`는 함수·파일 길이와 숫자를 걸지 않는다. 임시 예외 목록은 없고, 상한을 넘는 새 코드는 린트가 바로 막는다. 안 쓰는 파일·의존성·내보내기는 knip(`knip.jsonc`)이 막는다(`pnpm check`에 들어 있다).
 - 상수는 값마다 한 곳에서만 정의하고 그 값을 주로 쓰는 모듈에 둔다. 서버와 화면이 같이 쓰면 `packages/contracts`에 둔다. 앱 전체 상수 파일 하나는 만들지 않는다.
 - 프로미스는 `await`한다. 일부러 기다리지 않을 때만 `void`를 붙인다.
 - 주석은 코드가 무엇을 하는지가 아니라 왜 그런지를 적는다.
@@ -90,17 +90,17 @@
 
 ## 마이그레이션
 
-- 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `npm run db:generate --workspace @vada/api`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `npm run check:design --workspace @vada/api`가 마이그레이션 DB와 설계를 맞댄다.
+- 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `pnpm --filter @vada/api db:generate`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `pnpm --filter @vada/api check:design`이 마이그레이션 DB와 설계를 맞댄다.
 - 첫 마이그레이션 `0000_baseline.sql`은 `apps/api/scripts/baseline-from-design.ts`가 physical-model.md에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
 - 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 Neon 프로젝트 `vada`의 `dev` 가지(개발, 로컬 `.env`의 `DATABASE_URL`)와 `production` 가지(배포) 두 곳이다.
-- 운영 DB는 main CI의 `migrate-production` 작업이 저절로 적용한다. 시험과 검사가 통과한 뒤 돌고, Render는 CI가 통과해야 배포하므로 DB가 새 코드보다 먼저 바뀐다. 주소는 GitHub 저장소 비밀값 `PRODUCTION_DATABASE_URL`이다. 적용이 실패하면 CI가 실패해 배포도 멈춘다. 개발 DB는 진행 에이전트가 main에 올리기 전에 적용한다(작업자와 검토자는 하지 않는다). `npm run db:migrate --workspace @vada/api`는 미리 보기다. 대상(호스트와 DB 이름), 점검 결과, 적용할 개수만 보여 주고 아무것도 바꾸지 않는다(`-- --dry-run`은 같은 뜻을 분명히 적는 것). 실제 적용은 `npm run db:migrate --workspace @vada/api -- --apply`로만 한다. 인자는 `--apply`, `--dry-run`, `--from-shell`뿐이고(`--apply`와 `--dry-run`은 같이 줄 수 없다) 다른 인자는 `.env`를 읽거나 연결하기 전에 멈춘다. npm이 `--dry-run`을 가져가지 않게 플래그 앞에 `--`를 둔다.
-- 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `-- --from-shell`을 붙인다(적용은 `-- --from-shell --apply`). 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면, 로컬 마이그레이션 시각이 커지는 순서가 아니면 적용하지 않는다. 적용 뒤에는 기록을 다시 읽어 실제로 적용된 개수를 보여 준다.
+- 운영 DB는 main CI의 `migrate-production` 작업이 저절로 적용한다. 시험과 검사가 통과한 뒤 돌고, Render는 CI가 통과해야 배포하므로 DB가 새 코드보다 먼저 바뀐다. 주소는 GitHub 저장소 비밀값 `PRODUCTION_DATABASE_URL`이다. 적용이 실패하면 CI가 실패해 배포도 멈춘다. 개발 DB는 진행 에이전트가 main에 올리기 전에 적용한다(작업자와 검토자는 하지 않는다). `pnpm --filter @vada/api db:migrate`는 미리 보기다. 대상(호스트와 DB 이름), 점검 결과, 적용할 개수만 보여 주고 아무것도 바꾸지 않는다(`--dry-run`은 같은 뜻을 분명히 적는 것). 실제 적용은 `pnpm --filter @vada/api db:migrate --apply`로만 한다. 인자는 `--apply`, `--dry-run`, `--from-shell`뿐이고(`--apply`와 `--dry-run`은 같이 줄 수 없다) 다른 인자는 `.env`를 읽거나 연결하기 전에 멈춘다. pnpm은 스크립트 이름 뒤의 인자를 그대로 넘기므로 `--`는 쓰지 않는다(맨 앞의 `--`는 무시한다).
+- 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(적용은 `--from-shell --apply`). 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면, 로컬 마이그레이션 시각이 커지는 순서가 아니면 적용하지 않는다. 적용 뒤에는 기록을 다시 읽어 실제로 적용된 개수를 보여 준다.
 - 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다. 운영 DB는 main에 올리면 적용되므로, 그 마이그레이션 파일은 코드가 배포된 뒤 따로 올린다(위반 행이 있으면 적용이 실패해 배포가 멈추고 DB는 그대로다).
 - 새 컬럼을 읽는 코드는 반대로, 두 DB에 마이그레이션을 먼저 적용한 뒤 배포한다. 코드가 먼저 나가면 없는 컬럼을 읽다가 해당 요청이 모두 실패한다. 새 컬럼에 거는 제약은 위반 행이 생길 수 없으므로 이 순서를 따르고, 기존 컬럼에 거는 제약과는 한 마이그레이션에 섞지 않는다.
 - 칸·표를 지우는 마이그레이션은 그것을 읽지 않는 코드를 먼저 배포한 뒤 적용한다. 적용 스크립트가 남은 마이그레이션을 모두 적용하므로, 지우는 마이그레이션 파일은 배포 뒤에 만든다.
 - `.sql` 파일은 `.gitattributes`로 LF로 고정한다. drizzle이 남기는 적용 기록의 해시가 파일 내용 기준이라, 줄바꿈이 바뀌면 기록과 어긋나 보인다.
-- 개발 DB의 시험 학생회는 진행 에이전트가 `npm run test-data --workspace @vada/api -- seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `-- assign <user-id> <planning|finance> --apply`로 넣는다. 끝난 기간(시험 1학기)과 지금 기간은 `-- periods <user-id> --apply`로 둔다(재정부 계정, 있으면 바꾸지 않는다). `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
-- 시연 학생회(섭외·리허설용, 학교 이름 'VADA 시연 학교')는 진행 에이전트가 `npm run demo --workspace @vada/api -- <user-id> [--apply] [--from-shell]`로 둔다. 미리 보기가 기본이고 `--apply`가 있어야 쓴다. 이미 있으면 아무것도 바꾸지 않고 멈춘다. 배포 DB는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(db:migrate와 같은 규칙). 날짜는 돌리는 날(한국) 기준이고, 다시 넣으려면 학교 이름을 바꾼다.
+- 개발 DB의 시험 학생회는 진행 에이전트가 `pnpm --filter @vada/api test-data seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `assign <user-id> <planning|finance> --apply`로 넣는다. 끝난 기간(시험 1학기)과 지금 기간은 `periods <user-id> --apply`로 둔다(재정부 계정, 있으면 바꾸지 않는다). `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
+- 시연 학생회(섭외·리허설용, 학교 이름 'VADA 시연 학교')는 진행 에이전트가 `pnpm --filter @vada/api demo <user-id> [--apply] [--from-shell]`로 둔다. 미리 보기가 기본이고 `--apply`가 있어야 쓴다. 이미 있으면 아무것도 바꾸지 않고 멈춘다. 배포 DB는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(db:migrate와 같은 규칙). 날짜는 돌리는 날(한국) 기준이고, 다시 넣으려면 학교 이름을 바꾼다.
 - 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `demo`, `pg-smoke`를 실행하지 않는다. 넷 다 실제 DB에 연결한다.
 
 ## 로그·비밀
@@ -113,17 +113,20 @@
 ## 실행 환경
 
 - Node 버전은 저장소 루트 `.node-version` 하나로 정한다. 로컬, CI(`node-version-file`), Render가 모두 이 파일을 따른다. Render 대시보드에 `NODE_VERSION` 변수를 두면 이 파일보다 우선하므로 두지 않는다.
+- 패키지 관리자는 pnpm이다. 버전은 `package.json`의 `packageManager`가 정하고 CI도 이것을 따른다. 작업 폴더마다 설치해도 라이브러리는 PC의 pnpm 저장소 한 벌을 하드 링크로 나눠 써서 디스크를 거의 더 쓰지 않는다. 의존성은 `pnpm --filter <패키지> add <이름>`으로 더한다(정확한 버전으로 적힌다).
+- pnpm 기본값을 그대로 쓴다: 나온 지 하루가 안 된 버전은 받지 않고(`minimumReleaseAge`), 의존성의 설치 스크립트는 `pnpm-workspace.yaml`의 `allowBuilds`에 적은 것만 돈다. 새 의존성이 설치 스크립트를 요구해 설치가 멈추면, 무엇을 하는 스크립트인지 보고 필요할 때만 `allowBuilds`에 더한다.
+- Render는 pnpm 없이 시작한다. 빌드 명령은 `npx --yes pnpm@<packageManager의 버전> install --frozen-lockfile --prod=false && npx --yes pnpm@<같은 버전> build`, 시작 명령은 `BETTER_AUTH_URL="$RENDER_EXTERNAL_URL" npm --prefix apps/api start`다(CI의 운영 모드 시작도 같은 명령). `packageManager`를 올리면 Render 빌드 명령의 버전도 같이 올린다.
 - `engines`에 위가 열린 범위(`>=22`)를 쓰지 않는다. Render는 열린 범위를 항상 최신 Node로 해석해, 테스트한 버전과 운영 버전이 달라진다.
 
 ## 검사
 
-- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다. 전체 시험은 CI가 main에서 돈다(가지는 손으로만, `docs/work-method.md` 원칙 8)
-- 형식: `npm run format`. 형식은 Prettier가 정한다. 손으로 맞추거나 검토에서 지적하지 않는다
-- 린트: `npm run lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
+- 커밋 전 정적 검사: `pnpm check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다. 전체 시험은 CI가 main에서 돈다(가지는 손으로만, `docs/work-method.md` 원칙 8)
+- 형식: `pnpm format`. 형식은 Prettier가 정한다. 손으로 맞추거나 검토에서 지적하지 않는다
+- 린트: `pnpm lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
 - blame에서 형식 커밋 빼기(한 번): `git config blame.ignoreRevsFile .git-blame-ignore-revs`
-- API 테스트: `npm test --workspace @vada/api` (개별 파일은 `apps/api`에서 `npx tsx --test <파일>`)
-- 계약 테스트: `npm test --workspace @vada/contracts`
-- 화면 테스트: `npm test --workspace @vada/web`
-- 타입 검사: `npm run typecheck`
-- 설계 검사(로컬, 옆 폴더 `../vada-docs` 필요): `npm run check:design --workspace @vada/api`
-- 부품 확인 화면: `npm run dev --workspace @vada/web` 후 `http://127.0.0.1:5180/ui.html`
+- API 테스트: `pnpm --filter @vada/api test` (개별 파일은 `apps/api`에서 `pnpm exec tsx --test <파일>`)
+- 계약 테스트: `pnpm --filter @vada/contracts test`
+- 화면 테스트: `pnpm --filter @vada/web test` (개별 파일은 `apps/web`에서 `pnpm exec vitest run <파일>`)
+- 타입 검사: `pnpm typecheck`
+- 설계 검사(로컬, 옆 폴더 `../vada-docs` 필요): `pnpm --filter @vada/api check:design`
+- 부품 확인 화면: `pnpm --filter @vada/web dev` 후 `http://127.0.0.1:5180/ui.html`
