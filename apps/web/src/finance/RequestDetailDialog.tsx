@@ -150,6 +150,7 @@ function Loaded({
         <DecisionPanel
           councilId={councilId}
           items={request.items}
+          eventId={request.event?.id ?? null}
           decide={detail.decide}
           onForbidden={onForbidden}
           onOpenBudget={onOpenBudget}

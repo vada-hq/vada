@@ -28,6 +28,7 @@ export const homeRequest = (id: string): PurchaseRequestSummary => ({
   neededBy: null,
   itemCount: 1,
   createdAt: '2026-10-20T03:00:00.000Z',
+  payable: false,
   event: null,
 })
 

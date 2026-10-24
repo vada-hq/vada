@@ -41,8 +41,22 @@ function serve() {
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
       items: [
-        { id: INCOME_ITEM, purpose: '지원금 예산', amount: 800000, type: 'income', event: null },
-        { id: 'x1', purpose: '행사 홍보', amount: 300000, type: 'expense', event: null },
+        {
+          id: INCOME_ITEM,
+          purpose: '지원금 예산',
+          amount: 800000,
+          type: 'income',
+          event: null,
+          selectable: true,
+        },
+        {
+          id: 'x1',
+          purpose: '행사 홍보',
+          amount: 300000,
+          type: 'expense',
+          event: null,
+          selectable: true,
+        },
       ],
       suggested: null,
     }),
@@ -102,6 +116,38 @@ test('출처는 사람이 적는 다섯만 보이고, 금액이 없거나 0이�
   })
   // 적고 나면 수입 목록을 다시 읽는다.
   expect(api.calls.filter(call => call.path === CURRENT_INCOMES).length).toBeGreaterThan(1)
+})
+
+test('수입 예산 항목은 서버가 고를 수 있다고 한 것만 보인다', async () => {
+  const api = serve()
+  api.on('GET', `${BASE}/budget`, () =>
+    json({
+      period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+      items: [
+        {
+          id: INCOME_ITEM,
+          purpose: '지원금 예산',
+          amount: 1,
+          type: 'income',
+          event: null,
+          selectable: true,
+        },
+        {
+          id: 'x2',
+          purpose: '끝난 행사 후원',
+          amount: 1,
+          type: 'income',
+          event: null,
+          selectable: false,
+        },
+      ],
+      suggested: null,
+    }),
+  )
+  showFinance()
+  await openForm()
+  await screen.findByRole('option', { name: /지원금 예산/ })
+  expect(screen.queryByRole('option', { name: /끝난 행사 후원/ })).toBeNull()
 })
 
 test('예산 항목과 계좌와 내용을 골라 적는다. 계좌는 없음도 고를 수 있다', async () => {

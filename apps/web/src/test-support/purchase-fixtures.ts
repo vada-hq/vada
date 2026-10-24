@@ -12,6 +12,7 @@ export const purchaseSummary = (
   neededBy: '2026-10-25',
   itemCount: 2,
   createdAt: '2026-10-21T05:03:00.000Z',
+  payable: false,
   event: null,
   ...extra,
 })
@@ -33,6 +34,7 @@ export const purchaseDetail = (
       budgetItem: null,
       status: 'pending',
       paid: false,
+      payable: false,
       actions: [],
     },
     {
@@ -45,6 +47,7 @@ export const purchaseDetail = (
       budgetItem: { id: 'b1', purpose: '행사 홍보' },
       status: 'rejected',
       paid: false,
+      payable: false,
       actions: [],
     },
   ],

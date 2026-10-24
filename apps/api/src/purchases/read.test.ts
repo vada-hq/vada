@@ -51,6 +51,7 @@ test(
         neededBy: null,
         itemCount: 1,
         event: null,
+        payable: false,
         createdAt: undefined,
       },
     )

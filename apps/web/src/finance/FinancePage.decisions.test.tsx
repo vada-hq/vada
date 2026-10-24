@@ -37,6 +37,7 @@ const pendingItem = (id: string, name: string) => ({
   budgetItem: null,
   status: 'pending' as const,
   paid: false,
+  payable: false,
   actions: [],
 })
 const twoPending = (extra: Partial<PurchaseRequestDetail> = {}) =>
@@ -202,7 +203,16 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
   // 기간이 바뀌어 그 항목이 사라지면(같은 값으로 다시 와도 목록에 없으면) 기본은 비어 있다.
   cleanup()
   const other = budgetWithPeriod()
-  other.items = [{ id: BUDGET_A, purpose: '행사 홍보', amount: 1, type: 'expense', event: null }]
+  other.items = [
+    {
+      id: BUDGET_A,
+      purpose: '행사 홍보',
+      amount: 1,
+      type: 'expense',
+      event: null,
+      selectable: true,
+    },
+  ]
   api.on('GET', `${ORG}/budget`, () => json(other))
   render(
     <FinancePage
@@ -401,4 +411,93 @@ test('결재 중 기간이 없어졌으면(NO_FISCAL_PERIOD) 문구를 보이고
   fireEvent.click(btn('포스터 승인'))
   expect(await screen.findByText('회계 기간을 먼저 만들어 주세요.')).toBeTruthy()
   expect(budgetReads).toBeGreaterThan(1)
+})
+
+const AUTUMN_ITEM = '55555555-5555-4555-8555-555555555555'
+const SPRING_DONE_ITEM = '66666666-6666-4666-8666-666666666666'
+const SPRING = { id: 'ev-spring', name: '봄 축제' }
+const AUTUMN = { id: 'ev-autumn', name: '가을 축제' }
+const eventBudget = (): BudgetResponse => ({
+  ...budgetWithPeriod(),
+  items: [
+    {
+      id: BUDGET_A,
+      purpose: '상시 비품',
+      amount: 1,
+      type: 'expense',
+      event: null,
+      selectable: true,
+    },
+    {
+      id: BUDGET_B,
+      purpose: '봄 항목',
+      amount: 1,
+      type: 'expense',
+      event: SPRING,
+      selectable: true,
+    },
+    {
+      id: AUTUMN_ITEM,
+      purpose: '가을 항목',
+      amount: 1,
+      type: 'expense',
+      event: AUTUMN,
+      selectable: true,
+    },
+    {
+      id: SPRING_DONE_ITEM,
+      purpose: '끝난 봄 항목',
+      amount: 1,
+      type: 'expense',
+      event: SPRING,
+      selectable: false,
+    },
+  ],
+})
+const optionsOf = (label: string) =>
+  within(screen.getByLabelText(label))
+    .getAllByRole('option')
+    .map(option => option.textContent)
+
+test('결재 창의 예산 항목은 고를 수 있는 것 가운데 요청 행사와 맞는 것만 보인다', async () => {
+  setup(twoPending({ event: SPRING }), eventBudget())
+  await open()
+  expect(optionsOf('포스터 예산 항목')).toEqual(['항목 고르기', '상시 비품', '봄 항목'])
+})
+
+test('행사가 없는 요청은 행사가 있는 항목도 고를 수 있지만 고를 수 없는 항목은 없다', async () => {
+  setup(twoPending({ event: null }), eventBudget())
+  await open()
+  expect(optionsOf('포스터 예산 항목')).toEqual([
+    '항목 고르기',
+    '상시 비품',
+    '봄 항목',
+    '가을 항목',
+  ])
+})
+
+test('기억한 항목이 이 요청의 행사와 맞지 않으면 비운다', async () => {
+  const { api } = setup(twoPending({ event: null }), eventBudget())
+  api.on('POST', `${BASE}/r1/decisions`, () => json({ request: twoPending({ event: null }) }))
+  await open()
+  fill('포스터 금액', '1000')
+  fill('포스터 예산 항목', AUTUMN_ITEM)
+  fireEvent.click(btn('포스터 승인'))
+  await waitFor(() =>
+    expect(asElement(screen.getByLabelText('테이프 예산 항목'), HTMLSelectElement).value).toBe(
+      AUTUMN_ITEM,
+    ),
+  )
+  cleanup()
+  api.on('GET', `${BASE}/r1`, () => json({ request: twoPending({ event: SPRING }) }))
+  render(
+    <FinancePage
+      view={councilView('c1', { permissions: FINANCE_PERMISSIONS })}
+      onForbidden={vi.fn()}
+      onChanged={vi.fn()}
+      onOpenEvent={vi.fn()}
+    />,
+  )
+  await open()
+  expect(asElement(screen.getByLabelText('테이프 예산 항목'), HTMLSelectElement).value).toBe('')
 })

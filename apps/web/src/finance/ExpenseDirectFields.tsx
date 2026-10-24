@@ -7,7 +7,7 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
-import { expenseItems } from './budget-form'
+import { expenseItems, itemsForEvent } from './budget-form'
 import { budgetPath } from './finance-api'
 import type { ExpenseValues } from './expense-form'
 import { wonLabel } from './purchase-view'
@@ -33,7 +33,11 @@ function BudgetSelect({
   const budget = usePolledRead<BudgetResponse>(budgetPath(councilId), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
-  const items = budget.state.kind === 'ready' ? expenseItems(budget.state.data.items) : []
+  // 고른 행사가 있으면 그 행사와 맞는 항목만 보인다(서버의 직접 지출과 같은 술어).
+  const items =
+    budget.state.kind === 'ready'
+      ? itemsForEvent(expenseItems(budget.state.data.items), values.eventId)
+      : []
   const loaded = budget.state.kind === 'ready'
   const gone =
     loaded && values.budgetItemId !== null && !items.some(i => i.id === values.budgetItemId)

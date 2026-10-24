@@ -48,6 +48,7 @@ const approvedItem = (id: string, name: string, amount: number) => ({
   name,
   amount,
   status: 'approved' as const,
+  payable: true,
 })
 
 function serve() {
@@ -57,9 +58,10 @@ function serve() {
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
       requests: [
-        purchaseSummary('r1', { title: '행사 포스터', status: 'approved' }),
-        purchaseSummary('r2', { title: '아직 대기', status: 'pending' }),
+        purchaseSummary('r1', { title: '행사 포스터', status: 'approved', payable: true }),
+        purchaseSummary('r2', { title: '아직 대기', status: 'pending', payable: true }),
         purchaseSummary('r3', { title: '취소한 요청', status: 'cancelled' }),
+        purchaseSummary('r4', { title: '완료한 행사 요청', status: 'approved' }),
       ],
       truncated: false,
     }),
@@ -70,7 +72,7 @@ function serve() {
         items: [
           approvedItem(ITEM_1, 'A2 포스터', 30000),
           approvedItem(ITEM_2, '테이프', 6000),
-          { ...approvedItem('i3', '반려된 것', 1000), status: 'rejected' },
+          { ...approvedItem('i3', '반려된 것', 1000), status: 'rejected', payable: false },
         ],
       }),
     }),
@@ -78,7 +80,16 @@ function serve() {
   api.on('GET', `${BASE}/budget`, () =>
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
-      items: [{ id: BUDGET, purpose: '행사 홍보', amount: 500000, type: 'expense', event: null }],
+      items: [
+        {
+          id: BUDGET,
+          purpose: '행사 홍보',
+          amount: 500000,
+          type: 'expense',
+          event: null,
+          selectable: true,
+        },
+      ],
       suggested: null,
     }),
   )
@@ -113,10 +124,11 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1', { evidence: [] }) }))
   showFinance()
   await fillRequestPayment()
-  // 승인된 요청만 고를 수 있고, 품목은 승인된 것만 보인다.
-  // 대기 요청도 승인된 품목이 있을 수 있어 고를 수 있다(품목을 읽은 뒤 가린다).
+  // 서버가 결제할 수 있다고 한(payable) 요청과 품목만 보인다.
+  // 대기 요청도 결제할 수 있는 품목이 있으면 고를 수 있다. 상태가 승인이어도 payable이 아니면(완료한 행사) 없다.
   expect(screen.getByRole('option', { name: '아직 대기' })).toBeTruthy()
   expect(screen.queryByRole('option', { name: '취소한 요청' })).toBeNull()
+  expect(screen.queryByRole('option', { name: '완료한 행사 요청' })).toBeNull()
   expect(screen.queryByRole('checkbox', { name: /반려된 것/ })).toBeNull()
   expect(asElement(screen.getByLabelText('A2 포스터 결제 금액'), HTMLInputElement).value).toBe(
     '30000',
@@ -324,7 +336,7 @@ test('품목 하나만 승인되고 다른 품목이 대기인 요청도 고를 
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
       requests: [
-        purchaseSummary('r1', { title: '일부만 결재', status: 'pending' }),
+        purchaseSummary('r1', { title: '일부만 결재', status: 'pending', payable: true }),
         purchaseSummary('r4', { title: '반려됨', status: 'rejected' }),
       ],
       truncated: false,
@@ -380,6 +392,7 @@ function serveWithEvent() {
         purchaseSummary('r1', {
           title: '행사 포스터',
           status: 'approved',
+          payable: true,
           event: { id: SPRING, name: '봄 축제' },
         }),
       ],
@@ -454,8 +467,22 @@ test('요청 없이 적을 때 예산 항목 고르기에는 지출 항목만 �
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
       items: [
-        { id: BUDGET, purpose: '행사 홍보', amount: 500000, type: 'expense', event: null },
-        { id: 'in1', purpose: '참가비 수입', amount: 1, type: 'income', event: null },
+        {
+          id: BUDGET,
+          purpose: '행사 홍보',
+          amount: 500000,
+          type: 'expense',
+          event: null,
+          selectable: true,
+        },
+        {
+          id: 'in1',
+          purpose: '참가비 수입',
+          amount: 1,
+          type: 'income',
+          event: null,
+          selectable: true,
+        },
       ],
       suggested: null,
     }),
@@ -465,6 +492,44 @@ test('요청 없이 적을 때 예산 항목 고르기에는 지출 항목만 �
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
   await screen.findByRole('option', { name: /행사 홍보/ })
   expect(screen.queryByRole('option', { name: /참가비 수입/ })).toBeNull()
+})
+
+test('요청 없이 적을 때 예산 항목은 고를 수 있는 것만 보이고 고른 행사와 맞는 것으로 좁혀진다', async () => {
+  const api = serveWithEvent()
+  const item = (id: string, purpose: string, eventId: string | null, selectable = true) => ({
+    id,
+    purpose,
+    amount: 1,
+    type: 'expense',
+    event: eventId ? { id: eventId, name: '행사' } : null,
+    selectable,
+  })
+  api.on('GET', `${BASE}/budget`, () =>
+    json({
+      period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+      items: [
+        item(BUDGET, '상시 비품', null),
+        item('a1', '봄 항목', SPRING),
+        item('a2', '다른 행사 항목', 'other-event'),
+        item('a3', '끝난 항목', null, false),
+      ],
+      suggested: null,
+    }),
+  )
+  showFinance()
+  await openForm()
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  const names = () =>
+    Array.from(
+      asElement(screen.getByLabelText('예산 항목'), HTMLSelectElement).options,
+      option => option.textContent,
+    )
+  await screen.findByRole('option', { name: /상시 비품/ })
+  expect(names().some(name => name?.includes('끝난 항목'))).toBe(false)
+  expect(names().filter(name => name?.includes('항목')).length).toBe(2)
+  choose('행사', SPRING)
+  await waitFor(() => expect(names().some(name => name?.includes('다른 행사 항목'))).toBe(false))
+  expect(names().some(name => name?.includes('봄 항목'))).toBe(true)
 })
 
 test('지출 적기가 409 EVENT_MISMATCH면 그 창 안에 문구가 보인다', async () => {

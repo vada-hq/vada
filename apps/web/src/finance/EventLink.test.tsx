@@ -40,6 +40,7 @@ function setup(tab: string, budget = budgetWithPeriod()) {
             budgetItem: null,
             status: 'pending',
             paid: false,
+            payable: false,
             actions: [],
           },
         ],
@@ -120,6 +121,7 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
     amount: 1,
     type: 'income',
     event: null,
+    selectable: true,
   })
   setup('requests', budget)
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))

@@ -230,6 +230,7 @@ test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이
     amount: 100000,
     type: 'income',
     event: { id: 'e1', name: '봄 축제' },
+    selectable: true,
   })
   show(FINANCE_PERMISSIONS, budget)
   const list = await screen.findByRole('list', { name: '예산 항목' })

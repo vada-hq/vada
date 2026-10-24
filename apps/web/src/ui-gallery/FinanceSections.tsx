@@ -25,6 +25,7 @@ const request = (id: string, extra: Partial<PurchaseRequestSummary>): PurchaseRe
   neededBy: '2026-10-25',
   itemCount: 3,
   createdAt: '2026-10-21T05:03:00.000Z',
+  payable: false,
   event: null,
   ...extra,
 })
@@ -41,11 +42,19 @@ const lineItem = (name: string): PurchaseLineItem => ({
   budgetItem: null,
   status: 'pending',
   paid: false,
+  payable: false,
   actions: [],
 })
 const budgetItems: BudgetItemView[] = [
-  { id: 'b1', purpose: '행사 홍보', amount: 300000, type: 'expense', event: null },
-  { id: 'b2', purpose: longName, amount: 50000, type: 'expense', event: null },
+  {
+    id: 'b1',
+    purpose: '행사 홍보',
+    amount: 300000,
+    type: 'expense',
+    event: null,
+    selectable: true,
+  },
+  { id: 'b2', purpose: longName, amount: 50000, type: 'expense', event: null, selectable: true },
 ]
 
 export function FinanceSection() {

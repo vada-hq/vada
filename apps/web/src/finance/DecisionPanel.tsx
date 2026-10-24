@@ -3,7 +3,7 @@ import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
-import { expenseItems } from './budget-form'
+import { expenseItems, itemsForEvent } from './budget-form'
 import { DecisionRow } from './DecisionRow'
 import { useDecisionRows } from './use-decision-rows'
 import { useBudget, type BudgetState } from './useBudget'
@@ -14,6 +14,8 @@ type Decide = ReturnType<typeof useDecide>
 type Props = {
   councilId: string
   items: PurchaseLineItem[]
+  // 요청의 행사. 고르기 목록은 이 행사와 맞는 항목만 보인다.
+  eventId: string | null
   decide: Decide
   onForbidden: () => void
   // 기간이나 항목이 없을 때 예산 탭으로 데려간다. 갈 곳이 없는 화면(행사의 예산·정산 탭)은 주지 않고 버튼이 없다.
@@ -102,7 +104,7 @@ function Body({
       </div>
     )
   const { period } = state.budget
-  const items = expenseItems(state.budget.items)
+  const items = itemsForEvent(expenseItems(state.budget.items), rest.eventId)
   if (!period || items.length === 0)
     return <NeedsBudget hasPeriod={period !== null} onOpenBudget={rest.onOpenBudget} />
   return (

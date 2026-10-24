@@ -29,6 +29,7 @@ const item = (
   budgetItem: null,
   status: 'approved',
   paid: false,
+  payable: false,
   actions: ['line_item.cancel'],
   ...extra,
 })

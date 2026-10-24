@@ -25,10 +25,9 @@ type Common = {
   onForbidden: () => void
 }
 
-// 승인된 품목이 하나라도 있을 수 있는 요청이다. 품목 하나가 승인되고 다른 품목이 대기면 요청 상태는 대기라서
-// 취소·반려된 요청만 빼고, 승인된 품목은 요청을 골라 품목을 읽은 뒤에 가린다. 서버가 승인 안 된 품목은 다시 거절한다.
+// 결제할 수 있는 품목이 하나라도 있다고 서버가 한(payable) 요청만 고른다. 품목 하나가 승인되고 다른 품목이 대기여도 요청 상태는 대기라서 상태로는 가를 수 없다.
 const payable = (requests: PurchaseRequestsResponse['requests']) =>
-  requests.filter(request => request.status !== 'cancelled' && request.status !== 'rejected')
+  requests.filter(request => request.payable)
 
 // 요청을 고르면 지출의 행사가 그 요청의 행사로 채워지고 잠긴다(행사가 없는 요청이면 고른 행사를 그대로 둔다).
 function withRequest(
@@ -137,7 +136,7 @@ function ItemPicker({
     () => {},
   )
   return loadingOr(detail.state, ({ request }) => {
-    const items = request.items.filter(item => item.status === 'approved')
+    const items = request.items.filter(item => item.payable)
     if (items.length === 0)
       return <StateMessage kind="empty">결제할 수 있는 승인된 품목이 없어요.</StateMessage>
     return (

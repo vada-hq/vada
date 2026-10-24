@@ -106,6 +106,7 @@ const request: PurchaseRequestSummary = {
   neededBy: null,
   itemCount: 2,
   createdAt: '2026-10-20T03:00:00.000Z',
+  payable: false,
   event: null,
 }
 
