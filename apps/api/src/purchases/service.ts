@@ -8,6 +8,7 @@ import { assertEventOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { assertLinkableTask } from '../tasks/link.js'
 import { currentFinanceMembers } from './finance-members.js'
 import { lockedRequestRow } from './lock.js'
 import { decide, factsOf, roleAllows } from './policy.js'
@@ -61,10 +62,13 @@ export async function createPurchaseRequest(
   // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
   await assertCouncilEvent(tx, actor, input.eventId)
   await assertEventOpen(tx, input.eventId)
+  // 업무를 이으면 요청 하나와 연결 한 줄이 한 거래에서 생기고, 거절이면 아무것도 생기지 않는다.
+  if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const requestId = await createRecord(tx, {
     kind: 'request',
     councilId: actor.councilId,
     actor: actor.memberId,
+    ...(input.taskId ? { taskId: input.taskId } : {}),
     values: {
       type: 'purchase',
       title: input.title,

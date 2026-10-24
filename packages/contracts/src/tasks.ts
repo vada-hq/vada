@@ -38,6 +38,21 @@ export const TASK_ACTIONS = [
 ] as const
 export type TaskAction = (typeof TASK_ACTIONS)[number]
 
+// 업무에 이어지는 결과물의 종류(DEC-82, DB CHECK와 같다)와 진행 단계(RULE-41). 단계: 없음(살아 있고 일 없음), 진행 중, 끝남, 빠짐(목표 셈에서 뺀다).
+const TASK_RESULT_KINDS = ['request', 'registration_form', 'message', 'event'] as const
+export type TaskResultKind = (typeof TASK_RESULT_KINDS)[number]
+const TASK_RESULT_STAGES = ['none', 'in_progress', 'finished', 'excluded'] as const
+export type TaskResultStage = (typeof TASK_RESULT_STAGES)[number]
+// 업무 상태가 저절로 바뀐 까닭 코드. 글이 아니라 코드라 문구를 나중에 바꿔도 옛 판이 따라간다. 판의 reason 칸에 남는다.
+export const TASK_CAUSES = [
+  'request_submitted',
+  'request_finished',
+  'form_created',
+  'notice_posted',
+  'event_completed',
+] as const
+export type TaskCause = (typeof TASK_CAUSES)[number]
+
 export interface TaskPerson {
   id: string
   name: string
@@ -80,13 +95,27 @@ export interface TaskVersion {
   // 이 판이 열린 시각(ISO)
   at: string
   by: { id: string; name: string } | null
+  // 저절로 바뀐 판의 까닭 코드. 사람이 바꾼 판은 null이다.
+  cause: TaskCause | null
   changes: TaskChange[]
+}
+
+// 업무 상세의 결과물 한 줄. 제목은 지금 제목이다.
+export interface TaskResult {
+  kind: TaskResultKind
+  id: string
+  title: string
+  stage: TaskResultStage
 }
 
 export interface TaskDetail extends TaskSummary {
   body: string | null
   createdBy: { id: string; name: string } | null
   createdAt: string
+  // 이 업무에서 만든 결과물(만든 순)
+  results: TaskResult[]
+  // 지금 이 업무에서 만들 수 있는 결과물 종류. 서버가 권한과 업무 상태로 셈하고 화면은 다시 세지 않는다(DEC-38).
+  canMake: TaskResultKind[]
   // 오래된 판부터 모두
   history: TaskVersion[]
 }

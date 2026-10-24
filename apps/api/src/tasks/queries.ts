@@ -24,7 +24,8 @@ import {
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { nextOf } from './lifecycle.js'
-import { actionsOf, factsOf } from './policy.js'
+import { actionsOf, canLinkResult, factsOf } from './policy.js'
+import { canMakeOf, resultsOf } from './results.js'
 import { dueDateOf, isOverdue } from './due.js'
 import { eventRowOf } from '../events/queries.js'
 import { historyOf } from './history.js'
@@ -182,11 +183,14 @@ export async function taskDetailOf(
 ): Promise<TaskDetail> {
   const row = await taskRowOf(db, actor, taskId, now)
   const history = await historyOf(db, taskId)
+  const linkable = canLinkResult(actor, factsOf(row), row.status as TaskStatus)
   return {
     ...summaryOf(actor, row, now),
     body: row.body,
     createdBy: history[0]?.by ?? null,
     createdAt: row.createdAt.toISOString(),
+    results: await resultsOf(db, taskId),
+    canMake: canMakeOf(actor, linkable),
     history,
   }
 }

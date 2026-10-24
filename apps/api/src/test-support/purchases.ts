@@ -13,6 +13,7 @@ import type { PushSender } from '../push/sender.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { seedCouncil } from './council.js'
 import { caller, ORIGIN, testSession } from './http.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { fakeStorage } from './storage.js'
 
 // 한국 시각 2026-10-25 12:00
@@ -75,6 +76,7 @@ export async function startPurchases(
         writeLimiter,
       }),
       budget: createBudgetRoutes(db, testSession, { clock }),
+      tasks: createTaskRoutes(db, testSession, { clock }),
       chat: createChatRoutes(db, testSession, { clock, storage: store.storage }),
       expenses: createExpenseRoutes(db, testSession, {
         clock,

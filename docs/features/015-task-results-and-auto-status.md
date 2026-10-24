@@ -69,7 +69,7 @@
 - 닿는 곳: contracts `tasks.ts`(`TASK_ACTIONS`에 `task.remove`, `TaskSummary.next`), `permissions.ts`(contracts `Action`), api `tasks/lifecycle.ts`(새), `tasks/policy.ts`(새, `actions.ts` 대신), `tasks/service.ts`, `access/permissions.ts`, web `tasks/task-view.ts`, `TaskRow.tsx`, 지우기 버튼이 있는 상세 부품.
 - 검토: 깊게(권한). 마이그레이션: 없음.
 
-### 2. 업무 결과물 표와 구매 요청 잇기(서버) [ ]
+### 2. 업무 결과물 표와 구매 요청 잇기(서버) [x]
 - 할 수 있게 되는 것: 업무에서 낸 구매 요청이 그 업무에 이어지고, 할 일이던 업무가 저절로 진행 중이 된다.
 - 수용 기준: 요청 내기에 `taskId`를 주면 201이고 같은 거래에 연결 한 줄이 생기며, 할 일이던 업무가 진행 중이 되고 그 판은 바꾼 사람 없이 `cause` `request_submitted`다. 이미 진행 중·끝남이면 판이 늘지 않는다. `taskId`가 없으면 지금과 같다. 다른 학생회·없는·취소·끝난 업무, `task.status`가 없는 업무는 409 `TASK_INVALID`이고 요청·품목·알림·연결이 없다. 같은 요청을 두 업무에 이을 수 없다(DB UNIQUE). 업무 상세에 `results`(종류, 번호, 제목, 단계)와 `canMake`가 있고, 이력의 `cause`가 실린다. 결과물 종류가 아닌 쓰기(업무 고치기, 메시지 보내기)는 업무 판을 늘리지 않는다. 재정부가 대신 낸 요청도 만든 사람 기준으로 잇는다.
 - 닿는 곳: `apps/api/migrations/`(새 `task_result`), `src/db/schema.ts`, `ops/migrate/*.test.ts`(표 수), contracts `purchases.ts`, `tasks.ts`(`TaskDetail.results`·`canMake`, `TaskVersion.cause`), `errors.ts`(`TASK_INVALID`), api `records/records.ts`(고리), `tasks/result-sync.ts`(새), `tasks/results.ts`(새, 잇기·읽기), `purchases/service.ts`, 요청 단계 셈(`purchases/`), `tasks/history.ts`, `tasks/queries.ts`.

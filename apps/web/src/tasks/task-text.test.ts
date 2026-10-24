@@ -5,7 +5,7 @@ import { versionLine } from './task-text'
 
 const by = { id: 'm1', name: '김회장' }
 const line = (changes: TaskChange[], at = '2026-10-20T05:03:00.000Z') =>
-  versionLine({ versionNo: 2, at, by, changes })
+  versionLine({ versionNo: 2, at, by, cause: null, changes })
 
 test('이력 줄은 이름, 한국 시각, 바뀐 칸 차례다', () => {
   expect(line([{ field: 'status', from: 'todo', to: 'in_progress' }])).toBe(
@@ -19,6 +19,7 @@ test('판 1은 만듦이고 만든 사람이 없으면 알 수 없는 사람이�
       versionNo: 1,
       at: '2026-10-20T05:03:00.000Z',
       by: null,
+      cause: null,
       changes: [{ field: 'created' }],
     }),
   ).toBe('알 수 없는 사람 · 10월 20일 14:03 · 만듦')

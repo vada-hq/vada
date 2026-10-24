@@ -316,7 +316,7 @@ test(
 )
 
 test(
-  '입력 경우: requestedBy와 sourceMessageId가 빈 값·공백·상한 초과·NUL·홀로 쓰인 서러게이트·uuid 아님이면 400이고 아무것도 생기지 않는다. 지출도 같다',
+  '입력 경우: requestedBy와 sourceMessageId와 taskId가 빈 값·공백·상한 초과·NUL·홀로 쓰인 서러게이트·uuid 아님이면 400이고 아무것도 생기지 않는다. 지출도 같다',
   runPurchases(async s => {
     const bad: unknown[] = [
       '',
@@ -329,7 +329,7 @@ test(
       7,
     ]
     for (const value of bad) {
-      for (const key of ['requestedBy', 'sourceMessageId'])
+      for (const key of ['requestedBy', 'sourceMessageId', 'taskId'])
         assert.equal(
           (await s.create({ title: 'a', items: [ITEM], [key]: value }, FINANCE)).status,
           400,

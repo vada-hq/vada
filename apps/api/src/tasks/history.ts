@@ -1,5 +1,11 @@
 import { asc, eq, inArray, sql } from 'drizzle-orm'
-import type { TaskChange, TaskStatus, TaskVersion } from '@vada/contracts'
+import {
+  TASK_CAUSES,
+  type TaskCause,
+  type TaskChange,
+  type TaskStatus,
+  type TaskVersion,
+} from '@vada/contracts'
 import { department, event, member, recordVersion } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { dueDateOf } from './due.js'
@@ -88,6 +94,12 @@ async function namesOf(
   }
 }
 
+// 저절로 바뀐 판은 바꾼 사람이 없고 사유 칸에 까닭 코드가 있다(DEC-82). 사람이 바꾼 판과 모르는 코드는 null이다.
+const causeOf = (row: { changedBy: string | null; reason: string | null }): TaskCause | null =>
+  !row.changedBy && TASK_CAUSES.some(cause => cause === row.reason)
+    ? (row.reason as TaskCause)
+    : null
+
 // 업무 하나의 판 전체를 오래된 것부터. 판 1은 '만듦'이고, 그다음부터는 앞 판과 달라진 칸이다.
 // 만든 사람은 판 1의 바꾼 사람이다.
 export async function historyOf(db: Reader, taskId: string): Promise<TaskVersion[]> {
@@ -98,6 +110,7 @@ export async function historyOf(db: Reader, taskId: string): Promise<TaskVersion
         Number,
       ),
       changedBy: recordVersion.changedBy,
+      reason: recordVersion.reason,
       data: recordVersion.data,
     })
     .from(recordVersion)
@@ -128,6 +141,7 @@ export async function historyOf(db: Reader, taskId: string): Promise<TaskVersion
       versionNo: row.versionNo,
       at: new Date(Math.round(row.openedAt)).toISOString(),
       by: by?.name ? by : null,
+      cause: causeOf(row),
       changes: previous
         ? changesBetween(previous, snapshots[index]!, names)
         : [{ field: 'created' }],

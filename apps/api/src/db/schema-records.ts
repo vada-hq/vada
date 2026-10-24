@@ -74,6 +74,18 @@ export const evidenceLink = pgTable(
   table => [primaryKey({ columns: [table.recordId, table.messageId] })],
 )
 
+// 업무와 그 업무에서 만든 결과물의 연결(기능 015, DEC-82). 기록이 아니라 판이 없고 떼지 않는다. 결과물 하나는 업무 하나에만 이어진다.
+export const taskResult = pgTable(
+  'task_result',
+  {
+    taskId: uuid('task_id').notNull(),
+    resultId: uuid('result_id').notNull().unique(),
+    // request, registration_form, message, event
+    resultKind: text('result_kind').notNull(),
+  },
+  table => [primaryKey({ columns: [table.taskId, table.resultId] })],
+)
+
 export const document = pgTable('document', {
   id: uuid('id').primaryKey(),
   kind: text('kind').notNull().default('document'),

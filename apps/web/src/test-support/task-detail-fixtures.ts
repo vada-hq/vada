@@ -24,11 +24,14 @@ export function taskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
     body: '크기는 3m로 해 주세요.',
     createdBy: { id: 'm1', name: '김회장' },
     createdAt: '2026-10-20T05:03:00.000Z',
+    results: [],
+    canMake: [],
     history: [
       {
         versionNo: 1,
         at: '2026-10-20T05:03:00.000Z',
         by: { id: 'm1', name: '김회장' },
+        cause: null,
         changes: [{ field: 'created' }],
       },
     ],
