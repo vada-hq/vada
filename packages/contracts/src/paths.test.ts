@@ -98,6 +98,7 @@ test('모르는 꼴은 읽지 않는다', () => {
     '/',
     'chat',
     `chat/${C}`,
+    `xchat/${C}`,
     `/Chat/${C}`,
     `/CHAT/${C}/${R}`,
     `/unknown/${C}`,
