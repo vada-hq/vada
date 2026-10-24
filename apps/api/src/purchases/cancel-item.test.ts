@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { clockNow, createRecord } from '../records/records.js'
+import { withSettlement } from '../test-support/settlement.js'
 import {
   detailOf,
   endpointOf,
@@ -138,11 +139,23 @@ test(
     await s.settled()
     assert.equal(await s.notices(), count)
     assert.equal(s.calls.length, 0)
+    // 요청한 사람이 이미 운영진이 아니면 알림이 없다.
+    const left = await approvedRequest(s)
+    await s.pg.query(
+      'UPDATE council_membership SET ends_at = clock_timestamp() WHERE member_id = $1',
+      [s.council.people.planningMember.memberId],
+    )
+    const afterLeft = await s.notices()
+    s.calls.length = 0
+    await cancel(s, [left.request.id, left.first], '사지 않아요')
+    await s.settled()
+    assert.equal(await s.notices(), afterLeft)
+    assert.equal(s.calls.length, 0)
   }),
 )
 
 test(
-  '대기·반려·이미 취소·결제한 품목과 취소한 요청은 409 LINE_ITEM_NOT_CANCELLABLE이고 기록이 없다',
+  '대기·반려·이미 취소·결제한 품목은 409 LINE_ITEM_NOT_CANCELLABLE이고 기록이 없다',
   runPurchases(async s => {
     const request = await s.made({
       ...two,
@@ -283,5 +296,73 @@ test(
     assert.equal(extra.status, 400)
     assert.equal(await cancelledCount(s), 0)
     assert.equal((await cancel(s, [request.id, first], emoji(500))).status, 200)
+  }),
+)
+
+test(
+  '행사 없는 요청의 품목을 행사 예산 항목으로 승인했고 그 행사를 완료하면 읽기 동작이 없고 쓰기는 409다',
+  runPurchases(async s => {
+    const actor = s.council.people.president.memberId
+    const root = `/api/organizations/${s.council.councilId}`
+    const event = await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'event',
+        councilId: s.council.councilId,
+        actor,
+        values: { name: '봄 축제', startsAt: new Date('2026-10-20T00:00:00Z') },
+      }),
+    )
+    await s.api.post(
+      `${root}/fiscal-periods`,
+      { name: '2학기', startsOn: '2026-09-01', endsOn: '2026-12-31' },
+      FINANCE,
+    )
+    const made = await s.api.post(
+      `${root}/budget-items`,
+      { purpose: '행사 소모품', amount: 100000, eventId: event },
+      FINANCE,
+    )
+    const budgetItem = (
+      (await made.json()) as { items: { id: string; event: unknown }[] }
+    ).items.find(item => item.event)!.id
+    const { request, first } = await approvedRequest(s)
+    await s.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [budgetItem, first])
+    const completion = (outcome: 'completed' | 'completion_cancelled', at: string) =>
+      s.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'approval',
+          councilId: s.council.councilId,
+          actor,
+          values: {
+            targetId: event,
+            targetKind: 'event',
+            outcome,
+            actorId: actor,
+            actorKind: 'member',
+            actedAt: new Date(at),
+            reason: null,
+          },
+        }),
+      )
+    assert.deepEqual((await detail(s, request.id)).items[0]!.actions, ['line_item.cancel'])
+    await completion('completed', '2026-10-24T03:00:00Z')
+    assert.deepEqual((await detail(s, request.id)).items[0]!.actions, [])
+    assert.equal(await errorOf(await cancel(s, [request.id, first], '사유')), 'EVENT_COMPLETED')
+    await completion('completion_cancelled', '2026-10-24T04:00:00Z')
+    assert.deepEqual((await detail(s, request.id)).items[0]!.actions, ['line_item.cancel'])
+  }),
+)
+
+test(
+  '행사의 마지막 남은 승인 품목을 취소하면 그 행사를 완료할 수 있다',
+  withSettlement(async t => {
+    const event = await t.event()
+    const { request, line } = await t.requestWithItem(event)
+    await t.approve(line)
+    const complete = () => t.api.post(`${t.base}/${event}/complete`, {}, 's-president')
+    assert.equal((await complete()).status, 409)
+    const url = `/api/organizations/${t.council.councilId}/purchase-requests/${request}/items/${line}/cancel`
+    assert.equal((await t.api.post(url, { reason: '사지 않아요' }, FINANCE)).status, 200)
+    assert.equal((await complete()).status, 200)
   }),
 )
