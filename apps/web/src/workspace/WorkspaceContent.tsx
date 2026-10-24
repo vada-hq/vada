@@ -1,10 +1,11 @@
 import type { CouncilView } from '@vada/contracts'
+import type { Ref } from 'react'
 import ChatPage from '../chat/ChatPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
 import type { HomeOpeners } from '../home/HomeBody'
 import HomePage from '../home/HomePage'
-import type { EventTab } from '../events/event-view'
+import type { EventTab } from '@vada/contracts'
 import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
@@ -32,6 +33,8 @@ type Props = {
   // 업무에서 눌러 연 행사. 행사 화면이 이 행사를 열고 시작한다.
   eventId?: string | undefined
   eventTab?: EventTab | undefined
+  // 주소의 칸. 바뀌면 페이지가 새로 열려 주소로 연 기록을 다시 연다. 기록 주소가 아니면 늘 같다.
+  linkKey: string
   // 업무 카드·상세에서 행사 이름을, 홈에서 행사 줄을 눌렀다.
   onOpenEvent: (eventId: string, tab?: EventTab) => void
   // 홈에서 요청 줄을 눌렀다(재정 화면이 그 요청의 상세를 열고 시작한다).
@@ -172,13 +175,18 @@ function Body({ data, ...props }: Props) {
       </Card>
     )
   if (state.kind !== 'ready') return <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-  return <PageOf data={data} {...props} view={state.view} reading={state.reading} />
+  return (
+    <PageOf key={props.linkKey} data={data} {...props} view={state.view} reading={state.reading} />
+  )
 }
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.
-export default function WorkspaceContent(props: Props) {
+export default function WorkspaceContent({
+  mainRef,
+  ...props
+}: Props & { mainRef: Ref<HTMLElement> }) {
   return (
-    <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+    <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
       <Body {...props} />
     </main>
   )

@@ -6,13 +6,11 @@ import SignedOutView from './auth/SignedOutView'
 import { useAuthActions } from './auth/useAuthActions'
 import { useInviteEntry } from './auth/useInviteEntry'
 import { useSessionRecheck } from './auth/useSessionRecheck'
-import { useChatLink } from './workspace/useChatLink'
 import { isIosHomeScreenApp } from '@/lib/platform'
 
 export default function App() {
   const { data: session, isPending, error, refetch } = authClient.useSession()
   const { invite, opened, enterCode, leaveInvite, joined } = useInviteEntry()
-  const chatLink = useChatLink()
   const { busy, message, login, loginInApp, logout } = useAuthActions(invite)
   const [homeScreenApp] = useState(() => isIosHomeScreenApp(navigator as { standalone?: boolean }))
   useSessionRecheck(homeScreenApp, Boolean(session), refetch)
@@ -28,7 +26,6 @@ export default function App() {
           user={session.user}
           invite={invite}
           opened={opened}
-          chatLink={chatLink}
           busy={busy}
           message={message}
           onEnterCode={enterCode}

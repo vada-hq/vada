@@ -2,32 +2,29 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { HomeEventCard, HomeResponse } from '@vada/contracts'
-import {
-  councilView,
-  FINANCE_PERMISSIONS,
-  myCouncil,
-  teamResponse,
-} from '@/test-support/council-fixtures'
+import { councilView, FINANCE_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { homeResponse, homeTask, homeWithTasks, onHomeExtras } from '@/test-support/home-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
-import CouncilWorkspace from './CouncilWorkspace'
+import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
-const base = '/api/organizations/c1'
+const base = `/api/organizations/${COUNCIL_ID}`
 const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+const R1 = '7c9e6679-7425-40de-944b-e07fc1f90ae7'
 
 function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   const api = mockApi()
   onHomeExtras(api)
-  api.on('GET', base, () => json(councilView('c1', { permissions: FINANCE_PERMISSIONS })))
+  api.on('GET', base, () => json(councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', `${base}/home`, () => json(home))
@@ -37,7 +34,7 @@ function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   api.on('GET', `${base}/purchase-requests?view=mine`, () =>
     json({ requests: [], truncated: false }),
   )
-  api.on('GET', `${base}/purchase-requests/r1`, () => json({ request: purchaseDetail('r1') }))
+  api.on('GET', `${base}/purchase-requests/${R1}`, () => json({ request: purchaseDetail(R1) }))
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
   api.on('GET', `${base}/tasks?view=mine&status=open`, () =>
@@ -46,21 +43,7 @@ function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   api.on('GET', `${base}/tasks/${T1}`, () =>
     json({ task: taskDetail({ id: T1, title: '현수막 주문' }) }),
   )
-  render(
-    <CouncilWorkspace
-      council={myCouncil()}
-      councils={[myCouncil()]}
-      onSelect={() => {}}
-      returnFocusTo={null}
-      startPage="home"
-      roomId={undefined}
-      user={{ name: '김회장' }}
-      logoutBusy={false}
-      onLogout={() => {}}
-      onCouncilsChanged={() => {}}
-      onCouncilLost={() => {}}
-    />,
-  )
+  render(<WorkspaceAt startPage="home" />)
   return api
 }
 
@@ -111,10 +94,10 @@ const tabSelected = async (name: string) =>
 test('받은 것 줄을 누르면 재정 화면에서 그 요청 상세가 열린다', async () => {
   open(
     homeResponse({
-      received: { requests: [purchaseSummary('r1')], total: 1, truncated: false },
+      received: { requests: [purchaseSummary(R1)], total: 1, truncated: false },
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: /요청 r1/ }))
+  fireEvent.click(await screen.findByRole('button', { name: /요청 7c9e6679/ }))
   await waitFor(() =>
     expect(within(screen.getByRole('dialog')).getByText('행사 포스터 인쇄')).toBeTruthy(),
   )

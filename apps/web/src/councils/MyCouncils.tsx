@@ -1,5 +1,9 @@
-import { useCallback, useState, type ReactNode } from 'react'
-import type { ChatLink } from '../workspace/useChatLink'
+import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
+import { menuPath, type MyCouncil } from '@vada/contracts'
+import { layerDirectRecord, navigate, useHere } from '@/lib/app-location'
+import { ADDRESS_LOST, ADDRESS_LOST_BACK } from '@/lib/messages'
+import { targetOf } from '../workspace/address'
+import { useNotificationOpen } from '../workspace/useNotificationOpen'
 import Workspace from '../workspace/Workspace'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -8,16 +12,16 @@ import { useMyCouncils } from './useMyCouncils'
 
 type Props = {
   user: { name: string }
-  // 방금 들어온 학생회. 있으면 그 학생회를 먼저 연다.
+  // 방금 들어온 학생회. 있으면 그 학생회의 운영진 화면으로 연다.
   initialCouncilId?: string | undefined
-  // 알림을 눌러 열 방. 내 학생회의 방일 때만 쓴다.
-  chatLink?: ChatLink | null | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
   card: (content: ReactNode) => ReactNode
   onEnterCode: (code: string) => void
   logoutBusy: boolean
   onLogout: () => void
 }
+
+const NONE: MyCouncil[] = []
 
 function LoadFailed({ onRetry }: { onRetry: () => void }) {
   return (
@@ -32,15 +36,45 @@ function LoadFailed({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-// 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 작업 공간이다.
-export default function MyCouncils({ user, initialCouncilId, chatLink, card, ...rest }: Props) {
+// 모르는 학생회, 없는 주소. 있는지 없는지를 가르지 않고 상위 목록으로 가는 길을 준다.
+function NotFound({ fallback }: { fallback: string }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <StateMessage kind="notice">{ADDRESS_LOST}</StateMessage>
+      <Button variant="outline" onClick={() => navigate(fallback, { replace: true })}>
+        {ADDRESS_LOST_BACK}
+      </Button>
+    </div>
+  )
+}
+
+// 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 주소가 가리키는 작업 공간이다.
+export default function MyCouncils({ user, initialCouncilId, card, ...rest }: Props) {
   const { state, reload, add, remove } = useMyCouncils()
-  const [opened, setOpened] = useState(initialCouncilId)
-  // 마지막으로 받아들인 알림. 내 학생회가 아닌 알림은 받아들이지 않아, 지금 화면을 그대로 둔다.
-  const [link, setLink] = useState<ChatLink | null>(null)
-  // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고, 서버의 목록을 다시 읽는다.
+  const here = useHere()
+  const councils = state.kind === 'ready' ? state.councils : NONE
+  // lost는 안정된 함수여야 한다(바뀌면 잃은 학생회마다 다시 불려 목록 읽기가 끝없이 되풀이된다). 그래서 목록은 ref로 읽는다.
+  const latest = useRef(councils)
+  useEffect(() => {
+    latest.current = councils
+  })
+  useNotificationOpen(councils)
+  // 링크로 바로 들어온 기록 주소는 그 아래에 상위 목록 칸을 깐다.
+  useLayoutEffect(layerDirectRecord, [])
+  // 방금 들어온 학생회는 운영진 화면으로 연다.
+  useEffect(() => {
+    if (initialCouncilId) navigate(menuPath('people', initialCouncilId), { replace: true })
+  }, [initialCouncilId])
+  const first = councils[0]
+  // '/'로 열렸으면 첫 학생회 홈 주소로 바꿔 쓴다.
+  useEffect(() => {
+    if (first && here.path === '/') navigate(menuPath('home', first.id), { replace: true })
+  }, [first, here.path])
+  // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고 남은 첫 학생회 홈으로 간다. 서버의 목록은 다시 읽는다.
   const lost = useCallback(
     (councilId: string) => {
+      const next = latest.current.find(item => item.id !== councilId)
+      if (next) navigate(menuPath('home', next.id), { replace: true })
       remove(councilId)
       reload()
     },
@@ -54,19 +88,17 @@ export default function MyCouncils({ user, initialCouncilId, chatLink, card, ...
       <NoCouncilFlow
         onEnterCode={rest.onEnterCode}
         onCreated={council => {
-          setOpened(council.id)
+          navigate(menuPath('people', council.id))
           add(council)
         }}
       />,
     )
-  if (chatLink && chatLink !== link && state.councils.some(item => item.id === chatLink.councilId))
-    setLink(chatLink)
+  const target = targetOf(here, state.councils)
+  if (target.kind === 'notFound') return card(<NotFound fallback={target.fallback} />)
   return (
     <Workspace
-      key={`${opened ?? ''}:${link?.seq ?? ''}`}
       councils={state.councils}
-      initialCouncilId={opened}
-      chatLink={link}
+      target={target}
       user={user}
       logoutBusy={rest.logoutBusy}
       onLogout={rest.onLogout}

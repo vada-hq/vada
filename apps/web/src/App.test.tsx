@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { agreementResponse } from './test-support/agreement-fixtures'
@@ -27,23 +27,16 @@ vi.mock('./councils/MyCouncils', () => ({
   default: ({
     card,
     initialCouncilId,
-    chatLink,
     onEnterCode,
   }: {
     card: (content: ReactNode) => ReactNode
     initialCouncilId?: string
-    chatLink?: { councilId: string; roomId: string; seq: number } | null
     onEnterCode: (code: string) => void
   }) => (
     <>
       {card(
         <>
           <p>학생회 목록 자리{initialCouncilId ? `: ${initialCouncilId}` : ''}</p>
-          {chatLink && (
-            <p>
-              방 열기: {chatLink.councilId}/{chatLink.roomId}/{chatLink.seq}
-            </p>
-          )}
           <button type="button" onClick={() => onEnterCode('WXYZ6789')}>
             코드 입력
           </button>
@@ -153,77 +146,6 @@ test('로그아웃은 이 기기 줄을 먼저 지운 뒤에 한다', async () =
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
   expect(order).toEqual(['기기 지우기', '로그아웃'])
-})
-
-test('알림 주소(/chat/학생회/방)로 열면 그 방을 열라고 넘기고 주소는 맨 앞으로 되돌린다', async () => {
-  signedIn()
-  window.history.replaceState(
-    null,
-    '',
-    '/chat/0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1',
-  )
-  await renderApp()
-  expect(
-    screen.getByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
-    ),
-  ).toBeTruthy()
-  await waitFor(() => expect(window.location.pathname).toBe('/'))
-})
-
-test('열려 있는 동안 서비스 워커가 알리면 그 방으로 다시 연다', async () => {
-  signedIn()
-  const listeners: ((event: { data: unknown }) => void)[] = []
-  Object.defineProperty(navigator, 'serviceWorker', {
-    configurable: true,
-    value: {
-      addEventListener: (_type: string, listener: (event: { data: unknown }) => void) =>
-        listeners.push(listener),
-      removeEventListener: () => undefined,
-    },
-  })
-  await renderApp()
-  expect(screen.queryByText(/방 열기/)).toBeNull()
-  act(() =>
-    listeners[0]!({
-      data: {
-        type: 'vada:open',
-        url: '/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
-      },
-    }),
-  )
-  expect(
-    screen.getByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/1',
-    ),
-  ).toBeTruthy()
-  act(() =>
-    listeners[0]!({
-      data: {
-        type: 'vada:open',
-        url: '/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
-      },
-    }),
-  )
-  expect(
-    screen.getByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/2',
-    ),
-  ).toBeTruthy()
-  act(() =>
-    listeners[0]!({
-      data: {
-        type: 'vada:open',
-        url: 'https://evil.test/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9',
-      },
-    }),
-  )
-  expect(
-    screen.getByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a9/2',
-    ),
-  ).toBeTruthy()
-  Reflect.deleteProperty(navigator, 'serviceWorker')
 })
 
 test('login failure allows retry without exposing the raw error', async () => {
@@ -483,26 +405,15 @@ test('초대 링크로 시작해도 동의가 먼저고, 동의 뒤 초대 확�
   expect(await screen.findByText('초대 확인 자리: ABCD2345')).toBeTruthy()
 })
 
-test('알림 주소로 시작해도 동의가 먼저고, 동의 뒤 그 방을 연다', async () => {
-  window.history.replaceState(
-    null,
-    '',
-    '/chat/0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1',
-  )
+test('알림 주소로 시작해도 동의가 먼저고, 동의 뒤 작업 공간이 그 주소를 이어 받는다', async () => {
+  const path = '/chat/0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1'
+  window.history.replaceState(null, '', path)
   signedIn()
   needAgreement()
   await renderApp()
-  expect(
-    screen.queryByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
-    ),
-  ).toBeNull()
   expect(screen.queryByText('학생회 목록 자리')).toBeNull()
   fireEvent.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
   fireEvent.click(screen.getByRole('button', { name: '시작하기' }))
-  expect(
-    await screen.findByText(
-      '방 열기: 0199d1a0-0000-7000-8000-0000000000c1/0199d1a0-0000-7000-8000-0000000000a1/0',
-    ),
-  ).toBeTruthy()
+  expect(await screen.findByText('학생회 목록 자리')).toBeTruthy()
+  expect(window.location.pathname).toBe(path)
 })

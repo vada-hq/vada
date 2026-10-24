@@ -1,12 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import {
-  councilView,
-  FINANCE_PERMISSIONS,
-  myCouncil,
-  teamResponse,
-} from '@/test-support/council-fixtures'
+import { councilView, FINANCE_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { BUDGET_A, budgetWithPeriod, LINE_1 } from '@/test-support/budget-fixtures'
@@ -15,42 +10,29 @@ import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtur
 import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import type { Page } from './pages'
-import CouncilWorkspace from './CouncilWorkspace'
+import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
-const base = '/api/organizations/c1'
+const base = `/api/organizations/${COUNCIL_ID}`
 const pendingPath = `${base}/purchase-requests?view=pending`
 const minePath = `${base}/purchase-requests?view=mine`
 const tasksPath = `${base}/tasks?view=mine&status=open`
 
 function open(options: { finance?: boolean; pending?: () => unknown; startPage?: Page } = {}) {
   const api = mockApi()
-  const view = councilView('c1', options.finance ? { permissions: FINANCE_PERMISSIONS } : {})
+  const view = councilView(COUNCIL_ID, options.finance ? { permissions: FINANCE_PERMISSIONS } : {})
   api.on('GET', base, () => json(view))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', tasksPath, () => json({ tasks: [], truncated: false }))
   api.on('GET', pendingPath, () => json(options.pending?.() ?? { requests: [], truncated: false }))
   api.on('GET', minePath, () => json({ requests: [], truncated: false }))
-  render(
-    <CouncilWorkspace
-      council={myCouncil()}
-      councils={[myCouncil()]}
-      onSelect={() => {}}
-      returnFocusTo={null}
-      startPage={options.startPage ?? 'chat'}
-      roomId={undefined}
-      user={{ name: '김회장' }}
-      logoutBusy={false}
-      onLogout={() => {}}
-      onCouncilsChanged={() => {}}
-      onCouncilLost={() => {}}
-    />,
-  )
+  render(<WorkspaceAt startPage={options.startPage ?? 'chat'} />)
   return api
 }
 
@@ -181,7 +163,7 @@ test('다른 사람이 재정 역할을 주면 화면이 다시 보일 때 결�
   await waitFor(() => expect(viewCalls()).toBe(1))
   expect(screen.queryByLabelText(/결재 대기 요청/)).toBeNull()
 
-  api.on('GET', base, () => json(councilView('c1', { permissions: FINANCE_PERMISSIONS })))
+  api.on('GET', base, () => json(councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })))
   api.on('GET', pendingPath, () => json(pending(2)()))
   setVisibility('hidden')
   await new Promise(resolve => setTimeout(resolve, 20))
