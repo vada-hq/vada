@@ -55,9 +55,11 @@ type Allowed = { confirm: boolean; undo: boolean; refund: boolean }
 // 보이는 조건: 서버가 준 동작(can)과 입금 상태. 참가비가 없는 신청과 취소한 신청은 입금을 확인하지 않는다.
 function allowedOf({ applicant, can }: Pick<Props, 'applicant' | 'can'>): Allowed {
   const { status, amount } = applicant.deposit
+  // 줄의 입금 동작은 서버가 준 것(applicant.actions). 입금 확인·취소 뒤에는 줄의 입금 상태만 먼저 바뀌므로 둘 중 하나라도 있으면 입금 권한이 있다.
+  const deposit = applicant.actions.some(a => a === 'deposit.confirm' || a === 'deposit.cancel')
   return {
-    confirm: can.deposit && status === 'none' && !applicant.cancelled && applicant.appliedFee > 0,
-    undo: can.deposit && (status === 'confirmed' || status === 'refund_pending'),
+    confirm: deposit && status === 'none' && !applicant.cancelled && applicant.appliedFee > 0,
+    undo: deposit && (status === 'confirmed' || status === 'refund_pending'),
     refund: can.refund && status === 'refund_pending' && amount !== null,
   }
 }

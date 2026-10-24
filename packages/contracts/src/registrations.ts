@@ -70,14 +70,12 @@ export const ResumeFormSchema = EmptyRequestSchema
 // 양식마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
 // 화면이 누르는 일 하나에 이름 하나다. 권한 키(Action)와 따로이고, 서버 정책(registrations/policy.ts)이 동작을 권한 키와 상태 조건으로 잇는다.
 // 신청자 보기는 관리보다 재정부만큼 넓어서 따로 묻는다. 신청자 보기만 완료한 행사에서도 남는다(RULE-11은 쓰기만 잠근다).
-// deposit.confirm은 신청자 줄 동작으로 옮기기 전까지(기능 012 조각 4) 양식에 둔다.
 export const FORM_ACTIONS = [
   'form.update',
   'form.pause',
   'form.resume',
   'form.check_in',
   'form.view_applicants',
-  'deposit.confirm',
 ] as const
 export type FormAction = (typeof FORM_ACTIONS)[number]
 // 양식 목록(행사 하나)의 동작. 양식이 없어도 [신청 양식 만들기]를 보일지 가른다.
@@ -199,6 +197,18 @@ export function tokenHashOfQr(value: string): string | null {
 // 신청자 목록(조각 4). 열람 권한자만 받고, 받을 때마다 열람 기록이 한 줄 남는다.
 // 한 양식의 신청은 정원(5,000)을 넘기지 않지만 정원이 없는 양식이 있어 상한을 둔다. 넘치면 truncated다.
 export const APPLICANT_LIST_LIMIT = 5000
+// 신청자 한 줄마다 서버가 주는 할 수 있는 동작(DEC-38). 화면은 이것만 보고 버튼을 보인다.
+// 출석한 신청은 신청 취소 대신 출석 취소만 준다. 완료한 행사의 줄은 비어 있다(RULE-11).
+export const APPLICANT_ACTIONS = [
+  'registration.check_in',
+  'registration.cancel_check_in',
+  'registration.cancel',
+  'deposit.confirm',
+  'deposit.cancel',
+  'deposit.refund',
+] as const
+export type ApplicantAction = (typeof APPLICANT_ACTIONS)[number]
+
 export interface Applicant {
   id: string
   name: string
@@ -215,6 +225,7 @@ export interface Applicant {
   // 취소했지만 입금이 남아 환불을 기다리는 신청이면 true다(이름·휴대폰 번호가 남고 학번은 비었다).
   cancelled: boolean
   deposit: ApplicantDeposit
+  actions: ApplicantAction[]
 }
 export interface ApplicantsResponse {
   applicants: Applicant[]

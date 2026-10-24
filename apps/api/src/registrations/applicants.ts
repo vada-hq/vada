@@ -13,7 +13,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { refundPendingFacts, refundPendingSql } from '../deposits/refund-pending.js'
 import { recordApplicantAccess } from './access-log.js'
-import { decide, factsOf } from './policy.js'
+import { applicantActionsOf, applicantFactsFrom, decideOnEvent, eventFactsOf } from './policy.js'
 import { formRowOf } from './queries.js'
 
 // 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번(DEC-26: 막지 않고 드러낸다)
@@ -108,10 +108,11 @@ function applicantRowsOf(tx: Tx, formId: string, filter: ApplicantFilter | undef
 export async function applicantsOf(
   tx: Tx,
   actor: Actor,
-  target: { formId: string; ip: string; now: Date; filter?: ApplicantFilter | undefined },
+  target: { formId: string; ip: string; filter?: ApplicantFilter | undefined },
 ): Promise<ApplicantsResponse> {
   const form = await formRowOf(tx, actor, target.formId)
-  const code = decide(actor, await factsOf(tx, actor, form, target.now), 'form.view_applicants')
+  const eventFacts = await eventFactsOf(tx, actor, form)
+  const code = decideOnEvent(actor, eventFacts, 'form.view_applicants')
   if (code) throw new ApiError(code)
   const rows = await applicantRowsOf(tx, form.id, target.filter)
   const duplicates = await duplicateStudentIds(tx, form.eventId)
@@ -128,6 +129,18 @@ export async function applicantsOf(
     appliedAt: koreanOf(row.appliedAt),
     cancelled: row.cancelledAt !== null,
     deposit: depositOf(row),
+    actions: applicantActionsOf(
+      actor,
+      applicantFactsFrom(eventFacts, {
+        name: row.name,
+        cancelledAt: row.cancelledAt,
+        attended: row.attendanceId !== null,
+        deposit:
+          row.depositId === null
+            ? null
+            : { id: row.depositId, amount: Number(row.depositAmount), refundedAt: row.refundedAt },
+      }),
+    ),
   }))
   // 응답을 만들기 전에 남긴다: 기록을 못 쓰면 던져서 목록이 나가지 않는다.
   await recordApplicantAccess(tx, {

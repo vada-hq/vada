@@ -50,7 +50,6 @@ async function attempt(t: RegistrationKit, form: RegistrationForm, write: Write,
 }
 
 const MANAGER = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
-const withDeposit = (list: string[]) => [...list, 'deposit.confirm']
 const resumeInstead = (list: string[]) => list.map(a => (a === 'form.pause' ? 'form.resume' : a))
 
 // 양식 상태 × 사람 × 동작. 읽기 actions에 있는 쓰기는 허용되고, 없는 쓰기는 이 칸의 코드로 거절된다.
@@ -66,11 +65,11 @@ test(
     const closed = await make('마감')
     const done = await make('완료')
     const openRows: [string, RegistrationForm, string, string[], Expected][] = [
-      ['받는 중 회장', open, PRESIDENT, withDeposit(MANAGER), allWrites(null)],
-      ['받는 중 책임자', open, OWNER, withDeposit(MANAGER), allWrites(null)],
+      ['받는 중 회장', open, PRESIDENT, MANAGER, allWrites(null)],
+      ['받는 중 책임자', open, OWNER, MANAGER, allWrites(null)],
       ['받는 중 재정', open, FINANCE, ['form.view_applicants'], allWrites('FORBIDDEN')],
       ['받는 중 일반', open, PLAIN, [], allWrites('FORBIDDEN')],
-      ['멈춤 회장', paused, PRESIDENT, withDeposit(resumeInstead(MANAGER)), allWrites(null)],
+      ['멈춤 회장', paused, PRESIDENT, resumeInstead(MANAGER), allWrites(null)],
     ]
     for (const [name, form, user, actions, expected] of openRows) {
       assert.deepEqual((await t.detail(form.id, user)).actions, actions, `${name} actions`)
@@ -83,7 +82,7 @@ test(
     t.setNow(korean('2026-11-02T00:00'))
     assert.deepEqual(
       (await t.detail(closed.id)).actions,
-      withDeposit(MANAGER.filter(a => a !== 'form.pause')),
+      MANAGER.filter(a => a !== 'form.pause'),
     )
     const closedCells: Expected = {
       ...allWrites(null),

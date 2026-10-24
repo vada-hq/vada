@@ -153,7 +153,6 @@ function Applicants({ form, canRefund, ...rest }: ApplicantsProps) {
       formId={form.id}
       can={{
         manage: form.actions.includes('form.check_in'),
-        deposit: form.actions.includes('deposit.confirm'),
         refund: canRefund,
       }}
       {...rest}

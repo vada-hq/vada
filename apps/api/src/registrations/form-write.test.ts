@@ -47,7 +47,6 @@ test(
       'form.pause',
       'form.check_in',
       'form.view_applicants',
-      'deposit.confirm',
     ])
     assert.equal(await t.versions(form.id), 1)
     assert.equal(await t.count('SELECT count(*) AS n FROM registration_form'), 1)

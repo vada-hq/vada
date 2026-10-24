@@ -20,8 +20,6 @@ export const applyUrl = (publicCode: string) => `${window.location.origin}/apply
 export type StaffCan = {
   // 출석·신청 취소(form.check_in)
   manage: boolean
-  // 입금 확인·확인 취소(deposit.confirm)
-  deposit: boolean
   // 환불함(finance.manage)
   refund: boolean
 }

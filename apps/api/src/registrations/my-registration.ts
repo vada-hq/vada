@@ -15,6 +15,7 @@ import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { hashOfToken } from './link.js'
 import { purgeOnOf } from './purge-date.js'
+import { isFormClosed } from './state.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -98,7 +99,7 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
         : null,
     qrText: qrTextOf(row.tokenHash),
     attended,
-    cancellable: !attended && !completed && now.getTime() < row.closesAt.getTime(),
+    cancellable: !attended && !completed && !isFormClosed(row.closesAt, now),
     purgeOn: purgeOnOf({
       eventEndsAt: row.eventEndsAt,
       eventStartsAt: row.eventStartsAt,
