@@ -27,6 +27,7 @@ export const room = (id: string, options: Partial<RoomSummary> = {}): RoomSummar
   type: 'all_members',
   name: null,
   departmentId: null,
+  noticeRoom: (options.type ?? 'all_members') === 'all_members',
   readOnly: false,
   unread: 0,
   mentions: 0,

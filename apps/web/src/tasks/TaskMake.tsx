@@ -1,7 +1,10 @@
-import type { CouncilView, TaskDetail, TaskResultKind } from '@vada/contracts'
+import { useState } from 'react'
+import type { CouncilView, RegistrationForm, TaskDetail, TaskResultKind } from '@vada/contracts'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EventCreateDialog } from '@/events/EventCreateDialog'
 import { RequestCreateDialog } from '@/finance/RequestCreateDialog'
+import { useEventDetail } from '@/events/useEventDetail'
+import { FormCreated } from '@/registrations/FormCreated'
 import { FormEditor } from '@/registrations/FormEditor'
 import { NoticeMakeDialog } from './NoticeMakeDialog'
 import type { TaskDialogHandlers } from './task-requests'
@@ -17,32 +20,41 @@ type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
 }
 
 // 신청 양식 만들기는 탭 안의 화면이라 대화상자로 감싼다. 행사는 업무의 행사다(canMake가 행사 있는 업무에만 준다).
+// 행사를 읽어 일시·장소 미정 경고와 미리보기를 보이고, 만든 뒤에는 링크와 QR을 바로 보인 다음 닫을 때 업무를 새로 읽는다.
 function FormMakeDialog({ view, task, onClose, onMade, onLost, onForbidden }: Omit<Props, 'kind'>) {
+  const [created, setCreated] = useState<RegistrationForm | null>(null)
+  const eventId = task.event?.id ?? ''
+  const read = useEventDetail(view.council.id, eventId, { onLost, onForbidden })
   if (!task.event) return null
+  const finish = created ? onMade : onClose
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open) onClose()
+        if (!open) finish()
       }}
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">{makeLabel('registration_form')}</DialogTitle>
         </DialogHeader>
-        <FormEditor
-          councilId={view.council.id}
-          councilName={view.council.name}
-          eventId={task.event.id}
-          event={null}
-          taskId={task.id}
-          backLabel="닫기"
-          onEditEvent={onClose}
-          onClose={onClose}
-          onDone={onMade}
-          onLost={onLost}
-          onForbidden={onForbidden}
-        />
+        {created ? (
+          <FormCreated form={created} doneLabel="닫기" onDone={onMade} />
+        ) : (
+          <FormEditor
+            councilId={view.council.id}
+            councilName={view.council.name}
+            eventId={task.event.id}
+            event={read.state.kind === 'ready' ? read.state.data.event : null}
+            taskId={task.id}
+            backLabel="닫기"
+            onEditEvent={onClose}
+            onClose={onClose}
+            onDone={setCreated}
+            onLost={onLost}
+            onForbidden={onForbidden}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

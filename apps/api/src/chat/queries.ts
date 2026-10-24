@@ -19,6 +19,7 @@ import {
 import type { Db } from '../db/types.js'
 import { currentMembersAmong } from './current-members.js'
 import { noticesOf } from './messages.js'
+import { inNoticeRoom } from './plan-room.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -30,6 +31,7 @@ async function myRooms(db: Reader, actor: Actor) {
       type: chatRoom.type,
       departmentId: chatRoom.departmentId,
       departmentName: department.name,
+      noticeRoom: sql<boolean>`coalesce(${inNoticeRoom}, false)`,
     })
     .from(roomMembership)
     .innerJoin(chatRoom, eq(chatRoom.id, roomMembership.roomId))
@@ -149,6 +151,7 @@ async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSum
       type: room.type as RoomType,
       name: nameOf(room.type, room.departmentName, peer),
       departmentId: room.departmentId,
+      noticeRoom: room.noticeRoom,
       readOnly: room.type === 'direct' && !peer?.current,
       unread: stats.get(room.id)?.unread ?? 0,
       mentions: mentions.get(room.id) ?? 0,

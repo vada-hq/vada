@@ -245,6 +245,8 @@ test(
     )
     assert.equal(byType.all_members!.lastMessageAt, '2026-04-03T00:00:00.000Z')
     assert.deepEqual([result.unreadTotal, result.mentionTotal], [3, 1])
+    // 공지를 올릴 수 있는 방은 서버가 알려 준다(전체방만).
+    assert.deepEqual([byType.all_members!.noticeRoom, byType.leadership!.noticeRoom], [true, false])
   }),
 )
 
