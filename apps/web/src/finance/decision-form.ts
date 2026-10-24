@@ -57,6 +57,9 @@ function emptyFields({ id, action, row, chosen }: DecisionEntry): FieldErrors {
   }
 }
 
+// 계약의 경로 ['decisions', 순번, 칸]에서 칸 앞까지의 길이.
+const DECISIONS_PATH_LENGTH = 2
+
 // 줄 하나를 계약에 대 본 문제(금액 1원 이상, 사유 길이). 경로를 '줄 id.칸'으로 바꿔 withContract가 읽게 한다.
 function contractIssues({ id, action, row, chosen }: DecisionEntry) {
   const decision =
@@ -64,13 +67,15 @@ function contractIssues({ id, action, row, chosen }: DecisionEntry) {
   const parsed = DecideLineItemsSchema.safeParse({ decisions: [decision] })
   return (parsed.error?.issues ?? []).map(issue => ({
     code: issue.code,
-    path: [id, ...issue.path.slice(2)],
+    path: [id, ...issue.path.slice(DECISIONS_PATH_LENGTH)],
   }))
 }
 
 // 누를 때 확인: 비었으면 그 말을, 계약이 받지 않으면 계약의 문제를 칸 아래에 보인다. 길이 숫자는 적지 않는다.
 export function decisionErrors(entries: DecisionEntry[]): FieldErrors {
-  const own: FieldErrors = Object.assign({}, ...entries.map(emptyFields))
+  const own: FieldErrors = Object.fromEntries(
+    entries.flatMap(entry => Object.entries(emptyFields(entry))),
+  )
   const issues = entries.flatMap(contractIssues)
   return withContract(own, { success: issues.length === 0, error: { issues } })
 }

@@ -55,9 +55,9 @@ function Rows({
   decide: Decide
   onInvalidItem: () => void
 }) {
-  const state = useDecisionRows(councilId, budgetItems, decide, onInvalidItem)
+  const { formRef, ...state } = useDecisionRows(councilId, budgetItems, decide, onInvalidItem)
   return (
-    <div ref={state.formRef} className="flex flex-col gap-3">
+    <div ref={formRef} className="flex flex-col gap-3">
       {items.map(item => (
         <DecisionRow
           key={item.id}
