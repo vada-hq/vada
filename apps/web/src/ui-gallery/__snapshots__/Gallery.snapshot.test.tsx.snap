@@ -177,16 +177,19 @@ exports[`대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -197,6 +200,7 @@ exports[`대화상자 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -2012,16 +2016,19 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -2032,6 +2039,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -3843,16 +3851,19 @@ exports[`옆 메뉴 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -3863,6 +3874,7 @@ exports[`옆 메뉴 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -5671,16 +5683,19 @@ exports[`오른쪽 패널 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -5691,6 +5706,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -7496,16 +7512,19 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -7516,6 +7535,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -9325,16 +9345,19 @@ exports[`처음 모양 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -9345,6 +9368,7 @@ exports[`처음 모양 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
@@ -11134,16 +11158,19 @@ exports[`확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">메시지 메뉴</h2>
 <div class="flex flex-wrap items-start gap-3">
-<ul class="w-96 divide-y rounded-lg border bg-white p-2">
-<li class="flex flex-wrap items-start gap-x-2 gap-y-1 px-1 py-2">
-<div class="min-w-0 flex-1">
+<ul class="w-96 rounded-lg border bg-white p-2">
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
-<p class="mt-1 text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
+<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 </div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
@@ -11154,6 +11181,7 @@ exports[`확인 대화상자 열기 1`] = `
 </circle>
 </svg>
 </button>
+</div>
 </li>
 </ul>
 </div>
