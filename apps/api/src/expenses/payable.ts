@@ -1,25 +1,46 @@
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
-import { lineItem, record, request } from '../db/schema.js'
+import { budgetItem, lineItem, record, request } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { completedEventIdsAmong } from '../policy/locks.js'
 import { lastOutcomeOf } from '../purchases/last-outcome.js'
+import { lineItemFactsOf, lineItemPayable } from '../purchases/policy.js'
 
-// 결제할 수 있는 품목은 이 학생회의 취소되지 않은 요청에서 마지막 결과가 승인인 것이다(취소한 품목은 아니다).
+// 결제할 수 있는 품목의 판정은 purchases/policy.ts의 lineItemPayable 한 곳이다(읽기의 payable과 같은 사실).
 // 승인한 품목은 재정부가 취소할 수 있어 이 읽기 뒤에 바뀔 수 있지만, 품목 취소도 같은 학생회 행 잠금 아래에서 하므로 두 쓰기는 한 줄로 선다.
 export async function assertPayable(tx: Tx, actor: Actor, lineItemIds: readonly string[]) {
   if (!lineItemIds.length) return
   const rows = await tx
-    .select({ id: lineItem.id })
+    .select({
+      outcome: sql<string | null>`${lastOutcomeOf(lineItem.id)}`,
+      requestCancelledAt: request.cancelledAt,
+      requestEventId: request.eventId,
+      budgetEventId: budgetItem.eventId,
+    })
     .from(lineItem)
-    .innerJoin(request, and(eq(request.id, lineItem.requestId), isNull(request.cancelledAt)))
+    .innerJoin(request, eq(request.id, lineItem.requestId))
     .innerJoin(record, eq(record.id, lineItem.id))
-    .where(
-      and(
-        inArray(lineItem.id, [...lineItemIds]),
-        eq(record.councilId, actor.councilId),
-        sql`${lastOutcomeOf(lineItem.id)} = 'approved'`,
+    .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
+    .where(and(inArray(lineItem.id, [...lineItemIds]), eq(record.councilId, actor.councilId)))
+  const completed = await completedEventIdsAmong(tx, [
+    ...new Set(
+      rows.flatMap(row => [row.requestEventId, row.budgetEventId]).filter(id => id !== null),
+    ),
+  ])
+  const payable = rows.filter(row =>
+    lineItemPayable(
+      lineItemFactsOf(
+        {
+          outcome: row.outcome,
+          paid: false,
+          requestCancelled: row.requestCancelledAt !== null,
+          requestEventId: row.requestEventId,
+          budgetEventId: row.budgetEventId,
+        },
+        completed,
       ),
-    )
-  if (rows.length !== lineItemIds.length) throw new ApiError('LINE_ITEM_NOT_PAYABLE')
+    ),
+  )
+  if (payable.length !== lineItemIds.length) throw new ApiError('LINE_ITEM_NOT_PAYABLE')
 }

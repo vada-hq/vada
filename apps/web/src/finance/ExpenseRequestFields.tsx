@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import {
   statusOf,
   type PurchaseLineItem,
@@ -135,6 +135,16 @@ function ItemPicker({
     purchasePath(councilId, requestId),
     () => {},
   )
+  // 다시 읽은 상세에서 고른 품목이 결제할 수 없게 됐으면(취소, 행사 완료) 줄을 비워 숨은 줄이 몰래 나가지 않게 한다.
+  const payableIds =
+    detail.state.kind === 'ready'
+      ? new Set(detail.state.data.request.items.filter(item => item.payable).map(item => item.id))
+      : null
+  const stale = payableIds !== null && values.lines.some(line => !payableIds.has(line.lineItemId))
+  const kept = stale ? values.lines.filter(line => payableIds.has(line.lineItemId)) : null
+  useEffect(() => {
+    if (kept) onChange({ ...values, lines: kept })
+  }, [kept, values, onChange])
   return loadingOr(detail.state, ({ request }) => {
     const items = request.items.filter(item => item.payable)
     if (items.length === 0)
@@ -164,6 +174,15 @@ export function ExpenseRequestFields({ errors, ...props }: Common & { errors: Fi
   const list = usePolledRead<PurchaseRequestsResponse>(purchasesPath(councilId, 'all'), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
+  // 다시 읽은 목록에서 고른 요청이 결제할 수 없게 됐으면(취소, 행사 완료) 요청과 품목을 비운다.
+  const requests = list.state.kind === 'ready' ? list.state.data.requests : null
+  const gone =
+    requests !== null &&
+    values.requestId !== null &&
+    !payable(requests).some(request => request.id === values.requestId)
+  useEffect(() => {
+    if (gone) onChange(withRequest(values, null, requests))
+  }, [gone, values, requests, onChange])
   return loadingOr(list.state, ({ requests }) => (
     <>
       <ChoiceSelect
