@@ -68,7 +68,10 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
       }),
       registrations: createRegistrationRoutes(db, testSession, { clock, writeLimiter }),
       deposits: createDepositRoutes(db, testSession, { clock, writeLimiter }),
-      publicRegistrations: createPublicRegistrationRoutes(db, { clock }),
+      publicRegistrations: createPublicRegistrationRoutes(db, {
+        clock,
+        receiptKey: 'test-receipt-key',
+      }),
       tasks: createTaskRoutes(db, testSession, { clock, writeLimiter }),
       chat: createChatRoutes(db, testSession, { clock }),
       feePayments: createFeePaymentRoutes(db, testSession, { clock, writeLimiter }),

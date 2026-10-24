@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
+import { saveReceipt } from '../commands/receipt.js'
 import { runPurge } from '../purge/run.js'
-import { withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
+import { purgeRegistrations } from './purge.js'
+import { korean, withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
 
 // 공개 신청 다시 보내기(기능 017, DEC-84, RULE-45)
 const HOUR_MS = 3_600_000
@@ -199,10 +201,71 @@ test(
     await send(t, form.publicCode, { ...person, commandId: COMMAND })
     await assert.rejects(
       t.pg.query(
-        `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id)
-         SELECT kind, scope_key, command_id, body_hash, result_id FROM command_receipt`,
+        `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id, result_kind)
+         SELECT kind, scope_key, command_id, body_hash, result_id, result_kind FROM command_receipt`,
       ),
       { code: '23505' },
+    )
+  }),
+)
+
+test(
+  '취소하면 그 신청의 영수증을 바로 지운다. 취소 뒤 다른 본문에 같은 번호를 보내도 새 신청이다',
+  withRegistrations(async t => {
+    const form = await openForm(t)
+    const token = await tokenOf(await send(t, form.publicCode, { ...person, commandId: COMMAND }))
+    assert.equal(await receipts(t), 1)
+    assert.equal((await t.cancelMine(token)).status, 200)
+    assert.equal(await receipts(t), 0)
+    const other = await send(t, form.publicCode, { name: '박다름', commandId: COMMAND })
+    assert.equal(other.status, 201)
+    assert.equal(await registrations(t), 1)
+  }),
+)
+
+test(
+  '기한이 지나 신청자 정보를 비울 때도 그 양식 신청의 영수증을 지운다',
+  withRegistrations(async t => {
+    const form = await openForm(t)
+    await send(t, form.publicCode, { ...person, commandId: COMMAND })
+    assert.equal(await receipts(t), 1)
+    await t.db.transaction(tx => purgeRegistrations(tx, korean('2027-11-02T00:00')))
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration WHERE name IS NOT NULL'), 0)
+    assert.equal(await receipts(t), 0)
+  }),
+)
+
+test(
+  '같은 (종류, 범위, 번호)를 거래 안에서 두 번 남기면 500이 아니라 COMMAND_REUSED다',
+  withRegistrations(async t => {
+    const form = await openForm(t)
+    await send(t, form.publicCode, { ...person, commandId: COMMAND })
+    const { rows } = await t.pg.query('SELECT * FROM command_receipt')
+    const row = rows[0] as { kind: 'registration_apply'; scope_key: string; result_id: string }
+    await assert.rejects(
+      t.db.transaction(tx =>
+        saveReceipt(
+          tx,
+          { kind: row.kind, scopeKey: row.scope_key, commandId: COMMAND },
+          { bodyHash: 'a'.repeat(64), resultId: row.result_id, resultKind: 'registration' },
+          new Date(),
+        ),
+      ),
+      { message: 'COMMAND_REUSED' },
+    )
+  }),
+)
+
+test(
+  '영수증은 신청이 아닌 기록을 가리킬 수 없다(종류 외래 키)',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    await assert.rejects(
+      t.pg.query(
+        `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id, result_kind)
+         VALUES ('registration_apply', 'x', $1, $2, $3, 'event')`,
+        [COMMAND, 'a'.repeat(64), event],
+      ),
     )
   }),
 )

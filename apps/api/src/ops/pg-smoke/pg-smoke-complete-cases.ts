@@ -198,7 +198,7 @@ async function applyRound(world: World, open: () => SmokeConnection) {
     db.transaction(tx =>
       applyToForm(
         tx,
-        { code: String(row?.public_code), now: world.context.now },
+        { code: String(row?.public_code), now: world.context.now, receiptKey: 'smoke-receipt-key' },
         { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
       ),
     )

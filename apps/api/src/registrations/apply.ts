@@ -55,7 +55,7 @@ function assertFieldsMatch(input: ApplyRequest, wants: { studentId: boolean; pho
 // 같은 학번이 이미 있어도 막지 않는다(막으면 남의 학번으로 신청 여부를 떠볼 수 있다, DEC-26).
 export async function applyToForm(
   tx: Tx,
-  target: { code: string; now: Date },
+  target: { code: string; now: Date; receiptKey: string },
   input: ApplyRequest,
 ): Promise<{ token: string }> {
   const code = target.code.toUpperCase()
@@ -67,7 +67,7 @@ export async function applyToForm(
   const form = await publicRowOf(tx, code)
   // 같은 명령의 재전송은 마감·정원과 상관없이 처음 신청의 새 링크를 받는다(DEC-84). 검사·상태로 거절한 요청은 영수증이 없다.
   const key = applyKeyOf(form.id, input.commandId)
-  const bodyHash = applyBodyHashOf(input)
+  const bodyHash = applyBodyHashOf(target.receiptKey, input)
   const resent = await resendApply(tx, key, bodyHash, target.now)
   if (resent) return resent
   await assertOpen(tx, form, { now: target.now, eventCompleted })
@@ -97,6 +97,11 @@ export async function applyToForm(
   })
   const token = newToken()
   await addLink(tx, registrationId, token)
-  await saveReceipt(tx, key, { bodyHash, resultId: registrationId }, target.now)
+  await saveReceipt(
+    tx,
+    key,
+    { bodyHash, resultId: registrationId, resultKind: 'registration' },
+    target.now,
+  )
   return { token }
 }

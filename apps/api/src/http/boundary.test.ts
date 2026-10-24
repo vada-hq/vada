@@ -73,7 +73,7 @@ function modulesOf(session: () => Promise<null>) {
     registrations: createRegistrationRoutes(db, session),
     deposits: createDepositRoutes(db, session),
     feePayments: createFeePaymentRoutes(db, session),
-    publicRegistrations: createPublicRegistrationRoutes(db),
+    publicRegistrations: createPublicRegistrationRoutes(db, { receiptKey: 'test-receipt-key' }),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>

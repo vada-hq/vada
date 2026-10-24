@@ -21,7 +21,10 @@ const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } 
 
 // 로그인 없이 쓰는 공개 경로(/api/public/). 학생회 경계는 코드와 개인 링크 토큰으로만 가른다. 속도 제한은 두지 않는다(기능 007 '속도 제한').
 // 토큰은 경로에 넣지 않고 본문으로 받는다(주소는 로그에 남는다). 공개 응답은 모두 no-store다: 정원, 상태, 개인정보가 중간 캐시나 뒤로 가기에 남지 않게 한다.
-export function createPublicRegistrationRoutes(db: Db, options: { clock?: () => Date } = {}) {
+export function createPublicRegistrationRoutes(
+  db: Db,
+  options: { clock?: () => Date; receiptKey: string },
+) {
   const clock = options.clock ?? (() => new Date())
   const routes = new Hono()
   routes.use('/public/*', async (c, next) => {
@@ -40,7 +43,7 @@ export function createPublicRegistrationRoutes(db: Db, options: { clock?: () => 
     const input = c.req.valid('json')
     const now = clock()
     const done = await db.transaction(tx =>
-      applyToForm(tx, { code: c.req.param('code'), now }, input),
+      applyToForm(tx, { code: c.req.param('code'), now, receiptKey: options.receiptKey }, input),
     )
     return c.json(done satisfies ApplyResponse, CREATED)
   })

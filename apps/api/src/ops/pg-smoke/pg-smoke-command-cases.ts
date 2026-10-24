@@ -58,8 +58,8 @@ async function plainRound(run: Race, round: number) {
 async function uniqueProblem(run: Race, code: string) {
   try {
     await run.main.sql.unsafe(
-      `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id)
-       SELECT c.kind, c.scope_key, c.command_id, c.body_hash, c.result_id FROM command_receipt c
+      `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id, result_kind)
+       SELECT c.kind, c.scope_key, c.command_id, c.body_hash, c.result_id, c.result_kind FROM command_receipt c
        JOIN registration r ON r.id = c.result_id
        JOIN registration_form f ON f.id = r.form_id WHERE f.public_code = $1`,
       [code],

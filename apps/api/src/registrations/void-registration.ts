@@ -1,3 +1,4 @@
+import { removeReceiptsOf } from '../commands/receipt.js'
 import { activeDepositOf } from '../deposits/queries.js'
 import type { Tx } from '../db/types.js'
 import { clockNow, updateRecord } from '../records/records.js'
@@ -21,4 +22,5 @@ export async function voidRegistration(tx: Tx, registrationId: string, actor: st
   if (refundPending) await clearVersionStudentIds(tx, [registrationId])
   else await clearVersionValues(tx, [registrationId])
   await removeLinks(tx, [registrationId])
+  await removeReceiptsOf(tx, [registrationId])
 }
