@@ -7,6 +7,7 @@ import {
   decide,
   decideLineItem,
   lineItemActionsOf,
+  lineItemFactsOf,
   type LineItemFacts,
   lineItemStatusOf,
   requestStatusOf,
@@ -97,8 +98,22 @@ const itemFacts = (over: Partial<LineItemFacts> = {}): LineItemFacts => ({
   status: 'approved',
   paid: false,
   requestCancelled: false,
-  eventCompleted: false,
+  requestEventCompleted: false,
+  budgetEventCompleted: false,
   ...over,
+})
+
+test('lineItemFactsOf: 완료한 행사 집합에서 요청 행사와 품목 예산 항목의 행사를 따로 가린다', () => {
+  const read = (requestEventId: string | null, budgetEventId: string | null) =>
+    lineItemFactsOf(
+      { outcome: 'approved', paid: false, requestCancelled: false, requestEventId, budgetEventId },
+      new Set(['done']),
+    )
+  assert.deepEqual(read('open', null), itemFacts())
+  assert.equal(read('done', 'open').requestEventCompleted, true)
+  assert.equal(read('done', 'open').budgetEventCompleted, false)
+  assert.equal(read(null, 'done').budgetEventCompleted, true)
+  assert.equal(read(null, 'done').requestEventCompleted, false)
 })
 
 test(
@@ -110,7 +125,13 @@ test(
       decideLineItem(actor, itemFacts(over), 'line_item.cancel')
     assert.equal(cancel(finance, {}), null)
     assert.equal(cancel(requester, { status: 'pending' }), 'FORBIDDEN')
-    assert.equal(cancel(finance, { eventCompleted: true, paid: true }), 'EVENT_COMPLETED')
+    // 요청의 행사든 품목 예산 항목의 행사든 완료했으면 같은 코드다.
+    for (const over of [{ requestEventCompleted: true }, { budgetEventCompleted: true }])
+      assert.equal(
+        cancel(finance, { ...over, paid: true }),
+        'EVENT_COMPLETED',
+        JSON.stringify(over),
+      )
     for (const over of [
       { status: 'pending' },
       { status: 'rejected' },

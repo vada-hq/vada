@@ -30,7 +30,7 @@ import {
   actionsOf,
   factsOf,
   lineItemActionsOf,
-  lineItemStatusOf,
+  lineItemFactsOf,
   requestStatusOf,
 } from './policy.js'
 
@@ -156,9 +156,17 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
   const completed = await completedEventIdsAmong(db, [
     ...new Set([row.eventId, ...rows.map(item => item.budgetEventId)].filter(id => id !== null)),
   ])
-  const isCompleted = (id: string | null) => id !== null && completed.has(id)
   return rows.map(item => {
-    const status = lineItemStatusOf(item.outcome)
+    const facts = lineItemFactsOf(
+      {
+        outcome: item.outcome,
+        paid: item.paid,
+        requestCancelled: row.cancelledAt !== null,
+        requestEventId: row.eventId,
+        budgetEventId: item.budgetEventId,
+      },
+      completed,
+    )
     return {
       id: item.id,
       name: item.name,
@@ -168,14 +176,9 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
       amount: item.amount === null ? null : Number(item.amount),
       budgetItem:
         item.budgetItemId && item.purpose ? { id: item.budgetItemId, purpose: item.purpose } : null,
-      status,
+      status: facts.status,
       paid: item.paid,
-      actions: lineItemActionsOf(actor, {
-        status,
-        paid: item.paid,
-        requestCancelled: row.cancelledAt !== null,
-        eventCompleted: isCompleted(row.eventId) || isCompleted(item.budgetEventId),
-      }),
+      actions: lineItemActionsOf(actor, facts),
     }
   })
 }

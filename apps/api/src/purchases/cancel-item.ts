@@ -5,12 +5,12 @@ import { can } from '../access/permissions.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import { budgetItem, lineItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
-import { lockedCompleted } from '../events/completion.js'
+import { completedEventIdsAmong, lockEventsShared } from '../policy/locks.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { lastOutcomeOf } from './last-outcome.js'
 import { lockedRequestRow } from './lock.js'
-import { decideLineItem, lineItemStatusOf } from './policy.js'
+import { decideLineItem, lineItemFactsOf } from './policy.js'
 import { isPaid, requestDetailOf } from './queries.js'
 import type { PurchaseNotice } from './service.js'
 
@@ -71,17 +71,19 @@ export async function cancelLineItem(
   if (!can(actor, 'purchase.approve')) throw new ApiError('FORBIDDEN')
   const row = await lockedRequestRow(tx, actor, requestId)
   const found = await lockedItemFacts(tx, requestId, lineItemId)
-  const eventCompleted = await lockedCompleted(tx, [row.eventId, found.budgetEventId])
-  const code = decideLineItem(
-    actor,
+  // 행사 행을 번호 순서로 잠근 뒤에 완료 여부를 읽는다(완료와 겹치면 하나로 정해진다).
+  const locked = await lockEventsShared(tx, [row.eventId, found.budgetEventId])
+  const facts = lineItemFactsOf(
     {
-      status: lineItemStatusOf(found.outcome),
+      outcome: found.outcome,
       paid: found.paid,
       requestCancelled: row.cancelledAt !== null,
-      eventCompleted,
+      requestEventId: row.eventId,
+      budgetEventId: found.budgetEventId,
     },
-    'line_item.cancel',
+    await completedEventIdsAmong(tx, locked),
   )
+  const code = decideLineItem(actor, facts, 'line_item.cancel')
   if (code) throw new ApiError(code)
   await createRecord(tx, {
     kind: 'approval',
