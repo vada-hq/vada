@@ -69,7 +69,7 @@ test('취소는 확인을 거치고, 하면 신청을 취소했다고 하며 기
   fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
   expect(api.calls.some(call => call.path === CANCEL_PATH)).toBe(false)
   const dialog = await screen.findByRole('dialog')
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '신청 취소' }))
   expect(await screen.findByText('신청을 취소했어요.')).toBeTruthy()
   expect(api.calls.find(call => call.path === CANCEL_PATH)?.body).toEqual({ token: 'tok123' })
   expect(window.localStorage.getItem(SAVED_KEY)).toBeNull()
@@ -80,7 +80,7 @@ test('취소가 끝난 뒤 다시 읽기가 돌아도 취소했어요가 찾을 
   api.on('POST', CANCEL_PATH, () => json({ cancelled: true }))
   fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
   fireEvent.click(
-    within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }),
+    within(await screen.findByRole('dialog')).getByRole('button', { name: '신청 취소' }),
   )
   await screen.findByText('신청을 취소했어요.')
   // 취소 뒤 서버는 404다. 화면이 다시 읽으면 문구가 바뀐다.
@@ -99,7 +99,7 @@ test('마감 뒤 409로 취소 버튼이 사라져도 이유가 남고 확인 �
   // 다시 읽으면 마감이 지나 취소할 수 없다.
   api.on('POST', LOOKUP_PATH, () => json(myRegistration({ cancellable: false })))
   fireEvent.click(
-    within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }),
+    within(await screen.findByRole('dialog')).getByRole('button', { name: '신청 취소' }),
   )
   await waitFor(() => expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(

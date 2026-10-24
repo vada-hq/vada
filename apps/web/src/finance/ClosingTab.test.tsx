@@ -191,7 +191,7 @@ test('다음 기간 행사에 받은 입금은 점검의 정보 줄로만 보이
   expect(screen.getByRole('button', { name: '공개' })).toHaveProperty('disabled', false)
 })
 
-test('다시 열기는 사유를 받아야 켜지고 사유를 보낸다', async () => {
+test('다시 열기는 늘 켜져 있고 사유가 없으면 칸 아래에 알리며 사유를 보낸다', async () => {
   const api = serve(PUBLISHED, {
     periods: [{ ...standardPeriods().periods[0]!, status: 'published' }],
   })
@@ -200,9 +200,13 @@ test('다시 열기는 사유를 받아야 켜지고 사유를 보낸다', async
   fireEvent.click(await screen.findByRole('button', { name: '다시 열기' }))
   const dialog = screen.getByRole('dialog')
   const confirm = within(dialog).getByRole('button', { name: '다시 열기' })
-  expect(confirm).toHaveProperty('disabled', true)
+  expect(confirm).toHaveProperty('disabled', false)
+  fireEvent.click(confirm)
+  expect(within(dialog).getByText('다시 여는 사유를 입력해 주세요')).toBeTruthy()
   fireEvent.change(within(dialog).getByLabelText('다시 여는 사유'), { target: { value: '   ' } })
-  expect(confirm).toHaveProperty('disabled', true)
+  fireEvent.click(confirm)
+  expect(within(dialog).getByText('다시 여는 사유를 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.path === REOPEN)).toBe(false)
   fireEvent.change(within(dialog).getByLabelText('다시 여는 사유'), {
     target: { value: '증빙 보완' },
   })

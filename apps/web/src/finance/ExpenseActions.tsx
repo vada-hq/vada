@@ -40,7 +40,7 @@ function ActionButtons({
       )}
       {actions.includes('expense.cancel') && (
         <Button variant="outline" disabled={saving} onClick={() => onAsk('cancel')}>
-          취소
+          지출 취소
         </Button>
       )}
     </div>
@@ -94,7 +94,7 @@ export function ExpenseActions({ councilId, expense, detail, onForbidden }: Prop
         title="환급했다고 표시할까요?"
         description="먼저 낸 사람에게 돈을 돌려준 뒤에 표시하세요. 표시한 뒤에는 되돌릴 수 없어요."
         confirmLabel="환급함"
-        onCancel={close}
+        onClose={close}
         onConfirm={() => finish(() => detail.reimburse())}
       />
       {asking === 'cancel' && (

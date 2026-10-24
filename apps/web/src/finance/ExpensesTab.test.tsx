@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { PURCHASE_REASON_MAX } from '@vada/contracts'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
@@ -153,10 +154,10 @@ test('환급과 취소가 끝나면 지출 목록을 다시 읽는다', async ()
   fireEvent.click(within(confirm as HTMLElement).getByRole('button', { name: '환급함' }))
   await waitFor(() => expect(listReads(api)).toBeGreaterThan(before))
   before = listReads(api)
-  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '지출 취소' }))
   const ask = screen.getByText('이 지출을 취소할까요?').closest('[role="dialog"]') as HTMLElement
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(ask).getByRole('button', { name: '지출 취소' }))
   await waitFor(() => expect(listReads(api)).toBeGreaterThan(before))
 })
 
@@ -165,7 +166,7 @@ test('동작이 없으면 [환급함]과 [취소]가 보이지 않는다', async
   showFinance(MEMBER_PERMISSIONS)
   const dialog = await openDetail()
   expect(within(dialog).queryByRole('button', { name: '환급함' })).toBeNull()
-  expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '지출 취소' })).toBeNull()
 })
 
 test('이미 환급한 지출을 환급하면 409 문구가 버튼 옆에 보이고 다시 읽는다', async () => {
@@ -181,18 +182,27 @@ test('이미 환급한 지출을 환급하면 409 문구가 버튼 옆에 보이
   expect(api.calls.filter(call => call.path === `${EXPENSES}/e1`).length).toBeGreaterThan(1)
 })
 
-test('취소는 사유가 있어야 켜지고 사유를 보내며 두 번 누르면 한 번만 나간다', async () => {
+test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알리며, 사유를 보내고 두 번 누르면 한 번만 나간다', async () => {
   const api = serveDetail()
   const pending = deferredResponse()
   api.on('POST', `${EXPENSES}/e1/cancel`, () => pending.promise)
   showFinance()
   const dialog = await openDetail()
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '지출 취소' }))
   const ask = screen.getByText('이 지출을 취소할까요?').closest('[role="dialog"]') as HTMLElement
-  const submit = () => within(ask).getByRole<HTMLButtonElement>('button', { name: '취소하기' })
-  expect(submit().disabled).toBe(true)
+  const submit = () => within(ask).getByRole<HTMLButtonElement>('button', { name: '지출 취소' })
+  expect(submit().disabled).toBe(false)
+  fireEvent.click(submit())
+  expect(within(ask).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '   ' } })
-  expect(submit().disabled).toBe(true)
+  fireEvent.click(submit())
+  expect(within(ask).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), {
+    target: { value: '가'.repeat(PURCHASE_REASON_MAX + 1) },
+  })
+  fireEvent.click(submit())
+  expect(within(ask).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.path.endsWith('/cancel'))).toBe(false)
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '중복 결제' } })
   fireEvent.click(submit())
   fireEvent.click(submit())
@@ -213,10 +223,10 @@ test('이미 취소된 지출을 취소하면 409 문구를 보이고 다시 읽
   api.on('POST', `${EXPENSES}/e1/cancel`, () => json({ error: 'EXPENSE_CANCELLED' }, 409))
   showFinance()
   const dialog = await openDetail()
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '지출 취소' }))
   const ask = screen.getByText('이 지출을 취소할까요?').closest('[role="dialog"]') as HTMLElement
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(ask).getByRole('button', { name: '지출 취소' }))
   // 이미 바뀐 상태라 확인을 닫고, 이유는 버튼 옆에 남는다.
   expect((await screen.findByRole('alert')).textContent).toContain('이미 취소된 지출')
   expect(screen.queryByText('이 지출을 취소할까요?')).toBeNull()

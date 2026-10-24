@@ -491,7 +491,7 @@ test('내보내기는 확인 대화상자를 거치고, 취소하면 아무것�
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
   let dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await noDialog()
   expect(posts(api)).toEqual([])
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
@@ -512,7 +512,8 @@ test('확인 대화상자는 보내는 동안 두 버튼이 꺼져, 연달아 �
   fireEvent.click(confirm)
   await waitFor(() => expect(confirm.disabled).toBe(true))
   expect(
-    asElement(within(dialog).getByRole('button', { name: '취소' }), HTMLButtonElement).disabled,
+    asElement(within(dialog).getAllByRole('button', { name: '닫기' })[0]!, HTMLButtonElement)
+      .disabled,
   ).toBe(true)
   fireEvent.click(confirm)
   fireEvent.click(confirm)
@@ -751,7 +752,7 @@ test('메뉴 항목으로 연 대화상자를 닫으면 포커스가 그 운영�
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
   const confirm = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
-  fireEvent.click(within(confirm).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(confirm).getAllByRole('button', { name: '닫기' })[0]!)
   await noDialog()
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '박새내 동작' })),

@@ -23,13 +23,13 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
         open={asking}
         title="신청을 취소할까요?"
         description="취소하면 낸 이름과 연락처가 지워지고, 이 주소로 다시 볼 수 없어요. 마감 전이면 다시 신청할 수 있어요."
-        confirmLabel="취소하기"
+        confirmLabel="신청 취소"
         destructive
         busy={cancel.busy}
         onConfirm={() => {
           void cancel.run().then(() => setAsking(false))
         }}
-        onCancel={() => setAsking(false)}
+        onClose={() => setAsking(false)}
       />
     </div>
   )

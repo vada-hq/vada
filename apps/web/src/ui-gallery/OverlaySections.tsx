@@ -1,5 +1,6 @@
 import { SAVE_FAILED } from '@/lib/messages'
 import { useEffect, useState } from 'react'
+import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import {
@@ -69,8 +70,10 @@ export function DialogSheetSection() {
 }
 
 export function ConfirmSection() {
-  // 확인 대화상자의 세 모양: 위험한 동작(빨간 확인 버튼과 오류 문구), 일반 동작(파란 확인 버튼), 보내는 중(두 버튼이 꺼지고 닫히지 않음).
-  const [confirmKind, setConfirmKind] = useState<'destructive' | 'normal' | 'busy' | null>(null)
+  // 확인 대화상자의 모양: 사유 꼭·사유 선택(칸 아래에 이유가 보인다)과 위험한 동작(빨간 확인 버튼과 오류 문구), 일반 동작(파란 확인 버튼), 보내는 중(두 버튼이 꺼지고 닫히지 않음).
+  const [confirmKind, setConfirmKind] = useState<
+    'destructive' | 'normal' | 'busy' | 'required' | 'optional' | null
+  >(null)
   // 보내는 중 예시는 닫히지 않으므로 실제 응답이 오듯 잠시 뒤 저절로 닫는다.
   useEffect(() => {
     if (confirmKind !== 'busy') return
@@ -89,6 +92,26 @@ export function ConfirmSection() {
       <Button variant="outline" onClick={() => setConfirmKind('busy')}>
         보내는 중 확인 대화상자 열기
       </Button>
+      <Button variant="outline" onClick={() => setConfirmKind('required')}>
+        사유 꼭 확인 대화상자 열기
+      </Button>
+      <Button variant="outline" onClick={() => setConfirmKind('optional')}>
+        사유 선택 확인 대화상자 열기
+      </Button>
+      {(confirmKind === 'required' || confirmKind === 'optional') && (
+        <CancelReasonDialog
+          title={confirmKind === 'required' ? '이 지출을 취소할까요?' : '이 행사를 완료할까요?'}
+          reasonLabel={confirmKind === 'required' ? '취소 사유' : '사유'}
+          confirmLabel={confirmKind === 'required' ? '지출 취소' : '완료'}
+          optional={confirmKind === 'optional'}
+          destructive={confirmKind === 'required'}
+          busy={false}
+          error={null}
+          parse={() => ({ success: true })}
+          onClose={closeConfirm}
+          onConfirm={closeConfirm}
+        />
+      )}
       <ConfirmDialog
         open={confirmKind === 'destructive'}
         destructive
@@ -96,7 +119,7 @@ export function ConfirmSection() {
         error={SAVE_FAILED}
         description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
         confirmLabel="내보내기"
-        onCancel={closeConfirm}
+        onClose={closeConfirm}
         onConfirm={closeConfirm}
       />
       <ConfirmDialog
@@ -104,7 +127,7 @@ export function ConfirmSection() {
         title="이재정님에게 회장 직급을 넘길까요?"
         description="넘기면 나는 직급이 없어지고, 회장만 하던 일은 넘겨받은 사람이 해요."
         confirmLabel="넘기기"
-        onCancel={closeConfirm}
+        onClose={closeConfirm}
         onConfirm={closeConfirm}
       />
       <ConfirmDialog
@@ -114,7 +137,7 @@ export function ConfirmSection() {
         title="박새내님을 내보낼까요?"
         description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
         confirmLabel="내보내기"
-        onCancel={closeConfirm}
+        onClose={closeConfirm}
         onConfirm={closeConfirm}
       />
     </Section>

@@ -108,8 +108,8 @@ function CancelButton({ detail }: { detail: ReturnType<typeof useRequestDetail> 
         error={detail.problem ?? ''}
         title="이 요청을 취소할까요?"
         description="결재가 시작되기 전에만 취소할 수 있어요. 취소한 요청은 되살릴 수 없어요."
-        confirmLabel="취소하기"
-        onCancel={() => {
+        confirmLabel="요청 취소"
+        onClose={() => {
           detail.clearProblem()
           setConfirming(false)
         }}

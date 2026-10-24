@@ -34,7 +34,7 @@ function PublishAsk({ change, available, onClose, onDone, onGone }: AskProps) {
       confirmLabel="공개"
       busy={change.saving}
       {...(change.problem ? { error: change.problem } : {})}
-      onCancel={onClose}
+      onClose={onClose}
       onConfirm={() =>
         void guarded(change.publish, isApplied).then(outcome => {
           if (isApplied(outcome)) onDone()

@@ -30,7 +30,7 @@ export function DepartmentDialogs({ state, saving }: Props) {
         description="없앤 부서는 되돌릴 수 없어요."
         confirmLabel="없애기"
         onCloseAutoFocus={menuFocus.onCloseAutoFocus}
-        onCancel={state.closeRemove}
+        onClose={state.closeRemove}
         onConfirm={() => {
           void state.remove()
         }}

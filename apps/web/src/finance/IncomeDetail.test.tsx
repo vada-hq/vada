@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { PURCHASE_REASON_MAX } from '@vada/contracts'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { asElement } from '@/test-support/elements'
@@ -39,7 +40,7 @@ const openDetail = async () => {
 }
 const askCancel = async () => {
   const dialog = await openDetail()
-  fireEvent.click(await within(dialog).findByRole('button', { name: '취소' }))
+  fireEvent.click(await within(dialog).findByRole('button', { name: '수입 취소' }))
   const ask = screen.getByText('이 수입을 취소할까요?').closest('[role="dialog"]') as HTMLElement
   return ask
 }
@@ -86,7 +87,7 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
     '김회장 · 10월 21일 14:03 · 취소함: 중복 입력',
   ])
   // 서버가 준 동작이 없으면 [취소]가 없다.
-  expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
 })
 
 test('운영진에게는 서버가 동작을 주지 않으면 [취소]가 없다', async () => {
@@ -94,22 +95,27 @@ test('운영진에게는 서버가 동작을 주지 않으면 [취소]가 없다
   show(MEMBER_PERMISSIONS)
   const dialog = await openDetail()
   await within(dialog).findByText(/적음/)
-  expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
 })
 
-test('취소는 사유를 받아야 켜지고 한 번만 보내며 끝나면 목록을 다시 읽는다', async () => {
+test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알리며 한 번만 보내고 끝나면 목록을 다시 읽는다', async () => {
   const api = serve()
   const pending = deferredResponse()
   api.on('POST', `${INCOMES}/i1/cancel`, () => pending.promise)
   show()
   const ask = await askCancel()
   const confirm = () =>
-    asElement(within(ask).getByRole('button', { name: '취소하기' }), HTMLButtonElement)
-  expect(confirm().disabled).toBe(true)
-  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '   ' } })
-  expect(confirm().disabled).toBe(true)
-  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '중복 입력' } })
+    asElement(within(ask).getByRole('button', { name: '수입 취소' }), HTMLButtonElement)
   expect(confirm().disabled).toBe(false)
+  fireEvent.click(confirm())
+  expect(within(ask).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), {
+    target: { value: '가'.repeat(PURCHASE_REASON_MAX + 1) },
+  })
+  fireEvent.click(confirm())
+  expect(within(ask).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '중복 입력' } })
   fireEvent.click(confirm())
   fireEvent.click(confirm())
   await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
@@ -120,7 +126,7 @@ test('취소는 사유를 받아야 켜지고 한 번만 보내며 끝나면 목
   // 취소한 수입은 상세에 취소됨으로 보이고 [취소]가 사라진다.
   const dialog = screen.getByRole('dialog')
   expect(within(dialog).getByText('취소됨')).toBeTruthy()
-  expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
   // 성공한 취소 뒤에는 '할 수 없는 동작' 같은 알림이 없다.
   expect(within(dialog).queryByRole('alert')).toBeNull()
   await waitFor(() =>
@@ -141,11 +147,13 @@ test.each([['INCOME_CANCELLED'], ['INCOME_AUTOMATIC'], ['EVENT_COMPLETED'], ['PE
     show()
     const ask = await askCancel()
     fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-    fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+    fireEvent.click(within(ask).getByRole('button', { name: '수입 취소' }))
     await waitFor(() => expect(screen.queryByText('이 수입을 취소할까요?')).toBeNull())
     const dialog = screen.getByRole('dialog')
     expect((await within(dialog).findByRole('alert')).textContent).toBe(INCOME_ERRORS[code])
-    await waitFor(() => expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull())
+    await waitFor(() =>
+      expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull(),
+    )
   },
 )
 
@@ -155,7 +163,7 @@ test('429면 확인을 연 채 그 문구를 보인다', async () => {
   show()
   const ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(ask).getByRole('button', { name: '수입 취소' }))
   expect((await within(ask).findByRole('alert')).textContent).toBe(INCOME_ERRORS.TOO_MANY_REQUESTS)
 })
 
@@ -173,7 +181,7 @@ test('확인을 연 동안 다른 사람이 취소해 동작이 빠지면 확인
   await waitFor(() => expect(screen.queryByText('이 수입을 취소할까요?')).toBeNull())
   const dialog = screen.getByRole('dialog')
   expect((await within(dialog).findByRole('alert')).textContent).toBe(ACTION_GONE)
-  expect(within(dialog).queryByRole('button', { name: '취소' })).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
 })
 
 test('열려 있던 수입이 사라지면(404) 상세를 닫고 이유를 목록 위에 보인다', async () => {
@@ -215,7 +223,7 @@ test('취소를 보낼 때 404면 상세를 닫고 이유를, 403이면 권한�
   show()
   let ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(ask).getByRole('button', { name: '수입 취소' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(INCOME_LOST)).toBeTruthy()
   cleanup()
@@ -223,7 +231,7 @@ test('취소를 보낼 때 404면 상세를 닫고 이유를, 403이면 권한�
   const page = show()
   ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(ask).getByRole('button', { name: '취소하기' }))
+  fireEvent.click(within(ask).getByRole('button', { name: '수입 취소' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
   expect(page.onForbidden).toHaveBeenCalled()

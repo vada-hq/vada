@@ -188,9 +188,12 @@ test('지우기를 취소하면 보내지 않는다', async () => {
   const { api, handlers } = setup()
   fireEvent.click(await screen.findByRole('button', { name: '지우기' }))
   fireEvent.click(
-    within(await screen.findByRole('dialog', { name: '이 업무를 지울까요?' })).getByRole('button', {
-      name: '취소',
-    }),
+    within(await screen.findByRole('dialog', { name: '이 업무를 지울까요?' })).getAllByRole(
+      'button',
+      {
+        name: '닫기',
+      },
+    )[0]!,
   )
   await settle()
   expect(api.calls.filter(call => call.method === 'POST')).toEqual([])

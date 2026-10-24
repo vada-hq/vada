@@ -8,7 +8,7 @@ type Props = {
   saving: boolean
   error: string
   onCloseAutoFocus: (event: Event) => void
-  onCancel: () => void
+  onClose: () => void
   onConfirm: () => void
 }
 

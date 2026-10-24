@@ -129,7 +129,7 @@ export function ClosingExport({ councilId, closing }: Props) {
           title={AUDIT_TITLE[confirming]}
           description={AUDIT_WARNING}
           confirmLabel="받기"
-          onCancel={() => setConfirming(null)}
+          onClose={() => setConfirming(null)}
           onConfirm={() => {
             void exporter.start(confirming)
             setConfirming(null)

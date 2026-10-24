@@ -1,18 +1,6 @@
-import { useState } from 'react'
 import { CancelCompletionSchema, CompleteEventSchema } from '@vada/contracts'
+import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import StateMessage from '@/components/StateMessage'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Field } from '@/components/ui/field'
-import { Textarea } from '@/components/ui/textarea'
-import { requiredText, useFormCheck } from '@/lib/use-form-check'
 
 type Props = {
   mode: 'complete' | 'cancel'
@@ -40,60 +28,29 @@ const COPY = {
   },
 }
 
-// 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). [확인]은 끄지 않고 누를 때 확인한다.
-// 사유와 보낼 본문, 누를 때 확인. 완료 취소만 사유가 꼭 있다(계약과 같은 규칙).
-function useReason(mode: Props['mode']) {
-  const [reason, setReason] = useState('')
-  const body = mode === 'complete' ? { reason: reason.trim() === '' ? null : reason } : { reason }
-  const schema = mode === 'complete' ? CompleteEventSchema : CancelCompletionSchema
-  const check = useFormCheck<HTMLDivElement>(() => ({
-    reason: mode === 'cancel' ? requiredText(reason, '취소 사유를') : undefined,
-  }))
-  return { reason, setReason, body, valid: schema.safeParse(body).success, ...check }
-}
-
-export function CompletionDialog({ mode, openTasks, busy, error, onClose, onConfirm }: Props) {
+// 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). 완료는 빈 사유를 null로 보낸다.
+export function CompletionDialog({ mode, openTasks, onConfirm, ...rest }: Props) {
   const copy = COPY[mode]
-  const { reason, setReason, body, valid, formRef, errors: fieldErrors, attempt } = useReason(mode)
+  const complete = mode === 'complete'
   return (
-    <Dialog
-      open
-      onOpenChange={open => {
-        if (!open && !busy) onClose()
-      }}
+    <CancelReasonDialog
+      {...rest}
+      title={copy.title}
+      description={copy.description}
+      reasonLabel={copy.reasonLabel}
+      confirmLabel={copy.confirm}
+      optional={complete}
+      destructive={!complete}
+      parse={reason =>
+        complete
+          ? CompleteEventSchema.safeParse({ reason: reason.trim() === '' ? null : reason })
+          : CancelCompletionSchema.safeParse({ reason })
+      }
+      onConfirm={reason => onConfirm(complete && reason.trim() === '' ? null : reason)}
     >
-      <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{copy.title}</DialogTitle>
-          <DialogDescription className="wrap-anywhere">{copy.description}</DialogDescription>
-        </DialogHeader>
-        {mode === 'complete' && openTasks > 0 && (
-          <StateMessage kind="notice">{`끝나지 않은 업무 ${openTasks}개`}</StateMessage>
-        )}
-        <div ref={formRef}>
-          <Field
-            label={copy.reasonLabel}
-            optional={mode === 'complete'}
-            required={mode === 'cancel'}
-            error={fieldErrors.reason}
-          >
-            <Textarea value={reason} disabled={busy} onChange={e => setReason(e.target.value)} />
-          </Field>
-        </div>
-        {error && <StateMessage kind="error">{error}</StateMessage>}
-        <DialogFooter>
-          <Button variant="outline" disabled={busy} onClick={onClose}>
-            닫기
-          </Button>
-          <Button
-            variant={mode === 'cancel' ? 'destructive' : 'default'}
-            disabled={busy}
-            onClick={() => attempt() && valid && onConfirm(body.reason)}
-          >
-            {copy.confirm}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {complete && openTasks > 0 && (
+        <StateMessage kind="notice">{`끝나지 않은 업무 ${openTasks}개`}</StateMessage>
+      )}
+    </CancelReasonDialog>
   )
 }

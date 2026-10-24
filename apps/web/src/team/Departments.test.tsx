@@ -198,7 +198,7 @@ test('회장단은 줄마다 이름 바꾸기, 재정 역할 주고 거두기, �
   const before = posts(api).length
   fireEvent.click(within(finance).getByRole('menuitem', { name: '없애기' }))
   let confirm = await screen.findByRole('dialog', { name: '재정부 부서를 없앨까요?' })
-  fireEvent.click(within(confirm).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(confirm).getAllByRole('button', { name: '닫기' })[0]!)
   await noDialog()
   expect(posts(api)).toHaveLength(before)
   fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '없애기' }))

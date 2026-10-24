@@ -14,6 +14,12 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+// 요청 취소 확인 창의 [요청 취소]. 상세 안의 같은 이름 버튼과 가려 찾는다.
+const confirmButton = async () => {
+  const ask = (await screen.findByText('이 요청을 취소할까요?')).closest('[role="dialog"]')
+  return within(ask as HTMLElement).getByRole('button', { name: '요청 취소' })
+}
+
 const BASE = '/api/organizations/c1/purchase-requests'
 const LIST = `${BASE}?view=mine`
 
@@ -192,7 +198,7 @@ test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
-  const confirm = await screen.findByRole('button', { name: '취소하기' })
+  const confirm = await confirmButton()
   fireEvent.click(confirm)
   fireEvent.click(confirm)
   pending.resolve(new Response(null, { status: 204 }))
@@ -219,7 +225,7 @@ test('이미 결재가 시작됐으면(409) 이유를 보이고 요청을 다시
   api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'REQUEST_CLOSED' }, 409))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
-  fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
+  fireEvent.click(await confirmButton())
   expect(await screen.findByText(/이미 결재가 시작됐거나 취소된 요청/)).toBeTruthy()
   expect(screen.getByRole('dialog', { name: '행사 포스터 인쇄' })).toBeTruthy()
   expect(reads).toBeGreaterThan(1)
@@ -235,7 +241,7 @@ test('행사가 완료됐으면(409 EVENT_COMPLETED) 요청 취소가 이유를 
   api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'EVENT_COMPLETED' }, 409))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
-  fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
+  fireEvent.click(await confirmButton())
   expect(await screen.findByText(/완료한 행사의 요청이라 바꿀 수 없어요/)).toBeTruthy()
   expect(reads).toBeGreaterThan(1)
 })
@@ -245,11 +251,15 @@ test('취소가 너무 빠르면(429) 확인 안에 문구가 보인다', async 
   api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
-  fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
+  fireEvent.click(await confirmButton())
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toMatch(/너무 빨리 보내고 있어요/)
   // 확인을 닫으면 실패 문구도 사라진다.
-  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  fireEvent.click(
+    within(screen.getByRole('dialog', { name: '이 요청을 취소할까요?' })).getAllByRole('button', {
+      name: '닫기',
+    })[0]!,
+  )
   await waitFor(() =>
     expect(screen.queryByRole('dialog', { name: '이 요청을 취소할까요?' })).toBeNull(),
   )
@@ -269,7 +279,7 @@ test('취소하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
   api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'FORBIDDEN' }, 403))
   fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
-  fireEvent.click(await screen.findByRole('button', { name: '취소하기' }))
+  fireEvent.click(await confirmButton())
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })

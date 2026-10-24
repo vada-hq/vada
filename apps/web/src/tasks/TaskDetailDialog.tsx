@@ -145,7 +145,7 @@ function ManageButtons({ detail, onEdit, onDeleted }: ManageProps) {
         title="이 업무를 지울까요?"
         description="지운 업무는 목록에서 사라지고 되살릴 수 없어요."
         confirmLabel="지우기"
-        onCancel={() => {
+        onClose={() => {
           detail.clearProblem()
           setDeleting(false)
         }}

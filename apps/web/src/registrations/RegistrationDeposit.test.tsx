@@ -127,7 +127,7 @@ test('확인 취소는 사유 없이 누르면 보내지 않고 사유 칸 아�
   const dialog = await screen.findByRole('dialog')
   // 환불 대기가 아니면 결과 안내가 없다.
   expect(dialog.textContent).not.toContain('되돌릴 수 없어요')
-  const submit = within(dialog).getByRole('button', { name: '확인 취소' })
+  const submit = within(dialog).getByRole('button', { name: '입금 확인 취소' })
   const reason = within(dialog).getByLabelText('취소 사유')
   fireEvent.click(submit)
   expect(within(dialog).getByText('취소 사유를 입력해 주세요')).toBeTruthy()
@@ -250,7 +250,7 @@ test('확인 취소가 409(환불한 입금)면 창 안에 문구가 보인다',
   fireEvent.click(button(row, '확인 취소'))
   const dialog = await screen.findByRole('dialog')
   fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '사유' } })
-  fireEvent.click(within(dialog).getByRole('button', { name: '확인 취소' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인 취소' }))
   expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.DEPOSIT_CLOSED!)).toBeTruthy()
 })
 

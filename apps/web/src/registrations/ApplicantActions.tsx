@@ -86,7 +86,7 @@ export function ApplicantActions(props: Props) {
         busy={post.busy}
         problem={post.problem}
         onConfirm={() => void cancel().then(ok => ok && setConfirming(false))}
-        onCancel={() => {
+        onClose={() => {
           setConfirming(false)
           post.clear()
         }}
@@ -102,7 +102,7 @@ type DialogProps = {
   busy: boolean
   problem: string | null
   onConfirm: () => void
-  onCancel: () => void
+  onClose: () => void
 }
 
 function CancelDialog({ name, deposited, problem, ...rest }: DialogProps) {

@@ -57,7 +57,7 @@ test('[고치기]는 서버 actions에 expense.update가 있을 때만 보인다
   openExpensesTab()
   fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
   const detail = await screen.findByRole('dialog')
-  await within(detail).findByRole('button', { name: '취소' })
+  await within(detail).findByRole('button', { name: '지출 취소' })
   expect(within(detail).queryByRole('button', { name: '고치기' })).toBeNull()
 })
 

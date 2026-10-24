@@ -29,7 +29,7 @@ export function IncomeActions({ income, detail }: Props) {
     <div className="flex flex-col items-start gap-2">
       {canCancel && (
         <Button variant="outline" disabled={detail.saving} onClick={() => setAsking(true)}>
-          취소
+          수입 취소
         </Button>
       )}
       {!asking && detail.problem && <StateMessage kind="error">{detail.problem}</StateMessage>}
@@ -39,7 +39,10 @@ export function IncomeActions({ income, detail }: Props) {
           description="취소한 수입은 목록에 ‘취소됨’으로 남고 되살릴 수 없어요. 잘못 적었다면 취소하고 다시 적어 주세요. 사유는 이력에 남아요."
           busy={detail.saving}
           error={detail.problem}
-          isValid={reason => CancelIncomeSchema.safeParse({ reason }).success}
+          reasonLabel="취소 사유"
+          confirmLabel="수입 취소"
+          destructive
+          parse={reason => CancelIncomeSchema.safeParse({ reason })}
           onClose={close}
           onConfirm={reason =>
             void guarded(() => detail.cancel(reason), isApplied).then(outcome => {

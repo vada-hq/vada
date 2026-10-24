@@ -72,7 +72,7 @@
 - 닿는 곳: `apps/web/src/components/ui/dialog.tsx`, `sheet.tsx`, 새 창 기록 훅(`src/lib`), `auth/useInviteEntry.ts`, `workspace/useChatLink.ts`(확인만), `ui-gallery/`.
 - 검토: 깊게(모든 창, 비동기 기록). 마이그레이션: 없음.
 
-### 2. 공용 확인 창과 '닫기' [ ]
+### 2. 공용 확인 창과 '닫기' [x]
 - 할 수 있게 되는 것: 모든 확인·사유 창이 같은 모양과 같은 이름으로 열리고, 사유가 틀리면 칸 아래에 이유가 보인다.
 - 수용 기준: 확인 창의 나가는 버튼은 모두 '닫기'이고, [취소][취소하기]가 나란한 창이 없다(신청 취소, 요청 취소 창의 확인 버튼은 '신청 취소', '요청 취소'). 사유 칸이 꼭인 창(지출·수입 취소, 결산 다시 열기, 입금 확인 취소, 완료 취소)은 사유에 별표가 있고, 확인 버튼이 늘 켜져 있으며, 비우고 누르면 '…사유를 입력해 주세요'가, 계약 상한보다 길게 쓰고 누르면 칸 아래에 '더 짧게 입력해 주세요'가 보이고 그 칸으로 옮긴다. 둘 다 아무것도 보내지 않는다. 행사 완료의 사유는 '(선택)'이다. 환불 금액 창은 지금 동작 그대로 이 틀을 쓴다. 보내는 동안 두 버튼이 막히고 창이 닫히지 않는다. 서버 오류는 지금처럼 버튼 위에 보인다. 지출·수입 상세에서 창을 여는 버튼도 '지출 취소', '수입 취소'다. `IncomeDetail.test.tsx`, `ExpensesTab.test.tsx`의 꺼진 [취소하기] 시험을 누를 때 확인으로 뒤집는다. 부품 확인 화면에 칸 없음·사유 꼭·사유 선택 세 모양이 있다.
 - 닿는 곳: `apps/web/src/components/ConfirmDialog.tsx`, `CancelReasonDialog.tsx`, `finance/ReopenDialog.tsx`, `ExpenseCancelDialog.tsx`, `ExpenseActions.tsx`, `IncomeActions.tsx`, `RequestDetailDialog.tsx`, `registrations/DepositDialogs.tsx`, `events/CompletionDialog.tsx`, `public/MyRegistrationPage.tsx`, 확인 창을 쓰는 나머지(`ConfirmDialog` 사용처 11곳), `ui-gallery/OverlaySections.tsx`.

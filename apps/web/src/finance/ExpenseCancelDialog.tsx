@@ -15,7 +15,10 @@ export function ExpenseCancelDialog(props: Props) {
       {...props}
       title="이 지출을 취소할까요?"
       description="취소한 지출은 목록에 ‘취소됨’으로 남고 되살릴 수 없어요. 사유는 이력에 남아요."
-      isValid={reason => CancelExpenseSchema.safeParse({ reason }).success}
+      reasonLabel="취소 사유"
+      confirmLabel="지출 취소"
+      destructive
+      parse={reason => CancelExpenseSchema.safeParse({ reason })}
     />
   )
 }

@@ -64,7 +64,7 @@ export default function People({ view, reading, team, onCouncilChanged, onOwnCha
         saving={team.saving}
         error={people.message}
         onCloseAutoFocus={people.menuFocus.onCloseAutoFocus}
-        onCancel={people.cancelConfirm}
+        onClose={people.cancelConfirm}
         onConfirm={() => {
           void people.confirmed()
         }}

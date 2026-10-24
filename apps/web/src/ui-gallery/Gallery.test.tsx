@@ -107,7 +107,7 @@ test('동작 메뉴 예시는 키보드로 열고, 위험한 항목은 빨갛게
   )
 })
 
-test('확인 대화상자 예시는 빨간 확인 버튼과 오류 문구를 보이고, 취소로 닫는다', async () => {
+test('확인 대화상자 예시는 빨간 확인 버튼과 오류 문구를 보이고, 닫기로 닫는다', async () => {
   render(<Gallery />)
   fireEvent.click(screen.getByRole('button', { name: '확인 대화상자 열기' }))
   const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
@@ -121,7 +121,7 @@ test('확인 대화상자 예시는 빨간 확인 버튼과 오류 문구를 보
   expect(within(dialog).getByText(/^학생회 소속과 부서 소속이 함께 끝나요/).className).toContain(
     'wrap-anywhere',
   )
-  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 
@@ -145,9 +145,26 @@ test('확인 대화상자의 보내는 중 모양은 두 버튼이 꺼지고 Esc
     asElement(within(dialog).getByRole('button', { name: '내보내기' }), HTMLButtonElement).disabled,
   ).toBe(true)
   expect(
-    asElement(within(dialog).getByRole('button', { name: '취소' }), HTMLButtonElement).disabled,
+    asElement(within(dialog).getAllByRole('button', { name: '닫기' })[0]!, HTMLButtonElement)
+      .disabled,
   ).toBe(true)
   fireEvent.keyDown(dialog, { key: 'Escape' })
   expect(screen.getByRole('dialog', { name: '박새내님을 내보낼까요?' })).toBeTruthy()
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 4_000 })
+})
+
+test('확인 대화상자의 사유 꼭은 별표가 있고 늘 켜져 있으며, 사유 선택은 (선택)이다', async () => {
+  render(<Gallery />)
+  fireEvent.click(screen.getByRole('button', { name: '사유 꼭 확인 대화상자 열기' }))
+  const required = await screen.findByRole('dialog', { name: '이 지출을 취소할까요?' })
+  expect(within(required).getByLabelText('취소 사유').getAttribute('aria-required')).toBe('true')
+  expect(within(required).getByRole('button', { name: '지출 취소' })).toHaveProperty(
+    'disabled',
+    false,
+  )
+  fireEvent.click(within(required).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  fireEvent.click(screen.getByRole('button', { name: '사유 선택 확인 대화상자 열기' }))
+  const optional = await screen.findByRole('dialog', { name: '이 행사를 완료할까요?' })
+  expect(within(optional).getByText('(선택)')).toBeTruthy()
 })

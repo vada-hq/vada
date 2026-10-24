@@ -114,7 +114,7 @@ function DepositSteps({ applicant, allowed, step, post, open, run }: StepsProps)
         busy={post.busy}
         {...(post.problem ? { error: post.problem } : {})}
         onConfirm={() => void run('deposit', { amount: applicant.appliedFee })}
-        onCancel={() => open(null)}
+        onClose={() => open(null)}
       />
       {step === 'cancel' && allowed.undo && (
         <CancelDepositDialog
