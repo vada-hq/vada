@@ -15,7 +15,6 @@ type Props = {
 // 열려 있던 지출이 사라지거나(404) 권한을 잃으면(403) 닫고 이유를 목록 위에 보인다.
 export function ExpenseDialogs({ view, dialogs, onChanged, onForbidden }: Props) {
   const councilId = view.council.id
-  const canManage = view.permissions.includes('finance.manage')
   const lose = (message: string) => {
     dialogs.lose(message)
     onChanged()
@@ -24,7 +23,6 @@ export function ExpenseDialogs({ view, dialogs, onChanged, onForbidden }: Props)
     <>
       <ExpenseDetailDialog
         councilId={councilId}
-        canManage={canManage}
         expenseId={dialogs.openId}
         onClose={dialogs.closeDetail}
         onChanged={onChanged}

@@ -12,7 +12,6 @@ import {
   type ExpensesResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { isDayClosed } from '../closing/lock.js'
 import {
   account,
   approval,
@@ -30,9 +29,8 @@ import {
 import type { Db } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
-import { isExpenseLocked } from './event-lock.js'
 import { expenseHistoryOf } from './history.js'
-import { expenseActionsOf } from './status.js'
+import { actionsOf, factsOf } from './policy.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -229,19 +227,6 @@ export async function expenseDetailOf(
     evidence: await evidenceOf(db, expenseId),
     approvals: await approvalsOf(db, expenseId),
     history: await expenseHistoryOf(db, expenseId),
-    actions: await actionsOf(db, actor, row, summary),
+    actions: actionsOf(actor, await factsOf(db, actor, row)),
   }
-}
-
-// 완료한 행사의 지출은 잠겨 있어 취소·환급 동작을 주지 않는다(DEC-68). 공개한 기간의 지출은 취소만 뺀다(DEC-70).
-async function actionsOf(db: Reader, actor: Actor, row: Row, summary: ExpenseSummary) {
-  if (await isExpenseLocked(db, actor, row.id)) return []
-  const actions = expenseActionsOf(actor, {
-    cancelled: summary.cancelled,
-    paidBy: row.paidById,
-    reimbursed: summary.reimbursed,
-  })
-  return (await isDayClosed(db, actor, summary.paidOn))
-    ? actions.filter(action => action !== 'expense.cancel')
-    : actions
 }

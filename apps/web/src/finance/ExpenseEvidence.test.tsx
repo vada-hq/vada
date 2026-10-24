@@ -194,7 +194,8 @@ test('취소된 지출과 재정부가 아닌 사람에게는 올리기 칸이 �
   expect(screen.queryByRole('button', { name: '사진 올리기' })).toBeNull()
   expect(screen.getByRole('button', { name: '영수증 1 크게 보기' })).toBeTruthy()
   cleanup()
-  serve(withPhoto)
+  // 서버는 재정부가 아닌 사람에게 증빙 동작을 주지 않는다.
+  serve({ ...withPhoto, actions: [] })
   await open(MEMBER_PERMISSIONS)
   expect(screen.queryByRole('button', { name: '사진 올리기' })).toBeNull()
   expect(screen.getByRole('button', { name: '영수증 1 크게 보기' })).toBeTruthy()
@@ -206,7 +207,7 @@ test('사진이 20장이면 올리기 칸이 없다', async () => {
     type: 'receipt' as const,
     fileId: `f${index}`,
   }))
-  serve(expenseDetail('e1', { evidence }))
+  serve(expenseDetail('e1', { evidence, actions: ['expense.cancel'] }))
   await open()
   expect(screen.queryByRole('button', { name: '사진 올리기' })).toBeNull()
 })

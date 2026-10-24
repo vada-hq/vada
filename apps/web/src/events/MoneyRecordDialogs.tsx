@@ -6,7 +6,6 @@ type Dialogs = ReturnType<typeof useRecordDialogs>
 
 type Props = {
   councilId: string
-  canManage: boolean
   requests: Dialogs
   expenses: Dialogs
   // 내가 바꾼 뒤, 또는 열어 둔 것을 잃은 뒤 정산을 다시 읽는다.
@@ -18,7 +17,6 @@ type Props = {
 // 요청에서 결제한 지출을 누르면 요청을 닫고 지출을 연다. 예산 탭으로 가는 길은 이 화면에 없어 그 버튼은 숨긴다.
 export function MoneyRecordDialogs({
   councilId,
-  canManage,
   requests,
   expenses,
   onChanged,
@@ -42,7 +40,6 @@ export function MoneyRecordDialogs({
       />
       <ExpenseDetailDialog
         {...shared}
-        canManage={canManage}
         expenseId={expenses.openId}
         onClose={expenses.closeDetail}
         onLost={message => {

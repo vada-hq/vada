@@ -101,7 +101,12 @@ export const AttachChatEvidenceSchema = z.strictObject({
 })
 
 // 지출마다 서버가 주는 할 수 있는 동작. 화면은 이것으로 버튼을 보이거나 숨긴다(DEC-38).
-export const EXPENSE_ACTIONS = ['expense.cancel', 'expense.reimburse', 'expense.update'] as const
+export const EXPENSE_ACTIONS = [
+  'expense.cancel',
+  'expense.reimburse',
+  'expense.update',
+  'expense.attach_evidence',
+] as const
 export type ExpenseAction = (typeof EXPENSE_ACTIONS)[number]
 
 export interface ExpenseSummary {

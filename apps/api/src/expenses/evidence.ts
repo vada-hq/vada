@@ -1,37 +1,25 @@
-import { count, eq } from 'drizzle-orm'
-import {
-  EVIDENCE_MAX,
-  PHOTO_MEDIA_TYPE,
-  type AttachEvidence,
-  type ExpenseDetail,
-} from '@vada/contracts'
+import { PHOTO_MEDIA_TYPE, type AttachEvidence, type ExpenseDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
-import { evidence } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { assertExpenseEventOpen } from './event-lock.js'
 import { visiblePhoto } from '../chat/photos.js'
 import { linkEvidence } from '../records/evidence-link.js'
 import { createRecord } from '../records/records.js'
 import type { VerifiedPhoto } from '../storage/uploads.js'
 import { lockedExpenseRow } from './lock.js'
+import { assertAllowed } from './policy.js'
 import { expenseDetailOf } from './queries.js'
 
 // 증빙 사진의 저장소 키 맨 앞. 대화 사진(chat/)과 섞이지 않는다.
 export const EVIDENCE_AREA = 'evidence'
 
-// 취소·행사 잠금·20장 상한을 지출 행을 잠근 채 본다.
+// 취소·행사 잠금·20장 상한을 지출 행을 잠근 채 같은 decide로 본다.
 async function assertAttachable(tx: Tx, actor: Actor, expenseId: string) {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
-  const row = await lockedExpenseRow(tx, actor, expenseId)
-  await assertExpenseEventOpen(tx, actor, expenseId)
-  if (row.cancelledAt !== null) throw new ApiError('EXPENSE_CANCELLED')
-  const [held] = await tx
-    .select({ n: count() })
-    .from(evidence)
-    .where(eq(evidence.expenseId, expenseId))
-  if ((held?.n ?? 0) >= EVIDENCE_MAX) throw new ApiError('EVIDENCE_LIMIT')
+  await assertAllowed(tx, actor, await lockedExpenseRow(tx, actor, expenseId), {
+    action: 'expense.attach_evidence',
+  })
 }
 
 // 증빙을 붙이는 거래. 학생회 행 잠금과 운영진 확인(inCouncilChange) 뒤에 부른다.

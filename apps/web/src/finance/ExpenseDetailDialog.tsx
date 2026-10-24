@@ -14,8 +14,6 @@ import { useExpenseDetail } from './useExpenseDetail'
 
 type Props = ExpenseDialogHandlers & {
   councilId: string
-  // 재정부(finance.manage)인가. 사진 붙이기를 보일지 정한다. 취소·환급은 서버가 준 동작을 따른다.
-  canManage: boolean
   // 열린 지출의 번호. null이면 닫혀 있다.
   expenseId: string | null
   onClose: () => void
@@ -33,7 +31,6 @@ const NO_PHOTOS: string[] = []
 
 function OpenExpenseDialog({
   councilId,
-  canManage,
   expenseId,
   onClose,
   messagePhotoIds = NO_PHOTOS,
@@ -62,7 +59,7 @@ function OpenExpenseDialog({
         </DialogHeader>
         {detail.expense ? (
           <Loaded
-            {...{ councilId, canManage, detail, upload, chat, message }}
+            {...{ councilId, detail, upload, chat, message }}
             expense={detail.expense}
             onForbidden={handlers.onForbidden}
           />
@@ -83,7 +80,6 @@ function OpenExpenseDialog({
 
 function Loaded({
   councilId,
-  canManage,
   expense,
   detail,
   upload,
@@ -93,7 +89,6 @@ function Loaded({
 }: {
   onForbidden: () => void
   councilId: string
-  canManage: boolean
   expense: ExpenseDetail
   detail: ReturnType<typeof useExpenseDetail>
   upload: ReturnType<typeof useEvidenceUpload>
@@ -104,7 +99,7 @@ function Loaded({
     <div className="flex flex-col gap-6">
       <ExpenseFacts expense={expense} />
       <ExpenseLines lines={expense.lines} />
-      <EvidenceSection {...{ councilId, expense, canManage, upload, chat, message }} />
+      <EvidenceSection {...{ councilId, expense, upload, chat, message }} />
       <ExpenseActions
         councilId={councilId}
         expense={expense}

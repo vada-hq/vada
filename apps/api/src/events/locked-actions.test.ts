@@ -46,6 +46,7 @@ test(
       'expense.cancel',
       'expense.reimburse',
       'expense.update',
+      'expense.attach_evidence',
     ])
     await t.completion(event, 'completion_cancelled', DAY('2026-10-24T04:00'), '되돌림')
     for (const id of all) assert.notDeepEqual(await expenseActions(t, id), [], id)
