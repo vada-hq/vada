@@ -194,6 +194,71 @@ test('초대 링크로 온 사람은 로그인 뒤 같은 초대로 돌아오고
   )
 })
 
+const COUNCIL = '0199d1a0-0000-7000-8000-0000000000c1'
+const loginWith = async (path: string) => {
+  window.history.replaceState(null, '', path)
+  auth.social.mockResolvedValue({ error: null })
+  await renderApp()
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+}
+
+test('로그아웃 상태로 연 학생회 안 주소는 로그인 뒤 그 주소(경로와 쿼리)로 돌아온다', async () => {
+  const path = `/tasks/${COUNCIL}?view=all&filter=done`
+  await loginWith(path)
+  await waitFor(() =>
+    expect(auth.social).toHaveBeenCalledWith({
+      provider: 'google',
+      callbackURL: path,
+      errorCallbackURL: path,
+    }),
+  )
+})
+
+test('돌아올 곳에는 해석기를 통과한 값만 들어간다: 모르는 쿼리와 # 뒤는 버린다', async () => {
+  await loginWith(`/chat/${COUNCIL}?next=//evil.com&tab=notices#token`)
+  await waitFor(() =>
+    expect(auth.social).toHaveBeenCalledWith({
+      provider: 'google',
+      callbackURL: `/chat/${COUNCIL}?tab=notices`,
+      errorCallbackURL: `/chat/${COUNCIL}?tab=notices`,
+    }),
+  )
+})
+
+test('공개 주소나 모르는 주소에서는 로그인 뒤 /로 돌아온다', async () => {
+  await loginWith('/not-an-app-path/x')
+  await waitFor(() =>
+    expect(auth.social).toHaveBeenCalledWith({
+      provider: 'google',
+      callbackURL: '/',
+      errorCallbackURL: '/',
+    }),
+  )
+})
+
+test('홈 화면 앱의 로그인 창은 /auth-done으로 끝나고, 본 창은 주소를 지켜 로그인 뒤 그 주소가 열린다', async () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  const popup = { location: { href: 'about:blank' }, close: vi.fn() }
+  const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+  const path = `/tasks/${COUNCIL}?view=all`
+  window.history.replaceState(null, '', path)
+  auth.social.mockResolvedValue({ data: { url: 'https://accounts.google.com/x' }, error: null })
+  try {
+    const view = await renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+    await waitFor(() => expect(popup.location.href).toBe('https://accounts.google.com/x'))
+    expect(auth.social).toHaveBeenCalledWith(expect.objectContaining({ callbackURL: '/auth-done' }))
+    expect(window.location.pathname + window.location.search).toBe(path)
+    signedIn()
+    view.rerender(<App />)
+    expect(await screen.findByText('학생회 목록 자리')).toBeTruthy()
+    expect(window.location.pathname + window.location.search).toBe(path)
+  } finally {
+    open.mockRestore()
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})
+
 test('초대 링크의 로그인이 실패해도 초대를 지키고 까닭을 알린다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345?error=access_denied')
   await renderApp()

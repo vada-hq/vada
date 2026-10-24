@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { invitePath } from '../councils/invite-path'
 import { authClient } from './auth-client'
 import { forgetThisDevice } from '../push/push-logout'
+import { loginCallback } from './login-return'
 import { AUTH_DONE_PATH, startPopupLogin } from './popup-login'
 import type { Invite } from './useInviteEntry'
 
@@ -12,8 +12,8 @@ const logoutFailed = '로그아웃하지 못했어요. 다시 시도해 주세�
 // 아래 동작들은 던지지 않고, 사용자에게 알릴 실패 글을 돌려준다(성공이면 빈 글).
 async function signIn(invite: Invite | null): Promise<string> {
   try {
-    // 초대 링크로 왔으면 로그인 뒤 같은 초대로 돌아온다.
-    const callbackURL = invite?.from === 'link' ? invitePath(invite.code) : '/'
+    // 초대 링크로 왔으면 로그인 뒤 같은 초대로, 아니면 지금 보던 학생회 안 주소로 돌아온다.
+    const callbackURL = loginCallback(invite, window.location.pathname + window.location.search)
     const result = await authClient.signIn.social({
       provider: 'google',
       callbackURL,
@@ -26,6 +26,7 @@ async function signIn(invite: Invite | null): Promise<string> {
 }
 
 // iOS 홈 화면 앱: 누른 순간 앱 안 창을 열고 그 창에서 Google 로그인을 한다(휴대폰 길 spec 길 B).
+// 로그인 창은 /auth-done에서 끝나 본 창에 알리고 닫는다. 본 창은 주소를 그대로 지키므로 로그인 뒤 그 주소가 열린다(돌아올 곳을 따로 실어 보내지 않는다).
 async function signInInApp(): Promise<string> {
   try {
     const result = await startPopupLogin(
