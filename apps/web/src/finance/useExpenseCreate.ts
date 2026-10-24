@@ -32,5 +32,5 @@ export function useExpenseCreate(councilId: string, request: unknown, handlers: 
     if (!reportExpenseLost(handlers, result.status)) setProblem(expenseCreateProblem(result.code))
   }
 
-  return { valid: parsed.success, problem, submit }
+  return { valid: parsed.success, parsed, problem, submit }
 }

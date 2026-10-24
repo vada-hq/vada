@@ -113,7 +113,8 @@ export const formRequest = (values: FormValues, feeAccountId: string | null) => 
   feeAccountId: hasFee(values) ? feeAccountId : null,
 })
 
-type FormErrorKey = 'name' | 'closesAt' | 'capacity' | 'fee' | 'payerFee' | 'nonPayerFee'
+type FormErrorKey =
+  'name' | 'opensAt' | 'closesAt' | 'capacity' | 'notice' | 'fee' | 'payerFee' | 'nonPayerFee'
 // 문제가 없는 칸은 빠지거나 undefined다.
 export type FormErrors = Partial<Record<FormErrorKey, string | undefined>>
 

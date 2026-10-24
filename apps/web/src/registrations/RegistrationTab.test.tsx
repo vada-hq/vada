@@ -113,7 +113,7 @@ test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한�
   setup({ forms: [], actions: ['registration.manage'] })
   expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
   expect(screen.getByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
-  expect(screen.getByText('아직 신청 양식이 없어요.')).toBeTruthy()
+  expect(screen.getByText('신청 양식 없음')).toBeTruthy()
 })
 
 async function openCreate(api: ReturnType<typeof mockApi>) {
@@ -132,7 +132,7 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(screen.queryByText('아직 신청 양식이 없어요.')).toBeNull()
+  expect(screen.queryByText('신청 양식 없음')).toBeNull()
   expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '참가 신청')
   expect(within(form).getByLabelText('신청 마감').getAttribute('aria-required')).toBe('true')
   expect(within(form).getByLabelText('없음')).toHaveProperty('checked', true)
@@ -145,7 +145,7 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   )
   fireEvent.click(screen.getByRole('button', { name: '신청 양식 목록' }))
   expect(screen.queryByRole('form', { name: '신청 양식 만들기' })).toBeNull()
-  expect(screen.getByText('아직 신청 양식이 없어요.')).toBeTruthy()
+  expect(screen.getByText('신청 양식 없음')).toBeTruthy()
 })
 
 test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의 [입력]은 행사 고치기를 그 칸으로 연다', async () => {

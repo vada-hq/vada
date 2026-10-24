@@ -28,5 +28,5 @@ export function useIncomeCreate(councilId: string, request: unknown, handlers: H
     if (!reportIncomeLost(handlers, result.status)) setProblem(incomeProblem(result.code))
   }
 
-  return { valid: parsed.success, problem, submit }
+  return { valid: parsed.success, parsed, problem, submit }
 }

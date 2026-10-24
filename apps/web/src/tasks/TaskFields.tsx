@@ -24,14 +24,14 @@ export function TaskFields({ values, disabled, onChange, errors = {} }: Props) {
           onChange={event => onChange({ ...values, title: event.target.value })}
         />
       </Field>
-      <Field label="내용" optional>
+      <Field label="내용" optional error={errors.body}>
         <Textarea
           value={values.body}
           disabled={disabled}
           onChange={event => onChange({ ...values, body: event.target.value })}
         />
       </Field>
-      <Field label="마감" optional>
+      <Field label="마감" optional error={errors.dueDate}>
         <Input
           type="date"
           value={values.dueDate}

@@ -14,7 +14,7 @@ type Props = {
   removable: boolean
   onChange: (values: ItemValues) => void
   onRemove: () => void
-  // 이 줄의 문제(name, quantity)
+  // 이 줄의 문제(name, quantity, link, options)
   errors: FieldErrors
 }
 
@@ -71,8 +71,14 @@ export function RequestItemFields({
         value={values.quantity}
         onChange={event => onChange({ ...values, quantity: event.target.value })}
       />
-      <Field label="링크" inputMode="url" autoCapitalize="none" {...text('link')} />
-      <Field label="옵션" {...text('options')} />
+      <Field
+        label="링크"
+        inputMode="url"
+        autoCapitalize="none"
+        error={errors.link}
+        {...text('link')}
+      />
+      <Field label="옵션" error={errors.options} {...text('options')} />
       {removable && (
         <Button
           type="button"

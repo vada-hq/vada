@@ -12,7 +12,7 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import {
@@ -112,16 +112,24 @@ function requestErrors(values: RequestValues) {
 const itemErrors = (errors: FieldErrors, index: number) => ({
   name: errors[`items.${index}.name`],
   quantity: errors[`items.${index}.quantity`],
+  link: errors[`items.${index}.link`],
+  options: errors[`items.${index}.options`],
 })
+
+// 계약이 막은 형식 문제 가운데 칸 이름만으로는 알기 어려운 것
+const CONTRACT_MESSAGES = { link: 'http:// 또는 https://로 시작하는 주소를 입력해 주세요' }
 
 // 필요한 때와 내용. 아래쪽 두 칸이다.
 function WhenAndBody({
   values,
   disabled,
+  error,
   onChange,
 }: {
   values: RequestValues
   disabled: boolean
+  // 내용 칸의 문제
+  error: string | undefined
   onChange: (patch: Partial<RequestValues>) => void
 }) {
   return (
@@ -134,7 +142,7 @@ function WhenAndBody({
           onChange={event => onChange({ neededBy: event.target.value })}
         />
       </Field>
-      <Field label="내용" optional>
+      <Field label="내용" optional error={error}>
         <Textarea
           value={values.body}
           disabled={disabled}
@@ -168,7 +176,11 @@ function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }:
   const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
   const create = useRequestCreate(props.councilId, requestOf(values), { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => requestErrors(values))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(requestErrors(values), create.parsed, CONTRACT_MESSAGES))
   return (
     <form
       ref={formRef}
@@ -206,7 +218,7 @@ function CreateForm({ saving, setSaving, eventId, start, requesters, ...props }:
         errors={fieldErrors}
         onChange={items => set({ items })}
       />
-      <WhenAndBody values={values} disabled={saving} onChange={set} />
+      <WhenAndBody values={values} disabled={saving} error={fieldErrors.body} onChange={set} />
       <CreateFooter problem={create.problem} saving={saving} onClose={props.onClose} />
     </form>
   )

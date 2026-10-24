@@ -227,7 +227,7 @@ function FormList({ state, onRetry, children }: ListProps) {
   const { forms, truncated } = state.data
   return (
     <>
-      {forms.length === 0 && <StateMessage kind="empty">아직 신청 양식이 없어요.</StateMessage>}
+      {forms.length === 0 && <StateMessage kind="empty">신청 양식 없음</StateMessage>}
       {forms.map(children)}
       {truncated && <StateMessage kind="notice">양식이 많아 앞의 일부만 보여요.</StateMessage>}
     </>

@@ -76,7 +76,7 @@ function RegistrationNumber({
     <NumberCard label="참가 신청" link={link} value={value} sub={sub} />
   )
   if (state.kind !== 'ready') return card(null, state.kind === 'loading' ? LOADING : FAILED)
-  if (state.data.forms.length === 0) return card(null, '신청 양식이 없어요')
+  if (state.data.forms.length === 0) return card(null, '신청 양식 없음')
   const total = registrationTotals(state.data.forms)
   const capacity = total.capacity === null ? '' : `정원 ${total.capacity}명 · `
   return card(`${total.applicants}명`, `${capacity}출석 ${total.attended}명`)

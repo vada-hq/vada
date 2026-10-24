@@ -33,3 +33,6 @@ export const createRequest = (
 export const taskErrors = (values: TaskFieldValues) => ({
   title: requiredText(values.title, '제목을'),
 })
+
+// 계약이 막은 마감(기수 밖 등)은 길이 문제가 아니므로 글을 따로 준다.
+export const TASK_CONTRACT_MESSAGES = { dueDate: '날짜를 확인해 주세요' }

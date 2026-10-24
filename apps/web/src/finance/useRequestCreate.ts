@@ -28,5 +28,5 @@ export function useRequestCreate(councilId: string, request: unknown, handlers: 
     if (!reportLost(handlers, result.status)) setProblem(problemText(result.code))
   }
 
-  return { valid: parsed.success, problem, submit }
+  return { valid: parsed.success, parsed, problem, submit }
 }

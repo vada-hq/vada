@@ -35,7 +35,8 @@ export function Field({ label, optional, required, hint, error, className, child
       <div className="flex items-baseline gap-1">
         <Label htmlFor={id}>{label}</Label>
         {required && (
-          <span aria-hidden className="text-sm text-red-600">
+          // 라벨(text-xs)과 줄 높이를 맞춘다. 아니면 별표 칸이 '(선택)' 칸보다 4px 높아 나란한 칸이 어긋난다.
+          <span aria-hidden className="text-sm leading-4 text-red-600">
             *
           </span>
         )}

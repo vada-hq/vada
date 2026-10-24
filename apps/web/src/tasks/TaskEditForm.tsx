@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { UpdateTaskSchema, type TaskDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { useFormCheck } from '@/lib/use-form-check'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useEvents } from '../events/useEvents'
-import { fieldsOf, fieldsRequest, taskErrors } from './task-fields'
+import { fieldsOf, fieldsRequest, TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
 import { eventChoices } from './task-form-options'
 import { ChoiceSelect } from './ChoiceSelect'
 import { TaskFields } from './TaskFields'
@@ -27,13 +27,18 @@ type Props = {
 export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ...rest }: Props) {
   const [values, setValues] = useState(fieldsOf(task))
   const [eventId, setEventId] = useState(task.event?.id ?? null)
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => taskErrors(values))
   const events = useEvents(councilId, onForbidden)
   const ready = events.state.kind === 'ready'
   const list = events.state.kind === 'ready' ? events.state.data.events : []
   const changed = eventId !== (task.event?.id ?? null)
   const request: EditRequest = { ...fieldsRequest(values), ...(changed ? { eventId } : {}) }
-  const valid = UpdateTaskSchema.safeParse(request).success
+  const parsed = UpdateTaskSchema.safeParse(request)
+  const valid = parsed.success
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(taskErrors(values), parsed, TASK_CONTRACT_MESSAGES))
   return (
     <form
       ref={formRef}

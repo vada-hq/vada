@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { BudgetResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
+import type { Parsed } from '@/lib/use-form-check'
 import { BUDGET_ERRORS, BUDGET_FAILED, BUDGET_LOST } from '@/lib/messages'
 import { reportLost, type PurchaseDialogHandlers } from './purchase-requests'
 
@@ -9,7 +10,7 @@ export type BudgetChangeHandlers = Pick<PurchaseDialogHandlers, 'onLost' | 'onFo
   onSaved: (budget: BudgetResponse) => void
 }
 
-type Parser = { safeParse: (value: unknown) => { success: boolean } }
+type Parser = { safeParse: (value: unknown) => Parsed }
 
 // 회계 기간 만들기와 예산 항목 더하기가 같이 쓴다. 버튼은 계약의 safeParse로 켜고, 보내는 동안 다시 보내지 않는다.
 export function useBudgetChange(
@@ -20,7 +21,8 @@ export function useBudgetChange(
 ) {
   const [problem, setProblem] = useState<string | null>(null)
   const sending = useRef(false)
-  const valid = schema.safeParse(body).success
+  const parsed = schema.safeParse(body)
+  const valid = parsed.success
 
   async function submit() {
     if (!valid || sending.current) return
@@ -35,5 +37,5 @@ export function useBudgetChange(
     setProblem(BUDGET_ERRORS[result.code] ?? BUDGET_FAILED)
   }
 
-  return { valid, problem, submit }
+  return { valid, parsed, problem, submit }
 }

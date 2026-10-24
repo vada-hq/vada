@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
-import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { useTeam } from '@/team/useTeam'
 import {
@@ -205,6 +205,7 @@ function PayerFields({
   values,
   disabled,
   onChange,
+  errors,
 }: Omit<FieldsProps, 'today'> & { team: TeamResponse; memberId: string }) {
   return (
     <>
@@ -216,7 +217,7 @@ function PayerFields({
         disabled={disabled}
         onChange={paidBy => onChange({ ...values, paidBy })}
       />
-      <Field label="사유" optional>
+      <Field label="사유" optional error={errors.reason}>
         <Textarea
           value={values.reason}
           disabled={disabled}
@@ -239,7 +240,11 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => expenseErrors(values, today))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(expenseErrors(values, today), create.parsed))
   const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <form

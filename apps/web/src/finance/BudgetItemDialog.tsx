@@ -3,7 +3,7 @@ import { CreateBudgetItemSchema } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import { budgetItemOf, emptyBudgetItem, wonOf, type BudgetItemValues } from './budget-form'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { EventField } from './EventField'
@@ -87,7 +87,11 @@ export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: P
     CreateBudgetItemSchema,
     { ...handlers, setSaving },
   )
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => budgetItemErrors(values))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(budgetItemErrors(values), change.parsed))
   return (
     <BudgetFormDialog
       title="예산 항목 더하기"

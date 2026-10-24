@@ -30,6 +30,37 @@ export function useFormCheck<T extends HTMLElement = HTMLFormElement>(check: () 
   return { formRef, errors, attempt }
 }
 
+// 숫자 칸의 문제 글. 그 밖(글자 칸의 refine 등)은 '더 짧게 입력해 주세요'다.
+const CODE_TEXT: Record<string, string> = {
+  invalid_type: '숫자를 입력해 주세요',
+  too_small: '더 큰 값을 입력해 주세요',
+  too_big: '더 작은 값을 입력해 주세요',
+}
+
+// 계약의 safeParse 결과. zod를 화면에 들이지 않으려고 쓰는 모양만 적는다.
+export type Parsed = {
+  success: boolean
+  error?: { issues: readonly { code: string; path: readonly PropertyKey[] }[] } | undefined
+}
+
+// 칸 확인(check)이 다루지 않는 길이 상한과 형식은 계약이 마지막에 막는다. 그 문제를 칸 이름 → 글로 바꿔 칸 아래에 보인다.
+// 그러지 않으면 버튼을 눌러도 아무 표시 없이 보내지 않는다. 칸 이름은 계약의 경로를 '.'로 이은 것이다(예: 'items.0.link').
+// 글자 칸(text)은 길이와 쓸 수 없는 글자를 함께 거르는데, 빈 칸은 칸 확인이 먼저 잡으므로 남는 경우는 거의 너무 긴 글이다.
+// messages는 경로의 마지막 이름 → 글로, 형식이 따로 있는 칸(링크 등)에 준다. 칸 확인의 글이 있으면 그 글이 먼저다.
+export function withContract(
+  errors: FieldErrors,
+  parsed: Parsed,
+  messages: Record<string, string> = {},
+): FieldErrors {
+  const found: FieldErrors = {}
+  for (const issue of parsed.error?.issues ?? []) {
+    const key = issue.path.map(String).join('.')
+    found[key] ??=
+      messages[String(issue.path.at(-1))] ?? CODE_TEXT[issue.code] ?? '더 짧게 입력해 주세요'
+  }
+  return { ...found, ...present(errors) }
+}
+
 // 필수 글 칸이 비었을 때의 문제 글. 목적어는 조사까지 받는다(예: '이름을').
 export const requiredText = (value: string, object: string) =>
   value.trim() === '' ? `${object} 입력해 주세요` : undefined

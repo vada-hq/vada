@@ -98,7 +98,7 @@ export function BasicFields(props: FieldsProps) {
         <TextField {...props} label="신청 마감" field="closesAt" kind="moment" />
       </div>
       <TextField {...props} label="정원" field="capacity" kind="number" optional />
-      <Field label="안내" optional>
+      <Field label="안내" optional error={props.errors.notice}>
         <Textarea
           rows={4}
           value={values.notice}
@@ -117,7 +117,8 @@ export function FeeFields(props: FieldsProps & { children?: ReactNode }) {
   const charged = values.feeKind !== 'none'
   return (
     <>
-      <fieldset className="flex flex-col gap-2" disabled={disabled}>
+      {/* relative: 숨긴 legend(absolute)가 화면 밖으로 나가 페이지 전체가 스크롤되지 않게 한다. */}
+      <fieldset className="relative flex flex-col gap-2" disabled={disabled}>
         <legend className="sr-only">참가비</legend>
         {(['none', 'one'] as const).map(kind => (
           <div key={kind} className="flex items-center gap-2">

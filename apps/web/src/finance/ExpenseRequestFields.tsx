@@ -56,19 +56,28 @@ function loadingOr<T>(state: PolledState<T>, show: (data: T) => ReactNode): Reac
   )
 }
 
+const LINES_ERROR_ID = 'expense-lines-error'
+
 function ItemRow({
   item,
   line,
   disabled,
+  invalid,
+  error,
   onToggle,
   onAmount,
 }: {
   item: PurchaseLineItem
   line: ExpenseValues['lines'][number] | undefined
   disabled: boolean
+  // 품목을 하나도 고르지 않았을 때 첫 줄의 체크박스에 문제를 단다. 누르면 그리로 옮긴다.
+  invalid: boolean
+  // 결제 금액의 문제
+  error: string | undefined
   onToggle: () => void
   onAmount: (amount: string) => void
 }) {
+  const errorId = `${item.id}-amount-error`
   return (
     <li className="flex flex-col gap-2 rounded-sm border p-3">
       <Label className="flex items-center gap-2 text-sm">
@@ -77,6 +86,8 @@ function ItemRow({
           className="size-4 accent-blue-600"
           checked={line !== undefined}
           disabled={disabled}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? LINES_ERROR_ID : undefined}
           onChange={onToggle}
         />
         <span className="min-w-0 flex-1 wrap-anywhere">
@@ -91,12 +102,25 @@ function ItemRow({
             inputMode="numeric"
             value={line.amount}
             disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             onChange={event => onAmount(event.target.value)}
           />
         </Label>
       )}
+      {line && error && (
+        <p id={errorId} className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </li>
   )
+}
+
+// 계약은 고른 품목(lines)을 고른 차례로 센다. 그래서 품목의 차례를 찾아 그 줄의 결제 금액 문제를 고른다.
+function lineError(values: ExpenseValues, errors: FieldErrors, lineItemId: string) {
+  const index = values.lines.findIndex(line => line.lineItemId === lineItemId)
+  return index === -1 ? undefined : errors[`lines.${index}.amount`]
 }
 
 // 고른 요청의 승인된 품목. 품목을 고르면 결제 금액이 승인 금액으로 채워지고, 고른 금액의 합이 지출 금액이 된다.
@@ -105,8 +129,9 @@ function ItemPicker({
   requestId,
   values,
   disabled,
+  errors,
   onChange,
-}: Common & { requestId: string }) {
+}: Common & { requestId: string; errors: FieldErrors }) {
   const detail = usePolledRead<PurchaseRequestResponse>(
     purchasePath(councilId, requestId),
     () => {},
@@ -117,12 +142,14 @@ function ItemPicker({
       return <StateMessage kind="empty">결제할 수 있는 승인된 품목이 없어요.</StateMessage>
     return (
       <ul aria-label="결제할 품목" className="flex flex-col gap-2">
-        {items.map(item => (
+        {items.map((item, index) => (
           <ItemRow
             key={item.id}
             item={item}
             line={values.lines.find(line => line.lineItemId === item.id)}
             disabled={disabled}
+            invalid={index === 0 && errors.lines !== undefined}
+            error={lineError(values, errors, item.id)}
             onToggle={() => onChange(toggleLine(values, item))}
             onAmount={amount => onChange(setLineAmount(values, item.id, amount))}
           />
@@ -152,8 +179,12 @@ export function ExpenseRequestFields({ errors, ...props }: Common & { errors: Fi
         disabled={disabled}
         onChange={requestId => onChange(withRequest(values, requestId, requests))}
       />
-      {values.requestId && <ItemPicker {...props} requestId={values.requestId} />}
-      {errors.lines && <p className="text-xs text-red-600">{errors.lines}</p>}
+      {values.requestId && <ItemPicker {...props} requestId={values.requestId} errors={errors} />}
+      {errors.lines && (
+        <p id={LINES_ERROR_ID} className="text-xs text-red-600">
+          {errors.lines}
+        </p>
+      )}
     </>
   ))
 }

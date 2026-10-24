@@ -11,7 +11,7 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
-import { useFormCheck } from '@/lib/use-form-check'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { FeeAccountSelect, useFeeAccount } from './FeeAccountSelect'
 import { FormEventFacts } from './FormEventFacts'
 import { BasicFields, CollectFields, FeeFields } from './FormFields'
@@ -65,6 +65,12 @@ function modeOf(councilId: string, eventId: string, form?: RegistrationForm) {
 }
 
 // 화면의 상태와 보내기: 값, 계좌, 보내는 중, 누를 때 확인(참가비가 있으면 받을 계좌가 있어야 한다, 서버 규칙).
+// 계약이 막은 시각(행사 기간 밖 등)은 길이 문제가 아니므로 글을 따로 준다.
+const FORM_CONTRACT_MESSAGES = {
+  opensAt: '시각을 확인해 주세요',
+  closesAt: '시각을 확인해 주세요',
+}
+
 function useFormEditor(props: Props) {
   const { councilId, eventId, form, onDone, ...rest } = props
   const handlers = { onForbidden: rest.onForbidden, onLost: rest.onLost }
@@ -75,14 +81,20 @@ function useFormEditor(props: Props) {
   const account = useFeeAccount(councilId, handlers.onForbidden, chosen)
   const post = useStaffPost(handlers, setSaving)
   const request = formRequest(values, account.pick.id)
-  const { formRef, errors, attempt } = useFormCheck(() => ({
-    ...formErrors(values),
-    account:
-      hasFee(values) && account.pick.id === null ? '참가비 받을 계좌를 골라 주세요' : undefined,
-  }))
+  const parsed = mode.schema.safeParse(request)
+  const { formRef, errors, attempt } = useFormCheck(() =>
+    withContract(
+      {
+        ...formErrors(values),
+        account:
+          hasFee(values) && account.pick.id === null ? '참가비 받을 계좌를 골라 주세요' : undefined,
+      },
+      parsed,
+      FORM_CONTRACT_MESSAGES,
+    ),
+  )
   async function submit() {
-    if (saving || !attempt()) return
-    if (!mode.schema.safeParse(request).success) return
+    if (saving || !attempt() || !parsed.success) return
     const result = await post.send<RegistrationFormResponse>(mode.path, request)
     if (result.ok) onDone(result.data.form)
   }

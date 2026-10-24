@@ -10,12 +10,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { EVENTS_LOAD_FAILED, TASK_TEAM_FAILED } from '@/lib/messages'
-import { useFormCheck } from '@/lib/use-form-check'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useTeam } from '@/team/useTeam'
 import { useEvents } from '../events/useEvents'
 import type { TaskDialogHandlers } from './task-requests'
 import { ChoiceSelect } from './ChoiceSelect'
-import { taskErrors } from './task-fields'
+import { TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
 import { TaskFields } from './TaskFields'
 import { useTaskCreate } from './useTaskCreate'
 import { useTaskCreateForm } from './useTaskCreateForm'
@@ -124,7 +124,13 @@ function PlacementFields({
 function CreateForm({ view, team, events, saving, setSaving, ...props }: FormProps) {
   const form = useTaskCreateForm(view, team, events, props.eventId)
   const create = useTaskCreate(view.council.id, form.request, { ...props, setSaving })
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => taskErrors(form.fields))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() =>
+    withContract(taskErrors(form.fields), create.parsed, TASK_CONTRACT_MESSAGES),
+  )
 
   return (
     <form

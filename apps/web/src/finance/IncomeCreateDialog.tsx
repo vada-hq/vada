@@ -19,7 +19,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { wonOf } from './budget-form'
 import { emptyIncome, incomeOf, receivedRange, type IncomeValues } from './income-form'
@@ -115,7 +115,7 @@ function DateAndNote({
           onChange={event => onChange({ ...values, receivedOn: event.target.value })}
         />
       </Field>
-      <Field label="내용" optional>
+      <Field label="내용" optional error={errors.description}>
         <Input
           value={values.description}
           disabled={disabled}
@@ -168,7 +168,11 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
     incomeOf({ ...values, accountId: account.pick.id }),
     { ...props, setSaving },
   )
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => incomeErrors(values, range))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(incomeErrors(values, range), create.parsed))
   const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <form
