@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { openHistory } from '@/test-support/history'
 import { councilView } from '@/test-support/council-fixtures'
 import {
   EVENT_ID,
@@ -218,6 +219,9 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
   expect(screen.queryByRole('region', { name: '챙길 것' })).toBeNull()
   expect(screen.queryByText(/책임자/)).toBeNull()
   expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+  // 이력은 '⋯' 메뉴 뒤에 있고 읽는 사람 모두에게 보인다.
+  const history = await openHistory()
+  expect(within(history).getByText('김회장 · 10월 20일 14:03 · 만듦')).toBeTruthy()
 })
 
 test('개요의 지출 카드에서 [예산·정산 보기]를 누르면 예산·정산 탭이 열린다', async () => {

@@ -1,11 +1,12 @@
 import StateMessage from '@/components/StateMessage'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { INCOME_LOAD_FAILED } from '@/lib/messages'
 import { IncomeActions } from './IncomeActions'
-import { IncomeFacts, IncomeRecords } from './IncomeFacts'
+import { IncomeFacts } from './IncomeFacts'
 import type { IncomeDialogHandlers } from './income-requests'
-import { SOURCE_LABEL } from './income-view'
+import { SOURCE_LABEL, versionLine } from './income-view'
 import { useIncomeDetail } from './useIncomeDetail'
 
 type Props = IncomeDialogHandlers & {
@@ -37,16 +38,16 @@ function OpenIncomeDialog({
       }}
     >
       <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">
             {income ? SOURCE_LABEL[income.source] : '수입'}
           </DialogTitle>
+          {income && <HistoryMenu history={income.history} line={versionLine} />}
         </DialogHeader>
         {income ? (
           <div className="flex flex-col gap-6">
             <IncomeFacts income={income} />
             <IncomeActions income={income} detail={detail} />
-            <IncomeRecords income={income} />
           </div>
         ) : detail.loadFailed ? (
           <div className="flex flex-col items-start gap-3">

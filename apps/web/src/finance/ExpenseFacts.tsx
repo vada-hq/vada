@@ -2,7 +2,7 @@ import type { ExpenseDetail } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { monthDay } from '@/lib/korean-date-text'
 import { chipsOf, METHOD_LABEL, paidByLabel } from './expense-view'
-import { approvalLine, versionLine } from './expense-text'
+import { approvalLine } from './expense-text'
 import { wonLabel } from './purchase-view'
 
 // 지출의 칸: 사용처 아래에 금액, 결제일, 결제 수단, 먼저 낸 사람과 상태 칩, 예산 항목, 부탁한 사람, 사유.
@@ -60,32 +60,19 @@ export function ExpenseLines({ lines }: { lines: ExpenseDetail['lines'] }) {
   )
 }
 
-// 결재와 이력: 오래된 판부터 모두(DEC-34, DEC-46).
-export function ExpenseRecords({ expense }: { expense: ExpenseDetail }) {
+// 결재 기록: 누가 승인·반려했는지는 지금 상태를 설명하므로 상세에 남는다(DEC-80).
+export function ExpenseApprovals({ approvals }: { approvals: ExpenseDetail['approvals'] }) {
+  if (approvals.length === 0) return null
   return (
-    <>
-      {expense.approvals.length > 0 && (
-        <section aria-label="결재 이력" className="flex flex-col gap-2">
-          <h3 className="text-sm font-medium text-gray-700">결재 이력</h3>
-          <ul className="flex flex-col gap-1 text-xs text-gray-500">
-            {expense.approvals.map(approval => (
-              <li key={approval.id} className="wrap-anywhere">
-                {approvalLine(approval)}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <section aria-label="이력" className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-gray-700">이력</h3>
-        <ol className="flex flex-col gap-1 text-xs text-gray-500">
-          {expense.history.map(version => (
-            <li key={version.versionNo} className="wrap-anywhere">
-              {versionLine(version)}
-            </li>
-          ))}
-        </ol>
-      </section>
-    </>
+    <section aria-label="결재" className="flex flex-col gap-2">
+      <h3 className="text-sm font-medium text-gray-700">결재</h3>
+      <ul className="flex flex-col gap-1 text-xs text-gray-500">
+        {approvals.map(approval => (
+          <li key={approval.id} className="wrap-anywhere">
+            {approvalLine(approval)}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

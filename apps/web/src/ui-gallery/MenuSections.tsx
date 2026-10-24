@@ -2,6 +2,7 @@ import { CalendarDays, Check, Ellipsis, Settings } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
 import { EmptyState } from '@/components/EmptyState'
+import { HistoryMenu } from '@/components/HistoryMenu'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -33,6 +34,13 @@ export function MenuTabsSection() {
     </Section>
   )
 }
+
+// 상세 머리의 '⋯' > [이력 보기] 예시. 줄 글은 기능마다 도우미가 만든다.
+const HISTORY_SAMPLE = [
+  { versionNo: 1, text: '김회장 · 10월 20일 14:03 · 만듦' },
+  { versionNo: 2, text: '저절로: 구매 요청 냄 · 10월 21일 09:10 · 상태 할 일 → 진행 중' },
+  { versionNo: 3, text: `${longName} · 10월 22일 18:30 · 제목 가 → 나` },
+]
 
 export function ActionMenuSection() {
   return (
@@ -70,6 +78,7 @@ export function ActionMenuSection() {
           <MenuItem destructive>내보내기</MenuItem>
         </MenuContent>
       </Menu>
+      <HistoryMenu history={HISTORY_SAMPLE} line={version => version.text} />
     </Section>
   )
 }

@@ -1,4 +1,4 @@
-import type { TaskChange, TaskVersion } from '@vada/contracts'
+import type { TaskCause, TaskChange, TaskVersion } from '@vada/contracts'
 import { monthDay, monthDayTime } from '@/lib/korean-date-text'
 import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
@@ -35,10 +35,23 @@ function changeText(change: TaskChange) {
   }
 }
 
-// 이력 한 줄: '이름 · 10월 20일 14:03 · 상태 할 일 → 진행 중'
+// 저절로 바뀐 판의 까닭. 코드로 남아 있어 문구를 나중에 바꿔도 옛 판이 따라간다(기능 015).
+const CAUSE_TEXT: Record<TaskCause, string> = {
+  request_submitted: '구매 요청 냄',
+  request_finished: '구매 요청 끝남',
+  form_created: '신청 양식 만듦',
+  notice_posted: '공지 올림',
+  event_completed: '행사 완료',
+}
+
+const actorText = (version: TaskVersion) =>
+  version.by?.name ??
+  (version.cause === null ? UNKNOWN_PERSON : `저절로: ${CAUSE_TEXT[version.cause]}`)
+
+// 이력 한 줄: '이름 · 10월 20일 14:03 · 상태 할 일 → 진행 중'. 바꾼 사람이 없는 판은 이름 자리에 '저절로: 까닭'이 온다.
 export function versionLine(version: TaskVersion) {
   return [
-    version.by?.name ?? UNKNOWN_PERSON,
+    actorText(version),
     monthDayTime(version.at),
     version.changes.map(changeText).join(', '),
   ].join(' · ')

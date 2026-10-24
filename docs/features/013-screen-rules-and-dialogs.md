@@ -90,7 +90,7 @@
 - 닿는 곳: `.oxlintrc.json`, `apps/web/src/components/ui/button.tsx`, `public/ApplyFields.tsx`, `councils/NoCouncil.tsx`, `auth/AgreementPanel.tsx`, `tasks/TaskPickerRow.tsx`, `finance/RequestCreateDialog.tsx`, `team/MemberDepartmentList.tsx`, `finance/EvidenceAdder.tsx`, `chat/Composer.tsx`, `registrations/ApplicantList.tsx`, `ui-gallery/FormSections.tsx`·`OverlaySections.tsx`, `Button`의 `disabled`를 쓰는 모든 화면 파일(이름 바꾸기), `AGENTS.md`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 5. [이력 보기] [ ]
+### 5. [이력 보기] [x]
 - 할 수 있게 되는 것: 운영진이 상세 화면에서 이력을 늘 보지 않고, 필요할 때 '⋯' > [이력 보기]로 연다.
 - 수용 기준: 업무·지출·수입·요청 상세와 행사 상세에 이력 묶음이 펼쳐져 있지 않다. 각 상세의 머리에 '⋯'(이름 '더 보기')가 있고 그 안에 [이력 보기]가 있다. 누르면 '이력' 창이 상세 위에 열리고 오래된 판부터 모든 판(바꾼 사람·시각·바뀐 칸, 사라진 사람은 DEC-54대로)이 보이며, 뒤로 가기 첫 번에 이력 창만 닫힌다(조각 1). 행사 상세의 이력은 행사 상세 응답의 `history`를 쓴다(만듦, 이름·일시·장소·담당 바뀜). 상세를 볼 수 있는 사람은 모두 이력을 본다. 요청·지출의 결재 기록은 상세에 남고 제목이 '결재'다. 이력 창에 고치기·지우기가 없다. 390px에서 가로 넘침이 없다.
 - 닿는 곳: 새 공용 이력 창 부품(`src/components`), `tasks/TaskDetailDialog.tsx`·`TaskHistory.tsx`, `finance/ExpenseDetailDialog.tsx`·`ExpenseFacts.tsx`, `IncomeDetailDialog.tsx`·`IncomeFacts.tsx`, `RequestDetailDialog.tsx`·`RequestRecords.tsx`, `events/EventHeader.tsx`, contracts `EventVersion`(읽기만), `ui-gallery/`.
