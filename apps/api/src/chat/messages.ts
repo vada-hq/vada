@@ -9,7 +9,7 @@ import type { Actor } from '../access/actor.js'
 import { chatRoom, cohort, file, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { isPlanRoom } from './plan-room.js'
+import { inNoticeRoom } from './plan-room.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -132,8 +132,7 @@ export async function messagePage(
 export const shownNotice = (actor: Actor) =>
   and(
     eq(record.councilId, actor.councilId),
-    eq(chatRoom.type, 'all_members'),
-    isPlanRoom,
+    inNoticeRoom,
     eq(message.isNotice, true),
     sql`(${message.sentAt} at time zone 'Asia/Seoul')::date
       between (select ${cohort.startsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)

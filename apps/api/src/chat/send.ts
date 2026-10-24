@@ -2,17 +2,18 @@ import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm'
 import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { chatRoom, message, roomMembership } from '../db/schema.js'
-import type { Tx } from '../db/types.js'
+import type { Db, Tx } from '../db/types.js'
+import { authorize, authorizeChange, type AccessRequest } from '../access/authorize.js'
 import { can } from '../access/permissions.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
 import { messageOf } from './messages.js'
-import type { VerifiedPhoto } from '../storage/uploads.js'
+import { isStorageKeyConflict, type VerifiedPhoto } from '../storage/uploads.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
-import { isNoticeRoom } from './plan-room.js'
+import { inNoticeRoom } from './plan-room.js'
 import { roomAccess } from './room-access.js'
 
 type SendInput = {
@@ -75,6 +76,14 @@ async function calledFrom(
   return rows.map(row => row.memberId).filter(id => alive.has(id))
 }
 
+async function isNoticeRoom(tx: Tx, roomId: string) {
+  const [found] = await tx
+    .select({ id: chatRoom.id })
+    .from(chatRoom)
+    .where(and(eq(chatRoom.id, roomId), inNoticeRoom))
+  return found !== undefined
+}
+
 // 글 보내기. 내 참여 줄을 FOR NO KEY UPDATE로 잠근 뒤에 보낸다: 내보내기나 부서 빼기가 먼저 줄을 지웠으면 잠금이 줄을 찾지 못해 403이고,
 // 보내기가 먼저면 지우기가 이 거래가 끝나기를 기다린다. 읽기 전용 거래가 아니라 READ COMMITTED에서 불러야 기다린 뒤의 값을 본다.
 // 공유 잠금 둘이 서로 기다리다 교착하지 않도록 처음부터 NO KEY UPDATE를 잡는다.
@@ -85,10 +94,10 @@ export async function sendMessage(
   input: SendInput,
   now: Date,
 ): Promise<ChatMessage> {
-  // 업무를 잇는 보내기는 부르는 쪽(routes)이 학생회 행을 잠근 뒤 권한을 다시 본 actor(authorizeChange)로 부른다.
+  // 업무를 잇는 보내기는 sendAs가 학생회 행을 잠근 뒤 권한을 다시 본 actor(authorizeChange)로 부른다.
   const room = await roomAccess(tx, actor, input.roomId)
-  // 공지는 전체방에서 chat.notice만 올린다(DEC-14). 공지 표시를 붙이고 떼는 길(markNotice)과 같은 조건이다.
-  if (input.notice && (!isNoticeRoom(room) || !can(actor, 'chat.notice')))
+  // 공지는 전체방에서 chat.notice만 올린다(DEC-14). 방 조건은 공지 표시를 붙이고 떼는 길(markNotice)과 같은 inNoticeRoom이다.
+  if (input.notice && !((await isNoticeRoom(tx, room.id)) && can(actor, 'chat.notice')))
     throw new ApiError('FORBIDDEN')
   const [mine] = await tx
     .select({ memberId: roomMembership.memberId })
@@ -125,4 +134,29 @@ export async function sendMessage(
       values: { recipientId, recordId: messageId, type: 'mention', notifiedAt: clockNow },
     })
   return messageOf(tx, messageId)
+}
+
+// 요청한 사람의 권한을 보고 보낸다. 업무를 잇는 보내기는 업무 상태를 옮기는 쓰기라 다른 직원 쓰기처럼 학생회 행을 잠근 뒤 권한을 다시 본다.
+// 라우트가 아니라 여기서 정하므로 이 길을 지나는 시험(pg-smoke 포함)이 잠금을 함께 확인한다.
+export async function sendAs(
+  tx: Tx,
+  request: AccessRequest,
+  input: SendInput,
+): Promise<ChatMessage> {
+  const actor = await (input.taskId ? authorizeChange(tx, request) : authorize(tx, request))
+  return sendMessage(tx, actor, input, request.now)
+}
+
+// 보내기 거래. READ COMMITTED 거래라야 줄을 잠그고 기다린 뒤의 값을 본다. 같은 사진 키가 동시에 두 번 들어와 저장소 위치 UNIQUE에 걸리면 이미 보낸 사진이다.
+export async function postMessage(
+  db: Db,
+  request: AccessRequest,
+  input: SendInput,
+): Promise<ChatMessage> {
+  try {
+    return await db.transaction(tx => sendAs(tx, request, input))
+  } catch (error) {
+    if (isStorageKeyConflict(error)) throw new ApiError('PHOTO_ALREADY_SENT')
+    throw error
+  }
 }
