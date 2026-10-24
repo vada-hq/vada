@@ -103,20 +103,43 @@ test('학생회 확인 중', async () => {
 function openWorkspace() {
   signedIn()
   const api = mockApi()
-  const councils = [myCouncil('c1', '컴퓨터학부 학생회'), myCouncil('c2', '소프트웨어학부 학생회')]
+  const councils = [
+    myCouncil('0199d1a0-0000-7000-8000-0000000000c1', '컴퓨터학부 학생회'),
+    myCouncil('0199d1a0-0000-7000-8000-0000000000c2', '소프트웨어학부 학생회'),
+  ]
   api.on('GET', '/api/me/councils', () => json({ councils }))
-  api.on('GET', '/api/organizations/c1', () => json(councilView('c1')))
-  api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
-  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
-  api.on('GET', '/api/organizations/c1/rooms', () => json(roomList()))
-  api.on('GET', '/api/organizations/c1/home', () => json(homeWithTasks([homeTask('a', 'today')])))
-  onHomeExtras(api)
-  api.on('GET', '/api/organizations/c1/tasks?view=mine&status=open', () =>
-    json({ tasks: [], truncated: false }),
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1', () =>
+    json(councilView('0199d1a0-0000-7000-8000-0000000000c1')),
   )
-  api.on('GET', '/api/organizations/c1/rooms/r1', () => json(roomDetail()))
-  api.on('GET', '/api/organizations/c1/rooms/r1/messages', () => json(messagePage()))
-  api.on('POST', '/api/organizations/c1/rooms/r1/read', () => new Response(null, { status: 204 }))
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/members', () =>
+    json(teamResponse()),
+  )
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/invite', () =>
+    json({ code: 'ABCD2345' }),
+  )
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms', () =>
+    json(roomList()),
+  )
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/home', () =>
+    json(homeWithTasks([homeTask('a', 'today')])),
+  )
+  onHomeExtras(api)
+  api.on(
+    'GET',
+    '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/tasks?view=mine&status=open',
+    () => json({ tasks: [], truncated: false }),
+  )
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1', () =>
+    json(roomDetail()),
+  )
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1/messages', () =>
+    json(messagePage()),
+  )
+  api.on(
+    'POST',
+    '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1/read',
+    () => new Response(null, { status: 204 }),
+  )
   return api
 }
 // 홈이 첫 화면이다. 대화나 운영진 화면을 찍는 시험은 옆 메뉴로 연다.
@@ -129,7 +152,11 @@ async function openPeople() {
 
 test('작업 공간: 학생회를 불러오는 중', async () => {
   const api = openWorkspace()
-  api.on('GET', '/api/organizations/c1', () => new Promise<Response>(() => {}))
+  api.on(
+    'GET',
+    '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1',
+    () => new Promise<Response>(() => {}),
+  )
   await renderApp()
   await screen.findByText('학생회 불러오는 중…')
   expect(snapshotHtml()).toMatchSnapshot()
@@ -184,7 +211,9 @@ test('작업 공간: 대화 방', async () => {
 
 test('작업 공간: 학생회를 불러오지 못함', async () => {
   const api = openWorkspace()
-  api.on('GET', '/api/organizations/c1', () => json({ error: 'Internal server error' }, 500))
+  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1', () =>
+    json({ error: 'Internal server error' }, 500),
+  )
   await renderApp()
   await screen.findByText('학생회를 불러오지 못했어요. 연결을 확인해 주세요.')
   expect(snapshotHtml()).toMatchSnapshot()

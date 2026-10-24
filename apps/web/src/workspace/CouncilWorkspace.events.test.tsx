@@ -2,19 +2,20 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { TaskSummary } from '@vada/contracts'
-import { councilView, myCouncil, teamResponse } from '@/test-support/council-fixtures'
+import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import type { Page } from './pages'
-import CouncilWorkspace from './CouncilWorkspace'
+import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
-const base = '/api/organizations/c1'
+const base = `/api/organizations/${COUNCIL_ID}`
 
 const eventTask: TaskSummary = {
   id: 't1',
@@ -31,27 +32,13 @@ const eventTask: TaskSummary = {
 
 function open(startPage: Page = 'chat', tasks: TaskSummary[] = []) {
   const api = mockApi()
-  api.on('GET', base, () => json(councilView('c1')))
+  api.on('GET', base, () => json(councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks, truncated: false }))
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
-  render(
-    <CouncilWorkspace
-      council={myCouncil()}
-      councils={[myCouncil()]}
-      onSelect={() => {}}
-      returnFocusTo={null}
-      startPage={startPage}
-      roomId={undefined}
-      user={{ name: '김회장' }}
-      logoutBusy={false}
-      onLogout={() => {}}
-      onCouncilsChanged={() => {}}
-      onCouncilLost={() => {}}
-    />,
-  )
+  render(<WorkspaceAt startPage={startPage} />)
   return api
 }
 

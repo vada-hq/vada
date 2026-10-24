@@ -8,7 +8,7 @@ import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
-import { PURCHASE_LOST, TASK_LOST } from './lib/messages'
+import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -70,8 +70,10 @@ beforeEach(() => {
     )
   }
 })
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // 닫힌 창이 거두는 기록 이동(history.go)이 끝난 뒤에 다음 시험이 시작되게 한다.
+  await new Promise(resolve => setTimeout(resolve, 20))
   Reflect.deleteProperty(navigator, 'serviceWorker')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -99,21 +101,26 @@ test('앱이 닫혀 있다가 알림 주소로 열리면 그 학생회의 그 �
         '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/0199d1a0-0000-7000-8000-0000000000a1',
     ),
   ).toBe(false)
-  expect(window.location.pathname).toBe('/')
+  expect(window.location.pathname).toBe(
+    '/chat/0199d1a0-0000-7000-8000-0000000000c2/0199d1a0-0000-7000-8000-0000000000a1',
+  )
 })
 
-test('내 학생회가 아닌 학생회의 방 주소는 무시하고 첫 학생회의 방 목록을 연다', async () => {
+test('내 학생회가 아닌 학생회의 방 주소는 찾을 수 없음이고 홈으로 가는 버튼이 있다', async () => {
   window.history.replaceState(
     null,
     '',
     '/chat/0199d1a0-0000-7000-8000-0000000000ee/0199d1a0-0000-7000-8000-0000000000a1',
   )
   await renderApp()
-  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
   expect(api.calls.some(call => call.path.includes('/0199d1a0-0000-7000-8000-0000000000ee/'))).toBe(
     false,
   )
+  fireEvent.click(screen.getByRole('button', { name: ADDRESS_LOST_BACK }))
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  expect(window.location.pathname).toBe('/home/0199d1a0-0000-7000-8000-0000000000c1')
 })
 
 test('열려 있는 동안 알림을 누르면 보던 곳에서 그 방으로 옮겨 간다', async () => {
@@ -204,7 +211,7 @@ test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무
       call.path.startsWith('/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/tasks/'),
     ),
   ).toBe(false)
-  expect(window.location.pathname).toBe('/')
+  expect(window.location.pathname).toBe(`/tasks/0199d1a0-0000-7000-8000-0000000000c2/${T1}`)
 })
 
 test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던 곳에서 그 업무 상세로 옮겨 간다', async () => {
@@ -257,10 +264,10 @@ test.each([
 test.each([
   ['내 학생회가 아닌', `/tasks/0199d1a0-0000-7000-8000-0000000000ee/${T1}`],
   ['번호가 uuid가 아닌', '/tasks/0199d1a0-0000-7000-8000-0000000000c1/not-a-uuid'],
-])('%s 업무 주소로 열면 첫 학생회의 홈이 열리고 업무는 읽지 않는다', async (_name, path) => {
+])('%s 업무 주소로 열면 찾을 수 없음이고 업무는 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
   await renderApp()
-  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(taskCalls()).toEqual([])
 })
@@ -325,7 +332,7 @@ test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정
       call.path.startsWith('/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/'),
     ),
   ).toBe(false)
-  expect(window.location.pathname).toBe('/')
+  expect(window.location.pathname).toBe(`/purchases/0199d1a0-0000-7000-8000-0000000000c2/${R1}`)
 })
 
 test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던 곳에서 그 요청 상세로 옮겨 간다', async () => {
@@ -377,10 +384,10 @@ test.each([
 test.each([
   ['내 학생회가 아닌', `/purchases/0199d1a0-0000-7000-8000-0000000000ee/${R1}`],
   ['번호가 uuid가 아닌', '/purchases/0199d1a0-0000-7000-8000-0000000000c1/not-a-uuid'],
-])('%s 요청 주소로 열면 첫 학생회의 홈이 열리고 요청은 읽지 않는다', async (_name, path) => {
+])('%s 요청 주소로 열면 찾을 수 없음이고 요청은 읽지 않는다', async (_name, path) => {
   window.history.replaceState(null, '', path)
   await renderApp()
-  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(requestCalls()).toEqual([])
 })

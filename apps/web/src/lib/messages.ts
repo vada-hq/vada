@@ -62,6 +62,9 @@ export const INVITE_LOAD_ERRORS = {
   failed: '초대 링크를 불러오지 못했어요.',
 }
 
+// 주소가 가리키는 학생회나 화면이 없거나 내 것이 아닐 때. 있는지 없는지를 가르지 않는다.
+export const ADDRESS_LOST = '찾을 수 없음'
+export const ADDRESS_LOST_BACK = '홈으로'
 export const ROOM_LOST = '이 방을 볼 수 없어요'
 export const ROOMS_LOAD_FAILED = '대화방을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const ROOM_LOAD_FAILED = '이 방을 불러오지 못했어요. 연결을 확인해 주세요.'

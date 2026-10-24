@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
+import { appPath, menuPath, parseAppPath } from '@vada/contracts'
+import { navigate, useHere } from '@/lib/app-location'
 import type { Opener, Page } from './pages'
 
-// 보고 있는 쪽(대화, 사람, 부서, 설정)과 768px 미만에서 옆 메뉴로 연 시트. 메뉴를 고르면 시트를 닫는다.
+// 보고 있는 쪽은 주소가 정한다. 768px 미만에서 옆 메뉴로 연 시트는 메뉴를 고르면 닫는다.
 // 학생회를 고르면 작업 공간은 새로 그려진다. 고른 곳(옆 메뉴의 학생회 이름 버튼, 휴대폰 폭에서는 헤더의 메뉴 열기 버튼)으로 포커스를 돌려놓는다.
-export function useWorkspaceNav(returnFocusTo: Opener | null, startPage: Page) {
-  const [page, setPage] = useState<Page>(startPage)
+export function useWorkspaceNav(returnFocusTo: Opener | null, councilId: string, page: Page) {
+  const here = useHere()
   const [navOpen, setNavOpen] = useState(false)
   const councilMenu = useRef<HTMLButtonElement>(null)
   const headerMenu = useRef<HTMLButtonElement>(null)
+  const main = useRef<HTMLElement>(null)
   useEffect(() => {
     if (returnFocusTo) (returnFocusTo === 'sidebar' ? councilMenu : headerMenu).current?.focus()
   }, [returnFocusTo])
@@ -17,10 +20,16 @@ export function useWorkspaceNav(returnFocusTo: Opener | null, startPage: Page) {
     setNavOpen,
     councilMenu,
     headerMenu,
+    main,
     closeNav: () => setNavOpen(false),
+    // 메뉴를 누르면 그 메뉴 첫 화면으로 한 칸 쌓는다. 이미 첫 화면이면 칸을 쌓지 않고 맨 위로만 올린다.
     openPage: (next: Page) => {
       setNavOpen(false)
-      setPage(next)
+      const target = menuPath(next, councilId)
+      const parsed = parseAppPath(here.path)
+      if (parsed && appPath(parsed) === target) {
+        if (main.current) main.current.scrollTop = 0
+      } else navigate(target)
     },
   }
 }

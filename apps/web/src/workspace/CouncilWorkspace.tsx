@@ -1,9 +1,10 @@
 import { useState, type ComponentProps } from 'react'
-import type { MyCouncil } from '@vada/contracts'
+import type { EventTab, MyCouncil, RecordKind } from '@vada/contracts'
 import { PageActionsProvider } from '@/components/PageActions'
-import type { EventTab } from '../events/event-view'
+import { navigate, useHere } from '@/lib/app-location'
+import { recordTarget } from './address'
 import PagePushBand from './PagePushBand'
-import type { Opener, Page, WorkspaceProps } from './pages'
+import type { Opener, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
 import { useCouncilData } from './useCouncilData'
 import { useWorkspaceLists } from './useWorkspaceLists'
@@ -13,59 +14,35 @@ import WorkspaceFrame from './WorkspaceFrame'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar from './WorkspaceSidebar'
 
-type Props = Omit<WorkspaceProps, 'initialCouncilId' | 'chatLink'> & {
+type Props = WorkspaceProps & {
   council: MyCouncil
   onSelect: (councilId: string, from: Opener) => void
   returnFocusTo: Opener | null
-  startPage: Page
-  // 알림으로 열 방. 대화가 이 방에서 시작한다.
-  roomId: string | undefined
-  // 알림으로 열 업무. 업무 화면이 이 업무의 상세를 열고 시작한다.
-  taskId?: string | undefined
-  // 알림으로 열 구매 요청. 재정 화면이 이 요청의 상세를 열고 시작한다.
-  requestId?: string | undefined
-}
-
-// 알림으로 연 방이나 업무는 한 번만 쓴다. 다른 화면으로 가면 버리고, 돌아오면 목록이 열린다.
-function useOnceLinked(linked: string | undefined, page: Page, own: Page) {
-  const [id, setId] = useState(linked)
-  if (id && page !== own) setId(undefined)
-  return [id, setId] as const
 }
 
 type Nav = ReturnType<typeof useWorkspaceNav>
 
-// 알림으로 열 방, 업무, 요청. 각각 한 번만 쓴다. 업무는 홈의 줄을 눌러서도 연다(onOpenTask).
-function useLinkedIds(nav: Nav, room?: string, task?: string, request?: string) {
-  const [taskId, setTaskId] = useOnceLinked(task, nav.page, 'tasks')
-  const [requestId, setRequestId] = useOnceLinked(request, nav.page, 'finance')
+// 주소로 연 기록을 페이지가 한 번 여는 값. 칸(key)이 바뀌면 페이지가 새로 열려, 같은 알림을 또 눌러도 닫았던 상세가 다시 열린다.
+function recordOf(target: Props['target']) {
+  const { kind, id, tab } = target.record ?? { kind: null, id: undefined, tab: undefined }
   return {
-    roomId: useOnceLinked(room, nav.page, 'chat')[0],
-    taskId,
-    requestId,
-    onOpenPage: nav.openPage,
-    onOpenTask: (id: string) => {
-      setTaskId(id)
-      nav.openPage('tasks')
-    },
-    onOpenRequest: (id: string) => {
-      setRequestId(id)
-      nav.openPage('finance')
-    },
+    roomId: kind === 'chat' ? id : undefined,
+    taskId: kind === 'tasks' ? id : undefined,
+    requestId: kind === 'purchases' ? id : undefined,
+    eventId: kind === 'events' ? id : undefined,
+    eventTab: kind === 'events' ? tab : undefined,
   }
 }
 
-// 업무에서 눌러 연 행사. 행사 화면으로 가면서 한 번만 쓰고, 다른 화면으로 가면 버린다.
-function useEventLink(nav: Nav) {
-  const [link, setLink] = useState<{ id: string; tab: EventTab | undefined }>()
-  if (link && nav.page !== 'events') setLink(undefined)
+// 화면이 누르는 이동은 주소를 쌓는 것이다. 기록은 그 종류의 주소로 연다.
+function useOpeners(councilId: string, nav: Nav) {
+  const open = (kind: RecordKind, id: string, tab?: EventTab) =>
+    navigate(recordTarget(kind, councilId, id, tab))
   return {
-    eventId: link?.id,
-    eventTab: link?.tab,
-    onOpenEvent: (id: string, tab?: EventTab) => {
-      setLink({ id, tab })
-      nav.openPage('events')
-    },
+    onOpenPage: nav.openPage,
+    onOpenTask: (id: string) => open('tasks', id),
+    onOpenRequest: (id: string) => open('purchases', id),
+    onOpenEvent: (id: string, tab?: EventTab) => open('events', id, tab),
   }
 }
 
@@ -101,23 +78,20 @@ function CouncilMain({
 export default function CouncilWorkspace({
   council,
   councils,
+  target,
   onSelect,
   returnFocusTo,
-  startPage,
-  roomId: linkedRoom,
-  taskId: linkedTask,
-  requestId: linkedRequest,
   user,
   logoutBusy,
   onLogout,
   onCouncilsChanged,
   onCouncilLost,
 }: Props) {
+  const here = useHere()
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
-  const nav = useWorkspaceNav(returnFocusTo, startPage)
-  const linked = useLinkedIds(nav, linkedRoom, linkedTask, linkedRequest)
+  const nav = useWorkspaceNav(returnFocusTo, council.id, target.page)
+  const openers = useOpeners(council.id, nav)
   const { lists, counts } = useWorkspaceLists(council.id, data)
-  const eventLink = useEventLink(nav)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
@@ -141,7 +115,14 @@ export default function CouncilWorkspace({
       <CouncilMain
         council={council}
         nav={nav}
-        content={{ data, ...lists, ...linked, ...eventLink }}
+        content={{
+          data,
+          ...lists,
+          ...openers,
+          ...recordOf(target),
+          linkKey: target.record ? here.key : '',
+          mainRef: nav.main,
+        }}
       />
     </WorkspaceFrame>
   )
