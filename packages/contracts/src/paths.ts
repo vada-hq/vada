@@ -108,9 +108,9 @@ function decodeId(segment: string | undefined) {
 }
 
 // 경로(와 쿼리)를 읽는다. 끝 슬래시 하나는 같은 화면이다. 모르는 꼴은 null이다.
-// '//', 역슬래시, 바깥 주소는 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
+// '//'나 역슬래시로 시작하는 주소, 바깥 주소는 메뉴·종류가 아니라 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
 export function parseAppPath(input: string): AppLocation | null {
-  if (!input.startsWith('/') || input.startsWith('//') || input.includes('\\')) return null
+  if (!input.startsWith('/')) return null
   const [target = ''] = input.split('#', 1)
   const mark = target.indexOf('?')
   const pathname = mark < 0 ? target : target.slice(0, mark)
