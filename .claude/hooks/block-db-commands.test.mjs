@@ -32,6 +32,10 @@ const blocked = [
   'cd apps/api && pnpm president-recovery x a@b.test --notified-on 2026-10-10',
   'tsx scripts/manage-president-recovery.ts x a@b.test --notified-on 2026-10-10',
   'pnpm exec tsx scripts/manage-president-recovery.ts x',
+  'pnpm --filter @vada/api privacy withdraw --email a@b.test',
+  'pnpm --filter @vada/api privacy withdraw --email a@b.test --from-shell --apply',
+  'cd apps/api && pnpm run privacy -- withdraw --email a@b.test',
+  'pnpm exec tsx scripts/manage-privacy.ts withdraw --email a@b.test',
 ]
 
 const allowed = [
@@ -45,6 +49,9 @@ const allowed = [
   'pnpm --filter @vada/api test',
   'pnpm exec oxlint apps/api/scripts/pg-smoke-cases.ts',
   'pnpm exec tsx --test scripts/demo-command.test.ts',
+  'pnpm exec tsx --test scripts/privacy-command.test.ts',
+  'pnpm exec tsx --test src/withdrawal/withdrawal.test.ts',
+  'grep -rn privacy apps/api',
   'cat scripts/manage-test-data.ts | head',
   'grep -rn president-recovery apps/api',
   'grep -rn manage-president-recovery.ts apps/api',

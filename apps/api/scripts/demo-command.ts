@@ -1,9 +1,9 @@
 import {
   describeTarget,
-  targetSourceOf,
   UNREADABLE_TARGET,
   UNSHOWN_TARGET_MESSAGE,
 } from '../src/ops/migrate/migrate-check.js'
+import { databaseUrlOf, NPM_SWALLOWED_DRY_RUN, npmSwallowedDryRun } from '../src/ops/script-args.js'
 import type { Db } from '../src/db/types.js'
 import type { FileStorage } from '../src/storage/storage.js'
 import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
@@ -26,13 +26,6 @@ export function parseDemoArgs(args: readonly string[]): DemoArgs | null {
 
 const USAGE =
   '사용법: <user-id> [--apply] [--from-shell] (pnpm --filter @vada/api demo ...). 아무것도 하지 않았다.'
-const SHELL_URL_WITHOUT_FLAG =
-  '셸에 DATABASE_URL이 있다. 그 DB에 넣으려면 --from-shell을 붙이고, .env의 DB에 넣으려면 셸의 DATABASE_URL을 지운다. 아무것도 하지 않았다.'
-const FLAG_WITHOUT_SHELL_URL =
-  '--from-shell을 줬지만 셸에 DATABASE_URL이 없다. 아무것도 하지 않았다.'
-const NPM_SWALLOWED_DRY_RUN =
-  'npm이 --dry-run을 자기 옵션으로 받았다. 플래그 앞에 --를 붙인다. 아무것도 하지 않았다.'
-const NO_URL = '.env에 DATABASE_URL이 없다. 아무것도 하지 않았다.'
 const PLAN = `시연 학생회('${DEMO_SCHOOL_NAME}')를 넣는다: 리허설 시나리오를 실제 경로로 돌린다. 그 계정이 회장이고 로그인 못 하는 가상 운영진 6명이 들어와 행사 A는 완료까지, 행사 B는 구매 요청까지, 행사 C는 만들기만 한다. 행사 A의 증빙 파일 둘을 저장소에 올린다. 이미 있으면 아무것도 바꾸지 않는다.`
 const NO_STORAGE =
   '증빙 저장소가 없어 행사 A를 완료할 수 없다. R2 설정(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET)을 .env나 셸에 준다. 아무것도 하지 않았다.'
@@ -56,29 +49,13 @@ export type DemoRun = {
 const applyCommandOf = ({ userId, fromShell }: DemoArgs) =>
   `pnpm --filter @vada/api demo ${userId}${fromShell ? ' --from-shell' : ''} --apply`
 
-// .env가 없거나 읽을 수 없으면 주소가 없는 것과 같다. 오류 원문은 보이지 않는다.
-function envUrlOf(run: DemoRun) {
-  try {
-    return run.readEnvUrl()?.trim()
-  } catch {
-    return undefined
-  }
-}
-
 type Resolved = { stop: string } | { args: DemoArgs; url: string }
 function resolve(run: DemoRun): Resolved {
-  if (run.env.npm_config_dry_run && run.env.npm_config_dry_run !== 'false')
-    return { stop: NPM_SWALLOWED_DRY_RUN }
+  if (npmSwallowedDryRun(run.env)) return { stop: NPM_SWALLOWED_DRY_RUN }
   const args = parseDemoArgs(run.args)
   if (!args) return { stop: USAGE }
-  const source = targetSourceOf(args.fromShell, run.shellUrl)
-  if ('stop' in source)
-    return {
-      stop:
-        source.stop === 'SHELL_URL_WITHOUT_FLAG' ? SHELL_URL_WITHOUT_FLAG : FLAG_WITHOUT_SHELL_URL,
-    }
-  const url = source.source === 'shell' ? source.url : envUrlOf(run)
-  return url ? { args, url } : { stop: NO_URL }
+  const target = databaseUrlOf(args.fromShell, run.shellUrl, run.readEnvUrl)
+  return 'stop' in target ? target : { args, url: target.url }
 }
 
 // 종료 코드를 돌려준다(0이 성공). 인자와 대상이 어긋나면 연결하지 않고 멈춘다. 미리 보기도 연결하지 않는다.

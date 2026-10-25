@@ -12,6 +12,7 @@
     "test-data": "tsx scripts/manage-test-data.ts",
     "demo": "tsx scripts/manage-demo-data.ts",
     "president-recovery": "tsx scripts/manage-president-recovery.ts",
+    "privacy": "tsx scripts/manage-privacy.ts",
     "pg-smoke": "tsx scripts/pg-smoke.ts"
   },
   "dependencies": {

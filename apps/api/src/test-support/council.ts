@@ -27,7 +27,7 @@ export async function addUser(
   ])
 }
 
-// 탈퇴한 운영진(RULE-16). 탈퇴 서버(기능 021 조각 6) 전이라 시험은 이 도우미로 운영진 행만 바꾼다.
+// 탈퇴한 운영진(RULE-16). 표시 이름만 보는 시험은 탈퇴 전체(withdrawal/service.ts)를 돌리지 않고 이 도우미로 운영진 행만 바꾼다.
 export async function markLeft(pg: PGlite, memberId: string, leftAt: string) {
   await pg.query('UPDATE member SET left_at = $2, name = NULL, email = NULL WHERE id = $1', [
     memberId,

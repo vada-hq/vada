@@ -291,6 +291,36 @@ test('만료된 세션 줄은 지우고, 만든 지 3개월이 지난 세션은 
   }
 })
 
+test('탈퇴하고 1년이 지난 동의 기록은 지우고, 1년이 안 된 것과 탈퇴하지 않은 계정의 것은 둔다(±1초)', async () => {
+  const { pg, db, close } = await createTestDb()
+  try {
+    const now = new Date('2027-10-25T03:00:00Z')
+    const agreement = (userId: string, withdrawn: string | null) =>
+      pg.query(
+        `INSERT INTO terms_agreement (user_id, terms_version, privacy_version, agreed_at, withdrawn_at)
+         VALUES ($1, '2026-11-01', '2026-11-01', $2::timestamptz - interval '2 years',
+           $2::timestamptz - $3::interval)`,
+        [userId, now.toISOString(), withdrawn],
+      )
+    await agreement('expired', '1 year')
+    await agreement('older', '1 year 1 second')
+    await agreement('young', '1 year -1 second')
+    // 탈퇴하지 않은 계정은 동의한 지 오래돼도 남는다.
+    await agreement('active', null)
+    const users = async () =>
+      (
+        await pg.query<{ user_id: string }>('SELECT user_id FROM terms_agreement ORDER BY user_id')
+      ).rows.map(row => row.user_id)
+    assert.equal(await runPurge(db, now), true)
+    assert.deepEqual(await users(), ['active', 'young'])
+    // 두 번 돌려도 같다.
+    await runPurge(db, now)
+    assert.deepEqual(await users(), ['active', 'young'])
+  } finally {
+    await close()
+  }
+})
+
 test('지우기가 실패하면 서버는 멈추지 않고 뒤 작업 보고로 가며 메시지와 값은 담기지 않는다', async () => {
   const reported: { error: Error; fields: Record<string, unknown> }[] = []
   setErrorReporter((error, fields) => reported.push({ error, fields }))

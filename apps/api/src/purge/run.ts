@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import type { Db, Tx } from '../db/types.js'
+import { purgeAgreements } from '../agreement/service.js'
 import { purgeSessions } from '../auth/session-purge.js'
 import { purgeReceipts } from '../commands/receipt.js'
 import { purgeDuesStudentIds } from '../fee-payments/purge.js'
@@ -23,7 +24,8 @@ const tryPurgeLock: Lock = async tx => {
   return (rows?.[0] as { locked?: boolean } | undefined)?.locked === true
 }
 
-// 기한이 지난 개인정보와 열람 기록, 만료된 세션과 3개월이 지난 세션의 IP·브라우저 정보, 24시간이 지난 명령 영수증을 지운다(DEC-55, DEC-56, DEC-84). 같은 일을 두 번 해도 같다.
+// 기한이 지난 개인정보와 열람 기록, 만료된 세션과 3개월이 지난 세션의 IP·브라우저 정보, 24시간이 지난 명령 영수증,
+// 탈퇴하고 1년이 지난 동의 기록을 지운다(DEC-55, DEC-56, DEC-84). 같은 일을 두 번 해도 같다.
 // 잠금을 다른 실행이 쥐고 있으면 건너뛰고 false를 돌려준다.
 export async function runPurge(db: Db, now: Date, lock: Lock = tryPurgeLock) {
   return db.transaction(async tx => {
@@ -33,6 +35,7 @@ export async function runPurge(db: Db, now: Date, lock: Lock = tryPurgeLock) {
     await purgeAccessLogs(tx, now)
     await purgeSessions(tx, now)
     await purgeReceipts(tx, now)
+    await purgeAgreements(tx, now)
     return true
   })
 }
