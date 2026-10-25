@@ -70,6 +70,10 @@ export function weekEvents(events: EventSummary[], today: string) {
     .sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
 }
 
+// 학생회에 진행할 행사(완료하지 않은 행사)가 하나도 없는가. 회장단 홈의 행사 부분(서버 openEventsOf)과 같은 뜻이다.
+export const noOpenEvents = (events: EventSummary[]) =>
+  events.every(event => event.status === 'completed')
+
 // 내 요청 중 아직 볼 것: 반려·일부 승인(다시 낼지 내가 정한다)을 먼저, 그다음 결재 대기를 오래된 순
 export function openRequests(requests: PurchaseRequestSummary[], today: string) {
   const answered = requests.filter(

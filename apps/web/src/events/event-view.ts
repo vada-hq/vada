@@ -1,4 +1,4 @@
-import type { EventStatus, EventSummary, EventTab } from '@vada/contracts'
+import type { CouncilView, EventStatus, EventSummary, EventTab } from '@vada/contracts'
 import { dayTime } from '@/lib/korean-date-text'
 
 // 상태 칩의 색(와이어프레임 LIFECYCLE_STYLE): 기획 중 파랑, 진행 중 초록, 후속 정리 중 노랑, 완료 회색. 이름은 contracts EVENT_STATUS_LABEL이다.
@@ -13,6 +13,11 @@ export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'succes
 const WHEN_TBD = '일시 미정'
 
 export type { EventTab }
+
+// 행사를 만들 수 있는가: 학생회 읽기의 event.create(회장단과 부서장, DEC-93). 화면은 직급을 다시 세지 않는다(DEC-38).
+// 행사 화면의 [행사 만들기]와 홈 빈 상태의 [새 행사]가 이것 하나로 정한다.
+export const canCreateEvent = (view: Pick<CouncilView, 'permissions'>) =>
+  view.permissions.includes('event.create')
 
 // 정산 남은 것(행사 '돈' 탭의 항목 수 합). 끝났고 남은 것이 없으면 '완료 가능'이다. 홈과 재정 '행사 정산' 탭이 같이 쓴다.
 const EVENT_SETTLED_LABEL = '완료 가능'

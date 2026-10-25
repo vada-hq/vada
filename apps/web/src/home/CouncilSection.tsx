@@ -4,7 +4,8 @@ import { COUNCIL_TASK_LABEL } from '../tasks/task-view'
 import { eventOrder, withoutIds } from './home-view'
 import HomeEventRow from './HomeEventRow'
 import HomeRow from './HomeRow'
-import HomeSection, { HomeEmpty } from './HomeSection'
+import HomeSection from './HomeSection'
+import NoOpenEvents from './NoOpenEvents'
 import { riskParts } from './risk-parts'
 import TaskRow from './TaskRow'
 
@@ -21,6 +22,8 @@ type Props = {
   // 업무 화면(전체 보기, 부서를 주면 그 부서만), 행사 화면으로 간다.
   onSeeTasks: (query?: AppQuery) => void
   onSeeEvents: () => void
+  // 행사를 만들 수 있는 사람에게만 온다. 행사가 없을 때 [새 행사]로 연다.
+  onNewEvent?: (() => void) | undefined
 }
 
 // 학생회(회장단)의 행사: 막힌 행사부터, 날짜 칸과 업무 진행·막힌 수를 한 줄에.
@@ -29,7 +32,8 @@ export function CouncilEvents({
   today,
   onOpenEvent,
   onSeeEvents,
-}: Pick<Props, 'council' | 'today' | 'onOpenEvent' | 'onSeeEvents'>) {
+  onNewEvent,
+}: Pick<Props, 'council' | 'today' | 'onOpenEvent' | 'onSeeEvents' | 'onNewEvent'>) {
   return (
     <HomeSection
       id="home-events"
@@ -38,7 +42,7 @@ export function CouncilEvents({
       count={council.events.length > 0 ? council.events.length : undefined}
       onSeeAll={onSeeEvents}
     >
-      {council.events.length === 0 && <HomeEmpty>진행할 행사 없음</HomeEmpty>}
+      {council.events.length === 0 && <NoOpenEvents onNewEvent={onNewEvent} />}
       {eventOrder(council.events).map(card => (
         <HomeEventRow key={card.event.id} card={card} today={today} onOpen={onOpenEvent} />
       ))}
@@ -53,7 +57,7 @@ export function CouncilBlocked({
   mineIds,
   onOpenTask,
   onSeeTasks,
-}: Omit<Props, 'onOpenEvent' | 'onSeeEvents'>) {
+}: Omit<Props, 'onOpenEvent' | 'onSeeEvents' | 'onNewEvent'>) {
   const overdue = withoutIds(council.overdue, mineIds)
   return (
     <>
