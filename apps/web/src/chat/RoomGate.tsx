@@ -9,19 +9,21 @@ import type { RoomList } from './useRoomList'
 // 목록을 못 읽었으면 가르지 않고 방을 열어 서버가 정한다.
 function useRoomCheck(rooms: RoomList, roomId: string) {
   const { state, reload } = rooms
-  const [checked, setChecked] = useState<string | null>(null)
+  // 다시 읽은 방과 그 결과. 못 읽었으면 가르지 않는다.
+  const [checked, setChecked] = useState<{ id: string; read: boolean } | null>(null)
   const missing = state.kind === 'ready' && !state.data.rooms.some(item => item.id === roomId)
   useEffect(() => {
-    if (!missing || checked === roomId) return
+    if (!missing || checked?.id === roomId) return
     let live = true
-    void reload().then(() => live && setChecked(roomId))
+    void reload().then(read => live && setChecked({ id: roomId, read }))
     return () => {
       live = false
     }
-  }, [missing, checked, roomId, reload])
+  }, [missing, checked?.id, roomId, reload])
   if (state.kind === 'loading') return 'checking'
   if (!missing) return 'known'
-  return checked === roomId ? 'missing' : 'checking'
+  if (checked?.id !== roomId) return 'checking'
+  return checked.read ? 'missing' : 'known'
 }
 
 export default function RoomGate({

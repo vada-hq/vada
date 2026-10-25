@@ -5,6 +5,7 @@ import { message, messagePage, room, roomDetail } from '@/test-support/chat-fixt
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { resizeToJpeg } from '@/lib/photo-resize'
+import { draftOf } from './composer-drafts'
 
 vi.mock('@/lib/photo-resize', async importOriginal => ({
   ...(await importOriginal<typeof import('@/lib/photo-resize')>()),
@@ -327,4 +328,20 @@ test('보내다 보기만 되는 방(409)이 되면 입력칸을 닫고 보기�
   fireEvent.click(sendButton())
   expect(await screen.findByText('이 방은 보기만 할 수 있어요.')).toBeTruthy()
   expect(screen.queryByLabelText('메시지')).toBeNull()
+})
+
+test('보내는 중에 방을 떠나도 보낸 글이 임시 글로 남지 않고, 보내기가 실패하면 임시 글로 돌아온다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => pending.promise)
+  render(<ChatHarness />)
+  await openAllRoom()
+  await screen.findByLabelText('메시지')
+  type('보낼 글')
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(1))
+  cleanup()
+  expect(draftOf('m1', 'c1', 'r1').body).toBe('')
+  pending.resolve(json({ error: 'x', code: 'INTERNAL' }, 500))
+  await waitFor(() => expect(draftOf('m1', 'c1', 'r1').body).toBe('보낼 글'))
 })
