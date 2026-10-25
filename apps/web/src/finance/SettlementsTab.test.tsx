@@ -18,6 +18,7 @@ afterEach(async () => {
   cleanup()
   await resetAddress()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 const SETTLEMENTS = `${BASE}/event-settlements`
@@ -185,10 +186,27 @@ test('넓은 화면에서는 행사·상태·날짜·정산 남은 것 칸의 �
   expect(cells('개강 파티')[3]).toBe('')
   // 날짜 미정은 상태 배지가 말하므로 날짜 칸이 비어 있다.
   expect(cells('졸업 파티')).toEqual(['졸업 파티', '날짜 미정', '', ''])
-  fireEvent.click(within(table).getByRole('button', { name: '전시' }))
+  // 줄이 누르기를 받아 이름 밖(날짜 칸)을 눌러도 그 행사가 열린다.
+  const push = vi.spyOn(window.history, 'pushState')
+  fireEvent.click(within(screen.getByText('전시').closest('tr')!).getAllByRole('cell')[2]!)
   await waitFor(() =>
     expect(`${window.location.pathname}${window.location.search}`).toBe(
       `/events/${COUNCIL_ID}/${ids.ongoing}?tab=money`,
     ),
   )
+  expect(push).toHaveBeenCalledTimes(1)
+})
+
+test('넓은 화면 표의 이름 버튼(키보드로 여는 길)을 누르면 그 행사가 한 번 열린다', async () => {
+  wide()
+  await open(response())
+  const table = await screen.findByRole('table', { name: '행사 정산' })
+  const push = vi.spyOn(window.history, 'pushState')
+  fireEvent.click(within(table).getByRole('button', { name: '봄 축제' }))
+  await waitFor(() =>
+    expect(`${window.location.pathname}${window.location.search}`).toBe(
+      `/events/${COUNCIL_ID}/${ids.ended}?tab=money`,
+    ),
+  )
+  expect(push).toHaveBeenCalledTimes(1)
 })

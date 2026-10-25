@@ -2,6 +2,7 @@ import type { EventSettlement, EventSettlementRow, EventSummary } from '@vada/co
 import EventRow from '@/events/EventRow'
 import { EventSettlementList } from '@/finance/EventSettlementList'
 import { EventSettlementTable } from '@/finance/EventSettlementTable'
+import { useSplit } from '@/lib/use-split'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
 import { Alert } from '@/components/ui/alert'
@@ -118,12 +119,13 @@ const settlingRows = [
 ]
 
 // 재정의 '행사 정산' 탭: 끝났고 완료하지 않은 것 → 진행 중·예정·날짜 미정 → 완료.
-// 넓은 화면(sm 이상)은 표, 휴대폰은 카드 줄이다. 둘 다 폭에 맞춰 줄어 가로로 넘치지 않는다.
+// 실제 탭과 같은 조건으로 넓은 화면(lg)에서만 표를 그리고, 카드 줄은 늘 보인다.
 export function EventSettlementsSection() {
+  const wide = useSplit()
   return (
     <Section title="재정 행사 정산 탭">
       <div className="flex w-full flex-col gap-4">
-        <EventSettlementTable rows={settlingRows} onOpen={noop} />
+        {wide && <EventSettlementTable rows={settlingRows} onOpen={noop} />}
         <div className="w-full max-w-sm">
           <EventSettlementList rows={settlingRows} onOpen={noop} />
         </div>
