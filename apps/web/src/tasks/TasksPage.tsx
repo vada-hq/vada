@@ -5,6 +5,7 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { useEvents } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
+import { recalledDepartment } from '@/lib/menu-memory'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
 import { TaskCalendarBody } from './TaskCalendarBody'
@@ -129,6 +130,7 @@ function useTasksPage(props: Props) {
   }
   return {
     controls,
+    all: lists.list,
     openEventFromTask: opened.openEventFromTask,
     dialogs,
     list,
@@ -139,13 +141,22 @@ function useTasksPage(props: Props) {
   }
 }
 
+// 부서 거르기 칩의 이름: 내 부서, 홈이 알려 준 이름, 받아 온 업무의 부서 차례다.
+function departmentName(id: string, council: CouncilView, all: TaskList) {
+  const tasks = all.state.kind === 'ready' ? all.state.tasks : []
+  return (
+    council.me.departments.find(item => item.id === id)?.name ??
+    recalledDepartment(id) ??
+    tasks.find(task => task.department?.id === id)?.department?.name ??
+    '부서'
+  )
+}
+
 // 목록을 좁힌 조건을 풀 수 있게 알리는 칩: 업무 화면의 부서 거르기, 행사의 업무 탭에서 '담당자 없음'으로 연 보기.
 function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
-  const { controls, list } = page
+  const { controls } = page
   if (controls.dept !== null) {
-    const first = list.state.kind === 'ready' ? list.state.tasks[0]?.department : undefined
-    const name =
-      council.me.departments.find(item => item.id === controls.dept)?.name ?? first?.name ?? '부서'
+    const name = departmentName(controls.dept, council, page.all)
     return { label: name, onClear: controls.clearDept }
   }
   if (page.rows.inEvent && controls.view === 'unassigned')

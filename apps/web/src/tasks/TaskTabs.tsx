@@ -83,6 +83,7 @@ export function TaskTabs(props: Props) {
           <Button
             size="sm"
             variant="outline"
+            className="h-auto max-w-full text-left wrap-anywhere whitespace-normal"
             aria-label={`${narrow.label} 거르기 풀기`}
             onClick={narrow.onClear}
           >
