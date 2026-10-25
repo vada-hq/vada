@@ -1,14 +1,17 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SendMessageSchema, type RoomParticipant, type SendMessageRequest } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { SEND_FAILED } from '@/lib/messages'
 import { isRoomLost, messagesPath, sendErrorText } from './chat-api'
+import { draftOf, keepDraft } from './composer-drafts'
 import { mentionIds } from './mention'
 import { usePhotoDrafts } from './usePhotoDrafts'
 
 type Args = {
   councilId: string
+  // 내 멤버 id. 보내지 않은 글을 사람마다 따로 둔다.
+  meId: string
   roomId: string
   // 보낸 뒤 흐름과 방 목록을 다시 읽게 한다.
   onSent: () => void
@@ -22,10 +25,21 @@ function unsentBody(now: string, sent: string) {
   return now.startsWith(sent) ? now.slice(sent.length).trimStart() : now
 }
 
+// 글과 부른 사람. 방을 바꿔 입력칸이 사라져도 보내지 않은 글은 남는다.
+function useDraft(meId: string, councilId: string, roomId: string) {
+  const [body, setBody] = useState(() => draftOf(meId, councilId, roomId).body)
+  const [picks, setPicks] = useState<RoomParticipant[]>(
+    () => draftOf(meId, councilId, roomId).picks,
+  )
+  useEffect(() => {
+    keepDraft(meId, councilId, roomId, { body, picks })
+  }, [meId, councilId, roomId, body, picks])
+  return { body, setBody, picks, setPicks }
+}
+
 // 입력칸 하나: 글, 부른 사람, 사진, 보내기. 보내기에 실패하면 글과 사진을 그대로 두고 자동으로 다시 보내지 않는다.
-export function useComposer({ councilId, roomId, onSent, onLost }: Args) {
-  const [body, setBody] = useState('')
-  const [picks, setPicks] = useState<RoomParticipant[]>([])
+export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
+  const { body, setBody, picks, setPicks } = useDraft(meId, councilId, roomId)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // 보내다 보기만 되는 방이 된 것을 알게 되면 입력칸을 닫는다.

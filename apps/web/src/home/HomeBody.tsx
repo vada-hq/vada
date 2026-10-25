@@ -107,7 +107,10 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
         onSeeAll={() => open.onOpenPage('finance')}
       />
       {!home.council && (
-        <NoticesSection notices={extras.notices} onOpenChat={() => open.onOpenPage('chat')} />
+        <NoticesSection
+          notices={extras.notices}
+          onOpenNotices={() => openMenu('chat', councilId, { tab: 'notices' })}
+        />
       )}
       {!home.council && (
         <WeekEventsSection

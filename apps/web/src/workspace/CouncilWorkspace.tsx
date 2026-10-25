@@ -28,13 +28,16 @@ type Nav = ReturnType<typeof useWorkspaceNav>
 function recordOf(target: Props['target']) {
   const { kind, id, tab } = target.record ?? { kind: null, id: undefined, tab: undefined }
   return {
-    roomId: kind === 'chat' ? id : undefined,
     taskId: kind === 'tasks' ? id : undefined,
     requestId: kind === 'purchases' ? id : undefined,
     eventId: kind === 'events' ? id : undefined,
     eventTab: kind === 'events' ? tab : undefined,
   }
 }
+
+// 기록 주소를 열 때 페이지를 새로 그리는 종류. 대화의 방은 주소만 바꿔 그대로 둔다(방을 바꿔도 쓰던 입력이 남는다).
+const remounts = (target: Props['target']) =>
+  target.record !== null && target.record.kind !== 'chat'
 
 // 화면이 누르는 이동은 주소를 쌓는 것이다. 기록은 그 종류의 주소로 연다.
 function useOpeners(councilId: string, nav: Nav) {
@@ -121,7 +124,7 @@ export default function CouncilWorkspace({
           ...lists,
           ...openers,
           ...recordOf(target),
-          linkKey: target.record || here.released ? here.key : '',
+          linkKey: remounts(target) || here.released ? here.key : '',
           mainRef: nav.main,
         }}
       />

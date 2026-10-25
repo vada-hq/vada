@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { fireEvent, screen } from '@testing-library/react'
 import type { Action } from '@vada/contracts'
-import ChatPage from '@/chat/ChatPage'
+import ChatPage, { type Screen } from '@/chat/ChatPage'
 import { useRoomList } from '@/chat/useRoomList'
 import { useTeam } from '@/team/useTeam'
 import { messagePage, roomDetail, roomList } from './chat-fixtures'
@@ -23,6 +23,8 @@ export function ChatHarness({
   const [granted, setGranted] = useState(permissions)
   const team = useTeam('c1', () => {})
   const rooms = useRoomList('c1', () => {}, true)
+  // 실제 앱에서는 주소가 정하는 화면을 상태로 둔다.
+  const [screen, setScreen] = useState<Screen>({ kind: 'list' })
   return (
     <ChatPage
       councilId="c1"
@@ -31,6 +33,9 @@ export function ChatHarness({
       rooms={rooms}
       onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
       onOpenRequest={onOpenRequest}
+      screen={screen}
+      onScreen={setScreen}
+      onBack={() => setScreen({ kind: 'list' })}
     />
   )
 }

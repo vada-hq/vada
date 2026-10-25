@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
-import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
+import { messagePage, room, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
@@ -52,7 +52,14 @@ beforeEach(() => {
   ]) {
     api.on('GET', `/api/organizations/${id}`, () => json(councilView(id)))
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
-    api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
+    // 알림이 가리키는 방은 내 방 목록에 있다(없는 방 주소는 '찾을 수 없음').
+    api.on('GET', `/api/organizations/${id}/rooms`, () =>
+      json(
+        roomList({
+          rooms: [room('0199d1a0-0000-7000-8000-0000000000a1'), ...roomList().rooms.slice(1)],
+        }),
+      ),
+    )
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
     onHomeExtras(api, {}, id)
     api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
