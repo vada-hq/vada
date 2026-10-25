@@ -57,7 +57,7 @@ function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod(
   )
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => json({ request: detail }))
   api.on('GET', `${ORG}/budget`, () => json(budget))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn() }
   render(
     <FinanceAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
@@ -138,7 +138,7 @@ test('[반려]로 사유 칸을 열면 [승인]의 문제는 사라진다', asyn
 })
 
 test('승인하면 금액과 항목을 그 품목만 보내고 요청과 수를 다시 읽는다', async () => {
-  const { api, handlers } = setup()
+  const { api } = setup()
   let reads = 0
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
@@ -155,7 +155,6 @@ test('승인하면 금액과 항목을 그 품목만 보내고 요청과 수를 
   expect(posts(api)[0]?.body).toEqual({
     decisions: [{ lineItemId: LINE_1, outcome: 'approved', amount: 15000, budgetItemId: BUDGET_A }],
   })
-  expect(handlers.onChanged).toHaveBeenCalled()
 })
 
 test('반려는 사유 칸이 열리고 사유가 비면 누를 때 이유가 보인다', async () => {
@@ -240,7 +239,6 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
     <FinanceAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
-      onChanged={vi.fn()}
     />,
   )
   await open()
@@ -553,7 +551,6 @@ test('기억한 항목이 이 요청의 행사와 맞지 않으면 비운다', a
     <FinanceAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
-      onChanged={vi.fn()}
     />,
   )
   await open()

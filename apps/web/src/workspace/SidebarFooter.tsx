@@ -6,22 +6,35 @@ import { useRenameMe } from '../profile/useRenameMe'
 import { useWithdrawal } from '../profile/useWithdrawal'
 import WithdrawDialog from '../profile/WithdrawDialog'
 import PushSettingsButton from '../push/PushSettings'
-import { sidebarRoleLine } from '../team/team-view'
+import { sidebarRoleLine, sidebarRoleParts } from '../team/team-view'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
 
+type Role = { departments: string; rank: string | null }
+
+// 둘째 줄: 좁으면 부서 칸만 말줄임하고 ' · {직급}'은 줄이지 않는다. 올리면 전체 글이 보인다.
+function RoleLine({ role, text }: { role: Role; text: string }) {
+  return (
+    <span className="flex min-w-0 text-xs font-normal text-gray-500" title={text}>
+      {role.departments && <span className="truncate">{role.departments}</span>}
+      {role.rank && (
+        <span className="shrink-0 whitespace-pre">
+          {role.departments ? ' · ' : ''}
+          {role.rank}
+        </span>
+      )}
+    </span>
+  )
+}
+
 // 와이어프레임 발 두 줄: 회색 원 안 사람 아이콘 + 이름 / '{부서} · {직급}'(작은 회색 글).
-function Who({ name, position }: { name: string; position: string | null }) {
+function Who({ name, role, text }: { name: string; role: Role | null; text: string | null }) {
   return (
     <>
       <Avatar />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-xs font-medium text-gray-700">{name}</span>
-        {position && (
-          <span className="truncate text-xs font-normal text-gray-500" title={position}>
-            {position}
-          </span>
-        )}
+        {role && text && <RoleLine role={role} text={text} />}
       </span>
     </>
   )
@@ -47,6 +60,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
   const withdrawal = useWithdrawal(user.id)
   const userLine = useRef<HTMLButtonElement>(null)
   const name = view?.me.name ?? user.name
+  const role = view && sidebarRoleParts(view.me, view.council.titles)
   const position = view && sidebarRoleLine(view.me, view.council.titles)
   return (
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
@@ -63,12 +77,12 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
             setRenaming(true)
           }}
         >
-          <Who name={name} position={position} />
+          <Who name={name} role={role} text={position} />
         </Button>
       ) : (
         // 학생회를 읽기 전에는 고칠 운영진 이름을 몰라 누르는 버튼이 아니다.
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <Who name={name} position={null} />
+          <Who name={name} role={null} text={null} />
         </div>
       )}
       <PushSettingsButton />

@@ -79,7 +79,7 @@ test('안 읽은 메시지가 120개면 대화 옆 빨간 99+, 0이면 배지가
 
 test('머리 칸 전체가 학생회 메뉴 단추이고 Vada와 학생회 이름 두 줄이며 키보드로 열린다', async () => {
   open()
-  const head = await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })
+  const head = await screen.findByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   expect(head.textContent).toContain('Vada')
   expect(head.textContent).toContain('컴퓨터학부 학생회')
   expect(head.textContent).toContain('V')
@@ -123,7 +123,7 @@ test('옆 메뉴의 작은 글은 gray-400이 아니고, 작은 회색 글이 �
   await within(await nav()).findByLabelText('안 읽은 메시지 3개')
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
   expect(aside.innerHTML).not.toContain('text-gray-400')
-  const head = within(aside).getByRole('button', { name: /^학생회 메뉴/ })
+  const head = within(aside).getByRole('button', { name: /학생회 메뉴$/ })
   const user = within(aside).getByRole('button', { name: /^내 이름/ })
   for (const item of [head, user]) {
     expect(item.className).toContain('hover:bg-gray-50')
@@ -140,7 +140,7 @@ test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리
     .getAllByRole('button')
     .slice(0, 5)
   expect(items.map(item => item.textContent)).toEqual(['홈', '대화99+', '업무', '재정', '조직'])
-  const head = within(sheet).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })
+  const head = within(sheet).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   expect(head.className).toContain('pr-12')
   expect(within(sheet).getByRole('button', { name: /^내 이름: 김회장/ })).toBeTruthy()
 })

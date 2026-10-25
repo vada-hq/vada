@@ -141,7 +141,7 @@ test('새로 고침하면 주소의 학생회와 메뉴가 열린다', async () 
   window.history.replaceState(null, '', `/departments/${C2}`)
   await renderApp()
   expect(await heading('조직')).toBeTruthy()
-  expect(screen.getByRole('button', { name: '학생회 메뉴: 다른 학생회' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Vada 다른 학생회 학생회 메뉴' })).toBeTruthy()
   expect(council(C1)).toEqual([])
 })
 
@@ -189,7 +189,7 @@ test('학생회를 바꾸면 그 학생회 홈 주소로 한 칸 쌓인다', asy
   await renderApp()
   expect(await heading('조직')).toBeTruthy()
   const push = pushes()
-  fireEvent.keyDown(screen.getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }), {
     key: 'Enter',
   })
   fireEvent.click(await screen.findByRole('menuitem', { name: '다른 학생회' }))

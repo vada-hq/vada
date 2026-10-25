@@ -32,7 +32,7 @@ function setup(detail = purchaseDetail()) {
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => json({ request: detail }))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn() }
   render(
     <FinanceAt view={councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })} {...handlers} />,
   )
@@ -49,7 +49,7 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
 test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않고 칸 아래에 알리며, 쓰고 보내면 닫히고 목록과 수를 다시 읽는다', async () => {
-  const { api, handlers, reads } = setup()
+  const { api, reads } = setup()
   api.on('POST', BASE, () => json({ request: purchaseDetail() }, 201))
   await openCreate()
   expect(submit().disabled).toBe(false)
@@ -73,7 +73,6 @@ test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않�
     neededBy: null,
     items: [{ name: '박스 테이프', quantity: 1, link: null, options: null }],
   })
-  expect(handlers.onChanged).toHaveBeenCalledTimes(1)
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
@@ -199,7 +198,7 @@ test('결제한 품목에는 결제함이 보인다', async () => {
 })
 
 test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 취소하면 목록과 수를 다시 읽는다', async () => {
-  const { api, handlers } = setup()
+  const { api } = setup()
   let reads = 0
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
@@ -224,7 +223,6 @@ test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 
   await waitFor(() => expect(screen.queryByRole('button', { name: '요청 취소' })).toBeNull())
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({})
-  expect(handlers.onChanged).toHaveBeenCalled()
 })
 
 test('동작에 purchase_request.cancel이 없으면 [요청 취소]가 없다', async () => {

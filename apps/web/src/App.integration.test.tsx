@@ -311,7 +311,9 @@ test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회
   ])
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
-  expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  expect(
+    await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' }),
+  ).toBeTruthy()
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   expect(window.location.pathname).toBe(menuPath('home', '0199d1a0-0000-7000-8000-0000000000c2'))
 })
@@ -382,10 +384,12 @@ test('학생회 이름 메뉴로 다른 학생회를 고른다', async () => {
   openCouncil()
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
-  const menu = await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })
+  const menu = await screen.findByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   fireEvent.keyDown(menu, { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
-  expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  expect(
+    await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' }),
+  ).toBeTruthy()
   await waitFor(() =>
     expect(
       api.calls.some(
@@ -419,9 +423,12 @@ test('옆 메뉴로 조직을 열어 부서를 보고, 학생회 이름 메뉴�
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
   expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
   expect(await screen.findByRole('heading', { level: 2, name: '기획부' })).toBeTruthy()
-  fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
-    key: 'Enter',
-  })
+  fireEvent.keyDown(
+    within(aside).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }),
+    {
+      key: 'Enter',
+    },
+  )
   fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
   expect(await screen.findByRole('heading', { level: 1, name: '학생회 정보' })).toBeTruthy()
   expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
@@ -448,7 +455,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회
   )
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
-  const menu = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  const menu = await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
   fireEvent.keyDown(menu, { key: 'Enter' })
   const list = await screen.findByRole('menu')
@@ -498,10 +505,12 @@ test('내보내진 뒤 다른 학생회가 남아 있으면 그 학생회로 옮
   )
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
-  expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  expect(
+    await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' }),
+  ).toBeTruthy()
   await openPeople()
   expect(await screen.findByRole('heading', { level: 2, name: '회장단' })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })).toBeNull()
 })
 
 test('학생회를 불러오지 못해 다시 시도했는데 403이면 그 학생회를 떠난다', async () => {
@@ -586,11 +595,14 @@ test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생�
   openCouncil()
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
-  fireEvent.keyDown(await screen.findByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
-    key: 'Enter',
-  })
+  fireEvent.keyDown(
+    await screen.findByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }),
+    {
+      key: 'Enter',
+    },
+  )
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
-  const next = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  const next = await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() => expect(document.activeElement).toBe(next))
   // 메뉴를 닫을 때 Radix가 거는 지연 작업이 포커스를 도로 가져가지 않는다. 메뉴가 닫히고 그 작업이 끝난 뒤에 본다.
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
@@ -609,11 +621,14 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
   await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
-  fireEvent.keyDown(within(sheet).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
-    key: 'Enter',
-  })
+  fireEvent.keyDown(
+    within(sheet).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }),
+    {
+      key: 'Enter',
+    },
+  )
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
-  await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
+  await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' })),
   )
@@ -652,9 +667,12 @@ test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름�
   )
   await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
-  fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
-    key: 'Enter',
-  })
+  fireEvent.keyDown(
+    within(aside).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }),
+    {
+      key: 'Enter',
+    },
+  )
   fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
   const form = await screen.findByRole('form', { name: '학생회 정보' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), {
@@ -663,9 +681,9 @@ test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름�
   fireEvent.click(within(form).getByRole('button', { name: '학생회 정보 저장' }))
   expect(await within(form).findByText('저장했어요.')).toBeTruthy()
   expect(
-    await within(aside).findByRole('button', { name: '학생회 메뉴: 소프트웨어학부 학생회' }),
+    await within(aside).findByRole('button', { name: 'Vada 소프트웨어학부 학생회 학생회 메뉴' }),
   ).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })).toBeNull()
   expect(within(screen.getByRole('banner')).getByText('소프트웨어학부 학생회')).toBeTruthy()
   // 저장 뒤에도 보던 쪽과 입력칸은 그대로다.
   expect(asElement(within(form).getByLabelText('학생회 이름'), HTMLInputElement).value).toBe(

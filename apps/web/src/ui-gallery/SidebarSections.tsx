@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import type { CouncilView, MyCouncil, SidebarEvent } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { CountBadge } from '@/components/ui/count-badge'
 import type { TaskCount } from '@/tasks/task-view'
 import WorkspaceSidebar from '../workspace/WorkspaceSidebar'
@@ -69,6 +72,52 @@ const SIDEBARS: { key: string; unread: number; active: ActiveItem; width: string
   { key: '420 서랍, 배지 0', unread: 0, active: { kind: 'menu', menu: 'finance' }, width: 'w-72' },
 ]
 
+function SampleSidebar({
+  unread,
+  active,
+  inSheet,
+}: {
+  unread: number
+  active: ActiveItem
+  inSheet: boolean
+}) {
+  return (
+    <WorkspaceSidebar
+      council={council}
+      councils={[council]}
+      view={FOOTERS[0]!.view}
+      active={active}
+      unread={unread}
+      taskCount={tasks(unread)}
+      space={space}
+      onSelect={noop}
+      onPage={noop}
+      inSheet={inSheet}
+      user={user}
+      logoutBusy={false}
+      onLogout={noop}
+      onRenamed={noop}
+    />
+  )
+}
+
+// 실제 휴대폰 서랍(닫기 단추가 있는 시트) 안의 옆 메뉴. 420 폭에서 머리 화살표와 닫기 단추가 겹치지 않는지 본다.
+function DrawerSample() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        휴대폰 서랍 열기
+      </Button>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent title="학생회 작업 공간 예시">
+          <SampleSidebar unread={120} active={{ kind: 'menu', menu: 'chat' }} inSheet />
+        </SheetContent>
+      </Sheet>
+    </>
+  )
+}
+
 // 옆 메뉴 틀(028 조각 3, 와이어프레임 사이드바 v6.2 US-MSG-01 옆 메뉴): 머리 두 줄, 최상위 칸과 배지 둘, '공간', 발 두 줄.
 // 넓은 화면의 옆 메뉴 폭(1280에서 240px)과 휴대폰 서랍 폭(420에서 288px)으로 본다.
 export function SidebarSection() {
@@ -78,21 +127,10 @@ export function SidebarSection() {
         <div key={sample.key} className={`flex flex-col gap-1 ${sample.width}`}>
           <p className="text-xs text-gray-400">{sample.key}</p>
           <div className="h-160 rounded-lg border bg-white">
-            <WorkspaceSidebar
-              council={council}
-              councils={[council]}
-              view={FOOTERS[0]!.view}
-              active={sample.active}
+            <SampleSidebar
               unread={sample.unread}
-              taskCount={tasks(sample.unread)}
-              space={space}
-              onSelect={noop}
-              onPage={noop}
+              active={sample.active}
               inSheet={sample.width === 'w-72'}
-              user={user}
-              logoutBusy={false}
-              onLogout={noop}
-              onRenamed={noop}
             />
           </div>
         </div>
@@ -120,6 +158,7 @@ export function SidebarSection() {
           <CountBadge count={2} prefix="지남" label="지난 업무 2개" />
           <CountBadge count={3} prefix="지남" more label="지난 업무 3개 이상" />
         </div>
+        <DrawerSample />
       </div>
     </Section>
   )
