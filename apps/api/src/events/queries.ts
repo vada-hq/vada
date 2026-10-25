@@ -1,20 +1,11 @@
 import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm'
-import {
-  EVENT_LIST_LIMIT,
-  koreanOf,
-  type EventDetail,
-  type EventSummary,
-  type EventsResponse,
-} from '@vada/contracts'
+import { EVENT_LIST_LIMIT, koreanOf, type EventSummary, type EventsResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { completedEventIdsAmong, completionApprovalsOf } from './completion.js'
-import { eventHeaderOf } from './header.js'
-import { eventHistoryOf } from './history.js'
-import { actionsOf, blockersOf, factsOf } from './policy.js'
+import { completedEventIdsAmong } from './completion.js'
 import { eventStatusOf } from './status.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -65,7 +56,7 @@ export async function eventRowOf(db: Reader, actor: Actor, eventId: string) {
 }
 
 // 책임자가 지금 이 학생회의 운영진인가. 떠난 책임자는 남기고 '떠난 사람'으로 보인다.
-async function summariesOf(
+export async function summariesOf(
   db: Reader,
   actor: Actor,
   rows: Row[],
@@ -210,25 +201,4 @@ export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
   for (const row of rows)
     if (row.eventId) counts.set(row.eventId, { open: row.open, total: row.total })
   return counts
-}
-
-// 행사 하나와 머리의 셈(header.ts), 그 사람이 할 수 있는 동작(events/policy.ts). 동작은 쓰기의 거절과 같은 판정이다.
-export async function eventDetailOf(
-  db: Reader,
-  actor: Actor,
-  eventId: string,
-  now: Date,
-): Promise<EventDetail> {
-  const row = await eventRowOf(db, actor, eventId)
-  const [summary] = await summariesOf(db, actor, [row], now)
-  const facts = await factsOf(db, actor, row, { now })
-  return {
-    ...summary!,
-    tasks: (await taskCountsByEvent(db, [eventId])).get(eventId) ?? { open: 0, total: 0 },
-    ...(await eventHeaderOf(db, actor, row, { status: summary!.status, now })),
-    history: await eventHistoryOf(db, eventId),
-    approvals: await completionApprovalsOf(db, eventId),
-    actions: actionsOf(actor, facts),
-    blockers: blockersOf(actor, facts),
-  }
 }
