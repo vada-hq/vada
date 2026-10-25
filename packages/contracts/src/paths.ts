@@ -1,6 +1,6 @@
 import { isUuid } from './input.js'
 import { PURCHASE_VIEWS } from './purchases.js'
-import { TASK_FILTERS, TASK_VIEWS } from './tasks.js'
+import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
 
 // 화면 주소의 원문(기능 016). 서버 진입 목록(web.ts), 알림 주소(push.ts), 화면 해석기가 모두 이것만 쓴다.
 // 주소는 볼 권한을 주지 않는다. 학생회 격리는 서버의 읽기가 요청마다 지킨다.
@@ -47,20 +47,29 @@ const RECORD_PARENTS = {
 export type RecordKind = keyof typeof RECORD_PARENTS
 export const RECORD_KINDS = Object.keys(RECORD_PARENTS) as RecordKind[]
 
-type QueryRule = { values: readonly string[] | 'uuid'; fallback: string | null }
+// onlyWith가 있으면 그 키가 그 값일 때만 남는다(그 키는 규칙에서 앞에 둔다).
+// 그 값이 그 키의 기본값이면 그 키가 쿼리에서 빠지므로 이 규칙의 값도 늘 빠진다.
+type QueryRule = {
+  values: readonly string[] | 'uuid'
+  fallback: string | null
+  onlyWith?: { key: string; value: string } | undefined
+}
 type QuerySpec = Record<string, QueryRule>
+
+// 업무 화면의 쿼리. 업무 메뉴와 행사의 업무 탭이 같은 정의를 쓴다(DEC-94). 기본 보기만 다르다(행사 안은 그 행사의 모든 업무).
+const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): QuerySpec => ({
+  view: { values: TASK_VIEWS, fallback: startView, onlyWith },
+  filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
+  layout: { values: TASK_LAYOUTS, fallback: 'list', onlyWith },
+  dept: { values: 'uuid', fallback: null, onlyWith },
+})
 
 // 쿼리에는 기본값이 아닌 값만 둔다. fallback이 null이면 값이 없는 것이 기본이다. 검색어 같은 자유 입력은 넣지 않는다.
 const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   home: {},
   chat: {},
   events: {},
-  tasks: {
-    view: { values: TASK_VIEWS, fallback: 'mine' },
-    filter: { values: TASK_FILTERS, fallback: 'open' },
-    layout: { values: TASK_LAYOUTS, fallback: 'list' },
-    dept: { values: 'uuid', fallback: null },
-  },
+  tasks: taskQuery('mine'),
   finance: {
     // 기본 탭은 사람마다 다르다(재정부는 개요, 나머지는 구매 요청). 그래서 고른 탭은 모두 주소에 남긴다.
     tab: { values: FINANCE_TABS, fallback: null },
@@ -73,7 +82,11 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   chat: {},
-  events: { tab: { values: EVENT_TABS, fallback: 'overview' } },
+  // 업무 탭의 보기와 거르기는 업무 탭일 때만 남는다. 다른 탭으로 가면 빠진다.
+  events: {
+    tab: { values: EVENT_TABS, fallback: 'overview' },
+    ...taskQuery('all', { key: 'tab', value: 'tasks' }),
+  },
   tasks: {},
   purchases: {},
   expenses: {},
@@ -94,6 +107,7 @@ function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
   const query: Record<string, string> = {}
   for (const [key, rule] of Object.entries(spec)) {
     const value = params.get(key)
+    if (rule.onlyWith && query[rule.onlyWith.key] !== rule.onlyWith.value) continue
     if (value !== null && value !== rule.fallback && allowed(rule, value))
       query[key] = value.toLowerCase()
   }
