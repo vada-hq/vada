@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { makeSignature } from 'better-auth/crypto'
+import { createAuth } from '../auth/auth.js'
+import { createTestDb } from '../db/test-db.js'
 import { createRecord, updateRecord } from '../records/records.js'
 import { setErrorReporter } from '../http/on-error.js'
 import { startFeePayments } from '../test-support/fee-payments.js'
@@ -224,6 +227,61 @@ test('납부 학번은 납부 끝 + 1년에 비워지고 2월 29일에 끝난 �
     assert.equal(await versioned(), 0)
   } finally {
     await t.close()
+  }
+})
+
+test('만료된 세션 줄은 지우고, 만든 지 3개월이 지난 세션은 IP·브라우저 정보만 비워 그 쿠키로 계속 로그인된다', async () => {
+  const { pg, db, close } = await createTestDb()
+  const secret = 'local-test-only-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  try {
+    const auth = createAuth(db, {
+      secret,
+      baseURL: 'http://127.0.0.1:5180',
+      googleClientId: 'test-client',
+      googleClientSecret: 'test-secret',
+    })
+    await pg.query("INSERT INTO users (id, name, email) VALUES ('u1', '김운영', 'u1@example.test')")
+    // better-auth는 만료 시각을 실제 시계로 보므로 지우는 기준 시각도 실제 시각으로 둔다.
+    const now = new Date()
+    const session = (id: string, created: string, expires: string) =>
+      pg.query(
+        `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, created_at, expires_at)
+         VALUES ($1, 'u1', $1, '203.0.113.7', 'Mozilla/5.0',
+           $2::timestamptz - $3::interval, $2::timestamptz + $4::interval)`,
+        [id, now.toISOString(), created, expires],
+      )
+    await session('old', '3 months', '1 day')
+    await session('young', '3 months -1 second', '1 day')
+    await session('expired', '1 day', '-1 second')
+    await session('expiring', '1 day', '1 second')
+    const rows = async () =>
+      (
+        await pg.query<{ id: string; ip_address: string | null; user_agent: string | null }>(
+          'SELECT id, ip_address, user_agent FROM sessions ORDER BY id',
+        )
+      ).rows
+    const expected = [
+      { id: 'expiring', ip_address: '203.0.113.7', user_agent: 'Mozilla/5.0' },
+      { id: 'old', ip_address: null, user_agent: null },
+      { id: 'young', ip_address: '203.0.113.7', user_agent: 'Mozilla/5.0' },
+    ]
+    assert.equal(await runPurge(db, now), true)
+    assert.deepEqual(await rows(), expected)
+    // 두 번 돌려도 같다.
+    await runPurge(db, now)
+    assert.deepEqual(await rows(), expected)
+
+    const context = await auth.$context
+    const cookie = `${context.authCookies.sessionToken.name}=${encodeURIComponent(`old.${await makeSignature('old', secret)}`)}`
+    const signedIn = await auth.api.getSession({ headers: new Headers({ Cookie: cookie }) })
+    assert.equal(signedIn?.user.id, 'u1')
+    // 세션을 늘려도 IP는 다시 적히지 않는다.
+    assert.deepEqual(
+      (await rows()).find(row => row.id === 'old'),
+      expected[1],
+    )
+  } finally {
+    await close()
   }
 })
 
