@@ -220,6 +220,12 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
   expect(
     await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' }),
   ).toBeTruthy()
+  // 들어가기 전에 이름과 이메일이 그 학생회의 운영진 명단에 들어간다고 알린다(DEC-72 '운영진 명단').
+  expect(
+    screen.getByText(
+      '들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.',
+    ),
+  ).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '들어가기' }))
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   // 학생회를 열면 운영진 모두에게 홈이 먼저다(DEC-69). 운영진 화면은 막 만든 사람만 연다.
