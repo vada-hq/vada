@@ -19,7 +19,9 @@ type Props = {
   lead?: boolean
   className?: string
   people: TeamMember[]
-  person: (member: TeamMember) => ReactNode
+  // 묶음 키. 겸직자의 줄이 묶음마다 있어 ⋯ 버튼을 묶음 키와 함께 가린다.
+  groupKey: string
+  person: (member: TeamMember, groupKey: string) => ReactNode
 }
 
 // 조직 화면의 묶음 하나(와이어프레임 ORG-03A의 회장단 카드·부서 카드): 머리(제목, 배지, 작은 글, ⋯)와 그 묶음 사람 목록.
@@ -72,7 +74,7 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, .
         <p className="px-4 py-3 text-sm text-gray-500">구성원 없음</p>
       ) : (
         <ul aria-label={`${title} 구성원`} className="divide-y">
-          {props.people.map(props.person)}
+          {props.people.map(member => props.person(member, props.groupKey))}
         </ul>
       )}
     </section>

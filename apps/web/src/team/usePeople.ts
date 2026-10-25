@@ -35,9 +35,10 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
     if (code === null || isStale(code)) setConfirm(null)
   }
   // 메뉴 항목으로 대화상자를 연다. 닫을 때 포커스를 그 줄의 ⋯ 버튼으로 돌려주려고 어느 줄인지 기억한다.
-  const open = (member: TeamMember, show: () => void) => {
+  // from은 연 줄의 ⋯ 버튼 키(triggerRef와 같은 값)다.
+  const open = (from: string, show: () => void) => {
     setMessage('')
-    menuFocus.remember(member.id)
+    menuFocus.remember(from)
     show()
   }
   return {
@@ -52,9 +53,9 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
     removeFrom: requests.removeFrom,
     toggleViceRank: requests.toggleViceRank,
     confirmed,
-    openAssign: (member: TeamMember) => open(member, () => setEditing(member.id)),
-    askConfirm: (kind: Confirm['kind'], member: TeamMember) =>
-      open(member, () => setConfirm({ kind, memberId: member.id })),
+    openAssign: (member: TeamMember, from: string) => open(from, () => setEditing(member.id)),
+    askConfirm: (kind: Confirm['kind'], member: TeamMember, from: string) =>
+      open(from, () => setConfirm({ kind, memberId: member.id })),
     closeAssign: () => {
       setEditing(null)
       setMessage('')

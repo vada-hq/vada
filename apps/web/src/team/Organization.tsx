@@ -58,7 +58,9 @@ export default function Organization({
         departments={team.data.departments}
         titles={titles}
         unassignedFirst={people.can('member.manage')}
-        person={member => <PersonRow key={member.id} member={member} {...{ people, team, view }} />}
+        person={(member, group) => (
+          <PersonRow key={member.id} member={member} group={group} {...{ people, team, view }} />
+        )}
         {...departmentSlots(departments, team.saving)}
       />
       <Dialogs people={people} departments={departments} view={view} team={team} />
@@ -116,9 +118,17 @@ function departmentSlots(state: DepartmentsState, saving: boolean) {
   }
 }
 
-type RowProps = { member: TeamMember; people: PeopleState; team: Team; view: CouncilView }
+type RowProps = {
+  member: TeamMember
+  // 줄이 든 묶음. 겸직자는 묶음마다 줄이 있어 닫은 뒤 초점을 연 묶음의 줄로 돌려준다.
+  group: string
+  people: PeopleState
+  team: Team
+  view: CouncilView
+}
 
-function PersonRow({ member, people, team, view }: RowProps) {
+function PersonRow({ member, group, people, team, view }: RowProps) {
+  const key = `${group}:${member.id}`
   return (
     <MemberRow
       member={member}
@@ -126,11 +136,12 @@ function PersonRow({ member, people, team, view }: RowProps) {
       titles={view.council.titles}
       actions={rowActions(member, people.me, people.can)}
       saving={team.saving}
-      triggerRef={people.menuFocus.triggerRef(member.id)}
-      onAssign={() => people.openAssign(member)}
+      triggerRef={people.menuFocus.triggerRef(key)}
+      onAssign={() => people.openAssign(member, key)}
+      // '{부회장} 해제'는 그 줄이 회장단 묶음에서 빠져 초점이 body로 떨어진다. 조각 5(묶음 머리의 부회장 지정)에서 고친다.
       onToggleRank={() => people.toggleViceRank(member)}
-      onTransfer={() => people.askConfirm('transfer', member)}
-      onRemove={() => people.askConfirm('remove', member)}
+      onTransfer={() => people.askConfirm('transfer', member, key)}
+      onRemove={() => people.askConfirm('remove', member, key)}
     />
   )
 }
