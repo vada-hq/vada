@@ -14,6 +14,10 @@ type Props = {
   onOpenForms: () => void
 }
 
+// 고칠 양식이 없으면 링크가 만들러 간다(가는 곳은 같다).
+const noForms = (forms: PolledState<RegistrationFormsResponse>) =>
+  forms.kind === 'ready' && forms.data.forms.length === 0
+
 const feeOf = (form: RegistrationForm) =>
   form.payerFee === null || form.nonPayerFee === null ? '없음' : feeText(form)
 const capacityOf = (form: RegistrationForm) =>
@@ -44,10 +48,15 @@ function FormFacts({ forms }: { forms: PolledState<RegistrationFormsResponse> })
   ]
   if (list.length === 1) return <Facts rows={rows(list[0]!)} />
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {list.map(form => (
-        <div key={form.id} className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-gray-700 wrap-anywhere">{form.name}</p>
+        <div
+          key={form.id}
+          className="flex flex-col gap-2 border-t pt-3 first:border-t-0 first:pt-0"
+        >
+          <p className="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere">
+            {form.name}
+          </p>
           <Facts rows={rows(form)} />
         </div>
       ))}
@@ -67,11 +76,13 @@ export function EventEditFacts({ forms, owner, busy, onOpenForms }: Props) {
             type="button"
             variant="link"
             size="sm"
-            className="h-auto p-0"
+            // 누르는 영역을 24px 이상으로 둔다(WCAG 2.5.8). '→'는 이동 링크 표시라 이름에 넣지 않는다(와이어프레임).
+            className="h-auto min-h-6 p-0"
             busy={busy}
             onClick={onOpenForms}
           >
-            신청 양식에서 수정
+            {noForms(forms) ? '신청 양식 만들기' : '신청 양식에서 수정'}
+            <span aria-hidden>→</span>
           </Button>
         }
       >

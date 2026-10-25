@@ -14,6 +14,7 @@ type ContentProps = Omit<ComponentProps<typeof DialogPrimitive.Content>, 'title'
 
 // 오른쪽에 붙는 고치기 패널(와이어프레임 EVT-02B). 뒤 화면을 보며 고치도록 높이 전체에 폭 약 500px(와이어프레임 440px의 1/0.875)이고,
 // 휴대폰(640px 미만)은 전체 화면이다(Material Design full-screen dialog). 머리와 버튼 줄은 붙어 있고 가운데만 스크롤된다.
+// 화면 높이 전체를 덮고 뒤를 가리는 것은 M3 modal side sheet와 shadcn Sheet의 관례이고, 가림막 값(검정 45%)은 앱 대화상자와 같다.
 // 머리(제목, 설명, 닫기) 아래에 SidePanelBody와 SidePanelFooter를 둔다. 폼이면 폼이 둘을 감싸고 `flex min-h-0 flex-1 flex-col`을 준다.
 // 뒤로 가기와 Esc는 다른 창처럼 닫기 버튼과 같은 길로 닫는다(DEC-78). 보내는 중 닫지 않으려면 부모의 onOpenChange가 거절한다.
 export function SidePanelContent({
