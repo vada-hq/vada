@@ -6,6 +6,11 @@
       // Claude Code가 하위 에이전트의 Bash 명령 앞에 부르는 훅이다(.claude/agents/*.md 머리말).
       "entry": [".claude/hooks/block-db-commands.mjs"],
     },
+    "apps/api": {
+      // flows/rehearsal.ts: 리허설 시나리오의 입구다. 흐름 시험(rehearsal.test.ts)이 부르고, 시연 명령(scripts/demo-*.ts, 기능 017 조각 7)이 부른다.
+      // 시연 쪽이 오르기 전에도 시나리오가 내보내는 것(행사 모양, 단계 이름, 시작 시각)을 안 쓰는 내보내기로 잡지 않는다.
+      "entry": ["src/flows/rehearsal.ts"],
+    },
     "apps/web": {
       // make-icons: 사람이 손으로 돌려 아이콘을 만든다. ui-gallery/main.tsx: ui.html이 주소로 부르는 입구다.
       "entry": ["scripts/make-icons.mjs", "src/ui-gallery/main.tsx"],
