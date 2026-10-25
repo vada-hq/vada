@@ -3,6 +3,7 @@ import { CreateEventSchema, type CouncilView, type EventDetail } from '@vada/con
 import { eventsPath } from './event-api'
 import { emptyEventFields, eventFieldsRequest } from './event-fields'
 import { EventDialogShell } from './EventDialogShell'
+import { EventNameField } from './EventFields'
 import { EventForm } from './EventForm'
 import { useEventSubmit, type EventDialogHandlers } from './useEventSubmit'
 
@@ -51,13 +52,22 @@ function CreateForm({ view, saving, setSaving, onClose, taskId, ...handlers }: F
       label="행사 만들기"
       submitLabel="만들기"
       values={values}
-      onValues={setValues}
-      nameOnly
+      layout="dialog"
       valid={submit.valid}
       saving={saving}
       problem={submit.problem}
       onSubmit={() => void submit.submit()}
       onCancel={onClose}
-    />
+    >
+      {errors => (
+        <EventNameField
+          autoFocus
+          values={values}
+          disabled={saving}
+          onChange={setValues}
+          errors={errors}
+        />
+      )}
+    </EventForm>
   )
 }

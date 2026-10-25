@@ -1,66 +1,68 @@
+import type { ReactNode } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
-import { requiredText, useFormCheck } from '@/lib/use-form-check'
-import type { EventFieldValues } from './event-fields'
-import { EventFields, type EventFieldFocus } from './EventFields'
+import { SidePanelBody, SidePanelFooter } from '@/components/ui/side-panel'
+import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { eventFieldErrors, type EventFieldValues } from './event-fields'
 
 type Props = {
   label: string
   submitLabel: string
   values: EventFieldValues
-  onValues: (values: EventFieldValues) => void
-  // 만들기는 이름만 받는다(EventFields).
-  nameOnly?: boolean
-  focus?: EventFieldFocus | undefined
+  // 만들기는 대화상자, 고치기는 오른쪽 패널이다. 패널은 칸이 스크롤되고 버튼 줄이 아래에 붙는다.
+  layout: 'dialog' | 'panel'
   valid: boolean
   saving: boolean
   problem: string | null
   onSubmit: () => void
   onCancel: () => void
+  // 칸들. 누른 뒤의 문제(칸 이름 → 글)를 받아 칸 아래에 보인다.
+  children: (errors: FieldErrors) => ReactNode
 }
-
-// 이름은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝은 시작보다 늦어야 한다.
-const eventErrors = (values: EventFieldValues) => ({
-  name: requiredText(values.name, '이름을'),
-  startsAt: values.endsAt === '' ? undefined : requiredText(values.startsAt, '시작을'),
-  endsAt:
-    values.startsAt !== '' && values.endsAt !== '' && values.endsAt <= values.startsAt
-      ? '시작보다 늦은 시각을 입력해 주세요'
-      : undefined,
-})
 
 // 행사 만들기·고치기 폼. 버튼은 끄지 않고 누를 때 확인한다. 보내는 동안 모든 칸과 버튼을 막는다.
 export function EventForm(props: Props) {
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => eventErrors(props.values))
+  const { formRef, errors, attempt } = useFormCheck(() => eventFieldErrors(props.values))
+  const body = (
+    <>
+      {props.children(errors)}
+      {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
+    </>
+  )
+  const buttons = (
+    <>
+      <Button type="button" variant="outline" busy={props.saving} onClick={props.onCancel}>
+        닫기
+      </Button>
+      <Button type="submit" busy={props.saving}>
+        {props.submitLabel}
+      </Button>
+    </>
+  )
+  const panel = props.layout === 'panel'
   return (
     <form
       ref={formRef}
       noValidate
       aria-label={props.label}
-      className="flex flex-col gap-4"
+      className={panel ? 'flex min-h-0 flex-1 flex-col' : 'flex flex-col gap-4'}
       onSubmit={event => {
         event.preventDefault()
         if (attempt() && props.valid) props.onSubmit()
       }}
     >
-      <EventFields
-        values={props.values}
-        disabled={props.saving}
-        onChange={props.onValues}
-        nameOnly={props.nameOnly}
-        focus={props.focus}
-        errors={fieldErrors}
-      />
-      {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
-      <DialogFooter>
-        <Button type="button" variant="outline" busy={props.saving} onClick={props.onCancel}>
-          닫기
-        </Button>
-        <Button type="submit" busy={props.saving}>
-          {props.submitLabel}
-        </Button>
-      </DialogFooter>
+      {panel ? (
+        <>
+          <SidePanelBody>{body}</SidePanelBody>
+          <SidePanelFooter>{buttons}</SidePanelFooter>
+        </>
+      ) : (
+        <>
+          {body}
+          <DialogFooter>{buttons}</DialogFooter>
+        </>
+      )}
     </form>
   )
 }

@@ -3,6 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { asElement } from '@/test-support/elements'
+import { EventEditSection } from './EventEditSections'
 import { ActionMenuSection } from './MenuSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 
@@ -34,6 +35,17 @@ test('오른쪽 패널 예시는 열고 패널 닫기로 닫을 수 있다', asy
   const panel = await screen.findByRole('dialog', { name: '예시 패널' })
   expect(panel.className).toContain('right-0')
   fireEvent.click(within(panel).getByRole('button', { name: '패널 닫기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('행사 기본정보 수정 패널 예시는 오른쪽에 높이 전체로 열리고(휴대폰은 전체 폭) 닫기로 닫을 수 있다', async () => {
+  render(<EventEditSection />)
+  fireEvent.click(screen.getByRole('button', { name: '기본정보 수정 패널 열기' }))
+  const panel = await screen.findByRole('dialog', { name: '행사 기본정보 수정' })
+  expect(panel.className).toContain('inset-y-0')
+  expect(panel.className).toContain('w-full')
+  expect(panel.className).toContain('sm:w-128')
+  fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 
