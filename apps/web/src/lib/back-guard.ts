@@ -1,4 +1,5 @@
 import { askLeave, hasUnsavedInput } from './leave-guard'
+import { isPopExpected } from './use-window-history'
 
 // 기기·브라우저 뒤로(앞으로)는 막을 수 없다. 저장하지 않은 입력이 있으면 한 칸 되돌려 놓고 묻는다(DEC-78 이동 10).
 // 주소 칸마다 순번을 기록 상태에 달아(INDEX_KEY) 몇 칸을 건넜는지 알고, 창이 쓴 기록 칸(013)은 주소와 순번이 같아 건드리지 않는다.
@@ -30,7 +31,8 @@ function onPop(event: PopStateEvent) {
   }
   const index = indexOf(window.history.state)
   const steps = index - known
-  if (steps === 0 || !hasUnsavedInput()) {
+  // 창 기록이 칸을 거두려고 보낸 이동은 사용자의 뒤로가 아니다. 막으면 창 기록이 끝나지 않아 앱 안 이동이 멈춘다.
+  if (steps === 0 || !hasUnsavedInput() || isPopExpected()) {
     known = index
     return
   }
