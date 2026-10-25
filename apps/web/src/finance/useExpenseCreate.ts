@@ -42,7 +42,10 @@ export function useExpenseCreate(councilId: string, request: unknown, handlers: 
     })
     sending.current = false
     handlers.setSaving(false)
-    if (result.ok) return handlers.onCreated(result.data.expense)
+    if (result.ok) {
+      memo.current = null
+      return handlers.onCreated(result.data.expense)
+    }
     // 같은 번호에 다른 본문이다. 번호를 버려 다음에 누르면 새 지출로 간다.
     if (result.code === 'COMMAND_REUSED') memo.current = null
     if (!reportExpenseLost(handlers, result.status)) setProblem(expenseCreateProblem(result.code))
