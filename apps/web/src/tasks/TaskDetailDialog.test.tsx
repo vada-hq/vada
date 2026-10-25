@@ -8,11 +8,13 @@ import { settle } from '@/test-support/settle'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { openHistory } from '@/test-support/history'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
 import { TASK_LOST } from '@/lib/messages'
 import { TaskDetailDialog } from './TaskDetailDialog'
 
 afterEach(() => {
   cleanup()
+  resetLeaveGuard()
   vi.unstubAllGlobals()
 })
 
@@ -380,4 +382,19 @@ test('떠난 담당자 업무는 아무도 골라지지 않은 채 열리고 다
   })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(api.calls.at(-1)?.body).toEqual({ assigneeId: 'm3' }))
+})
+
+test('고치던 값이 서버 값과 다른 동안만 떠날 때 확인이 걸리고, 되돌리거나 취소하면 풀린다', async () => {
+  setup()
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = screen.getByRole('form', { name: '업무 고치기' })
+  expect(hasUnsavedInput()).toBe(false)
+  const title = within(form).getByLabelText('제목')
+  fireEvent.change(title, { target: { value: '다른 제목' } })
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.change(title, { target: { value: '현수막 주문' } })
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.change(title, { target: { value: '다른 제목' } })
+  fireEvent.click(within(form).getByRole('button', { name: '취소' }))
+  expect(hasUnsavedInput()).toBe(false)
 })
