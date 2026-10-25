@@ -195,3 +195,18 @@ test('휴대폰 서랍에도 같은 공간 묶음이 있다', async () => {
   expect(within(group).getByText('2026 체육대회')).toBeTruthy()
   expect(within(group).getByRole('button', { name: '행사 모두 보기' })).toBeTruthy()
 })
+
+test('서랍의 [+ 새 행사]는 서랍을 닫고 새 행사 창을 열며, 창을 닫으면 초점이 메뉴 열기 단추로 돌아온다', async () => {
+  open()
+  await spaces()
+  const opener = screen.getByRole('button', { name: '메뉴 열기' })
+  fireEvent.click(opener)
+  const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  fireEvent.click(within(sheet).getByRole('button', { name: '새 행사' }))
+  const dialog = await screen.findByRole('dialog', { name: '새 행사' })
+  expect(screen.queryByRole('dialog', { name: '학생회 작업 공간' })).toBeNull()
+  // 창 아래의 [닫기](오른쪽 위 X와 같은 이름)
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '새 행사' })).toBeNull())
+  await waitFor(() => expect(document.activeElement).toBe(opener))
+})
