@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { makeSignature } from 'better-auth/crypto'
+import { appModulesOf } from '../app-modules.js'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
+import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
 import { createPushRoutes } from '../push/routes.js'
 import { createAuth } from './auth.js'
 
@@ -151,6 +153,178 @@ test('auth routes use the existing schema without external services', async t =>
       assert.notEqual(response.status, 200)
       const rows = await pg.query("SELECT id FROM users WHERE email = 'no@example.test'")
       assert.equal(rows.rows.length, 0)
+    })
+  } finally {
+    await close()
+  }
+})
+
+// Google 로그인 콜백을 끝까지 돈다. 토큰 주소만 가짜로 답하고, id_token은 Google 공급자가 서명을 보지 않고 풀어 쓴다(code 흐름).
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+const base64url = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url')
+const unsignedIdToken = (claims: Record<string, unknown>) =>
+  `${base64url({ alg: 'RS256', kid: 'test' })}.${base64url(claims)}.signature`
+const cookieOf = (response: Response) =>
+  response.headers
+    .getSetCookie()
+    .map(item => item.split(';')[0]!)
+    .join('; ')
+const NO_GOOGLE_VALUES = { image: null, tokens: '' }
+
+test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는다', async t => {
+  const { pg, db, close } = await createTestDb()
+  const baseURL = 'http://127.0.0.1:5180'
+  const realFetch = globalThis.fetch
+  let googleProfile: Record<string, unknown> = {}
+  t.mock.method(globalThis, 'fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = input instanceof Request ? input.url : String(input)
+    if (url !== GOOGLE_TOKEN_URL) return realFetch(input, init)
+    return Promise.resolve(
+      Response.json({
+        access_token: 'google-access-token',
+        refresh_token: 'google-refresh-token',
+        id_token: unsignedIdToken(googleProfile),
+        expires_in: 3599,
+        refresh_token_expires_in: 604799,
+        token_type: 'Bearer',
+        scope: 'openid email profile',
+      }),
+    )
+  })
+  try {
+    const auth = createAuth(db, {
+      secret: 'local-test-only-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      baseURL,
+      googleClientId: 'test-client',
+      googleClientSecret: 'test-secret',
+    })
+    const modules = appModulesOf(db, headers => auth.api.getSession({ headers }), {
+      clock: () => new Date(),
+      writeLimiter: createPurchaseWriteLimiter(),
+      receiptKey: 'test-receipt-key',
+    })
+    const app = createApp({ auth, trustedOrigin: baseURL, ...modules })
+    const request = (path: string, init?: RequestInit) => app.request(`${baseURL}${path}`, init)
+    const post = (path: string, cookie: string, body: unknown = {}) =>
+      request(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: baseURL, Cookie: cookie },
+        body: JSON.stringify(body),
+      })
+
+    // 로그인 버튼 → Google → 콜백. 콜백이 보낸 쿠키와 옮겨 가는 주소를 돌려준다.
+    const googleLogin = async (profile: { sub: string; email: string; name: string }) => {
+      googleProfile = {
+        ...profile,
+        email_verified: true,
+        picture: 'https://lh3.googleusercontent.com/a/profile-photo',
+        iss: 'https://accounts.google.com',
+        aud: 'test-client',
+      }
+      const start = await post('/api/auth/sign-in/social', '', {
+        provider: 'google',
+        callbackURL: '/',
+        disableRedirect: true,
+      })
+      assert.equal(start.status, 200)
+      const { url } = (await start.json()) as { url: string }
+      const state = new URL(url).searchParams.get('state') ?? ''
+      const callback = await request(
+        `/api/auth/callback/google?code=test-code&state=${encodeURIComponent(state)}`,
+        { headers: { Cookie: cookieOf(start) } },
+      )
+      assert.equal(callback.status, 302)
+      return { cookie: cookieOf(callback), location: callback.headers.get('location') ?? '' }
+    }
+    // 사용자마다(이메일 순) 사진 주소와, 그 사람 계정들의 토큰 셋·두 만료 시각을 이어 붙인 값. 모두 비었으면 ''다.
+    const storedGoogleValues = async (userId?: string) =>
+      (
+        await pg.query<{ image: string | null; tokens: string }>(
+          `SELECT u.image, concat_ws(',', a.access_token, a.refresh_token, a.id_token,
+             a.access_token_expires_at::text, a.refresh_token_expires_at::text) AS tokens
+           FROM users u LEFT JOIN accounts a ON a.user_id = u.id
+           WHERE $1::text IS NULL OR u.id = $1 ORDER BY u.email, a.provider_id`,
+          [userId ?? null],
+        )
+      ).rows
+    const sessionOf = async (cookie: string) =>
+      (await (await request('/api/auth/get-session', { headers: { Cookie: cookie } })).json()) as {
+        user: { id: string; email: string; image?: string | null }
+      } | null
+
+    const chief = { sub: 'google-sub-chief', email: 'chief@example.test', name: '회장' }
+    const first = await googleLogin(chief)
+    const chiefId = (await sessionOf(first.cookie))?.user.id ?? ''
+    await t.test('처음 로그인하면 사진 주소와 토큰 없이 계정과 세션이 생긴다', async () => {
+      assert.equal(first.location, '/')
+      assert.deepEqual(await storedGoogleValues(), [NO_GOOGLE_VALUES])
+      const session = await sessionOf(first.cookie)
+      assert.equal(session?.user.email, chief.email)
+      assert.equal(session?.user.image ?? null, null)
+    })
+    await t.test('같은 계정으로 다시 로그인해도 같은 계정이고 값이 들어가지 않는다', async () => {
+      const again = await googleLogin(chief)
+      assert.equal(again.location, '/')
+      assert.equal((await sessionOf(again.cookie))?.user.id, chiefId)
+      assert.deepEqual(await storedGoogleValues(), [NO_GOOGLE_VALUES])
+    })
+    await t.test('로그인한 세션으로 학생회를 만들고 다른 사람이 초대로 들어온다', async () => {
+      const created = await post('/api/organizations/create', first.cookie, {
+        name: '컴퓨터학부 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
+        cohortName: '2026',
+        startsOn: '2026-01-01',
+        endsOn: '2026-12-31',
+      })
+      assert.equal(created.status, 201)
+      const { council } = (await created.json()) as { council: { id: string } }
+      const invite = await request(`/api/organizations/${council.id}/invite`, {
+        headers: { Cookie: first.cookie },
+      })
+      const { code } = (await invite.json()) as { code: string }
+      const member = await googleLogin({
+        sub: 'google-sub-member',
+        email: 'member@example.test',
+        name: '부원',
+      })
+      assert.equal((await post('/api/organizations/join', member.cookie, { code })).status, 200)
+      const mine = await request('/api/me/councils', { headers: { Cookie: member.cookie } })
+      assert.equal(((await mine.json()) as { councils: unknown[] }).councils.length, 1)
+      assert.deepEqual(await storedGoogleValues(), [NO_GOOGLE_VALUES, NO_GOOGLE_VALUES])
+    })
+    await t.test('같은 이메일의 다른 Google 계정은 지금처럼 잇지 않는다', async () => {
+      const other = await googleLogin({ ...chief, sub: 'google-sub-other' })
+      assert.match(other.location, /error=account_not_linked/)
+      assert.equal((await pg.query('SELECT id FROM accounts')).rows.length, 2)
+    })
+    await t.test('내 정보 바꾸기와 계정 잇기·갱신 경로도 사진과 토큰을 쓰지 않는다', async () => {
+      const updated = await post('/api/auth/update-user', first.cookie, {
+        image: 'https://example.test/photo.png',
+      })
+      assert.equal(updated.status, 200)
+      const context = await auth.$context
+      const tokens = {
+        accessToken: 'direct-access',
+        refreshToken: 'direct-refresh',
+        idToken: 'direct-id',
+        accessTokenExpiresAt: new Date(),
+        refreshTokenExpiresAt: new Date(),
+      }
+      const linked = await context.internalAdapter.linkAccount({
+        userId: chiefId,
+        providerId: 'google-extra',
+        accountId: 'extra-subject',
+        ...tokens,
+      })
+      await context.internalAdapter.updateAccount(linked.id, tokens)
+      assert.deepEqual(await storedGoogleValues(chiefId), [NO_GOOGLE_VALUES, NO_GOOGLE_VALUES])
+    })
+    await t.test('계정 지우기는 꺼져 있고, 로그아웃하면 세션이 끝난다', async () => {
+      assert.notEqual((await post('/api/auth/delete-user', first.cookie)).status, 200)
+      assert.equal((await pg.query('SELECT id FROM users WHERE id = $1', [chiefId])).rows.length, 1)
+      assert.equal((await post('/api/auth/sign-out', first.cookie)).status, 200)
+      assert.equal(await sessionOf(first.cookie), null)
     })
   } finally {
     await close()
