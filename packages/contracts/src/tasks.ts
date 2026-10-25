@@ -27,6 +27,10 @@ export const TaskListQuerySchema = z.strictObject({
 })
 export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 
+// 만들기 선택지의 쿼리. event는 그 행사의 업무를 만들 때의 선택지다(책임자는 어느 부서로든 만든다).
+export const TaskOptionsQuerySchema = z.strictObject({ event: recordIdInput.optional() })
+export type TaskOptionsQuery = z.infer<typeof TaskOptionsQuerySchema>
+
 // 업무마다 서버가 주는 할 수 있는 동작. 이름은 권한 키(permissions.ts)와 떼어 동작 하나에 이름 하나로 둔다(기능 012 원칙): 서버가 권한 키와 짝짓는다(tasks/policy.ts).
 // 화면은 이것으로 버튼을 보이거나 숨기고 권한을 다시 계산하지 않는다(DEC-38).
 export const TASK_ACTIONS = [
@@ -123,6 +127,20 @@ export interface TaskDetail extends TaskSummary {
 export interface TasksResponse {
   tasks: TaskSummary[]
   truncated: boolean
+}
+// 만들 때 고를 수 있는 (부서, 담당자) 짝. 부서가 null이면 학생회 업무, 담당자가 null이면 담당자 없음이다.
+// 서버가 만들기와 같은 판정(tasks/policy.ts)으로 셌으므로 화면은 권한을 다시 셈하지 않고 여기서 고르기만 한다(DEC-38).
+interface TaskCreateAssignee {
+  id: string | null
+  name: string | null
+}
+interface TaskCreateDepartment {
+  id: string | null
+  name: string | null
+  assignees: TaskCreateAssignee[]
+}
+export interface TaskCreateOptionsResponse {
+  departments: TaskCreateDepartment[]
 }
 export interface TaskResponse {
   task: TaskDetail
