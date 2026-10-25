@@ -130,7 +130,7 @@ export function TaskTable(props: Props) {
                 key={column}
                 role="columnheader"
                 scope="col"
-                className={cn('px-3 py-2 text-xs font-medium text-gray-500', columnWidth(column))}
+                className={cn('px-2 py-2 text-xs font-medium text-gray-500', columnWidth(column))}
               >
                 {COLUMN_LABEL[column]}
               </th>

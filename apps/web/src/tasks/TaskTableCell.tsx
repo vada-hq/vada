@@ -110,7 +110,7 @@ export function TaskTableCell(props: CellProps) {
       tabIndex={props.tabIndex}
       aria-readonly={editable ? undefined : true}
       className={cn(
-        'px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset',
+        'px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset',
         columnWidth(column),
       )}
     >
