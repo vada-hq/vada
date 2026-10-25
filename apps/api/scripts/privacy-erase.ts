@@ -15,6 +15,7 @@ import {
   flagsOf,
   inviteOf,
   isEmail,
+  expectOf,
   optionsOf,
   wholeNumber,
   type Flags,
@@ -30,7 +31,6 @@ import {
 
 const MINUTE_MS = 60_000
 const LEFT_MAX = 100_000
-const EXPECT_MAX = 1_000_000
 
 type Sender = { email: string } | { left: number }
 export type EraseArgs = Flags & {
@@ -63,10 +63,6 @@ function rangeOf(values: Map<string, string>) {
     until: new Date(dateFromKorean(to).getTime() + MINUTE_MS),
   }
 }
-
-// --expect가 없으면 null, 있는데 틀리면 undefined다.
-const expectOf = (values: Map<string, string>) =>
-  values.has('--expect') ? (wholeNumber(values.get('--expect'), 0, EXPECT_MAX) ?? undefined) : null
 
 const NAMES = ['--invite', '--sender', '--left', '--from', '--to', '--expect']
 // erase-messages 뒤의 인자. 틀리면 null이다.

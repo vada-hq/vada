@@ -15,12 +15,17 @@ export const inviteOf = (value: string | undefined) => {
   return code && INVITE.test(code) ? code : null
 }
 
-// 0 이상의 정수 개수(--expect 등). 틀리면 null이다.
+// min과 max 사이의 정수(--left, --expect). 자릿수는 max의 자릿수까지만 받는다. 틀리면 null이다.
 export function wholeNumber(value: string | undefined, min: number, max: number) {
-  if (value === undefined || !/^\d{1,7}$/.test(value)) return null
+  if (value === undefined || !/^\d+$/.test(value) || value.length > String(max).length) return null
   const number = Number(value)
   return number >= min && number <= max ? number : null
 }
+
+// 미리 보기의 개수(--expect). 메시지 지우기와 학생회 파기가 같이 쓴다. 없으면 null, 있는데 틀리면 undefined다.
+const EXPECT_MAX = 1_000_000
+export const expectOf = (values: Map<string, string>) =>
+  values.has('--expect') ? (wholeNumber(values.get('--expect'), 0, EXPECT_MAX) ?? undefined) : null
 
 const FLAGS = ['--apply', '--dry-run', '--from-shell']
 export type Flags = { apply: boolean; fromShell: boolean }

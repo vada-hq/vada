@@ -53,7 +53,8 @@ export async function lockCouncil(tx: Tx, councilId: string) {
 const assertOpen = (closing: boolean) => {
   if (closing) throw new ApiError('COUNCIL_CLOSING')
 }
-async function isClosing(db: Pick<Db, 'select'>, councilId: string) {
+// 그만둔다고 알린 학생회인가. 읽을 때 저절로 만드는 기록(방 채우기)도 이것으로 건너뛴다.
+export async function isClosing(db: Pick<Db, 'select'>, councilId: string) {
   const [row] = await db
     .select({ closingRequestedAt: council.closingRequestedAt })
     .from(council)

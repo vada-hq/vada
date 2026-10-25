@@ -6,14 +6,7 @@ import { destroyCouncilRows, destroyPlanOf, type DestroyPlan } from '../src/coun
 import { council, inviteCode } from '../src/db/schema.js'
 import type { Db, Tx } from '../src/db/types.js'
 import type { FileStorage } from '../src/storage/storage.js'
-import {
-  flagsOf,
-  inviteOf,
-  optionsOf,
-  wholeNumber,
-  type Flags,
-  type Outcome,
-} from './privacy-args.js'
+import { flagsOf, inviteOf, expectOf, optionsOf, type Flags, type Outcome } from './privacy-args.js'
 
 // privacy council-close·council-reopen·council-destroy(기능 021 정한 것 15, DEC-55, DEC-72): 학생회 그만두기.
 // 학생회가 이메일로 알리면 표시하고(읽기만 됨), 이어 쓰면 표시를 지우고, 표시한 날부터 30일이 지났거나 학생회가 바로 지워 달라고 했으면(--now) 파기한다.
@@ -36,7 +29,6 @@ export const COUNCIL_COMMANDS: readonly string[] = [
   'council-destroy',
 ] satisfies CouncilCommand[]
 
-const EXPECT_MAX = 100_000_000
 const NOW_FLAG = '--now'
 
 // 파기만 --now와 --expect를 받는다. 틀리면 null이다.
@@ -53,10 +45,6 @@ export function parseCouncilArgs(command: string, rest: readonly string[]): Coun
   if (expect === undefined) return null
   return { command, invite, now: nowFlags.length === 1, expect, ...flags }
 }
-
-// --expect가 없으면 null, 있는데 틀리면 undefined다.
-const expectOf = (values: Map<string, string>) =>
-  values.has('--expect') ? (wholeNumber(values.get('--expect'), 0, EXPECT_MAX) ?? undefined) : null
 
 const NO_COUNCIL = '그 초대 코드의 학생회가 없다. 아무것도 바꾸지 않았다.'
 const NOT_MARKED =

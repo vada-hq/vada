@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNull, notInArray } from 'drizzle-orm'
-import { lockCouncil } from '../access/authorize.js'
+import { isClosing, lockCouncil } from '../access/authorize.js'
 import {
   chatRoom,
   councilMembership,
@@ -97,12 +97,15 @@ async function reconcileMembers(tx: Tx, roomId: string, wanted: string[]) {
       )
 }
 
+// 그만두는 학생회(DEC-55)는 읽기만 되므로 없는 방을 새로 만들지 않고, 있는 방의 참여 줄만 맞춘다(탈퇴한 사람이 빠진다).
 export async function syncRooms(tx: Tx, scope: Scope) {
   const existing = await existingRooms(tx, scope.councilId)
   const wanted = await wantedRooms(tx, scope)
+  const closing = await isClosing(tx, scope.councilId)
   const claimed = new Set<string>()
   for (const { room, memberIds } of wanted) {
     const found = existing.find(item => sameRoom(room, item as Wanted))
+    if (!found && closing) continue
     const roomId =
       found?.id ??
       (await createRecord(tx, {
@@ -120,6 +123,7 @@ export async function syncRooms(tx: Tx, scope: Scope) {
 
 // 이 기능 전에 만든 학생회는 방이 없다. 방 목록을 처음 읽을 때 한 번 채운다.
 // 이미 있으면 잠그지 않고 돌아가므로 보통의 읽기는 쓰지 않는다. 없으면 학생회 행을 잠그고 다시 보아 두 요청이 방을 둘 만들지 않게 한다.
+// 그만두는 학생회(DEC-55)는 읽기만 되므로 채우지 않는다(방 없이 빈 목록이다).
 export async function ensureCouncilRooms(db: Db, scope: Scope) {
   const hasAllRoom = (reader: Pick<Db, 'select'>) =>
     reader
@@ -130,9 +134,9 @@ export async function ensureCouncilRooms(db: Db, scope: Scope) {
         and(eq(record.councilId, scope.councilId), eq(chatRoom.type, 'all_members'), isPlanRoom),
       )
       .then(rows => rows.length > 0)
-  if (await hasAllRoom(db)) return
+  if ((await hasAllRoom(db)) || (await isClosing(db, scope.councilId))) return
   await db.transaction(async tx => {
-    await lockCouncil(tx, scope.councilId)
-    if (!(await hasAllRoom(tx))) await syncRooms(tx, scope)
+    const { closing } = await lockCouncil(tx, scope.councilId)
+    if (!closing && !(await hasAllRoom(tx))) await syncRooms(tx, scope)
   })
 }

@@ -6,6 +6,7 @@ import { createApp } from '../app.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
 import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
 import { createRecord } from '../records/records.js'
+import { withdrawAccount } from '../withdrawal/service.js'
 import { addUser, seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { fakeStorage } from '../test-support/storage.js'
@@ -22,7 +23,7 @@ const SETTINGS = {
   titles: { president: '회장', vicePresident: '부회장', head: '부장', viceHead: '부부장' },
 }
 
-async function seed(testDb: TestDb) {
+async function seed(testDb: TestDb, { readRooms = true } = {}) {
   const { db, pg } = testDb
   const councils = { s: await seedCouncil(db, pg, 's'), o: await seedCouncil(db, pg, 'o') }
   for (const key of ['s', 'o'] as const) {
@@ -73,20 +74,20 @@ async function seed(testDb: TestDb) {
     assert.equal(response.status, 200)
     return ((await response.json()) as RoomListResponse).rooms[0]!.id
   }
-  const rooms = { s: await roomOf('s'), o: await roomOf('o') }
+  const rooms = readRooms ? { s: await roomOf('s'), o: await roomOf('o') } : { s: '', o: '' }
   const setClosing = (at: string | null) =>
     pg.query('UPDATE council SET closing_requested_at = $2 WHERE id = $1', [
       councils.s.councilId,
       at,
     ])
-  return { api, councils, base, rooms, setClosing }
+  return { testDb, api, councils, base, rooms, setClosing }
 }
 type Kit = Awaited<ReturnType<typeof seed>>
 
-async function withSeed(run: (kit: Kit) => Promise<void>) {
+async function withSeed(run: (kit: Kit) => Promise<void>, options = { readRooms: true }) {
   const testDb = await createTestDb()
   try {
-    await run(await seed(testDb))
+    await run(await seed(testDb, options))
   } finally {
     await testDb.close()
   }
@@ -190,4 +191,69 @@ test('그만두는 학생회의 공개 신청 양식은 마감과 같고, 초대
     )
     for (const [name, send] of writesOf(kit, 's').slice(0, 3))
       assert.ok((await send()).status < 300, name)
+  }))
+
+// 기록 수와 방 수. 그만두는 동안에는 학생회의 기록이 새로 생기지 않는다.
+const countsOf = async ({ testDb, councils }: Kit) => {
+  const { rows } = await testDb.pg.query<{ records: string; rooms: string }>(
+    `SELECT count(*) AS records, count(*) FILTER (WHERE kind = 'chat_room') AS rooms
+       FROM record WHERE council_id = $1`,
+    [councils.s.councilId],
+  )
+  return { records: Number(rows[0]!.records), rooms: Number(rows[0]!.rooms) }
+}
+
+test('그만두는 학생회는 방 목록을 읽어도, 운영진이 탈퇴해도 방 기록을 새로 만들지 않는다. 탈퇴한 사람의 참여 줄은 지운다', () =>
+  withSeed(
+    async kit => {
+      const { api, base, setClosing, testDb } = kit
+      await setClosing(NOON.toISOString())
+      const before = await countsOf(kit)
+      const response = await api.get(`${base('s')}/rooms`, 's-president')
+      assert.equal(response.status, 200)
+      assert.deepEqual(((await response.json()) as RoomListResponse).rooms, [])
+      await testDb.db.transaction(tx => withdrawAccount(tx, 's-plain', NOON))
+      assert.deepEqual(await countsOf(kit), before)
+      assert.equal(before.rooms, 0)
+      // 다른 학생회는 읽을 때 방이 생긴다.
+      assert.ok(
+        ((await (await api.get(`${base('o')}/rooms`, 'o-president')).json()) as RoomListResponse)
+          .rooms.length > 0,
+      )
+    },
+    { readRooms: false },
+  ))
+
+test('방이 있는 그만두는 학생회에서 탈퇴하면 기록은 그대로이고 그 사람의 참여 줄만 빠진다', () =>
+  withSeed(async kit => {
+    const { setClosing, testDb, councils } = kit
+    await setClosing(NOON.toISOString())
+    const before = await countsOf(kit)
+    const joined = (memberId: string) =>
+      testDb.pg.query('SELECT 1 FROM room_membership WHERE member_id = $1', [memberId])
+    assert.ok((await joined(councils.s.people.plain.memberId)).rows.length > 0)
+    await testDb.db.transaction(tx => withdrawAccount(tx, 's-plain', NOON))
+    assert.deepEqual(await countsOf(kit), before)
+    assert.equal((await joined(councils.s.people.plain.memberId)).rows.length, 0)
+  }))
+
+test('그만두는 동안에도 결산을 내보낼 수 있다(DEC-55 내보내기, 약관 12조 ②)', () =>
+  withSeed(async kit => {
+    const { api, base, setClosing, testDb, councils } = kit
+    const periodId = await testDb.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'fiscal_period',
+        councilId: councils.s.councilId,
+        actor: councils.s.people.financeMember.memberId,
+        values: { name: '2026 1학기', startsOn: '2026-03-01', endsOn: '2026-08-31' },
+      }),
+    )
+    await setClosing(NOON.toISOString())
+    const closing = `${base('s')}/fiscal-periods/${periodId}/closing`
+    assert.equal((await api.get(closing, 's-financeMember')).status, 200)
+    for (const type of ['public', 'audit']) {
+      const exported = await api.get(`${closing}/export?type=${type}`, 's-financeMember')
+      assert.equal(exported.status, 200, type)
+      assert.match(exported.headers.get('Content-Type') ?? '', /spreadsheetml/, type)
+    }
   }))

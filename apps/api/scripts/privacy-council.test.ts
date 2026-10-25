@@ -41,6 +41,14 @@ test('인자: 초대 코드와 플래그를 받고, 파기만 --now와 --expect�
       fromShell: false,
     },
   )
+  assert.equal(
+    (
+      parsePrivacyArgs(['council-destroy', '--invite', INVITE, '--expect', '1000000']) as {
+        expect: number
+      }
+    ).expect,
+    1_000_000,
+  )
   assert.deepEqual(parsePrivacyArgs(['council-destroy', '--invite', INVITE]), {
     command: 'council-destroy',
     invite: INVITE,
@@ -60,6 +68,8 @@ test('인자: 초대 코드와 플래그를 받고, 파기만 --now와 --expect�
     ['council-destroy', '--invite', INVITE, '--now', '--now'],
     ['council-destroy', '--invite', INVITE, '--expect'],
     ['council-destroy', '--invite', INVITE, '--expect', '-1'],
+    ['council-destroy', '--invite', INVITE, '--expect', '1000001'],
+    ['council-destroy', '--invite', INVITE, '--expect', '00000001'],
     ['council-destroy', '--invite', INVITE, '--apply', '--dry-run'],
     ['council-destroy', '--invite', INVITE, '--aply'],
     ['council-close', '--invite', INVITE, '--invite', OTHER_INVITE],
