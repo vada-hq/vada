@@ -48,7 +48,7 @@ function Summary({ event }: { event: EventDetail }) {
         </Badge>
         {ended && <span className="text-xs font-medium text-red-700">{ended}</span>}
       </div>
-      <span aria-hidden className="hidden h-4 border-l sm:block" />
+      <span aria-hidden className="hidden h-4 border-l lg:block" />
       <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
         <span className="min-w-0 wrap-anywhere">{ownerLine(event)}</span>
         <Meta icon={CalendarDays}>{whenLabel(event)}</Meta>
