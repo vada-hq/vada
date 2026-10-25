@@ -4,39 +4,14 @@ import { attachWeb } from './web.js'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
-import { createAgreement } from './agreement/routes.js'
+import { appModulesOf } from './app-modules.js'
 import { createAuth } from './auth/auth.js'
-import { createChatPush } from './chat/notify.js'
-import { createChatRoutes } from './chat/routes.js'
-import { createCouncilRoutes } from './councils/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
-import { createInviteRoutes } from './invites/routes.js'
 import { pushConfigFrom } from './push/config.js'
-import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
-import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
-import { createTeamRoutes } from './team/routes.js'
-import { createBudgetRoutes } from './budget/routes.js'
-import { createExpenseRoutes } from './expenses/routes.js'
-import { createClosingRoutes } from './closing/routes.js'
-import { createClosingExportRoutes } from './closing/export-routes.js'
-import { createIncomeRoutes } from './incomes/routes.js'
-import { createPurchasePush } from './purchases/notify.js'
-import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
-import { createAccountRoutes } from './accounts/routes.js'
-import { createEventRoutes } from './events/routes.js'
-import { createDepositRoutes } from './deposits/routes.js'
-import { createSettlementRoutes } from './settlement/routes.js'
-import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
-import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { startPurge } from './purge/run.js'
-import { createRegistrationRoutes } from './registrations/routes.js'
-import { createHomeRoutes } from './home/routes.js'
-import { createTaskPush } from './tasks/notify.js'
-import { createTaskRoutes } from './tasks/routes.js'
-import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
 
 type Env = NodeJS.ProcessEnv
@@ -53,21 +28,11 @@ function connectDb(env: Env) {
 }
 
 // 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로와 대화 알림을 만들지 않는다(대화는 알림 없이 돈다).
-function pushOf(env: Env, db: Db, session: SessionReader) {
+function pushOf(env: Env) {
   const pushConfig = pushConfigFrom(env)
-  if (!pushConfig) return {}
+  if (!pushConfig) return undefined
   console.log('휴대폰 알림 켜짐 (Web Push)')
-  const send = createPushSender(pushConfig)
-  return {
-    routes: createPushRoutes(session, {
-      publicKey: pushConfig.publicKey,
-      send,
-      forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
-    }),
-    chatPush: createChatPush(db, send),
-    taskPush: createTaskPush(db, send),
-    purchasePush: createPurchasePush(db, send),
-  }
+  return { publicKey: pushConfig.publicKey, send: createPushSender(pushConfig) }
 }
 
 // 파일 저장소(R2) 값 넷이 모두 있어야 켠다. 없으면 사진만 막히고 서버와 글 대화는 돈다.
@@ -85,43 +50,14 @@ function appOf(env: Env, db: Db) {
     googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
-  const push = pushOf(env, db, session)
-  // 요청 내기와 지출 적기가 한도 하나를 같이 쓰도록 같은 인스턴스를 둘에 준다.
-  const writeLimiter = createPurchaseWriteLimiter()
-  // 대화와 증빙이 같은 저장소를 쓴다.
-  const storage = storageOf(env)
-  return createApp({
-    auth,
-    trustedOrigin: env.BETTER_AUTH_URL!,
-    councils: createCouncilRoutes(db, session),
-    invites: createInviteRoutes(db, session),
-    team: createTeamRoutes(db, session),
-    chat: createChatRoutes(db, session, { push: push.chatPush, storage }),
-    push: push.routes,
-    pushDevices: createPushDeviceRoutes(db, session),
-    tasks: createTaskRoutes(db, session, { push: push.taskPush }),
-    home: createHomeRoutes(db, session),
-    purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
-    budget: createBudgetRoutes(db, session),
-    expenses: createExpenseRoutes(db, session, {
-      writeLimiter,
-      storage,
-      receiptKey: env.BETTER_AUTH_SECRET!,
-    }),
-    incomes: createIncomeRoutes(db, session, { writeLimiter }),
-    closing: createClosingRoutes(db, session, { bundleAvailable: storage !== undefined }),
-    closingExport: createClosingExportRoutes(db, session, { storage }),
-    agreement: createAgreement(db, session),
-    events: createEventRoutes(db, session),
-    accounts: createAccountRoutes(db, session),
-    registrations: createRegistrationRoutes(db, session),
-    deposits: createDepositRoutes(db, session),
-    settlement: createSettlementRoutes(db, session),
-    feePayments: createFeePaymentRoutes(db, session),
-    publicRegistrations: createPublicRegistrationRoutes(db, {
-      receiptKey: env.BETTER_AUTH_SECRET!,
-    }),
+  const modules = appModulesOf(db, session, {
+    clock: () => new Date(),
+    writeLimiter: createPurchaseWriteLimiter(),
+    receiptKey: env.BETTER_AUTH_SECRET!,
+    storage: storageOf(env),
+    push: pushOf(env),
   })
+  return createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, ...modules })
 }
 
 function listen(
