@@ -20,6 +20,7 @@ test.each([
   '확인 대화상자 열기',
   '일반 확인 대화상자 열기',
   '보내는 중 확인 대화상자 열기',
+  '코드 바꾸기 확인 창 열기',
 ])('%s', name => {
   render(<Gallery />)
   fireEvent.click(screen.getByRole('button', { name }))
