@@ -6,7 +6,7 @@ import {
   type ExpenseResponse,
   type PhotoUploadResponse,
 } from '@vada/contracts'
-import { authorize, inCouncilChange, recordIdOf } from '../access/authorize.js'
+import { authorize, authorizeWrite, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import type { requireSession, SessionEnv } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
@@ -73,12 +73,12 @@ function addViewRoute({ routes, auth, db, clock, storage }: Kit) {
   })
 }
 
-// 403이 404와 503보다 먼저다. 재정부이고 이 학생회의 지출일 때만 지나간다.
+// 403이 404와 503보다 먼저다. 재정부이고 이 학생회의 지출일 때만 지나간다. 그만두는 학생회(DEC-55)면 409다.
 function financeOf({ db, clock }: Kit, c: Context<SessionEnv>) {
   const asked = requestOf(c, 'finance.manage', clock)
   const expenseId = recordIdOf(c.req.param('expenseId'))
   return db.transaction(async tx => {
-    const actor = await authorize(tx, asked)
+    const actor = await authorizeWrite(tx, asked)
     await expenseRowOf(tx, actor, expenseId)
     return actor
   }, snapshot)

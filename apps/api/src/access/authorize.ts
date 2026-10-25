@@ -39,20 +39,46 @@ export async function authorize(
 
 // 학생회 행을 잠가 같은 학생회의 조직 변경(권한을 본 뒤 바꾸는 일, 초대 코드 바꾸기, 초대로 들어오기)을 한 번에 하나씩 처리한다. 잠금은 이 한 곳에만 둔다.
 // FOR NO KEY UPDATE라서 이 학생회를 가리키는 기록을 넣을 때의 외래 키 검사(FOR KEY SHARE)는 기다리지 않는다.
+// 잠근 뒤 읽은 그만두기 표시를 돌려준다(그만두기 표시도 이 행을 바꾸므로 잠금을 기다린 뒤의 값이다).
 export async function lockCouncil(tx: Tx, councilId: string) {
-  await tx
-    .select({ id: council.id })
+  const [row] = await tx
+    .select({ closingRequestedAt: council.closingRequestedAt })
     .from(council)
     .where(eq(council.id, councilIdOf(councilId)))
     .for('no key update')
+  return { closing: Boolean(row?.closingRequestedAt) }
 }
 
-// 바꾸기: 학생회 행을 잠근 뒤 요청한 사람의 소속과 권한을 다시 본다.
+// 그만둔다고 알린 학생회(DEC-55)는 파기할 때까지 읽기만 된다. 운영진이 아니면 먼저 403이라 그만두는지 드러나지 않는다.
+const assertOpen = (closing: boolean) => {
+  if (closing) throw new ApiError('COUNCIL_CLOSING')
+}
+async function isClosing(db: Pick<Db, 'select'>, councilId: string) {
+  const [row] = await db
+    .select({ closingRequestedAt: council.closingRequestedAt })
+    .from(council)
+    .where(eq(council.id, councilId))
+  return Boolean(row?.closingRequestedAt)
+}
+
+// 바꾸기: 학생회 행을 잠근 뒤 요청한 사람의 소속과 권한을 다시 보고, 그만두는 학생회면 409다.
 // 잠근 뒤의 다시 보기는 READ COMMITTED(PostgreSQL 기본)에 기댄다. 문장마다 그 시점까지 커밋된 값을 보므로, 잠금을 기다린 사이에
 // 내보내진 사람의 소속이 다시 읽는 문장에 보인다. REPEATABLE READ 이상이면 거래 시작 때의 값을 계속 봐서 이 다시 보기가 소용없다.
 export async function authorizeChange(tx: Tx, request: AccessRequest): Promise<Actor> {
-  await lockCouncil(tx, request.councilId)
-  return authorize(tx, request)
+  const { closing } = await lockCouncil(tx, request.councilId)
+  const actor = await authorize(tx, request)
+  assertOpen(closing)
+  return actor
+}
+
+// 학생회 행을 잠그지 않는 쓰기(대화 보내기, 사진·증빙 올리기 주소)의 권한. 권한을 본 뒤 그만두는 학생회면 409다.
+export async function authorizeWrite(
+  db: Pick<Db, 'select'>,
+  request: AccessRequest,
+): Promise<Actor> {
+  const actor = await authorize(db, request)
+  assertOpen(await isClosing(db, actor.councilId))
+  return actor
 }
 
 // 학생회 하나를 바꾸는 요청의 거래 하나: 학생회 행을 잠그고(authorizeChange), 권한을 다시 본 뒤, run이 바꾸고 응답에 쓸 값까지 만든다.

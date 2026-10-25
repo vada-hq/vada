@@ -15,6 +15,12 @@ import {
 } from '../src/withdrawal/service.js'
 import { flagsOf, isEmail, optionsOf, type Flags, type Outcome } from './privacy-args.js'
 import {
+  COUNCIL_COMMANDS,
+  councilWorkOf,
+  parseCouncilArgs,
+  type CouncilArgs,
+} from './privacy-council.js'
+import {
   applyErase,
   NO_EXPECT,
   NO_STORAGE,
@@ -29,9 +35,10 @@ import {
 // 하는 일: withdraw --email <가입 이메일>. 이메일로 온 탈퇴 요청과 만 14세 미만 정리를 앱의 탈퇴와 같은 서비스로 한다(처리방침 6조 ④, 2조, DEC-72).
 // 본인 확인은 사람이 먼저 한다(DEC-72). 회장 막기는 앱과 같고, 다시 로그인 검사만 없다.
 // erase-messages: 학생회의 요청으로 메시지와 사진을 지운다(DEC-88, privacy-erase.ts).
+// council-close·council-reopen·council-destroy: 학생회 그만두기 표시, 이어 쓰기, 30일 뒤 파기(DEC-55, privacy-council.ts).
 
 type WithdrawArgs = Flags & { command: 'withdraw'; email: string }
-export type PrivacyArgs = WithdrawArgs | EraseArgs
+export type PrivacyArgs = WithdrawArgs | EraseArgs | CouncilArgs
 
 function parseWithdrawArgs(rest: readonly string[]): WithdrawArgs | null {
   const options = optionsOf(rest, ['--email'])
@@ -41,15 +48,17 @@ function parseWithdrawArgs(rest: readonly string[]): WithdrawArgs | null {
   return { command: 'withdraw', email, ...flags }
 }
 
-// withdraw --email <이메일>, erase-messages(privacy-erase.ts)와 --apply, --dry-run, --from-shell만 받는다. 그 밖은 null이다.
+// withdraw --email <이메일>, erase-messages(privacy-erase.ts), council-*(privacy-council.ts)와 --apply, --dry-run, --from-shell만 받는다.
+// 그 밖은 null이다.
 export function parsePrivacyArgs(args: readonly string[]): PrivacyArgs | null {
   const [command, ...rest] = args
   if (command === 'withdraw') return parseWithdrawArgs(rest)
-  return command === 'erase-messages' ? parseEraseArgs(rest) : null
+  if (command === 'erase-messages') return parseEraseArgs(rest)
+  return command && COUNCIL_COMMANDS.includes(command) ? parseCouncilArgs(command, rest) : null
 }
 
 const USAGE =
-  '사용법: withdraw --email <가입 이메일> [--apply] [--from-shell], erase-messages --invite <초대 코드> (--sender <이메일> | --left <N>) --from <YYYY-MM-DDTHH:MM> --to <YYYY-MM-DDTHH:MM> [--expect <개수>] [--apply] [--from-shell] (한국 시각, pnpm --filter @vada/api privacy ...). 아무것도 하지 않았다.'
+  '사용법: withdraw --email <가입 이메일> [--apply] [--from-shell], erase-messages --invite <초대 코드> (--sender <이메일> | --left <N>) --from <YYYY-MM-DDTHH:MM> --to <YYYY-MM-DDTHH:MM> [--expect <개수>] [--apply] [--from-shell] (한국 시각), council-close --invite <초대 코드>, council-reopen --invite <초대 코드>, council-destroy --invite <초대 코드> [--now] [--expect <기록 수>] (셋 다 [--apply] [--from-shell], pnpm --filter @vada/api privacy ...). 아무것도 하지 않았다.'
 const NO_ACCOUNT = '그 이메일로 가입한 계정이 없다. 아무것도 바꾸지 않았다.'
 const PRESIDENT =
   '어느 학생회든 지금 기수의 회장이다. 회장 직급을 넘긴 뒤에 탈퇴할 수 있다(혼자 남은 회장은 학생회 그만두기를 거친다). 아무것도 바꾸지 않았다.'
@@ -62,7 +71,7 @@ export type PrivacyRun = {
   shellUrl: string | undefined
   readEnvUrl: () => string | undefined
   connect: (url: string) => { db: Db; end: () => Promise<void> }
-  // 사진 저장소(R2). erase-messages만 쓰고, 없으면 연결하기 전에 멈춘다.
+  // 저장소(R2). erase-messages와 council-destroy만 쓰고, 없으면 연결하기 전에 멈춘다.
   storage?: () => FileStorage | null
   now: () => Date
   log: { info: (line: string) => void; error: (line: string) => void }
@@ -101,10 +110,12 @@ async function apply(db: Db, email: string, now: Date): Promise<Outcome> {
 type Work = (db: Db) => Promise<Outcome>
 type Resolved = { stop: string } | { args: PrivacyArgs; work: Work; url: string; source: string }
 
-// 할 일을 고른다. erase-messages는 --apply에 --expect가 없거나 저장소가 없으면 연결하기 전에 멈춘다.
+// 할 일을 고른다. erase-messages와 council-destroy는 --apply에 --expect가 없거나 저장소가 없으면 연결하기 전에 멈춘다.
 function workOf(run: PrivacyRun, args: PrivacyArgs): Work | { stop: string } {
   if (args.command === 'withdraw')
     return db => (args.apply ? apply : preview)(db, args.email, run.now())
+  if (args.command !== 'erase-messages')
+    return councilWorkOf(args, run.now(), run.storage, NO_STORAGE)
   if (args.apply && args.expect === null) return { stop: NO_EXPECT }
   const storage = run.storage?.() ?? null
   if (!storage) return { stop: NO_STORAGE }

@@ -11,7 +11,15 @@ import {
 } from '../src/chat/erase.js'
 import type { FileStorage } from '../src/storage/storage.js'
 import { joinedDisplayNameOf } from '../src/team/display-name.js'
-import { flagsOf, isEmail, optionsOf, type Flags, type Outcome } from './privacy-args.js'
+import {
+  flagsOf,
+  inviteOf,
+  isEmail,
+  optionsOf,
+  wholeNumber,
+  type Flags,
+  type Outcome,
+} from './privacy-args.js'
 
 // privacy erase-messages(기능 021 정한 것 14, DEC-54, DEC-88): 학생회의 요청으로 한 사람이 정한 때 사이에 보낸 메시지와 사진을 지운다.
 // 학생회는 초대 코드로 가린다. 학생회 번호나 이름을 DB에서 찾아보지 않으려는 것이다. 보낸 사람은 그 학생회 운영진의 이메일이나,
@@ -20,7 +28,6 @@ import { flagsOf, isEmail, optionsOf, type Flags, type Outcome } from './privacy
 // --apply는 --expect가 미리 보기의 메시지 개수와 같을 때만 쓴다. 차례: 저장소의 사진 객체를 지우고, 그다음 한 거래로 비운다.
 // 거래가 실패해도 다시 돌리면 끝까지 간다(이미 지운 객체는 저장소가 성공으로 본다).
 
-const INVITE = /^[2-9A-HJ-NP-Z]{8}$/
 const MINUTE_MS = 60_000
 const LEFT_MAX = 100_000
 const EXPECT_MAX = 1_000_000
@@ -33,12 +40,6 @@ export type EraseArgs = Flags & {
   from: Date
   until: Date
   expect: number | null
-}
-
-function wholeNumber(value: string | undefined, min: number, max: number) {
-  if (value === undefined || !/^\d{1,7}$/.test(value)) return null
-  const number = Number(value)
-  return number >= min && number <= max ? number : null
 }
 
 function senderOf(values: Map<string, string>): Sender | null {
@@ -73,11 +74,11 @@ export function parseEraseArgs(rest: readonly string[]): EraseArgs | null {
   const options = optionsOf(rest, NAMES)
   const flags = options && flagsOf(options.flags)
   if (!options || !flags) return null
-  const invite = options.values.get('--invite')?.toUpperCase()
+  const invite = inviteOf(options.values.get('--invite'))
   const sender = senderOf(options.values)
   const range = rangeOf(options.values)
   const expect = expectOf(options.values)
-  if (!invite || !INVITE.test(invite) || !sender || !range || expect === undefined) return null
+  if (!invite || !sender || !range || expect === undefined) return null
   return { command: 'erase-messages', invite, sender, ...range, expect, ...flags }
 }
 

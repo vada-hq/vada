@@ -134,6 +134,13 @@
       "when": 1792955053611,
       "tag": "0018_message_deleted_at",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792965189658,
+      "tag": "0019_council_closing",
+      "breakpoints": true
     }
   ]
 }

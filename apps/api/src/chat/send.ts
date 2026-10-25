@@ -3,7 +3,7 @@ import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { chatRoom, roomMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
-import { authorize, authorizeChange, type AccessRequest } from '../access/authorize.js'
+import { authorizeChange, authorizeWrite, type AccessRequest } from '../access/authorize.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
@@ -129,13 +129,14 @@ export async function sendMessage(
 }
 
 // 요청한 사람의 권한을 보고 보낸다. 업무를 잇는 보내기는 업무 상태를 옮기는 쓰기라 다른 직원 쓰기처럼 학생회 행을 잠근 뒤 권한을 다시 본다.
+// 그만두는 학생회(DEC-55)에는 어느 쪽이든 보내지 못한다.
 // 라우트가 아니라 여기서 정하므로 이 길을 지나는 시험(pg-smoke 포함)이 잠금을 함께 확인한다.
 export async function sendAs(
   tx: Tx,
   request: AccessRequest,
   input: SendInput,
 ): Promise<ChatMessage> {
-  const actor = await (input.taskId ? authorizeChange(tx, request) : authorize(tx, request))
+  const actor = await (input.taskId ? authorizeChange(tx, request) : authorizeWrite(tx, request))
   return sendMessage(tx, actor, input, request.now)
 }
 

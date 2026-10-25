@@ -15,7 +15,13 @@ import {
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
-import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
+import {
+  authorize,
+  authorizeWrite,
+  councilIdOf,
+  inCouncilChange,
+  recordIdOf,
+} from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
@@ -147,8 +153,9 @@ function photoRoutes({ routes, auth, db, asked, uploadLimiter, storage }: Kit) {
     const request = asked(c)
     if (!uploadLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
     const roomId = recordIdOf(c.req.param('roomId'))
+    // 그만두는 학생회(DEC-55)에는 사진을 올리지 못한다.
     const actor = await db.transaction(async tx => {
-      const asking = await authorize(tx, request)
+      const asking = await authorizeWrite(tx, request)
       await roomAccess(tx, asking, roomId)
       return asking
     }, snapshot)

@@ -1,4 +1,6 @@
 // 여러 화면이 같이 쓰는 안내 문구. 같은 사정에는 같은 말을 한다.
+// 학생회를 바꾸는 화면의 오류 표는 changeErrors로 만들어 그만두는 학생회(COUNCIL_CLOSING)에 같은 말을 한다.
+import { changeErrors } from './change-errors'
 
 // 저장 요청이 실패했는데 표에 없는 이유일 때 쓰는 일반 문구.
 export const SAVE_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
@@ -39,31 +41,31 @@ export const JOIN_COUNCIL_ERRORS: Record<string, string> = {
 }
 export const JOIN_COUNCIL_FAILED = '들어가지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
-export const COUNCIL_SETTINGS_ERRORS: Record<string, string> = {
+export const COUNCIL_SETTINGS_ERRORS = changeErrors({
   COHORT_NOT_STARTED,
   // 기수 고치기에서 이미 시작한 다른 기수보다 임기 시작을 앞으로 옮겼다(서버 COHORT_NOT_LATEST).
   COHORT_NOT_LATEST: '임기 시작을 지난 기수보다 앞으로 옮길 수 없어요.',
   FORBIDDEN: PERMISSION_CHANGED,
-}
+})
 
 // 조직 화면은 지금 사람이 있는 부서의 '없애기'에 서버에 묻지 않고 이 문구를 보인다.
 export const DEPARTMENT_IN_USE = '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.'
 
-export const DEPARTMENT_ERRORS: Record<string, string> = {
+export const DEPARTMENT_ERRORS = changeErrors({
   DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
   DEPARTMENT_IN_USE,
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: NOT_FOUND_RELOADED,
-}
+})
 
-export const PEOPLE_ERRORS: Record<string, string> = {
+export const PEOPLE_ERRORS = changeErrors({
   PRESIDENT_CANNOT_LEAVE: '회장은 내보낼 수 없어요. 먼저 회장을 넘겨 주세요.',
   CANNOT_REMOVE_SELF: '나를 내보낼 수는 없어요.',
   PRESIDENT_REQUIRED: '회장의 직급은 회장 넘기기로만 바꿀 수 있어요.',
   ALREADY_PRESIDENT: '이미 회장이에요.',
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: NOT_FOUND_RELOADED,
-}
+})
 
 // 탈퇴 확인 창. 오류는 버튼 옆에 보인다. 표에 없는 코드는 일반 문구다(profile/useWithdrawal.ts).
 export const WITHDRAW_ERRORS: Record<string, string> = {
@@ -99,20 +101,20 @@ export const ROOM_SYNC_FAILED = '새 메시지를 불러오지 못하고 있어�
 export const OLDER_LOAD_FAILED = '이전 메시지를 불러오지 못했어요.'
 
 // 1:1 열기는 그 동작 옆에 오류를 보인다. 표에 없는 코드는 일반 문구다.
-export const DIRECT_ERRORS: Record<string, string> = {
+export const DIRECT_ERRORS = changeErrors({
   CANNOT_DIRECT_SELF: '나와는 1:1 대화를 열 수 없어요.',
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: '이 운영진을 찾지 못했어요. 목록을 새로 불러왔어요.',
-}
+})
 export const DIRECT_FAILED = '1:1 대화를 열지 못했어요. 다시 시도해 주세요.'
 export const DIRECT_PEOPLE_FAILED = '운영진을 불러오지 못했어요. 연결을 확인해 주세요.'
 
 // 행사(목록, 상세, 만들기, 고치기). 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
-export const EVENT_ERRORS: Record<string, string> = {
+export const EVENT_ERRORS = changeErrors({
   TASK_INVALID,
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const EVENT_FAILED = '저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const EVENTS_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EVENT_LOAD_FAILED = '행사를 불러오지 못했어요. 연결을 확인해 주세요.'
@@ -123,7 +125,7 @@ export const SETTLEMENT_LOAD_FAILED = '정산을 불러오지 못했어요. 연�
 const PERIOD_CLOSED =
   '결산을 공개한 기간이라 바꿀 수 없어요. 재정부가 결산을 다시 열면 바꿀 수 있어요.'
 
-export const COMPLETION_ERRORS: Record<string, string> = {
+export const COMPLETION_ERRORS = changeErrors({
   SETTLEMENT_PENDING: '아직 정산이 끝나지 않았어요. 남은 것을 처리한 뒤에 완료해 주세요.',
   EVENT_NOT_ENDED: '끝난 뒤에 완료할 수 있어요.',
   PERIOD_CLOSED,
@@ -133,7 +135,7 @@ export const COMPLETION_ERRORS: Record<string, string> = {
   EVENT_NOT_COMPLETED: '완료한 행사가 아니에요. 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const COMPLETION_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 // 행사 머리의 상태 행동 자리에 버튼 대신 두는 막힌 까닭(서버 blockers). 요약 줄 한 칸이라 명사형 한 줄이고, 거절 뒤의 문구는 위 COMPLETION_ERRORS다.
 export const COMPLETION_BLOCKED: Record<string, string> = {
@@ -147,14 +149,14 @@ export const EVENT_COMPLETED_NOTICE = '완료한 행사라 바꿀 수 없어요.
 const EVENT_INVALID = '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.'
 
 // 업무 상세와 만들기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
-export const TASK_ERRORS: Record<string, string> = {
+export const TASK_ERRORS = changeErrors({
   EVENT_INVALID,
   TASK_ASSIGNEE_INVALID:
     '이 학생회의 지금 운영진만 담당자가 될 수 있어요. 다른 사람을 골라 주세요.',
   TASK_DEPARTMENT_INVALID: '이 학생회의 부서가 아니에요. 다른 부서를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 // 담당자 되돌리기에서 이전 담당자가 그 사이 운영진이 아니게 되었을 때
 export const UNDO_ASSIGNEE_INVALID =
   '이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.'
@@ -167,7 +169,7 @@ export const TASK_OPTIONS_LOADING = '부서와 담당자를 불러오는 중이�
 export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어요. 연결을 확인해 주세요.'
 
 // 메시지 보내기와 사진 올리기. 오류는 입력칸 옆에 보인다. 표에 없는 코드는 일반 문구다.
-export const SEND_ERRORS: Record<string, string> = {
+export const SEND_ERRORS = changeErrors({
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 보내 주세요.',
   ROOM_READ_ONLY: '이 방은 보기만 할 수 있어요.',
   TASK_INVALID,
@@ -176,7 +178,7 @@ export const SEND_ERRORS: Record<string, string> = {
   STORAGE_NOT_CONFIGURED:
     '지금은 사진을 보낼 수 없어요. 글은 보낼 수 있어요. 사진을 빼고 보내 주세요.',
   PHOTO_ALREADY_SENT: '이미 보낸 사진이에요. 그 사진을 빼고 보내 주세요.',
-}
+})
 export const SEND_FAILED = '보내지 못했어요. 글과 사진은 그대로 있어요. 다시 보내 주세요.'
 export const PHOTO_TOO_BIG = '사진이 너무 커요. 다른 사진을 골라 주세요.'
 export const PHOTO_CANNOT_OPEN = '이 사진을 열 수 없어요. 다른 사진을 골라 주세요.'
@@ -188,11 +190,11 @@ export const HOME_LOAD_FAILED = '홈을 불러오지 못했어요. 연결을 확
 
 // 업무 목록과 카드. 상태 바꾸기 오류는 그 카드 안에 보인다. 표에 없는 코드는 일반 문구다.
 export const TASKS_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
-export const TASK_STATUS_ERRORS: Record<string, string> = {
+export const TASK_STATUS_ERRORS = changeErrors({
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: '이 업무는 지워졌어요. 목록을 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 바꾸고 있어요. 잠시 뒤에 다시 해 주세요.',
-}
+})
 export const TASK_STATUS_FAILED = '상태를 바꾸지 못했어요. 다시 시도해 주세요.'
 
 // 알림이 꺼져 있다는 띠의 문구. 화면이 무엇을 놓칠 수 있는지에 맞춘다.
@@ -204,7 +206,7 @@ export const FINANCE_PUSH_OFF = '휴대폰 알림이 꺼져 있어요. 새 요�
 export const PURCHASES_LOAD_FAILED = '구매 요청을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const PURCHASE_LOAD_FAILED = '이 요청을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const PURCHASE_LOST = '이 요청을 볼 수 없어요. 다른 학생회의 요청이거나 없어졌을 수 있어요.'
-export const PURCHASE_ERRORS: Record<string, string> = {
+export const PURCHASE_ERRORS = changeErrors({
   REQUEST_CLOSED: '이미 결재가 시작됐거나 취소된 요청이라 취소할 수 없어요. 새로 불러왔어요.',
   EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   LINE_ITEM_DECIDED: '이미 결재된 품목이 있어요. 요청을 새로 불러왔으니 확인해 주세요.',
@@ -219,19 +221,19 @@ export const PURCHASE_ERRORS: Record<string, string> = {
     '이 메시지를 더는 볼 수 없어 요청을 낼 수 없어요. 방에서 나갔는지 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const PURCHASE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 // 결재는 취소와 같은 코드를 쓰지만 문구가 다르다.
-export const DECIDE_ERRORS: Record<string, string> = {
+export const DECIDE_ERRORS = changeErrors({
   ...PURCHASE_ERRORS,
   REQUEST_CLOSED: '취소된 요청이라 결재할 수 없어요. 새로 불러왔어요.',
   EVENT_MISMATCH: '요청과 다른 행사의 예산 항목이에요. 다른 항목을 골라 주세요.',
-}
+})
 
 // 예산 탭: 회계 기간 만들기와 예산 항목 더하기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const BUDGET_LOAD_FAILED = '예산을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const BUDGET_LOST = '예산을 볼 수 없어요. 학생회를 새로 불러왔어요.'
-export const BUDGET_ERRORS: Record<string, string> = {
+export const BUDGET_ERRORS = changeErrors({
   FISCAL_PERIOD_CONFLICT:
     '기간이 겹치거나 같은 이름의 회계 기간이 있어요. 이름과 날짜를 확인해 주세요.',
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 먼저 회계 기간을 만들어 주세요.',
@@ -239,13 +241,13 @@ export const BUDGET_ERRORS: Record<string, string> = {
   EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const BUDGET_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 
 // 계좌 탭: 더하기, 고치기, 닫기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const ACCOUNTS_LOAD_FAILED = '계좌를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const ACCOUNT_LOST = '이 계좌를 볼 수 없어요. 계좌를 새로 불러왔어요.'
-export const ACCOUNT_ERRORS: Record<string, string> = {
+export const ACCOUNT_ERRORS = changeErrors({
   MAIN_ACCOUNT_EXISTS:
     '대표 계좌가 이미 있어요. 그 계좌를 먼저 사업용으로 바꾸거나 닫은 뒤에 정해 주세요.',
   ACCOUNT_NAME_TAKEN: '같은 이름의 계좌가 있어요. 다른 이름을 적어 주세요.',
@@ -253,19 +255,19 @@ export const ACCOUNT_ERRORS: Record<string, string> = {
   ACCOUNT_IN_USE: '신청 양식이 쓰는 계좌예요. 계좌를 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const ACCOUNT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 
 // 납부자 명단 탭: 올리기와 빼기. 오류는 그 동작 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const FEE_PAYMENTS_LOAD_FAILED = '납부자 명단을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const FEE_PAYMENT_SEARCH_INVALID = '학번은 숫자로, 너무 길지 않게 써 주세요.'
 export const FEE_PAYMENT_LOST = '이 학번은 이미 비워졌어요. 명단을 새로 불러왔어요.'
-export const FEE_PAYMENT_ERRORS: Record<string, string> = {
+export const FEE_PAYMENT_ERRORS = changeErrors({
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT:
     '올릴 수 없는 내용이에요. 학번이 비었거나 한 번에 올릴 수 있는 수를 넘었는지 확인해 주세요.',
   BODY_TOO_LARGE: '한 번에 올리기에는 너무 많아요. 나누어서 올려 주세요.',
-}
+})
 export const FEE_PAYMENT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 export const EXPENSE_ACCOUNTS_FAILED =
   '계좌 목록을 불러오지 못했어요. 계좌 없이 적을 수 있어요. 계좌를 정하려면 이 창을 닫았다가 다시 열어 주세요.'
@@ -277,7 +279,7 @@ export const EXPENSES_LOAD_FAILED = '지출을 불러오지 못했어요. 연결
 export const EXPENSE_LOAD_FAILED = '이 지출을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EXPENSE_LOST = '이 지출을 볼 수 없어요. 다른 학생회의 지출이거나 없어졌을 수 있어요.'
 export const EXPENSE_OPTIONS_FAILED = '고를 목록을 불러오지 못했어요. 연결을 확인해 주세요.'
-export const EXPENSE_ERRORS: Record<string, string> = {
+export const EXPENSE_ERRORS = changeErrors({
   LINE_ITEM_NOT_PAYABLE:
     '결제할 수 없는 품목이 있어요. 승인되지 않았거나 취소된 요청이에요. 품목을 다시 골라 주세요.',
   MEMBER_INVALID: '먼저 낸 사람이나 부탁한 사람이 지금 운영진이 아니에요. 다른 사람을 골라 주세요.',
@@ -300,21 +302,21 @@ export const EXPENSE_ERRORS: Record<string, string> = {
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 // 지출 적기의 409 MESSAGE_INVALID는 근거 메시지 이야기라 사진 고르기·붙이기와 문구가 다르다.
-export const EXPENSE_CREATE_ERRORS: Record<string, string> = {
+export const EXPENSE_CREATE_ERRORS = changeErrors({
   ...EXPENSE_ERRORS,
   MESSAGE_INVALID:
     '이 메시지를 근거로 할 수 없어요. 볼 수 없는 대화의 메시지예요. 닫고 대화에서 다시 열어 주세요.',
   COMMAND_REUSED: '앞서 보내던 지출과 달라서 새로 준비했어요. 다시 적어 주세요.',
   COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 적어 주세요.',
-}
+})
 
 // 대화 사진을 증빙으로 붙일 때(사진 고르기, 메시지의 사진). 올린 파일이 아니라 대화의 사진이라 다시 올리라고 하지 않는다.
-export const CHAT_EVIDENCE_ERRORS: Record<string, string> = {
+export const CHAT_EVIDENCE_ERRORS = changeErrors({
   ...EXPENSE_ERRORS,
   UPLOAD_MISMATCH: '이 사진은 증빙으로 붙일 수 없는 파일이에요. 다른 사진을 골라 주세요.',
-}
+})
 export const ACTION_GONE = '지금은 할 수 없는 동작이에요. 화면을 새로 불러왔어요.'
 export const EXPENSE_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const CHAT_PHOTOS_FAILED = '대화 사진을 불러오지 못했어요. 연결을 확인해 주세요.'
@@ -327,7 +329,7 @@ export const INCOME_LOAD_FAILED = '이 수입을 불러오지 못했어요. 연�
 export const INCOME_LOST = '이 수입을 볼 수 없어요. 다른 학생회의 수입이거나 없어졌을 수 있어요.'
 export const PERIODS_LOAD_FAILED = '회계 기간을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const INCOME_ITEMS_FAILED = '예산 항목을 불러오지 못했어요. 항목 없이 적을 수 있어요.'
-export const INCOME_ERRORS: Record<string, string> = {
+export const INCOME_ERRORS = changeErrors({
   NO_FISCAL_PERIOD:
     '받은 날이 든 회계 기간이 없어요. 날짜를 확인하거나 예산 탭에서 기간을 먼저 만들어 주세요.',
   PERIOD_CLOSED,
@@ -340,7 +342,7 @@ export const INCOME_ERRORS: Record<string, string> = {
     '참가비와 이월금 수입은 직접 취소할 수 없어요. 행사 완료를 취소하거나 결산을 다시 열면 바뀌어요. 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const INCOME_PERIOD_NOT_STARTED =
   '이 기간은 아직 시작하지 않아 받은 날을 고를 수 없어요. 시작한 뒤에 적어 주세요.'
 export const INCOME_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
@@ -351,7 +353,7 @@ export const CLOSING_LOST = '이 기간을 볼 수 없어요. 다른 학생회�
 export const CLOSING_HIDDEN = '결산이 공개되면 보여요.'
 // 재정 개요 탭: 지금 기간의 결산서를 읽어 예산과 쓴 돈을 보인다.
 export const OVERVIEW_LOAD_FAILED = '재정 개요를 불러오지 못했어요. 연결을 확인해 주세요.'
-export const CLOSING_ERRORS: Record<string, string> = {
+export const CLOSING_ERRORS = changeErrors({
   PERIOD_NOT_ENDED: '아직 끝나지 않은 기간이에요. 기간이 끝난 다음 날부터 공개할 수 있어요.',
   PREVIOUS_PERIOD_OPEN: '앞 기간의 결산이 아직 공개되지 않았어요. 앞 기간부터 공개해 주세요.',
   CLOSING_NEGATIVE: '남은 돈이 0원보다 적어서 공개할 수 없어요. 수입과 지출을 확인해 주세요.',
@@ -365,6 +367,6 @@ export const CLOSING_ERRORS: Record<string, string> = {
   STORAGE_NOT_CONFIGURED: '지금은 증빙 묶음을 만들 수 없어요. 나중에 다시 해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 export const CLOSING_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const CLOSING_EXPORT_FAILED = '파일을 받지 못했어요. 연결을 확인하고 다시 시도해 주세요.'

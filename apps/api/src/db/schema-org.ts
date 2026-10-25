@@ -40,6 +40,8 @@ export const council = pgTable('council', {
   vicePresidentTitle: text('vice_president_title').notNull().default('부회장'),
   headTitle: text('head_title').notNull().default('부장'),
   viceHeadTitle: text('vice_head_title').notNull().default('부부장'),
+  // 그만둔다고 알린 시각(0019, DEC-55). 있으면 학생회는 읽기만 되고, 30일 뒤 privacy council-destroy로 파기한다.
+  closingRequestedAt: at('closing_requested_at'),
 })
 
 // 탈퇴하면 이름과 이메일을 비우고 탈퇴한 시각을 넣는다(RULE-16). 이름은 표시 이름 도우미(team/display-name.ts)로만 읽는다.
