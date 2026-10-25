@@ -1,16 +1,14 @@
 import { useState } from 'react'
-import { CreateFiscalPeriodSchema, type BudgetResponse } from '@vada/contracts'
+import { CreateFiscalPeriodSchema, koreanDateOf, semesterOf } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { requiredText, useFormCheck } from '@/lib/use-form-check'
-import { periodDefaults } from './budget-form'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { fiscalPeriodsPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
 type Props = BudgetChangeHandlers & {
   councilId: string
-  suggested: BudgetResponse['suggested']
   onClose: () => void
 }
 
@@ -25,9 +23,9 @@ const periodErrors = (values: { name: string; startsOn: string; endsOn: string }
       : undefined),
 })
 
-// 회계 기간 만들기. 지금 기수의 이름과 날짜로 채워 두고 고칠 수 있다.
-export function PeriodCreateDialog({ councilId, suggested, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState(() => periodDefaults(suggested))
+// 회계 기간 만들기. 오늘(한국)이 든 학기의 이름과 날짜로 채워 두고 고칠 수 있다(DEC-92, 024 정한 것 11).
+export function PeriodCreateDialog({ councilId, onClose, ...handlers }: Props) {
+  const [values, setValues] = useState(() => semesterOf(koreanDateOf(new Date())))
   const [saving, setSaving] = useState(false)
   const change = useBudgetChange(fiscalPeriodsPath(councilId), values, CreateFiscalPeriodSchema, {
     ...handlers,

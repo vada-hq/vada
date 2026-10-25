@@ -7,7 +7,8 @@ import { councilView, FINANCE_PERMISSIONS } from '@/test-support/council-fixture
 import { asElement } from '@/test-support/elements'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
-import { BUDGET_ERRORS, PURCHASE_ERRORS } from '@/lib/messages'
+import { PURCHASE_ERRORS } from '@/lib/messages'
+import { BUDGET_ERRORS } from '@/lib/budget-messages'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { forgetRememberedItems } from './decision-form'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
@@ -98,23 +99,20 @@ test('요청 내기: 행사는 없음과 완료하지 않은 행사만 고르고
   expect(posted(api)).toMatchObject({ title: '포스터', eventId: SPRING })
 })
 
-test('예산 항목 더하기: 종류는 지출이 기본이고 수입과 행사를 골라 보낸다', async () => {
+test('예산 편성: 종류는 지출이 기본이고 수입과 행사를 골라 보낸다', async () => {
   const api = setup('예산')
-  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
+  api.on('POST', `${ORG}/budget-items/batch`, () => json(budgetWithPeriod(), 201))
+  fireEvent.click(await screen.findByRole('button', { name: '예산 편성' }))
+  await screen.findByRole('form', { name: '예산 편성' })
   expect(asElement(screen.getByLabelText('종류'), HTMLSelectElement).value).toBe('expense')
-  fireEvent.change(screen.getByLabelText('목적'), { target: { value: '참가비' } })
-  fireEvent.change(screen.getByLabelText('금액(원)'), { target: { value: '100000' } })
   fireEvent.change(screen.getByLabelText('종류'), { target: { value: 'income' } })
   fireEvent.change(await eventSelect(), { target: { value: SPRING } })
-  fireEvent.click(screen.getByRole('button', { name: '더하기' }))
+  fireEvent.change(screen.getByLabelText('항목 1 이름'), { target: { value: '참가비' } })
+  fireEvent.change(screen.getByLabelText('항목 1 금액'), { target: { value: '100000' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posted(api)).toEqual({
-    purpose: '참가비',
-    amount: 100000,
-    type: 'income',
-    eventId: SPRING,
+    items: [{ purpose: '참가비', amount: 100000, type: 'income', eventId: SPRING }],
   })
 })
 
@@ -127,6 +125,8 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
     type: 'income',
     event: null,
     selectable: true,
+    deletable: true,
+    history: [],
     actual: 0,
     committed: null,
     available: null,
@@ -161,13 +161,13 @@ test('요청 내기가 409면 그 창 안에 문구가 보이고, 보내는 동�
   expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
 })
 
-test('예산 항목 더하기가 409면 그 창 안에 문구가 보인다', async () => {
+test('예산 편성이 409면 그 창 안에 문구가 보인다', async () => {
   const api = setup('예산')
-  api.on('POST', `${ORG}/budget-items`, () => json({ error: 'EVENT_INVALID' }, 409))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fireEvent.change(screen.getByLabelText('목적'), { target: { value: '간식' } })
-  fireEvent.change(screen.getByLabelText('금액(원)'), { target: { value: '1000' } })
-  fireEvent.click(screen.getByRole('button', { name: '더하기' }))
-  expect(await screen.findByText(BUDGET_ERRORS.EVENT_INVALID!)).toBeTruthy()
+  api.on('POST', `${ORG}/budget-items/batch`, () => json({ error: 'EVENT_INVALID' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '예산 편성' }))
+  await screen.findByRole('form', { name: '예산 편성' })
+  fireEvent.change(screen.getByLabelText('항목 1 이름'), { target: { value: '간식' } })
+  fireEvent.change(screen.getByLabelText('항목 1 금액'), { target: { value: '1000' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  expect(await screen.findByText(new RegExp(BUDGET_ERRORS.EVENT_INVALID!))).toBeTruthy()
 })
