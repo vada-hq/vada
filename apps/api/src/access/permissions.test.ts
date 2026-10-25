@@ -279,6 +279,31 @@ test('업무 칸: 행사에 새 부서의 업무 잇기는 그 행사의 책임�
   }
 })
 
+// 부서 정하기는 행사에 이어진 업무를 그 행사의 담당 부서가 아닌 부서로 옮길 수 있다. 그 쓰기도 새 부서 잇기라
+// (DEC-94) 부서 정하기를 넓히면 새 부서 잇기도 넓어지는지 여기서 먼저 걸린다(tasks/event-link.ts가 쓰기에서도 묻는다).
+test('업무 칸: 부서 정하기를 받는 사람은 같은 행사 맥락에서 새 부서 잇기도 받는다(set_department ⊂ link)', () => {
+  const everyone = [
+    president,
+    vicePresident,
+    financeMember,
+    planningHead,
+    planningViceHead,
+    planningMember,
+    plain,
+  ]
+  for (const who of everyone)
+    for (const eventOwnerId of [undefined, who.memberId, 'x'])
+      for (const facts of [{}, { departmentId: 'planning', assigneeId: who.memberId }]) {
+        const context = { ...facts, ...(eventOwnerId ? { eventOwnerId } : {}) }
+        if (can(who, 'task.set_department', context))
+          assert.equal(
+            can(who, 'task.link_event_department', context),
+            true,
+            `${who.memberId} ${JSON.stringify(context)}`,
+          )
+      }
+})
+
 test('내 권한 목록: 회장단은 업무 여섯을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
   const tasks = [
     'task.manage',

@@ -1,15 +1,18 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { getTableName, type Table } from 'drizzle-orm'
 import type { TaskCreateOptionsResponse, TaskDetail } from '@vada/contracts'
 import { actorOf } from '../access/actor.js'
 import { eventDepartmentIdsOf } from '../access/event-departments.js'
 import { can } from '../access/permissions.js'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
+import type { Tx } from '../db/types.js'
 import { createRecord } from '../records/records.js'
 import { registrationContextOf } from '../registrations/permission-context.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { createOptionsOf } from './create-options.js'
 import { createTaskRoutes } from './routes.js'
 
 // 행사에 새 부서의 업무 잇기(기능 026 조각 1, DEC-94, DEC-28): 업무의 부서가 그 행사의 지금 담당 부서가 아니게 되는
@@ -61,6 +64,7 @@ async function start() {
   }
   const departmentsOf = (eventId: string) => eventDepartmentIdsOf(db, council.councilId, eventId)
   return {
+    db,
     council,
     other,
     people,
@@ -284,5 +288,72 @@ test(
     const path = `/api/organizations/${s.council.councilId}/tasks/options`
     assert.equal((await s.api.get(path, 'o-president')).status, 403)
     assert.equal((await s.api.get(path)).status, 401)
+  }),
+)
+
+test(
+  '부서 정하기로 이어진 행사의 담당 부서가 아닌 부서를 잇는 것도 같은 규칙이고, 거절하면 판이 생기지 않는다',
+  run(async s => {
+    const { plain } = s.people
+    const { planning, finance } = s.departments
+    const eventId = await s.event(plain.memberId)
+    const task = await s.made({ title: 'a', eventId, departmentId: planning }, 's-plain')
+    const versions = () =>
+      s.count('SELECT count(*) AS n FROM record_version WHERE record_id = $1', [task.id])
+    const set = (departmentId: string | null, user: string) =>
+      s.post(`/${task.id}/department`, { departmentId }, user)
+    const before = await versions()
+    for (const user of ['s-planningHead', 's-planningMember', 's-financeMember']) {
+      const response = await set(finance, user)
+      assert.equal(response.status, 403, user)
+      assert.equal(await errorOf(response), 'FORBIDDEN')
+    }
+    assert.equal(await versions(), before)
+    assert.deepEqual(await s.departmentsOf(eventId), [planning])
+    // 행사 책임자와 회장단은 새 부서를 잇는다.
+    assert.equal((await set(finance, 's-plain')).status, 200)
+    assert.deepEqual(await s.departmentsOf(eventId), [finance])
+    assert.equal((await set(planning, 's-vicePresident')).status, 200)
+    assert.deepEqual(await s.departmentsOf(eventId), [planning])
+  }),
+)
+
+// 업무 표를 읽는 select의 표 이름을 모은다. 선택지 한 번에 행사 담당 부서를 몇 번 셌는지 보려는 것이다.
+const tablesRead = (tx: Tx, read: string[]): Tx =>
+  new Proxy(tx, {
+    get(target, prop, receiver) {
+      const value: unknown = Reflect.get(target, prop, receiver)
+      if (typeof value !== 'function') return value
+      if (prop !== 'select' && prop !== 'selectDistinct') return value.bind(target) as unknown
+      return (...args: unknown[]) => {
+        const builder = value.apply(target, args) as { from: (table: Table) => unknown }
+        const from = builder.from.bind(builder)
+        builder.from = (table: Table) => {
+          read.push(getTableName(table))
+          return from(table)
+        }
+        return builder
+      }
+    },
+  })
+
+test(
+  '행사의 만들기 선택지는 담당 부서를 한 번만 세고(업무 표 한 번) 답은 라우트와 같다',
+  run(async s => {
+    const { plain } = s.people
+    const { planning } = s.departments
+    const staffed = await s.event(plain.memberId, '기획부 행사')
+    await s.made({ title: 'x', eventId: staffed, departmentId: planning }, 's-plain')
+    const actor = (await actorOf(s.db, 's-planningMember', s.council.councilId, noon))!
+    const read: string[] = []
+    const options = await s.db.transaction(tx =>
+      createOptionsOf(tablesRead(tx, read), actor, staffed, noon),
+    )
+    assert.equal(read.filter(table => table === 'task').length, 1, read.join(','))
+    assert.deepEqual(
+      options.departments.map(item => item.id),
+      [planning, null],
+    )
+    assert.deepEqual(options, await s.options('s-planningMember', staffed))
   }),
 )

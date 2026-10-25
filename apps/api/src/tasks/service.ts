@@ -16,7 +16,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { dueAtOf, dueDateOf } from './due.js'
-import { eventChangeOf, eventLinkOf } from './event-link.js'
+import { assertDepartmentLink, eventChangeOf, eventLinkOf } from './event-link.js'
 import { humanMoveOf } from './lifecycle.js'
 import { decide, decideCreate, factsOf } from './policy.js'
 import { taskDetailOf, taskRowOf } from './queries.js'
@@ -194,7 +194,7 @@ export async function assignTask(
   return { task: await taskDetailOf(tx, actor, row.id, target.now), notice }
 }
 
-// 부서 정하기와 비우기. 회장단만 한다. 담당자는 그대로다.
+// 부서 정하기와 비우기. 회장단만 한다. 담당자는 그대로다. 이어진 행사에 새 부서를 잇는 것이면 잇기와 같은 판정이다(403이 409보다 먼저).
 export async function setTaskDepartment(
   tx: Tx,
   actor: Actor,
@@ -202,6 +202,7 @@ export async function setTaskDepartment(
   input: SetTaskDepartmentRequest,
 ): Promise<TaskDetail> {
   const row = await taskFor(tx, actor, target, 'task.change_department')
+  await assertDepartmentLink(tx, actor, row, input.departmentId)
   await assertDepartment(tx, actor, input.departmentId)
   if (input.departmentId !== row.departmentId)
     await updateRecord(tx, {
