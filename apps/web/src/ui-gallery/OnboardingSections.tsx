@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { InviteNotice } from '@/lib/messages'
 import CreateBasicStep from '../councils/CreateBasicStep'
@@ -12,6 +12,31 @@ import { RealFrame } from './RealFrame'
 // 운영 연도 선택지가 날마다 바뀌지 않게 연 날을 고정한다(스냅숏).
 const OPENED = new Date('2026-06-15T03:00:00Z')
 const SAMPLE_LINK = 'https://vada.example/join/ABCD2345'
+
+const SAMPLE_ADDED = ['복지부', '문화부', '체육부', '학술부']
+
+// 이어진 운영진(이름만 보임)이 부서를 많이 더해 조직도가 두 줄로 바뀐 모양.
+function ManyDepartmentsStructure() {
+  const draft = useCouncilDraft('김구글', OPENED)
+  // 개발 모드는 효과를 두 번 돌리므로 한 번만 더한다.
+  const added = useRef(false)
+  useEffect(() => {
+    if (added.current) return
+    added.current = true
+    for (const name of SAMPLE_ADDED) draft.addDepartment(name)
+  }, [draft])
+  return (
+    <CreateStructureStep
+      draft={draft}
+      linkedName="김회장"
+      saving={false}
+      error=""
+      onBack={() => {}}
+      onSubmit={() => {}}
+      onYearReset={() => {}}
+    />
+  )
+}
 
 // 학생회 만들기 세 단계(기본 정보, 조직 구조, 초대 링크)와 코드 바꾸기 확인 창. 서버를 부르지 않는다.
 export function CreateCouncilSection() {
@@ -33,6 +58,9 @@ export function CreateCouncilSection() {
           onSubmit={() => {}}
           onYearReset={() => {}}
         />
+      </RealFrame>
+      <RealFrame>
+        <ManyDepartmentsStructure />
       </RealFrame>
       <RealFrame>
         <CreateInviteStep

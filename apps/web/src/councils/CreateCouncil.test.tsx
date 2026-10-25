@@ -48,8 +48,29 @@ async function toStructure() {
   fireEvent.click(button('다음: 조직 구조'))
   await screen.findByRole('heading', { level: 2, name: '조직 구조' })
 }
-const departmentInputs = () =>
-  screen.getAllByLabelText(/^부서 이름 \d+$/).map(input => asElement(input, HTMLInputElement))
+// 조직도 카드의 이름(재정 부서가 맨 앞). 이름은 카드의 ⋯ 버튼 이름 '{이름} 동작'으로 읽는다.
+const cardNames = () =>
+  within(form())
+    .getAllByRole('button', { name: / 동작$/ })
+    .map(trigger => trigger.getAttribute('aria-label')!.replace(/ 동작$/, ''))
+const trigger = (name: string) => within(form()).getByRole('button', { name: `${name} 동작` })
+async function openMenu(name: string) {
+  fireEvent.keyDown(trigger(name), { key: 'Enter' })
+  return screen.findByRole('menu')
+}
+async function choose(name: string, item: '이름 바꾸기' | '빼기') {
+  fireEvent.click(within(await openMenu(name)).getByRole('menuitem', { name: item }))
+}
+const nameInput = (label: string) => asElement(screen.getByLabelText(label), HTMLInputElement)
+// 카드의 이름 칸에 써서 Enter로 저장한다.
+function save(label: string, value: string) {
+  fireEvent.change(nameInput(label), { target: { value } })
+  fireEvent.keyDown(nameInput(label), { key: 'Enter' })
+}
+async function rename(name: string, label: string, value: string) {
+  await choose(name, '이름 바꾸기')
+  save(label, value)
+}
 const title = () => screen.getByRole('heading', { level: 2 })
 const postBody = () => api.calls.find(call => call.method === 'POST')?.body
 
@@ -102,39 +123,69 @@ test('2단계 회장단 카드는 이어진 운영진이 없으면 Google 이름
   expect(screen.queryByLabelText('내 이름')).toBeNull()
 })
 
-test('2단계 부서 목록: 재정부(뺄 수 없음)와 기획부·홍보부, 더하기 단추, 빼기·더하기·고치기', async () => {
+test('2단계 조직도: 재정부(뺄 수 없음)와 기획부·홍보부 카드, 더하기 단추, 빼기·더하기·이름 바꾸기', async () => {
   serve()
   open()
   await toStructure()
-  const finance = asElement(screen.getByLabelText('재정 부서 이름'), HTMLInputElement)
-  expect(finance.value).toBe('재정부')
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부'])
   expect(screen.getByText('재정')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '재정부 빼기' })).toBeNull()
-  expect(departmentInputs().map(input => input.value)).toEqual(['기획부', '홍보부'])
+  const financeMenu = await openMenu('재정부')
+  expect(within(financeMenu).getByRole('menuitem', { name: '이름 바꾸기' })).toBeTruthy()
+  expect(within(financeMenu).queryByRole('menuitem', { name: '빼기' })).toBeNull()
+  fireEvent.keyDown(financeMenu, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  // 이름 칸은 고칠 때만 보인다.
+  expect(screen.queryByRole('textbox', { name: /부서 이름/ })).toBeNull()
   for (const name of ['복지부', '문화부', '체육부', '학술부']) expect(button(name)).toBeTruthy()
-  fireEvent.click(button('기획부 빼기'))
+  await choose('기획부', '빼기')
   fireEvent.click(button('복지부'))
   expect(within(form()).queryByRole('button', { name: '복지부' })).toBeNull()
   fireEvent.click(button('부서 추가'))
-  const added = departmentInputs().at(-1)!
+  const added = nameInput('부서 이름 3')
   expect(added.value).toBe('')
   await waitFor(() => expect(document.activeElement).toBe(added))
-  fireEvent.change(added, { target: { value: '디자인부' } })
-  fireEvent.change(departmentInputs()[0]!, { target: { value: '홍보국' } })
-  expect(departmentInputs().map(input => input.value)).toEqual(['홍보국', '복지부', '디자인부'])
+  save('부서 이름 3', '디자인부')
+  await rename('홍보부', '부서 이름 1', '홍보국')
+  expect(cardNames()).toEqual(['재정부', '홍보국', '복지부', '디자인부'])
+})
+
+test('이름 바꾸기는 카드 안에서 고치고 Enter는 저장, Esc는 되돌리며, 빈 이름·같은 이름은 저장하지 않는다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await choose('홍보부', '이름 바꾸기')
+  const input = nameInput('부서 이름 2')
+  await waitFor(() => expect(document.activeElement).toBe(input))
+  expect(input.getAttribute('aria-required')).toBe('true')
+  fireEvent.change(input, { target: { value: '홍보국' } })
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부'])
+  await waitFor(() => expect(document.activeElement).toBe(trigger('홍보부')))
+  await choose('홍보부', '이름 바꾸기')
+  save('부서 이름 2', ' ')
+  expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
+  expect(nameInput('부서 이름 2').getAttribute('aria-invalid')).toBe('true')
+  save('부서 이름 2', '재정부')
+  expect(screen.getByText('같은 이름의 부서가 있어요')).toBeTruthy()
+  // 한글 조합을 끝내는 Enter는 저장이 아니다.
+  fireEvent.change(nameInput('부서 이름 2'), { target: { value: '홍보국' } })
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Enter', isComposing: true })
+  expect(nameInput('부서 이름 2')).toBeTruthy()
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Enter' })
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보국'])
+  await waitFor(() => expect(document.activeElement).toBe(trigger('홍보국')))
 })
 
 test('2단계는 같은 이름과 빈 이름을 그 줄 아래에 알리고 보내지 않는다', async () => {
   serve()
   open()
   await toStructure()
-  fireEvent.change(departmentInputs()[1]!, { target: { value: ' 기획부 ' } })
+  await rename('홍보부', '부서 이름 2', ' 기획부 ')
   fireEvent.click(button('부서 추가'))
   fireEvent.change(screen.getByLabelText('내 이름'), { target: { value: ' ' } })
   fireEvent.click(button('학생회 만들기'))
-  const [, second, third] = departmentInputs()
-  expect(second!.getAttribute('aria-invalid')).toBe('true')
-  expect(third!.getAttribute('aria-invalid')).toBe('true')
+  expect(nameInput('부서 이름 2').getAttribute('aria-invalid')).toBe('true')
+  expect(nameInput('부서 이름 3').getAttribute('aria-invalid')).toBe('true')
   expect(screen.getByText('같은 이름의 부서가 있어요')).toBeTruthy()
   expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
   expect(screen.getByText('이름을 입력해 주세요')).toBeTruthy()
@@ -148,7 +199,7 @@ test('[이전]은 1단계 값을 그대로 보이고, 다시 오면 부서 목�
   fireEvent.click(screen.getByRole('radio', { name: '단과대 학생회' }))
   fireEvent.change(screen.getByLabelText('운영 연도'), { target: { value: '2027' } })
   await toStructure()
-  fireEvent.click(button('홍보부 빼기'))
+  await choose('홍보부', '빼기')
   fireEvent.click(button('이전'))
   expect(screen.getByRole('heading', { level: 2, name: '기본 정보' })).toBeTruthy()
   expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
@@ -160,7 +211,7 @@ test('[이전]은 1단계 값을 그대로 보이고, 다시 오면 부서 목�
   ).toBe(true)
   expect(asElement(screen.getByLabelText('운영 연도'), HTMLSelectElement).value).toBe('2027')
   fireEvent.click(button('다음: 조직 구조'))
-  expect(departmentInputs().map(input => input.value)).toEqual(['기획부'])
+  expect(cardNames()).toEqual(['재정부', '기획부'])
 })
 
 test('[학생회 만들기]는 보내는 동안 busy이고 두 번 가지 않으며, 성공하면 초대 링크 단계에서 복사하고 홈으로 간다', async () => {
@@ -172,9 +223,9 @@ test('[학생회 만들기]는 보내는 동안 busy이고 두 번 가지 않으
   const onCreated = vi.fn()
   open({ onCreated })
   await toStructure()
-  fireEvent.click(button('기획부 빼기'))
+  await choose('기획부', '빼기')
   fireEvent.click(button('학술부'))
-  fireEvent.change(screen.getByLabelText('재정 부서 이름'), { target: { value: '총무부' } })
+  await rename('재정부', '재정 부서 이름', '총무부')
   fireEvent.change(screen.getByLabelText('내 이름'), { target: { value: '김회장 ' } })
   fireEvent.click(button('학생회 만들기'))
   const sending = asElement(button('만드는 중…'), HTMLButtonElement)
@@ -248,7 +299,9 @@ test('부서는 재정 부서를 더해 20개가 되면 더하기 단추가 없�
   await toStructure()
   for (const name of ['복지부', '문화부', '체육부', '학술부']) fireEvent.click(button(name))
   for (let index = 0; index < 13; index++) fireEvent.click(button('부서 추가'))
-  expect(departmentInputs()).toHaveLength(19)
+  expect(within(screen.getByRole('list', { name: '부서' })).getAllByRole('listitem')).toHaveLength(
+    20,
+  )
   expect(within(form()).queryByRole('button', { name: '부서 추가' })).toBeNull()
 })
 
@@ -275,24 +328,43 @@ test('단계가 바뀌면 초점이 새 단계의 제목으로 간다([다음], 
   await waitFor(() => expect(document.activeElement).toBe(title()))
 })
 
-test('부서 칸은 차례로 구분된 필수 칸이고, 더하면 새 줄로, 빼면 그 자리의 줄로 초점이 간다', async () => {
+test('카드를 더하면 새 카드로, 빼면 그 자리 카드의 ⋯ 버튼으로 초점이 가고, 새 빈 카드는 Esc로 거둔다', async () => {
   serve()
   open()
   await toStructure()
-  expect(screen.getByLabelText('재정 부서 이름').getAttribute('aria-required')).toBe('true')
-  expect(screen.getByLabelText('부서 이름 1')).toBe(departmentInputs()[0])
-  expect(screen.getByLabelText('부서 이름 2')).toBe(departmentInputs()[1])
-  for (const input of departmentInputs()) expect(input.getAttribute('aria-required')).toBe('true')
   fireEvent.click(button('복지부'))
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 3')))
-  fireEvent.click(button('기획부 빼기'))
-  // 뺀 줄 자리에 온 홍보부로 간다.
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 1')))
-  expect(departmentInputs()[0]!.value).toBe('홍보부')
-  fireEvent.click(button('복지부 빼기'))
-  // 마지막 줄이면 앞 줄로 간다.
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 1')))
-  fireEvent.click(button('홍보부 빼기'))
-  // 줄이 없으면 재정 부서 칸으로 간다.
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('재정 부서 이름')))
+  await waitFor(() => expect(document.activeElement).toBe(trigger('복지부')))
+  await choose('기획부', '빼기')
+  // 뺀 카드 자리에 온 홍보부로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(trigger('홍보부')))
+  await choose('복지부', '빼기')
+  // 마지막 카드면 앞 카드로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(trigger('홍보부')))
+  await choose('홍보부', '빼기')
+  // 카드가 없으면 재정 부서 카드로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(trigger('재정부')))
+  fireEvent.click(button('부서 추가'))
+  await waitFor(() => expect(document.activeElement).toBe(nameInput('부서 이름 1')))
+  fireEvent.keyDown(nameInput('부서 이름 1'), { key: 'Escape' })
+  expect(screen.queryByLabelText('부서 이름 1')).toBeNull()
+  expect(cardNames()).toEqual(['재정부'])
+  await waitFor(() => expect(document.activeElement).toBe(button('부서 추가')))
+})
+
+test('문제로 열려 있던 이름 칸은 다시 들어가 고치는 동안 닫히지 않고 Enter로 저장한다', async () => {
+  serve()
+  open()
+  await toStructure()
+  fireEvent.click(button('부서 추가'))
+  fireEvent.blur(nameInput('부서 이름 3'))
+  expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
+  await choose('기획부', '이름 바꾸기')
+  fireEvent.keyDown(nameInput('부서 이름 1'), { key: 'Escape' })
+  // 빈 카드는 문제가 있어 칸이 열린 채다.
+  const blank = nameInput('부서 이름 3')
+  fireEvent.focus(blank)
+  fireEvent.change(blank, { target: { value: '디자인부' } })
+  expect(screen.queryByText('부서 이름을 입력해 주세요')).toBeNull()
+  fireEvent.keyDown(nameInput('부서 이름 3'), { key: 'Enter' })
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부', '디자인부'])
 })

@@ -79,16 +79,31 @@ export function basicErrors(draft: CreateCouncilDraft, parsed: Parsed): FieldErr
   return pick(errors, key => BASIC_KEYS.has(key))
 }
 
+const DUPLICATE_NAME = '같은 이름의 부서가 있어요'
+// 다듬은 부서 이름들. 0은 재정 부서, 그 뒤는 departments 차례다.
+const departmentNamesOf = (draft: CreateCouncilDraft) =>
+  [draft.financeName, ...draft.departments.map(row => row.name)].map(trim)
+
+// 카드 안에서 이름을 바꿔 저장할 때의 문제(차례는 departmentNamesOf와 같다). 같은 이름은 저장하려는 카드에 알린다.
+export function departmentNameProblem(draft: CreateCouncilDraft, index: number) {
+  const names = departmentNamesOf(draft)
+  const name = names[index] ?? ''
+  return (
+    requiredText(name, '부서 이름을') ??
+    (names.some((other, at) => at !== index && other === name) ? DUPLICATE_NAME : undefined)
+  )
+}
+
 // 2단계의 문제: 빈 부서 이름, 목록 안의 같은 이름(뒤에 온 줄에), 내 이름. 같은 이름은 계약처럼 다듬은 이름끼리 비교한다.
 export function structureErrors(
   draft: CreateCouncilDraft,
   parsed: Parsed,
   askName: boolean,
 ): FieldErrors {
-  const names = [draft.financeName, ...draft.departments.map(row => row.name)].map(trim)
+  const names = departmentNamesOf(draft)
   const nameError = (name: string, index: number) =>
     requiredText(name, '부서 이름을') ??
-    (names.indexOf(name) === index ? undefined : '같은 이름의 부서가 있어요')
+    (names.indexOf(name) === index ? undefined : DUPLICATE_NAME)
   const rows: FieldErrors = { financeDepartmentName: nameError(names[0]!, 0) }
   draft.departments.forEach((_, index) => {
     rows[`departments.${index}`] = nameError(names[index + 1]!, index + 1)
