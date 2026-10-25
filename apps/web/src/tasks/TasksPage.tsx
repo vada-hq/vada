@@ -30,8 +30,6 @@ type Props = {
   initialCreate?: boolean | undefined
   // 행사의 업무 탭이면 그 행사의 업무만 보이고, 빠른 추가는 그 행사로 만든다.
   eventId?: string | undefined
-  // 행사의 업무 탭을 '담당자 없음'으로 좁혀 시작한다(행사 개요의 챙길 것).
-  initialView?: TaskView | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
@@ -94,11 +92,7 @@ function useOpeners(councilId: string, inEvent: boolean) {
 function useTasksPage(props: Props) {
   const councilId = props.view.council.id
   const inEvent = props.eventId !== undefined
-  const controls = useTaskControls(
-    councilId,
-    inEvent,
-    props.initialView ?? (inEvent ? 'all' : 'mine'),
-  )
+  const controls = useTaskControls(councilId, props.eventId)
   const { view, filter, layout, dept } = controls
   const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useOpeners(councilId, inEvent)

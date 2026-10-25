@@ -72,6 +72,34 @@ test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않
   })
 })
 
+test('행사 업무 탭의 보기와 거르기는 업무 메뉴와 같은 키로 행사 주소에 남고, 업무 탭이 아니면 빠진다', () => {
+  const event = (query: Record<string, string>) =>
+    appPath({ type: 'record', record: 'events', councilId: C, recordId: R, query })
+  const tasksTab = event({ tab: 'tasks', view: 'unassigned', filter: 'done', dept: P })
+  assert.equal(tasksTab, `/events/${C}/${R}?tab=tasks&view=unassigned&filter=done&dept=${P}`)
+  assert.deepEqual(parseAppPath(tasksTab)?.query, {
+    tab: 'tasks',
+    view: 'unassigned',
+    filter: 'done',
+    dept: P,
+  })
+  // 행사 안의 기본 보기는 그 행사의 모든 업무(all)라 주소에 두지 않는다. 업무 메뉴의 기본(mine)은 행사 안에서는 기본이 아니다.
+  assert.equal(event({ tab: 'tasks', view: 'all', filter: 'open' }), `/events/${C}/${R}?tab=tasks`)
+  assert.equal(event({ tab: 'tasks', view: 'mine' }), `/events/${C}/${R}?tab=tasks&view=mine`)
+  assert.equal(
+    event({ tab: 'money', filter: 'done', view: 'unassigned' }),
+    `/events/${C}/${R}?tab=money`,
+  )
+  assert.equal(event({ filter: 'done' }), `/events/${C}/${R}`)
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=overview&filter=done`)?.query, {})
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=registrations&dept=${P}`)?.query, {
+    tab: 'registrations',
+  })
+  // 업무 메뉴의 주소는 그대로다.
+  assert.equal(menuPath('tasks', C, { view: 'mine', filter: 'done' }), `/tasks/${C}?filter=done`)
+  assert.equal(menuPath('tasks', C, { view: 'all' }), `/tasks/${C}?view=all`)
+})
+
 test('모르는 쿼리 키와 값은 기본값으로 읽는다', () => {
   const read = (path: string) => parseAppPath(path)?.query
   assert.deepEqual(read(`/tasks/${C}?view=nope&filter=&layout=x&dept=not-uuid&q=검색어`), {})

@@ -32,6 +32,16 @@ export const pickQuery = <T extends string>(
   fallback: T,
 ): T => values.find(item => item === value) ?? fallback
 
+// 쿼리에 바꿀 값을 얹는다. null이면 그 키를 뺀다. 기본값은 주소를 만들 때 저절로 빠진다.
+export function patchQuery(query: AppQuery, patch: Record<string, string | null>) {
+  const next: Record<string, string> = { ...query }
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) delete next[key]
+    else next[key] = value
+  }
+  return next
+}
+
 export function useMenuQuery(menu: AppMenu, councilId: string) {
   const here = useHere()
   const location =
@@ -45,14 +55,8 @@ export function useMenuQuery(menu: AppMenu, councilId: string) {
   return {
     active: location !== null,
     query,
-    // null이면 그 키를 뺀다. 기본값은 주소를 만들 때 저절로 빠진다.
     set: (patch: Record<string, string | null>) => {
-      const next: Record<string, string> = { ...(location?.query ?? NONE) }
-      for (const [key, value] of Object.entries(patch)) {
-        if (value === null) delete next[key]
-        else next[key] = value
-      }
-      const path = menuPath(menu, councilId, next)
+      const path = menuPath(menu, councilId, patchQuery(location?.query ?? NONE, patch))
       if (path !== here.path) navigate(path, { replace: true })
     },
   }

@@ -35,6 +35,19 @@ export const openEventTab = (councilId: string, eventId: string, tab: EventTab) 
     }),
   )
 
+// 열려 있는 행사의 업무 탭을 거르기와 함께 연다(개요의 '담당자 없음'). 누른 곳에서 한 칸 쌓아 뒤로 가면 누른 곳이다.
+// 쿼리는 행사 주소에 있는 업무 탭의 키만 남는다.
+export const openEventTasks = (councilId: string, eventId: string, query: AppQuery) =>
+  navigate(
+    appPath({
+      type: 'record',
+      record: 'events',
+      councilId,
+      recordId: eventId,
+      query: { ...query, tab: 'tasks' },
+    }),
+  )
+
 // 메뉴 첫 화면이나 거르기가 정해진 목록으로 간다. 쿼리는 그 메뉴 목록에 있는 키만 남는다.
 // replace는 지금 칸을 바꿔 쓴다(초대에서 막 들어와 첫 화면을 고를 때처럼 뒤로 돌아갈 곳이 아닐 때).
 export const openMenu = (
