@@ -65,6 +65,21 @@ function handleKey(event: KeyboardEvent, grid: Grid, go: (pos: GridPos) => void)
   if (next) go(next)
 }
 
+// 표 밖을 누르면 표를 떠난 것이다(blur만으로는 칸이 다시 꽂힌 것과 가를 수 없다).
+function useLeaveOnPointer(
+  gridRef: RefObject<HTMLTableElement | null>,
+  inside: RefObject<boolean>,
+) {
+  useEffect(() => {
+    const leave = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gridRef.current?.contains(event.target))
+        inside.current = false
+    }
+    document.addEventListener('pointerdown', leave)
+    return () => document.removeEventListener('pointerdown', leave)
+  }, [gridRef, inside])
+}
+
 // WAI-ARIA grid의 키보드(초점은 칸 하나, 칸 안의 단추·선택칸은 Tab 순서에 없다).
 // 다시 읽어 줄이 옮기거나 빠져도 초점은 같은 업무의 같은 칸을 따라가고, 그 칸이 사라지면 다음 줄의 같은 칸으로 간다.
 export function useGridNav(
@@ -74,27 +89,36 @@ export function useGridNav(
   onOpen: (taskId: string) => void,
 ) {
   const [stored, setStored] = useState<GridPos | null>(null)
+  // 효과가 늦게 돌아도 그사이 초점이 옮긴 칸을 알도록, 칸의 원문은 ref이고 state는 그리기용이다.
+  const current = useRef<GridPos | null>(null)
+  const put = (pos: GridPos | null) => {
+    current.current = pos
+    setStored(pos)
+  }
   const before = useRef<string[]>(ids)
   const inside = useRef(false)
   const key = ids.join('\n')
 
   useEffect(() => {
     const now = key === '' ? [] : key.split('\n')
-    const next = settleCell(stored, before.current, now)
+    const next = settleCell(current.current, before.current, now)
     before.current = now
-    if (!samePos(next, stored)) setStored(next)
+    if (!samePos(next, current.current)) {
+      current.current = next
+      setStored(next)
+    }
     // 줄이 옮겨 그 칸의 DOM이 바뀌면 초점을 잃으므로, 표에 있던 초점이면 같은 칸에 돌려 놓는다.
     if (inside.current) refocus(gridRef.current, next)
   }, [key, stored, gridRef])
 
   const go = (pos: GridPos) => {
-    setStored(pos)
+    put(pos)
     cellAt(gridRef.current, pos)?.focus()
   }
   const onFocus = (event: FocusEvent) => {
     inside.current = true
     const cell = cellOf(event.target)
-    if (cell) setStored(cellPos(cell))
+    if (cell) put(cellPos(cell))
   }
   const onBlur = (event: FocusEvent) => {
     // 가는 곳이 표 밖이면 떠난 것이다. 가는 곳이 없는 blur는 줄이 옮겨 칸이 다시 꽂힌 것일 수 있어 떠난 것으로 보지 않고,
@@ -102,14 +126,7 @@ export function useGridNav(
     const next = event.relatedTarget
     if (next instanceof Node && !gridRef.current?.contains(next)) inside.current = false
   }
-  useEffect(() => {
-    const leave = (event: PointerEvent) => {
-      if (event.target instanceof Node && !gridRef.current?.contains(event.target))
-        inside.current = false
-    }
-    document.addEventListener('pointerdown', leave)
-    return () => document.removeEventListener('pointerdown', leave)
-  }, [gridRef])
+  useLeaveOnPointer(gridRef, inside)
   // 아직 고른 칸이 없으면 첫 줄 첫 칸이 Tab의 자리다.
   const at = stored ?? (ids[0] === undefined ? null : { id: ids[0], col: 0 })
   return {
