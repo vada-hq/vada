@@ -1,0 +1,67 @@
+import type { ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
+
+export type FeaturedTile = {
+  id: string
+  name: string
+  // 행사 상태 칩(행사 화면과 같은 칩)
+  chip: ReactNode
+  // '10월 30일 (금) · D-4', 날짜 미정이면 '미정'
+  when: string
+  onOpen: () => void
+}
+
+// 타일 줄은 서버가 정한 차례와 개수(주요 행사 3) 그대로다. 모르는 값은 0이 아니라 '집계 전'이다(DEC-95).
+export type TilesRead =
+  { kind: 'loading' } | { kind: 'failed' } | { kind: 'ready'; tiles: FeaturedTile[] }
+
+const TITLE = '학생회 주요 행사'
+
+// 제목 옆 수. 0개는 빈 문구가 말하므로 두지 않는다(카드 머리와 같은 규칙).
+const countOf = (read: TilesRead) => {
+  if (read.kind !== 'ready') return '집계 전'
+  return read.tiles.length > 0 ? `${read.tiles.length}개` : null
+}
+
+// 타일은 좁다(1024px 창에서 약 125px). 긴 행사명은 두 줄까지 보이고 줄임표다(읽는 이름은 전체이고, 누르면 행사 화면이다).
+function Tile({ tile }: { tile: FeaturedTile }) {
+  return (
+    <li className="relative rounded-lg border px-3 py-2 transition-colors hover:border-blue-300 hover:bg-blue-50">
+      <div className="flex items-start gap-2">
+        <Button
+          variant="link"
+          className="h-auto min-w-0 flex-1 line-clamp-2 justify-start p-0 text-left text-sm font-bold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
+          onClick={tile.onOpen}
+        >
+          {tile.name}
+        </Button>
+        <span className="shrink-0">{tile.chip}</span>
+      </div>
+      <p className="mt-1 text-xs text-gray-500">{tile.when}</p>
+    </li>
+  )
+}
+
+// 인사 카드 오른쪽 '학생회 주요 행사' 타일 3(와이어프레임 HOME-01D·01M·01F): 행사명, 상태 칩, 날짜. 참여 여부와 관계없다.
+// 본문이 좁으면 타일이 세로 줄 셋이 된다(DEC-95 휴대폰 배치).
+export default function FeaturedEvents({ read }: { read: TilesRead }) {
+  const count = countOf(read)
+  return (
+    <section aria-label={TITLE} className="flex flex-col gap-1.5">
+      <h3 className="text-xs font-normal text-gray-500">
+        {TITLE}
+        {count && <span className="ml-1">{count}</span>}
+      </h3>
+      {read.kind === 'ready' && read.tiles.length === 0 && (
+        <p className="py-2 text-sm text-gray-500">진행할 행사 없음</p>
+      )}
+      {read.kind === 'ready' && read.tiles.length > 0 && (
+        <ul className="grid gap-2 @2xl:grid-cols-3">
+          {read.tiles.map(tile => (
+            <Tile key={tile.id} tile={tile} />
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}

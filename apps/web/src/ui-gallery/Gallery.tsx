@@ -40,6 +40,7 @@ import {
   HomeOtherSection,
   HomeSection,
 } from './HomeSections'
+import { HomeFrameSection } from './HomeFrameSections'
 import { ApplyNoticeSection, PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -83,6 +84,7 @@ export default function Gallery() {
       <HomeInboxSection />
       <HomeOtherSection />
       <HomeEmptyEventsSection />
+      <HomeFrameSection />
       <OrgSection />
       <PublicSection />
       <ApplyNoticeSection />

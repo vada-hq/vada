@@ -1,0 +1,18 @@
+// @vitest-environment jsdom
+import { afterEach, expect, test } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import HomeChip from './HomeChip'
+
+afterEach(cleanup)
+
+// 같은 이름의 칩은 업무 보드와 같은 색이다(DEC-95 정한 것 21): '담당자 없음'은 와이어프레임 주황이 아니라 빨강.
+test('지남과 담당자 없음은 업무 보드처럼 빨강이다', () => {
+  render(
+    <>
+      <HomeChip label="지남" count={2} />
+      <HomeChip label="담당자 없음" />
+    </>,
+  )
+  expect(screen.getByText('지남 2').className).toContain('text-red-700')
+  expect(screen.getByText('담당자 없음').className).toContain('text-red-700')
+})

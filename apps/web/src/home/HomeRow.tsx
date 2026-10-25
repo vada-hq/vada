@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type Props = {
   title: string
@@ -10,13 +11,20 @@ type Props = {
   // 왼쪽 끝: 행사의 날짜 칸
   lead?: ReactNode
   onOpen: () => void
+  // 새 홈 카드(HomeCard)는 머리 바와 같은 안쪽 여백을 준다.
+  className?: string
 }
 
 // 홈의 한 줄. 줄 어디를 눌러도 원래 화면이 열린다(홈은 읽기만 한다, DEC-69).
-export default function HomeRow({ title, meta = [], side, lead, onOpen }: Props) {
+export default function HomeRow({ title, meta = [], side, lead, onOpen, className }: Props) {
   const parts = meta.filter(part => part !== false && part !== null && part !== undefined)
   return (
-    <li className="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
+    <li
+      className={cn(
+        'relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50',
+        className,
+      )}
+    >
       {lead}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <Button
