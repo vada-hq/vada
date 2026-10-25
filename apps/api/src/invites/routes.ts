@@ -8,7 +8,6 @@ import {
   type InvitePreviewResponse,
   type JoinCouncilResponse,
 } from '@vada/contracts'
-import { actorOf } from '../access/actor.js'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { myCouncils } from '../councils/queries.js'
@@ -16,7 +15,7 @@ import { inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
 import type { Db } from '../db/types.js'
-import { invitedCouncil, joinCouncil, rotateInviteCode } from './service.js'
+import { invitePreview, joinCouncil, rotateInviteCode } from './service.js'
 
 // 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 들어와졌는데 요청은 500이 된다.
 async function joinedCouncil(db: Db, userId: string, code: string, now: Date) {
@@ -39,9 +38,8 @@ export function createInviteRoutes(
   routes.get('/invites/:code', auth, async c => {
     const code = InviteCodeSchema.safeParse(c.req.param('code'))
     if (!code.success) throw new ApiError('NOT_FOUND')
-    const found = await invitedCouncil(db, code.data)
-    const joined = (await actorOf(db, c.get('userId'), found.id, clock())) !== null
-    return c.json({ council: found, joined } satisfies InvitePreviewResponse)
+    const preview = await invitePreview(db, c.get('userId'), code.data, clock())
+    return c.json(preview satisfies InvitePreviewResponse)
   })
   routes.post('/organizations/join', json(JoinCouncilSchema), auth, async c => {
     const council = await joinedCouncil(db, c.get('userId'), c.req.valid('json').code, clock())

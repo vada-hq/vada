@@ -97,6 +97,7 @@ const council: HomeCouncil = {
     { department: null, overdue: 0, unassigned: 3 },
   ],
   overdue: { tasks: [lateTask], total: 11 },
+  unassignedMembers: 2,
 }
 const request: PurchaseRequestSummary = {
   id: 'r1',

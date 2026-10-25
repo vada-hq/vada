@@ -16,12 +16,14 @@ import type { Db } from '../db/types.js'
 
 type Reader = Pick<Db, 'select'>
 
-// 내 학생회 목록: 지금 소속이 있는 학생회와 그 학생회의 직급, 지금 부서 소속. 끝난 소속과 지난 기수는 빠진다.
+// 내 학생회 목록: 지금 소속이 있는 학생회(유형과 학교 포함)와 그 학생회의 직급, 지금 부서 소속. 끝난 소속과 지난 기수는 빠진다.
 export async function myCouncils(db: Reader, userId: string, now: Date): Promise<MyCouncil[]> {
   const rows = await db
     .select({
       id: council.id,
       name: council.name,
+      unit: council.unit,
+      schoolName: council.schoolName,
       councilRank: councilMembership.councilRank,
       memberId: memberLogin.memberId,
       cohortId: cohort.id,
@@ -57,6 +59,8 @@ export async function myCouncils(db: Reader, userId: string, now: Date): Promise
   return rows.map(row => ({
     id: row.id,
     name: row.name,
+    unit: row.unit,
+    schoolName: row.schoolName,
     councilRank: row.councilRank,
     departments: placements
       .filter(item => item.cohortId === row.cohortId)

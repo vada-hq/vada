@@ -40,6 +40,7 @@ const council = (extra: Partial<HomeCouncil> = {}): HomeCouncil => ({
   endedTotal: 0,
   blocked: [],
   overdue: noTasks,
+  unassignedMembers: 0,
   ...extra,
 })
 

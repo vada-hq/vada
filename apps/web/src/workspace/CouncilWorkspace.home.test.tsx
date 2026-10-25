@@ -87,6 +87,7 @@ const councilOf = (events: HomeEventCard[]) => ({
   endedTotal: 0,
   blocked: [],
   overdue: { tasks: [], total: 0 },
+  unassignedMembers: 0,
 })
 const tabSelected = async (name: string) =>
   (await screen.findByRole('tab', { name })).getAttribute('aria-selected')

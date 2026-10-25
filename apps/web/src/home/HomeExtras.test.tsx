@@ -33,7 +33,14 @@ function open(home: HomeResponse, extras: Parameters<typeof onHomeExtras>[1] = {
   return fns
 }
 
-const council = { events: [], truncated: false, endedTotal: 0, blocked: [], overdue: noTasks }
+const council = {
+  events: [],
+  truncated: false,
+  endedTotal: 0,
+  blocked: [],
+  overdue: noTasks,
+  unassignedMembers: 0,
+}
 
 test('내 요청: 반려를 먼저, 결재 대기는 오래된 순. 끝난 요청은 뺀다', async () => {
   open(homeResponse(), {

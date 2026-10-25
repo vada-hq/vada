@@ -1,5 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import type { Actor } from '../access/actor.js'
+import type { InvitePreviewResponse } from '@vada/contracts'
+import { actorOf, type Actor } from '../access/actor.js'
 import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
 import { syncRooms } from '../chat/rooms.js'
@@ -16,15 +17,39 @@ import { clockNow, createRecord, updateRecords, type AnyRecordChange } from '../
 import type { Db, Tx } from '../db/types.js'
 import { freshInviteCode } from './code.js'
 
+type Reader = Pick<Db, 'select'>
+
 // 초대 코드로 학생회를 찾는다. 형식이 틀린 코드와 없는 코드를 구분하지 않는다. 둘 다 404다.
-export async function invitedCouncil(db: Pick<Db, 'select'>, code: string) {
+export async function invitedCouncil(db: Reader, code: string) {
   const [found] = await db
-    .select({ id: council.id, name: council.name })
+    .select({
+      id: council.id,
+      name: council.name,
+      unit: council.unit,
+      schoolName: council.schoolName,
+    })
     .from(inviteCode)
     .innerJoin(council, eq(council.id, inviteCode.councilId))
     .where(eq(inviteCode.code, code))
   if (!found) throw new ApiError('NOT_FOUND')
   return found
+}
+
+// 초대 확인: 맞는 학생회인지 가릴 이름, 유형, 학교와 지금 기수 이름, 그리고 이미 지금 기수에 들어왔는지.
+// 코드만 알면 볼 수 있으므로 운영진 수·이름과 초대한 사람은 싣지 않는다(DEC-87). 지금 기수가 없으면 기수 이름은 null이다.
+export async function invitePreview(
+  db: Reader,
+  userId: string,
+  code: string,
+  now: Date,
+): Promise<InvitePreviewResponse> {
+  const found = await invitedCouncil(db, code)
+  const [current] = await db
+    .select({ name: cohort.name })
+    .from(cohort)
+    .where(and(eq(cohort.councilId, found.id), cohortIsCurrent(now)))
+  const joined = (await actorOf(db, userId, found.id, now)) !== null
+  return { council: { ...found, cohortName: current?.name ?? null }, joined }
 }
 
 // 학생회 행을 잠가 코드 바꾸기, 내보내기와 한 번에 하나씩 처리한다(authorizeChange와 같은 잠금). 잠근 뒤 코드가 아직 그 학생회의 것인지 다시 본다.

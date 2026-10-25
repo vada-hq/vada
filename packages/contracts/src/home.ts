@@ -64,6 +64,8 @@ export interface HomeCouncil {
   blocked: HomeBlocked[]
   // 학생회 전체의 지난 업무. 오래 지난 것부터다.
   overdue: HomeList
+  // 지금 기수에 학생회 직급도 열린 부서 소속도 없는 운영진 수(DEC-87). 저장하지 않고 열 때마다 센다.
+  unassignedMembers: number
 }
 
 // 재정부가 받은 것: 결재 대기 요청(요청 목록 pending 보기와 같다), 오래된 것부터 HOME_LIST_LIMIT줄까지.

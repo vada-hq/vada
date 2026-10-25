@@ -40,7 +40,14 @@ export const myCouncil = (
   id = 'c1',
   name = '컴퓨터학부 학생회',
   councilRank: CouncilRank | null = 'president',
-): MyCouncil => ({ id, name, councilRank, departments: [] })
+): MyCouncil => ({
+  id,
+  name,
+  unit: 'department',
+  schoolName: '한양대학교 ERICA',
+  councilRank,
+  departments: [],
+})
 
 export function councilView(
   id = 'c1',

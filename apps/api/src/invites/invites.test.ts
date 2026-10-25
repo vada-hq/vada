@@ -57,6 +57,28 @@ async function setup(testDb: TestDb, users = ['u1', 'u2', 'u3']) {
   return { api, council, code }
 }
 
+// 들어온 사람의 내 학생회 한 줄. 유형과 학교로 같은 이름의 학생회를 가린다(DEC-87).
+const memberOf = (id: string) => ({
+  id,
+  name: '컴퓨터학부 학생회',
+  unit: 'department',
+  schoolName: '한양대학교 ERICA',
+  councilRank: null,
+  departments: [],
+})
+
+// 초대 확인: 학생회 이름·유형·학교·지금 기수 이름까지다. 운영진 수·이름과 초대한 사람은 없다(DEC-87).
+const previewOf = (id: string, joined: boolean, cohortName: string | null = '2026') => ({
+  council: {
+    id,
+    name: '컴퓨터학부 학생회',
+    unit: 'department',
+    schoolName: '한양대학교 ERICA',
+    cohortName,
+  },
+  joined,
+})
+
 // 한 행만 나와야 하는 조회의 그 행
 function one<T>(rows: T[]): T {
   assert.equal(rows.length, 1)
@@ -84,15 +106,63 @@ test('초대 확인은 학생회 이름과 이미 들어왔는지만 보여 주�
       (await (
         await api.get(`/api/invites/${encodeURIComponent(typed)}`, 'u2')
       ).json()) as InvitePreviewResponse,
-      { council: { id: council.id, name: '컴퓨터학부 학생회' }, joined: false },
+      previewOf(council.id, false),
     )
     assert.deepEqual(
       (await (await api.get(`/api/invites/${code}`, 'u1')).json()) as InvitePreviewResponse,
-      { council: { id: council.id, name: '컴퓨터학부 학생회' }, joined: true },
+      previewOf(council.id, true),
     )
     for (const wrong of ['ZZZZ2222', '%00', 'A'.repeat(17)])
       assert.equal((await api.get(`/api/invites/${wrong}`, 'u2')).status, 404, wrong)
     assert.equal((await api.get(`/api/invites/${code}`)).status, 401)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('초대 확인의 유형·학교·기수 이름은 그 코드의 학생회 것이고, 지금 기수가 없으면 기수 이름은 null이다. 운영진 이름은 싣지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, council, code } = await setup(testDb, ['u1', 'u2', 'u3', 'u4'])
+    await api.post('/api/organizations/join', { code }, 'u2')
+    // 다른 학생회는 같은 이름으로 만들고 유형·학교·기수 이름만 다르게 둔다. 학생회 거르기가 빠지면 두 확인 중 하나가 틀린다.
+    const other = (
+      (await (
+        await api.post('/api/organizations/create', body, 'u3')
+      ).json()) as CreateCouncilResponse
+    ).council
+    await testDb.pg.query(
+      "UPDATE council SET unit = 'university', school_name = '서울대학교' WHERE id = $1",
+      [other.id],
+    )
+    await testDb.pg.query("UPDATE cohort SET name = '제2기' WHERE council_id = $1", [other.id])
+    const { code: otherCode } = (await (
+      await api.get(`/api/organizations/${other.id}/invite`, 'u3')
+    ).json()) as InviteCodeResponse
+    const response = await api.get(`/api/invites/${code}`, 'u4')
+    const text = await response.text()
+    assert.deepEqual(JSON.parse(text), previewOf(council.id, false))
+    for (const hidden of ['이름 u1', '이름 u2', 'u1@example.test'])
+      assert.ok(!text.includes(hidden), hidden)
+    assert.deepEqual(
+      (await (await api.get(`/api/invites/${otherCode}`, 'u4')).json()) as InvitePreviewResponse,
+      {
+        council: {
+          id: other.id,
+          name: '컴퓨터학부 학생회',
+          unit: 'university',
+          schoolName: '서울대학교',
+          cohortName: '제2기',
+        },
+        joined: false,
+      },
+    )
+    // 2025-06-01에는 2026 기수가 시작 전이라 지금 기수가 없다. 확인은 되고 기수 이름만 없다.
+    const before = appOf(testDb, new Date('2025-06-01T03:00:00Z'))
+    assert.deepEqual(
+      (await (await before.get(`/api/invites/${code}`, 'u4')).json()) as InvitePreviewResponse,
+      previewOf(council.id, false, null),
+    )
   } finally {
     await testDb.close()
   }
@@ -105,7 +175,7 @@ test('초대 코드로 들어오면 지금 기수에 직급과 부서 없이 들
     const response = await api.post('/api/organizations/join', { code: code.toLowerCase() }, 'u2')
     assert.equal(response.status, 200)
     assert.deepEqual((await response.json()) as JoinCouncilResponse, {
-      council: { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] },
+      council: memberOf(council.id),
     })
     const [joined] = (await membershipsOf(testDb, 'u2')).rows
     assert.deepEqual(
@@ -133,9 +203,7 @@ test('초대 코드로 들어오면 지금 기수에 직급과 부서 없이 들
     assert.deepEqual(
       (await (await api.get('/api/me/councils', 'u2')).json()) as MyCouncilsResponse,
       {
-        councils: [
-          { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] },
-        ],
+        councils: [memberOf(council.id)],
       },
     )
   } finally {
@@ -232,7 +300,7 @@ test('내보내졌던 사람이 다시 들어오면 같은 소속을 다시 연�
     )
     assert.deepEqual(
       (await (await api.get(`/api/invites/${code}`, 'u2')).json()) as InvitePreviewResponse,
-      { council: { id: council.id, name: '컴퓨터학부 학생회' }, joined: false },
+      previewOf(council.id, false),
     )
     assert.equal((await api.post('/api/organizations/join', { code }, 'u2')).status, 200)
     const [reopened] = (await membershipsOf(testDb, 'u2')).rows
@@ -243,9 +311,7 @@ test('내보내졌던 사람이 다시 들어오면 같은 소속을 다시 연�
     assert.deepEqual(
       (await (await api.get('/api/me/councils', 'u2')).json()) as MyCouncilsResponse,
       {
-        councils: [
-          { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] },
-        ],
+        councils: [memberOf(council.id)],
       },
     )
     const versions = await testDb.pg.query<{ rank: string | null; ended: boolean }>(
@@ -394,7 +460,7 @@ test('들어오기 응답은 거래 안에서 만든다: 거래 밖에서 읽지
     assert.equal(response.status, 200)
     const joined = (await response.json()) as JoinCouncilResponse
     assert.deepEqual(joined, {
-      council: { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] },
+      council: memberOf(council.id),
     })
     assert.deepEqual(
       (await (await appOf(testDb).get('/api/me/councils', 'u2')).json()) as MyCouncilsResponse,
@@ -477,9 +543,7 @@ test('내보내졌다가 다시 들어올 때, 끝나지 않고 남은 부서 �
     assert.deepEqual(
       (await (await api.get('/api/me/councils', 'u2')).json()) as MyCouncilsResponse,
       {
-        councils: [
-          { id: council.id, name: '컴퓨터학부 학생회', councilRank: null, departments: [] },
-        ],
+        councils: [memberOf(council.id)],
       },
     )
     // 학생회 소속은 다시 열렸다.

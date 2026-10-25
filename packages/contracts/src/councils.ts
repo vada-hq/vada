@@ -37,9 +37,12 @@ export const CreateCouncilSchema = z
 export type CreateCouncilRequest = z.infer<typeof CreateCouncilSchema>
 
 // 내 학생회 목록의 한 줄: 학생회, 학생회 직급, 지금 부서 소속
+// 유형과 학교는 여러 학생회에 든 사람이 같은 이름(총학생회)의 학생회를 가리는 데 쓴다(DEC-87).
 export interface MyCouncil {
   id: string
   name: string
+  unit: CouncilUnit
+  schoolName: string
   councilRank: CouncilRank | null
   departments: { id: string; name: string; rank: DepartmentRank | null }[]
 }

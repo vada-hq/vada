@@ -50,7 +50,14 @@ test('학생회 만들기는 한 거래로 운영진, 로그인 잇기, 학생�
     const { council } = (await response.json()) as CreateCouncilResponse
     assert.deepEqual(
       { ...council, id: undefined },
-      { id: undefined, name: '컴퓨터학부 학생회', councilRank: 'president', departments: [] },
+      {
+        id: undefined,
+        name: '컴퓨터학부 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
+        councilRank: 'president',
+        departments: [],
+      },
     )
     const [creator] = (
       await pg.query<{ member_id: string }>(
@@ -122,6 +129,8 @@ test('학생회 만들기 응답은 거래 안에서 만든다: 거래 밖에서
       'departments',
       'id',
       'name',
+      'schoolName',
+      'unit',
     ])
     assert.match(
       created.council.id,
@@ -129,7 +138,14 @@ test('학생회 만들기 응답은 거래 안에서 만든다: 거래 밖에서
     )
     assert.deepEqual(
       { ...created.council, id: undefined },
-      { id: undefined, name: '컴퓨터학부 학생회', councilRank: 'president', departments: [] },
+      {
+        id: undefined,
+        name: '컴퓨터학부 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
+        councilRank: 'president',
+        departments: [],
+      },
     )
     assert.deepEqual(
       (await (await appOf(testDb).get('/api/me/councils', 'u1')).json()) as MyCouncilsResponse,
@@ -305,7 +321,14 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
     const list = (userId: string, now = noon) => myCouncils(db, userId, now)
     // 끝 날짜가 지났어도 다음 기수가 시작하기 전에는 그 기수가 지금 기수다(DEC-57).
     assert.deepEqual(await list(past.people.president.userId), [
-      { id: past.councilId, name: 'b 학생회', councilRank: 'president', departments: [] },
+      {
+        id: past.councilId,
+        name: 'b 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
+        councilRank: 'president',
+        departments: [],
+      },
     ])
     // b 학생회에 다음 기수(2026-01-01 시작)가 생기면 2025 기수는 지난 기수다.
     await db.transaction(tx =>
@@ -317,12 +340,21 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
       }),
     )
     assert.deepEqual(await list(people.president.userId), [
-      { id: councilId, name: 'a 학생회', councilRank: 'president', departments: [] },
+      {
+        id: councilId,
+        name: 'a 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
+        councilRank: 'president',
+        departments: [],
+      },
     ])
     assert.deepEqual(await list(people.planningHead.userId), [
       {
         id: councilId,
         name: 'a 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
         councilRank: null,
         departments: [{ id: departments.planning, name: '기획부', rank: 'head' }],
       },
@@ -361,6 +393,8 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
       {
         id: councilId,
         name: 'a 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
         councilRank: null,
         departments: [{ id: departments.planning, name: '기획부', rank: 'head' }],
       },
@@ -370,6 +404,8 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
       {
         id: past.councilId,
         name: 'b 학생회',
+        unit: 'department',
+        schoolName: '한양대학교 ERICA',
         councilRank: null,
         departments: [{ id: past.departments.finance, name: '재정부', rank: null }],
       },

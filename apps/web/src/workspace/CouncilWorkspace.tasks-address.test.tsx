@@ -217,6 +217,7 @@ const council = (extra: Partial<NonNullable<HomeResponse['council']>> = {}) => (
   endedTotal: 0,
   blocked: [],
   overdue: { tasks: [], total: 0 },
+  unassignedMembers: 0,
   ...extra,
 })
 
