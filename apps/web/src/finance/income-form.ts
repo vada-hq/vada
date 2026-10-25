@@ -1,5 +1,5 @@
 import type { CreateIncome, FiscalPeriodSummary } from '@vada/contracts'
-import { wonOf } from './budget-form'
+import { wonOf } from '@/lib/won-input'
 
 // 수입 적기 폼의 값. 입력칸 값은 글자다. 출처는 사람이 적는 것만 고른다(참가비와 이월금은 서버가 만든다).
 export type IncomeValues = {
