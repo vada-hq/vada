@@ -236,6 +236,104 @@ test(
 )
 
 test(
+  '방마다 마지막 메시지(보낸 사람, 첫 줄 앞 100자)와 참여 인원이 있다. 사진만이면 사진, 메시지가 없으면 null이다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const head = s.person.planningHead.memberId
+    const lee = s.person.vicePresident.memberId
+    await s.send(all, lee, '먼저 보낸 것', '2026-04-01T00:00:00Z')
+    // 이모지(코드 포인트 하나, UTF-16 둘)가 100번째 글자에 걸려도 반쪽으로 잘리지 않는다.
+    const long = `${'가'.repeat(99)}😀끝`
+    await s.send(all, head, `${long}\n둘째 줄`, '2026-04-02T00:00:00Z')
+    await s.send(planning, head, '', '2026-04-03T00:00:00Z')
+    const rooms = (await s.list('s-planningHead')).rooms
+    const byId = Object.fromEntries(rooms.map(room => [room.id, room]))
+    assert.deepEqual(byId[all]!.lastMessage, {
+      senderName: 's planningHead',
+      preview: `${'가'.repeat(99)}😀`,
+    })
+    assert.deepEqual(byId[planning]!.lastMessage, { senderName: 's planningHead', preview: '사진' })
+    // 공지방은 지금 운영진 7명(내보낸 사람 빼고), 기획부방은 기획부 셋이다.
+    assert.deepEqual([byId[all]!.memberCount, byId[planning]!.memberCount], [7, 3])
+    const lead = (await s.list('s-president')).rooms.find(room => room.type === 'leadership')!
+    assert.deepEqual([lead.lastMessage, lead.memberCount], [null, 2])
+  }),
+)
+
+test(
+  '미리보기는 보는 사람에게 보이는 마지막 메시지다. 부서방의 들어오기 전 메시지는 미리보기에도 없다',
+  run(async s => {
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const head = s.person.planningHead.memberId
+    // 기획부원은 5월에 들어왔다. 4월 메시지는 기획부장에게만 보인다.
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-05-01T00:00:00Z' WHERE room_id = $1 AND member_id = $2`,
+      [planning, s.person.planningMember.memberId],
+    )
+    await s.send(planning, head, '3월 이야기', '2026-03-15T00:00:00Z')
+    await s.send(planning, head, '들어오기 전 이야기', '2026-04-30T23:59:59Z')
+    const previewOf = async (user: string) =>
+      (await s.list(user)).rooms.find(room => room.id === planning)!.lastMessage
+    assert.equal((await previewOf('s-planningHead'))?.preview, '들어오기 전 이야기')
+    assert.equal(await previewOf('s-planningMember'), null)
+    await s.send(planning, head, '들어온 뒤', '2026-05-01T00:00:00Z')
+    assert.equal((await previewOf('s-planningMember'))?.preview, '들어온 뒤')
+  }),
+)
+
+test(
+  '공지방 미리보기는 같은 기수의 들어오기 전 메시지도 쓰고 지난 기수 것은 쓰지 않는다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const kim = s.person.president.memberId
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-05-01T00:00:00Z' WHERE room_id = $1 AND member_id = $2`,
+      [all, s.person.planningMember.memberId],
+    )
+    await s.send(all, kim, '지난 기수 공지', '2025-12-31T14:59:59Z')
+    const previewOf = async () =>
+      (await s.list('s-planningMember')).rooms.find(room => room.id === all)!.lastMessage
+    assert.equal(await previewOf(), null)
+    await s.send(all, kim, '봄 공지', '2026-02-01T00:00:00Z')
+    assert.deepEqual(await previewOf(), { senderName: 's president', preview: '봄 공지' })
+  }),
+)
+
+test(
+  '미리보기에 다른 학생회의 메시지가 섞이지 않는다. 두 학생회에 든 사람도 학생회마다 그 학생회 방의 메시지만 본다',
+  run(async s => {
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const head = s.person.planningHead.memberId
+    // 같은 사람이 다른 학생회의 같은 모양 방(기획부방)에도 들었고, 거기에 더 늦은 메시지가 있다.
+    await s.api.get(`/api/organizations/${s.other.councilId}/rooms`, 'o-president')
+    const foreign = await s.roomId(s.other.councilId, '기획부')
+    await s.pg.query(
+      `INSERT INTO room_membership (room_id, member_id, joined_at) VALUES ($1, $2, $3)`,
+      [foreign, head, JOINED],
+    )
+    await s.send(planning, head, '우리 학생회', '2026-04-01T00:00:00Z')
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'message',
+        councilId: s.other.councilId,
+        actor: s.other.people.planningHead.memberId,
+        values: { roomId: foreign, body: '다른 학생회', sentAt: new Date('2026-04-02T00:00:00Z') },
+      }),
+    )
+    const rooms = (await s.list('s-planningHead')).rooms
+    assert.equal(
+      rooms.some(room => room.id === foreign),
+      false,
+    )
+    assert.deepEqual(rooms.find(room => room.id === planning)!.lastMessage, {
+      senderName: 's planningHead',
+      preview: '우리 학생회',
+    })
+  }),
+)
+
+test(
   '메시지가 없는 1:1은 목록에 없다. 상대가 학생회를 떠난 1:1은 보기만 된다',
   run(async s => {
     const kim = s.person.president.memberId

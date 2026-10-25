@@ -121,6 +121,13 @@ test(
 
     const rooms = await get<RoomListResponse>('/rooms')
     assert.equal(rooms.rooms.find(room => room.id === done.direct)?.name, L1_NAME)
+    // 방 줄 미리보기의 보낸 사람도 같은 이름이다(DEC-90).
+    assert.deepEqual(
+      [done.direct, done.all].map(
+        id => rooms.rooms.find(room => room.id === id)?.lastMessage?.senderName,
+      ),
+      [L1_NAME, L2_NAME],
+    )
     const senders = async (roomId: string) =>
       (await get<MessagePageResponse>(`/rooms/${roomId}/messages`)).messages.map(
         item => item.senderName,

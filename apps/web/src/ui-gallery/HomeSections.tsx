@@ -193,6 +193,8 @@ const chatRoom = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   unread: 1,
   mentions: 0,
   lastMessageAt: '2026-10-23T03:00:00.000Z',
+  lastMessage: null,
+  memberCount: 3,
   ...extra,
 })
 
