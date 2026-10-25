@@ -69,8 +69,11 @@ function setup(options: { permissions?: string[]; at?: string } = {}) {
       truncated: false,
     }),
   )
-  // 업무 탭의 업무 만들기가 운영진을 읽는다.
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(uuidTeam()))
+  // 업무 탭의 빠른 추가가 그 행사의 만들기 선택지를 읽는다.
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/tasks/options?event=${EVENT_ID}`, () =>
+    json({ departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }] }),
+  )
   // 개요가 같이 읽는 세 탭의 요약. 시험마다 바꿔 끼운다.
   api.on('GET', OPEN_TASKS, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${BASE}/${EVENT_ID}/registration-forms`, () =>
@@ -351,7 +354,8 @@ test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 �
   expect(screen.queryByRole('region', { name: '다음 업무' })).toBeNull()
   expect(within(steps).queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
   fireEvent.click(within(steps).getByRole('button', { name: '업무 만들기' }))
-  expect(await screen.findByRole('dialog', { name: '업무 만들기' })).toBeTruthy()
+  const quickAdd = await screen.findByRole('textbox', { name: '새 업무' })
+  expect(document.activeElement).toBe(quickAdd)
   await settle()
 })
 
@@ -435,10 +439,12 @@ test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이�
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
   await screen.findByRole('button', { name: '현수막 주문' })
   expect(screen.queryByRole('tab', { name: '내 업무' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '업무 만들기' }))
-  await screen.findByRole('combobox', { name: '담당 부서' })
-  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
-  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
+  expect(screen.queryByRole('button', { name: '업무 만들기' })).toBeNull()
+  fireEvent.change(await screen.findByRole('textbox', { name: '새 업무' }), {
+    target: { value: '청소' },
+  })
+  await settle()
+  fireEvent.click(screen.getByRole('button', { name: '추가' }))
   await waitFor(() =>
     expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
       eventId: EVENT_ID,
@@ -485,10 +491,10 @@ test('업무 탭에서 업무를 만들면 행사 상세도 다시 읽는다', a
   const reads = () => api.calls.filter(call => call.path === detailPath).length
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
-  fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
-  await screen.findByRole('combobox', { name: '담당 부서' })
+  const input = await screen.findByRole('textbox', { name: '새 업무' })
+  await settle()
   const before = reads()
-  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
-  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
+  fireEvent.change(input, { target: { value: '청소' } })
+  fireEvent.click(screen.getByRole('button', { name: '추가' }))
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
