@@ -117,9 +117,7 @@ function PageOf({
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat')
-    return (
-      <LeadPage {...{ data, rooms, page, onOpenRequest, onOpenEvent, onOpenPage, view }} />
-    )
+    return <LeadPage {...{ data, rooms, page, onOpenRequest, onOpenEvent, onOpenPage, view }} />
   if (page === 'events')
     return (
       <EventsPage
