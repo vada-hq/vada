@@ -73,6 +73,10 @@ export interface RoomSummary {
   unread: number
   mentions: number
   lastMessageAt: string | null
+  // 내가 볼 수 있는 마지막 메시지(DEC-20, DEC-90): 보낸 사람과 첫 줄 앞 100자(사진만이면 '사진'). 볼 메시지가 없으면 null.
+  lastMessage: { senderName: string | null; preview: string } | null
+  // 방 참여 인원(참여자 목록과 같은 수)
+  memberCount: number
 }
 
 export interface RoomListResponse {

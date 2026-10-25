@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gt, gte, inArray, isNull, max, ne, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gt, gte, inArray, isNull, max, ne, or, sql } from 'drizzle-orm'
 import {
   type RoomDetailResponse,
   type RoomListResponse,
@@ -17,10 +17,13 @@ import {
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { currentMembersAmong } from './current-members.js'
+import { previewOf } from './excerpt.js'
 import { visibleMessage } from './messages.js'
-import { joinedDisplayNameOf } from '../team/display-name.js'
+import { displayNameOf, joinedDisplayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
+// 방 목록은 방마다 마지막 메시지 하나를 DISTINCT ON으로 고른다.
+type ListReader = Pick<Db, 'select' | 'selectDistinctOn'>
 
 // 내가 참여한 방. 방은 이 학생회의 기록이다.
 async function myRooms(db: Reader, actor: Actor) {
@@ -61,6 +64,41 @@ async function messageStats(db: Reader, actor: Actor) {
     .where(visibleMessage(actor))
     .groupBy(message.roomId)
   return new Map(rows.map(row => [row.roomId, row]))
+}
+
+// 방마다 내가 볼 수 있는 마지막 메시지(보낸 시각, 번호 차례로 마지막)의 보낸 사람과 미리보기.
+// 방 흐름과 같은 조건(visibleMessage)이라 들어오기 전 부서방 메시지는 미리보기에도 없다(DEC-20, DEC-90).
+async function lastMessages(db: ListReader, actor: Actor) {
+  const rows = await db
+    .selectDistinctOn([message.roomId], {
+      roomId: message.roomId,
+      body: message.body,
+      senderName: displayNameOf(member, record.councilId),
+    })
+    .from(message)
+    .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
+    .innerJoin(
+      roomMembership,
+      and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
+    )
+    .leftJoin(member, eq(member.id, record.createdBy))
+    .where(visibleMessage(actor))
+    .orderBy(message.roomId, desc(message.sentAt), desc(message.id))
+  return new Map(
+    rows.map(row => [row.roomId, { senderName: row.senderName, preview: previewOf(row.body) }]),
+  )
+}
+
+// 방마다 참여 인원. 방 하나를 열 때의 참여자 목록과 같은 줄을 센다.
+async function memberCounts(db: Reader, roomIds: string[]) {
+  if (!roomIds.length) return new Map<string, number>()
+  const rows = await db
+    .select({ roomId: roomMembership.roomId, members: count() })
+    .from(roomMembership)
+    .where(inArray(roomMembership.roomId, roomIds))
+    .groupBy(roomMembership.roomId)
+  return new Map(rows.map(row => [row.roomId, row.members]))
 }
 
 // 방마다 나를 부른 안 읽은 메시지 수.
@@ -136,11 +174,16 @@ export async function namedRooms(db: Reader, actor: Actor, now: Date, roomIds: s
   )
 }
 
-async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSummary[]> {
+async function summariesOf(db: ListReader, actor: Actor, now: Date): Promise<RoomSummary[]> {
   const rooms = await myRooms(db, actor)
-  const [stats, mentions, peers] = await Promise.all([
+  const [stats, mentions, last, members, peers] = await Promise.all([
     messageStats(db, actor),
     mentionCounts(db, actor),
+    lastMessages(db, actor),
+    memberCounts(
+      db,
+      rooms.map(room => room.id),
+    ),
     directPeers(
       db,
       actor,
@@ -148,6 +191,16 @@ async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSum
       rooms.filter(room => room.type === 'direct').map(room => room.id),
     ),
   ])
+  // 방에 쌓인 메시지에서 나오는 값. 메시지가 없는 방은 0과 null이다.
+  const activityOf = (roomId: string) => {
+    const stat = stats.get(roomId)
+    return {
+      unread: stat?.unread ?? 0,
+      mentions: mentions.get(roomId) ?? 0,
+      lastMessageAt: stat?.lastAt?.toISOString() ?? null,
+      lastMessage: last.get(roomId) ?? null,
+    }
+  }
   return rooms.map(room => {
     const peer = peers.get(room.id)
     return {
@@ -156,9 +209,8 @@ async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSum
       name: nameOf(room.type, room.departmentName, peer),
       departmentId: room.departmentId,
       readOnly: room.type === 'direct' && !peer?.current,
-      unread: stats.get(room.id)?.unread ?? 0,
-      mentions: mentions.get(room.id) ?? 0,
-      lastMessageAt: stats.get(room.id)?.lastAt?.toISOString() ?? null,
+      ...activityOf(room.id),
+      memberCount: members.get(room.id) ?? 0,
     }
   })
 }
@@ -178,7 +230,11 @@ function byDisplayOrder(a: RoomSummary, b: RoomSummary) {
 }
 
 // 방 목록. 메시지가 없는 1:1은 보이지 않는다(만들기만 하고 보내지 않은 방).
-export async function roomListOf(db: Reader, actor: Actor, now: Date): Promise<RoomListResponse> {
+export async function roomListOf(
+  db: ListReader,
+  actor: Actor,
+  now: Date,
+): Promise<RoomListResponse> {
   const rooms = (await summariesOf(db, actor, now))
     .filter(room => room.type !== 'direct' || room.lastMessageAt !== null)
     .sort(byDisplayOrder)
@@ -191,7 +247,7 @@ export async function roomListOf(db: Reader, actor: Actor, now: Date): Promise<R
 
 // 방 하나와 그 참여자. 방을 여는 문(room-access)을 지난 뒤에 부른다.
 export async function roomDetailOf(
-  db: Reader,
+  db: ListReader,
   actor: Actor,
   now: Date,
   roomId: string,
