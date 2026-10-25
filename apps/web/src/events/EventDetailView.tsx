@@ -20,11 +20,12 @@ import type { EventDialogHandlers } from './useEventSubmit'
 import { useEventDetail } from './useEventDetail'
 
 type Tab = EventTab
+// 탭 이름과 차례는 와이어프레임 EVT-02(DEC-93): 재정이 인원 관리 앞이다. 주소 값(money, registrations)은 그대로다.
 const TABS: { tab: Tab; label: string }[] = [
   { tab: 'overview', label: '개요' },
   { tab: 'tasks', label: '업무' },
-  { tab: 'registrations', label: '참가 신청' },
-  { tab: 'money', label: '예산·정산' },
+  { tab: 'money', label: '재정' },
+  { tab: 'registrations', label: '인원 관리' },
 ]
 
 type Props = EventDialogHandlers & {
@@ -54,14 +55,18 @@ function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
 }
 
 // 업무 탭으로 넘겨 여는 것(개요의 업무 만들기, 담당자 없음 보기)과 머리의 고치기. 넘긴 것은 탭을 직접 바꾸면 버린다.
+// moneyRefresh는 머리의 완료·완료 취소(와 그 거절)가 바꾼 정산을 재정 탭이 다시 읽게 하는 번호다.
 type TaskLink = { create?: boolean; view?: 'unassigned' }
 function useDetailState(onTab: (tab: Tab) => void) {
   const [taskLink, setTaskLink] = useState<TaskLink>({})
   const [editing, setEditing] = useState<EventEditing | null>(null)
+  const [moneyRefresh, setMoneyRefresh] = useState(0)
   return {
     taskLink,
     editing,
     setEditing,
+    moneyRefresh,
+    refreshMoney: () => setMoneyRefresh(value => value + 1),
     moveTo: (next: Tab) => {
       setTaskLink({})
       onTab(next)
@@ -73,7 +78,8 @@ function useDetailState(onTab: (tab: Tab) => void) {
   }
 }
 
-// 행사 하나: 머리(이름, 상태, 일시·장소, 고치기)와 탭 넷(개요, 업무, 참가 신청, 예산·정산). 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
+// 행사 하나: 머리(이름 줄, 탭, 요약 줄)와 탭 넷(개요, 업무, 재정, 인원 관리)의 내용. 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
+// 행사를 읽기 전에는 머리에 탭만 보인다.
 export default function EventDetailView({ view, eventId, tab, onTab, from, ...props }: Props) {
   const state = useDetailState(onTab)
   const detail = useEventDetail(view.council.id, eventId, {
@@ -92,28 +98,32 @@ export default function EventDetailView({ view, eventId, tab, onTab, from, ...pr
         <ChevronLeft aria-hidden />
         {backLabel(from)}
       </Button>
-      {event && (
-        <EventHeader
-          councilId={view.council.id}
-          event={event}
-          editing={state.editing}
-          onEdit={state.setEditing}
-          onLost={props.onLost}
-          onForbidden={props.onForbidden}
-          onChanged={next => {
-            detail.replace(next)
-            props.onChanged()
-          }}
-        />
-      )}
+      <EventHeader
+        councilId={view.council.id}
+        event={event}
+        editing={state.editing}
+        onEdit={state.setEditing}
+        onLost={props.onLost}
+        onForbidden={props.onForbidden}
+        onChanged={next => {
+          detail.replace(next)
+          state.refreshMoney()
+          props.onChanged()
+        }}
+        onStale={() => {
+          void detail.reload()
+          state.refreshMoney()
+        }}
+        tabs={<EventTabs tab={tab} onTab={state.moveTo} />}
+      />
       {event?.status === 'completed' && <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>}
-      <EventTabs tab={tab} onTab={state.moveTo} />
       <EventPanel
         tab={tab}
         view={view}
         eventId={eventId}
         detail={detail}
         taskLink={state.taskLink}
+        moneyRefresh={state.moneyRefresh}
         onTab={state.moveTo}
         onOpenTasks={state.openTasks}
         onEdit={focus => state.setEditing({ focus })}
@@ -127,12 +137,13 @@ type PanelProps = Omit<Props, 'from' | 'onTab'> & {
   tab: Tab
   detail: ReturnType<typeof useEventDetail>
   taskLink: TaskLink
+  moneyRefresh: number
   onTab: (tab: Tab) => void
   onOpenTasks: (link: TaskLink) => void
   onEdit: (focus: EventFieldFocus) => void
 }
 
-// 탭 하나의 내용. 개요, 업무, 참가 신청, 예산·정산.
+// 탭 하나의 내용. 개요, 업무, 재정, 인원 관리.
 function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
   const handlers = { onLost: props.onLost, onForbidden: props.onForbidden }
   return (
@@ -163,10 +174,7 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
             <EventMoneyTab
               view={view}
               event={loaded}
-              onEventChanged={next => {
-                detail.replace(next)
-                props.onChanged()
-              }}
+              refresh={props.moneyRefresh}
               reloadEvent={detail.reload}
               {...handlers}
             />

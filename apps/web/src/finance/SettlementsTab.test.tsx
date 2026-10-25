@@ -68,7 +68,7 @@ const rowOf = (name: string) => {
   return within(item)
 }
 
-test('서버 차례대로 줄마다 행사 이름, 상태, 정산 남은 것 수가 있고 누르면 그 행사의 예산·정산이 열린다', async () => {
+test('서버 차례대로 줄마다 행사 이름, 상태, 정산 남은 것 수가 있고 누르면 그 행사의 재정 탭이 열린다', async () => {
   await open(response())
   const list = await listed()
   expect(
@@ -82,7 +82,7 @@ test('서버 차례대로 줄마다 행사 이름, 상태, 정산 남은 것 수
     expect.stringContaining('개강 파티'),
   ])
   expect(screen.getByText('2026년 2학기')).toBeTruthy()
-  expect(rowOf('봄 축제').getByText('끝남')).toBeTruthy()
+  expect(rowOf('봄 축제').getByText('후속 정리 중')).toBeTruthy()
   expect(rowOf('봄 축제').getByText('정산 남은 것 3')).toBeTruthy()
   // 끝났고 남은 것이 없는 행사는 홈 '정산할 행사'와 같은 말이다.
   expect(rowOf('체육 대회').getByText('완료 가능')).toBeTruthy()
@@ -151,7 +151,7 @@ function wide() {
   }))
 }
 
-test('넓은 화면에서는 행사·상태·날짜·정산 남은 것 칸의 표이고, 줄을 누르면 그 행사의 예산·정산이 열린다', async () => {
+test('넓은 화면에서는 행사·상태·날짜·정산 남은 것 칸의 표이고, 줄을 누르면 그 행사의 재정 탭이 열린다', async () => {
   wide()
   const tbd = '00000000-0000-4000-8000-0000000000a5'
   await open(
@@ -181,11 +181,11 @@ test('넓은 화면에서는 행사·상태·날짜·정산 남은 것 칸의 �
     within(screen.getByText(name).closest('tr')!)
       .getAllByRole('cell')
       .map(cell => cell.textContent)
-  expect(cells('봄 축제')).toEqual(['봄 축제', '끝남', expect.any(String), '3'])
+  expect(cells('봄 축제')).toEqual(['봄 축제', '후속 정리 중', expect.any(String), '3'])
   expect(cells('체육 대회')[3]).toBe('완료 가능')
   expect(cells('개강 파티')[3]).toBe('')
-  // 날짜 미정은 상태 배지가 말하므로 날짜 칸이 비어 있다.
-  expect(cells('졸업 파티')).toEqual(['졸업 파티', '날짜 미정', '', ''])
+  // 날짜 미정은 상태 배지('기획 중')가 말하지 않으므로 날짜 칸이 말한다.
+  expect(cells('졸업 파티')).toEqual(['졸업 파티', '기획 중', '일시 미정', ''])
   // 줄이 누르기를 받아 이름 밖(날짜 칸)을 눌러도 그 행사가 열린다.
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(within(screen.getByText('전시').closest('tr')!).getAllByRole('cell')[2]!)

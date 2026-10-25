@@ -104,10 +104,10 @@ test('받은 것 줄을 누르면 재정 화면에서 그 요청 상세가 열�
   )
 })
 
-test('끝난 행사 카드를 누르면 행사 화면이 예산·정산 탭으로 열린다', async () => {
+test('끝난 행사 카드를 누르면 행사 화면이 재정 탭으로 열린다', async () => {
   open(homeResponse({ council: councilOf([card({ remaining: 2, settled: false })]) }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  expect(await tabSelected('예산·정산')).toBe('true')
+  expect(await tabSelected('재정')).toBe('true')
 })
 
 test('정산 수가 없는 행사 카드는 개요로 열린다', async () => {
@@ -116,7 +116,7 @@ test('정산 수가 없는 행사 카드는 개요로 열린다', async () => {
   expect(await tabSelected('개요')).toBe('true')
 })
 
-test('정산할 행사 줄을 누르면 행사 화면이 예산·정산 탭으로 열린다', async () => {
+test('정산할 행사 줄을 누르면 행사 화면이 재정 탭으로 열린다', async () => {
   open(
     homeResponse({
       settling: {
@@ -126,5 +126,5 @@ test('정산할 행사 줄을 누르면 행사 화면이 예산·정산 탭으�
     }),
   )
   fireEvent.click(await screen.findByRole('button', { name: /신입생 환영회/ }))
-  expect(await tabSelected('예산·정산')).toBe('true')
+  expect(await tabSelected('재정')).toBe('true')
 })

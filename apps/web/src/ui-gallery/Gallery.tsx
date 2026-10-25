@@ -19,7 +19,7 @@ import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
 import { DecisionSection, FinanceSection, ItemCancelSection } from './FinanceSections'
-import { EventSection } from './EventSections'
+import { EventHeaderSection, EventSection } from './EventSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
   TaskQuickAddSection,
@@ -53,6 +53,7 @@ export default function Gallery() {
       <StateSection />
       <PushSection />
       <EventSection />
+      <EventHeaderSection />
       <SettlementSection />
       <TaskSection />
       <TaskTableSection />
