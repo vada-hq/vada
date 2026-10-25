@@ -104,6 +104,8 @@ const openForm = async () => {
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const submit = () => asElement(screen.getByRole('button', { name: '적기' }), HTMLButtonElement)
+// 보낼 때마다 새로 만드는 명령 번호는 모양만 본다.
+const anyCommandId = expect.stringMatching(/^[0-9a-f-]{36}$/) as string
 const choose = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const today = () => koreanDateOf(new Date())
@@ -143,6 +145,7 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   // 적고 나면 상세가 열려 사진을 붙이게 한다.
   await screen.findByRole('button', { name: '사진 올리기' })
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    commandId: anyCommandId,
     vendor: '인쇄소',
     description: '포스터 인쇄',
     eventId: null,
@@ -207,6 +210,7 @@ test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목
   fireEvent.click(submit())
   await screen.findByRole('button', { name: '사진 올리기' })
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    commandId: anyCommandId,
     vendor: '편의점',
     description: '간식',
     eventId: null,

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { lockCouncil } from '../../access/authorize.js'
 import { publishClosing } from '../../closing/publish.js'
 import type { Db, Tx } from '../../db/types.js'
@@ -11,6 +12,7 @@ import {
   withConnections,
   type SmokeCase,
   type SmokeContext,
+  SMOKE_RECEIPT_KEY,
 } from './pg-smoke-kit.js'
 import { outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
 import { count, make, PAIR, worldOf, type World } from './pg-smoke-complete-kit.js'
@@ -109,6 +111,7 @@ export const publishTogetherCase: SmokeCase = {
 }
 
 const expenseInput = (world: World) => ({
+  commandId: randomUUID(),
   vendor: '문구점',
   eventId: null,
   sourceMessageId: null,
@@ -131,7 +134,8 @@ async function expenseRound(open: () => SmokeConnection, context: SmokeContext, 
   const world = await worldOf(open(), context, `smoke-cl2-r${round}`, PERIODS)
   await incomeOf(world)
   const { now, ...input } = expenseInput(world)
-  const spend = (tx: Tx) => createExpense(tx, world.finance, input, now)
+  const spend = (tx: Tx) =>
+    createExpense(tx, world.finance, input, { now, receiptKey: SMOKE_RECEIPT_KEY })
   const publishFirst = round % PAIR === 0
   const problem = publishFirst
     ? await race(

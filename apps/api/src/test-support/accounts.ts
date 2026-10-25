@@ -33,7 +33,7 @@ async function startAccounts() {
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       accounts: createAccountRoutes(db, testSession, { clock }),
-      expenses: createExpenseRoutes(db, testSession, { clock }),
+      expenses: createExpenseRoutes(db, testSession, { clock, receiptKey: 'test-receipt-key' }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/accounts`

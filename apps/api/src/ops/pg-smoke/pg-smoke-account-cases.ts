@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { koreanDateOf, type CreateAccountRequest } from '@vada/contracts'
 import { closeAccount, createAccount } from '../../accounts/service.js'
 import type { Db } from '../../db/types.js'
@@ -11,6 +12,7 @@ import {
   withConnections,
   type SmokeCase,
   type SmokeContext,
+  SMOKE_RECEIPT_KEY,
 } from './pg-smoke-kit.js'
 import { moneyScene, outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
 import type { MoneyScene } from './pg-smoke-money-kit.js'
@@ -118,6 +120,7 @@ const spending = (db: Db, run: Run, accountId: string, hold?: () => Promise<void
       tx,
       actor,
       {
+        commandId: randomUUID(),
         vendor: '문구점',
         eventId: null,
         sourceMessageId: null,
@@ -132,7 +135,7 @@ const spending = (db: Db, run: Run, accountId: string, hold?: () => Promise<void
         accountId,
         lines: [],
       },
-      run.context.now,
+      { now: run.context.now, receiptKey: SMOKE_RECEIPT_KEY },
     )
     await hold?.()
     return detail

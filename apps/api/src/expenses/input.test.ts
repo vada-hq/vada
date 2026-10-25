@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import { CreateExpenseSchema, EXPENSE_METHODS } from '@vada/contracts'
 import { createRateLimiter } from '../http/rate-limit.js'
@@ -72,8 +73,9 @@ test(
 
 test('결제 수단은 카드, 계좌 이체, 현금이다', () => {
   assert.deepEqual([...EXPENSE_METHODS], ['card', 'transfer', 'cash'])
-  assert.equal(CreateExpenseSchema.safeParse({ ...BASE, method: 'transfer' }).success, true)
-  assert.equal(CreateExpenseSchema.safeParse(BASE).data?.method, 'card')
+  const command = { ...BASE, commandId: randomUUID() }
+  assert.equal(CreateExpenseSchema.safeParse({ ...command, method: 'transfer' }).success, true)
+  assert.equal(CreateExpenseSchema.safeParse(command).data?.method, 'card')
 })
 
 test('요청 내기와 지출 적기는 한도 하나를 같이 쓴다: 합쳐 21번째는 429이고 지출도 요청도 생기지 않는다', async () => {

@@ -103,7 +103,11 @@ function appOf(env: Env, db: Db) {
     home: createHomeRoutes(db, session),
     purchases: createPurchaseRoutes(db, session, { push: push.purchasePush, writeLimiter }),
     budget: createBudgetRoutes(db, session),
-    expenses: createExpenseRoutes(db, session, { writeLimiter, storage }),
+    expenses: createExpenseRoutes(db, session, {
+      writeLimiter,
+      storage,
+      receiptKey: env.BETTER_AUTH_SECRET!,
+    }),
     incomes: createIncomeRoutes(db, session, { writeLimiter }),
     closing: createClosingRoutes(db, session, { bundleAvailable: storage !== undefined }),
     closingExport: createClosingExportRoutes(db, session, { storage }),

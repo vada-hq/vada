@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { koreanYearOf } from '@vada/contracts'
 import { createAccount } from '../src/accounts/service.js'
 import { addBudgetItem, createFiscalPeriod } from '../src/budget/service.js'
@@ -11,6 +12,9 @@ import { demoDay } from './demo-dates.js'
 // 시연 학생회의 돈: 계좌 둘, 이번 해 예산, 구매 요청(결재 대기, 일부 승인), 환급 전 지출 하나(증빙 사진 없음).
 // 돈을 쓰는 일은 재정부원이 하고, 요청은 요청한 운영진이 낸다. 모두 서비스 함수를 거쳐 판과 같은 검사를 받는다.
 // 계좌번호와 예금주는 지어낸 것이다.
+
+// 시연은 서버 밖에서 서비스 함수를 불러 영수증 키를 모른다. 번호가 매번 새 값이라 재전송은 없고, 영수증은 24시간 뒤 지워진다.
+const DEMO_RECEIPT_KEY = 'demo-receipt-key'
 
 async function addAccounts(tx: Tx, cast: DemoCast) {
   await createAccount(tx, cast.financeHead, {
@@ -115,6 +119,7 @@ async function addExpense(
     tx,
     cast.financeHead,
     {
+      commandId: randomUUID(),
       vendor: '시연마트',
       eventId: null,
       sourceMessageId: null,
@@ -129,7 +134,7 @@ async function addExpense(
       accountId: ctx.accountId,
       lines: [],
     },
-    ctx.now,
+    { now: ctx.now, receiptKey: DEMO_RECEIPT_KEY },
   )
 }
 

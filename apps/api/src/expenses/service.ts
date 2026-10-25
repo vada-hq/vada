@@ -11,6 +11,7 @@ import { assertCurrentExpenseItems, budgetItemEventsOf } from '../budget/queries
 import { assertCurrentMembers } from '../chat/current-members.js'
 import { linkSourceMessage } from '../chat/source-message.js'
 import { assertDayOpen } from '../closing/lock.js'
+import { saveReceipt } from '../commands/receipt.js'
 import type { Tx } from '../db/types.js'
 import { assertEventsOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
@@ -22,6 +23,7 @@ import { assertPayable } from './payable.js'
 import { lockedExpenseRow } from './lock.js'
 import { expenseDetailOf } from './queries.js'
 import { assertAllowed } from './policy.js'
+import { expenseBodyHashOf, expenseKeyOf, resendExpense } from './resend.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 지출 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
 // 재정부만 쓴다(회장단도 403). 403이 다른 실패보다 먼저다.
@@ -69,14 +71,8 @@ function expenseValuesOf(input: CreateExpense, eventId: string | null) {
   }
 }
 
-// 지출을 적으면 같은 거래에서 적은 사람의 승인 결재 기록이 생긴다(DEC-41). 따로 결재하는 단계는 없다.
-export async function createExpense(
-  tx: Tx,
-  actor: Actor,
-  input: CreateExpense,
-  now: Date,
-): Promise<ExpenseDetail> {
-  if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+// 지출 기록과 그 결제 내역·근거 연결·적은 사람의 승인 결재 기록을 만든다. 검사는 여기서 끝낸다.
+async function insertExpense(tx: Tx, actor: Actor, input: CreateExpense, now: Date) {
   // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
   await assertCouncilEvent(tx, actor, input.eventId)
   const requested = eventOfNewExpense(await assertEventsOpenFor(tx, actor, input), input.eventId)
@@ -116,6 +112,24 @@ export async function createExpense(
       reason: null,
     },
   })
+  return expenseId
+}
+
+// 지출을 적으면 같은 거래에서 적은 사람의 승인 결재 기록이 생긴다(DEC-41). 따로 결재하는 단계는 없다.
+// 같은 명령 번호의 재전송은 새로 만들지 않고 처음 지출의 지금 상세를 준다(DEC-84). 403이 먼저이고, 거절한 요청은 거래가 물러나 영수증도 없다.
+export async function createExpense(
+  tx: Tx,
+  actor: Actor,
+  input: CreateExpense,
+  command: { now: Date; receiptKey: string },
+): Promise<ExpenseDetail> {
+  if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+  const key = expenseKeyOf(actor, input.commandId)
+  const bodyHash = expenseBodyHashOf(command.receiptKey, input)
+  const resent = await resendExpense(tx, actor, { key, bodyHash, now: command.now })
+  if (resent) return resent
+  const expenseId = await insertExpense(tx, actor, input, command.now)
+  await saveReceipt(tx, key, { bodyHash, resultId: expenseId, resultKind: 'expense' }, command.now)
   return expenseDetailOf(tx, actor, expenseId)
 }
 

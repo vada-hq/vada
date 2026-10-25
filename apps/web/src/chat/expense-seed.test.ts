@@ -15,6 +15,7 @@ const context = { meId: 'm1', members: [member('m1'), member('m2')] }
 // 계약이 받는지는 같은 스키마로 본다(숫자를 다시 적지 않는다).
 const accepted = (seed: ReturnType<typeof expenseSeedOf>) =>
   CreateExpenseSchema.safeParse({
+    commandId: '3f0c1d52-8a4e-4b7a-9c1e-5d2f6a7b8c90',
     vendor: '가게',
     description: seed.description,
     amount: 1000,

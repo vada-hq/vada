@@ -4,6 +4,7 @@ import { PHOTO_KEY_MAX } from './chat.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { PURCHASE_ITEMS_MAX, PURCHASE_REASON_MAX, type PurchasePerson } from './purchases.js'
+import { commandIdInput } from './registrations.js'
 import { recordIdInput } from './team.js'
 
 // 지출(DEC-24, DEC-36, DEC-45). 값은 DB CHECK와 같다.
@@ -42,6 +43,8 @@ const sumOf = (lines: { amount: number }[]) => lines.reduce((sum, line) => sum +
 // 결제일이 오늘 뒤인지는 서버 시계로 본다(여기서는 날짜 형식만 본다).
 export const CreateExpenseSchema = z
   .strictObject({
+    // 화면이 보내기 전에 만드는 명령 번호(DEC-84). 같은 번호를 다시 보내면 지출은 하나만 남는다.
+    commandId: commandIdInput,
     vendor: text(EXPENSE_VENDOR_MAX),
     description: text(EXPENSE_DESCRIPTION_MAX),
     amount: z.number().int().min(1).max(WON_MAX),

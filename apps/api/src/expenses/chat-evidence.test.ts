@@ -36,6 +36,7 @@ async function start(options: { noStorage?: boolean; uploadLimiter?: RateLimiter
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       expenses: createExpenseRoutes(db, testSession, {
+        receiptKey: 'test-receipt-key',
         clock: () => noon,
         storage,
         ...(options.uploadLimiter ? { uploadLimiter: options.uploadLimiter } : {}),

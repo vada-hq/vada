@@ -256,7 +256,10 @@ test('지출 쓰기는 학생회 행을 잠근 뒤 운영진을 확인하고, �
         trustedOrigin: ORIGIN,
         purchases: createPurchaseRoutes(db, testSession, { clock: () => noon }),
         budget: createBudgetRoutes(db, testSession, { clock: () => noon }),
-        expenses: createExpenseRoutes(db, testSession, { clock: () => noon }),
+        expenses: createExpenseRoutes(db, testSession, {
+          clock: () => noon,
+          receiptKey: 'test-receipt-key',
+        }),
       }),
     )
     const base = `/api/organizations/${council.councilId}/expenses`
