@@ -1,6 +1,6 @@
 import type { FormEvent, ReactNode } from 'react'
-import { COUNCIL_UNITS, type CouncilUnit } from '@vada/contracts'
-import { unitLabels } from '../councils/unit-labels'
+import type { CouncilUnit } from '@vada/contracts'
+import { unitChoices, unitLabels } from '../councils/unit-labels'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
@@ -67,7 +67,7 @@ function BasicFields({ value, canEdit, onEdit, errors }: BasicProps) {
           disabled={!canEdit}
           onChange={event => onEdit({ unit: event.target.value as CouncilUnit })}
         >
-          {COUNCIL_UNITS.map(unit => (
+          {unitChoices.map(unit => (
             <option key={unit} value={unit}>
               {unitLabels[unit]}
             </option>

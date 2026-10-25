@@ -2460,7 +2460,7 @@ exports[`대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -2523,7 +2523,7 @@ exports[`대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -2549,13 +2549,13 @@ exports[`대화상자 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -2568,7 +2568,7 @@ exports[`대화상자 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -2629,7 +2629,7 @@ exports[`대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -5216,7 +5216,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -5279,7 +5279,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -5305,13 +5305,13 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -5324,7 +5324,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -5385,7 +5385,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -7968,7 +7968,7 @@ exports[`옆 메뉴 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -8031,7 +8031,7 @@ exports[`옆 메뉴 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -8057,13 +8057,13 @@ exports[`옆 메뉴 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -8076,7 +8076,7 @@ exports[`옆 메뉴 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -8137,7 +8137,7 @@ exports[`옆 메뉴 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -10717,7 +10717,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -10780,7 +10780,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -10806,13 +10806,13 @@ exports[`오른쪽 패널 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -10825,7 +10825,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -10886,7 +10886,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -13463,7 +13463,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -13526,7 +13526,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -13552,13 +13552,13 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -13571,7 +13571,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -13632,7 +13632,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -16213,7 +16213,7 @@ exports[`처음 모양 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -16276,7 +16276,7 @@ exports[`처음 모양 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -16302,13 +16302,13 @@ exports[`처음 모양 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -16321,7 +16321,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -16382,7 +16382,7 @@ exports[`처음 모양 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -18941,7 +18941,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -19004,7 +19004,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -19030,13 +19030,13 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -19049,7 +19049,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -19110,7 +19110,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -21693,7 +21693,7 @@ exports[`확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -21756,7 +21756,7 @@ exports[`확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">
@@ -21782,13 +21782,13 @@ exports[`확인 대화상자 열기 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="0" value="기획부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 1" aria-required="true" data-row="0" value="기획부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="기획부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -21801,7 +21801,7 @@ exports[`확인 대화상자 열기 1`] = `
 </li>
 <li class="flex flex-col gap-1">
 <div class="flex items-center gap-2">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름" data-row="1" value="홍보부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" aria-label="부서 이름 2" aria-required="true" data-row="1" value="홍보부">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="홍보부 빼기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -21862,7 +21862,7 @@ exports[`확인 대화상자 열기 1`] = `
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10">
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
-<h2 class="text-lg font-semibold">학생회 만들기</h2>
+<h2 tabindex="-1" class="text-lg font-semibold outline-none">학생회 만들기</h2>
 <p class="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
 <span aria-hidden="true" class="flex gap-1">
 <span class="h-1.5 w-5 rounded-full bg-blue-600">

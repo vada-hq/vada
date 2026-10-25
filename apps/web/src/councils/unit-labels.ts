@@ -6,5 +6,5 @@ export const unitLabels: Record<CouncilUnit, string> = {
   college: '단과대 학생회',
   university: '총학생회',
 }
-// 고르는 차례는 넓은 범위부터다(와이어프레임 ORG-01).
+// 고르는 차례는 넓은 범위부터다(와이어프레임 ORG-01). 만들기와 설정이 같은 차례를 쓴다.
 export const unitChoices: CouncilUnit[] = ['university', 'college', 'department']
