@@ -19,6 +19,7 @@ import type { Reading } from '@/lib/use-lost'
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -83,7 +84,10 @@ async function openMenu(name: string) {
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 const noDialog = () => waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-test('운영진 목록은 들어온 순서대로 이름, 학생회가 정한 직급 이름, 부서와 부서 직급, 들어온 날을 보이고 이메일은 없다', async () => {
+test('운영진 목록은 들어온 순서대로 이름, 학생회가 정한 직급 이름, 부서와 부서 직급, 들어온 날짜와 시각을 보이고 이메일은 없다', async () => {
+  // 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
   serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   expect(await screen.findByText('운영진 3명')).toBeTruthy()
@@ -92,9 +96,9 @@ test('운영진 목록은 들어온 순서대로 이름, 학생회가 정한 직
       .getAllByRole('listitem')
       .map(item => item.textContent),
   ).toEqual([
-    '김회장위원장부서 없음 · 2026.10.01 들어옴',
-    '이재정재정부 국장 · 2026.10.02 들어옴',
-    '박새내부서 없음 · 2026.10.19 들어옴',
+    '김회장위원장부서 없음 · 10월 1일 (목) 10:00 들어옴',
+    '이재정재정부 국장 · 10월 2일 (금) 10:00 들어옴',
+    '박새내부서 없음 · 10월 19일 (월) 00:30 들어옴',
   ])
   expect(document.body.textContent).not.toContain('@')
 })

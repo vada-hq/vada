@@ -1,5 +1,4 @@
 import {
-  koreanDateOf,
   type CouncilRank,
   type CouncilTitles,
   type DepartmentRank,
@@ -12,9 +11,6 @@ export const councilRankLabel = (rank: CouncilRank | null, titles: CouncilTitles
   rank === 'president' ? titles.president : rank === 'vice_president' ? titles.vicePresident : null
 export const departmentRankLabel = (rank: DepartmentRank | null, titles: CouncilTitles) =>
   rank === 'head' ? titles.head : rank === 'vice_head' ? titles.viceHead : null
-
-// 들어온 날(한국 날짜). 예: 2026.10.19
-export const joinedDay = (iso: string) => koreanDateOf(new Date(iso)).replaceAll('-', '.')
 
 // 운영진 한 줄의 부서 글. 예: '재정부 부장 · 기획부'. 부서가 없으면 빈 글이다.
 export function placementsText(
