@@ -210,6 +210,19 @@ test('학생회 만들기에서 해가 바뀐 뒤 작년의 작년을 보내려 
     expect(select.getAttribute('aria-invalid')).toBe('true')
     await waitFor(() => expect(document.activeElement).toBe(select))
     expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+    // 고른 값은 새 선택지의 올해로 돌아가, 보이는 항목과 보낼 값이 같다.
+    const options = [...(select as HTMLSelectElement).options].map(option => option.value)
+    expect(options).toEqual([String(year), String(year + 1), String(year + 2)])
+    expect((select as HTMLSelectElement).value).toBe(String(year + 1))
+    expect(select.querySelector('option:checked')?.textContent).toBe(`${year + 1}년`)
+    // 다시 누르면 보이는 그 해를 보낸다.
+    api.on('POST', '/api/organizations/create', () => deferredResponse().promise)
+    fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+    await waitFor(() =>
+      expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+        year: year + 1,
+      }),
+    )
   } finally {
     vi.useRealTimers()
   }

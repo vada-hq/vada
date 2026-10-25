@@ -116,6 +116,12 @@ test('내 이름 고치기: 판을 남기고(바꾼 사람 나) 그 사람이 �
     const same = await api.post('/api/me/profile', { name: '이운영' }, 'u2')
     assert.equal(same.status, 200)
     assert.equal((await versionsOf(testDb, 'u2')).length, 2)
+    // 상한(50자, 이모지로 센다)까지 받는다.
+    const longest = '😀'.repeat(50)
+    const atLimit = await api.post('/api/me/profile', { name: longest }, 'u2')
+    assert.equal(atLimit.status, 200)
+    assert.deepEqual((await atLimit.json()) as MeProfileResponse, { name: longest })
+    assert.equal((await versionsOf(testDb, 'u2')).length, 3)
   } finally {
     await testDb.close()
   }

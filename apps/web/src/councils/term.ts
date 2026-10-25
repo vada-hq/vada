@@ -2,9 +2,12 @@ import { operatingYearsOf } from '@vada/contracts'
 import { requiredText } from '@/lib/use-form-check'
 
 // 운영 연도는 보내는 때의 선택지(작년·올해·내년) 안이어야 한다. 12월 31일에 연 양식을 1월 1일에 보내면 작년이 선택지 밖이라
-// 서버도 받지 않으므로(400), 누를 때 그 칸 아래에 알린다. 선택지는 다시 그릴 때 새해 기준으로 바뀐다.
+// 서버도 받지 않으므로(400), 누를 때 그 칸 아래에 알린다. 선택지는 누를 때 새해 기준으로 다시 센다(useCreateCouncil).
+export const YEAR_OUT_OF_RANGE = '운영 연도를 다시 골라 주세요'
+export const isOperatingYear = (year: string, now = new Date()) =>
+  operatingYearsOf(now).map(String).includes(year)
 export const operatingYearError = (year: string, now = new Date()) =>
-  operatingYearsOf(now).map(String).includes(year) ? undefined : '운영 연도를 다시 골라 주세요'
+  isOperatingYear(year, now) ? undefined : YEAR_OUT_OF_RANGE
 
 // 임기 끝은 시작보다 뒤여야 한다(스키마의 규칙). 두 날짜가 다 찼을 때만 순서를 본다.
 const endsBeforeStart = ({ startsOn, endsOn }: { startsOn: string; endsOn: string }) =>

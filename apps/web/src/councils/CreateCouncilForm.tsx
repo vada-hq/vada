@@ -10,7 +10,7 @@ type Props = { onCreated: (council: MyCouncil) => void; onCancel: () => void }
 
 // 학생회 만들기(바탕 spec G6): 이름, 단위, 학교, 운영 연도.
 export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
-  const { form, set, years, refreshYears, saving, error, parsed, submit } =
+  const { form, set, years, refreshYears, yearError, saving, error, parsed, submit } =
     useCreateCouncil(onCreated)
   const {
     formRef,
@@ -39,7 +39,12 @@ export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
       }}
     >
       <h2 className="text-lg font-semibold">학생회 만들기</h2>
-      <CouncilFields form={form} set={set} years={years} errors={fieldErrors} />
+      <CouncilFields
+        form={form}
+        set={set}
+        years={years}
+        errors={{ ...fieldErrors, year: fieldErrors.year ?? yearError }}
+      />
       {error && <StateMessage kind="error">{error}</StateMessage>}
       <div className="flex gap-2">
         <Button type="button" variant="outline" busy={saving} onClick={onCancel}>

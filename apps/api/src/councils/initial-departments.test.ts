@@ -94,6 +94,32 @@ test('처음 부서 목록을 빼면 재정부 하나다. 빈 목록이어도 �
   }
 })
 
+test('처음 부서 목록의 상한: 역할 없는 부서 19개와 재정 부서를 더한 20개, 20자 이름(이모지)까지 만든다', async () => {
+  const testDb = await createTestDb()
+  try {
+    await addUser(testDb.pg, 'u1')
+    const nineteen = Array.from({ length: 19 }, (_, index) =>
+      index === 0 ? '😀'.repeat(20) : `부서${index}`,
+    )
+    const response = await appOf(testDb).post(
+      '/api/organizations/create',
+      { ...body, financeDepartmentName: '💰'.repeat(20), departments: nineteen },
+      'u1',
+    )
+    assert.equal(response.status, 201)
+    const { council } = (await response.json()) as CreateCouncilResponse
+    const made = await departmentsOf(testDb, council.id)
+    assert.equal(made.length, 20)
+    assert.deepEqual(
+      made.filter(item => item.role === 'finance'),
+      [{ name: '💰'.repeat(20), role: 'finance' }],
+    )
+    assert.ok(made.some(item => item.name === '😀'.repeat(20)))
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('처음 부서 목록 안의 같은 이름(재정 부서 포함), 21자, 빈 이름, 20개 넘음은 400이고 아무것도 남지 않는다', async () => {
   const testDb = await createTestDb()
   try {
