@@ -2365,49 +2365,145 @@ exports[`대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -4964,49 +5060,145 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -7559,49 +7751,145 @@ exports[`옆 메뉴 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -10151,49 +10439,145 @@ exports[`오른쪽 패널 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -12740,49 +13124,145 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -15333,49 +15813,145 @@ exports[`처음 모양 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>
@@ -17904,49 +18480,145 @@ exports[`확인 대화상자 열기 1`] = `
 <section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">재정 행사 정산 탭</h2>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-4">
+<div class="flex w-full flex-col gap-4">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table aria-label="행사 정산" class="w-full border-collapse text-left">
+<thead class="bg-gray-50">
+<tr>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500">행사</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-28">상태</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-60">날짜</th>
+<th scope="col" class="px-4 py-2 text-xs font-medium text-gray-500 w-32 text-right">정산 남은 것</th>
+</tr>
+</thead>
+<tbody>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">12</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">완료 가능</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">1</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">
+</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+<tr class="relative border-t transition-colors hover:bg-gray-50">
+<td class="px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</td>
+<td class="px-4 py-3">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
+</td>
+<td class="px-4 py-3 text-sm text-gray-500">10월 24일 (토) 14:00</td>
+<td class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="w-full max-w-sm">
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">봄 축제</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<span class="line-clamp-2">봄 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">정산 남은 것 12</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">끝남</span>
-<span class="font-medium text-gray-700">완료 가능</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">전시</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<span class="line-clamp-2">전시</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
-<span class="font-medium text-gray-700">정산 남은 것 1</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">졸업 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<span class="line-clamp-2">졸업 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">날짜 미정</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
-<span>날짜 미정</span>
 </div>
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">개강 파티</button>
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<span class="line-clamp-2">개강 파티</span>
+</button>
+</div>
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">완료</span>
-<span class="font-medium text-gray-700">정산 남은 것 0</span>
 <span>10월 24일 (토) 14:00</span>
 </div>
 </li>
 </ul>
+</div>
 <p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
 </div>
 </div>

@@ -88,7 +88,8 @@ test('서버 차례대로 줄마다 행사 이름, 상태, 정산 남은 것 수
   expect(rowOf('전시').getByText('진행 중')).toBeTruthy()
   expect(rowOf('전시').getByText('정산 남은 것 1')).toBeTruthy()
   expect(rowOf('개강 파티').getByText('완료')).toBeTruthy()
-  expect(rowOf('개강 파티').getByText('정산 남은 것 0')).toBeTruthy()
+  // 남은 것이 0이면 수를 빼서 일이 남은 줄만 눈에 띈다.
+  expect(rowOf('개강 파티').queryByText(/정산 남은 것/)).toBeNull()
   fireEvent.click(rowOf('봄 축제').getByRole('button', { name: '봄 축제' }))
   await waitFor(() =>
     expect(`${window.location.pathname}${window.location.search}`).toBe(
@@ -136,5 +137,58 @@ test('긴 행사 이름은 줄을 넘지 않고 바뀐다', async () => {
   await listed()
   expect(screen.getByRole('button', { name: 'ㄱ'.repeat(100) }).className).toContain(
     'wrap-anywhere',
+  )
+})
+
+// 넓은 화면(sm 이상)이라고 답한다.
+function wide() {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: true,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
+}
+
+test('넓은 화면에서는 행사·상태·날짜·정산 남은 것 칸의 표이고, 줄을 누르면 그 행사의 예산·정산이 열린다', async () => {
+  wide()
+  const tbd = '00000000-0000-4000-8000-0000000000a5'
+  await open(
+    response({
+      events: [
+        ...response().events,
+        {
+          event: eventSummary({
+            id: tbd,
+            name: '졸업 파티',
+            status: 'tbd',
+            startsAt: null,
+            endsAt: null,
+          }),
+          settlement: { remaining: 0, settled: false },
+        },
+      ],
+    }),
+  )
+  const table = await screen.findByRole('table', { name: '행사 정산' })
+  expect(
+    within(table)
+      .getAllByRole('columnheader')
+      .map(cell => cell.textContent),
+  ).toEqual(['행사', '상태', '날짜', '정산 남은 것'])
+  const cells = (name: string) =>
+    within(screen.getByText(name).closest('tr')!)
+      .getAllByRole('cell')
+      .map(cell => cell.textContent)
+  expect(cells('봄 축제')).toEqual(['봄 축제', '끝남', expect.any(String), '3'])
+  expect(cells('체육 대회')[3]).toBe('완료 가능')
+  expect(cells('개강 파티')[3]).toBe('')
+  // 날짜 미정은 상태 배지가 말하므로 날짜 칸이 비어 있다.
+  expect(cells('졸업 파티')).toEqual(['졸업 파티', '날짜 미정', '', ''])
+  fireEvent.click(within(table).getByRole('button', { name: '전시' }))
+  await waitFor(() =>
+    expect(`${window.location.pathname}${window.location.search}`).toBe(
+      `/events/${COUNCIL_ID}/${ids.ongoing}?tab=money`,
+    ),
   )
 })

@@ -6,8 +6,8 @@ import {
   EVENT_STATUS_TONE,
   remainingLabel,
   settlementLabel,
-  whenLabel,
 } from '../events/event-view'
+import { rowLinkClass, settlementDate, settlementMark } from './event-settlement-view'
 
 type Props = {
   rows: EventSettlementRow[]
@@ -15,36 +15,48 @@ type Props = {
   onOpen: (eventId: string) => void
 }
 
-// 끝난 행사는 홈 '정산할 행사'와 같은 말(남은 것이 없으면 '완료 가능')이다. 완료한 행사는 상태 배지가 말하므로 수만 쓴다.
-const sideLabel = ({ event, settlement }: EventSettlementRow) =>
-  event.status === 'ended' ? settlementLabel(settlement) : remainingLabel(settlement.remaining)
+function MarkText({ row }: { row: EventSettlementRow }) {
+  const mark = settlementMark(row)
+  if (!mark) return null
+  return (
+    <span className="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">
+      {mark.kind === 'settled' ? settlementLabel(row.settlement) : remainingLabel(mark.count)}
+    </span>
+  )
+}
 
-// 재정 '행사 정산' 탭의 목록. 읽기만 하고, 줄 어디를 눌러도 그 행사의 정산이 열린다(DEC-38).
-// 390px에서 넘치지 않게 상태와 수는 이름 아래 줄에 두고 줄을 바꾼다.
+// 재정 '행사 정산' 탭의 좁은 화면 카드 줄. 읽기만 하고, 줄 어디를 눌러도 그 행사의 정산이 열린다(DEC-38).
+// 남은 것은 이름 줄 오른쪽 끝에 굵게 두고, 긴 이름은 두 줄에서 자른다(누르면 행사에서 전체 이름이 보인다).
 export function EventSettlementList({ rows, onOpen }: Props) {
   return (
     <ul aria-label="행사 정산" className="flex flex-col divide-y rounded-lg border bg-white">
-      {rows.map(row => (
-        <li
-          key={row.event.id}
-          className="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50"
-        >
-          <Button
-            variant="link"
-            className="h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
-            onClick={() => onOpen(row.event.id)}
+      {rows.map(row => {
+        const date = settlementDate(row.event)
+        return (
+          <li
+            key={row.event.id}
+            className="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50"
           >
-            {row.event.name}
-          </Button>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-            <Badge tone={EVENT_STATUS_TONE[row.event.status]}>
-              {EVENT_STATUS_LABEL[row.event.status]}
-            </Badge>
-            <span className="font-medium text-gray-700">{sideLabel(row)}</span>
-            <span>{whenLabel(row.event)}</span>
-          </div>
-        </li>
-      ))}
+            <div className="flex items-start gap-3">
+              <Button
+                variant="link"
+                className={`min-w-0 flex-1 ${rowLinkClass}`}
+                title={row.event.name}
+                onClick={() => onOpen(row.event.id)}
+              >
+                <span className="line-clamp-2">{row.event.name}</span>
+              </Button>
+              <MarkText row={row} />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+              <Badge tone={EVENT_STATUS_TONE[row.event.status]}>
+                {EVENT_STATUS_LABEL[row.event.status]}
+              </Badge>
+              {date && <span>{date}</span>}
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }
