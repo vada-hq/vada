@@ -46,7 +46,7 @@ exports[`기본정보 수정 패널 열기 1`] = `
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">행사명</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id4_" aria-required="true" value="신입생 환영회" name="name">
@@ -60,12 +60,14 @@ exports[`기본정보 수정 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">시작 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">종료 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id7_" class="size-4 accent-blue-600" type="checkbox">
@@ -84,6 +86,7 @@ exports[`기본정보 수정 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">장소명</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id9_" class="size-4 accent-blue-600" type="checkbox">
@@ -98,7 +101,8 @@ exports[`기본정보 수정 패널 열기 1`] = `
 <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 <h3 class="text-sm font-semibold text-gray-900">참여 정보</h3>
 <div class="text-xs text-blue-600">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto p-0" type="button">신청 양식에서 수정</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto min-h-6 p-0" type="button">신청 양식에서 수정<span aria-hidden="true">→</span>
+</button>
 </div>
 </div>
 <dl class="flex flex-col gap-2 text-sm">
@@ -268,7 +272,7 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">행사명</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id4_" aria-required="true" value="https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" name="name">
@@ -282,12 +286,14 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">시작 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id5_" type="datetime-local" value="2026-11-03T10:00" name="startsAt">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">종료 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id7_" class="size-4 accent-blue-600" type="checkbox" checked="">
@@ -295,7 +301,7 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" disabled="" id="_id6_" type="datetime-local" value="" name="endsAt">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" disabled="" id="_id6_" type="text" value="" name="endsAt">
 </div>
 </section>
 <section aria-label="장소" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
@@ -306,6 +312,7 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">장소명</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id9_" class="size-4 accent-blue-600" type="checkbox" checked="">
@@ -313,19 +320,20 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" disabled="" id="_id8_" value="" name="place">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" hidden="" disabled="" id="_id8_" value="" name="place">
 </div>
 </section>
 <section aria-label="참여 정보" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
 <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 <h3 class="text-sm font-semibold text-gray-900">참여 정보</h3>
 <div class="text-xs text-blue-600">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto p-0" type="button">신청 양식에서 수정</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto min-h-6 p-0" type="button">신청 양식에서 수정<span aria-hidden="true">→</span>
+</button>
 </div>
 </div>
-<div class="flex flex-col gap-4">
-<div class="flex flex-col gap-2">
-<p class="text-xs font-medium text-gray-700 wrap-anywhere">1부 신청</p>
+<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-2 border-t pt-3 first:border-t-0 first:pt-0">
+<p class="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere">1부 신청</p>
 <dl class="flex flex-col gap-2 text-sm">
 <div class="flex items-baseline gap-3">
 <dt class="w-14 shrink-0 text-gray-500">참가비</dt>
@@ -337,8 +345,8 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </div>
 </dl>
 </div>
-<div class="flex flex-col gap-2">
-<p class="text-xs font-medium text-gray-700 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</p>
+<div class="flex flex-col gap-2 border-t pt-3 first:border-t-0 first:pt-0">
+<p class="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</p>
 <dl class="flex flex-col gap-2 text-sm">
 <div class="flex items-baseline gap-3">
 <dt class="w-14 shrink-0 text-gray-500">참가비</dt>
@@ -420,7 +428,7 @@ exports[`보내는 중 패널 열기 1`] = `
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">행사명</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" disabled="" id="_id4_" aria-required="true" value="신입생 환영회" name="name">
@@ -434,12 +442,14 @@ exports[`보내는 중 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">시작 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" disabled="" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">종료 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id7_" class="size-4 accent-blue-600" disabled="" type="checkbox">
@@ -458,6 +468,7 @@ exports[`보내는 중 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">장소명</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id9_" class="size-4 accent-blue-600" disabled="" type="checkbox">
@@ -472,7 +483,8 @@ exports[`보내는 중 패널 열기 1`] = `
 <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 <h3 class="text-sm font-semibold text-gray-900">참여 정보</h3>
 <div class="text-xs text-blue-600">
-<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto p-0" type="button">신청 양식에서 수정</button>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto min-h-6 p-0" type="button">신청 양식에서 수정<span aria-hidden="true">→</span>
+</button>
 </div>
 </div>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">불러오는 중이에요</p>
@@ -698,7 +710,7 @@ exports[`저장 실패 패널 열기 1`] = `
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">행사명</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id4_" aria-required="true" value="신입생 환영회" name="name">
@@ -712,12 +724,14 @@ exports[`저장 실패 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">시작 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 </div>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">종료 일시</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id7_" class="size-4 accent-blue-600" type="checkbox">
@@ -736,6 +750,7 @@ exports[`저장 실패 패널 열기 1`] = `
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">장소명</label>
+<span class="text-xs text-gray-500">(선택)</span>
 <div class="ml-auto">
 <span class="flex items-center gap-1.5">
 <input id="_id9_" class="size-4 accent-blue-600" type="checkbox">
@@ -750,7 +765,8 @@ exports[`저장 실패 패널 열기 1`] = `
 <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 <h3 class="text-sm font-semibold text-gray-900">참여 정보</h3>
 <div class="text-xs text-blue-600">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto p-0" type="button">신청 양식에서 수정</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline text-xs [&amp;_svg]:size-3.5 h-auto min-h-6 p-0" type="button">신청 양식에서 수정<span aria-hidden="true">→</span>
+</button>
 </div>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">신청 양식을 불러오지 못했어요. 연결을 확인해 주세요.</p>

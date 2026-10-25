@@ -77,15 +77,18 @@ test('오른쪽 패널로 열리고, 머리에 끼룩이 한 줄과 구역마다
     within(within(panel).getByRole('region', { name: '담당 및 안내' })).getByText('이재정'),
   ).toBeTruthy()
   const forms = within(panel).getByRole('region', { name: '참여 정보' })
-  expect(within(forms).getByRole('button', { name: '신청 양식에서 수정' })).toBeTruthy()
+  expect(await within(forms).findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
   // 담당은 고치는 칸이 없다(DEC-93).
   expect(
     within(within(panel).getByRole('region', { name: '담당 및 안내' })).queryByRole('textbox'),
   ).toBeNull()
+  // 비울 수 있는 칸은 '(선택)'이다.
+  for (const name of ['시작 일시', '종료 일시', '장소명'])
+    expect(within(panel).getByText(name).parentElement?.textContent).toContain('(선택)')
   // 입력칸에 예시 글이 없다.
   expect(panel.querySelector('[placeholder]')).toBeNull()
   // 이름 칸에 포커스가 간다.
-  expect(document.activeElement).toBe(within(panel).getByLabelText('이름'))
+  expect(document.activeElement).toBe(within(panel).getByLabelText('행사명'))
 })
 
 test('종료 시간 미정·장소 미정을 체크하면 그 칸이 꺼지고 비운 값으로 저장한다', async () => {
@@ -100,6 +103,9 @@ test('종료 시간 미정·장소 미정을 체크하면 그 칸이 꺼지고 �
   expect(end).toHaveProperty('disabled', true)
   expect(end).toHaveProperty('value', '')
   expect(place).toHaveProperty('disabled', true)
+  // 장소 미정이면 칸을 숨기고, 종료 미정은 날짜 꼴 없는 막힌 빈칸이다.
+  expect(place).toHaveProperty('hidden', true)
+  expect(end.getAttribute('type')).toBe('text')
   fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
@@ -121,6 +127,7 @@ test('비어 있는 끝과 장소는 미정 체크로 열리고, 체크를 풀�
   )
   fireEvent.click(tbd)
   expect(within(panel).getByLabelText('장소명')).toHaveProperty('disabled', false)
+  expect(within(panel).getByLabelText('장소명')).toHaveProperty('hidden', false)
 })
 
 test('[장소 넣기]로 열면 장소 미정이 풀린 채 장소 칸에 포커스가 간다', async () => {
@@ -170,6 +177,8 @@ test('양식이 없으면 참여 정보에 신청 양식 없음이 보인다', a
   const panel = await openPanel()
   const forms = within(panel).getByRole('region', { name: '참여 정보' })
   expect(await within(forms).findByText('신청 양식 없음')).toBeTruthy()
+  // 고칠 양식이 없으니 링크는 만들러 간다.
+  expect(within(forms).getByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
 })
 
 test('뒤로 가기는 패널만 닫고 행사 화면에 남는다', async () => {
@@ -190,14 +199,14 @@ const stay = async () => {
 test('고친 값이 있으면 Esc·뒤로·닫기는 먼저 묻고, 계속 쓰면 값이 남으며, 나가기면 닫힌다', async () => {
   setup(editable())
   const panel = await openPanel()
-  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.change(within(panel).getByLabelText('행사명'), { target: { value: '새 이름' } })
   fireEvent.keyDown(panel, { key: 'Escape' })
   await stay()
   window.history.back()
   await stay()
   fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[1]!)
   await stay()
-  expect(within(panel).getByLabelText('이름')).toHaveProperty('value', '새 이름')
+  expect(within(panel).getByLabelText('행사명')).toHaveProperty('value', '새 이름')
   fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[0]!)
   fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -205,10 +214,11 @@ test('고친 값이 있으면 Esc·뒤로·닫기는 먼저 묻고, 계속 쓰�
 })
 
 test('고친 값이 있으면 [신청 양식에서 수정]도 먼저 묻고, 나가기면 참가 신청 탭을 연다', async () => {
-  setup(editable())
+  setup(editable(), [staffForm()])
   const panel = await openPanel()
   fireEvent.click(within(panel).getByRole('checkbox', { name: '장소 미정' }))
   const forms = within(panel).getByRole('region', { name: '참여 정보' })
+  await within(forms).findByText('50명')
   fireEvent.click(within(forms).getByRole('button', { name: '신청 양식에서 수정' }))
   await stay()
   expect(pathNow()).toBe(EVENT_AT)
@@ -227,7 +237,7 @@ test('고친 값이 있는 동안만 새로 고침·닫기에 브라우저 확�
     return event.defaultPrevented
   }
   expect(unload()).toBe(false)
-  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.change(within(panel).getByLabelText('행사명'), { target: { value: '새 이름' } })
   expect(unload()).toBe(true)
 })
 
@@ -236,7 +246,7 @@ test('보내는 동안 버튼이 꺼지고 Esc·닫기(×)·뒤로로 닫히지 
   const pending = deferredResponse()
   api.on('POST', `${BASE}/${EVENT_ID}`, () => pending.promise)
   const panel = await openPanel()
-  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.change(within(panel).getByLabelText('행사명'), { target: { value: '새 이름' } })
   fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
   await waitFor(() =>
     expect(within(panel).getByRole('button', { name: '저장' })).toHaveProperty('disabled', true),

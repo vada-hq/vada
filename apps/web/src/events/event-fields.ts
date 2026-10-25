@@ -46,11 +46,11 @@ export const eventFieldsRequest = (values: EventFieldValues) => ({
   place: values.placeTbd || values.place.trim() === '' ? null : values.place,
 })
 
-// 이름은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝은 시작보다 늦어야 한다.
+// 행사명은 늘 필수이고, 끝을 넣었으면 시작도 필수다(계약: 끝만 있는 행사는 없다). 끝은 시작보다 늦어야 한다.
 export const eventFieldErrors = (values: EventFieldValues) => {
   const end = endOf(values)
   return {
-    name: requiredText(values.name, '이름을'),
+    name: requiredText(values.name, '행사명을'),
     startsAt: end === '' ? undefined : requiredText(values.startsAt, '시작 일시를'),
     endsAt:
       values.startsAt !== '' && end !== '' && end <= values.startsAt

@@ -171,7 +171,7 @@ test('행사 만들기는 이름과 taskId를 보낸다', async () => {
   const { api } = setup(detail({ canMake: ['event'] }))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
   const dialog = await screen.findByRole('dialog', { name: '행사 만들기' })
-  fireEvent.change(within(dialog).getByLabelText(/이름/), { target: { value: '봄 축제' } })
+  fireEvent.change(within(dialog).getByLabelText(/행사명/), { target: { value: '봄 축제' } })
   api.on('POST', `${BASE}/events`, () => json({ event: { id: EVENT_ID } }, 201))
   fireEvent.submit(within(dialog).getByRole('form'))
   await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
