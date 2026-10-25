@@ -82,22 +82,19 @@ test('같은 값이면 글이 없다(같은 순간을 다른 Date로 받아도)'
   assert.equal(changeNoticeOf(empty, { ...empty }, NOW), null)
 })
 
-test('만들기 글은 받침에 맞춘 조사로 만든 사람과 행사를 잇는다', () => {
-  assert.equal(createdNoticeOf('김민준', '가을 축제'), '김민준이 가을 축제를 만들었어요')
-  assert.equal(createdNoticeOf('이재정', '신입생 환영회'), '이재정이 신입생 환영회를 만들었어요')
-  assert.equal(createdNoticeOf('박서우', '봄 행사'), '박서우가 봄 행사를 만들었어요')
-  assert.equal(createdNoticeOf('김하늘', '종강총회'), '김하늘이 종강총회를 만들었어요')
-  assert.equal(
-    createdNoticeOf('최유나', '체육대회 결승전'),
-    '최유나가 체육대회 결승전을 만들었어요',
-  )
+test('만들기 글은 행사 이름과 받침에 맞춘 조사이고 만든 사람 이름이 없다', () => {
+  assert.equal(createdNoticeOf('가을 축제'), '가을 축제가 생겼어요')
+  assert.equal(createdNoticeOf('신입생 환영회'), '신입생 환영회가 생겼어요')
+  assert.equal(createdNoticeOf('종강총회'), '종강총회가 생겼어요')
+  assert.equal(createdNoticeOf('체육대회 결승전'), '체육대회 결승전이 생겼어요')
 })
 
 test('한글이 아닌 끝 글자도 읽는 소리로 조사를 고르고, 괄호·문장 부호는 건너뛴다', () => {
-  assert.equal(createdNoticeOf('Kim', '2026 MT'), 'Kim이 2026 MT를 만들었어요')
-  assert.equal(createdNoticeOf('Lee', '축제 (1)'), 'Lee가 축제 (1)을 만들었어요')
-  assert.equal(createdNoticeOf('정다은', '해커톤!'), '정다은이 해커톤!을 만들었어요')
-  assert.equal(createdNoticeOf('Sam', '제2회 축제'), 'Sam이 제2회 축제를 만들었어요')
+  assert.equal(createdNoticeOf('2026 MT'), '2026 MT가 생겼어요')
+  assert.equal(createdNoticeOf('VADA Jam'), 'VADA Jam이 생겼어요')
+  assert.equal(createdNoticeOf('축제 (1)'), '축제 (1)이 생겼어요')
+  assert.equal(createdNoticeOf('해커톤!'), '해커톤!이 생겼어요')
+  assert.equal(createdNoticeOf('제2회 축제'), '제2회 축제가 생겼어요')
   // 읽을 글자가 없으면 두 조사를 함께 쓴다.
-  assert.equal(createdNoticeOf('ㅎ', '★'), 'ㅎ이(가) ★을(를) 만들었어요')
+  assert.equal(createdNoticeOf('★'), '★이(가) 생겼어요')
 })

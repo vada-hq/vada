@@ -221,7 +221,7 @@ exports[`처음 모양 1`] = `
 <p class="flex items-center gap-1.5 text-xs text-gray-600">
 <img alt="" class="size-6 shrink-0" src="/src/components/kkiruk-hello.png">
 <span class="min-w-0">
-<span class="wrap-anywhere whitespace-pre-wrap">박해랑이 가을 축제를 만들었어요</span>
+<span class="wrap-anywhere whitespace-pre-wrap">가을 축제가 생겼어요</span>
 </span>
 </p>
 <time datetime="2026-10-23T01:30:00Z" class="sr-only">10:30</time>
@@ -264,7 +264,7 @@ exports[`처음 모양 1`] = `
 <p class="flex items-center gap-1.5 text-xs text-gray-600">
 <img alt="" class="size-6 shrink-0" src="/src/components/kkiruk-hello.png">
 <span class="min-w-0">
-<span class="wrap-anywhere whitespace-pre-wrap">박해랑이 가을 축제를 만들었어요</span>
+<span class="wrap-anywhere whitespace-pre-wrap">가을 축제가 생겼어요</span>
 </span>
 </p>
 <time datetime="2026-10-23T01:30:00Z" class="sr-only">10:30</time>

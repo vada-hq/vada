@@ -38,8 +38,8 @@ type WriteKit = {
 
 function addWriteRoutes({ routes, auth, writeLimiter, clock, db, push }: WriteKit) {
   // 공지방 끼룩이 글의 휴대폰 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
-  const sent = ({ event, noticeId }: EventWrite) => {
-    if (noticeId) void push?.notify(noticeId, clock())
+  const sent = ({ event, notice }: EventWrite) => {
+    if (notice) void push?.notify(notice.id, clock(), { except: notice.by })
     return event
   }
   const changing = (c: Context<SessionEnv>) => ({
