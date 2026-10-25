@@ -147,6 +147,9 @@ export function releaseAdopted() {
   return true
 }
 
+// 창이 거두는 기록 이동(history.go)이 진행 중인가. 그 popstate는 사용자의 뒤로가 아니라서 떠날 때 확인(back-guard)이 막으면 안 된다.
+export const isPopExpected = () => expectedPops > 0
+
 // 시험용: 창이 거두는 기록 이동(history.go)이 모두 끝나면 풀린다. 시간을 재지 않고 끝난 일을 기다린다.
 export function windowHistoryIdle() {
   return new Promise<void>(resolve => {

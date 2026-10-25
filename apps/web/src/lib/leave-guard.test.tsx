@@ -5,7 +5,12 @@ import LeaveConfirm from '@/components/LeaveConfirm'
 import { leave, navigate } from './app-location'
 import { LEAVE_TITLE, LEAVE_CONFIRM } from './messages'
 import { resetLeaveGuard, useUnsavedInput } from './leave-guard'
-import { resetWindowHistory, useWindowHistory, windowHistoryIdle } from './use-window-history'
+import {
+  adoptTag,
+  resetWindowHistory,
+  useWindowHistory,
+  windowHistoryIdle,
+} from './use-window-history'
 
 const C = '0199d1a0-0000-7000-8000-0000000000c1'
 const HOME = `/home/${C}`
@@ -158,8 +163,8 @@ test('기기 앞으로 가기도 같은 확인을 거친다', async () => {
   await waitFor(() => expect(pathNow()).toBe(HOME))
 })
 
-function Dialoglike({ onBack }: { onBack: () => void }) {
-  useWindowHistory(onBack)
+function Dialoglike({ onBack, adopts }: { onBack: () => void; adopts?: string }) {
+  useWindowHistory(onBack, adopts)
   return null
 }
 
@@ -218,4 +223,21 @@ test('입력이 있는 화면이 사라지면(언마운트) 입력도 없는 것
   expect(event.defaultPrevented).toBe(false)
   navigate(PEOPLE)
   expect(pathNow()).toBe(PEOPLE)
+})
+
+test('입력이 있는 채 이어받은 창의 칸을 거두는 이동은 막히지 않아, 앱 안 이동이 멈추지 않는다', async () => {
+  const task = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+  navigate(`/tasks/${C}/${task}`)
+  render(
+    <>
+      <Form dirty />
+      <Dialoglike onBack={vi.fn()} adopts={adoptTag('tasks', task)} />
+      <LeaveConfirm />
+    </>,
+  )
+  await settle()
+  navigate(PEOPLE, { force: true })
+  await waitFor(() => expect(pathNow()).toBe(PEOPLE))
+  navigate(HOME, { force: true })
+  await waitFor(() => expect(pathNow()).toBe(HOME))
 })
