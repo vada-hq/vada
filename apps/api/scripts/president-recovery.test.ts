@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { syncRooms } from '../src/chat/rooms.js'
 import { createTestDb, type TestDb } from '../src/db/test-db.js'
-import { seedCouncil } from '../src/test-support/council.js'
+import { clockNow, createRecord } from '../src/records/records.js'
+import { handOverPresident } from '../src/team/service.js'
+import { seedCouncil, setDbClock } from '../src/test-support/council.js'
 import {
   inspectRecovery,
   objectionEndsAt,
@@ -15,9 +17,12 @@ const NOTIFIED_ON = '2026-10-10'
 const OBJECTION_ENDS = new Date('2026-10-17T15:00:00Z')
 const SECOND = 1000
 const later = new Date('2026-10-25T03:00:00Z')
+// 시험 학생회를 만드는 기록 시각. 알린 날보다 앞이라 지금 회장은 알린 날에 이미 회장이다.
+const SEEDED_AT = new Date('2026-01-02T00:00:00Z')
 
 // 같은 모양의 두 학생회(s, o). 둘 다 방을 맞춰 둔다. o는 s를 고칠 때 그대로여야 한다.
 async function setup(testDb: TestDb) {
+  await setDbClock(testDb.db, SEEDED_AT)
   const ours = await seedCouncil(testDb.db, testDb.pg, 's')
   const other = await seedCouncil(testDb.db, testDb.pg, 'o')
   for (const seeded of [ours, other])
@@ -216,6 +221,147 @@ test('이의 기간 경계 ±1초: 끝나기 1초 전에는 멈추고, 1초 뒤�
       [],
     )
     assert.deepEqual(await presidentsOf(testDb, ours.councilId), [ours.people.plain.memberId])
+  } finally {
+    await testDb.close()
+  }
+})
+
+// 그 사람의 그 기수 소속 번호
+const membershipOf = async (testDb: TestDb, memberId: string, cohortId: string) =>
+  (
+    await testDb.pg.query<{ id: string }>(
+      'SELECT id FROM council_membership WHERE member_id = $1 AND cohort_id = $2',
+      [memberId, cohortId],
+    )
+  ).rows[0]!.id
+
+test('알린 뒤 회장이 바뀌었으면 멈춘다: 알린 날 23:59:59(한국)에 회장이 된 사람은 알림을 받은 것으로 보고, 다음 날 00:00이면 멈춘다', async () => {
+  for (const [at, problems] of [
+    [new Date('2026-10-10T14:59:59Z'), []],
+    [new Date('2026-10-10T15:00:00Z'), ['PRESIDENT_CHANGED']],
+  ] as const) {
+    const testDb = await createTestDb()
+    try {
+      const { ours } = await setup(testDb)
+      await setDbClock(testDb.db, at)
+      const from = await membershipOf(testDb, ours.people.president.memberId, ours.cohortId)
+      const to = await membershipOf(testDb, ours.people.vicePresident.memberId, ours.cohortId)
+      await testDb.db.transaction(tx =>
+        handOverPresident(tx, { from, to, actor: ours.people.president.memberId, reason: null }),
+      )
+      const before = await snapshotOf(testDb, ours.councilId)
+      const email = 's-plain@example.test'
+      const view = await inspectRecovery(testDb.db, input(ours.councilId, email))
+      assert.deepEqual(view.problems, problems, at.toISOString())
+      assert.equal(view.current?.memberId, ours.people.vicePresident.memberId)
+      assert.deepEqual(
+        (await recoverPresident(testDb.db, input(ours.councilId, email))).problems,
+        problems,
+      )
+      if (problems.length) assert.deepEqual(await snapshotOf(testDb, ours.councilId), before)
+      else
+        assert.deepEqual(await presidentsOf(testDb, ours.councilId), [ours.people.plain.memberId])
+    } finally {
+      await testDb.close()
+    }
+  }
+})
+
+test('알린 날 뒤에 지금 기수가 시작했으면 멈추고, 알린 날에 시작했으면 된다. 지금 기수가 아직 없으면 멈춘다', async () => {
+  const testDb = await createTestDb()
+  try {
+    await setDbClock(testDb.db, SEEDED_AT)
+    const changed = await seedCouncil(testDb.db, testDb.pg, 'n', {
+      startsOn: '2026-10-11',
+      endsOn: '2027-02-28',
+    })
+    const before = await snapshotOf(testDb, changed.councilId)
+    const email = 'n-plain@example.test'
+    assert.deepEqual((await inspectRecovery(testDb.db, input(changed.councilId, email))).problems, [
+      'COHORT_CHANGED',
+    ])
+    assert.deepEqual(
+      (await recoverPresident(testDb.db, input(changed.councilId, email))).problems,
+      ['COHORT_CHANGED'],
+    )
+    assert.deepEqual(await snapshotOf(testDb, changed.councilId), before)
+    const sameDay = await seedCouncil(testDb.db, testDb.pg, 'd', {
+      startsOn: NOTIFIED_ON,
+      endsOn: '2027-02-28',
+    })
+    assert.deepEqual(
+      (await inspectRecovery(testDb.db, input(sameDay.councilId, 'd-plain@example.test'))).problems,
+      [],
+    )
+    const future = await seedCouncil(testDb.db, testDb.pg, 'f', {
+      startsOn: '2026-11-01',
+      endsOn: '2027-02-28',
+    })
+    assert.deepEqual(
+      (await recoverPresident(testDb.db, input(future.councilId, 'f-plain@example.test'))).problems,
+      ['NO_COHORT'],
+    )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('지난 기수에만 소속이 있는 사람은 새 회장이 될 수 없다', async () => {
+  const testDb = await createTestDb()
+  try {
+    await setDbClock(testDb.db, SEEDED_AT)
+    const seeded = await seedCouncil(testDb.db, testDb.pg, 'p', {
+      startsOn: '2026-01-01',
+      endsOn: '2026-06-30',
+    })
+    // 지금 기수(7월~)에는 회장만 들어 있다. 나머지는 지난 기수(1~6월)에만 소속이 있다.
+    await testDb.db.transaction(async tx => {
+      const actor = seeded.people.president.memberId
+      const cohortId = await createRecord(tx, {
+        kind: 'cohort',
+        councilId: seeded.councilId,
+        actor,
+        values: { name: '2026-2', startsOn: '2026-07-01', endsOn: '2026-12-31' },
+      })
+      await createRecord(tx, {
+        kind: 'council_membership',
+        councilId: seeded.councilId,
+        actor,
+        values: { memberId: actor, cohortId, councilRank: 'president', startsAt: clockNow },
+      })
+    })
+    for (const email of ['p-plain@example.test', 'p-vicePresident@example.test'])
+      assert.deepEqual(
+        (await recoverPresident(testDb.db, input(seeded.councilId, email))).problems,
+        ['NOT_MEMBER'],
+        email,
+      )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('방이 없던 학생회면 만든 사람 없이 방을 만들고 회장단방을 새 편성에 맞춘다', async () => {
+  const testDb = await createTestDb()
+  try {
+    await setDbClock(testDb.db, SEEDED_AT)
+    const seeded = await seedCouncil(testDb.db, testDb.pg, 'r')
+    const view = await recoverPresident(testDb.db, input(seeded.councilId, 'r-plain@example.test'))
+    assert.deepEqual(view.problems, [])
+    const rooms = await testDb.pg.query<{ type: string; created_by: string | null }>(
+      `SELECT c.type, r.created_by FROM chat_room c JOIN record r ON r.id = c.id
+       WHERE r.council_id = $1 ORDER BY c.type`,
+      [seeded.councilId],
+    )
+    assert.deepEqual(
+      rooms.rows.map(row => row.type),
+      ['all_members', 'department', 'department', 'leadership'],
+    )
+    assert.ok(rooms.rows.every(row => row.created_by === null))
+    assert.deepEqual(
+      await leadershipRoomOf(testDb, seeded.councilId),
+      [seeded.people.vicePresident.memberId, seeded.people.plain.memberId].sort(),
+    )
   } finally {
     await testDb.close()
   }

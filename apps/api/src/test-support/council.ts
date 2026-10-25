@@ -1,9 +1,17 @@
 import type { PGlite } from '@electric-sql/pglite'
+import { sql } from 'drizzle-orm'
 import { memberLogin } from '../db/schema.js'
-import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { CLOCK_OFFSET_SETTING, clockNow, createRecord, updateRecord } from '../records/records.js'
 import type { Db } from '../db/types.js'
 
 type Person = { userId: string; memberId: string }
+
+// 이 연결의 기록 시각(clockNow)을 at 부근으로 옮긴다(연결 범위). 판이 시작한 시각에 기대는 시험이 쓴다.
+// 실제 시각과의 차이로 걸어서, 건 뒤에 흐른 몇 밀리초만큼 at보다 늦다(앞서지는 않는다).
+export const setDbClock = (db: Db, at: Date) =>
+  db.execute(
+    sql`select set_config(${CLOCK_OFFSET_SETTING}, ${`${at.getTime() - Date.now()} milliseconds`}, false)`,
+  )
 
 // 시험용 로그인 계정. better-auth가 만드는 users 행과 같은 칸만 채운다. Google 로그인처럼 이메일은 확인된 것이 기본이다.
 export async function addUser(
