@@ -23,7 +23,8 @@ function titlesOf(tasks: TaskSummary[]) {
 
 function taskAttention(tasks: TaskSummary[]): Attention[] {
   const overdue = tasks.filter(task => task.overdue)
-  const unassigned = tasks.filter(task => task.assignee === null)
+  // 담당자 없음은 업무 화면의 '담당자 없음'(서버 unassignedCondition)과 머리의 건강도와 같다: 담당자가 없거나 떠났거나 부서가 없다.
+  const unassigned = tasks.filter(task => !task.assignee?.current || task.department === null)
   const items: Attention[] = []
   if (overdue.length > 0)
     items.push({
