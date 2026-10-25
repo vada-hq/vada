@@ -34,7 +34,7 @@ function setup() {
 
 test('열어 둔 사이 재정 권한을 잃으면 창이 닫히고, 권한이 돌아와도 다시 열리지 않는다', async () => {
   const { rerender, ui } = setup()
-  fireEvent.click(screen.getByRole('button', { name: '예산 항목 더하기' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 편성' }))
   await screen.findByRole('dialog')
   rerender(ui(['council.view', 'purchase.request'], 'upcoming'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

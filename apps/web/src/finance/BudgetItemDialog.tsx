@@ -1,67 +1,54 @@
 import { useState } from 'react'
-import { CreateBudgetItemSchema } from '@vada/contracts'
+import { CreateBudgetItemsSchema, type BudgetItemType } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
-import { wonOf } from '@/lib/won-input'
-import { budgetItemOf, emptyBudgetItem, type BudgetItemValues } from './budget-form'
+import { BUDGET_ROWS_UNSAVED } from '@/lib/budget-messages'
+import { useFormCheck } from '@/lib/use-form-check'
+import {
+  budgetItemsOf,
+  budgetRowErrors,
+  defaultRows,
+  rowContractErrors,
+  untouchedRows,
+  type BudgetRowsValues,
+} from './budget-rows'
 import { BudgetFormDialog } from './BudgetFormDialog'
+import { BudgetRows, BudgetRowsTotal } from './BudgetRows'
 import { EventField } from './EventField'
-import { budgetItemsPath } from './finance-api'
+import { budgetItemsBatchPath } from './finance-api'
+import { useBudget } from './useBudget'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
 type Props = BudgetChangeHandlers & {
   councilId: string
-  // 행사 화면에서 열면 그 행사로 채운다.
+  // 행사 화면에서 열면 그 행사로 채우고 기본 행 셋을 둔다.
   eventId?: string | null
   onClose: () => void
 }
 
-type FieldsProps = {
+type SharedProps = {
   councilId: string
-  values: BudgetItemValues
+  values: BudgetRowsValues
   saving: boolean
-  onChange: (patch: Partial<BudgetItemValues>) => void
+  onChange: (values: BudgetRowsValues) => void
   onForbidden: () => void
-  errors: FieldErrors
 }
 
-// 목적과 금액은 필수다. 금액은 0 이상의 정수(계약과 같은 규칙)이고, 보낼 때처럼 쉼표는 받는다.
-const budgetItemErrors = (values: BudgetItemValues) => ({
-  purpose: requiredText(values.purpose, '목적을'),
-  amount:
-    requiredText(values.amount, '금액을') ??
-    (Number.isNaN(wonOf(values.amount)) ? '숫자만 입력해 주세요' : undefined),
-})
-
-// 목적, 금액, 종류(지출이 기본), 행사(선택).
-function BudgetItemFields(props: FieldsProps) {
-  const { councilId, values, saving, onChange, onForbidden, errors } = props
+// 종류와 행사는 창의 모든 행에 같이 걸린다. 사람이 행을 고치기 전이면 바꿀 때 기본 행을 다시 채운다(행사 지출이면 셋).
+function SharedFields({ councilId, values, saving, onChange, onForbidden }: SharedProps) {
+  const pick = (patch: { type?: BudgetItemType; eventId?: string | null }) => {
+    const next = { ...values, ...patch }
+    onChange(
+      untouchedRows(values.rows) ? { ...next, rows: defaultRows(next.type, next.eventId) } : next,
+    )
+  }
   return (
-    <>
-      <Field label="목적" required error={errors.purpose}>
-        <Input
-          value={values.purpose}
-          disabled={saving}
-          onChange={event => onChange({ purpose: event.target.value })}
-        />
-      </Field>
-      <Field label="금액(원)" required error={errors.amount}>
-        <Input
-          inputMode="numeric"
-          value={values.amount}
-          disabled={saving}
-          onChange={event => onChange({ amount: event.target.value })}
-        />
-      </Field>
+    <div className="grid gap-4 @md:grid-cols-2">
       <Field label="종류" required>
         <NativeSelect
           value={values.type}
           disabled={saving}
-          onChange={event =>
-            onChange({ type: event.target.value === 'income' ? 'income' : 'expense' })
-          }
+          onChange={event => pick({ type: event.target.value === 'income' ? 'income' : 'expense' })}
         >
           <option value="expense">지출</option>
           <option value="income">수입</option>
@@ -71,46 +58,67 @@ function BudgetItemFields(props: FieldsProps) {
         councilId={councilId}
         value={values.eventId}
         disabled={saving}
-        onChange={eventId => onChange({ eventId })}
+        onChange={eventId => pick({ eventId })}
         onForbidden={onForbidden}
       />
-    </>
+    </div>
   )
 }
 
-// 예산 항목 더하기. 종류와 행사는 더한 뒤에 바꾸지 않는다.
-export function BudgetItemDialog({ councilId, eventId, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState(() => emptyBudgetItem(eventId ?? null))
+// 예산 편성(DEC-92, 와이어프레임 EVT-FIN-01B '행사 예산 편성'): 여러 행을 한 창에서 짜고 한 거래로 보낸다.
+// 한 행이라도 막히면 아무것도 남지 않으므로, 실패하면 창과 모든 행을 그대로 두고 '아무것도 저장하지 않았어요'를 함께 보인다.
+// 같은 이름은 지금 기간의 예산을 읽어 미리 짚고, 서버가 같은 이름으로 막으면(그사이 누가 더함) 예산을 다시 읽어 그 행을 짚는다.
+export function BudgetItemDialog({ councilId, eventId = null, onClose, ...handlers }: Props) {
+  const [values, setValues] = useState<BudgetRowsValues>(() => ({
+    type: 'expense',
+    eventId,
+    rows: defaultRows('expense', eventId),
+  }))
   const [saving, setSaving] = useState(false)
-  const change = useBudgetChange(
-    budgetItemsPath(councilId),
-    budgetItemOf(values),
-    CreateBudgetItemSchema,
-    { ...handlers, setSaving },
-  )
+  const budget = useBudget(councilId, handlers.onForbidden)
+  const existing = budget.state.kind === 'ready' ? budget.state.budget.items : []
+  const body = budgetItemsOf(values)
+  const change = useBudgetChange(budgetItemsBatchPath(councilId), body, CreateBudgetItemsSchema, {
+    ...handlers,
+    setSaving,
+    onRejected: code => {
+      if (code === 'BUDGET_ITEM_DUPLICATE') void budget.reload()
+    },
+  })
   const {
     formRef,
     errors: fieldErrors,
     attempt,
-  } = useFormCheck(() => withContract(budgetItemErrors(values), change.parsed))
+  } = useFormCheck(() => ({
+    ...rowContractErrors(values.rows, change.parsed),
+    ...budgetRowErrors(values, existing),
+  }))
+  const title = eventId ? '행사 예산 편성' : '예산 편성'
   return (
     <BudgetFormDialog
-      title="예산 항목 더하기"
-      submitLabel="더하기"
+      title={title}
+      submitLabel="저장"
       saving={saving}
       formRef={formRef}
       attempt={attempt}
-      problem={change.problem}
+      problem={change.problem && `${change.problem} ${BUDGET_ROWS_UNSAVED}`}
       onSubmit={() => void change.submit()}
       onClose={onClose}
+      wide
+      summary={<BudgetRowsTotal rows={values.rows} income={values.type === 'income'} />}
     >
-      <BudgetItemFields
+      <SharedFields
         councilId={councilId}
         values={values}
         saving={saving}
-        onChange={patch => setValues({ ...values, ...patch })}
+        onChange={setValues}
         onForbidden={handlers.onForbidden}
+      />
+      <BudgetRows
+        rows={values.rows}
         errors={fieldErrors}
+        saving={saving}
+        onChange={rows => setValues({ ...values, rows })}
       />
     </BudgetFormDialog>
   )

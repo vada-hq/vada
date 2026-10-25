@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { BudgetItemUsage, EventRef } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -60,7 +61,8 @@ function Numbers({ item }: { item: Line }) {
 
 // 예산 항목 칸 하나(와이어프레임 EVT-FIN-01B '예산 항목별 현황'): 이름 → 흐린 한 줄 → 사용 가능.
 // 대부분이 지출 항목이라 종류 칩은 수입 항목에만 둔다. 긴 이름은 두 줄, 행사 이름은 한 줄로 자르고 전체는 title로 둔다.
-function BudgetItemLine({ item }: { item: Line }) {
+// actions는 이름 줄 오른쪽 끝의 동작(예산 탭의 '⋯' 메뉴)이다. 없으면 두지 않는다.
+function BudgetItemLine({ item, actions }: { item: Line; actions?: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <div className="flex items-start gap-2">
@@ -71,6 +73,7 @@ function BudgetItemLine({ item }: { item: Line }) {
           {item.purpose}
         </span>
         {item.type === 'income' && <Badge tone="info">수입</Badge>}
+        {actions && <div className="-my-1.5 -mr-1.5 shrink-0">{actions}</div>}
       </div>
       {item.event && (
         <span title={item.event.name} className="line-clamp-1 text-xs wrap-anywhere text-gray-500">
@@ -83,14 +86,22 @@ function BudgetItemLine({ item }: { item: Line }) {
 }
 
 // 예산 항목 칸의 목록. 놓인 자리의 폭으로 좁으면 1열, 넓으면 2~3열이다. 예산 탭과 행사 '예산·정산'이 같이 쓴다.
-export function BudgetItemList({ items, label }: { items: Line[]; label?: string }) {
+export function BudgetItemList<T extends Line>({
+  items,
+  label,
+  actions,
+}: {
+  items: T[]
+  label?: string
+  actions?: (item: T) => ReactNode
+}) {
   return (
     <div className="@container">
       <ul aria-label={label} className="grid gap-2 @2xl:grid-cols-2 @4xl:grid-cols-3">
         {items.map(item => (
           <li key={item.id}>
             <Card className="h-full p-3">
-              <BudgetItemLine item={item} />
+              <BudgetItemLine item={item} actions={actions?.(item)} />
             </Card>
           </li>
         ))}

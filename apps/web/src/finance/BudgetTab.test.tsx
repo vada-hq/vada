@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { resetAddress } from '@/test-support/address-reset'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import {
   councilView,
@@ -12,9 +12,15 @@ import { asElement } from '@/test-support/elements'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
+// 회계 기간 만들기는 오늘이 든 학기로 채운다. 시험의 오늘은 2026-10-26(2학기)이다.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-26T03:00:00Z'))
+})
 afterEach(async () => {
   cleanup()
   await resetAddress()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
@@ -52,21 +58,23 @@ test('재정부의 탭은 개요, 구매 요청, 지출, 수입, 예산, 계좌,
   ])
 })
 
-test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 지금 기수의 이름과 날짜로 채워진다', async () => {
+test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 오늘이 든 학기의 이름과 날짜로 채워진다', async () => {
   const { api } = show()
   fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
   const form = await screen.findByRole('form', { name: '회계 기간 만들기' })
-  expect(asElement(within(form).getByLabelText('이름'), HTMLInputElement).value).toBe('2026년')
+  expect(asElement(within(form).getByLabelText('이름'), HTMLInputElement).value).toBe(
+    '2026년 2학기',
+  )
   expect(asElement(within(form).getByLabelText('시작일'), HTMLInputElement).value).toBe(
-    '2026-01-01',
+    '2026-07-01',
   )
   api.on('POST', `${ORG}/fiscal-periods`, () => json(budgetWithPeriod(), 201))
   api.on('GET', BUDGET, () => json(budgetWithPeriod()))
   fireEvent.click(button('만들기'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
-    name: '2026년',
-    startsOn: '2026-01-01',
+    name: '2026년 2학기',
+    startsOn: '2026-07-01',
     endsOn: '2026-12-31',
   })
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
@@ -96,7 +104,7 @@ test('기간이 겹치면(409) 문구가 보이고 입력이 남는다', async (
   await screen.findByRole('form', { name: '회계 기간 만들기' })
   fireEvent.click(button('만들기'))
   expect((await screen.findByRole('alert')).textContent).toMatch(/겹치거나 같은 이름/)
-  expect(asElement(screen.getByLabelText('이름'), HTMLInputElement).value).toBe('2026년')
+  expect(asElement(screen.getByLabelText('이름'), HTMLInputElement).value).toBe('2026년 2학기')
 })
 
 test('보내는 동안 막히고 두 번 눌러도 한 번만 간다', async () => {
@@ -114,70 +122,70 @@ test('보내는 동안 막히고 두 번 눌러도 한 번만 간다', async () 
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
-test('기간이 있으면 이름, 기간, 지출 항목과 [항목 더하기]가 보인다', async () => {
+test('기간이 있으면 이름, 기간, 지출 항목과 [예산 편성]이 보인다', async () => {
   show(FINANCE_PERMISSIONS, budgetWithPeriod())
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
   expect(screen.getByText('2026-09-01 ~ 2027-02-28')).toBeTruthy()
   const list = screen.getByRole('list', { name: '예산 항목' })
   expect(within(list).getByText('행사 홍보')).toBeTruthy()
   expect(within(list).getByText('배정 300,000원')).toBeTruthy()
-  expect(screen.getByRole('button', { name: '항목 더하기' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '예산 편성' })).toBeTruthy()
 })
 
-test('재정부가 아니면 보기만 하고 만들기와 더하기 버튼이 없다', async () => {
+test('재정부가 아니면 보기만 하고 만들기와 편성 버튼이 없다', async () => {
   show(MEMBER_PERMISSIONS, budgetWithPeriod())
   await screen.findByText('2026년 2학기')
-  expect(screen.queryByRole('button', { name: '항목 더하기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '예산 편성' })).toBeNull()
   cleanup()
   show(MEMBER_PERMISSIONS)
   await screen.findByText(/재정부가 만들면/)
   expect(screen.queryByRole('button', { name: '회계 기간 만들기' })).toBeNull()
 })
 
-test('항목 더하기는 목적과 금액이 비거나 금액이 숫자가 아니면 보내지 않고 칸 아래에 알리며, 맞으면 보낸다', async () => {
+// 예산 편성 창을 열고 첫 행을 채운다(창은 지금 기간의 예산도 읽는다).
+async function openPlan(purpose: string, amount: string) {
+  fireEvent.click(await screen.findByRole('button', { name: '예산 편성' }))
+  await screen.findByRole('form', { name: '예산 편성' })
+  fill('항목 1 이름', purpose)
+  fill('항목 1 금액', amount)
+}
+
+test('예산 편성은 이름과 금액이 비거나 금액이 숫자가 아니면 보내지 않고 그 행 아래에 알리며, 맞으면 보낸다', async () => {
   const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fireEvent.click(button('더하기'))
-  expect(screen.getByText('목적을 입력해 주세요')).toBeTruthy()
-  expect(screen.getByText('금액을 입력해 주세요')).toBeTruthy()
-  fill('목적', '간식')
-  fill('금액(원)', '-5')
-  fireEvent.click(button('더하기'))
+  api.on('POST', `${ORG}/budget-items/batch`, () => json(budgetWithPeriod(), 201))
+  fireEvent.click(await screen.findByRole('button', { name: '예산 편성' }))
+  await screen.findByRole('form', { name: '예산 편성' })
+  fireEvent.click(button('저장'))
+  expect(screen.getByText('항목 이름을 입력해 주세요')).toBeTruthy()
+  fill('항목 1 이름', '간식')
+  fill('항목 1 금액', '-5')
+  fireEvent.click(button('저장'))
   expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
-  expect(screen.getByLabelText('금액(원)').getAttribute('aria-invalid')).toBe('true')
+  expect(screen.getByLabelText('항목 1 금액').getAttribute('aria-invalid')).toBe('true')
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
-  fill('금액(원)', '12000')
-  fireEvent.click(button('더하기'))
+  fill('항목 1 금액', '12000')
+  fireEvent.click(button('저장'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
-    purpose: '간식',
-    amount: 12000,
-    type: 'expense',
-    eventId: null,
+    items: [{ purpose: '간식', amount: 12000, type: 'expense', eventId: null }],
   })
 })
 
-test('기간이 없을 때 항목을 더하면(409) 문구가 보인다', async () => {
+test('기간이 없을 때 편성하면(409) 문구와 아무것도 저장하지 않았다는 말이 보인다', async () => {
   const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  api.on('POST', `${ORG}/budget-items`, () => json({ error: 'NO_FISCAL_PERIOD' }, 409))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fill('목적', '간식')
-  fill('금액(원)', '1000')
-  fireEvent.click(button('더하기'))
-  expect((await screen.findByRole('alert')).textContent).toMatch(/지금 회계 기간이 없어요/)
+  api.on('POST', `${ORG}/budget-items/batch`, () => json({ error: 'NO_FISCAL_PERIOD' }, 409))
+  await openPlan('간식', '1000')
+  fireEvent.click(button('저장'))
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toMatch(/지금 회계 기간이 없어요/)
+  expect(alert.textContent).toMatch(/아무것도 저장하지 않았어요/)
 })
 
 test('저장하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 대화상자를 닫는다', async () => {
   const { api, handlers } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  api.on('POST', `${ORG}/budget-items`, () => json({ error: 'FORBIDDEN' }, 403))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fill('목적', '간식')
-  fill('금액(원)', '1000')
-  fireEvent.click(button('더하기'))
+  api.on('POST', `${ORG}/budget-items/batch`, () => json({ error: 'FORBIDDEN' }, 403))
+  await openPlan('간식', '1000')
+  fireEvent.click(button('저장'))
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
@@ -196,33 +204,25 @@ test('예산을 못 읽으면 다시 시도를 보인다', async () => {
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
 })
 
-test('금액 칸은 숫자만 받는다(1e3, 0x10 거부)', async () => {
+test('금액 칸은 숫자만 받고(1e3, 0x10 거부) 0원은 막으며, 쉼표(12,000)는 받는다', async () => {
   const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fill('목적', '간식')
+  api.on('POST', `${ORG}/budget-items/batch`, () => json(budgetWithPeriod(), 201))
+  await openPlan('간식', '')
   for (const bad of ['1e3', '0x10', '1.5', '12원'] as const) {
-    fill('금액(원)', bad)
-    fireEvent.click(button('더하기'))
+    fill('항목 1 금액', bad)
+    fireEvent.click(button('저장'))
     expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
   }
+  fill('항목 1 금액', '0')
+  fireEvent.click(button('저장'))
+  expect(screen.getByText('0원보다 큰 금액을 입력해 주세요')).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
-  fill('금액(원)', '0')
-  fireEvent.click(button('더하기'))
-  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
-})
-
-test('금액에 쉼표를 써도(12,000) 더할 수 있다', async () => {
-  const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  api.on('POST', `${ORG}/budget-items`, () => json(budgetWithPeriod(), 201))
-  fireEvent.click(await screen.findByRole('button', { name: '항목 더하기' }))
-  await screen.findByRole('form', { name: '예산 항목 더하기' })
-  fill('목적', '간식')
-  fill('금액(원)', '12,000')
-  fireEvent.click(button('더하기'))
+  fill('항목 1 금액', '12,000')
+  fireEvent.click(button('저장'))
   await waitFor(() =>
-    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ amount: 12000 }),
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+      items: [{ amount: 12000 }],
+    }),
   )
 })
 
@@ -238,6 +238,8 @@ test('수입 항목에만 종류 칩이 보이고 행사가 있으면 행사 이
     actual: 40000,
     committed: null,
     available: null,
+    deletable: true,
+    history: [],
   })
   show(FINANCE_PERMISSIONS, budget)
   const list = await screen.findByRole('list', { name: '예산 항목' })
@@ -275,6 +277,8 @@ test('수입 항목은 예산과 들어온 돈만 있고 지출 예정과 사용
       actual: 40000,
       committed: null,
       available: null,
+      deletable: true,
+      history: [],
     },
   ]
   show(MEMBER_PERMISSIONS, budget)
