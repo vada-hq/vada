@@ -388,7 +388,9 @@ test('양식의 계좌는 바꿀 때도 같은 학생회여야 하고, 행사·�
   }
 })
 
-test('열람 기록은 같은 학생회의 양식과 신청만 가리킬 수 있다', async () => {
+// 0019가 외래 키를 뺐다: 학생회를 파기해도 열람 기록은 1년 남는다(DEC-55, DEC-72). 같은 학생회의 양식·신청인지는 DB가 아니라
+// 부르는 쪽이 지킨다(registrations/applicants.ts·attendance.ts가 운영진의 학생회에서 찾은 양식·신청만 넘긴다). 행동과 IP의 CHECK는 그대로다.
+test('열람 기록은 외래 키 없이 남고, 행동과 IP는 CHECK가 막는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const s = await db.transaction(seed)
@@ -403,14 +405,16 @@ test('열람 기록은 같은 학생회의 양식과 신청만 가리킬 수 있
       )
     await insert(form, 'list')
     await insert(form, 'check_in', '2001:db8:0:0:0:0:0:1')
-    await assert.rejects(insert(theirForm, 'list'))
+    // 가리키는 행이 없어지거나 처음부터 없어도 기록은 남는다(파기한 학생회의 기록).
+    await insert(theirForm, 'list')
+    await insert('019e0000-0000-7000-8000-000000000000', 'list')
     await assert.rejects(insert(form, 'export'), constraint('applicant_access_log_action_check'))
     await assert.rejects(insert(form, 'list', ''), constraint('applicant_access_log_ip_check'))
     await assert.rejects(
       insert(form, 'list', '1'.repeat(46)),
       constraint('applicant_access_log_ip_check'),
     )
-    assert.equal((await pg.query('SELECT 1 FROM applicant_access_log')).rows.length, 2)
+    assert.equal((await pg.query('SELECT 1 FROM applicant_access_log')).rows.length, 4)
   } finally {
     await close()
   }

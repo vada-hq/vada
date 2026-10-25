@@ -91,6 +91,7 @@ test('만들기는 기록, 하위 행, 판 1을 한 번에 만들고 판에 하�
       vice_president_title: '부회장',
       head_title: '부장',
       vice_head_title: '부부장',
+      closing_requested_at: null,
     })
     // 기수는 하위 행에도 학생회 번호를 둔다. 모듈이 기록의 학생회 번호를 넣는다.
     assert.deepEqual(
