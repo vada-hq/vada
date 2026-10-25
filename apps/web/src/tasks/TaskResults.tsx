@@ -1,6 +1,7 @@
 import type { TaskDetail, TaskResultKind } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DELETED_MESSAGE } from '@/lib/messages'
 import { makeLabel, RESULT_KIND_LABEL, STAGE_CHIP } from './task-results'
 
 type Props = {
@@ -24,7 +25,7 @@ export function TaskResults({ task, saving, onMake }: Props) {
               <li key={result.id} className="flex items-center justify-between gap-2 text-sm">
                 <span className="min-w-0 wrap-anywhere text-gray-800">
                   <span className="text-gray-500">{RESULT_KIND_LABEL[result.kind]}</span>
-                  {` · ${result.title}`}
+                  {` · ${result.title ?? DELETED_MESSAGE}`}
                 </span>
                 {chip && <Badge tone={chip.tone}>{chip.label}</Badge>}
               </li>

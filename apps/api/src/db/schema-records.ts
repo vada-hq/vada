@@ -26,18 +26,21 @@ export const message = pgTable('message', {
   id: uuid('id').primaryKey(),
   kind: text('kind').notNull().default('message'),
   roomId: uuid('room_id').notNull(),
-  body: text('body').notNull(),
+  // 지운 메시지는 본문이 없고 지운 시각이 있다(0018, DEC-54).
+  body: text('body'),
   sentAt: at('sent_at').notNull(),
   isNotice: boolean('is_notice').notNull().default(false),
+  deletedAt: at('deleted_at'),
 })
 
 export const file = pgTable('file', {
   id: uuid('id').primaryKey(),
   kind: text('kind').notNull().default('file'),
-  name: text('name').notNull(),
+  // 지운 메시지에 붙었던 파일은 이름과 저장소 위치를 함께 비운다(0018, DEC-54).
+  name: text('name'),
   mediaType: text('media_type').notNull(),
   sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull(),
-  storageKey: text('storage_key').notNull(),
+  storageKey: text('storage_key'),
   attachedToId: uuid('attached_to_id'),
 })
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { ChatMessage, EventDetail, TaskDetail } from '@vada/contracts'
+import { ERASED_BY_REQUEST, eraseMessages } from '../chat/erase.js'
 import { createRecord } from '../records/records.js'
 import { MISSING, withSettlement, type SettlementKit } from '../test-support/settlement.js'
 
@@ -178,6 +179,32 @@ test(
     assert.equal(await statusOf(t, taskId), 'todo')
     assert.equal((await resultsOf(t, taskId))[0]!.stage, 'finished')
     assert.ok(sent.id)
+  }),
+)
+
+test(
+  '지운 공지는 업무 결과물에서 제목이 null(화면은 삭제된 메시지)이고 빠짐이며, 업무 상태는 그대로다',
+  withSettlement(async t => {
+    const room = await roomOf(t, 'all_members')
+    const taskId = await taskFor(t)
+    const sent = (await (
+      await send(t, room, { body: '내일 총회', taskId }, PLANNER)
+    ).json()) as ChatMessage
+    const kept = await taskFor(t)
+    assert.equal((await send(t, room, { body: '남는 공지', taskId: kept })).status, 201)
+    await t.db.transaction(tx =>
+      eraseMessages(tx, [sent.id], { actor: null, reason: ERASED_BY_REQUEST }),
+    )
+    assert.deepEqual(await resultsOf(t, taskId), [
+      { kind: 'message', title: null, stage: 'excluded' },
+    ])
+    assert.equal(await statusOf(t, taskId), 'done')
+    assert.deepEqual(await resultsOf(t, kept), [
+      { kind: 'message', title: '남는 공지', stage: 'finished' },
+    ])
+    // 볼 수 없는 지운 공지는 볼 수 없는 공지와 같이 빈 제목이다(있었는지 드러내지 않는다).
+    await t.pg.query("UPDATE message SET sent_at = '2020-01-01' WHERE id = $1", [sent.id])
+    assert.equal((await detailOf(t, taskId)).results[0]!.title, '')
   }),
 )
 

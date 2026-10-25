@@ -55,8 +55,10 @@ export interface ChatMessage {
   // 보낸 운영진. 시스템이 만든 메시지는 비어 있다.
   senderId: string | null
   senderName: string | null
-  body: string
+  // 지운 메시지(DEC-54)는 본문이 null이고 사진이 없으며 지운 시각이 있다. 화면은 그 자리에 '삭제된 메시지'를 보인다.
+  body: string | null
   sentAt: string
+  deletedAt: string | null
   photos: ChatPhoto[]
 }
 

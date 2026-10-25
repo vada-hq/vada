@@ -30,7 +30,7 @@ const stageReaders: Record<
 > = {
   request: requestStagesOf,
   registration_form: formStagesOf,
-  message: (_tx, ids) => Promise.resolve(noticeStagesOf(ids)),
+  message: noticeStagesOf,
   event: eventStagesOf,
 }
 
@@ -50,7 +50,7 @@ export async function stagesOf(
 }
 
 // 이 쓰기가 닿을 수 있는 결과물 번호. 구매 요청은 요청 자신, 품목, 품목의 결재, 품목의 결제 내역이고,
-// 행사는 그 행사의 완료·완료 취소 결재다. 공지(메시지)는 올리면 끝남이고 바꾸는 쓰기가 없다(DEC-90). 그 밖의 쓰기는 없다.
+// 행사는 그 행사의 완료·완료 취소 결재다. 공지(메시지)는 올리면 끝남이고 지우면 빠짐이라 단계가 오르는 쓰기가 없다(DEC-90). 그 밖의 쓰기는 없다.
 // 만들 때의 요청·메시지·양식·행사는 아직 연결이 없어 여기서 찾지 않고 linkResult가 단계를 넘긴다.
 async function requestIdOfItem(tx: Tx, itemId: unknown) {
   const [row] = await tx

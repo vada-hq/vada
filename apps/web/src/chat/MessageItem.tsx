@@ -1,3 +1,4 @@
+import { DELETED_MESSAGE } from '@/lib/messages'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -37,6 +38,20 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
           part.text
         ),
       )}
+    </p>
+  )
+}
+
+// 지운 메시지의 자리(DEC-54). 본문과 사진은 서버가 주지 않는다.
+function Deleted({ mine }: { mine: boolean }) {
+  return (
+    <p
+      className={cn(
+        'text-sm/6 text-gray-400',
+        mine && 'rounded-2xl rounded-tr-sm bg-gray-100 px-3 py-1.5',
+      )}
+    >
+      {DELETED_MESSAGE}
     </p>
   )
 }
@@ -96,7 +111,11 @@ export default function MessageItem({ councilId, message, continued, mine, ...ac
       <div className={cn('flex min-w-0 gap-2', mine ? 'flex-row-reverse items-end' : 'flex-1')}>
         <div className={cn('flex min-w-0 flex-col gap-1', mine ? 'max-w-xl items-end' : 'flex-1')}>
           <Head message={message} mine={mine} continued={continued} />
-          {message.body !== '' && <Body body={message.body} mine={mine} />}
+          {message.body === null ? (
+            <Deleted mine={mine} />
+          ) : (
+            message.body !== '' && <Body body={message.body} mine={mine} />
+          )}
           {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         </div>
         {mine && <MineTime message={message} continued={continued} />}

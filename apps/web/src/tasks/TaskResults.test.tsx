@@ -68,6 +68,7 @@ test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있�
         { kind: 'message', id: 'm1', title: '내일 총회', stage: 'finished' },
         { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
         { kind: 'event', id: 'e1', title: '봄 행사', stage: 'none' },
+        { kind: 'message', id: 'm2', title: null, stage: 'excluded' },
       ],
       canMake: ['request', 'message'],
     }),
@@ -81,6 +82,7 @@ test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있�
     '공지 · 내일 총회끝남',
     '구매 요청 · 옛 요청취소',
     '행사 · 봄 행사',
+    '공지 · 삭제된 메시지취소',
   ])
   expect(within(region).getByRole('button', { name: '구매 요청 만들기' })).toBeTruthy()
   expect(within(region).getByRole('button', { name: '공지 만들기' })).toBeTruthy()

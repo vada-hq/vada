@@ -105,7 +105,13 @@ export function EmptyAvatarSection() {
   )
 }
 
-// 대화방 메시지의 ... 메뉴. 구매 요청 만들기와 지출 적기가 같은 메뉴에 있다.
+// 대화방 메시지의 ... 메뉴. 구매 요청 만들기와 지출 적기가 같은 메뉴에 있다. 지운 메시지는 그 자리만 남고 메뉴가 없다.
+const actionArgs = {
+  canRequest: true,
+  onRequest: () => {},
+  canWriteExpense: true,
+  onWriteExpense: () => {},
+}
 export function MessageMenuSection() {
   const message = {
     id: 'sample-message',
@@ -113,8 +119,10 @@ export function MessageMenuSection() {
     senderName: '박해랑',
     body: '현수막 2개 사 주세요\n색은 파랑이면 좋겠어요',
     sentAt: '2026-10-23T01:30:00Z',
+    deletedAt: null,
     photos: [],
   }
+  const deleted = { ...message, id: 'deleted-message', body: null, deletedAt: message.sentAt }
   return (
     <Section title="메시지 메뉴">
       <ul className="w-96 rounded-lg border bg-white p-2">
@@ -123,11 +131,16 @@ export function MessageMenuSection() {
           message={message}
           continued={false}
           mine={false}
-          canRequest
-          onRequest={() => {}}
-          canWriteExpense
-          onWriteExpense={() => {}}
+          {...actionArgs}
         />
+        <MessageItem
+          councilId="sample"
+          message={deleted}
+          continued={false}
+          mine={false}
+          {...actionArgs}
+        />
+        <MessageItem councilId="sample" message={deleted} continued={false} mine {...actionArgs} />
       </ul>
     </Section>
   )

@@ -36,13 +36,13 @@ function requesterOf(message: ChatMessage, { meId, members, canAssign }: Context
 
 // 메시지의 첫 줄(비지 않은 첫 줄). 지출 내역도 같은 줄을 쓴다.
 export const firstLineOf = (message: ChatMessage) =>
-  message.body.split('\n').find(line => line.trim() !== '') ?? ''
+  (message.body ?? '').split('\n').find(line => line.trim() !== '') ?? ''
 
 export function requestSeedOf(message: ChatMessage, context: Context): RequestSeed {
   const firstLine = firstLineOf(message)
   return {
     title: clipText(firstLine, PURCHASE_TITLE_MAX),
-    body: clipText(message.body, PURCHASE_BODY_MAX),
+    body: clipText(message.body ?? '', PURCHASE_BODY_MAX),
     requestedBy: requesterOf(message, context),
     sourceMessageId: message.id,
   }

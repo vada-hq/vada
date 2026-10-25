@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { CHAT_PHOTO_LIST_MAX, PHOTO_MEDIA_TYPE, type ChatPhotoListResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -62,7 +62,8 @@ export async function canSeeMessage(db: Reader, actor: Actor, messageId: string)
 }
 
 // 내가 볼 수 있는 대화 사진을 고르는 조회. 사진 하나 보기와 사진 목록이 같은 연결과 같은 조건을 쓴다.
-// 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전(공지방의 같은 기수 메시지는 빼고), 증빙 파일은 모두 빠진다. 호출하는 쪽이 정렬과 개수를 더한다.
+// 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전(공지방의 같은 기수 메시지는 빼고), 증빙 파일, 지운 메시지의 사진(저장소 위치를 비운 파일)은
+// 모두 빠진다. 호출하는 쪽이 정렬과 개수를 더한다.
 function visiblePhotoRows(db: Reader, actor: Actor, extra?: SQL) {
   return db
     .select({
@@ -85,19 +86,19 @@ function visiblePhotoRows(db: Reader, actor: Actor, extra?: SQL) {
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
     )
     .leftJoin(member, eq(member.id, record.createdBy))
-    .where(and(visibleMessage(actor), extra))
+    .where(and(visibleMessage(actor), isNotNull(file.storageKey), extra))
 }
 
 export async function visiblePhoto(db: Reader, actor: Actor, fileId: string) {
   const [found] = await visiblePhotoRows(db, actor, eq(file.id, fileId))
-  return (
-    found && {
-      key: found.key,
-      name: found.name,
-      mediaType: found.mediaType,
-      messageId: found.messageId,
-    }
-  )
+  // 이름과 저장소 위치는 함께 비워진다(DB CHECK). 위의 조건이 이미 걸렀고, 여기서는 타입만 좁힌다.
+  if (!found?.key || found.name === null) return undefined
+  return {
+    key: found.key,
+    name: found.name,
+    mediaType: found.mediaType,
+    messageId: found.messageId,
+  }
 }
 
 // 증빙으로 고를 대화 사진: 최근 것부터 한 장 더 읽어 넘침을 안다.

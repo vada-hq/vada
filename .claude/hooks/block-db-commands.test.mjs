@@ -36,6 +36,9 @@ const blocked = [
   'pnpm --filter @vada/api privacy withdraw --email a@b.test --from-shell --apply',
   'cd apps/api && pnpm run privacy -- withdraw --email a@b.test',
   'pnpm exec tsx scripts/manage-privacy.ts withdraw --email a@b.test',
+  'pnpm --filter @vada/api privacy erase-messages --invite TESTDATA --sender a@b.test --from 2026-10-25T10:00 --to 2026-10-25T10:59',
+  'pnpm --filter @vada/api privacy erase-messages --invite TESTDATA --left 1 --from 2026-10-25T10:00 --to 2026-10-25T10:59 --expect 2 --apply --from-shell',
+  'pnpm exec tsx scripts/manage-privacy.ts erase-messages --invite TESTDATA --left 1',
 ]
 
 const allowed = [
@@ -50,6 +53,7 @@ const allowed = [
   'pnpm exec oxlint apps/api/scripts/pg-smoke-cases.ts',
   'pnpm exec tsx --test scripts/demo-command.test.ts',
   'pnpm exec tsx --test scripts/privacy-command.test.ts',
+  'pnpm exec tsx --test scripts/privacy-erase.test.ts',
   'pnpm exec tsx --test src/withdrawal/withdrawal.test.ts',
   'grep -rn privacy apps/api',
   'cat scripts/manage-test-data.ts | head',
