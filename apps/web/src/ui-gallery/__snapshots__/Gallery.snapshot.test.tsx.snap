@@ -610,11 +610,11 @@ exports[`대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -3026,11 +3026,11 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -5438,11 +5438,11 @@ exports[`옆 메뉴 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -7847,11 +7847,11 @@ exports[`오른쪽 패널 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -10253,11 +10253,11 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -12663,11 +12663,11 @@ exports[`처음 모양 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">
@@ -15051,11 +15051,11 @@ exports[`확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full table-fixed border-collapse text-left">
 <colgroup>
 <col>
-<col class="w-28">
-<col class="w-36">
 <col class="w-24">
-<col class="w-32">
-<col class="w-36">
+<col class="w-28">
+<col class="w-20">
+<col class="w-24">
+<col class="w-28">
 </colgroup>
 <thead>
 <tr role="row">

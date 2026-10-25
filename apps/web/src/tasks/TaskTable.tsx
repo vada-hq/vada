@@ -23,11 +23,11 @@ type Props = {
 // 열 너비. 제목이 남는 폭을 가진다(table-fixed).
 const WIDTH: Record<Column, string | undefined> = {
   title: undefined,
-  status: 'w-28',
-  assignee: 'w-36',
-  due: 'w-24',
-  department: 'w-32',
-  event: 'w-36',
+  status: 'w-24',
+  assignee: 'w-28',
+  due: 'w-20',
+  department: 'w-24',
+  event: 'w-28',
 }
 
 function GroupRow({

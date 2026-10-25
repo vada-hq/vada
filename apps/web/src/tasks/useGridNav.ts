@@ -97,15 +97,19 @@ export function useGridNav(
     if (cell) setStored(cellPos(cell))
   }
   const onBlur = (event: FocusEvent) => {
+    // 가는 곳이 표 밖이면 떠난 것이다. 가는 곳이 없는 blur는 줄이 옮겨 칸이 다시 꽂힌 것일 수 있어 떠난 것으로 보지 않고,
+    // 표 밖을 누르는 것은 아래 pointerdown이 본다.
     const next = event.relatedTarget
     if (next instanceof Node && !gridRef.current?.contains(next)) inside.current = false
-    // 가는 곳이 없으면 줄이 바뀌어 그 칸이 지워진 것일 수 있다. 칸이 아직 있을 때만 떠난 것으로 본다.
-    const target = event.target
-    if (!next)
-      queueMicrotask(() => {
-        if (target instanceof Node && target.isConnected) inside.current = false
-      })
   }
+  useEffect(() => {
+    const leave = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gridRef.current?.contains(event.target))
+        inside.current = false
+    }
+    document.addEventListener('pointerdown', leave)
+    return () => document.removeEventListener('pointerdown', leave)
+  }, [gridRef])
   // 아직 고른 칸이 없으면 첫 줄 첫 칸이 Tab의 자리다.
   const at = stored ?? (ids[0] === undefined ? null : { id: ids[0], col: 0 })
   return {
