@@ -39,8 +39,8 @@ type Props = {
   view: CouncilView
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
-  // 목록이 바뀌었을 때(옆 메뉴의 결재 대기 수를 다시 읽는다).
-  onChanged: () => void
+  // 요청 목록이 바뀌었을 때. 옆 메뉴는 결재 대기 수를 두지 않아(DEC-96) 작업 공간은 넘기지 않는다.
+  onChanged?: () => void
 }
 
 function Body({
@@ -254,7 +254,7 @@ export default function FinancePage(props: Props) {
         dialogs={dialogs}
         onChanged={() => {
           void list.reload()
-          props.onChanged()
+          props.onChanged?.()
         }}
         onForbidden={props.onForbidden}
       />

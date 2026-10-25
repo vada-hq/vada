@@ -16,6 +16,7 @@ import {
   MessageMenuSection,
 } from './MenuSections'
 import { SpaceListSection } from './SpaceSections'
+import { SidebarSection } from './SidebarSections'
 import { AccountSection } from './AccountSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseSection } from './ExpenseSections'
@@ -59,6 +60,7 @@ export default function Gallery() {
       <ChipsSection />
       <CardsSection />
       <MenuTabsSection />
+      <SidebarSection />
       <SpaceListSection />
       <ActionMenuSection />
       <MessageMenuSection />

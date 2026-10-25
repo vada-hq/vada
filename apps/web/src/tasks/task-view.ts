@@ -24,26 +24,12 @@ export function assigneeLabel(assignee: TaskPerson | null) {
 export const nextLabel = (next: TaskStatus) => (next === 'done' ? '끝내기' : '시작')
 
 export interface TaskCount {
-  label: string
-  tone: 'danger' | 'info'
-  description: string
+  count: number
+  // 목록이 잘려 실제 수가 더 클 수 있다.
+  more: boolean
 }
 
-// 옆 메뉴 '업무'의 수: 내 업무 중 지난 것이 있으면 그 수(danger), 없으면 남은 수(info). 0이면 없고, 넘치면 '+'다.
-export function countOf(mine: TaskSummary[], truncated: boolean): TaskCount | null {
-  const overdue = mine.filter(task => task.overdue).length
-  const plus = truncated ? '+' : ''
-  const more = truncated ? ' 이상' : ''
-  if (overdue > 0)
-    return {
-      label: `지남 ${overdue}${plus}`,
-      tone: 'danger',
-      description: `지난 업무 ${overdue}개${more}`,
-    }
-  if (mine.length === 0) return null
-  return {
-    label: `${mine.length}${plus}`,
-    tone: 'info',
-    description: `남은 업무 ${mine.length}개${more}`,
-  }
+// 옆 메뉴 '업무'의 수 '지남 N': 내 업무 중 지난 것만 센다. 남은 수는 나에게 걸린 급한 일이 아니라 두지 않는다(DEC-96, DEC-94).
+export function overdueOf(mine: TaskSummary[], truncated: boolean): TaskCount {
+  return { count: mine.filter(task => task.overdue).length, more: truncated }
 }

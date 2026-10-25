@@ -1,6 +1,4 @@
 import type { TaskSummary } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
-import { countOf } from '@/tasks/task-view'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { departmentColorOf } from '@/tasks/department-color'
@@ -39,14 +37,8 @@ const rowProps = {
 }
 
 export function TaskSection() {
-  const overdue = countOf([task('a', { overdue: true })], false)
-  const open = countOf([task('b', {}), task('c', {})], true)
   return (
-    <Section title="업무 줄·수 배지">
-      <div className="flex w-full items-center gap-2">
-        {overdue && <Badge tone={overdue.tone}>{overdue.label}</Badge>}
-        {open && <Badge tone={open.tone}>{open.label}</Badge>}
-      </div>
+    <Section title="업무 줄">
       <ul className={cn(cardClass, 'w-96 divide-y')}>
         <TaskRow task={task('1', {})} {...rowProps} />
         <TaskRow

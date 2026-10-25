@@ -1,139 +1,98 @@
-import { House, ListChecks, MessageSquare, Users, Wallet } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import type { LucideIcon } from 'lucide-react'
+import { ChartNoAxesColumn, Clipboard, House, MessageSquare, Users } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { CountBadge } from '@/components/ui/count-badge'
 import { NavItem } from '@/components/ui/nav-item'
-import { unreadLabel } from '../chat/chat-view'
-import type { PendingCount } from '../finance/purchase-view'
 import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 import SpaceList, { type SpaceProps } from './SpaceList'
 import { menuActive, type ActiveItem } from './space-view'
 
-function TasksItem({
+// 최상위 칸 하나: 아이콘, 이름, 오른쪽 끝의 수 배지(있으면).
+function TopItem({
+  icon: Icon,
+  label,
   active,
-  count,
+  badge,
   onClick,
 }: {
+  icon: LucideIcon
+  label: string
   active: boolean
-  count: TaskCount | null
+  badge?: ReactNode
   onClick: () => void
 }) {
   return (
-    <NavItem active={active} className="mt-1 flex items-center gap-2" onClick={onClick}>
-      <ListChecks aria-hidden className="size-4" />
-      <span className="flex-1">업무</span>
-      {count && (
-        <Badge tone={count.tone} aria-label={count.description}>
-          {count.label}
-        </Badge>
-      )}
+    <NavItem active={active} onClick={onClick}>
+      <Icon aria-hidden className="size-4 shrink-0" />
+      <span className="flex-1">{label}</span>
+      {badge}
     </NavItem>
   )
 }
 
-// 재정: 재정부에게만 결재 대기 수가 보인다(count가 없으면 배지가 없다).
-function FinanceItem({
-  active,
-  count,
-  onClick,
-}: {
-  active: boolean
-  count: PendingCount | null
-  onClick: () => void
-}) {
-  return (
-    <NavItem active={active} className="mt-1 flex items-center gap-2" onClick={onClick}>
-      <Wallet aria-hidden className="size-4" />
-      <span className="flex-1">재정</span>
-      {count && (
-        <Badge tone="warning" aria-label={count.description}>
-          {count.label}
-        </Badge>
-      )}
-    </NavItem>
-  )
-}
+const overdueLabel = ({ count, more }: TaskCount) => `지난 업무 ${count}개${more ? ' 이상' : ''}`
 
-// 조직: 사람과 부서를 한 화면에서(DEC-91). 최상위 끝 한 칸이고 '운영진' 머리는 없다(DEC-96). 옛 부서 주소도 이 칸이 켜진다.
-function OrgItem({ active, onPage }: { active: ActiveItem; onPage: (page: Page) => void }) {
-  return (
-    <NavItem
-      active={menuActive(active, 'people') || menuActive(active, 'departments')}
-      className="mt-1 flex items-center gap-2"
-      onClick={() => onPage('people')}
-    >
-      <Users aria-hidden className="size-4" />
-      조직
-    </NavItem>
-  )
-}
-
-// 홈(배지 없음), 대화(안 읽은 수 합계). 행사는 최상위 칸이 아니고 아래 '공간' 묶음이다(DEC-85, DEC-96).
-function LeadItems({
-  active,
-  unread,
-  onPage,
-}: {
-  active: ActiveItem
-  unread: number
-  onPage: (page: Page) => void
-}) {
-  return (
-    <>
-      <NavItem
-        active={menuActive(active, 'home')}
-        className="flex items-center gap-2"
-        onClick={() => onPage('home')}
-      >
-        <House aria-hidden className="size-4" />홈
-      </NavItem>
-      <NavItem
-        active={menuActive(active, 'chat')}
-        className="mt-1 flex items-center gap-2"
-        onClick={() => onPage('chat')}
-      >
-        <MessageSquare aria-hidden className="size-4" />
-        <span className="flex-1">대화</span>
-        {unread > 0 && (
-          <Badge tone="info" aria-label={`안 읽은 메시지 ${unread}개`}>
-            {unreadLabel(unread)}
-          </Badge>
-        )}
-      </NavItem>
-    </>
-  )
-}
-
-// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 재정(결재 대기 수), 조직,
-// 그 아래 '공간'(완료하지 않은 행사, 행사 모두 보기, 새 행사).
+// 옆 메뉴 가운데(와이어프레임 사이드바 v6.2, DEC-96): 최상위 홈(배지 없음) · 대화(안 읽은 수 합계) · 업무('지남 N') · 재정(배지 없음) · 조직,
+// 그 아래 '공간'(완료하지 않은 행사, 행사 모두 보기, 새 행사). 수 배지는 나에게 걸린 것 둘뿐이다.
+// 아이콘은 와이어프레임 그대로(홈 House, 업무 Clipboard, 재정 막대그래프 BarChart2 = ChartNoAxesColumn, 조직 Users). 대화 말풍선은 와이어프레임에 없어 지금 것이다.
+// 조직은 사람과 부서를 한 화면에서(DEC-91) 보고 옛 부서 주소도 이 칸이 켜진다. '운영진' 머리는 없다.
 export default function SidebarNav({
   active,
   unread,
   taskCount,
-  pendingCount,
   space,
   onPage,
 }: {
   active: ActiveItem
   unread: number
   taskCount: TaskCount | null
-  pendingCount: PendingCount | null
   space: SpaceProps
   onPage: (page: Page) => void
 }) {
   return (
     <nav aria-label="학생회 메뉴" className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-      <LeadItems active={active} unread={unread} onPage={onPage} />
-      <TasksItem
+      <TopItem
+        icon={House}
+        label="홈"
+        active={menuActive(active, 'home')}
+        onClick={() => onPage('home')}
+      />
+      <TopItem
+        icon={MessageSquare}
+        label="대화"
+        active={menuActive(active, 'chat')}
+        badge={<CountBadge count={unread} label={`안 읽은 메시지 ${unread}개`} />}
+        onClick={() => onPage('chat')}
+      />
+      <TopItem
+        icon={Clipboard}
+        label="업무"
         active={menuActive(active, 'tasks')}
-        count={taskCount}
+        badge={
+          taskCount && (
+            <CountBadge
+              count={taskCount.count}
+              prefix="지남"
+              more={taskCount.more}
+              label={overdueLabel(taskCount)}
+            />
+          )
+        }
         onClick={() => onPage('tasks')}
       />
-      <FinanceItem
+      <TopItem
+        icon={ChartNoAxesColumn}
+        label="재정"
         active={menuActive(active, 'finance')}
-        count={pendingCount}
         onClick={() => onPage('finance')}
       />
-      <OrgItem active={active} onPage={onPage} />
+      <TopItem
+        icon={Users}
+        label="조직"
+        active={menuActive(active, 'people') || menuActive(active, 'departments')}
+        onClick={() => onPage('people')}
+      />
       <SpaceList active={active} {...space} />
     </nav>
   )

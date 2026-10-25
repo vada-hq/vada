@@ -6,6 +6,7 @@ import {
   holdsRank,
   orgGroups,
   placementsText,
+  sidebarRoleLine,
 } from './team-view'
 
 const titles = { president: '위원장', vicePresident: '부위원장', head: '국장', viceHead: '차장' }
@@ -95,4 +96,27 @@ test('목록에 없는 부서에만 든 사람은 미배정으로 보여 화면�
   const groups = orgGroups([person('lost', null, [{ id: 'gone', rank: null }])], [])
   expect(groups.unassigned.map(member => member.id)).toEqual(['lost'])
   expect(groups.departments).toEqual([])
+})
+
+test('옆 메뉴 발의 둘째 줄은 부서 이름을 가운뎃점으로 잇고 직급을 붙인다. 부서가 없으면 직급만, 둘 다 없으면 없다', () => {
+  const planning = { id: 'p', name: '기획부', role: null, rank: 'head' as const }
+  const promo = { id: 'r', name: '홍보부', role: null, rank: 'head' as const }
+  expect(sidebarRoleLine({ councilRank: null, departments: [planning, promo] }, titles)).toBe(
+    '기획부 · 홍보부 · 국장',
+  )
+  expect(sidebarRoleLine({ councilRank: 'president', departments: [] }, titles)).toBe('위원장')
+  expect(sidebarRoleLine({ councilRank: null, departments: [] }, titles)).toBeNull()
+  expect(
+    sidebarRoleLine({ councilRank: null, departments: [{ ...planning, rank: null }] }, titles),
+  ).toBe('기획부')
+  // 한 부서의 차장이고 다른 부서의 부장이면 높은 직급 하나만 붙인다.
+  expect(
+    sidebarRoleLine(
+      { councilRank: null, departments: [{ ...planning, rank: 'vice_head' }, promo] },
+      titles,
+    ),
+  ).toBe('기획부 · 홍보부 · 국장')
+  expect(sidebarRoleLine({ councilRank: 'vice_president', departments: [planning] }, titles)).toBe(
+    '기획부 · 부위원장',
+  )
 })

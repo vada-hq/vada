@@ -1,6 +1,7 @@
 import {
   type CouncilRank,
   type CouncilTitles,
+  type CouncilView,
   type DepartmentRank,
   type TeamDepartment,
   type TeamMember,
@@ -25,6 +26,24 @@ export function placementsText(
       return rank ? `${name} ${rank}` : name
     })
     .join(' · ')
+}
+
+// 옆 메뉴 발의 둘째 줄(와이어프레임 '{부서} · {직급}', DEC-96): 부서 이름을 가운뎃점으로 잇고 직급 하나를 붙인다.
+// 직급은 학생회 직급이 있으면 그것, 없으면 든 부서 가운데 높은 부서 직급이다. 부서가 없으면 직급만, 둘 다 없으면 null이다.
+export function sidebarRoleLine(
+  me: Pick<CouncilView['me'], 'councilRank' | 'departments'>,
+  titles: CouncilTitles,
+) {
+  const ranks = me.departments.map(item => item.rank)
+  const departmentRank = ranks.includes('head')
+    ? 'head'
+    : ranks.includes('vice_head')
+      ? 'vice_head'
+      : null
+  const rank =
+    councilRankLabel(me.councilRank, titles) ?? departmentRankLabel(departmentRank, titles)
+  const parts = [...me.departments.map(item => item.name), ...(rank ? [rank] : [])]
+  return parts.length > 0 ? parts.join(' · ') : null
 }
 
 // 학생회 직급이나 부서 직급이 하나라도 붙어 있는가. 서버는 이런 사람을 내보내거나 직급 있는 소속을 끝낼 때 직급 칸(rank.manage)도 본다.

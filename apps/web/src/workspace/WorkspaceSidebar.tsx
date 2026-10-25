@@ -1,7 +1,6 @@
 import type { Ref } from 'react'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
 import CouncilMenu from './CouncilMenu'
-import type { PendingCount } from '../finance/purchase-view'
 import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 import SidebarFooter from './SidebarFooter'
@@ -17,19 +16,20 @@ type Props = {
   active: ActiveItem
   unread: number
   taskCount: TaskCount | null
-  pendingCount: PendingCount | null
   space: SpaceProps
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
-  // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
+  // 머리 칸(학생회 메뉴 단추). 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
   menuRef?: Ref<HTMLButtonElement> | undefined
+  // 휴대폰 서랍 안에 그린다.
+  inSheet?: boolean
   user: { id: string; name: string; email: string }
   logoutBusy: boolean
   onLogout: () => void
   onRenamed: () => void
 }
 
-// 옆 메뉴(와이어프레임 210px): 위 학생회 이름 메뉴, 가운데 메뉴, 아래 사용자 줄.
+// 옆 메뉴(와이어프레임 사이드바 v6.2, 240px): 위 머리(학생회 메뉴 단추), 가운데 메뉴, 아래 사용자 줄.
 // 데스크톱 aside와 휴대폰 옆 메뉴(시트)가 같이 쓴다.
 export default function WorkspaceSidebar({
   council,
@@ -38,11 +38,11 @@ export default function WorkspaceSidebar({
   active,
   unread,
   taskCount,
-  pendingCount,
   space,
   onSelect,
   onPage,
   menuRef,
+  inSheet = false,
   user,
   logoutBusy,
   onLogout,
@@ -56,12 +56,12 @@ export default function WorkspaceSidebar({
         onSelect={onSelect}
         onPage={onPage}
         menuRef={menuRef}
+        inSheet={inSheet}
       />
       <SidebarNav
         active={active}
         unread={unread}
         taskCount={taskCount}
-        pendingCount={pendingCount}
         space={space}
         onPage={onPage}
       />
