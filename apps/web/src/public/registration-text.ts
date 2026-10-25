@@ -28,6 +28,12 @@ export function feeText(form: Pick<PublicRegistrationForm, 'payerFee' | 'nonPaye
   return `학생회비 납부자 ${won(payerFee)} · 미납자 ${won(nonPayerFee)}`
 }
 
+// 신청 화면 고지의 목적. 입금 대조는 참가비가 있는 양식에만 생겨 그때만 입금 확인을 붙인다(DEC-93).
+export function noticePurpose(form: Pick<PublicRegistrationForm, 'payerFee' | 'nonPayerFee'>) {
+  const paid = [form.payerFee, form.nonPayerFee].some(fee => (fee ?? 0) > 0)
+  return paid ? '행사 참가 신청, 출석 확인, 입금 확인' : '행사 참가 신청, 출석 확인'
+}
+
 // '2027-10-25' → '2027년 10월 25일'
 export const dateText = (date: string) => `${date.split('-')[0]}년 ${monthDay(date)}`
 

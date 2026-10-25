@@ -47,10 +47,22 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText(/지우는 날: 2027년 10월 24일/)).toBeTruthy()
 })
 
-// 학번과 이름은 통장의 입금자명과 신청을 맞추는 데도 쓰므로 고지의 목적에 입금 확인이 있다(DEC-75).
-test('버튼 아래 고지의 목적은 참가 신청, 출석 확인, 입금 확인이다', async () => {
+// 참가비가 있는 양식만 입금을 대조하므로 고지의 목적에 입금 확인이 붙는다(DEC-93이 DEC-75를 고쳤다). 무료 양식에는 입금이 없다.
+test('버튼 아래 고지의 목적: 참가비가 있으면 입금 확인까지, 없으면 참가 신청과 출석 확인만', async () => {
   setup()
   expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인, 입금 확인 ·/)).toBeTruthy()
+  cleanup()
+  setup(publicForm({ payerFee: 0, nonPayerFee: 5000 }))
+  expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인, 입금 확인 ·/)).toBeTruthy()
+  for (const free of [
+    { payerFee: null, nonPayerFee: null },
+    { payerFee: 0, nonPayerFee: 0 },
+  ]) {
+    cleanup()
+    setup(publicForm({ ...free, collectsStudentId: false }))
+    expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인 ·/)).toBeTruthy()
+    expect(screen.queryByText(/입금 확인/)).toBeNull()
+  }
 })
 
 // 학생이 언제까지 신청할지 알아야 미루지 않는다(notes/frontend-findings.md RG-4).
