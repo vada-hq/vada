@@ -720,7 +720,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
@@ -729,7 +729,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
 <span class="sr-only">나</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
@@ -858,7 +858,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
@@ -867,7 +867,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
 <span class="sr-only">나</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
