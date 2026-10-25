@@ -40,6 +40,10 @@ export function eventDetail(
   return {
     ...eventSummary(),
     tasks: { open: 2, total: 3 },
+    departments: [],
+    health: { overdue: 0, unassigned: 0 },
+    next: null,
+    endedDays: null,
     history: [
       {
         versionNo: 1,

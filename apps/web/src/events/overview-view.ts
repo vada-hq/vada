@@ -52,7 +52,7 @@ function settlementAttention(event: EventDetail, settlement: EventSettlement): A
       key: 'complete',
       title: '정산이 끝났어요',
       value: null,
-      detail: '예산·정산 탭에서 행사를 완료할 수 있어요.',
+      detail: '행사 머리의 [완료]로 완료할 수 있어요.',
       tone: 'info',
     }
   if (event.status !== 'ended') return null

@@ -15,7 +15,7 @@ type Props = EventDialogHandlers & {
 
 type Adding = 'request' | 'budget' | 'expense' | null
 
-// 예산·정산 탭의 [구매 요청 내기]·[예산 항목 더하기]·[지출 적기]. 이 행사 화면에서 열면 행사 칸이 이 행사로 채워진다.
+// 재정 탭의 [구매 요청 내기]·[예산 항목 더하기]·[지출 적기]. 이 행사 화면에서 열면 행사 칸이 이 행사로 채워진다.
 // 완료한 행사에는 더할 수 없어 버튼이 없다. 요청은 구매 요청 권한, 예산 항목과 지출은 재정부(내 권한 목록)만 낸다.
 export function EventMoneyAdd({ view, event, onAdded, ...handlers }: Props) {
   const [chosen, setAdding] = useState<Adding>(null)

@@ -12,8 +12,8 @@ const VALUE_TONE: Record<Attention['tone'], string> = {
 const GOES_TO: Record<AttentionKey, { tab: EventTab; label: string }> = {
   overdue: { tab: 'tasks', label: '업무 보기' },
   unassigned: { tab: 'tasks', label: '업무 보기' },
-  settlement: { tab: 'money', label: '예산·정산 보기' },
-  complete: { tab: 'money', label: '예산·정산 보기' },
+  settlement: { tab: 'money', label: '재정 보기' },
+  complete: { tab: 'money', label: '재정 보기' },
 }
 
 const DOT_TONE: Record<Attention['tone'], string> = {

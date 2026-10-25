@@ -92,7 +92,7 @@ function setup(options: { permissions?: string[]; at?: string } = {}) {
 
 test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목록에서 다시 연 행사는 개요로 시작한다', async () => {
   setup({ at: `${LIST_AT}/${EVENT_ID}?tab=money` })
-  const money = await screen.findByRole('tab', { name: '예산·정산' })
+  const money = await screen.findByRole('tab', { name: '재정' })
   expect(money.getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
@@ -215,19 +215,19 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
   expect(screen.queryByRole('region', { name: '이력' })).toBeNull()
   expect(screen.queryByRole('region', { name: '챙길 것' })).toBeNull()
   expect(screen.queryByText(/책임자/)).toBeNull()
-  expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '기본정보 수정' })).toBeNull()
   // 이력은 '⋯' 메뉴 뒤에 있고 읽는 사람 모두에게 보인다.
   const history = await openHistory()
   expect(within(history).getByText('김회장 · 10월 20일 14:03 · 만듦')).toBeTruthy()
 })
 
-test('개요의 지출 카드에서 [예산·정산 보기]를 누르면 예산·정산 탭이 열린다', async () => {
+test('개요의 지출 카드에서 [재정 보기]를 누르면 재정 탭이 열린다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   const money = await screen.findByRole('region', { name: '지출' })
-  fireEvent.click(within(money).getByRole('button', { name: '예산·정산 보기' }))
-  expect(screen.getByRole('tab', { name: '예산·정산' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(within(money).getByRole('button', { name: '재정 보기' }))
+  expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true')
 })
 
 test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록을 다시 읽는다', async () => {
@@ -238,7 +238,7 @@ test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록
     json({ event: eventDetail({ name: '신입생 환영회(수정)' }, ['event.update']) }),
   )
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const before = reads()
   fireEvent.change(screen.getByLabelText('행사명'), { target: { value: '신입생 환영회(수정)' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
@@ -253,22 +253,20 @@ test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
-test('빈 일시·장소는 고칠 수 있을 때 [넣기] 버튼이고, 누르면 고치기가 그 칸에 포커스를 두고 열린다', async () => {
+test('빈 일시·장소는 머리에 미정으로 보이고, 준비 단계의 [일시 넣기]는 고치기를 그 칸에 포커스를 두고 연다', async () => {
   const { api } = setup()
   const empty = eventDetail({ startsAt: null, endsAt: null, place: null, status: 'tbd' }, [
     'event.update',
   ])
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '장소 넣기' }))
+  const bar = await screen.findByRole('group', { name: '행사 요약' })
+  expect(bar.textContent).toContain('일시 미정')
+  expect(bar.textContent).toContain('장소 미정')
+  expect(within(bar).queryByRole('button', { name: '일시 넣기' })).toBeNull()
+  fireEvent.click(await screen.findByRole('button', { name: '일시 넣기' }))
   const dialog = await screen.findByRole('dialog', { name: '행사 기본정보 수정' })
-  expect(document.activeElement).toBe(within(dialog).getByLabelText('장소명'))
-  fireEvent.keyDown(dialog, { key: 'Escape' })
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  // 머리의 [일시 넣기]. 준비 단계에도 같은 링크가 있다.
-  fireEvent.click(screen.getAllByRole('button', { name: '일시 넣기' })[0]!)
-  const again = await screen.findByRole('dialog', { name: '행사 기본정보 수정' })
-  expect(document.activeElement).toBe(within(again).getByLabelText('시작 일시'))
+  expect(document.activeElement).toBe(within(dialog).getByLabelText('시작 일시'))
 })
 
 test('챙길 것은 지난 업무와 담당자 없는 업무를 보이고, [업무 보기]는 업무 탭으로 옮긴다', async () => {
@@ -358,20 +356,20 @@ test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 �
   await settle()
 })
 
-test('고칠 수 없으면 빈 칸은 글자로만 보인다', async () => {
+test('고칠 수 없으면 빈 칸은 미정으로만 보이고 [기본정보 수정]이 없다', async () => {
   const { api } = setup()
   const empty = eventDetail({ startsAt: null, endsAt: null, place: null, status: 'tbd' })
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  expect(await screen.findByText('장소 없음')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '장소 넣기' })).toBeNull()
+  expect(await screen.findByText('장소 미정')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '기본정보 수정' })).toBeNull()
 })
 
 test('고치기에서 끝이 시작보다 이르면 저장을 눌러도 보내지 않고 끝 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const end = screen.getByLabelText('종료 일시')
   fireEvent.change(end, { target: { value: '2026-10-24T13:00' } })
   const save = screen.getByRole('button', { name: '저장' })
@@ -389,7 +387,7 @@ test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 
     json({ event: eventDetail({ startsAt: null, endsAt: null }, ['event.update']) }),
   )
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   // 비어 있는 끝은 '종료 시간 미정' 체크로 열린다. 풀어야 칸이 켜진다.
   fireEvent.click(screen.getByRole('checkbox', { name: '종료 시간 미정' }))
   fireEvent.change(screen.getByLabelText('종료 일시'), { target: { value: '2026-10-24T13:00' } })
@@ -459,7 +457,7 @@ test.each([403, 404])('고치다가 %i이면 대화상자를 닫고 찾을 수 �
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
   api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ error: 'X' }, status))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   fireEvent.change(screen.getByLabelText('행사명'), { target: { value: '새 이름' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -472,7 +470,7 @@ test('대화상자가 열린 채 다시 읽은 actions에서 권한이 빠지면
   let actions: 'event.update'[] = ['event.update']
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, actions) }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   actions = []
   document.dispatchEvent(new Event('visibilitychange'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

@@ -15,7 +15,7 @@ import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import EventsPage from './EventsPage'
 
-// 행사 기본정보 수정 패널(와이어프레임 EVT-02B, DEC-93). 머리의 [고치기]로 연다.
+// 행사 기본정보 수정 패널(와이어프레임 EVT-02B, DEC-93). 머리의 [기본정보 수정]으로 연다.
 afterEach(async () => {
   cleanup()
   resetLeaveGuard()
@@ -56,7 +56,7 @@ function setup(event: EventDetail, forms: RegistrationForm[] = []) {
 }
 
 async function openPanel() {
-  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   return screen.findByRole('dialog', { name: '행사 기본정보 수정' })
 }
 
@@ -141,7 +141,7 @@ test('[장소 넣기]로 열면 장소 미정이 풀린 채 장소 칸에 포커
   expect(document.activeElement).toBe(within(panel).getByLabelText('장소명'))
 })
 
-test('참여 정보는 양식의 참가비·정원을 읽기만 하고, [신청 양식에서 수정]은 패널을 닫고 참가 신청 탭을 연다', async () => {
+test('참여 정보는 양식의 참가비·정원을 읽기만 하고, [신청 양식에서 수정]은 패널을 닫고 인원 관리 탭을 연다', async () => {
   setup(editable(), [staffForm({ capacity: null, payerFee: 5000, nonPayerFee: 5000 })])
   const panel = await openPanel()
   const forms = within(panel).getByRole('region', { name: '참여 정보' })
@@ -152,7 +152,7 @@ test('참여 정보는 양식의 참가비·정원을 읽기만 하고, [신청 
   fireEvent.click(within(forms).getByRole('button', { name: '신청 양식에서 수정' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await waitFor(() =>
-    expect(screen.getByRole('tab', { name: '참가 신청' }).getAttribute('aria-selected')).toBe(
+    expect(screen.getByRole('tab', { name: '인원 관리' }).getAttribute('aria-selected')).toBe(
       'true',
     ),
   )
@@ -213,7 +213,7 @@ test('고친 값이 있으면 Esc·뒤로·닫기는 먼저 묻고, 계속 쓰�
   expect(pathNow()).toBe(EVENT_AT)
 })
 
-test('고친 값이 있으면 [신청 양식에서 수정]도 먼저 묻고, 나가기면 참가 신청 탭을 연다', async () => {
+test('고친 값이 있으면 [신청 양식에서 수정]도 먼저 묻고, 나가기면 인원 관리 탭을 연다', async () => {
   setup(editable(), [staffForm()])
   const panel = await openPanel()
   fireEvent.click(within(panel).getByRole('checkbox', { name: '장소 미정' }))

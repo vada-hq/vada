@@ -1,19 +1,13 @@
-import type { EventSummary } from '@vada/contracts'
+import { EVENT_STATUS_LABEL, type EventSummary } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import {
-  dateBlock,
-  EVENT_STATUS_LABEL,
-  EVENT_STATUS_TONE,
-  spanLabel,
-  whenLabel,
-} from './event-view'
+import { dateBlock, EVENT_STATUS_TONE, spanLabel, whenLabel } from './event-view'
 
 type Props = { event: EventSummary; onOpen: () => void }
 
 const PAST = new Set<EventSummary['status']>(['ended', 'completed'])
-// 예정과 날짜 미정은 묶음 제목과 날짜 칸이 이미 말하므로 배지를 달지 않는다.
+// 기획 중(예정과 날짜 미정)은 묶음 제목과 날짜 칸이 이미 말하므로 배지를 달지 않는다.
 const BADGED = new Set<EventSummary['status']>(['ongoing', 'ended', 'completed'])
 
 // 왼쪽 날짜 칸. 날짜가 행을 가르는 첫 단서라 가장 크게 쓴다. 지난 행사는 옅게 둔다.
@@ -35,7 +29,7 @@ function DateBox({ event }: { event: EventSummary }) {
   )
 }
 
-// 행사 목록의 한 줄: 날짜 칸, 이름, 시각·장소, 진행 중·끝남·완료 배지. 줄 어디를 눌러도 행사가 열린다.
+// 행사 목록의 한 줄: 날짜 칸, 이름, 시각·장소, 진행 중·후속 정리 중·완료 배지. 줄 어디를 눌러도 행사가 열린다.
 export default function EventRow({ event, onOpen }: Props) {
   const span = spanLabel(event)
   return (

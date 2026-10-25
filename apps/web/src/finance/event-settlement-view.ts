@@ -10,9 +10,8 @@ export function settlementMark({ event, settlement }: EventSettlementRow): Settl
   return settlement.remaining > 0 ? { kind: 'remaining', count: settlement.remaining } : null
 }
 
-// 날짜 미정이면 상태 배지가 '날짜 미정'을 말하므로 날짜를 비운다.
-export const settlementDate = (event: EventSummary) =>
-  event.startsAt === null ? null : whenLabel(event)
+// 날짜 미정은 상태 배지('기획 중')가 말하지 않으므로 날짜 칸이 '일시 미정'을 말한다(DEC-93).
+export const settlementDate = (event: EventSummary) => whenLabel(event)
 
 // 이름 버튼. 표는 줄(tr)이 누르기를 받고 이 버튼은 키보드·화면 낭독기로 여는 길이다.
 export const nameLinkClass =

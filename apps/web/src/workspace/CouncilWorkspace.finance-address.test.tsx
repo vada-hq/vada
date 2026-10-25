@@ -146,15 +146,15 @@ test('새로 고침하면 주소의 탭이 그대로 열리고, 모르는 탭은
   expect(push).not.toHaveBeenCalled()
 })
 
-test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 예산·정산이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
+test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 재정 탭이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
   startAt(`/finance/${COUNCIL_ID}?tab=settlements`, 'finance', MEMBER_PERMISSIONS)
   expect(await isSelected('행사 정산')).toBe(true)
   api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () => json(settlementOf()))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`))
-  expect(
-    (await screen.findByRole('tab', { name: '예산·정산' })).getAttribute('aria-selected'),
-  ).toBe('true')
+  expect((await screen.findByRole('tab', { name: '재정' })).getAttribute('aria-selected')).toBe(
+    'true',
+  )
   act(() => window.history.back())
   expect(await isSelected('행사 정산')).toBe(true)
   expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=settlements`)
@@ -283,7 +283,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   )
   // 행사의 탭은 주소에 있으므로 요청을 닫고 돌아오면 같은 돈 탭이다.
   fireEvent.click(await screen.findByRole('button', { name: /신입생 환영회/ }))
-  fireEvent.click(await screen.findByRole('tab', { name: '예산·정산' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '재정' }))
   // 회계 기간이 없으면 결재할 수 없어 요청 상세가 예산 탭으로 가는 길을 보인다.
   api.on('GET', `${base}/budget`, () => json(budgetWithoutPeriod()))
   api.on('GET', `${base}/purchase-requests/${R1}`, () =>
@@ -301,9 +301,9 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
       api.calls.filter(call => call.path === `${base}/events/${EVENT_ID}/settlement`).length,
     ).toBeGreaterThan(1),
   )
-  expect(
-    (await screen.findByRole('tab', { name: '예산·정산' })).getAttribute('aria-selected'),
-  ).toBe('true')
+  expect((await screen.findByRole('tab', { name: '재정' })).getAttribute('aria-selected')).toBe(
+    'true',
+  )
   // 예산 탭 길은 요청 상세를 닫고 재정 예산 탭을 쌓는다.
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
   fireEvent.click(
