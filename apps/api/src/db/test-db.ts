@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist'
+import { readMigrationFiles } from 'drizzle-orm/migrator'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { migrationsFolder } from '../ops/migrate/migrations-folder.js'
@@ -28,3 +31,23 @@ export async function createTestDb() {
   return { pg, db, close: () => pg.close() }
 }
 export type TestDb = Awaited<ReturnType<typeof createTestDb>>
+
+// 이미 있는 행을 바꾸는 마이그레이션의 시험 DB. tag 바로 앞까지 적용한 DB를 주고, applyTarget()이 tag 하나를 적용한다.
+// 다 쓰면 pg.close()로 닫는다.
+export async function migratedUntil(tag: string) {
+  const journal = JSON.parse(
+    readFileSync(join(migrationsFolder, 'meta/_journal.json'), 'utf8'),
+  ) as {
+    entries: { tag: string }[]
+  }
+  const index = journal.entries.findIndex(entry => entry.tag === tag)
+  if (index <= 0) throw new Error(`앞 마이그레이션이 없는 태그: ${tag}`)
+  const migrations = readMigrationFiles({ migrationsFolder })
+  const pg = await PGlite.create({ extensions: { btree_gist } })
+  const run = async (from: number, to: number) => {
+    for (const migration of migrations.slice(from, to))
+      for (const statement of migration.sql) await pg.exec(statement)
+  }
+  await run(0, index)
+  return { pg, applyTarget: () => run(index, index + 1) }
+}

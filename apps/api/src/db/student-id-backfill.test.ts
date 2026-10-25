@@ -1,32 +1,10 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { test } from 'node:test'
-import { PGlite } from '@electric-sql/pglite'
-import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist'
-import { readMigrationFiles } from 'drizzle-orm/migrator'
-import { migrationsFolder } from './test-db.js'
+import type { PGlite } from '@electric-sql/pglite'
+import { migratedUntil } from './test-db.js'
 
 // 0012(학번 받기, DEC-75)가 이미 있는 양식을 채우는 방식. 앞 마이그레이션까지 적용한 DB에 양식을 넣고 0012를 적용한다.
 const TAG = '0012_registration_form_student_id'
-
-async function migratedUntil(tag: string) {
-  const journal = JSON.parse(
-    readFileSync(join(migrationsFolder, 'meta/_journal.json'), 'utf8'),
-  ) as {
-    entries: { tag: string }[]
-  }
-  const index = journal.entries.findIndex(entry => entry.tag === tag)
-  assert.ok(index > 0, tag)
-  const migrations = readMigrationFiles({ migrationsFolder })
-  const pg = await PGlite.create({ extensions: { btree_gist } })
-  const run = async (from: number, to: number) => {
-    for (const migration of migrations.slice(from, to))
-      for (const statement of migration.sql) await pg.exec(statement)
-  }
-  await run(0, index)
-  return { pg, applyTarget: () => run(index, index + 1) }
-}
 
 async function add(pg: PGlite, kind: string, council: string | null, fields: object) {
   const { rows } = await pg.query<{ id: string }>(

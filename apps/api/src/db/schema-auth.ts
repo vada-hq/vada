@@ -4,6 +4,7 @@ import { boolean, index, pgTable, text, timestamp, unique, uuid } from 'drizzle-
 import { at } from './schema-columns.js'
 
 // 로그인 표 4개(better-auth). 지금 정의 그대로다.
+// Google 사진(image)과 토큰 셋은 저장하지 않는다(DEC-53). 칸은 better-auth가 쓰므로 두고, 0017의 CHECK가 늘 NULL로 막는다.
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
