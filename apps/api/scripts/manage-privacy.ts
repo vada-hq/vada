@@ -9,8 +9,12 @@ import { runPrivacy } from './privacy-command.js'
 //   pnpm --filter @vada/api privacy withdraw --email <가입 이메일> [--apply] [--from-shell]
 //   pnpm --filter @vada/api privacy erase-messages --invite <초대 코드> (--sender <이메일> | --left <N>)
 //     --from <YYYY-MM-DDTHH:MM> --to <YYYY-MM-DDTHH:MM> [--expect <개수>] [--apply] [--from-shell]
-// 이메일로 온 탈퇴 요청을 앱의 탈퇴와 같은 동작으로 처리하고, 학생회가 요청한 메시지와 사진을 지운다(때는 한국 시각).
-// 기본은 미리 보기다(대상과 개수만 보이고 아무것도 쓰지 않는다). 메시지 지우기의 --apply는 미리 보기의 메시지 개수를 --expect로 함께 준다.
+//   pnpm --filter @vada/api privacy council-close --invite <초대 코드> [--apply] [--from-shell]
+//   pnpm --filter @vada/api privacy council-reopen --invite <초대 코드> [--apply] [--from-shell]
+//   pnpm --filter @vada/api privacy council-destroy --invite <초대 코드> [--now] [--expect <기록 수>] [--apply] [--from-shell]
+// 이메일로 온 탈퇴 요청을 앱의 탈퇴와 같은 동작으로 처리하고, 학생회가 요청한 메시지와 사진을 지우며(때는 한국 시각),
+// 그만두는 학생회를 표시·이어 쓰기·파기한다.
+// 기본은 미리 보기다(대상과 개수만 보이고 아무것도 쓰지 않는다). 메시지 지우기와 학생회 파기의 --apply는 미리 보기의 개수를 --expect로 함께 준다.
 // 대상은 .env의 DB이고, 배포 DB는 셸에 DATABASE_URL을 주고 --from-shell을 붙인다.
 // 판단은 모두 privacy-command.ts에 있다. 여기는 실제 연결을 이어 주기만 한다. 사람만 실행한다(실제 DB에 연결한다).
 const FIRST_USER_ARG = 2 // argv[0]은 node, argv[1]은 이 파일이다.

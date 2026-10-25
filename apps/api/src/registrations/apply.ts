@@ -8,7 +8,7 @@ import { saveReceipt } from '../commands/receipt.js'
 import { createRecord } from '../records/records.js'
 import { appliedFeeOf } from './fee-match.js'
 import { addLink, newToken } from './link.js'
-import { applicantCountOf, publicRowOf } from './public-form.js'
+import { applicantCountOf, publicRowOf, stopsTaking } from './public-form.js'
 import { applyBodyHashOf, applyKeyOf, resendApply } from './resend.js'
 import { registrationStatusOf } from './state.js'
 
@@ -36,7 +36,7 @@ async function assertOpen(
       paused: form.pausedAt !== null,
       capacity: form.capacity,
       applicantCount: await applicantCountOf(tx, form.id),
-      eventCompleted: facts.eventCompleted,
+      eventCompleted: stopsTaking(form, facts.eventCompleted),
     },
     facts.now,
   )

@@ -8,6 +8,20 @@ const EMAIL_MAX = 320
 export const isEmail = (value: string) =>
   value.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+$/.test(value)
 
+// 초대 코드(학생회를 가리는 값, 회장이 운영진 > 사람에서 보는 값). 손으로 옮긴 소문자도 받는다.
+const INVITE = /^[2-9A-HJ-NP-Z]{8}$/
+export const inviteOf = (value: string | undefined) => {
+  const code = value?.toUpperCase()
+  return code && INVITE.test(code) ? code : null
+}
+
+// 0 이상의 정수 개수(--expect 등). 틀리면 null이다.
+export function wholeNumber(value: string | undefined, min: number, max: number) {
+  if (value === undefined || !/^\d{1,7}$/.test(value)) return null
+  const number = Number(value)
+  return number >= min && number <= max ? number : null
+}
+
 const FLAGS = ['--apply', '--dry-run', '--from-shell']
 export type Flags = { apply: boolean; fromShell: boolean }
 

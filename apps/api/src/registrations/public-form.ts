@@ -20,6 +20,7 @@ export async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
       eventId: event.id,
       feeAccountId: registrationForm.feeAccountId,
       councilName: council.name,
+      councilClosingAt: council.closingRequestedAt,
       eventName: event.name,
       eventStartsAt: event.startsAt,
       eventEndsAt: event.endsAt,
@@ -43,6 +44,10 @@ export async function publicRowOf(db: Pick<Db, 'select'>, code: string) {
   if (!row) throw new ApiError('NOT_FOUND')
   return row
 }
+
+// 마감과 같이 받지 않는 양식인가: 완료한 행사(RULE-11)와 그만둔다고 알린 학생회(DEC-55)의 양식이다. 신청(apply.ts)도 같은 판단을 쓴다.
+export const stopsTaking = (row: { councilClosingAt: Date | null }, eventCompleted: boolean) =>
+  eventCompleted || row.councilClosingAt !== null
 
 // 취소하지 않은 신청 수
 export async function applicantCountOf(db: Pick<Db, 'select'>, formId: string) {
@@ -81,7 +86,7 @@ export async function publicFormOf(
       closesAt: koreanOf(row.closesAt),
       notice: row.notice,
     },
-    // 완료한 행사의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN). 운영진 응답과 같은 함수가 센다.
+    // 완료한 행사와 그만두는 학생회의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN). 운영진 응답과 같은 함수가 센다.
     status: registrationStatusOf(
       {
         opensAt: row.opensAt,
@@ -89,7 +94,7 @@ export async function publicFormOf(
         paused: row.pausedAt !== null,
         capacity: row.capacity,
         applicantCount,
-        eventCompleted: completed.has(row.eventId),
+        eventCompleted: stopsTaking(row, completed.has(row.eventId)),
       },
       now,
     ),

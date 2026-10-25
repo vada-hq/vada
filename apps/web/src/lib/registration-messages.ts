@@ -1,4 +1,5 @@
 // 참가 신청(기능 007)의 안내 문구. 여러 화면이 같이 쓰는 문구는 messages.ts에 있다.
+import { changeErrors } from './change-errors'
 import { TASK_INVALID } from './messages'
 
 // 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.
@@ -25,7 +26,7 @@ export const CANCEL_REGISTRATION_ERRORS: Record<string, string> = {
 export const CANCEL_REGISTRATION_FAILED = '취소하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
 // 운영진의 참가 신청 화면(기능 007): 양식 만들기·고치기·멈추기, 신청자, 출석
-export const REGISTRATION_STAFF_ERRORS: Record<string, string> = {
+export const REGISTRATION_STAFF_ERRORS = changeErrors({
   TASK_INVALID,
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
@@ -41,7 +42,7 @@ export const REGISTRATION_STAFF_ERRORS: Record<string, string> = {
   NOT_CHECKED_IN: '출석 기록이 없어요. 화면을 새로 불러와 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
-}
+})
 // 열어 둔 확인 창의 동작이 다시 읽은 줄에서 사라졌다.
 export const REGISTRATION_ACTION_GONE =
   '지금은 할 수 없는 동작이라 닫았어요. 다른 운영진이 바꿨을 수 있어요.'

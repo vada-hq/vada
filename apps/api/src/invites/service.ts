@@ -20,6 +20,7 @@ import { freshInviteCode } from './code.js'
 type Reader = Pick<Db, 'select'>
 
 // 초대 코드로 학생회를 찾는다. 형식이 틀린 코드와 없는 코드를 구분하지 않는다. 둘 다 404다.
+// 그만둔다고 알린 학생회(DEC-55)는 읽기만 되므로 새로 들어올 수 없고, 없는 코드와 같이 404다.
 export async function invitedCouncil(db: Reader, code: string) {
   const [found] = await db
     .select({
@@ -30,7 +31,7 @@ export async function invitedCouncil(db: Reader, code: string) {
     })
     .from(inviteCode)
     .innerJoin(council, eq(council.id, inviteCode.councilId))
-    .where(eq(inviteCode.code, code))
+    .where(and(eq(inviteCode.code, code), isNull(council.closingRequestedAt)))
   if (!found) throw new ApiError('NOT_FOUND')
   return found
 }
@@ -52,15 +53,13 @@ export async function invitePreview(
   return { council: { ...found, cohortName: current?.name ?? null }, joined }
 }
 
-// 학생회 행을 잠가 코드 바꾸기, 내보내기와 한 번에 하나씩 처리한다(authorizeChange와 같은 잠금). 잠근 뒤 코드가 아직 그 학생회의 것인지 다시 본다.
+// 학생회 행을 잠가 코드 바꾸기, 내보내기, 그만두기 표시와 한 번에 하나씩 처리한다(authorizeChange와 같은 잠금).
+// 잠근 뒤 코드가 아직 그 학생회의 것이고 그만두는 중이 아닌지 다시 본다.
 async function lockInvitedCouncil(tx: Tx, code: string) {
   const { id: councilId } = await invitedCouncil(tx, code)
   await lockCouncil(tx, councilId)
-  const [still] = await tx
-    .select({ code: inviteCode.code })
-    .from(inviteCode)
-    .where(and(eq(inviteCode.councilId, councilId), eq(inviteCode.code, code)))
-  if (!still) throw new ApiError('NOT_FOUND')
+  const still = await invitedCouncil(tx, code)
+  if (still.id !== councilId) throw new ApiError('NOT_FOUND')
   return councilId
 }
 
