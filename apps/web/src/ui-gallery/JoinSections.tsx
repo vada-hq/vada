@@ -61,7 +61,7 @@ export function JoinSection() {
   )
 }
 
-// 옆 메뉴 아래 사용자 줄을 누르면 여는 '내 이름' 창. 여기서는 저장해도 보내지 않고 닫는다.
+// 옆 메뉴 아래 사용자 줄을 누르면 여는 '내 이름' 창. 여기서는 저장하거나 탈퇴를 눌러도 보내지 않고 닫는다(탈퇴 창은 '탈퇴 창' 묶음).
 export function MyNameSection() {
   const [open, setOpen] = useState(false)
   return (
@@ -76,6 +76,7 @@ export function MyNameSection() {
           error={null}
           onSave={() => setOpen(false)}
           onClose={() => setOpen(false)}
+          onWithdraw={() => setOpen(false)}
         />
       )}
     </Section>

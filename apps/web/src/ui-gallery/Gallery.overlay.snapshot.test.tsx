@@ -8,6 +8,7 @@ import { EventEditSection } from './EventEditSections'
 import { CreateCouncilSection } from './OnboardingSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { ApplicantRowSection } from './RegistrationSections'
+import { WithdrawSection } from './WithdrawSections'
 
 // 부품 확인 화면에서 대화상자를 연 모양. 시험마다 그 버튼이 있는 묶음만 그린다(전체 화면은 Gallery.snapshot.test.tsx).
 afterEach(cleanup)
@@ -25,6 +26,11 @@ const openers: [string, ComponentType][] = [
   ['미정·양식 둘 패널 열기', EventEditSection],
   ['보내는 중 패널 열기', EventEditSection],
   ['저장 실패 패널 열기', EventEditSection],
+  ['탈퇴 창 열기', WithdrawSection],
+  ['다시 로그인 탈퇴 창 열기', WithdrawSection],
+  ['회장 탈퇴 창 열기', WithdrawSection],
+  ['보내는 중 탈퇴 창 열기', WithdrawSection],
+  ['실패 탈퇴 창 열기', WithdrawSection],
 ]
 
 test.each(openers)('%s', (name, Section) => {

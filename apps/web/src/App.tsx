@@ -6,6 +6,7 @@ import SignedOutView from './auth/SignedOutView'
 import { useAuthActions } from './auth/useAuthActions'
 import { useInviteEntry } from './auth/useInviteEntry'
 import { useSessionRecheck } from './auth/useSessionRecheck'
+import { useWithdrawnNotice } from './auth/withdrawn'
 import { isIosHomeScreenApp } from '@/lib/platform'
 import { useNotificationInbox } from './workspace/useNotificationOpen'
 
@@ -16,6 +17,7 @@ export default function App() {
   const { busy, message, login, loginInApp, logout } = useAuthActions(invite)
   const [homeScreenApp] = useState(() => isIosHomeScreenApp(navigator as { standalone?: boolean }))
   useSessionRecheck(homeScreenApp, Boolean(session), refetch)
+  const withdrawn = useWithdrawnNotice(refetch)
 
   const onLogout = () => {
     void logout()
@@ -45,13 +47,16 @@ export default function App() {
       homeScreenApp={homeScreenApp}
       busy={busy}
       message={message}
+      withdrawn={withdrawn.withdrawn}
       onRecheck={() => {
         void refetch()
       }}
       onLogin={() => {
+        withdrawn.clear()
         void login()
       }}
       onLoginInApp={() => {
+        withdrawn.clear()
         void loginInApp()
       }}
     />

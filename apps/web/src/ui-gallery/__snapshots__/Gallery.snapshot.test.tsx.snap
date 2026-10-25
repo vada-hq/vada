@@ -3436,6 +3436,62 @@ exports[`처음 모양 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="w-full max-w-md">
+<div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
+<div class="flex flex-wrap items-center gap-2">
+<span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
+<h1 class="text-base font-semibold text-gray-900">VADA</h1>
+<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+</div>
+<div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
+<h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
+<p class="text-sm font-medium text-gray-900">김구글</p>
+<p class="text-xs wrap-anywhere text-gray-500">kim.google@example.com</p>
+</div>
+<div class="flex flex-col gap-6">
+<form novalidate="" aria-label="초대 코드로 들어가기" class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-lg font-semibold">아직 들어간 학생회가 없어요</h2>
+<p class="text-sm text-gray-500">학생회에서 받은 초대 링크를 누르거나, 초대 코드를 입력해 주세요.</p>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id46_">초대 코드</label>
+<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+</div>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" id="_id46_" aria-required="true" value="">
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit">초대 코드로 들어가기</button>
+</form>
+<div class="flex flex-col items-center gap-2 border-t pt-4 text-center">
+<p class="text-sm text-gray-500">학생회를 처음 시작하나요?</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button">학생회 만들기</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell" aria-hidden="true">
+<path d="M10.268 21a2 2 0 0 0 3.464 0">
+</path>
+<path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326">
+</path>
+</svg>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 flex-1">로그아웃</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-4 py-2 text-sm [&amp;_svg]:size-4">탈퇴</button>
+</div>
+</div>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">탈퇴 창 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">다시 로그인 탈퇴 창 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">회장 탈퇴 창 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">보내는 중 탈퇴 창 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">실패 탈퇴 창 열기</button>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">가입 동의</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -3447,8 +3503,8 @@ exports[`처음 모양 1`] = `
 <a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere">약관 보기</a>
 <a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere">처리방침 보기</a>
 </div>
-<label data-slot="label" class="font-medium text-gray-700 flex items-center gap-2 text-sm" for="_id46_">
-<input id="_id46_" class="size-4 accent-blue-600" type="checkbox">이용약관에 동의합니다</label>
+<label data-slot="label" class="font-medium text-gray-700 flex items-center gap-2 text-sm" for="_id47_">
+<input id="_id47_" class="size-4 accent-blue-600" type="checkbox">이용약관에 동의합니다</label>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-center gap-2">

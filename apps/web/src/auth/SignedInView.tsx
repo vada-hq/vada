@@ -64,8 +64,14 @@ export default function SignedInView({
         user={user}
         userId={user.id}
         initialCouncilId={opened}
-        card={(content, compact) => (
-          <SignedInCard user={user} compact={compact ?? false} busy={busy} onLogout={onLogout}>
+        card={(content, frame) => (
+          <SignedInCard
+            user={user}
+            compact={frame === 'compact'}
+            withdraw={frame === 'no-council'}
+            busy={busy}
+            onLogout={onLogout}
+          >
             {content}
           </SignedInCard>
         )}
