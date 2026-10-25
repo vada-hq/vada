@@ -2,10 +2,14 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventDetail, RegistrationForm } from '@vada/contracts'
+import LeaveConfirm from '@/components/LeaveConfirm'
+import { resetLeaveGuard } from '@/lib/leave-guard'
+import { EVENT_ERRORS, LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { councilView } from '@/test-support/council-fixtures'
 import { resetAddress } from '@/test-support/address-reset'
 import { EVENT_ID, eventDetail, MEMBER, uuidTeam } from '@/test-support/event-fixtures'
-import { json, mockApi } from '@/test-support/mock-api'
+import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { settle } from '@/test-support/settle'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
@@ -14,6 +18,7 @@ import EventsPage from './EventsPage'
 // 행사 기본정보 수정 패널(와이어프레임 EVT-02B, DEC-93). 머리의 [고치기]로 연다.
 afterEach(async () => {
   cleanup()
+  resetLeaveGuard()
   vi.unstubAllGlobals()
   await resetAddress()
 })
@@ -40,7 +45,13 @@ function setup(event: EventDetail, forms: RegistrationForm[] = []) {
   )
   window.history.replaceState(null, '', EVENT_AT)
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
-  render(<EventsPage view={councilView(COUNCIL_ID, { memberId: MEMBER.m1 })} {...handlers} />)
+  // 떠날 때 확인 창은 작업 공간이 하나 둔다(CouncilWorkspace).
+  render(
+    <>
+      <EventsPage view={councilView(COUNCIL_ID, { memberId: MEMBER.m1 })} {...handlers} />
+      <LeaveConfirm />
+    </>,
+  )
   return { api }
 }
 
@@ -57,12 +68,14 @@ test('오른쪽 패널로 열리고, 머리에 끼룩이 한 줄과 구역마다
   expect(panel.className).toContain('right-0')
   // 휴대폰은 전체 화면이다.
   expect(panel.className).toContain('w-full')
-  expect(within(panel).getByText('저장하면 끼룩이가 신청 화면에도 함께 반영해요')).toBeTruthy()
+  expect(within(panel).getByText('저장하면 끼룩이가 일정·신청 화면에도 함께 반영해요')).toBeTruthy()
   const hint = (name: string, text: string) =>
     within(within(panel).getByRole('region', { name })).getByText(text)
-  expect(hint('일시', '신청 화면에 자동 반영')).toBeTruthy()
+  expect(hint('일시', '일정 및 신청 화면에 자동 반영')).toBeTruthy()
   expect(hint('장소', '신청 화면에 자동 반영')).toBeTruthy()
-  expect(hint('담당 및 안내', '자동 지정')).toBeTruthy()
+  expect(
+    within(within(panel).getByRole('region', { name: '담당 및 안내' })).getByText('이재정'),
+  ).toBeTruthy()
   const forms = within(panel).getByRole('region', { name: '참여 정보' })
   expect(within(forms).getByRole('button', { name: '신청 양식에서 수정' })).toBeTruthy()
   // 담당은 고치는 칸이 없다(DEC-93).
@@ -166,4 +179,85 @@ test('뒤로 가기는 패널만 닫고 행사 화면에 남는다', async () =>
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(pathNow()).toBe(EVENT_AT)
   expect(screen.getByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
+})
+
+const leaveAsked = () => screen.findByRole('dialog', { name: LEAVE_TITLE })
+const stay = async () => {
+  fireEvent.click(within(await leaveAsked()).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull())
+}
+
+test('고친 값이 있으면 Esc·뒤로·닫기는 먼저 묻고, 계속 쓰면 값이 남으며, 나가기면 닫힌다', async () => {
+  setup(editable())
+  const panel = await openPanel()
+  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.keyDown(panel, { key: 'Escape' })
+  await stay()
+  window.history.back()
+  await stay()
+  fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[1]!)
+  await stay()
+  expect(within(panel).getByLabelText('이름')).toHaveProperty('value', '새 이름')
+  fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[0]!)
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(pathNow()).toBe(EVENT_AT)
+})
+
+test('고친 값이 있으면 [신청 양식에서 수정]도 먼저 묻고, 나가기면 참가 신청 탭을 연다', async () => {
+  setup(editable())
+  const panel = await openPanel()
+  fireEvent.click(within(panel).getByRole('checkbox', { name: '장소 미정' }))
+  const forms = within(panel).getByRole('region', { name: '참여 정보' })
+  fireEvent.click(within(forms).getByRole('button', { name: '신청 양식에서 수정' }))
+  await stay()
+  expect(pathNow()).toBe(EVENT_AT)
+  fireEvent.click(within(forms).getByRole('button', { name: '신청 양식에서 수정' }))
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=registrations`))
+})
+
+test('고친 값이 있는 동안만 새로 고침·닫기에 브라우저 확인을 건다', async () => {
+  setup(editable())
+  const panel = await openPanel()
+  const unload = () => {
+    const event = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+  expect(unload()).toBe(false)
+  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  expect(unload()).toBe(true)
+})
+
+test('보내는 동안 버튼이 꺼지고 Esc·닫기(×)·뒤로로 닫히지 않으며, 저장하면 묻지 않고 닫힌다', async () => {
+  const { api } = setup(editable())
+  const pending = deferredResponse()
+  api.on('POST', `${BASE}/${EVENT_ID}`, () => pending.promise)
+  const panel = await openPanel()
+  fireEvent.change(within(panel).getByLabelText('이름'), { target: { value: '새 이름' } })
+  fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
+  await waitFor(() =>
+    expect(within(panel).getByRole('button', { name: '저장' })).toHaveProperty('disabled', true),
+  )
+  fireEvent.keyDown(panel, { key: 'Escape' })
+  fireEvent.click(within(panel).getAllByRole('button', { name: '닫기' })[0]!)
+  window.history.back()
+  await settle()
+  expect(screen.getByRole('dialog', { name: '행사 기본정보 수정' })).toBeTruthy()
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  pending.resolve(json({ event: editable({ name: '새 이름' }) }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByRole('heading', { name: '새 이름' })).toBeTruthy()
+})
+
+test('저장이 실패하면 패널은 열린 채 버튼 줄 바로 위에 이유가 있다', async () => {
+  const { api } = setup(editable())
+  api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  const panel = await openPanel()
+  fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
+  const alert = await within(panel).findByRole('alert')
+  expect(alert.textContent).toBe(EVENT_ERRORS.TOO_MANY_REQUESTS)
+  expect(alert.nextElementSibling?.textContent).toBe('닫기')
 })

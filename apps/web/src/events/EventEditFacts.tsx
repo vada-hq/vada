@@ -77,8 +77,8 @@ export function EventEditFacts({ forms, owner, busy, onOpenForms }: Props) {
       >
         <FormFacts forms={forms} />
       </SidePanelSection>
-      <SidePanelSection title="담당 및 안내" hint="자동 지정">
-        <Facts rows={[['책임자', owner?.name ?? '없음']]} />
+      <SidePanelSection title="담당 및 안내">
+        <Facts rows={[['책임자', owner?.name ?? '담당 미정']]} />
       </SidePanelSection>
     </>
   )
