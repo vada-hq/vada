@@ -1,19 +1,21 @@
-import { useState } from 'react'
-import type { CouncilView, TaskFilter, TaskView } from '@vada/contracts'
+import type { CouncilView, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { useEvents } from '@/events/useEvents'
+import { openRecord } from '@/lib/go-to'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskDialogs } from './TaskDialogs'
 import { TaskListBody } from './TaskListBody'
-import { TaskTabs, type TaskLayout } from './TaskTabs'
+import { NO_ASSIGNEE_LABEL } from './task-view'
+import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
+import { useTaskControls } from './useTaskControls'
 import { useTaskAssign } from './useTaskAssign'
-import { useTasks } from './useTasks'
+import { useTasks, type TaskList } from './useTasks'
 
 type Props = {
   view: CouncilView
@@ -23,8 +25,8 @@ type Props = {
   initialCreate?: boolean | undefined
   // 행사의 업무 탭이면 그 행사의 업무만 보이고, 만들기는 그 행사가 골라진 채 열린다.
   eventId?: string | undefined
-  // 업무의 행사 이름을 눌렀다(행사 화면으로 간다). 행사의 업무 탭에서는 주지 않는다.
-  onOpenEvent?: ((eventId: string) => void) | undefined
+  // 행사의 업무 탭을 '담당자 없음'으로 좁혀 시작한다(행사 개요의 챙길 것).
+  initialView?: TaskView | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
@@ -73,14 +75,41 @@ function useTaskLists(props: Props, view: TaskView, filter: TaskFilter, layout: 
   return { list, done, events }
 }
 
+// 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
+function narrowed(list: TaskList, department: string | null): TaskList {
+  if (department === null || list.state.kind !== 'ready') return list
+  const tasks = list.state.tasks.filter(task => task.department?.id === department)
+  return { ...list, state: { ...list.state, tasks } }
+}
+
+// 업무 화면에서 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭은 그 화면 안의 창으로 연다.
+function useOpeners(councilId: string, inEvent: boolean, open: (taskId: string) => void) {
+  if (inEvent) return { openTask: open, openEvent: undefined, openEventFromTask: undefined }
+  return {
+    openTask: (taskId: string) => openRecord('tasks', councilId, taskId),
+    openEvent: (eventId: string) => openRecord('events', councilId, eventId),
+    // 업무 상세 창에서 가면 그 상세 위에 쌓아, 행사에서 뒤로가 그 업무 상세다.
+    openEventFromTask: (eventId: string) =>
+      openRecord('events', councilId, eventId, { overRecord: true }),
+  }
+}
+
 // 화면의 상태: 보기, 거르기, 목록·달력, 대화상자, 목록, 상태 바꾸기, 줄에서 맡기기와 그때 고를 사람들.
 function useTasksPage(props: Props) {
-  const [view, setView] = useState<TaskView>(props.eventId ? 'all' : 'mine')
-  const [filter, setFilter] = useState<TaskFilter>('open')
-  const [layout, setLayout] = useState<TaskLayout>('list')
-  const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
   const councilId = props.view.council.id
-  const { list, done, events } = useTaskLists(props, view, filter, layout)
+  const inEvent = props.eventId !== undefined
+  const controls = useTaskControls(
+    councilId,
+    inEvent,
+    props.initialView ?? (inEvent ? 'all' : 'mine'),
+  )
+  const { view, filter, layout, dept } = controls
+  const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
+  const opened = useOpeners(councilId, inEvent, dialogs.openRecord)
+  const lists = useTaskLists(props, view, filter, layout)
+  const list = narrowed(lists.list, dept)
+  const done = narrowed(lists.done, dept)
+  const events = lists.events
   const changed = () => {
     void list.reload()
     if (layout === 'calendar') void done.reload()
@@ -94,17 +123,13 @@ function useTasksPage(props: Props) {
     change,
     assign,
     team: team.data,
-    inEvent: props.eventId !== undefined,
-    onOpenTask: dialogs.openRecord,
-    onOpenEvent: props.onOpenEvent,
+    inEvent,
+    onOpenTask: opened.openTask,
+    onOpenEvent: opened.openEvent,
   }
   return {
-    view,
-    setView,
-    filter,
-    setFilter,
-    layout,
-    setLayout,
+    controls,
+    openEventFromTask: opened.openEventFromTask,
     dialogs,
     list,
     done,
@@ -114,9 +139,24 @@ function useTasksPage(props: Props) {
   }
 }
 
+// 목록을 좁힌 조건을 풀 수 있게 알리는 칩: 업무 화면의 부서 거르기, 행사의 업무 탭에서 '담당자 없음'으로 연 보기.
+function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
+  const { controls, list } = page
+  if (controls.dept !== null) {
+    const first = list.state.kind === 'ready' ? list.state.tasks[0]?.department : undefined
+    const name =
+      council.me.departments.find(item => item.id === controls.dept)?.name ?? first?.name ?? '부서'
+    return { label: name, onClear: controls.clearDept }
+  }
+  if (page.rows.inEvent && controls.view === 'unassigned')
+    return { label: NO_ASSIGNEE_LABEL, onClear: () => controls.setView('all') }
+  return undefined
+}
+
 export default function TasksPage(props: Props) {
   const page = useTasksPage(props)
-  const { view, filter, layout, dialogs, list, changed, rows } = page
+  const { controls, dialogs, list, changed, rows } = page
+  const { view, filter, layout } = controls
   return (
     <PageColumn>
       {!props.eventId && (
@@ -127,7 +167,7 @@ export default function TasksPage(props: Props) {
         openId={dialogs.openId}
         creating={dialogs.creating}
         eventId={props.eventId}
-        onOpenEvent={props.onOpenEvent}
+        onOpenEvent={page.openEventFromTask}
         onCloseDetail={dialogs.closeDetail}
         onCloseCreate={dialogs.closeCreate}
         onChanged={changed}
@@ -145,9 +185,10 @@ export default function TasksPage(props: Props) {
         }
         view={view}
         filter={filter}
-        onView={page.setView}
-        onFilter={page.setFilter}
-        layout={props.eventId ? undefined : { value: layout, onChange: page.setLayout }}
+        onView={controls.setView}
+        onFilter={controls.setFilter}
+        narrow={narrowOf(page, props.view)}
+        layout={props.eventId ? undefined : { value: layout, onChange: controls.setLayout }}
       />
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
         {layout === 'calendar' ? (

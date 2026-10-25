@@ -39,8 +39,6 @@ type Props = {
   onOpenEvent: (eventId: string, tab?: EventTab) => void
   // 홈에서 요청 줄을 눌렀다(재정 화면이 그 요청의 상세를 열고 시작한다).
   onOpenRequest: (requestId: string) => void
-  // 홈에서 업무 줄을 눌렀다(업무 화면이 그 업무의 상세를 열고 시작한다).
-  onOpenTask: (taskId: string) => void
   onOpenPage: (page: Page) => void
 }
 
@@ -63,7 +61,6 @@ function RecordsPage({
       <TasksPage
         view={view}
         initialTaskId={taskId}
-        onOpenEvent={onOpenEvent}
         onForbidden={data.reload}
         onChanged={() => void tasks.reload()}
       />
@@ -118,7 +115,6 @@ function PageOf({
   eventId,
   eventTab,
   onOpenEvent,
-  onOpenTask,
   onOpenRequest,
   onOpenPage,
   view,
@@ -126,9 +122,7 @@ function PageOf({
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat')
     return (
-      <LeadPage
-        {...{ data, rooms, page, roomId, onOpenTask, onOpenRequest, onOpenEvent, onOpenPage, view }}
-      />
+      <LeadPage {...{ data, rooms, page, roomId, onOpenRequest, onOpenEvent, onOpenPage, view }} />
     )
   if (page === 'events')
     return (

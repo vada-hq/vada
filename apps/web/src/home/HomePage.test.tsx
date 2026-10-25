@@ -8,8 +8,11 @@ import HomePage from './HomePage'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
+
+const pathNow = () => window.location.pathname + window.location.search
 
 const path = '/api/organizations/c1/home'
 
@@ -17,7 +20,6 @@ function open(handler: () => Response | Promise<Response>) {
   const api = mockApi()
   api.on('GET', path, handler)
   onHomeExtras(api)
-  const onOpenTask = vi.fn()
   const onOpenPage = vi.fn()
   const onOpenRequest = vi.fn()
   const onOpenEvent = vi.fn()
@@ -25,14 +27,13 @@ function open(handler: () => Response | Promise<Response>) {
   render(
     <HomePage
       view={councilView('c1')}
-      onOpenTask={onOpenTask}
       onOpenRequest={onOpenRequest}
       onOpenEvent={onOpenEvent}
       onOpenPage={onOpenPage}
       onForbidden={onForbidden}
     />,
   )
-  return { api, onOpenTask, onOpenPage, onOpenRequest, onOpenEvent, onForbidden }
+  return { api, onOpenPage, onOpenRequest, onOpenEvent, onForbidden }
 }
 
 const setVisibility = (state: 'visible' | 'hidden') => {
@@ -46,7 +47,7 @@ test('불러오는 동안 안내가 보인다', () => {
 })
 
 test('내 업무는 지남과 오늘만 줄로 보이고 그 뒤는 수만 둔다. 줄을 누르면 그 업무가 열린다', async () => {
-  const { onOpenTask, onOpenPage } = open(() =>
+  open(() =>
     json(
       homeWithTasks(
         [
@@ -63,14 +64,14 @@ test('내 업무는 지남과 오늘만 줄로 보이고 그 뒤는 수만 둔�
   )
   const mine = await screen.findByRole('region', { name: '내 업무' })
   fireEvent.click(within(mine).getByRole('button', { name: /업무 a/ }))
-  expect(onOpenTask).toHaveBeenCalledWith('a')
+  expect(pathNow()).toBe('/tasks/c1/a')
   expect(within(mine).getByText('2일 지남')).toBeTruthy()
   expect(within(mine).getByText('오늘')).toBeTruthy()
   expect(within(mine).getByText('신입생 환영회')).toBeTruthy()
   expect(within(mine).queryByRole('button', { name: /업무 c/ })).toBeNull()
   expect(screen.getByText('7일 안 1 · 나중 4')).toBeTruthy()
   fireEvent.click(within(mine).getByRole('button', { name: '모두 보기' }))
-  expect(onOpenPage).toHaveBeenCalledWith('tasks')
+  expect(pathNow()).toBe('/tasks/c1')
 })
 
 test('맨 위 숫자 카드는 줄 수가 아니라 전체 수다', async () => {

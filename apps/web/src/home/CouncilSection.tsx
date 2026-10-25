@@ -1,5 +1,5 @@
 import { CalendarDays, Clock, TriangleAlert } from 'lucide-react'
-import type { HomeCouncil } from '@vada/contracts'
+import type { AppQuery, HomeCouncil } from '@vada/contracts'
 import { COUNCIL_TASK_LABEL } from '../tasks/task-view'
 import { eventOrder, withoutIds } from './home-view'
 import HomeEventRow from './HomeEventRow'
@@ -8,6 +8,9 @@ import HomeSection, { HomeEmpty } from './HomeSection'
 import { riskParts } from './risk-parts'
 import TaskRow from './TaskRow'
 
+// 회장단이 보는 막힌 곳은 학생회 전체 업무다.
+const ALL = { view: 'all' } as const
+
 type Props = {
   council: HomeCouncil
   today: string
@@ -15,8 +18,8 @@ type Props = {
   mineIds: Set<string>
   onOpenTask: (taskId: string) => void
   onOpenEvent: (eventId: string, tab?: 'money') => void
-  // 업무 화면, 행사 화면으로 간다.
-  onSeeTasks: () => void
+  // 업무 화면(전체 보기, 부서를 주면 그 부서만), 행사 화면으로 간다.
+  onSeeTasks: (query?: AppQuery) => void
   onSeeEvents: () => void
 }
 
@@ -59,14 +62,16 @@ export function CouncilBlocked({
           id="home-blocked"
           icon={TriangleAlert}
           title="부서별 막힌 곳"
-          onSeeAll={onSeeTasks}
+          onSeeAll={() => onSeeTasks(ALL)}
         >
           {council.blocked.map(item => (
             <HomeRow
               key={item.department?.id ?? 'none'}
               title={item.department?.name ?? COUNCIL_TASK_LABEL}
               side={riskParts(item)}
-              onOpen={onSeeTasks}
+              onOpen={() =>
+                onSeeTasks(item.department ? { ...ALL, dept: item.department.id } : ALL)
+              }
             />
           ))}
         </HomeSection>
@@ -77,7 +82,7 @@ export function CouncilBlocked({
           icon={Clock}
           title="지난 업무"
           count={overdue.total}
-          onSeeAll={onSeeTasks}
+          onSeeAll={() => onSeeTasks(ALL)}
         >
           {overdue.tasks.map(task => (
             <TaskRow
