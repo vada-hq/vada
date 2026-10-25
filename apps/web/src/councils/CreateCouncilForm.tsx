@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
+import { useMyName } from '../profile/useMyName'
 import { useInvite } from '../team/useInvite'
 import CreateBasicStep from './CreateBasicStep'
 import CreateInviteStep from './CreateInviteStep'
@@ -7,7 +8,6 @@ import CreateStructureStep from './CreateStructureStep'
 import { inviteLink } from './invite-path'
 import { useCouncilDraft, type CouncilDraftState } from './useCouncilDraft'
 import { useCreateCouncil } from './useCreateCouncil'
-import { useLinkedMemberName } from './useLinkedMemberName'
 
 type Props = {
   // 로그인한 Google 이름. '내 이름' 칸에 미리 채운다.
@@ -21,7 +21,7 @@ type Props = {
 // 학생회는 2단계의 [학생회 만들기]에서 생기고, 그 전에는 화면에만 값이 있다.
 export default function CreateCouncilForm({ userName, onCreated, onCancel }: Props) {
   const draft = useCouncilDraft(userName)
-  const linkedName = useLinkedMemberName()
+  const linkedName = useMyName()
   const create = useCreateCouncil()
   const [step, setStep] = useState<'basic' | 'structure'>('basic')
   const [created, setCreated] = useState<MyCouncil | null>(null)
