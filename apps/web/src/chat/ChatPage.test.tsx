@@ -21,7 +21,7 @@ const serve = serveChat
 const openAll = openAllRoom
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('방 줄은 이름, 마지막 시각, 안 읽은 수, 나를 부름, 보기만을 보이고 공지 칸은 없다(DEC-90)', async () => {
+test('방 줄은 이름, 마지막 시각, 마지막 말, 참여 인원, 안 읽은 수, 나를 부름, 보기만을 보이고 공지 칸은 없다(DEC-90)', async () => {
   serve()
   render(<Harness />)
   const all = await screen.findByRole('button', { name: /공지방/ })
@@ -37,6 +37,8 @@ test('방 줄은 이름, 마지막 시각, 안 읽은 수, 나를 부름, 보기
       .map(item => item.textContent?.slice(0, 3)),
   ).toEqual(['공지방', '회장단', '재정부'])
   expect(screen.getByRole('region', { name: '1:1 대화' }).textContent).toContain('박새내')
+  expect(within(all).getByText('이재정: 회의록 올렸어요')).toBeTruthy()
+  expect(within(all).getByText('참여 12명')).toBeTruthy()
 })
 
 test('안 읽은 수가 99를 넘으면 99+다', async () => {
@@ -141,19 +143,24 @@ const wide = () =>
     removeEventListener: () => {},
   }))
 
-test('PC 폭에서는 목록 옆에 첫 방을 열고, 고른 방을 기억해 다음에 그 방부터 연다', async () => {
+test('PC 폭에서는 목록 옆에 첫 방(회장단은 회장단방)을 열고, 고른 방을 기억해 다음에 그 방부터 연다', async () => {
   wide()
   const api = serve()
   const finance = room('r3', { type: 'department', name: '재정부', departmentId: 'd1' })
-  api.on('GET', `${base}/rooms/r3`, () => json(roomDetail(finance)))
-  api.on('GET', `${base}/rooms/r3/messages`, () =>
-    json(messagePage([message('f1', '영수증 올려요')])),
-  )
-  api.on('POST', `${base}/rooms/r3/read`, () => new Response(null, { status: 204 }))
+  const leadership = room('r2', { type: 'leadership' })
+  for (const [summary, text] of [
+    [finance, '영수증 올려요'],
+    [leadership, '회장단 회의 7시'],
+  ] as const) {
+    const path = `${base}/rooms/${summary.id}`
+    api.on('GET', path, () => json(roomDetail(summary)))
+    api.on('GET', `${path}/messages`, () => json(messagePage([message(`${summary.id}m`, text)])))
+    api.on('POST', `${path}/read`, () => new Response(null, { status: 204 }))
+  }
   render(<Harness />)
-  expect(await screen.findByText('모레 회의 있어요')).toBeTruthy()
-  const all = screen.getByRole('button', { name: /공지방/ })
-  expect(all.getAttribute('aria-current')).toBe('true')
+  expect(await screen.findByText('회장단 회의 7시')).toBeTruthy()
+  const lead = screen.getByRole('button', { name: /회장단방/ })
+  expect(lead.getAttribute('aria-current')).toBe('true')
   expect(screen.queryByRole('button', { name: '대화방 목록' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: /재정부/ }))
   expect(await screen.findByText('영수증 올려요')).toBeTruthy()

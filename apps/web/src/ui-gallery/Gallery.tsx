@@ -16,6 +16,7 @@ import {
   MessageMenuSection,
 } from './MenuSections'
 import { AccountSection } from './AccountSections'
+import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
@@ -56,6 +57,8 @@ export default function Gallery() {
       <ActionMenuSection />
       <MessageMenuSection />
       <KkirukMessageSection />
+      <RoomRowSection />
+      <MessageBubbleSection />
       <EmptyAvatarSection />
       <DialogSheetSection />
       <ConfirmSection />

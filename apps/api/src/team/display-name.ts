@@ -1,7 +1,11 @@
 import { inArray, sql, type SQL } from 'drizzle-orm'
 import type { AnyPgColumn } from 'drizzle-orm/pg-core'
+import { LEFT_MEMBER_NAME_PREFIX } from '@vada/contracts'
 import { member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+
+// 글자 그대로 넣는다(묶은 값이면 같은 이름 식을 ORDER BY·DISTINCT에서 다른 식으로 본다). 코드 안의 고정 값이라 따옴표만 맞으면 된다.
+const LEFT_PREFIX_SQL = sql.raw(`'${LEFT_MEMBER_NAME_PREFIX}'`)
 
 type MemberColumns = { id: AnyPgColumn; name: AnyPgColumn; leftAt: AnyPgColumn }
 
@@ -16,7 +20,7 @@ type MemberColumns = { id: AnyPgColumn; name: AnyPgColumn; leftAt: AnyPgColumn }
 function nameSql<T>(people: MemberColumns, councilId: string | AnyPgColumn | SQL): SQL<T> {
   const id = sql`${people.id}`
   const leftAt = sql`${people.leftAt}`
-  return sql<T>`CASE WHEN ${leftAt} IS NULL THEN ${sql`${people.name}`} ELSE '떠난 운영진 ' || (
+  return sql<T>`CASE WHEN ${leftAt} IS NULL THEN ${sql`${people.name}`} ELSE ${LEFT_PREFIX_SQL} || (
     SELECT count(*) FROM member AS left_peer
     WHERE left_peer.left_at IS NOT NULL
       AND (left_peer.left_at, left_peer.id) <= (${leftAt}, ${id})
