@@ -1,10 +1,17 @@
 import { useRef } from 'react'
 
-// ⋯ 메뉴 항목으로 연 대화상자를 닫으면 포커스를 그 줄의 ⋯ 버튼으로 돌려준다.
+// ⋯ 메뉴 항목으로 연 대화상자나 제자리 편집을 닫으면 포커스를 그 줄의 ⋯ 버튼으로 돌려준다.
 // Radix는 Trigger로 연 대화상자만 포커스를 돌려주는데, 메뉴 항목으로 열면 연 순간 포커스가 body라 어디로도 돌아가지 못한다.
 export function useMenuFocus() {
   const triggers = useRef(new Map<string, HTMLElement>())
   const opener = useRef<string | null>(null)
+  // 연 줄의 ⋯ 버튼이 아직 화면에 있으면 그것으로 옮기고 true. 줄이 없어졌으면(내보냄) false.
+  const restore = () => {
+    const trigger = opener.current === null ? undefined : triggers.current.get(opener.current)
+    if (!trigger?.isConnected) return false
+    trigger.focus()
+    return true
+  }
   return {
     // 줄의 ⋯ 버튼에 단다: ref={menuFocus.triggerRef(줄 번호)}
     triggerRef: (id: string) => (element: HTMLElement | null) => {
@@ -15,12 +22,11 @@ export function useMenuFocus() {
     remember: (id: string) => {
       opener.current = id
     },
-    // 대화상자의 onCloseAutoFocus에 넘긴다. 줄이 없어졌으면(내보냄) 기본 동작에 맡긴다.
+    // 제자리 편집을 닫은 뒤에 부른다.
+    restore,
+    // 대화상자의 onCloseAutoFocus에 넘긴다. 줄이 없어졌으면 기본 동작에 맡긴다.
     onCloseAutoFocus: (event: Event) => {
-      const trigger = opener.current === null ? undefined : triggers.current.get(opener.current)
-      if (!trigger?.isConnected) return
-      event.preventDefault()
-      trigger.focus()
+      if (restore()) event.preventDefault()
     },
   }
 }

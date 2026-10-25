@@ -147,17 +147,17 @@ function openWorkspace() {
   )
   return api
 }
-// 홈이 첫 화면이다. 대화나 운영진 화면을 찍는 시험은 옆 메뉴로 연다.
+// 홈이 첫 화면이다. 대화나 조직 화면을 찍는 시험은 옆 메뉴로 연다.
 async function openChat() {
   fireEvent.click(await screen.findByRole('button', { name: /^대화/ }))
 }
-// 사람 화면의 들어온 때는 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
+// 조직 화면의 들어온 때는 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
 function pinToday() {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
 }
 async function openPeople() {
-  fireEvent.click(await screen.findByRole('button', { name: '사람' }))
+  fireEvent.click(await screen.findByRole('button', { name: '조직' }))
 }
 
 test('작업 공간: 학생회를 불러오는 중', async () => {
@@ -172,27 +172,14 @@ test('작업 공간: 학생회를 불러오는 중', async () => {
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('작업 공간: 사람', async () => {
+test('작업 공간: 조직', async () => {
   pinToday()
   openWorkspace()
   await renderApp()
   await openPeople()
-  await screen.findByText('운영진 3명')
+  await screen.findByRole('heading', { level: 2, name: '회장단' })
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
   await screen.findByRole('region', { name: '초대 링크' })
-  expect(snapshotHtml()).toMatchSnapshot()
-})
-
-test('작업 공간: 부서', async () => {
-  openWorkspace()
-  await renderApp()
-  await openPeople()
-  await screen.findByText('운영진 3명')
-  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
-  await screen.findByRole('region', { name: '초대 링크' })
-  fireEvent.click(screen.getAllByRole('button', { name: '부서' })[0] as HTMLElement)
-  await screen.findByRole('heading', { level: 1, name: '부서' })
-  await screen.findByText('부서 2개')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -235,7 +222,7 @@ test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   openWorkspace()
   await renderApp()
   await openPeople()
-  await screen.findByText('운영진 3명')
+  await screen.findByRole('heading', { level: 2, name: '회장단' })
   // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
   await screen.findByRole('region', { name: '초대 링크' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))

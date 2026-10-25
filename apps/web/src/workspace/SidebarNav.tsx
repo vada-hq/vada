@@ -1,12 +1,4 @@
-import {
-  CalendarDays,
-  House,
-  ListChecks,
-  MessageSquare,
-  Network,
-  Users,
-  Wallet,
-} from 'lucide-react'
+import { CalendarDays, House, ListChecks, MessageSquare, Users, Wallet } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
@@ -59,28 +51,17 @@ function FinanceItem({
   )
 }
 
-// 운영진: 사람, 부서
-function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void }) {
+// 조직: 사람과 부서를 한 화면에서(DEC-91). 최상위 끝 한 칸이고 '운영진' 머리는 없다(DEC-96). 옛 부서 주소도 이 칸이 켜진다.
+function OrgItem({ page, onPage }: { page: Page; onPage: (page: Page) => void }) {
   return (
-    <>
-      <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
-      <NavItem
-        active={page === 'people'}
-        className="flex items-center gap-2"
-        onClick={() => onPage('people')}
-      >
-        <Users aria-hidden className="size-4" />
-        사람
-      </NavItem>
-      <NavItem
-        active={page === 'departments'}
-        className="flex items-center gap-2"
-        onClick={() => onPage('departments')}
-      >
-        <Network aria-hidden className="size-4" />
-        부서
-      </NavItem>
-    </>
+    <NavItem
+      active={page === 'people' || page === 'departments'}
+      className="mt-1 flex items-center gap-2"
+      onClick={() => onPage('people')}
+    >
+      <Users aria-hidden className="size-4" />
+      조직
+    </NavItem>
   )
 }
 
@@ -128,7 +109,7 @@ function LeadItems({
   )
 }
 
-// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
+// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 조직.
 export default function SidebarNav({
   page,
   unread,
@@ -151,7 +132,7 @@ export default function SidebarNav({
         count={pendingCount}
         onClick={() => onPage('finance')}
       />
-      <TeamItems page={page} onPage={onPage} />
+      <OrgItem page={page} onPage={onPage} />
     </nav>
   )
 }

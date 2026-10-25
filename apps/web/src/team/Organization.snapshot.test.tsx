@@ -11,11 +11,10 @@ import {
 } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { snapshotHtml } from '@/test-support/snapshot-html'
-import People from './People'
+import Organization from './Organization'
 import { useTeam } from './useTeam'
 
-// 사람 화면을 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 4).
-// 나눈 뒤에도 이 스냅숏 파일은 바뀌지 않아야 한다.
+// 조직 화면(기능 023 조각 2)의 겉 모양. 사람 화면과 부서 화면의 특성 시험을 합쳤다.
 // 들어온 때는 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -33,7 +32,7 @@ function Harness({ permissions }: { permissions: Action[] }) {
   const team = useTeam('c1', () => {})
   const base = councilView('c1', { permissions })
   return (
-    <People
+    <Organization
       view={{ ...base, council: { ...base.council, titles } }}
       reading={{ own: false }}
       team={team}
@@ -49,11 +48,15 @@ function serve(status = 200, team: TeamResponse = teamResponse()) {
   )
   api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
 }
-async function openMenuItem(name: string, item: string) {
+async function chooseMenuItem(name: string, item: string) {
   fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 동작` }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: item }))
+}
+async function openMenuItem(name: string, item: string) {
+  await chooseMenuItem(name, item)
   await screen.findByRole('dialog')
 }
+const loaded = () => screen.findByRole('heading', { name: '회장단' })
 
 test('불러오는 중', () => {
   serve()
@@ -64,7 +67,7 @@ test('불러오는 중', () => {
 test('목록: 직급 없는 운영진', async () => {
   serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
-  await screen.findByText('운영진 3명')
+  await loaded()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -85,14 +88,14 @@ test('목록: 회장', async () => {
 test('빈 목록', async () => {
   serve(200, { members: [], departments: [] })
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
-  await screen.findByText('운영진 0명')
+  await screen.findByText('부서 없음')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('불러오기 오류', async () => {
   serve(500)
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
-  await screen.findByText('운영진을 불러오지 못했어요.')
+  await screen.findByText('조직을 불러오지 못했어요.')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -115,5 +118,28 @@ test('확인 대화상자: 회장 넘기기', async () => {
   serve()
   render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
   await openMenuItem('이재정', '위원장 넘기기')
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('부서: 제자리 이름 바꾸기', async () => {
+  serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await chooseMenuItem('재정부', '이름 바꾸기')
+  await screen.findByRole('form', { name: '부서 이름 바꾸기' })
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('부서: 없애기 확인 창', async () => {
+  serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await openMenuItem('기획부', '없애기')
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('부서: 펼친 부서 추가 칸', async () => {
+  serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(await screen.findByRole('button', { name: '부서 추가' }))
+  await screen.findByRole('form', { name: '부서 추가' })
   expect(snapshotHtml()).toMatchSnapshot()
 })

@@ -46,9 +46,12 @@ export const COUNCIL_SETTINGS_ERRORS: Record<string, string> = {
   FORBIDDEN: PERMISSION_CHANGED,
 }
 
+// 조직 화면은 지금 사람이 있는 부서의 '없애기'에 서버에 묻지 않고 이 문구를 보인다.
+export const DEPARTMENT_IN_USE = '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.'
+
 export const DEPARTMENT_ERRORS: Record<string, string> = {
   DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
-  DEPARTMENT_IN_USE: '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.',
+  DEPARTMENT_IN_USE,
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: NOT_FOUND_RELOADED,
 }

@@ -105,7 +105,7 @@ test('/가 아닌 주소로 열면 마지막 주소를 쓰지 않는다', async 
   window.localStorage.setItem(LAST, `/tasks/${C2}`)
   window.history.replaceState(null, '', `/people/${C1}`)
   await renderApp()
-  expect(await heading('사람')).toBeTruthy()
+  expect(await heading('조직')).toBeTruthy()
   expect(pathNow()).toBe(`/people/${C1}`)
 })
 
@@ -113,8 +113,8 @@ test('보는 곳이 바뀔 때마다 마지막 주소를 기억한다', async ()
   await renderApp()
   expect(await heading('홈')).toBeTruthy()
   expect(window.localStorage.getItem(LAST)).toBe(`/home/${C1}`)
-  fireEvent.click(menu('사람'))
-  expect(await heading('사람')).toBeTruthy()
+  fireEvent.click(menu('조직'))
+  expect(await heading('조직')).toBeTruthy()
   expect(window.localStorage.getItem(LAST)).toBe(`/people/${C1}`)
 })
 
@@ -129,8 +129,8 @@ test('찾을 수 없는 주소와 다른 사람의 학생회 주소는 기억하
 test('메뉴를 누르면 주소가 바뀌고 브라우저 뒤로가 앞 메뉴로 간다', async () => {
   await renderApp()
   expect(await heading('홈')).toBeTruthy()
-  fireEvent.click(menu('사람'))
-  expect(await heading('사람')).toBeTruthy()
+  fireEvent.click(menu('조직'))
+  expect(await heading('조직')).toBeTruthy()
   expect(pathNow()).toBe(`/people/${C1}`)
   act(() => window.history.back())
   expect(await heading('홈')).toBeTruthy()
@@ -140,9 +140,24 @@ test('메뉴를 누르면 주소가 바뀌고 브라우저 뒤로가 앞 메뉴�
 test('새로 고침하면 주소의 학생회와 메뉴가 열린다', async () => {
   window.history.replaceState(null, '', `/departments/${C2}`)
   await renderApp()
-  expect(await heading('부서')).toBeTruthy()
+  expect(await heading('조직')).toBeTruthy()
   expect(screen.getByRole('button', { name: '학생회 메뉴: 다른 학생회' })).toBeTruthy()
   expect(council(C1)).toEqual([])
+})
+
+// 옛 부서 주소는 사람 주소와 같은 조직 화면이고, 옆 메뉴는 '조직' 한 칸이 켜진다(DEC-91, DEC-96).
+test('옆 메뉴의 조직 한 칸은 사람 주소와 옛 부서 주소 모두에서 켜지고, 누르면 사람 주소로 간다', async () => {
+  window.history.replaceState(null, '', `/departments/${C1}`)
+  await renderApp()
+  expect(await heading('조직')).toBeTruthy()
+  expect(menu('조직').getAttribute('aria-current')).toBe('page')
+  expect(within(aside()).queryByRole('button', { name: '사람', hidden: true })).toBeNull()
+  expect(within(aside()).queryByRole('button', { name: '부서', hidden: true })).toBeNull()
+  expect(within(aside()).queryByText('운영진')).toBeNull()
+  fireEvent.click(menu('조직'))
+  await waitFor(() => expect(pathNow()).toBe(`/people/${C1}`))
+  expect(await heading('조직')).toBeTruthy()
+  expect(menu('조직').getAttribute('aria-current')).toBe('page')
 })
 
 test('열린 메뉴를 다시 누르면 칸이 늘지 않고, 다른 메뉴를 누르면 늘어난다', async () => {
@@ -152,10 +167,10 @@ test('열린 메뉴를 다시 누르면 칸이 늘지 않고, 다른 메뉴를 �
   fireEvent.click(menu('홈'))
   fireEvent.click(menu('홈'))
   expect(push).toHaveBeenCalledTimes(0)
-  fireEvent.click(menu('사람'))
-  expect(await heading('사람')).toBeTruthy()
+  fireEvent.click(menu('조직'))
+  expect(await heading('조직')).toBeTruthy()
   expect(push).toHaveBeenCalledTimes(1)
-  fireEvent.click(menu('사람'))
+  fireEvent.click(menu('조직'))
   expect(push).toHaveBeenCalledTimes(1)
 })
 
@@ -172,7 +187,7 @@ test('첫 화면이 아닌 메뉴 주소에서 그 메뉴를 다시 누르면 �
 test('학생회를 바꾸면 그 학생회 홈 주소로 한 칸 쌓인다', async () => {
   window.history.replaceState(null, '', `/people/${C1}`)
   await renderApp()
-  expect(await heading('사람')).toBeTruthy()
+  expect(await heading('조직')).toBeTruthy()
   const push = pushes()
   fireEvent.keyDown(screen.getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
     key: 'Enter',
@@ -268,8 +283,8 @@ test('창을 연 채 메뉴로 가도 뒤로가 두 번 걸리지 않는다', as
   expect(await heading('홈')).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/tasks/${C1}/${T1}` } }))
   await taskOpen()
-  fireEvent.click(menu('사람'))
-  expect(await heading('사람')).toBeTruthy()
+  fireEvent.click(menu('조직'))
+  expect(await heading('조직')).toBeTruthy()
   await windowHistoryIdle()
   expect(pathNow()).toBe(`/people/${C1}`)
   act(() => window.history.back())
