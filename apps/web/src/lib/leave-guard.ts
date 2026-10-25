@@ -22,6 +22,7 @@ function unregister(holder: symbol) {
 }
 
 // 화면이 쓰던 입력이 남았는지 알린다. 저장하거나 지우면 false로, 화면이 사라져도 알아서 풀린다.
+// 돌려주는 함수는 저장이 끝난 순간 바로 푼다. 저장 직후 같은 틱에 이어서 하는 이동(만든 기록 열기)이 확인에 막히지 않게 한다.
 export function useUnsavedInput(dirty: boolean) {
   const holder = useRef(Symbol('unsaved-input'))
   useEffect(() => {
@@ -30,6 +31,7 @@ export function useUnsavedInput(dirty: boolean) {
     register(mine)
     return () => unregister(mine)
   }, [dirty])
+  return () => unregister(holder.current)
 }
 
 export const hasUnsavedInput = () => holders.size > 0

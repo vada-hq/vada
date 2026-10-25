@@ -18,7 +18,9 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
+import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { wonOf } from './budget-form'
@@ -160,7 +162,10 @@ function FormFooter({
 
 function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [values, setValues] = useState(() => emptyIncome(period, today))
+  const [initial] = useState(() => emptyIncome(period, today))
+  const [values, setValues] = useState(initial)
+  // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  useUnsavedInput(!sameJson(values, initial))
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const range = receivedRange(period, today)
   const create = useIncomeCreate(

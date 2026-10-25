@@ -12,6 +12,8 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useUnsavedInput } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
@@ -199,7 +201,10 @@ function CreateForm({
   pickTask = false,
   ...props
 }: FormProps) {
-  const [values, setValues] = useState(() => emptyRequest(eventId ?? null, start))
+  const [initial] = useState(() => emptyRequest(eventId ?? null, start))
+  const [values, setValues] = useState(initial)
+  // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  useUnsavedInput(!sameJson(values, initial))
   const [picked, setPicked] = useState<Choice | null>(null)
   const linked = taskId ?? picked?.id
   const request = { ...requestOf(values), ...(linked ? { taskId: linked } : {}) }
