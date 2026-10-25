@@ -55,9 +55,9 @@ function open({ demotedAfterRename = false } = {}) {
 // 옆 메뉴는 데스크톱 aside에 늘 있고, 휴대폰 시트는 열 때만 그린다.
 const footer = () => screen.getByRole('complementary')
 
-test('사용자 줄은 운영진 이름이고, 누르면 내 이름 창에서 고쳐 사용자 줄과 운영진 목록이 새 이름이다', async () => {
+test('사용자 줄은 운영진 이름이고, 누르면 내 이름 창에서 고쳐 사용자 줄과 조직 화면이 새 이름이다', async () => {
   const api = open()
-  await within(await screen.findByRole('list', { name: '운영진' })).findByText('김바다')
+  await within(await screen.findByRole('list', { name: '회장단 구성원' })).findByText('김바다')
   const button = await within(footer()).findByRole('button', { name: '내 이름: 김바다, 회장' })
   expect(within(footer()).queryByText('김회장')).toBeNull()
   fireEvent.click(button)
@@ -71,7 +71,7 @@ test('사용자 줄은 운영진 이름이고, 누르면 내 이름 창에서 �
   expect(
     await within(footer()).findByRole('button', { name: '내 이름: 김새이름, 회장' }),
   ).toBeTruthy()
-  await within(screen.getByRole('list', { name: '운영진' })).findByText('김새이름')
+  await within(screen.getByRole('list', { name: '회장단 구성원' })).findByText('김새이름')
 })
 
 // 학생회에 든 사람이 자기 로그인 계정을 볼 곳은 이 창뿐이다(개인정보 보호법 제35조 열람). 계정 이메일은 Google이 정해 고칠 칸이 아니다.

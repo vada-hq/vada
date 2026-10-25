@@ -3,8 +3,8 @@ import type { TeamDepartment, TeamResponse } from '@vada/contracts'
 import { NOT_FOUND_RELOADED, PERMISSION_CHANGED } from '@/lib/messages'
 import { useLatest } from '@/lib/use-latest'
 
-// 부서 화면의 대화상자 둘(이름 바꾸기, 없애기)의 대상. id만 기억하고 매번 다시 읽은 목록에서 부서를 찾으므로,
-// 부서가 사라졌거나 권한을 잃으면 대화상자는 닫히고 onClosed로 까닭을 알린다(DEC-38).
+// 조직 화면의 제자리 이름 바꾸기와 없애기 확인 창의 대상. id만 기억하고 매번 다시 읽은 목록에서 부서를 찾으므로,
+// 부서가 사라졌거나 권한을 잃으면 편집과 확인 창은 닫히고 onClosed로 까닭을 알린다(DEC-38).
 export function useDepartmentDialogs(
   data: TeamResponse | null,
   manage: boolean,
