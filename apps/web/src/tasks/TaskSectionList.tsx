@@ -12,7 +12,7 @@ type Props = {
 }
 
 // 묶음 머리 오른쪽의 수. 0인 것은 빼고 명사형으로 잇는다.
-function SummaryText({ tasks }: { tasks: TaskSummary[] }) {
+export function SummaryText({ tasks }: { tasks: TaskSummary[] }) {
   const { inProgress, overdue, unassigned } = sectionSummary(tasks)
   const parts = [
     inProgress > 0 && { text: `진행 중 ${inProgress}`, tone: 'text-gray-500' },

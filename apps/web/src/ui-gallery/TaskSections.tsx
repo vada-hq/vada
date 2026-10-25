@@ -5,6 +5,8 @@ import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { TaskResults } from '@/tasks/TaskResults'
 import { TaskRow } from '@/tasks/TaskRow'
+import { TaskTable } from '@/tasks/TaskTable'
+import { groupByDepartment } from '@/tasks/task-groups'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -67,6 +69,65 @@ export function TaskSection() {
           error="상태를 바꾸지 못했어요. 다시 시도해 주세요."
         />
       </ul>
+    </Section>
+  )
+}
+
+const tableCells = {
+  busy: new Set(['3|status']),
+  errors: { '4': '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.' },
+  patches: {},
+  save: async () => {},
+  clearPatches: noop,
+}
+const tableLookups = {
+  team: {
+    members: [
+      {
+        id: 'p1',
+        name: '김새내',
+        councilRank: null,
+        departments: [],
+        joinedAt: '2026-10-01T01:00:00.000Z',
+      },
+    ],
+    departments: [{ id: 'd1', name: '기획부', role: null, memberCount: 1 }],
+  },
+  events: [],
+}
+
+// 넓은 화면(lg 이상)의 업무 표. 고르는 칸, 글자 칸(aria-readonly), 보내는 중, 칸 오류, 긴 글.
+export function TaskTableSection() {
+  const tasks = [
+    task('1', {
+      actions: [
+        'task.change_status',
+        'task.change_assignee',
+        'task.change_department',
+        'task.edit',
+      ],
+    }),
+    task('2', { status: 'in_progress', next: 'done', overdue: true, assignee: null }),
+    task('3', { actions: ['task.change_status'], event: { id: 'e1', name: '신입생 환영회' } }),
+    task('4', {
+      title: `${unbroken} ${longName}`,
+      assignee: { id: 'p2', name: longName, current: false },
+      department: null,
+    }),
+  ]
+  return (
+    <Section title="업무 표">
+      <div className="w-full max-w-5xl">
+        <TaskTable
+          sections={groupByDepartment(tasks)}
+          summary
+          inEvent={false}
+          lookups={tableLookups}
+          cells={tableCells}
+          onOpenTask={noop}
+          onOpenEvent={noop}
+        />
+      </div>
     </Section>
   )
 }

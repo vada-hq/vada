@@ -13,7 +13,7 @@ import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
 import type { RoomList as RoomListHook } from './useRoomList'
-import { useSplit } from './useSplit'
+import { useSplit } from '@/lib/use-split'
 
 export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string } | { kind: 'notices' }
 

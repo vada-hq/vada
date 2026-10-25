@@ -1,6 +1,7 @@
 import type { TaskFilter, TaskView } from '@vada/contracts'
 
-const tasksBase = (councilId: string) => `/api/organizations/${encodeURIComponent(councilId)}/tasks`
+export const tasksBase = (councilId: string) =>
+  `/api/organizations/${encodeURIComponent(councilId)}/tasks`
 // 행사를 주면 그 행사의 업무만 읽는다.
 export const tasksPath = (
   councilId: string,
