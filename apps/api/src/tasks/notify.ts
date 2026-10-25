@@ -8,6 +8,18 @@ import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import type { AssignmentNotice } from './service.js'
 
+// 바꾼 뒤 이만큼 모았다가 보낸다. 그 안에 되돌리거나 다시 고르면 처음 바꾼 사람은 받지 않는다(기능 018).
+export const ASSIGNMENT_NOTICE_DELAY_MS = 10_000
+
+// 타이머를 주입해 시험이 고정 대기 없이 시간을 건너뛴다. 돌려주는 함수는 예약을 취소한다.
+export type AfterTimer = (ms: number, run: () => Promise<void>) => () => void
+
+export const realTimer: AfterTimer = (ms, run) => {
+  const handle = setTimeout(() => void run(), ms)
+  handle.unref()
+  return () => clearTimeout(handle)
+}
+
 const TITLE = '업무를 맡았어요'
 
 // " · 10월 25일까지". 마감은 한국 날짜로 읽는다.
@@ -16,6 +28,7 @@ function dueText(dueAt: Date) {
   return ` · ${Number(month)}월 ${Number(day)}일까지`
 }
 
+// 보낼 때의 DB를 다시 읽어 판단한다: 지금 담당자가 받는 사람일 때만 만든다.
 async function messageOf(db: Db, notice: AssignmentNotice): Promise<PushMessage | null> {
   const [found] = await db
     .select({
@@ -23,6 +36,7 @@ async function messageOf(db: Db, notice: AssignmentNotice): Promise<PushMessage 
       dueAt: task.dueAt,
       councilId: record.councilId,
       cancelledAt: task.cancelledAt,
+      assigneeId: task.assigneeId,
     })
     .from(task)
     .innerJoin(record, eq(record.id, task.id))
@@ -33,6 +47,7 @@ async function messageOf(db: Db, notice: AssignmentNotice): Promise<PushMessage 
     .where(eq(member.id, notice.assignerId))
   // 그 사이 지워졌으면 열 수 없는 업무라 보내지 않는다.
   if (!found?.councilId || !assigner || found.cancelledAt) return null
+  if (found.assigneeId !== notice.recipientId) return null
   return {
     title: TITLE,
     body: `${assigner.name}: ${found.title}${found.dueAt ? dueText(found.dueAt) : ''}`,
@@ -42,19 +57,35 @@ async function messageOf(db: Db, notice: AssignmentNotice): Promise<PushMessage 
 }
 
 // 업무를 맡긴 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
-// 받는 사람은 새 담당자 한 사람이다(이전 담당자는 받지 않는다). 재시작 중이면 그 알림은 사라진다(기능 003 '위험').
-export function createTaskPush(db: Db, send: PushSender) {
+// 업무마다 타이머 하나로 모은다. 바꿀 때마다 다시 시작하고, 처음(모으기 전) 담당자는 처음 알림의 이전 담당자다.
+// 서버 메모리라 재시작하면 모은 알림은 사라지고 인스턴스가 하나일 때만 맞다(기능 018 '위험').
+export function createTaskPush(db: Db, send: PushSender, after: AfterTimer) {
   const fanout = createFanout(db, send)
+  const waiting = new Map<string, { original: string | null; cancel: () => void }>()
+
+  async function deliver(notice: AssignmentNotice) {
+    try {
+      const message = await messageOf(db, notice)
+      if (!message) return
+      const accounts = await loginAccountsOf(db, [notice.recipientId])
+      await fanout.deliver(new Map(accounts.map(account => [account.userId, message])))
+    } catch (error) {
+      console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+    }
+  }
+
   return {
-    async notify(notice: AssignmentNotice) {
-      try {
-        const message = await messageOf(db, notice)
-        if (!message) return
-        const accounts = await loginAccountsOf(db, [notice.recipientId])
-        await fanout.deliver(new Map(accounts.map(account => [account.userId, message])))
-      } catch (error) {
-        console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
-      }
+    notify(notice: AssignmentNotice) {
+      const earlier = waiting.get(notice.taskId)
+      earlier?.cancel()
+      const original = earlier ? earlier.original : notice.previous
+      const cancel = after(ASSIGNMENT_NOTICE_DELAY_MS, async () => {
+        waiting.delete(notice.taskId)
+        // 처음 담당자로 돌아왔으면 아무도 받지 않는다.
+        if (notice.recipientId === original) return
+        await deliver(notice)
+      })
+      waiting.set(notice.taskId, { original, cancel })
     },
   }
 }

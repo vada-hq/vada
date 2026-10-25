@@ -52,7 +52,7 @@ const taskIdOf = (c: Context<SessionEnv>) => recordIdOf(c.req.param('taskId'))
 export function addTaskWriteRoutes({ routes, auth, writeLimiter, clock, change, push }: WriteKit) {
   // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않는다.
   const notifyLater = (notice: AssignmentNotice | null) => {
-    if (notice) void push?.notify(notice)
+    if (notice) push?.notify(notice)
   }
   routes.post(`${root}/tasks`, json(CreateTaskSchema), auth, async c => {
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.

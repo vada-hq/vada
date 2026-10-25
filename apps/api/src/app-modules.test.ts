@@ -111,7 +111,12 @@ test('모든 라우트 모듈이 앱의 시계를 쓰고 자기 시계를 만들
     },
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: 'test-receipt-key',
-    push: { publicKey: 'PUBLIC', send: async () => ({ result: 'sent' }), wait: async () => {} },
+    push: {
+      publicKey: 'PUBLIC',
+      send: async () => ({ result: 'sent' }),
+      wait: async () => {},
+      after: () => () => {},
+    },
   })
   const app = createApp({
     auth: { handler: async () => new Response() },

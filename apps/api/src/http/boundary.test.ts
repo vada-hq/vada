@@ -30,7 +30,12 @@ function modulesOf(session: () => Promise<null>) {
     clock: () => new Date(),
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: 'test-receipt-key',
-    push: { publicKey: 'PUBLIC', send: async () => ({ result: 'sent' }), wait: async () => {} },
+    push: {
+      publicKey: 'PUBLIC',
+      send: async () => ({ result: 'sent' }),
+      wait: async () => {},
+      after: () => () => {},
+    },
   })
 }
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>

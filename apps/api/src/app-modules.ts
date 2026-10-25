@@ -20,7 +20,7 @@ import { createPushRoutes } from './push/routes.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createSettlementRoutes } from './settlement/routes.js'
-import { createTaskPush } from './tasks/notify.js'
+import { createTaskPush, type AfterTimer } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import { createTeamRoutes } from './team/routes.js'
 import type { AppOptions } from './app.js'
@@ -40,7 +40,15 @@ export type AppDeps = {
   // 없으면 사진과 결산 묶음만 막힌다.
   storage?: FileStorage | undefined
   // 없으면 알림 경로와 대화·업무·구매 알림을 만들지 않는다(그 일들은 알림 없이 돈다).
-  push?: { publicKey: string; send: PushSender; wait?: (ms: number) => Promise<void> } | undefined
+  push?:
+    | {
+        publicKey: string
+        send: PushSender
+        wait?: (ms: number) => Promise<void>
+        // 배정 알림을 모으는 타이머. 운영은 realTimer, 시험은 가짜를 넣는다.
+        after: AfterTimer
+      }
+    | undefined
 }
 
 function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
@@ -55,7 +63,7 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
       clock,
     }),
     chat: createChatPush(db, push.send),
-    task: createTaskPush(db, push.send),
+    task: createTaskPush(db, push.send, push.after),
     purchase: createPurchasePush(db, push.send),
   }
 }

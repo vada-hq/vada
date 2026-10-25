@@ -9,6 +9,7 @@ import { createAuth } from './auth/auth.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 import { pushConfigFrom } from './push/config.js'
 import { createPushSender } from './push/sender.js'
+import { realTimer } from './tasks/notify.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { startPurge } from './purge/run.js'
@@ -32,7 +33,7 @@ function pushOf(env: Env) {
   const pushConfig = pushConfigFrom(env)
   if (!pushConfig) return undefined
   console.log('휴대폰 알림 켜짐 (Web Push)')
-  return { publicKey: pushConfig.publicKey, send: createPushSender(pushConfig) }
+  return { publicKey: pushConfig.publicKey, send: createPushSender(pushConfig), after: realTimer }
 }
 
 // 파일 저장소(R2) 값 넷이 모두 있어야 켠다. 없으면 사진만 막히고 서버와 글 대화는 돈다.
