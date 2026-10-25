@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { CreateTaskSchema, statusOf, type TaskResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { PERMISSION_CHANGED } from '@/lib/messages'
-import { taskCreatePath } from './task-api'
+import { tasksBase } from './task-api'
 import { problemText } from './task-requests'
 
 type Handlers = {
@@ -23,7 +23,7 @@ export function useTaskCreate(councilId: string, request: unknown, handlers: Han
     sending.current = true
     setBusy(true)
     setProblem(null)
-    const result = await postJson<TaskResponse>(taskCreatePath(councilId), request)
+    const result = await postJson<TaskResponse>(tasksBase(councilId), request)
     sending.current = false
     setBusy(false)
     if (result.ok) return handlers.onCreated(result.data.task)
