@@ -147,7 +147,7 @@
 - 수용 기준: 진행 에이전트가 main에 올리기 전에 개발 DB에 D를 적용한다. `privacy erase-messages`(정한 것 14)의 미리 보기가 개수만 보이고, `--expect`가 다르거나 없으면 쓰지 않는다. `--apply` 뒤 그 메시지는 `body`가 NULL이고 지운 시각이 있으며, 그 메시지와 붙은 파일의 모든 판에 본문·파일 이름·저장소 위치가 없고, R2 객체가 없다. 새 판의 사유는 '학생회 요청으로 VADA가 지움'이다. 증빙으로 복사한 사진과 그 파일 행은 남는다. 같은 명령을 다시 돌리면 '이미 지운 것'으로 세고 바꾸지 않는다. 다른 학생회, 다른 사람, 범위 밖 시각의 메시지는 그대로다(같은 모양의 자료로 시험). 대화 목록, 공지 목록, 업무 결과 제목, 요청·지출의 근거 메시지, 사진 목록이 정한 것 13대로 보인다. 지운 사진의 `/files/:fileId`는 404다. 출력에 본문, 이름, 이메일, id가 없다.
 - 닿는 곳: `apps/api/migrations/`(D), `db/schema-records.ts`, contracts `chat.ts`, api `chat/messages.ts`·`notice.ts`·`stage.ts`·`photos.ts`·`queries.ts`·`notify.ts`, `tasks/results.ts`, 근거 메시지를 보이는 조회(`expenses/`, `purchases/`), 판 비우기 도우미(`registrations/personal-values.ts`에서 공유 자리로), `storage/storage.ts`, `privacy` 명령, web `chat/`(메시지 줄, 공지, 사진), 근거 메시지 표시, `lib/messages.ts`, `ui-gallery/`, `flows/`, `ops/pg-smoke/`, `test-support/`.
 - 검토: 깊게(표, 운영 DB, 학생회 격리). 마이그레이션: 있음(D, 적용 먼저).
-- 운영 DB: 요청이 올 때마다 진행 에이전트나 보호책임자가 명령을 돌린다('위험'의 DEC-56).
+- 운영 DB: 요청이 올 때마다 보호책임자(DEC-56 접근자 명단의 사람)가 직접 명령을 돌린다. 진행 에이전트는 개발 DB에서만 돌린다('위험'의 DEC-56, AGENTS.md '마이그레이션').
 
 ### 9. 학생회 그만두기: 읽기만, 30일 뒤 파기(마이그레이션 C) [ ]
 - 먼저 main에: 조각 8(R2 지우기와 판 비우기 도우미).

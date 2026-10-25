@@ -77,6 +77,8 @@ async function mentionCounts(db: Reader, actor: Actor) {
       and(
         eq(notification.recipientId, actor.memberId),
         eq(notification.type, 'mention'),
+        // 지운 메시지의 부름은 세지 않는다(DEC-54, 그 자리에는 '삭제된 메시지'뿐이다).
+        isNull(message.deletedAt),
         gte(message.sentAt, roomMembership.joinedAt),
         or(isNull(roomMembership.lastReadAt), gt(message.sentAt, roomMembership.lastReadAt)),
       ),

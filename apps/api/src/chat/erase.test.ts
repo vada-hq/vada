@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import type {
   ChatMessage,
   ChatPhotoListResponse,
+  RoomListResponse,
   ExpenseDetail,
   MessagePageResponse,
   PhotoUploadResponse,
@@ -10,6 +11,7 @@ import type {
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
+import { createRecord } from '../records/records.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { fakeStorage } from '../test-support/storage.js'
@@ -251,5 +253,30 @@ test(
       (await erasePlanOf(s.db, { ...scope, councilId: s.other.councilId })).counts.messages,
       0,
     )
+  }),
+)
+
+test(
+  '지운 메시지의 부름은 안 읽은 부름 수에서 빠지고, 지우지 않은 부름은 그대로 센다',
+  run(async s => {
+    const room = await s.allRoom(s.council.councilId)
+    const erased = await s.sendWithPhoto(s.base, room, WRITER)
+    const kept = await s.sendWithPhoto(s.base, room, WRITER)
+    const kim = s.council.people.president.memberId
+    await s.db.transaction(async tx => {
+      for (const recordId of [erased.messageId, kept.messageId])
+        await createRecord(tx, {
+          kind: 'notification',
+          councilId: s.council.councilId,
+          actor: null,
+          values: { recipientId: kim, recordId, type: 'mention', notifiedAt: noon },
+        })
+    })
+    const mentions = async () =>
+      ((await (await s.api.get(`${s.base}/rooms`, 's-president')).json()) as RoomListResponse)
+        .mentionTotal
+    assert.equal(await mentions(), 2)
+    await erase(s, [erased.messageId])
+    assert.equal(await mentions(), 1)
   }),
 )
