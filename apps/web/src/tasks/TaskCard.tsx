@@ -21,7 +21,7 @@ type Props = {
   color: DepartmentColor
   busy: boolean
   error?: string | undefined
-  // 이어진 결과물이 있으면 문서 그림을 단다. 목록 응답의 결과물 요약(026 정한 것 15)이 생기면 그것으로 정한다.
+  // 이어진 결과물이 있으면 문서 그림을 단다. 목록 응답에 결과물 요약이 없어 026 조각 10(정한 것 15)이 칸을 더하기 전까지 보드는 넘기지 않는다.
   hasResult?: boolean | undefined
   onOpen: () => void
   onChangeStatus: (status: TaskStatus) => void
@@ -40,7 +40,7 @@ function StatusMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="relative z-10 -mt-1.5 -mr-2 shrink-0 p-1 text-gray-400"
+          className="relative z-10 -mt-1.5 -mr-2 shrink-0 p-1 text-gray-500"
           aria-label={`${task.title} 더 보기`}
           busy={busy}
         >

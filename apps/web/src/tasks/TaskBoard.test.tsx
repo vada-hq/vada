@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { TASK_DONE_LIMIT, type TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
-import { EVENT_ID } from '@/test-support/event-fixtures'
+import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { withTaskLayout } from '@/lib/task-layout'
@@ -163,13 +163,27 @@ test('끝나지 않은 목록이 넘치면 그 열의 수 뒤에 +가 있다', a
   await waitFor(() => expect(within(todo).getByText('1+')).toBeTruthy())
 })
 
+const allPath = (status: string) => `${base}?view=all&status=${status}`
+
 test('업무가 없으면 보드 위에 빈 상태와 빈 열이 있고, [첫 업무 추가]는 새 업무 칸에 초점을 둔다', async () => {
   serve([])
+  api.on('GET', allPath('open'), () => list([]))
+  api.on('GET', allPath('done'), () => list([]))
   render(page())
   expect(await screen.findByText('업무 없음')).toBeTruthy()
   for (const name of ['할 일', '진행 중', '끝남']) expect(cards(await column(name))).toHaveLength(0)
   fireEvent.click(await screen.findByRole('button', { name: '첫 업무 추가' }))
   expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '새 업무' }))
+})
+
+test('학생회에 업무가 있는데 이 보기에서 비면 그 보기의 빈 문구이고 [첫 업무 추가]가 없다', async () => {
+  serve([])
+  api.on('GET', allPath('open'), () => list([]))
+  api.on('GET', allPath('done'), () => list([task('d', { status: 'done', next: null })]))
+  render(page())
+  expect(await screen.findByText('내 업무 없음')).toBeTruthy()
+  expect(screen.queryByText('업무 없음')).toBeNull()
+  expect(screen.queryByRole('button', { name: '첫 업무 추가' })).toBeNull()
 })
 
 test('배치 고르기는 보드·표·달력이고, 표를 고르면 018 표이며 이 기기에 기억한다', async () => {
@@ -197,4 +211,30 @@ test('행사의 업무 탭도 같은 보드다', async () => {
   const todo = await column('할 일')
   await waitFor(() => expect(cards(todo)).toHaveLength(1))
   expect(todo.textContent).not.toContain('신입생 환영회')
+})
+
+test('행사의 업무 탭 달력에는 그 행사만 있다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
+  window.history.replaceState(
+    null,
+    '',
+    `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks&layout=calendar`,
+  )
+  serve([], [], EVENT_ID)
+  const day = { startsAt: '2026-10-30T14:00', endsAt: '2026-10-30T18:00' }
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({
+      events: [
+        eventSummary({ ...day }),
+        eventSummary({ ...day, id: '00000000-0000-4000-8000-0000000000e2', name: '체육대회' }),
+      ],
+      truncated: false,
+    }),
+  )
+  render(page(EVENT_ID))
+  expect(
+    await screen.findByRole('button', { name: '10월 30일 (금) 업무 0개, 행사 1개' }),
+  ).toBeTruthy()
+  vi.useRealTimers()
 })

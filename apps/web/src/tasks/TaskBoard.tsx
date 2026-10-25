@@ -21,6 +21,9 @@ type Props = {
   onOpenTask: (taskId: string) => void
   // 끝남 열이 넘칠 때 열 아래 [표로 보기]가 여는 표의 '끝남'
   onShowDoneTable: () => void
+  // 거르기 전에도 업무가 없는가(useBoardEmpty). 참이면 빈 상태 칸, 거짓이면 이 보기의 빈 문구, 모르면 열만 둔다.
+  councilEmpty: boolean | null
+  emptyText: string
   // 빈 상태의 [첫 업무 추가]. 만들 수 없는 사람에게는 없다.
   onAddFirst?: (() => void) | undefined
 }
@@ -126,7 +129,10 @@ export function TaskBoard(props: Props) {
   )
   return (
     <div className="flex flex-col gap-4">
-      {empty && <BoardEmpty onAddFirst={props.onAddFirst} />}
+      {empty && props.councilEmpty === true && <BoardEmpty onAddFirst={props.onAddFirst} />}
+      {empty && props.councilEmpty === false && (
+        <StateMessage kind="empty">{props.emptyText}</StateMessage>
+      )}
       <div className="grid grid-cols-3 gap-4">
         {columns.map(column => (
           <BoardColumn

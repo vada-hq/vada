@@ -248,9 +248,11 @@ const boardProps = {
   change: boardChange,
   onOpenTask: noop,
   onShowDoneTable: noop,
+  councilEmpty: true,
+  emptyText: '업무 없음',
 }
 
-// 넓은 화면의 업무 보드(OPS-TASK-01): 1280px 화면의 본문 폭과 1024px 화면의 본문 폭(옆 메뉴 240px와 여백을 뺀 736px). 끝남 열이 넘친 보드와 빈 보드,
+// 넓은 화면의 업무 보드(OPS-TASK-01): 1280px 화면의 본문 폭과 1024px 화면의 본문 폭(옆 메뉴 240px와 여백을 뺀 736px). 끝남 열이 넘친 보드, 빈 보드와 보기로 좁혀 빈 보드,
 // 이어진 결과물의 문서 그림이 있는 카드.
 export function TaskBoardSection() {
   return (
@@ -267,6 +269,15 @@ export function TaskBoardSection() {
       </div>
       <div className="w-full max-w-184">
         <TaskBoard open={boardList([])} done={boardList([])} {...boardProps} onAddFirst={noop} />
+      </div>
+      <div className="w-full max-w-184">
+        <TaskBoard
+          open={boardList([])}
+          done={boardList([])}
+          {...boardProps}
+          councilEmpty={false}
+          emptyText="내 업무 없음"
+        />
       </div>
       <ul className="w-72">
         <TaskCard
