@@ -58,7 +58,7 @@ export async function saveReceipt(
     await tx.insert(commandReceipt).values({ ...key, ...saved, createdAt: now })
   } catch (error) {
     // 잠금이 틀려 같은 명령 둘이 겹쳐도 UNIQUE가 하나만 남긴다. 500이 아니라 정한 코드로 돌려주고 거래는 물러난다.
-    if (uniqueViolationOf(error)) throw new ApiError('COMMAND_REUSED')
+    if (uniqueViolationOf(error)) throw new ApiError('COMMAND_CONFLICT')
     throw error
   }
 }

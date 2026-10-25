@@ -48,6 +48,8 @@ export const ERROR_STATUS = {
   ACCOUNT_INVALID: 409,
   ACCOUNT_NAME_TAKEN: 409,
   MAIN_ACCOUNT_EXISTS: 409,
+  // 같은 명령 번호의 요청이 겹쳐 하나만 남았다. 다시 보내면 처음 결과를 받는다(기능 017)
+  COMMAND_CONFLICT: 409,
   // 참가 신청과 출석(기능 007)
   CANCEL_CLOSED: 409,
   CHECKED_IN: 409,

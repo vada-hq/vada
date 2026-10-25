@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import { saveReceipt } from '../commands/receipt.js'
 import { runPurge } from '../purge/run.js'
+import { clearPhones } from './personal-values.js'
 import { purgeRegistrations } from './purge.js'
 import { korean, withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
 
@@ -236,7 +237,7 @@ test(
 )
 
 test(
-  '같은 (종류, 범위, 번호)를 거래 안에서 두 번 남기면 500이 아니라 COMMAND_REUSED다',
+  '같은 (종류, 범위, 번호)를 거래 안에서 두 번 남기면 500이 아니라 COMMAND_CONFLICT(409)다',
   withRegistrations(async t => {
     const form = await openForm(t)
     await send(t, form.publicCode, { ...person, commandId: COMMAND })
@@ -251,21 +252,34 @@ test(
           new Date(),
         ),
       ),
-      { message: 'COMMAND_REUSED' },
+      { message: 'COMMAND_CONFLICT' },
     )
   }),
 )
 
 test(
-  '영수증은 신청이 아닌 기록을 가리킬 수 없다(종류 외래 키)',
+  '영수증은 신청이 아닌 기록을 가리킬 수 없다(종류 CHECK를 지나는 값으로 외래 키만 본다)',
   withRegistrations(async t => {
     const event = await t.makeEvent()
+    // kind와 result_kind는 CHECK에 맞지만 (event 번호, 'registration')은 기록에 없다.
     await assert.rejects(
       t.pg.query(
         `INSERT INTO command_receipt (kind, scope_key, command_id, body_hash, result_id, result_kind)
-         VALUES ('registration_apply', 'x', $1, $2, $3, 'event')`,
+         VALUES ('registration_apply', 'x', $1, $2, $3, 'registration')`,
         [COMMAND, 'a'.repeat(64), event],
       ),
+      { code: '23503' },
     )
+  }),
+)
+
+test(
+  '양식에서 휴대폰 받기를 끄면 그 양식 신청의 영수증을 지운다',
+  withRegistrations(async t => {
+    const form = await openForm(t, { collectsPhone: true })
+    await send(t, form.publicCode, { ...person, phone: '010-1234-5678', commandId: COMMAND })
+    assert.equal(await receipts(t), 1)
+    await t.db.transaction(tx => clearPhones(tx, form.id))
+    assert.equal(await receipts(t), 0)
   }),
 )
