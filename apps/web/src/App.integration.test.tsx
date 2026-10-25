@@ -189,6 +189,24 @@ test('학생회 만들기에서 칸 길이를 넘기면 보내지 않고 그 칸
   expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
 })
 
+test('학생회 만들기에서 계약이 받지 않는 임기 날짜는 보내지 않고 날짜 칸 아래에 알린다', async () => {
+  councilsInSequence([])
+  await renderApp()
+  fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
+  const form = screen.getByRole('form', { name: '학생회 만들기' })
+  fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
+  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '학교' } })
+  // 계약은 2000~2999년의 날짜만 받는다. 길이 문제가 아니므로 '더 짧게'라고 하지 않는다.
+  const start = within(form).getByLabelText('임기 시작')
+  fireEvent.change(start, { target: { value: '1999-01-01' } })
+  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '1999-12-31' } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+  expect(within(form).getAllByText('날짜를 확인해 주세요')).toHaveLength(2)
+  expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(start))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {
   councilsInSequence([])
   api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_CURRENT' }, 409))

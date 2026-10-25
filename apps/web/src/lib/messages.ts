@@ -30,6 +30,8 @@ export const CREATE_COUNCIL_ERRORS: Record<string, string> = {
   COHORT_NOT_CURRENT: '임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.',
   EMAIL_IN_USE,
 }
+// 계약이 받지 않는 날짜(있을 수 없는 날, 받는 해 밖, 기수 밖). 길이 문제가 아니라서 칸 아래 글을 따로 준다.
+export const DATE_CHECK = '날짜를 확인해 주세요'
 export const CREATE_COUNCIL_FAILED = '학생회를 만들지 못했어요. 다시 시도해 주세요.'
 
 export const JOIN_COUNCIL_ERRORS: Record<string, string> = {

@@ -1,10 +1,14 @@
 import type { MyCouncil } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { DATE_CHECK } from '@/lib/messages'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import CouncilFields from './CouncilFields'
 import { termErrors } from './term'
 import { useCreateCouncil } from './useCreateCouncil'
+
+// 계약이 받지 않는 임기 날짜는 길이 문제가 아니므로 글을 따로 준다.
+const CONTRACT_MESSAGES = { startsOn: DATE_CHECK, endsOn: DATE_CHECK }
 
 type Props = { onCreated: (council: MyCouncil) => void; onCancel: () => void }
 
@@ -23,6 +27,7 @@ export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
         ...termErrors({ name: form.cohortName, startsOn: form.startsOn, endsOn: form.endsOn }),
       },
       parsed,
+      CONTRACT_MESSAGES,
     ),
   )
   return (

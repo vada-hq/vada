@@ -1,4 +1,5 @@
 import type { TaskDetail } from '@vada/contracts'
+import { DATE_CHECK } from '@/lib/messages'
 import { requiredText } from '@/lib/use-form-check'
 
 // 만들기와 고치기 폼이 같이 쓰는 세 칸. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
@@ -35,4 +36,4 @@ export const taskErrors = (values: TaskFieldValues) => ({
 })
 
 // 계약이 막은 마감(기수 밖 등)은 길이 문제가 아니므로 글을 따로 준다.
-export const TASK_CONTRACT_MESSAGES = { dueDate: '날짜를 확인해 주세요' }
+export const TASK_CONTRACT_MESSAGES = { dueDate: DATE_CHECK }
