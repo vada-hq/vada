@@ -5,6 +5,7 @@ import { budget, budgetItem, cohort, fiscalPeriod, record } from '../db/schema.j
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
+import { budgetItemHistoriesOf, usedBudgetItemIds } from './item-facts.js'
 import { budgetItemSelectable } from './policy.js'
 import { budgetItemsWithUsage } from './usage.js'
 
@@ -60,7 +61,7 @@ export async function previousPeriodIdFor(db: Reader, councilId: string, startsO
   return next ? null : latest.id
 }
 
-// 기간 하나와 그 예산 항목(목적순). 수입 항목도 종류와 함께 주고, 항목마다 쓴 돈과 남은 돈(usage.ts)을 붙인다.
+// 기간 하나와 그 예산 항목(목적순). 수입 항목도 종류와 함께 주고, 항목마다 쓴 돈과 남은 돈(usage.ts), 지울 수 있는지, 판 이력을 붙인다.
 export async function budgetViewOf(
   db: Reader,
   period: NonNullable<Awaited<ReturnType<typeof currentPeriodOf>>>,
@@ -75,6 +76,9 @@ export async function budgetViewOf(
   const completed = await completedEventIdsAmong(db, [
     ...new Set(items.flatMap(item => (item.eventId ? [item.eventId] : []))),
   ])
+  const ids = items.map(item => item.id)
+  const used = await usedBudgetItemIds(db, ids)
+  const histories = await budgetItemHistoriesOf(db, period.councilId, ids)
   return {
     period: { id, name, startsOn, endsOn },
     items: items.map(({ id: itemId, purpose, amount, eventId, eventName, usage }) => ({
@@ -84,6 +88,8 @@ export async function budgetViewOf(
       ...usage,
       event: eventId && eventName ? { id: eventId, name: eventName } : null,
       selectable: budgetItemSelectable(eventId, completed),
+      deletable: !used.has(itemId),
+      history: histories.get(itemId) ?? [],
     })),
     suggested: null,
   }

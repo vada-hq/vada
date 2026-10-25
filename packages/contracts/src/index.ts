@@ -266,6 +266,7 @@ export {
   WON_MAX,
   type BudgetItemType,
   type BudgetItemUsage,
+  type BudgetItemVersion,
   type BudgetItemView,
   type BudgetResponse,
   type EventRef,
@@ -273,6 +274,9 @@ export {
   type CreateFiscalPeriod,
   type FiscalPeriodView,
 } from './budget.js'
+// 예산 편성: 여러 행 넣기와 고치기(기능 024).
+export * from './budget-change.js'
+export { semesterOf } from './semester.js'
 // 구매 요청은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
 export * from './purchases.js'
 // 신청 양식은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
