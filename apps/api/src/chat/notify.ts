@@ -1,11 +1,5 @@
 import { and, eq, ne } from 'drizzle-orm'
-import {
-  chatRoomTag,
-  chatRoomUrl,
-  PUSH_BODY_MAX,
-  PUSH_PHOTO_BODY,
-  type RoomType,
-} from '@vada/contracts'
+import { chatRoomTag, chatRoomUrl, type RoomType } from '@vada/contracts'
 import {
   chatRoom,
   department,
@@ -21,6 +15,7 @@ import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { currentMembersAmong } from './current-members.js'
+import { excerptOf } from './excerpt.js'
 import { createPresence } from './presence.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -30,10 +25,6 @@ const ROOM_TITLES: Partial<Record<RoomType, string>> = {
   leadership: '회장단방',
   inter_department: '부서 간 방',
 }
-
-// 잠금 화면에 보이는 글자는 앞 100자다. 글자 수는 코드 포인트로 세어 이모지가 반쪽으로 잘리지 않는다.
-const excerptOf = (body: string) =>
-  body ? Array.from(body).slice(0, PUSH_BODY_MAX).join('') : PUSH_PHOTO_BODY
 
 async function sentMessage(db: Db, messageId: string) {
   const [row] = await db
