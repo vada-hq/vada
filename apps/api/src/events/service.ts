@@ -13,7 +13,8 @@ import { createRecord, updateRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
 import { decide, factsOf } from './policy.js'
-import { eventDetailOf, eventRowOf } from './queries.js'
+import { eventDetailOf } from './detail.js'
+import { eventRowOf } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 행사 행 읽기 → 권한표 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
 // 학생회 행 잠금이 같은 학생회의 쓰기를 한 번에 하나로 줄 세우므로, 잠금 뒤에 읽은 책임자가 이 거래가 끝날 때까지 바뀌지 않는다.
