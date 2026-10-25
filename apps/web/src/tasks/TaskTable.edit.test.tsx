@@ -68,8 +68,12 @@ const status = () => screen.getByRole('status')
 
 test('제목은 연필 단추로 글 칸이 되고 Enter에 제목 키 하나만 보낸다', async () => {
   wide()
-  const api = serve(() => [task('a')])
-  api.on('POST', `${base}/a`, () => json({ task: task('a', { title: '새 제목' }) }))
+  let current = task('a')
+  const api = serve(() => [current])
+  api.on('POST', `${base}/a`, () => {
+    current = task('a', { title: '새 제목' })
+    return json({ task: current })
+  })
   await showAll()
   fireEvent.click(await screen.findByRole('button', { name: '업무 a 제목 고치기' }))
   const input = screen.getByRole('textbox', { name: '업무 a 제목' })
@@ -77,7 +81,7 @@ test('제목은 연필 단추로 글 칸이 되고 Enter에 제목 키 하나만
   fireEvent.change(input, { target: { value: '새 제목' } })
   expect(hasUnsavedInput()).toBe(true)
   fireEvent.keyDown(input, { key: 'Enter' })
-  await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('textbox', { name: '업무 a 제목' })).toBeNull())
   expect(posts(api)).toEqual([{ title: '새 제목' }])
   expect(api.calls.some(call => call.method === 'GET' && call.path === `${base}/a`)).toBe(false)
   expect(await screen.findByRole('button', { name: '새 제목' })).toBeTruthy()
@@ -95,13 +99,13 @@ test('Escape는 원래 제목으로 돌아오고, 같은 값은 요청이 없다
   let input = screen.getByRole('textbox', { name: '업무 a 제목' })
   fireEvent.change(input, { target: { value: '고치다 만 글' } })
   fireEvent.keyDown(input, { key: 'Escape' })
-  expect(screen.queryByRole('textbox')).toBeNull()
+  expect(screen.queryByRole('textbox', { name: '업무 a 제목' })).toBeNull()
   expect(screen.getByRole('button', { name: '업무 a' })).toBeTruthy()
   expect(document.activeElement).toBe(cell('a', 0))
   press('F2')
   input = screen.getByRole('textbox', { name: '업무 a 제목' })
   fireEvent.keyDown(input, { key: 'Enter' })
-  await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('textbox', { name: '업무 a 제목' })).toBeNull())
   expect(posts(api)).toEqual([])
 })
 
@@ -123,7 +127,7 @@ test('빈 제목과 101자는 줄 아래 문구이고 고치기가 이어진다.
   fireEvent.change(input, { target: { value: '떠나며 저장' } })
   fireEvent.blur(input)
   await waitFor(() => expect(posts(api)).toEqual([{ title: '떠나며 저장' }]))
-  await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('textbox', { name: '업무 a 제목' })).toBeNull())
 })
 
 test('서버가 막으면 줄 아래 문구이고 글 칸에 고치던 글이 남는다', async () => {
@@ -154,8 +158,12 @@ test('task.edit가 없으면 제목·마감에 고치기 단추가 없다', asyn
 
 test('마감은 날짜 칸으로 고치고 비우면 마감 없음이다. 보내는 것은 마감 키 하나다', async () => {
   wide()
-  const api = serve(() => [task('a')])
-  api.on('POST', `${base}/a`, () => json({ task: task('a', { dueDate: null }) }))
+  let current = task('a')
+  const api = serve(() => [current])
+  api.on('POST', `${base}/a`, () => {
+    current = task('a', { dueDate: null })
+    return json({ task: current })
+  })
   await showAll()
   await screen.findByRole('grid')
   cell('a', 3).focus()
