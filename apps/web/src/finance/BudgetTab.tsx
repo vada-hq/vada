@@ -2,10 +2,9 @@ import { useState } from 'react'
 import type { BudgetResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
 import { periodRange } from './budget-form'
-import { BudgetItemLine } from './BudgetItemLine'
+import { BudgetItemList } from './BudgetItemList'
 import { BudgetItemDialog } from './BudgetItemDialog'
 import type { BudgetChangeHandlers } from './useBudgetChange'
 import { PeriodCreateDialog } from './PeriodCreateDialog'
@@ -20,17 +19,7 @@ type Props = {
 
 function Items({ items }: { items: BudgetResponse['items'] }) {
   if (items.length === 0) return <StateMessage kind="empty">예산 항목이 아직 없어요.</StateMessage>
-  return (
-    <ul aria-label="예산 항목" className="flex flex-col gap-2">
-      {items.map(item => (
-        <li key={item.id}>
-          <Card className="p-3">
-            <BudgetItemLine item={item} eventName={item.event?.name ?? null} />
-          </Card>
-        </li>
-      ))}
-    </ul>
-  )
+  return <BudgetItemList items={items} label="예산 항목" />
 }
 
 type Open = 'period' | 'item' | null

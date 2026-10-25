@@ -2047,22 +2047,45 @@ exports[`처음 모양 1`] = `
 </dl>
 <section aria-label="예산 항목" class="flex flex-col gap-2">
 <h3 class="text-sm font-medium text-gray-700">예산 항목</h3>
-<ul class="flex flex-col gap-2">
-<li class="flex flex-col gap-1 rounded-sm border p-3 text-xs">
-<span class="flex items-start gap-2">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">간식</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">지출</span>
+<div class="@container">
+<ul class="grid gap-2 @2xl:grid-cols-2 @4xl:grid-cols-3">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="간식" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">간식</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 300,000원</span>
 </span>
-<span class="text-gray-500">지출 336,000원 / 예산 300,000원</span>
+<span> · <span class="whitespace-nowrap">실제 지출 336,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 24,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -60,000원</p>
+</div>
+</div>
 </li>
-<li class="flex flex-col gap-1 rounded-sm border p-3 text-xs">
-<span class="flex items-start gap-2">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">수입</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">예산 100,000원</span>
 </span>
-<span class="text-gray-500">수입 40,000원 / 예산 100,000원</span>
+</p>
+<p class="text-base font-semibold text-gray-900 tabular-nums">들어온 돈 40,000원</p>
+</div>
+</div>
 </li>
 </ul>
+</div>
 </section>
 <section aria-label="정산에 남은 것" class="flex flex-col gap-3">
 <h3 class="text-sm font-medium text-gray-700">정산에 남은 것</h3>
@@ -6198,6 +6221,247 @@ exports[`처음 모양 1`] = `
 </li>
 </ul>
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">다음 기간 행사에 받은 입금 2건 60,000원은 이 결산서의 수입에 없고 통장에는 있어요.</div>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">예산 항목 칸: 지출 예정과 사용 가능</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="w-97.5 max-w-full">
+<div class="@container">
+<ul class="grid gap-2 @2xl:grid-cols-2 @4xl:grid-cols-3">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="행사 홍보" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">행사 홍보</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 300,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 120,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 30,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 150,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="간식" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">간식</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 50,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 20,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 40,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -10,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="예비비" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">예비비</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 30,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -30,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="축제 무대" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">축제 무대</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 1,000,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 400,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 350,000,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 250,000,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</div>
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-1 text-xs wrap-anywhere text-gray-500">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 80,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 0원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 80,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="후원" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">후원</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">수입</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">예산 100,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold text-gray-900 tabular-nums">들어온 돈 40,000원</p>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="w-full">
+<div class="@container">
+<ul class="grid gap-2 @2xl:grid-cols-2 @4xl:grid-cols-3">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="행사 홍보" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">행사 홍보</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 300,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 120,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 30,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 150,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="간식" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">간식</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 50,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 20,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 40,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -10,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="예비비" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">예비비</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 30,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -30,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="축제 무대" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">축제 무대</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 1,000,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 400,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 350,000,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 250,000,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</div>
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-1 text-xs wrap-anywhere text-gray-500">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 80,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 0원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 80,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="후원" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">후원</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">수입</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">예산 100,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold text-gray-900 tabular-nums">들어온 돈 40,000원</p>
+</div>
+</div>
+</li>
+</ul>
 </div>
 </div>
 </div>

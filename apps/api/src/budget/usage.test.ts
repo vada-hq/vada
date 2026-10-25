@@ -242,3 +242,22 @@ test(
     assert.deepEqual(await settlementFigures(t, ev, item), expected)
   }),
 )
+
+test(
+  '취소한 요청의 승인 품목은 지출 예정에 세지 않는다(정산 남은 것과 같은 기준)',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const item = await t.budgetItem(budget, { amount: '100000' })
+    await approvedLine(t, { eventId: null, budgetItemId: item, amount: '8000' })
+    const gone = await approvedLine(t, { eventId: null, budgetItemId: item, amount: '30000' })
+    assert.equal((await budgetFigures(t, item)).committed, 38000)
+    // 결재된 요청은 취소하지 못하지만(409) 셈은 그 가정에 기대지 않는다.
+    await t.pg.query('UPDATE request SET cancelled_at = now() WHERE id = $1', [gone.request])
+    assert.deepEqual(await budgetFigures(t, item), {
+      amount: 100000,
+      actual: 0,
+      committed: 8000,
+      available: 92000,
+    })
+  }),
+)

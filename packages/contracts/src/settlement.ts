@@ -27,9 +27,8 @@ export interface SettlementRemaining {
 }
 
 // 행사 '예산·정산'의 항목 줄. 쓴 돈과 남은 돈은 예산 탭과 같은 셈이다.
-export interface SettlementBudgetItem extends BudgetItemUsage {
+export type SettlementBudgetItem = BudgetItemUsage & {
   id: string
-  type: 'expense' | 'income'
   purpose: string
   amount: number
 }

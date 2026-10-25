@@ -51,20 +51,17 @@ export interface EventRef {
   id: string
   name: string
 }
-// 예산 항목의 쓴 돈과 남은 돈(DEC-15, DEC-92). 저장하지 않고 서버의 예산 셈 한 곳이 센다.
-export interface BudgetItemUsage {
-  // 지출 항목은 실제 지출, 수입 항목은 들어온 돈
-  actual: number
-  // 지출 예정(약정): 승인한 품목마다 승인 금액에서 결제한 금액을 뺀 남은 금액(0 이상)의 합. 수입 항목은 null
-  committed: number | null
-  // 사용 가능 = 배정 − 실제 지출 − 지출 예정. 넘게 승인했거나 썼으면 음수다. 수입 항목은 null
-  available: number | null
-}
-export interface BudgetItemView extends BudgetItemUsage {
+// 예산 항목의 쓴 돈과 남은 돈(DEC-15, DEC-92). 저장하지 않고 서버의 예산 셈 한 곳이 센다. 종류(type)로 갈린다.
+// 지출 항목: actual은 실제 지출, committed는 지출 예정(약정: 승인한 품목마다 승인 금액에서 결제한 금액을 뺀 남은 금액(0 이상)의 합),
+// available은 사용 가능 = 배정 − 실제 지출 − 지출 예정(넘게 승인했거나 썼으면 음수). 수입 항목: actual은 들어온 돈이고 나머지 둘은 없다.
+export type BudgetItemUsage =
+  | { type: 'expense'; actual: number; committed: number; available: number }
+  | { type: 'income'; actual: number; committed: null; available: null }
+
+export type BudgetItemView = BudgetItemUsage & {
   id: string
   purpose: string
   amount: number
-  type: BudgetItemType
   event: EventRef | null
   // 결재·지출·수입에서 고를 수 있는가. 완료한 행사의 항목이면 false다(RULE-11). 서버가 정책에서 정한다.
   selectable: boolean

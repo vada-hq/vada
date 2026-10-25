@@ -1,7 +1,6 @@
 import type { EventSettlement } from '@vada/contracts'
 import { Fact } from '@/components/Fact'
-import { Card } from '@/components/ui/card'
-import { BudgetItemLine } from '../finance/BudgetItemLine'
+import { BudgetItemList } from '../finance/BudgetItemList'
 import { wonLabel } from '../finance/purchase-view'
 import { differenceLabel } from './settlement-view'
 
@@ -22,21 +21,13 @@ export function SettlementNumbers({ settlement }: { settlement: EventSettlement 
   )
 }
 
-// 예산 항목마다 배정, 실제, 지출 예정, 사용 가능(수입 항목은 들어온 돈). 예산 탭과 같은 줄이다.
+// 예산 항목마다 배정, 실제 지출, 지출 예정, 사용 가능(수입 항목은 예산과 들어온 돈). 예산 탭과 같은 칸이다.
 export function SettlementItems({ items }: { items: EventSettlement['budget']['items'] }) {
   if (items.length === 0) return null
   return (
     <section aria-label="예산 항목" className="flex flex-col gap-2">
       <h3 className="text-sm font-medium text-gray-700">예산 항목</h3>
-      <ul className="flex flex-col gap-2">
-        {items.map(item => (
-          <li key={item.id}>
-            <Card className="p-3">
-              <BudgetItemLine item={item} />
-            </Card>
-          </li>
-        ))}
-      </ul>
+      <BudgetItemList items={items} />
     </section>
   )
 }

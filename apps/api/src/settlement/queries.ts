@@ -25,17 +25,12 @@ async function budgetOf(db: Reader, actor: Actor, eventId: string) {
     asc(record.createdAt),
     asc(budgetItem.id),
   ])
-  const items = rows.map(
-    ({ id, type, purpose, amount, actual, committed, available }): SettlementBudgetItem => ({
-      id,
-      type,
-      purpose,
-      amount,
-      actual,
-      committed,
-      available,
-    }),
-  )
+  const items = rows.map(({ id, purpose, amount, usage }): SettlementBudgetItem => ({
+    id,
+    purpose,
+    amount,
+    ...usage,
+  }))
   const totalOf = (type: string) =>
     items.filter(item => item.type === type).reduce((sum, item) => sum + item.amount, 0)
   return { expense: totalOf('expense'), income: totalOf('income'), items }

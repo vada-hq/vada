@@ -120,7 +120,7 @@ test('기간이 있으면 이름, 기간, 지출 항목과 [항목 더하기]가
   expect(screen.getByText('2026-09-01 ~ 2027-02-28')).toBeTruthy()
   const list = screen.getByRole('list', { name: '예산 항목' })
   expect(within(list).getByText('행사 홍보')).toBeTruthy()
-  expect(within(list).getByText('300,000원')).toBeTruthy()
+  expect(within(list).getByText('배정 300,000원')).toBeTruthy()
   expect(screen.getByRole('button', { name: '항목 더하기' })).toBeTruthy()
 })
 
@@ -226,7 +226,7 @@ test('금액에 쉼표를 써도(12,000) 더할 수 있다', async () => {
   )
 })
 
-test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이름이 보인다', async () => {
+test('수입 항목에만 종류 칩이 보이고 행사가 있으면 행사 이름이 보인다', async () => {
   const budget = budgetWithPeriod()
   budget.items.push({
     id: '55555555-5555-4555-8555-555555555599',
@@ -245,28 +245,24 @@ test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이
   expect(within(income).getByText('수입')).toBeTruthy()
   expect(within(income).getByText('봄 축제')).toBeTruthy()
   const spend = within(list).getByText('소모품').closest('li') as HTMLElement
-  expect(within(spend).getByText('지출')).toBeTruthy()
+  expect(within(spend).queryByText('지출')).toBeNull()
 })
 
-test('지출 항목마다 배정, 실제 지출, 지출 예정, 사용 가능이 보이고 사용 가능이 음수면 빨강이다', async () => {
+test('지출 항목은 배정·실제 지출·지출 예정을 흐린 한 줄로, 사용 가능을 크게 보이고 음수면 빨강이다', async () => {
   show(MEMBER_PERMISSIONS, budgetWithPeriod())
   const list = await screen.findByRole('list', { name: '예산 항목' })
   const line = (purpose: string) => within(list).getByText(purpose).closest('li') as HTMLElement
-  const figure = (purpose: string, label: string) =>
-    within(line(purpose)).getByRole('definition', { name: label })
-  expect(figure('행사 홍보', '배정').textContent).toBe('300,000원')
-  expect(figure('행사 홍보', '실제 지출').textContent).toBe('120,000원')
-  expect(figure('행사 홍보', '지출 예정').textContent).toBe('30,000원')
-  expect(figure('행사 홍보', '사용 가능').textContent).toBe('150,000원')
-  expect(figure('행사 홍보', '사용 가능').className).not.toContain('text-red')
-  expect(figure('소모품', '사용 가능').textContent).toBe('-10,000원')
-  expect(figure('소모품', '사용 가능').className).toContain('text-red-600')
-  expect(within(line('행사 홍보')).getByRole('img').getAttribute('aria-label')).toBe(
-    '실제 지출 40% · 지출 예정 포함 50%',
-  )
+  const dim = within(line('행사 홍보')).getByText('배정 300,000원').closest('p') as HTMLElement
+  expect(dim.textContent).toBe('배정 300,000원 · 실제 지출 120,000원 · 지출 예정 30,000원')
+  expect(dim.className).toContain('text-xs')
+  const available = within(line('행사 홍보')).getByText('사용 가능 150,000원')
+  expect(available.className).toContain('text-base')
+  expect(available.className).not.toContain('text-red')
+  const over = within(line('소모품')).getByText('사용 가능 -10,000원')
+  expect(over.className).toContain('text-red-600')
 })
 
-test('수입 항목은 배정과 들어온 돈만 있고 지출 예정과 사용 가능이 없다', async () => {
+test('수입 항목은 예산과 들어온 돈만 있고 지출 예정과 사용 가능이 없다', async () => {
   const budget = budgetWithPeriod()
   budget.items = [
     {
@@ -283,7 +279,7 @@ test('수입 항목은 배정과 들어온 돈만 있고 지출 예정과 사용
   ]
   show(MEMBER_PERMISSIONS, budget)
   const list = await screen.findByRole('list', { name: '예산 항목' })
-  expect(within(list).getByRole('definition', { name: '들어온 돈' }).textContent).toBe('40,000원')
-  expect(within(list).queryByRole('definition', { name: '지출 예정' })).toBeNull()
-  expect(within(list).queryByRole('definition', { name: '사용 가능' })).toBeNull()
+  expect(within(list).getByText('예산 100,000원')).toBeTruthy()
+  expect(within(list).getByText('들어온 돈 40,000원')).toBeTruthy()
+  expect(within(list).queryByText(/지출 예정|사용 가능|배정/)).toBeNull()
 })

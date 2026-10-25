@@ -77,8 +77,11 @@ export async function budgetViewOf(
   ])
   return {
     period: { id, name, startsOn, endsOn },
-    items: items.map(({ eventId, eventName, ...item }) => ({
-      ...item,
+    items: items.map(({ id: itemId, purpose, amount, eventId, eventName, usage }) => ({
+      id: itemId,
+      purpose,
+      amount,
+      ...usage,
       event: eventId && eventName ? { id: eventId, name: eventName } : null,
       selectable: budgetItemSelectable(eventId, completed),
     })),
