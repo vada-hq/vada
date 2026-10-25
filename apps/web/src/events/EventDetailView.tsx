@@ -49,7 +49,7 @@ function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
 }
 
 // 탭과, 다른 탭이나 머리로 넘겨 여는 것(개요에서 누른 업무, 업무 만들기, 고치기). 넘긴 것은 탭을 직접 바꾸면 버린다.
-type TaskLink = { taskId?: string; create?: boolean }
+type TaskLink = { taskId?: string; create?: boolean; view?: 'unassigned' }
 function useDetailState(initialTab: Tab | undefined) {
   const [tab, setTab] = useState<Tab>(initialTab ?? 'overview')
   const [taskLink, setTaskLink] = useState<TaskLink>({})
@@ -134,6 +134,7 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
           view={view}
           eventId={eventId}
           initialTaskId={props.taskLink.taskId}
+          initialView={props.taskLink.view}
           initialCreate={props.taskLink.create}
           onForbidden={props.onForbidden}
           onChanged={() => {
@@ -188,6 +189,7 @@ function OverviewPanel({
           event={loaded}
           onTab={props.onTab}
           onOpenTask={taskId => props.onOpenTasks({ taskId })}
+          onOpenUnassigned={() => props.onOpenTasks({ view: 'unassigned' })}
           onCreateTask={() => props.onOpenTasks({ create: true })}
           onEdit={props.onEdit}
           onLost={props.onLost}

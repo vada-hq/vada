@@ -27,9 +27,12 @@ const DOT_TONE: Record<Attention['tone'], string> = {
 export function OverviewAttention({
   items,
   onTab,
+  onUnassigned,
 }: {
   items: Attention[]
   onTab: (tab: EventTab) => void
+  // '담당자 없음'은 업무 탭을 그 줄이 보이는 보기(담당자 없음)로 연다. 업무 전부를 보이지 않는다.
+  onUnassigned: () => void
 }) {
   if (items.length === 0) return null
   return (
@@ -55,7 +58,12 @@ export function OverviewAttention({
               </span>
               <span className="text-xs text-gray-500 wrap-anywhere">{item.detail}</span>
             </div>
-            <OverviewLink className="shrink-0" onClick={() => onTab(GOES_TO[item.key].tab)}>
+            <OverviewLink
+              className="shrink-0"
+              onClick={() =>
+                item.key === 'unassigned' ? onUnassigned() : onTab(GOES_TO[item.key].tab)
+              }
+            >
               {GOES_TO[item.key].label}
             </OverviewLink>
           </li>

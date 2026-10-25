@@ -295,6 +295,34 @@ test('챙길 것은 지난 업무와 담당자 없는 업무를 보이고, [업�
   await settle()
 })
 
+test('챙길 것의 담당자 없음 [업무 보기]는 업무 탭을 담당자 없는 업무만 보이는 보기로 열고, 풀면 전체로 돌아온다', async () => {
+  const { api } = setup()
+  const unassigned = `/api/organizations/c1/tasks?view=unassigned&status=open&event=${EVENT_ID}`
+  api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', OPEN_TASKS, () =>
+    json({
+      tasks: [
+        openTask('t1', { assignee: { id: 'p1', name: '김새내', current: true } }),
+        openTask('t2', { title: '의자 빌리기' }),
+      ],
+      truncated: false,
+    }),
+  )
+  api.on('GET', unassigned, () =>
+    json({ tasks: [openTask('t2', { title: '의자 빌리기' })], truncated: false }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  const attention = await screen.findByRole('region', { name: '챙길 것' })
+  const rows = within(attention).getAllByRole('listitem')
+  const row = rows.find(item => within(item).queryByText('담당자 없는 업무'))!
+  fireEvent.click(within(row).getByRole('button', { name: '업무 보기' }))
+  expect(await screen.findByRole('button', { name: '의자 빌리기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '현수막 주문' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '담당자 없음 거르기 풀기' }))
+  expect(await screen.findByRole('button', { name: '현수막 주문' })).toBeTruthy()
+  await settle()
+})
+
 test('다음 업무의 제목을 누르면 업무 탭에서 그 업무가 열린다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
