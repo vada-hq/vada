@@ -17,7 +17,7 @@ import { NavItem } from '@/components/ui/nav-item'
 import { TabButton } from '@/components/ui/tab-button'
 import MessageItem from '@/chat/MessageItem'
 import { Section } from './GallerySection'
-import { longName } from './sample-text'
+import { longName, unbroken } from './sample-text'
 
 export function MenuTabsSection() {
   return (
@@ -129,6 +129,55 @@ export function MessageMenuSection() {
           onWriteExpense={() => {}}
         />
       </ul>
+    </Section>
+  )
+}
+
+// 공지방의 보낸 사람 없는 끼룩이 글(025 조각 4). 사람의 글 사이에서 휴대폰 폭(390px)과 넓은 대화 칸 폭으로 본다.
+// 일시·장소를 함께 바꾼 두 줄 글, 만들기 글, 줄바꿈 없는 긴 장소다.
+export function KkirukMessageSection() {
+  const sample = (id: string, body: string, sender: string | null) => ({
+    id,
+    senderId: sender && `sender-${id}`,
+    senderName: sender,
+    body,
+    sentAt: '2026-10-23T01:30:00Z',
+    photos: [],
+  })
+  const flow = [
+    sample('k1', '박해랑이 가을 축제를 만들었어요', null),
+    sample('k2', '장소 다시 알려 주세요', '이재정'),
+    sample(
+      'k3',
+      [
+        '가을 축제 일시가 바뀌었어요 · 11월 5일 (목) 14:00 ~ 18:00 → 11월 6일 (금) 10:00 ~ 12:30',
+        '가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관',
+      ].join('\n'),
+      null,
+    ),
+    sample('k4', `가을 축제 장소가 바뀌었어요 · 체육관 → ${unbroken}`, null),
+  ]
+  const list = (width: string) => (
+    <ul className={`flex flex-col rounded-lg border bg-white p-2 ${width}`}>
+      {flow.map(message => (
+        <MessageItem
+          key={message.id}
+          councilId="sample"
+          message={message}
+          continued={false}
+          mine={false}
+          canRequest={false}
+          onRequest={() => {}}
+          canWriteExpense={false}
+          onWriteExpense={() => {}}
+        />
+      ))}
+    </ul>
+  )
+  return (
+    <Section title="끼룩이 글">
+      {list('w-96 max-w-full')}
+      {list('w-full max-w-3xl')}
     </Section>
   )
 }

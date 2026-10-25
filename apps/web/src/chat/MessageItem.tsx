@@ -1,3 +1,4 @@
+import { KkirukLine } from '@/components/KkirukLine'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -44,9 +45,7 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
 function Header({ message }: Pick<Props, 'message'>) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
-      <span className="font-medium wrap-anywhere text-gray-700">
-        {message.senderName ?? '시스템'}
-      </span>
+      <span className="font-medium wrap-anywhere text-gray-700">{message.senderName}</span>
       <time dateTime={message.sentAt}>{clockLabel(message.sentAt)}</time>
     </p>
   )
@@ -77,10 +76,35 @@ function MineTime({ message, continued }: Pick<Props, 'message' | 'continued'>) 
   )
 }
 
-// 메시지 하나: 보낸 사람, 시각, 본문. 내 메시지는 오른쪽에 붙여 가른다(카카오톡, Teams 채팅).
+// 보낸 사람 없는 끼룩이 글(행사 변경·만들기 알림, DEC-90·DEC-93). 와이어프레임의 시스템 글처럼 흐름 가운데의 한 덩어리이고
+// 이름·말풍선·메뉴가 없다. 모양은 끼룩이 한 줄(DEC-87)이라 VADA가 저절로 알린 글로 읽힌다. 시각은 와이어프레임처럼 보이지 않고 화면 낭독기에만 읽힌다.
+// relative: 숨긴 낭독용 글(sr-only)이 스크롤 칸 밖으로 나가 바깥 스크롤바를 만들지 않게 한다.
+function KkirukItem({ message }: Pick<Props, 'message'>) {
+  return (
+    <li className="relative mt-2 flex justify-center px-2 py-1">
+      <KkirukLine>
+        <span className="wrap-anywhere whitespace-pre-wrap">{message.body}</span>
+      </KkirukLine>
+      <time dateTime={message.sentAt} className="sr-only">
+        {clockLabel(message.sentAt)}
+      </time>
+    </li>
+  )
+}
+
+// 메시지 하나: 보낸 사람이 있으면 사람의 글, 없으면 끼룩이 글이다.
+export default function MessageItem(props: Props) {
+  return props.message.senderId === null ? (
+    <KkirukItem message={props.message} />
+  ) : (
+    <PersonItem {...props} />
+  )
+}
+
+// 사람의 글: 보낸 사람, 시각, 본문. 내 메시지는 오른쪽에 붙여 가른다(카카오톡, Teams 채팅).
 // 색으로 가르지 않는다. 파란색은 공지와 새 소식에 쓰여 내 메시지가 강조처럼 읽힌다. 말풍선은 옅은 회색이다.
 // '…'는 마우스로 쓰면 올리거나 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
-export default function MessageItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
+function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
   const { actions } = useMessageActions({ message, ...actionArgs })
   return (

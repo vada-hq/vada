@@ -12,6 +12,7 @@ import {
   ActionMenuSection,
   EmptyAvatarSection,
   MenuTabsSection,
+  KkirukMessageSection,
   MessageMenuSection,
 } from './MenuSections'
 import { AccountSection } from './AccountSections'
@@ -49,6 +50,7 @@ export default function Gallery() {
       <MenuTabsSection />
       <ActionMenuSection />
       <MessageMenuSection />
+      <KkirukMessageSection />
       <EmptyAvatarSection />
       <DialogSheetSection />
       <ConfirmSection />
