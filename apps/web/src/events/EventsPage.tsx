@@ -12,9 +12,9 @@ import { openRecord } from '@/lib/go-to'
 import { ADDRESS_LOST, EVENT_LOST, EVENTS_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import EventRow from './EventRow'
-import { EventCreateDialog } from './EventCreateDialog'
+import { NewEventDialog } from './EventCreateDialog'
 import EventDetailView from './EventDetailView'
-import { eventGroups } from './event-view'
+import { canCreateEvent, eventGroups } from './event-view'
 import { useEventAddress } from './useEventAddress'
 import { useEvents, type EventList } from './useEvents'
 
@@ -36,7 +36,7 @@ function NoEvents({ canCreate }: { canCreate: boolean }) {
         description={
           canCreate
             ? "오른쪽 위 '행사 만들기'로 첫 행사를 만들어 보세요. 이름만 넣으면 돼요."
-            : '회장단이 행사를 만들면 여기에 보여요.'
+            : '회장단과 부서장이 행사를 만들면 여기에 보여요.'
         }
       />
     </Card>
@@ -64,7 +64,7 @@ function Cards({
       </div>
     )
   const { events, truncated } = state.data
-  if (events.length === 0) return <NoEvents canCreate={view.permissions.includes('event.create')} />
+  if (events.length === 0) return <NoEvents canCreate={canCreateEvent(view)} />
   return (
     <>
       {eventGroups(events).map(group => (
@@ -162,21 +162,17 @@ export default function EventsPage({ view, onForbidden, onTasksChanged }: Props)
     )
   return (
     <PageColumn>
-      {view.permissions.includes('event.create') && (
+      {canCreateEvent(view) && (
         <PageActions>
           <Button onClick={dialogs.startCreate}>행사 만들기</Button>
         </PageActions>
       )}
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       {dialogs.creating && (
-        <EventCreateDialog
+        <NewEventDialog
           view={view}
           onClose={dialogs.closeCreate}
-          onDone={event => {
-            dialogs.closeCreate()
-            openRecord('events', councilId, event.id)
-            void list.reload()
-          }}
+          onMade={() => void list.reload()}
           {...lost}
         />
       )}

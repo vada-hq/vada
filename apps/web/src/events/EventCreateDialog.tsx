@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CreateEventSchema, type CouncilView, type EventDetail } from '@vada/contracts'
+import { openRecord } from '@/lib/go-to'
 import { eventsPath } from './event-api'
 import { emptyEventFields, eventFieldsRequest } from './event-fields'
 import { EventDialogShell } from './EventDialogShell'
@@ -15,7 +16,7 @@ type Props = EventDialogHandlers & {
   onDone: (event: EventDetail) => void
 }
 
-// 행사 만들기(회장단). 이름만 받는다.
+// 행사 만들기(회장단과 부서장, DEC-93). 이름만 받는다.
 export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
   const [saving, setSaving] = useState(false)
   return (
@@ -28,6 +29,27 @@ export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
         {...handlers}
       />
     </EventDialogShell>
+  )
+}
+
+// 행사 화면 [행사 만들기]와 홈 빈 상태 [새 행사]가 같이 여는 새 행사 창: 만들면 창을 닫고 그 행사를 연다.
+export function NewEventDialog({
+  view,
+  onClose,
+  onMade,
+  ...handlers
+}: EventDialogHandlers & { view: CouncilView; onClose: () => void; onMade?: () => void }) {
+  return (
+    <EventCreateDialog
+      view={view}
+      onClose={onClose}
+      onDone={event => {
+        onClose()
+        openRecord('events', view.council.id, event.id)
+        onMade?.()
+      }}
+      {...handlers}
+    />
   )
 }
 

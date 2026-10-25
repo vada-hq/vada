@@ -55,7 +55,17 @@ export default function HomeSection({
   )
 }
 
-// 줄이 없을 때 목록 안에 한 줄로 그렇다고 알린다.
-export function HomeEmpty({ children }: { children: ReactNode }) {
-  return <li className="px-4 py-3 text-sm text-gray-500">{children}</li>
+// 줄이 없을 때 목록 안에 한 줄로 그렇다고 알린다. 그 일을 할 수 있는 사람에게는 하는 버튼을 오른쪽에 둔다(DEC-78 이동 규칙 9).
+export function HomeEmpty({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <li
+      className={cn(
+        'px-4 py-3 text-sm text-gray-500',
+        action !== undefined && 'flex flex-wrap items-center justify-between gap-x-3 gap-y-2',
+      )}
+    >
+      {children}
+      {action}
+    </li>
+  )
 }

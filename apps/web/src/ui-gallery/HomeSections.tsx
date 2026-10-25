@@ -18,6 +18,7 @@ import MineSection from '@/home/MineSection'
 import ReceivedSection from '@/home/ReceivedSection'
 import RequestsSection from '@/home/RequestsSection'
 import SettlingSection from '@/home/SettlingSection'
+import WeekEventsSection from '@/home/WeekEventsSection'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -179,6 +180,46 @@ export function HomeSection() {
           onOpenRequest={noop}
           onSeeAll={noop}
         />
+      </div>
+    </Section>
+  )
+}
+
+const noEvents: HomeCouncil = {
+  ...council,
+  events: [],
+  endedTotal: 0,
+  blocked: [],
+  overdue: noTasks,
+  unassignedMembers: 0,
+}
+
+// 진행할 행사가 없는 학생회(첫 사용): 왼쪽은 회장(만들 수 있음, 없음), 오른쪽은 부장의 홈 자리. 홈과 같은 두 단 틀이라 실제 화면 폭(1280·420)으로 본다.
+// 부원·재정부원 홈에는 이 자리가 없다.
+export function HomeEmptyEventsSection() {
+  return (
+    <Section title="홈 · 행사 빈 상태와 새 행사">
+      <div className="grid w-full gap-6 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+          <CouncilEvents
+            council={noEvents}
+            today={today}
+            onOpenEvent={noop}
+            onSeeEvents={noop}
+            onNewEvent={noop}
+          />
+          <CouncilEvents council={noEvents} today={today} onOpenEvent={noop} onSeeEvents={noop} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-6">
+          <WeekEventsSection
+            events={[]}
+            today={today}
+            noOpenEvents
+            onOpenEvent={noop}
+            onSeeAll={noop}
+            onNewEvent={noop}
+          />
+        </div>
       </div>
     </Section>
   )

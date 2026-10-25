@@ -8,6 +8,7 @@ type Props = {
   settling: HomeSettling
   // 그 행사의 '재정' 탭으로 간다.
   onOpenEvent: (eventId: string, tab: 'money') => void
+  // 같은 셈의 재정 '행사 정산' 탭으로 간다(DEC-92, DEC-78 이동 규칙 6).
   onSeeAll: () => void
 }
 

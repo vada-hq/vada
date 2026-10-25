@@ -20,6 +20,8 @@ export type HomeOpeners = {
   // 정산 수가 있는 행사는 '재정' 탭으로 연다.
   onOpenEvent: (eventId: string, tab?: 'money') => void
   onOpenPage: (page: Page) => void
+  // 행사를 만들 수 있는 사람에게만 온다(canCreateEvent). 행사 빈 상태의 [새 행사]가 새 행사 창을 연다.
+  onNewEvent?: (() => void) | undefined
 }
 
 type Props = HomeOpeners & {
@@ -59,6 +61,8 @@ const requestOpeners = (councilId: string) => ({
   openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
   seeReceived: () => openMenu('finance', councilId, { tab: 'requests', view: 'pending' }),
   seeMine: () => openMenu('finance', councilId, { tab: 'requests' }),
+  // 정산할 행사 모두 보기는 같은 셈의 재정 '행사 정산' 탭이다(DEC-92).
+  seeSettling: () => openMenu('finance', councilId, { tab: 'settlements' }),
 })
 
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.
@@ -82,6 +86,7 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
           today={home.today}
           onOpenEvent={open.onOpenEvent}
           onSeeEvents={seeEvents}
+          onNewEvent={open.onNewEvent}
         />
       )}
       {home.departments && (
@@ -95,7 +100,7 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
         <SettlingSection
           settling={home.settling}
           onOpenEvent={open.onOpenEvent}
-          onSeeAll={seeEvents}
+          onSeeAll={requests.seeSettling}
         />
       )}
       <MineSection
@@ -132,8 +137,10 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
         <WeekEventsSection
           events={extras.events}
           today={home.today}
+          noOpenEvents={extras.noOpenEvents}
           onOpenEvent={open.onOpenEvent}
           onSeeAll={() => open.onOpenPage('events')}
+          onNewEvent={open.onNewEvent}
         />
       )}
     </div>
