@@ -1,5 +1,5 @@
 import type { SettlementApproval } from '@vada/contracts'
-import { dayLabel } from './event-view'
+import { dayLabel } from '@/lib/korean-date-text'
 
 const OUTCOME_LABEL: Record<SettlementApproval['outcome'], string> = {
   completed: '완료',

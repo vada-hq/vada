@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import type { rowActions } from './people-access'
-import { dayTimeLabel } from '@/events/event-view'
+import { dayTimeLabel } from '@/lib/korean-date-text'
 import { councilRankLabel, placementsText } from './team-view'
 
 type Actions = ReturnType<typeof rowActions>
