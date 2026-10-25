@@ -47,7 +47,8 @@ export default function CouncilMenu({
               'h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-gray-50',
               inSheet && 'pr-12',
             )}
-            aria-label={`학생회 메뉴: ${council.name}`}
+            // 읽는 이름은 보이는 글(Vada, 학생회 이름)로 시작한다(WCAG 2.5.3).
+            aria-label={`Vada ${council.name} 학생회 메뉴`}
           >
             <BrandMark />
             <span className="flex min-w-0 flex-1 flex-col">

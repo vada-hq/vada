@@ -19,7 +19,7 @@ const listPath = (view: string) => `${base}?view=${view}`
 const list = (requests = [purchaseSummary('a')], truncated = false) => json({ requests, truncated })
 
 function show(view = councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })) {
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn() }
   render(<FinanceAt view={view} {...handlers} />)
   return handlers
 }

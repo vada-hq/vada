@@ -29,9 +29,10 @@ function EventLine({
 }) {
   return (
     <NavItem active={active} className="gap-2" onClick={onOpen}>
+      {/* 첫 글자는 gray-100 네모 위라 gray-500으로는 4.5:1에 못 미쳐 gray-600이다(WCAG 1.4.3). */}
       <span
         aria-hidden
-        className="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500"
+        className="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-600"
       >
         {eventInitial(event.name)}
       </span>

@@ -155,7 +155,7 @@ test('기기 뒤로도 같은 확인을 거친다: 계속 쓰기면 그 자리, 
   window.history.replaceState(null, '', `/home/${C1}`)
   await renderApp()
   expect(await heading('홈')).toBeTruthy()
-  fireEvent.keyDown(screen.getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }), {
     key: 'Enter',
   })
   fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))

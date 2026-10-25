@@ -28,9 +28,10 @@ export function placementsText(
     .join(' · ')
 }
 
-// 옆 메뉴 발의 둘째 줄(와이어프레임 '{부서} · {직급}', DEC-96): 부서 이름을 가운뎃점으로 잇고 직급 하나를 붙인다.
-// 직급은 학생회 직급이 있으면 그것, 없으면 든 부서 가운데 높은 부서 직급이다. 부서가 없으면 직급만, 둘 다 없으면 null이다.
-export function sidebarRoleLine(
+// 옆 메뉴 발의 둘째 줄(와이어프레임 '{부서} · {직급}', DEC-96)의 두 칸: 가운뎃점으로 이은 부서 이름과 직급 하나.
+// 직급은 학생회 직급이 있으면 그것, 없으면 든 부서 가운데 높은 부서 직급이다. 둘 다 없으면 null이다.
+// 좁은 칸에서는 부서 칸만 말줄임하고 직급은 줄이지 않으려고 나눠 준다.
+export function sidebarRoleParts(
   me: Pick<CouncilView['me'], 'councilRank' | 'departments'>,
   titles: CouncilTitles,
 ) {
@@ -42,8 +43,17 @@ export function sidebarRoleLine(
       : null
   const rank =
     councilRankLabel(me.councilRank, titles) ?? departmentRankLabel(departmentRank, titles)
-  const parts = [...me.departments.map(item => item.name), ...(rank ? [rank] : [])]
-  return parts.length > 0 ? parts.join(' · ') : null
+  const departments = me.departments.map(item => item.name).join(' · ')
+  return departments || rank ? { departments, rank } : null
+}
+
+// 발 둘째 줄의 글 한 줄(읽는 이름, 올리면 보이는 전체 글). 부서가 없으면 직급만, 둘 다 없으면 null이다.
+export function sidebarRoleLine(
+  me: Pick<CouncilView['me'], 'councilRank' | 'departments'>,
+  titles: CouncilTitles,
+) {
+  const parts = sidebarRoleParts(me, titles)
+  return parts && [parts.departments, parts.rank].filter(Boolean).join(' · ')
 }
 
 // 학생회 직급이나 부서 직급이 하나라도 붙어 있는가. 서버는 이런 사람을 내보내거나 직급 있는 소속을 끝낼 때 직급 칸(rank.manage)도 본다.

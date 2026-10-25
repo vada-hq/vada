@@ -54,7 +54,7 @@ function setup(first: PurchaseRequestDetail) {
     reads += 1
     return json({ request: reads === 1 ? first : second.current })
   })
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  const handlers = { onForbidden: vi.fn() }
   render(
     <FinanceAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
@@ -89,7 +89,7 @@ test('사유를 비우고 누르면 칸 아래 문제를 보이고 보내지 않
 })
 
 test('사유를 보내면 상세를 새로 읽어 칩이 취소됨이 되고 이력에 사유가 보인다', async () => {
-  const { api, handlers, after } = setup(detail([item('i1', '포스터')]))
+  const { api, after } = setup(detail([item('i1', '포스터')]))
   const pending = deferredResponse()
   api.on(
     'POST',
@@ -121,7 +121,6 @@ test('사유를 보내면 상세를 새로 읽어 칩이 취소됨이 되고 이
   expect(await screen.findByText('취소됨')).toBeTruthy()
   expect(screen.getByText(/취소: 잘못 샀어요/)).toBeTruthy()
   expect(screen.queryByRole('button', { name: '품목 취소' })).toBeNull()
-  expect(handlers.onChanged).toHaveBeenCalled()
 })
 
 test.each(['LINE_ITEM_NOT_CANCELLABLE', 'EVENT_COMPLETED'])(

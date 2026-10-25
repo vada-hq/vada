@@ -7,6 +7,7 @@ import {
   orgGroups,
   placementsText,
   sidebarRoleLine,
+  sidebarRoleParts,
 } from './team-view'
 
 const titles = { president: '위원장', vicePresident: '부위원장', head: '국장', viceHead: '차장' }
@@ -119,4 +120,18 @@ test('옆 메뉴 발의 둘째 줄은 부서 이름을 가운뎃점으로 잇고
   expect(sidebarRoleLine({ councilRank: 'vice_president', departments: [planning] }, titles)).toBe(
     '기획부 · 부위원장',
   )
+})
+
+test('발 둘째 줄은 부서 칸과 직급 칸으로 나뉜다(좁으면 부서 칸만 줄인다)', () => {
+  const planning = { id: 'p', name: '기획부', role: null, rank: 'head' as const }
+  const promo = { id: 'r', name: '홍보부', role: null, rank: null }
+  expect(sidebarRoleParts({ councilRank: null, departments: [planning, promo] }, titles)).toEqual({
+    departments: '기획부 · 홍보부',
+    rank: '국장',
+  })
+  expect(sidebarRoleParts({ councilRank: 'president', departments: [] }, titles)).toEqual({
+    departments: '',
+    rank: '위원장',
+  })
+  expect(sidebarRoleParts({ councilRank: null, departments: [] }, titles)).toBeNull()
 })
