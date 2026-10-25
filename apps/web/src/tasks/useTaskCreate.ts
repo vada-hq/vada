@@ -1,34 +1,37 @@
 import { useRef, useState } from 'react'
-import { CreateTaskSchema, type TaskResponse } from '@vada/contracts'
+import { CreateTaskSchema, statusOf, type TaskResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
-import { problemText, reportLost, type TaskDialogHandlers } from './task-requests'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { taskCreatePath } from './task-api'
+import { problemText } from './task-requests'
 
-type Handlers = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
+type Handlers = {
   onCreated: (task: TaskResponse['task']) => void
-  // 보내는 동안 대화상자를 닫지 못하게 바깥에 알린다.
-  setSaving: (saving: boolean) => void
+  onForbidden: () => void
 }
 
-// 업무 만들기 요청. 버튼은 계약의 safeParse로 켜고, 보내는 동안 다시 보내지 않는다.
+// 업무 만들기 요청. 보내는 동안 다시 보내지 않고, 실패하면 그 이유를 problem으로 준다.
+// 403이면 권한이 바뀐 것이라 학생회를 다시 읽게 한다.
 export function useTaskCreate(councilId: string, request: unknown, handlers: Handlers) {
   const [problem, setProblem] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const sending = useRef(false)
   const parsed = CreateTaskSchema.safeParse(request)
 
   async function submit() {
     if (!parsed.success || sending.current) return
     sending.current = true
-    handlers.setSaving(true)
+    setBusy(true)
     setProblem(null)
-    const result = await postJson<TaskResponse>(
-      `/api/organizations/${encodeURIComponent(councilId)}/tasks`,
-      request,
-    )
+    const result = await postJson<TaskResponse>(taskCreatePath(councilId), request)
     sending.current = false
-    handlers.setSaving(false)
+    setBusy(false)
     if (result.ok) return handlers.onCreated(result.data.task)
-    if (!reportLost(handlers, result.status)) setProblem(problemText(result.code))
+    if (result.status === statusOf('FORBIDDEN')) handlers.onForbidden()
+    setProblem(
+      result.status === statusOf('FORBIDDEN') ? PERMISSION_CHANGED : problemText(result.code),
+    )
   }
 
-  return { valid: parsed.success, parsed, problem, submit }
+  return { parsed, problem, busy, submit, setProblem }
 }

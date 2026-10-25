@@ -6,6 +6,7 @@ import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { TASK_LOST } from '@/lib/messages'
+import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { useHere } from '@/lib/app-location'
 import TasksPage from './TasksPage'
@@ -50,6 +51,9 @@ function setup() {
   api.on('GET', LIST, () => json({ tasks: [summary], truncated: false }))
   api.on('GET', `${BASE}/${T1}`, () => json({ task: taskDetail({ id: T1 }) }))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
+  api.on('GET', `${BASE}/options`, () =>
+    json({ departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }] }),
+  )
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
     json({ events: [], truncated: false }),
   )
@@ -74,17 +78,16 @@ test('카드 제목을 누르면 상세가 열리고, 상태를 바꾸면 목록
   expect(dialog.isConnected).toBe(true)
 })
 
-test('업무 만들기로 만들면 대화상자가 닫히고 목록과 수를 다시 읽는다', async () => {
+test('빠른 추가로 만들면 목록과 수를 다시 읽는다', async () => {
   const { api, handlers, reads } = setup()
   api.on('POST', BASE, () => json({ task: taskDetail({ id: T1 }) }, 201))
   await screen.findByRole('button', { name: '현수막 주문' })
+  const input = screen.getByRole('textbox', { name: '새 업무' })
+  await settle()
   const before = reads()
-  fireEvent.click(screen.getByRole('button', { name: '업무 만들기' }))
-  await screen.findByRole('combobox', { name: '담당 부서' })
-  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
-  fireEvent.click(screen.getByRole('button', { name: '만들기' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect(handlers.onChanged).toHaveBeenCalledTimes(1)
+  fireEvent.change(input, { target: { value: '청소' } })
+  fireEvent.click(screen.getByRole('button', { name: '추가' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledTimes(1))
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 

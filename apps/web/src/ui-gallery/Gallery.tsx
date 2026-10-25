@@ -21,7 +21,7 @@ import { IncomeSection } from './IncomeSections'
 import { DecisionSection, FinanceSection, ItemCancelSection } from './FinanceSections'
 import { EventSection } from './EventSections'
 import { SettlementSection } from './SettlementSections'
-import { TaskResultsSection, TaskSection } from './TaskSections'
+import { TaskQuickAddSection, TaskResultsSection, TaskSection } from './TaskSections'
 import { HomeOtherSection, HomeSection } from './HomeSections'
 import { PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
@@ -47,6 +47,7 @@ export default function Gallery() {
       <EventSection />
       <SettlementSection />
       <TaskSection />
+      <TaskQuickAddSection />
       <TaskResultsSection />
       <HomeSection />
       <HomeOtherSection />

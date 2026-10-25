@@ -360,12 +360,12 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
   expect(onChanged).toHaveBeenCalled()
 })
 
-test('업무 화면은 머리글 자리에 [업무 만들기]를 두고, 누르면 만들기를 연다', async () => {
+test('업무 화면에는 업무 만들기 단추가 없고 맨 위에 새 업무 칸이 있다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
-  fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
-  expect(await screen.findByRole('dialog', { name: '업무 만들기' })).toBeTruthy()
+  expect(await screen.findByRole('textbox', { name: '새 업무' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '업무 만들기' })).toBeNull()
 })
 
 test('푸시가 오면 보이는 화면은 목록을 바로 다시 읽는다', async () => {

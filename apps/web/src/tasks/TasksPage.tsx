@@ -1,8 +1,6 @@
 import type { CouncilView, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
-import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
-import { Button } from '@/components/ui/button'
 import { useEvents } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
 import { recalledDepartment } from '@/lib/menu-memory'
@@ -11,6 +9,7 @@ import { useTeam } from '@/team/useTeam'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskDialogs } from './TaskDialogs'
 import { TaskListBody } from './TaskListBody'
+import { TaskQuickAdd } from './TaskQuickAdd'
 import { NO_ASSIGNEE_LABEL } from './task-view'
 import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
@@ -22,9 +21,9 @@ type Props = {
   view: CouncilView
   // 알림으로 연 업무. 있으면 그 업무의 상세를 열고 시작한다.
   initialTaskId?: string | undefined
-  // 만들기가 열린 채 시작한다(행사 개요의 준비 단계 '업무 만들기').
+  // 빠른 추가 칸에 초점을 두고 시작한다(행사 개요의 준비 단계 '업무 만들기').
   initialCreate?: boolean | undefined
-  // 행사의 업무 탭이면 그 행사의 업무만 보이고, 만들기는 그 행사가 골라진 채 열린다.
+  // 행사의 업무 탭이면 그 행사의 업무만 보이고, 빠른 추가는 그 행사로 만든다.
   eventId?: string | undefined
   // 행사의 업무 탭을 '담당자 없음'으로 좁혀 시작한다(행사 개요의 챙길 것).
   initialView?: TaskView | undefined
@@ -32,30 +31,6 @@ type Props = {
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
   onChanged: () => void
-}
-
-// 만들기 버튼과, 열려 있던 업무를 잃었을 때의 이유. 업무 화면에서는 버튼을 머리글 오른쪽(PageActions)에 두고,
-// 행사의 업무 탭에서는 그 탭 안에 둔다(머리글은 행사 화면 전체의 것이다).
-function CreateRow({
-  inEvent,
-  lost,
-  onCreate,
-}: {
-  inEvent: boolean
-  lost: string | null
-  onCreate: () => void
-}) {
-  const button = (
-    <Button className="self-start" onClick={onCreate}>
-      업무 만들기
-    </Button>
-  )
-  return (
-    <>
-      {inEvent ? button : <PageActions>{button}</PageActions>}
-      {lost && <StateMessage kind="error">{lost}</StateMessage>}
-    </>
-  )
 }
 
 // 옆 메뉴 '업무': 탭 넷(내 업무, 내 부서, 전체, 담당자 없음), 거르기 둘(끝나지 않은 것, 끝남), 목록·달력. 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
@@ -107,7 +82,7 @@ function useTasksPage(props: Props) {
     props.initialView ?? (inEvent ? 'all' : 'mine'),
   )
   const { view, filter, layout, dept } = controls
-  const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
+  const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useOpeners(councilId, inEvent)
   const lists = useTaskLists(props, view, filter, layout)
   const list = narrowed(lists.list, dept)
@@ -172,17 +147,12 @@ export default function TasksPage(props: Props) {
   const { view, filter, layout } = controls
   return (
     <PageColumn>
-      {!props.eventId && (
-        <CreateRow inEvent={false} lost={dialogs.lost} onCreate={dialogs.startCreate} />
-      )}
+      {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       <TaskDialogs
         view={props.view}
         openId={dialogs.openId}
-        creating={dialogs.creating}
-        eventId={props.eventId}
         onOpenEvent={page.openEventFromTask}
         onCloseDetail={dialogs.closeDetail}
-        onCloseCreate={dialogs.closeCreate}
         onChanged={changed}
         onForbidden={props.onForbidden}
         onLost={message => {
@@ -193,9 +163,6 @@ export default function TasksPage(props: Props) {
       <TaskTabs
         showViews={!props.eventId}
         hasDepartment={props.view.me.departments.length > 0}
-        start={
-          props.eventId && <CreateRow inEvent lost={dialogs.lost} onCreate={dialogs.startCreate} />
-        }
         view={view}
         filter={filter}
         onView={controls.setView}
@@ -203,6 +170,18 @@ export default function TasksPage(props: Props) {
         narrow={narrowOf(page, props.view)}
         layout={props.eventId ? undefined : { value: layout, onChange: controls.setLayout }}
       />
+      {layout === 'list' && filter === 'open' && (
+        <TaskQuickAdd
+          view={props.view}
+          taskView={view}
+          dept={controls.dept}
+          eventId={props.eventId}
+          autoFocus={props.initialCreate}
+          onCreated={changed}
+          onForbidden={props.onForbidden}
+          onOpenTask={rows.onOpenTask}
+        />
+      )}
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
         {layout === 'calendar' ? (
           <TaskCalendarBody open={list} done={page.done} events={page.events} {...rows} />
