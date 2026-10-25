@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { accounts, users } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import type { FlowCaller } from './driver.js'
@@ -36,7 +37,8 @@ export async function createPerson(
   name: string,
   { googleLinked = false } = {},
 ): Promise<Person> {
-  const userId = `flow-${key}`
+  // 같은 DB에 흐름을 여러 번 넣을 수 있게(users.id와 이메일은 유일) 실행마다 다른 아이디를 쓴다.
+  const userId = `flow-${key}-${randomUUID()}`
   await createAccount(flow.db, { userId, name, googleLinked })
   flow.flowSession.admit(userId)
   return { userId, name, api: flow.driver.as(userId) }

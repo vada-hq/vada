@@ -9,6 +9,8 @@ import { startFlow } from './server.js'
 const DAY_MS = 24 * 60 * 60 * 1000
 const WITHIN = 1000
 const START = new Date('2026-11-01T03:00:00Z')
+// 거래 범위는 실제 시각을 넘지 못하므로 지난 시각을 쓴다.
+const PAST = new Date('2026-10-01T03:00:00Z')
 const COUNCIL: CreateCouncilRequest = {
   name: '흐름 학생회',
   unit: 'department',
@@ -169,13 +171,13 @@ test('거래 범위로 건 시계는 바깥 거래의 기록에만 닿고 끝나
   try {
     const councilId = await db.transaction(async tx => {
       const inner = tx as unknown as Db
-      const flow = await startFlow(inner, { start: START, scope: 'transaction' })
+      const flow = await startFlow(inner, { start: PAST, scope: 'transaction' })
       const made = await president(flow)
       const [record] = await rows<{ created: string }>(
         inner,
         sql`select created_at::text created from record where id = ${made.councilId}`,
       )
-      assert.ok(Math.abs(new Date(record!.created).getTime() - START.getTime()) < WITHIN)
+      assert.ok(Math.abs(new Date(record!.created).getTime() - PAST.getTime()) < WITHIN)
       return made.councilId
     })
     const [after] = await rows<{ v: string | null }>(
@@ -184,6 +186,46 @@ test('거래 범위로 건 시계는 바깥 거래의 기록에만 닿고 끝나
     )
     assert.ok(!after!.v)
     assert.equal(await count(db, sql`select count(*) n from record where id = ${councilId}`), 1)
+  } finally {
+    await close()
+  }
+})
+
+test('같은 시나리오 시각에서 부서에 넣고 바로 빼기를 되풀이해도 기간 검사에 걸리지 않는다', async () => {
+  const { db, close } = await createTestDb()
+  try {
+    const flow = await startFlow(db, { start: START, scope: 'connection' })
+    const { chief, councilId, code } = await president(flow)
+    const member = await createPerson(flow, 'member', '부원')
+    await enterCouncil(member, code)
+    const team = (await (
+      await chief.api.get(`/api/organizations/${councilId}/members`)
+    ).json()) as {
+      members: { id: string; name: string }[]
+      departments: { id: string }[]
+    }
+    const memberId = team.members.find(m => m.name === '부원')!.id
+    const departmentId = team.departments[0]!.id
+    const base = `/api/organizations/${councilId}/members/${memberId}/departments`
+    for (let round = 0; round < 5; round += 1) {
+      assert.equal((await chief.api.post(base, { departmentId, rank: null })).status, 200)
+      assert.equal((await chief.api.post(`${base}/${departmentId}/remove`, {})).status, 200)
+    }
+  } finally {
+    await close()
+  }
+})
+
+test('같은 DB에 흐름을 두 번 차례로 넣어도 둘 다 된다', async () => {
+  const { db, close } = await createTestDb()
+  try {
+    for (let run = 0; run < 2; run += 1) {
+      const flow = await startFlow(db, { start: START, scope: 'connection' })
+      const { code } = await president(flow)
+      const vice = await createPerson(flow, 'vice', '부회장')
+      await enterCouncil(vice, code)
+    }
+    assert.equal(await count(db, sql`select count(*) n from users`), 4)
   } finally {
     await close()
   }
