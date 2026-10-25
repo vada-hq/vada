@@ -12,7 +12,7 @@ function ItemLink({ href }: { href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-500 underline underline-offset-4 wrap-anywhere"
+      className="text-blue-700 underline underline-offset-4 wrap-anywhere"
     >
       {href}
     </a>

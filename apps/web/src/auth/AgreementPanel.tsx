@@ -17,7 +17,7 @@ function DocLink({ href, children }: { href: string; children: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-sm text-blue-500 underline underline-offset-4 wrap-anywhere"
+      className="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere"
     >
       {children}
     </a>

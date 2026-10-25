@@ -12,7 +12,7 @@ exports[`처음 모양 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-4 py-2 text-sm [&amp;_svg]:size-4">보조</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-4 py-2 text-sm [&amp;_svg]:size-4">텍스트</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4">위험</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline px-4 py-2 text-sm [&amp;_svg]:size-4">링크 →</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">링크 →</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
 <path d="M5 12h14">
@@ -335,7 +335,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
@@ -351,7 +351,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
@@ -368,7 +368,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">날짜 미정</span>
@@ -383,7 +383,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">10월 24일 (토) 14:00 ~ 10월 25일 (일) 02:00</span>
@@ -400,7 +400,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
@@ -423,7 +423,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-1">
 <h3>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-base font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 </h3>
 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
 <span class="sr-only">10월 24일 (토) 14:00 ~ 18:00</span>
@@ -476,11 +476,11 @@ exports[`처음 모양 1`] = `
 <ul class="flex flex-col gap-3">
 <li class="flex flex-col gap-1 rounded-sm border p-3">
 <span class="text-sm font-medium text-gray-900">사유가 없는 지출 1개</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">인쇄소 · 36,000원</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">인쇄소 · 36,000원</button>
 </li>
 <li class="flex flex-col gap-1 rounded-sm border p-3">
 <span class="text-sm font-medium text-gray-900">승인했지만 결제하지 않은 품목 60개</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <span class="text-xs text-gray-500">외 59개</span>
 </li>
 <li class="flex flex-col gap-1 rounded-sm border p-3">
@@ -518,7 +518,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 <div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
 <div class="flex items-center gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
 </div>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
@@ -534,7 +534,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 <div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
 <div class="flex items-center gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">진행 중</span>
 </div>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
@@ -551,7 +551,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 <div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
 <div class="flex items-center gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
 </div>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
@@ -566,12 +566,12 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 <div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
 <div class="flex items-center gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">신입생 환영회 장소 예약</button>
 </div>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
 <span aria-hidden="true">·</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs">신입생 환영회</button>
 <span aria-hidden="true">·</span>
 <span class="wrap-anywhere">김새내</span>
 </div>
@@ -584,7 +584,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 <div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
 <div class="flex items-center gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
@@ -633,7 +633,7 @@ exports[`처음 모양 1`] = `
 <tr role="row" class="border-t">
 <td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
 <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
@@ -675,7 +675,7 @@ exports[`처음 모양 1`] = `
 <tr role="row" class="border-t">
 <td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
 </td>
 <td role="gridcell" data-row="2" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
@@ -701,7 +701,7 @@ exports[`처음 모양 1`] = `
 <tr role="row" class="border-t">
 <td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
 </td>
 <td role="gridcell" data-row="3" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
@@ -721,7 +721,7 @@ exports[`처음 모양 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
 </td>
 <td role="gridcell" data-row="3" data-col="5" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs" tabindex="-1">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs" tabindex="-1">신입생 환영회</button>
 </td>
 </tr>
 <tr role="row">
@@ -737,7 +737,7 @@ exports[`처음 모양 1`] = `
 <tr role="row" class="border-t">
 <td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
 </td>
 <td role="gridcell" data-row="4" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
@@ -984,13 +984,13 @@ exports[`처음 모양 1`] = `
 </svg>내 업무<span class="font-normal text-gray-500">2</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
 </div>
 <div class="flex shrink-0 items-center gap-2 text-xs">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-red-200 bg-red-50 text-red-700">2일 지남</span>
@@ -998,7 +998,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">신입생 환영회</span>
 </div>
@@ -1026,7 +1026,7 @@ exports[`처음 모양 1`] = `
 </path>
 </svg>내 업무</h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
@@ -1044,13 +1044,13 @@ exports[`처음 모양 1`] = `
 </svg>내 요청<span class="font-normal text-gray-500">2</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">10월 20일 요청</span>
 </div>
@@ -1061,7 +1061,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">10월 20일 요청</span>
 </div>
@@ -1090,13 +1090,13 @@ exports[`처음 모양 1`] = `
 </svg>받은 것<span class="font-normal text-gray-500">12</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 구매 요청</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">박부원</span>
 <span aria-hidden="true">·</span>
@@ -1149,7 +1149,7 @@ exports[`처음 모양 1`] = `
 </svg>행사<span class="font-normal text-gray-500">3</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
@@ -1159,7 +1159,7 @@ exports[`처음 모양 1`] = `
 <span class="text-lg leading-6 font-bold">20</span>
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">화요일 10:00 ~ 12:00</span>
 <span aria-hidden="true">·</span>
@@ -1180,7 +1180,7 @@ exports[`처음 모양 1`] = `
 <span class="text-lg leading-6 font-bold">20</span>
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">화요일 10:00 ~ 12:00</span>
 <span aria-hidden="true">·</span>
@@ -1209,7 +1209,7 @@ exports[`처음 모양 1`] = `
 <span class="text-lg leading-6 font-bold">20</span>
 </div>
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">화요일 10:00 ~ 12:00</span>
 <span aria-hidden="true">·</span>
@@ -1238,13 +1238,13 @@ exports[`처음 모양 1`] = `
 </path>
 </svg>부서별 막힌 곳</h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">기획부</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">기획부</button>
 </div>
 <div class="flex shrink-0 items-center gap-2 text-xs">
 <span class="font-medium text-red-600">지남 2</span>
@@ -1252,7 +1252,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">학생회 업무</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">학생회 업무</button>
 </div>
 <div class="flex shrink-0 items-center gap-2 text-xs">
 <span class="font-medium text-yellow-700">담당자 없음 3</span>
@@ -1271,13 +1271,13 @@ exports[`처음 모양 1`] = `
 </svg>지난 업무<span class="font-normal text-gray-500">11</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">학생회 업무</span>
 <span aria-hidden="true">·</span>
@@ -1318,7 +1318,7 @@ exports[`처음 모양 1`] = `
 </path>
 </svg>행사</h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
@@ -1347,13 +1347,13 @@ exports[`처음 모양 1`] = `
 <span class="font-medium text-red-600">지남 1</span>
 <span class="font-medium text-yellow-700">담당자 없음 1</span>
 </span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">
 <span class="">김새내</span>
@@ -1366,7 +1366,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">신입생 환영회 장소 예약</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">
 <span class="text-yellow-700">담당자 없음</span>
@@ -1390,13 +1390,13 @@ exports[`처음 모양 1`] = `
 </svg>정산할 행사<span class="font-normal text-gray-500">12</span>
 </h2>
 <div class="flex flex-wrap items-baseline gap-x-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs">모두 보기</button>
 </div>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span class="wrap-anywhere">10월 20일 (화) 10:00 ~ 12:00</span>
 </div>
@@ -1813,7 +1813,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
 </h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
 </div>
@@ -1826,7 +1826,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
 </h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">일부 승인</span>
 </div>
@@ -1839,7 +1839,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">행사 포스터 인쇄</button>
 </h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
 </div>
@@ -1852,7 +1852,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
 </div>
@@ -2050,7 +2050,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">36,000원</span>
 </div>
@@ -2063,7 +2063,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">36,000원</span>
 </div>
@@ -2078,7 +2078,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">36,000원</span>
 </div>
@@ -2092,7 +2092,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">인쇄소</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">36,000원</span>
 </div>
@@ -2106,7 +2106,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">36,000원</span>
 </div>
@@ -2318,7 +2318,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">500,000원</span>
 </div>
@@ -2331,7 +2331,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">참가비</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">참가비</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">500,000원</span>
 </div>
@@ -2344,7 +2344,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">이월금</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">이월금</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">500,000원</span>
 </div>
@@ -2355,7 +2355,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">500,000원</span>
 </div>
@@ -2369,7 +2369,7 @@ exports[`처음 모양 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere">지원금</button>
 </h2>
 <span class="text-sm font-semibold whitespace-nowrap text-gray-900">500,000원</span>
 </div>
@@ -2395,12 +2395,12 @@ exports[`처음 모양 1`] = `
 <ul class="flex flex-col gap-2">
 <li class="text-xs font-medium text-gray-700">완료하지 않은 행사의 입금</li>
 <li class="flex flex-col gap-1 rounded-sm border p-3">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 <span class="text-xs text-gray-500">입금 4건 · 120,000원</span>
 </li>
 <li class="flex flex-col gap-1 rounded-sm border p-3">
 <span class="text-sm font-medium text-gray-900">증빙이 없는 지출 3개</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 · 36,000원</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 · 36,000원</button>
 <span class="text-xs text-gray-500">외 2개</span>
 </li>
 </ul>
@@ -2417,7 +2417,7 @@ exports[`처음 모양 1`] = `
 <ul aria-label="행사 정산" class="flex flex-col divide-y rounded-lg border bg-white">
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex items-start gap-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="봄 축제">
 <span class="line-clamp-2">봄 축제</span>
 </button>
 <span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 12</span>
@@ -2429,7 +2429,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex items-start gap-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
 <span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </button>
 <span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">완료 가능</span>
@@ -2441,7 +2441,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex items-start gap-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="전시">
 <span class="line-clamp-2">전시</span>
 </button>
 <span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">정산 남은 것 1</span>
@@ -2453,7 +2453,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex items-start gap-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="졸업 파티">
 <span class="line-clamp-2">졸업 파티</span>
 </button>
 </div>
@@ -2463,7 +2463,7 @@ exports[`처음 모양 1`] = `
 </li>
 <li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
 <div class="flex items-start gap-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="개강 파티">
 <span class="line-clamp-2">개강 파티</span>
 </button>
 </div>
@@ -3404,8 +3404,8 @@ exports[`처음 모양 1`] = `
 <h2 class="text-base font-semibold text-gray-900">시작하기 전에</h2>
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">VADA를 쓰려면 이용약관에 동의해 주세요. 한 번만 하면 돼요.</div>
 <div class="flex flex-wrap gap-x-4 gap-y-1">
-<a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-500 underline underline-offset-4 wrap-anywhere">약관 보기</a>
-<a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-500 underline underline-offset-4 wrap-anywhere">처리방침 보기</a>
+<a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere">약관 보기</a>
+<a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere">처리방침 보기</a>
 </div>
 <label data-slot="label" class="font-medium text-gray-700 flex items-center gap-2 text-sm" for="_id46_">
 <input id="_id46_" class="size-4 accent-blue-600" type="checkbox">이용약관에 동의합니다</label>
