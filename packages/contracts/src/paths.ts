@@ -1,3 +1,4 @@
+import { HOME_VIEWS } from './home.js'
 import { isUuid } from './input.js'
 import { PURCHASE_VIEWS } from './purchases.js'
 import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
@@ -67,7 +68,8 @@ const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): Query
 
 // 쿼리에는 기본값이 아닌 값만 둔다. fallback이 null이면 값이 없는 것이 기본이다. 검색어 같은 자유 입력은 넣지 않는다.
 const MENU_QUERY: Record<AppMenu, QuerySpec> = {
-  home: {},
+  // 회장단+재정의 재정 보기(DEC-95). 운영 보기가 기본이라 주소에 없다.
+  home: { view: { values: HOME_VIEWS, fallback: null } },
   chat: {},
   events: {},
   tasks: taskQuery('mine'),

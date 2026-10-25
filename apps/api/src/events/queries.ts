@@ -217,10 +217,25 @@ export async function openEventsOf(
   }
 }
 
+// 행사 몇 개 가운데 완료하지 않은 것을 행사 목록과 같은 차례로. 홈의 참여 행사가 쓴다. 학생회로 거른다.
+export async function openEventsAmong(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+  eventIds: string[],
+): Promise<EventSummary[]> {
+  if (!eventIds.length) return []
+  const rows = await eventSelect(db)
+    .where(and(openScope(actor), inArray(event.id, eventIds)))
+    .orderBy(...listOrder(now))
+  return summariesOf(db, actor, rows, now)
+}
+
 // 행사 여럿의 지우지 않은 업무 수(끝나지 않은 것, 전체). 행사 상세와 홈이 같이 쓴다.
-export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
+// 부서를 주면 그 부서들의 업무만 센다(홈 참여 행사의 '부서 업무 n/m').
+export async function taskCountsByEvent(db: Reader, eventIds: string[], departmentIds?: string[]) {
   const counts = new Map<string, { open: number; total: number }>()
-  if (!eventIds.length) return counts
+  if (!eventIds.length || departmentIds?.length === 0) return counts
   const rows = await db
     .select({
       eventId: task.eventId,
@@ -228,7 +243,13 @@ export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
       open: sql<number>`count(*) filter (where ${task.status} <> 'done')`.mapWith(Number),
     })
     .from(task)
-    .where(and(inArray(task.eventId, eventIds), isNull(task.cancelledAt)))
+    .where(
+      and(
+        inArray(task.eventId, eventIds),
+        isNull(task.cancelledAt),
+        departmentIds ? inArray(task.departmentId, departmentIds) : undefined,
+      ),
+    )
     .groupBy(task.eventId)
   for (const row of rows)
     if (row.eventId) counts.set(row.eventId, { open: row.open, total: row.total })

@@ -5,7 +5,6 @@ import {
   type HomeEventCard,
   type HomeList,
   type HomeMine,
-  type PurchaseRequestSummary,
   type RoomSummary,
 } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
@@ -14,8 +13,6 @@ import { monthDay } from '@/lib/korean-date-text'
 export const SHORT_LIST = 3
 // 이번 주 행사: 오늘부터 이 날수 안에 시작하는 행사
 const WEEK_DAYS = 7
-// 반려·일부 승인된 내 요청은 낸 지 이 날수 안의 것만 홈에 둔다(오래된 것은 재정 화면에서 본다).
-const SETTLED_REQUEST_DAYS = 14
 const DAY_MS = 86_400_000
 
 const koreanDay = (iso: string) => koreanOf(new Date(iso)).slice(0, KOREAN_DATE_LENGTH)
@@ -73,19 +70,6 @@ export function weekEvents(events: EventSummary[], today: string) {
 // 학생회에 진행할 행사(완료하지 않은 행사)가 하나도 없는가. 회장단 홈의 행사 부분(서버 openEventsOf)과 같은 뜻이다.
 export const noOpenEvents = (events: EventSummary[]) =>
   events.every(event => event.status === 'completed')
-
-// 내 요청 중 아직 볼 것: 반려·일부 승인(다시 낼지 내가 정한다)을 먼저, 그다음 결재 대기를 오래된 순
-export function openRequests(requests: PurchaseRequestSummary[], today: string) {
-  const answered = requests.filter(
-    request =>
-      (request.status === 'rejected' || request.status === 'partial') &&
-      daysBetween(koreanDay(request.createdAt), today) <= SETTLED_REQUEST_DAYS,
-  )
-  const waiting = requests
-    .filter(request => request.status === 'pending')
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-  return [...answered, ...waiting]
-}
 
 // 낸 날·올린 날(한국 날짜): '10월 20일'
 export const createdDay = (iso: string) => monthDay(koreanDay(iso))
