@@ -91,15 +91,19 @@ const INBOX_LIMIT = 3
 // 사람에게 바로 온 방(1:1, 부서 간)은 칩 자리를 먼저 받는다.
 export const isPersonalRoom = (room: Pick<RoomSummary, 'type'>) =>
   room.type === 'direct' || room.type === 'inter_department'
+// 칩 묶음의 차례: 1:1 → 부서 간 → 나머지(명세 022 정한 것 6)
+const INBOX_ORDER = ['direct', 'inter_department'] as const
+const inboxRank = (room: RoomSummary) => {
+  const rank = INBOX_ORDER.findIndex(type => type === room.type)
+  return rank === -1 ? INBOX_ORDER.length : rank
+}
 const latestFirst = (a: RoomSummary, b: RoomSummary) =>
   (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? '')
 
-// 메시지함 칩: 안 읽은 1:1·부서 간 방을 최근 순으로 먼저, 남은 자리에 안 읽은 다른 방을 최근 순으로 3개(DEC-90).
+// 메시지함 칩: 안 읽은 1:1, 부서 간 방, 다른 방의 차례로, 묶음마다 최근 순으로 3개(DEC-90).
 // 대화 목록과 같은 응답이라 내가 든 방만 있다.
-export function inboxRooms(rooms: RoomSummary[]) {
-  const unread = rooms.filter(room => room.unread > 0).sort(latestFirst)
-  return [...unread.filter(isPersonalRoom), ...unread.filter(room => !isPersonalRoom(room))].slice(
-    0,
-    INBOX_LIMIT,
-  )
-}
+export const inboxRooms = (rooms: RoomSummary[]) =>
+  rooms
+    .filter(room => room.unread > 0)
+    .sort((a, b) => inboxRank(a) - inboxRank(b) || latestFirst(a, b))
+    .slice(0, INBOX_LIMIT)
