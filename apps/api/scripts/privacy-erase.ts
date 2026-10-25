@@ -121,7 +121,8 @@ export const NO_STORAGE =
   '사진을 지울 저장소가 없다. R2 설정(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET)을 .env나 셸에 준다. 아무것도 하지 않았다.'
 const STORAGE_FAILED =
   '저장소에서 사진을 지우지 못했다. DB는 바꾸지 않았다. 같은 명령을 다시 돌리면 이어서 지운다. 오류 원문은 출력하지 않는다.'
-const CHANGED = '미리 보기 뒤에 지울 메시지가 바뀌었다. DB는 바꾸지 않았다. 미리 보기를 다시 본다.'
+const CHANGED =
+  '미리 보기 뒤에 지울 메시지가 바뀌었다. 사진 객체는 이미 지웠고 DB는 바꾸지 않았다. 미리 보기를 다시 보고 새 개수로 다시 돌리면 이어서 지운다.'
 
 const countsLine = (counts: EraseCounts) =>
   `메시지 ${counts.messages}, 판 ${counts.versions}, 사진 파일 ${counts.files}, 저장소 객체 ${counts.objects}, 이미 지운 메시지 ${counts.alreadyErased}`
