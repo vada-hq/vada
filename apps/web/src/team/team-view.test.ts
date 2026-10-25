@@ -1,11 +1,5 @@
 import { expect, test } from 'vitest'
-import {
-  councilRankLabel,
-  departmentRankLabel,
-  holdsRank,
-  joinedDay,
-  placementsText,
-} from './team-view'
+import { councilRankLabel, departmentRankLabel, holdsRank, placementsText } from './team-view'
 
 const titles = { president: '위원장', vicePresident: '부위원장', head: '국장', viceHead: '차장' }
 
@@ -20,11 +14,6 @@ test('직급은 학생회가 정한 표시 이름으로 보인다', () => {
     departmentRankLabel('vice_head', titles),
     departmentRankLabel(null, titles),
   ]).toEqual(['국장', '차장', null])
-})
-
-test('들어온 날은 한국 날짜다', () => {
-  expect(joinedDay('2026-10-18T15:00:00.000Z')).toBe('2026.10.19')
-  expect(joinedDay('2026-10-18T14:59:59.000Z')).toBe('2026.10.18')
 })
 
 test('부서 글은 부서 이름과 부서 직급을 잇는다', () => {

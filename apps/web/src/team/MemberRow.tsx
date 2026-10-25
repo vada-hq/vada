@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import type { rowActions } from './people-access'
-import { councilRankLabel, joinedDay, placementsText } from './team-view'
+import { dayTimeLabel } from '@/events/event-view'
+import { councilRankLabel, placementsText } from './team-view'
 
 type Actions = ReturnType<typeof rowActions>
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
   onRemove: () => void
 }
 
-// 운영진 한 줄: 이름, 직급, 부서, 들어온 날, 그리고 권한에 맞는 항목이 있을 때만 ⋯ 메뉴.
+// 운영진 한 줄: 이름, 직급, 부서, 들어온 때(DEC-47: 회장단은 들어온 순서와 시각을 본다), 그리고 권한에 맞는 항목이 있을 때만 ⋯ 메뉴.
 export function MemberRow(props: Props) {
   const { member, departments, titles, actions } = props
   const rank = councilRankLabel(member.councilRank, titles)
@@ -35,7 +36,7 @@ export function MemberRow(props: Props) {
           {rank && <Badge tone="info">{rank}</Badge>}
         </p>
         <p className="text-xs wrap-anywhere text-gray-500">
-          {placements || '부서 없음'} · {joinedDay(member.joinedAt)} 들어옴
+          {placements || '부서 없음'} · {dayTimeLabel(member.joinedAt)} 들어옴
         </p>
       </div>
       {(actions.assign || actions.rank || actions.transfer) && <MemberMenu {...props} />}

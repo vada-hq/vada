@@ -31,12 +31,22 @@ function dayTime(value: string) {
 
 export const momentLabel = (value: string) => dayTime(value).text
 
+// 올해가 아니면 앞에 '2026년'을 붙인다.
+function withYear(date: string, label: string, now: Date) {
+  const year = date.slice(0, YEAR_LENGTH)
+  return year === koreanOf(now).slice(0, YEAR_LENGTH) ? label : `${year}년 ${label}`
+}
+
 // ISO 시각 → '10월 25일 (토)'(한국 날짜). 올해가 아니면 앞에 '2026년'을 붙인다.
 export function dayLabel(iso: string, now: Date = new Date()) {
   const { date, weekday } = dayTime(koreanOf(new Date(iso)))
-  const label = `${monthDay(date)} (${weekday})`
-  const year = date.slice(0, YEAR_LENGTH)
-  return year === koreanOf(now).slice(0, YEAR_LENGTH) ? label : `${year}년 ${label}`
+  return withYear(date, `${monthDay(date)} (${weekday})`, now)
+}
+
+// ISO 시각 → '10월 25일 (토) 14:00'(한국 시각). 올해가 아니면 앞에 '2026년'을 붙인다.
+export function dayTimeLabel(iso: string, now: Date = new Date()) {
+  const { date, text } = dayTime(koreanOf(new Date(iso)))
+  return withYear(date, text, now)
 }
 
 // '10월 25일 (토) 14:00 ~ 18:00'. 끝이 다른 날이면 끝에도 날짜를 쓴다. 시작이 없으면 '날짜 미정'이다.
