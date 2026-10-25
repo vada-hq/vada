@@ -468,3 +468,27 @@ test(
     assert.equal(s.calls.length, 0)
   }),
 )
+
+test(
+  '비우거나 나에게 맡긴 뒤 10초 안에 처음 담당자로 되돌려도 아무도 받지 않는다',
+  run(async s => {
+    const { planningMember, president, plain } = s.council.people
+    const task = await s.made({ title: 'a', assigneeId: planningMember.memberId })
+    s.calls.length = 0
+    await rawAssign(s, task.id, null)
+    await s.timer.advance(1000)
+    await rawAssign(s, task.id, planningMember.memberId)
+    await s.timer.advance(DELAY)
+    assert.equal(s.calls.length, 0)
+    await rawAssign(s, task.id, president.memberId)
+    await s.timer.advance(1000)
+    await rawAssign(s, task.id, planningMember.memberId)
+    await s.timer.advance(DELAY)
+    assert.equal(s.calls.length, 0)
+    // 처음 담당자가 아닌 사람은 받는다.
+    await rawAssign(s, task.id, null)
+    await rawAssign(s, task.id, plain.memberId)
+    await s.timer.advance(DELAY)
+    assert.deepEqual(sentTo(s), [endpointOf('s-plain')])
+  }),
+)
