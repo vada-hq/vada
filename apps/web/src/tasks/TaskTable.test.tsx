@@ -169,7 +169,7 @@ test('떠난 담당자는 떠난 사람으로 보이고 다른 사람을 고르�
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ assigneeId: 'm1' })
 })
 
-test('부서는 부서 경로로, 행사는 지금 제목·내용·마감을 그대로 함께 보낸다', async () => {
+test('부서는 부서 경로로, 행사는 행사 키 하나만 보낸다', async () => {
   wide()
   const api = serve(() => [task('a')])
   api.on('POST', `${base}/a/department`, () => json({ task: task('a') }))
@@ -204,7 +204,7 @@ test('부서는 부서 경로로, 행사는 지금 제목·내용·마감을 그
   await waitFor(() =>
     expect(
       api.calls.find(call => call.method === 'POST' && call.path === `${base}/a`)?.body,
-    ).toEqual({ title: '업무 a', body: '본문', dueDate: '2026-10-25', eventId: 'e1' }),
+    ).toEqual({ eventId: 'e1' }),
   )
 })
 

@@ -82,7 +82,13 @@ export function taskRowOf(props: RowProps, calendar = false) {
       onOpenEvent={props.onOpenEvent}
       assign={
         team && task.assignee === null && task.actions.includes('task.change_assignee')
-          ? { team, onPick: id => void assign.assign(task.id, id) }
+          ? {
+              team,
+              onPick: id => {
+                const name = team.members.find(member => member.id === id)?.name ?? ''
+                void assign.assign(task, id, name)
+              },
+            }
           : undefined
       }
     />

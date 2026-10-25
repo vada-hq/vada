@@ -32,8 +32,13 @@ const cellPos = (cell: HTMLElement): GridPos => ({
 const cellOf = (target: EventTarget) =>
   target instanceof HTMLElement ? target.closest<HTMLElement>('[role="gridcell"]') : null
 
-// 칸 안의 고르는 칸으로 들어간다(고치기 시작). 고칠 수 없는 칸이면 아무것도 하지 않는다.
-const startEdit = (cell: HTMLElement) => cell.querySelector<HTMLElement>('select, input')?.focus()
+// 칸 안의 고르는 칸이나 글 칸으로 들어간다(고치기 시작). 글자로 보이는 글 칸은 시작 단추(data-edit-start)를 누른다.
+// 고칠 수 없는 칸이면 아무것도 하지 않는다.
+function startEdit(cell: HTMLElement) {
+  const field = cell.querySelector<HTMLElement>('select, input')
+  if (field) field.focus()
+  else cell.querySelector<HTMLElement>('[data-edit-start]')?.click()
+}
 
 type Grid = { ids: string[]; cols: number; onOpen: (taskId: string) => void }
 
