@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { afterWindowsClosed } from './use-window-history'
 
 // 떠날 때 확인(DEC-78 이동 10). 화면이 저장하지 않은 입력이 있다고 이 층에 알리면(useUnsavedInput),
@@ -23,9 +23,11 @@ function unregister(holder: symbol) {
 
 // 화면이 쓰던 입력이 남았는지 알린다. 저장하거나 지우면 false로, 화면이 사라져도 알아서 풀린다.
 // 돌려주는 함수는 저장이 끝난 순간 바로 푼다. 저장 직후 같은 틱에 이어서 하는 이동(만든 기록 열기)이 확인에 막히지 않게 한다.
+// 걸고 푸는 것은 화면을 그리는 때(layout effect)에 한다. useEffect는 저장 응답처럼 이벤트 밖의 갱신에서 그린 뒤 따로 돌아,
+// 부하가 크면 '저장했어요.'가 보이는 사이에 누른 이동·beforeunload가 옛 지킴에 막혔다(App.leave 시험이 CI에서만 흔들림).
 export function useUnsavedInput(dirty: boolean) {
   const holder = useRef(Symbol('unsaved-input'))
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!dirty) return
     const mine = holder.current
     register(mine)

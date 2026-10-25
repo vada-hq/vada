@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useLayoutEffect } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { leave, navigate } from './app-location'
 import { LEAVE_TITLE, LEAVE_CONFIRM } from './messages'
-import { resetLeaveGuard, useUnsavedInput } from './leave-guard'
+import { hasUnsavedInput, resetLeaveGuard, useUnsavedInput } from './leave-guard'
 import {
   adoptTag,
   resetWindowHistory,
@@ -240,4 +241,29 @@ test('입력이 있는 채 이어받은 창의 칸을 거두는 이동은 막히
   await waitFor(() => expect(pathNow()).toBe(PEOPLE))
   navigate(HOME, { force: true })
   await waitFor(() => expect(pathNow()).toBe(HOME))
+})
+
+// 저장 응답처럼 이벤트 밖에서 온 갱신은 화면을 그린 뒤 effect를 따로 돌린다. 부하가 크면 그 사이에 이동이나 beforeunload가 끼어,
+// '저장했어요.'가 보이는데도 확인이 뜬다(App.leave 시험이 CI에서만 흔들린 원인). 지킴은 화면이 그려지는 그때 같이 바뀌어야 한다.
+test('입력이 생기거나 풀린 화면이 그려진 그때 지킴도 이미 바뀌어 있다', () => {
+  const seen: boolean[] = []
+  function Probe() {
+    useLayoutEffect(() => {
+      seen.push(hasUnsavedInput())
+    })
+    return null
+  }
+  const view = render(
+    <>
+      <Form dirty />
+      <Probe />
+    </>,
+  )
+  view.rerender(
+    <>
+      <Form dirty={false} />
+      <Probe />
+    </>,
+  )
+  expect(seen).toEqual([true, false])
 })
