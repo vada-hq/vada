@@ -82,6 +82,7 @@ export default function SignedInView({
           <JoinCouncil
             key={invite.code}
             code={invite.code}
+            googleName={user.name}
             leaveLabel={invite.from === 'link' ? 'VADA로 가기' : '다시 입력'}
             onJoined={onJoined}
             onLeave={onLeaveInvite}

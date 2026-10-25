@@ -91,10 +91,30 @@ test('만들기: 성공하면 초대 링크', async () => {
   expect(html()).toMatchSnapshot()
 })
 
-const preview = (joined = false) => ({ council: { id: 'c1', name: '컴퓨터학부 학생회' }, joined })
+const preview = (joined = false) => ({
+  council: {
+    id: 'c1',
+    name: '컴퓨터학부 학생회',
+    unit: 'department',
+    schoolName: '한양대학교 ERICA',
+    cohortName: '2026',
+  },
+  joined,
+})
 function join(onJoined = () => {}) {
-  render(<JoinCouncil code="ABCD2345" leaveLabel="나가기" onJoined={onJoined} onLeave={() => {}} />)
+  render(
+    <JoinCouncil
+      code="ABCD2345"
+      googleName="김회장"
+      leaveLabel="나가기"
+      onJoined={onJoined}
+      onLeave={() => {}}
+    />,
+  )
 }
+// 이어진 운영진이 없는 로그인: Google 이름이 든 '내 이름' 칸이 나온다.
+const noProfile = (api: ReturnType<typeof mockApi>, name: string | null = null) =>
+  api.on('GET', '/api/me/profile', () => json({ name }))
 
 test('들어오기: 불러오는 중', () => {
   const api = mockApi()
@@ -122,6 +142,16 @@ test('들어오기: 확인 실패', async () => {
 test('들어오기: 묻기', async () => {
   const api = mockApi()
   api.on('GET', '/api/invites/ABCD2345', () => json(preview()))
+  noProfile(api)
+  join()
+  await screen.findByRole('button', { name: '들어가기' })
+  expect(html()).toMatchSnapshot()
+})
+
+test('들어오기: 이미 이어진 운영진', async () => {
+  const api = mockApi()
+  api.on('GET', '/api/invites/ABCD2345', () => json(preview()))
+  noProfile(api, '김회장')
   join()
   await screen.findByRole('button', { name: '들어가기' })
   expect(html()).toMatchSnapshot()
@@ -130,6 +160,7 @@ test('들어오기: 묻기', async () => {
 test('들어오기: 진행 중', async () => {
   const api = mockApi()
   api.on('GET', '/api/invites/ABCD2345', () => json(preview()))
+  noProfile(api)
   api.on('POST', '/api/organizations/join', () => deferredResponse().promise)
   join()
   fireEvent.click(await screen.findByRole('button', { name: '들어가기' }))
@@ -140,6 +171,7 @@ test('들어오기: 진행 중', async () => {
 test('들어오기: 오류', async () => {
   const api = mockApi()
   api.on('GET', '/api/invites/ABCD2345', () => json(preview()))
+  noProfile(api)
   api.on('POST', '/api/organizations/join', () => json({ error: 'NO_CURRENT_COHORT' }, 409))
   join()
   fireEvent.click(await screen.findByRole('button', { name: '들어가기' }))

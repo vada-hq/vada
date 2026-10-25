@@ -1,14 +1,37 @@
 import { useEffect, useState } from 'react'
-import { statusOf, type InvitePreviewResponse, type JoinCouncilResponse } from '@vada/contracts'
+import {
+  statusOf,
+  type InvitePreviewResponse,
+  type JoinCouncilRequest,
+  type JoinCouncilResponse,
+  type MeProfileResponse,
+} from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { JOIN_COUNCIL_ERRORS, JOIN_COUNCIL_FAILED } from '@/lib/messages'
 import { useLatest } from '@/lib/use-latest'
 
+// ready의 myName은 로그인에 이어진 운영진의 이름이다. null이면 처음 이어지는 것이라 화면이 이름을 묻는다(DEC-87).
 export type JoinView =
   | { kind: 'loading' }
   | { kind: 'invalid' }
   | { kind: 'failed' }
-  | { kind: 'ready'; council: InvitePreviewResponse['council'] }
+  | { kind: 'ready'; council: InvitePreviewResponse['council']; myName: string | null }
+
+// 초대를 확인하고 내 이름을 읽는다. 이미 들어온 학생회면 이름이 필요 없어 읽지 않고 그 학생회 번호를 돌려준다.
+async function readInvite(
+  code: string,
+  signal: AbortSignal,
+): Promise<JoinView | { kind: 'joined'; councilId: string }> {
+  const invite = await getJson<InvitePreviewResponse>(
+    `/api/invites/${encodeURIComponent(code)}`,
+    signal,
+  )
+  if (!invite.ok) return { kind: invite.status === statusOf('NOT_FOUND') ? 'invalid' : 'failed' }
+  if (invite.data.joined) return { kind: 'joined', councilId: invite.data.council.id }
+  const profile = await getJson<MeProfileResponse>('/api/me/profile', signal)
+  if (!profile.ok) return { kind: 'failed' }
+  return { kind: 'ready', council: invite.data.council, myName: profile.data.name }
+}
 
 // 초대 링크 화면의 상태와 서버 부르기: 초대 확인, 들어가기. 이미 들어왔으면 묻지 않고 그 학생회를 연다.
 export function useJoinCouncil(code: string, onJoined: (councilId: string) => void) {
@@ -20,23 +43,20 @@ export function useJoinCouncil(code: string, onJoined: (councilId: string) => vo
   useEffect(() => {
     const controller = new AbortController()
     setView({ kind: 'loading' })
-    void getJson<InvitePreviewResponse>(
-      `/api/invites/${encodeURIComponent(code)}`,
-      controller.signal,
-    ).then(result => {
+    void readInvite(code, controller.signal).then(next => {
       if (controller.signal.aborted) return
-      if (!result.ok)
-        return setView({ kind: result.status === statusOf('NOT_FOUND') ? 'invalid' : 'failed' })
-      if (result.data.joined) joined.current(result.data.council.id)
-      else setView({ kind: 'ready', council: result.data.council })
+      if (next.kind === 'joined') joined.current(next.councilId)
+      else setView(next)
     })
     return () => controller.abort()
   }, [code, attempt, joined])
 
-  async function join() {
+  // 내 이름은 처음 이어질 때만 보낸다(이미 이어졌으면 서버도 무시한다).
+  async function join(memberName?: string) {
     setJoining(true)
     setError('')
-    const result = await postJson<JoinCouncilResponse>('/api/organizations/join', { code })
+    const body: JoinCouncilRequest = memberName === undefined ? { code } : { code, memberName }
+    const result = await postJson<JoinCouncilResponse>('/api/organizations/join', body)
     if (result.ok) return onJoined(result.data.council.id)
     setJoining(false)
     if (result.status === statusOf('NOT_FOUND')) setView({ kind: 'invalid' })
