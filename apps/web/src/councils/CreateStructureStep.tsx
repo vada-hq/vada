@@ -60,11 +60,12 @@ export default function CreateStructureStep({ draft, linkedName, saving, error, 
       </div>
       <div className="flex flex-col gap-2">
         {error && <StateMessage kind="error">{error}</StateMessage>}
-        <div className="flex gap-2">
+        {/* 넓어진 카드(lg 이상)에서는 와이어프레임 ORG-02처럼 [이전] 왼쪽, [학생회 만들기] 오른쪽에 내용 폭으로 둔다. */}
+        <div className="flex gap-2 lg:justify-between">
           <Button type="button" variant="outline" touch busy={saving} onClick={on.onBack}>
             이전
           </Button>
-          <Button type="submit" touch className="flex-1" busy={saving}>
+          <Button type="submit" touch className="flex-1 lg:flex-none" busy={saving}>
             {saving ? '만드는 중…' : '학생회 만들기'}
           </Button>
         </div>
