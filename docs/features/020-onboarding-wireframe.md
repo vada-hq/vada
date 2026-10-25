@@ -99,7 +99,7 @@
 - 닿는 곳: web `councils/`(`CreateCouncilForm.tsx`, `CouncilFields.tsx`, `NoCouncilFlow.tsx`, `MyCouncils.tsx`, `useCreateCouncil.ts`, `unit-labels.ts`, 단계 부품과 조직 구조 부품(새)), 초대 링크 칸 부품(`team/InviteCard.tsx`에서 `src/components`로), `team/useInvite.ts`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
 
-### 4. 초대 확인 정보와 내 이름(화면) [ ]
+### 4. 초대 확인 정보와 내 이름(화면) [x]
 - 먼저 main에: 조각 1, 조각 2, `work/fix-join-and-create`(같은 카드의 공개 안내).
 - 할 수 있게 되는 것: 초대받은 사람이 맞는 학생회인지 보고 이름을 확인해 들어가고, 뒤에 이름을 고친다.
 - 수용 기준: 초대 확인 카드 제목 아래 '유형', '대표 범위'(지금은 학교), '운영 연도' 줄이 있고 값이 없는 줄은 없다. 이어진 운영진이 없으면 Google 이름이 든 '내 이름' 칸이 있고, 비우면 칸 아래 오류이며 [들어가기]가 그 이름으로 들어간다. 이어졌으면 칸이 없다. 옆 메뉴 아래 사용자 줄은 운영진 이름이고, 누르면 '내 이름' 창이 열려 저장하면 사용자 줄과 운영진 목록이 새 이름이다. 같은 이름이면 요청이 없고 [닫기]는 바꾸지 않는다. 390px에서 넘침이 없다(긴 이름은 `wrap-anywhere`).

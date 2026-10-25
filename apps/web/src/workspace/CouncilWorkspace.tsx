@@ -104,6 +104,11 @@ export default function CouncilWorkspace({
       user={user}
       logoutBusy={logoutBusy}
       onLogout={onLogout}
+      // 내 이름은 학생회 보기(사용자 줄)와 운영진 목록에 함께 나온다.
+      onRenamed={() => {
+        data.reloadAfterOwnChange()
+        data.team.reload()
+      }}
       menuRef={from === 'sidebar' ? nav.councilMenu : undefined}
       onSelect={councilId => {
         nav.closeNav()

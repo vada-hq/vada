@@ -53,6 +53,14 @@ function councilsInSequence(...lists: MyCouncil[][]) {
     json({ councils: lists[Math.min(call++, lists.length - 1)] }),
   )
 }
+// 초대 확인의 학생회: 맞는 학생회인지 가릴 유형, 학교, 지금 기수 이름(DEC-87).
+const invitePreview = (id: string, name: string) => ({
+  id,
+  name,
+  unit: 'department' as const,
+  schoolName: '한양대학교 ERICA',
+  cohortName: '2026',
+})
 // 홈이 첫 화면이라 학생회를 열면 홈을 읽는다. 이 시험들은 운영진 화면을 보므로 홈과 방은 비어 있다.
 function emptyRooms(id: string) {
   api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
@@ -258,10 +266,12 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
   window.history.replaceState(null, '', '/join/ABCD2345')
   api.on('GET', '/api/invites/ABCD2345', () =>
     json({
-      council: { id: '0199d1a0-0000-7000-8000-0000000000c1', name: '컴퓨터학부 학생회' },
+      council: invitePreview('0199d1a0-0000-7000-8000-0000000000c1', '컴퓨터학부 학생회'),
       joined: false,
     }),
   )
+  // 아직 이어진 운영진이 없는 로그인이라 Google 이름이 든 '내 이름' 칸이 나온다.
+  api.on('GET', '/api/me/profile', () => json({ name: null }))
   api.on('POST', '/api/organizations/join', () =>
     json({ council: myCouncil('0199d1a0-0000-7000-8000-0000000000c1', '컴퓨터학부 학생회', null) }),
   )
@@ -277,18 +287,22 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
       '들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.',
     ),
   ).toBeTruthy()
+  expect(asElement(screen.getByLabelText('내 이름'), HTMLInputElement).value).toBe('김회장')
   fireEvent.click(screen.getByRole('button', { name: '들어가기' }))
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   // 학생회를 열면 운영진 모두에게 홈이 먼저다(DEC-69, DEC-87).
   expect(window.location.pathname).toBe(menuPath('home', '0199d1a0-0000-7000-8000-0000000000c1'))
-  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ code: 'ABCD2345' })
+  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    code: 'ABCD2345',
+    memberName: '김회장',
+  })
 })
 
 test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회 홈을 연다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
   api.on('GET', '/api/invites/ABCD2345', () =>
     json({
-      council: { id: '0199d1a0-0000-7000-8000-0000000000c2', name: '경영학부 학생회' },
+      council: invitePreview('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회'),
       joined: true,
     }),
   )
@@ -324,10 +338,12 @@ test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보�
   window.history.replaceState(null, '', '/join/ABCD2345')
   api.on('GET', '/api/invites/ABCD2345', () =>
     json({
-      council: { id: '0199d1a0-0000-7000-8000-0000000000c1', name: '컴퓨터학부 학생회' },
+      council: invitePreview('0199d1a0-0000-7000-8000-0000000000c1', '컴퓨터학부 학생회'),
       joined: false,
     }),
   )
+  // 아직 이어진 운영진이 없는 로그인이라 Google 이름이 든 '내 이름' 칸이 나온다.
+  api.on('GET', '/api/me/profile', () => json({ name: null }))
   api.on('POST', '/api/organizations/join', () => json({ error: 'NO_CURRENT_COHORT' }, 409))
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '들어가기' }))

@@ -22,6 +22,7 @@ type Props = {
   user: { name: string }
   logoutBusy: boolean
   onLogout: () => void
+  onRenamed: () => void
 }
 
 // 옆 메뉴(와이어프레임 210px): 위 학생회 이름 메뉴, 가운데 메뉴, 아래 사용자 줄.
@@ -40,6 +41,7 @@ export default function WorkspaceSidebar({
   user,
   logoutBusy,
   onLogout,
+  onRenamed,
 }: Props) {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -57,7 +59,13 @@ export default function WorkspaceSidebar({
         pendingCount={pendingCount}
         onPage={onPage}
       />
-      <SidebarFooter view={view} user={user} logoutBusy={logoutBusy} onLogout={onLogout} />
+      <SidebarFooter
+        view={view}
+        user={user}
+        logoutBusy={logoutBusy}
+        onLogout={onLogout}
+        onRenamed={onRenamed}
+      />
     </div>
   )
 }
