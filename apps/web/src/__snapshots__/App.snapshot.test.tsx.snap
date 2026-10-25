@@ -766,7 +766,9 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 19일 (월) 00:30 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 19일 (월) 00:30 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id5_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -805,9 +807,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id7_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -854,8 +858,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id10_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -1229,7 +1236,9 @@ exports[`작업 공간: 조직 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 19일 (월) 00:30 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 19일 (월) 00:30 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id5_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -1268,9 +1277,11 @@ exports[`작업 공간: 조직 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id7_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -1317,8 +1328,11 @@ exports[`작업 공간: 조직 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id10_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
