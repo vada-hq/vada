@@ -68,6 +68,7 @@ async function messageStats(db: Reader, actor: Actor) {
 
 // 방마다 내가 볼 수 있는 마지막 메시지(보낸 시각, 번호 차례로 마지막)의 보낸 사람과 미리보기.
 // 방 흐름과 같은 조건(visibleMessage)이라 들어오기 전 부서방 메시지는 미리보기에도 없다(DEC-20, DEC-90).
+// 내 방의 보이는 메시지를 다 훑는다. 메시지가 많아져 느려지면 방마다 LATERAL로 하나씩 읽고 (room_id, sent_at, id) 인덱스를 둔다.
 async function lastMessages(db: ListReader, actor: Actor) {
   const rows = await db
     .selectDistinctOn([message.roomId], {
