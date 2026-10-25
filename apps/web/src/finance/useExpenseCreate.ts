@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { CreateExpenseSchema, type ExpenseResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
+import { newCommandId } from '@/lib/command-id'
 import { expensesPath } from './expense-api'
 import {
   expenseCreateProblem,
@@ -33,7 +34,7 @@ export function useExpenseCreate(councilId: string, request: unknown, handlers: 
     setProblem(null)
     const result = await postJson<ExpenseResponse>(expensesPath(councilId), {
       ...parsed.data,
-      commandId: crypto.randomUUID(),
+      commandId: newCommandId(),
     })
     sending.current = false
     handlers.setSaving(false)

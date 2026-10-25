@@ -1,10 +1,9 @@
 import { z } from 'zod'
 import { WON_MAX, type EventRef } from './budget.js'
 import { PHOTO_KEY_MAX } from './chat.js'
-import { EmptyRequestSchema, text, token } from './input.js'
+import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { PURCHASE_ITEMS_MAX, PURCHASE_REASON_MAX, type PurchasePerson } from './purchases.js'
-import { commandIdInput } from './registrations.js'
 import { recordIdInput } from './team.js'
 
 // 지출(DEC-24, DEC-36, DEC-45). 값은 DB CHECK와 같다.

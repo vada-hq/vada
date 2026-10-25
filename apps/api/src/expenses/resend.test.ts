@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
-import type { ChatMessage, ExpenseDetail } from '@vada/contracts'
-import { clockNow, createRecord } from '../records/records.js'
+import { CreateExpenseSchema, type ChatMessage, type ExpenseDetail } from '@vada/contracts'
+import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import {
   errorOf,
   ITEM,
@@ -280,5 +280,104 @@ test(
     assert.equal(later.status, 201)
     assert.notEqual((await detailOf(later)).id, first.id)
     assert.equal(await s.count('SELECT count(*) AS n FROM expense'), 2)
+  }),
+)
+
+// 계약의 칸마다 그 칸 하나만 바꾼 본문. 해시에서 어느 칸을 빼도 422가 아니라 201이나 409가 되어 시험이 실패한다.
+const ONE_FIELD_CHANGES: Record<string, unknown> = {
+  vendor: '다른 곳',
+  description: '다른 내역',
+  amount: 15001,
+  paidOn: '2026-10-24',
+  method: 'cash',
+  paidBy: MISSING,
+  reason: '사유',
+  budgetItemId: MISSING,
+  eventId: MISSING,
+  requestedBy: MISSING,
+  accountId: MISSING,
+  sourceMessageId: MISSING,
+  lines: [{ lineItemId: MISSING, amount: 15000 }],
+}
+
+test(
+  '본문 칸 하나만 바꿔도 같은 번호는 422다: 예산 항목·행사·계좌·부탁한 사람을 포함해 계약의 모든 칸',
+  runPurchases(async s => {
+    // 계약에 칸이 늘면 이 목록과 해시에 넣었는지 함께 봐야 하므로 여기서 실패한다.
+    const fields = Object.keys(CreateExpenseSchema.shape).filter(key => key !== 'commandId')
+    assert.deepEqual(Object.keys(ONE_FIELD_CHANGES).sort(), fields.sort())
+    const body = { ...BODY, commandId: randomUUID() }
+    assert.equal((await send(s, body)).status, 201)
+    const shape = await shapeOf(s)
+    for (const [field, value] of Object.entries(ONE_FIELD_CHANGES)) {
+      const response = await send(s, { ...body, [field]: value })
+      assert.equal(response.status, 422, field)
+      assert.equal(await errorOf(response), 'COMMAND_REUSED', field)
+    }
+    assert.deepEqual(await shapeOf(s), shape)
+  }),
+)
+
+test(
+  '재정부에서 빠진 뒤의 재전송은 403이다',
+  runPurchases(async s => {
+    const body = { ...BODY, commandId: randomUUID() }
+    assert.equal((await send(s, body)).status, 201)
+    const membership = await s.pg.query<{ id: string }>(
+      'SELECT id FROM department_membership WHERE member_id = $1 AND department_id = $2',
+      [s.council.people.financeMember.memberId, s.council.departments.finance],
+    )
+    await s.db.transaction(tx =>
+      updateRecord(tx, {
+        kind: 'department_membership',
+        id: membership.rows[0]!.id,
+        actor: s.council.people.president.memberId,
+        reason: null,
+        changes: { endsAt: clockNow },
+      }),
+    )
+    assert.equal((await send(s, body)).status, 403)
+    assert.equal(await s.count('SELECT count(*) AS n FROM expense'), 1)
+  }),
+)
+
+test(
+  '행사를 완료한 뒤에도 같은 명령의 재전송은 201과 같은 상세이고, 새 번호는 409 EVENT_COMPLETED다',
+  runPurchases(async s => {
+    const eventId = await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'event',
+        councilId: s.council.councilId,
+        actor: s.council.people.president.memberId,
+        values: { name: '가을 축제' },
+      }),
+    )
+    const body = { ...BODY, eventId, commandId: randomUUID() }
+    const created = await detailOf(await send(s, body))
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'approval',
+        councilId: s.council.councilId,
+        actor: s.council.people.president.memberId,
+        values: {
+          targetId: eventId,
+          targetKind: 'event',
+          outcome: 'completed',
+          actorId: s.council.people.president.memberId,
+          actorKind: 'member',
+          actedAt: clockNow,
+          reason: null,
+        },
+      }),
+    )
+    const shape = await shapeOf(s)
+    const again = await send(s, body)
+    assert.equal(again.status, 201)
+    // 지금 상세라 할 수 있는 동작(actions)은 잠금을 따라 줄어든다. 나머지는 처음과 같다.
+    assert.deepEqual({ ...(await detailOf(again)), actions: [] }, { ...created, actions: [] })
+    assert.deepEqual(await shapeOf(s), shape)
+    const fresh = await send(s, { ...body, commandId: randomUUID() })
+    assert.equal(fresh.status, 409)
+    assert.equal(await errorOf(fresh), 'EVENT_COMPLETED')
   }),
 )
