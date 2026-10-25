@@ -9,9 +9,12 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { postKkirukNotice } from '../chat/kkiruk-post.js'
+import { memberNamesOf } from '../team/display-name.js'
 import { createRecord, updateRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
+import { changeNoticeOf, createdNoticeOf } from './change-notice.js'
 import { decide, factsOf } from './policy.js'
 import { eventDetailOf, eventRowOf } from './queries.js'
 
@@ -21,12 +24,21 @@ import { eventDetailOf, eventRowOf } from './queries.js'
 
 const fromKorean = (value: string | null) => (value ? dateFromKorean(value) : null)
 
+// 쓰기의 응답과, 같은 거래에서 공지방에 쓴 끼룩이 글(없으면 null). 라우트가 커밋 뒤에 그 글의 휴대폰 알림을 보낸다.
+export type EventWrite = { event: EventDetail; noticeId: string | null }
+
+// 그 행사의 공지방(없으면 우리 학생회 공지방)에 끼룩이 글 하나. 글이 없으면 쓰지 않는다.
+const noticeOf = (tx: Tx, actor: Actor, eventId: string, body: string | null) =>
+  body
+    ? postKkirukNotice(tx, { councilId: actor.councilId, cohortId: actor.cohortId, eventId }, body)
+    : null
+
 export async function createEvent(
   tx: Tx,
   actor: Actor,
   input: CreateEventRequest,
   now: Date,
-): Promise<EventDetail> {
+): Promise<EventWrite> {
   if (!can(actor, 'event.create')) throw new ApiError('FORBIDDEN')
   // 업무를 이으면 행사와 연결 한 줄이 한 거래에서 생긴다. 업무는 그대로이고 완료할 때 끝남이 된다. 거절이면 아무것도 생기지 않는다.
   if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
@@ -44,7 +56,10 @@ export async function createEvent(
       ownerId: actor.memberId,
     },
   })
-  return eventDetailOf(tx, actor, id, now)
+  // 행사가 생기면 공지방에 끼룩이 글이 올라 회장단이 안다(DEC-93). 만든 사람은 방금 지금 운영진으로 확인됐다.
+  const maker = (await memberNamesOf(tx, actor.councilId, [actor.memberId])).get(actor.memberId)!
+  const noticeId = await noticeOf(tx, actor, id, createdNoticeOf(maker, input.name))
+  return { event: await eventDetailOf(tx, actor, id, now), noticeId }
 }
 
 // 이름, 일시, 장소 고치기. 회장단과 책임자가 한다(DEC-79). 같은 값이면 판을 만들지 않는다.
@@ -53,7 +68,7 @@ export async function updateEvent(
   actor: Actor,
   target: { eventId: string; now: Date },
   input: UpdateEventRequest,
-): Promise<EventDetail> {
+): Promise<EventWrite> {
   const row = await eventRowOf(tx, actor, target.eventId)
   // 행사 행을 FOR SHARE로 잠근 뒤 같은 거래에서 사실을 읽어 판정한다(완료와 겹치면 하나로 정해진다).
   await lockEventsShared(tx, [row.id])
@@ -79,5 +94,13 @@ export async function updateEvent(
       reason: null,
       changes,
     })
-  return eventDetailOf(tx, actor, row.id, target.now)
+  // 이름, 일시, 장소가 바뀌면 같은 거래에서 공지방에 끼룩이 글 하나(DEC-90, DEC-93). 같은 값이면 글이 없다.
+  const after = {
+    name: input.name,
+    startsAt: fromKorean(input.startsAt),
+    endsAt: fromKorean(input.endsAt),
+    place: input.place,
+  }
+  const noticeId = await noticeOf(tx, actor, row.id, changeNoticeOf(row, after, target.now))
+  return { event: await eventDetailOf(tx, actor, row.id, target.now), noticeId }
 }

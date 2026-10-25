@@ -98,7 +98,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     closing: createClosingRoutes(db, session, { clock, bundleAvailable: storage !== undefined }),
     closingExport: createClosingExportRoutes(db, session, { clock, storage }),
     agreement: createAgreement(db, session),
-    events: createEventRoutes(db, session, { clock }),
+    events: createEventRoutes(db, session, { clock, push: push.chat }),
     accounts: createAccountRoutes(db, session, { clock }),
     registrations: createRegistrationRoutes(db, session, { clock }),
     deposits: createDepositRoutes(db, session, { clock }),
