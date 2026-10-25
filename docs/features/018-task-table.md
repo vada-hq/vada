@@ -91,7 +91,7 @@
 - 닿는 곳: api `tasks/notify.ts`, `tasks/service.ts`(알림을 넘기는 곳), `tasks/routes.ts` 또는 `write-routes.ts`, `serve.ts`(타이머 연결), `tasks/assign.test.ts`.
 - 검토: 깊게(뒤에서 돌리는 일). 마이그레이션: 없음.
 
-### 4. 빠른 추가와 서버 선택지(화면) [ ]
+### 4. 빠른 추가와 서버 선택지(화면) [x]
 - 할 수 있게 되는 것: 운영진이 업무 화면과 행사의 업무 탭에서 제목만 쳐 업무를 만든다.
 - 수용 기준: 목록 배치의 '끝나지 않은 것'에서 탭 줄 아래에 '새 업무' 칸과 [추가]가 있고(휴대폰 포함), 제목을 치고 Enter나 [추가]를 누르면 '기본값 고르기'대로 만들어져 목록에 보이며 칸이 비고 초점이 남는다. 빈 제목이면 칸 아래 오류이고 보내지 않는다. 보내는 동안 [추가]는 `busy`이고 두 번 가지 않는다. 내 업무의 부원 → 담당자 나, 내 부서, 행사 탭 → 그 행사, 회장단 전체 → 학생회 업무·담당자 없음, 부원이 담당자 없음 탭에서 만들면 나로 만들어지고 '추가한 업무는 이 보기에 없음'과 [열기]가 보인다. 409·429·403은 칸 아래 문구다. 끝남·달력에는 칸이 없다. 업무 만들기 창과 머리글의 [업무 만들기]가 없다. 행사 개요의 [업무 만들기]는 업무 탭의 '새 업무' 칸에 초점을 둔다. 칸에 글이 남았으면 떠날 때 묻는다. `task-form-options.ts`에 만들기 선택지 셈(`departmentChoices`, `assigneeChoices`, `defaultDepartmentId`, `ownsEvent`)이 없고, `docs/tech-debt.md` DEBT-1이 '고침'과 커밋이다. 390px에서 넘침이 없다.
 - 닿는 곳: `apps/web/src/tasks/`(빠른 추가 부품(새), `TasksPage.tsx`, `TaskDialogs.tsx`, `task-form-options.ts`, `useTaskCreate.ts`, 지우는 `TaskCreateDialog.tsx`·`useTaskCreateForm.ts`와 시험), `events/EventDetailView.tsx`·`EventsPage.test.tsx`, `lib/use-record-dialogs.ts`, `lib/messages.ts`, `ui-gallery/`, `docs/tech-debt.md`.

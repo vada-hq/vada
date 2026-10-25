@@ -139,6 +139,9 @@ export const TASK_ERRORS: Record<string, string> = {
 export const TASK_FAILED = '저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const TASK_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const TASK_LOST = '이 업무를 볼 수 없어요. 지워졌을 수 있어요.'
+export const TASK_OPTIONS_FAILED =
+  '업무를 만들 수 있는 부서와 담당자를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const TASK_OPTIONS_LOADING = '부서와 담당자를 불러오는 중이에요. 잠시 뒤에 다시 눌러 주세요.'
 export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어요. 연결을 확인해 주세요.'
 
 // 메시지 보내기와 사진 올리기. 오류는 입력칸 옆에 보인다. 표에 없는 코드는 일반 문구다.
