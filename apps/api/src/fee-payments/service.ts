@@ -9,6 +9,7 @@ import type { Actor } from '../access/actor.js'
 import { feePayment } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { clockNow } from '../records/records.js'
 import { clearFeeStudentIds } from './purge.js'
 import { parseStudents, type ParsedStudents } from './parse.js'
 
@@ -31,7 +32,7 @@ async function insertChunk(
         AND f.student_id = s AND f.paid_from = ${period.paidFrom}::date)
     ), made AS (
       INSERT INTO record (id, kind, council_id, created_by, created_at)
-      SELECT id, 'fee_payment', ${actor.councilId}::uuid, ${actor.memberId}::uuid, clock_timestamp() FROM picked
+      SELECT id, 'fee_payment', ${actor.councilId}::uuid, ${actor.memberId}::uuid, ${clockNow} FROM picked
     )
     INSERT INTO fee_payment (id, council_id, student_id, paid_from, paid_until)
     SELECT id, ${actor.councilId}::uuid, student_id, ${period.paidFrom}::date, ${period.paidUntil}::date FROM picked

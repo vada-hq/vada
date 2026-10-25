@@ -209,6 +209,29 @@
                 "name": "@sentry/node",
                 "message": "Sentry는 http/on-error.ts와 http/sentry.ts만 쓴다(AGENTS.md 로그·비밀)."
               }
+            ],
+            "patterns": [
+              {
+                "group": ["**/flows/**", "flows/**"],
+                "message": "흐름 서버와 흐름 전용 세션(머리 x-flow-user로 계정을 고름)은 flows/와 scripts/만 가져온다. 운영 서버나 라우트가 가져오면 누구나 남이 된다(기능 017)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    // 흐름 서버와 시연 명령은 흐름 세션을 쓴다. 위 규칙에서 flows 막기만 빼고 Sentry 막기는 그대로 둔다.
+    {
+      "files": ["apps/api/src/flows/**", "apps/api/scripts/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@sentry/node",
+                "message": "Sentry는 http/on-error.ts와 http/sentry.ts만 쓴다(AGENTS.md 로그·비밀)."
+              }
             ]
           }
         ]
