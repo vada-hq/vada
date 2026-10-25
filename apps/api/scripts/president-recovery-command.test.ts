@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createTestDb, type TestDb } from '../src/db/test-db.js'
-import { seedCouncil } from '../src/test-support/council.js'
+import { seedCouncil, setDbClock } from '../src/test-support/council.js'
 import {
   parseRecoveryArgs,
   runPresidentRecovery,
@@ -11,6 +11,8 @@ import {
 const SECRET_URL = 'postgres://user:hunter2@db.example.test/vada'
 const COUNCIL = '0190a000-0000-7000-8000-000000000001'
 const later = new Date('2026-10-25T03:00:00Z')
+// 시험 학생회를 만드는 기록 시각. 알린 날(2026-10-10)보다 앞이라 지금 회장은 알림을 받은 회장이다.
+const SEEDED_AT = new Date('2026-01-02T00:00:00Z')
 
 test('인자: 학생회 번호, 이메일, --notified-on 날짜와 --apply, --from-shell만 받는다', () => {
   assert.deepEqual(parseRecoveryArgs([COUNCIL, 'a@b.test', '--notified-on', '2026-10-10']), {
@@ -130,6 +132,7 @@ const versionCount = async (testDb: TestDb) =>
 test('미리 보기는 대상, 학생회, 지금 회장과 새 회장, 점검과 적용 명령을 보이고 쓰지 않는다', async () => {
   const testDb = await createTestDb()
   try {
+    await setDbClock(testDb.db, SEEDED_AT)
     const seeded = await seedCouncil(testDb.db, testDb.pg, 's')
     const connection = connectionTo(testDb)
     const before = await versionCount(testDb)
@@ -161,6 +164,7 @@ test('미리 보기는 대상, 학생회, 지금 회장과 새 회장, 점검과
 test('미리 보기에서 점검이 실패하면 까닭을 보이고 1로 끝난다', async () => {
   const testDb = await createTestDb()
   try {
+    await setDbClock(testDb.db, SEEDED_AT)
     const seeded = await seedCouncil(testDb.db, testDb.pg, 's')
     for (const [email, notifiedOn, reason] of [
       ['s-ended@example.test', '2026-10-10', /지금 기수 운영진이 아니다/],
@@ -186,6 +190,7 @@ test('미리 보기에서 점검이 실패하면 까닭을 보이고 1로 끝난
 test('--apply는 옮기고 결과를 보이며 연결을 닫는다. 점검이 실패하면 쓰지 않는다', async () => {
   const testDb = await createTestDb()
   try {
+    await setDbClock(testDb.db, SEEDED_AT)
     const seeded = await seedCouncil(testDb.db, testDb.pg, 's')
     const failing = connectionTo(testDb)
     const before = await versionCount(testDb)

@@ -80,6 +80,9 @@ const PROBLEM_MESSAGES: Record<Exclude<RecoveryProblem, 'TOO_EARLY'>, string> = 
   NO_ACCOUNT: '그 이메일의 계정이 없다.',
   NOT_MEMBER: '새 회장이 그 학생회 지금 기수 운영진이 아니다(다른 학생회 사람이거나 내보낸 사람).',
   ALREADY_PRESIDENT: '새 회장이 이미 회장이다.',
+  COHORT_CHANGED:
+    '알린 날 뒤에 지금 기수가 시작했다. 지금 회장에게 다시 알리고 그 날로 다시 돌린다.',
+  PRESIDENT_CHANGED: '알린 날 뒤에 회장이 바뀌었다. 지금 회장에게 다시 알리고 그 날로 다시 돌린다.',
 }
 
 export type RecoveryRun = {
