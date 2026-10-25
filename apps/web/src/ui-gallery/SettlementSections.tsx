@@ -1,6 +1,7 @@
 import type { EventSettlement, EventSettlementRow, EventSummary } from '@vada/contracts'
 import EventRow from '@/events/EventRow'
 import { EventSettlementList } from '@/finance/EventSettlementList'
+import { EventSettlementTable } from '@/finance/EventSettlementTable'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
 import { Alert } from '@/components/ui/alert'
@@ -108,21 +109,24 @@ const settlingEvent = (
   settlement,
 })
 
-// 재정의 '행사 정산' 탭: 끝났고 완료하지 않은 것 → 진행 중·예정·날짜 미정 → 완료. 390px 폭과 긴 이름에서 줄이 넘치지 않는다.
+const settlingRows = [
+  settlingEvent('s1', '봄 축제', 'ended', { remaining: 12, settled: false }),
+  settlingEvent('s2', longName, 'ended', { remaining: 0, settled: true }),
+  settlingEvent('s3', '전시', 'ongoing', { remaining: 1, settled: false }),
+  settlingEvent('s4', '졸업 파티', 'tbd', { remaining: 0, settled: false }),
+  settlingEvent('s5', '개강 파티', 'completed', { remaining: 0, settled: true }),
+]
+
+// 재정의 '행사 정산' 탭: 끝났고 완료하지 않은 것 → 진행 중·예정·날짜 미정 → 완료.
+// 넓은 화면(sm 이상)은 표, 휴대폰은 카드 줄이다. 둘 다 폭에 맞춰 줄어 가로로 넘치지 않는다.
 export function EventSettlementsSection() {
   return (
     <Section title="재정 행사 정산 탭">
-      <div className="flex w-80 flex-col gap-4">
-        <EventSettlementList
-          rows={[
-            settlingEvent('s1', '봄 축제', 'ended', { remaining: 12, settled: false }),
-            settlingEvent('s2', longName, 'ended', { remaining: 0, settled: true }),
-            settlingEvent('s3', '전시', 'ongoing', { remaining: 1, settled: false }),
-            settlingEvent('s4', '졸업 파티', 'tbd', { remaining: 0, settled: false }),
-            settlingEvent('s5', '개강 파티', 'completed', { remaining: 0, settled: true }),
-          ]}
-          onOpen={noop}
-        />
+      <div className="flex w-full flex-col gap-4">
+        <EventSettlementTable rows={settlingRows} onOpen={noop} />
+        <div className="w-full max-w-sm">
+          <EventSettlementList rows={settlingRows} onOpen={noop} />
+        </div>
         <StateMessage kind="empty">행사 없음</StateMessage>
       </div>
     </Section>

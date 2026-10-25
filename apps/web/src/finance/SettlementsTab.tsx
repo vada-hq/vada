@@ -3,7 +3,9 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { openRecord } from '@/lib/go-to'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
+import { useWide } from '@/lib/use-split'
 import { EventSettlementList } from './EventSettlementList'
+import { EventSettlementTable } from './EventSettlementTable'
 import { useEventSettlements } from './useEventSettlements'
 
 type Props = { councilId: string; onForbidden: () => void }
@@ -11,6 +13,8 @@ type Props = { councilId: string; onForbidden: () => void }
 // 재정 '행사 정산' 탭: 지금 회계 기간의 행사마다 정산 남은 것 수. 모든 운영진이 같은 목록을 보고 처리는 행사의 예산·정산에서 한다.
 export function SettlementsTab({ councilId, onForbidden }: Props) {
   const { state, reload } = useEventSettlements(councilId, onForbidden)
+  // 넓은 화면은 재정 개요의 행사별 표와 같은 표, 휴대폰은 카드 줄이다(업무 목록과 같은 나눔).
+  const wide = useWide()
   if (state.kind === 'loading')
     return <StateMessage kind="loading">행사 정산 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
@@ -23,6 +27,7 @@ export function SettlementsTab({ councilId, onForbidden }: Props) {
       </div>
     )
   const { period, events, truncated } = state.data
+  const List = wide ? EventSettlementTable : EventSettlementList
   return (
     <div className="flex flex-col gap-3">
       {period && (
@@ -31,7 +36,7 @@ export function SettlementsTab({ councilId, onForbidden }: Props) {
       {events.length === 0 ? (
         <StateMessage kind="empty">행사 없음</StateMessage>
       ) : (
-        <EventSettlementList
+        <List
           rows={events}
           onOpen={eventId => openRecord('events', councilId, eventId, { tab: 'money' })}
         />
