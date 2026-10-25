@@ -2,7 +2,13 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { councilView } from '@/test-support/council-fixtures'
-import { homeResponse, homeTask, homeWithTasks, onHomeExtras } from '@/test-support/home-fixtures'
+import {
+  homeResponse,
+  homeTask,
+  homeWithTasks,
+  noRooms,
+  onHomeExtras,
+} from '@/test-support/home-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import HomePage from './HomePage'
 
@@ -26,6 +32,7 @@ function open(handler: () => Response | Promise<Response>) {
   render(
     <HomePage
       view={councilView('c1')}
+      rooms={noRooms}
       onOpenEvent={onOpenEvent}
       onOpenPage={onOpenPage}
       onForbidden={onForbidden}

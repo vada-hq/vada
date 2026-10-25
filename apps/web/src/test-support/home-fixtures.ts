@@ -5,7 +5,9 @@ import type {
   HomeTask,
   HomeTaskGroup,
   PurchaseRequestSummary,
+  RoomSummary,
 } from '@vada/contracts'
+import type { RoomListState } from '@/chat/useRoomList'
 import { json } from './mock-api'
 
 export const homeEvent = (id: string, extra: Partial<EventSummary> = {}): EventSummary => ({
@@ -83,3 +85,14 @@ export function onHomeExtras(
   )
   api.on('GET', `${base}/events`, () => json({ events: extras.events ?? [], truncated: false }))
 }
+
+// 홈 메시지함이 쓰는 대화 목록(작업 공간이 옆 메뉴 배지와 같이 읽은 것). 읽는 중이면 메시지함이 없다.
+export const noRooms: RoomListState = { kind: 'loading' }
+export const roomsOf = (rooms: RoomSummary[]): RoomListState => ({
+  kind: 'ready',
+  data: {
+    rooms,
+    unreadTotal: rooms.reduce((sum, room) => sum + room.unread, 0),
+    mentionTotal: 0,
+  },
+})

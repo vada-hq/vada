@@ -8,10 +8,12 @@ import type {
   HomeTask,
   HomeTaskGroup,
   PurchaseRequestSummary,
+  RoomSummary,
 } from '@vada/contracts'
 import AttentionTiles from '@/home/AttentionTiles'
 import { CouncilBlocked, CouncilEvents } from '@/home/CouncilSection'
 import DepartmentsSection from '@/home/DepartmentsSection'
+import MessageInbox from '@/home/MessageInbox'
 import MineSection from '@/home/MineSection'
 import ReceivedSection from '@/home/ReceivedSection'
 import RequestsSection from '@/home/RequestsSection'
@@ -175,6 +177,42 @@ export function HomeSection() {
         <RequestsSection
           requests={[request, { ...request, id: 'r2', status: 'rejected' }]}
           onOpenRequest={noop}
+          onSeeAll={noop}
+        />
+      </div>
+    </Section>
+  )
+}
+
+const chatRoom = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
+  id,
+  type: 'all_members',
+  name: null,
+  departmentId: null,
+  readOnly: false,
+  unread: 1,
+  mentions: 0,
+  lastMessageAt: '2026-10-23T03:00:00.000Z',
+  ...extra,
+})
+
+// 메시지함은 홈의 두 단 위 전체 폭이라 고정 폭 없이 그린다. 둘째 줄은 긴 이름이 접히는지 본다.
+export function HomeInboxSection() {
+  return (
+    <Section title="홈 · 메시지함">
+      <div className="flex w-full flex-col gap-3">
+        <MessageInbox
+          rooms={[
+            chatRoom('a', { type: 'direct', name: '김민준', unread: 2 }),
+            chatRoom('b', { type: 'department', name: '기획부', departmentId: 'd1', unread: 120 }),
+            chatRoom('c', { unread: 5 }),
+          ]}
+          onOpenRoom={noop}
+          onSeeAll={noop}
+        />
+        <MessageInbox
+          rooms={[chatRoom('d', { type: 'department', name: unbroken, departmentId: 'd2' })]}
+          onOpenRoom={noop}
           onSeeAll={noop}
         />
       </div>

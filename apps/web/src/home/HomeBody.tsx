@@ -1,12 +1,14 @@
 import type { AppQuery, HomeResponse } from '@vada/contracts'
 import { openMenu, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
+import type { RoomListState } from '../chat/useRoomList'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
 import DepartmentsSection from './DepartmentsSection'
 import { attentionOf } from './home-attention'
-import { mineRows } from './home-view'
+import { inboxRooms, mineRows } from './home-view'
+import MessageInbox from './MessageInbox'
 import MineSection from './MineSection'
 import ReceivedSection from './ReceivedSection'
 import RequestsSection from './RequestsSection'
@@ -23,6 +25,8 @@ export type HomeOpeners = {
 type Props = HomeOpeners & {
   home: HomeResponse
   councilId: string
+  // 작업 공간이 옆 메뉴 배지와 같이 읽는 대화 목록(DEC-90 홈 메시지함). 같은 응답이라 칩과 배지가 어긋나지 않는다.
+  rooms: RoomListState
   onForbidden: () => void
 }
 type Parts = HomeOpeners & {
@@ -136,14 +140,20 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
   )
 }
 
-// 맨 위에 숫자 카드, 그 아래 넓은 화면에서 두 단(와이어프레임 홈, Basecamp 홈). 휴대폰은 한 단이다.
-export default function HomeBody({ home, councilId, onForbidden, ...open }: Props) {
+// 맨 위에 숫자 카드, 바로 아래 메시지함, 그 아래 넓은 화면에서 두 단(와이어프레임 홈, Basecamp 홈). 휴대폰은 한 단이다.
+// 목록을 아직 읽지 못했거나 읽지 못하면 메시지함만 빠진다.
+export default function HomeBody({ home, councilId, rooms, onForbidden, ...open }: Props) {
   const extras = useHomeExtras(councilId, home.today, onForbidden, !home.council)
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const items = attentionOf(home, extras.requests, extras.events.length)
   return (
     <div className="flex flex-col gap-6">
       <AttentionTiles items={items} />
+      <MessageInbox
+        rooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
+        onOpenRoom={roomId => openRecord('chat', councilId, roomId)}
+        onSeeAll={() => openMenu('chat', councilId)}
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         <MainColumn home={home} councilId={councilId} mineIds={mineIds} {...open} />
         <SideColumn home={home} councilId={councilId} extras={extras} mineIds={mineIds} {...open} />

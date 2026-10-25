@@ -6,6 +6,7 @@ import {
   type HomeList,
   type HomeMine,
   type PurchaseRequestSummary,
+  type RoomSummary,
 } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
@@ -88,3 +89,21 @@ export const createdDay = (iso: string) => monthDay(koreanDay(iso))
 const EVENT_SETTLED_LABEL = '완료 가능'
 export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
   settled ? EVENT_SETTLED_LABEL : `정산 남은 것 ${remaining}`
+
+// 홈 메시지함의 칩 수(DEC-90, 와이어프레임 HOME-01 메시지함)
+const INBOX_LIMIT = 3
+// 사람에게 바로 온 방(1:1, 부서 간)은 칩 자리를 먼저 받는다.
+export const isPersonalRoom = (room: Pick<RoomSummary, 'type'>) =>
+  room.type === 'direct' || room.type === 'inter_department'
+const latestFirst = (a: RoomSummary, b: RoomSummary) =>
+  (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? '')
+
+// 메시지함 칩: 안 읽은 1:1·부서 간 방을 최근 순으로 먼저, 남은 자리에 안 읽은 다른 방을 최근 순으로 3개(DEC-90).
+// 대화 목록과 같은 응답이라 내가 든 방만 있다.
+export function inboxRooms(rooms: RoomSummary[]) {
+  const unread = rooms.filter(room => room.unread > 0).sort(latestFirst)
+  return [...unread.filter(isPersonalRoom), ...unread.filter(room => !isPersonalRoom(room))].slice(
+    0,
+    INBOX_LIMIT,
+  )
+}

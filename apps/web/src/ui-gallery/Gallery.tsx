@@ -28,7 +28,7 @@ import {
   TaskTableSection,
   TaskUndoBarSection,
 } from './TaskSections'
-import { HomeOtherSection, HomeSection } from './HomeSections'
+import { HomeInboxSection, HomeOtherSection, HomeSection } from './HomeSections'
 import { PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -58,6 +58,7 @@ export default function Gallery() {
       <TaskUndoBarSection />
       <TaskResultsSection />
       <HomeSection />
+      <HomeInboxSection />
       <HomeOtherSection />
       <PublicSection />
       <RegistrationSection />

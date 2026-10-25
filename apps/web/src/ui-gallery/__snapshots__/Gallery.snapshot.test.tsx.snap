@@ -1078,6 +1078,37 @@ exports[`대화상자 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-3">
@@ -3622,6 +3653,37 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 </li>
 </ul>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
 </section>
 </div>
 </div>
@@ -6172,6 +6234,37 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-3">
@@ -8714,6 +8807,37 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-3">
@@ -11248,6 +11372,37 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 </li>
 </ul>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
 </section>
 </div>
 </div>
@@ -13796,6 +13951,37 @@ exports[`처음 모양 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
 <h2 class="text-base">홈 · 부서, 학생회, 받은 것, 정산할 행사</h2>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-3">
@@ -16312,6 +16498,37 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 </li>
 </ul>
+</section>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">홈 · 메시지함</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-3">
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100">김민준 · 1:1 <span class="font-bold text-red-600">2</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">기획부 <span class="font-bold text-red-600">99+</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">공지방 <span class="font-bold text-red-600">5</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
+</section>
+<section aria-label="메시지함" class="flex flex-wrap items-center gap-2">
+<h2 class="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 text-gray-500" aria-hidden="true">
+<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
+</path>
+</svg>메시지함</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 text-xs [&amp;_svg]:size-3.5 h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 <span class="font-bold text-red-600">1</span>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline [&amp;_svg]:size-3.5 h-auto p-0 text-xs">전체 보기</button>
 </section>
 </div>
 </div>

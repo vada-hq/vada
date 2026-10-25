@@ -9,6 +9,7 @@ import {
   homeResponse,
   homeTask,
   noTasks,
+  noRooms,
   onHomeExtras,
 } from '@/test-support/home-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
@@ -30,7 +31,7 @@ function open(home: HomeResponse) {
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),
   }
-  render(<HomePage view={councilView('c1')} onForbidden={vi.fn()} {...fns} />)
+  render(<HomePage view={councilView('c1')} rooms={noRooms} onForbidden={vi.fn()} {...fns} />)
   return fns
 }
 

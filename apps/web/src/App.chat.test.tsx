@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
 import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
@@ -103,6 +103,22 @@ test('홈에 공지 부분이 없다', async () => {
   await renderApp()
   expect(await screen.findByRole('heading', { level: 1, name: '홈', hidden: true })).toBeTruthy()
   expect(screen.queryByRole('region', { name: '공지' })).toBeNull()
+})
+
+test('홈 메시지함은 옆 메뉴 배지와 같은 대화 목록을 쓰고, 칩을 누르면 그 방이 열린다', async () => {
+  const unread = roomList({
+    rooms: [room(ALL), room(LEAD, { type: 'leadership', unread: 2 })],
+    unreadTotal: 2,
+  })
+  api.on('GET', `/api/organizations/${C1}/rooms`, () => json(unread))
+  window.history.replaceState(null, '', `/home/${C1}`)
+  await renderApp()
+  const inbox = await screen.findByRole('region', { name: '메시지함' })
+  expect(screen.getByLabelText('안 읽은 메시지 2개')).toBeTruthy()
+  expect(api.calls.filter(call => call.path === `/api/organizations/${C1}/rooms`)).toHaveLength(1)
+  fireEvent.click(within(inbox).getByRole('button', { name: '회장단방 2' }))
+  expect(await screen.findByText('회장단 글')).toBeTruthy()
+  expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
 })
 
 test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => {

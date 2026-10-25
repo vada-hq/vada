@@ -4,18 +4,21 @@ import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { HOME_LOAD_FAILED } from '@/lib/messages'
+import type { RoomListState } from '../chat/useRoomList'
 import HomeBody, { type HomeOpeners } from './HomeBody'
 import { useHome } from './useHome'
 
 // 줄을 눌러 업무·요청·행사를 그 화면에서 연다.
 type Props = HomeOpeners & {
   view: CouncilView
+  // 홈 메시지함이 쓰는 대화 목록(작업 공간이 읽는다)
+  rooms: RoomListState
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
 }
 
 // 옆 메뉴 '홈': 그 사람의 부분을 한 번 읽어 보인다. 읽기만 하고, 줄은 원래 기록의 화면으로 간다.
-export default function HomePage({ view, onForbidden, ...openers }: Props) {
+export default function HomePage({ view, rooms, onForbidden, ...openers }: Props) {
   const { state, reload } = useHome(view.council.id, onForbidden)
   const [retrying, setRetrying] = useState(false)
   const retry = async () => {
@@ -46,6 +49,7 @@ export default function HomePage({ view, onForbidden, ...openers }: Props) {
       <HomeBody
         home={state.home}
         councilId={view.council.id}
+        rooms={rooms}
         onForbidden={onForbidden}
         {...openers}
       />
