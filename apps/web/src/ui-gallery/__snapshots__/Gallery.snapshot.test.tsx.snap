@@ -641,9 +641,17 @@ exports[`대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -659,8 +667,8 @@ exports[`대화상자 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -692,7 +700,7 @@ exports[`대화상자 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -718,7 +726,7 @@ exports[`대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -754,7 +762,7 @@ exports[`대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -817,6 +825,94 @@ exports[`대화상자 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -3103,9 +3199,17 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -3121,8 +3225,8 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -3154,7 +3258,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -3180,7 +3284,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -3216,7 +3320,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -3279,6 +3383,94 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -5561,9 +5753,17 @@ exports[`옆 메뉴 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -5579,8 +5779,8 @@ exports[`옆 메뉴 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -5612,7 +5812,7 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -5638,7 +5838,7 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -5674,7 +5874,7 @@ exports[`옆 메뉴 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -5737,6 +5937,94 @@ exports[`옆 메뉴 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -8016,9 +8304,17 @@ exports[`오른쪽 패널 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -8034,8 +8330,8 @@ exports[`오른쪽 패널 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -8067,7 +8363,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -8093,7 +8389,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -8129,7 +8425,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -8192,6 +8488,94 @@ exports[`오른쪽 패널 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -10468,9 +10852,17 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -10486,8 +10878,8 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -10519,7 +10911,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -10545,7 +10937,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -10581,7 +10973,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -10644,6 +11036,94 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -12924,9 +13404,17 @@ exports[`처음 모양 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -12942,8 +13430,8 @@ exports[`처음 모양 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -12975,7 +13463,7 @@ exports[`처음 모양 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -13001,7 +13489,7 @@ exports[`처음 모양 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -13037,7 +13525,7 @@ exports[`처음 모양 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -13100,6 +13588,94 @@ exports[`처음 모양 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -15358,9 +15934,17 @@ exports[`확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
 </div>
 </td>
 <td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
@@ -15376,8 +15960,8 @@ exports[`확인 대화상자 열기 1`] = `
 <option value="">담당자 없음</option>
 </select>
 </td>
-<td role="gridcell" data-row="1" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
 </td>
 <td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-full py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
@@ -15409,7 +15993,7 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
 </td>
 <td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs wrap-anywhere font-medium text-red-600">10월 25일</span>
+<span class="text-xs font-medium text-red-600">10월 25일</span>
 </td>
 <td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -15435,7 +16019,7 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
 </td>
 <td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
@@ -15471,7 +16055,7 @@ exports[`확인 대화상자 열기 1`] = `
 <span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </td>
 <td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
-<span class="text-xs text-gray-500 wrap-anywhere">10월 25일</span>
+<span class="text-xs text-gray-500">10월 25일</span>
 </td>
 <td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
 <span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
@@ -15534,6 +16118,94 @@ exports[`확인 대화상자 열기 1`] = `
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
 </form>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">담당자 되돌리기 띠</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full max-w-xl flex-col gap-3">
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+<p class="text-xs text-red-200 wrap-anywhere">이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.</p>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div role="status" class="sticky bottom-4 z-10">
+<div class="flex flex-col gap-1 rounded-sm border bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+<div class="flex items-center gap-2">
+<span class="min-w-0 flex-1 wrap-anywhere">담당자 변경: 담당자 없음</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 text-blue-200 hover:bg-gray-800 hover:text-white">되돌리기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent p-2 [&amp;_svg]:size-4 text-gray-300 hover:bg-gray-800 hover:text-white" aria-label="닫기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>

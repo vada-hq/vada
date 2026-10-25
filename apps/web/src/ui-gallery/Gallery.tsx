@@ -26,6 +26,7 @@ import {
   TaskResultsSection,
   TaskSection,
   TaskTableSection,
+  TaskUndoBarSection,
 } from './TaskSections'
 import { HomeOtherSection, HomeSection } from './HomeSections'
 import { PublicSection } from './PublicSections'
@@ -54,6 +55,7 @@ export default function Gallery() {
       <TaskSection />
       <TaskTableSection />
       <TaskQuickAddSection />
+      <TaskUndoBarSection />
       <TaskResultsSection />
       <HomeSection />
       <HomeOtherSection />

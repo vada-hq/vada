@@ -136,6 +136,9 @@ export const TASK_ERRORS: Record<string, string> = {
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
+// 담당자 되돌리기에서 이전 담당자가 그 사이 운영진이 아니게 되었을 때
+export const UNDO_ASSIGNEE_INVALID =
+  '이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.'
 export const TASK_FAILED = '저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const TASK_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const TASK_LOST = '이 업무를 볼 수 없어요. 지워졌을 수 있어요.'

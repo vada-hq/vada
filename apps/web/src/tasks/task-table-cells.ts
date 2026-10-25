@@ -1,5 +1,6 @@
 import {
   TASK_STATUSES,
+  UpdateTaskSchema,
   type EventSummary,
   type TaskAction,
   type TaskSummary,
@@ -12,11 +13,15 @@ import {
   eventChoices,
   type Choice,
 } from './task-form-options'
+import { TASK_CONTRACT_MESSAGES } from './task-fields'
+import { requiredText, withContract } from '@/lib/use-form-check'
 import { STATUS_LABEL } from './task-view'
 
 export type Column = 'title' | 'status' | 'assignee' | 'due' | 'department' | 'event'
-// 칸에서 고르는 것 넷. 제목과 마감은 글로만 보인다.
+// 칸에서 고르는 것 넷. 제목과 마감은 글 칸이라 따로 다룬다(TextField).
 export type CellField = 'status' | 'assignee' | 'department' | 'event'
+
+export type TextField = 'title' | 'dueDate'
 
 export const COLUMN_LABEL: Record<Column, string> = {
   title: '제목',
@@ -87,4 +92,26 @@ export function cellValue(task: TaskSummary, field: CellField): string {
   if (field === 'assignee') return choiceValue(task.assignee?.id ?? null)
   if (field === 'department') return choiceValue(task.department?.id ?? null)
   return choiceValue(task.event?.id ?? null)
+}
+
+// 글 칸의 열이 고치는 요청의 키. 글 칸이 아닌 열은 null이다.
+export const textFieldOf = (column: Column): TextField | null =>
+  column === 'title' ? 'title' : column === 'due' ? 'dueDate' : null
+
+// 고칠 수 있는 칸인가. 제목·마감은 task.edit, 그 밖은 서버가 준 동작과 선택지가 있을 때다.
+export function isEditable(task: TaskSummary, column: Column, lookups: Lookups) {
+  if (textFieldOf(column)) return task.actions.includes('task.edit')
+  return isCellField(column) && cellChoices(task, column, lookups) !== null
+}
+
+// 보내기 전에 잡는 글 칸의 문제(빈 제목, 100자 넘음, 마감 형식). 문제가 없으면 null이다.
+export function textProblem(field: TextField, raw: string): string | null {
+  const value = field === 'dueDate' && raw === '' ? null : raw
+  const required = field === 'title' ? { title: requiredText(raw, '제목을') } : {}
+  const found = withContract(
+    required,
+    UpdateTaskSchema.safeParse({ [field]: value }),
+    TASK_CONTRACT_MESSAGES,
+  )
+  return Object.values(found).find(Boolean) ?? null
 }

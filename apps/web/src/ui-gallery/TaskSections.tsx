@@ -7,6 +7,7 @@ import { TaskResults } from '@/tasks/TaskResults'
 import { QuickAddView } from '@/tasks/TaskQuickAdd'
 import { TaskRow } from '@/tasks/TaskRow'
 import { TaskTable } from '@/tasks/TaskTable'
+import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { groupByDepartment } from '@/tasks/task-groups'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -78,7 +79,8 @@ const tableCells = {
   busy: new Set(['3|status']),
   errors: { '4': '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.' },
   patches: {},
-  save: async () => {},
+  save: () => Promise.resolve(true),
+  fail: noop,
   clearPatches: noop,
 }
 const tableLookups = {
@@ -128,6 +130,35 @@ export function TaskTableSection() {
           onOpenTask={noop}
           onOpenEvent={noop}
         />
+      </div>
+    </Section>
+  )
+}
+
+// 담당자를 바꾼 뒤 화면 아래에 남는 띠: 보통, 되돌리는 중, 되돌리기 실패, 긴 이름.
+export function TaskUndoBarSection() {
+  const change = {
+    taskId: '1',
+    previousId: 'p1',
+    assignee: { id: 'p2', name: '박새내', current: true },
+  }
+  const bars = [
+    { ...change, busy: false, error: null },
+    { ...change, busy: true, error: null },
+    {
+      ...change,
+      busy: false,
+      error: '이전 담당자가 지금은 운영진이 아니에요. 다른 사람을 골라 주세요.',
+    },
+    { ...change, assignee: { id: 'p3', name: longName, current: true }, busy: false, error: null },
+    { ...change, assignee: null, busy: false, error: null },
+  ]
+  return (
+    <Section title="담당자 되돌리기 띠">
+      <div className="flex w-full max-w-xl flex-col gap-3">
+        {bars.map((bar, index) => (
+          <TaskUndoBar key={index} bar={bar} dismiss={noop} undo={noop} />
+        ))}
       </div>
     </Section>
   )
