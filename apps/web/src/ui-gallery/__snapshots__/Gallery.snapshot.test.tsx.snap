@@ -189,7 +189,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <div class="flex min-w-0 gap-2 flex-1">
 <div class="flex min-w-0 flex-col gap-1 flex-1">
-<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
@@ -229,7 +229,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <div class="flex min-w-0 gap-2 flex-1">
 <div class="flex min-w-0 flex-col gap-1 flex-1">
-<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span class="font-medium wrap-anywhere text-gray-700">이재정</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
@@ -272,7 +272,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <div class="flex min-w-0 gap-2 flex-1">
 <div class="flex min-w-0 flex-col gap-1 flex-1">
-<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
 <span class="font-medium wrap-anywhere text-gray-700">이재정</span>
 <time datetime="2026-10-23T01:30:00Z">10:30</time>
 </p>
@@ -453,7 +453,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 </div>
 <div class="relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50">
-<div aria-hidden="true" class="flex w-14 shrink-0 flex-col items-center rounded-md py-1 border border-dashed text-gray-400">
+<div aria-hidden="true" class="flex w-14 shrink-0 flex-col items-center rounded-md py-1 border border-dashed text-gray-500">
 <span class="text-xs font-medium">날짜</span>
 <span class="text-xl leading-7 font-bold">미정</span>
 </div>
@@ -508,7 +508,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-full max-w-5xl flex-col gap-8">
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">후속 정리 중, 완료 가능(회장단): [완료]를 누르면 확인 창</p>
+<p class="text-xs text-gray-500">후속 정리 중, 완료 가능(회장단): [완료]를 누르면 확인 창</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -590,7 +590,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">후속 정리 중, 정산 남음(회장단)</p>
+<p class="text-xs text-gray-500">후속 정리 중, 정산 남음(회장단)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -673,7 +673,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">완료(회장단)</p>
+<p class="text-xs text-gray-500">완료(회장단)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -754,7 +754,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">진행 중, 부원(버튼 없음)</p>
+<p class="text-xs text-gray-500">진행 중, 부원(버튼 없음)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -832,7 +832,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">진행 중, 주의, 부서 둘</p>
+<p class="text-xs text-gray-500">진행 중, 주의, 부서 둘</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -911,7 +911,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">기획 중(회장단): 끝나기 전이라 막힌 까닭 없음</p>
+<p class="text-xs text-gray-500">기획 중(회장단): 끝나기 전이라 막힌 까닭 없음</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -990,7 +990,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">기획 중, 날짜 미정</p>
+<p class="text-xs text-gray-500">기획 중, 날짜 미정</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -3689,7 +3689,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <p class="text-base font-semibold">VADA</p>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</div>
@@ -3707,7 +3707,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -3789,7 +3789,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -3997,7 +3997,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4290,7 +4290,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4353,7 +4353,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id53_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -4411,7 +4411,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id55_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -4468,7 +4468,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id56_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -4532,7 +4532,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -4612,7 +4612,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <p class="text-base font-semibold">VADA</p>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-yellow-200 bg-yellow-50 text-yellow-700">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
@@ -4631,7 +4631,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex w-60 flex-wrap items-baseline gap-x-2 rounded-lg border bg-white p-2">
 <strong class="min-w-0 text-sm font-semibold wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</strong>
-<time class="text-xs text-gray-400">오후 3:00</time>
+<time class="text-xs text-gray-500">오후 3:00</time>
 </div>
 <p class="w-full text-sm wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</p>
 </div>

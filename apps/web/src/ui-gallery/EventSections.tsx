@@ -159,7 +159,7 @@ export function EventHeaderSection() {
       <div className="flex w-full max-w-5xl flex-col gap-8">
         {HEADERS.map(({ key, event: sample }) => (
           <div key={key} className="flex flex-col gap-1">
-            <p className="text-xs text-gray-400">{key}</p>
+            <p className="text-xs text-gray-500">{key}</p>
             <EventHeader event={sample} tabs={tabs} {...headerHandlers} />
           </div>
         ))}

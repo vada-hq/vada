@@ -74,7 +74,7 @@ function Cards({
           className="flex flex-col gap-2"
         >
           <h2 id={`events-${group.key}`} className="text-sm font-semibold text-gray-600">
-            {group.title} <span className="font-normal text-gray-400">{group.events.length}</span>
+            {group.title} <span className="font-normal text-gray-500">{group.events.length}</span>
           </h2>
           <Card className="overflow-hidden">
             <ul className="divide-y">

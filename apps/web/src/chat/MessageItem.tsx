@@ -44,7 +44,7 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
 
 function Header({ message }: Pick<Props, 'message'>) {
   return (
-    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
       <span className="font-medium wrap-anywhere text-gray-700">{message.senderName}</span>
       <time dateTime={message.sentAt}>{clockLabel(message.sentAt)}</time>
     </p>
@@ -69,7 +69,7 @@ function MineTime({ message, continued }: Pick<Props, 'message' | 'continued'>) 
   return (
     <time
       dateTime={message.sentAt}
-      className={continued ? 'sr-only' : 'shrink-0 self-end pb-1 text-xs text-gray-400'}
+      className={continued ? 'sr-only' : 'shrink-0 self-end pb-1 text-xs text-gray-500'}
     >
       {clockLabel(message.sentAt)}
     </time>

@@ -35,7 +35,7 @@ export default function RoomRow({
           {roomName(room)}
         </span>
         {room.readOnly && <Badge>보기만</Badge>}
-        <span className="shrink-0 text-xs text-gray-400">{timeLabel(room.lastMessageAt, now)}</span>
+        <span className="shrink-0 text-xs text-gray-500">{timeLabel(room.lastMessageAt, now)}</span>
         {room.mentions > 0 && (
           <Badge tone="warning" aria-label={`나를 부른 메시지 ${room.mentions}개`}>
             @
