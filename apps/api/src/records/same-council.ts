@@ -80,7 +80,7 @@ const ownersOf: Partial<
     if (assignee) owners.push(await councilOfMember(tx, assignee, councilId))
     return owners
   },
-  // 책임자는 떠난 운영진도 막지 않는다. 지금 운영진인지는 서비스가 본다(MEMBER_INVALID).
+  // 책임자는 떠난 운영진도 막지 않는다. 만들기는 책임자를 받지 않고 만든 사람(지금 운영진으로 확인된 요청자)으로 채운다(DEC-79).
   event: async (tx, councilId, v) => [
     ...(await members(tx, councilId, [field(v, 'ownerId', 'owner_id')])),
     ...(await optional(tx, field(v, 'previousEventId', 'previous_event_id'))),
