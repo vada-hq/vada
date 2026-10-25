@@ -3,6 +3,7 @@ import type { EventTab, MyCouncil, RecordKind } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
 import { navigate, useHere } from '@/lib/app-location'
+import { useScrollMemory } from '@/lib/use-scroll-memory'
 import { recordTarget } from './address'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
@@ -91,6 +92,8 @@ export default function CouncilWorkspace({
   const here = useHere()
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
   const nav = useWorkspaceNav(returnFocusTo, council.id, target.page)
+  // 본문 위치는 방문 기록 칸마다 기억한다. 직접 연 첫 칸은 표시가 없어 주소로 가른다.
+  useScrollMemory(nav.main, here.key || `path:${here.path}`)
   const openers = useOpeners(council.id, nav)
   const { lists, counts } = useWorkspaceLists(council.id, data)
   const sidebar = (from: Opener) => (
