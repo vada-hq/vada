@@ -1,5 +1,6 @@
 import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
 import QrCode from '@/components/QrCode'
+import ApplyFields from '@/public/ApplyFields'
 import FormSummary from '@/public/FormSummary'
 import { AttendanceBlock, FeeBlock, MineFacts } from '@/public/MineDetails'
 import { Section } from './GallerySection'
@@ -73,6 +74,37 @@ export function PublicSection() {
         <FeeBlock mine={mineOf()} />
       </div>
       <QrCode text={QR_TEXT} label="QR 예시" />
+    </Section>
+  )
+}
+
+const emptyValues = { name: '', studentId: '', phone: '' }
+
+// 신청 칸과 버튼 아래 고지. 참가비가 있으면 목적에 입금 확인이 붙고, 무료 양식에는 없다(DEC-93). 공개 화면과 같은 폭(max-w-md)이다.
+export function ApplyNoticeSection() {
+  const cases = [
+    publicForm(),
+    publicForm({
+      payerFee: null,
+      nonPayerFee: null,
+      collectsStudentId: false,
+      collectsPhone: true,
+    }),
+  ]
+  return (
+    <Section title="참가 신청 칸·고지(참가비 있음·없음)">
+      {cases.map(data => (
+        <div key={String(data.payerFee)} className="w-full max-w-md">
+          <ApplyFields
+            data={data}
+            values={emptyValues}
+            busy={false}
+            problem=""
+            onValues={() => {}}
+            onSubmit={() => {}}
+          />
+        </div>
+      ))}
     </Section>
   )
 }
