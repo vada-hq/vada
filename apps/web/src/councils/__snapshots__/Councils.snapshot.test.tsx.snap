@@ -114,7 +114,7 @@ exports[`들어오기: 묻기 1`] = `
 <div class="rounded-lg border p-6">
 <h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
 </div>
-<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
+<p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <div class="flex flex-col gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">들어가기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5">들어가지 않기</button>
@@ -144,7 +144,7 @@ exports[`들어오기: 오류 1`] = `
 <div class="rounded-lg border p-6">
 <h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
 </div>
-<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
+<p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.</p>
 <div class="flex flex-col gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4">들어가기</button>
@@ -166,7 +166,7 @@ exports[`들어오기: 진행 중 1`] = `
 <div class="rounded-lg border p-6">
 <h2 class="text-base font-semibold wrap-anywhere">컴퓨터학부 학생회에 들어갈까요?</h2>
 </div>
-<p class="text-xs text-gray-400">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
+<p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <div class="flex flex-col gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" disabled="" aria-busy="true">들어가는 중…</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5" disabled="" aria-busy="true">들어가지 않기</button>

@@ -52,7 +52,7 @@ export function AskToJoin({ council, joining, error, onJoin, onLeave }: AskProps
         <h2 className="text-base font-semibold wrap-anywhere">{council.name}에 들어갈까요?</h2>
       </div>
       {/* 이름과 이메일이 학생회 데이터가 된다는 고지라 설명 글을 줄이는 규칙의 예외다(DEC-72 '운영진 명단'). */}
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted-foreground">
         들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요.
         부서는 회장단이 정해요.
       </p>
