@@ -16,3 +16,13 @@ export function newCommandId(): string {
   const hex = Array.from(bytes, byte => byte.toString(HEX).padStart(BYTE_DIGITS, '0')).join('')
   return hex.replace(GROUPS, '$1-$2-$3-$4-$5')
 }
+
+// 지출처럼 대화상자가 열린 동안만 기억하는 번호. 보낼 본문(key)이 앞 시도와 같으면 같은 번호, 다르면 새 번호다.
+export type CommandMemo = { key: string; id: string } | null
+export type CommandMemoRef = { current: CommandMemo }
+
+export function reuseCommandId(memo: CommandMemoRef, key: string): string {
+  if (memo.current?.key === key) return memo.current.id
+  memo.current = { key, id: newCommandId() }
+  return memo.current.id
+}

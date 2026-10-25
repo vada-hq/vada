@@ -11,6 +11,8 @@ export const APPLY_ERRORS: Record<string, string> = {
   FORM_CHANGED: '신청 양식이 바뀌었어요. 새로 불러왔으니 확인하고 다시 신청해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+  COMMAND_REUSED: '앞서 보내던 신청과 달라서 새로 준비했어요. 다시 신청해 주세요.',
+  COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 신청해 주세요.',
 }
 export const APPLY_STUDENT_ID_INVALID = '학번은 숫자 6자리에서 12자리로 입력해 주세요'
 export const APPLY_PHONE_INVALID = '휴대폰 번호를 확인해 주세요'

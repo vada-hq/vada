@@ -281,6 +281,8 @@ export const EXPENSE_CREATE_ERRORS: Record<string, string> = {
   ...EXPENSE_ERRORS,
   MESSAGE_INVALID:
     '이 메시지를 근거로 할 수 없어요. 볼 수 없는 대화의 메시지예요. 닫고 대화에서 다시 열어 주세요.',
+  COMMAND_REUSED: '앞서 보내던 지출과 달라서 새로 준비했어요. 다시 적어 주세요.',
+  COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 적어 주세요.',
 }
 
 // 대화 사진을 증빙으로 붙일 때(사진 고르기, 메시지의 사진). 올린 파일이 아니라 대화의 사진이라 다시 올리라고 하지 않는다.

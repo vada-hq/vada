@@ -181,3 +181,110 @@ test('시작 전이면 시작 시각을 보이고, 그 시각이 되면 다시 �
   })
   expect(screen.getByLabelText('이름')).toBeTruthy()
 })
+
+// 명령 번호(017-3): 같은 값의 재전송은 같은 번호, 값을 고치면 새 번호, 성공하면 표지를 지운다.
+const idsOf = (api: ReturnType<typeof mockApi>) =>
+  api.calls
+    .filter(call => call.method === 'POST')
+    .map(call => (call.body as { commandId: string }).commandId)
+const MARKER = `vada.apply-command.${FORM_CODE}`
+
+async function press() {
+  fireEvent.click(await screen.findByRole('button', { name: '신청하기' }))
+  await settle()
+}
+async function fillAll(name = '김새내') {
+  await screen.findByLabelText('이름')
+  fill('이름', name)
+  fill('학번', '20260001')
+}
+
+test('실패 뒤 같은 값으로 다시 누르면 같은 번호를, 값을 고치면 새 번호를 보낸다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  await fillAll()
+  await press()
+  await press()
+  fill('이름', '김새내2')
+  await press()
+  const [first, again, edited] = idsOf(api)
+  expect(again).toBe(first)
+  expect(edited).not.toBe(first)
+})
+
+test('화면을 닫았다 다시 열어 같은 값을 넣으면 같은 번호다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  await fillAll()
+  await press()
+  cleanup()
+  render(<ApplyPage code={FORM_CODE} onApplied={vi.fn()} />)
+  await fillAll()
+  await press()
+  const [first, reopened] = idsOf(api)
+  expect(reopened).toBe(first)
+})
+
+test('기기에는 이름·학번·휴대폰이 남지 않는다', async () => {
+  const { api } = setup(publicForm({ collectsPhone: true }))
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  await fillAll()
+  fill('휴대폰 번호', '010-1234-5678')
+  await press()
+  const everything = JSON.stringify(Object.fromEntries(Object.entries(window.localStorage)))
+  expect(window.localStorage.getItem(MARKER)).not.toBeNull()
+  for (const secret of ['김새내', '20260001', '01012345678', '010-1234-5678'])
+    expect(everything).not.toContain(secret)
+})
+
+test('성공하면 표지를 지우고 토큰을 둔다', async () => {
+  const { api, onApplied } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  await fillAll()
+  await press()
+  expect(window.localStorage.getItem(MARKER)).not.toBeNull()
+  api.on('POST', APPLY_PATH, () => json({ token: 'tok123' }, 201))
+  await press()
+  await waitFor(() => expect(onApplied).toHaveBeenCalledWith('tok123'))
+  expect(window.localStorage.getItem(MARKER)).toBeNull()
+  expect(window.localStorage.getItem(`vada.registration.${FORM_CODE}`)).toBe('tok123')
+  const [first, second] = idsOf(api)
+  expect(second).toBe(first)
+})
+
+test('24시간이 지난 표지의 번호는 보내지 않는다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T00:00:00Z'))
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  await fillAll()
+  await press()
+  vi.setSystemTime(new Date('2026-10-26T00:00:01Z'))
+  await press()
+  const [first, later] = idsOf(api)
+  expect(later).not.toBe(first)
+})
+
+test('422 COMMAND_REUSED는 문구를 보이고 다음에는 새 번호를 보낸다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'COMMAND_REUSED' }, 422))
+  await fillAll()
+  await press()
+  expect((await screen.findByRole('alert')).textContent).toBe(APPLY_ERRORS.COMMAND_REUSED)
+  expect(window.localStorage.getItem(MARKER)).toBeNull()
+  await press()
+  const [first, second] = idsOf(api)
+  expect(second).not.toBe(first)
+})
+
+test('409 COMMAND_CONFLICT는 양식을 다시 읽지 않고 같은 번호로 다시 보낼 수 있다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'COMMAND_CONFLICT' }, 409))
+  await fillAll()
+  await press()
+  expect((await screen.findByRole('alert')).textContent).toBe(APPLY_ERRORS.COMMAND_CONFLICT)
+  expect(api.calls.filter(call => call.method === 'GET' && call.path === FORM_PATH)).toHaveLength(1)
+  await press()
+  const [first, second] = idsOf(api)
+  expect(second).toBe(first)
+})
