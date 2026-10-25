@@ -210,6 +210,30 @@ exports[`처음 모양 1`] = `
 </button>
 </div>
 </li>
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<div class="flex min-w-0 gap-2 flex-1">
+<div class="flex min-w-0 flex-col gap-1 flex-1">
+<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+<span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
+<time datetime="2026-10-23T01:30:00Z">10:30</time>
+</p>
+<p class="text-sm/6 text-gray-400">삭제된 메시지</p>
+</div>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
+<div class="flex min-w-0 gap-2 flex-row-reverse items-end">
+<div class="flex min-w-0 flex-col gap-1 max-w-xl items-end">
+<span class="sr-only">나</span>
+<p class="text-sm/6 text-gray-400 rounded-2xl rounded-tr-sm bg-gray-100 px-3 py-1.5">삭제된 메시지</p>
+</div>
+<time datetime="2026-10-23T01:30:00Z" class="shrink-0 self-end pb-1 text-xs text-gray-400">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
 </ul>
 </div>
 </section>
@@ -1898,6 +1922,11 @@ exports[`처음 모양 1`] = `
 <li class="flex items-center justify-between gap-2 text-sm">
 <span class="min-w-0 wrap-anywhere text-gray-800">
 <span class="text-gray-500">구매 요청</span> · 옛 요청</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
+</li>
+<li class="flex items-center justify-between gap-2 text-sm">
+<span class="min-w-0 wrap-anywhere text-gray-800">
+<span class="text-gray-500">공지</span> · 삭제된 메시지</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
 </li>
 <li class="flex items-center justify-between gap-2 text-sm">

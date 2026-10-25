@@ -4,7 +4,8 @@ import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { removeReceiptsOf } from '../commands/receipt.js'
 import { removeLinks } from './link.js'
-import { clearVersionValues, idList } from './personal-values.js'
+import { idList } from '../records/clear-versions.js'
+import { clearVersionValues } from './personal-values.js'
 import { purgeOnOf } from './purge-date.js'
 
 // 신청자 정보(이름, 학번, 휴대폰)를 지금 값과 모든 판에서 비우고 개인 링크 줄을 지운다(DEC-54, DEC-55). 행은 남고 판은 새로 열지 않는다.

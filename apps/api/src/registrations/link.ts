@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import { registrationLink } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { idList } from './personal-values.js'
+import { idList } from '../records/clear-versions.js'
 
 const TOKEN_BYTES = 16
 

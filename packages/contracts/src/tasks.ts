@@ -104,11 +104,11 @@ export interface TaskVersion {
   changes: TaskChange[]
 }
 
-// 업무 상세의 결과물 한 줄. 제목은 지금 제목이다.
+// 업무 상세의 결과물 한 줄. 제목은 지금 제목이다. 지운 공지(DEC-54)는 null이고 화면은 '삭제된 메시지'를 보인다.
 export interface TaskResult {
   kind: TaskResultKind
   id: string
-  title: string
+  title: string | null
   stage: TaskResultStage
 }
 

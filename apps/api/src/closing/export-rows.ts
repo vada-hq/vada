@@ -222,7 +222,8 @@ export async function photoRowsForExport(
   const seqs = new Map<string, number>()
   return rows.flatMap(row => {
     const number = numbers.get(row.expenseId)
-    if (number === undefined) return []
+    // 증빙 파일은 비우지 않지만 저장소 위치는 비울 수 있는 칸이다(지운 메시지의 사진, DEC-54).
+    if (number === undefined || row.key === null) return []
     const seq = (seqs.get(row.expenseId) ?? 0) + 1
     seqs.set(row.expenseId, seq)
     return [{ number, seq, type: row.type as EvidenceType, key: row.key }]

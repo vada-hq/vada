@@ -3,6 +3,9 @@
 // 저장 요청이 실패했는데 표에 없는 이유일 때 쓰는 일반 문구.
 export const SAVE_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 
+// 지운 메시지(DEC-54)의 자리. 대화 흐름과 업무 결과물이 같은 말을 한다.
+export const DELETED_MESSAGE = '삭제된 메시지'
+
 // 서버가 403으로 답했다: 화면을 연 뒤에 내 권한이나 소속이 바뀌었다.
 export const PERMISSION_CHANGED = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'
 // 로그인한 Google 계정의 이메일을 다른 계정이 이미 쓰고 있다(서버 EMAIL_IN_USE).

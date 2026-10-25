@@ -101,7 +101,8 @@ export function createChatPush(db: Db, send: PushSender) {
   const fanout = createFanout(db, send)
   async function run(messageId: string, now: Date, except: string | undefined) {
     const sent = await sentMessage(db, messageId)
-    if (!sent?.councilId) return
+    // 보내자마자 지운 메시지는 알리지 않는다(본문이 없다, DEC-54).
+    if (!sent?.councilId || sent.body === null) return
     const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
       id => !presence.isViewing(sent.roomId, id, now),
     )

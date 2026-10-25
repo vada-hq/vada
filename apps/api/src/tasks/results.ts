@@ -24,15 +24,20 @@ const TITLE_MAX = 60
 // 업무 상세의 결과물: 이 업무에서 만든 것을 만든 순으로, 제목은 지금 제목이고 단계는 그때그때 센다(저장하지 않는다).
 // 제목은 요청의 제목, 양식과 행사의 이름, 공지의 첫 줄이다.
 // 공지의 첫 줄은 이 사람이 대화에서 볼 수 있는 메시지일 때만 싣는다(DEC-59, visibleMessage). 볼 수 없으면 비운다.
+// 볼 수 있는 지운 공지는 제목이 null이고 화면이 '삭제된 메시지'를 보인다(DEC-54).
 const messageTitle = (actor: Actor) =>
   sql<string | null>`case when ${visibleMessage(actor)}
     then left(split_part(${message.body}, chr(10), 1), ${TITLE_MAX}) end`
+const erasedNotice = (actor: Actor) =>
+  sql`${message.deletedAt} is not null and ${visibleMessage(actor)}`
 export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promise<TaskResult[]> {
   const rows = await db
     .select({
       id: taskResult.resultId,
       kind: taskResult.resultKind,
-      title: sql<string>`coalesce(${request.title}, ${registrationForm.name}, ${event.name}, ${messageTitle(actor)}, '')`,
+      title: sql<
+        string | null
+      >`case when ${erasedNotice(actor)} then null else coalesce(${request.title}, ${registrationForm.name}, ${event.name}, ${messageTitle(actor)}, '') end`,
     })
     .from(taskResult)
     .innerJoin(record, eq(record.id, taskResult.resultId))
