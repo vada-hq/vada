@@ -271,11 +271,17 @@ test('만료된 세션 줄은 지우고, 만든 지 3개월이 지난 세션은 
     await runPurge(db, now)
     assert.deepEqual(await rows(), expected)
 
+    const expiresOf = async () =>
+      (
+        await pg.query<{ expires_at: Date }>("SELECT expires_at FROM sessions WHERE id = 'old'")
+      ).rows[0]!.expires_at.getTime()
+    const before = await expiresOf()
     const context = await auth.$context
     const cookie = `${context.authCookies.sessionToken.name}=${encodeURIComponent(`old.${await makeSignature('old', secret)}`)}`
     const signedIn = await auth.api.getSession({ headers: new Headers({ Cookie: cookie }) })
     assert.equal(signedIn?.user.id, 'u1')
-    // 세션을 늘려도 IP는 다시 적히지 않는다.
+    // 세션을 늘려도(만료 시각이 뒤로 감) IP는 다시 적히지 않는다.
+    assert.ok((await expiresOf()) > before)
     assert.deepEqual(
       (await rows()).find(row => row.id === 'old'),
       expected[1],
