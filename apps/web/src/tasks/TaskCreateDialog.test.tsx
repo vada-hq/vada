@@ -6,11 +6,13 @@ import { councilView, MEMBER_PERMISSIONS, teamResponse } from '@/test-support/co
 import { eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
+import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
 import { EVENTS_LOAD_FAILED, TASK_ERRORS } from '@/lib/messages'
 import { TaskCreateDialog } from './TaskCreateDialog'
 
 afterEach(() => {
   cleanup()
+  resetLeaveGuard()
   vi.unstubAllGlobals()
 })
 
@@ -287,4 +289,18 @@ test('만들기 409 EVENT_INVALID는 만들기 옆에 보인다', async () => {
   fireEvent.change(screen.getByRole('combobox', { name: '행사' }), { target: { value: EVENT_ID } })
   fireEvent.click(screen.getByRole('button', { name: '만들기' }))
   expect((await screen.findByRole('alert')).textContent).toBe(TASK_ERRORS.EVENT_INVALID)
+})
+
+test('쓰던 제목이 남아 있는 동안만 떠날 때 확인(저장하지 않은 입력)이 걸리고, 비우거나 닫으면 풀린다', async () => {
+  setup()
+  await screen.findByRole('combobox', { name: '담당 부서' })
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '청소' } })
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '' } })
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.change(screen.getByLabelText('내용'), { target: { value: '메모' } })
+  expect(hasUnsavedInput()).toBe(true)
+  cleanup()
+  expect(hasUnsavedInput()).toBe(false)
 })

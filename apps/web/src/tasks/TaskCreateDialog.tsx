@@ -10,12 +10,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { EVENTS_LOAD_FAILED, TASK_TEAM_FAILED } from '@/lib/messages'
+import { useUnsavedInput } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useTeam } from '@/team/useTeam'
 import { useEvents } from '../events/useEvents'
 import type { TaskDialogHandlers } from './task-requests'
 import { ChoiceSelect } from './ChoiceSelect'
-import { TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
+import { emptyFields, TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
 import { TaskFields } from './TaskFields'
 import { useTaskCreate } from './useTaskCreate'
 import { useTaskCreateForm } from './useTaskCreateForm'
@@ -123,6 +125,8 @@ function PlacementFields({
 
 function CreateForm({ view, team, events, saving, setSaving, ...props }: FormProps) {
   const form = useTaskCreateForm(view, team, events, props.eventId)
+  // 쓰던 제목·내용·마감이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  useUnsavedInput(!sameJson(form.fields, emptyFields))
   const create = useTaskCreate(view.council.id, form.request, { ...props, setSaving })
   const {
     formRef,

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { UpdateTaskSchema, type TaskDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { useUnsavedInput } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useEvents } from '../events/useEvents'
 import { fieldsOf, fieldsRequest, TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
@@ -31,6 +33,8 @@ export function TaskEditForm({ councilId, onForbidden, task, saving, problem, ..
   const ready = events.state.kind === 'ready'
   const list = events.state.kind === 'ready' ? events.state.data.events : []
   const changed = eventId !== (task.event?.id ?? null)
+  // 고치던 값이 서버 값과 다르면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  useUnsavedInput(changed || !sameJson(values, fieldsOf(task)))
   const request: EditRequest = { ...fieldsRequest(values), ...(changed ? { eventId } : {}) }
   const parsed = UpdateTaskSchema.safeParse(request)
   const valid = parsed.success
