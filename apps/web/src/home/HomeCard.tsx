@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { ChevronRight, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
@@ -36,25 +36,36 @@ type Props = {
   tiles?: boolean | undefined
 }
 
-// 머리 오른쪽 수: 3건 이하면 회색 '{n}건', 넘으면 파란 '전체 {n}건 보기'. 0건은 빈 문구가 말하므로 수를 두지 않는다.
+// 머리 오른쪽: 3건 이하면 회색 '{n}건'(0도 '0건'), 넘으면 파란 '전체 {n}건 보기'. 읽지 못했으면 '집계 전'만이다.
+// aside(회장단 행사 머리의 상태별 수, '바로가기')는 수 자리에 두고 전체 보기와 함께 나온다.
 function CardCount({
   read,
   unit,
   onSeeAll,
   aside,
 }: Pick<Props, 'read' | 'onSeeAll' | 'aside'> & { unit: string }) {
-  if (read.kind !== 'ready') return <span className="text-xs text-gray-500">집계 전</span>
-  if (aside !== undefined) return <span className="text-xs text-gray-500">{aside}</span>
-  if (read.total === 0) return null
-  if (read.total > CARD_ROWS && onSeeAll)
-    return (
-      <Button variant="link" size="sm" className="h-auto gap-0.5 p-0 text-xs" onClick={onSeeAll}>
-        전체 {read.total}
-        {unit} 보기
-        <ChevronRight aria-hidden />
-      </Button>
-    )
-  return <span className="text-xs text-gray-500">{`${read.total}${unit}`}</span>
+  if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-gray-500">집계 전</span>
+  const seeAll = read.total > CARD_ROWS && onSeeAll !== undefined
+  return (
+    <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
+      {aside !== undefined && <span className="text-xs break-keep text-gray-500">{aside}</span>}
+      {aside === undefined && !seeAll && (
+        <span className="shrink-0 text-xs text-gray-500">{`${read.total}${unit}`}</span>
+      )}
+      {seeAll && (
+        // 휴대폰에서 누르는 영역을 44px로 키우되 머리 바 높이는 그대로 둔다(WCAG 2.5.8).
+        <Button
+          variant="link"
+          size="sm"
+          className="h-auto shrink-0 gap-0.5 p-0 text-xs max-sm:-my-3 max-sm:min-h-11"
+          onClick={onSeeAll}
+        >
+          {`전체 ${read.total}${unit} 보기`}
+          <ChevronRight aria-hidden />
+        </Button>
+      )}
+    </div>
+  )
 }
 
 const centerClass = 'flex flex-col items-center justify-center gap-3 px-5 py-8 text-center'
@@ -78,7 +89,7 @@ function CardBody({
   if (read.total === 0)
     return (
       <div className={centerClass}>
-        <p className="text-sm text-gray-500">{empty}</p>
+        <p className="text-sm break-keep text-gray-500">{empty}</p>
         {emptyAction}
       </div>
     )
@@ -96,7 +107,7 @@ function Footnote({ label, text, onOpen }: CardFootnote) {
         onClick={onOpen}
       >
         <span className="shrink-0 text-gray-500">{label}</span>
-        <span className="min-w-0 flex-1 wrap-anywhere">{text}</span>
+        <span className="min-w-0 flex-1 break-keep wrap-anywhere">{text}</span>
         <ChevronRight aria-hidden className="text-gray-400" />
       </Button>
     </div>
@@ -117,14 +128,19 @@ export default function HomeCard({
   aside,
   tiles,
 }: Props) {
+  const titleId = useId()
   return (
     <section
-      aria-label={title}
+      aria-labelledby={titleId}
       aria-busy={read.kind === 'loading' || undefined}
       className={cn(cardClass, 'flex min-w-0 flex-col overflow-hidden')}
     >
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-gray-100 bg-gray-50 px-5 py-3">
-        <h2 className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-gray-700 wrap-anywhere">
+      {/* 머리 바는 한 줄이다. 좁으면 제목만 어절로 접혀 같은 줄 카드의 머리 아래선이 덜 어긋난다. */}
+      <div className="flex items-start justify-between gap-2 border-b border-gray-100 bg-gray-50 px-5 py-3">
+        <h2
+          id={titleId}
+          className="flex min-w-0 items-center gap-1.5 text-sm font-semibold break-keep text-gray-700 wrap-anywhere"
+        >
           <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
           {title}
         </h2>

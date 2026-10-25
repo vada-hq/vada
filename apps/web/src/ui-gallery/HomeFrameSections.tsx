@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Calendar, Check, CircleAlert, ClipboardList, Receipt, Star } from 'lucide-react'
 import FeaturedEvents, { type TilesRead } from '@/home/FeaturedEvents'
 import HomeCard, { type CardRead } from '@/home/HomeCard'
@@ -10,6 +11,7 @@ import {
   asOf,
   eventTiles,
   failed,
+  financeLine,
   inbox,
   issues,
   loading,
@@ -17,7 +19,7 @@ import {
   noop,
   MORE_THAN_SHOWN,
   participatingRows,
-  PushBand,
+  pushBand,
   ready,
   schedule,
   shortcut,
@@ -29,11 +31,16 @@ import {
 
 // 홈 틀과 공통 부품(기능 027 조각 5, DEC-95). 실제 홈은 아직 바꾸지 않았다.
 
+// 견본 홈 하나의 모든 카드를 같은 상태(읽기 전·실패)로 그릴 때 쓴다. 없으면 읽은 견본 줄이다.
+const readOr = (read: CardRead | undefined, rows: ReactNode[], total?: number) =>
+  read ?? ready(rows, total)
+
 // 회장단(HOME-01C): 메시지함은 인사 카드 오른쪽, 주요 행사 타일 없음, 행사 현황(가로 전체) → 3열.
+// read를 주면 모든 카드가 그 상태다(첫 읽기 전·실패라 기준 시각도 재정 한 줄도 없다).
 function CouncilHome({ read }: { read?: CardRead }) {
   return (
     <HomeFrame
-      asOf={asOf}
+      asOf={read ? undefined : asOf}
       today={today}
       greeting={
         <HomeGreeting
@@ -52,17 +59,19 @@ function CouncilHome({ read }: { read?: CardRead }) {
             icon={Star}
             unit="개"
             tiles
-            read={read ?? ready(eventTiles)}
+            read={readOr(read, eventTiles)}
             aside="기획 중 3 · 진행 중 1 · 후속 정리 중 0"
+            onSeeAll={noop}
             empty="진행할 행사 없음"
           />
         }
+        bottom={!read && financeLine}
         columns={[
           <HomeCard
             key="a"
             title="확인이 필요한 운영 상황"
             icon={CircleAlert}
-            read={read ?? ready(issues, MORE_THAN_SHOWN)}
+            read={readOr(read, issues, MORE_THAN_SHOWN)}
             empty="확인할 일 없음"
             onSeeAll={noop}
             footnote={{ label: '미배정 구성원', text: '2명', onOpen: noop }}
@@ -72,14 +81,14 @@ function CouncilHome({ read }: { read?: CardRead }) {
             title="후속 정리 중인 행사"
             icon={Check}
             unit="개"
-            read={read ?? ready([])}
+            read={readOr(read, [])}
             empty="후속 정리 중인 행사 없음"
           />,
           <HomeCard
             key="c"
             title="가까운 주요 일정"
             icon={Calendar}
-            read={read ?? ready(schedule)}
+            read={readOr(read, schedule)}
             empty="7일 안 일정 없음"
           />,
         ]}
@@ -94,10 +103,10 @@ type MemberProps = { tiles?: TilesRead; read?: CardRead; firstDay?: boolean }
 function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) {
   return (
     <HomeFrame
-      asOf={asOf}
+      asOf={read ? undefined : asOf}
       today={today}
       assignBand={firstDay && <AssignBand />}
-      pushBand={firstDay && <PushBand />}
+      pushBand={firstDay && pushBand}
       greeting={
         <HomeGreeting
           today={today}
@@ -115,7 +124,7 @@ function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) 
             title="참여 행사 진행"
             icon={Star}
             unit="개"
-            read={read ?? ready(firstDay ? [] : participatingRows)}
+            read={readOr(read, firstDay ? [] : participatingRows)}
             empty="참여 행사 없음"
             emptyAction={whoCreates}
           />,
@@ -123,21 +132,21 @@ function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) 
             key="b"
             title="가까운 일정"
             icon={Calendar}
-            read={read ?? ready(schedule, MORE_THAN_SHOWN)}
+            read={readOr(read, schedule, MORE_THAN_SHOWN)}
             empty="7일 안 일정 없음"
           />,
           <HomeCard
             key="c"
             title="내 요청"
             icon={Receipt}
-            read={read ?? ready([])}
+            read={readOr(read, [])}
             empty="내 요청 없음"
           />,
           <HomeCard
             key="d"
             title="내 업무·메시지"
             icon={ClipboardList}
-            read={read ?? ready(mineRows)}
+            read={readOr(read, mineRows)}
             aside="바로가기"
             empty="맡은 업무 없음"
           />,
@@ -151,12 +160,15 @@ export function HomeFrameSection() {
   return (
     <Section title="홈 틀·인사 카드·카드">
       <Width
-        label="1280px 창(회장단: 5건 전체 보기, 0건, 3건, 미배정 조건부 줄)"
+        label="1280px 창(회장단: 상태별 수와 전체 보기, 5건 전체 보기, 0건, 3건, 미배정 조건부 줄)"
         className="w-248 shrink-0"
       >
         <CouncilHome />
       </Width>
       <Width label="1024px 창(회장단)" className="w-184 shrink-0">
+        <CouncilHome />
+      </Width>
+      <Width label="420px 창(회장단)" className="w-97 shrink-0">
         <CouncilHome />
       </Width>
       <Width label="420px 창(회장단, 읽기 실패)" className="w-97 shrink-0">

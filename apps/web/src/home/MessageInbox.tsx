@@ -8,6 +8,8 @@ import { isPersonalRoom } from './home-view'
 type Props = {
   // 칩으로 보일 방(차례와 수는 inboxRooms가 정했다)
   rooms: RoomSummary[]
+  // 인사 카드 안(인사 h2 아래)이면 제목을 h3으로 둔다.
+  inCard?: boolean
   onOpenRoom: (roomId: string) => void
   // 대화 방 목록으로 간다.
   onSeeAll: () => void
@@ -26,15 +28,16 @@ const chipName = (room: RoomSummary) =>
 
 // 홈 메시지함(DEC-90): 숫자 카드 아래 한 줄에 안 읽은 방 칩과 '전체 보기'. 방 이름과 수만 보이고 대화 내용은 싣지 않는다(DEC-69).
 // 안 읽은 방이 없으면 부분째 두지 않는다.
-export default function MessageInbox({ rooms, onOpenRoom, onSeeAll }: Props) {
+export default function MessageInbox({ rooms, inCard = false, onOpenRoom, onSeeAll }: Props) {
   if (rooms.length === 0) return null
+  const Heading = inCard ? 'h3' : 'h2'
   return (
     <section aria-label="메시지함" className="flex flex-wrap items-center gap-2">
       {/* 와이어프레임 HomeMessageBox처럼 부분 제목보다 낮은 회색 작은 라벨이다(칩이 주인공). */}
-      <h2 className="flex items-center gap-1 text-xs font-normal text-gray-500">
+      <Heading className="flex items-center gap-1 text-xs font-normal text-gray-500">
         <MessageSquare aria-hidden className="size-3.5" />
         메시지함
-      </h2>
+      </Heading>
       {rooms.map(room => (
         <Button
           key={room.id}

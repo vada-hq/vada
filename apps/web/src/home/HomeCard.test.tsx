@@ -42,6 +42,8 @@ test('5건이면 파란 전체 보기 링크와 앞 3줄만 그린다', () => {
   const card = show(ready(5), { onSeeAll })
   const link = within(head(card)).getByRole('button', { name: '전체 5건 보기' })
   expect(link.className).toContain('text-blue-700')
+  // 휴대폰에서 누르는 영역은 44px 이상이다(WCAG 2.5.8 권장).
+  expect(link.className).toContain('max-sm:min-h-11')
   expect(shownRows(card)).toEqual(['줄 1', '줄 2', '줄 3'])
   fireEvent.click(link)
   expect(onSeeAll).toHaveBeenCalledOnce()
@@ -58,13 +60,14 @@ test('단위를 바꿀 수 있다', () => {
   expect(within(head(card)).getByText('2개')).toBeTruthy()
 })
 
-test('0건이면 카드를 두고 가운데 빈 문구를 쓰며 0을 보이지 않는다', () => {
+// 읽었고 0이면 머리에 회색 '0건'을 둬 '집계 전'과 가른다(와이어프레임 HomePrototypeCount, DEC-95).
+test('0건이면 카드를 두고 가운데 빈 문구와 머리에 회색 0건을 쓴다', () => {
   const card = show(ready(0), {
     emptyAction: <button type="button">새 행사</button>,
   })
   expect(within(card).getByText('확인할 일 없음')).toBeTruthy()
   expect(within(card).getByRole('button', { name: '새 행사' })).toBeTruthy()
-  expect(card.textContent).not.toMatch(/0/)
+  expect(within(head(card)).getByText('0건').className).toContain('text-gray-500')
 })
 
 // 모르는 값은 0이 아니라 '집계 전'이다(기획자 D-11 ③). 실패면 다시 불러온다.
@@ -86,11 +89,11 @@ test('읽기에 실패하면 집계 전과 다시 불러오기가 있다', () =>
   expect(onRetry).toHaveBeenCalledOnce()
 })
 
-// 회장단 행사 머리('기획 중 n · 진행 중 n · 후속 정리 중 n')처럼 수 대신 다른 글을 둘 수 있다. 모르면 그래도 '집계 전'이다.
-test('머리 글을 바꿔도 읽기 전이면 집계 전이다', () => {
+// 회장단 행사 머리는 상태별 수와 '전체 n개 보기'를 함께 둔다(DEC-95). 모르면 그래도 '집계 전'만이다.
+test('머리 글은 전체 보기와 함께 나오고 읽기 전이면 집계 전이다', () => {
   const card = show(ready(5), { aside: <span>기획 중 2 · 진행 중 1</span>, onSeeAll: vi.fn() })
   expect(within(head(card)).getByText('기획 중 2 · 진행 중 1')).toBeTruthy()
-  expect(within(head(card)).queryByRole('button')).toBeNull()
+  expect(within(head(card)).getByRole('button', { name: '전체 5건 보기' })).toBeTruthy()
   cleanup()
   const loading = show({ kind: 'loading' }, { aside: <span>기획 중 2</span> })
   expect(within(head(loading)).getByText('집계 전')).toBeTruthy()

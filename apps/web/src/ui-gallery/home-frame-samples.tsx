@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { BellOff, ClipboardList } from 'lucide-react'
+import { BarChart2, ChevronRight, ClipboardList } from 'lucide-react'
 import type { RoomSummary } from '@vada/contracts'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { cardClass } from '@/components/ui/card'
 import type { FeaturedTile, TilesRead } from '@/home/FeaturedEvents'
 import type { CardRead } from '@/home/HomeCard'
 import HomeChip from '@/home/HomeChip'
@@ -11,6 +12,9 @@ import { HomeShortcut } from '@/home/HomeGreeting'
 import HomeProgress from '@/home/HomeProgress'
 import HomeRow from '@/home/HomeRow'
 import MessageInbox from '@/home/MessageInbox'
+import { PUSH_OFF_CHAT } from '@/lib/messages'
+import { cn } from '@/lib/utils'
+import { PushOffAlert } from '@/push/PushOffBand'
 import { longName } from './sample-text'
 
 // 홈 틀 확인 화면(HomeFrameSections)의 견본. 줄 내용은 견본이고, 카드마다의 실제 줄은 기능 027 조각 6~9가 만든다.
@@ -18,7 +22,6 @@ import { longName } from './sample-text'
 export const noop = () => {}
 export const today = '2026-10-26'
 export const asOf = '2026-10-26T05:05:00.000Z'
-const rowClass = 'px-5 py-2.5'
 
 const room = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   id,
@@ -35,6 +38,7 @@ const room = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
 })
 export const inbox = (
   <MessageInbox
+    inCard
     rooms={[
       room('a', { type: 'direct', name: '김민준', unread: 1 }),
       room('b', { unread: 3 }),
@@ -56,13 +60,13 @@ export const loading: CardRead = { kind: 'loading' }
 function EventTile({ id, name, overdue }: { id: string; name: string; overdue: number }) {
   return (
     <li key={id} className="flex min-w-0 flex-col gap-1.5 rounded-lg border p-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         <Badge tone={overdue > 0 ? 'success' : 'info'}>{overdue > 0 ? '진행 중' : '기획 중'}</Badge>
-        <span className="min-w-0 text-sm font-bold text-gray-900 wrap-anywhere">{name}</span>
-        <span className="ml-auto shrink-0 text-xs text-gray-500">10월 30일 (금) · D-4</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-bold text-gray-900">{name}</span>
+        <span className="shrink-0 text-xs text-gray-500">10월 30일 · D-4</span>
       </div>
       <HomeProgress label="업무" done={2} total={5} />
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex min-h-6 flex-wrap items-center gap-1.5">
         {overdue > 0 ? (
           <HomeChip label="지남" count={overdue} />
         ) : (
@@ -70,7 +74,7 @@ function EventTile({ id, name, overdue }: { id: string; name: string; overdue: n
         )}
         {overdue > 0 && <HomeChip label="담당자 없음" count={1} />}
       </div>
-      <p className="border-t border-gray-100 pt-2 text-xs text-gray-500">
+      <p className="mt-auto truncate border-t border-gray-100 pt-2 text-xs text-gray-500">
         다음 마감 · <span className="text-gray-700">10월 28일 (수) 부스 배치안 확정</span>
       </p>
     </li>
@@ -85,7 +89,7 @@ export const eventTiles = [
 const issueRow = (id: string, title: string, chip: ReactNode) => (
   <HomeRow
     key={id}
-    className={rowClass}
+    card
     title={title}
     meta={['기획부', '가을 축제', '10월 24일 (토)']}
     side={chip}
@@ -100,7 +104,7 @@ export const issues = [
 const scheduleRow = (id: string, date: string, title: string, meta: string) => (
   <HomeRow
     key={id}
-    className={rowClass}
+    card
     lead={<span className="w-20 shrink-0 text-xs font-semibold text-gray-500">{date}</span>}
     title={title}
     meta={[meta]}
@@ -115,12 +119,12 @@ export const schedule = [
 export const mineRows = [
   <HomeRow
     key="a"
-    className={rowClass}
+    card
     title="내 업무 3"
     meta={['가장 가까운 마감 10월 27일 (화)', '부스 배치안 확정']}
     onOpen={noop}
   />,
-  <HomeRow key="b" className={rowClass} title="안 읽은 방 2" onOpen={noop} />,
+  <HomeRow key="b" card title="안 읽은 방 2" onOpen={noop} />,
 ]
 export const shortcut = (
   <HomeShortcut icon={ClipboardList} label="내 업무 4 · 지남 1" onOpen={noop} />
@@ -142,8 +146,10 @@ const participatingRow = (id: string, name: string, done: number) => (
   <li key={id} className="flex flex-col gap-1.5 px-5 py-2.5">
     <div className="flex items-center gap-2">
       <Badge tone="info">기획 중</Badge>
-      <span className="min-w-0 text-sm font-bold text-gray-900 wrap-anywhere">{name}</span>
-      <span className="ml-auto shrink-0 text-xs text-gray-500">10월 30일 (금)</span>
+      <span className="min-w-0 flex-1 text-sm font-bold break-keep text-gray-900 wrap-anywhere">
+        {name}
+      </span>
+      <span className="shrink-0 text-xs text-gray-500">10월 30일 (금)</span>
     </div>
     <HomeProgress label="부서 업무" done={done} total={PARTICIPATING_TOTAL} />
   </li>
@@ -160,7 +166,7 @@ export const MORE_THAN_SHOWN = 5
 // 첫날 막 들어온 운영진: 행사를 만들 수 없는 사람의 빈 상태에는 누가 만드는지 한 줄을 둔다(DEC-78 규칙 9).
 export const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
 
-// 띠 자리 견본. '부서 배정 전' 띠는 기능 020 조각 5의 부품이 들어올 자리이고, 알림 꺼짐 띠는 작업 공간의 PushOffBand와 같은 모양이다.
+// 띠 자리 견본. '부서 배정 전' 띠는 기능 020 조각 5의 부품이 들어올 자리이고, 알림 꺼짐 띠는 PushOffBand의 보이는 부분 그대로다.
 export function AssignBand() {
   return (
     <Alert tone="info" role="status" className="text-sm">
@@ -168,17 +174,36 @@ export function AssignBand() {
     </Alert>
   )
 }
-export function PushBand() {
-  return (
-    <Alert tone="warning" className="flex items-center gap-2">
-      <BellOff aria-hidden className="size-4 shrink-0" />
-      <p className="min-w-0 flex-1 text-sm">휴대폰 알림이 꺼져 있어요.</p>
-      <Button variant="link" size="sm" onClick={noop}>
-        알림 켜기
-      </Button>
-    </Alert>
-  )
-}
+export const pushBand = <PushOffAlert message={PUSH_OFF_CHAT} onTurnOn={noop} />
+
+// 회장단 맨 아래 '전체 재정 요약' 한 줄 자리 견본(줄 내용은 기능 027 조각 8, 와이어프레임 HOME-01C 맨 아래).
+const SUMMARY = [
+  ['총예산', '2,100,000원'],
+  ['실제 지출', '770,000원'],
+  ['지출 예정', '410,000원'],
+  ['사용 가능', '920,000원'],
+] as const
+export const financeLine = (
+  <section
+    aria-label="전체 재정 요약"
+    className={cn(cardClass, 'flex flex-wrap items-center gap-x-6 gap-y-1 px-5 py-3')}
+  >
+    <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+      <BarChart2 aria-hidden className="size-4 text-gray-400" />
+      전체 재정 요약
+    </h2>
+    {SUMMARY.map(([label, value]) => (
+      <span key={label} className="flex items-baseline gap-1.5 text-xs text-gray-500">
+        {label}
+        <strong className="text-sm font-bold text-gray-900">{value}</strong>
+      </span>
+    ))}
+    <Button variant="link" size="sm" className="ml-auto h-auto gap-0.5 p-0 text-xs text-gray-500">
+      열람 전용
+      <ChevronRight aria-hidden />
+    </Button>
+  </section>
+)
 
 // 실제 화면의 본문 폭: 1280px 창은 옆 메뉴(240px)와 여백을 빼 약 992px, 1024px 창은 약 736px, 420px 창(옆 메뉴 없음)은 약 388px다.
 export function Width({

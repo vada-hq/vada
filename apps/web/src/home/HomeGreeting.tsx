@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
@@ -45,13 +45,19 @@ export function HomeShortcut({
 function GreetingText({
   today,
   title,
+  titleId,
   description,
-}: Pick<Props, 'today' | 'description'> & { title: string }) {
+}: Pick<Props, 'today' | 'description'> & { title: string; titleId: string }) {
   return (
     <div className="min-w-0">
       <p className="text-xs text-gray-500">{greetingDate(today)}</p>
-      <h2 className="mt-0.5 text-lg font-semibold text-gray-900 wrap-anywhere">{title}</h2>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
+      <h2
+        id={titleId}
+        className="mt-0.5 text-lg font-semibold break-keep text-gray-900 wrap-anywhere"
+      >
+        {title}
+      </h2>
+      <p className="mt-1 text-sm break-keep text-gray-500">{description}</p>
     </div>
   )
 }
@@ -71,20 +77,24 @@ export default function HomeGreeting({
   featured,
 }: Props) {
   const title = `${name}님, 안녕하세요`
-  const text = <GreetingText today={today} title={title} description={description} />
+  const titleId = useId()
+  const text = (
+    <GreetingText today={today} title={title} titleId={titleId} description={description} />
+  )
   if (!featured)
     return (
-      // 넓으면 왼쪽 위 글, 왼쪽 아래 바로가기, 오른쪽에 두 줄을 차지하는 메시지함. 좁으면 글 차례대로 한 단이다.
+      // 넓으면 왼쪽 1/3에 글과 바로가기, 오른쪽 2/3에 두 줄을 차지하는 메시지함(와이어프레임처럼 메시지함이 남는 폭을 쓴다).
+      // 좁으면 글 차례대로 한 단이다.
       <section
-        aria-label={title}
+        aria-labelledby={titleId}
         className={cn(
           cardClass,
-          'grid gap-x-6 gap-y-3 px-6 py-4 @2xl:grid-cols-2 @2xl:items-center',
+          'grid gap-x-6 gap-y-3 px-6 py-4 @2xl:grid-cols-3 @2xl:items-center',
         )}
       >
         {text}
         {inbox && (
-          <div className="min-w-0 @2xl:col-start-2 @2xl:row-span-2 @2xl:row-start-1 @2xl:justify-self-end">
+          <div className="min-w-0 @2xl:col-span-2 @2xl:col-start-2 @2xl:row-span-2 @2xl:row-start-1 @2xl:justify-self-end">
             {inbox}
           </div>
         )}
@@ -93,7 +103,7 @@ export default function HomeGreeting({
     )
   return (
     <section
-      aria-label={title}
+      aria-labelledby={titleId}
       className={cn(
         cardClass,
         'flex flex-col gap-4 px-6 py-4 @2xl:flex-row @2xl:items-center @2xl:gap-6',
@@ -105,7 +115,8 @@ export default function HomeGreeting({
         {shortcutRow(shortcuts)}
       </div>
       <div aria-hidden className="hidden w-px self-stretch bg-gray-100 @2xl:block" />
-      <div className="min-w-0 flex-1">{featured}</div>
+      {/* 타일 칸은 위에 붙인다(읽기 전 '집계 전' 라벨이 가운데 떴다가 타일이 오면 위로 튀지 않게). */}
+      <div className="min-w-0 flex-1 @2xl:self-start">{featured}</div>
     </section>
   )
 }
