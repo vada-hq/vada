@@ -81,10 +81,51 @@ const tabs = (
   </div>
 )
 
+const ended = { status: 'ended' as const, departments: ['기획부'] }
+
+// 찍을 때 잘리지 않게 행동 자리가 다른 견본(완료 가능, 정산 남음, 완료, 부원)을 앞에 둔다.
+// '완료 가능'의 [완료]를 누르면 완료 확인 창(EVT-02E)이 열린다(확인을 누르지 않으면 보내지 않는다).
 const HEADERS: { key: string; event: EventDetail }[] = [
   {
-    key: '기획 중',
-    event: detail({ next: { kind: 'start', startsAt: '2026-10-24T14:00' } }),
+    key: '후속 정리 중, 완료 가능(회장단): [완료]를 누르면 확인 창',
+    event: detail({ ...ended, endedDays: 3 }, ['event.update', 'event.complete']),
+  },
+  {
+    key: '후속 정리 중, 정산 남음(회장단)',
+    event: detail(
+      {
+        ...ended,
+        endedDays: 9,
+        health: { overdue: 0, unassigned: 1 },
+        owner: { id: 'p2', name: '떠난 운영진 2', current: false },
+        blockers: { 'event.complete': 'SETTLEMENT_PENDING' },
+      },
+      ['event.update'],
+    ),
+  },
+  {
+    key: '완료(회장단)',
+    event: detail({ status: 'completed', departments: ['기획부'] }, ['event.cancel_completion']),
+  },
+  {
+    key: '진행 중, 부원(버튼 없음)',
+    event: detail({ status: 'ongoing', departments: ['기획부'] }, []),
+  },
+  {
+    key: '진행 중, 주의, 부서 둘',
+    event: detail({
+      status: 'ongoing',
+      departments: ['기획부', '재정부'],
+      health: { overdue: 2, unassigned: 1 },
+      next: { kind: 'task', dueDate: '2026-10-25', title: '현수막 철거' },
+    }),
+  },
+  {
+    key: '기획 중(회장단): 끝나기 전이라 막힌 까닭 없음',
+    event: detail({
+      next: { kind: 'start', startsAt: '2026-10-24T14:00' },
+      blockers: { 'event.complete': 'EVENT_NOT_ENDED' },
+    }),
   },
   {
     key: '기획 중, 날짜 미정',
@@ -96,42 +137,10 @@ const HEADERS: { key: string; event: EventDetail }[] = [
       tasks: { open: 0, total: 0 },
     }),
   },
-  {
-    key: '진행 중, 주의',
-    event: detail({
-      status: 'ongoing',
-      departments: ['기획부', '재정부'],
-      health: { overdue: 2, unassigned: 1 },
-      next: { kind: 'task', dueDate: '2026-10-25', title: '현수막 철거' },
-    }),
-  },
-  {
-    key: '후속 정리 중, 정산 남음(회장단)',
-    event: detail(
-      {
-        status: 'ended',
-        endedDays: 9,
-        departments: ['기획부'],
-        health: { overdue: 0, unassigned: 1 },
-        owner: { id: 'p2', name: '떠난 운영진 2', current: false },
-        blockers: { 'event.complete': 'SETTLEMENT_PENDING' },
-      },
-      ['event.update'],
-    ),
-  },
-  {
-    key: '후속 정리 중, 완료 가능(회장단)',
-    event: detail({ status: 'ended', endedDays: 3 }, ['event.update', 'event.complete']),
-  },
-  {
-    key: '완료(회장단)',
-    event: detail({ status: 'completed' }, ['event.cancel_completion']),
-  },
-  {
-    key: '진행 중, 부원',
-    event: detail({ status: 'ongoing', departments: ['기획부'] }, []),
-  },
 ]
+
+// 휴대폰 폭은 행동 자리가 다른 앞의 넷만, 긴 이름으로 본다.
+const MOBILE_SAMPLES = 4
 
 const headerHandlers = {
   councilId: 'c1',
@@ -156,7 +165,7 @@ export function EventHeaderSection() {
         ))}
       </div>
       <div className="flex w-97.5 max-w-full flex-col gap-8">
-        {[HEADERS[2]!, HEADERS[3]!].map(({ key, event: sample }) => (
+        {HEADERS.slice(0, MOBILE_SAMPLES).map(({ key, event: sample }) => (
           <EventHeader
             key={key}
             event={{

@@ -2,7 +2,12 @@ import { useState } from 'react'
 import type { ErrorCode, EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { COMPLETION_ERRORS, COMPLETION_FAILED, PERMISSION_CHANGED } from '@/lib/messages'
+import {
+  COMPLETION_BLOCKED,
+  COMPLETION_ERRORS,
+  COMPLETION_FAILED,
+  PERMISSION_CHANGED,
+} from '@/lib/messages'
 import { useAskingGuard } from '@/lib/use-asking-guard'
 import { CompletionDialog } from './CompletionDialog'
 import { useCompletionPost } from './useCompletionPost'
@@ -57,11 +62,17 @@ function modeOf(event: EventDetail): Asking {
 }
 
 // 버튼이 없을 때 자리를 채우는 한 줄: 방금 거절 문구가 먼저이고, 없으면 상태가 막은 이유(blockers)다.
+// 완료의 막힘은 끝난 행사에서만 보인다. 끝나기 전에는 아무도 완료하려 하지 않는데 회장단의 모든 머리에 '끝난 뒤에'가 뜨기 때문이다
+// (와이어프레임도 후속 정리 전에는 완료 자리가 없다).
 function lineOf(event: EventDetail, problem: string | null) {
   if (problem) return { kind: 'error' as const, text: problem }
-  const code = event.blockers['event.complete'] ?? event.blockers['event.cancel_completion']
+  const complete = event.status === 'ended' ? event.blockers['event.complete'] : undefined
+  const code = complete ?? event.blockers['event.cancel_completion']
   return code
-    ? { kind: 'notice' as const, text: COMPLETION_ERRORS[code] ?? COMPLETION_FAILED }
+    ? {
+        kind: 'notice' as const,
+        text: COMPLETION_BLOCKED[code] ?? COMPLETION_ERRORS[code] ?? COMPLETION_FAILED,
+      }
     : null
 }
 
@@ -83,7 +94,7 @@ function CompletionTrigger(props: { mode: Asking; busy: boolean; line: Line; onA
         </Button>
       )}
       {line && (mode === null || line.kind === 'error') && (
-        <StateMessage kind={line.kind} className="text-xs">
+        <StateMessage kind={line.kind} className="max-w-64 text-right text-xs">
           {line.text}
         </StateMessage>
       )}
@@ -124,7 +135,7 @@ export function EventCompletion({ councilId, event, onDone, onStale, ...handlers
   }
   if (mode === null && asking === null && !line) return null
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       <CompletionTrigger
         mode={mode}
         busy={post.busy}
