@@ -113,8 +113,11 @@ export type RecordChange<K extends RecordKind> = {
 // 종류마다의 변경. 여러 종류를 한 번에 바꿀 때 칸 이름을 종류별로 검사한다.
 export type AnyRecordChange = { [K in RecordKind]: RecordChange<K> }[RecordKind]
 
-// 지금 시각. 거래 시작 시각(now())이 아니라 실제 시계 시각이다.
-export const clockNow = sql`clock_timestamp()`
+// 시나리오 시계(기능 017). 이 연결에 이 설정(interval 문자열)이 걸려 있을 때만 기록 시각에 그 간격을 더한다.
+// 흐름 드라이버만 건다. 운영 서버는 걸지 않아 비어 있고 간격은 0이다. 설정은 연결마다 따로라서 다른 연결에는 새지 않는다.
+export const CLOCK_OFFSET_SETTING = 'vada.clock_offset'
+// 지금 시각. 거래 시작 시각(now())이 아니라 실제 시계 시각이다. 기록 시각은 모두 이것으로 적는다(직접 clock_timestamp()를 쓰지 않는다).
+export const clockNow = sql`(clock_timestamp() + coalesce(nullif(current_setting(${sql.raw(`'${CLOCK_OFFSET_SETTING}'`)}, true), ''), '0')::interval)`
 
 // 결과물에 일이 생겨 업무 상태가 저절로 앞으로 갈 때의 쓰기: 바꾼 사람 없이 까닭 코드를 판의 사유에 남긴다(DEC-82).
 // 업무는 결과물 종류가 아니라 이 쓰기는 고리를 다시 돌리지 않는다.
@@ -308,7 +311,7 @@ async function assertOpenVersion(tx: Tx, change: AnyRecordChange) {
 // 새 판은 꼭 하나 열려야 한다. 열린 판이 없으면(판 없이 만든 기록, 이미 닫힌 판) 하위 행만 바뀌고 이력이 빠지므로 거래를 되돌린다.
 async function openNextVersion(tx: Tx, table: Table<RecordKind>, change: AnyRecordChange) {
   const opened = await tx.execute(sql`WITH closed AS (
-        UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(clock_timestamp(), lower(valid) + interval '1 microsecond'))
+        UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(${clockNow}, lower(valid) + interval '1 microsecond'))
         WHERE record_id = ${change.id} AND upper_inf(valid)
         RETURNING version_no, upper(valid) AS ended_at
       )

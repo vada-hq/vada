@@ -115,7 +115,7 @@ export async function sendMessage(
     .from(chatRoom)
     .where(eq(chatRoom.id, room.id))
     .for('no key update')
-  const sentAt = sql`greatest(clock_timestamp(), coalesce((select max(${message.sentAt}) from ${message}
+  const sentAt = sql`greatest(${clockNow}, coalesce((select max(${message.sentAt}) from ${message}
     where ${message.roomId} = ${room.id}::uuid), '-infinity'::timestamptz) + interval '1 microsecond')`
   const messageId = await createRecord(tx, {
     kind: 'message',
