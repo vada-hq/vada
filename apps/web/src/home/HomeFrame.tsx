@@ -3,8 +3,9 @@ import { KkirukLine } from '@/components/KkirukLine'
 import { asOfLabel } from './home-time'
 
 type Props = {
-  // 서버가 홈 응답을 만든 시각(ISO)
-  asOf: string
+  // 서버가 홈 응답을 만든 시각(ISO). 아직 응답이 없으면 비워 끼룩이 한 줄을 두지 않는다.
+  // 다시 읽기에 실패해 보이던 홈을 둘 때는 마지막으로 받은 시각을 그대로 준다.
+  asOf?: string | undefined
   // 홈의 오늘(한국 날짜)
   today: string
   // 맨 위 '부서 배정 전' 띠(기능 020 조각 5의 부품)
@@ -32,9 +33,11 @@ export default function HomeFrame({
     <div className="@container flex flex-col gap-4">
       {assignBand}
       {pushBand}
-      <div className="flex @2xl:justify-end">
-        <KkirukLine>{`끼룩이가 ${asOfLabel(asOf, today)} 기준으로 정리했어요`}</KkirukLine>
-      </div>
+      {asOf !== undefined && (
+        <div className="flex @2xl:justify-end">
+          <KkirukLine>{`끼룩이가 ${asOfLabel(asOf, today)} 기준으로 정리했어요`}</KkirukLine>
+        </div>
+      )}
       {greeting}
       {children}
     </div>

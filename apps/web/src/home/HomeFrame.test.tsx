@@ -6,6 +6,8 @@ import FeaturedEvents from './FeaturedEvents'
 import HomeFrame from './HomeFrame'
 import HomeGreeting, { HomeShortcut } from './HomeGreeting'
 import { CouncilLayout, GridLayout } from './HomeLayout'
+import MessageInbox from './MessageInbox'
+import { room } from '@/test-support/chat-fixtures'
 
 afterEach(cleanup)
 
@@ -39,6 +41,37 @@ test('띠가 없으면 끼룩이 한 줄부터다', () => {
     </HomeFrame>,
   )
   expect(screen.getByText('끼룩이가 10월 25일 (일) 14:05 기준으로 정리했어요')).toBeTruthy()
+})
+
+// 기준 시각은 서버가 홈 응답을 만든 시각이라, 응답이 없으면 끼룩이가 말할 것이 없다.
+test('기준 시각이 없으면 끼룩이 한 줄이 없다', () => {
+  render(
+    <HomeFrame today="2026-10-26" greeting={<p>인사 카드</p>}>
+      {null}
+    </HomeFrame>,
+  )
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
+  expect(screen.getByText('인사 카드')).toBeTruthy()
+})
+
+// 인사 카드 안의 메시지함은 인사(h2) 아래 위계(h3)다.
+test('인사 카드 안 메시지함 제목은 h3이다', () => {
+  render(
+    <HomeGreeting
+      today="2026-10-26"
+      name="김바다"
+      description="설명"
+      inbox={
+        <MessageInbox
+          rooms={[room('a', { type: 'direct', name: '김민준' })]}
+          inCard
+          onOpenRoom={vi.fn()}
+          onSeeAll={vi.fn()}
+        />
+      }
+    />,
+  )
+  expect(screen.getByRole('heading', { level: 3, name: '메시지함' })).toBeTruthy()
 })
 
 // 인사 카드: 날짜, 인사, 설명 한 줄, 메시지함 자리, 주요 행사 타일 자리, 바로가기 자리. 인사 아래에 처리 건수를 붙이지 않는다.
@@ -108,11 +141,11 @@ test('주요 행사를 읽기 전이면 집계 전이고 0이 없다', () => {
   expect(tiles.textContent).not.toMatch(/0/)
 })
 
-test('주요 행사가 없으면 빈 문구다', () => {
+test('주요 행사가 없으면 0개와 빈 문구다', () => {
   render(<FeaturedEvents read={{ kind: 'ready', tiles: [] }} />)
   const tiles = screen.getByRole('region', { name: '학생회 주요 행사' })
+  expect(within(tiles).getByText('0개')).toBeTruthy()
   expect(within(tiles).getByText('진행할 행사 없음')).toBeTruthy()
-  expect(tiles.textContent).not.toMatch(/0/)
 })
 
 // 배치 꼴 둘: 회장단은 가로 전체 카드 → 3열 → 한 줄, 나머지는 2×2. 한 단에서는 이 글 차례로 쌓인다.
