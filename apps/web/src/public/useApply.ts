@@ -13,6 +13,7 @@ import {
   APPLY_PHONE_INVALID,
   APPLY_STUDENT_ID_INVALID,
 } from '@/lib/registration-messages'
+import { newCommandId } from '@/lib/command-id'
 import { requiredText, withContract } from '@/lib/use-form-check'
 
 export type ApplyValues = { name: string; studentId: string; phone: string }
@@ -24,7 +25,7 @@ type Collects = Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhon
 export function parseApply(form: Collects, values: ApplyValues) {
   // 조각 3(화면이 명령 번호를 기억해 재전송에 같은 번호를 보냄) 전까지는 누를 때마다 새 번호다.
   return ApplySchema.safeParse({
-    commandId: crypto.randomUUID(),
+    commandId: newCommandId(),
     name: values.name,
     studentId: form.collectsStudentId ? values.studentId : null,
     phone: form.collectsPhone ? values.phone : null,

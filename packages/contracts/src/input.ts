@@ -35,3 +35,6 @@ export const token = (max: number) =>
 
 // 본문에 받을 값이 없는 변경(코드 바꾸기, 내보내기, 없애기)도 빈 strictObject를 받는다. 공통 가드의 경계 검사가 모든 변경 라우트에 걸린다.
 export const EmptyRequestSchema = z.strictObject({})
+
+// 명령 번호: 화면이 보내기 전에 만드는 UUID v4다(DEC-84). 같은 번호를 다시 보내면 신청이나 지출은 하나만 남는다. 신청에서는 토큰을 다시 받을 수 있는 값이라 토큰처럼 다룬다.
+export const commandIdInput = z.uuid({ version: 'v4' })
