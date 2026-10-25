@@ -274,3 +274,42 @@ test('회장단의 부서별 막힌 곳 줄은 전체 보기에 그 부서 거�
   expect(await selected('전체')).toBe('true')
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
 })
+
+test('상세를 여는 동안 뒤의 목록은 보던 보기와 부서 거르기를 지키고, 닫으면 같은 보기다', async () => {
+  startAt(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
+  const dialog = await screen.findByRole('dialog')
+  await within(dialog).findByText('현수막 주문')
+  expect(screen.getByRole('button', { name: '기획부 거르기 풀기', hidden: true })).toBeTruthy()
+  expect(
+    screen.getByRole('tab', { name: '전체', hidden: true }).getAttribute('aria-selected'),
+  ).toBe('true')
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await act(() => windowHistoryIdle())
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+})
+
+test('연 업무가 사라져도 보던 보기와 부서 거르기가 남는다', async () => {
+  startAt(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  api.on('GET', `${base}/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
+  fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
+  expect((await screen.findByRole('alert')).textContent).toMatch(/업무/)
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`))
+  expect(screen.getByRole('tab', { name: '전체' }).getAttribute('aria-selected')).toBe('true')
+})
+
+test('내 부서가 아닌 부서 거르기도 홈이 알려 준 부서 이름으로 칩을 쓴다', async () => {
+  const D3 = '0199d1a0-0000-7000-8000-0000000000d3'
+  setup(
+    'home',
+    homeResponse({
+      council: council({
+        blocked: [{ department: { id: D3, name: '디자인부' }, overdue: 1, unassigned: 0 }],
+      }),
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '디자인부' }))
+  const chip = await screen.findByRole('button', { name: '디자인부 거르기 풀기' })
+  expect(chip.className).toContain('wrap-anywhere')
+})

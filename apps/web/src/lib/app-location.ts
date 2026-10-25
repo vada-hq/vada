@@ -9,6 +9,7 @@ import {
 } from './use-window-history'
 import { INDEX_KEY, indexOf, noteIndex } from './back-guard'
 import { askLeave, stayHere } from './leave-guard'
+import { recalledQuery } from './menu-memory'
 
 // 주소 층(기능 016). 화면의 위치는 브라우저 주소가 원문이고, 이 모듈이 주소를 읽고(useHere) 쌓고 바꿔 쓴다(navigate).
 // 주소를 만들고 읽는 규칙은 contracts의 paths.ts 하나다. 라이브러리 없이 History API만 쓴다.
@@ -148,7 +149,11 @@ export function releaseRecord() {
   const state = stateObject()
   delete state[ADOPT_KEY]
   state[RELEASED_KEY] = true
-  window.history.replaceState(state, '', appPath(parentOf(location)))
+  const parent = parentOf(location)
+  // 상위 목록은 상세를 열기 전에 보던 보기로 돌아간다(탭이 정해진 종류는 그 탭이 먼저다).
+  const seen = parent.type === 'menu' ? recalledQuery(parent.menu, parent.councilId) : undefined
+  const query = seen && Object.keys(parent.query).length === 0 ? seen : parent.query
+  window.history.replaceState(state, '', appPath({ ...parent, query }))
   notify()
 }
 

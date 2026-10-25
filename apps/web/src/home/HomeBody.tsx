@@ -1,5 +1,6 @@
 import type { AppQuery, HomeResponse } from '@vada/contracts'
 import { openMenu, openRecord } from '@/lib/go-to'
+import { rememberDepartment } from '@/lib/menu-memory'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
@@ -34,16 +35,25 @@ type Parts = HomeOpeners & {
 }
 
 // 업무 줄과 '모두 보기'는 그 줄이 보이는 보기·거르기로 연다(주소를 쌓는다).
-function useTaskOpeners(councilId: string) {
+function useTaskOpeners(councilId: string, home: HomeResponse) {
+  const departments = [
+    ...(home.departments ?? []),
+    ...(home.council?.blocked.flatMap(item => (item.department ? [item.department] : [])) ?? []),
+  ]
   return {
     openTask: (taskId: string) => openRecord('tasks', councilId, taskId),
-    seeTasks: (query?: AppQuery) => openMenu('tasks', councilId, query),
+    // 거르는 부서의 이름은 업무 화면의 칩이 쓴다(내 부서가 아닌 부서도 이름이 보이게).
+    seeTasks: (query?: AppQuery) => {
+      const department = departments.find(item => item.id === query?.['dept'])
+      if (department) rememberDepartment(department.id, department.name)
+      openMenu('tasks', councilId, query)
+    },
   }
 }
 
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.
 function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>) {
-  const { openTask, seeTasks } = useTaskOpeners(councilId)
+  const { openTask, seeTasks } = useTaskOpeners(councilId, home)
   const seeEvents = () => open.onOpenPage('events')
   const shared = { today: home.today, mineIds, onOpenTask: openTask }
   return (
@@ -89,7 +99,7 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
 
 // 좁은 단: 업무 화면에 없는 것과 회장단의 막힌 곳. 비면 부분째 빠진다.
 function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
-  const { openTask, seeTasks } = useTaskOpeners(councilId)
+  const { openTask, seeTasks } = useTaskOpeners(councilId, home)
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {home.council && (
