@@ -1,30 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { z } from 'zod'
-import { createApp, type AppOptions } from '../app.js'
-import { createAgreement } from '../agreement/routes.js'
+import { appModulesOf } from '../app-modules.js'
+import { createApp } from '../app.js'
 import { termsGate } from '../agreement/gate.js'
-import { createChatRoutes } from '../chat/routes.js'
-import { createCouncilRoutes } from '../councils/routes.js'
-import { createInviteRoutes } from '../invites/routes.js'
-import { createPushDeviceRoutes } from '../push/devices.js'
-import { createPushRoutes } from '../push/routes.js'
-import { createTeamRoutes } from '../team/routes.js'
-import { createBudgetRoutes } from '../budget/routes.js'
-import { createAccountRoutes } from '../accounts/routes.js'
-import { createEventRoutes } from '../events/routes.js'
-import { createSettlementRoutes } from '../settlement/routes.js'
-import { createDepositRoutes } from '../deposits/routes.js'
-import { createPublicRegistrationRoutes } from '../registrations/public-routes.js'
-import { createFeePaymentRoutes } from '../fee-payments/routes.js'
-import { createRegistrationRoutes } from '../registrations/routes.js'
-import { createExpenseRoutes } from '../expenses/routes.js'
-import { createClosingRoutes } from '../closing/routes.js'
-import { createClosingExportRoutes } from '../closing/export-routes.js'
-import { createIncomeRoutes } from '../incomes/routes.js'
-import { createPurchaseRoutes } from '../purchases/routes.js'
-import { createHomeRoutes } from '../home/routes.js'
-import { createTaskRoutes } from '../tasks/routes.js'
+import { createPurchaseWriteLimiter } from '../purchases/write-limit.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
 import type { Db } from '../db/types.js'
@@ -44,37 +24,14 @@ const origin = 'http://127.0.0.1:5180'
 const MUTATING_ROUTES = 68
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
+// 모듈 목록은 운영 서버와 같은 appModulesOf 한 곳에 있다. AppOptions에 모듈이 추가되면 거기서 타입 오류가 난다.
 function modulesOf(session: () => Promise<null>) {
-  const db = {} as Db
-  // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
-  return {
-    councils: createCouncilRoutes(db, session),
-    invites: createInviteRoutes(db, session),
-    team: createTeamRoutes(db, session),
-    chat: createChatRoutes(db, session),
-    push: createPushRoutes(session, {
-      publicKey: 'PUBLIC',
-      send: async () => ({ result: 'sent' }),
-      wait: async () => {},
-    }),
-    pushDevices: createPushDeviceRoutes(db, session),
-    tasks: createTaskRoutes(db, session),
-    home: createHomeRoutes(db, session),
-    purchases: createPurchaseRoutes(db, session),
-    budget: createBudgetRoutes(db, session),
-    expenses: createExpenseRoutes(db, session, { receiptKey: 'test-receipt-key' }),
-    incomes: createIncomeRoutes(db, session),
-    closing: createClosingRoutes(db, session),
-    closingExport: createClosingExportRoutes(db, session),
-    agreement: createAgreement(db, session),
-    events: createEventRoutes(db, session),
-    settlement: createSettlementRoutes(db, session),
-    accounts: createAccountRoutes(db, session),
-    registrations: createRegistrationRoutes(db, session),
-    deposits: createDepositRoutes(db, session),
-    feePayments: createFeePaymentRoutes(db, session),
-    publicRegistrations: createPublicRegistrationRoutes(db, { receiptKey: 'test-receipt-key' }),
-  } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
+  return appModulesOf({} as Db, session, {
+    clock: () => new Date(),
+    writeLimiter: createPurchaseWriteLimiter(),
+    receiptKey: 'test-receipt-key',
+    push: { publicKey: 'PUBLIC', send: async () => ({ result: 'sent' }), wait: async () => {} },
+  })
 }
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>
   createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
