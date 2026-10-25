@@ -13,6 +13,10 @@ export const recordIdInput = token(UUID_LENGTH)
   .refine(isUuid)
   .transform(value => value.toLowerCase())
 
+// 탈퇴한 운영진의 표시 이름 앞부분('떠난 운영진 N', DEC-54). 서버가 이름을 만들고 화면은 이것으로 탈퇴한 사람을 안다.
+export const LEFT_MEMBER_NAME_PREFIX = '떠난 운영진 '
+export const isLeftMemberName = (name: string) => name.startsWith(LEFT_MEMBER_NAME_PREFIX)
+
 // 운영진 목록의 한 줄. 들어온 순서와 시각을 보인다(DEC-47). 이메일은 보이지 않는다(바탕 spec G12).
 export interface TeamMember {
   id: string

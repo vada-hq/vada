@@ -135,6 +135,8 @@ export {
   type ChangeRankRequest,
   type TransferPresidentRequest,
   DEPARTMENT_NAME_MAX,
+  LEFT_MEMBER_NAME_PREFIX,
+  isLeftMemberName,
   CreateDepartmentSchema,
   UpdateDepartmentSchema,
   type CreateDepartmentRequest,

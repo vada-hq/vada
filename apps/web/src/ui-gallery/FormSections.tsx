@@ -106,6 +106,7 @@ export function ChipsSection() {
       <Badge tone="warning">보완 요청</Badge>
       <Badge tone="danger">반려</Badge>
       <Badge>검토 대기</Badge>
+      <Badge tone="count">99+</Badge>
     </Section>
   )
 }
