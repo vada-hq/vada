@@ -336,7 +336,9 @@ async function assertPresidentRemains(tx: Tx, cohortId: string) {
 // 회장이 없어지는 변경은 막는다(DEC-17, DEC-47). 회장 넘기기처럼 한 번에 거두고 주는 변경은 모두 바꾼 뒤에 본다.
 // 회장 넘기기는 거두기를 먼저, 주기를 나중에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어, 주기를 먼저 하면
 // 그 자리에서 DB 오류(23505)로 거부된다. 거두기를 앞에 둘 책임은 부르는 쪽에 있다.
-export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[]) {
+// vacant는 회장이 없어져도 되는 기수다. 탈퇴만 쓴다: 지난 기수의 회장 직급은 넘길 수 없어 탈퇴를 막지 않는다(기능 021 정한 것 7).
+type Cohorts = ReadonlySet<string>
+export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[], vacant?: Cohorts) {
   assertNoOwnershipChange(changes)
   const presidentCohorts = new Set<string>()
   const watch = await watchBefore(tx, changes)
@@ -346,7 +348,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
     await assertChangeStaysInCouncil(tx, change)
     await assertReasonGiven(tx, change)
     const cohortId = await presidentCohortOf(tx, change)
-    if (cohortId) presidentCohorts.add(cohortId)
+    if (cohortId && !vacant?.has(cohortId)) presidentCohorts.add(cohortId)
     await assertOpenVersion(tx, change)
     await tx.update(table).set(change.changes).where(eq(table.id, change.id))
     await openNextVersion(tx, table, change)

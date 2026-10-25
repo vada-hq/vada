@@ -103,6 +103,8 @@ function probesOf(app: ReturnType<typeof createApp>): Probe[] {
       path: `/api/organizations/${councilId}/product-info`,
       body: { url: 'https://coupa.ng/probe' },
     },
+    // 탈퇴: 시험 세션에는 세션을 만든 시각이 없어 다시 로그인하라고 막힌다(아무것도 지우지 않는다). 시계는 그 전에 읽는다.
+    { method: 'POST', route: '/api/me/withdrawal', path: '/api/me/withdrawal', body: {} },
   ]
 }
 
