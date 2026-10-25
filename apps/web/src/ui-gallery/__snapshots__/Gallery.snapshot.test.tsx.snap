@@ -411,30 +411,6 @@ exports[`처음 모양 1`] = `
 </button>
 </div>
 </li>
-<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
-<div class="flex min-w-0 gap-2 flex-1">
-<div class="flex min-w-0 flex-col gap-1 flex-1">
-<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
-<span class="font-medium wrap-anywhere text-gray-700">박해랑</span>
-<time datetime="2026-10-23T01:30:00Z">10:30</time>
-</p>
-<p class="text-sm/6 text-gray-400">삭제된 메시지</p>
-</div>
-</div>
-<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-</div>
-</li>
-<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
-<div class="flex min-w-0 gap-2 flex-row-reverse items-end">
-<div class="flex min-w-0 flex-col gap-1 max-w-xl items-end">
-<span class="sr-only">나</span>
-<p class="text-sm/6 text-gray-400 rounded-2xl rounded-tr-sm bg-gray-100 px-3 py-1.5">삭제된 메시지</p>
-</div>
-<time datetime="2026-10-23T01:30:00Z" class="shrink-0 self-end pb-1 text-xs text-gray-400">10:30</time>
-</div>
-<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-</div>
-</li>
 </ul>
 </div>
 </section>
@@ -739,6 +715,25 @@ exports[`처음 모양 1`] = `
 </button>
 </div>
 </li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
+<span class="sr-only">나</span>
+<p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
 <span class="sr-only">나</span>
@@ -856,6 +851,25 @@ exports[`처음 모양 1`] = `
 </circle>
 </svg>
 </button>
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
+<span class="sr-only">나</span>
+<p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
 </li>
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
