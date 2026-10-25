@@ -1,105 +1,86 @@
 import { useEffect, type ReactNode } from 'react'
-import { CalendarDays, MapPin, Plus, type LucideIcon } from 'lucide-react'
 import type { EventDetail } from '@vada/contracts'
 import { HistoryMenu } from '@/components/HistoryMenu'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { ApprovalNote } from './ApprovalNote'
 import { versionLine } from './event-history'
-import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, whenLabel } from './event-view'
+import { EventCompletion } from './EventCompletion'
 import { EventEditDialog } from './EventEditDialog'
 import type { EventFieldFocus } from './EventFields'
+import { EventStatusBar } from './EventStatusBar'
 import type { EventDialogHandlers } from './useEventSubmit'
 
 export type EventEditing = { focus: EventFieldFocus | undefined }
 
 type Props = EventDialogHandlers & {
   councilId: string
-  event: EventDetail
+  // 아직 읽지 못했으면 null이다. 그동안은 탭만 보인다.
+  event: EventDetail | null
   // 열린 고치기와 포커스를 둘 칸. 개요의 준비 단계도 여므로 부모가 가진다.
   editing: EventEditing | null
   onEdit: (editing: EventEditing | null) => void
-  // 내 변경이 돌려준 행사. 부모가 화면의 값으로 놓고 목록을 다시 읽는다.
+  // 내 변경(고치기, 완료, 완료 취소)이 돌려준 행사. 부모가 화면의 값으로 놓고 목록을 다시 읽는다.
   onChanged: (event: EventDetail) => void
+  // 서버가 이미 바뀐 상태라며 완료를 거절했다. 행사를 다시 읽는다.
+  onStale: () => void
+  // 이름 줄과 요약 줄 사이의 탭 줄(와이어프레임: 제목 → 탭 → 행사 요약 줄).
+  // 행사를 읽기 전후로 같은 자리에 둬, 읽는 사이 누른 탭과 초점이 사라지지 않는다.
+  tabs: ReactNode
 }
 
-// 이름 아래 한 줄의 칸 하나(일시, 장소). 비었으면 고칠 수 있을 때 그 자리에서 채우는 링크다(GOV.UK: 빈 값은 입력으로 가는 링크).
-function MetaItem({
-  icon: Icon,
-  value,
-  empty,
-  fill,
-  onFill,
-}: {
-  icon: LucideIcon
-  value: string | null
-  empty: string
-  fill: string | null
-  onFill: () => void
-}): ReactNode {
-  const body =
-    value ??
-    (fill === null ? (
-      <span className="text-gray-500">{empty}</span>
-    ) : (
-      <Button variant="link" size="sm" className="h-auto p-0 text-sm" onClick={onFill}>
-        <Plus aria-hidden />
-        {fill}
-      </Button>
-    ))
+// 이름 줄: 이름, 완료 사유(DEC-80), '⋯' 이력. 와이어프레임의 [행사 설정]은 요약 줄의 [기본정보 수정]과 같은 곳으로 가서 두지 않는다.
+function EventTitle({ event }: { event: EventDetail }) {
   return (
-    <span className="flex min-w-0 items-center gap-1.5">
-      <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
-      <span className="min-w-0 wrap-anywhere">{body}</span>
-    </span>
+    <div className="flex items-start gap-3">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h2 className="text-xl font-bold text-gray-900 wrap-anywhere">{event.name}</h2>
+        <ApprovalNote approvals={event.approvals} />
+      </div>
+      <HistoryMenu history={event.history} line={versionLine} />
+    </div>
   )
 }
 
-// 일시·장소 한 줄. 어느 탭에서나 언제·어디인지 보이게 이름 아래에 둔다(Luma·Eventbrite 행사 관리 화면).
-function EventMeta({
-  event,
+// 요약 줄 오른쪽의 행동: [기본정보 수정]과 상태 행동 자리(완료·완료 취소, 막힌 까닭).
+function BarActions({
   canEdit,
-  onFill,
-}: {
+  onEdit,
+  onChanged,
+  ...props
+}: Pick<Props, 'councilId' | 'onChanged' | 'onStale' | 'onLost' | 'onForbidden'> & {
   event: EventDetail
   canEdit: boolean
-  onFill: (focus: EventFieldFocus) => void
+  onEdit: () => void
 }) {
-  const fill = (label: string) => (canEdit ? label : null)
   return (
-    <p className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-gray-700">
-      <MetaItem
-        icon={CalendarDays}
-        value={event.startsAt === null ? null : whenLabel(event)}
-        empty={whenLabel(event)}
-        fill={fill('일시 넣기')}
-        onFill={() => onFill('startsAt')}
-      />
-      <MetaItem
-        icon={MapPin}
-        value={event.place}
-        empty="장소 없음"
-        fill={fill('장소 넣기')}
-        onFill={() => onFill('place')}
-      />
-    </p>
+    <>
+      {canEdit && (
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          기본정보 수정
+        </Button>
+      )}
+      <EventCompletion onDone={onChanged} {...props} />
+    </>
   )
 }
 
-// 행사 머리: 이름과 상태, 일시·장소 한 줄, [고치기]. 어느 탭에서나 보인다.
-// 상태는 이름 바로 뒤 한 곳에만 둔다(Polaris titleMetadata, Primer PageHeader). 고치는 입구는 [고치기] 하나와 빈 칸 채우기뿐이다.
+// 행사 공통 머리(와이어프레임 EVT-02): 이름 줄, 탭, 요약 줄. 어느 탭에서나 보인다.
+// 요약 줄의 행동은 [기본정보 수정](event.update)과 상태 행동 자리의 [완료]·[완료 취소](회장단)뿐이다.
+// '행사 시작'·'행사 종료'는 없다(DEC-93: 상태는 일시로 센다).
 export function EventHeader({
   councilId,
   event,
   editing,
   onEdit: setEditing,
   onChanged,
+  onStale,
+  tabs,
   ...handlers
 }: Props) {
-  const canEdit = event.actions.includes('event.update')
+  const canEdit = event?.actions.includes('event.update') ?? false
   // 열려 있는 동안 다시 읽은 actions에서 권한이 빠지면 닫고 이유를 보인다.
-  const allowed = editing === null || canEdit
+  const allowed = editing === null || event === null || canEdit
   const { onLost } = handlers
   useEffect(() => {
     if (allowed) return
@@ -107,22 +88,28 @@ export function EventHeader({
     onLost(PERMISSION_CHANGED)
   }, [allowed, onLost, setEditing])
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-start gap-3">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-          <h2 className="min-w-0 text-xl font-bold text-gray-900 wrap-anywhere">{event.name}</h2>
-          <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
-          <ApprovalNote approvals={event.approvals} />
-        </div>
-        {canEdit && (
-          <Button variant="outline" onClick={() => setEditing({ focus: undefined })}>
-            고치기
-          </Button>
+    <div className="flex flex-col gap-4">
+      {event && <EventTitle event={event} />}
+      <div className="flex flex-col">
+        {tabs}
+        {event && (
+          <EventStatusBar
+            event={event}
+            actions={
+              <BarActions
+                councilId={councilId}
+                event={event}
+                canEdit={canEdit}
+                onEdit={() => setEditing({ focus: undefined })}
+                onChanged={onChanged}
+                onStale={onStale}
+                {...handlers}
+              />
+            }
+          />
         )}
-        <HistoryMenu history={event.history} line={versionLine} />
       </div>
-      <EventMeta event={event} canEdit={canEdit} onFill={focus => setEditing({ focus })} />
-      {editing && (
+      {event && editing && (
         <EventEditDialog
           councilId={councilId}
           event={event}

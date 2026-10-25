@@ -1,13 +1,7 @@
-import type { HomeEventCard } from '@vada/contracts'
+import { EVENT_STATUS_LABEL, type HomeEventCard } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import {
-  dateBlock,
-  EVENT_STATUS_LABEL,
-  EVENT_STATUS_TONE,
-  settlementLabel,
-  spanLabel,
-} from '../events/event-view'
+import { dateBlock, EVENT_STATUS_TONE, settlementLabel, spanLabel } from '../events/event-view'
 import { dDay } from './home-view'
 import HomeRow from './HomeRow'
 import { riskParts } from './risk-parts'

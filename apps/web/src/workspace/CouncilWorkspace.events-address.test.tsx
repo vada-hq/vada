@@ -93,10 +93,10 @@ const selected = (name: string) =>
 
 test('행사 주소의 탭이 열리고, 새로 고침해도 같다', async () => {
   const view = setup(`${EVENT_AT}?tab=money`)
-  expect(await selected('예산·정산')).toBe('true')
+  expect(await selected('재정')).toBe('true')
   view.unmount()
   setup(`${EVENT_AT}?tab=money`)
-  expect(await selected('예산·정산')).toBe('true')
+  expect(await selected('재정')).toBe('true')
   expect(pathNow()).toBe(`${EVENT_AT}?tab=money`)
 })
 
@@ -104,9 +104,9 @@ test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으�
   setup(EVENT_AT)
   expect(await selected('개요')).toBe('true')
   const push = vi.spyOn(window.history, 'pushState')
-  fireEvent.click(screen.getByRole('tab', { name: '참가 신청' }))
+  fireEvent.click(screen.getByRole('tab', { name: '인원 관리' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=registrations`))
-  expect(await selected('참가 신청')).toBe('true')
+  expect(await selected('인원 관리')).toBe('true')
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
   expect(push).not.toHaveBeenCalled()
@@ -235,7 +235,7 @@ test('신청 양식을 고치다 기기 뒤로를 누르면 한 칸 되돌려 �
   setup(`/events/${COUNCIL_ID}`)
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   await selected('개요')
-  fireEvent.click(screen.getByRole('tab', { name: '참가 신청' }))
+  fireEvent.click(screen.getByRole('tab', { name: '인원 관리' }))
   await startEditing()
   act(() => window.history.back())
   expect(await screen.findByText(LEAVE_TITLE)).toBeTruthy()

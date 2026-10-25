@@ -56,20 +56,20 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
       {...handlers}
     />,
   )
-  fireEvent.click(screen.getByRole('tab', { name: '예산·정산' }))
+  fireEvent.click(screen.getByRole('tab', { name: '재정' }))
   return { api, handlers, serve: (next: EventDetail) => (current = next) }
 }
 
 const button = (name: string) => screen.getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('예산·정산 탭이 개요, 업무, 참가 신청 옆에 있고 예산·실제·차이와 예산 항목이 보인다', async () => {
+test('탭은 개요, 업무, 재정, 인원 관리이고 재정 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
   openMoney()
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '개요',
     '업무',
-    '참가 신청',
-    '예산·정산',
+    '재정',
+    '인원 관리',
   ])
   const text = (await screen.findByText('지출 예산')).closest('dl')?.textContent
   expect(text).toContain('500,000원')
@@ -108,6 +108,14 @@ test('남은 것의 지출과 요청은 그 기록의 주소로 열린다', asyn
   await waitFor(() => expect(window.location.pathname).not.toBe('/expenses/c1/x1'))
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
   expect(window.location.pathname).toBe('/purchases/c1/r1')
+})
+
+test('[완료]는 재정 탭 안이 아니라 행사 머리에 있다', async () => {
+  openMoney()
+  await screen.findByText('지출 예산')
+  expect(within(screen.getByRole('tabpanel')).queryByRole('button', { name: '완료' })).toBeNull()
+  const bar = screen.getByRole('group', { name: '행사 요약' })
+  expect(within(bar).getByRole('button', { name: '완료' })).toBeTruthy()
 })
 
 test('actions에 event.complete가 없으면 [완료]가 없다', async () => {
@@ -348,7 +356,7 @@ test('정산을 불러오지 못하면 다시 시도할 수 있다', async () =>
       onTasksChanged={vi.fn()}
     />,
   )
-  fireEvent.click(screen.getByRole('tab', { name: '예산·정산' }))
+  fireEvent.click(screen.getByRole('tab', { name: '재정' }))
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('지출 예산')).toBeTruthy()
   expect(button('완료')).toBeTruthy()
@@ -419,7 +427,7 @@ test('완료 취소 확인을 열어 둔 사이 다른 사람이 이미 취소�
   expect((await screen.findByRole('alert')).textContent).toBe(COMPLETION_ERRORS.EVENT_NOT_COMPLETED)
 })
 
-test('예산·정산 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
+test('재정 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 행사로 채워지고, 완료한 행사에는 버튼이 없다', async () => {
   const { api } = openMoney(event({ name: '봄 축제' }))
   api.on('GET', `${ORG}/events`, () =>
     json({ events: [eventSummary({ id: 'e1', name: '봄 축제' })], truncated: false }),
@@ -441,7 +449,7 @@ test('예산·정산 탭에서 연 요청, 예산 항목, 지출은 행사 칸�
   expect((await select()).value).toBe('e1')
 })
 
-test('완료한 행사의 예산·정산 탭에는 더하기 버튼이 없다', async () => {
+test('완료한 행사의 재정 탭에는 더하기 버튼이 없다', async () => {
   openMoney(event({ status: 'completed' }, []))
   await screen.findByText('지출 예산')
   expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()

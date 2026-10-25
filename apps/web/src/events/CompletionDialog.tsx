@@ -1,6 +1,7 @@
+import { CircleAlert } from 'lucide-react'
 import { CancelCompletionSchema, CompleteEventSchema } from '@vada/contracts'
 import { CancelReasonDialog } from '@/components/CancelReasonDialog'
-import StateMessage from '@/components/StateMessage'
+import { Alert } from '@/components/ui/alert'
 
 type Props = {
   mode: 'complete' | 'cancel'
@@ -28,6 +29,22 @@ const COPY = {
   },
 }
 
+// 완료의 남은 항목(와이어프레임 EVT-02E의 잔여 항목 상자). 정산에 남은 것은 완료를 막으므로(DEC-68) 창이 열릴 때는 없고,
+// 끝나지 않은 업무는 막지 않고 수만 알린다(DEC-93). 없으면 상자를 두지 않는다.
+function RemainingItems({ openTasks }: { openTasks: number }) {
+  if (openTasks === 0) return null
+  return (
+    <Alert tone="warning">
+      <ul aria-label="남은 항목" className="flex flex-col gap-2">
+        <li className="flex items-center gap-2 text-gray-700">
+          <CircleAlert aria-hidden className="size-3.5 shrink-0 text-red-500" />
+          {`끝나지 않은 업무 ${openTasks}개`}
+        </li>
+      </ul>
+    </Alert>
+  )
+}
+
 // 완료 확인(사유는 적을 수만 있다)과 완료 취소(사유가 꼭 있다). 완료는 빈 사유를 null로 보낸다.
 export function CompletionDialog({ mode, openTasks, onConfirm, ...rest }: Props) {
   const copy = COPY[mode]
@@ -48,9 +65,7 @@ export function CompletionDialog({ mode, openTasks, onConfirm, ...rest }: Props)
       }
       onConfirm={reason => onConfirm(complete && reason.trim() === '' ? null : reason)}
     >
-      {complete && openTasks > 0 && (
-        <StateMessage kind="notice">{`끝나지 않은 업무 ${openTasks}개`}</StateMessage>
-      )}
+      {complete && <RemainingItems openTasks={openTasks} />}
     </CancelReasonDialog>
   )
 }

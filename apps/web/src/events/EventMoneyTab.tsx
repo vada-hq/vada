@@ -1,9 +1,9 @@
+import { useEffect, useRef } from 'react'
 import type { CouncilView, EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { openRecord } from '@/lib/go-to'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
-import { EventCompletion } from './EventCompletion'
 import { EventMoneyAdd } from './EventMoneyAdd'
 import { SettlementRemaining } from './SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from './SettlementSummary'
@@ -13,8 +13,8 @@ import { useSettlement } from './useSettlement'
 type Props = EventDialogHandlers & {
   view: CouncilView
   event: EventDetail
-  // 완료·완료 취소가 돌려준 행사. 부모가 화면의 값으로 놓고 목록을 다시 읽는다.
-  onEventChanged: (event: EventDetail) => void
+  // 바뀌면 정산을 다시 읽는다. 머리의 완료·완료 취소가 참가비 수입과 남은 것을 바꾼다(DEC-93: [완료]는 머리에 있다).
+  refresh: number
   // 행사를 다시 읽는다(상태와 동작이 바뀌었을 수 있다).
   reloadEvent: () => Promise<void>
 }
@@ -53,11 +53,18 @@ function SettlementBody({
   )
 }
 
-// 예산·정산 탭: 예산·실제·차이, 예산 항목마다 쓴 돈, 정산에 남은 것, 완료. 보이는 동안 정산을 15초마다 다시 읽는다.
-// 정산 숫자와 남은 것은 모든 운영진이 보고, 완료 버튼은 서버가 준 동작이 있는 사람만 본다.
-export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...handlers }: Props) {
+// 재정 탭: 예산·실제·차이, 예산 항목마다 쓴 돈, 정산에 남은 것. 보이는 동안 정산을 15초마다 다시 읽는다.
+// 정산 숫자와 남은 것은 모든 운영진이 본다. [완료]는 행사 머리에 있다(DEC-93).
+export function EventMoneyTab({
+  view,
+  event,
+  refresh: refreshKey,
+  reloadEvent,
+  ...handlers
+}: Props) {
   const councilId = view.council.id
   const settlement = useSettlement(councilId, event.id, handlers)
+  useReloadOn(refreshKey, settlement.reload)
   const refresh = () => {
     void settlement.reload()
     void reloadEvent()
@@ -70,16 +77,16 @@ export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...han
         onOpenRequest={id => openRecord('purchases', councilId, id)}
         onOpenExpense={id => openRecord('expenses', councilId, id)}
       />
-      <EventCompletion
-        councilId={councilId}
-        event={event}
-        onDone={next => {
-          onEventChanged(next)
-          void settlement.reload()
-        }}
-        onStale={refresh}
-        {...handlers}
-      />
     </div>
   )
+}
+
+// 번호가 바뀔 때만 다시 읽는다(처음 읽기는 useSettlement가 한다).
+function useReloadOn(key: number, reload: () => Promise<void>) {
+  const seen = useRef(key)
+  useEffect(() => {
+    if (seen.current === key) return
+    seen.current = key
+    void reload()
+  }, [key, reload])
 }

@@ -1,4 +1,5 @@
 import type { ClosingCheckKind } from './closing.js'
+import type { EventStatus } from './events.js'
 import type { EvidenceType, ExpenseMethod } from './expenses.js'
 import type { IncomeSource } from './incomes.js'
 
@@ -39,4 +40,13 @@ export const CLOSING_CHECK_LABEL: Record<ClosingCheckKind, string> = {
   no_account: '계좌 없음',
   no_item: '예산 항목 없음',
   other_period_item: '다른 기간 예산 항목',
+}
+
+// 행사 상태의 화면 이름(DEC-93). 셈은 서버의 events/status.ts(DEC-83)이고, 날짜 미정과 예정은 같은 이름이다(날짜 미정은 일시 칸의 '일시 미정'이 말한다).
+export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
+  tbd: '기획 중',
+  upcoming: '기획 중',
+  ongoing: '진행 중',
+  ended: '후속 정리 중',
+  completed: '완료',
 }

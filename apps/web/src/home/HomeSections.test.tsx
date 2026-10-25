@@ -113,7 +113,7 @@ test('막힌 업무가 없는 부서는 한 줄로 말한다', async () => {
   expect(await screen.findByText('막힌 업무 없음')).toBeTruthy()
 })
 
-test('학생회 행사: 막힌 행사가 먼저, 정산이 남은 행사는 뒤. 끝난 행사는 예산·정산 탭으로 열린다', async () => {
+test('학생회 행사: 막힌 행사가 먼저, 정산이 남은 행사는 뒤. 끝난 행사는 재정 탭으로 열린다', async () => {
   const { onOpenEvent } = open(
     homeResponse({
       council: council({

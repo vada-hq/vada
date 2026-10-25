@@ -9,11 +9,11 @@ test('일시는 요일과 함께 한 줄로 보인다', () => {
   expect(whenLabel({ startsAt: '2026-10-24T14:00', endsAt: null })).toBe('10월 24일 (토) 14:00')
 })
 
-test('끝이 다른 날이면 끝에도 날짜를 쓰고, 시작이 없으면 날짜 미정이다', () => {
+test('끝이 다른 날이면 끝에도 날짜를 쓰고, 시작이 없으면 일시 미정이다', () => {
   expect(whenLabel({ startsAt: '2026-10-24T20:00', endsAt: '2026-10-25T02:00' })).toBe(
     '10월 24일 (토) 20:00 ~ 10월 25일 (일) 02:00',
   )
-  expect(whenLabel({ startsAt: null, endsAt: null })).toBe('날짜 미정')
+  expect(whenLabel({ startsAt: null, endsAt: null })).toBe('일시 미정')
 })
 
 test('목록의 날짜 칸은 시작한 달과 날이고, 시작이 없으면 비운다', () => {

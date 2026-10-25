@@ -73,18 +73,26 @@ function CompletionTrigger(props: { mode: Asking; busy: boolean; line: Line; onA
   return (
     <>
       {mode !== null && (
-        <Button variant={mode === 'cancel' ? 'outline' : 'default'} busy={busy} onClick={onAsk}>
+        <Button
+          variant={mode === 'cancel' ? 'outline' : 'default'}
+          size="sm"
+          busy={busy}
+          onClick={onAsk}
+        >
           {mode === 'cancel' ? '완료 취소' : '완료'}
         </Button>
       )}
       {line && (mode === null || line.kind === 'error') && (
-        <StateMessage kind={line.kind}>{line.text}</StateMessage>
+        <StateMessage kind={line.kind} className="text-xs">
+          {line.text}
+        </StateMessage>
       )}
     </>
   )
 }
 
-// 완료와 완료 취소(회장단). 버튼은 서버가 준 동작(event.complete, event.cancel_completion)이 있을 때만 보인다.
+// 행사 머리의 상태 행동 자리(와이어프레임 EVT-02 '상태별 주요 액션 버튼'): 완료와 완료 취소(회장단).
+// 버튼은 서버가 준 동작(event.complete, event.cancel_completion)이 있을 때만 보인다.
 // 둘 다 없고 상태가 막았으면(blockers) 버튼 대신 그 이유 한 줄을 보인다. 거절 문구는 같은 자리에 보이고, 버튼이 사라져도 남는다.
 // 두 번 눌러도 요청은 한 번만 나간다.
 export function EventCompletion({ councilId, event, onDone, onStale, ...handlers }: Props) {
@@ -116,7 +124,7 @@ export function EventCompletion({ councilId, event, onDone, onStale, ...handlers
   }
   if (mode === null && asking === null && !line) return null
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <CompletionTrigger
         mode={mode}
         busy={post.busy}

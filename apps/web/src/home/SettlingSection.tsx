@@ -6,7 +6,7 @@ import HomeSection, { HomeEmpty } from './HomeSection'
 
 type Props = {
   settling: HomeSettling
-  // 그 행사의 '예산·정산' 탭으로 간다.
+  // 그 행사의 '재정' 탭으로 간다.
   onOpenEvent: (eventId: string, tab: 'money') => void
   onSeeAll: () => void
 }

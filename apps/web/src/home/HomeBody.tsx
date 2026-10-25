@@ -17,7 +17,7 @@ import { useHomeExtras, type HomeExtras } from './useHomeExtras'
 import WeekEventsSection from './WeekEventsSection'
 
 export type HomeOpeners = {
-  // 정산 수가 있는 행사는 '예산·정산' 탭으로 연다.
+  // 정산 수가 있는 행사는 '재정' 탭으로 연다.
   onOpenEvent: (eventId: string, tab?: 'money') => void
   onOpenPage: (page: Page) => void
 }

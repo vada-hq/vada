@@ -6,11 +6,8 @@ import { useSplit } from '@/lib/use-split'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
 import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { EVENT_COMPLETED_NOTICE } from '@/lib/messages'
 import StateMessage from '@/components/StateMessage'
-import { ApprovalNote } from '@/events/ApprovalNote'
-import { COMPLETION_ERRORS } from '@/lib/messages'
+import { EVENT_COMPLETED_NOTICE } from '@/lib/messages'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
@@ -45,10 +42,10 @@ const settlement: EventSettlement = {
   approvals: [],
 }
 
-// 행사의 예산·정산 탭: 예산 대비 실제, 예산 항목, 남은 것, 정산이 끝난 모습, 완료한 행사의 배지와 안내.
+// 행사의 재정 탭: 예산 대비 실제, 예산 항목, 남은 것, 정산이 끝난 모습, 완료한 행사의 배지와 안내. [완료]는 행사 머리(EventSections)에 있다.
 export function SettlementSection() {
   return (
-    <Section title="행사 예산·정산 탭">
+    <Section title="행사 재정 탭">
       <div className="flex w-80 flex-col gap-4">
         <EventRow
           event={{
@@ -71,22 +68,6 @@ export function SettlementSection() {
           onOpenRequest={noop}
           onOpenExpense={noop}
         />
-        <ApprovalNote
-          now={new Date('2026-10-25T03:00:00.000Z')}
-          approvals={[
-            {
-              outcome: 'completion_cancelled',
-              by: { id: 'p1', name: '김새내' },
-              at: '2026-10-25T03:00:00.000Z',
-              reason: longName,
-            },
-          ]}
-        />
-        <StateMessage kind="notice">{COMPLETION_ERRORS.EVENT_NOT_ENDED}</StateMessage>
-        <div className="flex gap-2">
-          <Button>완료</Button>
-          <Button variant="outline">완료 취소</Button>
-        </div>
       </div>
     </Section>
   )

@@ -1,14 +1,14 @@
-import type { EventSettlementRow } from '@vada/contracts'
+import { EVENT_STATUS_LABEL, type EventSettlementRow } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, settlementLabel } from '../events/event-view'
+import { EVENT_STATUS_TONE, settlementLabel } from '../events/event-view'
 import { nameLinkClass, settlementDate, settlementMark } from './event-settlement-view'
 
 type Props = {
   rows: EventSettlementRow[]
-  // 그 행사의 '예산·정산' 탭으로 간다.
+  // 그 행사의 '재정' 탭으로 간다.
   onOpen: (eventId: string) => void
 }
 
