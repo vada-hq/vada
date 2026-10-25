@@ -610,7 +610,7 @@ exports[`대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -633,7 +633,7 @@ exports[`대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -669,13 +669,13 @@ exports[`대화상자 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -701,7 +701,7 @@ exports[`대화상자 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -737,7 +737,7 @@ exports[`대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -3159,7 +3159,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -3182,7 +3182,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -3218,13 +3218,13 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -3250,7 +3250,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -3286,7 +3286,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -5704,7 +5704,7 @@ exports[`옆 메뉴 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -5727,7 +5727,7 @@ exports[`옆 메뉴 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -5763,13 +5763,13 @@ exports[`옆 메뉴 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -5795,7 +5795,7 @@ exports[`옆 메뉴 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -5831,7 +5831,7 @@ exports[`옆 메뉴 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -8246,7 +8246,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -8269,7 +8269,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -8305,13 +8305,13 @@ exports[`오른쪽 패널 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -8337,7 +8337,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -8373,7 +8373,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -10785,7 +10785,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -10808,7 +10808,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -10844,13 +10844,13 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -10876,7 +10876,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -10912,7 +10912,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -13328,7 +13328,7 @@ exports[`처음 모양 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -13351,7 +13351,7 @@ exports[`처음 모양 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -13387,13 +13387,13 @@ exports[`처음 모양 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -13419,7 +13419,7 @@ exports[`처음 모양 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -13455,7 +13455,7 @@ exports[`처음 모양 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>
@@ -15849,7 +15849,7 @@ exports[`확인 대화상자 열기 1`] = `
 <table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
 <thead>
 <tr role="row">
-<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-48">제목</th>
+<th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
 <th role="columnheader" scope="col" class="px-3 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
@@ -15872,7 +15872,7 @@ exports[`확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
@@ -15908,13 +15908,13 @@ exports[`확인 대화상자 열기 1`] = `
 </select>
 </td>
 <td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-48" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
 <option value="">행사 없음</option>
 </select>
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -15940,7 +15940,7 @@ exports[`확인 대화상자 열기 1`] = `
 </td>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
 </div>
@@ -15976,7 +15976,7 @@ exports[`확인 대화상자 열기 1`] = `
 </th>
 </tr>
 <tr role="row" class="border-t">
-<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-48">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
 </div>

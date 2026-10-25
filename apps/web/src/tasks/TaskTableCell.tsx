@@ -34,7 +34,7 @@ export type CellProps = {
 
 const selectClass = 'h-8 w-auto py-1 sm:text-xs'
 // 행사 이름처럼 긴 값은 선택칸 안에서만 줄인다.
-const eventSelectClass = 'max-w-48'
+const eventSelectClass = 'max-w-32'
 const muted = 'text-xs text-gray-500 wrap-anywhere'
 
 // 고칠 수 없는 칸의 글자

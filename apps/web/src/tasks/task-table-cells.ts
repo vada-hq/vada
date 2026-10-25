@@ -34,7 +34,7 @@ export const COLUMN_LABEL: Record<Column, string> = {
 
 // 열 너비. 제목이 남는 폭을 쓰되 하한을 두고, 나머지는 내용 폭만큼이다(w-px는 표가 내용만큼만 넓히게 한다).
 export const columnWidth = (column: Column): string =>
-  column === 'title' ? 'min-w-48' : 'w-px whitespace-nowrap'
+  column === 'title' ? 'min-w-40' : 'w-px whitespace-nowrap'
 
 // 행사의 업무 탭은 행사 열이 없다.
 export const columnsOf = (inEvent: boolean): Column[] => [
