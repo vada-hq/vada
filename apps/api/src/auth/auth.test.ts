@@ -199,7 +199,8 @@ test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는�
       googleClientSecret: 'test-secret',
     })
     const modules = appModulesOf(db, headers => auth.api.getSession({ headers }), {
-      clock: () => new Date(),
+      // 학생회 만들기는 운영 연도를 오늘로 가린다. 해가 바뀌어도 같은 결과가 나오게 날을 정한다.
+      clock: () => new Date('2026-06-01T03:00:00Z'),
       writeLimiter: createPurchaseWriteLimiter(),
       receiptKey: 'test-receipt-key',
     })
@@ -274,9 +275,7 @@ test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는�
         name: '컴퓨터학부 학생회',
         unit: 'department',
         schoolName: '한양대학교 ERICA',
-        cohortName: '2026',
-        startsOn: '2026-01-01',
-        endsOn: '2026-12-31',
+        year: 2026,
       })
       assert.equal(created.status, 201)
       const { council } = (await created.json()) as { council: { id: string } }
