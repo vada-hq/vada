@@ -396,7 +396,7 @@ exports[`처음 모양 1`] = `
 <span class="text-xs wrap-anywhere text-gray-500">박해랑</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id15_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -432,7 +432,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">이재정</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">장소 다시 알려 주세요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
@@ -472,7 +472,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">이재정</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">장소 다시 알려 주세요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 </div>
@@ -511,10 +511,10 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700" aria-label="나를 부른 메시지 1개">@</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 12개">12</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">김바다: 이번 주 정기 회의는 목요일 18:00 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
-<span class="text-xs text-gray-400">참여 24명</span>
+<span class="text-xs text-gray-500">참여 24명</span>
 </button>
 </li>
 <li>
@@ -523,10 +523,10 @@ exports[`처음 모양 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="회장단방" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">회장단방</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">
+<span class="shrink-0 self-start text-xs text-gray-500">
 </span>
 </span>
-<span class="text-xs text-gray-400">참여 2명</span>
+<span class="text-xs text-gray-500">참여 2명</span>
 </button>
 </li>
 <li>
@@ -536,10 +536,10 @@ exports[`처음 모양 1`] = `
 <span title="기획부" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">기획부</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 120개">99+</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">박해랑: https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -548,10 +548,10 @@ exports[`처음 모양 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">10월 20일</span>
+<span class="shrink-0 self-start text-xs text-gray-500">10월 20일</span>
 </span>
 <span class="truncate text-xs text-gray-500">정하늘: 사진</span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -561,7 +561,7 @@ exports[`처음 모양 1`] = `
 <span title="떠난 운영진 2" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">떠난 운영진 2</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">보기만</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">떠난 운영진 2: 그동안 고마웠어요</span>
 </button>
@@ -576,10 +576,10 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700" aria-label="나를 부른 메시지 1개">@</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 12개">12</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">김바다: 이번 주 정기 회의는 목요일 18:00 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
-<span class="text-xs text-gray-400">참여 24명</span>
+<span class="text-xs text-gray-500">참여 24명</span>
 </button>
 </li>
 <li>
@@ -588,10 +588,10 @@ exports[`처음 모양 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="회장단방" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">회장단방</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">
+<span class="shrink-0 self-start text-xs text-gray-500">
 </span>
 </span>
-<span class="text-xs text-gray-400">참여 2명</span>
+<span class="text-xs text-gray-500">참여 2명</span>
 </button>
 </li>
 <li>
@@ -601,10 +601,10 @@ exports[`처음 모양 1`] = `
 <span title="기획부" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">기획부</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 120개">99+</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">박해랑: https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -613,10 +613,10 @@ exports[`처음 모양 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">10월 20일</span>
+<span class="shrink-0 self-start text-xs text-gray-500">10월 20일</span>
 </span>
 <span class="truncate text-xs text-gray-500">정하늘: 사진</span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -626,7 +626,7 @@ exports[`처음 모양 1`] = `
 <span title="떠난 운영진 2" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">떠난 운영진 2</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">보기만</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">12:00</span>
+<span class="shrink-0 self-start text-xs text-gray-500">12:00</span>
 </span>
 <span class="truncate text-xs text-gray-500">떠난 운영진 2: 그동안 고마웠어요</span>
 </button>
@@ -652,7 +652,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">진행 요원 6명이 입을 조끼가 필요해요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id16_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -700,7 +700,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">떠난 운영진 2</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">조끼는 작년 것이 창고에 있어요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id18_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -740,7 +740,7 @@ exports[`처음 모양 1`] = `
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap bg-primary text-primary-foreground">좋아요. 다이소몰 것도 봐 주세요
 <a href="https://www.daisomall.co.kr/goods/1002345" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 text-primary-foreground">https://www.daisomall.co.kr/goods/1002345</a>
 </p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id19_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -790,7 +790,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">진행 요원 6명이 입을 조끼가 필요해요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id21_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -838,7 +838,7 @@ exports[`처음 모양 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">떠난 운영진 2</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">조끼는 작년 것이 창고에 있어요</p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id23_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -878,7 +878,7 @@ exports[`처음 모양 1`] = `
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap bg-primary text-primary-foreground">좋아요. 다이소몰 것도 봐 주세요
 <a href="https://www.daisomall.co.kr/goods/1002345" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 text-primary-foreground">https://www.daisomall.co.kr/goods/1002345</a>
 </p>
-<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id24_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -1064,7 +1064,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 </div>
 <div class="relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50">
-<div aria-hidden="true" class="flex w-14 shrink-0 flex-col items-center rounded-md py-1 border border-dashed text-gray-400">
+<div aria-hidden="true" class="flex w-14 shrink-0 flex-col items-center rounded-md py-1 border border-dashed text-gray-500">
 <span class="text-xs font-medium">날짜</span>
 <span class="text-xl leading-7 font-bold">미정</span>
 </div>
@@ -1119,7 +1119,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-full max-w-5xl flex-col gap-8">
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">후속 정리 중, 완료 가능(회장단): [완료]를 누르면 확인 창</p>
+<p class="text-xs text-gray-500">후속 정리 중, 완료 가능(회장단): [완료]를 누르면 확인 창</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1201,7 +1201,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">후속 정리 중, 정산 남음(회장단)</p>
+<p class="text-xs text-gray-500">후속 정리 중, 정산 남음(회장단)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1284,7 +1284,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">완료(회장단)</p>
+<p class="text-xs text-gray-500">완료(회장단)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1365,7 +1365,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">진행 중, 부원(버튼 없음)</p>
+<p class="text-xs text-gray-500">진행 중, 부원(버튼 없음)</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1443,7 +1443,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">진행 중, 주의, 부서 둘</p>
+<p class="text-xs text-gray-500">진행 중, 주의, 부서 둘</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1522,7 +1522,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">기획 중(회장단): 끝나기 전이라 막힌 까닭 없음</p>
+<p class="text-xs text-gray-500">기획 중(회장단): 끝나기 전이라 막힌 까닭 없음</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -1601,7 +1601,7 @@ exports[`처음 모양 1`] = `
 </div>
 </div>
 <div class="flex flex-col gap-1">
-<p class="text-xs text-gray-400">기획 중, 날짜 미정</p>
+<p class="text-xs text-gray-500">기획 중, 날짜 미정</p>
 <div class="flex flex-col gap-4">
 <div class="flex items-start gap-3">
 <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -4305,7 +4305,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <p class="text-base font-semibold">VADA</p>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</div>
@@ -4323,7 +4323,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4405,7 +4405,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4613,7 +4613,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4906,7 +4906,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -4969,7 +4969,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id71_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -5027,7 +5027,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id73_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -5084,7 +5084,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 들어가기" class="flex flex-col gap-4">
 <section aria-labelledby="_id74_" class="flex flex-col gap-3 rounded-lg border p-4 sm:p-6">
@@ -5148,7 +5148,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -5228,7 +5228,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <p class="text-base font-semibold">VADA</p>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-yellow-200 bg-yellow-50 text-yellow-700">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
@@ -5247,7 +5247,7 @@ exports[`처음 모양 1`] = `
 </div>
 <div class="flex w-60 flex-wrap items-baseline gap-x-2 rounded-lg border bg-white p-2">
 <strong class="min-w-0 text-sm font-semibold wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</strong>
-<time class="text-xs text-gray-400">오후 3:00</time>
+<time class="text-xs text-gray-500">오후 3:00</time>
 </div>
 <p class="w-full text-sm wrap-anywhere">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</p>
 </div>

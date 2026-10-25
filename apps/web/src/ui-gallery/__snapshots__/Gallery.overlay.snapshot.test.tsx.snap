@@ -202,7 +202,7 @@ exports[`다시 로그인 탈퇴 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -489,7 +489,7 @@ exports[`보내는 중 탈퇴 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -747,7 +747,7 @@ exports[`실패 탈퇴 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -1191,7 +1191,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1273,7 +1273,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1481,7 +1481,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <form novalidate="" data-wide-step="true" aria-label="학생회 만들기" class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1774,7 +1774,7 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-4">
 <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1868,7 +1868,7 @@ exports[`탈퇴 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -1998,7 +1998,7 @@ exports[`회장 탈퇴 창 열기 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>

@@ -57,7 +57,7 @@ function FinanceItem({
 function TeamItems({ active, onPage }: { active: ActiveItem; onPage: (page: Page) => void }) {
   return (
     <>
-      <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
+      <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-500">운영진</p>
       <NavItem
         active={menuActive(active, 'people')}
         className="flex items-center gap-2"

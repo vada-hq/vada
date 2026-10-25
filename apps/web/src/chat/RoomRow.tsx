@@ -58,7 +58,7 @@ export default function RoomRow({
               </Badge>
             )}
           </span>
-          <span className="shrink-0 self-start text-xs text-gray-400">
+          <span className="shrink-0 self-start text-xs text-gray-500">
             {timeLabel(room.lastMessageAt, now)}
           </span>
         </span>
@@ -67,7 +67,7 @@ export default function RoomRow({
         )}
         {/* 1:1은 늘 두 사람이라 인원을 보이지 않는다. */}
         {room.type !== 'direct' && (
-          <span className="text-xs text-gray-400">참여 {room.memberCount}명</span>
+          <span className="text-xs text-gray-500">참여 {room.memberCount}명</span>
         )}
       </Button>
     </li>

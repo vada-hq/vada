@@ -9,7 +9,7 @@ const MARKS = {
   overdue: { Icon: CircleAlert, label: '지남', icon: 'text-red-600', text: 'text-red-700' },
   in_progress: { Icon: CircleDot, label: '진행 중', icon: 'text-blue-600', text: 'text-gray-900' },
   todo: { Icon: Circle, label: '할 일', icon: 'text-gray-400', text: 'text-gray-700' },
-  done: { Icon: CircleCheck, label: '끝남', icon: 'text-gray-300', text: 'text-gray-400' },
+  done: { Icon: CircleCheck, label: '끝남', icon: 'text-gray-300', text: 'text-gray-500' },
 } satisfies Record<MarkKind, unknown>
 
 const LEGEND: MarkKind[] = ['todo', 'in_progress', 'overdue', 'done']

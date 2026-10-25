@@ -20,7 +20,7 @@ export function DateBox({ startsAt, past }: { startsAt: string | null; past: boo
       aria-hidden
       className={cn(
         'flex w-12 shrink-0 flex-col items-center rounded-md py-1',
-        block ? 'bg-blue-50 text-blue-700' : 'border border-dashed text-gray-400',
+        block ? 'bg-blue-50 text-blue-700' : 'border border-dashed text-gray-500',
         past && 'bg-gray-100 text-gray-500',
       )}
     >

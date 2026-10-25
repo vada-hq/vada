@@ -17,7 +17,7 @@ function Who({ name, position }: { name: string; position: string | null }) {
       <Avatar />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-xs font-medium text-gray-700">{name}</span>
-        {position && <span className="truncate text-xs text-gray-400">{position}</span>}
+        {position && <span className="truncate text-xs text-gray-500">{position}</span>}
       </span>
     </>
   )
