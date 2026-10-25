@@ -1,8 +1,9 @@
 import { and, eq } from 'drizzle-orm'
-import { chatRoom, record } from '../db/schema.js'
+import { chatRoom, record, roomMembership } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { createRecord } from '../records/records.js'
 import { inCouncilNoticeRoom, inNoticeRoom } from './plan-room.js'
+import { advanceRead } from './read-marker.js'
 import { syncRooms } from './rooms.js'
 import { lockedSentAt } from './sent-at.js'
 
@@ -36,15 +37,28 @@ async function noticeRoomOf(tx: Tx, { councilId, cohortId, eventId }: Scope) {
   return (await roomWhere(tx, councilId, inCouncilNoticeRoom))!
 }
 
-// 글 하나를 쓰고 그 번호를 돌려준다.
-export async function postKkirukNotice(tx: Tx, scope: Scope, body: string): Promise<string> {
+// 글 하나를 쓰고 그 번호를 돌려준다. byId는 글을 일으킨 운영진이다: 기록의 만든 사람은 아니지만, 자기가 한 일이라
+// 그 사람의 읽음을 이 글까지 옮긴다(보내기와 같다. 휴대폰 알림은 부르는 쪽이 notify의 except로 뺀다).
+// 잠금 순서는 보내기와 같은 '내 참여 줄 → 방 행'이다(교착 막기). 참여 줄이 없으면 읽음만 건너뛴다.
+export async function postKkirukNotice(
+  tx: Tx,
+  scope: Scope & { byId: string },
+  body: string,
+): Promise<string> {
   const roomId = await noticeRoomOf(tx, scope)
+  const [mine] = await tx
+    .select({ memberId: roomMembership.memberId })
+    .from(roomMembership)
+    .where(and(eq(roomMembership.roomId, roomId), eq(roomMembership.memberId, scope.byId)))
+    .for('no key update')
   const sentAt = await lockedSentAt(tx, roomId)
-  return createRecord(tx, {
+  const messageId = await createRecord(tx, {
     kind: 'message',
     councilId: scope.councilId,
     actor: null,
     // is_notice 칸은 남아 있지만 읽는 코드가 없다(DEC-90). 새 메시지는 늘 false다.
     values: { roomId, body, sentAt, isNotice: false },
   })
+  if (mine) await advanceRead(tx, roomId, scope.byId, messageId)
+  return messageId
 }

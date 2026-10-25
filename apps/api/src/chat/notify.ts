@@ -57,15 +57,15 @@ async function sentMessage(db: Db, messageId: string) {
 }
 
 // 그 방의 지금 참여자 중 보낸 사람과 학생회를 떠난 사람(지난 기수 포함)을 뺀 사람. 1:1의 줄은 떠난 뒤에도 남아 따로 거른다.
-// 보낸 사람 없는 끼룩이 글은 그 방의 지금 참여자 모두다.
-async function audienceOf(db: Db, sent: Sent, now: Date) {
+// 보낸 사람 없는 끼룩이 글은 그 글을 일으킨 사람(skip)을 뺀다. 내가 한 일을 내게 알리지 않는 대화 관례다.
+async function audienceOf(db: Db, sent: Sent, now: Date, skip: string | null) {
   const rows = await db
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
     .where(
       and(
         eq(roomMembership.roomId, sent.roomId),
-        sent.senderId ? ne(roomMembership.memberId, sent.senderId) : undefined,
+        skip ? ne(roomMembership.memberId, skip) : undefined,
       ),
     )
   const alive = await currentMembersAmong(
@@ -99,10 +99,10 @@ async function calledOf(db: Db, messageId: string) {
 export function createChatPush(db: Db, send: PushSender) {
   const presence = createPresence()
   const fanout = createFanout(db, send)
-  async function run(messageId: string, now: Date) {
+  async function run(messageId: string, now: Date, except: string | undefined) {
     const sent = await sentMessage(db, messageId)
     if (!sent?.councilId) return
-    const viewers = (await audienceOf(db, sent, now)).filter(
+    const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
       id => !presence.isViewing(sent.roomId, id, now),
     )
     const called = await calledOf(db, messageId)
@@ -126,9 +126,10 @@ export function createChatPush(db: Db, send: PushSender) {
     seen: (roomId: string, memberId: string, now: Date) => {
       presence.see(roomId, memberId, now)
     },
-    async notify(messageId: string, now: Date) {
+    // except: 보낸 사람 없는 글을 일으킨 운영진. 그 사람은 받지 않는다.
+    async notify(messageId: string, now: Date, options: { except?: string } = {}) {
       try {
-        await run(messageId, now)
+        await run(messageId, now, options.except)
       } catch (error) {
         console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
       }

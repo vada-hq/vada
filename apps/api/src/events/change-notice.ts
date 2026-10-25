@@ -70,6 +70,5 @@ function withParticle(word: string, [withFinal, withoutFinal]: [string, string])
   return `${word}${final ? withFinal : withoutFinal}`
 }
 
-// 행사를 만들면 올리는 글(DEC-93): '{만든 사람}이 {행사}를 만들었어요'.
-export const createdNoticeOf = (maker: string, name: string) =>
-  `${withParticle(maker, ['이', '가'])} ${withParticle(name, ['을', '를'])} 만들었어요`
+// 행사를 만들면 올리는 글(DEC-93): '{행사}이(가) 생겼어요'. 만든 사람의 이름은 정해진 글로 남기지 않는다(DEC-54).
+export const createdNoticeOf = (name: string) => `${withParticle(name, ['이', '가'])} 생겼어요`

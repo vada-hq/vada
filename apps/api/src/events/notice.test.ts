@@ -28,8 +28,8 @@ async function setup(): Promise<Kit> {
   let chatPush: ReturnType<typeof createChatPush> | undefined
   const t = await startEvents({
     push: {
-      notify: (id: string, at: Date) => {
-        const done = chatPush!.notify(id, at)
+      notify: (id: string, at: Date, options?: { except?: string }) => {
+        const done = chatPush!.notify(id, at, options)
         pending.push(done)
         return done
       },
@@ -99,9 +99,12 @@ test(
   '행사를 만들면 우리 학생회 공지방에 보낸 사람 없는 끼룩이 글이 하나 있다',
   run(async t => {
     await create(t, FULL, 's-planningHead')
+    // 만든 사람 이름은 정해진 글로 남기지 않는다(탈퇴하면 '떠난 운영진 N'이어야 한다, DEC-54).
+    const [notice] = await noticesOf(t, t.council.councilId)
+    assert.ok(!notice?.body.includes('planningHead'))
     assert.deepEqual(await noticesOf(t, t.council.councilId), [
       {
-        body: 's planningHead가 가을 축제를 만들었어요',
+        body: '가을 축제가 생겼어요',
         created_by: null,
         council_id: t.council.councilId,
         event_id: null,
@@ -193,11 +196,11 @@ test(
     await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
     assert.deepEqual(
       (await noticesOf(t, t.other.councilId)).map(row => row.body),
-      ['o president가 가을 축제를 만들었어요'],
+      ['가을 축제가 생겼어요'],
     )
     assert.deepEqual(
       (await noticesOf(t, t.council.councilId)).map(row => row.body),
-      ['s president가 가을 축제를 만들었어요', '가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관'],
+      ['가을 축제가 생겼어요', '가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관'],
     )
   }),
 )
@@ -226,15 +229,14 @@ test(
 )
 
 test(
-  '공지방 휴대폰 알림이 대화 알림대로 그 방의 지금 운영진 기기마다 간다(다른 학생회는 받지 않는다)',
+  '공지방 휴대폰 알림이 대화 알림대로 그 방의 지금 운영진 기기마다 가고, 글을 일으킨 사람과 다른 학생회는 받지 않는다',
   run(async t => {
     const event = await create(t, FULL)
-    await t.settled()
+    assert.ok(!t.calls.some(call => call[0].endpoint === endpointOf('s-president')))
     t.calls.length = 0
     await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
-    await t.settled()
     const current = Object.entries(t.council.people)
-      .filter(([name]) => name !== 'ended')
+      .filter(([name]) => name !== 'ended' && name !== 'president')
       .map(([, person]) => endpointOf(person.userId))
       .sort()
     assert.deepEqual(t.calls.map(call => call[0].endpoint).sort(), current)
@@ -259,7 +261,31 @@ test(
     await create(t, { ...FULL, taskId })
     assert.deepEqual(
       (await noticesOf(t, t.council.councilId)).map(row => row.body),
-      ['s president가 가을 축제를 만들었어요'],
+      ['가을 축제가 생겼어요'],
     )
+  }),
+)
+
+// 그 사람의 공지방 안 읽은 글 수(대화의 안 읽은 수와 같은 셈: 읽은 시각 뒤의 남이 보낸 글).
+const unreadOf = (t: Kit, memberId: string) =>
+  t.count(
+    `SELECT count(*) AS n FROM message m
+       JOIN record r ON r.id = m.id JOIN chat_room cr ON cr.id = m.room_id
+       JOIN room_membership rm ON rm.room_id = m.room_id AND rm.member_id = $1
+      WHERE cr.type = 'all_members' AND r.created_by IS DISTINCT FROM $1
+        AND m.sent_at > coalesce(rm.last_read_at, '-infinity'::timestamptz)`,
+    [memberId],
+  )
+
+test(
+  '글을 일으킨 사람은 그 글이 안 읽은 수에 들지 않고, 다른 운영진에게는 든다',
+  run(async t => {
+    const { president, planningHead } = t.council.people
+    const event = await create(t, FULL, 's-planningHead')
+    assert.equal(await unreadOf(t, planningHead.memberId), 0)
+    assert.equal(await unreadOf(t, president.memberId), 1)
+    await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
+    assert.equal(await unreadOf(t, president.memberId), 0)
+    assert.equal(await unreadOf(t, planningHead.memberId), 1)
   }),
 )

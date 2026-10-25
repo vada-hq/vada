@@ -145,7 +145,7 @@ export function KkirukMessageSection() {
     photos: [],
   })
   const flow = [
-    sample('k1', '박해랑이 가을 축제를 만들었어요', null),
+    sample('k1', '가을 축제가 생겼어요', null),
     sample('k2', '장소 다시 알려 주세요', '이재정'),
     sample(
       'k3',

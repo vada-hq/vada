@@ -10,7 +10,6 @@ import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { postKkirukNotice } from '../chat/kkiruk-post.js'
-import { memberNamesOf } from '../team/display-name.js'
 import { createRecord, updateRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
@@ -25,14 +24,21 @@ import { eventRowOf } from './queries.js'
 
 const fromKorean = (value: string | null) => (value ? dateFromKorean(value) : null)
 
-// 쓰기의 응답과, 같은 거래에서 공지방에 쓴 끼룩이 글(없으면 null). 라우트가 커밋 뒤에 그 글의 휴대폰 알림을 보낸다.
-export type EventWrite = { event: EventDetail; noticeId: string | null }
+// 쓰기의 응답과, 같은 거래에서 공지방에 쓴 끼룩이 글(없으면 null)과 그 글을 일으킨 운영진.
+// 라우트가 커밋 뒤에 그 글의 휴대폰 알림을 일으킨 사람을 빼고 보낸다.
+export type EventWrite = { event: EventDetail; notice: { id: string; by: string } | null }
 
 // 그 행사의 공지방(없으면 우리 학생회 공지방)에 끼룩이 글 하나. 글이 없으면 쓰지 않는다.
-const noticeOf = (tx: Tx, actor: Actor, eventId: string, body: string | null) =>
-  body
-    ? postKkirukNotice(tx, { councilId: actor.councilId, cohortId: actor.cohortId, eventId }, body)
-    : null
+async function noticeOf(tx: Tx, actor: Actor, eventId: string, body: string | null) {
+  if (!body) return null
+  const scope = {
+    councilId: actor.councilId,
+    cohortId: actor.cohortId,
+    eventId,
+    byId: actor.memberId,
+  }
+  return { id: await postKkirukNotice(tx, scope, body), by: actor.memberId }
+}
 
 export async function createEvent(
   tx: Tx,
@@ -57,10 +63,10 @@ export async function createEvent(
       ownerId: actor.memberId,
     },
   })
-  // 행사가 생기면 공지방에 끼룩이 글이 올라 회장단이 안다(DEC-93). 만든 사람은 방금 지금 운영진으로 확인됐다.
-  const maker = (await memberNamesOf(tx, actor.councilId, [actor.memberId])).get(actor.memberId)!
-  const noticeId = await noticeOf(tx, actor, id, createdNoticeOf(maker, input.name))
-  return { event: await eventDetailOf(tx, actor, id, now), noticeId }
+  // 행사가 생기면 공지방에 끼룩이 글이 올라 회장단이 안다(DEC-93). 만든 사람의 이름은 글에 넣지 않는다:
+  // 정해진 글로 남으면 그 사람이 탈퇴해도 '떠난 운영진 N'(DEC-54)으로 바뀌지 않는다. 만든 사람은 행사의 책임자로 보인다.
+  const notice = await noticeOf(tx, actor, id, createdNoticeOf(input.name))
+  return { event: await eventDetailOf(tx, actor, id, now), notice }
 }
 
 // 이름, 일시, 장소 고치기. 회장단과 책임자가 한다(DEC-79). 같은 값이면 판을 만들지 않는다.
@@ -102,6 +108,6 @@ export async function updateEvent(
     endsAt: fromKorean(input.endsAt),
     place: input.place,
   }
-  const noticeId = await noticeOf(tx, actor, row.id, changeNoticeOf(row, after, target.now))
-  return { event: await eventDetailOf(tx, actor, row.id, target.now), noticeId }
+  const notice = await noticeOf(tx, actor, row.id, changeNoticeOf(row, after, target.now))
+  return { event: await eventDetailOf(tx, actor, row.id, target.now), notice }
 }
