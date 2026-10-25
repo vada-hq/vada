@@ -1,5 +1,6 @@
 import { useState, type ComponentProps } from 'react'
 import type { EventTab, MyCouncil, RecordKind } from '@vada/contracts'
+import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
 import { navigate, useHere } from '@/lib/app-location'
 import { recordTarget } from './address'
@@ -124,6 +125,7 @@ export default function CouncilWorkspace({
           mainRef: nav.main,
         }}
       />
+      <LeaveConfirm />
     </WorkspaceFrame>
   )
 }

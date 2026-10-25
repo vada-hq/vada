@@ -37,6 +37,8 @@ export function useCouncilDrafts(view: CouncilView, onEdit: (form: 'council' | '
   return {
     council,
     cohort,
+    // 서버 값과 다르게 고치던 중이면 저장하지 않은 입력이 있는 것이다(떠날 때 확인).
+    dirty: !sameJson(council, base.council) || !sameJson(cohort, base.cohort),
     editCouncil: (patch: Partial<CouncilDraft>) => {
       setCouncil(current => ({ ...current, ...patch }))
       onEdit('council')

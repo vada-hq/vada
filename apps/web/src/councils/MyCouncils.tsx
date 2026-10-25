@@ -79,7 +79,7 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
   const lost = useCallback(
     (councilId: string) => {
       const next = latest.current.find(item => item.id !== councilId)
-      if (next) navigate(menuPath('home', next.id), { replace: true })
+      if (next) navigate(menuPath('home', next.id), { replace: true, force: true })
       remove(councilId)
       reload()
     },

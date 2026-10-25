@@ -1,6 +1,7 @@
 import type { CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import CohortForm from './CohortForm'
 import CouncilInfoForm from './CouncilInfoForm'
 import type { Form } from './council-settings-form'
@@ -12,6 +13,7 @@ type Props = { view: CouncilView; onSaved: (view: CouncilView) => void; onForbid
 export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
   const settings = useCouncilSettings(view, onSaved, onForbidden)
   const { message, saving } = settings
+  useUnsavedInput(settings.dirty)
   const note = (form: Form) =>
     message?.form === form && <StateMessage kind={message.kind}>{message.text}</StateMessage>
   const canCouncil = view.permissions.includes('council.update')

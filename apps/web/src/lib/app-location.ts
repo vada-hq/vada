@@ -7,6 +7,8 @@ import {
   afterWindowsClosed,
   releaseAdopted,
 } from './use-window-history'
+import { INDEX_KEY, indexOf, noteIndex } from './back-guard'
+import { askLeave } from './leave-guard'
 
 // 주소 층(기능 016). 화면의 위치는 브라우저 주소가 원문이고, 이 모듈이 주소를 읽고(useHere) 쌓고 바꿔 쓴다(navigate).
 // 주소를 만들고 읽는 규칙은 contracts의 paths.ts 하나다. 라이브러리 없이 History API만 쓴다.
@@ -84,6 +86,8 @@ function stateFor(mode: Mode, tag?: string) {
   const state = stateObject()
   state[NAV_KEY] = `${Date.now().toString(RADIX)}.${(counter++).toString(RADIX)}`
   delete state[RELEASED_KEY]
+  // 몇 칸을 건넜는지 알 수 있게 순번을 단다(기기 뒤로의 떠날 때 확인, back-guard.ts).
+  state[INDEX_KEY] = indexOf(window.history.state) + (mode === 'replace' ? 0 : 1)
   if (mode !== 'replace') {
     delete state[ADOPT_KEY]
     state[FROM_KEY] = window.location.pathname + window.location.search
@@ -98,15 +102,14 @@ function stateFor(mode: Mode, tag?: string) {
 function write(path: string, mode: Mode, tag?: string) {
   if (mode === 'replace') window.history.replaceState(stateFor(mode, tag), '', path)
   else window.history.pushState(stateFor(mode, tag), '', path)
+  noteIndex(window.history.state)
   notify()
 }
 
 const tagOf = (location: AppLocation | null) =>
   location?.type === 'record' ? adoptTag(location.record, location.recordId) : undefined
 
-// 앱 안에서 한 칸 쌓거나(기본) 현재 칸의 주소를 바꿔 쓴다(replace). 알려진 학생회 안 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다.
-// 기록 주소는 상세 창이 그 칸을 자기 칸으로 쓰도록 표시해 쌓는다. 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 쌓는다.
-export function navigate(target: string, options: { replace?: boolean } = {}) {
+function go(target: string, options: { replace?: boolean }) {
   const parsed = parseAppPath(target)
   const path = parsed ? appPath(parsed) : target
   const tag = tagOf(parsed)
@@ -116,6 +119,14 @@ export function navigate(target: string, options: { replace?: boolean } = {}) {
   }
   const mode: Mode = tag ? 'adopt' : 'push'
   afterWindowsClosed(() => write(path, mode, tag))
+}
+
+// 앱 안에서 한 칸 쌓거나(기본) 현재 칸의 주소를 바꿔 쓴다(replace). 알려진 학생회 안 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다.
+// 기록 주소는 상세 창이 그 칸을 자기 칸으로 쓰도록 표시해 쌓는다. 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 쌓는다.
+// 저장하지 않은 입력이 있으면 확인 창을 먼저 보인다. 소속을 잃어 떠나야 하는 이동은 force로 묻지 않는다.
+export function navigate(target: string, options: { replace?: boolean; force?: boolean } = {}) {
+  if (options.force) go(target, options)
+  else askLeave(() => go(target, options))
 }
 
 // 기록 상세 창이 닫히면서 같은 페이지에 남으려 할 때(다른 탭으로 가기, 기록을 잃음) 부른다. 뒤로 가기는 주소를 떠나
@@ -132,8 +143,10 @@ export function releaseRecord() {
 
 // 화면 안의 뒤로·닫기: 앱 안에서 쌓은 칸이면 한 칸 뒤로(들어온 곳으로), 아니면(링크로 바로 들어옴) 상위 목록으로 바꿔 쓴다.
 export function leave(fallback: string) {
-  if (typeof stateObject()[FROM_KEY] === 'string') window.history.back()
-  else navigate(fallback, { replace: true })
+  askLeave(() => {
+    if (typeof stateObject()[FROM_KEY] === 'string') window.history.back()
+    else go(fallback, { replace: true })
+  })
 }
 
 // 기록 주소로 바로 들어오면(링크, 알림, 새로 고침) 그 아래에 상위 목록 칸을 깔아, 어느 뒤로든 상위 목록으로 가게 한다.

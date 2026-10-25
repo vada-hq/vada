@@ -27,12 +27,15 @@ export type Target =
 const isEventTab = (value: string | undefined): value is EventTab =>
   EVENT_TABS.some(tab => tab === value)
 
+const locationOf = (here: Here, start: string | null | undefined) =>
+  here.location ?? (here.path === '/' && start ? parseAppPath(start) : null)
+
 // '/'로 열리면 start(마지막에 본 주소)가 있으면 그곳, 없으면 첫 학생회 홈이다. start가 내 학생회의 것인지는 부르는 쪽이 가린다.
 export function targetOf(here: Here, councils: MyCouncil[], start?: string | null): Target {
   const first = councils[0]
   if (!first) return { kind: 'notFound', fallback: '/' }
   const fallback = menuPath('home', first.id)
-  const location = here.location ?? (here.path === '/' && start ? parseAppPath(start) : null)
+  const location = locationOf(here, start)
   if (!location) {
     return here.path === '/'
       ? { kind: 'ready', councilId: first.id, page: 'home', record: null }

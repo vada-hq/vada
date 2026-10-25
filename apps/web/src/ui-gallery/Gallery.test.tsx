@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import Gallery from './Gallery'
+import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
@@ -167,4 +168,15 @@ test('확인 대화상자의 사유 꼭은 별표가 있고 늘 켜져 있으며
   fireEvent.click(screen.getByRole('button', { name: '사유 선택 확인 대화상자 열기' }))
   const optional = await screen.findByRole('dialog', { name: '이 행사를 완료할까요?' })
   expect(within(optional).getByText('(선택)')).toBeTruthy()
+})
+
+test('떠날 때 확인 대화상자는 입력을 버리고 나가는 빨간 버튼과 계속 쓰는 닫기를 보인다', async () => {
+  render(<Gallery />)
+  fireEvent.click(screen.getByRole('button', { name: '떠날 때 확인 대화상자 열기' }))
+  const dialog = await screen.findByRole('dialog', { name: LEAVE_TITLE })
+  expect(within(dialog).getByRole('button', { name: LEAVE_CONFIRM }).className).toContain(
+    'bg-destructive',
+  )
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })

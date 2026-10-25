@@ -1,4 +1,4 @@
-import { SAVE_FAILED } from '@/lib/messages'
+import { LEAVE_CONFIRM, LEAVE_TITLE, SAVE_FAILED } from '@/lib/messages'
 import { useEffect, useState } from 'react'
 import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -72,7 +72,7 @@ export function DialogSheetSection() {
 export function ConfirmSection() {
   // 확인 대화상자의 모양: 사유 꼭·사유 선택(칸 아래에 이유가 보인다)과 위험한 동작(빨간 확인 버튼과 오류 문구), 일반 동작(파란 확인 버튼), 보내는 중(두 버튼이 꺼지고 닫히지 않음).
   const [confirmKind, setConfirmKind] = useState<
-    'destructive' | 'normal' | 'busy' | 'required' | 'optional' | null
+    'destructive' | 'normal' | 'busy' | 'required' | 'optional' | 'leave' | null
   >(null)
   // 보내는 중 예시는 닫히지 않으므로 실제 응답이 오듯 잠시 뒤 저절로 닫는다.
   useEffect(() => {
@@ -97,6 +97,9 @@ export function ConfirmSection() {
       </Button>
       <Button variant="outline" onClick={() => setConfirmKind('optional')}>
         사유 선택 확인 대화상자 열기
+      </Button>
+      <Button variant="outline" onClick={() => setConfirmKind('leave')}>
+        떠날 때 확인 대화상자 열기
       </Button>
       {(confirmKind === 'required' || confirmKind === 'optional') && (
         <CancelReasonDialog
@@ -127,6 +130,14 @@ export function ConfirmSection() {
         title="이재정님에게 회장 직급을 넘길까요?"
         description="넘기면 나는 직급이 없어지고, 회장만 하던 일은 넘겨받은 사람이 해요."
         confirmLabel="넘기기"
+        onClose={closeConfirm}
+        onConfirm={closeConfirm}
+      />
+      <ConfirmDialog
+        open={confirmKind === 'leave'}
+        destructive
+        title={LEAVE_TITLE}
+        confirmLabel={LEAVE_CONFIRM}
         onClose={closeConfirm}
         onConfirm={closeConfirm}
       />
