@@ -8,6 +8,7 @@ import {
   type RecordKind,
 } from '@vada/contracts'
 import { navigate } from './app-location'
+import { afterWindowsClosed } from './use-window-history'
 
 // 기록 하나로 가는 주소. 행사는 탭이 기본(개요)이 아니면 쿼리에 둔다.
 const recordTarget = (kind: RecordKind, councilId: string, id: string, tab?: EventTab) =>
@@ -23,6 +24,16 @@ export const openRecord = (
   id: string,
   options: { tab?: EventTab | undefined; overRecord?: boolean } = {},
 ) => navigate(recordTarget(kind, councilId, id, options.tab), { overRecord: options.overRecord })
+
+// 열려 있는 행사 안에서 탭을 바꾼다(창 안의 링크). 탭은 기록을 쌓지 않아(useEventAddress) 지금 칸을 바꿔 쓰는데,
+// 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 바꿔 쓴다. 먼저 바꿔 쓰면 창이 닫히며 되돌린 칸이 탭을 옛 주소로 되돌린다.
+// 창을 닫는 것은 부르는 쪽이 한다.
+export const openEventTab = (councilId: string, eventId: string, tab: EventTab) =>
+  afterWindowsClosed(() =>
+    navigate(recordTarget('events', councilId, eventId, tab === 'overview' ? undefined : tab), {
+      replace: true,
+    }),
+  )
 
 // 메뉴 첫 화면이나 거르기가 정해진 목록으로 간다. 쿼리는 그 메뉴 목록에 있는 키만 남는다.
 // replace는 지금 칸을 바꿔 쓴다(초대에서 막 들어와 첫 화면을 고를 때처럼 뒤로 돌아갈 곳이 아닐 때).

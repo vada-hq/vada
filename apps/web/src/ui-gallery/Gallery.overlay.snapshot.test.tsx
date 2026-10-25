@@ -4,6 +4,7 @@ import { afterEach, expect, test } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import { MyNameSection } from './JoinSections'
+import { EventEditSection } from './EventEditSections'
 import { CreateCouncilSection } from './OnboardingSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { ApplicantRowSection } from './RegistrationSections'
@@ -20,6 +21,8 @@ const openers: [string, ComponentType][] = [
   ['보내는 중 확인 대화상자 열기', ConfirmSection],
   ['코드 바꾸기 확인 창 열기', CreateCouncilSection],
   ['내 이름 창 열기', MyNameSection],
+  ['기본정보 수정 패널 열기', EventEditSection],
+  ['미정·양식 둘 패널 열기', EventEditSection],
 ]
 
 test.each(openers)('%s', (name, Section) => {
