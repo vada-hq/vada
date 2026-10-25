@@ -447,7 +447,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">후속 정리 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 기획부 · 김기획</span>
@@ -530,7 +530,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-yellow-200 bg-yellow-50 text-yellow-700 whitespace-normal">주의 · 담당자 없는 업무 1개</span>
 <span class="text-xs font-medium text-red-700">끝난 지 9일</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 기획부 · 떠난 운영진 2</span>
@@ -612,7 +612,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">완료</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 기획부 · 김기획</span>
@@ -693,7 +693,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 기획부 · 김기획</span>
@@ -771,7 +771,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-red-200 bg-red-50 text-red-700 whitespace-normal">주의 · 지연 업무 2개 · 담당자 없는 업무 1개</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 기획부, 재정부 · 김기획</span>
@@ -850,7 +850,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">기획 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 미정 · 김기획</span>
@@ -929,7 +929,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">기획 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 미정 · 김기획</span>
@@ -1008,7 +1008,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">후속 정리 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름, 재정부 · 김기획</span>
@@ -1088,7 +1088,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-yellow-200 bg-yellow-50 text-yellow-700 whitespace-normal">주의 · 담당자 없는 업무 1개</span>
 <span class="text-xs font-medium text-red-700">끝난 지 9일</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름, 재정부 · 떠난 운영진 2</span>
@@ -1167,7 +1167,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">완료</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름, 재정부 · 김기획</span>
@@ -1245,7 +1245,7 @@ exports[`처음 모양 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium border-green-200 bg-green-50 text-green-700 whitespace-normal">안정 · 업무 이슈 없음</span>
 </div>
-<span aria-hidden="true" class="hidden h-4 border-l sm:block">
+<span aria-hidden="true" class="hidden h-4 border-l lg:block">
 </span>
 <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
 <span class="min-w-0 wrap-anywhere">담당 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름, 재정부 · 김기획</span>
