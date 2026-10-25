@@ -301,7 +301,7 @@ test(
 )
 
 test(
-  '미리보기에 다른 학생회의 메시지가 섞이지 않는다. 두 학생회에 든 사람도 학생회마다 그 학생회 방의 메시지만 본다',
+  '방 목록과 미리보기에 다른 학생회의 메시지가 섞이지 않는다: 두 학생회에 든 사람의 다른 학생회 방은 목록에 없고, 우리 방에 걸린 다른 학생회 기록도 미리보기에 없다',
   run(async s => {
     const planning = await s.roomId(s.council.councilId, '기획부')
     const head = s.person.planningHead.memberId
@@ -321,6 +321,17 @@ test(
         values: { roomId: foreign, body: '다른 학생회', sentAt: new Date('2026-04-02T00:00:00Z') },
       }),
     )
+    // 미리보기 거르기: 우리 방을 가리키지만 다른 학생회의 기록인 메시지(어긋난 자료). 기록 모듈은 이것을 막으므로 DB에 바로 쓴다.
+    const stray = await s.pg.query<{ id: string }>(
+      `INSERT INTO record (kind, council_id, created_by) VALUES ('message', $1, $2) RETURNING id`,
+      [s.other.councilId, s.other.people.planningHead.memberId],
+    )
+    await s.pg.query(`INSERT INTO message (id, room_id, body, sent_at) VALUES ($1, $2, $3, $4)`, [
+      stray.rows[0]!.id,
+      planning,
+      '어긋난 기록',
+      '2026-04-03T00:00:00Z',
+    ])
     const rooms = (await s.list('s-planningHead')).rooms
     assert.equal(
       rooms.some(room => room.id === foreign),
