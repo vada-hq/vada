@@ -98,8 +98,8 @@ export const HOME_FEATURED_LIMIT = 3
 // 내 요청에서 반려·일부 승인된 것은 낸 지 이 날수 안의 것만 둔다(오래된 것은 재정 화면에서 본다).
 const HOME_ANSWERED_REQUEST_DAYS = 14
 
-// 'YYYY-MM-DD' 두 날짜 사이의 날 수(달력으로 센다)
-const daysBetween = (from: string, to: string) =>
+// 'YYYY-MM-DD' 두 날짜 사이의 날 수(달력으로 센다). 홈 화면의 D-N과 이번 주 행사가 같이 쓴다.
+export const daysBetween = (from: string, to: string) =>
   Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS)
 
 // 내 요청 중 아직 볼 것: 반려·일부 승인(다시 낼지 내가 정한다)을 먼저, 그다음 결재 대기를 오래된 순(DEC-76이 정한 줄, DEC-95 부원 '내 요청').

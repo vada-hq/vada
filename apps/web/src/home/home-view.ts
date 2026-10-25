@@ -1,5 +1,6 @@
 import {
   KOREAN_DATE_LENGTH,
+  daysBetween,
   koreanOf,
   type EventSummary,
   type HomeEventCard,
@@ -13,12 +14,8 @@ import { monthDay } from '@/lib/korean-date-text'
 export const SHORT_LIST = 3
 // 이번 주 행사: 오늘부터 이 날수 안에 시작하는 행사
 const WEEK_DAYS = 7
-const DAY_MS = 86_400_000
 
 const koreanDay = (iso: string) => koreanOf(new Date(iso)).slice(0, KOREAN_DATE_LENGTH)
-// 'YYYY-MM-DD' 두 날짜 사이의 날 수(달력으로 센다)
-export const daysBetween = (from: string, to: string) =>
-  Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS)
 
 // 내 업무 중 줄로 보일 것: 지남과 오늘. 그 뒤는 업무 화면이 맡는다(네이버웍스 Today, Planner My Day).
 export const mineRows = ({ tasks }: HomeMine) =>

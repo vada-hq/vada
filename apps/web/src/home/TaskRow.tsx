@@ -1,8 +1,7 @@
-import type { TaskSummary } from '@vada/contracts'
+import { daysBetween, type TaskSummary } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from '../tasks/task-view'
-import { daysBetween } from './home-view'
 import HomeRow from './HomeRow'
 
 type Props = {

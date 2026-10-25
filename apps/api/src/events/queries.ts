@@ -199,7 +199,11 @@ export async function openEventsOf(
 ): Promise<EventsResponse & { endedTotal: number }> {
   const group = groupSql(now)
   const scope = openScope(actor)
-  const { rows: shown, total: endedTotal } = await endedOpenRows(db, actor, now, limits.endedLimit)
+  // 끝난 행사를 받지 않으면(홈 주요 행사) 읽지 않는다. 그때 endedTotal은 0이다.
+  const { rows: shown, total: endedTotal } =
+    limits.endedLimit > 0
+      ? await endedOpenRows(db, actor, now, limits.endedLimit)
+      : { rows: [], total: 0 }
   const rest = limits.limit - shown.length
   const others = await eventSelect(db)
     .where(and(scope, sql`${group} < 3`))

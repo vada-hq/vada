@@ -4,14 +4,19 @@ import {
   koreanDateOf,
   koreanOf,
   openRequestsOf,
+  type HomeKind,
   type HomeMyRequests,
+  type HomeParticipating,
   type HomeResponse,
+  type HomeUpcoming,
+  type TaskSummary,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { isLeadership } from '../access/permissions.js'
 import type { Db } from '../db/types.js'
 import { openEventsOf } from '../events/queries.js'
 import { requestListOf } from '../purchases/queries.js'
-import { openTasksOf } from '../tasks/open-tasks.js'
+import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
 import { councilOf } from './council.js'
 import { departmentsOf } from './departments.js'
 import { financeOf } from './finance.js'
@@ -33,23 +38,40 @@ async function myRequestsOf(db: Reader, actor: Actor, today: string): Promise<Ho
 const featuredEventsOf = async (db: Reader, actor: Actor, now: Date) =>
   (await openEventsOf(db, actor, now, { limit: HOME_FEATURED_LIMIT, endedLimit: 0 })).events
 
+const NO_PARTICIPATION: HomeParticipating = { events: [], total: 0 }
+const NO_UPCOMING: HomeUpcoming = { items: [], total: 0 }
+
+// 참여 행사와 가까운 일정. 재정부 홈은 두 카드가 없어 읽지 않고 빈 값이다(DEC-95).
+async function scheduleOf(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+  input: { kind: HomeKind; open: OpenTask[]; mine: TaskSummary[] },
+) {
+  if (input.kind === 'finance') return { participating: NO_PARTICIPATION, upcoming: NO_UPCOMING }
+  const staffed = await staffedEventIdsOf(db, actor)
+  const participating = await participatingOf(db, actor, now, { staffed, open: input.open })
+  const upcoming = await upcomingOf(db, actor, now, { ...input, staffed, participating })
+  return { participating, upcoming }
+}
+
 // 모든 홈 종류가 쓰는 칸(DEC-95). 셈은 원래 화면의 도우미를 그대로 부른다(DEC-69).
+// 학생회 전체의 열린 업무는 회장단과 부서가 있는 사람만 쓴다(부서 없는 운영진은 내 업무만 본다).
 async function commonOf(db: Reader, actor: Actor, now: Date) {
   const today = koreanDateOf(now)
   const kind = homeKindOf(actor)
   const { mine, myTasks, tasks } = await mineOf(db, actor, now)
-  const open = await openTasksOf(db, actor, now)
-  const staffed = await staffedEventIdsOf(db, actor)
-  const participating = await participatingOf(db, actor, now, { staffed, open })
+  const open =
+    isLeadership(actor) || actor.departments.length > 0 ? await openTasksOf(db, actor, now) : []
   const home: HomeResponse = {
     today,
     kind,
     financeView: hasFinanceView(actor),
     asOf: koreanOf(now),
     myTasks,
-    featuredEvents: await featuredEventsOf(db, actor, now),
-    participating,
-    upcoming: await upcomingOf(db, actor, now, { kind, open, mine: tasks, staffed, participating }),
+    // 회장단 인사 카드에는 주요 행사 타일이 없다(행사는 전체 행사 진행 현황에서 본다).
+    featuredEvents: kind === 'council' ? [] : await featuredEventsOf(db, actor, now),
+    ...(await scheduleOf(db, actor, now, { kind, open, mine: tasks })),
     myRequests: await myRequestsOf(db, actor, today),
     mine,
   }

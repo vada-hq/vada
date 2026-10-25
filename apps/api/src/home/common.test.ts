@@ -211,11 +211,8 @@ test('참여 행사는 내 부서가 담당 부서인 완료 전 행사이고 �
     assert.deepEqual(card.tasks, { done: 1, total: 4 })
     assert.equal(card.next?.title, '다음 마감')
     assert.equal(card.next?.dueDate, '2026-10-28')
-    // 재정부원은 재정 역할 부서가 담당 부서인 행사, 부서 없는 운영진은 빈 목록이다.
-    assert.deepEqual(
-      (await h.read('s-financeMember')).participating.events.map(row => row.event.id),
-      [ongoing, financeOnly],
-    )
+    // 재정부 홈은 참여 행사 카드가 없어 빈 목록이고, 부서 없는 운영진도 빈 목록이다.
+    assert.deepEqual((await h.read('s-financeMember')).participating, { events: [], total: 0 })
     assert.deepEqual((await h.read('s-plain')).participating, { events: [], total: 0 })
   })()
 })
@@ -299,6 +296,49 @@ test('새 칸에 다른 학생회 것과 신청자 이름·휴대폰 번호가 �
         item => item.kind === 'registration_close' && item.form.id === myForm,
       ),
     )
-    assert.ok(home.featuredEvents.some(row => row.id === mine))
+    assert.ok((await h.read('s-plain')).featuredEvents.some(row => row.id === mine))
+  })()
+})
+
+test('종류마다 화면이 쓰지 않는 칸은 읽지 않고 빈 값이다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    const finance = financeOf(t)
+    const { plain } = people(t)
+    // 모두에게 보일 만한 것: 진행 중인 행사, 재정부가 맡은 7일 안 업무, 부서 없는 운영진의 업무
+    const ongoing = await t.event({ name: '진행 중', startsAt: at('2026-10-25T09:00:00') })
+    await h.task({ eventId: ongoing, departmentId: finance, dueAt: due('2026-10-27') })
+    await h.task({ title: '내 업무', assigneeId: plain.memberId, dueAt: due('2026-10-27') })
+    const empty = { participating: { events: [], total: 0 }, upcoming: { items: [], total: 0 } }
+    // 회장단: 주요 행사 타일이 없다.
+    const council = await h.read('s-president')
+    assert.deepEqual(council.featuredEvents, [])
+    assert.equal(council.upcoming.total, 3)
+    // 재정부 홈(재정부원, 재정부장): 참여 행사와 가까운 일정이 없다.
+    const member = await h.read('s-financeMember')
+    assert.deepEqual({ participating: member.participating, upcoming: member.upcoming }, empty)
+    assert.deepEqual(
+      member.featuredEvents.map(row => row.id),
+      [ongoing],
+    )
+    await t.pg.query(
+      `UPDATE department_membership SET department_rank = 'head' WHERE member_id = $1`,
+      [people(t).financeMember.memberId],
+    )
+    const head = await h.read('s-financeMember')
+    assert.deepEqual({ participating: head.participating, upcoming: head.upcoming }, empty)
+    assert.ok(head.departments, '재정부장은 지금 화면의 부서 부분을 그대로 받는다')
+    // 부서 없는 운영진: 학생회 전체 업무를 읽지 않아도 학생회 행사와 내 업무 마감이 있다.
+    const alone = await h.read('s-plain')
+    assert.equal(alone.kind, 'member')
+    assert.deepEqual(alone.participating, empty.participating)
+    assert.deepEqual(
+      alone.upcoming.items.map(item => item.kind),
+      ['event_start', 'task_due'],
+    )
+    assert.deepEqual(
+      alone.featuredEvents.map(row => row.id),
+      [ongoing],
+    )
   })()
 })
