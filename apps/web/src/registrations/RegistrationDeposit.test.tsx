@@ -142,6 +142,8 @@ test('입금 확인 금액은 적용 참가비로 채워 두고 고칠 수 있�
   fireEvent.click(button(row, '입금 확인'))
   const dialog = await screen.findByRole('dialog')
   expect(within(dialog).getByText('적용 참가비 5,000원')).toBeTruthy()
+  // 언제 누를지는 운영진이 판단할 일이라 권유 글을 두지 않는다('화면 문구와 폼').
+  expect(dialog.textContent).not.toContain('눌러 주세요')
   const amount = within(dialog).getByLabelText('입금 금액(원)')
   expect(amount).toHaveProperty('value', '5000')
   const confirm = () => fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인' }))
@@ -234,7 +236,12 @@ test('환불 대기 줄에는 [환불함]이 줄에 deposit.refund가 있을 때
   expect(within(dialog).getByText('1원부터 5,000원 사이로 입력해 주세요')).toBeTruthy()
   expect(amount.getAttribute('aria-invalid')).toBe('true')
   expect(posts(api)).toHaveLength(0)
-  fireEvent.change(amount, { target: { value: '3000' } })
+  // 지수 표기는 숫자 입력이 아니고, 쉼표는 받는다(입금 확인과 같은 금액 칸 규칙).
+  fireEvent.change(amount, { target: { value: '1e3' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '환불함' }))
+  expect(within(dialog).getByText('1원부터 5,000원 사이로 입력해 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(amount, { target: { value: '3,000' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '환불함' }))
   await waitFor(() => expect(screen.queryByText('김새내')).toBeNull())
   expect(posts(api)[0]?.body).toEqual({ amount: 3000 })

@@ -4,8 +4,8 @@ import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { wonOf } from '@/finance/budget-form'
 import { requiredText } from '@/lib/use-form-check'
+import { wonOf } from '@/lib/won-input'
 import { won } from '@/public/registration-text'
 
 type Shared = {
@@ -29,7 +29,6 @@ export function ConfirmDepositDialog({ name, appliedFee, onSubmit, ...shared }: 
     <ConfirmDialog
       {...shared}
       title={`${name}님의 입금을 확인할까요?`}
-      description="통장에 들어온 것을 확인한 뒤에 눌러 주세요. VADA는 돈을 옮기지 않고 표시만 해요."
       confirmLabel="입금 확인"
       check={() => ({
         amount:
@@ -82,7 +81,7 @@ type RefundProps = Shared & { deposited: number; onSubmit: (amount: number) => v
 // 환불함: 밖에서 돌려준 금액을 표시한다(VADA는 돈을 옮기지 않는다). 이름·휴대폰 번호를 지워 되돌릴 수 없다.
 export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundProps) {
   const [text, setText] = useState(String(deposited))
-  const amount = text.trim() === '' ? Number.NaN : Number(text)
+  const amount = wonOf(text)
   return (
     <ConfirmDialog
       {...shared}
@@ -92,7 +91,7 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
       check={() => ({
         amount:
           requiredText(text, '환불한 금액을') ??
-          (Number.isInteger(amount) && amount > 0 && amount <= deposited
+          (amount > 0 && amount <= deposited
             ? undefined
             : `1원부터 ${won(deposited)} 사이로 입력해 주세요`),
       })}

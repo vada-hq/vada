@@ -4,6 +4,7 @@ import {
   type BudgetItemView,
   type BudgetResponse,
 } from '@vada/contracts'
+import { wonOf } from '@/lib/won-input'
 
 // 회계 기간 만들기와 예산 항목 더하기 폼의 값. 입력칸 값은 글자다.
 export type PeriodValues = { name: string; startsOn: string; endsOn: string }
@@ -40,13 +41,6 @@ export const itemsForEvent = <T extends Pick<BudgetItemView, 'event'>>(
   items: readonly T[],
   eventId: string | null,
 ) => items.filter(item => eventsAgree(eventId, item.event?.id ?? null))
-
-// 금액 칸: 쉼표와 공백은 지우고, 비었거나 숫자가 아니면 NaN이라 계약 검사가 막는다.
-export function wonOf(value: string) {
-  const digits = value.replace(/[,\s]/g, '')
-  // 1e3, 0x10 같은 글은 Number가 받아도 숫자 입력이 아니다.
-  return /^\d+$/.test(digits) ? Number(digits) : Number.NaN
-}
 
 export const budgetItemOf = (values: BudgetItemValues) => ({
   purpose: values.purpose,

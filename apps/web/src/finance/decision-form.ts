@@ -1,6 +1,6 @@
 import { DecideLineItemsSchema, type BudgetItemView } from '@vada/contracts'
 import { withContract, type FieldErrors } from '@/lib/use-form-check'
-import { wonOf } from './budget-form'
+import { wonOf } from '@/lib/won-input'
 
 // 결재 줄 하나의 입력값. budgetItemId가 null이면 아직 고르지 않은 것이라 마지막에 고른 항목을 보인다.
 export type RowValues = {
