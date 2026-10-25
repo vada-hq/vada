@@ -13,7 +13,7 @@ import NoCouncilFlow, { type CardFrame } from './NoCouncilFlow'
 import { useMyCouncils } from './useMyCouncils'
 
 type Props = {
-  user: { id: string; name: string }
+  user: { id: string; name: string; email: string }
   // 마지막에 본 주소를 사람마다 기억하는 열쇠.
   userId: string
   // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69).

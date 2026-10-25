@@ -74,6 +74,17 @@ test('사용자 줄은 운영진 이름이고, 누르면 내 이름 창에서 �
   await within(screen.getByRole('list', { name: '운영진' })).findByText('김새이름')
 })
 
+// 학생회에 든 사람이 자기 로그인 계정을 볼 곳은 이 창뿐이다(개인정보 보호법 제35조 열람). 계정 이메일은 Google이 정해 고칠 칸이 아니다.
+test('내 이름 창에 로그인 이메일을 고칠 수 없게 보인다', async () => {
+  open()
+  fireEvent.click(await within(footer()).findByRole('button', { name: '내 이름: 김바다, 회장' }))
+  const dialog = await screen.findByRole('dialog', { name: '내 이름' })
+  const email = within(dialog).getByRole('definition')
+  expect(email.textContent).toBe('kim.google@example.com')
+  expect(within(dialog).getByRole('term').textContent).toBe('로그인 이메일')
+  expect(within(dialog).getAllByRole('textbox')).toHaveLength(1)
+})
+
 test('같은 이름으로 저장하면 요청 없이 닫고, 닫기는 바꾸지 않는다', async () => {
   const api = open()
   fireEvent.click(await within(footer()).findByRole('button', { name: '내 이름: 김바다, 회장' }))

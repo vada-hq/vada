@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Fact } from '@/components/Fact'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +16,8 @@ import { useFormCheck } from '@/lib/use-form-check'
 
 type Props = {
   name: string
+  // 로그인한 Google 계정. 학생회에 든 사람이 자기 계정을 보는 곳이 이 창뿐이라 보이기만 한다(개인정보 보호법 제35조 열람).
+  email: string
   busy: boolean
   error: string | null
   onSave: (name: string) => void
@@ -23,10 +26,11 @@ type Props = {
   onWithdraw: () => void
 }
 
-// '내 이름' 창: 운영진 이름 고치기와 탈퇴로 가는 버튼. 같은 이름이면 보내지 않고 닫는다(서버도 판을 남기지 않는다).
+// '내 이름' 창: 운영진 이름 고치기, 로그인 이메일(고칠 수 없음), 탈퇴로 가는 버튼. 같은 이름이면 보내지 않고 닫는다(서버도 판을 남기지 않는다).
 // 칸 하나라 Enter로도 저장하도록 form이다. 저장 버튼은 끄지 않고 누를 때 확인한다.
 export default function MyNameDialog({
   name: current,
+  email,
   busy,
   error,
   onSave,
@@ -66,6 +70,9 @@ export default function MyNameDialog({
               onChange={event => setName(event.target.value)}
             />
           </Field>
+          <dl>
+            <Fact label="로그인 이메일">{email}</Fact>
+          </dl>
           {error && <StateMessage kind="error">{error}</StateMessage>}
           <DialogFooter>
             {/* 이름 저장과 떨어뜨려 왼쪽 끝에 둔다. 누르면 확인 창이 한 번 더 묻는다. */}

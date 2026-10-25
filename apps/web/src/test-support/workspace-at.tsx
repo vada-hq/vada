@@ -22,7 +22,7 @@ export function WorkspaceAt({ startPage }: { startPage: Page }) {
       target={target}
       onSelect={() => {}}
       returnFocusTo={null}
-      user={{ id: 'u1', name: '김회장' }}
+      user={{ id: 'u1', name: '김회장', email: 'kim.google@example.com' }}
       logoutBusy={false}
       onLogout={() => {}}
       onCouncilsChanged={() => {}}
