@@ -25,8 +25,8 @@ function Notice({ data }: { data: PublicRegistrationForm }) {
   return (
     <p className="text-xs text-gray-500 wrap-anywhere">
       받는 곳: {data.councilName} · 받는 항목: {collectedItems(data).join(', ')} · 목적: 행사 참가
-      신청과 출석 확인 · 지우는 날: {data.purgeOn ? dateText(data.purgeOn) : '행사가 끝나고 1년 뒤'}
-      .{' '}
+      신청, 출석 확인, 입금 확인 · 지우는 날:{' '}
+      {data.purgeOn ? dateText(data.purgeOn) : '행사가 끝나고 1년 뒤'}.{' '}
       {data.form.notice
         ? '문의는 위 안내에 적힌 곳으로 해 주세요.'
         : '문의는 이 링크를 보낸 운영진에게 해 주세요.'}
@@ -34,7 +34,7 @@ function Notice({ data }: { data: PublicRegistrationForm }) {
   )
 }
 
-// 학번은 참가비가 갈릴 때만, 휴대폰은 받을 때만 있다. 서버가 같은 기준으로 칸을 검사한다(FORM_CHANGED).
+// 학번은 양식이 학번을 받을 때만(DEC-75), 휴대폰은 받을 때만 있다. 서버가 같은 기준으로 칸을 검사한다(FORM_CHANGED).
 function OptionalFields(props: {
   data: PublicRegistrationForm
   values: ApplyValues
@@ -70,7 +70,7 @@ function OptionalFields(props: {
   )
 }
 
-// 받는 중일 때만 쓰는 칸과 버튼. 학번은 참가비가 갈릴 때만, 휴대폰은 받을 때만 있다. 오류는 버튼 옆에 보인다.
+// 받는 중일 때만 쓰는 칸과 버튼. 학번은 양식이 받을 때만, 휴대폰은 받을 때만 있다. 오류는 버튼 옆에 보인다.
 export default function ApplyFields({
   data,
   values,

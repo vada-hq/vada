@@ -47,6 +47,12 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText(/지우는 날: 2027년 10월 24일/)).toBeTruthy()
 })
 
+// 학번과 이름은 통장의 입금자명과 신청을 맞추는 데도 쓰므로 고지의 목적에 입금 확인이 있다(DEC-75).
+test('버튼 아래 고지의 목적은 참가 신청, 출석 확인, 입금 확인이다', async () => {
+  setup()
+  expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인, 입금 확인 ·/)).toBeTruthy()
+})
+
 // 학생이 언제까지 신청할지 알아야 미루지 않는다(notes/frontend-findings.md RG-4).
 test('받는 중이면 신청 마감이 보이고, 마감된 양식에는 없다', async () => {
   setup()
