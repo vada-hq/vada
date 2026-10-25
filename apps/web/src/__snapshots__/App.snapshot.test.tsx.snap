@@ -152,29 +152,6 @@ exports[`작업 공간: 대화 방 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -209,6 +186,17 @@ exports[`작업 공간: 대화 방 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">
@@ -297,7 +285,7 @@ exports[`작업 공간: 대화 방 1`] = `
 <time datetime="2020-03-02T01:30:00Z" class="text-xs text-gray-400">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id2_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id3_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -317,7 +305,7 @@ exports[`작업 공간: 대화 방 1`] = `
 <time datetime="2020-03-02T01:30:00Z" class="sr-only">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id3_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id4_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -405,29 +393,6 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -462,6 +427,17 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">
@@ -632,29 +608,6 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -689,6 +642,17 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">
@@ -754,10 +718,10 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <section aria-label="초대 링크" class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
-<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id2_">초대 링크</label>
+<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id3_">초대 링크</label>
 <p class="text-xs text-gray-500">단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를 바꿔 주세요.</p>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id2_" readonly="" value="http://localhost:3000/join/ABCD2345">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id3_" readonly="" value="http://localhost:3000/join/ABCD2345">
 <div class="flex flex-wrap gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
@@ -781,11 +745,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </section>
 </div>
 <div class="@container flex flex-col gap-4">
-<section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id4_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id3_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">미배정 구성원</h2>
+<h2 id="_id4_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">미배정 구성원</h2>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">1명</p>
 </div>
@@ -804,7 +768,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
 <p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 19일 (월) 00:30 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id4_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id5_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -817,11 +781,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id5_" class="rounded-lg bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-2 border-gray-300 @2xl:mx-auto @2xl:w-1/2">
+<section aria-labelledby="_id6_" class="rounded-lg bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-2 border-gray-300 @2xl:mx-auto @2xl:w-1/2">
 <div class="flex items-start gap-2 border-b px-4 py-3 rounded-t-lg bg-gray-50">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id5_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">
+<h2 id="_id6_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star size-4 shrink-0 text-yellow-500" aria-hidden="true">
 <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
 </path>
@@ -845,7 +809,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id7_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -859,16 +823,16 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </ul>
 </section>
 <div class="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3">
-<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id8_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id7_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">재정부</h2>
+<h2 id="_id8_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">재정부</h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">부장 이재정 · 1명</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="재정부 동작" type="button" id="radix-_id8_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="재정부 동작" type="button" id="radix-_id9_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -893,7 +857,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id9_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id10_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -906,15 +870,15 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id11_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id10_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">기획부</h2>
+<h2 id="_id11_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">기획부</h2>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">부장 없음 · 0명</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="기획부 동작" type="button" id="radix-_id11_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="기획부 동작" type="button" id="radix-_id12_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -944,14 +908,14 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </div>
 <div data-state="open" class="fixed inset-0 z-50 bg-black/45 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;" data-aria-hidden="true" aria-hidden="true">
 </div>
-<div role="dialog" id="radix-_id12_" data-state="open" class="fixed inset-y-0 z-50 flex w-72 max-w-5/6 flex-col bg-white shadow-2xl outline-none data-[state=open]:animate-in left-0 data-[state=open]:slide-in-from-left" tabindex="-1" aria-labelledby="radix-_id13_" style="pointer-events: auto;">
-<h2 id="radix-_id13_" class="sr-only">학생회 작업 공간</h2>
+<div role="dialog" id="radix-_id13_" data-state="open" class="fixed inset-y-0 z-50 flex w-72 max-w-5/6 flex-col bg-white shadow-2xl outline-none data-[state=open]:animate-in left-0 data-[state=open]:slide-in-from-left" tabindex="-1" aria-labelledby="radix-_id14_" style="pointer-events: auto;">
+<h2 id="radix-_id14_" class="sr-only">학생회 작업 공간</h2>
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex h-full min-h-0 flex-col">
 <div class="flex shrink-0 items-center gap-2 border-b border-gray-100 py-3 pr-10 pl-4">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 py-2 text-sm [&amp;_svg]:size-4 min-w-0 flex-1 justify-between px-2 text-gray-900" aria-label="학생회 메뉴: 컴퓨터학부 학생회" type="button" id="radix-_id14_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 py-2 text-sm [&amp;_svg]:size-4 min-w-0 flex-1 justify-between px-2 text-gray-900" aria-label="학생회 메뉴: 컴퓨터학부 학생회" type="button" id="radix-_id15_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <span class="truncate text-sm font-semibold">컴퓨터학부 학생회</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-up-down" aria-hidden="true">
 <path d="m7 15 5 5 5-5">
@@ -977,29 +941,6 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <span class="flex-1">대화</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
@@ -1035,6 +976,17 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id16_">
+<p id="_id16_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">
@@ -1119,29 +1071,6 @@ exports[`작업 공간: 조직 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -1176,6 +1105,17 @@ exports[`작업 공간: 조직 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">
@@ -1241,10 +1181,10 @@ exports[`작업 공간: 조직 1`] = `
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
 <section aria-label="초대 링크" class="flex flex-col gap-3">
 <div class="flex flex-col gap-1">
-<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id2_">초대 링크</label>
+<label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id3_">초대 링크</label>
 <p class="text-xs text-gray-500">단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를 바꿔 주세요.</p>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id2_" readonly="" value="http://localhost:3000/join/ABCD2345">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id3_" readonly="" value="http://localhost:3000/join/ABCD2345">
 <div class="flex flex-wrap gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
@@ -1268,11 +1208,11 @@ exports[`작업 공간: 조직 1`] = `
 </section>
 </div>
 <div class="@container flex flex-col gap-4">
-<section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id4_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id3_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">미배정 구성원</h2>
+<h2 id="_id4_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">미배정 구성원</h2>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">1명</p>
 </div>
@@ -1291,7 +1231,7 @@ exports[`작업 공간: 조직 1`] = `
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
 <p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 19일 (월) 00:30 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id4_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박새내 동작" type="button" id="radix-_id5_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -1304,11 +1244,11 @@ exports[`작업 공간: 조직 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id5_" class="rounded-lg bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-2 border-gray-300 @2xl:mx-auto @2xl:w-1/2">
+<section aria-labelledby="_id6_" class="rounded-lg bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-2 border-gray-300 @2xl:mx-auto @2xl:w-1/2">
 <div class="flex items-start gap-2 border-b px-4 py-3 rounded-t-lg bg-gray-50">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id5_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">
+<h2 id="_id6_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star size-4 shrink-0 text-yellow-500" aria-hidden="true">
 <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
 </path>
@@ -1332,7 +1272,7 @@ exports[`작업 공간: 조직 1`] = `
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id6_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김회장 동작" type="button" id="radix-_id7_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -1346,16 +1286,16 @@ exports[`작업 공간: 조직 1`] = `
 </ul>
 </section>
 <div class="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3">
-<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id8_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id7_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">재정부</h2>
+<h2 id="_id8_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">재정부</h2>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">재정</span>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">부장 이재정 · 1명</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="재정부 동작" type="button" id="radix-_id8_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="재정부 동작" type="button" id="radix-_id9_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -1380,7 +1320,7 @@ exports[`작업 공간: 조직 1`] = `
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id9_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이재정 동작" type="button" id="radix-_id10_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -1393,15 +1333,15 @@ exports[`작업 공간: 조직 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id11_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-<h2 id="_id10_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">기획부</h2>
+<h2 id="_id11_" class="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900">기획부</h2>
 </div>
 <p class="mt-0.5 text-xs wrap-anywhere text-gray-500">부장 없음 · 0명</p>
 </div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="기획부 동작" type="button" id="radix-_id11_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 -my-1 -mr-2" aria-label="기획부 동작" type="button" id="radix-_id12_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
 <circle cx="12" cy="12" r="1">
 </circle>
@@ -1465,29 +1405,6 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 <span class="flex-1">대화</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -1522,6 +1439,10 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -1624,29 +1545,6 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 <span class="flex-1">대화</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -1681,6 +1579,10 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -1787,29 +1689,6 @@ exports[`작업 공간: 홈 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4" aria-hidden="true">
-<path d="M8 2v3">
-</path>
-<path d="M16 2v3">
-</path>
-<rect x="3" y="3" width="18" height="18" rx="2">
-</rect>
-<path d="M3 9h18">
-</path>
-<path d="M8 13h.01">
-</path>
-<path d="M12 13h.01">
-</path>
-<path d="M16 13h.01">
-</path>
-<path d="M8 17h.01">
-</path>
-<path d="M12 17h.01">
-</path>
-<path d="M16 17h.01">
-</path>
-</svg>행사</button>
-<button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mt-1 flex items-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-checks size-4" aria-hidden="true">
 <path d="M13 5h8">
 </path>
@@ -1844,6 +1723,17 @@ exports[`작업 공간: 홈 1`] = `
 <circle cx="9" cy="7" r="4">
 </circle>
 </svg>조직</button>
+<div role="group" aria-labelledby="_id2_">
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
+<button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>새 행사</button>
+</div>
 </nav>
 <footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
 <button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left" aria-label="내 이름: 김회장, 회장">

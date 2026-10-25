@@ -11,8 +11,8 @@ type Props = {
   titles: CouncilTitles
   // 회장단(member.manage)에게는 미배정 묶음이 맨 위, 다른 운영진에게는 맨 아래다(DEC-91).
   unassignedFirst: boolean
-  // 사람 한 줄(key를 단 li).
-  person: (member: TeamMember) => ReactNode
+  // 사람 한 줄(key를 단 li). groupKey는 그 줄이 든 묶음이다.
+  person: (member: TeamMember, groupKey: string) => ReactNode
   // 부서 머리 오른쪽의 ⋯ 메뉴. 고칠 수 없으면 null.
   departmentAction: (department: TeamDepartment) => ReactNode
   // 이름을 바꾸는 중인 부서면 머리 자리의 편집 칸, 아니면 null.
@@ -35,6 +35,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
   const unassigned = groups.unassigned.length > 0 && (
     <OrgGroupCard
       title="미배정 구성원"
+      groupKey="unassigned"
       meta={headcount(groups.unassigned)}
       people={groups.unassigned}
       person={slots.person}
@@ -46,6 +47,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
       <OrgGroupCard
         lead
         title="회장단"
+        groupKey="council"
         icon={<Star aria-hidden className="size-4 shrink-0 text-yellow-500" />}
         meta={headcount(groups.council)}
         className="@2xl:mx-auto @2xl:w-1/2"
@@ -58,6 +60,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
           <OrgGroupCard
             key={group.department.id}
             title={group.department.name}
+            groupKey={group.department.id}
             badge={group.department.role === 'finance' && <Badge tone="info">재정</Badge>}
             meta={departmentMeta(group, titles)}
             action={slots.departmentAction(group.department)}

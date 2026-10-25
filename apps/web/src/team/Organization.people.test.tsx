@@ -760,6 +760,35 @@ test('쪽에서 한 동작이 실패하면 휴대폰 화면에서도 보이도�
   expect(posts(api)).toHaveLength(1)
 })
 
+// 겸직자는 두 묶음에 줄이 있다. 연 묶음의 줄로 돌아가야 화면이 다른 묶음으로 뛰지 않는다.
+test('두 묶음에 든 사람의 ⋯ 메뉴로 연 대화상자를 닫으면 포커스가 연 묶음의 그 줄로 돌아간다', async () => {
+  const team = teamResponse()
+  team.members[1] = {
+    ...team.members[1]!,
+    departments: [
+      { id: 'd1', rank: 'head' },
+      { id: 'd2', rank: null },
+    ],
+  }
+  serve(team)
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  for (const group of ['재정부', '기획부']) {
+    const list = within(await screen.findByRole('list', { name: `${group} 구성원` }))
+    const trigger = list.getByRole('button', { name: '이재정 동작' })
+    fireEvent.keyDown(trigger, { key: 'Enter' })
+    fireEvent.click(
+      within(await screen.findByRole('menu')).getByRole('menuitem', { name: '부서 배정' }),
+    )
+    fireEvent.keyDown(await screen.findByRole('dialog', { name: '이재정의 부서' }), {
+      key: 'Escape',
+    })
+    await noDialog()
+    await waitFor(() => expect(document.activeElement, group).toBe(trigger))
+    await settle()
+    expect(document.activeElement, group).toBe(trigger)
+  }
+})
+
 // Radix는 Trigger로 연 대화상자만 닫을 때 포커스를 돌려준다. ⋯ 메뉴 항목으로 연 대화상자는 직접 돌려준다.
 test('메뉴 항목으로 연 대화상자를 닫으면 포커스가 그 운영진의 ⋯ 버튼으로 돌아간다', async () => {
   serve()
