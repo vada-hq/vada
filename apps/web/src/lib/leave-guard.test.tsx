@@ -91,6 +91,18 @@ test('권한이나 소속을 잃어 어쩔 수 없이 떠나는 이동(force)은
   expect(dialogs()).toBeNull()
 })
 
+test('확인 창이 떠 있는 채 강제로 떠나면 그 요청은 사라져, 새 작업 공간이 옛 확인을 띄우지 않는다', async () => {
+  const view = mount(true)
+  navigate(PEOPLE)
+  expect(await screen.findByText(LEAVE_TITLE)).toBeTruthy()
+  navigate(TASKS, { replace: true, force: true })
+  await waitFor(() => expect(dialogs()).toBeNull())
+  expect(pathNow()).toBe(TASKS)
+  view.unmount()
+  render(<LeaveConfirm />)
+  expect(dialogs()).toBeNull()
+})
+
 test('화면 안 뒤로(leave)는 앱 안에서 쌓은 칸이면 확인 뒤 한 칸 뒤로 간다', async () => {
   const view = mount(false)
   navigate(PEOPLE)

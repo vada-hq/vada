@@ -70,7 +70,7 @@ export const ADDRESS_LOST = '찾을 수 없음'
 export const ADDRESS_LOST_BACK = '홈으로'
 
 // 저장하지 않은 입력이 있을 때 다른 곳으로 가려는 경우의 확인 창. 나가는 버튼은 늘 '닫기'(계속 쓰기)다.
-export const LEAVE_TITLE = '저장하지 않은 입력이 있어요'
+export const LEAVE_TITLE = '입력을 버리고 나갈까요?'
 export const LEAVE_CONFIRM = '입력 버리고 나가기'
 export const ROOM_LOST = '이 방을 볼 수 없어요'
 export const ROOMS_LOAD_FAILED = '대화방을 불러오지 못했어요. 연결을 확인해 주세요.'

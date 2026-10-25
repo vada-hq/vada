@@ -231,6 +231,20 @@ test('기록 주소로 바로 들어오면 상위 목록 칸이 깔려 뒤로가
   expect(await heading('업무')).toBeTruthy()
 })
 
+test('/로 열었는데 마지막 주소가 기록이면 바로 들어온 기록처럼 목록 칸이 깔려 뒤로가 목록으로 간다', async () => {
+  window.localStorage.setItem(LAST, `/tasks/${C1}/${T1}`)
+  const push = pushes()
+  await renderApp()
+  await taskOpen()
+  expect(push).toHaveBeenCalledTimes(1)
+  expect(pathNow()).toBe(`/tasks/${C1}/${T1}`)
+  act(() => window.history.back())
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(pathNow()).toBe(`/tasks/${C1}`)
+  expect(await heading('업무')).toBeTruthy()
+  expect(window.localStorage.getItem(LAST)).toBe(`/tasks/${C1}`)
+})
+
 test('새로 고침으로 되살린 창은 칸을 더 쌓지 않는다', async () => {
   window.history.replaceState(null, '', `/tasks/${C1}/${T1}`)
   await renderApp()

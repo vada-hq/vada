@@ -108,6 +108,49 @@ test('저장하면 입력이 남지 않은 것이라 묻지 않는다', async ()
   expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
 })
 
+test('앞뒤 공백을 넣어 저장해도(서버가 다듬어 돌려준다) 저장 뒤에는 묻지 않고 beforeunload도 풀린다', async () => {
+  api.on('POST', `/api/organizations/${C1}/settings`, () =>
+    json(councilView(C1, { name: '고친 이름 학생회', permissions: LEADER_PERMISSIONS })),
+  )
+  await openSettings()
+  fireEvent.change(nameField(), { target: { value: '고친 이름 학생회 ' } })
+  fireEvent.click(screen.getByRole('button', { name: '학생회 정보 저장' }))
+  expect(await screen.findByText('저장했어요.')).toBeTruthy()
+  const event = new Event('beforeunload', { cancelable: true })
+  window.dispatchEvent(event)
+  expect(event.defaultPrevented).toBe(false)
+  fireEvent.click(menu('사람'))
+  expect(await heading('사람')).toBeTruthy()
+  expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
+})
+
+test('권한을 잃어 떠나는 이동은 입력이 있어도 묻지 않고 다음 학생회 홈으로 간다', async () => {
+  const C2 = '0199d1a0-0000-7000-8000-0000000000c2'
+  api.on('GET', '/api/me/councils', () =>
+    json({ councils: [myCouncil(C1), myCouncil(C2, '둘째')] }),
+  )
+  api.on('GET', `/api/organizations/${C2}`, () => json(councilView(C2)))
+  api.on('GET', `/api/organizations/${C2}/members`, () => json(teamResponse()))
+  api.on('GET', `/api/organizations/${C2}/rooms`, () => json(roomList()))
+  api.on('GET', `/api/organizations/${C2}/home`, () => json(homeResponse()))
+  onHomeExtras(api, {}, C2)
+  let lost = false
+  api.on('GET', `/api/organizations/${C1}`, () =>
+    lost
+      ? json({ code: 'FORBIDDEN' }, 403)
+      : json(councilView(C1, { permissions: LEADER_PERMISSIONS })),
+  )
+  api.on('POST', `/api/organizations/${C1}/settings`, () => {
+    lost = true
+    return json({ code: 'FORBIDDEN' }, 403)
+  })
+  await openSettings()
+  edit()
+  fireEvent.click(screen.getByRole('button', { name: '학생회 정보 저장' }))
+  await waitFor(() => expect(pathNow()).toBe(`/home/${C2}`))
+  expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
+})
+
 test('기기 뒤로도 같은 확인을 거친다: 계속 쓰기면 그 자리, 나가기면 앞 메뉴', async () => {
   window.history.replaceState(null, '', `/home/${C1}`)
   await renderApp()

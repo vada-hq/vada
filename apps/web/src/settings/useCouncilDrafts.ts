@@ -9,6 +9,15 @@ import {
   type TitleKey,
 } from './council-settings-form'
 
+// 서버는 글을 다듬어(앞뒤 공백 제거) 저장하므로, 비교도 다듬은 값으로 한다. 안 그러면 공백이 붙은 채 저장한 뒤에도 고치던 중으로 남는다.
+const trimmed = (value: unknown) =>
+  JSON.parse(JSON.stringify(value), (_key, item: unknown) =>
+    typeof item === 'string' ? item.trim() : item,
+  ) as unknown
+// 처음 받은 값이나 지금 서버 값(내 저장 결과) 중 하나와 같으면 고치던 중이 아니다.
+const sameForm = (draft: unknown, base: unknown, now: unknown) =>
+  sameJson(trimmed(draft), trimmed(base)) || sameJson(trimmed(draft), trimmed(now))
+
 // 설정 화면에서 고치고 있는 값. 학생회가 다시 읽히면(권한 오류 뒤 다시 읽기, 15초 다시 읽기, 다른 곳의 저장) 서버의 새 값으로 다시 채운다.
 // 내용이 바뀐 쪽만 채우고, 그 쪽을 고치던 중이면(처음 받은 값과 다르면) 쓰던 값을 지킨다. 서버 값과 다른 채로 저장하면 저장 결과가 서버의 값이 된다.
 export function useCouncilDrafts(view: CouncilView, onEdit: (form: 'council' | 'cohort') => void) {
@@ -38,7 +47,9 @@ export function useCouncilDrafts(view: CouncilView, onEdit: (form: 'council' | '
     council,
     cohort,
     // 서버 값과 다르게 고치던 중이면 저장하지 않은 입력이 있는 것이다(떠날 때 확인).
-    dirty: !sameJson(council, base.council) || !sameJson(cohort, base.cohort),
+    dirty:
+      !sameForm(council, base.council, councilFrom(view)) ||
+      !sameForm(cohort, base.cohort, cohortFrom(view)),
     editCouncil: (patch: Partial<CouncilDraft>) => {
       setCouncil(current => ({ ...current, ...patch }))
       onEdit('council')

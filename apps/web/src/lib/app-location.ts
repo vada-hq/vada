@@ -8,7 +8,7 @@ import {
   releaseAdopted,
 } from './use-window-history'
 import { INDEX_KEY, indexOf, noteIndex } from './back-guard'
-import { askLeave } from './leave-guard'
+import { askLeave, stayHere } from './leave-guard'
 
 // 주소 층(기능 016). 화면의 위치는 브라우저 주소가 원문이고, 이 모듈이 주소를 읽고(useHere) 쌓고 바꿔 쓴다(navigate).
 // 주소를 만들고 읽는 규칙은 contracts의 paths.ts 하나다. 라이브러리 없이 History API만 쓴다.
@@ -125,8 +125,11 @@ function go(target: string, options: { replace?: boolean }) {
 // 기록 주소는 상세 창이 그 칸을 자기 칸으로 쓰도록 표시해 쌓는다. 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 쌓는다.
 // 저장하지 않은 입력이 있으면 확인 창을 먼저 보인다. 소속을 잃어 떠나야 하는 이동은 force로 묻지 않는다.
 export function navigate(target: string, options: { replace?: boolean; force?: boolean } = {}) {
-  if (options.force) go(target, options)
-  else askLeave(() => go(target, options))
+  if (options.force) {
+    // 떠 있던 확인은 옛 이동을 가리키므로 버린다. 남겨 두면 다음 작업 공간이 그 확인을 띄운다.
+    stayHere()
+    go(target, options)
+  } else askLeave(() => go(target, options))
 }
 
 // 기록 상세 창이 닫히면서 같은 페이지에 남으려 할 때(다른 탭으로 가기, 기록을 잃음) 부른다. 뒤로 가기는 주소를 떠나
@@ -149,11 +152,23 @@ export function leave(fallback: string) {
   })
 }
 
+// 기록 주소 칸 아래에 상위 목록 칸을 깔고 그 위에 기록 칸을 이어받기로 쌓는다.
+function layerRecord(location: Extract<AppLocation, { type: 'record' }>) {
+  window.history.replaceState(stateFor('replace'), '', appPath(parentOf(location)))
+  write(appPath(location), 'adopt', tagOf(location))
+}
+
 // 기록 주소로 바로 들어오면(링크, 알림, 새로 고침) 그 아래에 상위 목록 칸을 깔아, 어느 뒤로든 상위 목록으로 가게 한다.
 // 이미 이 층이 쌓은 칸(새로 고침한 칸 포함)이면 하지 않는다.
 export function layerDirectRecord() {
   const here = current()
   if (here.location?.type !== 'record' || here.key !== '') return
-  window.history.replaceState(stateFor('replace'), '', appPath(parentOf(here.location)))
-  write(appPath(here.location), 'adopt', tagOf(here.location))
+  layerRecord(here.location)
+}
+
+// '/'로 열린 시작을 start로 바꿔 쓴다. 기록 주소면 바로 들어온 기록과 같게 목록 칸을 깐다.
+export function startAt(start: string) {
+  const parsed = parseAppPath(start)
+  if (parsed?.type === 'record') layerRecord(parsed)
+  else write(parsed ? appPath(parsed) : start, 'replace')
 }

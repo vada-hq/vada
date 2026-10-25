@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { menuPath, type MyCouncil } from '@vada/contracts'
-import { layerDirectRecord, navigate, useHere } from '@/lib/app-location'
+import { layerDirectRecord, navigate, startAt, useHere } from '@/lib/app-location'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK } from '@/lib/messages'
 import { targetOf } from '../workspace/address'
 import { startPathOf, useRememberAddress } from '../workspace/useLastAddress'
@@ -73,7 +73,7 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
   const start = startPathOf(userId, councils)
   useEffect(() => {
     if (start && here.path === '/' && window.location.pathname + window.location.search === '/')
-      navigate(start, { replace: true })
+      startAt(start)
   }, [start, here.path])
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고 남은 첫 학생회 홈으로 간다. 서버의 목록은 다시 읽는다.
   const lost = useCallback(
