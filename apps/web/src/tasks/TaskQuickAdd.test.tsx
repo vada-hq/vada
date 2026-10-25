@@ -28,12 +28,14 @@ const memberOptions: TaskCreateOptionsResponse = {
     { id: D1, name: '재정부', assignees: [ME] },
     { id: null, name: null, assignees: [ME] },
   ],
+  linkableEvents: [],
 }
 const leaderOptions: TaskCreateOptionsResponse = {
   departments: [
     { id: D1, name: '재정부', assignees: [NONE, ME] },
     { id: null, name: null, assignees: [NONE, ME] },
   ],
+  linkableEvents: [],
 }
 const member = () => {
   const view = councilView(COUNCIL_ID, {

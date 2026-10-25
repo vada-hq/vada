@@ -87,9 +87,9 @@ export async function createTask(
   input: CreateTaskRequest,
   now: Date,
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
-  // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다.
+  // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다(새 부서 잇기 포함, decideEventLink).
   const link = await eventLinkOf(tx, actor, input.eventId)
-  const denied = decideCreate(actor, input, link.ownerId)
+  const denied = decideCreate(actor, input, link)
   if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   await assertDepartment(tx, actor, input.departmentId)

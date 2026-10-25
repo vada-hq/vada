@@ -12,12 +12,14 @@ const leadership: TaskCreateOptionsResponse = {
     { id: 'd2', name: '기획부', assignees: [NONE, person('m1'), person('m2')] },
     { id: null, name: null, assignees: [NONE, person('m1'), person('m2')] },
   ],
+  linkableEvents: [],
 }
 const member: TaskCreateOptionsResponse = {
   departments: [
     { id: 'd1', name: '재정부', assignees: [person('m2')] },
     { id: null, name: null, assignees: [person('m2')] },
   ],
+  linkableEvents: [],
 }
 
 const memberView = (...ranks: ('head' | null)[]) => {
@@ -73,6 +75,7 @@ test('부원은 부장인 부서를 먼저 고른다', () => {
       { id: 'd1', name: '부서1', assignees: [person('m2')] },
       { id: 'd2', name: '부서2', assignees: [NONE, person('m2')] },
     ],
+    linkableEvents: [],
   }
   expect(defaultPlacement(options, { ...context('all'), view })).toEqual({
     departmentId: 'd2',
@@ -85,7 +88,7 @@ test('고른 부서가 선택지에 없으면 선택지의 첫 부서로 돌린�
     departmentId: 'd1',
     assigneeId: 'm2',
   })
-  expect(defaultPlacement({ departments: [] }, context('mine'))).toBeNull()
+  expect(defaultPlacement({ departments: [], linkableEvents: [] }, context('mine'))).toBeNull()
 })
 
 test('만든 업무가 지금 보기에 있는지 본다', () => {

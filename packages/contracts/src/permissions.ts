@@ -25,6 +25,7 @@ export const ACTIONS = [
   'task.set_department', // 업무의 담당 부서 정하기(회장단, 그 행사의 책임자)
   'task.assign', // 업무 맡기기(그 부서 부장 기준, 그 행사의 책임자)
   'task.status', // 업무 상태 바꾸기(그 부서 부장 기준과 담당자, 그 행사의 책임자)
+  'task.link_event_department', // 행사에 새 부서의 업무 잇기(그 행사의 책임자, 회장단, DEC-94)
   'event.create', // 행사 만들기(회장단과 부서장, 만든 사람이 책임자다)
   'event.update', // 행사 고치기(회장단과 그 행사의 책임자, DEC-79)
   'event.complete', // 행사 완료와 완료 취소(회장단)

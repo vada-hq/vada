@@ -61,6 +61,27 @@ export const decide = (actor: Actor, facts: TaskFacts, action: TaskAction): Erro
 export const actionsOf = (actor: Actor, facts: TaskFacts): TaskAction[] =>
   TASK_ACTIONS.filter(action => decide(actor, facts, action) === null)
 
+// 업무를 이을 행사의 사실. 행사가 없으면 departmentIds가 null이다.
+export type EventScope = {
+  ownerId: string | null
+  // 그 행사의 지금 담당 부서(access/event-departments.ts). 잇는 업무 자신은 아직 그 행사에 없어 세지 않는다.
+  departmentIds: readonly string[] | null
+}
+
+// 행사에 새 부서의 업무 잇기(DEC-94, DEC-28 업무 표): 업무의 부서가 그 행사의 지금 담당 부서가 아니면, 잇는 순간 그 부서 사람
+// 모두가 신청자 정보를 보게 된다(DEC-25, DEC-56). 그래서 그 행사의 책임자와 회장단만 한다. 행사가 없거나(떼기 포함) 부서가 없는
+// 업무, 이미 담당 부서인 부서의 업무는 묻지 않는다. 만들기(decideCreate), 행사 바꾸기(event-link.ts), 선택지(create-options.ts)가 이것 하나를 쓴다.
+export const decideEventLink = (
+  actor: Actor,
+  departmentId: string | null,
+  scope: EventScope,
+): ErrorCode | null => {
+  if (scope.departmentIds === null || !departmentId || scope.departmentIds.includes(departmentId))
+    return null
+  const context = scope.ownerId ? { eventOwnerId: scope.ownerId } : {}
+  return can(actor, 'task.link_event_department', context) ? null : 'FORBIDDEN'
+}
+
 type CreateInput = { departmentId: string | null; assigneeId: string | null }
 
 // 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
@@ -68,7 +89,7 @@ type CreateInput = { departmentId: string | null; assigneeId: string | null }
 export const decideCreate = (
   actor: Actor,
   input: CreateInput,
-  eventOwnerId: string | null,
+  scope: EventScope,
 ): ErrorCode | null => {
   const mine =
     input.assigneeId === actor.memberId &&
@@ -78,9 +99,9 @@ export const decideCreate = (
     createdBy: null,
     departmentId: input.departmentId,
     assigneeId: mine ? input.assigneeId : null,
-    eventOwnerId,
+    eventOwnerId: scope.ownerId,
   })
-  return decide(actor, facts, 'task.edit')
+  return decide(actor, facts, 'task.edit') ?? decideEventLink(actor, input.departmentId, scope)
 }
 
 // 결과물을 이을 수 있는 업무인가(기능 015): 끝나지 않았고(취소한 업무는 읽기에서 이미 없다) 내가 그 업무의 상태를 바꿀 수 있다.

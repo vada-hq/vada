@@ -57,6 +57,9 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'task.set_department': { who: ['leadership', 'event_owner'] },
   'task.assign': { who: ['department_head', 'event_owner'] },
   'task.status': { who: ['department_head', 'assignee', 'event_owner'] },
+  // 행사에 새 부서의 업무 잇기(DEC-94): 그 부서 사람 모두가 그 행사의 신청자 정보를 보게 되므로(DEC-25, DEC-56)
+  // 그 행사의 책임자와 회장단만 한다. 이미 담당 부서인 부서의 업무와 부서 없는 업무는 이 칸을 묻지 않는다(tasks/policy.ts).
+  'task.link_event_department': { who: ['event_owner', 'leadership'] },
   // 행사 칸. 만들기는 회장단과 부서장이고 만든 사람이 책임자다(DEC-79, DEC-93). 고치기는 회장단과 그 행사의 책임자다. 책임자를 정하는 길은 없다.
   'event.create': { who: ['leadership', 'any_department_head'] },
   'event.update': { who: ['leadership', 'event_owner'] },

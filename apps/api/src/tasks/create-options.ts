@@ -1,12 +1,13 @@
-import { and, asc, eq } from 'drizzle-orm'
-import type { TaskCreateOptionsResponse } from '@vada/contracts'
+import { and, asc, desc, eq } from 'drizzle-orm'
+import { EVENT_LIST_LIMIT, type TaskCreateOptionsResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentCouncilMembership } from '../access/current-cohort.js'
-import { cohort, councilMembership, department, member } from '../db/schema.js'
+import { eventDepartmentsByEventOf } from '../access/event-departments.js'
+import { cohort, councilMembership, department, event, member, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { eventLinkOf } from './event-link.js'
-import { decideCreate } from './policy.js'
+import { decideCreate, decideEventLink } from './policy.js'
 import { joinedDisplayNameOf } from '../team/display-name.js'
 
 // 만들기 선택지: 부서(학생회 업무 포함) × (담당자 없음 + 지금 운영진) 가운데 만들기와 같은 판정(decideCreate)이 허용하는 짝만 싣는다.
@@ -47,13 +48,32 @@ export async function createOptionsOf(
         ...row,
         assignees: candidates.filter(
           candidate =>
-            decideCreate(
-              actor,
-              { departmentId: row.id, assigneeId: candidate.id },
-              link.ownerId,
-            ) === null,
+            decideCreate(actor, { departmentId: row.id, assigneeId: candidate.id }, link) === null,
         ),
       }))
       .filter(row => row.assignees.length > 0),
+    linkableEvents: await linkableEventsOf(tx, actor, rows),
   }
+}
+
+// 부서마다 이을 수 있는 행사: 만들기·행사 바꾸기와 같은 판정(decideEventLink)이 허용하는 행사만 싣는다(DEBT-1).
+// 행사 목록 화면과 같은 상한까지 최근에 만든 것부터 읽는다. 넘친 옛 행사는 싣지 않아 고르지 못할 뿐 열리지 않는다(기본 거부).
+async function linkableEventsOf(tx: Tx, actor: Actor, rows: { id: string | null }[]) {
+  const events = await tx
+    .select({ id: event.id, ownerId: event.ownerId })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(eq(record.councilId, actor.councilId))
+    .orderBy(desc(record.createdAt), desc(event.id))
+    .limit(EVENT_LIST_LIMIT)
+  const staffed = await eventDepartmentsByEventOf(tx, actor.councilId)
+  const linkable = (departmentId: string | null, item: (typeof events)[number]) =>
+    decideEventLink(actor, departmentId, {
+      ownerId: item.ownerId,
+      departmentIds: staffed.get(item.id) ?? [],
+    }) === null
+  return rows.map(row => ({
+    departmentId: row.id,
+    eventIds: events.filter(item => linkable(row.id, item)).map(item => item.id),
+  }))
 }
