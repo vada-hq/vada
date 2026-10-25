@@ -148,6 +148,7 @@ export interface HealthResponse {
 }
 export {
   EVENT_ACTIONS,
+  EVENT_ENDED_NOTICE_DAYS,
   EVENT_LIST_LIMIT,
   EVENT_NAME_MAX,
   EVENT_PLACE_MAX,

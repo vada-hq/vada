@@ -14,7 +14,7 @@ import { councilOf } from './council.js'
 import { departmentsOf } from './departments.js'
 import { financeOf } from './finance.js'
 import { levelOf } from './level.js'
-import { openTasksOf } from './open-tasks.js'
+import { openTasksOf } from '../tasks/open-tasks.js'
 import { dueGroupOf } from '../tasks/due.js'
 import { assignedTo, inCouncil, summaryOf, taskSelect } from '../tasks/queries.js'
 
