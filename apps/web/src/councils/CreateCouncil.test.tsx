@@ -190,16 +190,20 @@ test('2단계는 같은 이름과 빈 이름을 그 줄 아래에 알리고 보�
   serve()
   open()
   await toStructure()
+  // 같은 이름은 뒤에 온 카드에 알린다.
   await rename('홍보부', '부서 이름 2', ' 기획부 ')
-  fireEvent.click(button('부서 추가'))
   fireEvent.change(screen.getByLabelText('내 이름'), { target: { value: ' ' } })
   fireEvent.click(button('학생회 만들기'))
   expect(nameInput('부서 이름 2').getAttribute('aria-invalid')).toBe('true')
-  expect(nameInput('부서 이름 3').getAttribute('aria-invalid')).toBe('true')
   expect(screen.getByText('같은 이름의 부서가 있어요')).toBeTruthy()
-  expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
   expect(screen.getByText('이름을 입력해 주세요')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('내 이름')))
+  // 빈 새 카드도 보낼 때 그 카드의 이름 칸 아래에 알린다.
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Escape' })
+  fireEvent.click(button('부서 추가'))
+  fireEvent.click(button('학생회 만들기'))
+  expect(nameInput('부서 이름 3').getAttribute('aria-invalid')).toBe('true')
+  expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
@@ -308,7 +312,11 @@ test('부서는 재정 부서를 더해 20개가 되면 더하기 단추가 없�
   open()
   await toStructure()
   for (const name of ['복지부', '문화부', '체육부', '학술부']) fireEvent.click(button(name))
-  for (let index = 0; index < 13; index++) fireEvent.click(button('부서 추가'))
+  // 빈 새 카드에 이름을 넣어야 다음 카드를 더한다.
+  for (let index = 0; index < 13; index++) {
+    fireEvent.click(button('부서 추가'))
+    save(`부서 이름 ${index + 7}`, `부서${index}`)
+  }
   expect(within(screen.getByRole('list', { name: '부서' })).getAllByRole('listitem')).toHaveLength(
     20,
   )
@@ -361,20 +369,76 @@ test('카드를 더하면 새 카드로, 빼면 그 자리 카드의 ⋯ 버튼�
   await waitFor(() => expect(document.activeElement).toBe(button('부서 추가')))
 })
 
+// 기획부를 '홍보부'로 바꿔 저장하지 못하고 보내면, 고치던 칸(부서 이름 1)과 같은 이름 오류가 난 칸(부서 이름 2)이 함께 열린다.
+async function twoOpenProblems() {
+  await rename('기획부', '부서 이름 1', '홍보부')
+  fireEvent.click(button('학생회 만들기'))
+  expect(nameInput('부서 이름 2').getAttribute('aria-invalid')).toBe('true')
+}
+
 test('문제로 열려 있던 이름 칸은 다시 들어가 고치는 동안 닫히지 않고 Enter로 저장한다', async () => {
   serve()
   open()
   await toStructure()
-  fireEvent.click(button('부서 추가'))
-  fireEvent.blur(nameInput('부서 이름 3'))
-  expect(screen.getByText('부서 이름을 입력해 주세요')).toBeTruthy()
-  await choose('기획부', '이름 바꾸기')
+  await twoOpenProblems()
+  fireEvent.focus(nameInput('부서 이름 2'))
+  fireEvent.change(nameInput('부서 이름 2'), { target: { value: '홍보국' } })
+  expect(screen.queryByText('같은 이름의 부서가 있어요')).toBeNull()
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Enter' })
+  expect(cardNames()).toEqual(['재정부', '홍보부', '홍보국'])
+})
+
+test('열린 칸끼리 옮겨 다녀도 처음 이름을 잃지 않아, Esc는 처음 이름으로 되돌린다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await twoOpenProblems()
+  fireEvent.focus(nameInput('부서 이름 2'))
+  fireEvent.focus(nameInput('부서 이름 1'))
   fireEvent.keyDown(nameInput('부서 이름 1'), { key: 'Escape' })
-  // 빈 카드는 문제가 있어 칸이 열린 채다.
-  const blank = nameInput('부서 이름 3')
-  fireEvent.focus(blank)
-  fireEvent.change(blank, { target: { value: '디자인부' } })
-  expect(screen.queryByText('부서 이름을 입력해 주세요')).toBeNull()
-  fireEvent.keyDown(nameInput('부서 이름 3'), { key: 'Enter' })
-  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부', '디자인부'])
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부'])
+})
+
+test('저장한 카드는 다시 확인 대상이 아니어서, 새 카드에 같은 이름을 쳐도 그 카드는 닫힌 채다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await rename('기획부', '부서 이름 1', '기획국')
+  fireEvent.click(button('부서 추가'))
+  fireEvent.change(nameInput('부서 이름 3'), { target: { value: '기획국' } })
+  expect(screen.queryByLabelText('부서 이름 1')).toBeNull()
+  expect(trigger('기획국')).toBeTruthy()
+})
+
+test('문제가 있는 칸이 열려 있으면 다른 카드를 고치지 않고 그 칸으로 돌아가며, Esc는 처음 이름으로 되돌린다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await rename('홍보부', '부서 이름 2', ' ')
+  fireEvent.click(button('기획부 이름 바꾸기'))
+  fireEvent.click(button('부서 추가'))
+  expect(screen.queryByLabelText('부서 이름 1')).toBeNull()
+  expect(screen.queryByLabelText('부서 이름 3')).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(nameInput('부서 이름 2')))
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Escape' })
+  expect(cardNames()).toEqual(['재정부', '기획부', '홍보부'])
+})
+
+test('한글 조합 중(Safari keyCode 229)의 Enter는 저장이 아니다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await choose('홍보부', '이름 바꾸기')
+  fireEvent.change(nameInput('부서 이름 2'), { target: { value: '홍보국' } })
+  fireEvent.keyDown(nameInput('부서 이름 2'), { key: 'Enter', keyCode: 229 })
+  expect(nameInput('부서 이름 2')).toBeTruthy()
+})
+
+test('[부서 추가]는 부서 목록 밖이라 목록에는 부서만 있다', async () => {
+  serve()
+  open()
+  await toStructure()
+  const list = screen.getByRole('list', { name: '부서' })
+  expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+  expect(within(list).queryByRole('button', { name: '부서 추가' })).toBeNull()
 })
