@@ -11,18 +11,22 @@ import {
   rowContractErrors,
   untouchedRows,
   type BudgetRowsValues,
+  type ExistingItem,
 } from './budget-rows'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { BudgetRows, BudgetRowsTotal } from './BudgetRows'
 import { EventField } from './EventField'
 import { budgetItemsBatchPath } from './finance-api'
-import { useBudget } from './useBudget'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
 type Props = BudgetChangeHandlers & {
   councilId: string
-  // 행사 화면에서 열면 그 행사로 채우고 기본 행 셋을 둔다.
+  // 행사 화면에서 열면 그 행사의 지출 예산으로 고정하고 기본 행 셋을 둔다(종류·행사 칸 없음, 와이어프레임 그대로).
   eventId?: string | null
+  // 같은 이름을 미리 짚을 이미 있는 항목. 연 화면이 이미 읽은 예산(예산 탭)이나 행사의 예산 항목(행사 재정 탭)을 준다.
+  existing: readonly ExistingItem[]
+  // 서버가 같은 이름으로 막았다(그사이 누가 더함). 연 화면이 예산을 다시 읽어 existing을 새로 준다.
+  onStale: () => void
   onClose: () => void
 }
 
@@ -67,22 +71,28 @@ function SharedFields({ councilId, values, saving, onChange, onForbidden }: Shar
 
 // 예산 편성(DEC-92, 와이어프레임 EVT-FIN-01B '행사 예산 편성'): 여러 행을 한 창에서 짜고 한 거래로 보낸다.
 // 한 행이라도 막히면 아무것도 남지 않으므로, 실패하면 창과 모든 행을 그대로 두고 '아무것도 저장하지 않았어요'를 함께 보인다.
-// 같은 이름은 지금 기간의 예산을 읽어 미리 짚고, 서버가 같은 이름으로 막으면(그사이 누가 더함) 예산을 다시 읽어 그 행을 짚는다.
-export function BudgetItemDialog({ councilId, eventId = null, onClose, ...handlers }: Props) {
+// 같은 이름은 연 화면이 준 항목으로 미리 짚고, 서버가 같은 이름으로 막으면 연 화면이 예산을 다시 읽어 그 행을 짚는다.
+// 제출 버튼은 와이어프레임처럼 '예산 저장'이다.
+export function BudgetItemDialog({
+  councilId,
+  eventId = null,
+  existing,
+  onStale,
+  onClose,
+  ...handlers
+}: Props) {
   const [values, setValues] = useState<BudgetRowsValues>(() => ({
     type: 'expense',
     eventId,
     rows: defaultRows('expense', eventId),
   }))
   const [saving, setSaving] = useState(false)
-  const budget = useBudget(councilId, handlers.onForbidden)
-  const existing = budget.state.kind === 'ready' ? budget.state.budget.items : []
   const body = budgetItemsOf(values)
   const change = useBudgetChange(budgetItemsBatchPath(councilId), body, CreateBudgetItemsSchema, {
     ...handlers,
     setSaving,
     onRejected: code => {
-      if (code === 'BUDGET_ITEM_DUPLICATE') void budget.reload()
+      if (code === 'BUDGET_ITEM_DUPLICATE') onStale()
     },
   })
   const {
@@ -97,7 +107,7 @@ export function BudgetItemDialog({ councilId, eventId = null, onClose, ...handle
   return (
     <BudgetFormDialog
       title={title}
-      submitLabel="저장"
+      submitLabel="예산 저장"
       saving={saving}
       formRef={formRef}
       attempt={attempt}
@@ -107,13 +117,15 @@ export function BudgetItemDialog({ councilId, eventId = null, onClose, ...handle
       wide
       summary={<BudgetRowsTotal rows={values.rows} income={values.type === 'income'} />}
     >
-      <SharedFields
-        councilId={councilId}
-        values={values}
-        saving={saving}
-        onChange={setValues}
-        onForbidden={handlers.onForbidden}
-      />
+      {eventId === null && (
+        <SharedFields
+          councilId={councilId}
+          values={values}
+          saving={saving}
+          onChange={setValues}
+          onForbidden={handlers.onForbidden}
+        />
+      )}
       <BudgetRows
         rows={values.rows}
         errors={fieldErrors}

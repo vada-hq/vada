@@ -1,11 +1,11 @@
 import { and, asc, desc, eq, gte, inArray, lt, lte, type SQL } from 'drizzle-orm'
 import { koreanDateOf, type BudgetResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { budget, budgetItem, cohort, fiscalPeriod, record } from '../db/schema.js'
+import { budget, budgetItem, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
-import { budgetItemHistoriesOf, usedBudgetItemIds } from './item-facts.js'
+import { budgetItemHistoriesOf, deletableOf, usedBudgetItemIds } from './item-facts.js'
 import { budgetItemSelectable } from './policy.js'
 import { budgetItemsWithUsage } from './usage.js'
 
@@ -88,14 +88,13 @@ export async function budgetViewOf(
       ...usage,
       event: eventId && eventName ? { id: eventId, name: eventName } : null,
       selectable: budgetItemSelectable(eventId, completed),
-      deletable: !used.has(itemId),
+      deletable: deletableOf(used, itemId, histories.get(itemId)?.length ?? 0),
       history: histories.get(itemId) ?? [],
     })),
-    suggested: null,
   }
 }
 
-// 고른 기간(이 학생회 것만, 아니면 404)이나 오늘의 예산. 오늘 기간이 없으면 지금 기수의 이름과 날짜를 채워 둘 값으로 준다.
+// 고른 기간(이 학생회 것만, 아니면 404)이나 오늘의 예산. 오늘 기간이 없으면 period가 null이다(만들기 창은 화면이 학기로 채운다).
 export async function budgetOf(
   db: Reader,
   actor: Actor,
@@ -112,11 +111,7 @@ export async function budgetOf(
   }
   const period = await currentPeriodOf(db, actor, now)
   if (period) return budgetViewOf(db, period)
-  const [current] = await db
-    .select({ name: cohort.name, startsOn: cohort.startsOn, endsOn: cohort.endsOn })
-    .from(cohort)
-    .where(eq(cohort.id, actor.cohortId))
-  return { period: null, items: [], suggested: current ?? null }
+  return { period: null, items: [] }
 }
 
 // 이 학생회의 예산 항목 번호 → 매인 행사 번호(행사가 없으면 null, 이 학생회 항목이 아니면 빠진다). 승인의 행사 귀속 검사가 쓴다.

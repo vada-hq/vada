@@ -67,16 +67,19 @@ function Loaded({
     )
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-medium wrap-anywhere text-gray-900">{data.period.name}</h2>
-        <p className="text-xs text-gray-500">{periodRange(data.period)}</p>
+      {/* 페이지 전체의 행동은 머리에 둔다(와이어프레임: 요약 오른쪽 위). 항목이 많아도 스크롤하지 않고 보인다. */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="text-base font-medium wrap-anywhere text-gray-900">{data.period.name}</h2>
+          <p className="text-xs text-gray-500">{periodRange(data.period)}</p>
+        </div>
+        {canManage && (
+          <Button className="shrink-0" variant="outline" onClick={() => onOpen('item')}>
+            예산 편성
+          </Button>
+        )}
       </div>
       <Items items={data.items} councilId={councilId} canManage={canManage} handlers={handlers} />
-      {canManage && (
-        <Button className="self-start" variant="outline" onClick={() => onOpen('item')}>
-          예산 편성
-        </Button>
-      )}
     </div>
   )
 }
@@ -84,18 +87,31 @@ function Loaded({
 function Dialogs({
   open,
   councilId,
+  existing,
   handlers,
+  onStale,
   onClose,
 }: {
   open: Open
   councilId: string
+  // 편성 창이 같은 이름을 미리 짚는 지금 기간의 항목(이 탭이 이미 읽은 예산)
+  existing: BudgetResponse['items']
   handlers: BudgetChangeHandlers
+  onStale: () => void
   onClose: () => void
 }) {
   if (open === 'period')
     return <PeriodCreateDialog councilId={councilId} onClose={onClose} {...handlers} />
   if (open === 'item')
-    return <BudgetItemDialog councilId={councilId} onClose={onClose} {...handlers} />
+    return (
+      <BudgetItemDialog
+        councilId={councilId}
+        existing={existing}
+        onStale={onStale}
+        onClose={onClose}
+        {...handlers}
+      />
+    )
   return null
 }
 
@@ -145,7 +161,9 @@ export function BudgetTab({ councilId, canManage, onForbidden }: Props) {
       <Dialogs
         open={dialog}
         councilId={councilId}
+        existing={state.budget.items}
         handlers={handlers}
+        onStale={() => void budget.reload()}
         onClose={() => setDialog(null)}
       />
     </div>

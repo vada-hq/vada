@@ -19,7 +19,7 @@ type Props = BudgetChangeHandlers & {
 type Values = { purpose: string; amount: string; reason: string }
 
 const editErrors = (values: Values) => ({
-  purpose: requiredText(values.purpose, '이름을'),
+  purpose: requiredText(values.purpose, '항목 이름을'),
   amount:
     requiredText(values.amount, '금액을') ??
     (Number.isNaN(wonOf(values.amount)) ? '숫자만 입력해 주세요' : undefined),
@@ -69,7 +69,7 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
         onSubmit={() => (over === null ? void change.submit() : setConfirming(true))}
         onClose={onClose}
       >
-        <Field label="이름" required error={errors.purpose}>
+        <Field label="항목 이름" required error={errors.purpose}>
           <Input
             value={values.purpose}
             disabled={saving}
@@ -79,6 +79,7 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
         <Field label="금액(원)" required error={errors.amount}>
           <Input
             inputMode="numeric"
+            className="text-right tabular-nums"
             value={values.amount}
             disabled={saving}
             onChange={event => set({ amount: event.target.value })}
@@ -96,6 +97,7 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
         open={confirming && over !== null}
         purpose={values.purpose.trim() || item.purpose}
         available={over ?? 0}
+        when="저장하면"
         confirmLabel="그래도 저장"
         busy={saving}
         error={null}

@@ -92,7 +92,7 @@ test('여러 행을 한 번에 보낸다: 빈 행은 버리고, 합계가 보이
   fill('항목 2 이름', '간식')
   fill('항목 2 금액', '50000')
   expect(within(form).getByText(/총 배정 예산/).textContent).toBe('총 배정 예산 1,050,000원')
-  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posts(api).map(call => call.body)).toEqual([
     {
@@ -114,7 +114,7 @@ test('0원, 한쪽만 채운 행, 같은 이름은 보내지 않고 그 행 아�
   fireEvent.click(within(form).getByRole('button', { name: '항목 추가' }))
   fill('항목 3 이름', '행사 홍보')
   fill('항목 3 금액', '1000')
-  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   expect(screen.getByText('0원보다 큰 금액을 입력해 주세요')).toBeTruthy()
   expect(screen.getByText('항목 이름을 입력해 주세요')).toBeTruthy()
   expect(screen.getByText('같은 이름의 항목이 있어요')).toBeTruthy()
@@ -132,7 +132,7 @@ test('한 행이라도 서버가 400이면 아무것도 저장하지 않았다�
   fireEvent.click(within(form).getByRole('button', { name: '항목 추가' }))
   fill('항목 2 이름', '간식')
   fill('항목 2 금액', '2000')
-  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toContain(BUDGET_ERRORS.BUDGET_ITEM_DUPLICATE!)
   expect(alert.textContent).toContain('아무것도 저장하지 않았어요')
@@ -181,7 +181,7 @@ test('항목 고치기: 이름·금액·사유(필수)를 보내고, 판 이력�
   })
   fireEvent.click(await screen.findByRole('menuitem', { name: '고치기' }))
   await screen.findByRole('form', { name: '예산 항목 고치기' })
-  expect([input('이름').value, input('금액(원)').value]).toEqual(['행사 홍보', '300,000'])
+  expect([input('항목 이름').value, input('금액(원)').value]).toEqual(['행사 홍보', '300,000'])
   fill('금액(원)', '250000')
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   expect(screen.getByText('사유를 입력해 주세요')).toBeTruthy()
@@ -212,7 +212,10 @@ test('줄여서 사용 가능이 음수가 되면 확인 창을 한 번 거친 �
   fill('사유', '줄임')
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   const confirm = await screen.findByRole('dialog', { name: '사용 가능 금액 초과' })
-  expect(within(confirm).getByText(/-50,000원/)).toBeTruthy()
+  expect(within(confirm).getByText('행사 홍보')).toBeTruthy()
+  expect(within(confirm).getByText(/저장하면 사용 가능/).textContent).toBe(
+    '저장하면 사용 가능 -50,000원',
+  )
   expect(posts(api)).toHaveLength(0)
   fireEvent.click(within(confirm).getByRole('button', { name: '그래도 저장' }))
   await waitFor(() => expect(posts(api)).toHaveLength(1))

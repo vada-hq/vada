@@ -73,7 +73,7 @@ function BudgetItemLine({ item, actions }: { item: Line; actions?: ReactNode }) 
           {item.purpose}
         </span>
         {item.type === 'income' && <Badge tone="info">수입</Badge>}
-        {actions && <div className="-my-1.5 -mr-1.5 shrink-0">{actions}</div>}
+        {actions && <div className="-my-2 -mr-1.5 shrink-0">{actions}</div>}
       </div>
       {item.event && (
         <span title={item.event.name} className="line-clamp-1 text-xs wrap-anywhere text-gray-500">

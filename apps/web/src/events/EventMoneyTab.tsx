@@ -71,7 +71,17 @@ export function EventMoneyTab({
   }
   return (
     <div className="flex flex-col gap-6">
-      <EventMoneyAdd view={view} event={event} onAdded={refresh} {...handlers} />
+      <EventMoneyAdd
+        view={view}
+        event={event}
+        onAdded={refresh}
+        budgetNames={
+          settlement.state.kind === 'ready'
+            ? settlement.state.data.settlement.budget.items.map(item => item.purpose)
+            : []
+        }
+        {...handlers}
+      />
       <SettlementBody
         settlement={settlement}
         onOpenRequest={id => openRecord('purchases', councilId, id)}

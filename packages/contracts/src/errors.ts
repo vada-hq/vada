@@ -16,7 +16,7 @@ export const ERROR_STATUS = {
   NOT_FOUND: 404,
   ALREADY_PRESIDENT: 409,
   BUDGET_ITEM_INVALID: 409,
-  // 결재·지출·수입·요청이 가리킨 적이 있는 예산 항목은 지우지 않는다(DEC-92)
+  // 요청·지출·수입에 쓰였거나 고친 적 있는 예산 항목은 지우지 않는다(DEC-92, 이력을 지우지 않게)
   BUDGET_ITEM_IN_USE: 409,
   CANNOT_DIRECT_SELF: 409,
   CANNOT_REMOVE_SELF: 409,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { BudgetItemView, BudgetResponse } from '@vada/contracts'
+import type { BudgetItemView, BudgetResponse, ClosingResponse } from '@vada/contracts'
 import { clockNow } from '../records/records.js'
 import { MISSING, withSettlement, type SettlementKit } from '../test-support/settlement.js'
 
@@ -154,7 +154,7 @@ test(
 test(
   '고치기: 이름과 금액이 바뀌고 판에 이전·이후, 사유, 바꾼 사람이 남아 예산 응답의 이력에 보인다',
   withSettlement(async t => {
-    const { budget } = await t.budgetOf()
+    const { period, budget } = await t.budgetOf()
     const item = await t.budgetItem(budget, { purpose: '비품', amount: '100000' })
     const other = await t.budgetItem(budget, { purpose: '간식', amount: '5000' })
     const body = { purpose: ' 소모품 ', amount: 80000, reason: ' 회의에서 줄임 ' }
@@ -181,6 +181,17 @@ test(
     )
     assert.equal(await versions(t, other), 1)
     assert.deepEqual(await budgetRead(t, 's-plain'), await budgetRead(t))
+    // 결산서의 예산 칸이 고친 금액을 읽는다.
+    const closing = await t.api.get(`${root(t)}/fiscal-periods/${period}/closing`, FINANCE)
+    assert.equal(closing.status, 200)
+    const lines = ((await closing.json()) as ClosingResponse).closing.expense.items
+    assert.deepEqual(
+      lines.map(line => [line.purpose, line.budget]),
+      [
+        ['간식', 5000],
+        ['소모품', 80000],
+      ],
+    )
   }),
 )
 
@@ -216,6 +227,22 @@ test(
 )
 
 test(
+  '고치기: 이름이 그대로면 같은 이름을 보지 않아, 막기 전에 생긴 같은 이름의 항목도 금액을 고친다',
+  withSettlement(async t => {
+    const { budget } = await t.budgetOf()
+    const first = await t.budgetItem(budget, { purpose: '비품' })
+    await t.budgetItem(budget, { purpose: '비품' })
+    const response = await post(t, `/budget-items/${first}`, {
+      purpose: '비품',
+      amount: 70000,
+      reason: '줄임',
+    })
+    assert.equal(response.status, 200)
+    assert.equal(await versions(t, first), 2)
+  }),
+)
+
+test(
   '고치기·지우기: 다른 학생회와 없는 항목은 404, 완료한 행사의 항목은 EVENT_COMPLETED, 공개한 기간의 항목은 PERIOD_CLOSED다',
   withSettlement(async t => {
     const { period, budget } = await t.budgetOf()
@@ -243,7 +270,7 @@ test(
 )
 
 test(
-  '지우기: 쓰인 적 없는 항목만 판·하위 행·기록이 함께 지워지고, 요청·결재·지출·수입이 가리킨 항목은 409 BUDGET_ITEM_IN_USE다',
+  '지우기: 쓰인 적 없고 고친 적 없는 항목만 판·하위 행·기록이 함께 지워지고, 요청·결재·지출·수입이 가리켰거나 고친 항목은 409 BUDGET_ITEM_IN_USE다',
   withSettlement(async t => {
     const { period, budget } = await t.budgetOf()
     const unused = await t.budgetItem(budget, { purpose: '예비비' })
@@ -251,6 +278,12 @@ test(
     const spent = await t.budgetItem(budget, { purpose: '지출' })
     const income = await t.budgetItem(budget, { purpose: '수입', type: 'income' })
     const requested = await t.budgetItem(budget, { purpose: '요청' })
+    const edited = await t.budgetItem(budget, { purpose: '고침' })
+    assert.equal(
+      (await post(t, `/budget-items/${edited}`, { purpose: '고침', amount: 5, reason: '줄임' }))
+        .status,
+      200,
+    )
     const { line } = await t.requestWithItem(null, { defaultBudgetItemId: requested })
     const second = await t.requestWithItem(null)
     await t.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [
@@ -271,6 +304,7 @@ test(
     const before = await budgetRead(t)
     assert.deepEqual(Object.fromEntries(before.items.map(item => [item.purpose, item.deletable])), {
       결재: false,
+      고침: false,
       수입: false,
       예비비: true,
       요청: false,
@@ -278,7 +312,7 @@ test(
     })
     for (const user of ['s-president', 's-planningMember', 'o-financeMember'])
       assert.equal((await post(t, `/budget-items/${unused}/delete`, {}, user)).status, 403, user)
-    for (const id of [approved, spent, income, requested]) {
+    for (const id of [approved, spent, income, requested, edited]) {
       const response = await post(t, `/budget-items/${id}/delete`, {})
       assert.equal(response.status, 409, id)
       assert.equal(await errorOf(response), 'BUDGET_ITEM_IN_USE', id)
@@ -288,7 +322,7 @@ test(
     assert.equal(response.status, 200)
     assert.deepEqual(
       (await viewOf(response)).items.map(item => item.purpose),
-      ['결재', '수입', '요청', '지출'],
+      ['결재', '고침', '수입', '요청', '지출'],
     )
     const left = await t.pg.query(
       `SELECT (SELECT count(*) FROM record WHERE id = $1)::int AS records,

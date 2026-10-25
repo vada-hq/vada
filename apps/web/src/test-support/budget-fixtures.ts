@@ -46,11 +46,9 @@ export const budgetWithPeriod = (): BudgetResponse => ({
       history: [firstVersion('소모품', 50000)],
     },
   ],
-  suggested: null,
 })
 
 export const budgetWithoutPeriod = (): BudgetResponse => ({
   period: null,
   items: [],
-  suggested: { name: '2026년', startsOn: '2026-01-01', endsOn: '2026-12-31' },
 })

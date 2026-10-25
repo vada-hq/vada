@@ -109,7 +109,7 @@ test('예산 편성: 종류는 지출이 기본이고 수입과 행사를 골라
   fireEvent.change(await eventSelect(), { target: { value: SPRING } })
   fireEvent.change(screen.getByLabelText('항목 1 이름'), { target: { value: '참가비' } })
   fireEvent.change(screen.getByLabelText('항목 1 금액'), { target: { value: '100000' } })
-  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posted(api)).toEqual({
     items: [{ purpose: '참가비', amount: 100000, type: 'income', eventId: SPRING }],
@@ -168,6 +168,6 @@ test('예산 편성이 409면 그 창 안에 문구가 보인다', async () => {
   await screen.findByRole('form', { name: '예산 편성' })
   fireEvent.change(screen.getByLabelText('항목 1 이름'), { target: { value: '간식' } })
   fireEvent.change(screen.getByLabelText('항목 1 금액'), { target: { value: '1000' } })
-  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   expect(await screen.findByText(new RegExp(BUDGET_ERRORS.EVENT_INVALID!))).toBeTruthy()
 })
