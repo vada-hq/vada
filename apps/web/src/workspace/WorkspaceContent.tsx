@@ -1,6 +1,6 @@
 import type { CouncilView } from '@vada/contracts'
 import type { Ref } from 'react'
-import ChatPage from '../chat/ChatPage'
+import ChatRoute from '../chat/ChatRoute'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
 import type { HomeOpeners } from '../home/HomeBody'
@@ -27,7 +27,6 @@ type Props = {
   // 결재 대기 요청(옆 메뉴의 수). 재정 화면이 목록을 바꾸면 다시 읽는다.
   pending: PurchaseList
   page: Page
-  roomId?: string | undefined
   taskId?: string | undefined
   requestId?: string | undefined
   // 업무에서 눌러 연 행사. 행사 화면이 이 행사를 열고 시작한다.
@@ -84,22 +83,20 @@ function LeadPage({
   data,
   rooms,
   page,
-  roomId,
   view,
   ...openers
-}: Pick<Props, 'data' | 'rooms' | 'roomId'> &
+}: Pick<Props, 'data' | 'rooms'> &
   HomeOpeners & {
     page: 'home' | 'chat'
     view: CouncilView
   }) {
   if (page === 'home') return <HomePage view={view} onForbidden={data.reload} {...openers} />
   return (
-    <ChatPage
+    <ChatRoute
       councilId={view.council.id}
       view={view}
       team={data.team}
       rooms={rooms}
-      initialRoomId={roomId}
       onForbidden={data.reload}
       onOpenRequest={openers.onOpenRequest}
     />
@@ -112,7 +109,6 @@ function PageOf({
   tasks,
   pending,
   page,
-  roomId,
   taskId,
   requestId,
   eventId,
@@ -127,7 +123,7 @@ function PageOf({
   if (page === 'home' || page === 'chat')
     return (
       <LeadPage
-        {...{ data, rooms, page, roomId, onOpenTask, onOpenRequest, onOpenEvent, onOpenPage, view }}
+        {...{ data, rooms, page, onOpenTask, onOpenRequest, onOpenEvent, onOpenPage, view }}
       />
     )
   if (page === 'events')

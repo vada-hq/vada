@@ -63,8 +63,8 @@ test('볼 요청, 공지, 이번 주 행사가 없으면 그 부분을 두지 �
   expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
 })
 
-test('공지는 7일 안의 것을 최근 것부터 첫 줄로 보이고, 누르면 대화로 간다', async () => {
-  const { onOpenPage } = open(homeResponse(), {
+test('공지는 7일 안의 것을 최근 것부터 첫 줄로 보이고, 누르면 공지 모아 보기 주소로 간다', async () => {
+  open(homeResponse(), {
     notices: [
       homeNotice('a', { body: '회의 장소 변경\n학생회실', sentAt: '2026-10-22T03:00:00.000Z' }),
       homeNotice('b', { body: '오래된 공지', sentAt: '2026-10-01T03:00:00.000Z' }),
@@ -74,7 +74,7 @@ test('공지는 7일 안의 것을 최근 것부터 첫 줄로 보이고, 누르
   expect(within(section).getByText('회의 장소 변경')).toBeTruthy()
   expect(within(section).queryByText('오래된 공지')).toBeNull()
   fireEvent.click(within(section).getByRole('button', { name: '회의 장소 변경' }))
-  expect(onOpenPage).toHaveBeenCalledWith('chat')
+  expect(window.location.pathname + window.location.search).toBe('/chat/c1?tab=notices')
 })
 
 test('이번 주 행사는 진행 중이거나 7일 안에 시작하는 행사다', async () => {

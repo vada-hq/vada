@@ -1,4 +1,5 @@
-import type { HomeResponse } from '@vada/contracts'
+import { menuPath, type HomeResponse } from '@vada/contracts'
+import { navigate } from '@/lib/app-location'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
@@ -71,7 +72,7 @@ function MainColumn({ home, mineIds, ...open }: Omit<Parts, 'extras'>) {
 }
 
 // 좁은 단: 업무 화면에 없는 것과 회장단의 막힌 곳. 비면 부분째 빠진다.
-function SideColumn({ home, extras, mineIds, ...open }: Parts) {
+function SideColumn({ home, extras, mineIds, councilId, ...open }: Parts & { councilId: string }) {
   const seeTasks = () => open.onOpenPage('tasks')
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -90,7 +91,10 @@ function SideColumn({ home, extras, mineIds, ...open }: Parts) {
         onSeeAll={() => open.onOpenPage('finance')}
       />
       {!home.council && (
-        <NoticesSection notices={extras.notices} onOpenChat={() => open.onOpenPage('chat')} />
+        <NoticesSection
+          notices={extras.notices}
+          onOpenNotices={() => navigate(menuPath('chat', councilId, { tab: 'notices' }))}
+        />
       )}
       {!home.council && (
         <WeekEventsSection
@@ -114,7 +118,7 @@ export default function HomeBody({ home, councilId, onForbidden, ...open }: Prop
       <AttentionTiles items={items} />
       <div className="grid gap-6 lg:grid-cols-3">
         <MainColumn home={home} mineIds={mineIds} {...open} />
-        <SideColumn home={home} extras={extras} mineIds={mineIds} {...open} />
+        <SideColumn home={home} extras={extras} mineIds={mineIds} councilId={councilId} {...open} />
       </div>
     </div>
   )

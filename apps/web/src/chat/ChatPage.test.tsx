@@ -272,7 +272,16 @@ test('1:1 창을 열면 운영진을 다시 읽어 방금 들어온 사람이 �
 
 test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열린다', async () => {
   const api = serve()
-  api.on('POST', `${base}/direct`, () => json({ roomId: 'r9' }, 201))
+  let opened = false
+  api.on('GET', `${base}/rooms`, () =>
+    json(
+      roomList(opened ? { rooms: [room('r9', { type: 'direct', name: '박새내' })] } : undefined),
+    ),
+  )
+  api.on('POST', `${base}/direct`, () => {
+    opened = true
+    return json({ roomId: 'r9' }, 201)
+  })
   api.on('GET', `${base}/rooms/r9`, () =>
     json(roomDetail(room('r9', { type: 'direct', name: '박새내' }))),
   )

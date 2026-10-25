@@ -3,13 +3,15 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
-import { messagePage, roomDetail, roomList } from './test-support/chat-fixtures'
+import { messagePage, room, roomDetail, roomList } from './test-support/chat-fixtures'
 import { homeTask, homeWithTasks, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { snapshotHtml } from './test-support/snapshot-html'
 
 // 앱 틀과 알림을 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 7).
 // 나눈 뒤에도 이 스냅숏 파일은 바뀌지 않아야 한다.
+// 방 주소는 uuid여야 읽힌다.
+const R1 = '0199d1a0-0000-7000-8000-0000000000a1'
 const auth = vi.hoisted(() => ({
   useSession: vi.fn(),
   social: vi.fn(),
@@ -118,7 +120,7 @@ function openWorkspace() {
     json({ code: 'ABCD2345' }),
   )
   api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms', () =>
-    json(roomList()),
+    json(roomList({ rooms: [room(R1, { unread: 3, mentions: 1 }), ...roomList().rooms.slice(1)] })),
   )
   api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/home', () =>
     json(homeWithTasks([homeTask('a', 'today')])),
@@ -129,15 +131,17 @@ function openWorkspace() {
     '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/tasks?view=mine&status=open',
     () => json({ tasks: [], truncated: false }),
   )
-  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1', () =>
+  api.on('GET', `/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/${R1}`, () =>
     json(roomDetail()),
   )
-  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1/messages', () =>
-    json(messagePage()),
+  api.on(
+    'GET',
+    `/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/${R1}/messages`,
+    () => json(messagePage()),
   )
   api.on(
     'POST',
-    '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/r1/read',
+    `/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms/${R1}/read`,
     () => new Response(null, { status: 204 }),
   )
   return api

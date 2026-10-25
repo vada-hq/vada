@@ -108,7 +108,7 @@ function SendButton({ sending, disabled }: { sending: boolean; disabled: boolean
 
 // 입력칸: 글, '@' 부르기, 사진 붙이기, 보내기. 버튼은 계약의 검사로 켜고 끈다.
 export default function Composer({ participants, meId, ...args }: Props) {
-  const composer = useComposer(args)
+  const composer = useComposer({ ...args, meId })
   const { body, send, canSend, sending, error, readOnly, drafts } = composer
   const { field, people, onChange, onPick, onSelect } = useMentionInput(
     composer,

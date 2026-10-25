@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CouncilView } from '@vada/contracts'
 import PageColumn, { pageWidthClass } from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -9,12 +9,13 @@ import type { Team } from '../team/useTeam'
 import DirectDialog from './DirectDialog'
 import { roomToShow, saveRoom, savedRoom } from './last-room'
 import NoticePage from './NoticePage'
+import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
 import type { RoomList as RoomListHook } from './useRoomList'
 import { useSplit } from './useSplit'
 
-type Screen = { kind: 'list' } | { kind: 'room'; roomId: string } | { kind: 'notices' }
+export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string } | { kind: 'notices' }
 
 type Props = {
   councilId: string
@@ -25,8 +26,6 @@ type Props = {
   onForbidden: () => void
   // 메시지에서 낸 요청을 재정 화면에서 연다.
   onOpenRequest: (requestId: string) => void
-  // 알림으로 열면 방 목록 대신 이 방에서 시작한다.
-  initialRoomId?: string | undefined
   onScreen: (screen: Screen) => void
 }
 
@@ -133,11 +132,13 @@ function Split({
   screen,
   saved,
   onScreen,
+  onBack,
 }: {
   page: PageProps
   screen: Screen
   saved: string | null
   onScreen: (screen: Screen) => void
+  onBack: () => void
 }) {
   const ready = page.rooms.state.kind === 'ready' ? page.rooms.state.data : null
   const roomId = screen.kind === 'room' ? screen.roomId : ready ? roomToShow(ready, saved) : null
@@ -154,13 +155,13 @@ function Split({
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         {notices ? (
-          <NoticePage
-            councilId={page.councilId}
-            onBack={() => onScreen({ kind: 'list' })}
-            onForbidden={page.onForbidden}
-          />
+          <NoticePage councilId={page.councilId} onBack={onBack} onForbidden={page.onForbidden} />
         ) : (
-          roomId && <Room key={roomId} page={page} roomId={roomId} onScreen={onScreen} />
+          roomId && (
+            <RoomGate rooms={page.rooms} roomId={roomId} onList={() => onScreen({ kind: 'list' })}>
+              <Room key={roomId} page={page} roomId={roomId} onScreen={onScreen} />
+            </RoomGate>
+          )
         )}
       </div>
     </div>
@@ -168,26 +169,43 @@ function Split({
 }
 
 // 대화: 휴대폰은 방 목록 → 방, PC는 목록과 방을 나란히. 공지 모아 보기는 둘 다 방 자리에 연다.
-export default function ChatPage(props: PageProps) {
+// 어느 화면인지는 부르는 쪽(주소)이 정하고, 뒤로는 들어온 곳으로 가는 동작을 받는다.
+export default function ChatPage({
+  screen,
+  onScreen,
+  onBack,
+  ...props
+}: PageProps & { screen: Screen; onScreen: (screen: Screen) => void; onBack: () => void }) {
   const split = useSplit()
-  const [screen, setScreen] = useState<Screen>(() =>
-    props.initialRoomId ? { kind: 'room', roomId: props.initialRoomId } : { kind: 'list' },
-  )
-  const [saved, setSaved] = useState(() => savedRoom(props.councilId))
-  const open = (next: Screen) => {
-    if (next.kind === 'room') {
-      saveRoom(props.councilId, next.roomId)
-      setSaved(next.roomId)
-    }
-    setScreen(next)
-  }
-  if (split) return <Split page={props} screen={screen} saved={saved} onScreen={open} />
-  const list = () => open({ kind: 'list' })
+  const { councilId } = props
+  const [saved, setSaved] = useState(() => savedRoom(councilId))
+  const openedRoom = screen.kind === 'room' ? screen.roomId : null
+  // 어떻게 열었든(눌러서, 주소로, 뒤로 가서) 연 방을 기억한다.
+  useEffect(() => {
+    if (!openedRoom) return
+    saveRoom(councilId, openedRoom)
+    setSaved(openedRoom)
+  }, [councilId, openedRoom])
+  const page = { ...props, onScreen }
+  if (split)
+    return <Split page={props} screen={screen} saved={saved} onScreen={onScreen} onBack={onBack} />
   if (screen.kind === 'room')
     return (
-      <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={list} onScreen={open} />
+      <RoomGate
+        rooms={props.rooms}
+        roomId={screen.roomId}
+        onList={() => onScreen({ kind: 'list' })}
+      >
+        <Room
+          key={screen.roomId}
+          page={props}
+          roomId={screen.roomId}
+          onBack={onBack}
+          onScreen={onScreen}
+        />
+      </RoomGate>
     )
   if (screen.kind === 'notices')
-    return <NoticePage councilId={props.councilId} onBack={list} onForbidden={props.onForbidden} />
-  return <ListScreen {...props} activeRoomId={null} noticesActive={false} onScreen={open} />
+    return <NoticePage councilId={councilId} onBack={onBack} onForbidden={props.onForbidden} />
+  return <ListScreen {...page} activeRoomId={null} noticesActive={false} />
 }
