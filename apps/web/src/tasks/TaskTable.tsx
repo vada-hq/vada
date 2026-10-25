@@ -3,7 +3,14 @@ import type { TaskSummary } from '@vada/contracts'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { SummaryText } from './TaskSectionList'
-import { COLUMN_LABEL, columnsOf, textFieldOf, type Column, type Lookups } from './task-table-cells'
+import {
+  COLUMN_LABEL,
+  columnsOf,
+  columnWidth,
+  textFieldOf,
+  type Column,
+  type Lookups,
+} from './task-table-cells'
 import type { TaskSection } from './task-groups'
 import { TaskTableCell } from './TaskTableCell'
 import type { TaskCells } from './useTaskCells'
@@ -18,16 +25,6 @@ type Props = {
   cells: TaskCells
   onOpenTask: (taskId: string) => void
   onOpenEvent?: ((eventId: string) => void) | undefined
-}
-
-// 열 너비. 제목이 남는 폭을 가진다(table-fixed).
-const WIDTH: Record<Column, string | undefined> = {
-  title: undefined,
-  status: 'w-24',
-  assignee: 'w-28',
-  due: 'w-20',
-  department: 'w-24',
-  event: 'w-28',
 }
 
 function GroupRow({
@@ -121,16 +118,11 @@ export function TaskTable(props: Props) {
         ref={gridRef}
         role="grid"
         aria-label="업무 표"
-        className="w-full table-fixed border-collapse text-left"
+        className="w-full border-collapse text-left"
         onKeyDown={nav.onKeyDown}
         onFocus={nav.onFocus}
         onBlur={nav.onBlur}
       >
-        <colgroup>
-          {columns.map(column => (
-            <col key={column} className={WIDTH[column]} />
-          ))}
-        </colgroup>
         <thead>
           <tr role="row">
             {columns.map(column => (
@@ -138,7 +130,7 @@ export function TaskTable(props: Props) {
                 key={column}
                 role="columnheader"
                 scope="col"
-                className="px-3 py-2 text-xs font-medium text-gray-500"
+                className={cn('px-3 py-2 text-xs font-medium text-gray-500', columnWidth(column))}
               >
                 {COLUMN_LABEL[column]}
               </th>

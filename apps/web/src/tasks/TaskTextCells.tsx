@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Pencil } from 'lucide-react'
 import type { TaskSummary } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -62,7 +61,6 @@ export function TitleCell(props: TextCellProps) {
       >
         {task.title}
       </Button>
-      {task.status === 'in_progress' && <Badge tone="info">진행 중</Badge>}
       {props.editable && (
         <Button
           variant="ghost"
