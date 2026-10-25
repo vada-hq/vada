@@ -30,3 +30,33 @@ export function placementsText(
 // 학생회 직급이나 부서 직급이 하나라도 붙어 있는가. 서버는 이런 사람을 내보내거나 직급 있는 소속을 끝낼 때 직급 칸(rank.manage)도 본다.
 export const holdsRank = (member: Pick<TeamMember, 'councilRank' | 'departments'>) =>
   member.councilRank !== null || member.departments.some(item => item.rank !== null)
+
+export type DepartmentGroup = {
+  department: TeamDepartment
+  members: TeamMember[]
+  heads: TeamMember[]
+}
+
+const placedIn = (member: TeamMember, departmentId: string) =>
+  member.departments.some(item => item.id === departmentId)
+
+const headOf = (member: TeamMember, departmentId: string) =>
+  member.departments.some(item => item.id === departmentId && item.rank === 'head')
+
+// 조직 화면의 묶음(DEC-91, 기능 023 정한 것 2): 회장단(회장과 부회장 모두), 부서마다 그 부서 사람과 부장들, 미배정.
+// 겸직자는 든 묶음마다 나오고, 묶음 안 차례는 서버가 준 차례(들어온 순서, DEC-47)다.
+// 목록에 없는 부서에만 든 사람도 미배정에 넣어, 어느 묶음에도 없어 화면에서 사라지지 않게 한다.
+export function orgGroups(members: TeamMember[], departments: TeamDepartment[]) {
+  const listed = new Set(departments.map(department => department.id))
+  return {
+    council: members.filter(member => member.councilRank !== null),
+    departments: departments.map((department): DepartmentGroup => {
+      const people = members.filter(member => placedIn(member, department.id))
+      return { department, members: people, heads: people.filter(m => headOf(m, department.id)) }
+    }),
+    unassigned: members.filter(
+      member =>
+        member.councilRank === null && !member.departments.some(item => listed.has(item.id)),
+    ),
+  }
+}

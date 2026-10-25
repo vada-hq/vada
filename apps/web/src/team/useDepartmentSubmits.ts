@@ -7,10 +7,10 @@ import {
 import { isFinal, type useDepartmentRequests } from './useDepartmentRequests'
 import type { useDepartmentDialogs } from './useDepartmentDialogs'
 
-export const departmentPath = (department: TeamDepartment) =>
+const departmentPath = (department: TeamDepartment) =>
   `/departments/${encodeURIComponent(department.id)}`
 
-// 부서 만들기, 이름 바꾸기, 없애기를 보낸다. 버튼은 서버와 같은 스키마로 판단하고, 저장 중에는 보내지 않는다.
+// 부서 만들기, 이름 바꾸기, 없애기, 재정 역할 주고 거두기를 보낸다. 버튼은 서버와 같은 스키마로 판단하고, 저장 중에는 보내지 않는다.
 // 성공했거나 다시 보내도 소용없는 오류면 대화상자를 닫는다.
 export function useDepartmentSubmits(
   saving: boolean,
@@ -38,5 +38,13 @@ export function useDepartmentSubmits(
     const code = await requests.run(`${departmentPath(removingDepartment)}/delete`, {}, 'remove')
     if (code === null || isFinal(code)) dialogs.closeRemove()
   }
-  return { canRename: renamed?.success === true, create, rename, remove }
+  // 재정 역할 주고 거두기. 이름과 함께 보낸다(UpdateDepartmentSchema).
+  function toggleFinance(department: TeamDepartment) {
+    void requests.run(
+      departmentPath(department),
+      { name: department.name, role: department.role === 'finance' ? null : 'finance' },
+      'list',
+    )
+  }
+  return { create, rename, remove, toggleFinance }
 }

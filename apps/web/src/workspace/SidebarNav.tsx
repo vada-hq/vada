@@ -1,4 +1,4 @@
-import { House, ListChecks, MessageSquare, Network, Users, Wallet } from 'lucide-react'
+import { House, ListChecks, MessageSquare, Users, Wallet } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
@@ -53,28 +53,17 @@ function FinanceItem({
   )
 }
 
-// 운영진: 사람, 부서
-function TeamItems({ active, onPage }: { active: ActiveItem; onPage: (page: Page) => void }) {
+// 조직: 사람과 부서를 한 화면에서(DEC-91). 최상위 끝 한 칸이고 '운영진' 머리는 없다(DEC-96). 옛 부서 주소도 이 칸이 켜진다.
+function OrgItem({ active, onPage }: { active: ActiveItem; onPage: (page: Page) => void }) {
   return (
-    <>
-      <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-500">운영진</p>
-      <NavItem
-        active={menuActive(active, 'people')}
-        className="flex items-center gap-2"
-        onClick={() => onPage('people')}
-      >
-        <Users aria-hidden className="size-4" />
-        사람
-      </NavItem>
-      <NavItem
-        active={menuActive(active, 'departments')}
-        className="flex items-center gap-2"
-        onClick={() => onPage('departments')}
-      >
-        <Network aria-hidden className="size-4" />
-        부서
-      </NavItem>
-    </>
+    <NavItem
+      active={menuActive(active, 'people') || menuActive(active, 'departments')}
+      className="mt-1 flex items-center gap-2"
+      onClick={() => onPage('people')}
+    >
+      <Users aria-hidden className="size-4" />
+      조직
+    </NavItem>
   )
 }
 
@@ -114,7 +103,7 @@ function LeadItems({
   )
 }
 
-// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서),
+// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 재정(결재 대기 수), 조직,
 // 그 아래 '공간'(완료하지 않은 행사, 행사 모두 보기, 새 행사).
 export default function SidebarNav({
   active,
@@ -144,7 +133,7 @@ export default function SidebarNav({
         count={pendingCount}
         onClick={() => onPage('finance')}
       />
-      <TeamItems active={active} onPage={onPage} />
+      <OrgItem active={active} onPage={onPage} />
       <SpaceList active={active} {...space} />
     </nav>
   )

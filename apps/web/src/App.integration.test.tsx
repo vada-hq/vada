@@ -73,16 +73,16 @@ function emptyRooms(id: string) {
   )
   api.on('GET', `/api/organizations/${id}/events/open`, () => json({ events: [], more: false }))
 }
-// 학생회를 열면 홈이 첫 화면이다. 옆 메뉴로 운영진 > 사람을 연다.
+// 학생회를 열면 홈이 첫 화면이다. 옆 메뉴로 조직을 연다.
 async function openPeople() {
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
-  fireEvent.click(await within(aside).findByRole('button', { name: '사람' }))
+  fireEvent.click(await within(aside).findByRole('button', { name: '조직' }))
 }
 function openCouncil(id = '0199d1a0-0000-7000-8000-0000000000c1', name = '컴퓨터학부 학생회') {
   emptyRooms(id)
   api.on('GET', `/api/organizations/${id}`, () => json(councilView(id, { name })))
   api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
-  // 회장단에게는 운영진 > 사람 위에 초대 링크가 보인다.
+  // 회장단에게는 조직 화면 위에 초대 링크가 보인다.
   api.on('GET', `/api/organizations/${id}/invite`, () => json({ code: 'ABCD2345' }))
 }
 
@@ -411,14 +411,14 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
   expect(within(sheet).getByRole('button', { name: '로그아웃' })).toBeTruthy()
 })
 
-test('옆 메뉴로 운영진 > 부서를 열고, 학생회 이름 메뉴의 설정으로 학생회 정보를 연다', async () => {
+test('옆 메뉴로 조직을 열어 부서를 보고, 학생회 이름 메뉴의 설정으로 학생회 정보를 연다', async () => {
   councilsInSequence([myCouncil('0199d1a0-0000-7000-8000-0000000000c1')])
   openCouncil()
   await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
-  fireEvent.click(within(aside).getByRole('button', { name: '부서' }))
-  expect(await screen.findByRole('heading', { level: 1, name: '부서' })).toBeTruthy()
-  expect(await screen.findByText('부서 2개')).toBeTruthy()
+  fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '기획부' })).toBeTruthy()
   fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), {
     key: 'Enter',
   })
@@ -460,7 +460,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회
   fireEvent.keyDown(list, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
   await openPeople()
-  expect(await screen.findByText('운영진 3명')).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '회장단' })).toBeTruthy()
 })
 
 test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 남은 학생회가 없으면 학생회 없음 안내로 돌아간다', async () => {
@@ -500,7 +500,7 @@ test('내보내진 뒤 다른 학생회가 남아 있으면 그 학생회로 옮
   await renderApp()
   expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
   await openPeople()
-  expect(await screen.findByText('운영진 3명')).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '회장단' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
 })
 

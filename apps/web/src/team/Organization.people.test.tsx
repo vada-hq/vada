@@ -11,7 +11,7 @@ import {
   teamResponse,
 } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
-import People from './People'
+import Organization from './Organization'
 import { useTeam } from './useTeam'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
@@ -25,7 +25,7 @@ afterEach(() => {
 })
 const titles = { president: '위원장', vicePresident: '부위원장', head: '국장', viceHead: '차장' }
 
-// 실제 작업 공간처럼 useTeam의 onForbidden, People의 onCouncilChanged·onOwnChange는 모두 학생회를 다시 읽는 일이다. 시험에서는 따로 세어 본다.
+// 실제 작업 공간처럼 useTeam의 onForbidden, Organization의 onCouncilChanged·onOwnChange는 모두 학생회를 다시 읽는 일이다. 시험에서는 따로 세어 본다.
 // "목록 다시 읽기"는 다른 곳에서 목록이 바뀐 뒤 화면이 다시 읽는 일(404·403 뒤의 다시 읽기, 쪽 이동)을 대신한다.
 // 권한을 준 학생회 읽기. 따로 주지 않으면 바깥 변경을 읽은 것으로 본다.
 const outside: Reading = { own: false }
@@ -48,7 +48,7 @@ function Harness({
   const base = councilView('c1', { permissions, memberId })
   return (
     <>
-      <People
+      <Organization
         view={{ ...base, council: { ...base.council, titles } }}
         reading={reading}
         team={team}
@@ -81,25 +81,31 @@ async function openMenu(name: string) {
   fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 동작` }), { key: 'Enter' })
   return screen.findByRole('menu')
 }
+// 조직 화면을 다 불러왔다(회장단 묶음은 늘 있다).
+const loaded = () => screen.findByRole('heading', { name: '회장단' })
+// 그 사람의 줄이 어느 묶음에든 있는가.
+const shown = (name: string) =>
+  screen
+    .queryAllByRole('listitem', { hidden: true })
+    .some(item => item.textContent?.startsWith(name))
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 const noDialog = () => waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-test('운영진 목록은 들어온 순서대로 이름, 학생회가 정한 직급 이름, 부서와 부서 직급, 들어온 날짜와 시각을 보이고 이메일은 없다', async () => {
+// 조직 화면의 사람 쪽(DEC-91): 사람 화면의 줄과 동작이 묶음 안에서 그대로다.
+test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 이름, 부서와 부서 직급, 들어온 날짜와 시각을 보이고 이메일은 없다', async () => {
   // 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
   serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
-  expect(await screen.findByText('운영진 3명')).toBeTruthy()
-  expect(
-    within(screen.getByRole('list', { name: '운영진' }))
+  await loaded()
+  const rows = (group: string) =>
+    within(screen.getByRole('list', { name: `${group} 구성원` }))
       .getAllByRole('listitem')
-      .map(item => item.textContent),
-  ).toEqual([
-    '김회장위원장부서 없음 · 10월 1일 (목) 10:00 들어옴',
-    '이재정재정부 국장 · 10월 2일 (금) 10:00 들어옴',
-    '박새내부서 없음 · 10월 19일 (월) 00:30 들어옴',
-  ])
+      .map(item => item.textContent)
+  expect(rows('회장단')).toEqual(['김회장위원장부서 없음 · 10월 1일 (목) 10:00 들어옴'])
+  expect(rows('재정부')).toEqual(['이재정재정부 국장 · 10월 2일 (금) 10:00 들어옴'])
+  expect(rows('미배정 구성원')).toEqual(['박새내부서 없음 · 10월 19일 (월) 00:30 들어옴'])
   expect(document.body.textContent).not.toContain('@')
 })
 
@@ -111,19 +117,19 @@ test('목록을 불러오지 못하면 다시 시도할 수 있고, 403이면 �
   )
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByText('운영진 3명')).toBeTruthy()
+  await loaded()
   cleanup()
   const forbidden = vi.fn()
   api.on('GET', '/api/organizations/c1/members', () => json({ error: 'FORBIDDEN' }, 403))
   render(<Harness permissions={MEMBER_PERMISSIONS} onForbidden={forbidden} />)
-  await screen.findByText('운영진을 불러오지 못했어요.')
+  await screen.findByText('조직을 불러오지 못했어요.')
   expect(forbidden).toHaveBeenCalled()
 })
 
 test('직급 없는 운영진은 초대 링크와 ⋯ 메뉴를 보지 않고 서버에 초대 코드를 묻지 않는다', async () => {
   const api = serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
-  await screen.findByText('운영진 3명')
+  await loaded()
   expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
   expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
   expect(api.calls.some(call => call.path.endsWith('/invite'))).toBe(false)
@@ -158,7 +164,7 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
   for (const { permissions, invite, menus } of cases) {
     const api = serve()
     render(<Harness permissions={permissions} />)
-    await screen.findByText('운영진 3명')
+    await loaded()
     // 초대 링크는 코드를 받아 온 뒤에야 나타난다. 있어야 하는 경우에는 기다린 뒤에 확인한다.
     if (invite) await screen.findByRole('region', { name: '초대 링크' })
     expect(
@@ -505,7 +511,7 @@ test('내보내기는 확인 대화상자를 거치고, 취소하면 아무것�
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
   dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
   fireEvent.click(within(dialog).getByRole('button', { name: '내보내기' }))
-  expect(await screen.findByText('운영진 2명')).toBeTruthy()
+  await waitFor(() => expect(shown('박새내')).toBe(false))
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
@@ -530,7 +536,7 @@ test('확인 대화상자는 보내는 동안 두 버튼이 꺼져, 연달아 �
   expect(screen.getByRole('dialog', { name: '박새내님을 내보낼까요?' })).toBeTruthy()
   expect(posts(api)).toHaveLength(1)
   pending.resolve(json(withoutMember('m3')))
-  expect(await screen.findByText('운영진 2명')).toBeTruthy()
+  await waitFor(() => expect(shown('박새내')).toBe(false))
   await noDialog()
   expect(posts(api)).toHaveLength(1)
 })
@@ -633,7 +639,7 @@ test('확인 대화상자는 서버가 잠시 실패하면 까닭을 안에 보�
   fireEvent.click(within(dialog).getByRole('button', { name: '내보내기' }))
   expect(await within(dialog).findByText('저장하지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
   fireEvent.click(within(dialog).getByRole('button', { name: '내보내기' }))
-  expect(await screen.findByText('운영진 2명')).toBeTruthy()
+  await waitFor(() => expect(shown('박새내')).toBe(false))
   expect(posts(api)).toHaveLength(2)
 })
 
@@ -649,7 +655,7 @@ test('확인 대화상자가 열린 채 대상이 목록에서 사라지면 닫�
   await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
   fireEvent.click(screen.getByText('목록 다시 읽기'))
   await noDialog()
-  expect(screen.getByText('운영진 2명')).toBeTruthy()
+  expect(shown('박새내')).toBe(false)
   expect(posts(api)).toEqual([])
 })
 
@@ -719,7 +725,7 @@ test('부서를 배정하다 404로 그 운영진이 사라지면 대화상자�
   const dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
   fireEvent.click(within(dialog).getByRole('button', { name: '부서에 넣기' }))
   await noDialog()
-  expect(screen.getByText('운영진 2명')).toBeTruthy()
+  expect(shown('박새내')).toBe(false)
   expect(screen.getByText('이미 바뀌었어요. 목록을 새로 불러왔어요.')).toBeTruthy()
   fireEvent.click(
     within(await openMenu('이재정')).getByRole('menuitem', { name: '부위원장 직급 주기' }),
@@ -834,7 +840,7 @@ test('내보내기가 성공해 확인 대화상자가 닫힐 때는 까닭 문�
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '내보내기' }))
   const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
   fireEvent.click(within(dialog).getByRole('button', { name: '내보내기' }))
-  expect(await screen.findByText('운영진 2명')).toBeTruthy()
+  await waitFor(() => expect(shown('박새내')).toBe(false))
   await noDialog()
   await settle()
   expect(screen.queryByText(GONE)).toBeNull()
