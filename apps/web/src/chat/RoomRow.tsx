@@ -17,7 +17,7 @@ const lastLine = ({ senderName, preview }: NonNullable<RoomSummary['lastMessage'
 
 // 방 한 줄(와이어프레임 MSG-01): 첫 줄은 이름과 배지(보기만, 나를 부름, 안 읽은 수), 오른쪽에 마지막 시각.
 // 안 읽은 수는 와이어프레임과 홈 메시지함처럼 빨강이다.
-// 그 아래 마지막 말 한 줄(넘치면 말줄임)과 참여 인원. 줄 전체가 그 방을 여는 단추다.
+// 그 아래 마지막 말 한 줄(넘치면 말줄임)과 참여 인원(1:1 빼고). 줄 전체가 그 방을 여는 단추다.
 export default function RoomRow({
   room,
   now,
@@ -39,7 +39,11 @@ export default function RoomRow({
       >
         <span className="flex items-center gap-2">
           <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">
+            {/* 긴 이름은 두 줄에서 말줄임(와이어프레임 truncate). 256px 목록 칸에서 접혀 줄이 길어지지 않게 한다. */}
+            <span
+              title={roomName(room)}
+              className="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900"
+            >
               {roomName(room)}
             </span>
             {room.readOnly && <Badge>보기만</Badge>}
@@ -61,7 +65,10 @@ export default function RoomRow({
         {room.lastMessage && (
           <span className="truncate text-xs text-gray-500">{lastLine(room.lastMessage)}</span>
         )}
-        <span className="text-xs text-gray-400">참여 {room.memberCount}명</span>
+        {/* 1:1은 늘 두 사람이라 인원을 보이지 않는다. */}
+        {room.type !== 'direct' && (
+          <span className="text-xs text-gray-400">참여 {room.memberCount}명</span>
+        )}
       </Button>
     </li>
   )

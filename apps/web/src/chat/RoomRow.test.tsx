@@ -37,3 +37,14 @@ test('보낸 사람이 없는 메시지는 미리보기만, 볼 메시지가 없
   show(room('r2', { type: 'leadership', lastMessage: null, lastMessageAt: null, memberCount: 2 }))
   expect(screen.getByRole('button').textContent).toBe('회장단방참여 2명')
 })
+
+test('긴 이름은 두 줄에서 말줄임이고 전체 이름은 title에 있다. 1:1은 참여 인원이 없다', () => {
+  const long = '가'.repeat(80)
+  show(room('r3', { type: 'department', name: long, departmentId: 'd1' }))
+  const name = screen.getByText(long)
+  expect(name.className).toContain('line-clamp-2')
+  expect(name.getAttribute('title')).toBe(long)
+  cleanup()
+  show(room('d1', { type: 'direct', name: '박새내', memberCount: 2 }))
+  expect(screen.queryByText('참여 2명')).toBeNull()
+})

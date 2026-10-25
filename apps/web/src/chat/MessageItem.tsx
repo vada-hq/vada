@@ -111,7 +111,7 @@ export default function MessageItem(props: Props) {
 }
 
 // 사람의 글(와이어프레임 메시지 화면): 내 메시지는 오른쪽 파란 말풍선, 남의 메시지는 왼쪽에 얼굴과 이름, 흰 말풍선.
-// 말풍선 묶음은 줄의 60%까지다(와이어프레임). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
+// 말풍선 묶음은 줄의 60%까지다(와이어프레임). 휴대폰은 칸이 좁아 80%다(사이드챗의 85%와 비슷하게). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
@@ -127,7 +127,10 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
     >
       <Face message={message} mine={mine} continued={continued} />
       <div
-        className={cn('flex max-w-3/5 min-w-0 flex-col gap-1', mine ? 'items-end' : 'items-start')}
+        className={cn(
+          'flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5',
+          mine ? 'items-end' : 'items-start',
+        )}
       >
         <Sender message={message} mine={mine} continued={continued} />
         {message.body !== '' && <Body body={message.body} mine={mine} />}
