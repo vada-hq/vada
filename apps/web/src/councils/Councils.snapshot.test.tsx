@@ -59,10 +59,10 @@ test('만들기: 진행 중', () => {
 
 test('만들기: 오류', async () => {
   const api = mockApi()
-  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_CURRENT' }, 400))
+  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_STARTED' }, 400))
   createForm()
   submitCreate()
-  await screen.findByText(/임기에 오늘이/)
+  await screen.findByText(/임기 시작은 오늘이나/)
   expect(html()).toMatchSnapshot()
 })
 

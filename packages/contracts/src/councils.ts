@@ -96,7 +96,7 @@ export const UpdateCouncilSettingsSchema = z.strictObject({
   }),
 })
 export type UpdateCouncilSettingsRequest = z.infer<typeof UpdateCouncilSettingsSchema>
-// 지금 기수의 이름과 기간 고치기(회장단). 기간은 오늘을 담아야 한다(서버가 본다).
+// 지금 기수의 이름과 기간 고치기(회장단). 시작일은 오늘 이전이어야 한다(서버가 본다, DEC-57).
 export const UpdateCohortSchema = z
   .strictObject({ name: text(COHORT_NAME_MAX), startsOn: dateInput, endsOn: dateInput })
   .refine(value => value.endsOn > value.startsOn, { path: ['endsOn'] })

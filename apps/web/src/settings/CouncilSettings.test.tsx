@@ -68,9 +68,9 @@ test('직급 표시 이름을 비우고 저장을 누르면 보내지 않고 그
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
-test('기수 기간이 오늘을 담지 않으면 저장하지 못한 까닭을 보인다', async () => {
+test('임기 시작이 오늘 뒤면 저장하지 못한 까닭을 보인다', async () => {
   const api = mockApi()
-  api.on('POST', '/api/organizations/c1/cohort', () => json({ error: 'COHORT_NOT_CURRENT' }, 409))
+  api.on('POST', '/api/organizations/c1/cohort', () => json({ error: 'COHORT_NOT_STARTED' }, 409))
   render(
     <CouncilSettings
       view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
@@ -82,11 +82,7 @@ test('기수 기간이 오늘을 담지 않으면 저장하지 못한 까닭을 
   fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2027-03-01' } })
   fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2028-02-29' } })
   fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
-  expect(
-    await within(form).findByText(
-      '기간에 오늘이 들어 있어야 해요. 그렇지 않으면 모든 운영진이 학생회를 열 수 없어요.',
-    ),
-  ).toBeTruthy()
+  expect(await within(form).findByText('임기 시작은 오늘이나 그 전이어야 해요.')).toBeTruthy()
   expect(api.calls[0]?.body).toEqual({ name: '2026', startsOn: '2027-03-01', endsOn: '2028-02-29' })
 })
 

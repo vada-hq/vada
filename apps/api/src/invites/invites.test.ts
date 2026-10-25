@@ -351,12 +351,12 @@ test('회장단 둘이 동시에 코드를 바꾸면 둘 다 200이고, 나중 �
   }
 })
 
-test('지금 기수가 없으면 409 NO_CURRENT_COHORT이고, 들어오기 입력이 틀리면 400, 로그인하지 않으면 401이다', async () => {
+test('지금 기수가 없으면(시작 전) 409 NO_CURRENT_COHORT이고, 들어오기 입력이 틀리면 400, 로그인하지 않으면 401이다', async () => {
   const testDb = await createTestDb()
   try {
     const { code } = await setup(testDb)
-    const nextYear = appOf(testDb, new Date('2027-03-01T03:00:00Z'))
-    const late = await nextYear.post('/api/organizations/join', { code }, 'u2')
+    const lastYear = appOf(testDb, new Date('2025-06-01T03:00:00Z'))
+    const late = await lastYear.post('/api/organizations/join', { code }, 'u2')
     assert.equal(late.status, 409)
     assert.deepEqual(await late.json(), { error: 'NO_CURRENT_COHORT' })
     const api = appOf(testDb)
@@ -489,7 +489,7 @@ test('내보내졌다가 다시 들어올 때, 끝나지 않고 남은 부서 �
   }
 })
 
-test('들어오기의 한국 날짜 경계: 한국의 1월 1일 0시에 시작하는 기수는 그 순간부터, 12월 31일에 끝나는 기수는 그 날 끝까지 들어올 수 있다', async () => {
+test('들어오기의 한국 날짜 경계: 한국의 1월 1일 0시에 시작하는 기수는 그 순간부터 들어올 수 있고, 끝 날짜가 지나도 들어올 수 있다(DEC-57)', async () => {
   const testDb = await createTestDb()
   try {
     const { code } = await setup(testDb, ['u1', 'u2', 'u3', 'u4', 'u5'])
@@ -498,15 +498,52 @@ test('들어오기의 한국 날짜 경계: 한국의 1월 1일 0시에 시작�
     // 기수는 2026-01-01 ~ 2026-12-31이다. 2026-01-01 00:00 KST = 2025-12-31 15:00 UTC.
     assert.equal((await joinAt('2025-12-31T15:00:00Z', 'u2')).status, 200)
     assert.equal((await joinAt('2026-12-31T14:59:59Z', 'u3')).status, 200)
-    for (const [at, user] of [
-      ['2025-12-31T14:59:59Z', 'u4'],
-      ['2026-12-31T15:00:00Z', 'u5'],
-    ] as const) {
-      const response = await joinAt(at, user)
-      assert.equal(response.status, 409, at)
-      assert.deepEqual(await response.json(), { error: 'NO_CURRENT_COHORT' }, at)
-      assert.equal((await membershipsOf(testDb, user)).rows.length, 0, at)
-    }
+    assert.equal((await joinAt('2026-12-31T15:00:00Z', 'u5')).status, 200)
+    const response = await joinAt('2025-12-31T14:59:59Z', 'u4')
+    assert.equal(response.status, 409)
+    assert.deepEqual(await response.json(), { error: 'NO_CURRENT_COHORT' })
+    assert.equal((await membershipsOf(testDb, 'u4')).rows.length, 0)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('들어오기는 늦게 시작한 기수로 들어간다. 다음 기수가 시작하기 전에는 앞 기수로 들어간다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { council, code } = await setup(testDb, ['u1', 'u2', 'u3'])
+    const nextCohort = await testDb.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: council.id,
+        actor: null,
+        values: { name: '2027', startsOn: '2027-03-01', endsOn: '2028-02-29' },
+      }),
+    )
+    const cohortOf = async (user: string) =>
+      (
+        await testDb.pg.query<{ cohort_id: string }>(
+          `SELECT cm.cohort_id FROM council_membership cm
+           JOIN member_login ml ON ml.member_id = cm.member_id WHERE ml.user_id = $1`,
+          [user],
+        )
+      ).rows.map(row => row.cohort_id)
+    const joinAt = (at: string, user: string) =>
+      appOf(testDb, new Date(at)).post('/api/organizations/join', { code }, user)
+    // 한국 2027-03-01 00:00 = 2027-02-28 15:00 UTC
+    assert.equal((await joinAt('2027-02-28T14:59:59Z', 'u2')).status, 200)
+    assert.equal((await joinAt('2027-02-28T15:00:00Z', 'u3')).status, 200)
+    const [before] = await cohortOf('u2')
+    assert.notEqual(before, nextCohort)
+    assert.deepEqual(await cohortOf('u3'), [nextCohort])
+    // 들어온 뒤 내 학생회 목록에 같은 학생회가 보인다.
+    const listed = (await (
+      await appOf(testDb, new Date('2027-02-28T15:00:00Z')).get('/api/me/councils', 'u3')
+    ).json()) as MyCouncilsResponse
+    assert.deepEqual(
+      listed.councils.map(item => item.id),
+      [council.id],
+    )
   } finally {
     await testDb.close()
   }

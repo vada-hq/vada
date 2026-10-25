@@ -72,7 +72,7 @@ test('학생회 정보와 직급 표시 이름은 회장단이 고치고, 모든
   }
 })
 
-test('지금 기수의 이름과 기간은 회장단이 고친다. 기간이 오늘을 담지 않으면 409 COHORT_NOT_CURRENT다', async () => {
+test('지금 기수의 이름과 기간은 회장단이 고친다. 임기 시작이 오늘 뒤면 409 COHORT_NOT_STARTED이고, 끝 날짜는 지나도 된다', async () => {
   const testDb = await createTestDb()
   try {
     const { api, base } = await setup(testDb)
@@ -93,8 +93,15 @@ test('지금 기수의 이름과 기간은 회장단이 고친다. 기간이 오
       'u1',
     )
     assert.equal(outside.status, 409)
-    assert.deepEqual(await outside.json(), { error: 'COHORT_NOT_CURRENT' })
+    assert.deepEqual(await outside.json(), { error: 'COHORT_NOT_STARTED' })
     assert.equal(((await (await api.get(base, 'u2')).json()) as CouncilView).cohort.name, '제38대')
+    // 끝 날짜가 오늘 전이어도 받고, 모두 계속 연다(DEC-57).
+    const ended = { name: '제38대', startsOn: '2026-03-01', endsOn: '2026-08-31' }
+    assert.equal((await api.post(`${base}/cohort`, ended, 'u1')).status, 200)
+    assert.deepEqual(
+      { ...((await (await api.get(base, 'u2')).json()) as CouncilView).cohort, id: undefined },
+      { id: undefined, ...ended },
+    )
   } finally {
     await testDb.close()
   }

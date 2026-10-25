@@ -10,7 +10,7 @@ import { authorize, authorizeChange, councilIdOf, recordIdOf } from './authorize
 
 const inside = new Date('2026-06-01T03:00:00Z')
 
-test('운영진 번호로 열기: 같은 사람이면 actorOf와 같고, 다른 학생회나 끝난 소속은 열리지 않는다', async () => {
+test('운영진 번호로 열기: 같은 사람이면 actorOf와 같고(기수 끝 날짜 뒤도), 다른 학생회나 끝난 소속은 열리지 않는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const seeded = await seedCouncil(db, pg)
@@ -23,12 +23,19 @@ test('운영진 번호로 열기: 같은 사람이면 actorOf와 같고, 다른 
     }
     assert.equal(await actorOfMember(db, people.president.memberId, other.councilId, inside), null)
     assert.equal(await actorOfMember(db, people.ended.memberId, councilId, inside), null)
+    const afterEnd = new Date('2027-06-01T03:00:00Z')
+    const byLogin = await actorOf(db, people.president.userId, councilId, afterEnd)
+    assert.ok(byLogin)
+    assert.deepEqual(
+      await actorOfMember(db, people.president.memberId, councilId, afterEnd),
+      byLogin,
+    )
     assert.equal(
       await actorOfMember(
         db,
         people.president.memberId,
         councilId,
-        new Date('2027-06-01T03:00:00Z'),
+        new Date('2025-12-31T14:59:59Z'),
       ),
       null,
     )
@@ -181,7 +188,7 @@ test('끝난 부서 소속과 다른 기수의 부서 소속은 부서 직급도
   }
 })
 
-test('기간이 지난 기수의 사람은 막힌다. 날짜는 서버 시간대가 아니라 한국 날짜로 센다', async () => {
+test('시작 전 기수의 사람은 막히고, 끝 날짜가 지난 기수의 사람은 열린다(DEC-57). 날짜는 서버 시간대가 아니라 한국 날짜로 센다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const { people, councilId } = await seedCouncil(db, pg)
@@ -190,7 +197,41 @@ test('기간이 지난 기수의 사람은 막힌다. 날짜는 서버 시간대
     assert.equal(await actorOf(db, user, councilId, new Date('2025-12-31T14:59:59Z')), null)
     assert.notEqual(await actorOf(db, user, councilId, new Date('2025-12-31T15:00:00Z')), null)
     assert.notEqual(await actorOf(db, user, councilId, new Date('2026-12-31T14:59:59Z')), null)
-    assert.equal(await actorOf(db, user, councilId, new Date('2026-12-31T15:00:00Z')), null)
+    assert.notEqual(await actorOf(db, user, councilId, new Date('2026-12-31T15:00:00Z')), null)
+    assert.notEqual(await actorOf(db, user, councilId, new Date('2030-01-01T03:00:00Z')), null)
+  } finally {
+    await close()
+  }
+})
+
+test('두 기수 중 늦게 시작한 기수가 지금 기수다. 앞 기수 사람은 다음 기수가 시작하는 순간부터 막힌다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    const { people, councilId } = await seedCouncil(db, pg)
+    const nextCohort = await db.transaction(async tx => {
+      const cohortId = await createRecord(tx, {
+        kind: 'cohort',
+        councilId,
+        actor: null,
+        values: { name: '2027', startsOn: '2027-03-01', endsOn: '2028-02-29' },
+      })
+      await createRecord(tx, {
+        kind: 'council_membership',
+        councilId,
+        actor: null,
+        values: { memberId: people.plain.memberId, cohortId, startsAt: clockNow },
+      })
+      return cohortId
+    })
+    // 한국 2027-03-01 00:00은 2027-02-28 15:00 UTC다.
+    const before = new Date('2027-02-28T14:59:59Z')
+    const after = new Date('2027-02-28T15:00:00Z')
+    assert.notEqual(await actorOf(db, people.president.userId, councilId, before), null)
+    assert.equal(await actorOf(db, people.president.userId, councilId, after), null)
+    const plainBefore = await actorOf(db, people.plain.userId, councilId, before)
+    const plainAfter = await actorOf(db, people.plain.userId, councilId, after)
+    assert.notEqual(plainBefore?.cohortId, nextCohort)
+    assert.equal(plainAfter?.cohortId, nextCohort)
   } finally {
     await close()
   }

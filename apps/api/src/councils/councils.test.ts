@@ -268,19 +268,23 @@ test('학생회 만들기 입력: 빠진 값, 빈 값, 상한+1, NUL·서러게�
   }
 })
 
-test('기수 기간이 오늘(한국 날짜)을 담지 않으면 409 COHORT_NOT_CURRENT다. 한국의 1월 1일 새벽(UTC로는 전날)에 만든 올해 기수는 받는다', async () => {
+test('임기 시작이 오늘(한국 날짜) 뒤면 409 COHORT_NOT_STARTED다. 끝 날짜가 지난 기수와 한국의 1월 1일 새벽(UTC로는 전날)에 만든 올해 기수는 받는다', async () => {
   const testDb = await createTestDb()
   try {
     await addUser(testDb.pg, 'u1')
+    await addUser(testDb.pg, 'u2')
     const api = appOf(testDb)
-    for (const period of [
-      { startsOn: '2027-01-01', endsOn: '2027-12-31' },
-      { startsOn: '2025-01-01', endsOn: '2025-12-31' },
-    ]) {
-      const response = await api.post('/api/organizations/create', { ...body, ...period }, 'u1')
-      assert.equal(response.status, 409)
-      assert.deepEqual(await response.json(), { error: 'COHORT_NOT_CURRENT' })
-    }
+    const future = { ...body, startsOn: '2027-01-01', endsOn: '2027-12-31' }
+    const rejected = await api.post('/api/organizations/create', future, 'u1')
+    assert.equal(rejected.status, 409)
+    assert.deepEqual(await rejected.json(), { error: 'COHORT_NOT_STARTED' })
+    assert.equal((await testDb.pg.query('SELECT 1 FROM record')).rows.length, 0)
+    // 끝 날짜가 지난 기수(DEC-57): 만들 수 있고, 만든 사람이 연다.
+    const ended = { ...body, startsOn: '2025-01-01', endsOn: '2025-12-31' }
+    const made = await api.post('/api/organizations/create', ended, 'u2')
+    assert.equal(made.status, 201)
+    const { council: endedCouncil } = (await made.json()) as CreateCouncilResponse
+    assert.equal((await api.get(`/api/organizations/${endedCouncil.id}`, 'u2')).status, 200)
     // 2026-01-01 00:30 KST = 2025-12-31 15:30 UTC
     const newYear = appOf(testDb, new Date('2025-12-31T15:30:00Z'))
     const response = await newYear.post('/api/organizations/create', body, 'u1')
@@ -299,6 +303,19 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
     const past = await seedCouncil(db, pg, 'b', { startsOn: '2025-01-01', endsOn: '2025-12-31' })
     const { people, departments, councilId } = current
     const list = (userId: string, now = noon) => myCouncils(db, userId, now)
+    // 끝 날짜가 지났어도 다음 기수가 시작하기 전에는 그 기수가 지금 기수다(DEC-57).
+    assert.deepEqual(await list(past.people.president.userId), [
+      { id: past.councilId, name: 'b 학생회', councilRank: 'president', departments: [] },
+    ])
+    // b 학생회에 다음 기수(2026-01-01 시작)가 생기면 2025 기수는 지난 기수다.
+    await db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: past.councilId,
+        actor: null,
+        values: { name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+      }),
+    )
     assert.deepEqual(await list(people.president.userId), [
       { id: councilId, name: 'a 학생회', councilRank: 'president', departments: [] },
     ])
@@ -400,48 +417,33 @@ test('내 학생회 목록: 끝난 소속과 지난 기수는 빠지고 지금 �
   }
 })
 
-test('한국 날짜 경계의 거절 쪽: 한국의 새해 첫 30분에는 지난해 기수를, 한국의 마지막 날 밤에는 새해 기수를 만들지 못한다', async () => {
+test('한국 날짜 경계의 거절 쪽: 한국의 마지막 날 밤에는 새해에 시작하는 기수를 만들지 못한다', async () => {
   const testDb = await createTestDb()
   try {
     await addUser(testDb.pg, 'u1')
-    // 2027-01-01 00:00 KST는 2026-12-31 15:00 UTC, 2025-12-31 23:59:59 KST는 2025-12-31 14:59:59 UTC다.
-    for (const at of [
-      '2026-12-31T15:00:00Z',
-      '2026-12-31T15:30:00Z',
-      '2025-12-31T14:59:59Z',
-      '2025-12-31T14:30:00Z',
-    ]) {
+    // 2025-12-31 23:59:59 KST는 2025-12-31 14:59:59 UTC다.
+    for (const at of ['2025-12-31T14:59:59Z', '2025-12-31T14:30:00Z']) {
       const response = await appOf(testDb, new Date(at)).post(
         '/api/organizations/create',
         body,
         'u1',
       )
       assert.equal(response.status, 409, at)
-      assert.deepEqual(await response.json(), { error: 'COHORT_NOT_CURRENT' }, at)
+      assert.deepEqual(await response.json(), { error: 'COHORT_NOT_STARTED' }, at)
     }
     assert.equal((await testDb.pg.query('SELECT 1 FROM record')).rows.length, 0)
-    // 경계 바로 안쪽은 받는다: 한국의 12월 31일 23:59:59와 1월 1일 00:00:00
-    assert.equal(
-      (
-        await appOf(testDb, new Date('2026-12-31T14:59:59Z')).post(
-          '/api/organizations/create',
-          body,
-          'u1',
-        )
-      ).status,
-      201,
-    )
+    // 시작하는 순간(한국 1월 1일 00:00:00)부터 받고, 끝 날짜 뒤(한국 이듬해 1월 1일 00:00:00)도 받는다.
     await addUser(testDb.pg, 'u2')
-    assert.equal(
-      (
-        await appOf(testDb, new Date('2025-12-31T15:00:00Z')).post(
-          '/api/organizations/create',
-          body,
-          'u2',
-        )
-      ).status,
-      201,
-    )
+    for (const [at, user] of [
+      ['2025-12-31T15:00:00Z', 'u1'],
+      ['2026-12-31T15:00:00Z', 'u2'],
+    ] as const) {
+      assert.equal(
+        (await appOf(testDb, new Date(at)).post('/api/organizations/create', body, user)).status,
+        201,
+        at,
+      )
+    }
   } finally {
     await testDb.close()
   }

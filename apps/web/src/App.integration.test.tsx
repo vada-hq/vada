@@ -207,18 +207,16 @@ test('학생회 만들기에서 계약이 받지 않는 임기 날짜는 보내�
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
-test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {
+test('임기 시작이 오늘 뒤면 만들지 못한 까닭을 보여 준다', async () => {
   councilsInSequence([])
-  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_CURRENT' }, 409))
+  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_STARTED' }, 409))
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '학교' } })
   fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
-  expect(
-    await screen.findByText('임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.'),
-  ).toBeTruthy()
+  expect(await screen.findByText('임기 시작은 오늘이나 그 전이어야 해요.')).toBeTruthy()
 })
 
 test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학생회 홈을 연다', async () => {

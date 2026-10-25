@@ -5,7 +5,7 @@ import type {
   UpdateCouncilSettingsRequest,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { periodIsCurrent } from '../access/current-cohort.js'
+import { periodHasStarted } from '../access/current-cohort.js'
 import { cohort, council, inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { syncRooms } from '../chat/rooms.js'
@@ -17,9 +17,10 @@ import { linkMember } from './link.js'
 // 학생회를 만들면 함께 생기는 재정 역할 부서(DEC-16). 이름은 나중에 바꿀 수 있다.
 const FINANCE_DEPARTMENT_NAME = '재정부'
 
-// 기수의 기간이 오늘(한국 날짜)을 담아야 운영진에게 지금 소속이 생긴다. 담지 않으면 아무도 학생회를 열 수 없다.
-function assertCurrentPeriod(period: { startsOn: string; endsOn: string }, now: Date) {
-  if (!periodIsCurrent(period, now)) throw new ApiError('COHORT_NOT_CURRENT')
+// 기수가 시작해야(시작일이 오늘 이전) 운영진에게 지금 소속이 생긴다(DEC-57). 시작 전이면 아무도 학생회를 열 수 없다.
+// 끝 날짜는 보지 않는다: 끝 날짜가 지난 기수도 다음 기수가 시작하기 전까지 지금 기수다.
+function assertStarted(period: { startsOn: string }, now: Date) {
+  if (!periodHasStarted(period, now)) throw new ApiError('COHORT_NOT_STARTED')
 }
 
 // 학생회 만들기는 한 거래다(바탕 spec G6): 운영진(없으면)과 로그인 잇기, 학생회, 첫 기수, 회장 소속, 재정부, 초대 코드.
@@ -30,7 +31,7 @@ export async function createCouncil(
   input: CreateCouncilRequest,
   now: Date,
 ): Promise<string> {
-  assertCurrentPeriod(input, now)
+  assertStarted(input, now)
   const actor = await linkMember(tx, userId)
   const councilId = await createRecord(tx, {
     kind: 'council',
@@ -89,9 +90,9 @@ export async function updateSettings(tx: Tx, actor: Actor, input: UpdateCouncilS
   })
 }
 
-// 지금 기수의 이름과 기간 고치기. 기간이 오늘을 담지 않으면 모두 학생회를 열 수 없게 되므로 409로 막는다.
+// 지금 기수의 이름과 기간 고치기. 시작일을 오늘 뒤로 옮기면 이 기수가 지금 기수가 아니게 되어 모두 학생회를 열 수 없게 되므로 409로 막는다.
 export async function updateCohort(tx: Tx, actor: Actor, input: UpdateCohortRequest, now: Date) {
-  assertCurrentPeriod(input, now)
+  assertStarted(input, now)
   const [current] = await tx
     .select({ name: cohort.name, startsOn: cohort.startsOn, endsOn: cohort.endsOn })
     .from(cohort)

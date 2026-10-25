@@ -1,4 +1,5 @@
-import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, inArray, or, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import {
   isUuid,
   MESSAGE_PAGE_SIZE,
@@ -6,6 +7,7 @@ import {
   type MessagePageResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { cohortOfDay } from '../access/current-cohort.js'
 import { chatRoom, cohort, file, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
@@ -126,7 +128,11 @@ export async function messagePage(
   }
 }
 
-// 같은 기수의 공지(DEC-48): 전체방의 공지 표시가 붙은 메시지 중 보낸 시각의 한국 날짜가 내 지금 기수 기간에 드는 것.
+const NOTICE_COHORT = 'notice_cohort'
+const noticeCohort = alias(cohort, NOTICE_COHORT)
+
+// 같은 기수의 공지(DEC-48): 전체방의 공지 표시가 붙은 메시지 중 보낸 날(한국 날짜)의 기수가 내 지금 기수인 것.
+// 보낸 날의 기수는 그날까지 시작한 가장 늦은 기수다(DEC-57). 끝 날짜 뒤에 보낸 공지도 다음 기수가 시작하기 전까지는 같은 기수다.
 // 들어오기 전 것도 보인다. 기수는 한국 날짜로 가른다(서버 시간대가 UTC여도 같다).
 // 보이는 공지와 떼어 낼 수 있는 공지가 같은 조건에서 나오도록 이 한 곳에 둔다(조회와 공지 표시가 함께 쓴다). record, chat_room을 합친 조회에서 쓴다.
 export const shownNotice = (actor: Actor) =>
@@ -134,9 +140,12 @@ export const shownNotice = (actor: Actor) =>
     eq(record.councilId, actor.councilId),
     inNoticeRoom,
     eq(message.isNotice, true),
-    sql`(${message.sentAt} at time zone 'Asia/Seoul')::date
-      between (select ${cohort.startsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)
-      and (select ${cohort.endsOn} from ${cohort} where ${cohort.id} = ${actor.cohortId}::uuid)`,
+    exists(
+      sql`(select 1 from ${cohort} ${sql.identifier(NOTICE_COHORT)} where ${and(
+        eq(noticeCohort.id, actor.cohortId),
+        cohortOfDay(noticeCohort, sql`(${message.sentAt} at time zone 'Asia/Seoul')::date`),
+      )})`,
+    ),
   )
 
 // 이 사람이 대화에서 볼 수 있는 메시지(전체방 메시지 기준): 들어온 뒤의 것이거나 같은 기수의 공지.

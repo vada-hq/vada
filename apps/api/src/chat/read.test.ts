@@ -393,6 +393,15 @@ test(
     const lead = await s.roomId(s.council.councilId, 'leadership')
     const kim = s.person.president.memberId
     const notice = (body: string, at: string) => s.notice(all, kim, body, at)
+    // 다음 기수는 한국 2027-01-01에 시작한다(아직 시작 전이라 지금 기수는 기본 기수다).
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: s.council.councilId,
+        actor: null,
+        values: { name: '2027', startsOn: '2027-01-01', endsOn: '2027-12-31' },
+      }),
+    )
     await notice('지난 기수 끝', '2025-12-31T14:59:59Z')
     await notice('기수 첫 순간', '2025-12-31T15:00:00Z')
     await notice('봄', '2026-04-01T00:00:00Z')
@@ -418,6 +427,43 @@ test(
     // 흐름은 들어온 뒤의 것만이다(들어온 날은 2026-03-01).
     const flow = bodies(await pageOf(await messagesOf(s, all, '', 's-planningMember')))
     assert.deepEqual(flow, ['봄', '공지 아님', '여름', '기수 끝 순간', '다음 기수 첫 순간'])
+  }),
+)
+
+test(
+  '공지의 기수는 보낸 날까지 시작한 가장 늦은 기수다(DEC-57): 끝 날짜 뒤에 보낸 공지도 다음 기수가 시작하기 전까지는 같은 기수 공지다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const kim = s.person.president.memberId
+    // 기본 기수(2026-01-01~2026-12-31)의 끝 날짜 뒤, 한국 2027-01-01 00:00과 2027-03-01 00:00
+    await s.notice(all, kim, '끝 날짜 뒤', '2026-12-31T15:00:00Z')
+    await s.notice(all, kim, '다음 기수 첫 순간', '2027-02-28T15:00:00Z')
+    // 다른 학생회의 기수는 이 학생회 공지의 기수를 정하지 않는다.
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: s.other.councilId,
+        actor: null,
+        values: { name: '다른 2027', startsOn: '2027-01-01', endsOn: '2027-12-31' },
+      }),
+    )
+    const noticesNow = async () =>
+      (
+        (await (
+          await s.api.get(`${s.base}/notices`, 's-planningMember')
+        ).json()) as NoticeListResponse
+      ).notices.map(item => item.body)
+    assert.deepEqual(await noticesNow(), ['다음 기수 첫 순간', '끝 날짜 뒤'])
+    // 다음 기수(한국 2027-03-01 시작)가 생기면 그날부터 보낸 공지는 다음 기수 것이다.
+    await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: s.council.councilId,
+        actor: null,
+        values: { name: '2027', startsOn: '2027-03-01', endsOn: '2028-02-29' },
+      }),
+    )
+    assert.deepEqual(await noticesNow(), ['끝 날짜 뒤'])
   }),
 )
 

@@ -72,14 +72,14 @@ test('성공', async () => {
   expect(html()).toMatchSnapshot()
 })
 
-test('오류: 기간 밖', async () => {
+test('오류: 임기 시작 전', async () => {
   const api = mockApi()
-  api.on('POST', '/api/organizations/c1/cohort', () => json({ error: 'COHORT_NOT_CURRENT' }, 400))
+  api.on('POST', '/api/organizations/c1/cohort', () => json({ error: 'COHORT_NOT_STARTED' }, 400))
   show()
   const form = screen.getByRole('form', { name: '지금 기수' })
   fireEvent.change(within(form).getByLabelText('기수 이름'), { target: { value: '2027' } })
   fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
-  await within(form).findByText(/기간에 오늘이/)
+  await within(form).findByText(/임기 시작은 오늘이나/)
   expect(html()).toMatchSnapshot()
 })
 

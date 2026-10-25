@@ -291,7 +291,7 @@ exports[`오류: 권한을 잃음 1`] = `
 </div>"
 `;
 
-exports[`오류: 기간 밖 1`] = `
+exports[`오류: 임기 시작 전 1`] = `
 "<div>
 <div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
@@ -384,7 +384,7 @@ exports[`오류: 기간 밖 1`] = `
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id10_" aria-required="true" type="date" value="2026-12-31">
 </div>
 </div>
-<p role="alert" class="text-sm wrap-anywhere text-destructive">기간에 오늘이 들어 있어야 해요. 그렇지 않으면 모든 운영진이 학생회를 열 수 없어요.</p>
+<p role="alert" class="text-sm wrap-anywhere text-destructive">임기 시작은 오늘이나 그 전이어야 해요.</p>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start" type="submit">기수 저장</button>
 </form>
 </div>
