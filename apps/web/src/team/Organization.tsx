@@ -1,7 +1,7 @@
 // oxlint-disable max-lines -- 조직도 카드와 상호작용을 한 모듈에서 함께 유지한다.
 import type { CouncilTitles, TeamDepartment, TeamMember } from '@vada/contracts'
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { Star, UserPlus, UserRound, X } from 'lucide-react'
 import type { CouncilView } from '@vada/contracts'
 import type { DepartmentRank } from '@vada/contracts'
@@ -33,6 +33,10 @@ type Props = {
   team: Team
 }
 
+const MemberSelectionContext = createContext<{
+  onSelect: (member: TeamMember) => void
+}>({ onSelect: () => undefined })
+
 /* oxlint-disable complexity -- 조직도와 구성원·부서 관리 상태를 한 화면에 연결한다. */
 // oxlint-disable-next-line max-lines-per-function -- 조직도와 단일 화면 관리 대화상자를 함께 연결한다.
 export default function Organization({ view, team }: Props) {
@@ -40,6 +44,7 @@ export default function Organization({ view, team }: Props) {
   const [departmentManageOpen, setDepartmentManageOpen] = useState(false)
   const [unassignedOpen, setUnassignedOpen] = useState(false)
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const [managementError, setManagementError] = useState('')
   const [pendingAssignment, setPendingAssignment] = useState<{
     member: TeamMember
@@ -74,6 +79,9 @@ export default function Organization({ view, team }: Props) {
   )
   const editingMember = editingMemberId
     ? members.find(member => member.id === editingMemberId) ?? null
+    : null
+  const selectedMember = selectedMemberId
+    ? members.find(member => member.id === selectedMemberId) ?? null
     : null
   const saveManagementChange = async (path: string, body: unknown) => {
     setManagementError('')
@@ -202,34 +210,56 @@ export default function Organization({ view, team }: Props) {
           onForbidden={team.reload}
         />
       )}
-      <OrganizationChart
-        members={members}
-        presidents={presidents}
-        departments={departments}
-        titles={view.council.titles}
-        canManage={view.permissions.includes('member.manage')}
-        canTransfer={view.permissions.includes('president.transfer')}
-        canRank={view.permissions.includes('rank.manage')}
-        onManageMember={member => {
-          setManagementError('')
-          setEditingMemberId(member.id)
-        }}
-        onAssignHead={departmentId => {
-          setHeadAssignmentDepartmentId(departmentId)
-          setHeadAssignmentTargetId(members[0]?.id ?? '')
-        }}
-        onTransfer={() => {
+      <MemberSelectionContext.Provider value={{ onSelect: member => setSelectedMemberId(member.id) }}>
+        <OrganizationChart
+          members={members}
+          presidents={presidents}
+          departments={departments}
+          titles={view.council.titles}
+          canManage={view.permissions.includes('member.manage')}
+          canTransfer={view.permissions.includes('president.transfer')}
+          canRank={view.permissions.includes('rank.manage')}
+          onManageMember={member => {
+            setManagementError('')
+            setEditingMemberId(member.id)
+          }}
+          onAssignHead={departmentId => {
+            setHeadAssignmentDepartmentId(departmentId)
+            setHeadAssignmentTargetId(members[0]?.id ?? '')
+          }}
+          onTransfer={() => {
+              setTransferTargetId(members.find(member => member.councilRank !== 'president')?.id ?? '')
+              setTransferOpen(true)
+          }}
+          onRemoveVice={setViceRemoval}
+          onAssignVice={() => {
+            setViceAssignmentTargetId(
+              members.find(member => member.councilRank === null)?.id ?? '',
+            )
+            setViceAssignmentOpen(true)
+          }}
+        />
+      </MemberSelectionContext.Provider>
+      {selectedMember && (
+        <MemberDetailsPanel
+          member={selectedMember}
+          departments={departments}
+          titles={view.council.titles}
+          canManage={view.permissions.includes('member.manage')}
+          transferable={view.permissions.includes('president.transfer') && selectedMember.councilRank === 'president'}
+          removableVice={view.permissions.includes('rank.manage') && selectedMember.councilRank === 'vice_president'}
+          onTransfer={() => {
             setTransferTargetId(members.find(member => member.councilRank !== 'president')?.id ?? '')
             setTransferOpen(true)
-        }}
-        onRemoveVice={setViceRemoval}
-        onAssignVice={() => {
-          setViceAssignmentTargetId(
-            members.find(member => member.councilRank === null)?.id ?? '',
-          )
-          setViceAssignmentOpen(true)
-        }}
-      />
+          }}
+          onRemoveVice={() => setViceRemoval(selectedMember)}
+          onManage={() => {
+            setManagementError('')
+            setEditingMemberId(selectedMember.id)
+          }}
+          onClose={() => setSelectedMemberId(null)}
+        />
+      )}
       {editingMember && view.permissions.includes('member.manage') && (
         <MemberDepartmentsDialog
           key={editingMember.id}
@@ -876,21 +906,105 @@ function MemberGroup({
   )
 }
 
+// oxlint-disable-next-line max-lines-per-function -- 상세 패널의 정보와 관련 동작을 한곳에 보여준다.
+function MemberDetailsPanel({
+  member,
+  departments,
+  titles,
+  canManage,
+  transferable,
+  removableVice,
+  onManage,
+  onTransfer,
+  onRemoveVice,
+  onClose,
+}: {
+  member: TeamMember
+  departments: TeamDepartment[]
+  titles: CouncilTitles
+  canManage: boolean
+  transferable: boolean
+  removableVice: boolean
+  onManage: () => void
+  onTransfer: () => void
+  onRemoveVice: () => void
+  onClose: () => void
+}) {
+  const rank = member.councilRank
+    ? councilRankLabel(member.councilRank, titles)
+    : member.departments
+        .map(item => departmentRankLabel(item.rank, titles))
+        .find((value): value is string => value !== null)
+  const departmentNames = member.councilRank
+    ? '회장단'
+    : member.departments
+        .map(item => departments.find(department => department.id === item.id)?.name)
+        .filter((name): name is string => name !== undefined)
+        .join(', ') || '소속 없음'
+  return (
+    <aside
+      aria-label={`${member.name} 상세 정보`}
+      className="fixed inset-y-0 right-0 z-30 flex w-full max-w-sm flex-col border-l bg-white shadow-xl"
+    >
+      <div className="flex items-start justify-between gap-3 border-b px-6 py-5">
+        <div className="min-w-0">
+          <p className="text-xs text-gray-500">구성원 정보</p>
+          <h3 className="mt-1 wrap-anywhere text-xl font-semibold text-gray-900">{member.name}</h3>
+        </div>
+        <Button variant="ghost" size="icon" aria-label="상세 정보 닫기" onClick={onClose}>
+          <X />
+        </Button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-6">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 rounded-md border bg-gray-50 p-4 text-sm">
+          <dt className="text-gray-500">학교</dt>
+          <dd className="wrap-anywhere text-gray-900">{member.profile.schoolName ?? '미등록'}</dd>
+          <dt className="text-gray-500">단과대학</dt>
+          <dd className="wrap-anywhere text-gray-900">{member.profile.collegeName ?? '미등록'}</dd>
+          <dt className="text-gray-500">학부</dt>
+          <dd className="wrap-anywhere text-gray-900">{member.profile.majorName ?? '미등록'}</dd>
+          <dt className="text-gray-500">학년</dt>
+          <dd className="text-gray-900">
+            {member.profile.grade ? `${member.profile.grade}학년` : '미등록'}
+          </dd>
+          <dt className="text-gray-500">현재 부서</dt>
+          <dd className="wrap-anywhere text-gray-900">{departmentNames}</dd>
+          <dt className="text-gray-500">직책</dt>
+          <dd className="text-gray-900">{rank ?? '부원'}</dd>
+        </dl>
+      </div>
+      {(canManage || transferable || removableVice) && (
+        <div className="space-y-2 border-t bg-white p-6">
+          {canManage && (
+            <Button variant="outline" className="w-full" onClick={onManage}>
+              부서·직책 관리
+            </Button>
+          )}
+          {transferable && (
+            <Button variant="outline" className="w-full" onClick={onTransfer}>
+              회장 넘기기
+            </Button>
+          )}
+          {removableVice && (
+            <Button variant="outline" className="w-full" onClick={onRemoveVice}>
+              부회장 직책 해제
+            </Button>
+          )}
+        </div>
+      )}
+    </aside>
+  )
+}
+
 /* oxlint-disable complexity -- 카드와 상세 대화상자의 상태를 함께 관리한다. */
 // oxlint-disable-next-line max-lines-per-function -- 카드와 상세 대화상자의 상태를 함께 관리한다.
 function PersonCard({
   member,
   titles,
   departmentId,
-  departmentName,
+  departmentName: _departmentName,
   emphasis = false,
   lead = false,
-  canManage = false,
-  onManage,
-  transferable = false,
-  removableVice = false,
-  onTransfer,
-  onRemoveVice,
 }: {
   member: TeamMember
   titles: CouncilTitles
@@ -905,20 +1019,18 @@ function PersonCard({
   onTransfer?: () => void
   onRemoveVice?: () => void
 }) {
-  const [open, setOpen] = useState(false)
+  const selection = useContext(MemberSelectionContext)
   const placement = departmentId
     ? member.departments.find(item => item.id === departmentId)
     : undefined
   const rank = placement
     ? departmentRankLabel(placement.rank, titles)
     : councilRankLabel(member.councilRank, titles)
-  const displayDepartmentName =
-    member.councilRank !== null ? '회장단' : (departmentName ?? '소속 없음')
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => selection.onSelect(member)}
         className={`min-w-0 rounded-md border text-left ${
           emphasis
             ? member.councilRank === 'vice_president'
@@ -982,58 +1094,6 @@ function PersonCard({
           </div>
         </div>
       </button>
-      {open && (
-        <aside
-          aria-label={`${member.name} 상세 정보`}
-          className="absolute top-0 left-full z-20 ml-2 w-56 rounded-md border bg-white p-4 shadow-lg"
-        >
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <h3 className="wrap-anywhere text-base font-semibold text-gray-900">{member.name}</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 shrink-0"
-              aria-label="상세 정보 닫기"
-              onClick={() => setOpen(false)}
-            >
-              <X />
-            </Button>
-          </div>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt className="text-gray-500">학교</dt>
-            <dd className="wrap-anywhere text-gray-900">{member.profile.schoolName ?? '미등록'}</dd>
-            <dt className="text-gray-500">단과대학</dt>
-            <dd className="wrap-anywhere text-gray-900">
-              {member.profile.collegeName ?? '미등록'}
-            </dd>
-            <dt className="text-gray-500">학부</dt>
-            <dd className="wrap-anywhere text-gray-900">{member.profile.majorName ?? '미등록'}</dd>
-            <dt className="text-gray-500">학년</dt>
-            <dd className="text-gray-900">
-              {member.profile.grade ? `${member.profile.grade}학년` : '미등록'}
-            </dd>
-            <dt className="text-gray-500">현재 부서</dt>
-            <dd className="wrap-anywhere text-gray-900">{displayDepartmentName}</dd>
-            <dt className="text-gray-500">직책</dt>
-            <dd className="text-gray-900">{rank ?? '부원'}</dd>
-          </dl>
-          {canManage && onManage && (
-            <Button variant="outline" className="mt-4 w-full" onClick={onManage}>
-              부서·직책 관리
-            </Button>
-          )}
-          {transferable && onTransfer && (
-            <Button variant="outline" className="mt-2 w-full" onClick={onTransfer}>
-              회장 넘기기
-            </Button>
-          )}
-          {removableVice && onRemoveVice && (
-            <Button variant="outline" className="mt-2 w-full" onClick={onRemoveVice}>
-              부회장 직책 해제
-            </Button>
-          )}
-        </aside>
-      )}
     </div>
   )
 }
