@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { text } from './input.js'
 import { koreanDate } from './korean-time.js'
+import type { PurchasePerson } from './purchases.js'
 import { recordIdInput } from './team.js'
 
 // 회계 기간과 예산 항목(DEC-45). 값은 DB CHECK와 같다.
@@ -23,10 +24,14 @@ export type CreateFiscalPeriod = z.infer<typeof CreateFiscalPeriodSchema>
 export const BUDGET_ITEM_TYPES = ['expense', 'income'] as const
 export type BudgetItemType = (typeof BUDGET_ITEM_TYPES)[number]
 
+// 예산 항목의 이름과 금액. 금액은 1원 이상이다(DEC-92: 0원 항목은 막는다). 더하기와 고치기가 같이 쓴다.
+export const budgetItemPurpose = text(BUDGET_PURPOSE_MAX)
+export const budgetItemAmount = z.number().int().min(1).max(WON_MAX)
+
 // 더할 때 종류와 행사(선택)를 고르고, 더한 뒤에는 바꾸지 않는다(DEC-68).
 export const CreateBudgetItemSchema = z.strictObject({
-  purpose: text(BUDGET_PURPOSE_MAX),
-  amount: z.number().int().min(0).max(WON_MAX),
+  purpose: budgetItemPurpose,
+  amount: budgetItemAmount,
   type: z.enum(BUDGET_ITEM_TYPES).default('expense'),
   eventId: recordIdInput.nullable().default(null),
 })
@@ -58,6 +63,16 @@ export type BudgetItemUsage =
   | { type: 'expense'; actual: number; committed: number; available: number }
   | { type: 'income'; actual: number; committed: null; available: null }
 
+// 예산 항목의 판 하나: 그때의 이름과 금액, 바꾼 사람, 고칠 때 받은 사유(DEC-34). 앞 판과 견주어 무엇이 바뀌었는지는 화면이 센다.
+export interface BudgetItemVersion {
+  versionNo: number
+  at: string
+  by: PurchasePerson | null
+  purpose: string
+  amount: number
+  reason: string | null
+}
+
 export type BudgetItemView = BudgetItemUsage & {
   id: string
   purpose: string
@@ -65,6 +80,9 @@ export type BudgetItemView = BudgetItemUsage & {
   event: EventRef | null
   // 결재·지출·수입에서 고를 수 있는가. 완료한 행사의 항목이면 false다(RULE-11). 서버가 정책에서 정한다.
   selectable: boolean
+  // 지울 수 있는가. 결재·지출·수입·요청이 이 항목을 가리킨 적이 없을 때만이다(DEC-92). 그 가리킴은 지워지지 않아 지금 가리킴으로 센다.
+  deletable: boolean
+  history: BudgetItemVersion[]
 }
 // 기간이 없으면 period가 null이고, 화면이 채워 둘 이름과 날짜(지금 기수)를 suggested로 준다.
 export interface BudgetResponse {

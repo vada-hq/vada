@@ -5,10 +5,11 @@ import { can } from '../access/permissions.js'
 import { carryoverIntoNewPeriod } from '../closing/carryover.js'
 import { fiscalPeriod } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
-import { assertEventOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
+import { assertEventsOpen } from '../policy/locks.js'
+import { assertNamesFree } from './names.js'
 import { budgetViewOf, currentPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 뒤에 부른다. 같은 학생회의 쓰기는 그 잠금으로 한 줄로 서므로 겹침을 먼저 보고 넣어도 새지 않는다.
@@ -63,28 +64,38 @@ export async function createFiscalPeriod(
 }
 
 // 예산 항목(지출 기본, 수입)은 오늘이 든 기간에 더한다. 기간이 없으면 409다. 행사를 이으면 그 행사가 완료 전이어야 한다(DEC-68).
-export async function addBudgetItem(
+// 여러 행(예산 편성, DEC-92)은 한 거래로 넣는다. 한 행이라도 막히면 거래가 되돌아가 아무것도 남지 않는다.
+export async function addBudgetItems(
   tx: Tx,
   actor: Actor,
-  input: CreateBudgetItem,
+  inputs: readonly CreateBudgetItem[],
   now: Date,
 ): Promise<BudgetResponse> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
-  await assertCouncilEvent(tx, actor, input.eventId)
-  await assertEventOpen(tx, input.eventId)
+  for (const eventId of new Set(inputs.map(input => input.eventId)))
+    await assertCouncilEvent(tx, actor, eventId)
+  await assertEventsOpen(
+    tx,
+    inputs.map(input => input.eventId),
+  )
   const period = await currentPeriodOf(tx, actor, now)
   if (!period) throw new ApiError('NO_FISCAL_PERIOD')
-  await createRecord(tx, {
-    kind: 'budget_item',
-    councilId: actor.councilId,
-    actor: actor.memberId,
-    values: {
-      budgetId: period.budgetId,
-      type: input.type,
-      eventId: input.eventId,
-      purpose: input.purpose,
-      amount: String(input.amount),
-    },
-  })
+  await assertNamesFree(tx, period.budgetId, inputs)
+  for (const input of inputs)
+    await createRecord(tx, {
+      kind: 'budget_item',
+      councilId: actor.councilId,
+      actor: actor.memberId,
+      values: {
+        budgetId: period.budgetId,
+        type: input.type,
+        eventId: input.eventId,
+        purpose: input.purpose,
+        amount: String(input.amount),
+      },
+    })
   return budgetViewOf(tx, period)
 }
+
+export const addBudgetItem = (tx: Tx, actor: Actor, input: CreateBudgetItem, now: Date) =>
+  addBudgetItems(tx, actor, [input], now)

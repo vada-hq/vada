@@ -220,13 +220,13 @@ test(
       401,
     )
     await makeItem(s, { purpose: ' 행사 ', amount: 500000 })
-    const response = await makeItem(s, { purpose: '소모품', amount: 0 })
+    const response = await makeItem(s, { purpose: '소모품', amount: 1 })
     assert.equal(response.status, 201)
     const view = await viewOf(response)
     assert.deepEqual(
       view.items.map(item => [item.purpose, item.amount]),
       [
-        ['소모품', 0],
+        ['소모품', 1],
         ['행사', 500000],
       ],
     )
@@ -237,7 +237,7 @@ test(
 )
 
 test(
-  '항목 입력: 상한은 받고 상한+1, 음수, 소수, 문자, 모르는 키는 400이다',
+  '항목 입력: 상한은 받고 상한+1, 0원, 음수, 소수, 문자, 모르는 키는 400이다',
   runPurchases(async s => {
     await makePeriod(s)
     const before = () => s.count('SELECT count(*) AS n FROM budget_item')
@@ -249,6 +249,7 @@ test(
       ['목적 NUL', { purpose: 'a\u0000', amount: 1 }],
       ['목적 서러게이트', { purpose: 'a\uD800', amount: 1 }],
       ['금액 없음', { purpose: 'a' }],
+      ['금액 0원', { purpose: 'a', amount: 0 }],
       ['금액 음수', { purpose: 'a', amount: -1 }],
       ['금액 소수', { purpose: 'a', amount: 1.5 }],
       ['금액 글자', { purpose: 'a', amount: '1' }],

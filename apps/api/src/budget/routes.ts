@@ -2,16 +2,20 @@ import { Hono } from 'hono'
 import {
   BudgetQuerySchema,
   CreateBudgetItemSchema,
+  CreateBudgetItemsSchema,
   CreateFiscalPeriodSchema,
+  EmptyRequestSchema,
+  UpdateBudgetItemSchema,
   type BudgetResponse,
 } from '@vada/contracts'
-import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { budgetOf } from './queries.js'
-import { addBudgetItem, createFiscalPeriod } from './service.js'
+import { deleteBudgetItem, updateBudgetItem } from './item-change.js'
+import { addBudgetItem, addBudgetItems, createFiscalPeriod } from './service.js'
 
 const root = '/organizations/:councilId'
 const CREATED = 201
@@ -19,7 +23,8 @@ const CREATED = 201
 // 읽기는 한 시점의 모습이다(업무와 같다).
 const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const
 
-// 회계 기간과 지출 예산 항목. 모든 운영진이 보고(PRIN-5), 만드는 것은 재정부만이다.
+// 회계 기간과 예산 항목. 모든 운영진이 보고(PRIN-5), 만들고 고치고 지우는 것은 재정부만이다.
+// 여러 행 넣기(batch)는 항목 번호 경로(:itemId)보다 먼저 둔다. 'batch'가 번호 자리로 읽히지 않게 한다.
 export function createBudgetRoutes(
   db: Db,
   getSession: SessionReader,
@@ -63,6 +68,35 @@ export function createBudgetRoutes(
       (tx, actor) => addBudgetItem(tx, actor, input, now),
     )
     return c.json(view satisfies BudgetResponse, CREATED)
+  })
+  routes.post(`${root}/budget-items/batch`, json(CreateBudgetItemsSchema), auth, async c => {
+    const { items } = c.req.valid('json')
+    const now = clock()
+    const view = await inCouncilChange(
+      db,
+      asked(c.get('userId'), c.req.param('councilId'), now),
+      (tx, actor) => addBudgetItems(tx, actor, items, now),
+    )
+    return c.json(view satisfies BudgetResponse, CREATED)
+  })
+  routes.post(`${root}/budget-items/:itemId`, json(UpdateBudgetItemSchema), auth, async c => {
+    const itemId = recordIdOf(c.req.param('itemId'))
+    const input = c.req.valid('json')
+    const view = await inCouncilChange(
+      db,
+      asked(c.get('userId'), c.req.param('councilId'), clock()),
+      (tx, actor) => updateBudgetItem(tx, actor, itemId, input),
+    )
+    return c.json(view satisfies BudgetResponse)
+  })
+  routes.post(`${root}/budget-items/:itemId/delete`, json(EmptyRequestSchema), auth, async c => {
+    const itemId = recordIdOf(c.req.param('itemId'))
+    const view = await inCouncilChange(
+      db,
+      asked(c.get('userId'), c.req.param('councilId'), clock()),
+      (tx, actor) => deleteBudgetItem(tx, actor, itemId),
+    )
+    return c.json(view satisfies BudgetResponse)
   })
   return routes
 }
