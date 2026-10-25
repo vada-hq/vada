@@ -150,27 +150,36 @@ export async function changeRank(
   })
 }
 
-// 회장 넘기기: 한 번에 거두고 준다. 넘긴 사람은 직급 없음이 된다(바탕 spec).
+// 회장 직급을 한 소속에서 다른 소속으로 한 번에 옮긴다. 옛 회장은 직급 없음이 된다(바탕 spec).
 // 거두기를 앞에, 주기를 뒤에 넘긴다. 기수마다 회장 한 명인 부분 유일 인덱스는 미룰 수 없어 순서가 바뀌면 DB가 거부한다(records.ts).
-export async function transferPresident(tx: Tx, actor: Actor, memberId: string) {
-  if (memberId === actor.memberId) throw new ApiError('ALREADY_PRESIDENT')
-  const target = await currentMembership(tx, actor, memberId)
+// 회장 넘기기와 운영 명령의 회장 되찾기(DEC-57, actor 없음)가 같이 쓴다. 학생회 행을 잠근 거래 안에서 부른다.
+export async function handOverPresident(
+  tx: Tx,
+  change: { from: string; to: string; actor: string | null; reason: string | null },
+) {
+  const { actor, reason } = change
   await updateRecords(tx, [
+    { kind: 'council_membership', id: change.from, actor, reason, changes: { councilRank: null } },
     {
       kind: 'council_membership',
-      id: actor.membershipId,
-      actor: actor.memberId,
-      reason: null,
-      changes: { councilRank: null },
-    },
-    {
-      kind: 'council_membership',
-      id: target.id,
-      actor: actor.memberId,
-      reason: null,
+      id: change.to,
+      actor,
+      reason,
       changes: { councilRank: 'president' },
     },
   ])
+}
+
+// 회장 넘기기: 회장이 지금 기수의 다른 운영진에게 넘긴다.
+export async function transferPresident(tx: Tx, actor: Actor, memberId: string) {
+  if (memberId === actor.memberId) throw new ApiError('ALREADY_PRESIDENT')
+  const target = await currentMembership(tx, actor, memberId)
+  await handOverPresident(tx, {
+    from: actor.membershipId,
+    to: target.id,
+    actor: actor.memberId,
+    reason: null,
+  })
 }
 
 // 내보내기: 학생회 소속과 그 기수의 부서 소속을 함께 끝낸다(바탕 spec G4). 회장은 넘긴 뒤에만, 스스로 나가기는 없다.

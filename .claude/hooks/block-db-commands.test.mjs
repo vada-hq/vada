@@ -27,6 +27,11 @@ const blocked = [
   'pnpm --filter @vada/api demo -- x --apply',
   'cd apps/api && pnpm pg-smoke',
   'pnpm exec tsx scripts/manage-demo-data.ts x',
+  'pnpm --filter @vada/api president-recovery 0190a000-0000-7000-8000-000000000001 a@b.test --notified-on 2026-10-10',
+  'pnpm --filter @vada/api president-recovery -- x a@b.test --notified-on 2026-10-10 --apply',
+  'cd apps/api && pnpm president-recovery x a@b.test --notified-on 2026-10-10',
+  'tsx scripts/manage-president-recovery.ts x a@b.test --notified-on 2026-10-10',
+  'pnpm exec tsx scripts/manage-president-recovery.ts x',
 ]
 
 const allowed = [
@@ -41,6 +46,10 @@ const allowed = [
   'pnpm exec oxlint apps/api/scripts/pg-smoke-cases.ts',
   'pnpm exec tsx --test scripts/demo-command.test.ts',
   'cat scripts/manage-test-data.ts | head',
+  'grep -rn president-recovery apps/api',
+  'grep -rn manage-president-recovery.ts apps/api',
+  'pnpm exec tsx --test scripts/president-recovery.test.ts scripts/president-recovery-command.test.ts',
+  'pnpm exec oxlint apps/api/scripts/manage-president-recovery.ts',
   'echo db:migrate',
   'out=$(git diff --stat); echo $? ; for f in a b; do echo $f; done',
 ]
