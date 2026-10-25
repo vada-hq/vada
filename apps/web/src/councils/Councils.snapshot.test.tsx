@@ -192,7 +192,7 @@ function mine() {
   const card = (content: ReactNode) => <div>{content}</div>
   render(
     <MyCouncils
-      user={{ id: 'u1', name: '김회장' }}
+      user={{ id: 'u1', name: '김회장', email: 'kim.google@example.com' }}
       userId="u1"
       card={card}
       onEnterCode={() => {}}

@@ -21,7 +21,7 @@ export type WorkspaceProps = {
   councils: MyCouncil[]
   // 주소가 가리키는 학생회와 메뉴, 연 기록.
   target: Extract<Target, { kind: 'ready' }>
-  user: { id: string; name: string }
+  user: { id: string; name: string; email: string }
   logoutBusy: boolean
   onLogout: () => void
   // 학생회 이름이 바뀌었을 때 내 학생회 목록을 다시 읽게 한다.

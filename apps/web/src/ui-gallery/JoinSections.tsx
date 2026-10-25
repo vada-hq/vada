@@ -72,6 +72,8 @@ export function MyNameSection() {
       {open && (
         <MyNameDialog
           name="김바다"
+          // 줄바꿈 없는 긴 계정이 창 폭에서 줄을 바꾸는지 본다.
+          email="kim.bada.studentcouncil2026@university-mail.ac.kr"
           busy={false}
           error={null}
           onSave={() => setOpen(false)}

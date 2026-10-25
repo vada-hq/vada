@@ -25,7 +25,7 @@ function Who({ name, position }: { name: string; position: string | null }) {
 
 type Props = {
   view: CouncilView | null
-  user: { id: string; name: string }
+  user: { id: string; name: string; email: string }
   logoutBusy: boolean
   onLogout: () => void
   // 내 이름을 바꿨다. 학생회와 운영진 목록을 다시 읽는다.
@@ -86,6 +86,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
       {renaming && view && (
         <MyNameDialog
           name={view.me.name}
+          email={user.email}
           busy={rename.busy}
           error={rename.error}
           onSave={name => {
