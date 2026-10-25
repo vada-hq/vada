@@ -85,7 +85,7 @@
 - 닿는 곳: contracts `councils.ts`(`CreateCouncilSchema`, 운영 연도 선택지 도우미), `invites.ts`(`JoinCouncilSchema`), 이름 계약(새, `MeProfileResponse`·`UpdateMeProfileSchema`), contracts `index.ts`, api `councils/service.ts`·`link.ts`·`routes.ts`, `invites/service.ts`, 이름 라우트 모듈(새), `app.ts`(`AppOptions`)·`serve.ts`, `http/boundary.test.ts`, `flows/rehearsal-setup.ts`·`rehearsal-kit.ts`·`flow-server.test.ts`, `scripts/demo-data.ts`·`test-data.ts`, `test-support/council.ts`, `ops/pg-smoke/`, web `councils/CouncilFields.tsx`·`useCreateCouncil.ts`·`term.ts`.
 - 검토: 깊게(데이터 무결성, 새 라우트). 마이그레이션: 없음.
 
-### 2. 초대 확인·학생회 목록의 구분 정보와 미배정 수(서버) [ ]
+### 2. 초대 확인·학생회 목록의 구분 정보와 미배정 수(서버) [x]
 - 먼저 main에: `work/fix-current-cohort`(초대 확인의 지금 기수 이름).
 - 할 수 있게 되는 것: 초대 확인과 학생회 목록이 학생회를 가릴 정보를 주고, 회장단 홈이 부서를 정할 사람 수를 준다.
 - 수용 기준: `GET /api/invites/:code`의 `council`에 `unit`, `schoolName`, `cohortName`이 있고 운영진 수·이름·초대한 사람은 없다. 지금 기수가 없으면 `cohortName`은 null이다. 바뀐 코드는 지금처럼 404다. `GET /api/me/councils`와 만들기·들어오기 응답의 학생회(`MyCouncil`)에 `unit`과 `schoolName`이 있다. 회장단의 홈 응답 `council.unassignedMembers`는 미배정 운영진 수이고, 회장단·부서가 있는 사람·내보낸 사람·다른 학생회 사람은 세지 않는다(같은 모양의 다른 학생회 자료로 시험). 부서에 배정하면 하나 준다. 회장단이 아니면 그 부분이 없다.

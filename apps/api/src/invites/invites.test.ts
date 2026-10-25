@@ -97,7 +97,7 @@ const membershipsOf = (testDb: TestDb, userId: string) =>
     [userId],
   )
 
-test('초대 확인은 학생회 이름과 이미 들어왔는지만 보여 주고, 코드는 공백·하이픈·소문자를 정규화한다', async () => {
+test('초대 확인은 학생회 이름·유형·학교·기수 이름과 이미 들어왔는지만 보여 주고, 코드는 공백·하이픈·소문자를 정규화한다', async () => {
   const testDb = await createTestDb()
   try {
     const { api, council, code } = await setup(testDb)
