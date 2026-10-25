@@ -6,6 +6,12 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { APPLY_ERRORS, REGISTRATION_FORM_LOST } from '@/lib/registration-messages'
 import ApplyPage from './ApplyPage'
+import * as applyCommand from './apply-command'
+
+vi.mock('./apply-command', async importActual => {
+  const actual = await importActual<typeof import('./apply-command')>()
+  return { ...actual, applyCommandId: vi.fn(actual.applyCommandId) }
+})
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -287,4 +293,18 @@ test('409 COMMAND_CONFLICT는 양식을 다시 읽지 않고 같은 번호로 �
   await press()
   const [first, second] = idsOf(api)
   expect(second).toBe(first)
+})
+
+// 해시는 무거울 수 있어 보내는 중이 그려진 뒤에 돈다(저가 폰에서 누른 채 멈춘 것처럼 보이지 않게).
+test('번호를 정하는 해시는 보내는 중 표시가 그려진 뒤에 돈다', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
+  let busyAtHash: boolean | null = null
+  vi.mocked(applyCommand.applyCommandId).mockImplementationOnce((code, body) => {
+    busyAtHash = screen.getByRole<HTMLButtonElement>('button', { name: '신청하기' }).disabled
+    return applyCommand.applyCommandId(code, body)
+  })
+  await fillAll()
+  await press()
+  expect(busyAtHash).toBe(true)
 })

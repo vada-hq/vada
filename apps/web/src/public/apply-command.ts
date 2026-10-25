@@ -13,8 +13,10 @@ const BYTE_DIGITS = 2
 const HOURS = 24
 const MS_PER_HOUR = 3_600_000
 export const COMMAND_TTL_MS = HOURS * MS_PER_HOUR
-// 학번·휴대폰은 값 공간이 작아 소금만으로는 부족하다. 해시를 되풀이해 값 하나를 맞춰 보는 비용을 키운다.
-const STRETCH_ROUNDS = 5000
+// 소금과 번호와 해시가 모두 같은 기기에 있다. 기기를 가진 사람이 값을 맞추면 같은 신청의 새 개인 링크를 받는다(명세 범위 안).
+// 그래서 되풀이 횟수가 막는 힘은 작고, 저가 폰에서 누를 때마다 도는 시간(5000회에 0.6~2초 어림)을 줄이려 1000회로 둔다.
+// 횟수를 바꾸면 이전 표지는 맞지 않지만 24시간짜리라 괜찮다.
+const STRETCH_ROUNDS = 1000
 
 type Marker = { id: string; hash: string; at: number }
 
@@ -27,7 +29,7 @@ function store(): Storage | null {
 }
 
 // 기기마다 무작위 소금. 같은 값도 기기마다 해시가 달라 미리 만든 표로 되돌릴 수 없다.
-// 소금이 같은 기기에 있으니 그 기기를 가진 사람이 후보 값을 하나씩 대 볼 수는 있다. 그래서 되풀이로 비용을 키운다.
+// 소금이 같은 기기에 있으니 그 기기를 가진 사람이 후보 값을 하나씩 대 볼 수는 있다.
 function deviceSalt(local: Storage): string {
   const saved = local.getItem(SALT_KEY)
   if (saved) return saved
