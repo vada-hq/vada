@@ -16,7 +16,7 @@ type Props = {
   user: { name: string }
   // 마지막에 본 주소를 사람마다 기억하는 열쇠.
   userId: string
-  // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69: 운영진 화면은 막 만든 사람만).
+  // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69).
   initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
   card: (content: ReactNode) => ReactNode
@@ -92,9 +92,11 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
   if (!state.councils.length)
     return card(
       <NoCouncilFlow
+        userName={user.name}
         onEnterCode={rest.onEnterCode}
+        // 만들기 끝의 초대 링크 단계 뒤 그 학생회 홈으로 간다(DEC-87).
         onCreated={council => {
-          navigate(menuPath('people', council.id))
+          navigate(menuPath('home', council.id))
           add(council)
         }}
       />,

@@ -193,6 +193,13 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
   }
 })
 
+// 코드 바꾸기는 확인 창을 거친다(기능 020 정한 것 14).
+function rotate(card: HTMLElement) {
+  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  const dialog = screen.getByRole('dialog', { name: '초대 코드를 바꿀까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
+}
+
 test('회장단은 초대 링크를 복사하고 코드를 바꾼다. 바꾸면 새 링크를 보여 주고 옛 링크는 막혔다고 알린다', async () => {
   const api = serve()
   api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ code: 'WXYZ6789' }))
@@ -208,7 +215,7 @@ test('회장단은 초대 링크를 복사하고 코드를 바꾼다. 바꾸면 
     await within(card).findByText('초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.'),
   ).toBeTruthy()
   expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/join/ABCD2345`)
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  rotate(card)
   expect(
     await within(card).findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.'),
   ).toBeTruthy()
@@ -256,13 +263,13 @@ test('코드를 바꿀 때 403이면 학생회를 다시 읽게 하고 까닭을
   const changed = vi.fn()
   render(<Harness permissions={LEADER_PERMISSIONS} onCouncilChanged={changed} />)
   const card = await screen.findByRole('region', { name: '초대 링크' })
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  rotate(card)
   expect(await within(card).findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
   expect(changed).toHaveBeenCalledTimes(1)
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  rotate(card)
   expect(await within(card).findByText('코드를 바꾸지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
   expect(changed).toHaveBeenCalledTimes(1)
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  rotate(card)
   expect(
     await within(card).findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.'),
   ).toBeTruthy()
@@ -977,7 +984,7 @@ test('내 변경 뒤 다시 읽기가 실패하고 대화상자를 닫은 다음
   api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ error: 'FORBIDDEN' }, 403))
   await removeOwnDepartment(api)
   const card = await screen.findByRole('region', { name: '초대 링크' })
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
+  rotate(card)
   await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
   expect(await screen.findByText(LOST)).toBeTruthy()
 })

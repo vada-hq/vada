@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { json, mockApi } from '@/test-support/mock-api'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import InviteCard from './InviteCard'
@@ -52,6 +52,7 @@ test('코드를 바꾼 뒤', async () => {
   serve()
   render(<InviteCard councilId="c1" onForbidden={() => {}} />)
   fireEvent.click(await screen.findByRole('button', { name: '코드 바꾸기' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '코드 바꾸기' }))
   await screen.findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.')
   expect(snapshotHtml()).toMatchSnapshot()
 })

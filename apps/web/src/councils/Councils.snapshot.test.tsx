@@ -23,58 +23,71 @@ afterEach(() => {
 })
 const html = snapshotHtml
 
-function createForm(onCreated = () => {}) {
-  render(<CreateCouncilForm onCreated={onCreated} onCancel={() => {}} />)
+// 만들기는 열 때 내 이름(이어진 운영진)을 읽는다. 이 시험들은 아직 이어지지 않은 사람이다.
+function createForm(api: ReturnType<typeof mockApi>, onCreated = () => {}) {
+  api.on('GET', '/api/me/profile', () => json({ name: null }))
+  render(<CreateCouncilForm userName="김구글" onCreated={onCreated} onCancel={() => {}} />)
 }
-function submitCreate() {
+function fillBasic() {
   fireEvent.change(screen.getByLabelText('학생회 이름'), { target: { value: '소프트웨어학부' } })
   fireEvent.change(screen.getByLabelText('학교'), { target: { value: '한양대학교' } })
+}
+async function toStructure() {
+  fillBasic()
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  await screen.findByText('조직 구조 2/3')
+}
+async function submitCreate() {
+  await toStructure()
   fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
 }
 
 test('만들기: 입력 전', () => {
-  mockApi()
-  createForm()
+  createForm(mockApi())
   expect(html()).toMatchSnapshot()
 })
 
 test('만들기: 운영 연도 오류', () => {
-  mockApi()
-  createForm()
-  fireEvent.change(screen.getByLabelText('학생회 이름'), { target: { value: '소프트웨어학부' } })
-  fireEvent.change(screen.getByLabelText('학교'), { target: { value: '한양대학교' } })
+  createForm(mockApi())
+  fillBasic()
   fireEvent.change(screen.getByLabelText('운영 연도'), { target: { value: '2025' } })
   // 양식을 연 채 한국의 새해(2027년)가 되면 2025는 선택지 밖이다. 문제는 누를 때 칸 아래에 보인다.
   vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
-  fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
   expect(screen.getByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
   expect(html()).toMatchSnapshot()
 })
 
-test('만들기: 진행 중', () => {
+test('만들기: 조직 구조', async () => {
+  createForm(mockApi())
+  await toStructure()
+  expect(html()).toMatchSnapshot()
+})
+
+test('만들기: 진행 중', async () => {
   const api = mockApi()
   api.on('POST', '/api/organizations/create', () => deferredResponse().promise)
-  createForm()
-  submitCreate()
+  createForm(api)
+  await submitCreate()
   expect(html()).toMatchSnapshot()
 })
 
 test('만들기: 오류', async () => {
   const api = mockApi()
   api.on('POST', '/api/organizations/create', () => json({ error: 'EMAIL_IN_USE' }, 409))
-  createForm()
-  submitCreate()
+  createForm(api)
+  await submitCreate()
   await screen.findByText(/이메일을 다른 계정이 쓰고 있어요/)
   expect(html()).toMatchSnapshot()
 })
 
-test('만들기: 성공', async () => {
+test('만들기: 성공하면 초대 링크', async () => {
   const api = mockApi()
   api.on('POST', '/api/organizations/create', () => json({ council: myCouncil('c9') }))
-  const onCreated = vi.fn()
-  createForm(onCreated)
-  submitCreate()
-  await vi.waitFor(() => expect(onCreated).toHaveBeenCalledWith(myCouncil('c9')))
+  api.on('GET', '/api/organizations/c9/invite', () => json({ code: 'ABCD2345' }))
+  createForm(api)
+  await submitCreate()
+  await screen.findByRole('textbox', { name: '초대 링크' })
   expect(html()).toMatchSnapshot()
 })
 
@@ -175,6 +188,7 @@ test('내 학생회: 불러오기 오류', async () => {
 test('내 학생회: 학생회 없음, 만들기 열기', async () => {
   const api = mockApi()
   api.on('GET', '/api/me/councils', () => json({ councils: [] }))
+  api.on('GET', '/api/me/profile', () => json({ name: null }))
   mine()
   await screen.findByRole('form', { name: '초대 코드로 들어가기' })
   expect(html()).toMatchSnapshot()

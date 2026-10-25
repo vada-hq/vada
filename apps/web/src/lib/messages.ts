@@ -66,6 +66,15 @@ export const INVITE_LOAD_ERRORS = {
   forbidden: PERMISSION_CHANGED,
   failed: '초대 링크를 불러오지 못했어요.',
 }
+// 초대 링크 칸 아래 알림. 운영진 > 사람의 초대 링크 카드와 학생회 만들기의 초대 링크 단계가 같이 쓴다.
+export const INVITE_NOTICES = {
+  copied: { kind: 'notice', text: '초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.' },
+  'copy-failed': { kind: 'error', text: '복사하지 못했어요. 링크를 직접 선택해 복사해 주세요.' },
+  rotated: { kind: 'notice', text: '코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.' },
+  failed: { kind: 'error', text: '코드를 바꾸지 못했어요. 다시 시도해 주세요.' },
+  forbidden: { kind: 'error', text: PERMISSION_CHANGED },
+} as const
+export type InviteNotice = keyof typeof INVITE_NOTICES
 
 // 주소가 가리키는 학생회나 화면이 없거나 내 것이 아닐 때. 있는지 없는지를 가르지 않는다.
 export const ADDRESS_LOST = '찾을 수 없음'
