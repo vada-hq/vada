@@ -3,6 +3,9 @@ import { Badge } from '@/components/ui/badge'
 import { countOf } from '@/tasks/task-view'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { departmentColorOf } from '@/tasks/department-color'
+import { TaskBoard } from '@/tasks/TaskBoard'
+import { TaskCard } from '@/tasks/TaskCard'
 import { TaskResults } from '@/tasks/TaskResults'
 import { QuickAddView } from '@/tasks/TaskQuickAdd'
 import { TaskRow } from '@/tasks/TaskRow'
@@ -211,6 +214,69 @@ export function TaskQuickAddSection() {
           problem="너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요."
         />
       </div>
+    </Section>
+  )
+}
+
+const boardList = (tasks: TaskSummary[], truncated = false) => ({
+  state: { kind: 'ready' as const, tasks, truncated },
+  reload: () => Promise.resolve(),
+})
+const boardChange = {
+  busy: new Set(['b2']),
+  errors: { b3: '상태를 바꾸지 못했어요. 다시 시도해 주세요.' },
+  change: () => Promise.resolve(),
+}
+const boardDepartments = [{ id: 'd1' }, { id: 'd2' }, { id: 'd3' }]
+const boardOpen = [
+  task('b1', {}),
+  task('b2', { department: { id: 'd2', name: '홍보부' }, title: '포스터 시안' }),
+  task('b3', { overdue: true, assignee: null, dueDate: '2026-10-20', department: null }),
+  task('b4', {
+    status: 'in_progress',
+    next: 'done',
+    title: `${unbroken} ${longName}`,
+    department: { id: 'd3', name: longName },
+    assignee: { id: 'p2', name: longName, current: false },
+  }),
+  task('b5', { status: 'in_progress', next: 'done', dueDate: null, actions: [] }),
+]
+const boardDone = [task('b6', { status: 'done', next: null })]
+const boardProps = {
+  departments: boardDepartments,
+  change: boardChange,
+  onOpenTask: noop,
+  onShowDoneTable: noop,
+}
+
+// 넓은 화면의 업무 보드(OPS-TASK-01): 1280px 화면의 본문 폭과 1024px 화면의 본문 폭(옆 메뉴 240px와 여백을 뺀 736px). 끝남 열이 넘친 보드와 빈 보드,
+// 이어진 결과물의 문서 그림이 있는 카드.
+export function TaskBoardSection() {
+  return (
+    <Section title="업무 보드">
+      <div className="w-full">
+        <TaskBoard open={boardList(boardOpen)} done={boardList(boardDone)} {...boardProps} />
+      </div>
+      <div className="w-full max-w-184">
+        <TaskBoard
+          open={boardList(boardOpen, true)}
+          done={boardList(boardDone, true)}
+          {...boardProps}
+        />
+      </div>
+      <div className="w-full max-w-184">
+        <TaskBoard open={boardList([])} done={boardList([])} {...boardProps} onAddFirst={noop} />
+      </div>
+      <ul className="w-72">
+        <TaskCard
+          task={task('b7', { title: '결과물이 이어진 업무' })}
+          color={departmentColorOf('d1', boardDepartments)}
+          busy={false}
+          hasResult
+          onOpen={noop}
+          onChangeStatus={noop}
+        />
+      </ul>
     </Section>
   )
 }
