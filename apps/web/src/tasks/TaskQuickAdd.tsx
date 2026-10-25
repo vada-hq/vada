@@ -20,6 +20,10 @@ type Props = {
   eventId?: string | undefined
   // 행사 개요의 [업무 만들기]로 왔을 때 칸에 초점을 둔다.
   autoFocus?: boolean | undefined
+  // 늘 때마다 칸에 초점을 둔다(보드 빈 상태의 [첫 업무 추가]).
+  focusRequest?: number | undefined
+  // 이 사람이 여기서 만들 수 있는지(선택지를 읽은 뒤). 빈 상태가 [첫 업무 추가]를 보일지 정한다.
+  onAvailable?: ((available: boolean) => void) | undefined
   // 만들었다. 부모가 목록과 수를 다시 읽는다.
   onCreated: () => void
   onForbidden: () => void
@@ -82,8 +86,9 @@ function useQuickAdd(props: Props) {
   }
 
   // 부서를 고를 수 있는 곳이 없으면 만들 수 없는 사람이다.
-  const unavailable = options.state.kind === 'ready' && placement === null
-  return { title, setTitle, hidden, create, created, formRef, errors, submit, unavailable }
+  const ready = options.state.kind === 'ready'
+  const unavailable = ready && placement === null
+  return { title, setTitle, hidden, create, created, formRef, errors, submit, ready, unavailable }
 }
 
 const unavailableText = (state: TaskOptionsState) =>
@@ -144,10 +149,15 @@ export function QuickAddView({
 // 만든 뒤 칸은 비고 초점은 남아 이어서 만든다.
 export function TaskQuickAdd(props: Props) {
   const add = useQuickAdd(props)
-  const { formRef, created } = add
+  const { formRef, created, ready, unavailable } = add
+  const { autoFocus, focusRequest = 0, onAvailable } = props
   useEffect(() => {
-    if (props.autoFocus || created > 0) formRef.current?.querySelector('input')?.focus()
-  }, [props.autoFocus, created, formRef])
+    if (autoFocus || created > 0 || focusRequest > 0)
+      formRef.current?.querySelector('input')?.focus()
+  }, [autoFocus, created, focusRequest, formRef])
+  useEffect(() => {
+    onAvailable?.(ready && !unavailable)
+  }, [onAvailable, ready, unavailable])
   if (add.unavailable) return null
   return (
     <QuickAddView

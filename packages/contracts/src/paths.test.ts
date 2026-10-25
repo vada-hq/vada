@@ -46,9 +46,12 @@ test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않
     query: { view: 'all', filter: 'done', layout: 'calendar', dept: P },
   })
   assert.equal(
-    menuPath('tasks', C, { view: 'mine', filter: 'open', layout: 'list' }),
+    menuPath('tasks', C, { view: 'mine', filter: 'open', layout: 'board' }),
     `/tasks/${C}`,
   )
+  // 배치의 기본은 보드다(DEC-94). 표는 018의 값 list 그대로 주소에 남는다.
+  assert.equal(menuPath('tasks', C, { layout: 'list' }), `/tasks/${C}?layout=list`)
+  assert.deepEqual(parseAppPath(`/tasks/${C}?layout=board`)?.query, {})
   const finance = menuPath('finance', C, { tab: 'fees', view: 'pending', period: P })
   assert.equal(finance, `/finance/${C}?tab=fees&view=pending&period=${P}`)
   assert.equal(appPath(parseAppPath(finance)!), finance)

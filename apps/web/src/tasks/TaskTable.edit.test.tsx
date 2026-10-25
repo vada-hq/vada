@@ -47,7 +47,9 @@ function serve(tasks: () => TaskSummary[]) {
   return api
 }
 
+// 넓은 화면의 기본은 보드라(DEC-94) 표는 주소의 배치 값(layout=list)으로 연다.
 async function showAll() {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`)
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
   fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
 }

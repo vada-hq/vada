@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { TaskSummary } from '@vada/contracts'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
-import { eventSummary } from '@/test-support/event-fixtures'
+import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
@@ -71,7 +71,16 @@ const page = (eventId?: string, onForbidden = () => {}) => (
 )
 
 // 업무 화면은 내 업무로 열려 전체 탭으로 간다. 행사의 업무 탭은 처음부터 전체다.
+// 넓은 화면의 기본은 보드라(DEC-94) 표는 주소의 배치 값(layout=list)으로 연다.
 async function showAll(eventId?: string, onForbidden = () => {}) {
+  if (window.location.pathname === '/')
+    window.history.replaceState(
+      null,
+      '',
+      eventId
+        ? `/events/${COUNCIL_ID}/${eventId}?tab=tasks&layout=list`
+        : `/tasks/${COUNCIL_ID}?layout=list`,
+    )
   render(page(eventId, onForbidden))
   if (!eventId) fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
 }
@@ -95,6 +104,7 @@ test('넓은 화면은 표(열 제목 여섯)이고 좁은 화면은 지금의 �
   await screen.findByRole('button', { name: '업무 a' })
   expect(screen.queryByRole('grid')).toBeNull()
   narrow.unmount()
+  window.history.replaceState(null, '', '/')
   wide()
   await showAll()
   await screen.findByRole('grid', { name: '업무 표' })
@@ -107,9 +117,10 @@ test('넓은 화면은 표(열 제목 여섯)이고 좁은 화면은 지금의 �
     '행사',
   ])
   cleanup()
+  window.history.replaceState(null, '', '/')
   const api = serve(() => [])
-  api.on('GET', `${base}?view=all&status=open&event=e1`, () => list([task('a')]))
-  await showAll('e1')
+  api.on('GET', `${base}?view=all&status=open&event=${EVENT_ID}`, () => list([task('a')]))
+  await showAll(EVENT_ID)
   await screen.findByRole('grid')
   expect(screen.queryByRole('columnheader', { name: '행사' })).toBeNull()
 })
@@ -355,7 +366,7 @@ test('부서 거르기 보기에서도 고른 값이 옛 값으로 돌아가지 
     saved = true
     return new Promise<Response>(resolve => (release = resolve))
   })
-  window.history.replaceState(null, '', `/?view=all&dept=d1`)
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?view=all&layout=list`)
   await showAll()
   const select = (await screen.findByRole('combobox', { name: '업무 a 상태' })) as HTMLSelectElement
   fireEvent.change(select, { target: { value: 'in_progress' } })
