@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { AuthCard } from '@/components/AuthCard'
 import { Button } from '@/components/ui/button'
 import type { InviteNotice } from '@/lib/messages'
 import CreateBasicStep from '../councils/CreateBasicStep'
@@ -8,6 +7,7 @@ import CreateStructureStep from '../councils/CreateStructureStep'
 import { useCouncilDraft } from '../councils/useCouncilDraft'
 import { RotateInviteDialog } from '../team/RotateInviteDialog'
 import { Section } from './GallerySection'
+import { RealFrame } from './RealFrame'
 
 // 운영 연도 선택지가 날마다 바뀌지 않게 연 날을 고정한다(스냅숏).
 const OPENED = new Date('2026-06-15T03:00:00Z')
@@ -20,10 +20,10 @@ export function CreateCouncilSection() {
   const [asking, setAsking] = useState(false)
   return (
     <Section title="학생회 만들기 단계">
-      <AuthCard>
+      <RealFrame>
         <CreateBasicStep draft={draft} onNext={() => {}} onCancel={() => {}} />
-      </AuthCard>
-      <AuthCard>
+      </RealFrame>
+      <RealFrame>
         <CreateStructureStep
           draft={draft}
           linkedName={null}
@@ -33,8 +33,8 @@ export function CreateCouncilSection() {
           onSubmit={() => {}}
           onYearReset={() => {}}
         />
-      </AuthCard>
-      <AuthCard>
+      </RealFrame>
+      <RealFrame>
         <CreateInviteStep
           link={SAMPLE_LINK}
           loadError={null}
@@ -43,7 +43,7 @@ export function CreateCouncilSection() {
           onRetry={() => {}}
           onHome={() => {}}
         />
-      </AuthCard>
+      </RealFrame>
       <Button variant="outline" onClick={() => setAsking(true)}>
         코드 바꾸기 확인 창 열기
       </Button>

@@ -34,8 +34,8 @@ function fillBasic() {
 }
 async function toStructure() {
   fillBasic()
-  fireEvent.click(screen.getByRole('button', { name: '다음' }))
-  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(screen.getByRole('button', { name: '다음: 조직 구조' }))
+  await screen.findByRole('heading', { level: 2, name: '조직 구조' })
 }
 async function submitCreate() {
   await toStructure()
@@ -53,7 +53,7 @@ test('만들기: 운영 연도 오류', () => {
   fireEvent.change(screen.getByLabelText('운영 연도'), { target: { value: '2025' } })
   // 양식을 연 채 한국의 새해(2027년)가 되면 2025는 선택지 밖이다. 문제는 누를 때 칸 아래에 보인다.
   vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
-  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  fireEvent.click(screen.getByRole('button', { name: '다음: 조직 구조' }))
   expect(screen.getByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
   expect(html()).toMatchSnapshot()
 })

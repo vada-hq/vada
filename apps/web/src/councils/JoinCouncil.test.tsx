@@ -47,7 +47,7 @@ const factOf = (label: string) =>
 
 test('초대 확인 카드는 제목 아래에 유형, 대표 범위, 운영 연도를 보인다', async () => {
   open()
-  await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' })
+  await screen.findByRole('heading', { name: '컴퓨터학부 학생회' })
   expect(factOf('유형')).toBe(unitLabels.department)
   expect(factOf('대표 범위')).toBe('한양대학교 ERICA')
   expect(factOf('운영 연도')).toBe('2026년')
@@ -55,7 +55,7 @@ test('초대 확인 카드는 제목 아래에 유형, 대표 범위, 운영 연
 
 test('지금 기수가 없으면 운영 연도 줄이 없다', async () => {
   open(council({ cohortName: null }))
-  await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' })
+  await screen.findByRole('heading', { name: '컴퓨터학부 학생회' })
   expect(factOf('운영 연도')).toBeUndefined()
   expect(factOf('대표 범위')).toBe('한양대학교 ERICA')
 })

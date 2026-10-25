@@ -56,10 +56,10 @@ export default function CreateStructureStep({ draft, linkedName, saving, error, 
       <div className="flex flex-col gap-2">
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <div className="flex gap-2">
-          <Button type="button" variant="outline" busy={saving} onClick={on.onBack}>
+          <Button type="button" variant="outline" touch busy={saving} onClick={on.onBack}>
             이전
           </Button>
-          <Button type="submit" className="flex-1" busy={saving}>
+          <Button type="submit" touch className="flex-1" busy={saving}>
             {saving ? '만드는 중…' : '학생회 만들기'}
           </Button>
         </div>

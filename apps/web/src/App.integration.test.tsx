@@ -95,8 +95,8 @@ function openCreate() {
 async function toStructure(form: HTMLElement, name = '학생회', school = '학교') {
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: name } })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: school } })
-  fireEvent.click(within(form).getByRole('button', { name: '다음' }))
-  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(within(form).getByRole('button', { name: '다음: 조직 구조' }))
+  await screen.findByRole('heading', { level: 2, name: '조직 구조' })
   return screen.getByRole('form', { name: '학생회 만들기' })
 }
 
@@ -117,7 +117,7 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   expect(screen.getByText('초대 코드를 입력해 주세요')).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   const form = openCreate()
-  const next = within(form).getByRole('button', { name: '다음' }) as HTMLButtonElement
+  const next = within(form).getByRole('button', { name: '다음: 조직 구조' }) as HTMLButtonElement
   // 비운 채 누르면 넘어가지 않고 칸 아래에 알린다.
   expect(next.disabled).toBe(false)
   fireEvent.click(next)
@@ -126,7 +126,7 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   fireEvent.click(within(form).getByRole('radio', { name: '단과대 학생회' }))
   const structure = await toStructure(form, '컴퓨터학부 학생회', '한양대학교 ERICA')
   fireEvent.click(within(structure).getByRole('button', { name: '학생회 만들기' }))
-  expect(await screen.findByText('초대 링크 3/3')).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '초대 링크' })).toBeTruthy()
   const link = (await screen.findByRole('textbox', { name: '초대 링크' })) as HTMLInputElement
   expect(link.value).toBe(`${window.location.origin}/join/ABCD2345`)
   fireEvent.click(screen.getByRole('button', { name: '홈으로' }))
@@ -165,7 +165,7 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
   fireEvent.submit(form)
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
   pending.resolve(json({ council: myCouncil('0199d1a0-0000-7000-8000-0000000000c1') }, 201))
-  expect(await screen.findByText('초대 링크 3/3')).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '초대 링크' })).toBeTruthy()
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
@@ -205,11 +205,11 @@ test('학생회 만들기에서 칸 길이를 넘기면 넘어가지 않고 그 
   const name = within(form).getByLabelText('학생회 이름')
   fireEvent.change(name, { target: { value: '가'.repeat(COUNCIL_NAME_MAX + 1) } })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
-  fireEvent.click(within(form).getByRole('button', { name: '다음' }))
+  fireEvent.click(within(form).getByRole('button', { name: '다음: 조직 구조' }))
   expect(within(form).getByText('더 짧게 입력해 주세요')).toBeTruthy()
   expect(name.getAttribute('aria-invalid')).toBe('true')
   await waitFor(() => expect(document.activeElement).toBe(name))
-  expect(screen.queryByText('조직 구조 2/3')).toBeNull()
+  expect(screen.queryByRole('heading', { level: 2, name: '조직 구조' })).toBeNull()
   fireEvent.change(name, { target: { value: '가'.repeat(COUNCIL_NAME_MAX) } })
   expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
 })
@@ -228,7 +228,7 @@ test('학생회 만들기에서 해가 바뀐 뒤 작년의 작년을 고른 채
   vi.useFakeTimers({ toFake: ['Date'] })
   try {
     vi.setSystemTime(new Date(`${year + 1}-01-01T00:00:00+09:00`))
-    fireEvent.click(within(form).getByRole('button', { name: '다음' }))
+    fireEvent.click(within(form).getByRole('button', { name: '다음: 조직 구조' }))
     expect(within(form).getByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
     expect(select.getAttribute('aria-invalid')).toBe('true')
     await waitFor(() => expect(document.activeElement).toBe(select))
@@ -239,8 +239,8 @@ test('학생회 만들기에서 해가 바뀐 뒤 작년의 작년을 고른 채
     expect(select.querySelector('option:checked')?.textContent).toBe(`${year + 1}년`)
     // 다시 누르면 넘어가고, 보이는 그 해를 보낸다.
     api.on('POST', '/api/organizations/create', () => deferredResponse().promise)
-    fireEvent.click(within(form).getByRole('button', { name: '다음' }))
-    await screen.findByText('조직 구조 2/3')
+    fireEvent.click(within(form).getByRole('button', { name: '다음: 조직 구조' }))
+    await screen.findByRole('heading', { level: 2, name: '조직 구조' })
     fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
     await waitFor(() =>
       expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
@@ -278,9 +278,7 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
   councilsInSequence([myCouncil('0199d1a0-0000-7000-8000-0000000000c1', '컴퓨터학부 학생회', null)])
   openCouncil()
   await renderApp()
-  expect(
-    await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' }),
-  ).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '컴퓨터학부 학생회' })).toBeTruthy()
   // 들어가기 전에 이름과 이메일이 그 학생회의 운영진 명단에 들어간다고 알린다(DEC-72 '운영진 명단').
   expect(
     screen.getByText(
@@ -354,7 +352,7 @@ test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보�
   expect(
     asElement(screen.getByRole('button', { name: '들어가기' }), HTMLButtonElement).disabled,
   ).toBe(false)
-  expect(screen.getByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '컴퓨터학부 학생회' })).toBeTruthy()
 })
 
 test('내보내진 사람의 다음 요청이 403이면 그 학생회를 닫고, 남은 학생회가 없으면 학생회 없음 안내로 돌아간다', async () => {

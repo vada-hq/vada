@@ -21,8 +21,12 @@ export const buttonVariants = cva(
         sm: 'px-3 py-1.5 text-xs [&_svg]:size-3.5',
         icon: 'p-2 [&_svg]:size-4',
       },
+      // 휴대폰 폭(640px 미만)에서 누르는 대상을 44px 이상으로 키운다(WCAG 2.5.8, Apple HIG 44pt).
+      // 카드 한 장을 손가락으로 다루는 화면(온보딩)에 준다. 데스크톱 크기는 그대로다.
+      touch: { true: 'max-sm:min-h-11', false: '' },
     },
-    defaultVariants: { variant: 'default', size: 'md' },
+    compoundVariants: [{ touch: true, size: 'icon', class: 'max-sm:min-w-11' }],
+    defaultVariants: { variant: 'default', size: 'md', touch: false },
   },
 )
 
@@ -32,6 +36,7 @@ export function Button({
   className,
   variant,
   size,
+  touch,
   busy,
   disabled,
   ...props
@@ -41,7 +46,7 @@ export function Button({
       data-slot="button"
       disabled={busy || disabled}
       aria-busy={busy || undefined}
-      className={cn(buttonVariants({ variant, size }), className)}
+      className={cn(buttonVariants({ variant, size, touch }), className)}
       {...props}
     />
   )

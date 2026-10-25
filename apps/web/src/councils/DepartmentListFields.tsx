@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { FieldErrors } from '@/lib/use-form-check'
 import { canAddDepartment, suggestionsOf } from './council-draft'
+import { orgGroupClass } from './org-group'
 import type { CouncilDraftState } from './useCouncilDraft'
 
 type RowProps = {
@@ -31,7 +32,8 @@ function DepartmentRow({ label, value, error, rowKey, onChange, children }: RowP
           aria-describedby={error ? errorId : undefined}
           onChange={event => onChange(event.target.value)}
         />
-        {children}
+        {/* 재정 배지와 빼기 단추의 폭이 달라도 이름 칸 끝이 맞게 같은 폭 칸에 넣는다. */}
+        <span className="flex w-11 shrink-0 justify-center">{children}</span>
       </div>
       {error && (
         <p id={errorId} className="text-xs text-red-600">
@@ -67,7 +69,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
     listRef.current?.querySelector<HTMLElement>(`[data-row="${focus.row}"]`)?.focus()
   }, [focus])
   return (
-    <section className="flex flex-col gap-3">
+    <section className={orgGroupClass}>
       <h3 className="text-sm font-semibold text-gray-900">부서</h3>
       <ul ref={listRef} className="flex flex-col gap-2">
         <DepartmentRow
@@ -92,6 +94,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
               type="button"
               variant="ghost"
               size="icon"
+              touch
               aria-label={`${row.name.trim() || '빈 부서'} 빼기`}
               onClick={() => {
                 focusRow(rowAfterRemove(value.departments, row.key))
@@ -104,29 +107,35 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
         ))}
       </ul>
       {canAddDepartment(value) && (
-        <div className="flex flex-wrap gap-2">
-          {suggestionsOf(value).map(name => (
-            <Button
-              key={name}
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => focusRow(on.addDepartment(name))}
-            >
-              <Plus />
-              {name}
-            </Button>
-          ))}
+        <>
+          <div className="flex flex-wrap gap-2">
+            {suggestionsOf(value).map(name => (
+              <Button
+                key={name}
+                type="button"
+                variant="outline"
+                size="sm"
+                touch
+                onClick={() => focusRow(on.addDepartment(name))}
+              >
+                <Plus />
+                {name}
+              </Button>
+            ))}
+          </div>
+          {/* 이름을 직접 쓰는 새 줄은 미리 둔 부서 단추와 다른 일이라 따로 둔다(와이어프레임 ORG-02의 점선 '부서 추가'). */}
           <Button
             type="button"
             variant="outline"
             size="sm"
+            touch
+            className="w-full border-dashed"
             onClick={() => focusRow(on.addDepartment())}
           >
             <Plus />
             부서 추가
           </Button>
-        </div>
+        </>
       )}
     </section>
   )

@@ -3,6 +3,7 @@ import type { InvitePreviewResponse } from '@vada/contracts'
 import { AskToJoin } from '@/councils/JoinCouncilViews'
 import MyNameDialog from '@/profile/MyNameDialog'
 import { Button } from '@/components/ui/button'
+import { RealFrame } from './RealFrame'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -23,7 +24,7 @@ const noop = () => {}
 export function JoinSection() {
   return (
     <Section title="초대 확인">
-      <div className="w-96">
+      <RealFrame>
         <AskToJoin
           council={council()}
           myName={null}
@@ -33,8 +34,8 @@ export function JoinSection() {
           onJoin={noop}
           onLeave={noop}
         />
-      </div>
-      <div className="w-96">
+      </RealFrame>
+      <RealFrame>
         <AskToJoin
           council={council({ unit: 'university', name: '총학생회' })}
           myName="김바다"
@@ -44,8 +45,8 @@ export function JoinSection() {
           onJoin={noop}
           onLeave={noop}
         />
-      </div>
-      <div className="w-96">
+      </RealFrame>
+      <RealFrame>
         <AskToJoin
           council={council({ name: longName, schoolName: unbroken, cohortName: null })}
           myName={unbroken}
@@ -55,7 +56,7 @@ export function JoinSection() {
           onJoin={noop}
           onLeave={noop}
         />
-      </div>
+      </RealFrame>
     </Section>
   )
 }

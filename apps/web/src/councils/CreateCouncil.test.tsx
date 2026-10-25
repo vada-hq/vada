@@ -6,7 +6,7 @@ import { myCouncil } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import CreateCouncilForm from './CreateCouncilForm'
 
-// 학생회 만들기 단계(기능 020 조각 3): 기본 정보 1/3 → 조직 구조 2/3 → 초대 링크 3/3.
+// 학생회 만들기 단계(기능 020 조각 3): 기본 정보 1/3 → 조직 구조 2/3 → 초대 링크 3/3. 제목은 단계 이름이다.
 let api: ReturnType<typeof mockApi>
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -45,18 +45,18 @@ function fillBasic() {
 }
 async function toStructure() {
   fillBasic()
-  fireEvent.click(button('다음'))
-  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(button('다음: 조직 구조'))
+  await screen.findByRole('heading', { level: 2, name: '조직 구조' })
 }
 const departmentInputs = () =>
   screen.getAllByLabelText(/^부서 이름 \d+$/).map(input => asElement(input, HTMLInputElement))
-const title = () => screen.getByRole('heading', { level: 2, name: '학생회 만들기' })
+const title = () => screen.getByRole('heading', { level: 2 })
 const postBody = () => api.calls.find(call => call.method === 'POST')?.body
 
 test('1단계에는 유형 세로 라디오 셋(기본 학부·학과), 학교, 학생회 이름, 운영 연도가 있다', () => {
   serve()
   open()
-  expect(screen.getByText('기본 정보 1/3')).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 2, name: '기본 정보' })).toBeTruthy()
   const group = screen.getByRole('group', { name: '학생회 유형' })
   const radios = within(group).getAllByRole('radio') as HTMLInputElement[]
   expect(radios.map(radio => radio.labels?.[0]?.textContent)).toEqual([
@@ -72,16 +72,16 @@ test('1단계에는 유형 세로 라디오 셋(기본 학부·학과), 학교, 
   expect(asElement(screen.getByLabelText('운영 연도'), HTMLSelectElement).value).toBe('2026')
 })
 
-test('1단계 [다음]은 누를 때 확인해 칸 아래에 알리고 첫 칸으로 옮기며, [취소]는 처음 화면으로', async () => {
+test('1단계 [다음]은 누를 때 확인해 칸 아래에 알리고 첫 칸으로 옮기며, [이전]은 처음 화면으로', async () => {
   serve()
   const onCancel = vi.fn()
   open({ onCancel })
-  fireEvent.click(button('다음'))
+  fireEvent.click(button('다음: 조직 구조'))
   expect(screen.getByText('학교를 입력해 주세요')).toBeTruthy()
   expect(screen.getByText('학생회 이름을 입력해 주세요')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('학교')))
-  expect(screen.queryByText('조직 구조 2/3')).toBeNull()
-  fireEvent.click(button('취소'))
+  expect(screen.queryByRole('heading', { level: 2, name: '조직 구조' })).toBeNull()
+  fireEvent.click(button('이전'))
   expect(onCancel).toHaveBeenCalledTimes(1)
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
@@ -150,7 +150,7 @@ test('[이전]은 1단계 값을 그대로 보이고, 다시 오면 부서 목�
   await toStructure()
   fireEvent.click(button('홍보부 빼기'))
   fireEvent.click(button('이전'))
-  expect(screen.getByText('기본 정보 1/3')).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 2, name: '기본 정보' })).toBeTruthy()
   expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
   expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).value).toBe(
     '컴퓨터학부 학생회',
@@ -159,7 +159,7 @@ test('[이전]은 1단계 값을 그대로 보이고, 다시 오면 부서 목�
     asElement(screen.getByRole('radio', { name: '단과대 학생회' }), HTMLInputElement).checked,
   ).toBe(true)
   expect(asElement(screen.getByLabelText('운영 연도'), HTMLSelectElement).value).toBe('2027')
-  fireEvent.click(button('다음'))
+  fireEvent.click(button('다음: 조직 구조'))
   expect(departmentInputs().map(input => input.value)).toEqual(['기획부'])
 })
 
@@ -192,7 +192,7 @@ test('[학생회 만들기]는 보내는 동안 busy이고 두 번 가지 않으
     memberName: '김회장',
   })
   pending.resolve(json({ council: myCouncil('c9') }, 201))
-  expect(await screen.findByText('초대 링크 3/3')).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 2, name: '초대 링크' })).toBeTruthy()
   const link = asElement(
     await screen.findByRole('textbox', { name: '초대 링크' }),
     HTMLInputElement,
@@ -226,7 +226,7 @@ test('만들지 못하면(409) 그 까닭을 버튼 옆에 보이고 2단계에 
   fireEvent.click(button('학생회 만들기'))
   const message = await within(form()).findByText(/이메일을 다른 계정이 쓰고 있어요/)
   expect(message.parentElement?.contains(button('학생회 만들기'))).toBe(true)
-  expect(screen.getByText('조직 구조 2/3')).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 2, name: '조직 구조' })).toBeTruthy()
   expect(asElement(button('학생회 만들기'), HTMLButtonElement).disabled).toBe(false)
 })
 
@@ -238,7 +238,7 @@ test('2단계에서 해가 바뀌어 운영 연도가 선택지 밖이면 보내
   vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
   fireEvent.click(button('학생회 만들기'))
   expect(await screen.findByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
-  expect(screen.getByText('기본 정보 1/3')).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 2, name: '기본 정보' })).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
@@ -262,16 +262,16 @@ test('단계가 바뀌면 초점이 새 단계의 제목으로 간다([다음], 
   await waitFor(() => expect(document.activeElement).toBe(title()))
   fireEvent.click(button('이전'))
   await waitFor(() => expect(document.activeElement).toBe(title()))
-  fireEvent.click(button('다음'))
-  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(button('다음: 조직 구조'))
+  await screen.findByRole('heading', { level: 2, name: '조직 구조' })
   vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
   fireEvent.click(button('학생회 만들기'))
-  await screen.findByText('기본 정보 1/3')
+  await screen.findByRole('heading', { level: 2, name: '기본 정보' })
   await waitFor(() => expect(document.activeElement).toBe(title()))
-  fireEvent.click(button('다음'))
-  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(button('다음: 조직 구조'))
+  await screen.findByRole('heading', { level: 2, name: '조직 구조' })
   fireEvent.click(button('학생회 만들기'))
-  await screen.findByText('초대 링크 3/3')
+  await screen.findByRole('heading', { level: 2, name: '초대 링크' })
   await waitFor(() => expect(document.activeElement).toBe(title()))
 })
 

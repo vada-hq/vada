@@ -35,7 +35,7 @@ export function InviteLinkField({ link, description, notice, onCopy, children }:
         onFocus={event => event.currentTarget.select()}
       />
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={() => onCopy(link)}>
+        <Button variant="outline" size="sm" touch onClick={() => onCopy(link)}>
           <Copy />
           링크 복사
         </Button>

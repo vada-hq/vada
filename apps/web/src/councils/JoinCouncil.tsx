@@ -11,7 +11,7 @@ type Props = {
   onLeave: () => void
 }
 
-// 초대 링크(/join/코드): "OOO에 들어갈까요?" [들어가기]. 이미 들어왔으면 묻지 않고 그 학생회를 연다(바탕 spec '화면').
+// 초대 링크(/join/코드): 초대받은 학생회(이름과 구분 정보)와 [들어가기]. 이미 들어왔으면 묻지 않고 그 학생회를 연다(바탕 spec '화면').
 export default function JoinCouncil({ code, googleName, leaveLabel, onJoined, onLeave }: Props) {
   const { view, joining, error, join, retry } = useJoinCouncil(code, onJoined)
   if (view.kind === 'loading') return <StateMessage kind="loading">초대 확인 중…</StateMessage>

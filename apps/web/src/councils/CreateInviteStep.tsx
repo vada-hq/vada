@@ -23,13 +23,15 @@ export default function CreateInviteStep({ link, loadError, notice, ...on }: Pro
       {!link && loadError && (
         <div className="flex flex-col gap-3">
           <StateMessage kind="error">{INVITE_LOAD_ERRORS[loadError]}</StateMessage>
-          <Button variant="outline" size="sm" className="self-start" onClick={on.onRetry}>
+          <Button variant="outline" size="sm" touch className="self-start" onClick={on.onRetry}>
             다시 시도
           </Button>
         </div>
       )}
       {!link && !loadError && <StateMessage kind="loading">초대 링크 불러오는 중…</StateMessage>}
-      <Button onClick={on.onHome}>홈으로</Button>
+      <Button touch onClick={on.onHome}>
+        홈으로
+      </Button>
     </div>
   )
 }

@@ -15,17 +15,20 @@ export default function CouncilFields({ draft, set, years, errors }: Props) {
   const unitId = useId()
   return (
     <>
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 flex items-baseline gap-1">
+      <fieldset className="flex flex-col">
+        <legend className="mb-1 flex items-baseline gap-1">
           <span className="text-xs font-medium text-gray-700">학생회 유형</span>
           <span aria-hidden className="text-sm leading-4 text-red-600">
             *
           </span>
         </legend>
+        {/* 줄 전체가 라벨이라 글자 옆 빈 곳을 눌러도 고른다. 휴대폰에서는 줄 높이를 44px로 키운다(WCAG 2.5.8). */}
         {unitChoices.map(unit => (
-          <div key={unit} className="flex items-center gap-2">
+          <Label
+            key={unit}
+            className="flex cursor-pointer items-center gap-2 py-1.5 text-sm font-normal text-gray-800 max-sm:min-h-11"
+          >
             <input
-              id={`${unitId}-${unit}`}
               type="radio"
               name={unitId}
               value={unit}
@@ -33,10 +36,8 @@ export default function CouncilFields({ draft, set, years, errors }: Props) {
               checked={draft.unit === unit}
               onChange={set('unit')}
             />
-            <Label htmlFor={`${unitId}-${unit}`} className="text-sm font-normal text-gray-800">
-              {unitLabels[unit]}
-            </Label>
-          </div>
+            {unitLabels[unit]}
+          </Label>
         ))}
       </fieldset>
       <Field label="학교" required error={errors.schoolName}>

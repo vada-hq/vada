@@ -1,11 +1,8 @@
-import type { ReactNode } from 'react'
 import JoinCouncil from '../councils/JoinCouncil'
 import MyCouncils from '../councils/MyCouncils'
-import PushSettingsButton from '../push/PushSettings'
-import AuthPage from './AuthPage'
+import SignedInCard from './SignedInCard'
 import type { Invite } from './useInviteEntry'
 import StateMessage from '@/components/StateMessage'
-import { Button } from '@/components/ui/button'
 
 type User = { id: string; name: string; email: string }
 type Props = {
@@ -18,38 +15,6 @@ type Props = {
   onLeaveInvite: () => void
   onJoined: (councilId: string) => void
   onLogout: () => void
-}
-
-// 로그인한 사람의 가운데 카드: 이름과 이메일, 안에 들어갈 내용, 휴대폰 알림과 로그아웃.
-function SignedInCard({
-  user,
-  busy,
-  onLogout,
-  children,
-}: Pick<Props, 'busy' | 'onLogout'> & { user: User; children: ReactNode }) {
-  return (
-    <AuthPage>
-      <div className="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
-        <h2 className="text-xs font-medium text-gray-500">로그인 완료</h2>
-        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-        <p className="text-xs wrap-anywhere text-gray-500">{user.email}</p>
-      </div>
-      {children}
-      <div className="flex items-center gap-2">
-        <PushSettingsButton />
-        <Button
-          variant="outline"
-          className="flex-1"
-          busy={busy}
-          onClick={() => {
-            onLogout()
-          }}
-        >
-          {busy ? '로그아웃 중…' : '로그아웃'}
-        </Button>
-      </div>
-    </AuthPage>
-  )
 }
 
 // 로그아웃 실패는 카드 화면과 작업 공간 어디서나 맨 위 한 줄로 알린다.
@@ -78,7 +43,7 @@ export default function SignedInView({
     return (
       <>
         <ErrorBanner message={message} />
-        <SignedInCard user={user} busy={busy} onLogout={onLogout}>
+        <SignedInCard user={user} compact busy={busy} onLogout={onLogout}>
           <JoinCouncil
             key={invite.code}
             code={invite.code}
@@ -99,8 +64,8 @@ export default function SignedInView({
         user={user}
         userId={user.id}
         initialCouncilId={opened}
-        card={content => (
-          <SignedInCard user={user} busy={busy} onLogout={onLogout}>
+        card={(content, compact) => (
+          <SignedInCard user={user} compact={compact ?? false} busy={busy} onLogout={onLogout}>
             {content}
           </SignedInCard>
         )}

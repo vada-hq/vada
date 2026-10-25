@@ -19,7 +19,8 @@ type Props = {
   // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69).
   initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
-  card: (content: ReactNode) => ReactNode
+  // compact는 할 일이 있는 화면(학생회 만들기)이라 계정을 맨 아래 한 줄로 내린다.
+  card: (content: ReactNode, compact?: boolean) => ReactNode
   onEnterCode: (code: string) => void
   logoutBusy: boolean
   onLogout: () => void
@@ -90,8 +91,9 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
     return card(<StateMessage kind="loading">학생회 확인 중…</StateMessage>)
   if (state.kind === 'failed') return card(<LoadFailed onRetry={reload} />)
   if (!state.councils.length)
-    return card(
+    return (
       <NoCouncilFlow
+        card={card}
         userName={user.name}
         onEnterCode={rest.onEnterCode}
         // 만들기 끝의 초대 링크 단계 뒤 그 학생회 홈으로 간다(DEC-87).
@@ -99,7 +101,7 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
           navigate(menuPath('home', council.id))
           add(council)
         }}
-      />,
+      />
     )
   const target = targetOf(here, state.councils, start)
   if (target.kind === 'notFound') return card(<NotFound fallback={target.fallback} />)
