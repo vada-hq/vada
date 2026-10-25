@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { CouncilView, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
-import { useEvents } from '@/events/useEvents'
+import { useEvents, type EventList } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
 import { recalledDepartment } from '@/lib/menu-memory'
 import { useSplit } from '@/lib/use-split'
@@ -19,6 +19,7 @@ import { useStatusChange } from './useStatusChange'
 import { useTaskControls } from './useTaskControls'
 import { TaskUndoBar } from './TaskUndoBar'
 import { useAssigneeUndo } from './useAssigneeUndo'
+import { useBoardEmpty } from './useBoardEmpty'
 import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTaskOptions } from './useTaskOptions'
@@ -94,6 +95,14 @@ function useOpeners(councilId: string, inEvent: boolean) {
   }
 }
 
+// 행사의 업무 탭 달력에는 그 행사만 그린다. 학생회의 다른 행사는 업무 메뉴의 달력에 있다.
+function onlyEvent(events: EventList, eventId: string | undefined): EventList {
+  const { state } = events
+  if (eventId === undefined || state.kind !== 'ready') return events
+  const only = state.data.events.filter(event => event.id === eventId)
+  return { ...events, state: { ...state, data: { ...state.data, events: only } } }
+}
+
 // 화면의 상태: 보기, 거르기, 목록·달력, 대화상자, 목록, 상태 바꾸기, 줄에서 맡기기와 그때 고를 사람들.
 function useTasksPage(props: Props) {
   const councilId = props.view.council.id
@@ -106,7 +115,17 @@ function useTasksPage(props: Props) {
   const lists = useTaskLists(props, { view, filter, layout, wide })
   const list = useNarrowed(lists.list, dept)
   const done = useNarrowed(lists.done, dept)
-  const events = lists.events
+  const events = onlyEvent(lists.events, props.eventId)
+  const board = layout === 'board' && wide
+  const councilEmpty = useBoardEmpty({
+    councilId,
+    eventId: props.eventId,
+    view,
+    board,
+    raw: [lists.list, lists.done],
+    shown: [list, done],
+    onForbidden: props.onForbidden,
+  })
   const changed = () => {
     void list.reload()
     if (lists.both) void done.reload()
@@ -138,7 +157,8 @@ function useTasksPage(props: Props) {
   }
   return {
     controls,
-    board: layout === 'board' && wide,
+    board,
+    councilEmpty,
     departments: team.data?.departments ?? [],
     all: lists.list,
     openEventFromTask: opened.openEventFromTask,
@@ -176,6 +196,16 @@ function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
   return undefined
 }
 
+// 보기나 부서로 좁혀 빈 보드의 문구. 거르기 전에도 업무가 없으면 보드의 빈 상태다(useBoardEmpty).
+const VIEW_EMPTY: Record<TaskView, string> = {
+  mine: '내 업무 없음',
+  department: '내 부서 업무 없음',
+  all: '업무 없음',
+  unassigned: '담당자 없는 업무 없음',
+}
+const viewEmptyText = (view: TaskView, dept: string | null) =>
+  dept === null ? VIEW_EMPTY[view] : '이 부서 업무 없음'
+
 // 보드·표·달력 가운데 지금 배치의 몸통. 넓은 화면의 보드가 아니면 지금의 표(넓은 화면)와 줄(좁은 화면)이다.
 function TasksBody({
   page,
@@ -196,6 +226,8 @@ function TasksBody({
         change={rows.change}
         onOpenTask={rows.onOpenTask}
         onShowDoneTable={controls.showDoneTable}
+        councilEmpty={page.councilEmpty}
+        emptyText={viewEmptyText(controls.view, controls.dept)}
         onAddFirst={onAddFirst}
       />
     )

@@ -1,6 +1,7 @@
 import { TASK_LAYOUTS, type AppQuery, type TaskLayout } from '@vada/contracts'
 
 // 사람마다 마지막에 고른 업무 화면의 배치(보드·표·달력, DEC-94). 이 기기의 저장소에 운영진 번호마다 하나 둔다.
+// 키는 로그인 계정이 아니라 운영진 번호(me.memberId)라 사람×학생회마다 따로다. 업무 화면까지 로그인 계정 번호가 오지 않아서다.
 // 업무 화면으로 들어가는 링크(옆 메뉴 [업무], 행사의 업무 탭)가 이 값을 주소에 싣는다. 주소의 값이 원문이고, 이미 주소에 있으면 주소가 이긴다.
 // 새로고침해도 남아야 해서 lib/menu-memory.ts(메모리)와 따로 둔다. 저장소를 못 쓰면 기억하지 않고 보드다.
 const PREFIX = 'vada.task.layout.'
