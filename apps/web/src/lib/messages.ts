@@ -8,7 +8,7 @@ export const PERMISSION_CHANGED = '권한이 바뀌었어요. 화면을 새로 �
 // 로그인한 Google 계정의 이메일을 다른 계정이 이미 쓰고 있다(서버 EMAIL_IN_USE).
 const EMAIL_IN_USE =
   '이 Google 계정의 이메일을 다른 계정이 쓰고 있어요. 다른 계정으로 로그인해 주세요.'
-// 학생회 만들기와 기수 고치기에서 임기 시작이 오늘 뒤다(서버 COHORT_NOT_STARTED, DEC-57).
+// 기수 고치기에서 임기 시작이 오늘 뒤다(서버 COHORT_NOT_STARTED, DEC-57). 학생회 만들기는 운영 연도로 기간을 채워 이 답이 없다.
 const COHORT_NOT_STARTED = '임기 시작은 오늘이나 그 전이어야 해요.'
 
 // 화면마다 서버 오류 코드를 문구로 바꾸는 표. 표에 없는 코드는 그 화면의 일반 실패 문구로 보인다.
@@ -28,10 +28,7 @@ export const AGREEMENT_FAILED = '동의를 저장하지 못했어요. 연결을 
 
 export const INVITE_CODE_INVALID = '초대 코드를 확인해 주세요'
 
-export const CREATE_COUNCIL_ERRORS: Record<string, string> = {
-  COHORT_NOT_STARTED,
-  EMAIL_IN_USE,
-}
+export const CREATE_COUNCIL_ERRORS: Record<string, string> = { EMAIL_IN_USE }
 // 계약이 받지 않는 날짜(있을 수 없는 날, 받는 해 밖, 기수 밖). 길이 문제가 아니라서 칸 아래 글을 따로 준다.
 export const DATE_CHECK = '날짜를 확인해 주세요'
 export const CREATE_COUNCIL_FAILED = '학생회를 만들지 못했어요. 다시 시도해 주세요.'

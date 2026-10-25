@@ -1,5 +1,5 @@
 import type { BudgetResponse, CreateCouncilRequest, TeamResponse } from '@vada/contracts'
-import { DAY_MS } from '@vada/contracts'
+import { DAY_MS, koreanYearOf } from '@vada/contracts'
 import { enterCouncil } from './people.js'
 import {
   create,
@@ -14,27 +14,26 @@ import {
   type Role,
 } from './rehearsal-kit.js'
 
-const COHORT_BEFORE_DAYS = 60
-const COHORT_AFTER_DAYS = 300
 const PERIOD_BEFORE_DAYS = 30
 const PERIOD_AFTER_DAYS = 200
 const STANDING_BUDGET = 500_000
 
 const BANK = { bank: '국민은행', holder: '학생회' }
 
+const DEPARTMENTS = [
+  { key: 'planning', name: '기획부' },
+  { key: 'pr', name: '홍보부' },
+] as const
+
 // 준비 1: 회장이 학생회를 만들고 초대 코드를 읽는다. 화면에 동작이 있을 수 없는(학생회가 아직 없는) 유일한 쓰기다.
+// 만들기 화면처럼 운영 연도는 올해(기수 이름 '{Y}')이고, 기획부와 홍보부를 처음 부서 목록으로 함께 만든다(DEC-87).
 export async function createCouncilStep(ctx: Ctx) {
   const { chief } = ctx.cast
-  const now = nowOf(ctx)
   const council: CreateCouncilRequest = {
     unit: 'department',
-    ...(ctx.council ?? {
-      name: '리허설 학생회',
-      schoolName: '리허설 학교',
-      cohortName: '리허설 기수',
-    }),
-    startsOn: koreanDay(new Date(now.getTime() - COHORT_BEFORE_DAYS * DAY_MS)),
-    endsOn: koreanDay(new Date(ctx.finalAt.getTime() + COHORT_AFTER_DAYS * DAY_MS)),
+    ...(ctx.council ?? { name: '리허설 학생회', schoolName: '리허설 학교' }),
+    year: Number(koreanYearOf(nowOf(ctx))),
+    departments: DEPARTMENTS.map(item => item.name),
   }
   const created = await create<{ council: { id: string } }>(
     chief,
@@ -47,11 +46,7 @@ export async function createCouncilStep(ctx: Ctx) {
   ctx.w.inviteCode = invite.code
 }
 
-const DEPARTMENTS = [
-  { key: 'planning', name: '기획부' },
-  { key: 'pr', name: '홍보부' },
-] as const
-// 부서 직급과 소속: [인물, 부서, 직급]. 재정부는 학생회를 만들 때 이미 있다.
+// 부서 직급과 소속: [인물, 부서, 직급]. 부서는 모두 학생회를 만들 때 이미 있다.
 const ASSIGNMENTS = [
   ['planHead', 'planning', 'head'],
   ['planner', 'planning', null],
@@ -60,14 +55,11 @@ const ASSIGNMENTS = [
   ['prHead', 'pr', 'head'],
 ] as const
 
-// 준비 2: 인물이 초대 코드로 들어와 동의하고, 회장이 부서를 만들고 나눈다.
+// 준비 2: 인물이 초대 코드로 들어와 동의하고, 회장이 부서를 나눈다.
 export async function joinPeopleStep(ctx: Ctx) {
   const { cast, w } = ctx
   for (const role of ROLES) if (role !== 'chief') await enterCouncil(cast[role], w.inviteCode)
-  await seesPermission(ctx, cast.chief, 'department.manage')
-  let team = await read<TeamResponse>(cast.chief, `${org(ctx)}/members`, '운영진 읽기')
-  for (const { name } of DEPARTMENTS)
-    team = await write<TeamResponse>(cast.chief, `${org(ctx)}/departments`, { name }, '부서 만들기')
+  const team = await read<TeamResponse>(cast.chief, `${org(ctx)}/members`, '운영진 읽기')
   for (const role of ROLES) {
     const member = team.members.find(item => item.name === cast[role].name)
     if (!member) throw new Error(`운영진 목록에 ${cast[role].name}이 없다`)

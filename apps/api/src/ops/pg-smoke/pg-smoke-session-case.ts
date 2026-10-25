@@ -90,7 +90,7 @@ export const sessionDuringJoinCase: SmokeCase = {
       const release = gate()
       // 들어오기는 linkMember로 users 행을 FOR NO KEY UPDATE로 잠근다. 커밋을 미뤄 그 잠금을 쥐고 있는다.
       const held = locker.db.transaction(async tx => {
-        await joinCouncil(tx, E.guest, code, context.now)
+        await joinCouncil(tx, E.guest, { code }, context.now)
         locked.release()
         await release.released
       })

@@ -1,5 +1,10 @@
 import { and, eq, gte, lte, ne } from 'drizzle-orm'
-import { koreanDateOf } from '@vada/contracts'
+import {
+  DEFAULT_FINANCE_DEPARTMENT_NAME,
+  koreanDateOf,
+  koreanYearOf,
+  operatingYearsOf,
+} from '@vada/contracts'
 import type {
   CreateCouncilRequest,
   UpdateCohortRequest,
@@ -15,16 +20,39 @@ import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import type { Tx } from '../db/types.js'
 import { linkMember } from './link.js'
 
-// 학생회를 만들면 함께 생기는 재정 역할 부서(DEC-16). 이름은 나중에 바꿀 수 있다.
-const FINANCE_DEPARTMENT_NAME = '재정부'
-
 // 기수가 시작해야(시작일이 오늘 이전) 운영진에게 지금 소속이 생긴다(DEC-57). 시작 전이면 아무도 학생회를 열 수 없다.
 // 끝 날짜는 보지 않는다: 끝 날짜가 지난 기수도 다음 기수가 시작하기 전까지 지금 기수다.
 function assertStarted(period: { startsOn: string }, now: Date) {
   if (!periodHasStarted(period, now)) throw new ApiError('COHORT_NOT_STARTED')
 }
 
-// 학생회 만들기는 한 거래다(바탕 spec G6): 운영진(없으면)과 로그인 잇기, 학생회, 첫 기수, 회장 소속, 재정부, 초대 코드.
+// 운영 연도의 첫 기수(DEC-87): 이름 '{Y}', Y-01-01~Y-12-31. 내년은 오늘 시작한다. 시작일이 오늘보다 뒤면 지금 기수가 없어
+// 아무도 학생회를 열지 못하기 때문이다. 선택지(작년·올해·내년)는 계약이 아니라 오늘에 기대므로 여기서 본다.
+function firstCohortOf(year: number, now: Date) {
+  if (!operatingYearsOf(now).includes(year)) throw new ApiError('INVALID_INPUT')
+  const startsOn = String(year) > koreanYearOf(now) ? koreanDateOf(now) : `${year}-01-01`
+  return { name: String(year), startsOn, endsOn: `${year}-12-31` }
+}
+
+// 처음 부서 목록: 재정 역할 부서 하나와 역할 없는 부서들. 이름이 겹치지 않는 것은 계약이 본다.
+// 부서방은 만들지 않는다: 부서방은 운영진이 있는 부서마다 생긴다(RULE-28, syncRooms).
+async function createInitialDepartments(
+  tx: Tx,
+  { councilId, actor }: { councilId: string; actor: string },
+  input: Pick<CreateCouncilRequest, 'financeDepartmentName' | 'departments'>,
+) {
+  const finance = input.financeDepartmentName ?? DEFAULT_FINANCE_DEPARTMENT_NAME
+  await createRecord(tx, {
+    kind: 'department',
+    councilId,
+    actor,
+    values: { name: finance, role: 'finance' },
+  })
+  for (const name of input.departments ?? [])
+    await createRecord(tx, { kind: 'department', councilId, actor, values: { name } })
+}
+
+// 학생회 만들기는 한 거래다(바탕 spec G6): 운영진(없으면)과 로그인 잇기, 학생회, 첫 기수, 회장 소속, 처음 부서 목록, 초대 코드.
 // 감사기구와 의결기구는 만들지 않는다. 학생회 번호를 돌려준다.
 export async function createCouncil(
   tx: Tx,
@@ -32,32 +60,22 @@ export async function createCouncil(
   input: CreateCouncilRequest,
   now: Date,
 ): Promise<string> {
-  assertStarted(input, now)
-  const actor = await linkMember(tx, userId)
+  const term = firstCohortOf(input.year, now)
+  const actor = await linkMember(tx, userId, input.memberName)
   const councilId = await createRecord(tx, {
     kind: 'council',
     councilId: null,
     actor,
     values: { name: input.name, unit: input.unit, schoolName: input.schoolName },
   })
-  const cohortId = await createRecord(tx, {
-    kind: 'cohort',
-    councilId,
-    actor,
-    values: { name: input.cohortName, startsOn: input.startsOn, endsOn: input.endsOn },
-  })
+  const cohortId = await createRecord(tx, { kind: 'cohort', councilId, actor, values: term })
   await createRecord(tx, {
     kind: 'council_membership',
     councilId,
     actor,
     values: { memberId: actor, cohortId, councilRank: 'president', startsAt: clockNow },
   })
-  await createRecord(tx, {
-    kind: 'department',
-    councilId,
-    actor,
-    values: { name: FINANCE_DEPARTMENT_NAME, role: 'finance' },
-  })
+  await createInitialDepartments(tx, { councilId, actor }, input)
   await tx
     .insert(inviteCode)
     .values({ councilId, code: await freshInviteCode(tx), createdBy: actor })

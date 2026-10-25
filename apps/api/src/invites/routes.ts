@@ -6,6 +6,7 @@ import {
   JoinCouncilSchema,
   type InviteCodeResponse,
   type InvitePreviewResponse,
+  type JoinCouncilRequest,
   type JoinCouncilResponse,
 } from '@vada/contracts'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
@@ -18,9 +19,9 @@ import type { Db } from '../db/types.js'
 import { invitePreview, joinCouncil, rotateInviteCode } from './service.js'
 
 // 응답도 같은 거래 안에서 만든다. 커밋한 뒤에 읽다가 실패하면 들어와졌는데 요청은 500이 된다.
-async function joinedCouncil(db: Db, userId: string, code: string, now: Date) {
+async function joinedCouncil(db: Db, userId: string, input: JoinCouncilRequest, now: Date) {
   return db.transaction(async tx => {
-    const councilId = await joinCouncil(tx, userId, code, now)
+    const councilId = await joinCouncil(tx, userId, input, now)
     const joined = (await myCouncils(tx, userId, now)).find(item => item.id === councilId)
     if (!joined) throw new Error('Council missing after join')
     return joined
@@ -42,7 +43,7 @@ export function createInviteRoutes(
     return c.json(preview satisfies InvitePreviewResponse)
   })
   routes.post('/organizations/join', json(JoinCouncilSchema), auth, async c => {
-    const council = await joinedCouncil(db, c.get('userId'), c.req.valid('json').code, clock())
+    const council = await joinedCouncil(db, c.get('userId'), c.req.valid('json'), clock())
     return c.json({ council } satisfies JoinCouncilResponse)
   })
   routes.get('/organizations/:councilId/invite', auth, async c => {

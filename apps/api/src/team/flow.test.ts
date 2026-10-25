@@ -60,9 +60,7 @@ test('흐름: 판의 개수와 바꾼 사람, 단계마다의 DB 상태', async 
           name: '컴퓨터학부 학생회',
           unit: 'department',
           schoolName: '한양대학교 ERICA',
-          cohortName: '2026',
-          startsOn: '2026-01-01',
-          endsOn: '2026-12-31',
+          year: 2026,
         },
         'kim',
       )

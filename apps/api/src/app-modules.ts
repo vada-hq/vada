@@ -17,6 +17,7 @@ import { createPurchasePush } from './purchases/notify.js'
 import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
 import { createPushRoutes } from './push/routes.js'
+import { createProfileRoutes } from './profile/routes.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createSettlementRoutes } from './settlement/routes.js'
@@ -70,7 +71,7 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
 
 // 라우트 모듈 연결의 한 곳. 운영 서버, 경계 시험, 흐름 서버가 모두 이것으로 앱을 만든다.
 // 반환 타입이 AppOptions의 모든 모듈을 요구하므로 AppOptions에 모듈을 더하고 여기 연결하지 않으면 타입 오류다.
-// 가입 동의와 휴대폰 기기 저장은 시각을 쓰지 않아 시계를 받지 않는다.
+// 가입 동의, 휴대폰 기기 저장, 내 이름은 시각을 쓰지 않아 시계를 받지 않는다.
 export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
   const { clock, writeLimiter, receiptKey, storage } = deps
   const push = pushModules(db, session, deps)
@@ -81,6 +82,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     chat: createChatRoutes(db, session, { clock, push: push.chat, storage }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
+    profile: createProfileRoutes(db, session),
     tasks: createTaskRoutes(db, session, { clock, push: push.task }),
     home: createHomeRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),

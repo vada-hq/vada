@@ -12,7 +12,7 @@ import MyCouncils from './MyCouncils'
 // 학생회 만들기·들어오기·내 학생회를 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 6).
 // 나눈 뒤에도 이 스냅숏 파일은 바뀌지 않아야 한다.
 beforeEach(() => {
-  // 기본 임기가 올해라, 날짜만 고정한다.
+  // 기본 운영 연도가 올해라, 날짜만 고정한다.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-06-15T03:00:00Z'))
 })
@@ -38,14 +38,16 @@ test('만들기: 입력 전', () => {
   expect(html()).toMatchSnapshot()
 })
 
-test('만들기: 임기 순서 오류', () => {
+test('만들기: 운영 연도 오류', () => {
   mockApi()
   createForm()
   fireEvent.change(screen.getByLabelText('학생회 이름'), { target: { value: '소프트웨어학부' } })
   fireEvent.change(screen.getByLabelText('학교'), { target: { value: '한양대학교' } })
-  fireEvent.change(screen.getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
-  // 문제는 누를 때 칸 아래에 보인다.
+  fireEvent.change(screen.getByLabelText('운영 연도'), { target: { value: '2025' } })
+  // 양식을 연 채 한국의 새해(2027년)가 되면 2025는 선택지 밖이다. 문제는 누를 때 칸 아래에 보인다.
+  vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
   fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
+  expect(screen.getByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
   expect(html()).toMatchSnapshot()
 })
 
@@ -59,10 +61,10 @@ test('만들기: 진행 중', () => {
 
 test('만들기: 오류', async () => {
   const api = mockApi()
-  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_STARTED' }, 400))
+  api.on('POST', '/api/organizations/create', () => json({ error: 'EMAIL_IN_USE' }, 409))
   createForm()
   submitCreate()
-  await screen.findByText(/임기 시작은 오늘이나/)
+  await screen.findByText(/이메일을 다른 계정이 쓰고 있어요/)
   expect(html()).toMatchSnapshot()
 })
 

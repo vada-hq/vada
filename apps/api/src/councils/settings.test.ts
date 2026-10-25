@@ -13,9 +13,7 @@ const body = {
   name: '컴퓨터학부 학생회',
   unit: 'department',
   schoolName: '한양대학교 ERICA',
-  cohortName: '2026',
-  startsOn: '2026-01-01',
-  endsOn: '2026-12-31',
+  year: 2026,
 }
 const settings = {
   name: '소프트웨어학부 학생회',

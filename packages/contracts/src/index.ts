@@ -100,6 +100,9 @@ export {
   COHORT_NAME_MAX,
   COUNCIL_UNITS,
   dateInput,
+  operatingYearsOf,
+  DEFAULT_FINANCE_DEPARTMENT_NAME,
+  INITIAL_DEPARTMENTS_MAX,
   CreateCouncilSchema,
   type CouncilUnit,
   type CreateCouncilRequest,
@@ -272,3 +275,5 @@ export * from './deposits.js'
 export * from './settlement.js'
 // 화면 주소의 원문(기능 016).
 export * from './paths.js'
+// 내 이름(운영진 이름) 읽기와 고치기(기능 020).
+export * from './profile.js'

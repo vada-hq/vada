@@ -16,9 +16,7 @@ const body = {
   name: '컴퓨터학부 학생회',
   unit: 'department',
   schoolName: '한양대학교 ERICA',
-  cohortName: '2026',
-  startsOn: '2026-01-01',
-  endsOn: '2026-12-31',
+  year: 2026,
 }
 
 // 회장 u1의 학생회에 u2가 들어온다. u3은 다른 학생회의 회장이다.

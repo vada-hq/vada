@@ -1,5 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import type { InvitePreviewResponse } from '@vada/contracts'
+import type { InvitePreviewResponse, JoinCouncilRequest } from '@vada/contracts'
 import { actorOf, type Actor } from '../access/actor.js'
 import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
@@ -106,15 +106,16 @@ async function reopenMembership(tx: Tx, membershipId: string, memberId: string, 
 
 // 초대 링크로 들어오기(바탕 spec G3, G4): 지금 기수에 직급과 부서 없이 바로 들어온다.
 // 이미 지금 소속이면 아무것도 바꾸지 않는다. 내보내졌던 사람은 같은 소속을 다시 연다.
+// memberName('내 이름')은 로그인에 처음 운영진을 이을 때만 쓴다(linkMember).
 export async function joinCouncil(
   tx: Tx,
   userId: string,
-  code: string,
+  { code, memberName }: JoinCouncilRequest,
   now: Date,
 ): Promise<string> {
   const councilId = await lockInvitedCouncil(tx, code)
   const cohortId = await currentCohortId(tx, councilId, now)
-  const memberId = await linkMember(tx, userId)
+  const memberId = await linkMember(tx, userId, memberName)
   const [membership] = await tx
     .select({ id: councilMembership.id, endsAt: councilMembership.endsAt })
     .from(councilMembership)

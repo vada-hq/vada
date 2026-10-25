@@ -99,8 +99,8 @@ function probesOf(app: ReturnType<typeof createApp>): Probe[] {
   ]
 }
 
-// 시계를 읽지 않는 모듈. 이유 없이 늘리지 않는다.
-const NO_CLOCK = new Set(['agreement', 'pushDevices'])
+// 시계를 읽지 않는 모듈. 이유 없이 늘리지 않는다. 내 이름(profile)은 기간에 기대지 않는다(운영진 하나의 이름).
+const NO_CLOCK = new Set(['agreement', 'pushDevices', 'profile'])
 
 test('모든 라우트 모듈이 앱의 시계를 쓰고 자기 시계를 만들지 않는다', async () => {
   let calls = 0

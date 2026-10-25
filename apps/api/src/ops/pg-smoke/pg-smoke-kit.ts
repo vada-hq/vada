@@ -94,22 +94,14 @@ export async function googleUser(db: Db, id: string) {
 }
 
 function councilInput(now: Date, name: string): CreateCouncilRequest {
-  const year = koreanYearOf(now)
-  return {
-    name,
-    unit: 'department',
-    schoolName: 'VADA 점검 학교',
-    cohortName: year,
-    startsOn: `${year}-01-01`,
-    endsOn: `${year}-12-31`,
-  }
+  return { name, unit: 'department', schoolName: 'VADA 점검 학교', year: Number(koreanYearOf(now)) }
 }
 
 export const createdCouncil = (db: Db, context: SmokeContext, userId: string, name: string) =>
   db.transaction(tx => createCouncil(tx, userId, councilInput(context.now, name), context.now))
 
 export const joined = (db: Db, context: SmokeContext, userId: string, code: string) =>
-  db.transaction(tx => joinCouncil(tx, userId, code, context.now))
+  db.transaction(tx => joinCouncil(tx, userId, { code }, context.now))
 
 // 학생회 행을 잠근 거래 안에서 권한을 보고 바꾼다(라우트가 쓰는 inCouncilChange 그대로).
 export const changer =

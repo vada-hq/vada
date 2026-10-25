@@ -6,6 +6,7 @@ import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
+import type { createProfileRoutes } from './profile/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
 import type { createAccountRoutes } from './accounts/routes.js'
 import type { createEventRoutes } from './events/routes.js'
@@ -41,6 +42,8 @@ export type AppOptions = {
   push?: ReturnType<typeof createPushRoutes> | undefined
   // 알림 받을 기기 저장과 지우기
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
+  // 내 이름(운영진 이름) 읽기와 고치기
+  profile?: ReturnType<typeof createProfileRoutes>
   // 업무: 목록, 하나 읽기
   tasks?: ReturnType<typeof createTaskRoutes>
   // 홈: 그 사람의 부분을 한 번에 읽기

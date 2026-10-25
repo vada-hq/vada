@@ -28,9 +28,7 @@ const body = {
   name: '컴퓨터학부 학생회',
   unit: 'department',
   schoolName: '한양대학교 ERICA',
-  cohortName: '2026',
-  startsOn: '2026-01-01',
-  endsOn: '2026-12-31',
+  year: 2026,
 }
 
 function appOf(testDb: TestDb, now = noon, db: TestDb['db'] = testDb.db) {
@@ -664,7 +662,7 @@ test('들어오기는 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤 코드를
         },
       },
     })
-    await db.transaction(tx => joinCouncil(tx, 'u2', code, noon))
+    await db.transaction(tx => joinCouncil(tx, 'u2', { code }, noon))
     const lock = queries.findIndex(
       query => query.includes('from "council"') && query.endsWith(' for no key update'),
     )

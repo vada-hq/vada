@@ -115,9 +115,7 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
     name: '컴퓨터학부 학생회',
     unit: 'college',
     schoolName: '한양대학교 ERICA',
-    cohortName: year,
-    startsOn: `${year}-01-01`,
-    endsOn: `${year}-12-31`,
+    year: Number(year),
   })
 })
 
@@ -147,29 +145,33 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
-test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 눌러도 보내지 않고 임기 끝 칸 아래에 까닭을 보인다', async () => {
+test('학생회 만들기의 운영 연도는 작년·올해·내년 고르기이고 기본은 올해이며, 고른 해를 보낸다', async () => {
   councilsInSequence([])
+  openCouncil()
+  api.on('POST', '/api/organizations/create', () =>
+    json({ council: myCouncil('0199d1a0-0000-7000-8000-0000000000c1') }, 201),
+  )
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
-  fireEvent.change(within(form).getByLabelText('학생회 이름'), {
-    target: { value: '컴퓨터학부 학생회' },
-  })
-  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
-  const submit = within(form).getByRole('button', { name: '학생회 만들기' }) as HTMLButtonElement
-  const reason = '임기 시작보다 뒤의 날짜를 입력해 주세요'
-  fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2026-06-01' } })
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-05-01' } })
-  expect(within(form).queryByText(reason)).toBeNull()
-  expect(submit.disabled).toBe(false)
-  fireEvent.click(submit)
-  expect(within(form).getByText(reason)).toBeTruthy()
-  const end = within(form).getByLabelText('임기 끝')
-  expect(end.getAttribute('aria-invalid')).toBe('true')
-  await waitFor(() => expect(document.activeElement).toBe(end))
-  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
-  fireEvent.change(end, { target: { value: '2026-12-31' } })
-  expect(within(form).queryByText(reason)).toBeNull()
+  const year = Number(new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 4))
+  const select = within(form).getByLabelText('운영 연도') as HTMLSelectElement
+  expect(select.value).toBe(String(year))
+  expect([...select.options].map(option => option.textContent)).toEqual([
+    `${year - 1}년`,
+    `${year}년`,
+    `${year + 1}년`,
+  ])
+  // 기수 이름과 임기 칸은 없다(서버가 운영 연도로 채운다).
+  expect(within(form).queryByLabelText('기수 이름')).toBeNull()
+  expect(within(form).queryByLabelText('임기 시작')).toBeNull()
+  fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
+  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '학교' } })
+  fireEvent.change(select, { target: { value: String(year + 1) } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+  await waitFor(() =>
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ year: year + 1 }),
+  )
 })
 
 test('학생회 만들기에서 칸 길이를 넘기면 보내지 않고 그 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
@@ -189,34 +191,40 @@ test('학생회 만들기에서 칸 길이를 넘기면 보내지 않고 그 칸
   expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
 })
 
-test('학생회 만들기에서 계약이 받지 않는 임기 날짜는 보내지 않고 날짜 칸 아래에 알린다', async () => {
+test('학생회 만들기에서 해가 바뀐 뒤 작년의 작년을 보내려 하면 보내지 않고 운영 연도 칸 아래에 알린다', async () => {
   councilsInSequence([])
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '학교' } })
-  // 계약은 2000~2999년의 날짜만 받는다. 길이 문제가 아니므로 '더 짧게'라고 하지 않는다.
-  const start = within(form).getByLabelText('임기 시작')
-  fireEvent.change(start, { target: { value: '1999-01-01' } })
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '1999-12-31' } })
-  fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
-  expect(within(form).getAllByText('날짜를 확인해 주세요')).toHaveLength(2)
-  expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
-  await waitFor(() => expect(document.activeElement).toBe(start))
-  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  const year = Number(new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 4))
+  const select = within(form).getByLabelText('운영 연도')
+  fireEvent.change(select, { target: { value: String(year - 1) } })
+  // 양식을 연 채 한국의 새해가 된다. 고른 해는 이제 선택지(작년·올해·내년) 밖이라 서버도 받지 않는다.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  try {
+    vi.setSystemTime(new Date(`${year + 1}-01-01T00:00:00+09:00`))
+    fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+    expect(within(form).getByText('운영 연도를 다시 골라 주세요')).toBeTruthy()
+    expect(select.getAttribute('aria-invalid')).toBe('true')
+    await waitFor(() => expect(document.activeElement).toBe(select))
+    expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
-test('임기 시작이 오늘 뒤면 만들지 못한 까닭을 보여 준다', async () => {
+test('학생회를 만들지 못하면 그 까닭을 버튼 옆에 보여 준다', async () => {
   councilsInSequence([])
-  api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_STARTED' }, 409))
+  api.on('POST', '/api/organizations/create', () => json({ error: 'EMAIL_IN_USE' }, 409))
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
   fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '학생회' } })
   fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '학교' } })
   fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
-  expect(await screen.findByText('임기 시작은 오늘이나 그 전이어야 해요.')).toBeTruthy()
+  expect(await within(form).findByText(/이메일을 다른 계정이 쓰고 있어요/)).toBeTruthy()
 })
 
 test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학생회 홈을 연다', async () => {

@@ -118,7 +118,6 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
     await requireGoogleUser(tx, userId)
     let councilId = await testCouncilId(tx)
     if (!councilId) {
-      const year = koreanYearOf(now)
       councilId = await createCouncil(
         tx,
         userId,
@@ -126,9 +125,7 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
           name: 'VADA 시험 학생회',
           unit: 'department',
           schoolName: TEST_SCHOOL_NAME,
-          cohortName: year,
-          startsOn: `${year}-01-01`,
-          endsOn: `${year}-12-31`,
+          year: Number(koreanYearOf(now)),
         },
         now,
       )
@@ -164,7 +161,7 @@ export async function assignTestMember(db: Db, userId: string, target: TestDepar
     if (!councilId) throw new Error('Seed the test council first')
     const presidentUser = await presidentUserOf(tx, councilId, now)
     if (!presidentUser) throw new Error('Test council has no president')
-    await joinCouncil(tx, userId, TEST_INVITE_CODE, now)
+    await joinCouncil(tx, userId, { code: TEST_INVITE_CODE }, now)
     const president = await actorOf(tx, presidentUser, councilId, now)
     const member = await actorOf(tx, userId, councilId, now)
     if (!president || !member) throw new Error('Test council has no current cohort')

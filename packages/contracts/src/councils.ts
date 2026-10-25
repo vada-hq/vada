@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import { text, token } from './input.js'
-import { KOREAN_DATE_LENGTH } from './korean-time.js'
+import { KOREAN_DATE_LENGTH, koreanYearOf } from './korean-time.js'
 import type { Action, CouncilRank, DepartmentRank, DepartmentRole } from './permissions.js'
+import { memberNameInput } from './profile.js'
+import { DEPARTMENT_NAME_MAX } from './team.js'
 
 // 사람이 쓰는 이름의 상한. 학생회 이름은 지금 vada와 같은 50자다.
 export const COUNCIL_NAME_MAX = 50
@@ -23,17 +25,48 @@ export const dateInput = token(KOREAN_DATE_LENGTH).refine(value => {
   )
 })
 
-// 학생회 만들기(바탕 spec G6): 학생회 정보와 첫 기수. 끝일은 시작일보다 뒤다(DB CHECK ends_on > starts_on).
+// 운영 연도 선택지: 한국 날짜로 작년, 올해, 내년(DEC-87). 화면의 고르기와 서버의 확인이 같이 쓴다.
+export function operatingYearsOf(now: Date): number[] {
+  const year = Number(koreanYearOf(now))
+  return [year - 1, year, year + 1]
+}
+// 계약은 날짜 입력과 같은 범위의 정수만 받는다. 오늘에 기대는 선택지 확인은 서버가 operatingYearsOf로 한다.
+const YEAR_MIN = 2000
+const YEAR_MAX = 2999
+
+// 학생회를 만들 때 함께 생기는 재정 역할 부서의 기본 이름(DEC-16). 메뉴 '재정'과 맞고, 만들 때와 뒤에 고친다.
+export const DEFAULT_FINANCE_DEPARTMENT_NAME = '재정부'
+// 처음 부서 목록은 재정 역할 부서를 더해 모두 20개까지다.
+export const INITIAL_DEPARTMENTS_MAX = 20
+
+// 처음 부서 이름(재정 역할 부서 포함)은 한 학생회 안에서 겹칠 수 없다(DB UNIQUE). 다듬은 이름끼리 비교한다.
+const departmentNamesUnique = (value: {
+  financeDepartmentName?: string | undefined
+  departments?: string[] | undefined
+}) => {
+  const names = [
+    value.financeDepartmentName ?? DEFAULT_FINANCE_DEPARTMENT_NAME,
+    ...(value.departments ?? []),
+  ]
+  return new Set(names).size === names.length
+}
+
+// 학생회 만들기(바탕 spec G6, DEC-87): 학생회 정보, 운영 연도, 처음 부서 목록, 내 이름.
+// 기수 이름과 기간은 운영 연도로 서버가 채운다. 부서 둘을 빼면 '재정부' 하나다. 내 이름은 로그인에 처음 운영진을 이을 때만 쓴다.
 export const CreateCouncilSchema = z
   .strictObject({
     name: text(COUNCIL_NAME_MAX),
     unit: z.enum(COUNCIL_UNITS),
     schoolName: text(SCHOOL_NAME_MAX),
-    cohortName: text(COHORT_NAME_MAX),
-    startsOn: dateInput,
-    endsOn: dateInput,
+    year: z.number().int().min(YEAR_MIN).max(YEAR_MAX),
+    financeDepartmentName: text(DEPARTMENT_NAME_MAX).optional(),
+    departments: z
+      .array(text(DEPARTMENT_NAME_MAX))
+      .max(INITIAL_DEPARTMENTS_MAX - 1)
+      .optional(),
+    memberName: memberNameInput.optional(),
   })
-  .refine(value => value.endsOn > value.startsOn, { path: ['endsOn'] })
+  .refine(departmentNamesUnique, { path: ['departments'] })
 export type CreateCouncilRequest = z.infer<typeof CreateCouncilSchema>
 
 // 내 학생회 목록의 한 줄: 학생회, 학생회 직급, 지금 부서 소속

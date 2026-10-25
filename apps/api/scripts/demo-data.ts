@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm'
-import { koreanYearOf } from '@vada/contracts'
 import { council, users } from '../src/db/schema.js'
 import type { Db } from '../src/db/types.js'
 import { EVENT_B, EVENT_C, rehearsalStart, runRehearsal } from '../src/flows/rehearsal.js'
@@ -41,11 +40,7 @@ export async function seedDemoCouncil(
       chief,
       finalAt: now,
       uploadEvidence: (key: string) => uploadDemoEvidence(storage, key, fetcher),
-      council: {
-        name: 'VADA 시연 학생회',
-        schoolName: DEMO_SCHOOL_NAME,
-        cohortName: koreanYearOf(now),
-      },
+      council: { name: 'VADA 시연 학생회', schoolName: DEMO_SCHOOL_NAME },
     }
     // 행사 A는 끝까지, B는 '구매 요청'까지(입금은 기다리게), C는 만들기만 한다.
     const { state } = await runRehearsal(flow, options)

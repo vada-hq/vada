@@ -65,7 +65,7 @@ export const emptyWorld = (): World => ({
 })
 
 export type EvidenceUploader = (key: string) => void | Promise<void>
-export type CouncilNames = { name: string; schoolName: string; cohortName: string }
+export type CouncilNames = { name: string; schoolName: string }
 
 // 행사 하나의 모양. A는 끝난 행사, B는 앞으로 열릴 행사, C는 날짜 없는 행사다.
 export type EventPlan = { name: string; schedule: 'ended' | 'upcoming' | 'tbd' }

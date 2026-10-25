@@ -9,11 +9,13 @@ import { unitLabels } from './unit-labels'
 type Props = {
   form: CreateCouncilDraft
   set: (key: keyof CreateCouncilDraft) => (event: { target: { value: string } }) => void
+  // 운영 연도 선택지(작년·올해·내년)
+  years: number[]
   errors: FieldErrors
 }
 
-// 학생회 만들기의 입력칸: 이름, 단위, 학교, 첫 기수의 이름과 임기.
-export default function CouncilFields({ form, set, errors }: Props) {
+// 학생회 만들기의 입력칸: 이름, 단위, 학교, 운영 연도(작년·올해·내년, DEC-87).
+export default function CouncilFields({ form, set, years, errors }: Props) {
   return (
     <>
       <Field label="학생회 이름" required error={errors.name}>
@@ -31,17 +33,15 @@ export default function CouncilFields({ form, set, errors }: Props) {
       <Field label="학교" required error={errors.schoolName}>
         <Input value={form.schoolName} onChange={set('schoolName')} />
       </Field>
-      <Field label="기수 이름" required error={errors.cohortName}>
-        <Input value={form.cohortName} onChange={set('cohortName')} />
+      <Field label="운영 연도" required error={errors.year}>
+        <NativeSelect value={form.year} onChange={set('year')}>
+          {years.map(year => (
+            <option key={year} value={String(year)}>
+              {year}년
+            </option>
+          ))}
+        </NativeSelect>
       </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="임기 시작" required error={errors.startsOn}>
-          <Input type="date" value={form.startsOn} onChange={set('startsOn')} />
-        </Field>
-        <Field label="임기 끝" required error={errors.endsOn}>
-          <Input type="date" value={form.endsOn} onChange={set('endsOn')} />
-        </Field>
-      </div>
     </>
   )
 }
