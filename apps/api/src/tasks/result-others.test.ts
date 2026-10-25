@@ -265,8 +265,13 @@ test(
   '업무에서 만든 행사의 책임자는 만든 사람이다: 그 부서 부장이 만들면 부장이 책임자이고, 담당자인 부원은 403이다(DEC-82, DEC-93)',
   withSettlement(async t => {
     const taskId = await taskFor(t, { departmentId: t.council.departments.planning })
-    assert.deepEqual((await detailOf(t, taskId, PLANNING_HEAD)).canMake, ['request', 'event'])
-    assert.deepEqual((await detailOf(t, taskId, PLANNER)).canMake, ['request'])
+    // 공지방에는 모든 운영진이 보내므로 공지 만들기('message')는 누구에게나 있다(DEC-90).
+    assert.deepEqual((await detailOf(t, taskId, PLANNING_HEAD)).canMake, [
+      'request',
+      'message',
+      'event',
+    ])
+    assert.deepEqual((await detailOf(t, taskId, PLANNER)).canMake, ['request', 'message'])
     const denied = await t.api.post(
       `${councilBase(t)}/events`,
       { name: '봄 축제', taskId },

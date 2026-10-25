@@ -51,7 +51,8 @@ test(
     assert.deepEqual(detail.results, [
       { kind: 'request', id: made.id, title: '현수막', stage: 'in_progress' },
     ])
-    assert.deepEqual(detail.canMake, ['request'])
+    // 공지방에는 모든 운영진이 보내므로 부원도 공지 만들기('message')가 있다(DEC-90).
+    assert.deepEqual(detail.canMake, ['request', 'message'])
     const last = detail.history.at(-1)!
     assert.equal(last.cause, 'request_submitted')
     assert.equal(last.by, null)
