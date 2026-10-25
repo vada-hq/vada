@@ -1,9 +1,24 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createTestDb } from '../db/test-db.js'
+import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import { addUser } from '../test-support/council.js'
 import { linkMember } from './link.js'
+
+// 탈퇴와 겹친 학생회 만들기·초대로 들어오기: 계정 행을 기다린 사이 탈퇴가 계정을 지웠으면 로그인하지 않은 요청과 같다(500이 아니다).
+test('계정이 없으면(겹친 탈퇴가 지웠으면) 401 UNAUTHENTICATED이고 아무것도 만들지 않는다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    await assert.rejects(
+      db.transaction(tx => linkMember(tx, 'gone')),
+      (error: unknown) => error instanceof ApiError && error.code === 'UNAUTHENTICATED',
+    )
+    assert.equal((await pg.query('SELECT 1 FROM member')).rows.length, 0)
+  } finally {
+    await close()
+  }
+})
 
 test('처음 잇으면 운영진을 만든다: 이름은 로그인 이름, 이메일은 소문자. 다시 부르면 같은 운영진이다', async () => {
   const { db, pg, close } = await createTestDb()

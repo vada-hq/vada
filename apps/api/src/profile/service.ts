@@ -18,12 +18,14 @@ export async function myName(db: Pick<Db, 'select'>, userId: string): Promise<st
 // 같은 이름이면 판을 만들지 않는다. 운영진 행을 잠가 같은 사람의 고치기를 한 번에 하나씩 처리한다. 이어진 운영진이 없으면 404다.
 export async function renameMe(tx: Tx, userId: string, name: string) {
   const [current] = await tx
-    .select({ id: member.id, name: member.name })
+    .select({ id: member.id, name: member.name, leftAt: member.leftAt })
     .from(memberLogin)
     .innerJoin(member, eq(member.id, memberLogin.memberId))
     .where(eq(memberLogin.userId, userId))
     .for('no key update', { of: member })
   if (!current) throw new ApiError('NOT_FOUND')
+  // 운영진 행을 기다린 사이 탈퇴가 끝났으면 잠근 행은 탈퇴한 운영진이고 계정도 없다. 이름을 쓰면 운영진 CHECK에 걸린다.
+  if (current.leftAt) throw new ApiError('UNAUTHENTICATED')
   if (current.name === name) return
   await updateRecord(tx, {
     kind: 'member',
