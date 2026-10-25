@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { menuPath, type MyCouncil } from '@vada/contracts'
+import { COUNCIL_NAME_MAX, menuPath, type MyCouncil } from '@vada/contracts'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
@@ -170,6 +170,23 @@ test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 눌�
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fireEvent.change(end, { target: { value: '2026-12-31' } })
   expect(within(form).queryByText(reason)).toBeNull()
+})
+
+test('학생회 만들기에서 칸 길이를 넘기면 보내지 않고 그 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  councilsInSequence([])
+  await renderApp()
+  fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
+  const form = screen.getByRole('form', { name: '학생회 만들기' })
+  const name = within(form).getByLabelText('학생회 이름')
+  fireEvent.change(name, { target: { value: '가'.repeat(COUNCIL_NAME_MAX + 1) } })
+  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 만들기' }))
+  expect(within(form).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  expect(name.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(name))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  fireEvent.change(name, { target: { value: '가'.repeat(COUNCIL_NAME_MAX) } })
+  expect(within(form).queryByText('더 짧게 입력해 주세요')).toBeNull()
 })
 
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {

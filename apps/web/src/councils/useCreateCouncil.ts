@@ -36,7 +36,7 @@ export function useCreateCouncil(onCreated: (council: MyCouncil) => void) {
   const [form, setForm] = useState(initialDraft)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  // 버튼은 서버와 같은 스키마로 판단한다.
+  // 서버와 같은 스키마로 판단한다. 칸 확인이 다루지 않는 길이 상한은 화면이 이 결과로 칸 아래에 보인다.
   const parsed = CreateCouncilSchema.safeParse(form)
   const set = (key: keyof CreateCouncilDraft) => (event: { target: { value: string } }) =>
     setForm(current => ({ ...current, [key]: event.target.value }))
@@ -51,5 +51,5 @@ export function useCreateCouncil(onCreated: (council: MyCouncil) => void) {
     setSaving(false)
     setError(CREATE_COUNCIL_ERRORS[result.code] ?? CREATE_COUNCIL_FAILED)
   }
-  return { form, set, saving, error, valid: parsed.success, submit }
+  return { form, set, saving, error, parsed, submit }
 }
