@@ -65,6 +65,7 @@ export function createTaskPush(db: Db, send: PushSender, after: AfterTimer) {
 
   async function deliver(notice: AssignmentNotice) {
     try {
+      if (!notice.recipientId) return
       const message = await messageOf(db, notice)
       if (!message) return
       const accounts = await loginAccountsOf(db, [notice.recipientId])
@@ -81,7 +82,8 @@ export function createTaskPush(db: Db, send: PushSender, after: AfterTimer) {
       const original = earlier ? earlier.original : notice.previous
       const cancel = after(ASSIGNMENT_NOTICE_DELAY_MS, async () => {
         waiting.delete(notice.taskId)
-        // 처음 담당자로 돌아왔으면 아무도 받지 않는다.
+        // 비웠거나 맡긴 사람 자신이거나 처음 담당자로 돌아왔으면 아무도 받지 않는다.
+        if (!notice.recipientId || notice.recipientId === notice.assignerId) return
         if (notice.recipientId === original) return
         await deliver(notice)
       })

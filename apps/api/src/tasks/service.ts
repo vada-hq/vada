@@ -55,26 +55,29 @@ async function assertAssignee(tx: Tx, actor: Actor, assigneeId: string | null, n
 // 맡긴 뒤 새 담당자에게 보낼 알림. 커밋 뒤에 보내고, 기록은 같은 거래에서 이미 남겼다.
 export type AssignmentNotice = {
   taskId: string
-  recipientId: string
+  // 비우면 null
+  recipientId: string | null
   assignerId: string
   // 바꾸기 전 담당자. 알림을 모을 때 처음 담당자를 알아내는 데 쓴다.
   previous: string | null
 }
 
-// 새 담당자에게만 알린다(T3). 나에게 맡기기, 같은 사람 다시, 비우기는 알리지 않는다.
+// 담당자가 바뀔 때마다 알림 모으기 창을 연다. 비우기와 나에게 맡기기도 포함해야 10초 안에 처음 담당자로
+// 되돌릴 때 알림이 막힌다. 기록은 새 담당자가 남일 때만 남긴다(T3). 같은 사람 다시는 없다.
 async function noticeAssignment(
   tx: Tx,
   actor: Actor,
   taskId: string,
   { previous, next }: { previous: string | null; next: string | null },
 ): Promise<AssignmentNotice | null> {
-  if (!next || next === previous || next === actor.memberId) return null
-  await createRecord(tx, {
-    kind: 'notification',
-    councilId: actor.councilId,
-    actor: null,
-    values: { recipientId: next, recordId: taskId, type: 'assignment', notifiedAt: clockNow },
-  })
+  if (next === previous) return null
+  if (next && next !== actor.memberId)
+    await createRecord(tx, {
+      kind: 'notification',
+      councilId: actor.councilId,
+      actor: null,
+      values: { recipientId: next, recordId: taskId, type: 'assignment', notifiedAt: clockNow },
+    })
   return { taskId, recipientId: next, assignerId: actor.memberId, previous }
 }
 
