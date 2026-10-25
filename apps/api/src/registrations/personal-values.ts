@@ -7,6 +7,9 @@ export async function clearPhones(tx: Tx, formId: string) {
   await tx.execute(sql`UPDATE record_version SET data = jsonb_set(data, '{phone}', 'null'::jsonb)
     WHERE record_id IN (SELECT id FROM registration WHERE form_id = ${formId})
       AND data ->> 'phone' IS NOT NULL`)
+  // 영수증의 본문 해시에 휴대폰이 들어 있어 같이 지운다(DEC-55).
+  await tx.execute(sql`DELETE FROM command_receipt
+    WHERE result_id IN (SELECT id FROM registration WHERE form_id = ${formId})`)
   await tx.execute(
     sql`UPDATE registration SET phone = NULL WHERE form_id = ${formId} AND phone IS NOT NULL`,
   )
