@@ -9,7 +9,7 @@ import type { PushMessage, PushSender } from '../push/sender.js'
 import { itemCountColumns } from './last-outcome.js'
 import { requestStatusOf } from './policy.js'
 import type { PurchaseNotice } from './service.js'
-import { displayNameOf } from '../team/display-name.js'
+import { joinedDisplayNameOf } from '../team/display-name.js'
 
 const NEW_REQUEST_TITLE = '구매 요청이 왔어요'
 // 결과 알림의 제목. 마지막 대기 품목이 결재된 뒤라 대기는 없다.
@@ -27,7 +27,7 @@ async function requestFactsOf(db: Db, requestId: string) {
       title: request.title,
       cancelledAt: request.cancelledAt,
       councilId: record.councilId,
-      requester: displayNameOf(member, record.councilId),
+      requester: joinedDisplayNameOf(member, record.councilId),
       ...itemCountColumns(),
     })
     .from(request)
@@ -59,7 +59,7 @@ async function resultMessage(db: Db, found: Facts, notice: PurchaseNotice) {
     : RESULT_TITLES[requestStatusOf(found.cancelledAt !== null, found)]
   if (!title || !notice.decidedBy) return null
   const [decider] = await db
-    .select({ name: displayNameOf(member, found.councilId) })
+    .select({ name: joinedDisplayNameOf(member, found.councilId) })
     .from(member)
     .where(eq(member.id, notice.decidedBy))
   if (!decider) return null

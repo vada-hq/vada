@@ -31,7 +31,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { expenseHistoryOf } from './history.js'
 import { actionsOf, factsOf } from './policy.js'
-import { displayNameOf, councilOfRecord } from '../team/display-name.js'
+import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -185,7 +185,7 @@ async function approvalsOf(db: Reader, expenseId: string): Promise<ExpenseApprov
       id: approval.id,
       outcome: approval.outcome,
       actorId: approval.actorId,
-      actorName: displayNameOf(member, councilOfRecord(expenseId)),
+      actorName: displayNameOf(member, recordCouncilSql(expenseId)),
       actedAt: approval.actedAt,
     })
     .from(approval)

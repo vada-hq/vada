@@ -35,7 +35,7 @@ import {
   lineItemPayable,
   requestStatusOf,
 } from './policy.js'
-import { displayNameOf, councilOfRecord } from '../team/display-name.js'
+import { displayNameOf, joinedDisplayNameOf, recordCouncilSql } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -55,7 +55,7 @@ function summaryRows(
       eventId: request.eventId,
       eventName: event.name,
       requestedBy: request.requestedBy,
-      requesterName: displayNameOf(member, record.councilId),
+      requesterName: joinedDisplayNameOf(member, record.councilId),
       createdAt: record.createdAt,
       ...itemCountColumns(),
     })
@@ -196,7 +196,7 @@ async function decisionsOf(db: Reader, requestId: string) {
       lineItemId: approval.targetId,
       outcome: approval.outcome,
       actorId: approval.actorId,
-      actorName: displayNameOf(member, councilOfRecord(requestId)),
+      actorName: displayNameOf(member, recordCouncilSql(requestId)),
       actedAt: approval.actedAt,
       reason: approval.reason,
     })

@@ -2,7 +2,7 @@ import { and, asc, eq, inArray } from 'drizzle-orm'
 import type { SettlementApproval } from '@vada/contracts'
 import { approval, member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { displayNameOf, councilOfRecord } from '../team/display-name.js'
+import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -27,7 +27,7 @@ export async function completionApprovalsOf(
       actedAt: approval.actedAt,
       reason: approval.reason,
       actorId: approval.actorId,
-      actorName: displayNameOf(member, councilOfRecord(eventId)),
+      actorName: displayNameOf(member, recordCouncilSql(eventId)),
     })
     .from(approval)
     .leftJoin(member, eq(member.id, approval.actorId))

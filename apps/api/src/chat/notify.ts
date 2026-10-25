@@ -22,7 +22,7 @@ import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { currentMembersAmong } from './current-members.js'
 import { createPresence } from './presence.js'
-import { displayNameOf } from '../team/display-name.js'
+import { joinedDisplayNameOf } from '../team/display-name.js'
 
 // 종류로만 이름이 붙는 방의 알림 제목. 부서방은 부서 이름, 1:1은 보낸 사람이다.
 const ROOM_TITLES: Partial<Record<RoomType, string>> = {
@@ -42,7 +42,7 @@ async function sentMessage(db: Db, messageId: string) {
       body: message.body,
       councilId: record.councilId,
       senderId: record.createdBy,
-      senderName: displayNameOf(member, record.councilId),
+      senderName: joinedDisplayNameOf(member, record.councilId),
       roomType: chatRoom.type,
       departmentName: department.name,
     })

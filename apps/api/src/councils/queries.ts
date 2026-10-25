@@ -13,7 +13,7 @@ import {
   memberLogin,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { displayNameOf } from '../team/display-name.js'
+import { joinedDisplayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -77,7 +77,7 @@ export async function councilView(db: Reader, actor: Actor): Promise<CouncilView
     .from(cohort)
     .where(eq(cohort.id, actor.cohortId))
   const [me] = await db
-    .select({ name: displayNameOf(member, actor.councilId) })
+    .select({ name: joinedDisplayNameOf(member, actor.councilId) })
     .from(member)
     .where(eq(member.id, actor.memberId))
   const ids = actor.departments.map(item => item.departmentId)

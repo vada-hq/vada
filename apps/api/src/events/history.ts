@@ -1,7 +1,7 @@
 import { koreanOf, type EventChange, type EventVersion } from '@vada/contracts'
 import type { Db } from '../db/types.js'
 import { versionsOf } from '../records/versions.js'
-import { councilOfRecord, memberNamesOf } from '../team/display-name.js'
+import { recordCouncilSql, memberNamesOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -46,7 +46,7 @@ export async function eventHistoryOf(db: Reader, eventId: string): Promise<Event
   const snapshots = rows.map(row => row.data as Snapshot)
   const names = await memberNamesOf(
     db,
-    councilOfRecord(eventId),
+    recordCouncilSql(eventId),
     snapshots.flatMap(item => (item.owner_id ? [item.owner_id] : [])),
   )
   return rows.map((row, index) => {

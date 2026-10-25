@@ -20,7 +20,7 @@ import type { Db } from '../db/types.js'
 import { currentMembersAmong } from './current-members.js'
 import { noticesOf } from './messages.js'
 import { inNoticeRoom } from './plan-room.js'
-import { displayNameOf } from '../team/display-name.js'
+import { joinedDisplayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -93,7 +93,7 @@ async function directPeers(db: Reader, actor: Actor, now: Date, roomIds: string[
     .select({
       roomId: roomMembership.roomId,
       memberId: roomMembership.memberId,
-      name: displayNameOf(member, actor.councilId),
+      name: joinedDisplayNameOf(member, actor.councilId),
     })
     .from(roomMembership)
     .innerJoin(member, eq(member.id, roomMembership.memberId))
@@ -201,10 +201,10 @@ export async function roomDetailOf(
 ): Promise<RoomDetailResponse> {
   const room = (await summariesOf(db, actor, now)).find(item => item.id === roomId)!
   const participants = await db
-    .select({ memberId: member.id, name: displayNameOf(member, actor.councilId) })
+    .select({ memberId: member.id, name: joinedDisplayNameOf(member, actor.councilId) })
     .from(roomMembership)
     .innerJoin(member, eq(member.id, roomMembership.memberId))
     .where(eq(roomMembership.roomId, roomId))
-    .orderBy(asc(displayNameOf(member, actor.councilId)))
+    .orderBy(asc(joinedDisplayNameOf(member, actor.councilId)))
   return { room, participants }
 }

@@ -8,7 +8,7 @@ import {
 } from '@vada/contracts'
 import { department, event, recordVersion } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { councilOfRecord, memberNamesOf } from '../team/display-name.js'
+import { recordCouncilSql, memberNamesOf } from '../team/display-name.js'
 import { dueDateOf } from './due.js'
 
 type Reader = Pick<Db, 'select'>
@@ -85,7 +85,7 @@ async function namesOf(
     : []
   return {
     events: new Map(events.map(row => [row.id, row.name])),
-    members: await memberNamesOf(db, councilOfRecord(taskId), memberIds),
+    members: await memberNamesOf(db, recordCouncilSql(taskId), memberIds),
     departments: new Map(departments.map(row => [row.id, row.name])),
   }
 }
