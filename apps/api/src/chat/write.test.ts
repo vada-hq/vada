@@ -121,7 +121,6 @@ test(
     const sent = await sentOf(response)
     assert.equal(sent.body, '안녕하세요')
     assert.equal(sent.senderName, 's president')
-    assert.equal(sent.isNotice, false)
     assert.equal(await s.versions(sent.id), 1)
     const mine = (await s.list('s-president')).rooms.find(room => room.id === all)!
     assert.equal(mine.unread, 0)
@@ -313,69 +312,43 @@ test(
 )
 
 test(
-  '회장단이 전체방 메시지에 공지를 붙이고 떼면 판이 남고 같은 값이면 판이 늘지 않는다',
+  '모든 운영진이 공지방에 보낸다: 회장단이 아닌 부원과 재정부원도 201이고 메시지는 공지 표시가 없는 보통 메시지다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
-    const sent = await sentOf(await s.send(all, 's-plain', { body: '공지할 글' }))
-    const mark = (user: string, id: string, isNotice: unknown) =>
-      s.api.post(`${s.base}/messages/${id}/notice`, { isNotice }, user)
-    const on = await mark('s-vicePresident', sent.id, true)
-    assert.equal(on.status, 200)
-    assert.equal((await sentOf(on)).isNotice, true)
-    assert.equal(await s.versions(sent.id), 2)
-    const changer = await s.pg.query<{ changed_by: string }>(
-      'SELECT changed_by FROM record_version WHERE record_id = $1 AND version_no = 2',
-      [sent.id],
-    )
-    assert.equal(changer.rows[0]!.changed_by, s.person.vicePresident.memberId)
-    assert.equal((await mark('s-president', sent.id, true)).status, 200)
-    assert.equal(await s.versions(sent.id), 2)
-    assert.equal((await s.list('s-plain')).notices.length, 1)
-    assert.equal((await sentOf(await mark('s-president', sent.id, false))).isNotice, false)
-    assert.equal(await s.versions(sent.id), 3)
-    assert.equal((await mark('s-president', sent.id, false)).status, 200)
-    assert.equal(await s.versions(sent.id), 3)
+    for (const user of ['s-plain', 's-planningMember', 's-financeMember', 's-president']) {
+      const response = await s.send(all, user, { body: `${user}의 공지` })
+      assert.equal(response.status, 201, user)
+      const sent = await sentOf(response)
+      assert.equal('isNotice' in sent, false)
+      assert.equal(
+        await s.count('SELECT count(*) AS n FROM message WHERE id = $1 AND NOT is_notice', [
+          sent.id,
+        ]),
+        1,
+      )
+    }
   }),
 )
 
 test(
-  '공지 표시: 회장단이 아니면 403, 부서방·회장단방·다른 학생회·없는·들어오기 전 메시지는 404, 로그인 전은 401, 나쁜 본문은 400이다',
+  '공지 표시 경로와 공지 모아 보기는 없다(404). notice 키를 보내면 400이고 아무것도 남지 않는다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
-    const planning = await s.roomId(s.council.councilId, '기획부')
-    const leadership = await s.roomId(s.council.councilId, 'leadership')
-    const foreignAll = await s.roomId(s.other.councilId, 'all')
-    const own = await sentOf(await s.send(all, 's-plain', { body: '전체방' }))
-    const inPlanning = await sentOf(await s.send(planning, 's-planningMember', { body: '부서방' }))
-    const inLeadership = await sentOf(await s.send(leadership, 's-president', { body: '회장단방' }))
-    const foreign = await sentOf(
-      await s.api.post(
-        `/api/organizations/${s.other.councilId}/rooms/${foreignAll}/messages`,
-        { body: '남의 방' },
-        'o-president',
-      ),
+    const sent = await sentOf(await s.send(all, 's-plain', { body: '글' }))
+    const mark = await s.api.post(
+      `${s.base}/messages/${sent.id}/notice`,
+      { isNotice: true },
+      's-president',
     )
-    const early = await s.db.transaction(tx =>
-      createRecord(tx, {
-        kind: 'message',
-        councilId: s.council.councilId,
-        actor: s.person.vicePresident.memberId,
-        values: { roomId: all, body: '전', sentAt: new Date('2026-02-28T00:00:00Z') },
-      }),
-    )
-    const mark = (user: string | undefined, id: string, body: unknown = { isNotice: true }) =>
-      s.api.post(`${s.base}/messages/${id}/notice`, body, user)
-    assert.equal((await mark('s-planningHead', own.id)).status, 403)
-    assert.equal((await mark('s-plain', own.id)).status, 403)
-    assert.equal((await mark('o-president', own.id)).status, 403)
-    assert.equal((await mark(undefined, own.id)).status, 401)
-    for (const id of [inPlanning.id, inLeadership.id, foreign.id, early, MISSING, 'abc'])
-      assert.equal((await mark('s-president', id)).status, 404, id)
-    for (const body of [{}, { isNotice: 'yes' }, { isNotice: true, x: 1 }])
-      assert.equal((await mark('s-president', own.id, body)).status, 400, JSON.stringify(body))
-    assert.equal(await s.versions(own.id), 1)
-    assert.equal(await s.versions(inPlanning.id), 1)
-    assert.equal(await s.versions(foreign.id), 1)
+    assert.equal(mark.status, 404)
+    assert.equal((await s.api.get(`${s.base}/notices`, 's-president')).status, 404)
+    assert.equal(await s.versions(sent.id), 1)
+    const before = await s.messageCount()
+    for (const notice of [true, false]) {
+      const response = await s.send(all, 's-president', { body: '공지', notice })
+      assert.equal(response.status, 400, String(notice))
+    }
+    assert.equal(await s.messageCount(), before)
   }),
 )
 
@@ -453,40 +426,5 @@ test(
     assert.equal((await s.send(roomId, 's-plain', { body: '돌아옴' })).status, 403)
     // 떠난 사람과는 새로 열 수 없다.
     assert.equal((await s.direct('s-president', p.plain.memberId)).status, 404)
-  }),
-)
-
-test(
-  '공지 떼기는 보이는 공지와 같은 조건이다: 공지가 붙은 뒤 들어온 회장단도 같은 기수 공지는 떼고, 지난 기수 공지와 보이지 않는 글은 404다',
-  run(async s => {
-    const all = await s.roomId(s.council.councilId, 'all')
-    const post = (body: string, sentAt: string, isNotice: boolean) =>
-      s.db.transaction(tx =>
-        createRecord(tx, {
-          kind: 'message',
-          councilId: s.council.councilId,
-          actor: s.person.president.memberId,
-          values: { roomId: all, body, sentAt: new Date(sentAt), isNotice },
-        }),
-      )
-    const shown = await post('보이는 공지', '2026-05-01T00:00:00Z', true)
-    const lastYear = await post('지난 기수 공지', '2025-05-01T00:00:00Z', true)
-    const hidden = await post('들어오기 전 일반 글', '2026-05-02T00:00:00Z', false)
-    await s.pg.query(
-      `UPDATE room_membership SET joined_at = '2026-06-01T00:00:00Z'
-        WHERE room_id = $1 AND member_id = $2`,
-      [all, s.person.vicePresident.memberId],
-    )
-    const mark = (id: string, isNotice: boolean) =>
-      s.api.post(`${s.base}/messages/${id}/notice`, { isNotice }, 's-vicePresident')
-    assert.equal((await s.list('s-vicePresident')).notices.length, 1)
-    assert.equal((await mark(lastYear, false)).status, 404)
-    assert.equal((await mark(hidden, true)).status, 404)
-    const off = await mark(shown, false)
-    assert.equal(off.status, 200)
-    assert.equal((await sentOf(off)).isNotice, false)
-    assert.equal((await s.list('s-vicePresident')).notices.length, 0)
-    // 뗀 글은 들어오기 전 글이라 다시 붙일 수는 없다.
-    assert.equal((await mark(shown, true)).status, 404)
   }),
 )

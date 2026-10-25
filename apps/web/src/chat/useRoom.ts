@@ -8,7 +8,6 @@ import {
   prepended,
   readMessages,
   readNewer,
-  withNotice,
   withSync,
   type RoomState,
 } from './room-state'
@@ -63,12 +62,6 @@ export function useRoom(councilId: string, roomId: string) {
     setState(now => prepended(now, result.data))
     return true
   }, [where, firstId, lose, isActive])
-
-  // 공지 표시를 바꾼 뒤 그 메시지만 고친다. 흐름은 다시 읽지 않는다.
-  const setNoticeLocally = useCallback(
-    (messageId: string, isNotice: boolean) => setState(now => withNotice(now, messageId, isNotice)),
-    [],
-  )
-  return { state, retry: first, lose, loadOlder, setNoticeLocally, sync: catchUp }
+  return { state, retry: first, lose, loadOlder, sync: catchUp }
 }
 export type Room = ReturnType<typeof useRoom>

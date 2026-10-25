@@ -1,10 +1,8 @@
 import { Hono, type Context } from 'hono'
 import {
   CreatePhotoUploadSchema,
-  MarkNoticeSchema,
   MessagePageQuerySchema,
   NO_CONTENT,
-  NOTICE_LIST_MAX,
   OpenDirectSchema,
   ReadMarkerSchema,
   SendMessageSchema,
@@ -14,7 +12,6 @@ import {
   type OpenDirectResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
-  type NoticeListResponse,
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
@@ -28,8 +25,7 @@ import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
 import { openDirect } from './direct.js'
-import { messagePage, noticesOf } from './messages.js'
-import { markNotice } from './notice.js'
+import { messagePage } from './messages.js'
 import type { ChatPush } from './notify.js'
 import { issuePhotoUpload, photoToView, verifyPhotos, visiblePhotoList } from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
@@ -86,14 +82,6 @@ function listRoutes({ routes, auth, db, asked }: Kit) {
     )
     return c.json(list satisfies RoomListResponse)
   })
-  routes.get(`${root}/notices`, auth, async c => {
-    const request = asked(c)
-    const notices = await db.transaction(
-      async tx => noticesOf(tx, await authorize(tx, request), NOTICE_LIST_MAX),
-      snapshot,
-    )
-    return c.json({ notices } satisfies NoticeListResponse)
-  })
 }
 
 function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
@@ -128,7 +116,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!sendLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
     const roomId = recordIdOf(c.req.param('roomId'))
-    const { body, mentions, photos: keys, notice, taskId } = c.req.valid('json')
+    const { body, mentions, photos: keys, taskId } = c.req.valid('json')
     // 사진은 거래 밖에서 저장소를 확인한다(저장소를 기다리는 동안 참여 줄 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
     const photos = keys.length
       ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
@@ -138,20 +126,11 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
       body: body ?? '',
       mentions,
       photos,
-      notice,
       taskId,
     })
     // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
     void push?.notify(sent.id, clock())
     return c.json(sent satisfies ChatMessage, CREATED)
-  })
-  routes.post(`${root}/messages/:messageId/notice`, json(MarkNoticeSchema), auth, async c => {
-    const messageId = recordIdOf(c.req.param('messageId'))
-    const { isNotice } = c.req.valid('json')
-    const marked = await change(c, 'chat.notice', (tx, actor) =>
-      markNotice(tx, actor, messageId, isNotice),
-    )
-    return c.json(marked satisfies ChatMessage)
   })
   routes.post(`${root}/direct`, json(OpenDirectSchema), auth, async c => {
     const { memberId } = c.req.valid('json')
@@ -197,7 +176,7 @@ function photoRoutes({ routes, auth, db, asked, uploadLimiter, storage }: Kit) {
   })
 }
 
-// 대화: 방 목록, 방, 메시지 읽기와 보내기, 공지, 읽음, 1:1. 방에 닿으려면 그 방 참여자여야 한다.
+// 대화: 방 목록, 방, 메시지 읽기와 보내기, 읽음, 1:1. 방에 닿으려면 그 방 참여자여야 한다.
 export function createChatRoutes(
   db: Db,
   getSession: SessionReader,

@@ -2092,7 +2092,7 @@ exports[`대화상자 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -2178,7 +2178,7 @@ exports[`대화상자 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -4641,7 +4641,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -4727,7 +4727,7 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -7186,7 +7186,7 @@ exports[`옆 메뉴 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -7272,7 +7272,7 @@ exports[`옆 메뉴 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -9728,7 +9728,7 @@ exports[`오른쪽 패널 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -9814,7 +9814,7 @@ exports[`오른쪽 패널 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -12267,7 +12267,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -12353,7 +12353,7 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -14810,7 +14810,7 @@ exports[`처음 모양 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -14896,7 +14896,7 @@ exports[`처음 모양 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>
@@ -17331,7 +17331,7 @@ exports[`확인 대화상자 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal" type="button">
 <img alt="" loading="lazy" class="size-16 shrink-0 rounded-sm border object-cover" src="/api/organizations/c1/files/p1">
 <span class="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-<span class="font-medium text-gray-700">운영진 전체방</span>
+<span class="font-medium text-gray-700">공지방</span>
 <span>박새내</span>
 <span>10월 20일</span>
 </span>
@@ -17417,7 +17417,7 @@ exports[`확인 대화상자 열기 1`] = `
 </svg>닫기</button>
 </div>
 <div role="group" aria-label="붙일 대화 사진" class="flex flex-col gap-3 rounded-sm border p-3">
-<img alt="운영진 전체방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
+<img alt="공지방 박새내의 사진" class="max-h-40 w-full rounded-sm border bg-gray-50 object-contain" src="/api/organizations/c1/files/p1">
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex flex-col gap-2">종류<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer">
 <option value="receipt">영수증</option>
 <option value="statement">거래명세서</option>

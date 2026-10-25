@@ -45,7 +45,7 @@ test('sendAs는 taskId가 있을 때만 학생회 행을 잠근 뒤에 운영진
       action: 'council.view' as const,
       now,
     }
-    const input = { roomId, body: '공지', mentions: [], photos: [], notice: true }
+    const input = { roomId, body: '공지', mentions: [], photos: [] }
     const lockOf = () =>
       queries.findIndex(
         query => query.includes('from "council"') && query.endsWith(' for no key update'),

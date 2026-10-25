@@ -1,18 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
 import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
-import {
-  message,
-  messagePage,
-  notice,
-  room,
-  roomDetail,
-  roomList,
-} from './test-support/chat-fixtures'
+import { message, messagePage, room, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
-import { homeNotice, homeResponse, onHomeExtras } from './test-support/home-fixtures'
+import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { ADDRESS_LOST } from './lib/messages'
 
@@ -58,17 +51,13 @@ beforeEach(() => {
   )
   const rooms = roomList({
     rooms: [room(ALL), room(LEAD, { type: 'leadership', lastMessageAt: null })],
-    notices: [notice('n1', '10월 정기 회의는 금요일입니다')],
   })
   for (const id of [C1, C2]) {
     api.on('GET', `/api/organizations/${id}`, () => json(councilView(id)))
     api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(rooms))
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
-    api.on('GET', `/api/organizations/${id}/notices`, () =>
-      json({ notices: [notice('n1', '10월 정기 회의는 금요일입니다')] }),
-    )
-    onHomeExtras(api, { notices: [homeNotice('h1', { body: '회의 장소 변경' })] }, id)
+    onHomeExtras(api, {}, id)
   }
   serveRoom(ALL, room(ALL), '전체방 글')
   serveRoom(LEAD, room(LEAD, { type: 'leadership' }), '회장단 글')
@@ -97,42 +86,23 @@ test('방 주소로 바로 들어오면 그 방이 열리고 뒤로가 방 목�
   expect(await screen.findByText('회장단 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
   toList()
-  expect(await roomButton(/운영진 전체방/)).toBeTruthy()
+  expect(await roomButton(/공지방/)).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
 })
 
-test('방 → 공지 모아 보기 → 뒤로는 그 방이다', async () => {
-  window.history.replaceState(null, '', `/chat/${C1}`)
-  await renderApp()
-  fireEvent.click(await roomButton(/운영진 전체방/))
-  await screen.findByText('전체방 글')
-  fireEvent.click(await screen.findByRole('button', { name: '모아 보기' }))
-  expect(await screen.findByRole('heading', { name: '공지 모아 보기' })).toBeTruthy()
-  expect(pathNow()).toBe(`/chat/${C1}?tab=notices`)
-  toList()
-  expect(await screen.findByText('전체방 글')).toBeTruthy()
-  expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
-})
-
-test('공지 모아 보기 주소로 열면 그대로 열리고, 바로 들어왔으면 뒤로가 방 목록이다', async () => {
+test('옛 공지 모아 보기 주소(?tab=notices)는 대화 첫 화면이고 공지 칸이 없다(DEC-90)', async () => {
   window.history.replaceState(null, '', `/chat/${C1}?tab=notices`)
   await renderApp()
-  expect(await screen.findByRole('heading', { name: '공지 모아 보기' })).toBeTruthy()
-  toList()
-  expect(await roomButton(/운영진 전체방/)).toBeTruthy()
-  expect(pathNow()).toBe(`/chat/${C1}`)
+  expect(await roomButton(/공지방/)).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: '공지 모아 보기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: /^공지 / })).toBeNull()
 })
 
-test('홈의 공지 줄은 공지 모아 보기로 열고 뒤로는 홈이다', async () => {
+test('홈에 공지 부분이 없다', async () => {
   window.history.replaceState(null, '', `/home/${C1}`)
   await renderApp()
-  const section = await screen.findByRole('region', { name: '공지' })
-  fireEvent.click(within(section).getByRole('button', { name: '회의 장소 변경' }))
-  expect(await screen.findByRole('heading', { name: '공지 모아 보기' })).toBeTruthy()
-  expect(pathNow()).toBe(`/chat/${C1}?tab=notices`)
-  toList()
   expect(await screen.findByRole('heading', { level: 1, name: '홈', hidden: true })).toBeTruthy()
-  expect(pathNow()).toBe(`/home/${C1}`)
+  expect(screen.queryByRole('region', { name: '공지' })).toBeNull()
 })
 
 test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => {
@@ -144,7 +114,7 @@ test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => 
   await screen.findByText('회장단 글')
   expect((await field()).textContent).toBe('')
   toList()
-  fireEvent.click(await roomButton(/운영진 전체방/))
+  fireEvent.click(await roomButton(/공지방/))
   await screen.findByText('전체방 글')
   expect(((await field()) as HTMLTextAreaElement).value).toBe('쓰던 글')
 })
@@ -155,7 +125,7 @@ test('들어가지 않은 방 주소는 찾을 수 없음이고 그 방을 읽�
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   expect(api.calls.some(call => call.path.includes(THEIRS))).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
-  expect(await roomButton(/운영진 전체방/)).toBeTruthy()
+  expect(await roomButton(/공지방/)).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
 })
 
@@ -203,7 +173,7 @@ test('PC에서 대화 메뉴 첫 화면은 기억한 방이고 주소는 그대�
   await renderApp()
   expect(await screen.findByText('회장단 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
-  fireEvent.click(await roomButton(/운영진 전체방/))
+  fireEvent.click(await roomButton(/공지방/))
   expect(await screen.findByText('전체방 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
 })

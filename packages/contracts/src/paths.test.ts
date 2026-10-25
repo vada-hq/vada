@@ -52,7 +52,9 @@ test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않
   const finance = menuPath('finance', C, { tab: 'fees', view: 'pending', period: P })
   assert.equal(finance, `/finance/${C}?tab=fees&view=pending&period=${P}`)
   assert.equal(appPath(parseAppPath(finance)!), finance)
-  assert.equal(menuPath('chat', C, { tab: 'notices' }), `/chat/${C}?tab=notices`)
+  // 공지 모아 보기는 없다(DEC-90). 옛 주소의 tab=notices는 버린다.
+  assert.equal(menuPath('chat', C, { tab: 'notices' }), `/chat/${C}`)
+  assert.deepEqual(parseAppPath(`/chat/${C}?tab=notices`)?.query, {})
   const event = appPath({
     type: 'record',
     record: 'events',

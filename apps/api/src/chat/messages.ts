@@ -21,7 +21,6 @@ const columns = {
   id: message.id,
   body: message.body,
   sentAt: message.sentAt,
-  isNotice: message.isNotice,
   senderId: record.createdBy,
   senderName: displayNameOf(member, record.councilId),
 }
@@ -30,6 +29,7 @@ const rowsOf = (db: Reader) =>
     .select(columns)
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .leftJoin(member, eq(member.id, record.createdBy))
 
 type Row = Awaited<ReturnType<ReturnType<typeof rowsOf>['limit']>>[number]
@@ -61,31 +61,31 @@ async function chatMessagesOf(db: Reader, rows: Row[]): Promise<ChatMessage[]> {
   }))
 }
 
-// 메시지 하나. 보낸 직후와 공지를 바꾼 직후의 응답이 쓴다.
+// 메시지 하나. 보낸 직후의 응답이 쓴다.
 export async function messageOf(db: Reader, messageId: string): Promise<ChatMessage> {
   const [row] = await rowsOf(db).where(eq(message.id, messageId))
   return (await chatMessagesOf(db, [row!]))[0]!
 }
 
 // 들어온 뒤의 메시지(DEC-20). 시각은 참여 줄과 DB 안에서 비교한다. Date로 옮기면 마이크로초가 깎여 경계가 어긋난다.
-export const sinceJoined = (memberId: string) =>
+const sinceJoined = (memberId: string) =>
   sql`${message.sentAt} >= (select ${roomMembership.joinedAt} from ${roomMembership}
     where ${roomMembership.roomId} = ${message.roomId} and ${roomMembership.memberId} = ${memberId}::uuid)`
 
-// 커서는 메시지 번호다. 이 방에서 내가 볼 수 있는 메시지가 아니면(들어오기 전, 다른 방, 없는 것, 형식 틀림) 같은 오류다.
-async function assertCursor(db: Reader, memberId: string, roomId: string, cursor: string) {
-  const [found] = isUuid(cursor)
-    ? await db
-        .select({ id: message.id })
-        .from(message)
-        .where(
-          and(
-            eq(message.id, cursor.toLowerCase()),
-            eq(message.roomId, roomId),
-            sinceJoined(memberId),
-          ),
-        )
-    : []
+// 이 방에서 내가 볼 수 있는 메시지 하나인가. 커서와 읽음 표시가 쓴다.
+export async function isVisibleInRoom(db: Reader, actor: Actor, roomId: string, messageId: string) {
+  const [found] = await db
+    .select({ id: message.id })
+    .from(message)
+    .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
+    .where(and(eq(message.id, messageId), eq(message.roomId, roomId), visibleMessage(actor)))
+  return found !== undefined
+}
+
+// 커서는 메시지 번호다. 이 방에서 내가 볼 수 있는 메시지가 아니면(들어오기 전, 다른 기수, 다른 방, 없는 것, 형식 틀림) 같은 오류다.
+async function assertCursor(db: Reader, actor: Actor, roomId: string, cursor: string) {
+  const found = isUuid(cursor) && (await isVisibleInRoom(db, actor, roomId, cursor.toLowerCase()))
   if (!found) throw new ApiError('INVALID_CURSOR')
 }
 
@@ -94,7 +94,7 @@ const beyond = (cursor: string, forward: boolean) =>
   sql`(${message.sentAt}, ${message.id}) ${sql.raw(forward ? '>' : '<')}
     (select m.sent_at, m.id from message m where m.id = ${cursor.toLowerCase()}::uuid)`
 
-// 메시지 한 쪽. 커서가 없으면 가장 최근 쪽이고, before는 그 앞(더 오래된), after는 그 뒤(더 새)이다. 쪽 안은 오래된 것부터다.
+// 내가 볼 수 있는 메시지 한 쪽. 커서가 없으면 가장 최근 쪽이고, before는 그 앞(더 오래된), after는 그 뒤(더 새)이다. 쪽 안은 오래된 것부터다.
 export async function messagePage(
   db: Reader,
   actor: Actor,
@@ -102,13 +102,13 @@ export async function messagePage(
   query: { before?: string | undefined; after?: string | undefined },
 ): Promise<MessagePageResponse> {
   const cursor = query.before ?? query.after
-  if (cursor !== undefined) await assertCursor(db, actor.memberId, roomId, cursor)
+  if (cursor !== undefined) await assertCursor(db, actor, roomId, cursor)
   const forward = query.after !== undefined
   const rows = await rowsOf(db)
     .where(
       and(
         eq(message.roomId, roomId),
-        sinceJoined(actor.memberId),
+        visibleMessage(actor),
         cursor === undefined ? undefined : beyond(cursor, forward),
       ),
     )
@@ -129,36 +129,34 @@ export async function messagePage(
   }
 }
 
-const NOTICE_COHORT = 'notice_cohort'
-const noticeCohort = alias(cohort, NOTICE_COHORT)
+const SENT_COHORT = 'sent_cohort'
+const sentCohort = alias(cohort, SENT_COHORT)
 
-// 같은 기수의 공지(DEC-48): 전체방의 공지 표시가 붙은 메시지 중 보낸 날(한국 날짜)의 기수가 내 지금 기수인 것.
-// 보낸 날의 기수는 그날까지 시작한 가장 늦은 기수다(DEC-57). 끝 날짜 뒤에 보낸 공지도 다음 기수가 시작하기 전까지는 같은 기수다.
-// 들어오기 전 것도 보인다. 기수는 한국 날짜로 가른다(서버 시간대가 UTC여도 같다).
-// 보이는 공지와 떼어 낼 수 있는 공지가 같은 조건에서 나오도록 이 한 곳에 둔다(조회와 공지 표시가 함께 쓴다). record, chat_room을 합친 조회에서 쓴다.
-export const shownNotice = (actor: Actor) =>
-  and(
-    eq(record.councilId, actor.councilId),
-    inNoticeRoom,
-    eq(message.isNotice, true),
-    exists(
-      sql`(select 1 from ${cohort} ${sql.identifier(NOTICE_COHORT)} where ${and(
-        eq(noticeCohort.id, actor.cohortId),
-        cohortOfDay(noticeCohort, sql`(${message.sentAt} at time zone 'Asia/Seoul')::date`),
-      )})`,
-    ),
+// 보낸 날(한국 날짜)의 기수가 내 지금 기수다(DEC-48). 보낸 날의 기수는 그날까지 시작한 가장 늦은 기수다(DEC-57).
+// 끝 날짜 뒤에 보낸 것도 다음 기수가 시작하기 전까지는 같은 기수다. 서버 시간대가 UTC여도 같다.
+const sentInMyCohort = (actor: Actor) =>
+  exists(
+    sql`(select 1 from ${cohort} ${sql.identifier(SENT_COHORT)} where ${and(
+      eq(sentCohort.id, actor.cohortId),
+      cohortOfDay(sentCohort, sql`(${message.sentAt} at time zone 'Asia/Seoul')::date`),
+    )})`,
   )
 
-// 이 사람이 대화에서 볼 수 있는 메시지(전체방 메시지 기준): 들어온 뒤의 것이거나 같은 기수의 공지.
-// 다른 화면이 메시지를 모아 보일 때(업무 상세의 결과물)도 이 조건을 거친다(DEC-59). record, chat_room을 합친 조회에서 쓴다.
-export const visibleMessage = (actor: Actor) => or(sinceJoined(actor.memberId), shownNotice(actor))
+// 그 방의 참여자다(들어온 시각과 상관없이).
+const inMessageRoom = (memberId: string) =>
+  exists(
+    sql`(select 1 from ${roomMembership} where ${roomMembership.roomId} = ${message.roomId}
+      and ${roomMembership.memberId} = ${memberId}::uuid)`,
+  )
 
-// 같은 기수의 공지. 최근 것부터다.
-export async function noticesOf(db: Reader, actor: Actor, limit: number): Promise<ChatMessage[]> {
-  const rows = await rowsOf(db)
-    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
-    .where(shownNotice(actor))
-    .orderBy(desc(message.sentAt), desc(message.id))
-    .limit(limit)
-  return chatMessagesOf(db, rows)
-}
+// 이 사람이 볼 수 있는 메시지(DEC-20, DEC-48, DEC-90): 이 학생회의 메시지이고, 그 방에 들어온 뒤의 것이거나
+// 공지방 메시지 가운데 같은 기수의 것(들어오기 전 것도). 방 흐름, 커서, 읽음, 안 읽은 수, 사진, 근거 잇기, 업무 결과물 제목이
+// 이 조건 하나를 쓴다(보이는 조건과 여는 조건이 갈라지지 않게). record, chat_room을 합친 조회에서 쓴다.
+export const visibleMessage = (actor: Actor) =>
+  and(
+    eq(record.councilId, actor.councilId),
+    or(
+      sinceJoined(actor.memberId),
+      and(inNoticeRoom, inMessageRoom(actor.memberId), sentInMyCohort(actor)),
+    ),
+  )

@@ -77,16 +77,10 @@ export const LEAVE_CONFIRM = '입력 버리고 나가기'
 export const ROOM_LOST = '이 방을 볼 수 없어요'
 export const ROOMS_LOAD_FAILED = '대화방을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const ROOM_LOAD_FAILED = '이 방을 불러오지 못했어요. 연결을 확인해 주세요.'
-export const NOTICES_LOAD_FAILED = '공지를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const ROOM_SYNC_FAILED = '새 메시지를 불러오지 못하고 있어요. 연결을 확인해 주세요.'
 export const OLDER_LOAD_FAILED = '이전 메시지를 불러오지 못했어요.'
 
-// 공지 붙이기·떼기와 1:1 열기는 그 동작 옆에 오류를 보인다. 표에 없는 코드는 일반 문구다.
-export const NOTICE_ERRORS: Record<string, string> = {
-  FORBIDDEN: PERMISSION_CHANGED,
-  NOT_FOUND: '이 메시지는 공지로 표시할 수 없어요.',
-}
-export const NOTICE_FAILED = '공지 표시를 바꾸지 못했어요. 다시 시도해 주세요.'
+// 1:1 열기는 그 동작 옆에 오류를 보인다. 표에 없는 코드는 일반 문구다.
 export const DIRECT_ERRORS: Record<string, string> = {
   CANNOT_DIRECT_SELF: '나와는 1:1 대화를 열 수 없어요.',
   FORBIDDEN: PERMISSION_CHANGED,

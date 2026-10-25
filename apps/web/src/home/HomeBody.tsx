@@ -8,7 +8,6 @@ import DepartmentsSection from './DepartmentsSection'
 import { attentionOf } from './home-attention'
 import { mineRows } from './home-view'
 import MineSection from './MineSection'
-import NoticesSection from './NoticesSection'
 import ReceivedSection from './ReceivedSection'
 import RequestsSection from './RequestsSection'
 import SettlingSection from './SettlingSection'
@@ -125,12 +124,6 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
         onOpenRequest={requests.openRequest}
         onSeeAll={requests.seeMine}
       />
-      {!home.council && (
-        <NoticesSection
-          notices={extras.notices}
-          onOpenNotices={() => openMenu('chat', councilId, { tab: 'notices' })}
-        />
-      )}
       {!home.council && (
         <WeekEventsSection
           events={extras.events}

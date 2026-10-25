@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { chatRoom, record } from '../../db/schema.js'
 import type { Db } from '../../db/types.js'
+import { inCouncilNoticeRoom } from '../../chat/plan-room.js'
 import { sendAs } from '../../chat/send.js'
 import { createPurchaseRequest } from '../../purchases/service.js'
 import { createTask } from '../../tasks/service.js'
@@ -24,7 +25,7 @@ import {
 } from './pg-smoke-money-kit.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
 
-// 사례 s(기능 015): 같은 업무에 공지를 잇는 보내기와, 같은 업무에 요청을 잇는 내기가 겹친다.
+// 사례 s(기능 015): 같은 업무에 공지(공지방 메시지, DEC-90)를 잇는 보내기와, 같은 업무에 요청을 잇는 내기가 겹친다.
 // 업무를 잇는 보내기는 학생회 행을 먼저 잠그고(authorizeChange) 요청 내기도 같은 잠금 뒤에 서므로 한 줄로 선다.
 // 기대: 공지는 성공하고 요청은 끝난 업무를 이을 수 없어 TASK_INVALID(잠금 없이 옛 상태를 읽으면 요청이 지나가 연결이 둘이 된다),
 // 연결은 하나, 업무는 done, 업무의 판은 만듦·끝남 둘이고 열린 판은 하나다.
@@ -38,8 +39,8 @@ const noticeRoomOf = async (db: Db, councilId: string) => {
     .select({ id: chatRoom.id })
     .from(chatRoom)
     .innerJoin(record, eq(record.id, chatRoom.id))
-    .where(and(eq(record.councilId, councilId), eq(chatRoom.type, 'all_members')))
-  if (!room) throw new Error('All room missing')
+    .where(and(eq(record.councilId, councilId), inCouncilNoticeRoom))
+  if (!room) throw new Error('Notice room missing')
   return room.id
 }
 
@@ -91,7 +92,7 @@ async function race(run: Run, scene: MoneyScene, taskId: string) {
       // 라우트가 부르는 sendAs 그대로다: 업무를 잇는 보내기는 학생회 행을 먼저 잠근다.
       noticeDb.transaction(async tx => {
         const request = { ...scene.host, action: 'council.view' as const, now: context.now }
-        const input = { roomId, body: '공지', mentions: [], photos: [], notice: true, taskId }
+        const input = { roomId, body: '공지', mentions: [], photos: [], taskId }
         await sendAs(tx, request, input)
         await hold()
       }),

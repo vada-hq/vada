@@ -16,10 +16,8 @@ export const ROOM_TYPES = [
 ] as const
 export type RoomType = (typeof ROOM_TYPES)[number]
 
-// 메시지 한 쪽의 크기와 공지를 보이는 개수(기능 003). 서버가 정하고 화면은 다시 적지 않는다.
+// 메시지 한 쪽의 크기(기능 003). 서버가 정하고 화면은 다시 적지 않는다.
 export const MESSAGE_PAGE_SIZE = 50
-export const RECENT_NOTICE_COUNT = 3
-export const NOTICE_LIST_MAX = 100
 
 // 사진 한 장 10MB, 한 메시지 10장, 형식은 JPEG(DEC-50). 휴대폰이 줄여 올리고 서버는 저장소에서 크기와 형식을 확인한다.
 const BYTES_PER_MB = 1_048_576
@@ -59,18 +57,16 @@ export interface ChatMessage {
   senderName: string | null
   body: string
   sentAt: string
-  isNotice: boolean
   photos: ChatPhoto[]
 }
 
 export interface RoomSummary {
   id: string
+  // all_members는 공지방이다(DEC-90). 공지는 공지방에 보낸 메시지다.
   type: RoomType
   // 부서방은 부서 이름, 1:1은 상대 이름. 나머지는 화면이 종류로 이름을 붙인다.
   name: string | null
   departmentId: string | null
-  // 공지를 올릴 수 있는 방인가. 서버가 공지 조건(plan-room.ts)으로 정하고 화면은 이것만 본다.
-  noticeRoom: boolean
   // 상대가 학생회를 떠난 1:1처럼 보기만 되는 방
   readOnly: boolean
   // 내가 읽은 뒤 남이 보낸 메시지 수와, 그중 나를 부른 수
@@ -81,8 +77,6 @@ export interface RoomSummary {
 
 export interface RoomListResponse {
   rooms: RoomSummary[]
-  // 같은 기수의 최근 공지. 들어오기 전 것도 있다(DEC-48).
-  notices: ChatMessage[]
   unreadTotal: number
   mentionTotal: number
 }
@@ -96,14 +90,11 @@ export interface RoomDetailResponse {
   participants: RoomParticipant[]
 }
 
-// 들어온 뒤의 메시지 한 쪽. 오래된 것부터 담긴다. 커서가 없으면 가장 최근 쪽이다.
+// 내가 볼 수 있는 메시지 한 쪽(들어온 뒤의 것, 공지방은 같은 기수의 들어오기 전 것도, DEC-90). 오래된 것부터 담긴다. 커서가 없으면 가장 최근 쪽이다.
 export interface MessagePageResponse {
   messages: ChatMessage[]
   hasOlder: boolean
   hasNewer: boolean
-}
-export interface NoticeListResponse {
-  notices: ChatMessage[]
 }
 
 // 읽음 표시: 이 메시지까지 읽었다. 뒤로 가지 않는다.
@@ -127,12 +118,10 @@ export const SendMessageSchema = z
     body: text(MESSAGE_BODY_MAX).optional(),
     mentions: z.array(recordIdInput).max(MENTION_MAX).default([]),
     photos: z.array(token(PHOTO_KEY_MAX)).max(PHOTO_MAX_COUNT).default([]),
-    // 전체방에서 공지 표시를 붙여 보낸다(chat.notice만). taskId는 이 공지를 이을 업무(기능 015)라 notice 없이는 받지 않는다.
-    notice: z.boolean().default(false),
+    // 이 메시지를 공지 결과물로 이을 업무(기능 015). 공지방에 보낼 때만 받고 아니면 서버가 400이다(DEC-90).
     taskId: recordIdInput.nullish(),
   })
   .refine(value => value.body !== undefined || value.photos.length > 0)
-  .refine(value => !value.taskId || value.notice)
   .refine(value => new Set(value.photos).size === value.photos.length)
 export type SendMessageRequest = z.input<typeof SendMessageSchema>
 
@@ -146,9 +135,6 @@ export interface PhotoUploadResponse {
   headers: Record<string, string>
   expiresAt: string
 }
-
-// 공지 표시를 붙이거나 뗀다. 같은 값이면 아무것도 바뀌지 않는다.
-export const MarkNoticeSchema = z.strictObject({ isNotice: z.boolean() })
 
 // 1:1 열기. 이미 있으면 그 방을 돌려준다.
 export const OpenDirectSchema = z.strictObject({ memberId: recordIdInput })

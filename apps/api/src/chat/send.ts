@@ -4,7 +4,6 @@ import type { Actor } from '../access/actor.js'
 import { chatRoom, message, roomMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { authorize, authorizeChange, type AccessRequest } from '../access/authorize.js'
-import { can } from '../access/permissions.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
@@ -13,7 +12,7 @@ import { messageOf } from './messages.js'
 import { isStorageKeyConflict, type VerifiedPhoto } from '../storage/uploads.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
-import { inNoticeRoom } from './plan-room.js'
+import { inCouncilNoticeRoom } from './plan-room.js'
 import { roomAccess } from './room-access.js'
 
 type SendInput = {
@@ -21,8 +20,7 @@ type SendInput = {
   body: string
   mentions: string[]
   photos: VerifiedPhoto[]
-  // 공지 표시를 붙여 보낸다. taskId는 그 공지를 이을 업무(기능 015)다.
-  notice?: boolean
+  // 이 메시지를 공지 결과물로 이을 업무(기능 015). 공지방에 보낼 때만 받는다(DEC-90).
   taskId?: string | null | undefined
 }
 
@@ -76,11 +74,11 @@ async function calledFrom(
   return rows.map(row => row.memberId).filter(id => alive.has(id))
 }
 
-async function isNoticeRoom(tx: Tx, roomId: string) {
+async function isCouncilNoticeRoom(tx: Tx, roomId: string) {
   const [found] = await tx
     .select({ id: chatRoom.id })
     .from(chatRoom)
-    .where(and(eq(chatRoom.id, roomId), inNoticeRoom))
+    .where(and(eq(chatRoom.id, roomId), inCouncilNoticeRoom))
   return found !== undefined
 }
 
@@ -96,9 +94,8 @@ export async function sendMessage(
 ): Promise<ChatMessage> {
   // 업무를 잇는 보내기는 sendAs가 학생회 행을 잠근 뒤 권한을 다시 본 actor(authorizeChange)로 부른다.
   const room = await roomAccess(tx, actor, input.roomId)
-  // 공지는 전체방에서 chat.notice만 올린다(DEC-14). 방 조건은 공지 표시를 붙이고 떼는 길(markNotice)과 같은 inNoticeRoom이다.
-  if (input.notice && !((await isNoticeRoom(tx, room.id)) && can(actor, 'chat.notice')))
-    throw new ApiError('FORBIDDEN')
+  // 공지는 공지방에 보낸 보통 메시지다(DEC-90). 업무의 공지 결과물은 공지방에 보낼 때만 잇는다. 보내기는 그 방 참여자 누구나 한다.
+  if (input.taskId && !(await isCouncilNoticeRoom(tx, room.id))) throw new ApiError('INVALID_INPUT')
   const [mine] = await tx
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
@@ -122,7 +119,8 @@ export async function sendMessage(
     councilId: actor.councilId,
     actor: actor.memberId,
     ...(input.taskId ? { taskId: input.taskId } : {}),
-    values: { roomId: room.id, body: input.body, sentAt, isNotice: input.notice ?? false },
+    // is_notice 칸은 남아 있지만 읽는 코드가 없다(DEC-90). 새 메시지는 늘 false다.
+    values: { roomId: room.id, body: input.body, sentAt, isNotice: false },
   })
   await attachPhotos(tx, actor, messageId, input.photos)
   await advanceRead(tx, room.id, actor.memberId, messageId)

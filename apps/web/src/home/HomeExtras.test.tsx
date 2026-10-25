@@ -5,7 +5,6 @@ import type { HomeResponse } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import {
   homeEvent,
-  homeNotice,
   homeRequest,
   homeResponse,
   noTasks,
@@ -20,7 +19,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-// 홈 응답 밖에서 읽는 부분: 내 요청, 공지, 이번 주 행사, 그리고 맨 위 숫자 카드.
+// 홈 응답 밖에서 읽는 부분: 내 요청, 이번 주 행사, 그리고 맨 위 숫자 카드.
 function open(home: HomeResponse, extras: Parameters<typeof onHomeExtras>[1] = {}) {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/home', () => json(home))
@@ -63,26 +62,12 @@ test('내 요청: 반려를 먼저, 결재 대기는 오래된 순. 끝난 요�
   expect(window.location.pathname).toBe('/finance/c1')
 })
 
-test('볼 요청, 공지, 이번 주 행사가 없으면 그 부분을 두지 않는다', async () => {
+test('볼 요청, 이번 주 행사가 없으면 그 부분을 두지 않는다. 공지 부분은 없다(DEC-90)', async () => {
   open(homeResponse())
   await screen.findByRole('region', { name: '내 업무' })
   expect(screen.queryByRole('region', { name: '내 요청' })).toBeNull()
   expect(screen.queryByRole('region', { name: '공지' })).toBeNull()
   expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
-})
-
-test('공지는 7일 안의 것을 최근 것부터 첫 줄로 보이고, 누르면 공지 모아 보기 주소로 간다', async () => {
-  open(homeResponse(), {
-    notices: [
-      homeNotice('a', { body: '회의 장소 변경\n학생회실', sentAt: '2026-10-22T03:00:00.000Z' }),
-      homeNotice('b', { body: '오래된 공지', sentAt: '2026-10-01T03:00:00.000Z' }),
-    ],
-  })
-  const section = await screen.findByRole('region', { name: '공지' })
-  expect(within(section).getByText('회의 장소 변경')).toBeTruthy()
-  expect(within(section).queryByText('오래된 공지')).toBeNull()
-  fireEvent.click(within(section).getByRole('button', { name: '회의 장소 변경' }))
-  expect(window.location.pathname + window.location.search).toBe('/chat/c1?tab=notices')
 })
 
 test('이번 주 행사는 진행 중이거나 7일 안에 시작하는 행사다', async () => {
@@ -101,13 +86,11 @@ test('이번 주 행사는 진행 중이거나 7일 안에 시작하는 행사�
   expect(onOpenEvent).toHaveBeenCalledWith('soon')
 })
 
-test('회장단은 공지와 이번 주 행사를 두지 않고 행사 목록을 읽지 않는다', async () => {
+test('회장단은 이번 주 행사를 두지 않고 행사 목록을 읽지 않는다', async () => {
   open(homeResponse({ council }), {
-    notices: [homeNotice('a')],
     events: [homeEvent('now', { status: 'ongoing' })],
   })
   await screen.findByRole('region', { name: '행사' })
-  expect(screen.queryByRole('region', { name: '공지' })).toBeNull()
   expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
 })
 

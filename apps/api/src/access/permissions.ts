@@ -44,7 +44,6 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'member.manage': { who: ['leadership'] },
   'rank.manage': { who: ['leadership'] },
   'president.transfer': { who: ['president'] },
-  'chat.notice': { who: ['leadership'] },
   'chat.direct': { who: ['member'] },
   // 회장단도 물려받지 않는다(PRIN-5). 참여 줄이 있어야 한다.
   'chat.use': { who: ['room_member'] },

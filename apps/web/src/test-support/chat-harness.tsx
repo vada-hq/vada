@@ -40,7 +40,7 @@ export function ChatHarness({
   )
 }
 
-// 방 목록과 전체방 하나의 읽기 응답을 등록한다.
+// 방 목록과 공지방 하나의 읽기 응답을 등록한다.
 export function serveChat() {
   const api = mockApi()
   api.on('GET', `${chatBase}/rooms`, () => json(roomList()))
@@ -52,4 +52,4 @@ export function serveChat() {
 }
 
 export const openAllRoom = async () =>
-  fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
+  fireEvent.click(await screen.findByRole('button', { name: /공지방/ }))

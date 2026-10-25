@@ -17,7 +17,6 @@ export const message = (
   senderName: '이재정',
   body,
   sentAt: '2020-03-02T01:30:00Z',
-  isNotice: false,
   photos: [],
   ...options,
 })
@@ -27,7 +26,6 @@ export const room = (id: string, options: Partial<RoomSummary> = {}): RoomSummar
   type: 'all_members',
   name: null,
   departmentId: null,
-  noticeRoom: (options.type ?? 'all_members') === 'all_members',
   readOnly: false,
   unread: 0,
   mentions: 0,
@@ -35,10 +33,7 @@ export const room = (id: string, options: Partial<RoomSummary> = {}): RoomSummar
   ...options,
 })
 
-export const notice = (id: string, body: string, sentAt = '2020-03-01T01:00:00Z') =>
-  message(id, body, { isNotice: true, sentAt })
-
-// 전체방(안 읽은 3, 나를 부름), 회장단방, 재정부, 상대가 떠난 1:1. 서버가 정한 순서다.
+// 공지방(안 읽은 3, 나를 부름), 회장단방, 재정부, 상대가 떠난 1:1. 서버가 정한 순서다.
 export function roomList(options: Partial<RoomListResponse> = {}): RoomListResponse {
   return {
     rooms: [
@@ -47,7 +42,6 @@ export function roomList(options: Partial<RoomListResponse> = {}): RoomListRespo
       room('r3', { type: 'department', name: '재정부', departmentId: 'd1' }),
       room('r4', { type: 'direct', name: '박새내', readOnly: true }),
     ],
-    notices: [notice('n1', '10월 정기 회의는 금요일입니다')],
     unreadTotal: 3,
     mentionTotal: 1,
     ...options,

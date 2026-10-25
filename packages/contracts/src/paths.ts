@@ -52,7 +52,7 @@ type QuerySpec = Record<string, QueryRule>
 // 쿼리에는 기본값이 아닌 값만 둔다. fallback이 null이면 값이 없는 것이 기본이다. 검색어 같은 자유 입력은 넣지 않는다.
 const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   home: {},
-  chat: { tab: { values: ['notices'], fallback: null } },
+  chat: {},
   events: {},
   tasks: {
     view: { values: TASK_VIEWS, fallback: 'mine' },

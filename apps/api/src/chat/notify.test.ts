@@ -157,7 +157,7 @@ test(
     )
     const [, message, options] = s.calls[0]!
     assert.deepEqual(message, {
-      title: '전체방',
+      title: '공지방',
       body: '안녕하세요',
       url: `/chat/${s.council.councilId}/${all}`,
       tag: `room:${all}`,
@@ -294,23 +294,6 @@ test(
             ? 'throw'
             : { result: 'sent' },
   ),
-)
-
-test(
-  '공지 표시에는 알림이 없다',
-  run(async s => {
-    const all = await s.roomId('all')
-    const sent = (await (await s.send(all, 's-president', { body: '공지' })).json()) as ChatMessage
-    s.calls.length = 0
-    const marked = await s.api.post(
-      `${s.base}/messages/${sent.id}/notice`,
-      { isNotice: true },
-      's-president',
-    )
-    assert.equal(marked.status, 200)
-    await s.settled()
-    assert.equal(s.calls.length, 0)
-  }),
 )
 
 test('알림 열쇠가 없어도(push 없음) 대화는 돈다', async () => {

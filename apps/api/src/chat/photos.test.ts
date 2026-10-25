@@ -393,7 +393,7 @@ test(
 )
 
 test(
-  '들어오기 전의 같은 기수 공지의 사진은 열리고, 공지를 떼면 다시 404이며, 다른 학생회 사진 번호는 404다',
+  '공지방의 들어오기 전 같은 기수 사진은 열리고, 지난 기수 것과 방에서 빠진 사람은 404이며, 다른 학생회 사진 번호는 404다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
     const key = await s.uploaded(all, 's-president')
@@ -405,12 +405,16 @@ test(
       [s.council.people.plain.memberId],
     )
     const view = () => s.api.get(`${s.base}/files/${fileId}`, 's-plain')
-    assert.equal((await view()).status, 404)
-    const mark = (isNotice: boolean) =>
-      s.api.post(`${s.base}/messages/${sent.id}/notice`, { isNotice }, 's-president')
-    assert.equal((await mark(true)).status, 200)
     assert.equal((await view()).status, 302)
-    assert.equal((await mark(false)).status, 200)
+    // 지난 기수에 보낸 것은 들어오기 전 것이라 열리지 않는다.
+    await s.pg.query(`UPDATE message SET sent_at = '2025-06-01T00:00:00Z' WHERE id = $1`, [sent.id])
+    assert.equal((await view()).status, 404)
+    // 같은 기수여도 그 방의 참여 줄이 없으면 열리지 않는다.
+    await s.pg.query(`UPDATE message SET sent_at = '2026-06-01T00:00:00Z' WHERE id = $1`, [sent.id])
+    await s.pg.query('DELETE FROM room_membership WHERE room_id = $1 AND member_id = $2', [
+      all,
+      s.council.people.plain.memberId,
+    ])
     assert.equal((await view()).status, 404)
     // 다른 학생회의 사진 번호를 내 학생회 주소로 열어도 404다.
     const foreignRoom = await s.roomId(s.other.councilId, 'all')

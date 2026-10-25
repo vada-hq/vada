@@ -50,7 +50,7 @@ export async function stagesOf(
 }
 
 // 이 쓰기가 닿을 수 있는 결과물 번호. 구매 요청은 요청 자신, 품목, 품목의 결재, 품목의 결제 내역이고,
-// 공지는 메시지(공지 표시를 붙이고 떼는 바꾸기), 행사는 그 행사의 완료·완료 취소 결재다. 그 밖의 쓰기는 없다.
+// 행사는 그 행사의 완료·완료 취소 결재다. 공지(메시지)는 올리면 끝남이고 바꾸는 쓰기가 없다(DEC-90). 그 밖의 쓰기는 없다.
 // 만들 때의 요청·메시지·양식·행사는 아직 연결이 없어 여기서 찾지 않고 linkResult가 단계를 넘긴다.
 async function requestIdOfItem(tx: Tx, itemId: unknown) {
   const [row] = await tx
@@ -67,7 +67,7 @@ function approvalResultIdOf(tx: Tx, values: Record<string, unknown>) {
 
 async function resultIdOf(tx: Tx, touch: Touch): Promise<string | null> {
   const { kind, id, values } = touch
-  if (kind === 'request' || kind === 'message') return id ?? null
+  if (kind === 'request') return id ?? null
   if (kind === 'line_item') return id ? requestIdOfItem(tx, id) : String(values?.requestId)
   // 결재와 결제 내역은 만들 때만 단계를 올린다(만든 뒤 바꾸지 않는다).
   if (!values) return null
@@ -80,7 +80,6 @@ const TOUCHING_KINDS: ReadonlySet<string> = new Set([
   'line_item',
   'approval',
   'payment_line',
-  'message',
 ])
 
 // 쓰기 전: 이 쓰기가 닿는 이어진 결과물과 그 단계를 읽는다.

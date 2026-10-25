@@ -155,55 +155,62 @@ async function roomOf(t: SettlementKit, type: string) {
 }
 const send = (t: SettlementKit, room: string, body: object, user = PRESIDENT) =>
   t.api.post(`${councilBase(t)}/rooms/${room}/messages`, body, user)
-const mark = (t: SettlementKit, id: string, isNotice: boolean) =>
-  t.api.post(`${councilBase(t)}/messages/${id}/notice`, { isNotice }, PRESIDENT)
 const messages = (t: SettlementKit) => count(t, 'SELECT count(*) AS n FROM message')
 
 test(
-  '전체방 공지에 taskId를 주면 업무가 notice_posted로 끝나고 공지를 떼면 결과물이 빠진다',
+  '공지방에 taskId를 주어 보내면 보통 메시지가 생기고 업무가 notice_posted로 끝나며 다시 옮기지 않는다',
   withSettlement(async t => {
     const room = await roomOf(t, 'all_members')
     const taskId = await taskFor(t)
-    const response = await send(t, room, { body: '내일 총회', notice: true, taskId })
+    // 회장단이 아닌 담당자도 올린다(공지방에는 모두가 보낸다, DEC-90).
+    const response = await send(t, room, { body: '내일 총회', taskId }, PLANNER)
     assert.equal(response.status, 201)
     const sent = (await response.json()) as ChatMessage
-    assert.equal(sent.isNotice, true)
+    assert.equal(await count(t, `SELECT count(*) AS n FROM message WHERE is_notice`), 0)
     assert.equal(await statusOf(t, taskId), 'done')
     assert.deepEqual(await lastVersion(t, taskId), { changed_by: null, reason: 'notice_posted' })
     assert.deepEqual(await resultsOf(t, taskId), [
       { kind: 'message', title: '내일 총회', stage: 'finished' },
     ])
-    // 공지를 떼도 업무는 뒤로 가지 않고 결과물은 빠진다
-    assert.equal((await mark(t, sent.id, false)).status, 200)
-    assert.equal(await statusOf(t, taskId), 'done')
-    assert.equal((await resultsOf(t, taskId))[0]!.stage, 'excluded')
-    // 사람이 할 일로 되돌린 뒤 다시 붙이면 다시 끝남이 된다
+    // 사람이 할 일로 되돌리면 그대로 둔다(공지에서 빠지는 길은 없고 단계도 그대로다).
     assert.equal((await setStatus(t, taskId, 'todo')).status, 200)
-    assert.equal((await mark(t, sent.id, true)).status, 200)
-    assert.equal(await statusOf(t, taskId), 'done')
-    assert.deepEqual(await lastVersion(t, taskId), { changed_by: null, reason: 'notice_posted' })
-    // 이미 붙어 있는 공지를 같은 값으로 다시 붙이면 사람이 바꾼 상태를 덮지 않는다
-    assert.equal((await setStatus(t, taskId, 'todo')).status, 200)
-    assert.equal((await mark(t, sent.id, true)).status, 200)
+    assert.equal((await send(t, room, { body: '다른 글' })).status, 201)
     assert.equal(await statusOf(t, taskId), 'todo')
+    assert.equal((await resultsOf(t, taskId))[0]!.stage, 'finished')
+    assert.ok(sent.id)
   }),
 )
 
 test(
-  '공지 권한은 그대로다: chat.notice가 없거나 전체방이 아니면 403, notice 없는 taskId는 400',
+  '업무 공지는 공지방에서만 받는다: 다른 방이면 400, notice 키는 400, 상태를 바꿀 수 없는 운영진은 409, 다른 학생회는 403, 로그인 전은 401',
   withSettlement(async t => {
     const room = await roomOf(t, 'all_members')
     const taskId = await taskFor(t)
-    const plain = await send(t, room, { body: '안녕' }, PLANNER)
-    assert.equal(plain.status, 201)
-    assert.equal(((await plain.json()) as ChatMessage).isNotice, false)
     const baseline = await messages(t)
-    assert.equal((await send(t, room, { body: '공지', notice: true }, PLANNER)).status, 403)
-    assert.equal((await send(t, room, { body: '공지', notice: true, taskId }, PLANNER)).status, 403)
     const leadership = await roomOf(t, 'leadership')
-    assert.equal((await send(t, leadership, { body: '공지', notice: true, taskId })).status, 403)
-    assert.equal((await send(t, room, { body: '글', taskId })).status, 400)
-    assert.equal((await send(t, room, { body: '글', notice: true, taskId, x: 1 })).status, 400)
+    const planning = (
+      await t.pg.query<{ id: string }>(
+        `SELECT cr.id FROM chat_room cr JOIN record r ON r.id = cr.id
+          WHERE r.council_id = $1 AND cr.department_id = $2`,
+        [t.council.councilId, t.council.departments.planning],
+      )
+    ).rows[0]!.id
+    const leadershipResponse = await send(t, leadership, { body: '공지', taskId })
+    assert.equal(leadershipResponse.status, 400)
+    assert.equal(await errorOf(leadershipResponse), 'INVALID_INPUT')
+    assert.equal((await send(t, planning, { body: '공지', taskId }, PLANNER)).status, 400)
+    assert.equal((await send(t, room, { body: '공지', notice: true, taskId })).status, 400)
+    assert.equal((await send(t, room, { body: '글', taskId, x: 1 })).status, 400)
+    // 담당자도 부장도 아닌 부원은 이 업무의 상태를 바꿀 수 없다.
+    const plain = await send(t, room, { body: '공지', taskId }, 's-plain')
+    assert.equal(plain.status, 409)
+    assert.equal(await errorOf(plain), 'TASK_INVALID')
+    assert.equal((await send(t, room, { body: '공지', taskId }, 'o-president')).status, 403)
+    const anonymous = await t.api.post(`${councilBase(t)}/rooms/${room}/messages`, {
+      body: '공지',
+      taskId,
+    })
+    assert.equal(anonymous.status, 401)
     assert.equal(await messages(t), baseline)
     assert.equal(await links(t), 0)
     assert.equal(await statusOf(t, taskId), 'todo')
@@ -217,7 +224,7 @@ test(
     const cases = await unlinkable(t)
     const baseline = await messages(t)
     for (const [name, taskId] of cases) {
-      const response = await send(t, room, { body: '공지', notice: true, taskId })
+      const response = await send(t, room, { body: '공지', taskId })
       assert.equal(response.status, 409, name)
       assert.equal(await errorOf(response), 'TASK_INVALID', name)
     }
@@ -276,7 +283,7 @@ test(
     const room = await roomOf(t, 'all_members')
     const taskId = await taskFor(t)
     const eventId = await eventIdOf(await makeEvent(t, { taskId }))
-    assert.equal((await send(t, room, { body: '공지', notice: true, taskId })).status, 201)
+    assert.equal((await send(t, room, { body: '공지', taskId })).status, 201)
     // 공지는 끝났지만 행사가 아직이라 업무는 그대로다
     assert.equal(await statusOf(t, taskId), 'todo')
     await t.completion(eventId, 'completed', new Date('2026-10-25T03:00:00Z'))
@@ -298,8 +305,8 @@ test(
       'message',
       'event',
     ])
-    // 담당자는 상태를 바꿀 수 있어도 공지·행사 권한이 없다.
-    assert.deepEqual((await detailOf(t, plain, PLANNER)).canMake, ['request'])
+    // 담당자는 상태를 바꿀 수 있어 공지방에 올리기는 되지만 행사 권한은 없다.
+    assert.deepEqual((await detailOf(t, plain, PLANNER)).canMake, ['request', 'message'])
     assert.equal((await setStatus(t, plain, 'done')).status, 200)
     assert.deepEqual((await detailOf(t, plain)).canMake, [])
   }),
@@ -311,9 +318,8 @@ test(
     const room = await roomOf(t, 'all_members')
     const taskId = await taskFor(t)
     await makeForm(t, await t.event(), {})
-    assert.equal((await send(t, room, { body: '그냥 글', notice: false })).status, 201)
-    const other = await send(t, room, { body: '공지', notice: true })
-    await mark(t, ((await other.json()) as ChatMessage).id, false)
+    assert.equal((await send(t, room, { body: '그냥 글' })).status, 201)
+    assert.equal((await send(t, room, { body: '또 다른 글' }, PLANNER)).status, 201)
     const versions = `SELECT count(*) AS n FROM record_version WHERE record_id = '${taskId}'`
     assert.equal(await count(t, versions), 1)
   }),
@@ -325,7 +331,7 @@ test(
     const eventId = await t.event()
     // 행사 담당 부서도 책임자도 아닌 담당자: 업무에 행사가 있어도 양식 버튼이 없다
     const financeEvent = await taskFor(t, { eventId, departmentId: t.council.departments.finance })
-    assert.deepEqual((await detailOf(t, financeEvent, PLANNER)).canMake, ['request'])
+    assert.deepEqual((await detailOf(t, financeEvent, PLANNER)).canMake, ['request', 'message'])
     // 완료한 행사에는 회장도 양식을 만들 수 없다
     const withEvent = await taskFor(t, { eventId })
     assert.ok((await detailOf(t, withEvent)).canMake.includes('registration_form'))
@@ -335,26 +341,32 @@ test(
 )
 
 test(
-  '업무 상세는 볼 수 없는 공지의 첫 줄을 싣지 않는다(다른 기수, 들어오기 전에 뗀 공지)',
+  '업무 상세는 볼 수 없는 공지의 첫 줄을 싣지 않는다(다른 기수). 같은 기수면 들어오기 전 것도 싣는다',
   withSettlement(async t => {
     const room = await roomOf(t, 'all_members')
-    const hidden = [
-      ['다른 기수의 공지', true],
-      ['들어오기 전에 뗀 공지', false],
-    ] as const
-    for (const [name, isNotice] of hidden) {
-      const taskId = await taskFor(t)
-      const sent = (await (
-        await send(t, room, { body: '비밀 첫 줄\n둘째 줄', notice: true, taskId })
-      ).json()) as ChatMessage
-      assert.equal((await resultsOf(t, taskId))[0]!.title, '비밀 첫 줄', name)
-      await t.pg.query("UPDATE message SET sent_at = '2020-01-01', is_notice = $2 WHERE id = $1", [
-        sent.id,
-        isNotice,
-      ])
-      const [result] = (await detailOf(t, taskId)).results
-      assert.equal(result!.kind, 'message', name)
-      assert.equal(result!.title, '', name)
-    }
+    const taskId = await taskFor(t)
+    const sent = (await (
+      await send(t, room, { body: '비밀 첫 줄\n둘째 줄', taskId })
+    ).json()) as ChatMessage
+    assert.equal((await resultsOf(t, taskId))[0]!.title, '비밀 첫 줄')
+    // 회장이 이 글 뒤에 들어온 것으로 둔다. 같은 기수의 공지방 글이라 그대로 보인다.
+    await t.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-10-24T00:00:00Z'
+        WHERE room_id = $1 AND member_id = $2`,
+      [room, t.council.people.president.memberId],
+    )
+    await t.pg.query("UPDATE message SET sent_at = '2026-05-01' WHERE id = $1", [sent.id])
+    assert.equal((await detailOf(t, taskId)).results[0]!.title, '비밀 첫 줄')
+    // 같은 기수여도 그 방의 참여 줄이 없으면 싣지 않는다.
+    await t.pg.query(`DELETE FROM room_membership WHERE room_id = $1 AND member_id = $2`, [
+      room,
+      t.council.people.president.memberId,
+    ])
+    assert.equal((await detailOf(t, taskId)).results[0]!.title, '')
+    // 지난 기수에 보낸 글은 들어오기 전 것이라 보이지 않는다.
+    await t.pg.query("UPDATE message SET sent_at = '2020-01-01' WHERE id = $1", [sent.id])
+    const [result] = (await detailOf(t, taskId)).results
+    assert.equal(result!.kind, 'message')
+    assert.equal(result!.title, '')
   }),
 )

@@ -247,17 +247,17 @@ test(
     const mine = s.council.councilId
     const planning = await s.photoIn(s.base, await s.roomId(mine, '기획부'), 's-planningMember')
     const leadership = await s.photoIn(s.base, await s.roomId(mine, 'leadership'), 's-president')
-    const all = await s.roomId(mine, 'all')
-    const before = await s.photoIn(s.base, all, 's-president')
+    const financeRoom = await s.roomId(mine, '재정부')
+    const before = await s.photoIn(s.base, financeRoom, 's-financeMember')
     const made = await s.make()
     // 붙은 증빙의 파일 번호는 대화 사진이 아니다.
     const attached = await detailOf(await s.attach(made.id, { photoId: before.fileId }))
     const evidenceFile = attached.evidence[0]!.fileId
-    // 재정부원은 이 사진이 올라온 뒤에 전체방에 들어왔다(1마이크로초 차이).
+    // 재정부원은 이 사진이 올라온 뒤에 재정부방에 들어왔다(1마이크로초 차이). 부서방은 같은 기수여도 들어오기 전 것을 보지 않는다.
     await s.pg.query(
       `UPDATE room_membership SET joined_at = (SELECT sent_at FROM message WHERE id = $1) + interval '1 microsecond'
         WHERE member_id = $2 AND room_id = $3`,
-      [before.messageId, s.council.people.financeMember.memberId, all],
+      [before.messageId, s.council.people.financeMember.memberId, financeRoom],
     )
     const links = await s.links()
     for (const photoId of [
@@ -278,7 +278,7 @@ test(
 )
 
 test(
-  '들어온 시각과 같은 시각에 보낸 사진은 보이고, 들어오기 전의 공지 사진도 같은 기수면 보인다',
+  '들어온 시각과 같은 시각에 보낸 사진은 보이고, 들어오기 전의 공지방 사진도 같은 기수면 보인다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
     const photo = await s.photoIn(s.base, all, 's-president')
@@ -292,15 +292,10 @@ test(
     const made = await s.make()
     await joinAt('')
     assert.equal((await s.attach(made.id, { photoId: photo.fileId })).status, 201)
+    // 공지방 메시지의 사진은 들어오기 전 것도 같은 기수면 보인다.
     await joinAt("+ interval '1 microsecond'")
-    assert.equal(
-      await errorOf(await s.attach(made.id, { photoId: photo.fileId })),
-      'MESSAGE_INVALID',
-    )
-    // 공지로 표시된 메시지의 사진은 들어오기 전 것도 같은 기수면 보인다.
-    await s.pg.query('UPDATE message SET is_notice = true WHERE id = $1', [photo.messageId])
     assert.equal((await s.attach(made.id, { photoId: photo.fileId })).status, 201)
-    // 공지의 보낸 날이 지금 기수 밖이면 안 보인다.
+    // 보낸 날이 지금 기수 밖이면 안 보인다.
     await s.pg.query(`UPDATE message SET sent_at = '2025-10-25T03:00:00Z' WHERE id = $1`, [
       photo.messageId,
     ])

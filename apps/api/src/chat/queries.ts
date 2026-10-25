@@ -1,6 +1,5 @@
 import { and, asc, count, eq, gt, gte, inArray, isNull, max, ne, or, sql } from 'drizzle-orm'
 import {
-  RECENT_NOTICE_COUNT,
   type RoomDetailResponse,
   type RoomListResponse,
   type RoomSummary,
@@ -18,8 +17,7 @@ import {
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { currentMembersAmong } from './current-members.js'
-import { noticesOf } from './messages.js'
-import { inNoticeRoom } from './plan-room.js'
+import { visibleMessage } from './messages.js'
 import { joinedDisplayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
@@ -32,7 +30,6 @@ async function myRooms(db: Reader, actor: Actor) {
       type: chatRoom.type,
       departmentId: chatRoom.departmentId,
       departmentName: department.name,
-      noticeRoom: sql<boolean>`coalesce(${inNoticeRoom}, false)`,
     })
     .from(roomMembership)
     .innerJoin(chatRoom, eq(chatRoom.id, roomMembership.roomId))
@@ -41,7 +38,8 @@ async function myRooms(db: Reader, actor: Actor) {
     .where(and(eq(roomMembership.memberId, actor.memberId), eq(record.councilId, actor.councilId)))
 }
 
-// 방마다 안 읽은 수(내가 읽은 뒤 남이 보낸 것)와 마지막 메시지 시각. 들어온 뒤의 메시지만 센다(DEC-20).
+// 방마다 안 읽은 수(내가 읽은 뒤 남이 보낸 것)와 마지막 메시지 시각. 내가 볼 수 있는 메시지만 센다(visibleMessage):
+// 들어온 뒤의 것과 공지방의 같은 기수 메시지라, 늦게 들어온 사람에게는 공지방이 안 읽은 방으로 나온다(DEC-90).
 async function messageStats(db: Reader, actor: Actor) {
   const rows = await db
     .select({
@@ -55,11 +53,12 @@ async function messageStats(db: Reader, actor: Actor) {
     })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .innerJoin(
       roomMembership,
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
     )
-    .where(gte(message.sentAt, roomMembership.joinedAt))
+    .where(visibleMessage(actor))
     .groupBy(message.roomId)
   return new Map(rows.map(row => [row.roomId, row]))
 }
@@ -156,7 +155,6 @@ async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSum
       type: room.type as RoomType,
       name: nameOf(room.type, room.departmentName, peer),
       departmentId: room.departmentId,
-      noticeRoom: room.noticeRoom,
       readOnly: room.type === 'direct' && !peer?.current,
       unread: stats.get(room.id)?.unread ?? 0,
       mentions: mentions.get(room.id) ?? 0,
@@ -165,7 +163,7 @@ async function summariesOf(db: Reader, actor: Actor, now: Date): Promise<RoomSum
   })
 }
 
-// 전체방, 회장단방, 부서방(이름순), 그 밖, 1:1(최근 메시지순).
+// 공지방, 회장단방, 부서방(이름순), 그 밖, 1:1(최근 메시지순).
 const ORDER: Record<RoomType, number> = {
   all_members: 0,
   leadership: 1,
@@ -186,7 +184,6 @@ export async function roomListOf(db: Reader, actor: Actor, now: Date): Promise<R
     .sort(byDisplayOrder)
   return {
     rooms,
-    notices: await noticesOf(db, actor, RECENT_NOTICE_COUNT),
     unreadTotal: rooms.reduce((sum, room) => sum + room.unread, 0),
     mentionTotal: rooms.reduce((sum, room) => sum + room.mentions, 0),
   }
