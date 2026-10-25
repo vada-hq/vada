@@ -16,7 +16,8 @@ export async function linkMember(tx: Tx, userId: string, memberName?: string): P
     .from(users)
     .where(eq(users.id, userId))
     .for('no key update')
-  if (!user) throw new Error('Session user missing')
+  // 계정 행을 기다린 사이 탈퇴가 계정을 지웠으면 로그인하지 않은 요청과 같다(withdrawal/service.ts).
+  if (!user) throw new ApiError('UNAUTHENTICATED')
   const [linked] = await tx
     .select({ memberId: memberLogin.memberId })
     .from(memberLogin)

@@ -70,6 +70,7 @@ async function lockAccount(tx: Tx, userId: string) {
     .for('update')
   if (!user) throw new ApiError('UNAUTHENTICATED')
   const memberId = await memberOf(tx, userId)
+  // 여기서 더 잡는 학생회는 번호 차례가 어긋나 드물게 교착할 수 있다. 그때는 PostgreSQL이 한쪽 거래를 되돌려 데이터가 남지 않는다.
   if (memberId) await lockCouncils(tx, memberId, locked)
   return { memberId, councilIds: [...locked] }
 }
@@ -135,6 +136,7 @@ async function endMemberships(tx: Tx, memberId: string, councilIds: string[], no
     ...placements.map(item => ({ kind: 'department_membership' as const, id: item.id, ...ending })),
     ...memberships.map(item => ({ kind: 'council_membership' as const, id: item.id, ...ending })),
   ]
+  // 전제: 지금 기수가 아닌 회장 소속은 지난 기수의 것이다. 다음 기수를 미리 만드는 기능이 생기면 다시 본다.
   const pastPresidencies = memberships
     .filter(item => item.rank === 'president')
     .map(i => i.cohortId)
@@ -144,7 +146,8 @@ async function endMemberships(tx: Tx, memberId: string, councilIds: string[], no
       .select({ id: cohort.id })
       .from(cohort)
       .where(and(eq(cohort.councilId, councilId), cohortIsCurrent(now)))
-    if (current) await syncRooms(tx, { councilId, cohortId: current.id, memberId })
+    // 방이 없던 학생회에서 새로 만드는 방의 만든 사람이 '떠난 운영진'으로 남지 않게 비운다.
+    if (current) await syncRooms(tx, { councilId, cohortId: current.id, memberId: null })
   }
 }
 
