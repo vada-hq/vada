@@ -25,5 +25,10 @@ export const openRecord = (
 ) => navigate(recordTarget(kind, councilId, id, options.tab), { overRecord: options.overRecord })
 
 // 메뉴 첫 화면이나 거르기가 정해진 목록으로 간다. 쿼리는 그 메뉴 목록에 있는 키만 남는다.
-export const openMenu = (menu: AppMenu, councilId: string, query: AppQuery = {}) =>
-  navigate(menuPath(menu, councilId, query))
+// replace는 지금 칸을 바꿔 쓴다(초대에서 막 들어와 첫 화면을 고를 때처럼 뒤로 돌아갈 곳이 아닐 때).
+export const openMenu = (
+  menu: AppMenu,
+  councilId: string,
+  query: AppQuery = {},
+  options: { replace?: boolean } = {},
+) => navigate(menuPath(menu, councilId, query), options)

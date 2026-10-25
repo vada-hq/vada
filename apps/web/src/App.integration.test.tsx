@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { MyCouncil } from '@vada/contracts'
+import { menuPath, type MyCouncil } from '@vada/contracts'
 import App from './App'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
@@ -186,7 +186,7 @@ test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', a
   ).toBeTruthy()
 })
 
-test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학생회를 연다', async () => {
+test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학생회 홈을 연다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
   api.on('GET', '/api/invites/ABCD2345', () =>
     json({
@@ -204,13 +204,13 @@ test('초대 링크로 오면 학생회 이름을 묻고, 들어가면 그 학�
     await screen.findByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' }),
   ).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '들어가기' }))
-  expect(await screen.findByText('운영진 3명')).toBeTruthy()
-  // 방금 들어온 학생회는 운영진 화면 주소로 열린다.
-  expect(window.location.pathname).toBe('/people/0199d1a0-0000-7000-8000-0000000000c1')
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  // 학생회를 열면 운영진 모두에게 홈이 먼저다(DEC-69). 운영진 화면은 막 만든 사람만 연다.
+  expect(window.location.pathname).toBe(menuPath('home', '0199d1a0-0000-7000-8000-0000000000c1'))
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ code: 'ABCD2345' })
 })
 
-test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회를 연다', async () => {
+test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회 홈을 연다', async () => {
   window.history.replaceState(null, '', '/join/ABCD2345')
   api.on('GET', '/api/invites/ABCD2345', () =>
     json({
@@ -225,6 +225,8 @@ test('이미 들어온 학생회의 초대 링크는 묻지 않고 그 학생회
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
   await renderApp()
   expect(await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
+  expect(window.location.pathname).toBe(menuPath('home', '0199d1a0-0000-7000-8000-0000000000c2'))
 })
 
 test('코드를 직접 입력하면 초대 확인으로 가고, 틀린 코드면 다시 입력할 수 있다', async () => {

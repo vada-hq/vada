@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { menuPath, type MyCouncil } from '@vada/contracts'
 import { layerDirectRecord, navigate, startAt, useHere } from '@/lib/app-location'
+import { openMenu } from '@/lib/go-to'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK } from '@/lib/messages'
 import { targetOf } from '../workspace/address'
 import { startPathOf, useRememberAddress } from '../workspace/useLastAddress'
@@ -15,7 +16,7 @@ type Props = {
   user: { name: string }
   // 마지막에 본 주소를 사람마다 기억하는 열쇠.
   userId: string
-  // 방금 들어온 학생회. 있으면 그 학생회의 운영진 화면으로 연다.
+  // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69: 운영진 화면은 막 만든 사람만).
   initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
   card: (content: ReactNode) => ReactNode
@@ -64,9 +65,9 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
   useNotificationOpen(councils, state.kind === 'ready')
   // 링크로 바로 들어온 기록 주소는 그 아래에 상위 목록 칸을 깐다.
   useLayoutEffect(layerDirectRecord, [])
-  // 방금 들어온 학생회는 운영진 화면으로 연다.
+  // 방금 들어온 학생회는 홈으로 연다.
   useEffect(() => {
-    if (initialCouncilId) navigate(menuPath('people', initialCouncilId), { replace: true })
+    if (initialCouncilId) openMenu('home', initialCouncilId, {}, { replace: true })
   }, [initialCouncilId])
   useRememberAddress(userId, here, councils)
   // '/'로 열렸으면(홈 화면 앱 시작) 마지막에 본 주소, 없으면 첫 학생회 홈 주소로 바꿔 쓴다. 같은 때 받아 둔 알림이 먼저 주소를 쌓았을 수 있어 지금 주소로 다시 본다.
