@@ -160,7 +160,7 @@ async function attachEvidence(ctx: Ctx, expenseId: string) {
     'expense.attach_evidence',
   )
   const upload = await write<{ key: string }>(financeStaff, `${path}/uploads`, {}, '증빙 올리기')
-  ctx.uploadEvidence!(upload.key)
+  await ctx.uploadEvidence!(upload.key)
   await create<ExpenseResponse>(
     financeStaff,
     `${path}/evidence`,

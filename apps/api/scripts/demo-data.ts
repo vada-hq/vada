@@ -1,23 +1,28 @@
 import { eq } from 'drizzle-orm'
 import { koreanYearOf } from '@vada/contracts'
-import { actorOf } from '../src/access/actor.js'
-import { lockCouncil } from '../src/access/authorize.js'
-import { createCouncil } from '../src/councils/service.js'
-import { council } from '../src/db/schema.js'
+import { council, users } from '../src/db/schema.js'
 import type { Db } from '../src/db/types.js'
+import { EVENT_B, EVENT_C, rehearsalStart, runRehearsal } from '../src/flows/rehearsal.js'
+import { startFlow } from '../src/flows/server.js'
+import type { FileStorage } from '../src/storage/storage.js'
+import { uploadDemoEvidence } from './demo-evidence.js'
 import { requireGoogleUser } from './test-data.js'
-import { addMoney } from './demo-money.js'
-import { createCast } from './demo-people.js'
-import { addWork } from './demo-work.js'
 
 // 섭외와 리허설에서 보이는 시연 학생회. 학교 이름으로 찾고, 있으면 아무것도 하지 않는다(다시 넣으려면 그 학교 이름을 바꾼다).
-// 시험 학생회(VADA 시험 학교)와 이름이 달라 서로 찾지 않는다. 날짜는 now(돌리는 날)를 기준으로 한다.
+// 시험 학생회(VADA 시험 학교)와 이름이 달라 서로 찾지 않는다. 내용은 리허설 시나리오(flows/rehearsal.ts)를 그대로 돈 결과다.
 export const DEMO_SCHOOL_NAME = 'VADA 시연 학교'
 
 export type DemoResult = 'created' | 'exists'
+export type DemoDeps = { storage: FileStorage; fetcher?: typeof fetch }
 
-// 한 거래다. 중간에 하나라도 실패하면 아무것도 남지 않는다.
-export async function seedDemoCouncil(db: Db, userId: string, now: Date): Promise<DemoResult> {
+// 한 거래다. 시나리오의 요청은 이 거래의 저장점으로 이어지므로 중간에 하나라도 실패하면 학생회도 계정도 남지 않는다.
+// now는 마지막 단계의 시각(돌리는 때)이다.
+export async function seedDemoCouncil(
+  db: Db,
+  userId: string,
+  now: Date,
+  { storage, fetcher = fetch }: DemoDeps,
+): Promise<DemoResult> {
   return db.transaction(async tx => {
     await requireGoogleUser(tx, userId)
     const [existing] = await tx
@@ -26,27 +31,32 @@ export async function seedDemoCouncil(db: Db, userId: string, now: Date): Promis
       .where(eq(council.schoolName, DEMO_SCHOOL_NAME))
       .limit(1)
     if (existing) return 'exists'
-    const year = koreanYearOf(now)
-    const councilId = await createCouncil(
-      tx,
-      userId,
-      {
+    const flow = await startFlow(tx, { start: rehearsalStart(now), scope: 'transaction', storage })
+    // 회장은 명령에 준 실제 계정이다. 이 흐름의 세션에 들이기만 하고 계정은 만들지 않는다.
+    flow.flowSession.admit(userId)
+    // 운영진 목록에서 이름으로 찾으므로 회장의 이름은 계정의 이름이다.
+    const [account] = await tx.select({ name: users.name }).from(users).where(eq(users.id, userId))
+    const chief = { userId, name: account!.name, api: flow.driver.as(userId) }
+    const options = {
+      chief,
+      finalAt: now,
+      uploadEvidence: (key: string) => uploadDemoEvidence(storage, key, fetcher),
+      council: {
         name: 'VADA 시연 학생회',
-        unit: 'department',
         schoolName: DEMO_SCHOOL_NAME,
-        cohortName: year,
-        startsOn: `${year}-01-01`,
-        endsOn: `${year}-12-31`,
+        cohortName: koreanYearOf(now),
       },
-      now,
-    )
-    // 방과 편성을 바꾸는 서비스 함수는 학생회 행을 잠근 거래 안에서 부르는 것이 전제다.
-    await lockCouncil(tx, councilId)
-    const president = await actorOf(tx, userId, councilId, now)
-    if (!president) throw new Error('Demo council has no current cohort')
-    const cast = await createCast(tx, president, now)
-    await addMoney(tx, cast, now)
-    await addWork(tx, cast, now)
+    }
+    // 행사 A는 끝까지, B는 '구매 요청'까지(입금은 기다리게), C는 만들기만 한다.
+    const { state } = await runRehearsal(flow, options)
+    await runRehearsal(flow, {
+      ...options,
+      event: EVENT_B,
+      stopAfter: 'request',
+      omit: ['deposit'],
+      resume: state,
+    })
+    await runRehearsal(flow, { ...options, event: EVENT_C, stopAfter: 'event', resume: state })
     return 'created'
   })
 }

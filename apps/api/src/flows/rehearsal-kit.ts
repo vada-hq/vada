@@ -64,6 +64,9 @@ export const emptyWorld = (): World => ({
   expenseIds: { request: '', direct: '' },
 })
 
+export type EvidenceUploader = (key: string) => void | Promise<void>
+export type CouncilNames = { name: string; schoolName: string; cohortName: string }
+
 // 행사 하나의 모양. A는 끝난 행사, B는 앞으로 열릴 행사, C는 날짜 없는 행사다.
 export type EventPlan = { name: string; schedule: 'ended' | 'upcoming' | 'tbd' }
 
@@ -74,8 +77,10 @@ export type Ctx = {
   plan: EventPlan
   // 마지막 단계의 시각. 단계 시각은 여기서 거슬러 센다.
   finalAt: Date
-  // 있으면 증빙을 올린 것으로 만든다(흐름 시험의 가짜 저장소). 없으면 증빙 줄을 건너뛴다.
-  uploadEvidence?: ((key: string) => void) | undefined
+  // 있으면 증빙을 올린 것으로 만든다(흐름 시험은 가짜 저장소에 두고, 시연은 실제 저장소에 올린다). 없으면 증빙 줄을 건너뛴다.
+  uploadEvidence?: EvidenceUploader | undefined
+  // 만들 학생회의 이름. 없으면 리허설 이름이다(시연은 학교 이름으로 이미 있는지 찾으므로 정해 준다).
+  council?: CouncilNames | undefined
 }
 
 export const org = (ctx: Ctx) => `/api/organizations/${ctx.w.councilId}`

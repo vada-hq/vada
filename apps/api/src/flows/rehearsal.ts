@@ -11,8 +11,10 @@ import {
   emptyWorld,
   ROLES,
   type Cast,
+  type CouncilNames,
   type Ctx,
   type EventPlan,
+  type EvidenceUploader,
   type Role,
   type World,
 } from './rehearsal-kit.js'
@@ -94,7 +96,9 @@ export type RehearsalOptions = {
   // 건너뛸 단계. 뒤 단계가 막히는지 보려는 것이다.
   omit?: readonly StepName[]
   // 있으면 증빙을 올린 것으로 만든다(흐름 시험의 가짜 저장소). 없으면 증빙 줄을 건너뛴다.
-  uploadEvidence?: (key: string) => void
+  uploadEvidence?: EvidenceUploader
+  // 만들 학생회의 이름(시연이 학교 이름을 정한다). 이어 돌 때는 쓰지 않는다.
+  council?: CouncilNames
   // 행사. 기본은 A다.
   event?: EventPlan
   // 앞서 돈 학생회에서 이어 새 행사를 만든다(B와 C). 행사 단계부터 지금 시각에서 돌고 시계를 옮기지 않는다.
@@ -139,6 +143,7 @@ export async function runRehearsal(flow: Flow, options: RehearsalOptions) {
     plan: options.event ?? EVENT_A,
     finalAt: options.finalAt,
     uploadEvidence: options.uploadEvidence,
+    council: options.council,
   }
   const ran: StepName[] = []
   for (const step of stepsOf(options)) {
