@@ -8,6 +8,19 @@ import { councilRankLabel, placementsText } from '../team/team-view'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
 
+// 아바타와 이름, 직급·부서 줄.
+function Who({ name, position }: { name: string; position: string | null }) {
+  return (
+    <>
+      <Avatar />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-xs font-medium text-gray-700">{name}</span>
+        {position && <span className="truncate text-xs text-gray-400">{position}</span>}
+      </span>
+    </>
+  )
+}
+
 type Props = {
   view: CouncilView | null
   user: { name: string }
@@ -36,21 +49,25 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
       ))
   return (
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
-      <Button
-        variant="ghost"
-        aria-label={`내 이름: ${name}`}
-        className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left"
-        onClick={() => {
-          rename.reset()
-          setRenaming(true)
-        }}
-      >
-        <Avatar />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-xs font-medium text-gray-700">{name}</span>
-          {position && <span className="truncate text-xs text-gray-400">{position}</span>}
-        </span>
-      </Button>
+      {view ? (
+        <Button
+          variant="ghost"
+          // 버튼 안의 직급·부서 줄도 이름에 넣는다(aria-label이 안의 글을 덮는다).
+          aria-label={[`내 이름: ${name}`, position].filter(Boolean).join(', ')}
+          className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left"
+          onClick={() => {
+            rename.reset()
+            setRenaming(true)
+          }}
+        >
+          <Who name={name} position={position} />
+        </Button>
+      ) : (
+        // 학생회를 읽기 전에는 고칠 운영진 이름을 몰라 누르는 버튼이 아니다.
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Who name={name} position={null} />
+        </div>
+      )}
       <PushSettingsButton />
       <Button
         variant="ghost"

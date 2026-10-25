@@ -89,12 +89,20 @@ export function AskToJoin({
 }: AskProps) {
   const [name, setName] = useState(googleName)
   const asking = myName === null
-  const { formRef, errors, attempt } = useFormCheck<HTMLDivElement>(() =>
-    asking ? myNameErrors(name) : {},
-  )
+  const { formRef, errors, attempt } = useFormCheck(() => (asking ? myNameErrors(name) : {}))
+  // '내 이름' 칸에서 Enter로도 들어가도록 form이다. [들어가기]는 끄지 않고 누를 때 확인한다.
   return (
-    <section aria-label="학생회 들어가기" className="flex flex-col gap-4">
-      <div ref={formRef} className="flex flex-col gap-4 rounded-lg border p-6">
+    <form
+      ref={formRef}
+      noValidate
+      aria-label="학생회 들어가기"
+      className="flex flex-col gap-4"
+      onSubmit={event => {
+        event.preventDefault()
+        if (attempt()) onJoin(asking ? name : undefined)
+      }}
+    >
+      <div className="flex flex-col gap-4 rounded-lg border p-6">
         <h2 className="text-base font-semibold wrap-anywhere">{council.name}에 들어갈까요?</h2>
         <CouncilFacts council={council} />
         {asking ? (
@@ -119,13 +127,13 @@ export function AskToJoin({
       </p>
       {error && <StateMessage kind="error">{error}</StateMessage>}
       <div className="flex flex-col gap-2">
-        <Button busy={joining} onClick={() => attempt() && onJoin(asking ? name : undefined)}>
+        <Button type="submit" busy={joining}>
           {joining ? '들어가는 중…' : '들어가기'}
         </Button>
-        <Button variant="ghost" size="sm" busy={joining} onClick={onLeave}>
+        <Button type="button" variant="ghost" size="sm" busy={joining} onClick={onLeave}>
           들어가지 않기
         </Button>
       </div>
-    </section>
+    </form>
   )
 }
