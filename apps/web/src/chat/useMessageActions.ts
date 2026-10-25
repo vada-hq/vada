@@ -22,6 +22,8 @@ export function useMessageActions({
   onWriteExpense,
 }: MessageActionArgs) {
   const actions: MessageAction[] = []
+  // 지운 메시지로는 아무것도 만들지 않는다(본문과 사진이 없다).
+  if (message.body === null) return { actions }
   if (canRequest)
     actions.push({
       key: 'request',

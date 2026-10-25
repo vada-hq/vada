@@ -75,10 +75,17 @@ const chatMessage = (id: string, senderName: string | null, body: string): ChatM
   senderName,
   body,
   sentAt: '2026-10-23T01:30:00Z',
+  deletedAt: null,
   photos: [],
 })
+// 지운 메시지(DEC-54): 본문 없이 지운 시각만 있다.
+const deletedMessage = (id: string, senderName: string): ChatMessage => ({
+  ...chatMessage(id, senderName, ''),
+  body: null,
+  deletedAt: '2026-10-23T02:00:00Z',
+})
 
-// 끼룩이 글, 남의 첫 메시지와 이어 쓴 것, 탈퇴한 사람(사람 아이콘), 내 메시지(링크·긴 주소)와 이어 쓴 것.
+// 끼룩이 글, 남의 첫 메시지와 이어 쓴 것, 탈퇴한 사람(사람 아이콘), 지운 메시지(남의 것, 내 것), 내 메시지(링크·긴 주소)와 이어 쓴 것.
 const FLOW: { message: ChatMessage; mine: boolean; continued: boolean }[] = [
   { message: chatMessage('k', null, '가을 축제가 생겼어요'), mine: false, continued: false },
   {
@@ -96,6 +103,8 @@ const FLOW: { message: ChatMessage; mine: boolean; continued: boolean }[] = [
     mine: false,
     continued: false,
   },
+  { message: deletedMessage('x', '정하늘'), mine: false, continued: false },
+  { message: deletedMessage('y', '박해랑'), mine: true, continued: false },
   {
     message: chatMessage(
       'c',

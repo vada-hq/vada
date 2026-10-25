@@ -100,9 +100,10 @@ test('첫 마이그레이션은 설계 표 45개와 로그인 표 4개, 설계 �
         '0015_command_receipt',
         '0016_member_left_at',
         '0017_google_values_cleared',
+        '0018_message_deleted_at',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 18)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 19)
   } finally {
     await close()
   }

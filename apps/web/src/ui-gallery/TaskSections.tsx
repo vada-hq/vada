@@ -175,6 +175,7 @@ export function TaskResultsSection() {
               { kind: 'request', id: 'r1', title: '현수막 구매', stage: 'in_progress' },
               { kind: 'message', id: 'm1', title: `${unbroken} ${longName}`, stage: 'finished' },
               { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
+              { kind: 'message', id: 'm2', title: null, stage: 'excluded' },
               { kind: 'event', id: 'e1', title: '신입생 환영회', stage: 'none' },
             ],
             canMake: ['request', 'registration_form', 'message', 'event'],

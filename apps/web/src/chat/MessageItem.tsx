@@ -1,4 +1,4 @@
-import { isLeftMemberName } from '@vada/contracts'
+import { DELETED_MESSAGE, isLeftMemberName } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { KkirukLine } from '@/components/KkirukLine'
 import { cn } from '@/lib/utils'
@@ -47,6 +47,16 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
           part.text
         ),
       )}
+    </p>
+  )
+}
+
+// 지운 메시지의 자리(DEC-54). 본문과 사진은 서버가 주지 않는다. 내 것이든 남의 것이든 같은 옅은 말풍선이라
+// 파란 내 말풍선처럼 강조되어 읽히지 않는다(카카오톡·Slack의 '삭제된 메시지' 자리).
+function Deleted() {
+  return (
+    <p className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">
+      {DELETED_MESSAGE}
     </p>
   )
 }
@@ -133,7 +143,11 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
         )}
       >
         <Sender message={message} mine={mine} continued={continued} />
-        {message.body !== '' && <Body body={message.body} mine={mine} />}
+        {message.body === null ? (
+          <Deleted />
+        ) : (
+          message.body !== '' && <Body body={message.body} mine={mine} />
+        )}
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         <Time message={message} continued={continued} />
       </div>

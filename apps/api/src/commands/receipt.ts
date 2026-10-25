@@ -4,7 +4,7 @@ import { commandReceipt } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { uniqueViolationOf } from '../db/error-code.js'
-import { idList } from '../registrations/personal-values.js'
+import { idList } from '../records/clear-versions.js'
 
 // 명령 영수증(기능 017, DEC-84, RULE-45): 같은 명령 번호의 재전송에 처음 결과를 돌려주려고 남긴다. 기록(record)이 아니다.
 // 본문 해시는 신청 본문(이름·학번·휴대폰)에서 나온 가명 정보라 로그·오류·응답에 넣지 않고 24시간 뒤 지운다.

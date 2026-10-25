@@ -175,8 +175,9 @@ export async function evidenceFileToView(
         eq(record.councilId, actor.councilId),
       ),
     )
-  if (!found) throw new ApiError('NOT_FOUND')
-  return found
+  // 증빙 파일은 비우지 않지만 이름과 저장소 위치는 비울 수 있는 칸이라(지운 메시지의 사진, DEC-54) 없으면 없는 것과 같다.
+  if (!found?.key || found.name === null) throw new ApiError('NOT_FOUND')
+  return { key: found.key, name: found.name, mediaType: found.mediaType }
 }
 
 async function approvalsOf(db: Reader, expenseId: string): Promise<ExpenseApproval[]> {
