@@ -44,6 +44,8 @@ export const JOIN_COUNCIL_FAILED = '들어가지 못했어요. 연결을 확인�
 
 export const COUNCIL_SETTINGS_ERRORS: Record<string, string> = {
   COHORT_NOT_STARTED,
+  // 기수 고치기에서 이미 시작한 다른 기수보다 임기 시작을 앞으로 옮겼다(서버 COHORT_NOT_LATEST).
+  COHORT_NOT_LATEST: '임기 시작을 지난 기수보다 앞으로 옮길 수 없어요.',
   FORBIDDEN: PERMISSION_CHANGED,
 }
 

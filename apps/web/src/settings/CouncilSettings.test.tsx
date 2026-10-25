@@ -86,6 +86,25 @@ test('임기 시작이 오늘 뒤면 저장하지 못한 까닭을 보인다', a
   expect(api.calls[0]?.body).toEqual({ name: '2026', startsOn: '2027-03-01', endsOn: '2028-02-29' })
 })
 
+test('임기 시작을 지난 기수보다 앞으로 옮기면 저장하지 못한 까닭을 보인다', async () => {
+  const api = mockApi()
+  api.on('POST', '/api/organizations/c1/cohort', () => json({ error: 'COHORT_NOT_LATEST' }, 409))
+  render(
+    <CouncilSettings
+      view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
+      onSaved={() => {}}
+      onForbidden={() => {}}
+    />,
+  )
+  const form = screen.getByRole('form', { name: '지금 기수' })
+  fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2024-01-01' } })
+  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2024-06-30' } })
+  fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
+  expect(
+    await within(form).findByText('임기 시작을 지난 기수보다 앞으로 옮길 수 없어요.'),
+  ).toBeTruthy()
+})
+
 test('직급 없는 운영진은 보기만 하고 저장 버튼이 없다', () => {
   const api = mockApi()
   render(

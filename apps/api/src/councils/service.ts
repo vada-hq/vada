@@ -1,4 +1,5 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, gte, lte, ne } from 'drizzle-orm'
+import { koreanDateOf } from '@vada/contracts'
 import type {
   CreateCouncilRequest,
   UpdateCohortRequest,
@@ -90,9 +91,29 @@ export async function updateSettings(tx: Tx, actor: Actor, input: UpdateCouncilS
   })
 }
 
-// 지금 기수의 이름과 기간 고치기. 시작일을 오늘 뒤로 옮기면 이 기수가 지금 기수가 아니게 되어 모두 학생회를 열 수 없게 되므로 409로 막는다.
+// 고친 기수가 여전히 가장 늦게 시작한 기수인가. 이미 시작한 다른 기수보다 시작일을 앞으로 옮기면 기간이 겹치지 않아도(EXCLUDE)
+// 그 기수가 지금 기수가 되어 지난 기수 소속에 권한이 되살아난다. 학생회 행을 잠근 거래(inCouncilChange) 안에서 부른다.
+async function assertStillLatest(tx: Tx, actor: Actor, startsOn: string, now: Date) {
+  const [overtaken] = await tx
+    .select({ id: cohort.id })
+    .from(cohort)
+    .where(
+      and(
+        eq(cohort.councilId, actor.councilId),
+        ne(cohort.id, actor.cohortId),
+        gte(cohort.startsOn, startsOn),
+        lte(cohort.startsOn, koreanDateOf(now)),
+      ),
+    )
+    .limit(1)
+  if (overtaken) throw new ApiError('COHORT_NOT_LATEST')
+}
+
+// 지금 기수의 이름과 기간 고치기. 고친 뒤에도 지금 기수여야 한다: 시작일을 오늘 뒤로 옮기면 모두 학생회를 열 수 없고,
+// 이미 시작한 다른 기수보다 앞으로 옮기면 지난 기수가 지금 기수가 되므로 둘 다 409로 막는다.
 export async function updateCohort(tx: Tx, actor: Actor, input: UpdateCohortRequest, now: Date) {
   assertStarted(input, now)
+  await assertStillLatest(tx, actor, input.startsOn, now)
   const [current] = await tx
     .select({ name: cohort.name, startsOn: cohort.startsOn, endsOn: cohort.endsOn })
     .from(cohort)

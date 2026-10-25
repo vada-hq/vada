@@ -549,6 +549,45 @@ test('들어오기는 늦게 시작한 기수로 들어간다. 다음 기수가 
   }
 })
 
+test('다른 학생회에 더 늦게 시작한 기수가 있어도 초대로 들어오면 이 학생회의 지금 기수에 소속이 생긴다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { council, code } = await setup(testDb, ['u1', 'u2'])
+    const own = (
+      await testDb.pg.query<{ id: string }>('SELECT id FROM cohort WHERE council_id = $1', [
+        council.id,
+      ])
+    ).rows
+    assert.equal(own.length, 1)
+    // 다른 학생회의 기수는 이 학생회 기수(2026-01-01 시작)보다 늦게, 오늘(2026-10-19) 전에 시작했다.
+    await testDb.db.transaction(async tx => {
+      const otherId = await createRecord(tx, {
+        kind: 'council',
+        councilId: null,
+        actor: null,
+        values: { name: '다른 학생회', unit: 'department', schoolName: '다른 학교' },
+      })
+      await createRecord(tx, {
+        kind: 'cohort',
+        councilId: otherId,
+        actor: null,
+        values: { name: '2026-2', startsOn: '2026-06-01', endsOn: '2027-05-31' },
+      })
+    })
+    assert.equal((await appOf(testDb).post('/api/organizations/join', { code }, 'u2')).status, 200)
+    const joined = await testDb.pg.query<{ cohort_id: string }>(
+      `SELECT cm.cohort_id FROM council_membership cm
+       JOIN member_login ml ON ml.member_id = cm.member_id WHERE ml.user_id = 'u2'`,
+    )
+    assert.deepEqual(
+      joined.rows.map(row => row.cohort_id),
+      [own[0]!.id],
+    )
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('들어오기는 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤 코드를 다시 확인하고 소속을 만든다', async () => {
   const testDb = await createTestDb()
   try {

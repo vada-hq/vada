@@ -4,6 +4,7 @@ import type { CouncilView, CreateCouncilResponse, InviteCodeResponse } from '@va
 import { createApp } from '../app.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
 import { createInviteRoutes } from '../invites/routes.js'
+import { createRecord } from '../records/records.js'
 import { addUser } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createCouncilRoutes } from './routes.js'
@@ -101,6 +102,44 @@ test('지금 기수의 이름과 기간은 회장단이 고친다. 임기 시작
     assert.deepEqual(
       { ...((await (await api.get(base, 'u2')).json()) as CouncilView).cohort, id: undefined },
       { id: undefined, ...ended },
+    )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('지금 기수의 시작일을 이미 시작한 다른 기수보다 앞으로 옮기면 409 COHORT_NOT_LATEST다(지난 기수가 다시 지금 기수가 되지 않게)', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, council, base } = await setup(testDb)
+    // 지금 기수는 2026(2026-01-01~2026-12-31)이고, 앞에 끝난 2025 기수가 있다.
+    await testDb.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'cohort',
+        councilId: council.id,
+        actor: null,
+        values: { name: '2025', startsOn: '2025-01-01', endsOn: '2025-06-30' },
+      }),
+    )
+    // 기간이 겹치지 않아 EXCLUDE에 걸리지 않지만, 옮기면 2025 기수가 가장 늦게 시작한 기수가 된다.
+    const moved = await api.post(
+      `${base}/cohort`,
+      { name: '2026', startsOn: '2024-01-01', endsOn: '2024-06-30' },
+      'u1',
+    )
+    assert.equal(moved.status, 409)
+    assert.deepEqual(await moved.json(), { error: 'COHORT_NOT_LATEST' })
+    const view = (await (await api.get(base, 'u2')).json()) as CouncilView
+    assert.deepEqual(
+      { ...view.cohort, id: undefined },
+      { id: undefined, name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
+    )
+    // 앞 기수 뒤로는 시작일을 앞당길 수 있다.
+    const earlier = { name: '2026', startsOn: '2025-07-01', endsOn: '2026-12-31' }
+    assert.equal((await api.post(`${base}/cohort`, earlier, 'u1')).status, 200)
+    assert.equal(
+      ((await (await api.get(base, 'u2')).json()) as CouncilView).cohort.startsOn,
+      '2025-07-01',
     )
   } finally {
     await testDb.close()
