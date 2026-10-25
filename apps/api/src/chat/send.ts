@@ -1,7 +1,7 @@
-import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, ne } from 'drizzle-orm'
 import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { chatRoom, message, roomMembership } from '../db/schema.js'
+import { chatRoom, roomMembership } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { authorize, authorizeChange, type AccessRequest } from '../access/authorize.js'
 import { ApiError } from '../http/errors.js'
@@ -14,6 +14,7 @@ import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
 import { inCouncilNoticeRoom } from './plan-room.js'
 import { roomAccess } from './room-access.js'
+import { lockedSentAt } from './sent-at.js'
 
 type SendInput = {
   roomId: string
@@ -105,15 +106,8 @@ export async function sendMessage(
   await assertWritable(tx, actor, room, now)
   if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const called = await calledFrom(tx, actor, { roomId: room.id, mentions: input.mentions }, now)
-  // 방 행을 잠가 같은 방의 보내기를 줄 세운다(잠금 순서: 내 참여 줄 → 방 행). 보낸 시각은 잠근 뒤에 DB 시계로 정하고
-  // 방의 가장 늦은 메시지보다 뒤로 둬서, 커서와 읽음이 기대는 "보낸 시각 순서 = 커밋 순서"가 같은 방에서 틀리지 않게 한다.
-  await tx
-    .select({ id: chatRoom.id })
-    .from(chatRoom)
-    .where(eq(chatRoom.id, room.id))
-    .for('no key update')
-  const sentAt = sql`greatest(${clockNow}, coalesce((select max(${message.sentAt}) from ${message}
-    where ${message.roomId} = ${room.id}::uuid), '-infinity'::timestamptz) + interval '1 microsecond')`
+  // 잠금 순서: 내 참여 줄 → 방 행.
+  const sentAt = await lockedSentAt(tx, room.id)
   const messageId = await createRecord(tx, {
     kind: 'message',
     councilId: actor.councilId,

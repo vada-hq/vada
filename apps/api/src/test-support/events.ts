@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import type { EventDetail, EventsResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
+import type { ChatPush } from '../chat/notify.js'
 import { createTestDb } from '../db/test-db.js'
 import { createEventRoutes } from '../events/routes.js'
 import type { RateLimiter } from '../http/rate-limit.js'
@@ -16,7 +17,9 @@ export type EventCouncil = Awaited<ReturnType<typeof seedCouncil>>
 type Values = Record<string, unknown>
 
 // 학생회 둘(우리, 다른)과 행사 라우트를 띄운다. clock은 시험이 움직일 수 있다.
-export async function startEvents(options: { writeLimiter?: RateLimiter } = {}) {
+export async function startEvents(
+  options: { writeLimiter?: RateLimiter; push?: Pick<ChatPush, 'notify'> } = {},
+) {
   const { pg, db, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')

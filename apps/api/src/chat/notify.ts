@@ -22,7 +22,7 @@ import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { currentMembersAmong } from './current-members.js'
 import { createPresence } from './presence.js'
-import { joinedDisplayNameOf } from '../team/display-name.js'
+import { displayNameOf } from '../team/display-name.js'
 
 // 종류로만 이름이 붙는 방의 알림 제목. 부서방은 부서 이름, 1:1은 보낸 사람이다.
 const ROOM_TITLES: Partial<Record<RoomType, string>> = {
@@ -42,13 +42,14 @@ async function sentMessage(db: Db, messageId: string) {
       body: message.body,
       councilId: record.councilId,
       senderId: record.createdBy,
-      senderName: joinedDisplayNameOf(member, record.councilId),
+      senderName: displayNameOf(member, record.councilId),
       roomType: chatRoom.type,
       departmentName: department.name,
     })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
-    .innerJoin(member, eq(member.id, record.createdBy))
+    // 보낸 사람 없는 끼룩이 글(chat/kkiruk-post.ts)은 운영진 행이 없다.
+    .leftJoin(member, eq(member.id, record.createdBy))
     .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .leftJoin(department, eq(department.id, chatRoom.departmentId))
     .where(eq(message.id, messageId))
@@ -56,15 +57,17 @@ async function sentMessage(db: Db, messageId: string) {
 }
 
 // 그 방의 지금 참여자 중 보낸 사람과 학생회를 떠난 사람(지난 기수 포함)을 뺀 사람. 1:1의 줄은 떠난 뒤에도 남아 따로 거른다.
-async function audienceOf(
-  db: Db,
-  sent: NonNullable<Awaited<ReturnType<typeof sentMessage>>>,
-  now: Date,
-) {
+// 보낸 사람 없는 끼룩이 글은 그 방의 지금 참여자 모두다.
+async function audienceOf(db: Db, sent: Sent, now: Date) {
   const rows = await db
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
-    .where(and(eq(roomMembership.roomId, sent.roomId), ne(roomMembership.memberId, sent.senderId!)))
+    .where(
+      and(
+        eq(roomMembership.roomId, sent.roomId),
+        sent.senderId ? ne(roomMembership.memberId, sent.senderId) : undefined,
+      ),
+    )
   const alive = await currentMembersAmong(
     db,
     sent.councilId!,
@@ -73,6 +76,14 @@ async function audienceOf(
   )
   return rows.map(row => row.memberId).filter(id => alive.has(id))
 }
+
+type Sent = NonNullable<Awaited<ReturnType<typeof sentMessage>>>
+
+// 알림 제목: 1:1은 보낸 사람, 부서방은 부서 이름, 나머지는 방 종류 이름이다(끼룩이 글은 공지방).
+const titleOf = (sent: Sent) =>
+  (sent.roomType === 'direct' ? sent.senderName : sent.departmentName) ??
+  ROOM_TITLES[sent.roomType as RoomType] ??
+  '대화'
 
 async function calledOf(db: Db, messageId: string) {
   const rows = await db
@@ -90,7 +101,7 @@ export function createChatPush(db: Db, send: PushSender) {
   const fanout = createFanout(db, send)
   async function run(messageId: string, now: Date) {
     const sent = await sentMessage(db, messageId)
-    if (!sent?.senderId || !sent.councilId) return
+    if (!sent?.councilId) return
     const viewers = (await audienceOf(db, sent, now)).filter(
       id => !presence.isViewing(sent.roomId, id, now),
     )
@@ -98,11 +109,7 @@ export function createChatPush(db: Db, send: PushSender) {
     const url = chatRoomUrl(sent.councilId, sent.roomId)
     const tag = chatRoomTag(sent.roomId)
     const excerpt = excerptOf(sent.body)
-    const title =
-      sent.roomType === 'direct'
-        ? sent.senderName
-        : (sent.departmentName ?? ROOM_TITLES[sent.roomType as RoomType] ?? '대화')
-    const normal: PushMessage = { title, body: excerpt, url, tag }
+    const normal: PushMessage = { title: titleOf(sent), body: excerpt, url, tag }
     const mention: PushMessage = {
       title: `${sent.senderName}님이 나를 불렀어요`,
       body: excerpt,
