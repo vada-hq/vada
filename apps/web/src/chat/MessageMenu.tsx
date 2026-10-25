@@ -13,12 +13,12 @@ export type MessageAction = {
 
 type Props = {
   actions: MessageAction[]
-  // 동작이 진행 중이면 메뉴를 막는다.
-  busy: boolean
+  // 동작이 진행 중이면 메뉴를 막는다. 지금 메뉴의 동작은 모두 대화상자를 열 뿐이라 기본은 false다.
+  busy?: boolean
 }
 
 // 메시지 하나의 동작 메뉴. 할 수 있는 동작이 없으면 버튼도 없다.
-export default function MessageMenu({ actions, busy }: Props) {
+export default function MessageMenu({ actions, busy = false }: Props) {
   if (actions.length === 0) return null
   return (
     <Menu>

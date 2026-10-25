@@ -44,6 +44,7 @@ function useNoticeRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onFo
       result => {
         if (controller.signal.aborted) return
         if (result.ok) {
+          // 조각 8에서 RoomSummary에 eventId가 생기면 eventId === null인 방(학생회 공지방)으로 고른다.
           const room = result.data.rooms.find(item => item.type === 'all_members')
           return room ? setRoomId(room.id) : setFailed(true)
         }
