@@ -16,6 +16,8 @@ type Props = EventDialogHandlers & {
   onTab: (tab: EventTab) => void
   // 업무 하나를 눌렀다. 업무 탭에서 그 업무를 연다.
   onOpenTask: (taskId: string) => void
+  // 챙길 것의 '담당자 없음'. 업무 탭을 담당자 없는 업무만 보이는 보기로 연다.
+  onOpenUnassigned: () => void
   // 준비 단계의 '업무 만들기'. 업무 탭에서 만들기를 연 채 시작한다.
   onCreateTask: () => void
   // 준비 단계의 '일시 넣기'. 머리의 고치기를 그 칸에 포커스를 두고 연다.
@@ -79,14 +81,27 @@ function Progress({
 // 챙길 것 → 준비 단계(새 행사) → 세 탭의 수 → 다음 업무 순이다(와이어프레임 Event Overview).
 // 아무것도 없는 새 행사는 빈 수 카드를 늘어놓지 않고 준비 단계만 보인다.
 export function EventOverview(props: Props) {
-  const { councilId, event, onTab, onOpenTask, onCreateTask: _c, onEdit: _e, ...handlers } = props
+  const {
+    councilId,
+    event,
+    onTab,
+    onOpenTask,
+    onOpenUnassigned,
+    onCreateTask: _c,
+    onEdit: _e,
+    ...handlers
+  } = props
   const data = useEventOverview(councilId, event.id, handlers)
   const openTasks = data.tasks.kind === 'ready' ? data.tasks.tasks : []
   const settlement = data.settlement.kind === 'ready' ? data.settlement.data.settlement : null
   const setup = setupOf(event, data)
   return (
     <div className="flex flex-col gap-6">
-      <OverviewAttention items={attentionOf(event, openTasks, settlement)} onTab={onTab} />
+      <OverviewAttention
+        items={attentionOf(event, openTasks, settlement)}
+        onTab={onTab}
+        onUnassigned={onOpenUnassigned}
+      />
       {setup?.steps && (
         <OverviewSetup steps={setup.steps} actions={setupActions(event, data, props)} />
       )}
