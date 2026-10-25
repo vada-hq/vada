@@ -6,7 +6,7 @@ import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { leave } from '@/lib/app-location'
-import { openRecord } from '@/lib/go-to'
+import { openEventTasks, openRecord } from '@/lib/go-to'
 import { EVENT_COMPLETED_NOTICE, EVENT_LOAD_FAILED } from '@/lib/messages'
 import { RegistrationTab } from '../registrations/RegistrationTab'
 import TasksPage from '../tasks/TasksPage'
@@ -54,9 +54,10 @@ function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
   )
 }
 
-// 업무 탭으로 넘겨 여는 것(개요의 업무 만들기, 담당자 없음 보기)과 머리의 고치기. 넘긴 것은 탭을 직접 바꾸면 버린다.
+// 업무 탭으로 넘겨 여는 것(개요의 업무 만들기)과 머리의 고치기. 넘긴 것은 탭을 직접 바꾸면 버린다.
+// 개요의 담당자 없음 보기는 거르기라 주소로 연다(openEventTasks).
 // moneyRefresh는 머리의 완료·완료 취소(와 그 거절)가 바꾼 정산을 재정 탭이 다시 읽게 하는 번호다.
-type TaskLink = { create?: boolean; view?: 'unassigned' }
+type TaskLink = { create?: boolean }
 function useDetailState(onTab: (tab: Tab) => void) {
   const [taskLink, setTaskLink] = useState<TaskLink>({})
   const [editing, setEditing] = useState<EventEditing | null>(null)
@@ -96,7 +97,7 @@ export default function EventDetailView({ view, eventId, tab, onTab, from, ...pr
         onClick={() => leave(menuPath('events', view.council.id))}
       >
         <ChevronLeft aria-hidden />
-        {backLabel(from)}
+        {backLabel(from, eventId)}
       </Button>
       <EventHeader
         councilId={view.council.id}
@@ -152,7 +153,6 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
         <TasksPage
           view={view}
           eventId={eventId}
-          initialView={props.taskLink.view}
           initialCreate={props.taskLink.create}
           onForbidden={props.onForbidden}
           onChanged={() => {
@@ -204,7 +204,7 @@ function OverviewPanel({
           event={loaded}
           onTab={props.onTab}
           onOpenTask={taskId => openRecord('tasks', councilId, taskId)}
-          onOpenUnassigned={() => props.onOpenTasks({ view: 'unassigned' })}
+          onOpenUnassigned={() => openEventTasks(councilId, loaded.id, { view: 'unassigned' })}
           onCreateTask={() => props.onOpenTasks({ create: true })}
           onEdit={props.onEdit}
           onLost={props.onLost}

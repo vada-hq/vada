@@ -17,6 +17,8 @@ import type { Page } from './pages'
 
 const base = `/api/organizations/${COUNCIL_ID}`
 const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+const T2 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e70'
+const T3 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e71'
 const EVENT2 = '00000000-0000-4000-8000-0000000000e2'
 const EVENT_AT = `/events/${COUNCIL_ID}/${EVENT_ID}`
 const pathNow = () => window.location.pathname + window.location.search
@@ -249,4 +251,84 @@ test('고친 것이 없으면 확인 없이 옮겨 간다', async () => {
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
   expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
+})
+
+// 행사 업무 탭의 보기와 거르기(DEC-78, 기능 026 조각 2). 업무 메뉴와 같은 키로 행사 주소에 남는다.
+function onEventTasks() {
+  const unassigned: TaskSummary = { ...eventTask, id: T2, title: '의자 빌리기', assignee: null }
+  api.on('GET', `${base}/tasks?view=all&status=open&event=${EVENT_ID}`, () =>
+    json({ tasks: [eventTask, unassigned], truncated: false }),
+  )
+  api.on('GET', `${base}/tasks?view=all&status=done&event=${EVENT_ID}`, () =>
+    json({
+      tasks: [{ ...eventTask, id: T3, title: '끝난 업무', status: 'done' }],
+      truncated: false,
+    }),
+  )
+  api.on('GET', `${base}/tasks?view=unassigned&status=open&event=${EVENT_ID}`, () =>
+    json({ tasks: [unassigned], truncated: false }),
+  )
+}
+const pressed = (name: string) =>
+  screen.findByRole('button', { name }).then(button => button.getAttribute('aria-pressed'))
+
+test('행사 업무 탭에서 고른 끝남은 주소에 남아 새로 고침해도 끝남이고, 기본값을 고르면 주소에서 빠진다', async () => {
+  const view = setup(`${EVENT_AT}?tab=tasks`)
+  onEventTasks()
+  const push = vi.spyOn(window.history, 'pushState')
+  fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
+  expect(push).not.toHaveBeenCalled()
+  view.unmount()
+  setup(`${EVENT_AT}?tab=tasks&filter=done`)
+  onEventTasks()
+  expect(await pressed('끝남')).toBe('true')
+  expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
+  expect(await pressed('끝나지 않은 것')).toBe('true')
+})
+
+test('행사 업무 탭에서 보기를 바꿔도 뒤로는 행사에 들어오기 전이다', async () => {
+  setup(`/events/${COUNCIL_ID}`)
+  onEventTasks()
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
+  fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  act(() => window.history.back())
+  await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}`))
+  expect(await screen.findByRole('button', { name: '둘째 행사' })).toBeTruthy()
+})
+
+test('개요의 담당자 없음 [업무 보기]는 그 거르기가 든 업무 탭 주소로 한 칸 쌓고, 뒤로는 개요다', async () => {
+  setup(EVENT_AT)
+  onEventTasks()
+  const attention = await screen.findByRole('region', { name: '챙길 것' })
+  const row = (await within(attention).findAllByRole('listitem')).find(item =>
+    within(item).queryByText('담당자 없는 업무'),
+  )!
+  fireEvent.click(within(row).getByRole('button', { name: '업무 보기' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&view=unassigned`))
+  expect(await screen.findByRole('button', { name: '의자 빌리기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '현수막 주문' })).toBeNull()
+  expect(screen.getByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeTruthy()
+  // 화면 안의 뒤로도 들어온 곳(개요)의 이름을 단다.
+  expect(screen.getByRole('button', { name: '개요' })).toBeTruthy()
+  act(() => window.history.back())
+  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  expect(await selected('개요')).toBe('true')
+})
+
+test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에서 빠진다', async () => {
+  setup(`${EVENT_AT}?tab=tasks&view=unassigned&filter=done`)
+  onEventTasks()
+  expect(await selected('업무')).toBe('true')
+  fireEvent.click(screen.getByRole('tab', { name: '개요' }))
+  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  fireEvent.click(screen.getByRole('tab', { name: '업무' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
+  expect(await pressed('끝나지 않은 것')).toBe('true')
+  expect(screen.queryByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeNull()
 })

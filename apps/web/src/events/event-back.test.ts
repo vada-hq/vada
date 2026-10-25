@@ -4,11 +4,19 @@ import { backLabel } from './event-back'
 
 const C = '0199d1a0-0000-7000-8000-0000000000c1'
 const T = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+const E = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e70'
 
 test('들어온 곳이 행사 목록이거나 모르면 행사 목록이다', () => {
   expect(backLabel(null)).toBe('행사 목록')
   expect(backLabel(menuPath('events', C))).toBe('행사 목록')
   expect(backLabel('/nope')).toBe('행사 목록')
+})
+
+test('같은 행사의 개요에서 쌓아 들어왔으면 개요이고, 다른 행사에서면 행사 목록이다', () => {
+  expect(backLabel(recordPath('events', C, T), T)).toBe('개요')
+  expect(backLabel(recordPath('events', C, T), T.toUpperCase())).toBe('개요')
+  expect(backLabel(recordPath('events', C, T), E)).toBe('행사 목록')
+  expect(backLabel(recordPath('events', C, T))).toBe('행사 목록')
 })
 
 test('다른 메뉴에서 들어왔으면 그 메뉴의 이름이다', () => {
