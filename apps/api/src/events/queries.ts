@@ -1,12 +1,19 @@
 import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm'
-import { EVENT_LIST_LIMIT, koreanOf, type EventSummary, type EventsResponse } from '@vada/contracts'
+import {
+  EVENT_LIST_LIMIT,
+  SIDEBAR_EVENT_LIMIT,
+  koreanOf,
+  type EventSummary,
+  type EventsResponse,
+  type SidebarEventsResponse,
+} from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong } from './completion.js'
-import { eventStatusOf } from './status.js'
+import { eventStatusOf, openEventStatusOf } from './status.js'
 import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
@@ -116,6 +123,31 @@ async function endedOpenRows(db: Reader, actor: Actor, now: Date, limit: number)
 
 const openScope = (actor: Actor) =>
   and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
+
+// 옆 메뉴 '공간'의 행사 줄(DEC-85, DEC-96): 완료하지 않은 행사를 행사 목록과 같은 차례로 따로 읽는다.
+// 행사 목록은 완료 행사를 섞어 EVENT_LIST_LIMIT개에서 자르므로 화면이 그것을 거르면 오래된 미완료 행사가 빠진다.
+// 칸은 id, 이름, 상태만이다(PRIN-5). 한 개 더 읽어 더 있는지 안다.
+export async function sidebarEventsOf(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+): Promise<SidebarEventsResponse> {
+  const rows = await db
+    .select({ id: event.id, name: event.name, startsAt: event.startsAt, endsAt: event.endsAt })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(openScope(actor))
+    .orderBy(...listOrder(now))
+    .limit(SIDEBAR_EVENT_LIMIT + 1)
+  return {
+    events: rows.slice(0, SIDEBAR_EVENT_LIMIT).map(row => ({
+      id: row.id,
+      name: row.name,
+      status: openEventStatusOf(row.startsAt, row.endsAt, now),
+    })),
+    more: rows.length > SIDEBAR_EVENT_LIMIT,
+  }
+}
 
 // 홈의 정산할 행사: 위와 같은 행사를 요약으로 준다.
 export async function endedOpenEventsOf(db: Reader, actor: Actor, now: Date, limit: number) {

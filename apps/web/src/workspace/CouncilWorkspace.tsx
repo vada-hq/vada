@@ -5,10 +5,13 @@ import { PageActionsProvider } from '@/components/PageActions'
 import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
+import { NewEventDialog } from '../events/EventCreateDialog'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
+import { activeItemOf } from './space-view'
 import { useCouncilData } from './useCouncilData'
+import { useSpace } from './useSpace'
 import { useWorkspaceLists } from './useWorkspaceLists'
 import { useWorkspaceNav } from './useWorkspaceNav'
 import WorkspaceContent from './WorkspaceContent'
@@ -93,13 +96,16 @@ export default function CouncilWorkspace({
   // 본문 위치는 방문 기록 칸마다 기억한다. 직접 연 첫 칸은 표시가 없어 주소로 가른다.
   useScrollMemory(nav.main, here.key || `path:${here.path}`)
   const openers = useOpeners(council.id, nav)
-  const { lists, counts } = useWorkspaceLists(council.id, data)
+  const { lists, counts, openEvents } = useWorkspaceLists(council.id, data)
+  const { space, newEvent } = useSpace(data, nav, openEvents)
+  const openEventId = target.record?.kind === 'events' ? target.record.id : null
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
       councils={councils}
       view={data.view}
-      page={nav.page}
+      active={activeItemOf(nav.page, openEventId, openEvents ?? [])}
+      space={space}
       {...counts}
       user={user}
       logoutBusy={logoutBusy}
@@ -132,6 +138,14 @@ export default function CouncilWorkspace({
           mainRef: nav.main,
         }}
       />
+      {newEvent.open && data.view && (
+        <NewEventDialog
+          view={data.view}
+          onClose={newEvent.close}
+          onLost={newEvent.lose}
+          onForbidden={data.reload}
+        />
+      )}
       <LeaveConfirm />
     </WorkspaceFrame>
   )

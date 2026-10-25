@@ -16,6 +16,7 @@ import { EventHeader, type EventEditing } from './EventHeader'
 import type { EventFieldFocus } from './EventFields'
 import { EventMoneyTab } from './EventMoneyTab'
 import { EventOverview } from './EventOverview'
+import { announceEventsChanged } from './events-changed'
 import type { EventDialogHandlers } from './useEventSubmit'
 import { useEventDetail } from './useEventDetail'
 
@@ -106,10 +107,12 @@ export default function EventDetailView({ view, eventId, tab, onTab, from, ...pr
         onEdit={state.setEditing}
         onLost={props.onLost}
         onForbidden={props.onForbidden}
+        // 이름과 완료는 옆 메뉴의 행사 줄에도 보인다.
         onChanged={next => {
           detail.replace(next)
           state.refreshMoney()
           props.onChanged()
+          announceEventsChanged()
         }}
         onStale={() => {
           void detail.reload()

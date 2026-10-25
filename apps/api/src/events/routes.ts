@@ -4,16 +4,18 @@ import {
   UpdateEventSchema,
   type EventResponse,
   type EventsResponse,
+  type SidebarEventsResponse,
 } from '@vada/contracts'
+import type { Actor } from '../access/actor.js'
 import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { ChatPush } from '../chat/notify.js'
-import type { Db } from '../db/types.js'
+import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { eventDetailOf } from './detail.js'
-import { eventListOf } from './queries.js'
+import { eventListOf, sidebarEventsOf } from './queries.js'
 import { createEvent, updateEvent, type EventWrite } from './service.js'
 
 const root = '/organizations/:councilId/events'
@@ -90,20 +92,21 @@ export function createEventRoutes(
     action: 'council.view' as const,
     now: clock(),
   })
-  routes.get(root, auth, async c => {
+  // 운영진인지 본 뒤 한 시점의 모습으로 읽는다.
+  const read = <T>(
+    c: Context<SessionEnv>,
+    body: (tx: Tx, actor: Actor, now: Date) => Promise<T>,
+  ) => {
     const request = asked(c)
-    const list = await db.transaction(
-      async tx => eventListOf(tx, await authorize(tx, request), request.now),
-      snapshot,
-    )
-    return c.json(list satisfies EventsResponse)
-  })
+    return db.transaction(async tx => body(tx, await authorize(tx, request), request.now), snapshot)
+  }
+  routes.get(root, auth, async c => c.json((await read(c, eventListOf)) satisfies EventsResponse))
+  // 옆 메뉴의 완료하지 않은 행사. 행사 번호 경로보다 먼저 둔다('open'은 행사 번호가 아니다).
+  routes.get(`${root}/open`, auth, async c =>
+    c.json((await read(c, sidebarEventsOf)) satisfies SidebarEventsResponse),
+  )
   routes.get(`${root}/:eventId`, auth, async c => {
-    const request = asked(c)
-    const event = await db.transaction(
-      async tx => eventDetailOf(tx, await authorize(tx, request), eventIdOf(c), request.now),
-      snapshot,
-    )
+    const event = await read(c, (tx, actor, now) => eventDetailOf(tx, actor, eventIdOf(c), now))
     return c.json({ event } satisfies EventResponse)
   })
   addWriteRoutes({

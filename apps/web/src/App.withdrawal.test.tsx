@@ -89,6 +89,9 @@ function openCouncil() {
   api.on('GET', `/api/organizations/${COUNCIL}/purchase-requests?view=pending`, () =>
     json({ requests: [], truncated: false }),
   )
+  api.on('GET', `/api/organizations/${COUNCIL}/events/open`, () =>
+    json({ events: [], more: false }),
+  )
 }
 // 서버가 탈퇴를 받으면 세션 줄을 지운다. 그 뒤의 세션 읽기는 로그인 전이다.
 function withdrawalAnswers(response: () => Response | Promise<Response>) {

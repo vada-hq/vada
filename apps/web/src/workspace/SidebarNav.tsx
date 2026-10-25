@@ -1,18 +1,12 @@
-import {
-  CalendarDays,
-  House,
-  ListChecks,
-  MessageSquare,
-  Network,
-  Users,
-  Wallet,
-} from 'lucide-react'
+import { House, ListChecks, MessageSquare, Network, Users, Wallet } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { NavItem } from '@/components/ui/nav-item'
 import { unreadLabel } from '../chat/chat-view'
 import type { PendingCount } from '../finance/purchase-view'
 import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
+import SpaceList, { type SpaceProps } from './SpaceList'
+import { menuActive, type ActiveItem } from './space-view'
 
 function TasksItem({
   active,
@@ -60,12 +54,12 @@ function FinanceItem({
 }
 
 // 운영진: 사람, 부서
-function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void }) {
+function TeamItems({ active, onPage }: { active: ActiveItem; onPage: (page: Page) => void }) {
   return (
     <>
       <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
       <NavItem
-        active={page === 'people'}
+        active={menuActive(active, 'people')}
         className="flex items-center gap-2"
         onClick={() => onPage('people')}
       >
@@ -73,7 +67,7 @@ function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void 
         사람
       </NavItem>
       <NavItem
-        active={page === 'departments'}
+        active={menuActive(active, 'departments')}
         className="flex items-center gap-2"
         onClick={() => onPage('departments')}
       >
@@ -84,27 +78,27 @@ function TeamItems({ page, onPage }: { page: Page; onPage: (page: Page) => void 
   )
 }
 
-// 홈(배지 없음), 대화(안 읽은 수 합계), 행사.
+// 홈(배지 없음), 대화(안 읽은 수 합계). 행사는 최상위 칸이 아니고 아래 '공간' 묶음이다(DEC-85, DEC-96).
 function LeadItems({
-  page,
+  active,
   unread,
   onPage,
 }: {
-  page: Page
+  active: ActiveItem
   unread: number
   onPage: (page: Page) => void
 }) {
   return (
     <>
       <NavItem
-        active={page === 'home'}
+        active={menuActive(active, 'home')}
         className="flex items-center gap-2"
         onClick={() => onPage('home')}
       >
         <House aria-hidden className="size-4" />홈
       </NavItem>
       <NavItem
-        active={page === 'chat'}
+        active={menuActive(active, 'chat')}
         className="mt-1 flex items-center gap-2"
         onClick={() => onPage('chat')}
       >
@@ -116,42 +110,42 @@ function LeadItems({
           </Badge>
         )}
       </NavItem>
-      <NavItem
-        active={page === 'events'}
-        className="mt-1 flex items-center gap-2"
-        onClick={() => onPage('events')}
-      >
-        <CalendarDays aria-hidden className="size-4" />
-        행사
-      </NavItem>
     </>
   )
 }
 
-// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 행사, 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서).
+// 옆 메뉴 가운데: 홈(배지 없음), 대화(안 읽은 수 합계), 업무(지남 또는 남은 수), 재정(결재 대기 수), 운영진(사람, 부서),
+// 그 아래 '공간'(완료하지 않은 행사, 행사 모두 보기, 새 행사).
 export default function SidebarNav({
-  page,
+  active,
   unread,
   taskCount,
   pendingCount,
+  space,
   onPage,
 }: {
-  page: Page
+  active: ActiveItem
   unread: number
   taskCount: TaskCount | null
   pendingCount: PendingCount | null
+  space: SpaceProps
   onPage: (page: Page) => void
 }) {
   return (
     <nav aria-label="학생회 메뉴" className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-      <LeadItems page={page} unread={unread} onPage={onPage} />
-      <TasksItem active={page === 'tasks'} count={taskCount} onClick={() => onPage('tasks')} />
+      <LeadItems active={active} unread={unread} onPage={onPage} />
+      <TasksItem
+        active={menuActive(active, 'tasks')}
+        count={taskCount}
+        onClick={() => onPage('tasks')}
+      />
       <FinanceItem
-        active={page === 'finance'}
+        active={menuActive(active, 'finance')}
         count={pendingCount}
         onClick={() => onPage('finance')}
       />
-      <TeamItems page={page} onPage={onPage} />
+      <TeamItems active={active} onPage={onPage} />
+      <SpaceList active={active} {...space} />
     </nav>
   )
 }

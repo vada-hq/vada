@@ -152,6 +152,7 @@ export {
   EVENT_NAME_MAX,
   EVENT_PLACE_MAX,
   EVENT_STATUSES,
+  SIDEBAR_EVENT_LIMIT,
   CancelCompletionSchema,
   CompleteEventSchema,
   CreateEventSchema,
@@ -168,6 +169,9 @@ export {
   type EventSummary,
   type EventVersion,
   type EventsResponse,
+  type OpenEventStatus,
+  type SidebarEvent,
+  type SidebarEventsResponse,
   type UpdateEventRequest,
 } from './events.js'
 export {

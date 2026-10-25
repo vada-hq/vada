@@ -15,6 +15,7 @@ import {
   KkirukMessageSection,
   MessageMenuSection,
 } from './MenuSections'
+import { SpaceListSection } from './SpaceSections'
 import { AccountSection } from './AccountSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseSection } from './ExpenseSections'
@@ -54,6 +55,7 @@ export default function Gallery() {
       <ChipsSection />
       <CardsSection />
       <MenuTabsSection />
+      <SpaceListSection />
       <ActionMenuSection />
       <MessageMenuSection />
       <KkirukMessageSection />

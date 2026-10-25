@@ -6,15 +6,19 @@ import type { TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 import SidebarFooter from './SidebarFooter'
 import SidebarNav from './SidebarNav'
+import type { ActiveItem } from './space-view'
+import type { SpaceProps } from './SpaceList'
 
 type Props = {
   council: MyCouncil
   councils: MyCouncil[]
   view: CouncilView | null
-  page: Page
+  // 켤 칸 하나(메뉴, 공간의 행사 줄, 행사 모두 보기)
+  active: ActiveItem
   unread: number
   taskCount: TaskCount | null
   pendingCount: PendingCount | null
+  space: SpaceProps
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
   // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
@@ -31,10 +35,11 @@ export default function WorkspaceSidebar({
   council,
   councils,
   view,
-  page,
+  active,
   unread,
   taskCount,
   pendingCount,
+  space,
   onSelect,
   onPage,
   menuRef,
@@ -53,10 +58,11 @@ export default function WorkspaceSidebar({
         menuRef={menuRef}
       />
       <SidebarNav
-        page={page}
+        active={active}
         unread={unread}
         taskCount={taskCount}
         pendingCount={pendingCount}
+        space={space}
         onPage={onPage}
       />
       <SidebarFooter

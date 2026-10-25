@@ -37,17 +37,15 @@ function open(startPage: Page = 'chat', tasks: TaskSummary[] = []) {
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks, truncated: false }))
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
+  api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
   render(<WorkspaceAt startPage={startPage} />)
   return api
 }
 
-test('옆 메뉴의 행사는 업무 위에 있고, 누르면 행사 목록이 열린다', async () => {
+test('옆 메뉴 공간의 [행사 모두 보기]를 누르면 행사 목록이 열린다', async () => {
   open()
-  const names = (await screen.findAllByRole('button')).map(button => button.textContent)
-  expect(names.indexOf('행사')).toBeGreaterThan(-1)
-  expect(names.indexOf('행사')).toBeLessThan(names.findIndex(name => name?.startsWith('업무')))
-  fireEvent.click(screen.getAllByRole('button', { name: '행사' })[0]!)
+  fireEvent.click(await screen.findByRole('button', { name: '행사 모두 보기' }))
   expect(await screen.findByRole('button', { name: '신입생 환영회' })).toBeTruthy()
 })
 
@@ -65,7 +63,7 @@ test('행사를 열었다가 다른 화면에 다녀오면 목록이 열린다',
   await screen.findByRole('tab', { name: '개요' })
   fireEvent.click(screen.getAllByRole('button', { name: /^업무/ })[0]!)
   await screen.findByRole('button', { name: '현수막 주문' })
-  fireEvent.click(screen.getAllByRole('button', { name: '행사' })[0]!)
+  fireEvent.click(screen.getAllByRole('button', { name: '행사 모두 보기' })[0]!)
   expect(await screen.findByRole('button', { name: '신입생 환영회' })).toBeTruthy()
   expect(screen.queryByRole('tab', { name: '개요' })).toBeNull()
 })
