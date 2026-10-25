@@ -10,8 +10,8 @@ type Props = {
   // 내 업무에 이미 보이는 업무. 부서 줄에서 뺀다.
   mineIds: Set<string>
   onOpenTask: (taskId: string) => void
-  // 업무 화면으로 간다.
-  onSeeAll: () => void
+  // 업무 화면에서 그 부서의 업무로 간다.
+  onSeeAll: (departmentId: string) => void
 }
 
 // 지난 업무 다음에 담당자 없는 업무. 둘 다인 업무는 한 번만 둔다.
@@ -49,7 +49,7 @@ function Department({
       title={department.name}
       count={counts.todo + counts.inProgress}
       aside={aside}
-      onSeeAll={onSeeAll}
+      onSeeAll={() => onSeeAll(department.id)}
     >
       {rows.length === 0 && <HomeEmpty>막힌 업무 없음</HomeEmpty>}
       {rows.map(task => (

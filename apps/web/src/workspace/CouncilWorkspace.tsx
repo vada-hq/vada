@@ -1,10 +1,10 @@
 import { useState, type ComponentProps } from 'react'
-import type { EventTab, MyCouncil, RecordKind } from '@vada/contracts'
+import type { EventTab, MyCouncil } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
-import { navigate, useHere } from '@/lib/app-location'
+import { useHere } from '@/lib/app-location'
+import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
-import { recordTarget } from './address'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
@@ -38,13 +38,10 @@ function recordOf(target: Props['target']) {
 
 // 화면이 누르는 이동은 주소를 쌓는 것이다. 기록은 그 종류의 주소로 연다.
 function useOpeners(councilId: string, nav: Nav) {
-  const open = (kind: RecordKind, id: string, tab?: EventTab) =>
-    navigate(recordTarget(kind, councilId, id, tab))
   return {
     onOpenPage: nav.openPage,
-    onOpenTask: (id: string) => open('tasks', id),
-    onOpenRequest: (id: string) => open('purchases', id),
-    onOpenEvent: (id: string, tab?: EventTab) => open('events', id, tab),
+    onOpenRequest: (id: string) => openRecord('purchases', councilId, id),
+    onOpenEvent: (id: string, tab?: EventTab) => openRecord('events', councilId, id, { tab }),
   }
 }
 

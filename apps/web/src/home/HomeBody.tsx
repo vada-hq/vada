@@ -1,4 +1,5 @@
-import type { HomeResponse } from '@vada/contracts'
+import type { AppQuery, HomeResponse } from '@vada/contracts'
+import { openMenu, openRecord } from '@/lib/go-to'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
@@ -14,7 +15,6 @@ import { useHomeExtras, type HomeExtras } from './useHomeExtras'
 import WeekEventsSection from './WeekEventsSection'
 
 export type HomeOpeners = {
-  onOpenTask: (taskId: string) => void
   onOpenRequest: (requestId: string) => void
   // 정산 수가 있는 행사는 '예산·정산' 탭으로 연다.
   onOpenEvent: (eventId: string, tab?: 'money') => void
@@ -26,13 +26,26 @@ type Props = HomeOpeners & {
   councilId: string
   onForbidden: () => void
 }
-type Parts = HomeOpeners & { home: HomeResponse; extras: HomeExtras; mineIds: Set<string> }
+type Parts = HomeOpeners & {
+  home: HomeResponse
+  councilId: string
+  extras: HomeExtras
+  mineIds: Set<string>
+}
+
+// 업무 줄과 '모두 보기'는 그 줄이 보이는 보기·거르기로 연다(주소를 쌓는다).
+function useTaskOpeners(councilId: string) {
+  return {
+    openTask: (taskId: string) => openRecord('tasks', councilId, taskId),
+    seeTasks: (query?: AppQuery) => openMenu('tasks', councilId, query),
+  }
+}
 
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.
-function MainColumn({ home, mineIds, ...open }: Omit<Parts, 'extras'>) {
-  const seeTasks = () => open.onOpenPage('tasks')
+function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>) {
+  const { openTask, seeTasks } = useTaskOpeners(councilId)
   const seeEvents = () => open.onOpenPage('events')
-  const shared = { today: home.today, mineIds, onOpenTask: open.onOpenTask }
+  const shared = { today: home.today, mineIds, onOpenTask: openTask }
   return (
     <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
       {home.received && (
@@ -51,7 +64,11 @@ function MainColumn({ home, mineIds, ...open }: Omit<Parts, 'extras'>) {
         />
       )}
       {home.departments && (
-        <DepartmentsSection departments={home.departments} {...shared} onSeeAll={seeTasks} />
+        <DepartmentsSection
+          departments={home.departments}
+          {...shared}
+          onSeeAll={department => seeTasks({ view: 'department', dept: department })}
+        />
       )}
       {home.settling && (
         <SettlingSection
@@ -63,16 +80,16 @@ function MainColumn({ home, mineIds, ...open }: Omit<Parts, 'extras'>) {
       <MineSection
         mine={home.mine}
         today={home.today}
-        onOpenTask={open.onOpenTask}
-        onSeeAll={seeTasks}
+        onOpenTask={openTask}
+        onSeeAll={() => seeTasks()}
       />
     </div>
   )
 }
 
 // 좁은 단: 업무 화면에 없는 것과 회장단의 막힌 곳. 비면 부분째 빠진다.
-function SideColumn({ home, extras, mineIds, ...open }: Parts) {
-  const seeTasks = () => open.onOpenPage('tasks')
+function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
+  const { openTask, seeTasks } = useTaskOpeners(councilId)
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {home.council && (
@@ -80,7 +97,7 @@ function SideColumn({ home, extras, mineIds, ...open }: Parts) {
           council={home.council}
           today={home.today}
           mineIds={mineIds}
-          onOpenTask={open.onOpenTask}
+          onOpenTask={openTask}
           onSeeTasks={seeTasks}
         />
       )}
@@ -113,8 +130,8 @@ export default function HomeBody({ home, councilId, onForbidden, ...open }: Prop
     <div className="flex flex-col gap-6">
       <AttentionTiles items={items} />
       <div className="grid gap-6 lg:grid-cols-3">
-        <MainColumn home={home} mineIds={mineIds} {...open} />
-        <SideColumn home={home} extras={extras} mineIds={mineIds} {...open} />
+        <MainColumn home={home} councilId={councilId} mineIds={mineIds} {...open} />
+        <SideColumn home={home} councilId={councilId} extras={extras} mineIds={mineIds} {...open} />
       </div>
     </div>
   )

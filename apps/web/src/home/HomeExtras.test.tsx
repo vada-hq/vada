@@ -16,6 +16,7 @@ import HomePage from './HomePage'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
@@ -25,7 +26,6 @@ function open(home: HomeResponse, extras: Parameters<typeof onHomeExtras>[1] = {
   api.on('GET', '/api/organizations/c1/home', () => json(home))
   onHomeExtras(api, extras)
   const fns = {
-    onOpenTask: vi.fn(),
     onOpenRequest: vi.fn(),
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),

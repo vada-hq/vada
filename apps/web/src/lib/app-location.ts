@@ -109,7 +109,9 @@ function write(path: string, mode: Mode, tag?: string) {
 const tagOf = (location: AppLocation | null) =>
   location?.type === 'record' ? adoptTag(location.record, location.recordId) : undefined
 
-function go(target: string, options: { replace?: boolean }) {
+type GoOptions = { replace?: boolean; overRecord?: boolean | undefined }
+
+function go(target: string, options: GoOptions) {
   const parsed = parseAppPath(target)
   const path = parsed ? appPath(parsed) : target
   const tag = tagOf(parsed)
@@ -117,6 +119,8 @@ function go(target: string, options: { replace?: boolean }) {
     write(path, 'replace', tag)
     return
   }
+  // 기록 상세 위에 쌓는 이동은 그 칸을 창에서 떼어 두고 쌓아, 뒤로가 그 기록 상세로 돌아오게 한다.
+  if (options.overRecord) releaseAdopted()
   const mode: Mode = tag ? 'adopt' : 'push'
   afterWindowsClosed(() => write(path, mode, tag))
 }
@@ -124,13 +128,17 @@ function go(target: string, options: { replace?: boolean }) {
 // 앱 안에서 한 칸 쌓거나(기본) 현재 칸의 주소를 바꿔 쓴다(replace). 알려진 학생회 안 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다.
 // 기록 주소는 상세 창이 그 칸을 자기 칸으로 쓰도록 표시해 쌓는다. 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 쌓는다.
 // 저장하지 않은 입력이 있으면 확인 창을 먼저 보인다. 소속을 잃어 떠나야 하는 이동은 force로 묻지 않는다.
-export function navigate(target: string, options: { replace?: boolean; force?: boolean } = {}) {
+// 기록 상세 창에서 다른 기록으로 가는 이동은 overRecord다(창을 닫지 않고 그 기록 칸 위에 쌓는다).
+export function navigate(target: string, options: GoOptions & { force?: boolean } = {}) {
   if (options.force) {
     // 떠 있던 확인은 옛 이동을 가리키므로 버린다. 남겨 두면 다음 작업 공간이 그 확인을 띄운다.
     stayHere()
     go(target, options)
   } else askLeave(() => go(target, options))
 }
+
+// 주소의 모양만 고쳐 쓴다(모르는 값을 기본값으로 읽은 주소). 사용자의 이동이 아니라서 떠날 때 확인을 거치지 않는다.
+export const rewriteAddress = (target: string) => go(target, { replace: true })
 
 // 기록 상세 창이 닫히면서 같은 페이지에 남으려 할 때(다른 탭으로 가기, 기록을 잃음) 부른다. 뒤로 가기는 주소를 떠나
 // 페이지가 새로 그려지므로, 이어받은 칸을 상위 목록 주소로 바꿔 쓰고 페이지는 그대로 둔다. 이어받은 창이 아니면 아무것도 하지 않는다.

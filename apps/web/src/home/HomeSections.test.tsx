@@ -16,15 +16,17 @@ import HomePage from './HomePage'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
+
+const pathNow = () => window.location.pathname + window.location.search
 
 function open(home: HomeResponse) {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/home', () => json(home))
   onHomeExtras(api)
   const fns = {
-    onOpenTask: vi.fn(),
     onOpenRequest: vi.fn(),
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),
@@ -42,8 +44,10 @@ const council = (extra: Partial<HomeCouncil> = {}): HomeCouncil => ({
   ...extra,
 })
 
+// 부서 거르기는 주소에 uuid로 남는다.
+const DEPT = '0199d1a0-0000-7000-8000-0000000000d1'
 const department: HomeDepartment = {
-  id: 'd1',
+  id: DEPT,
   name: '기획부',
   counts: { todo: 3, inProgress: 2, overdue: 1, unassigned: 1 },
   overdue: { tasks: [homeTask('late', 'overdue')], total: 1 },
@@ -76,15 +80,15 @@ test('부분이 없는 사람에게는 숫자 카드와 내 업무만 보인다'
 })
 
 test('내 부서: 머리에 진행 중과 막힌 수, 줄에 지난 업무와 담당자 없는 업무. 줄을 누르면 그 업무가 열린다', async () => {
-  const { onOpenTask, onOpenPage } = open(homeResponse({ departments: [department] }))
+  open(homeResponse({ departments: [department] }))
   const section = await screen.findByRole('region', { name: '기획부' })
   expect(within(section).getByText('진행 중 2')).toBeTruthy()
   expect(within(section).getByText('지남 1')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: /업무 late/ }))
-  expect(onOpenTask).toHaveBeenCalledWith('late')
+  expect(pathNow()).toBe('/tasks/c1/late')
   expect(within(section).getByRole('button', { name: /업무 free/ })).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(onOpenPage).toHaveBeenCalledWith('tasks')
+  expect(pathNow()).toBe(`/tasks/c1?view=department&dept=${DEPT}`)
 })
 
 test('내 업무에 이미 있는 업무는 내 부서 줄에서 뺀다', async () => {
@@ -148,7 +152,7 @@ test('학생회 행사: 막힌 행사가 먼저, 정산이 남은 행사는 뒤.
 })
 
 test('부서별 막힌 곳은 0이 아닌 수만, 지난 업무에는 부서와 담당자가 붙는다', async () => {
-  const { onOpenTask } = open(
+  open(
     homeResponse({
       council: council({
         blocked: [
@@ -170,7 +174,7 @@ test('부서별 막힌 곳은 0이 아닌 수만, 지난 업무에는 부서와 
   expect(within(overdue).getByText('11')).toBeTruthy()
   expect(within(overdue).getByText('재정부')).toBeTruthy()
   fireEvent.click(within(overdue).getByRole('button', { name: /업무 old/ }))
-  expect(onOpenTask).toHaveBeenCalledWith('old')
+  expect(pathNow()).toBe('/tasks/c1/old')
 })
 
 test('학생회의 지난 업무에서 내 업무에 있는 것을 빼고 센다', async () => {

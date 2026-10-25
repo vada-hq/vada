@@ -1,10 +1,8 @@
 import {
   EVENT_TABS,
-  appPath,
   menuPath,
   parentOf,
   parseAppPath,
-  recordPath,
   type AppMenu,
   type EventTab,
   type MyCouncil,
@@ -58,9 +56,3 @@ export function targetOf(here: Here, councils: MyCouncil[], start?: string | nul
     },
   }
 }
-
-// 기록 하나로 가는 주소. 행사는 탭이 기본(개요)이 아니면 쿼리에 둔다.
-export const recordTarget = (kind: RecordKind, councilId: string, id: string, tab?: EventTab) =>
-  tab
-    ? appPath({ type: 'record', record: kind, councilId, recordId: id, query: { tab } })
-    : recordPath(kind, councilId, id)
