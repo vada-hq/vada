@@ -7,7 +7,7 @@ exports[`로그인 전 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div class="flex flex-col gap-3">
@@ -27,7 +27,7 @@ exports[`로그인 전: 로그인 시작 실패 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div class="flex flex-col gap-3">
@@ -48,7 +48,7 @@ exports[`로그인 전: 초대 링크로 옴 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">학생회 초대 링크로 들어왔어요. 로그인하면 들어갈 수 있어요.</div>
@@ -69,7 +69,7 @@ exports[`로그인 전: 카카오톡 안 브라우저 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <div class="flex flex-col gap-3">
@@ -91,7 +91,7 @@ exports[`세션 확인 오류 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-3">
 <p role="alert" class="text-sm wrap-anywhere text-destructive">세션을 확인하지 못했어요. 서버 연결을 확인해 주세요.</p>
@@ -109,7 +109,7 @@ exports[`세션을 불러오는 중 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <p role="status" class="text-sm wrap-anywhere text-gray-500">로그인 상태 확인 중…</p>
 </div>
@@ -210,7 +210,7 @@ exports[`작업 공간: 대화 방 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -282,7 +282,7 @@ exports[`작업 공간: 대화 방 1`] = `
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
 <span class="text-xs wrap-anywhere text-gray-500">이재정</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">안녕하세요</p>
-<time datetime="2020-03-02T01:30:00Z" class="text-xs text-gray-400">10:30</time>
+<time datetime="2020-03-02T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id3_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -451,7 +451,7 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -518,9 +518,9 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700" aria-label="나를 부른 메시지 1개">@</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 3개">3</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+<span class="shrink-0 self-start text-xs text-gray-500">2020년 3월 2일</span>
 </span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -529,10 +529,10 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="회장단방" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">회장단방</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">
+<span class="shrink-0 self-start text-xs text-gray-500">
 </span>
 </span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 <li>
@@ -541,9 +541,9 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 <span title="재정부" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">재정부</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+<span class="shrink-0 self-start text-xs text-gray-500">2020년 3월 2일</span>
 </span>
-<span class="text-xs text-gray-400">참여 3명</span>
+<span class="text-xs text-gray-500">참여 3명</span>
 </button>
 </li>
 </ul>
@@ -557,7 +557,7 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span title="박새내" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">박새내</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">보기만</span>
 </span>
-<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+<span class="shrink-0 self-start text-xs text-gray-500">2020년 3월 2일</span>
 </span>
 </button>
 </li>
@@ -666,7 +666,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -1007,7 +1007,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -1136,7 +1136,7 @@ exports[`작업 공간: 조직 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -1761,7 +1761,7 @@ exports[`작업 공간: 홈 1`] = `
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
 <span class="truncate text-xs font-medium text-gray-700">김회장</span>
-<span class="truncate text-xs text-gray-400">회장</span>
+<span class="truncate text-xs text-gray-500">회장</span>
 </span>
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="휴대폰 알림" title="휴대폰 알림">
@@ -1893,7 +1893,7 @@ exports[`학생회 없음 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
@@ -1946,7 +1946,7 @@ exports[`학생회 확인 중 1`] = `
 <div class="flex flex-wrap items-center gap-2">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <h1 class="text-base font-semibold text-gray-900">VADA</h1>
-<p class="ml-auto text-xs text-gray-400">학생회를 위한 공간</p>
+<p class="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
 </div>
 <div class="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
 <h2 class="text-xs font-medium text-gray-500">로그인 완료</h2>
