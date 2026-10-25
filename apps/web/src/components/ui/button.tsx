@@ -14,7 +14,7 @@ export const buttonVariants = cva(
         ghost:
           'border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700',
         destructive: 'border-transparent bg-destructive text-white hover:bg-red-700',
-        link: 'border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline',
+        link: 'border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700',
       },
       size: {
         md: 'px-4 py-2 text-sm [&_svg]:size-4',
