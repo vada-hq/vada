@@ -42,7 +42,7 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 | 3 업무의 공지 만들기 | `SendMessageSchema`의 `notice`를 빼고 `taskId`만 둔다. `taskId`가 있으면 공지방(행사에 이은 업무면 그 행사 공지방, 조각 8 뒤)에서만 받고 `task_result(result_kind 'message')`로 잇는다. 단계는 올리면 끝남(`notice_posted` 이름 유지), 떼면 빠짐은 없다 | DEC-82가 DEC-90으로 바뀜, RULE-41 | 쉽다 |
 | 4 `is_notice` | 칸은 남기고 새 메시지는 늘 false로 쓴다. 읽는 코드는 없다 | DEC-90 범위 밖(표 바꿈) | 쉽다 |
 | 5 홈 메시지함 자료 | 홈 계약을 바꾸지 않고 대화 목록 읽기(`GET .../rooms`)를 그대로 쓴다. 홈은 이미 원래 화면의 읽기를 쓴다(`useHomeExtras`). 같은 응답이라 보이는 방과 수가 대화 목록과 같다 | `home/useHomeExtras.ts` 주석, 자주 잡힌 것 12 | 쉽다 |
-| 6 칩 차례와 자리 | 안 읽은 1:1(뒤에 부서 간)을 마지막 메시지 최근 순으로 먼저, 남은 자리에 안 읽은 다른 방을 최근 순으로, 3개. 칩은 '{방 이름} {수}'(99+). 자리는 숫자 카드 바로 아래, 두 단 위 전체 폭. '전체 보기'는 대화 | DEC-90, 와이어프레임 HOME-01 MessageInbox | 쉽다 |
+| 6 칩 차례와 자리 | 안 읽은 1:1(뒤에 부서 간)을 마지막 메시지 최근 순으로 먼저, 남은 자리에 안 읽은 다른 방을 최근 순으로, 3개. 칩은 '{방 이름} {수}'(99+). 자리는 숫자 카드 바로 아래, 두 단 위 전체 폭. '전체 보기'는 대화. 1:1 칩은 '{상대 이름} · 1:1'(이름이 없으면 '1:1 대화')로 적어 색만으로 가르지 않는다([WCAG 1.4.1](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html)). | DEC-90, 와이어프레임 HOME-01 MessageInbox | 쉽다 |
 | 7 첫 방 | 기억한 방이 있고 아직 들었으면 그 방. 없으면 학생회 직급이 있으면 회장단방, 부서 소속이 있으면 방 차례의 첫 부서방, 아니면 공지방. 휴대폰은 지금처럼 목록을 먼저 보이고 차례는 바꾸지 않는다(목록 자리가 날마다 바뀌지 않게) | DEC-90, Slack 마지막 채널 기억, NN/g Empty states(자리 고정) | 쉽다 |
 | 8 방 줄 | `RoomSummary.lastMessage: { senderName: string \| null; preview: string } \| null`, `memberCount: number`. 미리보기는 보는 사람에게 보이는 방 흐름의 마지막 메시지 첫 줄 앞 100자(DEC-59 알림과 같은 길이), 사진만이면 `PUSH_PHOTO_BODY`. 답글은 넣지 않는다(조각 10). 줄은 '{보낸 사람}: {미리보기}'와 '{n}명' | DEC-90, `RoomRow.tsx` | 쉽다(늘리기) |
 | 9 내 말풍선 | 오른쪽 `bg-primary text-primary-foreground`. 말풍선 안 링크는 같은 글자색에 밑줄. 글자 대비 4.5:1 이상 | DEC-90, [WCAG 1.4.3](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) | 쉽다 |
@@ -91,14 +91,14 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 
 차례는 proposal '구현 묶음'이다. 1~6은 시범 운영 첫날 전, 8~9는 첫 행사 전, 7과 10~11은 시기를 따로 묶지 않는다. 4는 외부 서비스라 먼저 기대는 것이 없어 맨 처음 시작한다(오르막 먼저). 2는 1과 나란히 만들고 1보다 먼저 또는 함께 main에 올린다(홈 공지가 빠지는 날 홈에서 공지방에 닿는 길). 시간이 모자라면 7을 넘긴다.
 
-### 1. 공지방과 공지 걷기(서버와 화면) [ ]
+### 1. 공지방과 공지 걷기(서버와 화면) [x]
 - 먼저 main에: `work/fix-current-cohort`(DEC-57). 조각 2(또는 같이 올림).
 - 할 수 있게 되는 것: 모든 운영진이 공지방에 보내고, 늦게 들어온 같은 기수 운영진이 공지방의 이전 메시지와 사진을 본다.
 - 수용 기준: 대화 목록과 방 머리에 '운영진 전체방' 대신 '공지방'이 보인다. 모든 운영진이 공지방에 보낸다. 늦게 들어온 같은 기수 운영진이 공지방 흐름에서 들어오기 전 메시지와 그 사진을 보고(사진 주소도 열림), 그 메시지로 요청을 만들어 근거로 잇는다. 다른 기수의 공지방 메시지와 부서방·회장단방·1:1의 들어오기 전 메시지는 흐름·사진·근거 잇기 어디서도 열리지 않는다(404). 공지방의 안 읽은 수에 같은 기수의 들어오기 전 메시지가 든다. '공지로 표시'·'공지 해제' 메뉴, 흐름의 '공지' 배지, 전체방 위 띠, 대화 첫 화면의 공지 칸, `?tab=notices`, 홈 '공지' 부분이 없다. `POST .../messages/:messageId/notice`와 `GET .../notices`는 404이고 `notice` 키를 보내면 400이다. 권한 목록에 `chat.notice`가 없다. 업무 상세의 '공지 만들기'로 올리면 공지방에 보통 메시지가 생기고 업무가 끝남이 되며 이력에 까닭이 남는다. 공지방이 아닌 방에 `taskId`를 보내면 400이다. 리허설 흐름 시험이 통과한다.
 - 닿는 곳: api `chat/notice.ts`(지움), `chat/routes.ts`, `chat/send.ts`, `chat/messages.ts`(`shownNotice`·`noticesOf` → 공지방 보이기), `chat/plan-room.ts`, `chat/photos.ts`, `chat/source-message.ts`, `chat/queries.ts`, `chat/stage.ts`, `tasks/results.ts`, `policy/`, `ops/pg-smoke/pg-smoke-notice-case.ts`, `scripts/manage-demo-data.ts`·`manage-test-data.ts`. contracts `chat.ts`(`MarkNoticeSchema`, `NoticeListResponse`, `RECENT_NOTICE_COUNT`, `NOTICE_LIST_MAX`, `RoomListResponse.notices`, `RoomSummary.noticeRoom`, `ChatMessage.isNotice`, `SendMessageSchema`), `permissions.ts`, `paths.ts`. web `chat/chat-view.ts`, `NoticeEntry.tsx`·`NoticeBand.tsx`·`NoticePage.tsx`·`useNotices.ts`·`notice-seen.ts`·`useNoticeMark.ts`(지움), `useMessageActions.ts`, `MessageItem.tsx`, `RoomView.tsx`, `RoomList.tsx`, `home/NoticesSection.tsx`(지움)·`HomeBody.tsx`·`home-view.ts`·`useHomeExtras.ts`, `tasks/NoticeMakeDialog.tsx`, `ui-gallery/`. vada-docs `legal/privacy-policy.md` 11조 2항, `logical-model.md` RULE-30·31·41.
 - 검토: 깊게(보이는 범위, 학생회 격리, 권한). 마이그레이션: 없음.
 
-### 2. 홈 메시지함(화면) [ ]
+### 2. 홈 메시지함(화면) [x]
 - 먼저 main에: 없음(1과 나란히).
 - 할 수 있게 되는 것: 네 역할 모두 홈에서 안 읽은 방을 보고 바로 연다.
 - 수용 기준: 안 읽은 방이 있으면 숫자 카드 바로 아래 '메시지함'에 칩이 정한 것 6의 차례로 3개까지 있고, 칩은 방 이름과 수만 보인다. 칩을 누르면 그 방이 열린 대화 화면이고, '전체 보기'는 대화 방 목록이다. 안 읽은 방이 없거나 목록을 읽지 못하면 부분째 없고 홈의 다른 부분은 그대로다. 들지 않은 방은 칩에 없다(대화 목록과 같은 응답). 옆 메뉴 '대화'의 합계 배지는 그대로다. 390px에서 칩이 넘치지 않는다(`wrap-anywhere`).
