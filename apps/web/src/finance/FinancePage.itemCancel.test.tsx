@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PurchaseLineItem, PurchaseRequestDetail } from '@vada/contracts'
@@ -6,14 +7,15 @@ import { councilView, FINANCE_PERMISSIONS } from '@/test-support/council-fixture
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PERMISSION_CHANGED, PURCHASE_ERRORS, PURCHASE_LOST } from '@/lib/messages'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
-const BASE = '/api/organizations/c1/purchase-requests'
+const BASE = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 
 const item = (
   id: string,
@@ -34,27 +36,37 @@ const item = (
   ...extra,
 })
 const detail = (items: PurchaseLineItem[], extra: Partial<PurchaseRequestDetail> = {}) =>
-  purchaseDetail('r1', { items, decisions: [], actions: [], ...extra })
+  purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
+    items,
+    decisions: [],
+    actions: [],
+    ...extra,
+  })
 
 function setup(first: PurchaseRequestDetail) {
   const api = mockApi()
   api.on('GET', `${BASE}?view=mine`, () =>
-    json({ requests: [purchaseSummary('r1')], truncated: false }),
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
   let reads = 0
   const second = { current: first }
-  api.on('GET', `${BASE}/r1`, () => {
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
     return json({ request: reads === 1 ? first : second.current })
   })
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(
-    <FinancePage view={councilView('c1', { permissions: FINANCE_PERMISSIONS })} {...handlers} />,
+    <FinanceAt
+      view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
+      {...handlers}
+    />,
   )
   return { api, handlers, after: second }
 }
 const open = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   return screen.findByRole('dialog')
 }
 const cancelCalls = (api: ReturnType<typeof mockApi>) =>
@@ -79,7 +91,11 @@ test('사유를 비우고 누르면 칸 아래 문제를 보이고 보내지 않
 test('사유를 보내면 상세를 새로 읽어 칩이 취소됨이 되고 이력에 사유가 보인다', async () => {
   const { api, handlers, after } = setup(detail([item('i1', '포스터')]))
   const pending = deferredResponse()
-  api.on('POST', `${BASE}/r1/items/i1/cancel`, () => pending.promise)
+  api.on(
+    'POST',
+    `${BASE}/0199d1a0-0000-7000-8000-00000000a001/items/i1/cancel`,
+    () => pending.promise,
+  )
   await open()
   fireEvent.click(screen.getByRole('button', { name: '품목 취소' }))
   const dialog = await screen.findByRole('dialog', { name: '이 품목을 취소할까요?' })
@@ -112,7 +128,9 @@ test.each(['LINE_ITEM_NOT_CANCELLABLE', 'EVENT_COMPLETED'])(
   '%s면 창을 닫고 문구를 버튼 옆에 보이며 상세를 다시 읽는다',
   async code => {
     const { api, after } = setup(detail([item('i1', '포스터')]))
-    api.on('POST', `${BASE}/r1/items/i1/cancel`, () => json({ error: code }, 409))
+    api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/items/i1/cancel`, () =>
+      json({ error: code }, 409),
+    )
     await open()
     fireEvent.click(screen.getByRole('button', { name: '품목 취소' }))
     const dialog = await screen.findByRole('dialog', { name: '이 품목을 취소할까요?' })
@@ -127,7 +145,9 @@ test.each(['LINE_ITEM_NOT_CANCELLABLE', 'EVENT_COMPLETED'])(
 
 test('403이면 학생회를 다시 읽고 이유를 보인다', async () => {
   const { api, handlers } = setup(detail([item('i1', '포스터')]))
-  api.on('POST', `${BASE}/r1/items/i1/cancel`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/items/i1/cancel`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   await open()
   fireEvent.click(screen.getByRole('button', { name: '품목 취소' }))
   const dialog = await screen.findByRole('dialog', { name: '이 품목을 취소할까요?' })
@@ -139,7 +159,9 @@ test('403이면 학생회를 다시 읽고 이유를 보인다', async () => {
 
 test('404면 닫고 이유를 보인다', async () => {
   const { api } = setup(detail([item('i1', '포스터')]))
-  api.on('POST', `${BASE}/r1/items/i1/cancel`, () => json({ error: 'NOT_FOUND' }, 404))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/items/i1/cancel`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
   await open()
   fireEvent.click(screen.getByRole('button', { name: '품목 취소' }))
   const dialog = await screen.findByRole('dialog', { name: '이 품목을 취소할까요?' })

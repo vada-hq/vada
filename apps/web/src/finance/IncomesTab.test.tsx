@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
@@ -18,8 +19,9 @@ import {
 } from '@/test-support/income-harness'
 import { json } from '@/test-support/mock-api'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 

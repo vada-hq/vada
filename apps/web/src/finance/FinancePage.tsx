@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   PURCHASE_PENDING_LIMIT,
   PURCHASE_RECENT_LIMIT,
@@ -9,8 +8,9 @@ import {
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { releaseRecord } from '@/lib/app-location'
+import { openMenu, openRecord } from '@/lib/go-to'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
+import { useAddressRecord } from '@/lib/use-address-record'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
@@ -20,12 +20,14 @@ import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
 import { FeePaymentsTab } from './FeePaymentsTab'
 import { IncomesTab } from './IncomesTab'
+import { financeOpeners } from './finance-openers'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { RequestCreateDialog } from './RequestCreateDialog'
 import { RequestDetailDialog } from './RequestDetailDialog'
 import { useExpenses, type ExpenseList } from './useExpenses'
+import { useFinanceControls } from './useFinanceQuery'
 import { usePurchases, type PurchaseList } from './usePurchases'
 
 const overflow = (view: PurchaseView) =>
@@ -33,14 +35,10 @@ const overflow = (view: PurchaseView) =>
 
 type Props = {
   view: CouncilView
-  // 알림으로 연 요청. 있으면 그 요청의 상세를 열고 시작한다.
-  initialRequestId?: string | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 결재 대기 수를 다시 읽는다).
   onChanged: () => void
-  // 결산 점검에서 눌러 행사 화면을 연다.
-  onOpenEvent: (eventId: string) => void
 }
 
 function Body({
@@ -174,15 +172,11 @@ function RequestDialogs({
   dialogs,
   onChanged,
   onForbidden,
-  onOpenBudget,
-  onOpenExpense,
 }: {
   councilId: string
   dialogs: Dialogs
   onChanged: () => void
   onForbidden: () => void
-  onOpenBudget: () => void
-  onOpenExpense: (expenseId: string) => void
 }) {
   const shared = {
     councilId,
@@ -192,12 +186,6 @@ function RequestDialogs({
       onChanged()
     },
   }
-  // 다른 화면으로 가기 전에 요청 상세를 닫는다.
-  const leave = (go: () => void) => {
-    releaseRecord()
-    dialogs.closeDetail()
-    go()
-  }
   return (
     <>
       <RequestDetailDialog
@@ -205,8 +193,10 @@ function RequestDialogs({
         requestId={dialogs.openId}
         onClose={dialogs.closeDetail}
         onChanged={onChanged}
-        onOpenBudget={() => leave(onOpenBudget)}
-        onOpenExpense={id => leave(() => onOpenExpense(id))}
+        // 예산 탭은 요청 상세를 닫고 간다(창의 칸을 거둔 뒤 쌓아, 뒤로가 요청 목록이다).
+        onOpenBudget={() => openMenu('finance', councilId, { tab: 'budget' })}
+        // 지출은 이 요청 상세 위에 쌓아, 지출을 닫으면 이 요청으로 돌아온다.
+        onOpenExpense={id => openRecord('expenses', councilId, id, { overRecord: true })}
       />
       <RequestCreateDialog
         {...shared}
@@ -221,25 +211,17 @@ function RequestDialogs({
   )
 }
 
-// 결산 점검에서 요청·지출·행사를 여는 길. 요청과 지출은 이 화면의 대화상자가, 행사는 다른 화면이 연다.
-const openersOf = (requests: Dialogs, expenses: Dialogs, onOpenEvent: (id: string) => void) => ({
-  onOpenRequest: requests.openRecord,
-  onOpenExpense: expenses.openRecord,
-  onOpenEvent,
-})
-
 // 옆 메뉴 '재정': 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)과 예산 탭. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
-// 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
+// 탭과 거르기는 주소가 원문이고, 요청·지출 상세는 그 종류의 주소로 연다. 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
 export default function FinancePage(props: Props) {
-  const [filter, setFilter] = useState<PurchaseView>('mine')
-  const [tab, setTab] = useState<FinanceTab>('requests')
-  const dialogs = useRecordDialogs(props.initialRequestId)
-  const expenseDialogs = useRecordDialogs()
-  const list = usePurchases(props.view.council.id, filter, props.onForbidden)
-  // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
-  const expenses = useExpenses(props.view.council.id, props.onForbidden, tab === 'expenses')
+  const councilId = props.view.council.id
   const can = (action: Action) => props.view.permissions.includes(action)
-  const shownTab = tab === 'fees' && !can('fee_payment.view') ? 'requests' : tab
+  const { tab, filter, setTab, setFilter } = useFinanceControls(councilId, can('fee_payment.view'))
+  const dialogs = useRecordDialogs(useAddressRecord('purchases', councilId))
+  const expenseDialogs = useRecordDialogs(useAddressRecord('expenses', councilId))
+  const list = usePurchases(councilId, filter, props.onForbidden)
+  // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
+  const expenses = useExpenses(councilId, props.onForbidden, tab === 'expenses')
   return (
     <PageColumn>
       <CreateRow
@@ -256,25 +238,23 @@ export default function FinancePage(props: Props) {
         onForbidden={props.onForbidden}
       />
       <RequestDialogs
-        councilId={props.view.council.id}
+        councilId={councilId}
         dialogs={dialogs}
         onChanged={() => {
           void list.reload()
           props.onChanged()
         }}
         onForbidden={props.onForbidden}
-        onOpenBudget={() => setTab('budget')}
-        onOpenExpense={expenseDialogs.openRecord}
       />
-      <FinanceTabs tab={shownTab} onTab={setTab} showFees={can('fee_payment.view')} />
+      <FinanceTabs tab={tab} onTab={setTab} showFees={can('fee_payment.view')} />
       <FinanceTabPanel
-        tab={shownTab}
+        tab={tab}
         filter={filter}
         onFilter={setFilter}
         list={list}
         expenses={expenses}
         view={props.view}
-        openers={openersOf(dialogs, expenseDialogs, props.onOpenEvent)}
+        openers={financeOpeners(councilId)}
         onForbidden={props.onForbidden}
       />
     </PageColumn>

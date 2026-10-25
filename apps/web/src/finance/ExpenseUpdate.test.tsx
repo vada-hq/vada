@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
@@ -13,8 +14,9 @@ import {
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { ACTION_GONE, EXPENSE_OPTIONS_FAILED, EXPENSE_ERRORS, EXPENSE_LOST } from '@/lib/messages'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -22,8 +24,10 @@ const DONE_EVENT = '00000000-0000-4000-8000-0000000000e2'
 
 function serve(detail = expenseDetail()) {
   const api = serveFinance()
-  api.on('GET', EXPENSES, () => json({ expenses: [expenseSummary('e1')], truncated: false }))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: detail }))
+  api.on('GET', EXPENSES, () =>
+    json({ expenses: [expenseSummary('0199d1a0-0000-7000-8000-00000000b101')], truncated: false }),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () => json({ expense: detail }))
   api.on('GET', `${BASE}/events`, () =>
     json({
       events: [
@@ -38,7 +42,9 @@ function serve(detail = expenseDetail()) {
 
 async function openUpdate() {
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   const detail = await screen.findByRole('dialog')
   fireEvent.click(await within(detail).findByRole('button', { name: '고치기' }))
   const dialog = (await screen.findAllByRole('dialog')).at(-1)!
@@ -48,14 +54,19 @@ async function openUpdate() {
   return dialog
 }
 const posts = (api: ReturnType<typeof serve>) =>
-  api.calls.filter(call => call.method === 'POST' && call.path === `${EXPENSES}/e1`)
+  api.calls.filter(
+    call =>
+      call.method === 'POST' && call.path === `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`,
+  )
 const save = (dialog: HTMLElement) => within(dialog).getByRole('button', { name: '저장' })
 
 test('[고치기]는 서버 actions에 expense.update가 있을 때만 보인다', async () => {
-  serve(expenseDetail('e1', { actions: ['expense.cancel'] }))
+  serve(expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { actions: ['expense.cancel'] }))
   showFinance()
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   const detail = await screen.findByRole('dialog')
   await within(detail).findByRole('button', { name: '지출 취소' })
   expect(within(detail).queryByRole('button', { name: '고치기' })).toBeNull()
@@ -80,7 +91,7 @@ test('바뀐 칸만 보내고, 두 번 눌러도 한 번만 보내며, 저장하
   const handlers = showFinance()
   const dialog = await openUpdate()
   const pending = deferredResponse()
-  api.on('POST', `${EXPENSES}/e1`, () => pending.promise)
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () => pending.promise)
   fireEvent.change(within(dialog).getByLabelText('행사'), { target: { value: EVENT_ID } })
   fireEvent.click(save(dialog))
   fireEvent.click(save(dialog))
@@ -88,17 +99,21 @@ test('바뀐 칸만 보내고, 두 번 눌러도 한 번만 보내며, 저장하
   expect(posts(api)[0]?.body).toEqual({ eventId: EVENT_ID })
   pending.resolve(
     json({
-      expense: expenseDetail('e1', { event: { id: EVENT_ID, name: '신입생 환영회' } }),
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+        event: { id: EVENT_ID, name: '신입생 환영회' },
+      }),
     }),
   )
   await waitFor(() => expect(screen.queryByText('지출 고치기')).toBeNull())
-  expect(screen.getByText('행사 신입생 환영회')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '신입생 환영회' })).toBeTruthy()
   expect(handlers.onChanged).not.toHaveBeenCalled()
 })
 
 test('사유를 비우면 null로 보낸다', async () => {
-  const api = serve(expenseDetail('e1', { reason: '급해서' }))
-  api.on('POST', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  const api = serve(expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { reason: '급해서' }))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   const dialog = await openUpdate()
   fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '' } })
@@ -121,7 +136,9 @@ test('사유가 계약 상한보다 길면 저장을 눌러도 보내지 않고 
 
 test('요청과 행사가 다르면(409 EVENT_MISMATCH) 창은 열려 있고 문구가 보인다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1`, () => json({ error: 'EVENT_MISMATCH' }, 409))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ error: 'EVENT_MISMATCH' }, 409),
+  )
   showFinance()
   const dialog = await openUpdate()
   fireEvent.change(within(dialog).getByLabelText('행사'), { target: { value: EVENT_ID } })
@@ -132,8 +149,10 @@ test('요청과 행사가 다르면(409 EVENT_MISMATCH) 창은 열려 있고 문
 
 test('행사가 완료됐으면(409 EVENT_COMPLETED) 창을 닫고 문구를 버튼 옆에 보이며 지출을 다시 읽는다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1`, () => {
-    api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1', { actions: [] }) }))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () => {
+    api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+      json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { actions: [] }) }),
+    )
     return json({ error: 'EVENT_COMPLETED' }, 409)
   })
   showFinance()
@@ -147,7 +166,9 @@ test('행사가 완료됐으면(409 EVENT_COMPLETED) 창을 닫고 문구를 버
 
 test('고치다 지출이 사라지면(404) 창을 닫고 이유를 목록 위에 보인다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1`, () => json({ error: 'NOT_FOUND' }, 404))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
   showFinance()
   const dialog = await openUpdate()
   fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '급해서' } })
@@ -158,7 +179,9 @@ test('고치다 지출이 사라지면(404) 창을 닫고 이유를 목록 위�
 
 test('고치다 권한을 잃으면(403) 학생회를 다시 읽게 하고 창을 닫는다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   const handlers = showFinance()
   const dialog = await openUpdate()
   fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '급해서' } })
@@ -171,7 +194,9 @@ test('창을 열어 둔 사이 다시 읽은 지출에서 고치기가 빠지면
   const api = serve()
   showFinance()
   await openUpdate()
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1', { actions: [] }) }))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { actions: [] }) }),
+  )
   document.dispatchEvent(new Event('visibilitychange'))
   await waitFor(() => expect(screen.queryByText('지출 고치기')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(ACTION_GONE)
@@ -182,7 +207,9 @@ test('행사 목록을 읽지 못하면 이유를 보이고 사유는 고칠 수
   api.on('GET', `${BASE}/events`, () => json({ error: 'INTERNAL' }, 500))
   showFinance()
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   const detail = await screen.findByRole('dialog')
   fireEvent.click(await within(detail).findByRole('button', { name: '고치기' }))
   expect((await screen.findByText(EXPENSE_OPTIONS_FAILED)).textContent).toBe(EXPENSE_OPTIONS_FAILED)

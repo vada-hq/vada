@@ -27,7 +27,6 @@ function open(home: HomeResponse) {
   api.on('GET', '/api/organizations/c1/home', () => json(home))
   onHomeExtras(api)
   const fns = {
-    onOpenRequest: vi.fn(),
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),
   }
@@ -199,21 +198,19 @@ test('행사가 없으면 한 줄로 말하고 모두 보기가 행사 화면으
 })
 
 test('받은 것의 요청 줄을 누르면 그 요청이 열린다', async () => {
-  const { onOpenRequest } = open(homeResponse({ received }))
+  open(homeResponse({ received }))
   fireEvent.click(await screen.findByRole('button', { name: /요청 r1/ }))
-  expect(onOpenRequest).toHaveBeenCalledWith('r1')
+  expect(pathNow()).toBe('/purchases/c1/r1')
   expect(screen.getByText('박부원')).toBeTruthy()
   expect(screen.getByText('10월 20일 요청')).toBeTruthy()
 })
 
-test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 재정 화면으로 간다', async () => {
-  const { onOpenPage } = open(
-    homeResponse({ received: { requests: [homeRequest('r1')], total: 50, truncated: true } }),
-  )
+test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 결재 대기 거르기로 재정 화면을 연다', async () => {
+  open(homeResponse({ received: { requests: [homeRequest('r1')], total: 50, truncated: true } }))
   const section = await screen.findByRole('region', { name: '받은 것' })
   expect(within(section).getByText('50+')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(onOpenPage).toHaveBeenCalledWith('finance')
+  expect(pathNow()).toBe('/finance/c1?view=pending')
 })
 
 test('받은 것과 정산할 행사가 비면 한 줄로 말한다', async () => {

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { PURCHASE_REASON_MAX } from '@vada/contracts'
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { openHistory } from '@/test-support/history'
@@ -17,12 +18,16 @@ import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixture
 import { settle } from '@/test-support/settle'
 import { EXPENSE_LOST } from '@/lib/messages'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
-const list = (expenses = [expenseSummary('e1')], truncated = false) => json({ expenses, truncated })
+const list = (
+  expenses = [expenseSummary('0199d1a0-0000-7000-8000-00000000b101')],
+  truncated = false,
+) => json({ expenses, truncated })
 const card = (name: string) => screen.getByRole('heading', { name }).closest('div')!.parentElement!
 
 test('지출 탭의 카드에 사용처, 내역, 금액, 결제일, 상태 칩이 보인다', async () => {
@@ -87,25 +92,27 @@ test('[지출 적기]는 재정부에게만, 지출 탭에서만 보인다', asy
 
 function serveDetail(detail = expenseDetail()) {
   const api = serveFinance()
-  api.on('GET', EXPENSES, () => list([expenseSummary('e1')]))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: detail }))
+  api.on('GET', EXPENSES, () => list([expenseSummary('0199d1a0-0000-7000-8000-00000000b101')]))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () => json({ expense: detail }))
   return api
 }
 const openDetail = async () => {
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   return screen.findByRole('dialog')
 }
 
 test('상세에 칸, 결제한 품목, 결재, 이력이 보이고 환급함을 확인 뒤에 표시한다', async () => {
   const api = serveDetail(
-    expenseDetail('e1', {
+    expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
       lines: [
         {
           lineItemId: 'i1',
           name: 'A2 포스터',
           amount: 36000,
-          requestId: 'r1',
+          requestId: '0199d1a0-0000-7000-8000-00000000a001',
           requestTitle: '행사 포스터',
           budgetPurpose: '행사 홍보',
         },
@@ -113,8 +120,13 @@ test('상세에 칸, 결제한 품목, 결재, 이력이 보이고 환급함을 
       reason: '급해서 먼저 결제',
     }),
   )
-  api.on('POST', `${EXPENSES}/e1/reimburse`, () =>
-    json({ expense: expenseDetail('e1', { reimbursed: true, actions: ['expense.cancel'] }) }),
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/reimburse`, () =>
+    json({
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+        reimbursed: true,
+        actions: ['expense.cancel'],
+      }),
+    }),
   )
   const handlers = showFinance()
   const dialog = await openDetail()
@@ -146,11 +158,16 @@ const listReads = (api: ReturnType<typeof serveFinance>) =>
 
 test('환급과 취소가 끝나면 지출 목록을 다시 읽는다', async () => {
   const api = serveDetail()
-  api.on('POST', `${EXPENSES}/e1/reimburse`, () =>
-    json({ expense: expenseDetail('e1', { reimbursed: true }) }),
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/reimburse`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { reimbursed: true }) }),
   )
-  api.on('POST', `${EXPENSES}/e1/cancel`, () =>
-    json({ expense: expenseDetail('e1', { cancelled: true, actions: [] }) }),
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/cancel`, () =>
+    json({
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+        cancelled: true,
+        actions: [],
+      }),
+    }),
   )
   showFinance()
   const dialog = await openDetail()
@@ -168,7 +185,9 @@ test('환급과 취소가 끝나면 지출 목록을 다시 읽는다', async ()
 })
 
 test('동작이 없으면 [환급함]과 [취소]가 보이지 않는다', async () => {
-  serveDetail(expenseDetail('e1', { actions: [], cancelled: true }))
+  serveDetail(
+    expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { actions: [], cancelled: true }),
+  )
   showFinance(MEMBER_PERMISSIONS)
   const dialog = await openDetail()
   expect(within(dialog).queryByRole('button', { name: '환급함' })).toBeNull()
@@ -177,7 +196,9 @@ test('동작이 없으면 [환급함]과 [취소]가 보이지 않는다', async
 
 test('이미 환급한 지출을 환급하면 409 문구가 버튼 옆에 보이고 다시 읽는다', async () => {
   const api = serveDetail()
-  api.on('POST', `${EXPENSES}/e1/reimburse`, () => json({ error: 'NOT_REIMBURSABLE' }, 409))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/reimburse`, () =>
+    json({ error: 'NOT_REIMBURSABLE' }, 409),
+  )
   showFinance()
   const dialog = await openDetail()
   fireEvent.click(within(dialog).getByRole('button', { name: '환급함' }))
@@ -185,13 +206,16 @@ test('이미 환급한 지출을 환급하면 409 문구가 버튼 옆에 보이
   fireEvent.click(within(confirm as HTMLElement).getByRole('button', { name: '환급함' }))
   expect((await screen.findByRole('alert')).textContent).toContain('환급할 수 없는 지출이에요')
   expect(screen.queryByText('환급했다고 표시할까요?')).toBeNull()
-  expect(api.calls.filter(call => call.path === `${EXPENSES}/e1`).length).toBeGreaterThan(1)
+  expect(
+    api.calls.filter(call => call.path === `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`)
+      .length,
+  ).toBeGreaterThan(1)
 })
 
 test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알리며, 사유를 보내고 두 번 누르면 한 번만 나간다', async () => {
   const api = serveDetail()
   const pending = deferredResponse()
-  api.on('POST', `${EXPENSES}/e1/cancel`, () => pending.promise)
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/cancel`, () => pending.promise)
   showFinance()
   const dialog = await openDetail()
   fireEvent.click(within(dialog).getByRole('button', { name: '지출 취소' }))
@@ -218,7 +242,13 @@ test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알�
     reason: '중복 결제',
   })
   pending.resolve(
-    json({ expense: expenseDetail('e1', { cancelled: true, actions: [], evidenceCount: 0 }) }),
+    json({
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+        cancelled: true,
+        actions: [],
+        evidenceCount: 0,
+      }),
+    }),
   )
   await waitFor(() => expect(screen.queryByText('이 지출을 취소할까요?')).toBeNull())
   expect(within(screen.getByRole('dialog')).getByText('취소됨')).toBeTruthy()
@@ -226,7 +256,9 @@ test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알�
 
 test('이미 취소된 지출을 취소하면 409 문구를 보이고 다시 읽는다', async () => {
   const api = serveDetail()
-  api.on('POST', `${EXPENSES}/e1/cancel`, () => json({ error: 'EXPENSE_CANCELLED' }, 409))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/cancel`, () =>
+    json({ error: 'EXPENSE_CANCELLED' }, 409),
+  )
   showFinance()
   const dialog = await openDetail()
   fireEvent.click(within(dialog).getByRole('button', { name: '지출 취소' }))
@@ -240,21 +272,29 @@ test('이미 취소된 지출을 취소하면 409 문구를 보이고 다시 읽
 
 test('열 때 지출이 없으면(404) 대화상자를 닫고 이유를 보인다', async () => {
   const api = serveDetail()
-  api.on('GET', `${EXPENSES}/e1`, () => json({ error: 'NOT_FOUND' }, 404))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
   showFinance()
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(EXPENSE_LOST)
 })
 
 test('권한을 잃으면(403) 학생회를 다시 읽게 하고 닫는다', async () => {
   const api = serveFinance()
-  api.on('GET', EXPENSES, () => list([expenseSummary('e1')]))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', EXPENSES, () => list([expenseSummary('0199d1a0-0000-7000-8000-00000000b101')]))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   const handlers = showFinance()
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(handlers.onForbidden).toHaveBeenCalled()
   expect(screen.getByText(/권한이 바뀌었어요/)).toBeTruthy()
@@ -263,14 +303,14 @@ test('권한을 잃으면(403) 학생회를 다시 읽게 하고 닫는다', asy
 test('요청 상세의 결제한 지출을 누르면 그 지출이 열린다', async () => {
   const api = serveFinance()
   api.on('GET', `${REQUESTS}?view=mine`, () =>
-    json({ requests: [purchaseSummary('r1')], truncated: false }),
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
-  api.on('GET', `${REQUESTS}/r1`, () =>
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         expenses: [
           {
-            id: 'e1',
+            id: '0199d1a0-0000-7000-8000-00000000b101',
             vendor: '인쇄소',
             amount: 36000,
             paidAt: '2026-10-19T15:00:00.000Z',
@@ -280,9 +320,13 @@ test('요청 상세의 결제한 지출을 누르면 그 지출이 열린다', a
       }),
     }),
   )
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail() }))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail() }),
+  )
   showFinance()
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   const link = await screen.findByRole('button', { name: /인쇄소 · 36,000원 · 10월 20일/ })
   expect(screen.getByText('취소됨')).toBeTruthy()
   fireEvent.click(link)

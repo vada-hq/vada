@@ -23,6 +23,7 @@ import { ClosingStatusBadge } from './ClosingStatusBadge'
 import { defaultClosingPeriod } from './closing-view'
 import { chosenPeriod, PeriodSelect } from './PeriodSelect'
 import { useClosing, useClosingChange, type ClosingRead } from './useClosing'
+import { usePeriodChoice } from './useFinanceQuery'
 import { usePeriods } from './useIncomes'
 
 type Props = {
@@ -103,11 +104,13 @@ function PeriodClosing({
 }
 
 // 기본 기간은 목록을 처음 읽었을 때 한 번만 정해 둔다. 공개해서 목록이 바뀌어도 보던 기간에 남는다.
-function usePinnedPeriod(list: FiscalPeriodSummary[], today: string) {
-  const [chosenId, setChosenId] = useState<string | null>(null)
-  if (chosenId === null && list.length > 0)
-    setChosenId(defaultClosingPeriod(list, today) ?? chosenPeriod(list, null)?.id ?? null)
-  return [chosenId, setChosenId] as const
+// 고른 기간은 주소에 남아 새로고침해도 같다.
+function usePinnedPeriod(councilId: string, list: FiscalPeriodSummary[], today: string) {
+  const [pinned, setPinned] = useState<string | null>(null)
+  const choice = usePeriodChoice(councilId)
+  if (pinned === null && list.length > 0)
+    setPinned(defaultClosingPeriod(list, today) ?? chosenPeriod(list, null)?.id ?? null)
+  return [choice.chosenId ?? pinned, choice.choose] as const
 }
 
 // 결산 탭: 기간을 고르고(기본은 끝났고 공개하지 않은 가장 이른 기간, 없으면 지금 기간) 그 기간의 결산서를 본다.
@@ -115,7 +118,7 @@ export function ClosingTab(props: Props) {
   const periods = usePeriods(props.councilId, props.onForbidden)
   const today = koreanDateOf(useNow())
   const list = periods.state.kind === 'ready' ? periods.state.data.periods : []
-  const [chosenId, setChosenId] = usePinnedPeriod(list, today)
+  const [chosenId, setChosenId] = usePinnedPeriod(props.councilId, list, today)
   const period = chosenPeriod(list, chosenId)
   if (periods.state.kind === 'failed')
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>

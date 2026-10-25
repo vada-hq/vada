@@ -7,10 +7,7 @@ import {
   type TaskLayout,
   type TaskView,
 } from '@vada/contracts'
-import { useMenuQuery } from '@/lib/use-menu-query'
-
-const pick = <T extends string>(values: readonly T[], value: string | undefined, fallback: T): T =>
-  values.find(item => item === value) ?? fallback
+import { pickQuery as pick, useMenuQuery } from '@/lib/use-menu-query'
 
 // 업무 화면의 보기, 거르기, 배치, 부서 거르기. 업무 메뉴에서는 주소의 쿼리가 원문이라 새로고침해도 같고 바꿔도 기록을 쌓지 않는다.
 // 행사의 업무 탭은 행사 화면이 품은 화면이라 주소를 쓰지 않고 이 화면의 상태로 둔다(행사 화면의 주소는 행사 쪽이 정한다).

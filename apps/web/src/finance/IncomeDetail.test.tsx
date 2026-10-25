@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { PURCHASE_REASON_MAX } from '@vada/contracts'
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { openHistory } from '@/test-support/history'
@@ -14,22 +15,26 @@ import { incomeDetail, incomeSummary } from '@/test-support/income-fixtures'
 import { INCOMES, openIncomesTab, serveIncomes } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { ACTION_GONE, INCOME_ERRORS, INCOME_LOST, PERMISSION_CHANGED } from '@/lib/messages'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
 function serve(detail = incomeDetail()) {
-  const api = serveIncomes([incomeSummary('i1')])
-  api.on('GET', `${INCOMES}/i1`, () => json({ income: detail }))
+  const api = serveIncomes([incomeSummary('0199d1a0-0000-7000-8000-00000000b201')])
+  api.on('GET', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201`, () => json({ income: detail }))
   return api
 }
 const show = (permissions = FINANCE_PERMISSIONS) => {
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   const view = (granted: typeof permissions) => (
-    <FinancePage view={councilView('c1', { permissions: granted, memberId: ME })} {...handlers} />
+    <FinanceAt
+      view={councilView(COUNCIL_ID, { permissions: granted, memberId: ME })}
+      {...handlers}
+    />
   )
   const result = render(view(permissions))
   return { ...handlers, rerender: (granted: typeof permissions) => result.rerender(view(granted)) }
@@ -48,7 +53,7 @@ const askCancel = async () => {
 
 test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', async () => {
   serve(
-    incomeDetail('i1', {
+    incomeDetail('0199d1a0-0000-7000-8000-00000000b201', {
       budgetItem: { id: 'b1', purpose: '지원금 예산' },
       history: [
         {
@@ -75,7 +80,7 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
   await within(dialog).findByText('500,000원')
   expect(dialog.textContent).not.toContain('적음')
   expect(dialog.textContent).toContain('500,000원')
-  expect(dialog.textContent).toContain('내용 i1')
+  expect(dialog.textContent).toContain('내용 0199d1a0-0000-7000-8000-00000000b201')
   expect(dialog.textContent).toContain('회계 기간 2026년 2학기')
   expect(dialog.textContent).toContain('계좌 학생회비 통장')
   expect(dialog.textContent).toContain('예산 항목 지원금 예산')
@@ -95,7 +100,7 @@ test('상세에 칸과 이력이 보이고 이력은 오래된 판부터다', as
 })
 
 test('운영진에게는 서버가 동작을 주지 않으면 [취소]가 없다', async () => {
-  serve(incomeDetail('i1', { actions: [] }))
+  serve(incomeDetail('0199d1a0-0000-7000-8000-00000000b201', { actions: [] }))
   show(MEMBER_PERMISSIONS)
   const dialog = await openDetail()
   await within(dialog).findByText('500,000원')
@@ -105,7 +110,7 @@ test('운영진에게는 서버가 동작을 주지 않으면 [취소]가 없다
 test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알리며 한 번만 보내고 끝나면 목록을 다시 읽는다', async () => {
   const api = serve()
   const pending = deferredResponse()
-  api.on('POST', `${INCOMES}/i1/cancel`, () => pending.promise)
+  api.on('POST', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201/cancel`, () => pending.promise)
   show()
   const ask = await askCancel()
   const confirm = () =>
@@ -125,7 +130,14 @@ test('취소는 늘 켜져 있고 사유가 없거나 길면 칸 아래에 알�
   await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ reason: '중복 입력' })
   const before = api.calls.filter(call => call.path.includes('period=')).length
-  pending.resolve(json({ income: incomeDetail('i1', { cancelled: true, actions: [] }) }))
+  pending.resolve(
+    json({
+      income: incomeDetail('0199d1a0-0000-7000-8000-00000000b201', {
+        cancelled: true,
+        actions: [],
+      }),
+    }),
+  )
   await waitFor(() => expect(screen.queryByText('이 수입을 취소할까요?')).toBeNull())
   // 취소한 수입은 상세에 취소됨으로 보이고 [취소]가 사라진다.
   const dialog = screen.getByRole('dialog')
@@ -143,11 +155,18 @@ test.each([['INCOME_CANCELLED'], ['INCOME_AUTOMATIC'], ['EVENT_COMPLETED'], ['PE
   async code => {
     const api = serve()
     let reads = 0
-    api.on('GET', `${INCOMES}/i1`, () => {
+    api.on('GET', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201`, () => {
       reads += 1
-      return json({ income: incomeDetail('i1', reads > 1 ? { actions: [] } : {}) })
+      return json({
+        income: incomeDetail(
+          '0199d1a0-0000-7000-8000-00000000b201',
+          reads > 1 ? { actions: [] } : {},
+        ),
+      })
     })
-    api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: code }, 409))
+    api.on('POST', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201/cancel`, () =>
+      json({ error: code }, 409),
+    )
     show()
     const ask = await askCancel()
     fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
@@ -163,7 +182,9 @@ test.each([['INCOME_CANCELLED'], ['INCOME_AUTOMATIC'], ['EVENT_COMPLETED'], ['PE
 
 test('429면 확인을 연 채 그 문구를 보인다', async () => {
   const api = serve()
-  api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  api.on('POST', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201/cancel`, () =>
+    json({ error: 'TOO_MANY_REQUESTS' }, 429),
+  )
   show()
   const ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
@@ -174,9 +195,14 @@ test('429면 확인을 연 채 그 문구를 보인다', async () => {
 test('확인을 연 동안 다른 사람이 취소해 동작이 빠지면 확인을 닫고 알린다', async () => {
   const api = serve()
   let reads = 0
-  api.on('GET', `${INCOMES}/i1`, () => {
+  api.on('GET', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201`, () => {
     reads += 1
-    return json({ income: incomeDetail('i1', reads > 1 ? { actions: [], cancelled: true } : {}) })
+    return json({
+      income: incomeDetail(
+        '0199d1a0-0000-7000-8000-00000000b201',
+        reads > 1 ? { actions: [], cancelled: true } : {},
+      ),
+    })
   })
   show()
   await askCancel()
@@ -190,7 +216,9 @@ test('확인을 연 동안 다른 사람이 취소해 동작이 빠지면 확인
 
 test('열려 있던 수입이 사라지면(404) 상세를 닫고 이유를 목록 위에 보인다', async () => {
   const api = serve()
-  api.on('GET', `${INCOMES}/i1`, () => json({ error: 'NOT_FOUND' }, 404))
+  api.on('GET', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
   show()
   openIncomesTab()
   fireEvent.click(await screen.findByRole('button', { name: '지원금' }))
@@ -200,7 +228,9 @@ test('열려 있던 수입이 사라지면(404) 상세를 닫고 이유를 목�
 
 test('상세를 읽다 권한을 잃으면(403) 닫고 학생회를 다시 읽게 한다', async () => {
   const api = serve()
-  api.on('GET', `${INCOMES}/i1`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   const page = show()
   openIncomesTab()
   fireEvent.click(await screen.findByRole('button', { name: '지원금' }))
@@ -223,7 +253,9 @@ test('수입 적기를 연 동안 재정 권한이 빠지면 닫고 이유를 �
 
 test('취소를 보낼 때 404면 상세를 닫고 이유를, 403이면 권한이 바뀌었다고 알린다', async () => {
   const api = serve()
-  api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: 'NOT_FOUND' }, 404))
+  api.on('POST', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201/cancel`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
   show()
   let ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })
@@ -231,7 +263,9 @@ test('취소를 보낼 때 404면 상세를 닫고 이유를, 403이면 권한�
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(INCOME_LOST)).toBeTruthy()
   cleanup()
-  api.on('POST', `${INCOMES}/i1/cancel`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('POST', `${INCOMES}/0199d1a0-0000-7000-8000-00000000b201/cancel`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   const page = show()
   ask = await askCancel()
   fireEvent.change(within(ask).getByLabelText('취소 사유'), { target: { value: '사유' } })

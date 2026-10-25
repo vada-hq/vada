@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { councilView, FINANCE_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
@@ -12,9 +13,9 @@ import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixture
 import type { Page } from './pages'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
-  window.history.replaceState(null, '', '/')
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -91,10 +92,12 @@ test('요청을 내면 옆 메뉴의 결재 대기 수를 다시 읽는다', asy
 test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다', async () => {
   let count = 2
   const api = open({ finance: true, pending: () => pending(count)(), startPage: 'finance' })
-  api.on('GET', minePath, () => json({ requests: [purchaseSummary('r1')], truncated: false }))
-  api.on('GET', `${base}/purchase-requests/r1`, () =>
+  api.on('GET', minePath, () =>
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
+  )
+  api.on('GET', `${base}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         items: [
           {
             id: LINE_1,
@@ -116,12 +119,14 @@ test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다
     }),
   )
   api.on('GET', `${base}/budget`, () => json(budgetWithPeriod()))
-  api.on('POST', `${base}/purchase-requests/r1/decisions`, () => {
+  api.on('POST', `${base}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001/decisions`, () => {
     count = 1
     return json({ request: purchaseDetail() })
   })
   expect((await screen.findAllByLabelText('결재 대기 요청 2개'))[0]!.textContent).toBe('2')
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.change(await screen.findByLabelText('포스터 금액'), { target: { value: '1000' } })
   fireEvent.change(screen.getByLabelText('포스터 예산 항목'), { target: { value: BUDGET_A } })
   fireEvent.click(screen.getByRole('button', { name: '포스터 승인' }))

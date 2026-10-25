@@ -1,11 +1,11 @@
-import type { CouncilView, EventDetail } from '@vada/contracts'
+import { appPath, type CouncilView, type EventDetail, type RecordKind } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { rewriteAddress } from '@/lib/app-location'
+import { openRecord } from '@/lib/go-to'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
-import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { EventCompletion } from './EventCompletion'
 import { EventMoneyAdd } from './EventMoneyAdd'
-import { MoneyRecordDialogs } from './MoneyRecordDialogs'
 import { SettlementRemaining } from './SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from './SettlementSummary'
 import type { EventDialogHandlers } from './useEventSubmit'
@@ -54,26 +54,37 @@ function SettlementBody({
   )
 }
 
+// 남은 것의 요청·지출을 그 기록의 주소로 연다. 지금 칸을 이 행사의 예산·정산 탭 주소로 먼저 적어 두어,
+// 기록을 닫고 돌아오면 같은 행사의 같은 탭이다.
+function openFromMoney(kind: RecordKind, councilId: string, eventId: string, id: string) {
+  rewriteAddress(
+    appPath({
+      type: 'record',
+      record: 'events',
+      councilId,
+      recordId: eventId,
+      query: { tab: 'money' },
+    }),
+  )
+  openRecord(kind, councilId, id)
+}
+
 // 예산·정산 탭: 예산·실제·차이, 예산 항목마다 쓴 돈, 정산에 남은 것, 완료. 보이는 동안 정산을 15초마다 다시 읽는다.
 // 정산 숫자와 남은 것은 모든 운영진이 보고, 완료 버튼은 서버가 준 동작이 있는 사람만 본다.
 export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...handlers }: Props) {
   const councilId = view.council.id
   const settlement = useSettlement(councilId, event.id, handlers)
-  const requests = useRecordDialogs()
-  const expenses = useRecordDialogs()
   const refresh = () => {
     void settlement.reload()
     void reloadEvent()
   }
-  const lost = requests.lost ?? expenses.lost
   return (
     <div className="flex flex-col gap-6">
-      {lost && <StateMessage kind="error">{lost}</StateMessage>}
       <EventMoneyAdd view={view} event={event} onAdded={refresh} {...handlers} />
       <SettlementBody
         settlement={settlement}
-        onOpenRequest={requests.openRecord}
-        onOpenExpense={expenses.openRecord}
+        onOpenRequest={id => openFromMoney('purchases', councilId, event.id, id)}
+        onOpenExpense={id => openFromMoney('expenses', councilId, event.id, id)}
       />
       <EventCompletion
         councilId={councilId}
@@ -84,13 +95,6 @@ export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...han
         }}
         onStale={refresh}
         {...handlers}
-      />
-      <MoneyRecordDialogs
-        councilId={councilId}
-        requests={requests}
-        expenses={expenses}
-        onChanged={refresh}
-        onForbidden={handlers.onForbidden}
       />
     </div>
   )

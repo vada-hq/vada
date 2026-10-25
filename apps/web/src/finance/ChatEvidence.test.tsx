@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { ChatPhotoListResponse, ExpenseAction } from '@vada/contracts'
@@ -15,8 +16,9 @@ import {
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.restoreAllMocks()
 })
 
@@ -33,7 +35,7 @@ const choice = (id: string, extra: Partial<ChatPhotoListResponse['photos'][numbe
   sentAt: SENT,
   ...extra,
 })
-const withPhoto = expenseDetail('e1', {
+const withPhoto = expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
   evidence: [{ id: 'v1', type: 'receipt', fileId: 'f1' }],
   evidenceCount: 1,
 })
@@ -43,9 +45,13 @@ function serve(
   actions?: ExpenseAction[],
 ) {
   const api = serveFinance()
-  api.on('GET', EXPENSES, () => json({ expenses: [expenseSummary('e1')], truncated: false }))
-  api.on('GET', `${EXPENSES}/e1`, () =>
-    json({ expense: expenseDetail('e1', actions ? { actions } : {}) }),
+  api.on('GET', EXPENSES, () =>
+    json({ expenses: [expenseSummary('0199d1a0-0000-7000-8000-00000000b101')], truncated: false }),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', actions ? { actions } : {}),
+    }),
   )
   api.on('GET', PHOTOS, () => json(list))
   return api
@@ -53,7 +59,9 @@ function serve(
 const open = async (permissions?: Parameters<typeof showFinance>[0]) => {
   const handlers = showFinance(permissions)
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: '사용처 e1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '사용처 0199d1a0-0000-7000-8000-00000000b101' }),
+  )
   await screen.findByRole('dialog')
   return handlers
 }
@@ -75,7 +83,9 @@ test('목록은 작은 사진과 방 이름·보낸 사람을 보이고, 고르�
     photos: [choice(P1), choice(P2, { room: { id: 'r2', type: 'department', name: '기획부' } })],
     truncated: false,
   })
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ expense: withPhoto }, 201))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`, () =>
+    json({ expense: withPhoto }, 201),
+  )
   await openList()
   const list = await screen.findByRole('list', { name: '대화 사진 목록' })
   expect(within(list).getByText('운영진 전체방')).toBeTruthy()
@@ -99,7 +109,11 @@ test('목록은 작은 사진과 방 이름·보낸 사람을 보이고, 고르�
 test('붙이기를 두 번 눌러도 한 번만 나가고 붙이는 동안 닫을 수 없다', async () => {
   const api = serve()
   const attach = deferredResponse()
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => attach.promise)
+  api.on(
+    'POST',
+    `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`,
+    () => attach.promise,
+  )
   await openList()
   await chooseFirst()
   fireEvent.click(attachButton())
@@ -124,6 +138,7 @@ test('비었으면 한 줄, 잘렸으면 알림이 뜬다', async () => {
   await openList()
   expect((await screen.findByText(/고를 수 있는 사진이 아직 없어요/)).textContent).toBeTruthy()
   cleanup()
+  await resetAddress()
   serve({ photos: [choice(P1)], truncated: true })
   await openList()
   expect((await screen.findByText(/최근 사진 1장만 보여요/)).textContent).toBeTruthy()
@@ -136,7 +151,9 @@ test.each([
   ['UPLOAD_MISMATCH', 400, '증빙으로 붙일 수 없는 파일이에요. 다른 사진을 골라'],
 ])('붙이기가 %s로 거절되면 그 자리에 문구가 뜬다', async (code, status, text) => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: code }, status))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`, () =>
+    json({ error: code }, status),
+  )
   await openList()
   await chooseFirst()
   fireEvent.click(attachButton())
@@ -145,7 +162,9 @@ test.each([
 
 test('볼 수 없게 된 사진(MESSAGE_INVALID)이면 목록을 다시 읽는다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: 'MESSAGE_INVALID' }, 409))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`, () =>
+    json({ error: 'MESSAGE_INVALID' }, 409),
+  )
   await openList()
   await chooseFirst()
   const before = api.calls.filter(call => call.path === PHOTOS).length
@@ -159,7 +178,7 @@ test('볼 수 없게 된 사진(MESSAGE_INVALID)이면 목록을 다시 읽는�
 test('한도에 닿아 올리기 칸이 사라져도 거절 문구는 남고 지출을 다시 읽는다', async () => {
   const api = serve()
   let reads = 0
-  api.on('GET', `${EXPENSES}/e1`, () => {
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () => {
     reads += 1
     const evidence = Array.from({ length: 20 }, (_, index) => ({
       id: `v${index}`,
@@ -167,10 +186,15 @@ test('한도에 닿아 올리기 칸이 사라져도 거절 문구는 남고 지
       fileId: `f${index}`,
     }))
     return json({
-      expense: reads > 1 ? expenseDetail('e1', { evidence, actions: [] }) : expenseDetail('e1'),
+      expense:
+        reads > 1
+          ? expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { evidence, actions: [] })
+          : expenseDetail('0199d1a0-0000-7000-8000-00000000b101'),
     })
   })
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: 'EVIDENCE_LIMIT' }, 409))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`, () =>
+    json({ error: 'EVIDENCE_LIMIT' }, 409),
+  )
   await openList()
   await chooseFirst()
   fireEvent.click(attachButton())
@@ -180,7 +204,9 @@ test('한도에 닿아 올리기 칸이 사라져도 거절 문구는 남고 지
 
 test('붙이는 중 권한을 잃으면(403) 닫고 학생회를 다시 읽게 한다', async () => {
   const api = serve()
-  api.on('POST', `${EXPENSES}/e1/evidence/from-chat`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101/evidence/from-chat`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
   const handlers = await openList()
   await chooseFirst()
   fireEvent.click(attachButton())
@@ -195,6 +221,7 @@ test('목록을 읽다 권한을 잃으면(403) 닫고, 읽기 실패는 다시 
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(handlers.onForbidden).toHaveBeenCalled()
   cleanup()
+  await resetAddress()
   const failing = serve()
   failing.on('GET', PHOTOS, () => json({ error: 'X' }, 500))
   await openList()

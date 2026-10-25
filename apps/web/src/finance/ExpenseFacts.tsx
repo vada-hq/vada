@@ -1,12 +1,20 @@
 import type { ExpenseDetail } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
+import { openRecord } from '@/lib/go-to'
 import { monthDay } from '@/lib/korean-date-text'
+import { TaskEventLink } from '@/tasks/TaskEventLink'
 import { chipsOf, METHOD_LABEL, paidByLabel } from './expense-view'
 import { approvalLine } from './expense-text'
 import { wonLabel } from './purchase-view'
 
 // 지출의 칸: 사용처 아래에 금액, 결제일, 결제 수단, 먼저 낸 사람과 상태 칩, 예산 항목, 부탁한 사람, 사유.
-export function ExpenseFacts({ expense }: { expense: ExpenseDetail }) {
+export function ExpenseFacts({
+  expense,
+  councilId,
+}: {
+  expense: ExpenseDetail
+  councilId: string
+}) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -24,7 +32,17 @@ export function ExpenseFacts({ expense }: { expense: ExpenseDetail }) {
         </span>
         <span className="wrap-anywhere">{paidByLabel(expense)}</span>
         {expense.account && <span className="wrap-anywhere">계좌 {expense.account.name}</span>}
-        {expense.event && <span className="wrap-anywhere">행사 {expense.event.name}</span>}
+        {expense.event && (
+          <span className="flex gap-1">
+            행사
+            <TaskEventLink
+              event={expense.event}
+              // 이 지출 상세 위에 쌓아, 행사에서 뒤로가 이 지출이다.
+              onOpen={eventId => openRecord('events', councilId, eventId, { overRecord: true })}
+              className="text-xs"
+            />
+          </span>
+        )}
         {expense.budgetItem && (
           <span className="wrap-anywhere">예산 항목 {expense.budgetItem.purpose}</span>
         )}

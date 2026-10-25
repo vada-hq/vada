@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { downloadFile, saveByFrame } from '@/lib/download'
@@ -10,8 +11,9 @@ import { ClosingTab } from './ClosingTab'
 
 vi.mock('@/lib/download', () => ({ downloadFile: vi.fn(), saveByFrame: vi.fn() }))
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
   vi.mocked(downloadFile).mockReset()
   vi.mocked(saveByFrame).mockReset()

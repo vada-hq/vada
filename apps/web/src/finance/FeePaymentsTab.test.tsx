@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { Action, FeePaymentsResponse } from '@vada/contracts'
@@ -12,8 +13,9 @@ import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
 import { FEE_PAYMENT_SEARCH_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 

@@ -29,7 +29,6 @@ function recordOf(target: Props['target']) {
   const { kind, id, tab } = target.record ?? { kind: null, id: undefined, tab: undefined }
   return {
     taskId: kind === 'tasks' ? id : undefined,
-    requestId: kind === 'purchases' ? id : undefined,
     eventId: kind === 'events' ? id : undefined,
     eventTab: kind === 'events' ? tab : undefined,
   }
@@ -43,7 +42,6 @@ const remounts = (target: Props['target']) =>
 function useOpeners(councilId: string, nav: Nav) {
   return {
     onOpenPage: nav.openPage,
-    onOpenRequest: (id: string) => openRecord('purchases', councilId, id),
     onOpenEvent: (id: string, tab?: EventTab) => openRecord('events', councilId, id, { tab }),
   }
 }

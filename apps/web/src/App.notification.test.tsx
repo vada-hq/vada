@@ -467,8 +467,13 @@ test('홈에서 연 요청의 예산 탭으로 가기는 재정의 예산 탭을
   fireEvent.click(await screen.findByRole('button', { name: '예산 탭으로 가기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
-  await lostSettled(`/finance/${C1}`)
+  // 예산 탭 주소로 한 칸 쌓이고, 뒤로 가면 홈이다(요청 상세는 닫고 갔다).
+  await waitFor(() =>
+    expect(window.location.pathname + window.location.search).toBe(`/finance/${C1}?tab=budget`),
+  )
   expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
+  act(() => window.history.back())
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
 })
 
 test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재정으로 돌아오면 상세가 닫혀 있다', async () => {

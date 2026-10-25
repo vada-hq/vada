@@ -37,7 +37,7 @@ function OpenIncomeDialog({
         if (!open && !detail.saving) onClose()
       }}
     >
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent aria-describedby={undefined} record={{ kind: 'incomes', id: incomeId }}>
         <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">
             {income ? SOURCE_LABEL[income.source] : '수입'}
