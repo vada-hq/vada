@@ -101,9 +101,18 @@ test('맨 위 숫자 카드 다음 받은 것, 학생회 행사, 내 부서, 정
   expect(regions()).toEqual(['지금 볼 것', '받은 것', '행사', '기획부', '정산할 행사', '내 업무'])
 })
 
-test('부분이 없는 사람에게는 숫자 카드와 내 업무만 보인다', async () => {
-  open(homeResponse())
+// 행사 목록 읽기가 끝난 뒤에 단언한다(읽기 전이면 빈 상태가 아직 없어 늘 통과한다).
+async function eventsRead(api: ReturnType<typeof open>['api'], councilId = 'c1') {
+  const path = `/api/organizations/${councilId}/events`
+  await waitFor(() => expect(api.calls.some(call => call.path === path)).toBe(true))
+  await settle()
+}
+
+// 시험의 학생회 읽기는 event.create가 있는 회장이다. 행사 빈 상태의 [새 행사] 자리는 부장 홈(내 부서 부분)에만 있다.
+test('부분이 없는 사람에게는 숫자 카드와 내 업무만 보인다(행사 목록을 다 읽은 뒤에도)', async () => {
+  const { api } = open(homeResponse())
   await screen.findByRole('region', { name: '내 업무' })
+  await eventsRead(api)
   expect(regions()).toEqual(['지금 볼 것', '내 업무'])
 })
 
@@ -360,16 +369,13 @@ test('행사 목록이 잘렸거나 읽지 못하면 진행할 행사가 없는�
     () => json({ events: [homeEvent('done', { status: 'completed' })], truncated: true }),
     () => json({ error: 'INTERNAL' }, 500),
   ]
-  for (const eventsRead of reads) {
+  for (const read of reads) {
     const { api } = open(homeResponse({ departments: [department] }), {
       view: head(),
-      eventsRead,
+      eventsRead: read,
     })
     await screen.findByRole('region', { name: '기획부' })
-    await waitFor(() =>
-      expect(api.calls.some(call => call.path === '/api/organizations/c1/events')).toBe(true),
-    )
-    await settle()
+    await eventsRead(api)
     expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
     expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
     cleanup()
@@ -377,23 +383,23 @@ test('행사 목록이 잘렸거나 읽지 못하면 진행할 행사가 없는�
 })
 
 test('학생회에 진행할 행사가 하나라도 있으면 부장 홈에 새 행사가 없다', async () => {
-  open(homeResponse({ departments: [department] }), {
+  const { api } = open(homeResponse({ departments: [department] }), {
     view: head(),
     events: [homeEvent('later', { status: 'upcoming', startsAt: '2026-12-01T10:00' })],
   })
   await screen.findByRole('region', { name: '기획부' })
-  await settle()
+  await eventsRead(api)
   expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
   expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
 })
 
 test('부원과 재정부원 홈에는 행사가 없어도 새 행사가 없다', async () => {
   for (const permissions of [MEMBER_PERMISSIONS, FINANCE_PERMISSIONS]) {
-    open(homeResponse({ settling: { events: [], total: 0 } }), {
+    const { api } = open(homeResponse({ settling: { events: [], total: 0 } }), {
       view: councilView('c1', { councilRank: null, permissions }),
     })
     await screen.findByRole('region', { name: '내 업무' })
-    await settle()
+    await eventsRead(api)
     expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
     expect(screen.queryByText('진행할 행사 없음')).toBeNull()
     cleanup()

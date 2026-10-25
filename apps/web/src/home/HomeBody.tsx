@@ -133,6 +133,7 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
         onOpenRequest={requests.openRequest}
         onSeeAll={requests.seeMine}
       />
+      {/* 빈 상태의 [새 행사] 자리는 부장 홈(내 부서 부분을 받는 사람)에만 둔다(DEC-95). 부분이 없는 홈에는 생기지 않는다. */}
       {!home.council && (
         <WeekEventsSection
           events={extras.events}
@@ -140,7 +141,7 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
           noOpenEvents={extras.noOpenEvents}
           onOpenEvent={open.onOpenEvent}
           onSeeAll={() => open.onOpenPage('events')}
-          onNewEvent={open.onNewEvent}
+          onNewEvent={home.departments?.length ? open.onNewEvent : undefined}
         />
       )}
     </div>
