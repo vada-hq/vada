@@ -68,8 +68,11 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
       mentions,
       photos: keys,
     }
+    // 보내는 중에 방을 떠나도 보낸 글이 임시 글로 되살아나지 않게, 먼저 비우고 실패하면 되돌린다.
+    keepDraft(meId, councilId, roomId, { body: '', picks: [] })
     const result = await postJson(messagesPath(councilId, roomId), payload)
     busy.current = false
+    if (!result.ok) keepDraft(meId, councilId, roomId, { body, picks })
     if (!isActive()) return
     setSending(false)
     if (result.ok) {
