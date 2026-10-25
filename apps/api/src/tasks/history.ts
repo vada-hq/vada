@@ -6,8 +6,9 @@ import {
   type TaskStatus,
   type TaskVersion,
 } from '@vada/contracts'
-import { department, event, member, recordVersion } from '../db/schema.js'
+import { department, event, recordVersion } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { councilOfRecord, memberNamesOf } from '../team/display-name.js'
 import { dueDateOf } from './due.js'
 
 type Reader = Pick<Db, 'select'>
@@ -66,15 +67,10 @@ function changesBetween(before: Snapshot, after: Snapshot, names: Names): TaskCh
 
 async function namesOf(
   db: Reader,
+  taskId: string,
   ids: { members: Set<string>; departments: Set<string>; events: Set<string> },
 ) {
   const { members: memberIds, departments: departmentIds, events: eventIds } = ids
-  const members = memberIds.size
-    ? await db
-        .select({ id: member.id, name: member.name })
-        .from(member)
-        .where(inArray(member.id, [...memberIds]))
-    : []
   const departments = departmentIds.size
     ? await db
         .select({ id: department.id, name: department.name })
@@ -89,7 +85,7 @@ async function namesOf(
     : []
   return {
     events: new Map(events.map(row => [row.id, row.name])),
-    members: new Map(members.map(row => [row.id, row.name])),
+    members: await memberNamesOf(db, councilOfRecord(taskId), memberIds),
     departments: new Map(departments.map(row => [row.id, row.name])),
   }
 }
@@ -127,7 +123,7 @@ export async function historyOf(db: Reader, taskId: string): Promise<TaskVersion
     if (snapshot.department_id) departmentIds.add(snapshot.department_id)
     if (snapshot.event_id) eventIds.add(snapshot.event_id)
   }
-  const names = await namesOf(db, {
+  const names = await namesOf(db, taskId, {
     members: memberIds,
     departments: departmentIds,
     events: eventIds,

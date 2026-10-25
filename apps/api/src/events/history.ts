@@ -1,8 +1,7 @@
-import { inArray } from 'drizzle-orm'
 import { koreanOf, type EventChange, type EventVersion } from '@vada/contracts'
-import { member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { versionsOf } from '../records/versions.js'
+import { councilOfRecord, memberNamesOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -45,14 +44,11 @@ function changesBetween(before: Snapshot, after: Snapshot, names: Map<string, st
 export async function eventHistoryOf(db: Reader, eventId: string): Promise<EventVersion[]> {
   const rows = await versionsOf(db, eventId)
   const snapshots = rows.map(row => row.data as Snapshot)
-  const ids = [...new Set(snapshots.flatMap(item => (item.owner_id ? [item.owner_id] : [])))]
-  const people = ids.length
-    ? await db
-        .select({ id: member.id, name: member.name })
-        .from(member)
-        .where(inArray(member.id, ids))
-    : []
-  const names = new Map(people.map(person => [person.id, person.name]))
+  const names = await memberNamesOf(
+    db,
+    councilOfRecord(eventId),
+    snapshots.flatMap(item => (item.owner_id ? [item.owner_id] : [])),
+  )
   return rows.map((row, index) => {
     const before = snapshots[index - 1]
     return {

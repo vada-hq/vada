@@ -1,6 +1,7 @@
-import { asc, eq, inArray, sql } from 'drizzle-orm'
-import { member, recordVersion } from '../db/schema.js'
+import { asc, eq, sql } from 'drizzle-orm'
+import { recordVersion } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { councilOfRecord, memberNamesOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -28,14 +29,11 @@ export async function versionsOf(db: Reader, recordId: string): Promise<RecordVe
     .from(recordVersion)
     .where(eq(recordVersion.recordId, recordId))
     .orderBy(asc(recordVersion.versionNo))
-  const ids = [...new Set(rows.flatMap(row => (row.changedBy ? [row.changedBy] : [])))]
-  const people = ids.length
-    ? await db
-        .select({ id: member.id, name: member.name })
-        .from(member)
-        .where(inArray(member.id, ids))
-    : []
-  const names = new Map(people.map(person => [person.id, person.name]))
+  const names = await memberNamesOf(
+    db,
+    councilOfRecord(recordId),
+    rows.flatMap(row => (row.changedBy ? [row.changedBy] : [])),
+  )
   return rows.map(row => {
     const name = row.changedBy ? names.get(row.changedBy) : undefined
     return {

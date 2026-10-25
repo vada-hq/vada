@@ -29,6 +29,7 @@ import { canMakeOf, resultsOf } from './results.js'
 import { dueDateOf, isOverdue } from './due.js'
 import { eventRowOf } from '../events/queries.js'
 import { historyOf } from './history.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -64,7 +65,7 @@ export function taskSelect(db: Reader, actor: Actor, now: Date) {
       eventName: event.name,
       eventOwnerId: event.ownerId,
       assigneeId: task.assigneeId,
-      assigneeName: member.name,
+      assigneeName: displayNameOf(member, record.councilId),
       assigneeCurrent: sql<boolean>`${assigneeIsCurrent(db, actor, now)}`.mapWith(Boolean),
       createdAt: record.createdAt,
       createdBy: record.createdBy,

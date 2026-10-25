@@ -10,6 +10,7 @@ import type { FileStorage } from '../storage/storage.js'
 import { issueUpload, verifyUploads, type VerifiedPhoto } from '../storage/uploads.js'
 import { shownNotice, sinceJoined } from './messages.js'
 import { namedRooms } from './queries.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -77,7 +78,7 @@ function visiblePhotoRows(db: Reader, actor: Actor, extra?: SQL) {
       messageId: message.id,
       roomId: message.roomId,
       senderId: record.createdBy,
-      senderName: member.name,
+      senderName: displayNameOf(member, record.councilId),
       sentAt: message.sentAt,
     })
     .from(file)

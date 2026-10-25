@@ -7,6 +7,7 @@ import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import type { AssignmentNotice } from './service.js'
+import { displayNameOf, councilOfRecord } from '../team/display-name.js'
 
 // 바꾼 뒤 이만큼 모았다가 보낸다. 그 안에 되돌리거나 다시 고르면 처음 바꾼 사람은 받지 않는다(기능 018).
 export const ASSIGNMENT_NOTICE_DELAY_MS = 10_000
@@ -42,7 +43,7 @@ async function messageOf(db: Db, notice: AssignmentNotice): Promise<PushMessage 
     .innerJoin(record, eq(record.id, task.id))
     .where(eq(task.id, notice.taskId))
   const [assigner] = await db
-    .select({ name: member.name })
+    .select({ name: displayNameOf(member, councilOfRecord(notice.taskId)) })
     .from(member)
     .where(eq(member.id, notice.assignerId))
   // 그 사이 지워졌으면 열 수 없는 업무라 보내지 않는다.

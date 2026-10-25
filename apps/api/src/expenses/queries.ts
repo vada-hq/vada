@@ -31,6 +31,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { expenseHistoryOf } from './history.js'
 import { actionsOf, factsOf } from './policy.js'
+import { displayNameOf, councilOfRecord } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -57,9 +58,9 @@ function expenseRows(
       eventId: expense.eventId,
       eventName: event.name,
       paidById: expense.paidBy,
-      payerName: payer.name,
+      payerName: displayNameOf(payer, record.councilId),
       requestedById: expense.requestedBy,
-      requesterName: requester.name,
+      requesterName: displayNameOf(requester, record.councilId),
       reimbursedAt: expense.reimbursedAt,
       cancelledAt: expense.cancelledAt,
       budgetItemId: expense.budgetItemId,
@@ -184,7 +185,7 @@ async function approvalsOf(db: Reader, expenseId: string): Promise<ExpenseApprov
       id: approval.id,
       outcome: approval.outcome,
       actorId: approval.actorId,
-      actorName: member.name,
+      actorName: displayNameOf(member, councilOfRecord(expenseId)),
       actedAt: approval.actedAt,
     })
     .from(approval)

@@ -17,6 +17,7 @@ import {
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { paidWithin, type ClosingPeriod } from './period.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -82,7 +83,7 @@ export async function incomeRowsForExport(
       description: income.description,
       item: budgetItem.purpose,
       account: account.name,
-      recorder: incomeRecorder.name,
+      recorder: displayNameOf(incomeRecorder, incomeRecord.councilId),
     })
     .from(income)
     .innerJoin(incomeRecord, eq(incomeRecord.id, income.id))
@@ -134,9 +135,9 @@ const expenseColumns = {
   reason: expense.reason,
   reimbursedAt: expense.reimbursedAt,
   evidenceCount: evidenceCount.mapWith(Number),
-  payer: payer.name,
-  requester: requester.name,
-  recorder: expenseRecorder.name,
+  payer: displayNameOf(payer, expenseRecord.councilId),
+  requester: displayNameOf(requester, expenseRecord.councilId),
+  recorder: displayNameOf(expenseRecorder, expenseRecord.councilId),
 }
 
 export async function expenseRowsForExport(

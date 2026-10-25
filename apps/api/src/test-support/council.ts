@@ -19,6 +19,14 @@ export async function addUser(
   ])
 }
 
+// 탈퇴한 운영진(RULE-16). 탈퇴 서버(기능 021 조각 6) 전이라 시험은 이 도우미로 운영진 행만 바꾼다.
+export async function markLeft(pg: PGlite, memberId: string, leftAt: string) {
+  await pg.query('UPDATE member SET left_at = $2, name = NULL, email = NULL WHERE id = $1', [
+    memberId,
+    leftAt,
+  ])
+}
+
 // 학생회 하나와 여러 처지의 사람을 기록 모듈로 만든다. 권한과 소속 시험이 같이 쓴다.
 // 사람: 회장, 부회장, 재정부원, 기획부장, 기획부 부부장, 기획부원, 직급과 부서가 없는 운영진, 내보낸 운영진(소속이 끝남).
 export async function seedCouncil(

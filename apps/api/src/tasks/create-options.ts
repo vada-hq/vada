@@ -7,6 +7,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { eventLinkOf } from './event-link.js'
 import { decideCreate } from './policy.js'
+import { displayNameOf } from '../team/display-name.js'
 
 // 만들기 선택지: 부서(학생회 업무 포함) × (담당자 없음 + 지금 운영진) 가운데 만들기와 같은 판정(decideCreate)이 허용하는 짝만 싣는다.
 // 판정을 따로 만들지 않아 선택지와 만들기가 어긋나지 않는다(DEBT-1). 읽기 거래 안에서 부른다.
@@ -20,7 +21,7 @@ export async function createOptionsOf(
   const link = await eventLinkOf(tx, actor, eventId ?? null)
   if (!link.valid) throw new ApiError('NOT_FOUND')
   const members = await tx
-    .select({ id: member.id, name: member.name })
+    .select({ id: member.id, name: displayNameOf(member, actor.councilId) })
     .from(councilMembership)
     .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
     .innerJoin(member, eq(member.id, councilMembership.memberId))

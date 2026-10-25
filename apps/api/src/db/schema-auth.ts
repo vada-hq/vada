@@ -97,6 +97,7 @@ export const inviteCode = pgTable('invite_code', {
 })
 
 // 가입 동의 기록(DEC-51). 로그인 계정마다 동의한 약관 판과 처리방침 판을 판마다 한 줄 더한다.
+// 계정을 지워도 탈퇴하고 1년 남기므로(DEC-55) users를 가리키는 외래 키가 없다.
 export const termsAgreement = pgTable('terms_agreement', {
   id: uuid('id')
     .primaryKey()
@@ -105,6 +106,7 @@ export const termsAgreement = pgTable('terms_agreement', {
   termsVersion: text('terms_version').notNull(),
   privacyVersion: text('privacy_version').notNull(),
   agreedAt: at('agreed_at').notNull().defaultNow(),
+  withdrawnAt: at('withdrawn_at'),
 })
 
 export const pushDevice = pgTable('push_device', {

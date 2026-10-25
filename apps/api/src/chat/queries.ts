@@ -20,6 +20,7 @@ import type { Db } from '../db/types.js'
 import { currentMembersAmong } from './current-members.js'
 import { noticesOf } from './messages.js'
 import { inNoticeRoom } from './plan-room.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -89,7 +90,11 @@ async function mentionCounts(db: Reader, actor: Actor) {
 async function directPeers(db: Reader, actor: Actor, now: Date, roomIds: string[]) {
   if (!roomIds.length) return new Map<string, { name: string; current: boolean }>()
   const peers = await db
-    .select({ roomId: roomMembership.roomId, memberId: roomMembership.memberId, name: member.name })
+    .select({
+      roomId: roomMembership.roomId,
+      memberId: roomMembership.memberId,
+      name: displayNameOf(member, actor.councilId),
+    })
     .from(roomMembership)
     .innerJoin(member, eq(member.id, roomMembership.memberId))
     .where(
@@ -196,10 +201,10 @@ export async function roomDetailOf(
 ): Promise<RoomDetailResponse> {
   const room = (await summariesOf(db, actor, now)).find(item => item.id === roomId)!
   const participants = await db
-    .select({ memberId: member.id, name: member.name })
+    .select({ memberId: member.id, name: displayNameOf(member, actor.councilId) })
     .from(roomMembership)
     .innerJoin(member, eq(member.id, roomMembership.memberId))
     .where(eq(roomMembership.roomId, roomId))
-    .orderBy(asc(member.name))
+    .orderBy(asc(displayNameOf(member, actor.councilId)))
   return { room, participants }
 }

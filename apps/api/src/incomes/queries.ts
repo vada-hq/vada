@@ -17,6 +17,7 @@ import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { incomeHistoryOf } from './history.js'
 import { isIncomeLocked } from './lock.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -36,7 +37,7 @@ function incomeRows(db: Reader, actor: Actor, where: SQL, limit: number) {
       accountId: income.accountId,
       accountName: account.name,
       createdById: record.createdBy,
-      creatorName: member.name,
+      creatorName: displayNameOf(member, record.councilId),
       cancelledAt: income.cancelledAt,
     })
     .from(income)

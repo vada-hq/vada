@@ -12,6 +12,7 @@ import { chatRoom, cohort, file, member, message, record, roomMembership } from 
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { inNoticeRoom } from './plan-room.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -22,7 +23,7 @@ const columns = {
   sentAt: message.sentAt,
   isNotice: message.isNotice,
   senderId: record.createdBy,
-  senderName: member.name,
+  senderName: displayNameOf(member, record.councilId),
 }
 const rowsOf = (db: Reader) =>
   db

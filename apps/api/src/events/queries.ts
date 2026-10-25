@@ -15,6 +15,7 @@ import { completedEventIdsAmong, completionApprovalsOf } from './completion.js'
 import { eventHistoryOf } from './history.js'
 import { actionsOf, blockersOf, factsOf } from './policy.js'
 import { eventStatusOf } from './status.js'
+import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -44,7 +45,7 @@ function eventSelect(db: Reader) {
       endsAt: event.endsAt,
       place: event.place,
       ownerId: event.ownerId,
-      ownerName: member.name,
+      ownerName: displayNameOf(member, record.councilId),
     })
     .from(event)
     .innerJoin(record, eq(record.id, event.id))

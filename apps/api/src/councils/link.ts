@@ -46,7 +46,12 @@ export async function linkMember(tx: Tx, userId: string, memberName?: string): P
 }
 
 // 같은 이메일의 운영진에 처음 이을 때 '내 이름'이 지금 이름과 다르면 바꾼다. 바꾼 사람은 그 운영진 자신이다.
-async function renameOnLink(tx: Tx, linked: { id: string; name: string }, memberName?: string) {
+// 이메일로 찾은 운영진은 탈퇴하지 않은 사람이라(탈퇴하면 이메일이 빈다) 이름이 있다. 칸 타입만 비울 수 있다.
+async function renameOnLink(
+  tx: Tx,
+  linked: { id: string; name: string | null },
+  memberName?: string,
+) {
   if (memberName === undefined || memberName === linked.name) return
   await updateRecord(tx, {
     kind: 'member',
