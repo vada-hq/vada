@@ -111,9 +111,11 @@ export async function updateTask(
 ): Promise<TaskDetail> {
   const row = await taskFor(tx, actor, target, 'task.edit')
   const changes = {
-    ...(input.title !== row.title ? { title: input.title } : {}),
-    ...(input.body !== row.body ? { body: input.body } : {}),
-    ...(input.dueDate !== dueDateOf(row.dueAt) ? { dueAt: dueAtOf(input.dueDate) } : {}),
+    ...(input.title !== undefined && input.title !== row.title ? { title: input.title } : {}),
+    ...(input.body !== undefined && input.body !== row.body ? { body: input.body } : {}),
+    ...(input.dueDate !== undefined && input.dueDate !== dueDateOf(row.dueAt)
+      ? { dueAt: dueAtOf(input.dueDate) }
+      : {}),
     ...(await eventChangeOf(tx, actor, row, input.eventId)),
   }
   if (Object.keys(changes).length)

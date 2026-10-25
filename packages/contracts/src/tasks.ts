@@ -158,12 +158,12 @@ export const CreateTaskSchema = z.strictObject({
   eventId: recordIdInput.nullable().default(null),
 })
 export type CreateTaskRequest = z.infer<typeof CreateTaskSchema>
-// 제목, 내용, 마감 고치기. 세 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
-// 행사는 보낼 때만 바꾼다(null이면 비운다). 칸을 빼면 그대로다.
+// 제목, 내용, 마감, 행사 고치기. 보낸 칸만 바꾸고 뺀 칸은 그대로다(JSON Merge Patch).
+// 내용·마감·행사는 null이면 비운다. 제목은 비울 수 없다.
 export const UpdateTaskSchema = z.strictObject({
-  title: text(TASK_TITLE_MAX),
-  body: text(TASK_BODY_MAX).nullable(),
-  dueDate: dueDate.nullable(),
+  title: text(TASK_TITLE_MAX).optional(),
+  body: text(TASK_BODY_MAX).nullable().optional(),
+  dueDate: dueDate.nullable().optional(),
   eventId: recordIdInput.nullable().optional(),
 })
 export type UpdateTaskRequest = z.infer<typeof UpdateTaskSchema>

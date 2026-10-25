@@ -280,14 +280,46 @@ test(
 )
 
 test(
+  '칸 하나 고치기: 키마다 빠짐·null·값 세 경우, 빈 본문과 같은 값은 판이 늘지 않는다',
+  run(async s => {
+    const task = await s.made({ title: 'x', body: 'b', dueDate: '2026-11-01' })
+    const edit = async (body: unknown) => {
+      const response = await s.post(`/${task.id}`, body)
+      assert.equal(response.status, 200, JSON.stringify(body))
+      return ((await response.json()) as { task: TaskDetail }).task
+    }
+    const none = await edit({})
+    assert.deepEqual([none.title, none.body, none.dueDate], ['x', 'b', '2026-11-01'])
+    assert.equal(await s.versions(task.id), 1)
+    const titled = await edit({ title: 'y' })
+    assert.deepEqual([titled.title, titled.body, titled.dueDate], ['y', 'b', '2026-11-01'])
+    const bodyless = await edit({ body: null })
+    assert.deepEqual([bodyless.title, bodyless.body, bodyless.dueDate], ['y', null, '2026-11-01'])
+    const dueless = await edit({ dueDate: null })
+    assert.deepEqual([dueless.title, dueless.body, dueless.dueDate], ['y', null, null])
+    assert.equal(await s.versions(task.id), 4)
+    const bodied = await edit({ body: 'z' })
+    assert.deepEqual([bodied.title, bodied.body, bodied.dueDate], ['y', 'z', null])
+    const dued = await edit({ dueDate: '2026-12-01' })
+    assert.deepEqual([dued.title, dued.body, dued.dueDate], ['y', 'z', '2026-12-01'])
+    const before = await s.versions(task.id)
+    await edit({ title: 'y' })
+    await edit({ body: 'z' })
+    await edit({ dueDate: '2026-12-01' })
+    await edit({ title: 'y', body: 'z', dueDate: '2026-12-01' })
+    assert.equal(await s.versions(task.id), before)
+  }),
+)
+
+test(
   '고치기·상태·지우기 입력: 정하지 않은 상태, 빈 본문, 모르는 키는 400이고 판이 늘지 않는다',
   run(async s => {
     const task = await s.made({ title: 'x' })
     for (const body of [{}, { status: 'open' }, { status: 'done', extra: 1 }, { status: 1 }])
       assert.equal((await s.post(`/${task.id}/status`, body)).status, 400, JSON.stringify(body))
     const edits = [
-      {},
-      { title: 'a' },
+      { x: 1 },
+      { title: null },
       { ...EDIT, x: 1 },
       { ...EDIT, title: ' ' },
       { ...EDIT, dueDate: 'x' },

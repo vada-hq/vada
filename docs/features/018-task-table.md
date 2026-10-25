@@ -79,7 +79,7 @@
 - 닿는 곳: contracts `tasks.ts`(`TaskOptionsQuerySchema`, `TaskCreateOptionsResponse`), api `tasks/policy.ts`, `tasks/service.ts`, `tasks/routes.ts`, 선택지 셈 모듈(새, `tasks/` 안), `tasks/policy-table.test.ts`.
 - 검토: 깊게(권한, 격리). 마이그레이션: 없음.
 
-### 2. 칸 하나 고치기(서버) [ ]
+### 2. 칸 하나 고치기(서버) [x]
 - 할 수 있게 되는 것: 화면이 제목·마감·행사 가운데 하나만 보내 고친다.
 - 수용 기준: `POST tasks/:taskId`에 `{ title }`만 보내면 제목만 바뀌고 내용·마감·행사는 그대로다. `{ dueDate: null }`은 마감만 비우고 `{ body: null }`은 내용만 비운다. `{}`는 판 없이 200이다. `{ title: null }`, 빈 제목, 101자(이모지), NUL, 모르는 키는 400이다. 같은 값이면 판이 늘지 않는다. 셋을 다 보내는 지금 상세 고치기는 그대로다. 권한은 지금과 같다(`task.edit`, 행사를 바꾸면 앞뒤 맥락).
 - 닿는 곳: contracts `tasks.ts`(`UpdateTaskSchema`), api `tasks/service.ts`(`updateTask`), `tasks/write.test.ts`, `http/boundary.test.ts`.
