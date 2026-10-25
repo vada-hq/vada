@@ -24,7 +24,8 @@ const OUTCOME_OF_ERROR = new Map<string, Exclude<LookupOutcome, 'ok'>>([
   ['AUTH_FAILED', 'auth'],
 ])
 
-// 문서가 상품 응답의 칸 이름을 검색 응답과 같다고만 적어서, 쓰는 칸만 보고 나머지는 버린다. 쓰는 칸의 모양이 다르면 other다.
+// 쓰는 칸만 보고 나머지는 버린다(2026-10-25 실제 키로 칸 이름 확인). 판매 단위는 줄마다 따로 보아, 모양이 틀린 줄만 버린다.
+// 한 상품에 판매 단위가 41개인 것도 있어 한 줄 때문에 전체를 못 불러오면 안 된다. 쓸 줄이 하나도 없으면 other다.
 const reefId = z.union([z.string().min(1), z.number().int().nonnegative()]).transform(String)
 const won = z.number().int().nonnegative().nullish()
 const ReefItem = z.object({
@@ -41,7 +42,7 @@ type ReefItem = z.infer<typeof ReefItem>
 const ReefEnvelope = z.discriminatedUnion('ok', [
   z.object({
     ok: z.literal(true),
-    data: z.object({ item: ReefItem.nullish(), items: z.array(ReefItem).default([]) }),
+    data: z.object({ item: z.unknown(), items: z.array(z.unknown()).default([]) }),
   }),
   z.object({ ok: z.literal(false), error: z.object({ code: z.string() }) }),
 ])
@@ -80,22 +81,30 @@ const parsedJson = (body: string): unknown => {
   }
 }
 
+const itemOf = (value: unknown) => {
+  const parsed = ReefItem.safeParse(value)
+  return parsed.success ? parsed.data : undefined
+}
+
 // 고른 판매 단위: 주소의 itemId(없으면 vendorItemId)와 같은 줄, 없으면 쿠팡이 맨 앞에 둔 것(기능 022 정한 것 14).
-function selectedOf(rows: ReefItem[], first: ReefItem | null | undefined, wanted: CoupangProduct) {
+// 늘 목록 안의 줄을 돌려준다. 화면이 selectedItemId로 목록의 줄을 찾는다.
+function selectedOf(rows: ReefItem[], first: ReefItem | undefined, wanted: CoupangProduct) {
   const matched = wanted.itemId
     ? rows.find(row => row.item_id === wanted.itemId)
     : wanted.vendorItemId
       ? rows.find(row => row.vendor_item_id === wanted.vendorItemId)
       : undefined
-  return matched ?? first ?? rows[0]
+  return matched ?? rows.find(row => row.item_id === first?.item_id) ?? rows[0]
 }
 
 function productOf(
-  data: { item?: ReefItem | null | undefined; items: ReefItem[] },
+  data: { item: unknown; items: unknown[] },
   wanted: CoupangProduct,
 ): ProductInfo | null {
-  const rows = data.items.length ? data.items : data.item ? [data.item] : []
-  const selected = selectedOf(rows, data.item, wanted)
+  const first = itemOf(data.item)
+  const parsed = data.items.map(itemOf).filter(row => row !== undefined)
+  const rows = parsed.length ? parsed : first ? [first] : []
+  const selected = selectedOf(rows, first, wanted)
   if (!selected) return null
   return {
     name: selected.name,

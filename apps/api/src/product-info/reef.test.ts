@@ -71,6 +71,48 @@ test('ReefAPI 부르기: 판매 단위 목록을 옮기고 주소의 itemId와 �
   }
 })
 
+test('ReefAPI 부르기: 모양이 틀린 줄만 버리고 나머지로 ok다. item이 틀리면 목록 맨 앞을 고른다', async () => {
+  const items = Array.from({ length: 41 }, (_, index) =>
+    reefItem({ item_id: String(index + 1), name: index === 5 ? '' : `펜 ${index + 1}` }),
+  )
+  const reef = fakeReef(() =>
+    Response.json(reefProduct({ item: reefItem({ item_id: '1', name: '' }), items })),
+  )
+  const result = await createReefLookup({ apiKey: 'k', fetcher: reef.fetch })(
+    productOf('https://www.coupang.com/vp/products/100'),
+  )
+  assert.equal(result.outcome, 'ok')
+  if (result.outcome !== 'ok') return
+  assert.equal(result.product.items.length, 40)
+  assert.ok(!result.product.items.some(item => item.itemId === '6'))
+  assert.equal(result.product.selectedItemId, '1')
+  const none = fakeReef(() =>
+    Response.json(reefProduct({ item: reefItem({ name: '' }), items: [reefItem({ name: '' })] })),
+  )
+  assert.deepEqual(
+    await createReefLookup({ apiKey: 'k', fetcher: none.fetch })(
+      productOf('https://www.coupang.com/vp/products/100'),
+    ),
+    { outcome: 'other' },
+  )
+})
+
+test('ReefAPI 부르기: data.item이 목록에 없는 판매 단위면 고른 것은 목록 맨 앞이다', async () => {
+  const reef = fakeReef(() =>
+    Response.json(
+      reefProduct({
+        item: reefItem({ item_id: '99', name: '목록 밖' }),
+        items: [reefItem({ item_id: '11', name: '펜 검정' }), reefItem({ item_id: '12' })],
+      }),
+    ),
+  )
+  const result = await createReefLookup({ apiKey: 'k', fetcher: reef.fetch })(
+    productOf('https://www.coupang.com/vp/products/100'),
+  )
+  assert.equal(result.outcome === 'ok' && result.product.selectedItemId, '11')
+  assert.equal(result.outcome === 'ok' && result.product.name, '펜 검정')
+})
+
 test('ReefAPI 부르기: 숫자 id도 글자로 받고, items가 비면 data.item 하나를 목록으로 둔다', async () => {
   const only = reefItem({ item_id: 11, vendor_item_id: 91, name: '공책' })
   const reef = fakeReef(() => Response.json(reefProduct({ item: only, items: [] })))
