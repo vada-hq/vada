@@ -230,6 +230,9 @@ test('마지막에 승인한 항목이 다음 줄의 기본이 되고, 목록에
       type: 'expense',
       event: null,
       selectable: true,
+      actual: 0,
+      committed: 0,
+      available: 1,
     },
   ]
   api.on('GET', `${ORG}/budget`, () => json(other))
@@ -465,6 +468,9 @@ const eventBudget = (): BudgetResponse => ({
       type: 'expense',
       event: null,
       selectable: true,
+      actual: 0,
+      committed: 0,
+      available: 1,
     },
     {
       id: BUDGET_B,
@@ -473,6 +479,9 @@ const eventBudget = (): BudgetResponse => ({
       type: 'expense',
       event: SPRING,
       selectable: true,
+      actual: 0,
+      committed: 0,
+      available: 1,
     },
     {
       id: AUTUMN_ITEM,
@@ -481,6 +490,9 @@ const eventBudget = (): BudgetResponse => ({
       type: 'expense',
       event: AUTUMN,
       selectable: true,
+      actual: 0,
+      committed: 0,
+      available: 1,
     },
     {
       id: SPRING_DONE_ITEM,
@@ -489,6 +501,9 @@ const eventBudget = (): BudgetResponse => ({
       type: 'expense',
       event: SPRING,
       selectable: false,
+      actual: 0,
+      committed: 0,
+      available: 1,
     },
   ],
 })

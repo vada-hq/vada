@@ -235,6 +235,9 @@ test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이
     type: 'income',
     event: { id: 'e1', name: '봄 축제' },
     selectable: true,
+    actual: 40000,
+    committed: null,
+    available: null,
   })
   show(FINANCE_PERMISSIONS, budget)
   const list = await screen.findByRole('list', { name: '예산 항목' })
@@ -243,4 +246,44 @@ test('예산 항목마다 종류 칩이 보이고 행사가 있으면 행사 이
   expect(within(income).getByText('봄 축제')).toBeTruthy()
   const spend = within(list).getByText('소모품').closest('li') as HTMLElement
   expect(within(spend).getByText('지출')).toBeTruthy()
+})
+
+test('지출 항목마다 배정, 실제 지출, 지출 예정, 사용 가능이 보이고 사용 가능이 음수면 빨강이다', async () => {
+  show(MEMBER_PERMISSIONS, budgetWithPeriod())
+  const list = await screen.findByRole('list', { name: '예산 항목' })
+  const line = (purpose: string) => within(list).getByText(purpose).closest('li') as HTMLElement
+  const figure = (purpose: string, label: string) =>
+    within(line(purpose)).getByRole('definition', { name: label })
+  expect(figure('행사 홍보', '배정').textContent).toBe('300,000원')
+  expect(figure('행사 홍보', '실제 지출').textContent).toBe('120,000원')
+  expect(figure('행사 홍보', '지출 예정').textContent).toBe('30,000원')
+  expect(figure('행사 홍보', '사용 가능').textContent).toBe('150,000원')
+  expect(figure('행사 홍보', '사용 가능').className).not.toContain('text-red')
+  expect(figure('소모품', '사용 가능').textContent).toBe('-10,000원')
+  expect(figure('소모품', '사용 가능').className).toContain('text-red-600')
+  expect(within(line('행사 홍보')).getByRole('img').getAttribute('aria-label')).toBe(
+    '실제 지출 40% · 지출 예정 포함 50%',
+  )
+})
+
+test('수입 항목은 배정과 들어온 돈만 있고 지출 예정과 사용 가능이 없다', async () => {
+  const budget = budgetWithPeriod()
+  budget.items = [
+    {
+      id: '55555555-5555-4555-8555-555555555599',
+      purpose: '후원',
+      amount: 100000,
+      type: 'income',
+      event: null,
+      selectable: true,
+      actual: 40000,
+      committed: null,
+      available: null,
+    },
+  ]
+  show(MEMBER_PERMISSIONS, budget)
+  const list = await screen.findByRole('list', { name: '예산 항목' })
+  expect(within(list).getByRole('definition', { name: '들어온 돈' }).textContent).toBe('40,000원')
+  expect(within(list).queryByRole('definition', { name: '지출 예정' })).toBeNull()
+  expect(within(list).queryByRole('definition', { name: '사용 가능' })).toBeNull()
 })

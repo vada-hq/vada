@@ -127,6 +127,9 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
     type: 'income',
     event: null,
     selectable: true,
+    actual: 0,
+    committed: null,
+    available: null,
   })
   setup('requests', budget)
   fireEvent.click(

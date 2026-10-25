@@ -21,6 +21,7 @@ import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
+import { BudgetItemLineSection } from './BudgetSections'
 import { DecisionSection, FinanceSection, ItemCancelSection } from './FinanceSections'
 import { EventHeaderSection, EventSection } from './EventSections'
 import { EventEditSection } from './EventEditSections'
@@ -93,6 +94,7 @@ export default function Gallery() {
       <ExpenseSection />
       <IncomeSection />
       <ClosingSection />
+      <BudgetItemLineSection />
       <EventSettlementsSection />
       <AccountSection />
       <AuthSection />

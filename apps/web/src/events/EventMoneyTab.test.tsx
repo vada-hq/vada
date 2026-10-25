@@ -83,7 +83,11 @@ test('탭은 개요, 업무, 재정, 인원 관리이고 재정 탭에 예산·�
   expect(text).toContain('40,000원 · 입금 2건')
   const items = screen.getByRole('region', { name: '예산 항목' })
   expect(items.textContent).toContain('간식')
-  expect(items.textContent).toContain('지출 36,000원 / 예산 300,000원')
+  const figures = within(items).getByRole('definition', { name: '사용 가능' })
+  expect(figures.textContent).toBe('250,000원')
+  expect(within(items).getByRole('definition', { name: '지출 예정' }).textContent).toBe('14,000원')
+  expect(within(items).getByRole('definition', { name: '실제 지출' }).textContent).toBe('36,000원')
+  expect(within(items).getByRole('definition', { name: '배정' }).textContent).toBe('300,000원')
 })
 
 test('남은 것은 종류별 수와 대상이고, 환불 대기는 수만 보인다', async () => {

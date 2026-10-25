@@ -140,7 +140,7 @@ test(
     const kept = await raw(t, period, { budgetItemId: item, amount: '3000' })
     const dropped = await raw(t, period, { budgetItemId: item, amount: '2000' })
     const usedOf = async () =>
-      (await t.settlement(event)).budget.items.find(entry => entry.id === item)?.used
+      (await t.settlement(event)).budget.items.find(entry => entry.id === item)?.actual
     assert.equal(await usedOf(), 5000)
     assert.equal((await cancel(t, dropped)).status, 200)
     assert.equal(await usedOf(), 3000)
