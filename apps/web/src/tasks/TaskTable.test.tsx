@@ -48,18 +48,18 @@ function serve(tasks: () => TaskSummary[]) {
   return api
 }
 
-const page = (eventId?: string) => (
+const page = (eventId?: string, onForbidden = () => {}) => (
   <TasksPage
     view={councilView(COUNCIL_ID)}
     eventId={eventId}
-    onForbidden={() => {}}
+    onForbidden={onForbidden}
     onChanged={() => {}}
   />
 )
 
 // 업무 화면은 내 업무로 열려 전체 탭으로 간다. 행사의 업무 탭은 처음부터 전체다.
-async function showAll(eventId?: string) {
-  render(page(eventId))
+async function showAll(eventId?: string, onForbidden = () => {}) {
+  render(page(eventId, onForbidden))
   if (!eventId) fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
 }
 
@@ -316,4 +316,90 @@ test('다시 읽어 줄이 다른 묶음으로 옮겨도 초점은 같은 업무
   window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
   await waitFor(() => expect(document.querySelector('[data-row="b"]')).toBeNull())
   await waitFor(() => expect(document.activeElement).toBe(cell('c', 2)))
+})
+
+test('부서 거르기 보기에서도 고른 값이 옛 값으로 돌아가지 않는다', async () => {
+  wide()
+  let release!: (response: Response) => void
+  let saved = false
+  const api = serve(() => [task('a')])
+  api.on('GET', `${base}?view=all&status=open`, () =>
+    list([task('a', saved ? { status: 'in_progress' } : {})]),
+  )
+  api.on('POST', `${base}/a/status`, () => {
+    saved = true
+    return new Promise<Response>(resolve => (release = resolve))
+  })
+  window.history.replaceState(null, '', `/?view=all&dept=d1`)
+  await showAll()
+  const select = (await screen.findByRole('combobox', { name: '업무 a 상태' })) as HTMLSelectElement
+  fireEvent.change(select, { target: { value: 'in_progress' } })
+  await waitFor(() => expect(select.getAttribute('aria-busy')).toBe('true'))
+  // 응답이 오면 그 값이고, 그 뒤 목록을 다시 읽어 와도 렌더마다 지우지 않아 값이 그대로다.
+  release(json({ task: task('a', { status: 'in_progress' }) }))
+  await waitFor(() => expect(select.value).toBe('in_progress'))
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(select.value).toBe('in_progress')
+})
+
+test('403은 권한을 다시 읽게 하고 줄 아래에 문구를 보인다', async () => {
+  wide()
+  const forbidden = vi.fn()
+  const api = serve(() => [task('a')])
+  api.on('POST', `${base}/a/assignee`, () => json({ error: 'FORBIDDEN' }, 403))
+  await showAll(undefined, forbidden)
+  fireEvent.change(await screen.findByRole('combobox', { name: '업무 a 담당자' }), {
+    target: { value: 'm3' },
+  })
+  expect((await screen.findByRole('alert')).textContent).toContain('권한')
+  expect(forbidden).toHaveBeenCalled()
+})
+
+test('404는 줄이 목록에서 빠지고 화면 위에 이유를 보인다', async () => {
+  wide()
+  let gone = false
+  const api = serve(() => (gone ? [] : [task('a')]))
+  api.on('POST', `${base}/a/status`, () => {
+    gone = true
+    return json({ error: 'NOT_FOUND' }, 404)
+  })
+  await showAll()
+  fireEvent.change(await screen.findByRole('combobox', { name: '업무 a 상태' }), {
+    target: { value: 'done' },
+  })
+  expect(await screen.findByText('이 업무를 볼 수 없어요. 지워졌을 수 있어요.')).toBeTruthy()
+  await waitFor(() => expect(document.querySelector('[data-row="a"]')).toBeNull())
+})
+
+test('401은 줄 아래 일반 문구이고 권한을 다시 읽게 하지 않는다', async () => {
+  wide()
+  const forbidden = vi.fn()
+  const api = serve(() => [task('a')])
+  api.on('POST', `${base}/a/status`, () => json({ error: 'UNAUTHENTICATED' }, 401))
+  await showAll(undefined, forbidden)
+  fireEvent.change(await screen.findByRole('combobox', { name: '업무 a 상태' }), {
+    target: { value: 'done' },
+  })
+  expect((await screen.findByRole('alert')).textContent).toContain('상태를 바꾸지 못했어요')
+  expect(forbidden).not.toHaveBeenCalled()
+})
+
+test('줄이 옮겨 DOM이 다시 꽂히며 blur가 와도 초점은 같은 칸으로 돌아온다', async () => {
+  wide()
+  let moved = false
+  serve(() =>
+    moved
+      ? [task('b'), task('a', { department: { id: 'd2', name: '기획부' } })]
+      : [task('a'), task('b')],
+  )
+  await showAll()
+  await screen.findByRole('grid')
+  cell('a', 2).focus()
+  // 가는 곳이 없는 blur(다시 꽂힌 칸)로 초점이 body에 있다.
+  fireEvent.blur(cell('a', 2))
+  cell('a', 2).blur()
+  expect(document.activeElement).toBe(document.body)
+  moved = true
+  window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
+  await waitFor(() => expect(document.activeElement).toBe(cell('a', 2)))
 })

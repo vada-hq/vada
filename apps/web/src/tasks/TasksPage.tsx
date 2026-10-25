@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { CouncilView, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
@@ -88,10 +89,14 @@ function useTaskLists(
 }
 
 // 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
-function narrowed(list: TaskList, department: string | null): TaskList {
-  if (department === null || list.state.kind !== 'ready') return list
-  const tasks = list.state.tasks.filter(task => task.department?.id === department)
-  return { ...list, state: { ...list.state, tasks } }
+// 새 배열이 렌더마다 만들어지면 표가 목록이 바뀐 줄로 알고 고른 값을 지우므로, 읽은 목록이 바뀔 때만 다시 만든다.
+function useNarrowed(list: TaskList, department: string | null): TaskList {
+  const { state, reload } = list
+  return useMemo(() => {
+    if (department === null || state.kind !== 'ready') return { state, reload }
+    const tasks = state.tasks.filter(task => task.department?.id === department)
+    return { reload, state: { ...state, tasks } }
+  }, [state, reload, department])
 }
 
 // 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭에서 연 업무도 업무 주소라 닫으면 그 행사의 탭이다.
@@ -122,8 +127,8 @@ function useTasksPage(props: Props) {
   const opened = useOpeners(councilId, inEvent)
   const wide = useSplit()
   const lists = useTaskLists(props, { view, filter, layout, wide })
-  const list = narrowed(lists.list, dept)
-  const done = narrowed(lists.done, dept)
+  const list = useNarrowed(lists.list, dept)
+  const done = useNarrowed(lists.done, dept)
   const events = lists.events
   const changed = () => {
     void list.reload()
