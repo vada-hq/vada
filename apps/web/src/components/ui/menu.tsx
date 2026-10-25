@@ -49,7 +49,7 @@ export function MenuItem({
 export function MenuLabel({ className, ...props }: ComponentProps<typeof MenuPrimitive.Label>) {
   return (
     <MenuPrimitive.Label
-      className={cn('px-3 py-1.5 text-xs text-gray-400', className)}
+      className={cn('px-3 py-1.5 text-xs text-gray-500', className)}
       {...props}
     />
   )

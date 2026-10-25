@@ -62,7 +62,7 @@ function Sender({ message, mine, continued }: Pick<Props, 'message' | 'mine' | '
 // 말풍선 아래의 시각(와이어프레임). 이어 쓴 메시지는 화면 낭독기에만 읽힌다.
 function Time({ message, continued }: Pick<Props, 'message' | 'continued'>) {
   return (
-    <time dateTime={message.sentAt} className={continued ? 'sr-only' : 'text-xs text-gray-400'}>
+    <time dateTime={message.sentAt} className={continued ? 'sr-only' : 'text-xs text-gray-500'}>
       {clockLabel(message.sentAt)}
     </time>
   )
