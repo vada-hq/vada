@@ -103,7 +103,7 @@
 - 닿는 곳: vada-docs `legal/privacy-policy.md`, `legal/terms.md`, `legal/internal-management-plan.md`, `decisions/0054-keep-rows-clear-personal-values.md`. 커밋 규칙은 `vada-docs/AGENTS.md`를 따른다.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 2. Google 프로필 사진과 토큰을 저장하지 않기 [ ]
+### 2. Google 프로필 사진과 토큰을 저장하지 않기 [x]
 - 할 수 있게 되는 것: 로그인이 Google 프로필 사진과 토큰을 DB에 남기지 않는다.
 - 수용 기준: Google로 처음 로그인하면 `users.image`가 NULL이고, `accounts`의 `access_token`, `refresh_token`, `id_token`, 두 만료 시각이 NULL이다. 같은 계정으로 다시 로그인해도 NULL이다. 로그인, 세션 유지, 로그아웃, 학생회 만들기·들어가기는 지금처럼 된다. `user.deleteUser`는 꺼진 채다.
 - 닿는 곳: `apps/api/src/auth/auth.ts`(`databaseHooks`, `account.updateAccountOnSignIn`), `auth/auth.test.ts`.

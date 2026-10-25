@@ -174,11 +174,11 @@ const NO_GOOGLE_VALUES = { image: null, tokens: '' }
 test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는다', async t => {
   const { pg, db, close } = await createTestDb()
   const baseURL = 'http://127.0.0.1:5180'
-  const realFetch = globalThis.fetch
   let googleProfile: Record<string, unknown> = {}
-  t.mock.method(globalThis, 'fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+  // 외부 서비스 없이 돈다. 토큰 주소 말고 다른 곳으로 나가려 하면 시험이 바로 실패한다.
+  t.mock.method(globalThis, 'fetch', (input: RequestInfo | URL) => {
     const url = input instanceof Request ? input.url : String(input)
-    if (url !== GOOGLE_TOKEN_URL) return realFetch(input, init)
+    if (url !== GOOGLE_TOKEN_URL) throw new Error(`예상하지 않은 외부 요청: ${url}`)
     return Promise.resolve(
       Response.json({
         access_token: 'google-access-token',
@@ -236,13 +236,14 @@ test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는�
       assert.equal(callback.status, 302)
       return { cookie: cookieOf(callback), location: callback.headers.get('location') ?? '' }
     }
-    // 사용자마다(이메일 순) 사진 주소와, 그 사람 계정들의 토큰 셋·두 만료 시각을 이어 붙인 값. 모두 비었으면 ''다.
+    // 계정 행마다(이메일 순) 그 사용자의 사진 주소와, 토큰 셋·두 만료 시각을 이어 붙인 값. 모두 비었으면 ''다.
+    // 계정 행이 없는 사용자는 줄이 없어 기대한 개수와 어긋난다(계정 행이 생겼는지도 함께 본다).
     const storedGoogleValues = async (userId?: string) =>
       (
         await pg.query<{ image: string | null; tokens: string }>(
           `SELECT u.image, concat_ws(',', a.access_token, a.refresh_token, a.id_token,
              a.access_token_expires_at::text, a.refresh_token_expires_at::text) AS tokens
-           FROM users u LEFT JOIN accounts a ON a.user_id = u.id
+           FROM users u JOIN accounts a ON a.user_id = u.id
            WHERE $1::text IS NULL OR u.id = $1 ORDER BY u.email, a.provider_id`,
           [userId ?? null],
         )
@@ -298,28 +299,33 @@ test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는�
       assert.match(other.location, /error=account_not_linked/)
       assert.equal((await pg.query('SELECT id FROM accounts')).rows.length, 2)
     })
-    await t.test('내 정보 바꾸기와 계정 잇기·갱신 경로도 사진과 토큰을 쓰지 않는다', async () => {
-      const updated = await post('/api/auth/update-user', first.cookie, {
-        image: 'https://example.test/photo.png',
-      })
-      assert.equal(updated.status, 200)
-      const context = await auth.$context
-      const tokens = {
-        accessToken: 'direct-access',
-        refreshToken: 'direct-refresh',
-        idToken: 'direct-id',
-        accessTokenExpiresAt: new Date(),
-        refreshTokenExpiresAt: new Date(),
-      }
-      const linked = await context.internalAdapter.linkAccount({
-        userId: chiefId,
-        providerId: 'google-extra',
-        accountId: 'extra-subject',
-        ...tokens,
-      })
-      await context.internalAdapter.updateAccount(linked.id, tokens)
-      assert.deepEqual(await storedGoogleValues(chiefId), [NO_GOOGLE_VALUES, NO_GOOGLE_VALUES])
-    })
+    // 1.7.6에서는 계정 잇기·토큰 갱신의 모든 경로가 내부 어댑터의 이 함수들을 지나서 그것을 직접 부른다.
+    // 판이 올라 다른 길로 쓰게 되면 이 시험은 못 잡고, 조각 3의 DB CHECK가 마지막으로 막는다.
+    await t.test(
+      '내 정보 바꾸기와 내부 어댑터의 계정 잇기·갱신도 사진과 토큰을 쓰지 않는다',
+      async () => {
+        const updated = await post('/api/auth/update-user', first.cookie, {
+          image: 'https://example.test/photo.png',
+        })
+        assert.equal(updated.status, 200)
+        const context = await auth.$context
+        const tokens = {
+          accessToken: 'direct-access',
+          refreshToken: 'direct-refresh',
+          idToken: 'direct-id',
+          accessTokenExpiresAt: new Date(),
+          refreshTokenExpiresAt: new Date(),
+        }
+        const linked = await context.internalAdapter.linkAccount({
+          userId: chiefId,
+          providerId: 'google-extra',
+          accountId: 'extra-subject',
+          ...tokens,
+        })
+        await context.internalAdapter.updateAccount(linked.id, tokens)
+        assert.deepEqual(await storedGoogleValues(chiefId), [NO_GOOGLE_VALUES, NO_GOOGLE_VALUES])
+      },
+    )
     await t.test('계정 지우기는 꺼져 있고, 로그아웃하면 세션이 끝난다', async () => {
       assert.notEqual((await post('/api/auth/delete-user', first.cookie)).status, 200)
       assert.equal((await pg.query('SELECT id FROM users WHERE id = $1', [chiefId])).rows.length, 1)
