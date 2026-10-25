@@ -132,6 +132,12 @@ export const COMPLETION_ERRORS: Record<string, string> = {
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 }
 export const COMPLETION_FAILED = '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+// 행사 머리의 상태 행동 자리에 버튼 대신 두는 막힌 까닭(서버 blockers). 요약 줄 한 칸이라 명사형 한 줄이고, 거절 뒤의 문구는 위 COMPLETION_ERRORS다.
+export const COMPLETION_BLOCKED: Record<string, string> = {
+  SETTLEMENT_PENDING: '정산 남은 것 있음',
+  NO_FISCAL_PERIOD: '참가비를 넣을 회계 기간 없음',
+  PERIOD_CLOSED: '결산 공개한 기간',
+}
 export const EVENT_COMPLETED_NOTICE = '완료한 행사라 바꿀 수 없어요.'
 
 // 업무와 지출을 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때

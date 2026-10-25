@@ -2,7 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { EVENT_ENDED_NOTICE_DAYS, type EventAction, type EventDetail } from '@vada/contracts'
-import { COMPLETION_ERRORS } from '@/lib/messages'
+import { COMPLETION_BLOCKED } from '@/lib/messages'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { EventHeader, type EventEditing } from './EventHeader'
@@ -110,10 +110,14 @@ test('[완료]는 event.complete가 있을 때 머리에 있고, 상태가 막�
   cleanup()
   show(of({ status: 'ended', blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }))
   expect(within(bar()).queryByRole('button', { name: '완료' })).toBeNull()
-  expect(within(bar()).getByText(COMPLETION_ERRORS.SETTLEMENT_PENDING!)).toBeTruthy()
+  expect(within(bar()).getByText(COMPLETION_BLOCKED.SETTLEMENT_PENDING!).textContent).toBe(
+    '정산 남은 것 있음',
+  )
   cleanup()
-  show(of({ status: 'ongoing' }))
+  // 끝나기 전 행사에는 회장단에게도 막힌 까닭이 없다(완료가 문제 되는 때가 아니다).
+  show(of({ status: 'ongoing', blockers: { 'event.complete': 'EVENT_NOT_ENDED' } }))
   expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
+  expect(within(bar()).queryByRole('status')).toBeNull()
 })
 
 test('[완료]를 누르면 남은 항목 목록이 든 확인 창이 열리고, 완료하면 부모가 새 행사를 받는다', async () => {

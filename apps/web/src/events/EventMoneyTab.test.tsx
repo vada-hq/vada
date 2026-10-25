@@ -10,7 +10,12 @@ import { eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
-import { COMPLETION_ERRORS, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
+import {
+  COMPLETION_BLOCKED,
+  COMPLETION_ERRORS,
+  EVENT_LOST,
+  PERMISSION_CHANGED,
+} from '@/lib/messages'
 import EventDetailView from './EventDetailView'
 import { dayLabel } from '@/lib/korean-date-text'
 import type { EventTab } from './event-view'
@@ -259,11 +264,11 @@ test('확인을 열어 둔 사이 다른 사람이 완료하면 닫고 이미 �
   await settle()
 })
 
-test('상태가 막은 완료는 버튼 대신 그 이유 한 줄이 보이고, 정산이 끝났어요는 없다', async () => {
+test('끝나기 전 행사의 완료 막힘은 머리에 까닭을 싣지 않고, 정산이 끝났어요도 없다', async () => {
   openMoney(event({ status: 'upcoming', blockers: { 'event.complete': 'EVENT_NOT_ENDED' } }, []))
   await screen.findByText('지출 예산')
   expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
-  expect(screen.getByText(COMPLETION_ERRORS.EVENT_NOT_ENDED!)).toBeTruthy()
+  expect(screen.queryByText(COMPLETION_ERRORS.EVENT_NOT_ENDED!)).toBeNull()
   expect(screen.queryByText('정산이 끝났어요')).toBeNull()
 })
 
@@ -272,7 +277,7 @@ test('기간이 공개돼 막힌 완료 취소도 버튼 대신 이유 한 줄�
   openMoney(event({ status: 'completed', blockers }, []))
   await screen.findByText('지출 예산')
   expect(screen.queryByRole('button', { name: '완료 취소' })).toBeNull()
-  expect(screen.getByText(COMPLETION_ERRORS.PERIOD_CLOSED!)).toBeTruthy()
+  expect(screen.getByText(COMPLETION_BLOCKED.PERIOD_CLOSED!)).toBeTruthy()
 })
 
 test('거절 뒤 다시 읽은 행사에서 버튼이 사라져도 거절 문구는 남는다', async () => {
