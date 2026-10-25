@@ -26,6 +26,7 @@ import { EventHeaderSection, EventSection } from './EventSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
+  TaskBoardSection,
   TaskQuickAddSection,
   TaskResultsSection,
   TaskSection,
@@ -72,6 +73,7 @@ export default function Gallery() {
       <SettlementSection />
       <TaskSection />
       <TaskTableSection />
+      <TaskBoardSection />
       <TaskQuickAddSection />
       <TaskUndoBarSection />
       <TaskResultsSection />
