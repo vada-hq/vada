@@ -29,6 +29,8 @@ export default function CreateStructureStep({ draft, linkedName, saving, error, 
     <form
       ref={formRef}
       noValidate
+      // 가운데 카드(AuthCard)가 이 표시를 보고 넓은 화면에서 넓어진다(와이어프레임 ORG-02는 ORG-01보다 넓다).
+      data-wide-step
       aria-label="학생회 만들기"
       className="flex flex-col gap-4"
       onSubmit={event => {

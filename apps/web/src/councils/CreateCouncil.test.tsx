@@ -176,6 +176,16 @@ test('이름 바꾸기는 카드 안에서 고치고 Enter는 저장, Esc는 되
   await waitFor(() => expect(document.activeElement).toBe(trigger('홍보국')))
 })
 
+test('부서 이름을 눌러도 그 카드의 이름 칸이 열린다', async () => {
+  serve()
+  open()
+  await toStructure()
+  fireEvent.click(button('기획부 이름 바꾸기'))
+  await waitFor(() => expect(document.activeElement).toBe(nameInput('부서 이름 1')))
+  save('부서 이름 1', '기획국')
+  expect(cardNames()).toEqual(['재정부', '기획국', '홍보부'])
+})
+
 test('2단계는 같은 이름과 빈 이름을 그 줄 아래에 알리고 보내지 않는다', async () => {
   serve()
   open()
