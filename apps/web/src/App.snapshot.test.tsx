@@ -44,6 +44,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -150,6 +151,11 @@ function openWorkspace() {
 async function openChat() {
   fireEvent.click(await screen.findByRole('button', { name: /^대화/ }))
 }
+// 사람 화면의 들어온 때는 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
+function pinToday() {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
+}
 async function openPeople() {
   fireEvent.click(await screen.findByRole('button', { name: '사람' }))
 }
@@ -167,6 +173,7 @@ test('작업 공간: 학생회를 불러오는 중', async () => {
 })
 
 test('작업 공간: 사람', async () => {
+  pinToday()
   openWorkspace()
   await renderApp()
   await openPeople()
@@ -224,6 +231,7 @@ test('작업 공간: 학생회를 불러오지 못함', async () => {
 })
 
 test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
+  pinToday()
   openWorkspace()
   await renderApp()
   await openPeople()

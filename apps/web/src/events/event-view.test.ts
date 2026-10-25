@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { EventSummary } from '@vada/contracts'
-import { dateBlock, dayLabel, dayTimeLabel, eventGroups, spanLabel, whenLabel } from './event-view'
+import { dateBlock, eventGroups, spanLabel, whenLabel } from './event-view'
 
 test('일시는 요일과 함께 한 줄로 보인다', () => {
   expect(whenLabel({ startsAt: '2026-10-25T14:00', endsAt: '2026-10-25T18:00' })).toBe(
@@ -46,17 +46,4 @@ test('목록은 다가오는 행사, 날짜 미정, 지난 행사로 묶고 빈 
     ['지난 행사', ['c', 'd']],
   ])
   expect(eventGroups([of('e', 'tbd')]).map(group => group.title)).toEqual(['날짜 미정'])
-})
-
-test('결재 날짜는 한국 날짜와 요일이고, 올해가 아니면 연도가 앞에 붙는다', () => {
-  const now = new Date('2026-12-01T00:00:00Z')
-  expect(dayLabel('2026-10-24T15:30:00.000Z', now)).toBe('10월 25일 (일)')
-  expect(dayLabel('2025-12-31T14:59:00.000Z', now)).toBe('2025년 12월 31일 (수)')
-})
-
-test('시각은 한국 날짜, 요일, 시각이고, 올해가 아니면 연도가 앞에 붙는다', () => {
-  const now = new Date('2026-12-01T00:00:00Z')
-  expect(dayTimeLabel('2026-10-18T15:30:00.000Z', now)).toBe('10월 19일 (월) 00:30')
-  expect(dayTimeLabel('2026-10-18T14:59:00.000Z', now)).toBe('10월 18일 (일) 23:59')
-  expect(dayTimeLabel('2025-12-31T14:59:00.000Z', now)).toBe('2025년 12월 31일 (수) 23:59')
 })

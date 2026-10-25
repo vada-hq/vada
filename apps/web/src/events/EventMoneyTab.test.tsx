@@ -12,7 +12,8 @@ import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
 import { COMPLETION_ERRORS, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 import EventDetailView from './EventDetailView'
-import { dayLabel, type EventTab } from './event-view'
+import { dayLabel } from '@/lib/korean-date-text'
+import type { EventTab } from './event-view'
 
 afterEach(async () => {
   cleanup()
