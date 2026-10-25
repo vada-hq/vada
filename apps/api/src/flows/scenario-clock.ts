@@ -8,11 +8,17 @@ import { CLOCK_OFFSET_SETTING } from '../records/records.js'
 // transaction: 바깥 거래 안에서만 건다(거래가 끝나면 사라진다. 운영 DB에 쓰는 시연이 쓴다).
 export type ClockScope = 'connection' | 'transaction'
 
-export async function createScenarioClock(db: Db, start: Date, scope: ClockScope) {
+// base는 DB 시계가 따라가는 실제 시각이다. 직접 읽지 않고 받아서, 시각 읽기가 한 곳(흐름 서버)에만 있게 한다.
+export async function createScenarioClock(
+  db: Db,
+  start: Date,
+  scope: ClockScope,
+  base: () => Date,
+) {
   let current = start
   // 요청마다 다시 건다. 간격을 건 때부터 실제 시간이 흐른 만큼 DB 시계가 앞서가는 것을 요청 하나의 길이로 묶어, 앱 시계와 1초 안에서 맞춘다.
   const sync = async () => {
-    const offsetMs = Math.round(current.getTime() - Date.now())
+    const offsetMs = Math.round(current.getTime() - base().getTime())
     await db.execute(
       sql`select set_config(${CLOCK_OFFSET_SETTING}, ${`${offsetMs} milliseconds`}, ${scope === 'transaction'})`,
     )

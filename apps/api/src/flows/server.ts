@@ -18,7 +18,7 @@ export async function startFlow(
   { start, scope, storage }: { start: Date; scope: ClockScope; storage?: FileStorage },
 ) {
   const flowSession = createFlowSession()
-  const clock = await createScenarioClock(db, start, scope)
+  const clock = await createScenarioClock(db, start, scope, () => new Date())
   const modules = appModulesOf(db, flowSession.session, {
     clock: clock.now,
     writeLimiter: createPurchaseWriteLimiter(),
