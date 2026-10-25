@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { koreanDateOf } from '@vada/contracts'
@@ -18,9 +19,11 @@ import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixture
 import { settle } from '@/test-support/settle'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { EXPENSE_ERRORS } from '@/lib/messages'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })
@@ -53,22 +56,38 @@ const approvedItem = (id: string, name: string, amount: number) => ({
 
 function serve() {
   const api = serveFinance()
-  api.on('GET', EXPENSES, () => json({ expenses: [expenseSummary('e1')], truncated: false }))
+  api.on('GET', EXPENSES, () =>
+    json({ expenses: [expenseSummary('0199d1a0-0000-7000-8000-00000000b101')], truncated: false }),
+  )
   api.on('GET', `${BASE}/members`, () => json(team))
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
       requests: [
-        purchaseSummary('r1', { title: '행사 포스터', status: 'approved', payable: true }),
-        purchaseSummary('r2', { title: '아직 대기', status: 'pending', payable: true }),
-        purchaseSummary('r3', { title: '취소한 요청', status: 'cancelled' }),
-        purchaseSummary('r4', { title: '완료한 행사 요청', status: 'approved' }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a001', {
+          title: '행사 포스터',
+          status: 'approved',
+          payable: true,
+        }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a002', {
+          title: '아직 대기',
+          status: 'pending',
+          payable: true,
+        }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a003', {
+          title: '취소한 요청',
+          status: 'cancelled',
+        }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a004', {
+          title: '완료한 행사 요청',
+          status: 'approved',
+        }),
       ],
       truncated: false,
     }),
   )
-  api.on('GET', `${REQUESTS}/r1`, () =>
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         items: [
           approvedItem(ITEM_1, 'A2 포스터', 30000),
           approvedItem(ITEM_2, '테이프', 6000),
@@ -114,14 +133,18 @@ async function fillRequestPayment() {
   fill('사용처', '인쇄소')
   fill('내역', '포스터 인쇄')
   await screen.findByRole('option', { name: '행사 포스터' })
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
 }
 
 test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워지고 합이 금액이 된다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1', { evidence: [] }) }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { evidence: [] }) }),
+  )
   showFinance()
   await fillRequestPayment()
   // 서버가 결제할 수 있다고 한(payable) 요청과 품목만 보인다.
@@ -187,8 +210,12 @@ test('요청을 바꾸면 고른 품목을 비우고, 품목이나 요청이 없
 
 test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목을 고르고 금액을 쓴다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
@@ -225,8 +252,12 @@ test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목
 
 test('방식을 바꾸면 그 방식에만 있던 값은 몰래 나가지 않는다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
@@ -288,7 +319,9 @@ test('두 번 누르면 한 번만 나가고 보내는 동안 닫을 수 없다'
   const api = serve()
   const pending = deferredResponse()
   api.on('POST', EXPENSES, () => pending.promise)
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await readyDirect()
   fireEvent.click(submit())
@@ -299,7 +332,7 @@ test('두 번 누르면 한 번만 나가고 보내는 동안 닫을 수 없다'
   const form = screen.getByRole('form', { name: '지출 적기' })
   const close = within(form).getByRole('button', { name: '닫기' })
   expect(asElement(close, HTMLButtonElement).disabled).toBe(true)
-  pending.resolve(json({ expense: expenseDetail('e1') }, 201))
+  pending.resolve(json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201))
   await screen.findByRole('button', { name: '사진 올리기' })
 })
 
@@ -336,15 +369,22 @@ test('품목 하나만 승인되고 다른 품목이 대기인 요청도 고를 
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
       requests: [
-        purchaseSummary('r1', { title: '일부만 결재', status: 'pending', payable: true }),
-        purchaseSummary('r4', { title: '반려됨', status: 'rejected' }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a001', {
+          title: '일부만 결재',
+          status: 'pending',
+          payable: true,
+        }),
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a004', {
+          title: '반려됨',
+          status: 'rejected',
+        }),
       ],
       truncated: false,
     }),
   )
-  api.on('GET', `${REQUESTS}/r1`, () =>
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         items: [approvedItem(ITEM_1, 'A2 포스터', 30000), purchaseDetail().items[0]!],
       }),
     }),
@@ -353,20 +393,28 @@ test('품목 하나만 승인되고 다른 품목이 대기인 요청도 고를 
   await openForm()
   await screen.findByRole('option', { name: '일부만 결재' })
   expect(screen.queryByRole('option', { name: '반려됨' })).toBeNull()
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   expect(await screen.findAllByRole('checkbox')).toHaveLength(1)
-  api.on('GET', `${REQUESTS}/r1`, () =>
-    json({ request: purchaseDetail('r1', { items: [purchaseDetail().items[0]!] }) }),
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`, () =>
+    json({
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
+        items: [purchaseDetail().items[0]!],
+      }),
+    }),
   )
   choose('결제할 요청', '')
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
 })
 
 test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비운다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await readyDirect()
   await screen.findByRole('option', { name: /행사 홍보/ })
@@ -384,12 +432,19 @@ test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비
 
 test('고른 요청이 다시 읽은 목록에서 결제할 수 없게 되면 요청과 품목을 비워 숨은 줄이 나가지 않는다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
   showFinance()
   await fillRequestPayment()
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
-      requests: [purchaseSummary('r1', { title: '행사 포스터', status: 'approved' })],
+      requests: [
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a001', {
+          title: '행사 포스터',
+          status: 'approved',
+        }),
+      ],
       truncated: false,
     }),
   )
@@ -403,14 +458,18 @@ test('고른 요청이 다시 읽은 목록에서 결제할 수 없게 되면 �
 
 test('고른 품목이 다시 읽은 상세에서 결제할 수 없게 되면 그 줄을 비워 보내지 않는다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await fillRequestPayment()
   fireEvent.click(await screen.findByRole('checkbox', { name: /테이프/ }))
-  api.on('GET', `${REQUESTS}/r1`, () =>
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         items: [
           { ...approvedItem(ITEM_1, 'A2 포스터', 30000), payable: false },
           approvedItem(ITEM_2, '테이프', 6000),
@@ -436,7 +495,7 @@ function serveWithEvent() {
   api.on('GET', `${REQUESTS}?view=all`, () =>
     json({
       requests: [
-        purchaseSummary('r1', {
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a001', {
           title: '행사 포스터',
           status: 'approved',
           payable: true,
@@ -460,8 +519,12 @@ function serveWithEvent() {
 
 test('행사가 있는 요청을 고르면 지출의 행사가 그 행사로 채워지고 잠기며, 그 행사를 보낸다', async () => {
   const api = serveWithEvent()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
@@ -470,7 +533,7 @@ test('행사가 있는 요청을 고르면 지출의 행사가 그 행사로 채
   fill('사용처', '인쇄소')
   fill('내역', '포스터 인쇄')
   await screen.findByRole('option', { name: '행사 포스터' })
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   await waitFor(() => expect(select().value).toBe(SPRING))
   expect(select().disabled).toBe(true)
   fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
@@ -486,7 +549,7 @@ test('요청을 비우면 지출의 행사 잠금이 풀린다', async () => {
   const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
   await waitFor(() => expect(select().disabled).toBe(false))
   await screen.findByRole('option', { name: '행사 포스터' })
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   await waitFor(() => expect(select().disabled).toBe(true))
   choose('결제할 요청', '')
   await waitFor(() => expect(select().disabled).toBe(false))
@@ -501,7 +564,7 @@ test('요청에서 채운 행사는 직접 적기로 바꿔도 지운다', async
   const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
   await waitFor(() => expect(select().disabled).toBe(false))
   await screen.findByRole('option', { name: '행사 포스터' })
-  choose('결제할 요청', 'r1')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   await waitFor(() => expect(select().value).toBe(SPRING))
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
   await waitFor(() => expect(select().value).toBe(''))
@@ -587,4 +650,18 @@ test('지출 적기가 409 EVENT_MISMATCH면 그 창 안에 문구가 보인다'
   fireEvent.click(submit())
   expect(await screen.findByText(EXPENSE_ERRORS.EVENT_MISMATCH!)).toBeTruthy()
   expect(screen.getByRole('form', { name: '지출 적기' })).toBeTruthy()
+})
+
+test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 비우거나 닫으면 푼다', async () => {
+  serve()
+  showFinance()
+  await openForm()
+  expect(hasUnsavedInput()).toBe(false)
+  fill('사용처', '인쇄소')
+  expect(hasUnsavedInput()).toBe(true)
+  fill('사용처', '')
+  expect(hasUnsavedInput()).toBe(false)
+  fill('사용처', '인쇄소')
+  fireEvent.click(screen.getAllByRole('button', { name: '닫기' }).at(-1)!)
+  await waitFor(() => expect(hasUnsavedInput()).toBe(false))
 })

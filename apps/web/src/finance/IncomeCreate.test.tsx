@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { koreanDateOf } from '@vada/contracts'
@@ -22,6 +23,7 @@ import {
   serveIncomes,
 } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 import {
   INCOME_ERRORS,
   INCOME_LOST,
@@ -29,8 +31,9 @@ import {
   PERMISSION_CHANGED,
 } from '@/lib/messages'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -333,4 +336,15 @@ test('시작 전 기간이면 이유를 한 줄 보이고, 적기를 눌러도 �
   fireEvent.click(submit())
   expect(screen.getByLabelText('받은 날').getAttribute('aria-invalid')).toBe('true')
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 닫으면 푼다', async () => {
+  serve()
+  showFinance()
+  await openForm()
+  expect(hasUnsavedInput()).toBe(false)
+  fill('금액(원)', '1000')
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.click(screen.getAllByRole('button', { name: '닫기' }).at(-1)!)
+  await waitFor(() => expect(hasUnsavedInput()).toBe(false))
 })

@@ -18,10 +18,10 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { Textarea } from '@/components/ui/textarea'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
-import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { useTeam } from '@/team/useTeam'
 import {
   emptyExpense,
@@ -38,6 +38,7 @@ import { METHOD_LABEL } from './expense-view'
 import { EventField } from './EventField'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { ExpenseDirectFields } from './ExpenseDirectFields'
+import { ExpensePayerFields } from './ExpensePayerFields'
 import { ExpenseRequestFields } from './ExpenseRequestFields'
 import { wonLabel } from './purchase-view'
 import { useExpenseCreate } from './useExpenseCreate'
@@ -94,15 +95,6 @@ function ModeToggle({
       ))}
     </div>
   )
-}
-
-// 먼저 낸 사람: 학생회 돈, 나, 다른 운영진.
-function paidByChoices(team: TeamResponse, memberId: string) {
-  return [
-    { id: null, label: '학생회 돈' },
-    { id: memberId, label: '나' },
-    ...team.members.filter(m => m.id !== memberId).map(m => ({ id: m.id, label: m.name })),
-  ]
 }
 
 type FieldsProps = {
@@ -198,36 +190,6 @@ function ModeFields({ team, ...props }: ModeProps) {
   )
 }
 
-// 먼저 낸 사람(학생회 돈, 나, 다른 운영진)과 사유(아래쪽 칸).
-function PayerFields({
-  team,
-  memberId,
-  values,
-  disabled,
-  onChange,
-  errors,
-}: Omit<FieldsProps, 'today'> & { team: TeamResponse; memberId: string }) {
-  return (
-    <>
-      <ChoiceSelect
-        label="먼저 낸 사람"
-        required
-        choices={paidByChoices(team, memberId)}
-        value={values.paidBy}
-        disabled={disabled}
-        onChange={paidBy => onChange({ ...values, paidBy })}
-      />
-      <Field label="사유" optional error={errors.reason}>
-        <Textarea
-          value={values.reason}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, reason: event.target.value })}
-        />
-      </Field>
-    </>
-  )
-}
-
 type FormProps = Omit<Props, 'open'> & {
   team: TeamResponse
   saving: boolean
@@ -236,10 +198,20 @@ type FormProps = Omit<Props, 'open'> & {
 
 function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [values, setValues] = useState(() => emptyExpense(today, eventId ?? null, start))
+  const [initial] = useState(() => emptyExpense(today, eventId ?? null, start))
+  const [values, setValues] = useState(initial)
+  // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  const settle = useUnsavedInput(!sameJson(values, initial))
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
-  const create = useExpenseCreate(props.councilId, body, { ...props, setSaving })
+  const create = useExpenseCreate(props.councilId, body, {
+    ...props,
+    onCreated: expense => {
+      settle()
+      props.onCreated(expense)
+    },
+    setSaving,
+  })
   const {
     formRef,
     errors: fieldErrors,
@@ -275,7 +247,7 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
         disabled={saving}
         onPick={accountId => setValues({ ...values, accountId })}
       />
-      <PayerFields {...shared} team={team} memberId={memberId} />
+      <ExpensePayerFields {...shared} team={team} memberId={memberId} />
       {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
       <DialogFooter>
         <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
