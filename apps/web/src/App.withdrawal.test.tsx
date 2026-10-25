@@ -30,12 +30,17 @@ const DESCRIPTION = "학생회 기록의 내 이름은 '떠난 운영진'으로 
 let api: ReturnType<typeof mockApi>
 // 세션은 바깥 저장소처럼 둔다. 다시 읽으면(refetch) 서버가 지운 쿠키대로 로그인 전이 된다.
 let session: { user: { id: string; name: string; email: string } } | null
+// 세션을 다시 읽다 연결이 끊긴 때.
+let sessionError: { message: string } | null
+const userA = { id: 'u1', name: '김회장', email: 'kim@example.test' }
+const userB = { id: 'u2', name: '박다른', email: 'park@example.test' }
 const listeners = new Set<() => void>()
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
   vi.resetAllMocks()
   api = mockApi()
-  session = { user: { id: 'u1', name: '김회장', email: 'kim@example.test' } }
+  session = { user: userA }
+  sessionError = null
   auth.refetch.mockImplementation(async () => {
     listeners.forEach(listener => listener())
   })
@@ -50,7 +55,7 @@ beforeEach(() => {
       () => session,
     ),
     isPending: false,
-    error: null,
+    error: sessionError,
     refetch: auth.refetch,
   }))
 })
@@ -247,6 +252,8 @@ test('홈 화면 앱은 로그인 창에서 다시 로그인하고, 그 창이 �
   auth.social.mockResolvedValue({ data: { url: 'https://accounts.google.com/x' }, error: null })
   openCouncil()
   withdrawalAnswers(() => json({ error: 'REAUTH_REQUIRED' }, 403))
+  // 로그인 창에서 같은 Google 계정을 골랐다.
+  api.on('GET', '/api/auth/get-session', () => json({ session: { id: 's2' }, user: userA }))
   try {
     await renderApp()
     const dialog = await openFromSidebar()
@@ -282,4 +289,118 @@ test('탈퇴하지 않은 로그인 전 화면에는 탈퇴 완료가 없다', a
   await renderApp()
   expect(screen.getByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
   expect(screen.queryByText('탈퇴 완료')).toBeNull()
+})
+
+// 다시 로그인에서 다른 Google 계정(B)을 고르면 쿠키는 B다. 화면은 A인 채로 [탈퇴]를 보이면 B가 탈퇴된다.
+test('홈 화면 앱의 다시 로그인에서 다른 계정을 고르면 확인 창을 닫고 그 계정의 화면으로 바꾼다', async () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  const channels: { onmessage: (() => void) | null }[] = []
+  vi.stubGlobal(
+    'BroadcastChannel',
+    class {
+      onmessage: (() => void) | null = null
+      constructor() {
+        channels.push(this)
+      }
+      postMessage() {}
+      close() {}
+    },
+  )
+  const popup = { location: { href: 'about:blank' }, close: vi.fn() }
+  const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+  auth.social.mockResolvedValue({ data: { url: 'https://accounts.google.com/x' }, error: null })
+  openCouncil()
+  withdrawalAnswers(() => json({ error: 'REAUTH_REQUIRED' }, 403))
+  api.on('GET', '/api/auth/get-session', () => {
+    session = { user: userB }
+    return json({ session: { id: 's2' }, user: userB })
+  })
+  try {
+    await renderApp()
+    const dialog = await openFromSidebar()
+    fireEvent.click(withdrawButton(dialog))
+    fireEvent.click(await within(dialog).findByRole('button', { name: '다시 로그인' }))
+    await waitFor(() => expect(popup.location.href).toBe('https://accounts.google.com/x'))
+    channels.forEach(channel => channel.onmessage?.())
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '탈퇴' })).toBeNull())
+    await waitFor(() => expect(auth.refetch).toHaveBeenCalled())
+    await settle()
+    expect(screen.queryByRole('dialog', { name: '탈퇴' })).toBeNull()
+    expect(api.calls.filter(call => call.path === '/api/me/withdrawal')).toHaveLength(1)
+  } finally {
+    open.mockRestore()
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})
+
+test('넘어가는 다시 로그인에서 다른 계정으로 돌아오면 확인 창을 열지 않는다', async () => {
+  openCouncil()
+  withdrawalAnswers(() => json({ error: 'REAUTH_REQUIRED' }, 403))
+  auth.social.mockResolvedValue({ error: null })
+  await renderApp()
+  const dialog = await openFromSidebar()
+  fireEvent.click(withdrawButton(dialog))
+  fireEvent.click(await within(dialog).findByRole('button', { name: '다시 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalled())
+  cleanup()
+  session = { user: userB }
+  await renderApp()
+  await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  await settle()
+  expect(screen.queryByRole('dialog', { name: '탈퇴' })).toBeNull()
+  // 표시는 지워져, 10분 안에 A로 다시 와도 묻지 않은 창이 뜨지 않는다.
+  cleanup()
+  session = { user: userA }
+  await renderApp()
+  await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  await settle()
+  expect(screen.queryByRole('dialog', { name: '탈퇴' })).toBeNull()
+})
+
+test('다시 로그인을 마치지 못한 채 로그인 전 화면에서 보통 로그인을 하면, 10분 안이어도 확인 창을 열지 않는다', async () => {
+  openCouncil()
+  withdrawalAnswers(() => json({ error: 'REAUTH_REQUIRED' }, 403))
+  auth.social.mockResolvedValue({ error: null })
+  await renderApp()
+  const dialog = await openFromSidebar()
+  fireEvent.click(withdrawButton(dialog))
+  fireEvent.click(await within(dialog).findByRole('button', { name: '다시 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalled())
+  // Google에서 돌아오지 않고 나중에 앱을 열었더니 로그아웃 상태였다.
+  cleanup()
+  session = null
+  await renderApp()
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalledTimes(2))
+  cleanup()
+  session = { user: userA }
+  await renderApp()
+  await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  await settle()
+  expect(screen.queryByRole('dialog', { name: '탈퇴' })).toBeNull()
+})
+
+test('탈퇴하면 이 기기가 그 사람의 마지막 주소로 기억한 것을 지운다', async () => {
+  openCouncil()
+  withdrawalAnswers(() => json({ withdrawn: true }))
+  await renderApp()
+  const dialog = await openFromSidebar()
+  await waitFor(() => expect(window.localStorage.getItem('vada.last.address.u1')).not.toBeNull())
+  fireEvent.click(withdrawButton(dialog))
+  expect(await screen.findByText('탈퇴 완료')).toBeTruthy()
+  expect(window.localStorage.getItem('vada.last.address.u1')).toBeNull()
+})
+
+test('탈퇴 뒤 세션을 다시 읽지 못해도 로그인 전 화면에 탈퇴 완료가 보인다', async () => {
+  openCouncil()
+  api.on('POST', '/api/me/withdrawal', () => {
+    sessionError = { message: 'network' }
+    return json({ withdrawn: true })
+  })
+  await renderApp()
+  const dialog = await openFromSidebar()
+  fireEvent.click(withdrawButton(dialog))
+  expect(await screen.findByText('탈퇴 완료')).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
+  expect(screen.queryByText(/세션을 확인하지 못했어요/)).toBeNull()
 })

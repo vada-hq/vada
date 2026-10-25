@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { authClient } from './auth-client'
+import { forgetReopen } from '../profile/withdraw-reopen'
 import { forgetThisDevice } from '../push/push-logout'
 import { loginCallback } from './login-return'
 import { AUTH_DONE_PATH, startPopupLogin } from './popup-login'
@@ -77,8 +78,15 @@ export function useAuthActions(invite: Invite | null) {
   return {
     busy,
     message,
-    login: () => run(() => signIn(invite), false),
-    loginInApp: () => run(signInInApp, true),
+    // 보통 로그인은 탈퇴 전 다시 로그인이 남긴 표시를 지운다. 돌아온 화면이 묻지 않은 탈퇴 창을 열지 않게 한다.
+    login: () => {
+      forgetReopen()
+      return run(() => signIn(invite), false)
+    },
+    loginInApp: () => {
+      forgetReopen()
+      return run(signInInApp, true)
+    },
     logout: () => run(signOut, true),
   }
 }

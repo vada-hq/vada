@@ -40,7 +40,7 @@ export function WithdrawSection() {
     <Section title="탈퇴 창">
       <div className="w-full max-w-md">
         <SignedInCard
-          user={{ name: '김구글', email: 'kim.google@example.com' }}
+          user={{ id: 'u1', name: '김구글', email: 'kim.google@example.com' }}
           page={false}
           withdraw
           busy={false}

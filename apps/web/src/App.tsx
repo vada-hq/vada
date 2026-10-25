@@ -23,7 +23,8 @@ export default function App() {
     void logout()
   }
 
-  if (!isPending && !error && session)
+  // 탈퇴했으면 세션을 다시 읽기 전이나 읽지 못했어도 지운 계정의 화면을 보이지 않는다.
+  if (!withdrawn.withdrawn && !isPending && !error && session)
     return (
       <AgreementGate key={session.user.id} logoutBusy={busy} onLogout={onLogout}>
         <SignedInView

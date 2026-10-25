@@ -27,3 +27,12 @@ export function lastAddress(userId: string) {
     return null
   }
 }
+
+// 탈퇴하면 그 계정의 기억을 지운다. 지운 계정이 본 학생회 주소가 이 기기에 남지 않게 한다.
+export function forgetAddress(userId: string) {
+  try {
+    window.localStorage.removeItem(PREFIX + userId)
+  } catch {
+    // 막힌 저장소에는 지울 것도 없다.
+  }
+}
