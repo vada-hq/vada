@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { CancelDepositSchema, RefundSchema } from '@vada/contracts'
+import { CancelDepositSchema, ConfirmDepositSchema, RefundSchema } from '@vada/contracts'
 import { CancelReasonDialog } from '@/components/CancelReasonDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { wonOf } from '@/finance/budget-form'
 import { requiredText } from '@/lib/use-form-check'
 import { won } from '@/public/registration-text'
 
@@ -12,6 +13,48 @@ type Shared = {
   busy: boolean
   error: string | null
   onClose: () => void
+}
+
+type ConfirmProps = Shared & {
+  appliedFee: number
+  onSubmit: (amount: number) => void
+}
+
+// 입금 확인: 금액은 적용 참가비로 채우고, 덜 내거나 더 낸 입금은 고쳐 적는다(DEC-68). 정산의 참가비 수입이 이 금액의 합이다.
+// 참가비가 0원인 신청에는 서버가 이 동작을 주지 않아 열리지 않는다(RULE-44).
+export function ConfirmDepositDialog({ name, appliedFee, onSubmit, ...shared }: ConfirmProps) {
+  const [text, setText] = useState(String(appliedFee))
+  const amount = wonOf(text)
+  return (
+    <ConfirmDialog
+      {...shared}
+      title={`${name}님의 입금을 확인할까요?`}
+      description="통장에 들어온 것을 확인한 뒤에 눌러 주세요. VADA는 돈을 옮기지 않고 표시만 해요."
+      confirmLabel="입금 확인"
+      check={() => ({
+        amount:
+          requiredText(text, '입금 금액을') ??
+          (amount > 0 ? undefined : '1 이상의 숫자를 입력해 주세요'),
+      })}
+      parse={() => ConfirmDepositSchema.safeParse({ amount })}
+      onConfirm={() => onSubmit(amount)}
+      field={errors => (
+        <Field
+          label="입금 금액(원)"
+          required
+          hint={`적용 참가비 ${won(appliedFee)}`}
+          error={errors.amount}
+        >
+          <Input
+            inputMode="numeric"
+            value={text}
+            disabled={shared.busy}
+            onChange={event => setText(event.target.value)}
+          />
+        </Field>
+      )}
+    />
+  )
 }
 
 type ReasonProps = Shared & { refund: boolean; onSubmit: (reason: string) => void }

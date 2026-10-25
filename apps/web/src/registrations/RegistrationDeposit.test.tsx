@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { Applicant, FormAction, FormListAction } from '@vada/contracts'
+import { WON_MAX, type Applicant, type FormAction, type FormListAction } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import {
@@ -122,6 +122,44 @@ test('입금 확인은 적용 참가비로 한 번만 보내고, 끝나면 칩�
   expect(within(row).getByText('입금 확인 5,000원')).toBeTruthy()
   expect(button(row, '확인 취소')).toBeTruthy()
   expect(within(row).queryByRole('button', { name: '입금 확인' })).toBeNull()
+})
+
+test('입금 확인 금액은 적용 참가비로 채워 두고 고칠 수 있으며, 잘못 적으면 칸 아래에 알리고 보내지 않는다(DEC-68)', async () => {
+  const { api, row } = await open()
+  api.on('POST', `${ROW}/deposit`, () =>
+    json(
+      {
+        deposit: { status: 'confirmed', amount: 4000 },
+        applicant: applicantChange({
+          attended: false,
+          deposit: { status: 'confirmed', amount: 4000 },
+          actions: PAID_ACTIONS,
+        }),
+      },
+      201,
+    ),
+  )
+  fireEvent.click(button(row, '입금 확인'))
+  const dialog = await screen.findByRole('dialog')
+  expect(within(dialog).getByText('적용 참가비 5,000원')).toBeTruthy()
+  const amount = within(dialog).getByLabelText('입금 금액(원)')
+  expect(amount).toHaveProperty('value', '5000')
+  const confirm = () => fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인' }))
+  fireEvent.change(amount, { target: { value: ' ' } })
+  confirm()
+  expect(within(dialog).getByText('입금 금액을 입력해 주세요')).toBeTruthy()
+  expect(amount.getAttribute('aria-invalid')).toBe('true')
+  fireEvent.change(amount, { target: { value: '0' } })
+  expect(within(dialog).getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
+  fireEvent.change(amount, { target: { value: String(WON_MAX + 1) } })
+  confirm()
+  expect(within(dialog).getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+  fireEvent.change(amount, { target: { value: '4,000' } })
+  confirm()
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(posts(api)[0]?.body).toEqual({ amount: 4000 })
+  expect(within(row).getByText('입금 확인 4,000원')).toBeTruthy()
 })
 
 test('입금 확인이 409면 그 창 안에 문구가 보이고 창은 열려 있다', async () => {

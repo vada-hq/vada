@@ -7,7 +7,7 @@ import { PURCHASE_REASON_MAX } from './purchases.js'
 // 입금 확인과 환불함(기능 008, DEC-28, DEC-55). 금액은 정수 원이고 1원부터 10억 원까지다(입금 기록의 CHECK는 0 이상이라 API가 1원을 지킨다).
 const won = z.number().int().min(1).max(WON_MAX)
 
-// 금액을 빼면 서버가 신청의 적용 참가비로 채운다(적용 참가비가 0이면 400이라 금액을 적어야 한다).
+// 금액을 빼면 서버가 신청의 적용 참가비로 채운다. 화면은 적용 참가비로 채운 칸을 고쳐 보낸다(DEC-68). 적용 참가비가 0원인 신청은 금액을 적어도 400이다(RULE-44).
 export const ConfirmDepositSchema = z.strictObject({ amount: won.nullable().default(null) })
 export type ConfirmDepositRequest = z.infer<typeof ConfirmDepositSchema>
 // 확인 취소는 사유가 꼭 있다(판에 남는다).

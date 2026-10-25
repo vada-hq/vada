@@ -6,14 +6,12 @@ import {
   type ApplicantChange,
   type StaffDepositResponse,
 } from '@vada/contracts'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { REGISTRATION_ACTION_GONE } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
-import { won } from '@/public/registration-text'
-import { CancelDepositDialog, RefundDialog } from './DepositDialogs'
+import { CancelDepositDialog, ConfirmDepositDialog, RefundDialog } from './DepositDialogs'
 import { registrationPath } from './registration-api'
 import { useStaffPost } from './useStaffPost'
 
@@ -110,16 +108,13 @@ function DepositSteps({ applicant, allowed, step, post, open, run }: StepsProps)
   }
   return (
     <>
-      <ConfirmDialog
-        open={step === 'confirm' && allowed.confirm}
-        title={`${applicant.name}님의 입금을 확인할까요?`}
-        description={`${won(applicant.appliedFee)}이 통장에 들어온 것을 확인한 뒤에 눌러 주세요. VADA는 돈을 옮기지 않고 표시만 해요.`}
-        confirmLabel="입금 확인"
-        busy={post.busy}
-        {...(post.problem ? { error: post.problem } : {})}
-        onConfirm={() => void run('deposit', { amount: applicant.appliedFee })}
-        onClose={() => open(null)}
-      />
+      {step === 'confirm' && allowed.confirm && (
+        <ConfirmDepositDialog
+          appliedFee={applicant.appliedFee}
+          onSubmit={amount => void run('deposit', { amount })}
+          {...shared}
+        />
+      )}
       {step === 'cancel' && allowed.undo && (
         <CancelDepositDialog
           refund={status === 'refund_pending'}
