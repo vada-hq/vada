@@ -157,7 +157,7 @@ export function releaseRecord() {
   const parent = parentOf(location)
   // 상위 목록은 상세를 열기 전에 보던 보기로 돌아간다(탭이 정해진 종류는 그 탭이 먼저다).
   const seen = parent.type === 'menu' ? recalledQuery(parent.menu, parent.councilId) : undefined
-  const query = seen && Object.keys(parent.query).length === 0 ? seen : parent.query
+  const query = seen ? { ...seen, ...parent.query } : parent.query
   window.history.replaceState(state, '', appPath({ ...parent, query }))
   notify()
 }

@@ -26,7 +26,6 @@ function open(home: HomeResponse, extras: Parameters<typeof onHomeExtras>[1] = {
   api.on('GET', '/api/organizations/c1/home', () => json(home))
   onHomeExtras(api, extras)
   const fns = {
-    onOpenRequest: vi.fn(),
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),
   }
@@ -37,7 +36,7 @@ function open(home: HomeResponse, extras: Parameters<typeof onHomeExtras>[1] = {
 const council = { events: [], truncated: false, endedTotal: 0, blocked: [], overdue: noTasks }
 
 test('내 요청: 반려를 먼저, 결재 대기는 오래된 순. 끝난 요청은 뺀다', async () => {
-  const { onOpenRequest } = open(homeResponse(), {
+  open(homeResponse(), {
     requests: [
       { ...homeRequest('new'), createdAt: '2026-10-22T03:00:00.000Z' },
       { ...homeRequest('old'), createdAt: '2026-10-18T03:00:00.000Z' },
@@ -52,7 +51,9 @@ test('내 요청: 반려를 먼저, 결재 대기는 오래된 순. 끝난 요�
   expect(titles).toEqual(['요청 no', '요청 old', '요청 new'])
   expect(within(section).getByText('반려')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '요청 no' }))
-  expect(onOpenRequest).toHaveBeenCalledWith('no')
+  expect(window.location.pathname).toBe('/purchases/c1/no')
+  fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
+  expect(window.location.pathname).toBe('/finance/c1')
 })
 
 test('볼 요청, 공지, 이번 주 행사가 없으면 그 부분을 두지 않는다', async () => {

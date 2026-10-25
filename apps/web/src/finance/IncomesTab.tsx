@@ -1,14 +1,16 @@
-import { useState } from 'react'
 import { INCOME_LIST_LIMIT, type FiscalPeriodSummary } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { INCOMES_LOAD_FAILED, PERIODS_LOAD_FAILED, PERMISSION_CHANGED } from '@/lib/messages'
+import { openRecord } from '@/lib/go-to'
+import { useAddressRecord } from '@/lib/use-address-record'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { IncomeCreateDialog } from './IncomeCreateDialog'
 import { IncomeDetailDialog } from './IncomeDetailDialog'
 import IncomeCard from './IncomeCard'
 import { chosenPeriod, PeriodSelect } from './PeriodSelect'
+import { usePeriodChoice } from './useFinanceQuery'
 import { useIncomes, usePeriods, type IncomeList } from './useIncomes'
 
 type Props = {
@@ -92,15 +94,15 @@ function IncomeDialogs({
   )
 }
 
-// 수입 탭: 기간을 고르고(기본 지금 기간) 그 기간의 수입을 받은 날 최근 순으로 본다. 적고 취소하는 것은 재정부다.
-// 수입 적기를 연 동안 재정 권한이 빠져도 닫고 이유를 보인다.
+// 수입 탭: 기간을 고르고(기본 지금 기간, 고른 기간은 주소에 남는다) 그 기간의 수입을 받은 날 최근 순으로 본다. 적고 취소하는 것은 재정부다.
+// 수입 상세는 /incomes 주소로 연다. 수입 적기를 연 동안 재정 권한이 빠져도 닫고 이유를 보인다.
 export function IncomesTab({ councilId, canManage, onForbidden }: Props) {
   const periods = usePeriods(councilId, onForbidden)
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  const choice = usePeriodChoice(councilId)
   const list = periods.state.kind === 'ready' ? periods.state.data.periods : []
-  const period = chosenPeriod(list, chosenId)
+  const period = chosenPeriod(list, choice.chosenId)
   const incomes = useIncomes(councilId, period?.id ?? null, onForbidden)
-  const dialogs = useRecordDialogs()
+  const dialogs = useRecordDialogs(useAddressRecord('incomes', councilId))
   useDialogGuard(dialogs.creating, canManage ? null : PERMISSION_CHANGED, dialogs.lose)
   if (periods.state.kind === 'failed')
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
@@ -112,7 +114,7 @@ export function IncomesTab({ councilId, canManage, onForbidden }: Props) {
     )
   return (
     <div className="flex flex-col gap-3">
-      <PeriodSelect periods={list} value={period.id} onChange={setChosenId} />
+      <PeriodSelect periods={list} value={period.id} onChange={choice.choose} />
       <div className="flex flex-wrap items-center gap-3">
         {canManage && (
           <Button variant="outline" onClick={dialogs.startCreate}>
@@ -121,7 +123,7 @@ export function IncomesTab({ councilId, canManage, onForbidden }: Props) {
         )}
         {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       </div>
-      <IncomeBody list={incomes} onOpen={dialogs.openRecord} />
+      <IncomeBody list={incomes} onOpen={id => openRecord('incomes', councilId, id)} />
       <IncomeDialogs
         councilId={councilId}
         period={period}

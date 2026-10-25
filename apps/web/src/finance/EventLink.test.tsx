@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { BUDGET_A, budgetWithPeriod, LINE_1 } from '@/test-support/budget-fixtures'
@@ -9,26 +10,27 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { BUDGET_ERRORS, PURCHASE_ERRORS } from '@/lib/messages'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { forgetRememberedItems } from './decision-form'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
 beforeEach(forgetRememberedItems)
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
-const ORG = '/api/organizations/c1'
+const ORG = `/api/organizations/${COUNCIL_ID}`
 const SPRING = '00000000-0000-4000-8000-0000000000e1'
 const DONE = '00000000-0000-4000-8000-0000000000e2'
 
 function setup(tab: string, budget = budgetWithPeriod()) {
   const api = mockApi()
   api.on('GET', `${ORG}/purchase-requests?view=mine`, () =>
-    json({ requests: [purchaseSummary('r1')], truncated: false }),
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
-  api.on('GET', `${ORG}/purchase-requests/r1`, () =>
+  api.on('GET', `${ORG}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
-      request: purchaseDetail('r1', {
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {
         items: [
           {
             id: LINE_1,
@@ -59,9 +61,12 @@ function setup(tab: string, budget = budgetWithPeriod()) {
       truncated: false,
     }),
   )
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(
-    <FinancePage view={councilView('c1', { permissions: FINANCE_PERMISSIONS })} {...handlers} />,
+    <FinanceAt
+      view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
+      {...handlers}
+    />,
   )
   if (tab !== 'requests') fireEvent.click(screen.getByRole('tab', { name: tab }))
   return api
@@ -124,7 +129,9 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
     selectable: true,
   })
   setup('requests', budget)
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   const select = await screen.findByLabelText('포스터 예산 항목')
   const names = within(select)
     .getAllByRole('option')

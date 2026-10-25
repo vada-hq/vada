@@ -1,24 +1,26 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
-const base = '/api/organizations/c1/purchase-requests'
+const base = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 const listPath = (view: string) => `${base}?view=${view}`
 const list = (requests = [purchaseSummary('a')], truncated = false) => json({ requests, truncated })
 
-function show(view = councilView('c1', { permissions: MEMBER_PERMISSIONS })) {
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
-  render(<FinancePage view={view} {...handlers} />)
+function show(view = councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })) {
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  render(<FinanceAt view={view} {...handlers} />)
   return handlers
 }
 
@@ -121,7 +123,7 @@ test('보기를 바꾸면 이전 보기의 늦은 응답은 버린다', async ()
 test('권한 목록에 purchase.request가 없으면 [구매 요청 내기]가 없다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
-  show(councilView('c1', { permissions: ['council.view'] }))
+  show(councilView(COUNCIL_ID, { permissions: ['council.view'] }))
   await screen.findByText('내가 낸 구매 요청이 없어요.')
   expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
 })

@@ -1,11 +1,10 @@
 import type { CouncilView, EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { openRecord } from '@/lib/go-to'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
-import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { EventCompletion } from './EventCompletion'
 import { EventMoneyAdd } from './EventMoneyAdd'
-import { MoneyRecordDialogs } from './MoneyRecordDialogs'
 import { SettlementRemaining } from './SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from './SettlementSummary'
 import type { EventDialogHandlers } from './useEventSubmit'
@@ -59,21 +58,17 @@ function SettlementBody({
 export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...handlers }: Props) {
   const councilId = view.council.id
   const settlement = useSettlement(councilId, event.id, handlers)
-  const requests = useRecordDialogs()
-  const expenses = useRecordDialogs()
   const refresh = () => {
     void settlement.reload()
     void reloadEvent()
   }
-  const lost = requests.lost ?? expenses.lost
   return (
     <div className="flex flex-col gap-6">
-      {lost && <StateMessage kind="error">{lost}</StateMessage>}
       <EventMoneyAdd view={view} event={event} onAdded={refresh} {...handlers} />
       <SettlementBody
         settlement={settlement}
-        onOpenRequest={requests.openRecord}
-        onOpenExpense={expenses.openRecord}
+        onOpenRequest={id => openRecord('purchases', councilId, id)}
+        onOpenExpense={id => openRecord('expenses', councilId, id)}
       />
       <EventCompletion
         councilId={councilId}
@@ -84,13 +79,6 @@ export function EventMoneyTab({ view, event, onEventChanged, reloadEvent, ...han
         }}
         onStale={refresh}
         {...handlers}
-      />
-      <MoneyRecordDialogs
-        councilId={councilId}
-        requests={requests}
-        expenses={expenses}
-        onChanged={refresh}
-        onForbidden={handlers.onForbidden}
       />
     </div>
   )

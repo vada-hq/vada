@@ -16,7 +16,6 @@ import { useHomeExtras, type HomeExtras } from './useHomeExtras'
 import WeekEventsSection from './WeekEventsSection'
 
 export type HomeOpeners = {
-  onOpenRequest: (requestId: string) => void
   // 정산 수가 있는 행사는 '예산·정산' 탭으로 연다.
   onOpenEvent: (eventId: string, tab?: 'money') => void
   onOpenPage: (page: Page) => void
@@ -51,18 +50,26 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
   }
 }
 
+// 요청 줄은 그 요청의 주소로 연다(닫으면 홈으로 돌아온다). '받은 것' 모두 보기는 결재 대기 거르기, '내 요청'은 재정 첫 화면(내 요청)이다.
+const requestOpeners = (councilId: string) => ({
+  openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
+  seeReceived: () => openMenu('finance', councilId, { view: 'pending' }),
+  seeMine: () => openMenu('finance', councilId),
+})
+
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.
 function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>) {
   const { openTask, seeTasks } = useTaskOpeners(councilId, home)
   const seeEvents = () => open.onOpenPage('events')
+  const requests = requestOpeners(councilId)
   const shared = { today: home.today, mineIds, onOpenTask: openTask }
   return (
     <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
       {home.received && (
         <ReceivedSection
           received={home.received}
-          onOpenRequest={open.onOpenRequest}
-          onSeeAll={() => open.onOpenPage('finance')}
+          onOpenRequest={requests.openRequest}
+          onSeeAll={requests.seeReceived}
         />
       )}
       {home.council && (
@@ -100,6 +107,7 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
 // 좁은 단: 업무 화면에 없는 것과 회장단의 막힌 곳. 비면 부분째 빠진다.
 function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
   const { openTask, seeTasks } = useTaskOpeners(councilId, home)
+  const requests = requestOpeners(councilId)
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {home.council && (
@@ -113,8 +121,8 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
       )}
       <RequestsSection
         requests={extras.requests}
-        onOpenRequest={open.onOpenRequest}
-        onSeeAll={() => open.onOpenPage('finance')}
+        onOpenRequest={requests.openRequest}
+        onSeeAll={requests.seeMine}
       />
       {!home.council && (
         <NoticesSection

@@ -28,27 +28,22 @@ type Props = {
   pending: PurchaseList
   page: Page
   taskId?: string | undefined
-  requestId?: string | undefined
   // 주소의 칸. 바뀌면 페이지가 새로 열려 주소로 연 기록을 다시 연다. 기록 주소가 아니면 늘 같다.
   linkKey: string
   // 업무 카드·상세에서 행사 이름을, 홈에서 행사 줄을 눌렀다.
   onOpenEvent: (eventId: string, tab?: EventTab) => void
-  // 홈에서 요청 줄을 눌렀다(재정 화면이 그 요청의 상세를 열고 시작한다).
-  onOpenRequest: (requestId: string) => void
   onOpenPage: (page: Page) => void
 }
 
-// 알림으로 열 업무나 요청을 받는 목록 화면 둘(업무, 재정).
+// 알림으로 열 업무를 받는 업무 화면과 재정 화면(재정은 주소를 스스로 읽는다).
 function RecordsPage({
   data,
   tasks,
   pending,
   page,
   taskId,
-  requestId,
-  onOpenEvent,
   view,
-}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId' | 'requestId' | 'onOpenEvent'> & {
+}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId'> & {
   page: 'tasks' | 'finance'
   view: CouncilView
 }) {
@@ -62,13 +57,7 @@ function RecordsPage({
       />
     )
   return (
-    <FinancePage
-      view={view}
-      initialRequestId={requestId}
-      onForbidden={data.reload}
-      onChanged={() => void pending.reload()}
-      onOpenEvent={onOpenEvent}
-    />
+    <FinancePage view={view} onForbidden={data.reload} onChanged={() => void pending.reload()} />
   )
 }
 
@@ -92,7 +81,6 @@ function LeadPage({
       team={data.team}
       rooms={rooms}
       onForbidden={data.reload}
-      onOpenRequest={openers.onOpenRequest}
     />
   )
 }
@@ -104,15 +92,13 @@ function PageOf({
   pending,
   page,
   taskId,
-  requestId,
   onOpenEvent,
-  onOpenRequest,
   onOpenPage,
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat')
-    return <LeadPage {...{ data, rooms, page, onOpenRequest, onOpenEvent, onOpenPage, view }} />
+    return <LeadPage {...{ data, rooms, page, onOpenEvent, onOpenPage, view }} />
   if (page === 'events')
     return (
       <EventsPage
@@ -122,7 +108,7 @@ function PageOf({
       />
     )
   if (page === 'tasks' || page === 'finance')
-    return <RecordsPage {...{ data, tasks, pending, page, taskId, requestId, onOpenEvent, view }} />
+    return <RecordsPage {...{ data, tasks, pending, page, taskId, view }} />
   if (page === 'people')
     return (
       <People

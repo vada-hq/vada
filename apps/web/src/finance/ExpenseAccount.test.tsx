@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import {
@@ -21,15 +22,18 @@ import {
 } from '@/test-support/expense-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
 function serve(accounts = standardAccounts()) {
   const api = serveFinance()
   api.on('GET', `${BASE}/accounts`, () => json(accounts))
-  api.on('GET', EXPENSES, () => json({ expenses: [expenseSummary('e1')], truncated: false }))
+  api.on('GET', EXPENSES, () =>
+    json({ expenses: [expenseSummary('0199d1a0-0000-7000-8000-00000000b101')], truncated: false }),
+  )
   api.on('GET', `${BASE}/members`, () => json({ members: [], departments: [] }))
   api.on('GET', `${REQUESTS}?view=all`, () => json({ requests: [], truncated: false }))
   api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [], suggested: null }))
@@ -56,8 +60,12 @@ test('지출 적기의 계좌는 닫지 않은 대표 계좌로 채워지고 닫
 
 test('계좌를 없음으로 비우면 다시 채우지 않고 null로 보낸다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
@@ -74,8 +82,12 @@ test('계좌를 없음으로 비우면 다시 채우지 않고 null로 보낸다
 
 test('고른 계좌는 지출 본문에 실려 간다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
@@ -124,14 +136,18 @@ test('닫은 계좌로 적으면(409) 문구가 보이고 입력이 남는다', 
 
 test('지출 상세에 계좌 이름이 보인다', async () => {
   const api = serve()
-  api.on('GET', `${EXPENSES}/e1`, () =>
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
     json({
-      expense: expenseDetail('e1', { account: { id: MAIN_ACCOUNT_ID, name: '학생회비 통장' } }),
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+        account: { id: MAIN_ACCOUNT_ID, name: '학생회비 통장' },
+      }),
     }),
   )
   showFinance()
   openExpensesTab()
-  fireEvent.click(await screen.findByRole('button', { name: /사용처 e1/ }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: /사용처 0199d1a0-0000-7000-8000-00000000b101/ }),
+  )
   expect(await screen.findByText('계좌 학생회비 통장')).toBeTruthy()
 })
 
@@ -139,8 +155,12 @@ test('목록 응답과 거의 동시에 다른 칸을 바꿔도 대표 계좌가
   const api = serve()
   const pending = deferredResponse()
   api.on('GET', `${BASE}/accounts`, () => pending.promise)
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   await act(async () => {
@@ -161,8 +181,12 @@ test('목록 응답과 거의 동시에 다른 칸을 바꿔도 대표 계좌가
 
 test('고른 계좌가 다시 읽은 목록에서 닫혔으면 칸 옆에 이유가 보이고 계좌 없이 나간다', async () => {
   const api = serve()
-  api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e1') }, 201))
-  api.on('GET', `${EXPENSES}/e1`, () => json({ expense: expenseDetail('e1') }))
+  api.on('POST', EXPENSES, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }, 201),
+  )
+  api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101') }),
+  )
   showFinance()
   await openForm()
   await waitFor(() => expect(account().value).toBe(MAIN_ACCOUNT_ID))

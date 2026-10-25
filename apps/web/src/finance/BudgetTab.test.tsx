@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import {
@@ -9,14 +10,15 @@ import {
 import { budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import { asElement } from '@/test-support/elements'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
-const ORG = '/api/organizations/c1'
+const ORG = `/api/organizations/${COUNCIL_ID}`
 const BUDGET = `${ORG}/budget`
 
 function show(permissions = FINANCE_PERMISSIONS, budget = budgetWithoutPeriod()) {
@@ -25,8 +27,8 @@ function show(permissions = FINANCE_PERMISSIONS, budget = budgetWithoutPeriod())
     json({ requests: [], truncated: false }),
   )
   api.on('GET', BUDGET, () => json(budget))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
-  render(<FinancePage view={councilView('c1', { permissions })} {...handlers} />)
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
+  render(<FinanceAt view={councilView(COUNCIL_ID, { permissions })} {...handlers} />)
   fireEvent.click(screen.getByRole('tab', { name: '예산' }))
   return { api, handlers }
 }

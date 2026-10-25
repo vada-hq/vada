@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { PURCHASE_ITEMS_MAX } from '@vada/contracts'
@@ -8,10 +9,11 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { asElement } from '@/test-support/elements'
 import { PURCHASE_LOST } from '@/lib/messages'
-import FinancePage from './FinancePage'
+import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -21,16 +23,18 @@ const confirmButton = async () => {
   return within(ask as HTMLElement).getByRole('button', { name: '요청 취소' })
 }
 
-const BASE = '/api/organizations/c1/purchase-requests'
+const BASE = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 const LIST = `${BASE}?view=mine`
 
 function setup(detail = purchaseDetail()) {
   const api = mockApi()
-  api.on('GET', LIST, () => json({ requests: [purchaseSummary('r1')], truncated: false }))
-  api.on('GET', `${BASE}/r1`, () => json({ request: detail }))
-  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn(), onOpenEvent: vi.fn() }
+  api.on('GET', LIST, () =>
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
+  )
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => json({ request: detail }))
+  const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(
-    <FinancePage view={councilView('c1', { permissions: MEMBER_PERMISSIONS })} {...handlers} />,
+    <FinanceAt view={councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })} {...handlers} />,
   )
   const reads = () => api.calls.filter(call => call.path === LIST).length
   return { api, handlers, reads }
@@ -166,7 +170,9 @@ test('내다가 권한을 잃으면(403) 학생회를 다시 읽게 하고 이�
 
 test('카드를 누르면 상세에 요청, 품목, 결재가 보이고 이력은 메뉴 뒤에서 열린다', async () => {
   setup()
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   const dialog = await screen.findByRole('dialog')
   await within(dialog).findByText('10월 말 행사용이에요.')
   expect(within(dialog).getByText('행사 포스터 인쇄')).toBeTruthy()
@@ -186,22 +192,29 @@ test('카드를 누르면 상세에 요청, 품목, 결재가 보이고 이력�
 test('결제한 품목에는 결제함이 보인다', async () => {
   const detail = purchaseDetail()
   setup({ ...detail, items: detail.items.map(item => ({ ...item, paid: item.id === 'i2' })) })
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   expect(await screen.findByText('결제함')).toBeTruthy()
 })
 
 test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 취소하면 목록과 수를 다시 읽는다', async () => {
   const { api, handlers } = setup()
   let reads = 0
-  api.on('GET', `${BASE}/r1`, () => {
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
     return json({
-      request: purchaseDetail('r1', reads > 1 ? { status: 'cancelled', actions: [] } : {}),
+      request: purchaseDetail(
+        '0199d1a0-0000-7000-8000-00000000a001',
+        reads > 1 ? { status: 'cancelled', actions: [] } : {},
+      ),
     })
   })
   const pending = deferredResponse()
-  api.on('POST', `${BASE}/r1/cancel`, () => pending.promise)
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/cancel`, () => pending.promise)
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   const confirm = await confirmButton()
@@ -215,8 +228,10 @@ test('[요청 취소]는 동작에 있을 때만 보이고 확인을 거치며, 
 })
 
 test('동작에 purchase_request.cancel이 없으면 [요청 취소]가 없다', async () => {
-  setup(purchaseDetail('r1', { actions: [] }))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  setup(purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', { actions: [] }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   await screen.findByText('A2 포스터 × 3')
   expect(screen.queryByRole('button', { name: '요청 취소' })).toBeNull()
 })
@@ -224,12 +239,21 @@ test('동작에 purchase_request.cancel이 없으면 [요청 취소]가 없다',
 test('이미 결재가 시작됐으면(409) 이유를 보이고 요청을 다시 읽는다', async () => {
   const { api } = setup()
   let reads = 0
-  api.on('GET', `${BASE}/r1`, () => {
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
-    return json({ request: purchaseDetail('r1', reads > 1 ? { actions: [] } : {}) })
+    return json({
+      request: purchaseDetail(
+        '0199d1a0-0000-7000-8000-00000000a001',
+        reads > 1 ? { actions: [] } : {},
+      ),
+    })
   })
-  api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'REQUEST_CLOSED' }, 409))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/cancel`, () =>
+    json({ error: 'REQUEST_CLOSED' }, 409),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   fireEvent.click(await confirmButton())
   expect(await screen.findByText(/이미 결재가 시작됐거나 취소된 요청/)).toBeTruthy()
@@ -240,12 +264,21 @@ test('이미 결재가 시작됐으면(409) 이유를 보이고 요청을 다시
 test('행사가 완료됐으면(409 EVENT_COMPLETED) 요청 취소가 이유를 보이고 요청을 다시 읽는다', async () => {
   const { api } = setup()
   let reads = 0
-  api.on('GET', `${BASE}/r1`, () => {
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     reads += 1
-    return json({ request: purchaseDetail('r1', reads > 1 ? { actions: [] } : {}) })
+    return json({
+      request: purchaseDetail(
+        '0199d1a0-0000-7000-8000-00000000a001',
+        reads > 1 ? { actions: [] } : {},
+      ),
+    })
   })
-  api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'EVENT_COMPLETED' }, 409))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/cancel`, () =>
+    json({ error: 'EVENT_COMPLETED' }, 409),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   fireEvent.click(await confirmButton())
   expect(await screen.findByText(/완료한 행사의 요청이라 바꿀 수 없어요/)).toBeTruthy()
@@ -254,8 +287,12 @@ test('행사가 완료됐으면(409 EVENT_COMPLETED) 요청 취소가 이유를 
 
 test('취소가 너무 빠르면(429) 확인 안에 문구가 보인다', async () => {
   const { api } = setup()
-  api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/cancel`, () =>
+    json({ error: 'TOO_MANY_REQUESTS' }, 429),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   fireEvent.click(await confirmButton())
   const alert = await screen.findByRole('alert')
@@ -274,16 +311,24 @@ test('취소가 너무 빠르면(429) 확인 안에 문구가 보인다', async 
 
 test('열 때 요청이 없으면(404) 대화상자를 닫고 이유를 보인다', async () => {
   const { api } = setup()
-  api.on('GET', `${BASE}/r1`, () => json({ error: 'NOT_FOUND' }, 404))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () =>
+    json({ error: 'NOT_FOUND' }, 404),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(PURCHASE_LOST)
 })
 
 test('취소하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 대화상자를 닫는다', async () => {
   const { api, handlers } = setup()
-  api.on('POST', `${BASE}/r1/cancel`, () => json({ error: 'FORBIDDEN' }, 403))
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/cancel`, () =>
+    json({ error: 'FORBIDDEN' }, 403),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   fireEvent.click(await confirmButton())
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
@@ -293,11 +338,13 @@ test('취소하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
 test('상세를 못 읽으면 다시 시도를 보인다', async () => {
   const { api } = setup()
   let attempts = 0
-  api.on('GET', `${BASE}/r1`, () => {
+  api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     attempts += 1
     return attempts === 1 ? json({ error: 'INTERNAL' }, 500) : json({ request: purchaseDetail() })
   })
-  fireEvent.click(await screen.findByRole('button', { name: '요청 r1' }))
+  fireEvent.click(
+    await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('A2 포스터 × 3')).toBeTruthy()
 })

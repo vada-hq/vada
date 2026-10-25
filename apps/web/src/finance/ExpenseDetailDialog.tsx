@@ -55,7 +55,7 @@ function OpenExpenseDialog({
         if (!open && !busy) onClose()
       }}
     >
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent aria-describedby={undefined} record={{ kind: 'expenses', id: expenseId }}>
         <DialogHeader className="flex-row items-center justify-between gap-2">
           <DialogTitle className="wrap-anywhere">{detail.expense?.vendor ?? '지출'}</DialogTitle>
           {detail.expense && <HistoryMenu history={detail.expense.history} line={versionLine} />}
@@ -100,7 +100,7 @@ function Loaded({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <ExpenseFacts expense={expense} />
+      <ExpenseFacts expense={expense} councilId={councilId} />
       <ExpenseLines lines={expense.lines} />
       <EvidenceSection {...{ councilId, expense, upload, chat, message }} />
       <ExpenseActions

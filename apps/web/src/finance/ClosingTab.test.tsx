@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import {
@@ -8,18 +9,18 @@ import {
   CLOSING_LOST,
   PERMISSION_CHANGED,
 } from '@/lib/messages'
-import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { settle } from '@/test-support/settle'
 import { closingFixture } from '@/test-support/closing-fixtures'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { expenseDetail } from '@/test-support/expense-fixtures'
-import { BASE, EXPENSES, serveFinance, showFinance } from '@/test-support/expense-harness'
+import { serveFinance, showFinance } from '@/test-support/expense-harness'
+import { COUNCIL_ID } from '@/test-support/finance-at'
 import { CURRENT_PERIOD, periodSummary, standardPeriods } from '@/test-support/income-fixtures'
 import { PERIODS } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -46,9 +47,8 @@ const PUBLISHED = closingFixture({
   actions: ['closing.reopen'],
 })
 
-test('결산 탭은 상태 배지, 요약, 수입·지출, 계좌별 금액, 점검을 보이고 점검 줄을 누르면 그 지출이 열린다', async () => {
-  const api = serve()
-  api.on('GET', `${EXPENSES}/x1`, () => json({ expense: expenseDetail('x1') }))
+test('결산 탭은 상태 배지, 요약, 수입·지출, 계좌별 금액, 점검을 보이고 점검 줄을 누르면 그 지출의 주소로 열린다', async () => {
+  serve()
   await show()
   await screen.findByText('작성 중')
   const text = () => document.body.textContent ?? ''
@@ -60,7 +60,7 @@ test('결산 탭은 상태 배지, 요약, 수입·지출, 계좌별 금액, 점
   expect(text()).toContain('계좌 미지정')
   expect(text()).toContain('증빙이 없는 지출 2개')
   fireEvent.click(screen.getByRole('button', { name: '인쇄소 · 36,000원' }))
-  await waitFor(() => expect(api.calls.some(call => call.path === `${EXPENSES}/x1`)).toBe(true))
+  expect(window.location.pathname).toBe(`/expenses/${COUNCIL_ID}/x1`)
 })
 
 test('기본 기간은 끝났고 공개하지 않은 가장 이른 기간이고, 없으면 지금 기간이다', async () => {
@@ -159,7 +159,7 @@ test('공개 요청이 연결 실패면 확인이 열린 채 문구를 보이고
   expect(within(dialog).getByRole('button', { name: '공개' })).toHaveProperty('disabled', false)
 })
 
-test('완료하지 않은 행사가 막으면 문구가 버튼 자리에 보이고 행사 줄을 누르면 그 행사가 열린다', async () => {
+test('완료하지 않은 행사가 막으면 문구가 버튼 자리에 보이고 행사 줄을 누르면 그 행사의 주소로 열린다', async () => {
   serve(
     closingFixture({
       feePending: {
@@ -168,12 +168,12 @@ test('완료하지 않은 행사가 막으면 문구가 버튼 자리에 보이�
       },
     }),
   )
-  const handlers = await show()
+  await show()
   expect((await screen.findByText(/완료하지 않은 행사 1개의 참가비/)).textContent).toContain(
     '공개할 수 있어요',
   )
   fireEvent.click(screen.getByRole('button', { name: '가을 MT' }))
-  expect(handlers.onOpenEvent).toHaveBeenCalledWith('ev1')
+  expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/ev1`)
 })
 
 test('다음 기간 행사에 받은 입금은 점검의 정보 줄로만 보이고 [공개]를 끄지 않는다', async () => {
@@ -331,8 +331,8 @@ test('거절 문구는 다시 읽은 값이 온 뒤 다음 읽기 때 지워진�
   await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
 })
 
-test('점검의 요청 줄을 누르면 그 요청이 열린다', async () => {
-  const api = serve(
+test('점검의 요청 줄을 누르면 그 요청의 주소로 열린다', async () => {
+  serve(
     closingFixture({
       checks: [
         {
@@ -343,10 +343,7 @@ test('점검의 요청 줄을 누르면 그 요청이 열린다', async () => {
       ],
     }),
   )
-  api.on('GET', `${BASE}/purchase-requests/r1`, () => json({ request: purchaseDetail('r1') }))
   await show()
   fireEvent.click(await screen.findByRole('button', { name: '포스터 요청' }))
-  await waitFor(() =>
-    expect(api.calls.some(call => call.path === `${BASE}/purchase-requests/r1`)).toBe(true),
-  )
+  expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}/r1`)
 })
