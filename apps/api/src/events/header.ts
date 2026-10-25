@@ -15,10 +15,13 @@ const departmentsOf = (tasks: OpenTask[]) =>
     a.localeCompare(b, 'ko'),
   )
 
-// 지금 뒤의 가장 이른 것. 업무는 마감 순으로 읽어 왔으므로 지나지 않은 첫 업무가 가장 이르다.
-// 같은 날이면 행사 시작이 업무 마감(그날 끝)보다 이르다.
+// 다음 마감 업무. 업무는 마감 순으로 읽어 왔으므로 지나지 않은 첫 업무가 가장 이르다. 홈 참여 행사의 다음 마감이 같이 쓴다.
+export const nextDueTaskOf = (tasks: OpenTask[]) =>
+  tasks.find(item => item.summary.dueDate !== null && !item.summary.overdue)?.summary
+
+// 지금 뒤의 가장 이른 것. 같은 날이면 행사 시작이 업무 마감(그날 끝)보다 이르다.
 function nextOf(tasks: OpenTask[], startsAt: Date | null, now: Date): EventDetail['next'] {
-  const task = tasks.find(item => item.summary.dueDate !== null && !item.summary.overdue)?.summary
+  const task = nextDueTaskOf(tasks)
   const start = startsAt && startsAt.getTime() > now.getTime() ? koreanOf(startsAt) : null
   if (start && (!task?.dueDate || start < `${task.dueDate}${DUE_END_OF_DAY}`))
     return { kind: 'start', startsAt: start }

@@ -103,6 +103,13 @@ test('행사 업무 탭의 보기와 거르기는 업무 메뉴와 같은 키로
   assert.equal(menuPath('tasks', C, { view: 'all' }), `/tasks/${C}?view=all`)
 })
 
+test('홈의 재정 보기는 view=finance이고 기본(운영 보기)은 주소에 없다', () => {
+  assert.equal(menuPath('home', C, { view: 'finance' }), `/home/${C}?view=finance`)
+  assert.equal(menuPath('home', C), `/home/${C}`)
+  assert.deepEqual(parseAppPath(`/home/${C}?view=finance`)?.query, { view: 'finance' })
+  assert.deepEqual(parseAppPath(`/home/${C}?view=ops`)?.query, {})
+})
+
 test('모르는 쿼리 키와 값은 기본값으로 읽는다', () => {
   const read = (path: string) => parseAppPath(path)?.query
   assert.deepEqual(read(`/tasks/${C}?view=nope&filter=&layout=x&dept=not-uuid&q=검색어`), {})

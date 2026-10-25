@@ -5,6 +5,7 @@ import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { seedCouncil } from '../test-support/council.js'
+import { sectionKeys } from '../test-support/home.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { createHomeRoutes } from './routes.js'
@@ -175,7 +176,7 @@ test('JSON 응답은 no-store이고 부서·학생회 직급과 재정 역할이
   try {
     const response = await t.api.get(`${t.base}/home`, 's-planningMember')
     assert.equal(response.headers.get('cache-control'), 'no-store')
-    assert.deepEqual(Object.keys((await response.json()) as object).sort(), ['mine', 'today'])
+    assert.deepEqual(sectionKeys((await response.json()) as object), ['mine', 'today'])
   } finally {
     await t.close()
   }

@@ -21,12 +21,12 @@ export function createHomeRoutes(
       userId: c.get('userId'),
       councilId: councilIdOf(c.req.param('councilId')),
       action: 'council.view' as const,
-      now: clock(),
     }
-    const home = await db.transaction(
-      async tx => homeOf(tx, await authorize(tx, request), request.now),
-      snapshot,
-    )
+    // 응답의 서버 시각(asOf)은 그 거래 안에서 잡아, 한 시점의 모습과 같은 뜻이 되게 한다(DEC-95).
+    const home = await db.transaction(async tx => {
+      const now = clock()
+      return homeOf(tx, await authorize(tx, { ...request, now }), now)
+    }, snapshot)
     return c.json(home satisfies HomeResponse)
   })
   return routes
