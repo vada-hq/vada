@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, exists, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, inArray, isNotNull, or, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import {
   isUuid,
@@ -21,6 +21,7 @@ const columns = {
   id: message.id,
   body: message.body,
   sentAt: message.sentAt,
+  deletedAt: message.deletedAt,
   senderId: record.createdBy,
   senderName: displayNameOf(member, record.councilId),
 }
@@ -34,7 +35,7 @@ const rowsOf = (db: Reader) =>
 
 type Row = Awaited<ReturnType<ReturnType<typeof rowsOf>['limit']>>[number]
 
-// 메시지에 붙은 사진 번호. 보낸 차례(만든 시각)대로다.
+// 메시지에 붙은 사진 번호. 보낸 차례(만든 시각)대로다. 지운 메시지의 사진(저장소 위치를 비운 파일)은 없다.
 async function photosOf(db: Reader, messageIds: string[]) {
   const byMessage = new Map<string, { id: string }[]>()
   if (!messageIds.length) return byMessage
@@ -42,7 +43,7 @@ async function photosOf(db: Reader, messageIds: string[]) {
     .select({ id: file.id, messageId: file.attachedToId })
     .from(file)
     .innerJoin(record, eq(record.id, file.id))
-    .where(inArray(file.attachedToId, messageIds))
+    .where(and(inArray(file.attachedToId, messageIds), isNotNull(file.storageKey)))
     .orderBy(asc(record.createdAt), asc(file.id))
   for (const row of rows)
     byMessage.set(row.messageId!, [...(byMessage.get(row.messageId!) ?? []), { id: row.id }])
@@ -57,6 +58,7 @@ async function chatMessagesOf(db: Reader, rows: Row[]): Promise<ChatMessage[]> {
   return rows.map(row => ({
     ...row,
     sentAt: row.sentAt.toISOString(),
+    deletedAt: row.deletedAt?.toISOString() ?? null,
     photos: photos.get(row.id) ?? [],
   }))
 }

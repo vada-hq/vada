@@ -17,6 +17,7 @@ export const message = (
   senderName: '이재정',
   body,
   sentAt: '2020-03-02T01:30:00Z',
+  deletedAt: null,
   photos: [],
   ...options,
 })

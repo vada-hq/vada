@@ -166,3 +166,50 @@ test('0017은 저장된 Google 사진과 토큰·만료 시각을 비우고 다�
     await pg.close()
   }
 })
+
+// 지운 메시지의 바탕(0018, 기능 021 조각 8, DEC-54): 본문과 지운 시각은 함께 바뀌고, 파일의 이름과 저장소 위치는 함께 비워진다.
+test('0018: 지운 메시지는 본문 없이 지운 시각만 있고, 비운 파일은 이름과 위치를 함께 비운다', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const { rows } = await pg.query<{ id: string }>(
+      `INSERT INTO record (kind) VALUES ('chat_room'), ('message'), ('file'), ('file') RETURNING id`,
+    )
+    const [room, msg, photo, other] = rows.map(row => row.id)
+    await pg.query(`INSERT INTO chat_room (id, type) VALUES ($1, 'all_members')`, [room])
+    await pg.query(
+      `INSERT INTO message (id, room_id, body, sent_at) VALUES ($1, $2, '안녕', '2026-10-25T03:00:00Z')`,
+      [msg, room],
+    )
+    for (const [id, key] of [
+      [photo, 'chat/a/b/1'],
+      [other, 'chat/a/b/2'],
+    ])
+      await pg.query(
+        `INSERT INTO file (id, name, media_type, size_bytes, storage_key, attached_to_id)
+         VALUES ($1, 'photo-1.jpg', 'image/jpeg', 10, $2, $3)`,
+        [id, key, msg],
+      )
+    // 본문만 비우거나 지운 시각만 넣으면 막힌다.
+    await assert.rejects(pg.query('UPDATE message SET body = NULL WHERE id = $1', [msg]), {
+      code: '23514',
+    })
+    await assert.rejects(pg.query('UPDATE message SET deleted_at = now() WHERE id = $1', [msg]), {
+      code: '23514',
+    })
+    await pg.query('UPDATE message SET body = NULL, deleted_at = now() WHERE id = $1', [msg])
+    // 이름이나 위치 하나만 비우면 막힌다. 둘 다 비운 파일은 여럿이어도 위치의 UNIQUE에 걸리지 않는다.
+    await assert.rejects(pg.query('UPDATE file SET name = NULL WHERE id = $1', [photo]), {
+      code: '23514',
+    })
+    await assert.rejects(pg.query('UPDATE file SET storage_key = NULL WHERE id = $1', [photo]), {
+      code: '23514',
+    })
+    await pg.query('UPDATE file SET name = NULL, storage_key = NULL')
+    const cleared = await pg.query<{ n: string }>(
+      'SELECT count(*)::text AS n FROM file WHERE name IS NULL AND storage_key IS NULL',
+    )
+    assert.equal(cleared.rows[0]!.n, '2')
+  } finally {
+    await close()
+  }
+})

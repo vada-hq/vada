@@ -113,6 +113,7 @@ export function MessageMenuSection() {
     senderName: '박해랑',
     body: '현수막 2개 사 주세요\n색은 파랑이면 좋겠어요',
     sentAt: '2026-10-23T01:30:00Z',
+    deletedAt: null,
     photos: [],
   }
   return (
@@ -142,6 +143,7 @@ export function KkirukMessageSection() {
     senderName: sender,
     body,
     sentAt: '2026-10-23T01:30:00Z',
+    deletedAt: null,
     photos: [],
   })
   const flow = [

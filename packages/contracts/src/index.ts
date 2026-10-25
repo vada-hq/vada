@@ -17,6 +17,7 @@ export {
   PHOTO_MEDIA_TYPE,
   MESSAGE_BODY_MAX,
   MENTION_MAX,
+  DELETED_MESSAGE,
   MESSAGE_PAGE_SIZE,
   MessagePageQuerySchema,
   OpenDirectSchema,

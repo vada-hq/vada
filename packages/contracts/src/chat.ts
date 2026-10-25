@@ -50,13 +50,18 @@ export interface ChatPhotoListResponse {
   truncated: boolean
 }
 
+// 지운 메시지(DEC-54)의 자리. 서버가 만드는 방 줄 미리보기와 화면의 대화 흐름·업무 결과물이 같은 말을 한다.
+export const DELETED_MESSAGE = '삭제된 메시지'
+
 export interface ChatMessage {
   id: string
   // 보낸 운영진. 시스템이 만든 메시지는 비어 있다.
   senderId: string | null
   senderName: string | null
-  body: string
+  // 지운 메시지(DEC-54)는 본문이 null이고 사진이 없으며 지운 시각이 있다. 화면은 그 자리에 '삭제된 메시지'를 보인다.
+  body: string | null
   sentAt: string
+  deletedAt: string | null
   photos: ChatPhoto[]
 }
 
