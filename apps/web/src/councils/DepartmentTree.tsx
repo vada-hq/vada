@@ -5,7 +5,7 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import { cn } from '@/lib/utils'
 import { canAddDepartment, suggestionsOf } from './council-draft'
 import DepartmentCard from './DepartmentCard'
-import { busEndClass, chartRows } from './org-chart-rows'
+import { busClass, carriesTrunk, chartCell, type ChartCell } from './org-chart-rows'
 import { useDepartmentEditing, useRowFocus, type DepartmentEditing } from './useDepartmentEditing'
 import type { CouncilDraftState } from './useCouncilDraft'
 
@@ -16,14 +16,29 @@ type Props = Pick<
 
 const line = 'border-gray-300'
 
-// 조직도의 한 칸. 넓은 화면은 위 가로선에서 내려오는 짧은 선, 휴대폰은 왼쪽 세로선에서 꺾여 오는 선으로 잇는다.
-function TreeItem({ last, children }: { last: boolean; children: ReactNode }) {
+// 조직도의 한 칸. 넓은 화면은 위 가로선(칸마다 나눠 그림)에서 내려오는 짧은 선, 휴대폰은 왼쪽 세로선에서 꺾여 오는 선으로 잇는다.
+// 부서 카드는 목록 항목이고, [부서 추가]는 목록 밖 칸이다(화면 읽기 프로그램이 세는 부서 수가 맞게).
+type TreeItemProps = { cell: ChartCell; last: boolean; listItem: boolean; children: ReactNode }
+function TreeItem({ cell, last, listItem, children }: TreeItemProps) {
   return (
-    <div role="listitem" className="relative flex pt-3 sm:px-1.5 sm:pt-4">
+    <div
+      role={listItem ? 'listitem' : undefined}
+      className={cn('relative flex pt-3 sm:px-1.5 sm:pt-4', !cell.lastRow && 'sm:pb-3')}
+    >
+      <span
+        aria-hidden
+        className={cn('absolute top-0 border-t max-sm:hidden', line, busClass(cell))}
+      />
       <span
         aria-hidden
         className={cn('absolute top-0 left-1/2 h-4 border-l max-sm:hidden', line)}
       />
+      {carriesTrunk(cell) && (
+        <span
+          aria-hidden
+          className={cn('absolute top-0 -right-px bottom-0 border-l max-sm:hidden', line)}
+        />
+      )}
       <div className="relative flex min-w-0 flex-1">
         <span
           aria-hidden
@@ -84,70 +99,50 @@ export default function DepartmentTree(props: Props) {
   const { containerRef, focusOn } = useRowFocus()
   const tree = useDepartmentEditing(props, focusOn)
   const canAdd = canAddDepartment(props.draft)
-  const items = cardsOf(props, tree)
-  if (canAdd)
-    items.push({
-      key: 'add',
-      node: (
-        <Button
-          type="button"
-          variant="outline"
-          touch
-          data-row="add"
-          className="h-auto w-full flex-1 border-dashed text-gray-500 sm:flex-col sm:py-3"
-          onClick={tree.addBlank}
-        >
-          <Plus />
-          부서 추가
-        </Button>
-      ),
-    })
-  const rows = chartRows(items)
+  const cards = cardsOf(props, tree)
+  const total = cards.length + (canAdd ? 1 : 0)
+  const item = (index: number, listItem: boolean, node: ReactNode, key: string) => (
+    <TreeItem
+      key={key}
+      cell={chartCell(index, total)}
+      last={index === total - 1}
+      listItem={listItem}
+    >
+      {node}
+    </TreeItem>
+  )
   const suggestions = canAdd ? suggestionsOf(props.draft) : []
   return (
     <div className="flex flex-col gap-4">
+      {/* 칸 넷의 격자. 부서 목록(role="list")은 격자에 칸을 그대로 넘기고(contents), [부서 추가]는 목록 밖 마지막 칸이다. */}
       <div
         ref={containerRef}
-        role="list"
-        aria-label="부서"
-        className="relative flex flex-col max-sm:pl-8 sm:mt-4"
+        className="relative flex flex-col max-sm:pl-8 sm:mt-4 sm:grid sm:grid-cols-4"
       >
         <span
           aria-hidden
           className={cn('absolute -top-4 left-1/2 h-4 border-l max-sm:hidden', line)}
         />
-        {rows.map((row, at) => {
-          const lastRow = at === rows.length - 1
-          return (
-            <div
-              key={row[0]!.key}
-              className={cn(
-                'relative max-sm:contents sm:grid sm:grid-cols-4',
-                !lastRow && 'sm:pb-3',
-              )}
+        <div role="list" aria-label="부서" className="contents">
+          {cards.map((card, index) => item(index, true, card.node, card.key))}
+        </div>
+        {canAdd &&
+          item(
+            cards.length,
+            false,
+            <Button
+              type="button"
+              variant="outline"
+              touch
+              data-row="add"
+              className="h-auto w-full flex-1 border-dashed text-gray-500 sm:flex-col sm:py-3"
+              onClick={tree.addBlank}
             >
-              <span
-                aria-hidden
-                className={cn(
-                  'absolute top-0 left-1/8 border-t max-sm:hidden',
-                  line,
-                  busEndClass(row.length),
-                )}
-              />
-              {!lastRow && (
-                <span
-                  aria-hidden
-                  className={cn('absolute top-0 bottom-0 left-1/2 border-l max-sm:hidden', line)}
-                />
-              )}
-              {row.map((item, index) => (
-                <TreeItem key={item.key} last={lastRow && index === row.length - 1}>
-                  {item.node}
-                </TreeItem>
-              ))}
-            </div>
-          )
-        })}
+              <Plus />
+              부서 추가
+            </Button>,
+            'add',
+          )}
       </div>
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 sm:justify-center">

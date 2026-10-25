@@ -2,14 +2,28 @@
 // 줄을 바꿔도 다음 줄의 가로선까지 이어진다. 넷이면 기본 목록(재정·기획·홍보·부서 추가)이 와이어프레임처럼 한 줄이다.
 const CHART_COLUMNS = 4
 
-export function chartRows<T>(items: T[]): T[][] {
-  const rows: T[][] = []
-  for (let start = 0; start < items.length; start += CHART_COLUMNS)
-    rows.push(items.slice(start, start + CHART_COLUMNS))
-  return rows
+// 칸 하나의 자리: 몇째 열인지, 그 줄에 칸이 몇인지, 마지막 줄인지.
+export type ChartCell = { column: number; rowSize: number; lastRow: boolean }
+
+export function chartCell(index: number, total: number): ChartCell {
+  const column = index % CHART_COLUMNS
+  const rowStart = index - column
+  return {
+    column,
+    rowSize: Math.min(CHART_COLUMNS, total - rowStart),
+    lastRow: rowStart + CHART_COLUMNS >= total,
+  }
 }
 
-// 줄의 가로선은 첫 칸 가운데(1/8)에서 시작해, 마지막 카드 가운데와 가운데 세로선(1/2) 중 오른쪽에서 끝난다.
-// 칸 사이를 grid gap이 아니라 칸 안 여백으로 띄워 칸 가운데가 정확히 1/8, 3/8, 5/8, 7/8이다.
-const BUS_END = ['right-1/2', 'right-1/2', 'right-3/8', 'right-1/8']
-export const busEndClass = (count: number) => BUS_END[count - 1] ?? 'right-1/8'
+// 줄의 가로선은 칸마다 나눠 그린다. 칸 사이를 grid gap이 아니라 칸 안 여백으로 띄워 칸끼리 맞닿으므로 선이 이어진다.
+// 줄의 첫 칸은 가운데에서 시작하고, 마지막 칸은 가운데에서 끝나되 가운데 세로선(전체의 1/2)까지는 닿는다:
+// 첫 열에서 끝나면 옆 칸 끝(-right-full)까지, 둘째 열에서 끝나면 칸 끝(right-0)까지.
+const LAST_CELL_END = ['-right-full', 'right-0', 'right-1/2', 'right-1/2']
+export function busClass({ column, rowSize }: ChartCell) {
+  const start = column === 0 ? 'left-1/2' : 'left-0'
+  const end = column < rowSize - 1 ? 'right-0' : (LAST_CELL_END[column] ?? 'right-1/2')
+  return `${start} ${end}`
+}
+
+// 마지막 줄이 아니면 둘째 열 칸의 오른쪽 끝(전체의 1/2)으로 가운데 세로선이 다음 줄까지 내려간다.
+export const carriesTrunk = ({ column, lastRow }: ChartCell) => !lastRow && column === 1

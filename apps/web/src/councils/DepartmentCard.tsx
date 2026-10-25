@@ -8,6 +8,9 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
 import type { DepartmentRow } from './useDepartmentEditing'
 
+// 한글처럼 조합해 쓰는 글자를 치는 중인 키(IME). 이때의 Enter는 조합을 끝내는 것이다.
+const COMPOSING_KEY_CODE = 229
+
 type Props = {
   row: DepartmentRow
   // 이름 칸의 이름('재정 부서 이름', '부서 이름 1'). 칸은 고칠 때와 이름에 문제가 있을 때만 보인다.
@@ -50,8 +53,8 @@ export default function DepartmentCard({ row, label, name, editing, error, ...on
             onFocus={on.onEnter}
             onBlur={() => on.onCommit(false)}
             onKeyDown={event => {
-              // 한글 조합을 끝내는 Enter는 저장이 아니다.
-              if (event.nativeEvent.isComposing) return
+              // 한글 조합을 끝내는 Enter는 저장이 아니다. Safari는 조합 중 isComposing 대신 keyCode 229만 준다.
+              if (event.nativeEvent.isComposing || event.keyCode === COMPOSING_KEY_CODE) return
               if (event.key === 'Enter') {
                 event.preventDefault()
                 on.onCommit(true)
