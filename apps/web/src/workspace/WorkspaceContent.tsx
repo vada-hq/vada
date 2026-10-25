@@ -73,7 +73,8 @@ function LeadPage({
     page: 'home' | 'chat'
     view: CouncilView
   }) {
-  if (page === 'home') return <HomePage view={view} onForbidden={data.reload} {...openers} />
+  if (page === 'home')
+    return <HomePage view={view} rooms={rooms.state} onForbidden={data.reload} {...openers} />
   return (
     <ChatRoute
       councilId={view.council.id}
