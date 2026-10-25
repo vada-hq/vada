@@ -7,13 +7,30 @@ import { createRateLimiter } from '../http/rate-limit.js'
 import type { PushSender } from '../push/sender.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
-import { createTaskPush } from './notify.js'
+import { ASSIGNMENT_NOTICE_DELAY_MS, createTaskPush, type AfterTimer } from './notify.js'
 import { createTaskRoutes } from './routes.js'
 
 // 한국 시각 2026-10-25 12:00
 const noon = new Date('2026-10-25T03:00:00Z')
 const MISSING = '019e0000-0000-7000-8000-000000000000'
 const endpointOf = (user: string) => `https://fcm.googleapis.com/fcm/send/${user}`
+
+// 가짜 타이머: 시간은 advance로만 가고, 기한이 된 일을 끝날 때까지 기다린다.
+function fakeTimer() {
+  let now = 0
+  const jobs = new Set<{ at: number; run: () => Promise<void> }>()
+  const after: AfterTimer = (ms, run) => {
+    const job = { at: now + ms, run }
+    jobs.add(job)
+    return () => void jobs.delete(job)
+  }
+  const advance = async (ms: number) => {
+    now += ms
+    for (const job of [...jobs].sort((a, b) => a.at - b.at))
+      if (job.at <= now && jobs.delete(job)) await job.run()
+  }
+  return { after, advance, waiting: () => jobs.size }
+}
 
 async function start(
   options: { withPush?: boolean; limiter?: ReturnType<typeof createRateLimiter> } = {},
@@ -29,15 +46,8 @@ async function start(
     if (args[0].endpoint.endsWith('s-planningViceHead')) throw new Error('secret')
     return { result: 'sent' }
   }
-  const pending: Promise<void>[] = []
-  const taskPush = createTaskPush(db, send)
-  const push = {
-    notify: (notice: Parameters<typeof taskPush.notify>[0]) => {
-      const done = taskPush.notify(notice)
-      pending.push(done)
-      return done
-    },
-  }
+  const timer = fakeTimer()
+  const push = createTaskPush(db, send, timer.after)
   for (const person of Object.values(council.people))
     await pg.query(
       'INSERT INTO push_device (user_id, endpoint, p256dh, auth) VALUES ($1,$2,$3,$4)',
@@ -58,7 +68,7 @@ async function start(
   const count = async (sql: string, params: unknown[] = []) =>
     Number(((await pg.query(sql, params)).rows[0] as { n: string }).n)
   const settled = async () => {
-    await Promise.all(pending)
+    await timer.advance(ASSIGNMENT_NOTICE_DELAY_MS)
   }
   const made = async (body: unknown, user = 's-president') => {
     const response = await api.post(base, body, user)
@@ -95,6 +105,7 @@ async function start(
     notices,
     settled,
     hold,
+    timer,
     close,
   }
 }
@@ -357,5 +368,103 @@ test(
     assert.equal((await s.assign(task.id, s.council.people.plain.memberId)).status, 404)
     assert.equal((await s.department(task.id, null)).status, 404)
     assert.equal(await s.notices(), 0)
+  }),
+)
+
+const DELAY = ASSIGNMENT_NOTICE_DELAY_MS
+const sentTo = (s: S) => s.calls.map(call => call[0].endpoint)
+const rawAssign = (s: S, id: string, assigneeId: string | null, user = 's-president') =>
+  s.api.post(`${s.base}/${id}/assignee`, { assigneeId }, user)
+
+test(
+  '9.999초에는 가지 않고 10초에 한 번 간다. 만들 때 정한 담당자도 같다',
+  run(async s => {
+    const { planningMember, financeMember } = s.council.people
+    const task = await s.made({ title: 'a', assigneeId: planningMember.memberId })
+    s.calls.length = 0
+    await rawAssign(s, task.id, financeMember.memberId)
+    assert.equal(await s.notices(), 2)
+    await s.timer.advance(DELAY - 1)
+    assert.equal(s.calls.length, 0)
+    await s.timer.advance(1)
+    assert.deepEqual(sentTo(s), [endpointOf('s-financeMember')])
+    await s.timer.advance(DELAY)
+    assert.equal(s.calls.length, 1)
+    // 만들기도 10초 뒤 한 번이다.
+    const response = await s.api.post(
+      s.base,
+      { title: 'b', assigneeId: planningMember.memberId },
+      's-president',
+    )
+    assert.equal(response.status, 201)
+    await s.timer.advance(DELAY - 1)
+    assert.equal(s.calls.length, 1)
+    await s.timer.advance(1)
+    assert.equal(s.calls.length, 2)
+  }),
+)
+
+test(
+  '10초 안에 처음 담당자로 되돌리면 B와 C 모두 받지 않고 기록은 남는다',
+  run(async s => {
+    const { planningMember, financeMember } = s.council.people
+    const task = await s.made({ title: 'a', assigneeId: planningMember.memberId })
+    s.calls.length = 0
+    await rawAssign(s, task.id, financeMember.memberId)
+    await s.timer.advance(DELAY - 1)
+    await rawAssign(s, task.id, planningMember.memberId)
+    await s.timer.advance(DELAY * 2)
+    assert.equal(s.calls.length, 0)
+    assert.equal(await s.notices(), 3)
+    assert.equal(s.timer.waiting(), 0)
+  }),
+)
+
+test(
+  '10초 안에 C에서 D로 다시 고르면 D만 한 번 받고 본문의 맡긴 사람은 마지막에 바꾼 사람이다',
+  run(async s => {
+    const { planningMember, financeMember, plain } = s.council.people
+    const task = await s.made({ title: 'a', assigneeId: planningMember.memberId })
+    s.calls.length = 0
+    await rawAssign(s, task.id, financeMember.memberId, 's-president')
+    await rawAssign(s, task.id, plain.memberId, 's-vicePresident')
+    assert.equal(s.timer.waiting(), 1)
+    await s.timer.advance(DELAY)
+    assert.deepEqual(sentTo(s), [endpointOf('s-plain')])
+    assert.match(s.calls[0]![1].body, /^s vicePresident: a/)
+  }),
+)
+
+test(
+  '모은 사이에 나에게 맡기거나 비우거나 지우면 보내지 않고, 다른 업무끼리는 모으지 않는다',
+  run(async s => {
+    const { planningMember, financeMember, plain, president } = s.council.people
+    const one = await s.made({ title: 'one' })
+    const two = await s.made({ title: 'two' })
+    const three = await s.made({ title: 'three' })
+    const four = await s.made({ title: 'four' })
+    s.calls.length = 0
+    await rawAssign(s, one.id, financeMember.memberId)
+    await rawAssign(s, one.id, president.memberId)
+    await rawAssign(s, two.id, planningMember.memberId)
+    await rawAssign(s, two.id, null)
+    await rawAssign(s, three.id, plain.memberId)
+    await s.api.post(`${s.base}/${three.id}/delete`, {}, 's-president')
+    await rawAssign(s, four.id, planningMember.memberId)
+    assert.equal(s.timer.waiting(), 4)
+    await s.timer.advance(DELAY)
+    assert.deepEqual(sentTo(s), [endpointOf('s-planningMember')])
+  }),
+)
+
+test(
+  '보낼 때 DB의 지금 담당자를 다시 읽는다: 받는 사람이 담당자일 때만 간다',
+  run(async s => {
+    const { financeMember, plain } = s.council.people
+    const task = await s.made({ title: 'a' })
+    await rawAssign(s, task.id, financeMember.memberId)
+    await s.pg.query('UPDATE task SET assignee_id = $1 WHERE id = $2', [plain.memberId, task.id])
+    await s.timer.advance(DELAY)
+    assert.equal(s.calls.length, 0)
   }),
 )

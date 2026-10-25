@@ -53,7 +53,13 @@ async function assertAssignee(tx: Tx, actor: Actor, assigneeId: string | null, n
 }
 
 // 맡긴 뒤 새 담당자에게 보낼 알림. 커밋 뒤에 보내고, 기록은 같은 거래에서 이미 남겼다.
-export type AssignmentNotice = { taskId: string; recipientId: string; assignerId: string }
+export type AssignmentNotice = {
+  taskId: string
+  recipientId: string
+  assignerId: string
+  // 바꾸기 전 담당자. 알림을 모을 때 처음 담당자를 알아내는 데 쓴다.
+  previous: string | null
+}
 
 // 새 담당자에게만 알린다(T3). 나에게 맡기기, 같은 사람 다시, 비우기는 알리지 않는다.
 async function noticeAssignment(
@@ -69,7 +75,7 @@ async function noticeAssignment(
     actor: null,
     values: { recipientId: next, recordId: taskId, type: 'assignment', notifiedAt: clockNow },
   })
-  return { taskId, recipientId: next, assignerId: actor.memberId }
+  return { taskId, recipientId: next, assignerId: actor.memberId, previous }
 }
 
 // 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).

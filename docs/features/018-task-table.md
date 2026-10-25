@@ -85,7 +85,7 @@
 - 닿는 곳: contracts `tasks.ts`(`UpdateTaskSchema`), api `tasks/service.ts`(`updateTask`), `tasks/write.test.ts`, `http/boundary.test.ts`.
 - 검토: 깊게(데이터 무결성). 마이그레이션: 없음.
 
-### 3. 배정 알림 모아 보내기(서버) [ ]
+### 3. 배정 알림 모아 보내기(서버) [x]
 - 할 수 있게 되는 것: 담당자를 잘못 골라 곧바로 되돌리면 아무에게도 알림이 가지 않는다.
 - 수용 기준: B가 맡은 업무를 C로 바꾸면 10초 뒤 C의 기기에 한 번 간다. 10초 안에 B로 되돌리면 B와 C 모두 받지 않는다. 10초 안에 C → D면 D만 한 번 받고, 본문의 맡긴 사람은 마지막에 바꾼 사람이다. 담당자를 정해 만들 때도 10초 뒤 한 번이다. 10초 안에 업무를 지우면 보내지 않는다. 나에게 맡기기, 같은 사람 다시, 비우기는 지금처럼 없다. 다른 업무의 변경끼리는 모으지 않는다. 응답은 알림을 기다리지 않는다. 10초 뒤의 되돌리기는 새 변경으로 다룬다. 시험은 주입한 시계로 9.999초와 10초를 견준다.
 - 닿는 곳: api `tasks/notify.ts`, `tasks/service.ts`(알림을 넘기는 곳), `tasks/routes.ts` 또는 `write-routes.ts`, `serve.ts`(타이머 연결), `tasks/assign.test.ts`.
