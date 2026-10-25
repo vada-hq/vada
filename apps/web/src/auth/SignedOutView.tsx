@@ -44,9 +44,10 @@ export default function SignedOutView({
 }: Props) {
   return (
     <AuthPage>
-      {isPending ? (
+      {/* 방금 탈퇴했으면 세션 읽기의 진행·실패 대신 탈퇴 완료와 로그인을 보인다(쿠키는 이미 지워졌다). */}
+      {isPending && !withdrawn ? (
         <StateMessage kind="loading">로그인 상태 확인 중…</StateMessage>
-      ) : error ? (
+      ) : error && !withdrawn ? (
         <SessionFailed onRecheck={onRecheck} />
       ) : (
         <div className="flex flex-col gap-3">

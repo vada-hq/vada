@@ -5,7 +5,7 @@ import AuthPage, { AuthPageCard } from './AuthPage'
 import { Button } from '@/components/ui/button'
 
 type Props = {
-  user: { name: string; email: string }
+  user: { id: string; name: string; email: string }
   // 학생회 만들기·초대 확인처럼 할 일이 있는 화면. 계정은 맨 아래 한 줄로 내리고 로그아웃을 작게 둬,
   // 단계 제목이 카드 첫 줄이고 주요 버튼 줄이 하나로 보이게 한다(와이어프레임 ORG-01·02, INV-01).
   compact?: boolean
@@ -59,7 +59,7 @@ export default function SignedInCard({
         <Button variant="outline" className="flex-1" busy={busy} onClick={onLogout}>
           {logoutLabel}
         </Button>
-        {withdraw && <WithdrawEntry />}
+        {withdraw && <WithdrawEntry userId={user.id} />}
       </div>
     </Frame>
   )
