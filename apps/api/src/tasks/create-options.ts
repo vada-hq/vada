@@ -18,8 +18,10 @@ export async function createOptionsOf(
   eventId: string | undefined,
   now: Date,
 ): Promise<TaskCreateOptionsResponse> {
+  // 행사마다 담당 부서를 한 번 세어 그 행사의 맥락과 이을 수 있는 행사가 같이 쓴다.
+  const staffed = await eventDepartmentsByEventOf(tx, actor.councilId)
   // 다른 학생회 행사와 없는 행사는 404다(빈 선택지로 답하면 행사가 있는지 드러난다).
-  const link = await eventLinkOf(tx, actor, eventId ?? null)
+  const link = await eventLinkOf(tx, actor, eventId ?? null, staffed)
   if (!link.valid) throw new ApiError('NOT_FOUND')
   const members = await tx
     .select({ id: member.id, name: joinedDisplayNameOf(member, actor.councilId) })
@@ -52,13 +54,18 @@ export async function createOptionsOf(
         ),
       }))
       .filter(row => row.assignees.length > 0),
-    linkableEvents: await linkableEventsOf(tx, actor, rows),
+    linkableEvents: await linkableEventsOf(tx, actor, rows, staffed),
   }
 }
 
 // 부서마다 이을 수 있는 행사: 만들기·행사 바꾸기와 같은 판정(decideEventLink)이 허용하는 행사만 싣는다(DEBT-1).
 // 행사 목록 화면과 같은 상한까지 최근에 만든 것부터 읽는다. 넘친 옛 행사는 싣지 않아 고르지 못할 뿐 열리지 않는다(기본 거부).
-async function linkableEventsOf(tx: Tx, actor: Actor, rows: { id: string | null }[]) {
+async function linkableEventsOf(
+  tx: Tx,
+  actor: Actor,
+  rows: { id: string | null }[],
+  staffed: ReadonlyMap<string, readonly string[]>,
+) {
   const events = await tx
     .select({ id: event.id, ownerId: event.ownerId })
     .from(event)
@@ -66,7 +73,6 @@ async function linkableEventsOf(tx: Tx, actor: Actor, rows: { id: string | null 
     .where(eq(record.councilId, actor.councilId))
     .orderBy(desc(record.createdAt), desc(event.id))
     .limit(EVENT_LIST_LIMIT)
-  const staffed = await eventDepartmentsByEventOf(tx, actor.councilId)
   const linkable = (departmentId: string | null, item: (typeof events)[number]) =>
     decideEventLink(actor, departmentId, {
       ownerId: item.ownerId,
