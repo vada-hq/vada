@@ -5,11 +5,9 @@ import {
   type PurchaseLineItem,
   type PurchaseRequestSummary,
 } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { emptyRow } from '@/finance/decision-form'
 import { DecisionRow } from '@/finance/DecisionRow'
-import { pendingCountOf } from '@/finance/purchase-view'
 import { ItemCancelDialog } from '@/finance/ItemCancel'
 import RequestCard from '@/finance/RequestCard'
 import { RequestItems } from '@/finance/RequestItems'
@@ -71,16 +69,12 @@ const budgetItems: BudgetItemView[] = [
 ]
 
 export function FinanceSection() {
-  const few = pendingCountOf([request('a', {}), request('b', {})], false)
-  const many = pendingCountOf([request('c', {})], true)
   return (
     <Section title="구매 요청 카드·상태 배지">
       <div className="flex w-full flex-wrap items-center gap-2">
         {PURCHASE_STATUSES.map(status => (
           <StatusBadge key={status} status={status} />
         ))}
-        {few && <Badge tone="warning">{few.label}</Badge>}
-        {many && <Badge tone="warning">{many.label}</Badge>}
       </div>
       <div className="flex w-80 flex-col gap-2">
         <RequestCard request={request('1', {})} onOpen={noop} />

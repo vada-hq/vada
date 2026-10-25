@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { TaskSummary } from '@vada/contracts'
-import { assigneeLabel, countOf, dueLabel } from './task-view'
+import { assigneeLabel, dueLabel, overdueOf } from './task-view'
 
 const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   id,
@@ -24,13 +24,12 @@ test('마감과 담당자 문구', () => {
   expect(assigneeLabel({ id: 'm1', name: '김준호', current: false })).toBe('떠난 사람: 김준호')
 })
 
-test('옆 메뉴 수: 지난 것이 있으면 지남, 없으면 남은 수, 0이면 없고, 넘치면 +', () => {
-  expect(countOf([], false)).toBeNull()
-  expect(countOf([task('a'), task('b')], false)).toMatchObject({ label: '2', tone: 'info' })
-  expect(countOf([task('a'), task('b', { overdue: true })], false)).toMatchObject({
-    label: '지남 1',
-    tone: 'danger',
+test('옆 메뉴 수는 지난 업무만 센다: 남은 업무가 있어도 지난 것이 없으면 0, 목록이 잘렸으면 more', () => {
+  expect(overdueOf([], false)).toEqual({ count: 0, more: false })
+  expect(overdueOf([task('a'), task('b')], false)).toEqual({ count: 0, more: false })
+  expect(overdueOf([task('a'), task('b', { overdue: true })], false)).toEqual({
+    count: 1,
+    more: false,
   })
-  expect(countOf([task('a')], true)?.label).toBe('1+')
-  expect(countOf([task('a', { overdue: true })], true)?.label).toBe('지남 1+')
+  expect(overdueOf([task('a', { overdue: true })], true)).toEqual({ count: 1, more: true })
 })

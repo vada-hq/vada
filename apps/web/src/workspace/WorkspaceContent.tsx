@@ -6,7 +6,6 @@ import FinancePage from '../finance/FinancePage'
 import type { HomeOpeners } from '../home/HomeBody'
 import HomePage from '../home/HomePage'
 import type { EventTab } from '@vada/contracts'
-import type { PurchaseList } from '../finance/usePurchases'
 import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
 import TasksPage from '../tasks/TasksPage'
@@ -23,8 +22,6 @@ type Props = {
   data: CouncilData
   rooms: RoomList
   tasks: TaskList
-  // 결재 대기 요청(옆 메뉴의 수). 재정 화면이 목록을 바꾸면 다시 읽는다.
-  pending: PurchaseList
   page: Page
   taskId?: string | undefined
   // 주소의 칸. 바뀌면 페이지가 새로 열려 주소로 연 기록을 다시 연다. 기록 주소가 아니면 늘 같다.
@@ -38,11 +35,10 @@ type Props = {
 function RecordsPage({
   data,
   tasks,
-  pending,
   page,
   taskId,
   view,
-}: Pick<Props, 'data' | 'tasks' | 'pending' | 'taskId'> & {
+}: Pick<Props, 'data' | 'tasks' | 'taskId'> & {
   page: 'tasks' | 'finance'
   view: CouncilView
 }) {
@@ -55,9 +51,7 @@ function RecordsPage({
         onChanged={() => void tasks.reload()}
       />
     )
-  return (
-    <FinancePage view={view} onForbidden={data.reload} onChanged={() => void pending.reload()} />
-  )
+  return <FinancePage view={view} onForbidden={data.reload} />
 }
 
 // 홈과 대화. 홈이 첫 화면이다.
@@ -89,7 +83,6 @@ function PageOf({
   data,
   rooms,
   tasks,
-  pending,
   page,
   taskId,
   onOpenEvent,
@@ -108,7 +101,7 @@ function PageOf({
       />
     )
   if (page === 'tasks' || page === 'finance')
-    return <RecordsPage {...{ data, tasks, pending, page, taskId, view }} />
+    return <RecordsPage {...{ data, tasks, page, taskId, view }} />
   // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91).
   if (page === 'people' || page === 'departments')
     return (

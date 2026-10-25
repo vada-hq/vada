@@ -122,6 +122,7 @@ export default function CouncilWorkspace({
         data.team.reload()
       }}
       menuRef={from === 'sidebar' ? nav.councilMenu : undefined}
+      inSheet={from === 'header'}
       onSelect={councilId => {
         nav.closeNav()
         onSelect(councilId, from)

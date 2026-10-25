@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest'
-import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { decisionLine, versionLine } from './purchase-text'
-import { pendingCountOf, wonLabel } from './purchase-view'
+import { wonLabel } from './purchase-view'
 
 const by = { id: 'm2', name: '이재정' }
 const at = '2026-10-21T05:03:00.000Z'
@@ -25,18 +24,6 @@ test('이력 줄은 요청함과 취소함이다', () => {
   expect(versionLine({ versionNo: 2, at, by, changes: [{ field: 'cancelled' }] })).toBe(
     '이재정 · 10월 21일 14:03 · 취소함',
   )
-})
-
-test('결재 대기 수는 0이면 없고 넘치면 +와 이상이 붙는다', () => {
-  expect(pendingCountOf([], false)).toBeNull()
-  expect(pendingCountOf([purchaseSummary('a')], false)).toEqual({
-    label: '1',
-    description: '결재 대기 요청 1개',
-  })
-  expect(pendingCountOf([purchaseSummary('a'), purchaseSummary('b')], true)).toEqual({
-    label: '2+',
-    description: '결재 대기 요청 2개 이상',
-  })
 })
 
 test('금액은 천 단위로 끊는다', () => {

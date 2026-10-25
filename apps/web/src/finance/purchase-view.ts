@@ -1,9 +1,4 @@
-import type {
-  LineItemStatus,
-  PurchaseRequestSummary,
-  PurchaseStatus,
-  PurchaseView,
-} from '@vada/contracts'
+import type { LineItemStatus, PurchaseStatus, PurchaseView } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
@@ -53,21 +48,3 @@ export const neededByLabel = (neededBy: string | null) =>
 // 정수 원 → '12,000원'
 export const wonLabel = (amount: number) =>
   `${String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}원`
-
-export interface PendingCount {
-  label: string
-  description: string
-}
-
-// 옆 메뉴 '재정'의 결재 대기 수. 0이면 없고, 넘치면 '+'다.
-export function pendingCountOf(
-  pending: PurchaseRequestSummary[],
-  truncated: boolean,
-): PendingCount | null {
-  if (pending.length === 0) return null
-  const plus = truncated ? '+' : ''
-  return {
-    label: `${pending.length}${plus}`,
-    description: `결재 대기 요청 ${pending.length}개${truncated ? ' 이상' : ''}`,
-  }
-}
