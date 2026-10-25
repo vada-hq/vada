@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createTestDb } from '../src/db/test-db.js'
+import { fakeStorage } from '../src/test-support/storage.js'
 import { parseDemoArgs, runDemo, type DemoRun } from './demo-command.js'
 
 const SECRET_URL = 'postgres://user:hunter2@db.example.test/vada'
@@ -25,6 +26,16 @@ test('인자: 계정 번호 하나와 --apply, --dry-run, --from-shell만 받는
     assert.equal(parseDemoArgs(bad), null, bad.join(' '))
 })
 
+// 증빙 저장소: 가짜 저장소와, 올리기(PUT)를 받아 객체를 두는 가짜 fetch
+function storageDeps() {
+  const fake = fakeStorage()
+  const fetcher = ((url: string) => {
+    fake.put(url.slice('https://r2.test/up/'.length))
+    return Promise.resolve(new Response(null, { status: 200 }))
+  }) as typeof fetch
+  return { storage: fake.storage, fetcher }
+}
+
 function harness(overrides: Partial<DemoRun> = {}) {
   const info: string[] = []
   const error: string[] = []
@@ -38,7 +49,8 @@ function harness(overrides: Partial<DemoRun> = {}) {
       connected += 1
       throw new Error('connect must not be called')
     },
-    now: () => new Date('2026-10-22T03:00:00Z'),
+    storage: storageDeps().storage,
+    now: () => new Date(Date.now() - 60_000),
     log: { info: line => info.push(line), error: line => error.push(line) },
     ...overrides,
   }
@@ -54,6 +66,16 @@ test('미리 보기는 대상과 넣을 것만 보이고 연결하지 않으며 
   assert.match(out, /미리 보기라 바꾸지 않았다/)
   assert.match(out, /--filter @vada\/api demo u1 --apply/)
   assert.doesNotMatch(out, /hunter2/)
+})
+
+test('증빙 저장소가 없으면 행사 A를 완료할 수 없다고 알리고 연결하지 않고 멈춘다', async () => {
+  for (const args of [['u1'], ['u1', '--apply']]) {
+    const t = harness({ args, storage: null })
+    assert.equal(await runDemo(t.run), 1)
+    assert.equal(t.connected(), 0)
+    assert.match(t.error.join('\n'), /증빙 저장소가 없어 행사 A를 완료할 수 없다/)
+    assert.doesNotMatch([...t.info, ...t.error].join('\n'), /미리 보기라 바꾸지 않았다/)
+  }
 })
 
 test('셸에 DATABASE_URL이 있는데 --from-shell이 없으면 멈춘다', async () => {
@@ -115,10 +137,11 @@ test('--apply는 넣고 닫으며, 다시 돌리면 이미 있다로 멈춘다',
     )
     let ended = 0
     const connect = () => ({ db, end: () => Promise.resolve(void (ended += 1)) })
-    const first = harness({ args: ['u1', '--apply'], connect })
+    const deps = storageDeps()
+    const first = harness({ args: ['u1', '--apply'], connect, ...deps })
     assert.equal(await runDemo(first.run), 0)
     assert.match(first.info.join('\n'), /준비 완료/)
-    const second = harness({ args: ['u1', '--apply'], connect })
+    const second = harness({ args: ['u1', '--apply'], connect, ...deps })
     assert.equal(await runDemo(second.run), 0)
     assert.match(second.info.join('\n'), /이미 있다/)
     assert.equal(ended, 2)

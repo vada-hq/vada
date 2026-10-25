@@ -1,13 +1,32 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { PGlite } from '@electric-sql/pglite'
-import { dateFromKorean, koreanOf } from '@vada/contracts'
+import type {
+  EventResponse,
+  EventsResponse,
+  ExpensesResponse,
+  HomeResponse,
+  MyCouncilsResponse,
+  PurchaseRequestsResponse,
+  RegistrationFormsResponse,
+  SettlementResponse,
+  TasksResponse,
+} from '@vada/contracts'
 import { createTestDb } from '../src/db/test-db.js'
-import { eventStatusOf } from '../src/events/status.js'
+import { startFlow } from '../src/flows/server.js'
+import { EVENT_A, EVENT_B, EVENT_C } from '../src/flows/rehearsal.js'
+import { FEE } from '../src/flows/rehearsal-event.js'
+import { BANNER_WON, DIRECT_WON } from '../src/flows/rehearsal-money.js'
+import { fakeStorage } from '../src/test-support/storage.js'
 import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
 import { seedTestCouncil } from './test-data.js'
 
-const now = new Date('2026-10-22T03:00:00Z')
+// 시연 시험은 행 수를 세지 않는다. 시연을 PGlite에 넣고, 회장 계정으로 화면이 부르는 GET 응답만 읽어 '리허설 화면 기준'(명세 017)을 본다.
+// 읽을 수 없는 것(근거 연결, Google 연결)과 실패 뒤 남은 것만 SQL로 본다.
+// 시연은 돌리는 때를 마지막 단계로 두므로 now는 실제 시각을 넘지 않는다(거래 범위 시계가 던진다).
+const now = new Date(Date.now() - 60_000)
+const EXPENSE_TOTAL = BANNER_WON + DIRECT_WON
+const UP_PREFIX = 'https://r2.test/up/'
 
 async function googleUser(pg: PGlite, id: string) {
   await pg.query('INSERT INTO users (id, name, email) VALUES ($1, $1, $2)', [
@@ -26,72 +45,165 @@ const count = async (pg: PGlite, table: string, where = 'true') =>
       .n,
   )
 
-test('시연 학생회는 회장, 가상 운영진 7명, 부서 셋과 행사·업무·돈·메시지를 넣는다', async () => {
+// 가짜 저장소에 두고, 올리기 요청(PUT)은 가짜 fetch가 받아 객체를 둔다.
+function demoStorage() {
+  const fake = fakeStorage()
+  const puts: { headers: Headers; bytes: number }[] = []
+  const fetcher = ((url: string, init?: RequestInit) => {
+    puts.push({ headers: new Headers(init?.headers), bytes: (init!.body as Uint8Array).length })
+    fake.put(url.slice(UP_PREFIX.length))
+    return Promise.resolve(new Response(null, { status: 200 }))
+  }) as typeof fetch
+  return { puts, deps: { storage: fake.storage, fetcher } }
+}
+
+// 넣은 뒤 회장의 눈으로 읽는다. 같은 DB에 새 흐름 서버를 붙이고 회장 계정만 들인다.
+async function readAsChief(db: Awaited<ReturnType<typeof createTestDb>>['db'], userId: string) {
+  const flow = await startFlow(db, { start: now, scope: 'connection' })
+  flow.flowSession.admit(userId)
+  const chief = flow.driver.as(userId)
+  const get = async <T>(path: string) => {
+    const response = await chief.get(path)
+    assert.equal(response.status, 200, path)
+    return (await response.json()) as T
+  }
+  const councils = await get<MyCouncilsResponse>('/api/me/councils')
+  assert.equal(councils.councils.length, 1)
+  return { get, org: `/api/organizations/${councils.councils[0]!.id}` }
+}
+
+test('리허설 화면 기준 - 행사 목록과 행사 A', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     await googleUser(pg, 'u1')
-    assert.equal(await seedDemoCouncil(db, 'u1', now), 'created')
-    assert.equal(await count(pg, 'council', `school_name = '${DEMO_SCHOOL_NAME}'`), 1)
-    assert.equal(await count(pg, 'member'), 8)
-    // 가상 운영진은 로그인 계정이 없고, 이메일로 실제 로그인이 이어질 수 없다.
-    assert.equal(await count(pg, 'member_login'), 1)
-    assert.equal(await count(pg, 'member', "email LIKE '%@demo.vada.invalid'"), 7)
-    assert.deepEqual((await pg.query('SELECT name, role FROM department ORDER BY name')).rows, [
-      { name: '기획부', role: null },
-      { name: '재정부', role: 'finance' },
-      { name: '홍보부', role: null },
-    ])
-    assert.equal(await count(pg, 'fiscal_period'), 1)
-    assert.equal(await count(pg, 'budget_item'), 3)
-    assert.equal(await count(pg, 'account'), 2)
-    assert.equal(await count(pg, 'account', "type = 'main'"), 1)
-    assert.equal(await count(pg, 'task'), 6)
-    assert.equal(await count(pg, 'task', 'event_id IS NOT NULL'), 4)
-    assert.equal(await count(pg, 'message'), 4)
-    assert.equal(await count(pg, 'request'), 2)
-    assert.equal(await count(pg, 'expense'), 1)
-    assert.equal(await count(pg, 'expense', 'reimbursed_at IS NULL AND paid_by IS NOT NULL'), 1)
-    assert.equal(await count(pg, 'expense', 'account_id IS NOT NULL'), 1)
-    // 회장은 전체방에 들어 있어 메시지가 보인다.
+    const storage = demoStorage()
+    assert.equal(await seedDemoCouncil(db, 'u1', now, storage.deps), 'created')
+    const { get, org } = await readAsChief(db, 'u1')
+    const { events } = await get<EventsResponse>(`${org}/events`)
+    assert.deepEqual(events.map(item => item.status).sort(), ['completed', 'tbd', 'upcoming'])
+    const a = events.find(item => item.name === EVENT_A.name)!
+    // 행사 A: 완료 사유, 신청·입금·환불 숫자, 참가비와 지출 합계, 정산 남은 것 0
+    const detail = await get<EventResponse>(`${org}/events/${a.id}`)
+    assert.equal(detail.event.approvals[0]!.outcome, 'completed')
+    assert.ok(detail.event.approvals[0]!.reason)
+    const { settlement } = await get<SettlementResponse>(`${org}/events/${a.id}/settlement`)
+    assert.equal(settlement.settled, true)
+    assert.ok(settlement.remaining.every(item => item.count === 0))
+    assert.equal(settlement.actual.fee, FEE)
+    assert.equal(settlement.actual.depositCount, 2)
+    assert.equal(settlement.actual.refundPendingCount, 0)
+    assert.equal(settlement.actual.expense, EXPENSE_TOTAL)
+    const spent = await get<ExpensesResponse>(`${org}/expenses?event=${a.id}`)
+    assert.equal(spent.expenses.length, 2)
+    assert.ok(spent.expenses.every(item => item.evidenceCount === 1))
+    const forms = await get<RegistrationFormsResponse>(`${org}/events/${a.id}/registration-forms`)
+    assert.equal(forms.forms[0]!.applicantCount, 2)
+    // 증빙은 작은 고정 이미지를 저장소에 올린 것이다
+    assert.equal(storage.puts.length, 2)
+    assert.ok(storage.puts.every(put => put.headers.get('Content-Type') === 'image/jpeg'))
+    assert.ok(storage.puts.every(put => put.bytes > 0))
+    // 가상 운영진은 로그인 못 하는 계정이다: Google 연결이 없다(실제 사용자의 것 하나만 있다)
     assert.equal(
       await count(
         pg,
-        'room_membership',
-        "room_id IN (SELECT id FROM chat_room WHERE type = 'all_members' AND id IN (SELECT room_id FROM message)) AND member_id IN (SELECT member_id FROM member_login WHERE user_id = 'u1')",
+        'accounts',
+        "user_id IN (SELECT id FROM users WHERE email LIKE '%@demo.vada.invalid')",
       ),
-      1,
+      0,
     )
+    assert.equal(await count(pg, 'accounts', "provider_id = 'google'"), 1)
   } finally {
     await close()
   }
 })
 
-test('행사 셋은 끝남, 예정, 날짜 미정이다', async () => {
+test('리허설 화면 기준 - 행사 B와 C, 부탁 메시지, 회장의 홈', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     await googleUser(pg, 'u1')
-    await seedDemoCouncil(db, 'u1', now)
-    const rows = (await pg.query('SELECT starts_at, ends_at FROM event')).rows as {
-      starts_at: Date | null
-      ends_at: Date | null
-    }[]
-    const statuses = rows.map(row => eventStatusOf(row.starts_at, row.ends_at, now)).sort()
-    assert.deepEqual(statuses, ['ended', 'tbd', 'upcoming'])
+    await seedDemoCouncil(db, 'u1', now, demoStorage().deps)
+    const { get, org } = await readAsChief(db, 'u1')
+    const { events } = await get<EventsResponse>(`${org}/events`)
+    const b = events.find(item => item.name === EVENT_B.name)!
+    const c = events.find(item => item.name === EVENT_C.name)!
+    assert.equal(c.startsAt, null)
+    // 회장은 완료 전 행사를 모두 고칠 수 있다
+    for (const id of [b.id, c.id]) {
+      const { event } = await get<EventResponse>(`${org}/events/${id}`)
+      assert.ok(event.actions.includes('event.update'))
+    }
+    // 행사 B: 받는 중인 양식, 입금을 기다리는 신청자, 결재를 기다리는 요청 하나, 진행 중 업무
+    const forms = await get<RegistrationFormsResponse>(`${org}/events/${b.id}/registration-forms`)
+    assert.equal(forms.forms[0]!.status, 'open')
+    assert.equal(forms.forms[0]!.applicantCount, 3)
+    const { settlement } = await get<SettlementResponse>(`${org}/events/${b.id}/settlement`)
+    assert.equal(settlement.actual.depositCount, 0)
+    const pending = await get<PurchaseRequestsResponse>(
+      `${org}/purchase-requests?view=pending&event=${b.id}`,
+    )
+    assert.equal(pending.requests.length, 1)
+    const tasks = await get<TasksResponse>(`${org}/tasks?view=all&event=${b.id}`)
+    assert.ok(tasks.tasks.some(item => item.event?.id === b.id && item.status === 'in_progress'))
+    // 행사방을 만드는 경로가 없어 부탁 메시지는 기획부 부서방에 있다. 회장은 그 방에 들지 않아 GET으로 볼 수 없어 SQL로 본다.
+    // 그 메시지가 두 행사의 요청의 근거로 이어진다.
+    assert.equal(
+      await count(
+        pg,
+        'evidence_link l JOIN message m ON m.id = l.message_id JOIN request r ON r.id = l.record_id JOIN chat_room cr ON cr.id = m.room_id',
+        "cr.type = 'department' AND m.body LIKE '%구매 요청%'",
+      ),
+      2,
+    )
+    // 회장 홈의 할 일이 비지 않는다
+    const home = await get<HomeResponse>(`${org}/home`)
+    assert.ok(home.council!.events.some(card => card.tasks.total > 0))
+    assert.ok(home.council!.events.length > 0)
   } finally {
     await close()
   }
 })
 
-test('다시 돌리면 아무것도 바꾸지 않고 이미 있다로 멈춘다', async () => {
+test('중간 단계가 실패하면 학생회도 계정도 남지 않는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     await googleUser(pg, 'u1')
-    await seedDemoCouncil(db, 'u1', now)
-    const before = await count(pg, 'record')
-    const versions = await count(pg, 'record_version')
-    assert.equal(await seedDemoCouncil(db, 'u1', now), 'exists')
-    assert.equal(await count(pg, 'record'), before)
-    assert.equal(await count(pg, 'record_version'), versions)
+    const storage = demoStorage()
+    // 학생회 만들기부터 결재까지는 저장점이 이미 끝난 뒤, 증빙 올리기 단계에서 저장소가 실패한다.
+    const failing = {
+      ...storage.deps,
+      fetcher: (() => Promise.resolve(new Response(null, { status: 500 }))) as typeof fetch,
+    }
+    await assert.rejects(seedDemoCouncil(db, 'u1', now, failing), /리허설 단계 'spend'/)
+    assert.equal(await count(pg, 'council'), 0)
+    assert.equal(await count(pg, 'record'), 0)
+    assert.equal(await count(pg, 'users'), 1)
+    assert.equal(await count(pg, 'accounts'), 1)
+    // 실패한 시도가 흔적을 남기지 않아 같은 DB에 다시 넣을 수 있다
+    assert.equal(await seedDemoCouncil(db, 'u1', now, storage.deps), 'created')
+    assert.equal(await count(pg, 'council', `school_name = '${DEMO_SCHOOL_NAME}'`), 1)
+  } finally {
+    await close()
+  }
+})
+
+test('같은 학교 이름이 있으면 아무것도 바꾸지 않고 이미 있다로 멈춘다', async () => {
+  const { db, pg, close } = await createTestDb()
+  try {
+    await googleUser(pg, 'u1')
+    const storage = demoStorage()
+    await seedDemoCouncil(db, 'u1', now, storage.deps)
+    const before = [
+      await count(pg, 'record'),
+      await count(pg, 'record_version'),
+      await count(pg, 'users'),
+    ]
+    const putsBefore = storage.puts.length
+    assert.equal(await seedDemoCouncil(db, 'u1', now, storage.deps), 'exists')
+    assert.deepEqual(
+      [await count(pg, 'record'), await count(pg, 'record_version'), await count(pg, 'users')],
+      before,
+    )
+    assert.equal(storage.puts.length, putsBefore)
   } finally {
     await close()
   }
@@ -101,8 +213,12 @@ test('Google 계정이 없으면 아무것도 남지 않는다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     await pg.query("INSERT INTO users (id, name, email) VALUES ('x', 'x', 'x@example.test')")
-    await assert.rejects(seedDemoCouncil(db, 'x', now), /An existing Google user is required/)
+    await assert.rejects(
+      seedDemoCouncil(db, 'x', now, demoStorage().deps),
+      /An existing Google user is required/,
+    )
     assert.equal(await count(pg, 'council'), 0)
+    assert.equal(await count(pg, 'users'), 1)
   } finally {
     await close()
   }
@@ -113,7 +229,7 @@ test('시험 학생회와 섞이지 않는다', async () => {
   try {
     await googleUser(pg, 'u1')
     const testCouncil = await seedTestCouncil(db, 'u1', now)
-    await seedDemoCouncil(db, 'u1', now)
+    await seedDemoCouncil(db, 'u1', now, demoStorage().deps)
     assert.equal(await count(pg, 'council'), 2)
     // 시험 학생회에는 시연 내용이 들어가지 않고, 시험 명령은 시연 학생회를 건드리지 않는다.
     assert.equal(
@@ -122,44 +238,7 @@ test('시험 학생회와 섞이지 않는다', async () => {
     )
     assert.equal(await seedTestCouncil(db, 'u1', now), testCouncil)
     assert.equal(await count(pg, 'council'), 2)
-    assert.equal(await count(pg, 'event'), 3)
   } finally {
     await close()
   }
 })
-
-// 한국 날짜 경계: 23:59:59와 다음 날 00:00:00에서 날짜가 하루씩 움직이고, 해가 바뀌어도 넣어진다.
-for (const [label, instant, today] of [
-  ['한국 23:59:59', '2026-10-22T14:59:59Z', '2026-10-22'],
-  ['한국 다음 날 00:00:00', '2026-10-22T15:00:00Z', '2026-10-23'],
-  ['한국 12-31 23:59:59', '2026-12-31T14:59:59Z', '2026-12-31'],
-  ['한국 1-1 00:00:00', '2026-12-31T15:00:00Z', '2027-01-01'],
-] as const)
-  test(`날짜는 돌리는 날(한국) 기준이다 - ${label}`, async () => {
-    const { db, pg, close } = await createTestDb()
-    try {
-      await googleUser(pg, 'u1')
-      const at = new Date(instant)
-      assert.equal(await seedDemoCouncil(db, 'u1', at), 'created')
-      const rows = (await pg.query('SELECT starts_at, ends_at FROM event')).rows as {
-        starts_at: Date | null
-        ends_at: Date | null
-      }[]
-      const statuses = rows.map(row => eventStatusOf(row.starts_at, row.ends_at, at)).sort()
-      assert.deepEqual(statuses, ['ended', 'tbd', 'upcoming'])
-      const day = 86_400_000
-      const todayStart = dateFromKorean(`${today}T00:00`).getTime()
-      const starts = rows.flatMap(row => (row.starts_at ? [koreanOf(row.starts_at)] : [])).sort()
-      assert.deepEqual(starts, [
-        `${koreanOf(new Date(todayStart - 7 * day)).slice(0, 10)}T18:00`,
-        `${koreanOf(new Date(todayStart + 10 * day)).slice(0, 10)}T18:00`,
-      ])
-      const paid = (await pg.query('SELECT paid_at FROM expense')).rows[0] as { paid_at: Date }
-      assert.equal(
-        koreanOf(paid.paid_at),
-        `${koreanOf(new Date(todayStart - 6 * day)).slice(0, 10)}T00:00`,
-      )
-    } finally {
-      await close()
-    }
-  })

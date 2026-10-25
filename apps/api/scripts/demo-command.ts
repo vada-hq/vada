@@ -5,6 +5,7 @@ import {
   UNSHOWN_TARGET_MESSAGE,
 } from '../src/ops/migrate/migrate-check.js'
 import type { Db } from '../src/db/types.js'
+import type { FileStorage } from '../src/storage/storage.js'
 import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
 
 // demo 명령의 판단 전부. manage-demo-data.ts는 실제 연결(postgres-js)을 이어 주기만 한다. 시험은 PGlite를 감싼 가짜 connect로 돌린다.
@@ -32,7 +33,9 @@ const FLAG_WITHOUT_SHELL_URL =
 const NPM_SWALLOWED_DRY_RUN =
   'npm이 --dry-run을 자기 옵션으로 받았다. 플래그 앞에 --를 붙인다. 아무것도 하지 않았다.'
 const NO_URL = '.env에 DATABASE_URL이 없다. 아무것도 하지 않았다.'
-const PLAN = `시연 학생회('${DEMO_SCHOOL_NAME}')를 넣는다: 그 계정이 회장이고 가상 운영진 7명, 부서 셋, 회계 기간과 예산, 계좌 둘, 행사 셋, 행사·학생회 업무, 전체방 메시지, 구매 요청, 지출을 둔다. 이미 있으면 아무것도 바꾸지 않는다.`
+const PLAN = `시연 학생회('${DEMO_SCHOOL_NAME}')를 넣는다: 리허설 시나리오를 실제 경로로 돌린다. 그 계정이 회장이고 로그인 못 하는 가상 운영진 6명이 들어와 행사 A는 완료까지, 행사 B는 구매 요청까지, 행사 C는 만들기만 한다. 행사 A의 증빙 파일 둘을 저장소에 올린다. 이미 있으면 아무것도 바꾸지 않는다.`
+const NO_STORAGE =
+  '증빙 저장소가 없어 행사 A를 완료할 수 없다. R2 설정(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET)을 .env나 셸에 준다. 아무것도 하지 않았다.'
 const FAILED =
   '처리 실패. DB 연결, 기존 Google 계정을 확인하세요. 거래 전체가 되돌아가 아무것도 남지 않았습니다. 오류 원문은 출력하지 않습니다.'
 
@@ -42,6 +45,9 @@ export type DemoRun = {
   shellUrl: string | undefined
   readEnvUrl: () => string | undefined
   connect: (url: string) => { db: Db; end: () => Promise<void> }
+  // 증빙을 올릴 저장소. 없으면 행사 A를 완료할 수 없어 아무것도 쓰지 않고 멈춘다(증빙 없이 완료하는 길은 없다).
+  storage: FileStorage | null
+  fetcher?: typeof fetch
   now: () => Date
   log: { info: (line: string) => void; error: (line: string) => void }
 }
@@ -85,6 +91,10 @@ export async function runDemo(run: DemoRun): Promise<number> {
   const { args, url } = resolved
   const target = describeTarget(url)
   run.log.info(`대상: ${target} (${args.fromShell ? '셸' : '.env'})`)
+  if (!run.storage) {
+    run.log.error(NO_STORAGE)
+    return 1
+  }
   if (!args.apply) {
     run.log.info(`${PLAN} 미리 보기라 바꾸지 않았다. 실제로 하려면: ${applyCommandOf(args)}`)
     return 0
@@ -95,7 +105,10 @@ export async function runDemo(run: DemoRun): Promise<number> {
   }
   const connection = run.connect(url)
   try {
-    const result = await seedDemoCouncil(connection.db, args.userId, run.now())
+    const result = await seedDemoCouncil(connection.db, args.userId, run.now(), {
+      storage: run.storage,
+      ...(run.fetcher ? { fetcher: run.fetcher } : {}),
+    })
     run.log.info(
       result === 'created'
         ? `시연 학생회 준비 완료('${DEMO_SCHOOL_NAME}')`

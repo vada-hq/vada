@@ -27,10 +27,12 @@ export async function createCouncilStep(ctx: Ctx) {
   const { chief } = ctx.cast
   const now = nowOf(ctx)
   const council: CreateCouncilRequest = {
-    name: '리허설 학생회',
     unit: 'department',
-    schoolName: '리허설 학교',
-    cohortName: '리허설 기수',
+    ...(ctx.council ?? {
+      name: '리허설 학생회',
+      schoolName: '리허설 학교',
+      cohortName: '리허설 기수',
+    }),
     startsOn: koreanDay(new Date(now.getTime() - COHORT_BEFORE_DAYS * DAY_MS)),
     endsOn: koreanDay(new Date(ctx.finalAt.getTime() + COHORT_AFTER_DAYS * DAY_MS)),
   }
