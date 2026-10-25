@@ -16,7 +16,7 @@ type Props = {
 // 와이어프레임 HOME-01 메시지함 칩: 둥근 칩, 1:1·부서 간은 호박색(사이드챗과 같은 색), 수는 굵은 빨강.
 // 휴대폰에서는 누르는 크기를 44px 이상으로 둔다(WCAG 2.5.5).
 const chipClass =
-  'h-auto max-w-full rounded-full px-2.5 py-1 font-normal whitespace-normal wrap-anywhere max-sm:min-h-11'
+  'h-auto max-w-full rounded-full px-2.5 py-1 text-left font-normal whitespace-normal wrap-anywhere max-sm:min-h-11'
 const PERSONAL_CHIP = 'border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100'
 
 // 1:1은 이름만으로는 방인지 사람인지 모르므로 '· 1:1'을 붙인다(색만으로 가르지 않는다, WCAG 1.4.1).
@@ -30,8 +30,9 @@ export default function MessageInbox({ rooms, onOpenRoom, onSeeAll }: Props) {
   if (rooms.length === 0) return null
   return (
     <section aria-label="메시지함" className="flex flex-wrap items-center gap-2">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
-        <MessageSquare aria-hidden className="size-4 text-gray-500" />
+      {/* 와이어프레임 HomeMessageBox처럼 부분 제목보다 낮은 회색 작은 라벨이다(칩이 주인공). */}
+      <h2 className="flex items-center gap-1 text-xs font-normal text-gray-500">
+        <MessageSquare aria-hidden className="size-3.5" />
         메시지함
       </h2>
       {rooms.map(room => (
