@@ -30,8 +30,9 @@ type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
   onMade: () => void
 }
 
-// 공지를 올릴 방을 찾는다. 서버가 방마다 noticeRoom으로 알려 주고 화면은 방 종류를 다시 판정하지 않는다.
-function useAllRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbidden'>) {
+// 공지를 올릴 방(학생회 공지방, DEC-90)을 찾는다. 공지방은 all_members 종류의 방이다.
+// 행사에 이은 업무의 행사 공지방은 행사 방을 만들 때 더한다.
+function useNoticeRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbidden'>) {
   const [roomId, setRoomId] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -43,7 +44,7 @@ function useAllRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbi
       result => {
         if (controller.signal.aborted) return
         if (result.ok) {
-          const room = result.data.rooms.find(item => item.noticeRoom)
+          const room = result.data.rooms.find(item => item.type === 'all_members')
           return room ? setRoomId(room.id) : setFailed(true)
         }
         if (result.status === statusOf('FORBIDDEN')) {
@@ -58,14 +59,14 @@ function useAllRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbi
   return { roomId, failed, retry: () => setAttempt(value => value + 1) }
 }
 
-// 공지 만들기: 글 하나를 전체방에 공지로 올리고 이 업무에 잇는다(기능 015).
+// 공지 만들기: 글 하나를 공지방에 보통 메시지로 올리고 이 업무에 잇는다(기능 015, DEC-90).
 export function NoticeMakeDialog({ councilId, taskId, onClose, onMade, ...handlers }: Props) {
-  const room = useAllRoom(councilId, handlers)
+  const room = useNoticeRoom(councilId, handlers)
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
   const sending = useRef(false)
-  const request = { body, notice: true, taskId }
+  const request = { body, taskId }
   const parsed = SendMessageSchema.safeParse(request)
   const { formRef, errors, attempt } = useFormCheck(() =>
     withContract({ body: requiredText(body, '내용을') }, parsed),

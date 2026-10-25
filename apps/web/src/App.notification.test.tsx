@@ -186,7 +186,7 @@ test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대�
   fireEvent.click(within(aside).getByRole('button', { name: '사람' }))
   expect(await screen.findByRole('heading', { level: 1, name: '사람' })).toBeTruthy()
   fireEvent.click(within(aside).getByRole('button', { name: /^대화/ }))
-  expect(await screen.findByRole('button', { name: /운영진 전체방/ })).toBeTruthy()
+  expect(await screen.findByRole('button', { name: /공지방/ })).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
 })
 

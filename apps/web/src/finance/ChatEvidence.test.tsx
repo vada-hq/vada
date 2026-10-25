@@ -88,7 +88,7 @@ test('목록은 작은 사진과 방 이름·보낸 사람을 보이고, 고르�
   )
   await openList()
   const list = await screen.findByRole('list', { name: '대화 사진 목록' })
-  expect(within(list).getByText('운영진 전체방')).toBeTruthy()
+  expect(within(list).getByText('공지방')).toBeTruthy()
   expect(within(list).getByText('기획부')).toBeTruthy()
   expect(within(list).getAllByText('박새내')).toHaveLength(2)
   expect(list.querySelector('img')?.getAttribute('src')).toBe(`${BASE}/files/${P1}`)

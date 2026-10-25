@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils'
 import { roomName, timeLabel, unreadLabel } from './chat-view'
 
 // 줄 목록 한 줄의 단추 모양. 줄 전체가 누르는 곳이다.
-export const rowButtonClass =
+const rowButtonClass =
   'h-auto w-full justify-start gap-2 rounded-none px-4 py-3 text-left font-normal whitespace-normal'
 
 // PC 두 칸에서 오른쪽에 열린 줄. 옆 메뉴의 고른 항목과 같은 색이다.
-export const activeRowClass = 'aria-[current=true]:bg-accent'
+const activeRowClass = 'aria-[current=true]:bg-accent'
 
 // 방 한 줄: 이름(보기만), 마지막 시각, 나를 부름(@), 안 읽은 수. 줄 전체가 그 방을 여는 단추다.
 export default function RoomRow({

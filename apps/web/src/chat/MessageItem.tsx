@@ -1,6 +1,3 @@
-import { Megaphone } from 'lucide-react'
-import StateMessage from '@/components/StateMessage'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -44,15 +41,6 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
   )
 }
 
-function NoticeBadge({ className }: { className?: string | undefined }) {
-  return (
-    <Badge tone="info" className={className}>
-      <Megaphone aria-hidden className="size-3" />
-      공지
-    </Badge>
-  )
-}
-
 function Header({ message }: Pick<Props, 'message'>) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
@@ -60,26 +48,20 @@ function Header({ message }: Pick<Props, 'message'>) {
         {message.senderName ?? '시스템'}
       </span>
       <time dateTime={message.sentAt}>{clockLabel(message.sentAt)}</time>
-      {message.isNotice && <NoticeBadge />}
     </p>
   )
 }
 
-// 머리: 남의 첫 메시지는 이름·시각·공지. 이어 쓴 메시지와 내 메시지는 공지 표시만 보인다.
+// 머리: 남의 첫 메시지는 이름·시각. 이어 쓴 메시지와 내 메시지는 화면 낭독기에만 읽힌다.
 // 내 메시지는 이름 없이 '나'로 읽히고(카카오톡), 시각은 본문 옆에 둔다.
 function Head({ message, mine, continued }: Pick<Props, 'message' | 'mine' | 'continued'>) {
   if (!mine && !continued) return <Header message={message} />
-  return (
-    <>
-      {mine ? (
-        <span className="sr-only">나</span>
-      ) : (
-        <time dateTime={message.sentAt} className="sr-only">
-          {clockLabel(message.sentAt)}
-        </time>
-      )}
-      {message.isNotice && <NoticeBadge className={mine ? undefined : 'self-start'} />}
-    </>
+  return mine ? (
+    <span className="sr-only">나</span>
+  ) : (
+    <time dateTime={message.sentAt} className="sr-only">
+      {clockLabel(message.sentAt)}
+    </time>
   )
 }
 
@@ -95,12 +77,12 @@ function MineTime({ message, continued }: Pick<Props, 'message' | 'continued'>) 
   )
 }
 
-// 메시지 하나: 보낸 사람, 시각, 공지 표시, 본문. 내 메시지는 오른쪽에 붙여 가른다(카카오톡, Teams 채팅).
+// 메시지 하나: 보낸 사람, 시각, 본문. 내 메시지는 오른쪽에 붙여 가른다(카카오톡, Teams 채팅).
 // 색으로 가르지 않는다. 파란색은 공지와 새 소식에 쓰여 내 메시지가 강조처럼 읽힌다. 말풍선은 옅은 회색이다.
 // '…'는 마우스로 쓰면 올리거나 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 export default function MessageItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
-  const { actions, busy, error } = useMessageActions({ message, ...actionArgs })
+  const { actions } = useMessageActions({ message, ...actionArgs })
   return (
     <li
       className={cn(
@@ -120,13 +102,8 @@ export default function MessageItem({ councilId, message, continued, mine, ...ac
         {mine && <MineTime message={message} continued={continued} />}
       </div>
       <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-        <MessageMenu actions={actions} busy={busy} />
+        <MessageMenu actions={actions} busy={false} />
       </div>
-      {error && (
-        <StateMessage kind="error" className="basis-full">
-          {error}
-        </StateMessage>
-      )}
     </li>
   )
 }

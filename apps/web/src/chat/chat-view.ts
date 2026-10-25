@@ -4,7 +4,7 @@ const MAX_BADGE = 99
 export const unreadLabel = (count: number) => (count > MAX_BADGE ? `${MAX_BADGE}+` : String(count))
 
 const NAMES = {
-  all_members: '운영진 전체방',
+  all_members: '공지방',
   leadership: '회장단방',
   department: '부서방',
   direct: '1:1 대화',

@@ -240,18 +240,25 @@ test(
 )
 
 test(
-  '볼 수 없는 근거 메시지는 모두 같은 409 MESSAGE_INVALID이고 요청·품목·지출·알림·연결이 없다: 안 들어간 방, 들어오기 전, 다른 학생회, 메시지가 아닌 번호, 없는 번호',
+  '볼 수 없는 근거 메시지는 모두 같은 409 MESSAGE_INVALID이고 요청·품목·지출·알림·연결이 없다: 안 들어간 방, 들어오기 전, 지난 기수 공지방, 다른 학생회, 메시지가 아닌 번호, 없는 번호',
   runPurchases(async s => {
     const chat = await withChat(s)
     const mine = s.council.councilId
     const all = await chat.roomId(mine, 'all')
+    const financeRoom = await chat.roomId(mine, '재정부')
     const planning = await chat.say(chat.mine, await chat.roomId(mine, '기획부'), PLANNING)
     const leadership = await chat.say(
       chat.mine,
       await chat.roomId(mine, 'leadership'),
       's-president',
     )
-    const before = await chat.say(chat.mine, all, 's-president')
+    // 부서방은 같은 기수여도 들어오기 전 것을 보지 않는다.
+    const before = await chat.say(chat.mine, financeRoom, FINANCE)
+    // 공지방은 같은 기수만 들어오기 전 것을 본다. 지난 기수 것은 막힌다.
+    const pastCohort = await chat.say(chat.mine, all, 's-president')
+    await s.pg.query(`UPDATE message SET sent_at = '2025-10-25T03:00:00Z' WHERE id = $1`, [
+      pastCohort,
+    ])
     const theirAll = await chat.roomId(s.other.councilId, 'all')
     const theirs = await chat.say(chat.theirs, theirAll, 'o-president')
     // 거르기를 지웠을 때 통과하도록 내 재정부원이 그 방의 참여 줄도 가지고, 두 메시지는 같은 시각이다.
@@ -266,11 +273,12 @@ test(
     await s.pg.query(
       `UPDATE room_membership SET joined_at = (SELECT sent_at FROM message WHERE id = $1) + interval '1 microsecond'
         WHERE member_id = $2 AND room_id = $3`,
-      [before, s.council.people.financeMember.memberId, all],
+      [before, s.council.people.financeMember.memberId, financeRoom],
     )
     const accountLike = s.council.people.plain.memberId
     const done = await made(s)
-    for (const sourceMessageId of [planning, leadership, before, theirs, accountLike, MISSING]) {
+    const hidden = [planning, leadership, before, pastCohort, theirs, accountLike, MISSING]
+    for (const sourceMessageId of hidden) {
       const asRequest = await s.create({ title: 'a', items: [ITEM], sourceMessageId }, FINANCE)
       assert.equal(asRequest.status, 409, sourceMessageId)
       assert.equal(await errorOf(asRequest), 'MESSAGE_INVALID')
@@ -289,24 +297,27 @@ test(
 )
 
 test(
-  '들어온 시각과 같은 시각의 메시지는 되고 1마이크로초 앞은 안 되며, 같은 기수의 공지는 들어오기 전이어도 된다',
+  '부서방은 들어온 시각과 같은 시각의 메시지는 되고 1마이크로초 앞은 안 되며, 공지방은 같은 기수면 들어오기 전이어도 된다',
   runPurchases(async s => {
     const chat = await withChat(s)
     const all = await chat.roomId(s.council.councilId, 'all')
+    const financeRoom = await chat.roomId(s.council.councilId, '재정부')
+    const inFinance = await chat.say(chat.mine, financeRoom, FINANCE)
     const messageId = await chat.say(chat.mine, all, 's-president')
     const me = s.council.people.financeMember.memberId
-    const joinAt = (offset: string) =>
+    const joinAt = (offset: string, id: string, room: string) =>
       s.pg.query(
         `UPDATE room_membership SET joined_at = (SELECT sent_at FROM message WHERE id = $1) ${offset}
           WHERE member_id = $2 AND room_id = $3`,
-        [messageId, me, all],
+        [id, me, room],
       )
+    const fromFinance = { title: 'a', items: [ITEM], sourceMessageId: inFinance }
+    await joinAt('', inFinance, financeRoom)
+    assert.equal((await s.create(fromFinance, FINANCE)).status, 201)
+    await joinAt("+ interval '1 microsecond'", inFinance, financeRoom)
+    assert.equal(await errorOf(await s.create(fromFinance, FINANCE)), 'MESSAGE_INVALID')
     const body = { title: 'a', items: [ITEM], sourceMessageId: messageId }
-    await joinAt('')
-    assert.equal((await s.create(body, FINANCE)).status, 201)
-    await joinAt("+ interval '1 microsecond'")
-    assert.equal(await errorOf(await s.create(body, FINANCE)), 'MESSAGE_INVALID')
-    await s.pg.query('UPDATE message SET is_notice = true WHERE id = $1', [messageId])
+    await joinAt("+ interval '1 microsecond'", messageId, all)
     assert.equal((await s.create(body, FINANCE)).status, 201)
     await s.pg.query(`UPDATE message SET sent_at = '2025-10-25T03:00:00Z' WHERE id = $1`, [
       messageId,

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, or, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { CHAT_PHOTO_LIST_MAX, PHOTO_MEDIA_TYPE, type ChatPhotoListResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -8,7 +8,7 @@ import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import type { FileStorage } from '../storage/storage.js'
 import { issueUpload, verifyUploads, type VerifiedPhoto } from '../storage/uploads.js'
-import { shownNotice, sinceJoined } from './messages.js'
+import { visibleMessage } from './messages.js'
 import { namedRooms } from './queries.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -45,13 +45,8 @@ export async function attachPhotos(
     })
 }
 
-// 내가 볼 수 있는 메시지(같은 학생회, 방 참여자이고 들어온 뒤의 것이거나 보이는 같은 기수의 공지). 방 참여 줄을 합친 조회에서 쓴다.
-// 사진 보기와 사진을 증빙으로 옮기기가 이 조건 하나를 같이 쓴다(보이는 조건과 여는 조건이 갈라지지 않게).
-const visibleMessage = (actor: Actor) =>
-  and(eq(record.councilId, actor.councilId), or(sinceJoined(actor.memberId), shownNotice(actor)))
-
-// 내가 볼 수 있는 메시지 하나(요청·지출의 근거로 고를 수 있는 메시지). 사진 보기와 같은 조건이다.
-// 없는 번호, 메시지가 아닌 기록, 다른 학생회, 안 들어간 방, 들어오기 전은 모두 false다.
+// 내가 볼 수 있는 메시지 하나(요청·지출의 근거로 고를 수 있는 메시지). 방 흐름, 사진 보기와 같은 조건(visibleMessage)이다.
+// 없는 번호, 메시지가 아닌 기록, 다른 학생회, 안 들어간 방, 들어오기 전(공지방의 같은 기수 메시지는 빼고)은 모두 false다.
 export async function canSeeMessage(db: Reader, actor: Actor, messageId: string) {
   const [found] = await db
     .select({ id: message.id })
@@ -67,7 +62,7 @@ export async function canSeeMessage(db: Reader, actor: Actor, messageId: string)
 }
 
 // 내가 볼 수 있는 대화 사진을 고르는 조회. 사진 하나 보기와 사진 목록이 같은 연결과 같은 조건을 쓴다.
-// 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전, 증빙 파일은 모두 빠진다. 호출하는 쪽이 정렬과 개수를 더한다.
+// 없는 번호, 다른 학생회, 안 들어간 방, 들어오기 전(공지방의 같은 기수 메시지는 빼고), 증빙 파일은 모두 빠진다. 호출하는 쪽이 정렬과 개수를 더한다.
 function visiblePhotoRows(db: Reader, actor: Actor, extra?: SQL) {
   return db
     .select({
@@ -132,7 +127,7 @@ export async function visiblePhotoList(
 }
 
 // 사진 보기: 그 사진이 붙은 메시지를 내가 볼 수 있을 때만. 아니면 있는지도 드러내지 않는 404다.
-// 공지 목록이 사진 번호를 내려주므로 열 수 있는 조건도 메시지 보기와 같다(markNotice와 같은 꼴).
+// 방 흐름이 사진 번호를 내려주므로 열 수 있는 조건도 메시지 보기와 같다.
 export async function photoToView(db: Reader, actor: Actor, fileId: string) {
   const found = await visiblePhoto(db, actor, fileId)
   if (!found) throw new ApiError('NOT_FOUND')

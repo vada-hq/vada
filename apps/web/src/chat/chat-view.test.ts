@@ -28,7 +28,7 @@ test('지난해 시각은 연도를 붙인다', () => {
 })
 
 test('방 이름은 종류로 붙이고, 부서와 1:1은 받은 이름이다', () => {
-  expect(roomName({ type: 'all_members', name: null })).toBe('운영진 전체방')
+  expect(roomName({ type: 'all_members', name: null })).toBe('공지방')
   expect(roomName({ type: 'leadership', name: null })).toBe('회장단방')
   expect(roomName({ type: 'department', name: '재정부' })).toBe('재정부')
   expect(roomName({ type: 'direct', name: '박새내' })).toBe('박새내')

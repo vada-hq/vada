@@ -215,7 +215,7 @@ test('작업 공간: 대화 방', async () => {
   openWorkspace()
   await renderApp()
   await openChat()
-  fireEvent.click(await screen.findByRole('button', { name: /운영진 전체방/ }))
+  fireEvent.click(await screen.findByRole('button', { name: /공지방/ }))
   await screen.findByText('모레 회의 있어요')
   expect(snapshotHtml()).toMatchSnapshot()
 })

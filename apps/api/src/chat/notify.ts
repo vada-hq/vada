@@ -26,7 +26,7 @@ import { joinedDisplayNameOf } from '../team/display-name.js'
 
 // 종류로만 이름이 붙는 방의 알림 제목. 부서방은 부서 이름, 1:1은 보낸 사람이다.
 const ROOM_TITLES: Partial<Record<RoomType, string>> = {
-  all_members: '전체방',
+  all_members: '공지방',
   leadership: '회장단방',
   inter_department: '부서 간 방',
 }

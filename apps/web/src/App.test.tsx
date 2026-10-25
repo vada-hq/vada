@@ -215,12 +215,12 @@ test('로그아웃 상태로 연 학생회 안 주소는 로그인 뒤 그 주�
 })
 
 test('돌아올 곳에는 해석기를 통과한 값만 들어간다: 모르는 쿼리와 # 뒤는 버린다', async () => {
-  await loginWith(`/chat/${COUNCIL}?next=//evil.com&tab=notices#token`)
+  await loginWith(`/tasks/${COUNCIL}?next=//evil.com&view=all#token`)
   await waitFor(() =>
     expect(auth.social).toHaveBeenCalledWith({
       provider: 'google',
-      callbackURL: `/chat/${COUNCIL}?tab=notices`,
-      errorCallbackURL: `/chat/${COUNCIL}?tab=notices`,
+      callbackURL: `/tasks/${COUNCIL}?view=all`,
+      errorCallbackURL: `/tasks/${COUNCIL}?view=all`,
     }),
   )
 })

@@ -90,11 +90,3 @@ export function prepended(state: RoomState, older: MessagePageResponse): RoomSta
 export function withSync(state: RoomState, syncFailed: boolean): RoomState {
   return state.kind === 'ready' ? { ...state, syncFailed } : state
 }
-
-export function withNotice(state: RoomState, messageId: string, isNotice: boolean): RoomState {
-  if (state.kind !== 'ready') return state
-  const messages = state.messages.map(item =>
-    item.id === messageId ? { ...item, isNotice } : item,
-  )
-  return { ...state, messages }
-}

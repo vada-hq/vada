@@ -27,8 +27,8 @@ test('공개 주소, 초대 주소, 바깥 주소, 토큰이 든 주소는 기�
   for (const path of ['/apply/ABCD2345', '/r', '/join/ABCD2345', '//evil.com', '/', '/auth-done'])
     rememberAddress('u1', path)
   expect(lastAddress('u1')).toBe(`/home/${C}`)
-  rememberAddress('u1', `/chat/${C}?token=secret&tab=notices#abc`)
-  expect(lastAddress('u1')).toBe(`/chat/${C}?tab=notices`)
+  rememberAddress('u1', `/tasks/${C}?token=secret&view=all#abc`)
+  expect(lastAddress('u1')).toBe(`/tasks/${C}?view=all`)
   expect(JSON.stringify(window.localStorage)).not.toContain('secret')
 })
 

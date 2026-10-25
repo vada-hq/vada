@@ -1,7 +1,6 @@
 import {
   KOREAN_DATE_LENGTH,
   koreanOf,
-  type ChatMessage,
   type EventSummary,
   type HomeEventCard,
   type HomeList,
@@ -10,14 +9,12 @@ import {
 } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
-// 새로 더한 부분(내 요청, 공지, 이번 주 행사)은 앞의 몇 줄만 보이고 나머지는 원래 화면으로 넘긴다.
+// 새로 더한 부분(내 요청, 이번 주 행사)은 앞의 몇 줄만 보이고 나머지는 원래 화면으로 넘긴다.
 export const SHORT_LIST = 3
 // 이번 주 행사: 오늘부터 이 날수 안에 시작하는 행사
 const WEEK_DAYS = 7
 // 반려·일부 승인된 내 요청은 낸 지 이 날수 안의 것만 홈에 둔다(오래된 것은 재정 화면에서 본다).
 const SETTLED_REQUEST_DAYS = 14
-// 최근 공지: 올린 지 이 날수 안
-const NOTICE_DAYS = 7
 const DAY_MS = 86_400_000
 
 const koreanDay = (iso: string) => koreanOf(new Date(iso)).slice(0, KOREAN_DATE_LENGTH)
@@ -84,15 +81,6 @@ export function openRequests(requests: PurchaseRequestSummary[], today: string) 
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
   return [...answered, ...waiting]
 }
-
-// 최근 공지: 올린 지 7일 안, 최근 것부터
-export const recentNotices = (notices: ChatMessage[], today: string) =>
-  notices
-    .filter(notice => daysBetween(koreanDay(notice.sentAt), today) <= NOTICE_DAYS)
-    .sort((a, b) => b.sentAt.localeCompare(a.sentAt))
-
-// 공지 줄의 제목: 첫 줄
-export const firstLine = (body: string) => body.split('\n')[0]?.trim() ?? ''
 
 // 낸 날·올린 날(한국 날짜): '10월 20일'
 export const createdDay = (iso: string) => monthDay(koreanDay(iso))

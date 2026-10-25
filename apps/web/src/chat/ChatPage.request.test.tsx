@@ -63,18 +63,18 @@ const submit = () => asElement(screen.getByRole('button', { name: '내기' }), H
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
-test('모든 운영진의 메뉴에 구매 요청 만들기가 있고, 공지 항목은 회장단에게만 같은 메뉴에 있다', async () => {
+test('모든 운영진의 메뉴에 구매 요청 만들기가 있고, 공지 항목은 회장단에게도 없다', async () => {
   serve()
   const view = render(<ChatHarness memberId={ME} permissions={MEMBER_PERMISSIONS} />)
   await openAllRoom()
   await menuOf('구매 요청 만들기')
-  expect(screen.queryByRole('menuitem', { name: '공지로 표시' })).toBeNull()
+  expect(screen.queryByRole('menuitem', { name: /공지/ })).toBeNull()
   view.unmount()
 
   render(<ChatHarness memberId={ME} permissions={LEADER_PERMISSIONS} />)
   await openAllRoom()
   await menuOf('구매 요청 만들기')
-  expect(screen.getByRole('menuitem', { name: '공지로 표시' })).toBeTruthy()
+  expect(screen.queryByRole('menuitem', { name: /공지/ })).toBeNull()
 })
 
 test('권한이 없으면 메뉴 버튼이 없다', async () => {

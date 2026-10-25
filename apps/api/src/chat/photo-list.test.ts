@@ -40,12 +40,7 @@ async function start() {
       )
     ).rows[0]!.id
   // 사진 한 장이 붙은 메시지 하나. 사진 번호를 돌려준다.
-  const attach = (
-    councilId: string,
-    room: string,
-    sender: string,
-    values: { sentAt: Date; isNotice: boolean },
-  ) =>
+  const attach = (councilId: string, room: string, sender: string, values: { sentAt: Date }) =>
     db.transaction(async tx => {
       const messageId = await createRecord(tx, {
         kind: 'message',
@@ -68,9 +63,7 @@ async function start() {
       return { id, messageId }
     })
   const photo = (councilId: string, room: string, sender: string, at: string) =>
-    attach(councilId, room, sender, { sentAt: new Date(at), isNotice: false })
-  const noticePhoto = (councilId: string, room: string, sender: string, at: string) =>
-    attach(councilId, room, sender, { sentAt: new Date(at), isNotice: true })
+    attach(councilId, room, sender, { sentAt: new Date(at) })
   const list = (user?: string, at = base) => api.get(`${at}/chat/photos`, user)
   const listed = async (user: string, at = base) =>
     (await (await list(user, at)).json()) as ChatPhotoListResponse
@@ -82,7 +75,6 @@ async function start() {
     other,
     roomId,
     photo,
-    noticePhoto,
     list,
     listed,
     base,
@@ -159,30 +151,31 @@ test(
 )
 
 test(
-  '같은 기수의 공지 사진은 들어오기 전 것도 있고 공지를 떼거나 기수 밖이면 없다',
+  '공지방 사진은 같은 기수면 들어오기 전 것도 있고, 기수 밖이거나 부서방의 들어오기 전 것은 없다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
+    const planning = await s.roomId(s.council.councilId, '기획부')
     const president = s.person.president.memberId
     await s.pg.query(`UPDATE room_membership SET joined_at = '2026-07-01T00:00:00Z'`)
-    const notice = await s.noticePhoto(s.council.councilId, all, president, SAME_TIME)
-    const plain = await s.photo(s.council.councilId, all, president, SAME_TIME)
-    const outside = await s.noticePhoto(s.council.councilId, all, president, '2025-06-01T00:00:00Z')
-    const seen = await s.listed('s-plain')
-    assert.deepEqual(ids(seen), [notice.id])
-    assert.ok(!ids(seen).includes(plain.id) && !ids(seen).includes(outside.id))
-    await s.pg.query('UPDATE message SET is_notice = false WHERE id = $1', [notice.messageId])
-    assert.deepEqual(ids(await s.listed('s-plain')), [])
+    const shown = await s.photo(s.council.councilId, all, president, SAME_TIME)
+    const outside = await s.photo(s.council.councilId, all, president, '2025-06-01T00:00:00Z')
+    const head = s.person.planningHead.memberId
+    const inPlanning = await s.photo(s.council.councilId, planning, head, SAME_TIME)
+    assert.deepEqual(ids(await s.listed('s-plain')), [shown.id])
+    const member = ids(await s.listed('s-planningMember'))
+    assert.deepEqual(member, [shown.id])
+    assert.ok(!member.includes(outside.id) && !member.includes(inPlanning.id))
   }),
 )
 
 test(
-  '다른 학생회의 사진은 같은 시각의 공지이고 내게 참여 줄이 있어도 없다',
+  '다른 학생회의 공지방 사진은 같은 시각이고 내게 참여 줄이 있어도(들어오기 전·뒤 모두) 없다',
   run(async s => {
     const mine = await s.roomId(s.council.councilId, 'all')
     const theirs = await s.roomId(s.other.councilId, 'all')
     const president = s.person.president.memberId
-    const own = await s.noticePhoto(s.council.councilId, mine, president, SAME_TIME)
-    const foreign = await s.noticePhoto(
+    const own = await s.photo(s.council.councilId, mine, president, SAME_TIME)
+    const foreign = await s.photo(
       s.other.councilId,
       theirs,
       s.other.people.president.memberId,
@@ -194,6 +187,12 @@ test(
     const result = await s.listed('s-president')
     assert.deepEqual(ids(result), [own.id])
     assert.deepEqual(ids(await s.listed('o-president', s.otherBase)), [foreign.id])
+    // 그 방에 늦게 들어온 것으로 두면 같은 기수 규칙으로만 닿는다. 그래도 학생회 거르기가 막는다.
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-12-01T00:00:00Z' WHERE room_id = $1 AND member_id = $2`,
+      [theirs, president],
+    )
+    assert.deepEqual(ids(await s.listed('s-president')), [own.id])
   }),
 )
 
@@ -254,7 +253,7 @@ test(
         kind: 'message',
         councilId,
         actor: head,
-        values: { roomId: planning, body: '', sentAt: new Date(SAME_TIME), isNotice: false },
+        values: { roomId: planning, body: '', sentAt: new Date(SAME_TIME) },
       })
       const ids: string[] = []
       for (const index of [1, 2, 3])

@@ -42,7 +42,6 @@ const cells: [Action, Actor, Actor][] = [
   ['member.manage', vicePresident, planningViceHead],
   ['rank.manage', vicePresident, planningHead],
   ['president.transfer', president, vicePresident],
-  ['chat.notice', vicePresident, planningHead],
   ['chat.direct', plain, plain],
 ]
 for (const [action, allowed, denied] of cells) {

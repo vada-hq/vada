@@ -8,14 +8,13 @@ import { cn } from '@/lib/utils'
 import type { Team } from '../team/useTeam'
 import DirectDialog from './DirectDialog'
 import { roomToShow, saveRoom, savedRoom } from './last-room'
-import NoticePage from './NoticePage'
 import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
 import type { RoomList as RoomListHook } from './useRoomList'
 import { useSplit } from '@/lib/use-split'
 
-export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string } | { kind: 'notices' }
+export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string }
 
 type Props = {
   councilId: string
@@ -46,7 +45,7 @@ function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
 }
 
 // 방 목록과 1:1 열기. 권한을 잃으면 대화상자를 닫고 이유를 목록 위에 보인다.
-function ListScreen(props: Props & { activeRoomId: string | null; noticesActive: boolean }) {
+function ListScreen(props: Props & { activeRoomId: string | null }) {
   const { councilId, view, team, rooms, onForbidden, onScreen } = props
   const [directOpen, setDirectOpen] = useState(false)
   const [note, setNote] = useState<string | null>(null)
@@ -56,15 +55,11 @@ function ListScreen(props: Props & { activeRoomId: string | null; noticesActive:
   return (
     <>
       <RoomList
-        councilId={councilId}
-        meId={view.me.memberId}
         data={state.data}
         note={note}
         activeRoomId={props.activeRoomId}
-        noticesActive={props.noticesActive}
         canDirect={canDirect}
         onOpenRoom={roomId => onScreen({ kind: 'room', roomId })}
-        onOpenNotices={() => onScreen({ kind: 'notices' })}
         onDirect={() => {
           setNote(null)
           setDirectOpen(true)
@@ -92,17 +87,7 @@ function ListScreen(props: Props & { activeRoomId: string | null; noticesActive:
 }
 
 // 방 하나. 뒤로 가기가 없으면(PC 두 칸) 목록이 옆에 늘 보인다.
-function Room({
-  page,
-  roomId,
-  onBack,
-  onScreen,
-}: {
-  page: PageProps
-  roomId: string
-  onBack?: () => void
-  onScreen: (screen: Screen) => void
-}) {
+function Room({ page, roomId, onBack }: { page: PageProps; roomId: string; onBack?: () => void }) {
   const { view } = page
   return (
     <RoomView
@@ -110,7 +95,6 @@ function Room({
       roomId={roomId}
       meId={view.me.memberId}
       rooms={page.rooms}
-      canMarkNotice={view.permissions.includes('chat.notice')}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
         canAssign: view.permissions.includes('finance.manage'),
@@ -119,56 +103,43 @@ function Room({
       }}
       canWriteExpense={view.permissions.includes('finance.manage')}
       onBack={onBack}
-      onOpenNotices={() => onScreen({ kind: 'notices' })}
       onForbidden={page.onForbidden}
     />
   )
 }
 
-// PC 두 칸: 왼쪽 방 목록은 늘 보이고 오른쪽에 방이나 공지 모아 보기를 연다(Slack·Teams·NAVER WORKS PC).
+// PC 두 칸: 왼쪽 방 목록은 늘 보이고 오른쪽에 방을 연다(Slack·Teams·NAVER WORKS PC).
 // 고른 방이 없으면 마지막에 연 방을 연다. 대화를 누른 목적은 방 고르기가 아니라 대화를 이어 가기다.
 function Split({
   page,
   screen,
   saved,
   onScreen,
-  onBack,
 }: {
   page: PageProps
   screen: Screen
   saved: string | null
   onScreen: (screen: Screen) => void
-  onBack: () => void
 }) {
   const ready = page.rooms.state.kind === 'ready' ? page.rooms.state.data : null
   const roomId = screen.kind === 'room' ? screen.roomId : ready ? roomToShow(ready, saved) : null
-  const notices = screen.kind === 'notices'
   return (
     <div className={cn(pageWidthClass, 'flex h-full gap-6')}>
       <div className="w-64 shrink-0 overflow-y-auto">
-        <ListScreen
-          {...page}
-          activeRoomId={notices ? null : roomId}
-          noticesActive={notices}
-          onScreen={onScreen}
-        />
+        <ListScreen {...page} activeRoomId={roomId} onScreen={onScreen} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        {notices ? (
-          <NoticePage councilId={page.councilId} onBack={onBack} onForbidden={page.onForbidden} />
-        ) : (
-          roomId && (
-            <RoomGate rooms={page.rooms} roomId={roomId} onList={() => onScreen({ kind: 'list' })}>
-              <Room key={roomId} page={page} roomId={roomId} onScreen={onScreen} />
-            </RoomGate>
-          )
+        {roomId && (
+          <RoomGate rooms={page.rooms} roomId={roomId} onList={() => onScreen({ kind: 'list' })}>
+            <Room key={roomId} page={page} roomId={roomId} />
+          </RoomGate>
         )}
       </div>
     </div>
   )
 }
 
-// 대화: 휴대폰은 방 목록 → 방, PC는 목록과 방을 나란히. 공지 모아 보기는 둘 다 방 자리에 연다.
+// 대화: 휴대폰은 방 목록 → 방, PC는 목록과 방을 나란히.
 // 어느 화면인지는 부르는 쪽(주소)이 정하고, 뒤로는 들어온 곳으로 가는 동작을 받는다.
 export default function ChatPage({
   screen,
@@ -187,8 +158,7 @@ export default function ChatPage({
     setSaved(openedRoom)
   }, [councilId, openedRoom])
   const page = { ...props, onScreen }
-  if (split)
-    return <Split page={props} screen={screen} saved={saved} onScreen={onScreen} onBack={onBack} />
+  if (split) return <Split page={props} screen={screen} saved={saved} onScreen={onScreen} />
   if (screen.kind === 'room')
     return (
       <RoomGate
@@ -196,16 +166,8 @@ export default function ChatPage({
         roomId={screen.roomId}
         onList={() => onScreen({ kind: 'list' })}
       >
-        <Room
-          key={screen.roomId}
-          page={props}
-          roomId={screen.roomId}
-          onBack={onBack}
-          onScreen={onScreen}
-        />
+        <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={onBack} />
       </RoomGate>
     )
-  if (screen.kind === 'notices')
-    return <NoticePage councilId={councilId} onBack={onBack} onForbidden={props.onForbidden} />
-  return <ListScreen {...page} activeRoomId={null} noticesActive={false} />
+  return <ListScreen {...page} activeRoomId={null} />
 }

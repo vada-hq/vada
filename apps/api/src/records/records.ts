@@ -126,7 +126,7 @@ const writeTaskStatus: StatusWriter = (tx, { taskId, status, cause }) =>
 
 // 기록 하나와 하위 행 하나, 판 1을 함께 만들고 식별자를 돌려준다. actor는 만든 사람이고, 신청자나 시스템이면 null이다.
 // taskId가 있으면 결과물과 업무를 같은 거래에서 잇고, 그때 오른 단계로 업무 상태를 옮긴다(결과물 종류만, 기능 015).
-// 결과물 단계를 올릴 수 있는 쓰기(요청, 품목, 결재, 결제 내역, 공지 표시)는 끝에서 이어진 업무를 다시 센다. 그 밖의 쓰기는 아무것도 하지 않는다.
+// 결과물 단계를 올릴 수 있는 쓰기(요청, 품목, 결재, 결제 내역)는 끝에서 이어진 업무를 다시 센다. 그 밖의 쓰기는 아무것도 하지 않는다.
 export async function createRecord<K extends RecordKind>(
   tx: Tx,
   {

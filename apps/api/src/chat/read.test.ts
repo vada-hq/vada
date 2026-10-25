@@ -1,11 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type {
-  MessagePageResponse,
-  NoticeListResponse,
-  RoomDetailResponse,
-  RoomListResponse,
-} from '@vada/contracts'
+import type { MessagePageResponse, RoomDetailResponse, RoomListResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { roomMembership } from '../db/schema.js'
 import { createTestDb } from '../db/test-db.js'
@@ -47,24 +42,15 @@ async function start() {
         [councilId, which],
       )
     ).rows[0]!.id
-  const post = (
-    room: string,
-    sender: string,
-    body: string,
-    values: { sentAt: Date; isNotice: boolean },
-  ) =>
+  const send = (room: string, sender: string, body: string, at: string) =>
     db.transaction(tx =>
       createRecord(tx, {
         kind: 'message',
         councilId: council.councilId,
         actor: sender,
-        values: { roomId: room, body, ...values },
+        values: { roomId: room, body, sentAt: new Date(at) },
       }),
     )
-  const send = (room: string, sender: string, body: string, at: string) =>
-    post(room, sender, body, { sentAt: new Date(at), isNotice: false })
-  const notice = (room: string, sender: string, body: string, at: string) =>
-    post(room, sender, body, { sentAt: new Date(at), isNotice: true })
   // 1:1 방. 두 사람이 참여하고 학생회의 기록이다.
   const direct = (a: string, b: string) =>
     db.transaction(async tx => {
@@ -90,7 +76,6 @@ async function start() {
     list,
     roomId,
     send,
-    notice,
     direct,
     person: council.people,
   }
@@ -119,7 +104,6 @@ test(
       `${s.base}/rooms`,
       `${s.base}/rooms/${all}`,
       `${s.base}/rooms/${all}/messages`,
-      `${s.base}/notices`,
     ])
       assert.equal((await s.api.get(path)).status, 401, path)
     assert.equal(
@@ -139,7 +123,6 @@ test(
         `${s.base}/rooms`,
         `${s.base}/rooms/${all}`,
         `${s.base}/rooms/${all}/messages`,
-        `${s.base}/notices`,
       ])
         assert.equal((await s.api.get(path, user)).status, 403, `${user} ${path}`)
     const wrong = await s.api.get('/api/organizations/not-a-uuid/rooms', 's-president')
@@ -222,7 +205,8 @@ test(
     const lead = await s.roomId(s.council.councilId, 'leadership')
     const lee = s.person.vicePresident.memberId
     const kim = s.person.president.memberId
-    await s.send(all, lee, '들어오기 전', '2026-02-28T23:59:59Z')
+    // 회장단방은 공지방이 아니라 들어오기 전 메시지를 세지 않는다.
+    await s.send(lead, lee, '들어오기 전', '2026-02-28T23:59:59Z')
     const first = await s.send(all, lee, '하나', '2026-03-01T00:00:00Z')
     await s.send(all, lee, '둘', '2026-04-02T00:00:00Z')
     await s.send(all, kim, '내가 보낸 것', '2026-04-03T00:00:00Z')
@@ -245,8 +229,9 @@ test(
     )
     assert.equal(byType.all_members!.lastMessageAt, '2026-04-03T00:00:00.000Z')
     assert.deepEqual([result.unreadTotal, result.mentionTotal], [3, 1])
-    // 공지를 올릴 수 있는 방은 서버가 알려 준다(전체방만).
-    assert.deepEqual([byType.all_members!.noticeRoom, byType.leadership!.noticeRoom], [true, false])
+    // 공지 칸과 공지 표시는 없다(DEC-90). 공지방은 방 종류로 안다.
+    assert.equal('notices' in result, false)
+    assert.equal('noticeRoom' in byType.all_members!, false)
   }),
 )
 
@@ -298,21 +283,21 @@ test(
 )
 
 test(
-  '메시지는 들어온 뒤의 것만 오래된 순서로 나온다. 들어온 시각과 같은 메시지는 보인다',
+  '공지방이 아닌 방의 메시지는 들어온 뒤의 것만 오래된 순서로 나온다. 들어온 시각과 같은 메시지는 보인다',
   run(async s => {
-    const all = await s.roomId(s.council.councilId, 'all')
+    const lead = await s.roomId(s.council.councilId, 'leadership')
     const lee = s.person.vicePresident.memberId
-    await s.send(all, lee, '전', '2026-02-28T23:59:59Z')
-    await s.send(all, lee, '같은 시각', JOINED)
-    await s.send(all, lee, '후', '2026-03-01T00:00:01Z')
-    const page = await pageOf(await messagesOf(s, all))
+    await s.send(lead, lee, '전', '2026-02-28T23:59:59Z')
+    await s.send(lead, lee, '같은 시각', JOINED)
+    await s.send(lead, lee, '후', '2026-03-01T00:00:01Z')
+    const page = await pageOf(await messagesOf(s, lead))
     assert.deepEqual(bodies(page), ['같은 시각', '후'])
     assert.deepEqual([page.hasOlder, page.hasNewer], [false, false])
     assert.deepEqual(
       [page.messages[0]!.senderName, page.messages[0]!.senderId],
       ['s vicePresident', lee],
     )
-    assert.equal((await messagesOf(s, all)).headers.get('Cache-Control'), 'no-store')
+    assert.equal((await messagesOf(s, lead)).headers.get('Cache-Control'), 'no-store')
   }),
 )
 
@@ -370,16 +355,16 @@ test(
     const all = await s.roomId(s.council.councilId, 'all')
     const lead = await s.roomId(s.council.councilId, 'leadership')
     const lee = s.person.vicePresident.memberId
-    const early = await s.send(all, lee, '전', '2026-02-28T23:59:59Z')
-    const elsewhere = await s.send(lead, lee, '다른 방', '2026-04-01T00:00:00Z')
+    const early = await s.send(lead, lee, '전', '2026-02-28T23:59:59Z')
+    const elsewhere = await s.send(all, lee, '다른 방', '2026-04-01T00:00:00Z')
     for (const cursor of [early, elsewhere, MISSING, 'abc'])
       for (const key of ['before', 'after']) {
-        const response = await messagesOf(s, all, `?${key}=${cursor}`)
+        const response = await messagesOf(s, lead, `?${key}=${cursor}`)
         assert.equal(response.status, 400, `${key} ${cursor}`)
         assert.deepEqual(await response.json(), { error: 'INVALID_CURSOR' })
       }
     for (const query of [`?before=${early}&after=${early}`, '?x=1', '?before=']) {
-      const response = await messagesOf(s, all, query)
+      const response = await messagesOf(s, lead, query)
       assert.equal(response.status, 400, query)
       assert.deepEqual(await response.json(), { error: 'INVALID_INPUT' })
     }
@@ -387,12 +372,10 @@ test(
 )
 
 test(
-  '같은 기수의 공지는 들어오기 전 것도 공지 목록과 방 목록에 나오고 흐름에는 끼지 않는다. 기수 경계는 한국 날짜로 ±1초다',
+  '공지방 흐름과 안 읽은 수에는 같은 기수의 들어오기 전 메시지도 든다. 다른 기수 것은 없고 기수 경계는 한국 날짜로 ±1초다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
-    const lead = await s.roomId(s.council.councilId, 'leadership')
     const kim = s.person.president.memberId
-    const notice = (body: string, at: string) => s.notice(all, kim, body, at)
     // 다음 기수는 한국 2027-01-01에 시작한다(아직 시작 전이라 지금 기수는 기본 기수다).
     await s.db.transaction(tx =>
       createRecord(tx, {
@@ -402,43 +385,69 @@ test(
         values: { name: '2027', startsOn: '2027-01-01', endsOn: '2027-12-31' },
       }),
     )
-    await notice('지난 기수 끝', '2025-12-31T14:59:59Z')
-    await notice('기수 첫 순간', '2025-12-31T15:00:00Z')
-    await notice('봄', '2026-04-01T00:00:00Z')
-    await notice('여름', '2026-06-01T00:00:00Z')
-    await notice('기수 끝 순간', '2026-12-31T14:59:59Z')
-    await notice('다음 기수 첫 순간', '2026-12-31T15:00:00Z')
-    await s.send(all, kim, '공지 아님', '2026-05-01T00:00:00Z')
-    await s.notice(lead, kim, '회장단방 공지 표시', '2026-05-02T00:00:00Z')
-    const response = await s.api.get(`${s.base}/notices`, 's-planningMember')
-    assert.equal(response.headers.get('Cache-Control'), 'no-store')
-    const notices = ((await response.json()) as NoticeListResponse).notices
-    assert.deepEqual(
-      notices.map(item => item.body),
-      ['기수 끝 순간', '여름', '봄', '기수 첫 순간'],
-    )
-    assert.equal(notices[0]!.senderName, 's president')
-    assert.ok(notices.every(item => item.isNotice))
-    const listed = await s.list('s-planningMember')
-    assert.deepEqual(
-      listed.notices.map(item => item.body),
-      ['기수 끝 순간', '여름', '봄'],
-    )
-    // 흐름은 들어온 뒤의 것만이다(들어온 날은 2026-03-01).
-    const flow = bodies(await pageOf(await messagesOf(s, all, '', 's-planningMember')))
-    assert.deepEqual(flow, ['봄', '공지 아님', '여름', '기수 끝 순간', '다음 기수 첫 순간'])
+    // 기획부원은 2026-03-01에 들어왔다. 그 앞의 것은 들어오기 전이다.
+    const hidden = await s.send(all, kim, '지난 기수 끝', '2025-12-31T14:59:59Z')
+    const first = await s.send(all, kim, '기수 첫 순간', '2025-12-31T15:00:00Z')
+    await s.send(all, kim, '봄 공지', '2026-02-01T00:00:00Z')
+    await s.send(all, kim, '들어온 뒤', '2026-04-01T00:00:00Z')
+    await s.send(all, kim, '다음 기수 첫 순간', '2026-12-31T15:00:00Z')
+    const flow = await pageOf(await messagesOf(s, all, '', 's-planningMember'))
+    assert.deepEqual(bodies(flow), ['기수 첫 순간', '봄 공지', '들어온 뒤', '다음 기수 첫 순간'])
+    assert.equal(flow.hasOlder, false)
+    const room = (await s.list('s-planningMember')).rooms.find(item => item.id === all)!
+    assert.deepEqual([room.unread, room.lastMessageAt], [4, '2026-12-31T15:00:00.000Z'])
+    // 커서와 읽음도 보이는 메시지면 된다. 지난 기수 메시지는 들어오기 전 것처럼 막힌다.
+    const older = await messagesOf(s, all, `?before=${first}`, 's-planningMember')
+    assert.deepEqual(bodies(await pageOf(older)), [])
+    assert.equal((await readUpTo(s, all, first, 's-planningMember')).status, 204)
+    const past = await messagesOf(s, all, `?after=${hidden}`, 's-planningMember')
+    assert.equal(past.status, 400)
+    assert.equal((await readUpTo(s, all, hidden, 's-planningMember')).status, 404)
+    const after = (await s.list('s-planningMember')).rooms.find(item => item.id === all)!
+    assert.equal(after.unread, 3)
   }),
 )
 
 test(
-  '공지의 기수는 보낸 날까지 시작한 가장 늦은 기수다(DEC-57): 끝 날짜 뒤에 보낸 공지도 다음 기수가 시작하기 전까지는 같은 기수 공지다',
+  '부서방·회장단방·1:1은 같은 기수여도 들어오기 전 메시지가 흐름과 안 읽은 수에 없다',
+  run(async s => {
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const lead = await s.roomId(s.council.councilId, 'leadership')
+    const head = s.person.planningHead.memberId
+    const lee = s.person.vicePresident.memberId
+    const direct = await s.direct(head, s.person.planningMember.memberId)
+    await s.send(planning, head, '부서 전', '2026-02-01T00:00:00Z')
+    await s.send(planning, head, '부서 후', '2026-04-01T00:00:00Z')
+    await s.send(lead, lee, '회장단 전', '2026-02-01T00:00:00Z')
+    await s.send(lead, lee, '회장단 후', '2026-04-01T00:00:00Z')
+    await s.send(direct, head, '1:1 전', '2026-02-01T00:00:00Z')
+    await s.send(direct, head, '1:1 후', '2026-04-01T00:00:00Z')
+    const cases: [string, string, string][] = [
+      [planning, 's-planningMember', '부서 후'],
+      [lead, 's-president', '회장단 후'],
+      [direct, 's-planningMember', '1:1 후'],
+    ]
+    for (const [room, user, after] of cases) {
+      assert.deepEqual(bodies(await pageOf(await messagesOf(s, room, '', user))), [after], user)
+      const summary = (await s.list(user)).rooms.find(item => item.id === room)!
+      assert.equal(summary.unread, 1, user)
+    }
+  }),
+)
+
+test(
+  '공지방 메시지의 기수는 보낸 날까지 시작한 가장 늦은 기수다(DEC-57): 끝 날짜 뒤에 보낸 것도 다음 기수가 시작하기 전까지는 같은 기수다',
   run(async s => {
     const all = await s.roomId(s.council.councilId, 'all')
     const kim = s.person.president.memberId
+    // 기획부원이 아주 늦게 들어왔다고 둬서 모든 메시지가 들어오기 전 것이 되게 한다.
+    await s.pg.query(`UPDATE room_membership SET joined_at = '2028-01-01' WHERE member_id = $1`, [
+      s.person.planningMember.memberId,
+    ])
     // 기본 기수(2026-01-01~2026-12-31)의 끝 날짜 뒤, 한국 2027-01-01 00:00과 2027-03-01 00:00
-    await s.notice(all, kim, '끝 날짜 뒤', '2026-12-31T15:00:00Z')
-    await s.notice(all, kim, '다음 기수 첫 순간', '2027-02-28T15:00:00Z')
-    // 다른 학생회의 기수는 이 학생회 공지의 기수를 정하지 않는다.
+    await s.send(all, kim, '끝 날짜 뒤', '2026-12-31T15:00:00Z')
+    await s.send(all, kim, '다음 기수 첫 순간', '2027-02-28T15:00:00Z')
+    // 다른 학생회의 기수는 이 학생회 메시지의 기수를 정하지 않는다.
     await s.db.transaction(tx =>
       createRecord(tx, {
         kind: 'cohort',
@@ -447,14 +456,10 @@ test(
         values: { name: '다른 2027', startsOn: '2027-01-01', endsOn: '2027-12-31' },
       }),
     )
-    const noticesNow = async () =>
-      (
-        (await (
-          await s.api.get(`${s.base}/notices`, 's-planningMember')
-        ).json()) as NoticeListResponse
-      ).notices.map(item => item.body)
-    assert.deepEqual(await noticesNow(), ['다음 기수 첫 순간', '끝 날짜 뒤'])
-    // 다음 기수(한국 2027-03-01 시작)가 생기면 그날부터 보낸 공지는 다음 기수 것이다.
+    const flowNow = async () =>
+      bodies(await pageOf(await messagesOf(s, all, '', 's-planningMember')))
+    assert.deepEqual(await flowNow(), ['끝 날짜 뒤', '다음 기수 첫 순간'])
+    // 다음 기수(한국 2027-03-01 시작)가 생기면 그날부터 보낸 메시지는 다음 기수 것이다.
     await s.db.transaction(tx =>
       createRecord(tx, {
         kind: 'cohort',
@@ -463,7 +468,7 @@ test(
         values: { name: '2027', startsOn: '2027-03-01', endsOn: '2028-02-29' },
       }),
     )
-    assert.deepEqual(await noticesNow(), ['끝 날짜 뒤'])
+    assert.deepEqual(await flowNow(), ['끝 날짜 뒤'])
   }),
 )
 
@@ -505,17 +510,17 @@ test(
     const all = await s.roomId(s.council.councilId, 'all')
     const lead = await s.roomId(s.council.councilId, 'leadership')
     const lee = s.person.vicePresident.memberId
-    const early = await s.send(all, lee, '전', '2026-02-28T23:59:59Z')
-    const elsewhere = await s.send(lead, lee, '다른 방', '2026-04-01T00:00:00Z')
+    const early = await s.send(lead, lee, '전', '2026-02-28T23:59:59Z')
+    const elsewhere = await s.send(all, lee, '다른 방', '2026-04-01T00:00:00Z')
     for (const messageId of [early, elsewhere, MISSING])
-      assert.equal((await readUpTo(s, all, messageId)).status, 404, messageId)
+      assert.equal((await readUpTo(s, lead, messageId)).status, 404, messageId)
     for (const body of [{}, { messageId: 'abc' }, { messageId: early, extra: 1 }]) {
-      const response = await s.api.post(`${s.base}/rooms/${all}/read`, body, 's-president')
+      const response = await s.api.post(`${s.base}/rooms/${lead}/read`, body, 's-president')
       assert.equal(response.status, 400, JSON.stringify(body))
     }
     const stored = await s.pg.query(
       `SELECT last_read_at FROM room_membership WHERE room_id = $1 AND member_id = $2`,
-      [all, s.person.president.memberId],
+      [lead, s.person.president.memberId],
     )
     assert.equal((stored.rows[0] as { last_read_at: unknown }).last_read_at, null)
   }),
@@ -567,48 +572,6 @@ async function eventRoom(s: Pick<Setup, 'pg'>, councilId: string) {
   ])
   return room
 }
-const noticesBodies = async (s: Setup, user: string) =>
-  ((await (await s.api.get(`${s.base}/notices`, user)).json()) as NoticeListResponse).notices.map(
-    item => item.body,
-  )
-
-test(
-  '다른 학생회의 공지는 기간이 겹쳐도 공지 목록과 방 목록에 나오지 않는다',
-  run(async s => {
-    await s.api.get(`/api/organizations/${s.other.councilId}/rooms`, 'o-president')
-    const foreign = await s.roomId(s.other.councilId, 'all')
-    await s.db.transaction(tx =>
-      createRecord(tx, {
-        kind: 'message',
-        councilId: s.other.councilId,
-        actor: s.other.people.president.memberId,
-        values: {
-          roomId: foreign,
-          body: '남의 공지',
-          sentAt: new Date('2026-04-01T00:00:00Z'),
-          isNotice: true,
-        },
-      }),
-    )
-    const all = await s.roomId(s.council.councilId, 'all')
-    await s.notice(all, s.person.president.memberId, '우리 공지', '2026-04-02T00:00:00Z')
-    assert.deepEqual(await noticesBodies(s, 's-plain'), ['우리 공지'])
-    assert.deepEqual(
-      (await s.list('s-plain')).notices.map(item => item.body),
-      ['우리 공지'],
-    )
-  }),
-)
-
-test(
-  '행사방에 붙은 공지는 공지 목록과 방 목록에 나오지 않는다',
-  run(async s => {
-    const room = await eventRoom(s, s.council.councilId)
-    await s.notice(room, s.person.president.memberId, '행사방 공지', '2026-04-01T00:00:00Z')
-    assert.deepEqual(await noticesBodies(s, 's-plain'), [])
-    assert.deepEqual((await s.list('s-plain')).notices, [])
-  }),
-)
 
 test('행사방만 있는 학생회도 방 목록을 처음 읽을 때 편성 방이 채워진다', async () => {
   const { pg, db, close } = await createTestDb()
@@ -637,13 +600,13 @@ test('행사방만 있는 학생회도 방 목록을 처음 읽을 때 편성 �
 })
 
 test(
-  '들어오기 전 메시지의 부름은 세지 않고, 들어온 시각과 같은 메시지의 부름은 센다',
+  '공지방이 아닌 방에서 들어오기 전 메시지의 부름은 세지 않고, 들어온 시각과 같은 메시지의 부름은 센다',
   run(async s => {
-    const all = await s.roomId(s.council.councilId, 'all')
+    const lead = await s.roomId(s.council.councilId, 'leadership')
     const kim = s.person.president.memberId
     const lee = s.person.vicePresident.memberId
-    const early = await s.send(all, lee, '전', '2026-02-28T23:59:59Z')
-    const same = await s.send(all, lee, '같은 시각', JOINED)
+    const early = await s.send(lead, lee, '전', '2026-02-28T23:59:59Z')
+    const same = await s.send(lead, lee, '같은 시각', JOINED)
     for (const recordId of [early, same])
       await s.db.transaction(async tx => {
         await createRecord(tx, {
@@ -653,7 +616,7 @@ test(
           values: { recipientId: kim, recordId, type: 'mention', notifiedAt: new Date(now) },
         })
       })
-    const room = (await s.list()).rooms.find(item => item.id === all)!
+    const room = (await s.list()).rooms.find(item => item.id === lead)!
     assert.deepEqual([room.unread, room.mentions], [1, 1])
   }),
 )

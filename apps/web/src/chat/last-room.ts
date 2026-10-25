@@ -20,7 +20,7 @@ export function saveRoom(councilId: string, roomId: string) {
   }
 }
 
-// 열어 둘 방: 기억한 방이 아직 목록에 있으면 그 방, 아니면 1:1이 아닌 첫 방(서버 순서상 전체방).
+// 열어 둘 방: 기억한 방이 아직 목록에 있으면 그 방, 아니면 1:1이 아닌 첫 방(서버 순서상 공지방).
 export function roomToShow(data: RoomListResponse, saved: string | null): string | null {
   const rooms = data.rooms
   if (saved !== null && rooms.some(room => room.id === saved)) return saved

@@ -137,17 +137,14 @@ test('403이면 창을 닫고 이유를 부모에게 넘긴다', async () => {
   expect(handlers.onForbidden).toHaveBeenCalled()
 })
 
-test('공지 만들기는 전체방에 notice와 taskId를 보낸다. 내용이 비면 보내지 않는다', async () => {
+test('공지 만들기는 공지방에 보통 메시지로 taskId를 보낸다. 내용이 비면 보내지 않는다', async () => {
   const { api } = setup(detail({ canMake: ['message'] }))
   api.on('GET', `${BASE}/rooms`, () =>
     json({
       rooms: [
-        { id: 'x', type: 'leadership', noticeRoom: false },
-        // 종류가 전체방이어도 서버가 공지 방이 아니라고 하면 고르지 않는다.
-        { id: 'y', type: 'all_members', noticeRoom: false },
-        { id: ROOM_ID, type: 'all_members', noticeRoom: true },
+        { id: 'x', type: 'leadership' },
+        { id: ROOM_ID, type: 'all_members' },
       ],
-      notices: [],
       unreadTotal: 0,
       mentionTotal: 0,
     }),
@@ -166,7 +163,6 @@ test('공지 만들기는 전체방에 notice와 taskId를 보낸다. 내용이 
   })
   expect(api.calls.find(call => call.method === 'POST')!.body).toEqual({
     body: '내일 총회',
-    notice: true,
     taskId: TASK_ID,
   })
 })
@@ -206,8 +202,7 @@ test('공지 보내기가 404이면 업무가 아니라 방을 잃었다고 알�
   const { api, handlers } = setup(detail({ canMake: ['message'] }))
   api.on('GET', `${BASE}/rooms`, () =>
     json({
-      rooms: [{ id: ROOM_ID, type: 'all_members', noticeRoom: true }],
-      notices: [],
+      rooms: [{ id: ROOM_ID, type: 'all_members' }],
       unreadTotal: 0,
       mentionTotal: 0,
     }),

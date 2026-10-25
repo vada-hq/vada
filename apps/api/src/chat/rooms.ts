@@ -12,7 +12,7 @@ import type { Db, Tx } from '../db/types.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { isPlanRoom } from './plan-room.js'
 
-// 방 참여는 편성을 따른다(DEC-18, DEC-28): 전체방은 모든 운영진, 회장단방은 회장과 부회장, 부서방은 그 부서원.
+// 방 참여는 편성을 따른다(DEC-18, DEC-28): 공지방(all_members)은 모든 운영진, 회장단방은 회장과 부회장, 부서방은 그 부서원.
 // 편성이 바뀌는 거래가 끝나기 전에 부른다. 지금 편성에서 있어야 할 참여를 계산해 방과 줄을 맞춘다.
 // 두 번 불러도 결과가 같다. 이미 있는 줄은 건드리지 않아 들어온 시각이 그대로다(DEC-20). 방은 지우지 않고 빠진 사람의 줄만 지운다.
 // 1:1과 행사방, 부서 간 방은 편성이 아니라 사람이 정하므로 건드리지 않는다.

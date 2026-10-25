@@ -1,24 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import {
-  LEADER_PERMISSIONS,
-  MEMBER_PERMISSIONS,
-  PRESIDENT_PERMISSIONS,
-  teamResponse,
-} from '@/test-support/council-fixtures'
-import {
-  messagePage,
-  message,
-  notice,
-  room,
-  roomDetail,
-  roomList,
-} from '@/test-support/chat-fixtures'
-import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
-import { asElement } from '@/test-support/elements'
+import { PRESIDENT_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
+import { messagePage, message, room, roomDetail, roomList } from '@/test-support/chat-fixtures'
+import { json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
-import { PERMISSION_CHANGED } from '@/lib/messages'
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 
 afterEach(() => {
@@ -35,29 +21,22 @@ const serve = serveChat
 const openAll = openAllRoom
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('방 줄은 이름, 마지막 시각, 안 읽은 수, 나를 부름, 보기만을 보이고 맨 위에 공지 칸이 있다', async () => {
+test('방 줄은 이름, 마지막 시각, 안 읽은 수, 나를 부름, 보기만을 보이고 공지 칸은 없다(DEC-90)', async () => {
   serve()
   render(<Harness />)
-  const all = await screen.findByRole('button', { name: /운영진 전체방/ })
+  const all = await screen.findByRole('button', { name: /공지방/ })
   expect(all.textContent).toContain('2020년 3월 2일')
   expect(within(all).getByLabelText('안 읽은 메시지 3개').textContent).toBe('3')
   expect(within(all).getByLabelText('나를 부른 메시지 1개')).toBeTruthy()
   expect(screen.getByRole('button', { name: /회장단방/ }).textContent).not.toContain('2020')
   expect(screen.getByRole('button', { name: /박새내/ }).textContent).toContain('보기만')
-  const notices = screen.getByRole('button', { name: /^공지/ })
-  expect(within(notices).getByLabelText('새 공지 1개').textContent).toBe('1')
-  expect(screen.queryByText('10월 정기 회의는 금요일입니다')).toBeNull()
+  const list = screen.getByRole('list', { name: '대화방' })
+  expect(
+    within(list)
+      .getAllByRole('button')
+      .map(item => item.textContent?.slice(0, 3)),
+  ).toEqual(['공지방', '회장단', '재정부'])
   expect(screen.getByRole('region', { name: '1:1 대화' }).textContent).toContain('박새내')
-})
-
-test('내가 쓴 공지는 새 공지로 세지 않는다', async () => {
-  const api = serve()
-  api.on('GET', `${base}/rooms`, () =>
-    json(roomList({ notices: [message('n1', '내 공지', { senderId: 'm1', isNotice: true })] })),
-  )
-  render(<Harness />)
-  const notices = await screen.findByRole('button', { name: /^공지/ })
-  expect(within(notices).queryByLabelText(/새 공지/)).toBeNull()
 })
 
 test('안 읽은 수가 99를 넘으면 99+다', async () => {
@@ -69,15 +48,15 @@ test('안 읽은 수가 99를 넘으면 99+다', async () => {
   expect((await screen.findByLabelText('안 읽은 메시지 150개')).textContent).toBe('99+')
 })
 
-test('방을 열면 메시지를 보이고 마지막 메시지까지 읽음을 보낸다. 전체방 위에 공지 띠가 있다', async () => {
+test('방을 열면 메시지를 보이고 마지막 메시지까지 읽음을 보낸다. 공지방 위에 띠가 없다', async () => {
   const api = serve()
   render(<Harness />)
   await openAll()
   expect(await screen.findByText('모레 회의 있어요')).toBeTruthy()
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]?.body).toEqual({ messageId: 'a2' })
-  expect(screen.getByText('10월 정기 회의는 금요일입니다')).toBeTruthy()
-  expect(screen.getByRole('button', { name: '모아 보기' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '공지방' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '모아 보기' })).toBeNull()
 })
 
 test('새 메시지는 3초 뒤 나타나고 읽음을 다시 보내며, 화면이 숨으면 읽지 않는다', async () => {
@@ -153,23 +132,6 @@ test('보는 중에 방을 잃으면(403) 흐름을 비운다', async () => {
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
 })
 
-test('공지 칸은 공지 목록을 읽어 보이고, 보고 나면 새 공지 수와 전체방 띠가 사라진다', async () => {
-  const api = serve()
-  api.on('GET', `${base}/notices`, () =>
-    json({ notices: [notice('n1', '첫 공지'), notice('n0', '지난 공지', '2020-02-01T01:00:00Z')] }),
-  )
-  render(<Harness />)
-  fireEvent.click(await screen.findByRole('button', { name: /^공지/ }))
-  expect(await screen.findByText('지난 공지')).toBeTruthy()
-  expect(screen.getByText('첫 공지')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
-  const notices = await screen.findByRole('button', { name: /^공지/ })
-  expect(within(notices).queryByLabelText(/새 공지/)).toBeNull()
-  await openAll()
-  await screen.findByText('모레 회의 있어요')
-  expect(screen.queryByText(/새 공지/)).toBeNull()
-})
-
 // 목록과 방을 나란히 둘 만큼 넓은 화면(PC)
 const wide = () =>
   vi.stubGlobal('matchMedia', (query: string) => ({
@@ -190,7 +152,7 @@ test('PC 폭에서는 목록 옆에 첫 방을 열고, 고른 방을 기억해 �
   api.on('POST', `${base}/rooms/r3/read`, () => new Response(null, { status: 204 }))
   render(<Harness />)
   expect(await screen.findByText('모레 회의 있어요')).toBeTruthy()
-  const all = screen.getByRole('button', { name: /운영진 전체방/ })
+  const all = screen.getByRole('button', { name: /공지방/ })
   expect(all.getAttribute('aria-current')).toBe('true')
   expect(screen.queryByRole('button', { name: '대화방 목록' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: /재정부/ }))
@@ -201,49 +163,17 @@ test('PC 폭에서는 목록 옆에 첫 방을 열고, 고른 방을 기억해 �
   expect(screen.getByRole('button', { name: /재정부/ }).getAttribute('aria-current')).toBe('true')
 })
 
-test('공지 메뉴는 회장단에게만 보이고, 붙이면 공지 표시와 요청이 남는다', async () => {
-  const api = serve()
-  api.on('POST', `${base}/messages/a2/notice`, () => json({}))
-  const view = render(<Harness permissions={MEMBER_PERMISSIONS} />)
+test('메시지 메뉴에 공지 표시 항목이 없다(회장단도, DEC-90)', async () => {
+  serve()
+  render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
   await openAll()
   await screen.findByText('모레 회의 있어요')
   fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
     key: 'Enter',
   })
   await screen.findByRole('menuitem', { name: '구매 요청 만들기' })
-  expect(screen.queryByRole('menuitem', { name: '공지로 표시' })).toBeNull()
-  view.unmount()
-
-  render(<Harness permissions={LEADER_PERMISSIONS} />)
-  await openAll()
-  const buttons = await screen.findAllByRole('button', { name: '메시지 동작' })
-  fireEvent.keyDown(buttons[1] as HTMLElement, { key: 'Enter' })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '공지로 표시' }))
-  await waitFor(() =>
-    expect(posts(api).find(call => call.path.endsWith('/notice'))?.body).toEqual({
-      isNotice: true,
-    }),
-  )
-  await waitFor(() => expect(screen.getAllByText('공지').length).toBeGreaterThan(0))
-})
-
-test('공지 표시가 실패하면 그 메시지 옆에 까닭을 보이고, 진행 중에는 메뉴를 막는다', async () => {
-  const api = serve()
-  const pending = deferredResponse()
-  api.on('POST', `${base}/messages/a1/notice`, () => pending.promise)
-  render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
-  await openAll()
-  const buttons = await screen.findAllByRole('button', { name: '메시지 동작' })
-  fireEvent.keyDown(buttons[0] as HTMLElement, { key: 'Enter' })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '공지로 표시' }))
-  await waitFor(() =>
-    expect(
-      asElement(screen.getAllByRole('button', { name: '메시지 동작' })[0]!, HTMLButtonElement)
-        .disabled,
-    ).toBe(true),
-  )
-  pending.resolve(json({ error: 'X' }, 500))
-  expect(await screen.findByText('공지 표시를 바꾸지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
+  expect(screen.queryByRole('menuitem', { name: /공지/ })).toBeNull()
+  expect(screen.queryByText('공지')).toBeNull()
 })
 
 test('1:1 창을 열면 운영진을 다시 읽어 방금 들어온 사람이 보인다', async () => {
@@ -334,24 +264,6 @@ test('1:1 열기가 409면 대화상자 안에 까닭을 보이고, 403이면 �
   expect(screen.getByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
 })
 
-test('공지 표시가 403이면 학생회를 다시 읽어 공지 메뉴가 사라진다', async () => {
-  const api = serve()
-  api.on('POST', `${base}/messages/a1/notice`, () => json({ error: 'FORBIDDEN' }, 403))
-  render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
-  await openAll()
-  fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
-    key: 'Enter',
-  })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '공지로 표시' }))
-  expect(await screen.findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
-  await waitFor(() => expect(screen.getAllByText(PERMISSION_CHANGED)).toHaveLength(1))
-  fireEvent.keyDown((await screen.findAllByRole('button', { name: '메시지 동작' }))[0]!, {
-    key: 'Enter',
-  })
-  await screen.findByRole('menuitem', { name: '구매 요청 만들기' })
-  expect(screen.queryByRole('menuitem', { name: '공지로 표시' })).toBeNull()
-})
-
 test('방 정보와 메시지 중 하나만 403이어도 방을 잃은 것으로 본다', async () => {
   const api = serve()
   api.on('GET', `${base}/rooms/r1`, () => json({ error: 'FORBIDDEN' }, 403))
@@ -387,7 +299,7 @@ test('방 목록은 15초마다, 열린 방은 3초마다 다시 읽는다', asy
   vi.useFakeTimers({ shouldAdvanceTime: true })
   const api = serve()
   render(<Harness />)
-  await screen.findByRole('button', { name: /운영진 전체방/ })
+  await screen.findByRole('button', { name: /공지방/ })
   const listReads = () => api.calls.filter(call => call.path === `${base}/rooms`).length
   await act(async () => {
     await vi.advanceTimersByTimeAsync(3000 * 4)
