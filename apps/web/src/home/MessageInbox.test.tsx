@@ -37,31 +37,44 @@ const chipNames = (inbox: HTMLElement) =>
 
 const at = (hour: number) => `2026-10-23T${String(hour).padStart(2, '0')}:00:00.000Z`
 
+// 각 묶음 안의 차례가 최근 순이고 안 읽은 수 순이 아님을 가르도록, 두 차례가 다른 자료로 둔다.
 test('안 읽은 1:1을 최근 순으로 먼저, 남은 자리에 다른 방을 최근 순으로, 3개까지 둔다', async () => {
   open(
     roomsOf([
-      room('notice', { unread: 5, lastMessageAt: at(11) }),
+      room('notice', { unread: 5, lastMessageAt: at(10) }),
       room('lead', { type: 'leadership', unread: 0, lastMessageAt: at(12) }),
-      room('plan', { type: 'department', name: '기획부', unread: 2, lastMessageAt: at(10) }),
-      room('kim', { type: 'direct', name: '김민준', unread: 1, lastMessageAt: at(8) }),
-      room('park', { type: 'direct', name: '박새내', unread: 120, lastMessageAt: at(9) }),
+      room('plan', { type: 'department', name: '기획부', unread: 2, lastMessageAt: at(11) }),
+      room('park', { type: 'direct', name: '박새내', unread: 120, lastMessageAt: at(8) }),
+      room('kim', { type: 'direct', name: '김민준', unread: 1, lastMessageAt: at(9) }),
     ]),
   )
   const inbox = await screen.findByRole('region', { name: '메시지함' })
-  expect(chipNames(inbox)).toEqual(['박새내 · 1:1 99+', '김민준 · 1:1 1', '공지방 5', '전체 보기'])
+  expect(chipNames(inbox)).toEqual(['김민준 · 1:1 1', '박새내 · 1:1 99+', '기획부 2', '전체 보기'])
 })
 
-test('부서 간 방도 1:1과 같이 먼저 둔다', async () => {
+test('1:1 다음에 부서 간 방, 그다음 다른 방이다(부서 간 방이 더 최근이어도)', async () => {
   open(
     roomsOf([
       room('notice', { unread: 1, lastMessageAt: at(12) }),
       room('plan', { type: 'department', name: '기획부', unread: 1, lastMessageAt: at(11) }),
-      room('between', { type: 'inter_department', unread: 1, lastMessageAt: at(7) }),
-      room('kim', { type: 'direct', name: '김민준', unread: 1, lastMessageAt: at(8) }),
+      room('between', { type: 'inter_department', unread: 1, lastMessageAt: at(9) }),
+      room('kim', { type: 'direct', name: '김민준', unread: 1, lastMessageAt: at(7) }),
     ]),
   )
   const inbox = await screen.findByRole('region', { name: '메시지함' })
   expect(chipNames(inbox)).toEqual(['김민준 · 1:1 1', '부서 간 대화 1', '공지방 1', '전체 보기'])
+})
+
+test('상대 이름이 없는 1:1은 이름을 겹치지 않는다', async () => {
+  open(roomsOf([room('x', { type: 'direct', name: null, unread: 1 })]))
+  const inbox = await screen.findByRole('region', { name: '메시지함' })
+  expect(chipNames(inbox)).toEqual(['1:1 대화 1', '전체 보기'])
+})
+
+test('칩의 접근 이름은 방 이름과 안 읽은 수의 뜻이다(옆 메뉴 배지와 같은 말)', async () => {
+  open(roomsOf([room('lead', { type: 'leadership', unread: 2 })]))
+  const inbox = await screen.findByRole('region', { name: '메시지함' })
+  expect(within(inbox).getByRole('button', { name: '회장단방, 안 읽은 메시지 2개' })).toBeTruthy()
 })
 
 test('메시지함은 숫자 카드 바로 아래에 있다', async () => {
@@ -76,7 +89,7 @@ test('메시지함은 숫자 카드 바로 아래에 있다', async () => {
 test('칩을 누르면 그 방이 열린 대화 화면, 전체 보기는 대화 방 목록이다', async () => {
   open(roomsOf([room('r9', { type: 'department', name: '기획부', unread: 2 })]))
   const inbox = await screen.findByRole('region', { name: '메시지함' })
-  fireEvent.click(within(inbox).getByRole('button', { name: '기획부 2' }))
+  fireEvent.click(within(inbox).getByRole('button', { name: '기획부, 안 읽은 메시지 2개' }))
   expect(window.location.pathname).toBe('/chat/c1/r9')
   fireEvent.click(within(inbox).getByRole('button', { name: '전체 보기' }))
   expect(window.location.pathname).toBe('/chat/c1')

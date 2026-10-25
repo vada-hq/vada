@@ -105,20 +105,33 @@ test('홈에 공지 부분이 없다', async () => {
   expect(screen.queryByRole('region', { name: '공지' })).toBeNull()
 })
 
-test('홈 메시지함은 옆 메뉴 배지와 같은 대화 목록을 쓰고, 칩을 누르면 그 방이 열린다', async () => {
-  const unread = roomList({
-    rooms: [room(ALL), room(LEAD, { type: 'leadership', unread: 2 })],
-    unreadTotal: 2,
+test('홈 메시지함은 옆 메뉴 배지와 같은 대화 목록을 쓰고, 칩으로 연 방을 읽으면 돌아온 홈에서 칩이 빠진다', async () => {
+  let read = false
+  const roomsNow = () =>
+    roomList({
+      rooms: [room(ALL), room(LEAD, { type: 'leadership', unread: read ? 0 : 2 })],
+      unreadTotal: read ? 0 : 2,
+    })
+  const roomsPath = `/api/organizations/${C1}/rooms`
+  api.on('GET', roomsPath, () => json(roomsNow()))
+  api.on('POST', `${roomsPath}/${LEAD}/read`, () => {
+    read = true
+    return new Response(null, { status: 204 })
   })
-  api.on('GET', `/api/organizations/${C1}/rooms`, () => json(unread))
   window.history.replaceState(null, '', `/home/${C1}`)
   await renderApp()
   const inbox = await screen.findByRole('region', { name: '메시지함' })
   expect(screen.getByLabelText('안 읽은 메시지 2개')).toBeTruthy()
-  expect(api.calls.filter(call => call.path === `/api/organizations/${C1}/rooms`)).toHaveLength(1)
-  fireEvent.click(within(inbox).getByRole('button', { name: '회장단방 2' }))
+  expect(api.calls.filter(call => call.path === roomsPath)).toHaveLength(1)
+  fireEvent.click(within(inbox).getByRole('button', { name: '회장단방, 안 읽은 메시지 2개' }))
   expect(await screen.findByText('회장단 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
+  // 읽음 표시 뒤 목록을 다시 읽는다. 뒤로는 들어온 곳(홈)이다.
+  await waitFor(() => expect(api.calls.filter(call => call.path === roomsPath)).toHaveLength(2))
+  toList()
+  expect(await screen.findByRole('heading', { level: 1, name: '홈', hidden: true })).toBeTruthy()
+  await screen.findByRole('region', { name: '지금 볼 것' })
+  expect(screen.queryByRole('region', { name: '메시지함' })).toBeNull()
 })
 
 test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => {
