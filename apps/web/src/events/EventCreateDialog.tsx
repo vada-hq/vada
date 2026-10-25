@@ -6,6 +6,7 @@ import { emptyEventFields, eventFieldsRequest } from './event-fields'
 import { EventDialogShell } from './EventDialogShell'
 import { EventNameField } from './EventFields'
 import { EventForm } from './EventForm'
+import { announceEventsChanged } from './events-changed'
 import { useEventSubmit, type EventDialogHandlers } from './useEventSubmit'
 
 type Props = EventDialogHandlers & {
@@ -16,8 +17,8 @@ type Props = EventDialogHandlers & {
   onDone: (event: EventDetail) => void
 }
 
-// 행사 만들기(회장단과 부서장, DEC-93). 이름만 받는다.
-export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
+// 행사 만들기(회장단과 부서장, DEC-93). 이름만 받는다. 만들면 옆 메뉴의 행사 줄이 바로 다시 읽는다.
+export function EventCreateDialog({ view, onClose, onDone, ...handlers }: Props) {
   const [saving, setSaving] = useState(false)
   return (
     <EventDialogShell title="새 행사" saving={saving} onClose={onClose}>
@@ -26,6 +27,10 @@ export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
         saving={saving}
         setSaving={setSaving}
         onClose={onClose}
+        onDone={event => {
+          announceEventsChanged()
+          onDone(event)
+        }}
         {...handlers}
       />
     </EventDialogShell>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { appPath, menuPath, parseAppPath } from '@vada/contracts'
+import { appPath, menuPath, parseAppPath, recordPath } from '@vada/contracts'
 import { navigate, useHere } from '@/lib/app-location'
 import type { Opener, Page } from './pages'
 
@@ -14,6 +14,14 @@ export function useWorkspaceNav(returnFocusTo: Opener | null, councilId: string,
   useEffect(() => {
     if (returnFocusTo) (returnFocusTo === 'sidebar' ? councilMenu : headerMenu).current?.focus()
   }, [returnFocusTo])
+  // 옆 메뉴로 가는 곳: 한 칸 쌓는다. 이미 그곳이면 칸을 쌓지 않고 맨 위로만 올린다.
+  const go = (target: string) => {
+    setNavOpen(false)
+    const parsed = parseAppPath(here.path)
+    if (parsed && appPath(parsed) === target) {
+      if (main.current) main.current.scrollTop = 0
+    } else navigate(target)
+  }
   return {
     page,
     navOpen,
@@ -22,14 +30,9 @@ export function useWorkspaceNav(returnFocusTo: Opener | null, councilId: string,
     headerMenu,
     main,
     closeNav: () => setNavOpen(false),
-    // 메뉴를 누르면 그 메뉴 첫 화면으로 한 칸 쌓는다. 이미 첫 화면이면 칸을 쌓지 않고 맨 위로만 올린다.
-    openPage: (next: Page) => {
-      setNavOpen(false)
-      const target = menuPath(next, councilId)
-      const parsed = parseAppPath(here.path)
-      if (parsed && appPath(parsed) === target) {
-        if (main.current) main.current.scrollTop = 0
-      } else navigate(target)
-    },
+    // 메뉴를 누르면 그 메뉴 첫 화면으로 간다.
+    openPage: (next: Page) => go(menuPath(next, councilId)),
+    // '공간'의 행사 줄을 누르면 그 행사의 첫 탭으로 간다.
+    openEvent: (eventId: string) => go(recordPath('events', councilId, eventId)),
   }
 }

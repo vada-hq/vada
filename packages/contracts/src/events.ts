@@ -116,6 +116,22 @@ export interface EventsResponse {
   events: EventSummary[]
   truncated: boolean
 }
+
+// 옆 메뉴 '공간'의 행사 줄 수(DEC-85). 시범 운영에서 함께 준비하는 행사 수를 보고 고친다.
+export const SIDEBAR_EVENT_LIMIT = 5
+// 완료하지 않은 행사의 상태(화면 이름은 DEC-93의 '진행 중'·'기획 중'·'후속 정리 중').
+export type OpenEventStatus = Exclude<EventStatus, 'completed'>
+// 옆 메뉴 행사 줄 하나. 행사 목록과 달리 책임자·일시·장소를 싣지 않는다(PRIN-5).
+export interface SidebarEvent {
+  id: string
+  name: string
+  status: OpenEventStatus
+}
+// 완료하지 않은 행사를 행사 목록과 같은 차례로 SIDEBAR_EVENT_LIMIT개까지. more는 그보다 더 있다는 뜻이다.
+export interface SidebarEventsResponse {
+  events: SidebarEvent[]
+  more: boolean
+}
 export interface EventResponse {
   event: EventDetail
 }
