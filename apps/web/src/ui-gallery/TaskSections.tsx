@@ -97,6 +97,7 @@ const tableLookups = {
     departments: [{ id: 'd1', name: '기획부', role: null, memberCount: 1 }],
   },
   events: [],
+  linkable: [],
 }
 
 // 넓은 화면(lg 이상)의 업무 표. 고르는 칸, 글자 칸(aria-readonly), 보내는 중, 칸 오류, 긴 글.

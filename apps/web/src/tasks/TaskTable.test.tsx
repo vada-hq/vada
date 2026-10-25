@@ -37,11 +37,24 @@ function wide(matches = true) {
   }))
 }
 
+// 재정부(d1) 업무는 e1에, 학생회 업무는 e1·e2에 이을 수 있다.
 function serve(tasks: () => TaskSummary[]) {
   const api = mockApi()
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
-    json({ events: [eventSummary({ id: 'e1' })], truncated: false }),
+    json({
+      events: [eventSummary({ id: 'e1' }), eventSummary({ id: 'e2', name: '체육대회' })],
+      truncated: false,
+    }),
+  )
+  api.on('GET', `${base}/options`, () =>
+    json({
+      departments: [],
+      linkableEvents: [
+        { departmentId: 'd1', eventIds: ['e1'] },
+        { departmentId: null, eventIds: ['e1', 'e2'] },
+      ],
+    }),
   )
   api.on('GET', listPath('mine'), () => list([]))
   api.on('GET', listPath('all'), () => list(tasks()))
@@ -206,6 +219,18 @@ test('부서는 부서 경로로, 행사는 행사 키 하나만 보낸다', asy
       api.calls.find(call => call.method === 'POST' && call.path === `${base}/a`)?.body,
     ).toEqual({ eventId: 'e1' }),
   )
+})
+
+test('표의 행사 칸에는 그 업무 부서로 이을 수 있는 행사만 있다', async () => {
+  wide()
+  serve(() => [task('a'), task('b', { department: null })])
+  await showAll()
+  const options = async (name: string) =>
+    within(await screen.findByRole('combobox', { name }))
+      .getAllByRole('option')
+      .map(option => option.textContent)
+  expect(await options('업무 a 행사')).toEqual(['행사 없음', '신입생 환영회'])
+  expect(await options('업무 b 행사')).toEqual(['행사 없음', '신입생 환영회', '체육대회'])
 })
 
 test('실패는 그 줄 아래 한 줄이고, 계속 쓸 수 있다', async () => {
