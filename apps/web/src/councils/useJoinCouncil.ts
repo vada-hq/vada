@@ -4,13 +4,13 @@ import {
   type InvitePreviewResponse,
   type JoinCouncilRequest,
   type JoinCouncilResponse,
-  type MeProfileResponse,
 } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { JOIN_COUNCIL_ERRORS, JOIN_COUNCIL_FAILED } from '@/lib/messages'
+import { readMyName } from '@/lib/my-name'
 import { useLatest } from '@/lib/use-latest'
 
-// ready의 myName은 로그인에 이어진 운영진의 이름이다. null이면 처음 이어지는 것이라 화면이 이름을 묻는다(DEC-87).
+// ready의 myName은 로그인에 이어진 운영진의 이름이다. null이면(읽지 못했을 때도) 화면이 이름을 묻는다(DEC-87).
 export type JoinView =
   | { kind: 'loading' }
   | { kind: 'invalid' }
@@ -28,9 +28,7 @@ async function readInvite(
   )
   if (!invite.ok) return { kind: invite.status === statusOf('NOT_FOUND') ? 'invalid' : 'failed' }
   if (invite.data.joined) return { kind: 'joined', councilId: invite.data.council.id }
-  const profile = await getJson<MeProfileResponse>('/api/me/profile', signal)
-  if (!profile.ok) return { kind: 'failed' }
-  return { kind: 'ready', council: invite.data.council, myName: profile.data.name }
+  return { kind: 'ready', council: invite.data.council, myName: await readMyName(signal) }
 }
 
 // 초대 링크 화면의 상태와 서버 부르기: 초대 확인, 들어가기. 이미 들어왔으면 묻지 않고 그 학생회를 연다.

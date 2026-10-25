@@ -4,6 +4,7 @@ import {
   koreanYearOf,
   type CouncilUnit,
 } from '@vada/contracts'
+import { myNameErrors } from '@/lib/my-name'
 import { requiredText, withContract, type FieldErrors, type Parsed } from '@/lib/use-form-check'
 import { operatingYearError } from './term'
 
@@ -92,6 +93,6 @@ export function structureErrors(
   draft.departments.forEach((_, index) => {
     rows[`departments.${index}`] = nameError(names[index + 1]!, index + 1)
   })
-  if (askName) rows.memberName = requiredText(draft.memberName, '이름을')
+  if (askName) rows.memberName = myNameErrors(draft.memberName).name
   return pick(withContract(rows, parsed), key => !BASIC_KEYS.has(key))
 }

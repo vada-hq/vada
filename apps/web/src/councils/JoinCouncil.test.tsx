@@ -103,13 +103,10 @@ test('이미 이어진 운영진이면 칸 없이 그 이름을 보이고, 이�
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ code: 'ABCD2345' })
 })
 
-test('내 이름을 확인하지 못하면 다시 시도할 수 있다', async () => {
+test('내 이름을 읽지 못해도 Google 이름이 든 칸을 보인다', async () => {
   const api = mockApi()
   api.on('GET', '/api/invites/ABCD2345', () => json({ council: council(), joined: false }))
-  let calls = 0
-  api.on('GET', '/api/me/profile', () =>
-    calls++ === 0 ? json({ error: 'x' }, 500) : json({ name: null }),
-  )
+  api.on('GET', '/api/me/profile', () => json({ error: 'x' }, 500))
   render(
     <JoinCouncil
       code="ABCD2345"
@@ -119,8 +116,7 @@ test('내 이름을 확인하지 못하면 다시 시도할 수 있다', async (
       onLeave={() => {}}
     />,
   )
-  fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByLabelText('내 이름')).toBeTruthy()
+  expect((await screen.findByLabelText<HTMLInputElement>('내 이름')).value).toBe('김회장')
 })
 
 test('이미 들어온 학생회면 내 이름을 묻지 않고 그 학생회를 연다', async () => {
