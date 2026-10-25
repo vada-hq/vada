@@ -1,8 +1,13 @@
-import { HOME_LIST_LIMIT, type HomeReceived, type HomeSettling } from '@vada/contracts'
+import {
+  HOME_ENDED_LIMIT,
+  HOME_LIST_LIMIT,
+  type HomeReceived,
+  type HomeSettling,
+} from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
 import { requestListOf } from '../purchases/queries.js'
-import { settlingOf } from './settling.js'
+import { settlingOf } from '../settlement/settling.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -20,5 +25,7 @@ export async function financeOf(
     total: pending.requests.length,
     truncated: pending.truncated,
   }
-  return leadership ? { received } : { received, settling: await settlingOf(db, actor, now) }
+  return leadership
+    ? { received }
+    : { received, settling: await settlingOf(db, actor, now, HOME_ENDED_LIMIT) }
 }

@@ -20,6 +20,8 @@ export const councilPath = (councilId: string) =>
 // 기간을 주면 그 기간의 예산, 없으면 오늘이 든 기간의 예산이다.
 export const budgetPath = (councilId: string, periodId?: string) =>
   `${councilPath(councilId)}/budget${periodId ? `?period=${encodeURIComponent(periodId)}` : ''}`
+export const eventSettlementsPath = (councilId: string) =>
+  `${councilPath(councilId)}/event-settlements`
 export const fiscalPeriodsPath = (councilId: string) => `${councilPath(councilId)}/fiscal-periods`
 export const budgetItemsPath = (councilId: string) => `${councilPath(councilId)}/budget-items`
 export const accountsPath = (councilId: string) => `${councilPath(councilId)}/accounts`

@@ -3,6 +3,7 @@ import {
   CancelCompletionSchema,
   CompleteEventSchema,
   type EventResponse,
+  type EventSettlementsResponse,
   type SettlementResponse,
 } from '@vada/contracts'
 import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
@@ -10,6 +11,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import type { Db } from '../db/types.js'
 import { json } from '../http/validate.js'
 import { cancelCompletion, completeEvent } from './complete.js'
+import { eventSettlementsOf } from './event-list.js'
 import { settlementOf } from './queries.js'
 
 const root = '/organizations/:councilId/events/:eventId'
@@ -61,13 +63,23 @@ export function createSettlementRoutes(
   const clock = options.clock ?? (() => new Date())
   const routes = new Hono<SessionEnv>()
   const auth = requireSession(getSession)
+  const reading = (c: Context<SessionEnv>) => ({
+    userId: c.get('userId'),
+    councilId: councilIdOf(c.req.param('councilId')),
+    action: 'council.view' as const,
+    now: clock(),
+  })
+  // 재정 '행사 정산' 탭: 지금 회계 기간의 행사마다 정산 남은 것 수. 처리 동작은 없다.
+  routes.get('/organizations/:councilId/event-settlements', auth, async c => {
+    const request = reading(c)
+    const list = await db.transaction(
+      async tx => eventSettlementsOf(tx, await authorize(tx, request), request.now),
+      snapshot,
+    )
+    return c.json(list satisfies EventSettlementsResponse)
+  })
   routes.get(`${root}/settlement`, auth, async c => {
-    const request = {
-      userId: c.get('userId'),
-      councilId: councilIdOf(c.req.param('councilId')),
-      action: 'council.view' as const,
-      now: clock(),
-    }
+    const request = reading(c)
     const settlement = await db.transaction(
       async tx => settlementOf(tx, await authorize(tx, request), eventIdOf(c), request.now),
       snapshot,

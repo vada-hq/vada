@@ -16,7 +16,7 @@ type TabsProps = {
 
 export function FinanceTabs({ tab, onTab, showFees, showOverview }: TabsProps) {
   return (
-    // 탭이 여덟이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
+    // 탭이 아홉이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
     <div role="tablist" aria-label="재정 보기" className="flex flex-wrap border-b">
       {showOverview && (
         <TabButton aria-selected={tab === 'overview'} onClick={() => onTab('overview')}>
@@ -34,6 +34,9 @@ export function FinanceTabs({ tab, onTab, showFees, showOverview }: TabsProps) {
       </TabButton>
       <TabButton aria-selected={tab === 'budget'} onClick={() => onTab('budget')}>
         예산
+      </TabButton>
+      <TabButton aria-selected={tab === 'settlements'} onClick={() => onTab('settlements')}>
+        행사 정산
       </TabButton>
       <TabButton aria-selected={tab === 'accounts'} onClick={() => onTab('accounts')}>
         계좌
