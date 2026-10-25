@@ -20,6 +20,17 @@ function wantedDepartment({ view, dept }: QuickAddContext): string | null {
   return (mine.find(item => item.rank !== null) ?? mine[0])?.id ?? null
 }
 
+// 부서 업무를 바라는 사람이 행사의 업무 탭에서 고를 부서가 없으면(그 행사에 이을 부서가 없다, DEC-94) 만들 자리가 없다.
+// 학생회 업무로 돌려 만들면 뜻과 다른 곳에 생긴다. 학생회 업무를 바라는 사람(회장단, 부서 없는 운영진)은 그대로다.
+const noDepartmentForEvent = (
+  options: TaskCreateOptionsResponse,
+  context: QuickAddContext,
+  wanted: string | null,
+) =>
+  context.eventId !== undefined &&
+  wanted !== null &&
+  !options.departments.some(item => item.id !== null)
+
 // 새 업무의 부서와 담당자. 바라는 값이 서버 선택지에 없으면 선택지의 첫 부서,
 // 담당자는 그 부서 선택지에 '나'가 있으면 나, 없으면 첫 값이다. 화면은 선택지 안에서 고르기만 한다(DEC-38).
 export function defaultPlacement(
@@ -27,6 +38,7 @@ export function defaultPlacement(
   context: QuickAddContext,
 ): Placement | null {
   const wanted = wantedDepartment(context)
+  if (noDepartmentForEvent(options, context, wanted)) return null
   const department = options.departments.find(item => item.id === wanted) ?? options.departments[0]
   if (!department) return null
   const me = context.view.me.memberId

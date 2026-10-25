@@ -20,6 +20,7 @@ import { TaskUndoBar } from './TaskUndoBar'
 import { useAssigneeUndo } from './useAssigneeUndo'
 import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
+import { useTaskOptions } from './useTaskOptions'
 import { useTasks, type TaskList } from './useTasks'
 
 type Props = {
@@ -60,9 +61,11 @@ function useTaskLists(
     props.onForbidden,
   )
   const done = useTasks(councilId, { view, filter: 'done', eventId }, props.onForbidden, calendar)
-  // 표의 행사 칸이 고를 행사도 읽는다(행사의 업무 탭은 행사 열이 없다).
+  // 표의 행사 칸이 고를 행사와 그 가운데 이을 수 있는 것도 읽는다(행사의 업무 탭은 행사 열이 없다).
   const events = useEvents(councilId, props.onForbidden, calendar || (wide && !eventId))
-  return { list, done, events }
+  const options = useTaskOptions(councilId, undefined, props.onForbidden, wide && !eventId)
+  const linkable = options.state.kind === 'ready' ? options.state.options.linkableEvents : null
+  return { list, done, events, linkable }
 }
 
 // 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
@@ -125,7 +128,8 @@ function useTasksPage(props: Props) {
     onAssigned: undo.note,
   })
   const eventList = events.state.kind === 'ready' ? events.state.data.events : null
-  const table: TableSetup = { wide, lookups: { team: team.data, events: eventList }, cells }
+  const lookups = { team: team.data, events: eventList, linkable: lists.linkable }
+  const table: TableSetup = { wide, lookups, cells }
   const rows = {
     view,
     change,

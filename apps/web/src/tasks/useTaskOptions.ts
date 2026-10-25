@@ -11,10 +11,12 @@ export type TaskOptionsState =
 
 // 업무를 만들 때 고를 수 있는 부서와 담당자(서버가 만들기와 같은 판정으로 센다, DEC-38). 목록처럼 15초마다 다시 읽는다.
 // 읽다 실패해도 받아 둔 선택지는 그대로 둔다. 권한이 바뀌었으면(403) 학생회를 다시 읽게 한다.
+// enabled가 거짓이면 읽지 않는다(표가 보이지 않을 때의 이을 수 있는 행사).
 export function useTaskOptions(
   councilId: string,
   eventId: string | undefined,
   onForbidden: () => void,
+  enabled = true,
 ) {
   const key = `${councilId}|${eventId ?? ''}`
   const [loaded, setLoaded] = useState<{ key: string; state: TaskOptionsState } | null>(null)
@@ -23,6 +25,7 @@ export function useTaskOptions(
   const issued = useRef(0)
   const isActive = useActive()
   const load = useCallback(async () => {
+    if (!enabled) return
     const seq = ++issued.current
     const result = await getJson<TaskCreateOptionsResponse>(taskOptionsPath(councilId, eventId))
     if (seq !== issued.current || !isActive()) return
@@ -34,7 +37,7 @@ export function useTaskOptions(
         ? before
         : { key: mine, state: { kind: 'failed' } },
     )
-  }, [councilId, eventId, forbidden, isActive, latestKey])
+  }, [councilId, enabled, eventId, forbidden, isActive, latestKey])
   useEffect(() => {
     void load()
   }, [load])

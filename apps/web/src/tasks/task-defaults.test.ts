@@ -91,6 +91,28 @@ test('고른 부서가 선택지에 없으면 선택지의 첫 부서로 돌린�
   expect(defaultPlacement({ departments: [], linkableEvents: [] }, context('mine'))).toBeNull()
 })
 
+test('행사의 업무 탭에서 고를 부서가 없으면(학생회 업무만) 자리가 없고, 행사 밖에서는 학생회 업무다', () => {
+  const councilOnly: TaskCreateOptionsResponse = {
+    departments: [{ id: null, name: null, assignees: [person('m2')] }],
+    linkableEvents: [],
+  }
+  expect(defaultPlacement(councilOnly, context('all', { eventId: 'e1' }))).toBeNull()
+  expect(defaultPlacement(councilOnly, context('all'))).toEqual({
+    departmentId: null,
+    assigneeId: 'm2',
+  })
+  expect(defaultPlacement(member, context('all', { eventId: 'e1' }))).toEqual({
+    departmentId: 'd1',
+    assigneeId: 'm2',
+  })
+  // 학생회 업무를 바라는 사람(회장단, 부서 없는 운영진)은 행사에서도 학생회 업무로 만든다.
+  for (const view of [councilView('c1', { councilRank: 'president' }), memberView()])
+    expect(defaultPlacement(councilOnly, { ...context('all', { eventId: 'e1' }), view })).toEqual({
+      departmentId: null,
+      assigneeId: 'm2',
+    })
+})
+
 test('만든 업무가 지금 보기에 있는지 본다', () => {
   const mine = {
     department: { id: 'd1', name: '재정부' },

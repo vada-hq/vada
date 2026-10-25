@@ -22,9 +22,19 @@ const URL_TASK = '/api/organizations/c1/tasks/t1'
 const E1 = '00000000-0000-4000-8000-0000000000e1'
 const E2 = '00000000-0000-4000-8000-0000000000e2'
 
-function setup(task: TaskDetail = taskDetail()) {
+// 이을 수 있는 행사: 재정부(d1) 업무는 기본으로 둘 다다.
+const linkableTo = (eventIds: string[]) => ({
+  departments: [],
+  linkableEvents: [
+    { departmentId: 'd1', eventIds },
+    { departmentId: null, eventIds: [E1, E2] },
+  ],
+})
+
+function setup(task: TaskDetail = taskDetail(), linkable = [E1, E2]) {
   const api = mockApi()
   api.on('GET', URL_TASK, () => json({ task }))
+  api.on('GET', '/api/organizations/c1/tasks/options', () => json(linkableTo(linkable)))
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
   api.on('GET', '/api/organizations/c1/events', () =>
     json({
@@ -319,6 +329,35 @@ test('고치기에서 행사를 바꾸면 행사를 보내고, 비우면 null을
   fireEvent.change(clear, { target: { value: '' } })
   fireEvent.click(within(again).getByRole('button', { name: '저장' }))
   await waitFor(() => expect(api.calls.at(-1)?.body).toMatchObject({ eventId: null }))
+})
+
+test('고치기의 행사 선택칸에 그 업무 부서로 이을 수 없는 행사가 없고, 지금 이은 행사는 남는다', async () => {
+  setup(taskDetail({ event: { id: E2, name: '체육대회' } }), [E1])
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = screen.getByRole('form', { name: '업무 고치기' })
+  const select = within(form).getByLabelText('행사')
+  await waitFor(() => expect(select).toHaveProperty('disabled', false))
+  const names = within(select)
+    .getAllByRole('option')
+    .map(option => option.textContent)
+  expect(names).toEqual(['행사 없음', '환영회', '체육대회'])
+  cleanup()
+  setup(taskDetail(), [E1])
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const fresh = within(screen.getByRole('form', { name: '업무 고치기' })).getByLabelText('행사')
+  await waitFor(() => expect(fresh).toHaveProperty('disabled', false))
+  expect(within(fresh).queryByRole('option', { name: '체육대회' })).toBeNull()
+  expect(within(fresh).getByRole('option', { name: '환영회' })).toBeTruthy()
+})
+
+test('이을 수 있는 행사를 읽기 전에는 행사 선택칸이 꺼져 있다', async () => {
+  const { api } = setup(taskDetail())
+  const pending = deferredResponse()
+  api.on('GET', '/api/organizations/c1/tasks/options', () => pending.promise)
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = screen.getByRole('form', { name: '업무 고치기' })
+  await settle()
+  expect(within(form).getByLabelText('행사')).toHaveProperty('disabled', true)
 })
 
 test('이력 줄이 판마다 보인다', async () => {

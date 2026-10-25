@@ -173,6 +173,24 @@ test('행사의 업무 탭은 그 행사의 선택지를 읽고 그 행사로 �
   expect(screen.queryByText('추가한 업무는 이 보기에 없음')).toBeNull()
 })
 
+test('행사의 업무 탭에서 그 행사에 이을 부서가 없으면 빠른 추가 칸이 없다', async () => {
+  const api = mockApi()
+  api.on('GET', `${BASE}?view=all&status=open&event=${EVENT_ID}`, empty)
+  const councilOnly: TaskCreateOptionsResponse = {
+    departments: [{ id: null, name: null, assignees: [ME] }],
+    linkableEvents: [],
+  }
+  api.on('GET', `${BASE}/options?event=${EVENT_ID}`, () => json(councilOnly))
+  render(
+    <TasksPage view={member()} eventId={EVENT_ID} onForbidden={() => {}} onChanged={() => {}} />,
+  )
+  await waitFor(() =>
+    expect(api.calls.some(call => call.path === `${BASE}/options?event=${EVENT_ID}`)).toBe(true),
+  )
+  await settle()
+  expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull()
+})
+
 test('선택지를 읽지 못했으면 누를 때 이유를 보인다', async () => {
   const { posts } = setup(null)
   await screen.findByRole('textbox', { name: '새 업무' })
