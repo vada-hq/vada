@@ -16,6 +16,8 @@ import { NO_ASSIGNEE_LABEL } from './task-view'
 import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
 import { useTaskControls } from './useTaskControls'
+import { TaskUndoBar } from './TaskUndoBar'
+import { useAssigneeUndo } from './useAssigneeUndo'
 import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTasks, type TaskList } from './useTasks'
@@ -111,7 +113,8 @@ function useTasksPage(props: Props) {
     props.onChanged()
   }
   const change = useStatusChange(councilId, changed, props.onForbidden)
-  const assign = useTaskAssign(councilId, changed, props.onForbidden)
+  const undo = useAssigneeUndo(councilId, changed, props.onForbidden)
+  const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
   const team = useTeam(councilId, props.onForbidden)
   const cells = useTaskCells(councilId, {
     onDone: changed,
@@ -119,6 +122,7 @@ function useTasksPage(props: Props) {
     onLost: message => {
       dialogs.lose(message)
     },
+    onAssigned: undo.note,
   })
   const eventList = events.state.kind === 'ready' ? events.state.data.events : null
   const table: TableSetup = { wide, lookups: { team: team.data, events: eventList }, cells }
@@ -142,6 +146,7 @@ function useTasksPage(props: Props) {
     changed,
     rows,
     table,
+    undo,
   }
 }
 
@@ -216,6 +221,7 @@ export default function TasksPage(props: Props) {
           <TaskListBody list={list} table={table} filter={filter} {...rows} />
         )}
       </div>
+      <TaskUndoBar {...page.undo} />
     </PageColumn>
   )
 }

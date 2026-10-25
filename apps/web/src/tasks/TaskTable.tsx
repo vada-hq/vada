@@ -3,7 +3,7 @@ import type { TaskSummary } from '@vada/contracts'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { SummaryText } from './TaskSectionList'
-import { COLUMN_LABEL, columnsOf, type Column, type Lookups } from './task-table-cells'
+import { COLUMN_LABEL, columnsOf, textFieldOf, type Column, type Lookups } from './task-table-cells'
 import type { TaskSection } from './task-groups'
 import { TaskTableCell } from './TaskTableCell'
 import type { TaskCells } from './useTaskCells'
@@ -95,11 +95,12 @@ function TaskRows({ task, columns, tabIndexOf, ...props }: RowProps) {
             column={column}
             index={index}
             lookups={props.lookups}
-            busy={props.cells.busy.has(`${task.id}|${column}`)}
+            busy={props.cells.busy.has(`${task.id}|${textFieldOf(column) ?? column}`)}
             tabIndex={tabIndexOf(task.id, index)}
             onOpen={() => props.onOpenTask(task.id)}
             onOpenEvent={props.onOpenEvent}
-            onPick={(field, value) => void props.cells.save(task, field, value)}
+            onSave={(field, value) => props.cells.save(task, field, value)}
+            onInvalid={message => props.cells.fail(task.id, message)}
           />
         ))}
       </tr>
