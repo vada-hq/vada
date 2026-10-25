@@ -403,3 +403,16 @@ test('줄이 옮겨 DOM이 다시 꽂히며 blur가 와도 초점은 같은 칸�
   window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
   await waitFor(() => expect(document.activeElement).toBe(cell('a', 2)))
 })
+
+test('표는 열 너비를 고정하지 않는다: 제목이 남는 폭을 쓰고 나머지는 내용 폭이며, 제목 옆에 상태 칩이 없다', async () => {
+  wide()
+  serve(() => [task('a', { status: 'in_progress', next: 'done' })])
+  await showAll()
+  const grid = await screen.findByRole('grid')
+  expect(grid.className).not.toContain('table-fixed')
+  expect(grid.querySelector('col')).toBeNull()
+  expect(cell('a', 0).className).toContain('min-w-48')
+  for (const col of [1, 2, 3, 4, 5]) expect(cell('a', col).className).toContain('w-px')
+  expect(within(cell('a', 1)).getByRole('combobox').className).toContain('w-auto')
+  expect(within(cell('a', 0)).queryByText('진행 중')).toBeNull()
+})

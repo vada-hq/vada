@@ -7,6 +7,7 @@ import {
   cellChoices,
   cellValue,
   COLUMN_LABEL,
+  columnWidth,
   isCellField,
   isEditable,
   type CellField,
@@ -31,7 +32,9 @@ export type CellProps = {
   onInvalid: (message: string) => void
 }
 
-const selectClass = 'h-8 w-full py-1 sm:text-xs'
+const selectClass = 'h-8 w-auto py-1 sm:text-xs'
+// 행사 이름처럼 긴 값은 선택칸 안에서만 줄인다.
+const eventSelectClass = 'max-w-48'
 const muted = 'text-xs text-gray-500 wrap-anywhere'
 
 // 고칠 수 없는 칸의 글자
@@ -62,7 +65,7 @@ function Pick({ props, field }: { props: CellProps; field: CellField }) {
       aria-label={`${task.title} ${COLUMN_LABEL[props.column]}`}
       aria-busy={busy || undefined}
       tabIndex={-1}
-      className={cn(selectClass, busy && 'opacity-45')}
+      className={cn(selectClass, field === 'event' && eventSelectClass, busy && 'opacity-45')}
       value={cellValue(task, field)}
       onChange={event => {
         // 보내는 동안은 값을 바꾸지 않는다(제어되는 값이라 다시 원래대로 돌아간다).
@@ -106,7 +109,10 @@ export function TaskTableCell(props: CellProps) {
       data-col={props.index}
       tabIndex={props.tabIndex}
       aria-readonly={editable ? undefined : true}
-      className="px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
+      className={cn(
+        'px-3 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset',
+        columnWidth(column),
+      )}
     >
       <Content {...props} />
     </td>
