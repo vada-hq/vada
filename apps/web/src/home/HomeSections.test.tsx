@@ -36,11 +36,17 @@ afterEach(() => {
 
 const pathNow = () => window.location.pathname + window.location.search
 
-// 학생회 읽기(권한)와 홈 밖에서 같이 읽는 행사 목록은 시험마다 바꾼다.
-function open(home: HomeResponse, options: { view?: CouncilView; events?: EventSummary[] } = {}) {
+// 학생회 읽기(권한)와 홈 밖에서 같이 읽는 행사 목록은 시험마다 바꾼다. eventsRead는 행사 목록 응답을 통째로 바꾼다(잘림, 실패).
+function open(
+  home: HomeResponse,
+  options: { view?: CouncilView; events?: EventSummary[]; eventsRead?: () => Response } = {},
+) {
+  const councilId = options.view?.council.id ?? 'c1'
   const api = mockApi()
-  api.on('GET', '/api/organizations/c1/home', () => json(home))
-  onHomeExtras(api, { events: options.events ?? [] })
+  api.on('GET', `/api/organizations/${councilId}/home`, () => json(home))
+  onHomeExtras(api, { events: options.events ?? [] }, councilId)
+  if (options.eventsRead)
+    api.on('GET', `/api/organizations/${councilId}/events`, options.eventsRead)
   const fns = {
     onOpenEvent: vi.fn(),
     onOpenPage: vi.fn(),
@@ -269,45 +275,46 @@ test('정산할 행사 줄을 누르면 그 행사의 예산·정산 탭이 열�
   expect(within(section).getByText('12')).toBeTruthy()
 })
 
-test('정산할 행사의 모두 보기는 재정 행사 정산 탭을 연다', async () => {
-  open(
-    homeResponse({
-      settling: {
-        events: [
-          {
-            event: homeEvent('e9', { status: 'ended' }),
-            settlement: { remaining: 2, settled: false },
-          },
-        ],
-        total: 12,
-      },
-    }),
-  )
-  const section = await screen.findByRole('region', { name: '정산할 행사' })
-  fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(pathNow()).toBe('/finance/c1?tab=settlements')
+test('정산할 행사의 모두 보기는 그 학생회의 재정 행사 정산 탭을 연다', async () => {
+  const settling = {
+    events: [
+      { event: homeEvent('e9', { status: 'ended' }), settlement: { remaining: 2, settled: false } },
+    ],
+    total: 12,
+  }
+  for (const councilId of ['c1', 'c2']) {
+    open(homeResponse({ settling }), { view: councilView(councilId) })
+    const section = await screen.findByRole('region', { name: '정산할 행사' })
+    fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
+    expect(pathNow()).toBe(`/finance/${councilId}?tab=settlements`)
+    cleanup()
+  }
 })
 
 // 행사 빈 상태의 [새 행사](DEC-93 만드는 사람, DEC-78 이동 규칙 9). 학생회 읽기의 event.create로만 정한다.
 const withoutCreate = (permissions: CouncilView['permissions']) =>
   permissions.filter(action => action !== 'event.create')
-// 부장: 학생회 직급은 없고 어느 부서든 부장 직급이라 event.create가 있다.
-const head = () =>
-  councilView('c1', { councilRank: null, permissions: [...MEMBER_PERMISSIONS, 'event.create'] })
+// 부장·부부장: 학생회 직급은 없고 어느 부서든 부서 직급(부부장 포함)이라 서버가 event.create를 준다.
+const head = (rank: 'head' | 'vice_head' = 'head') =>
+  councilView('c1', {
+    councilRank: null,
+    departments: [{ id: DEPT, name: '기획부', role: null, rank }],
+    permissions: [...MEMBER_PERMISSIONS, 'event.create'],
+  })
 
 test('행사가 없는 학생회의 회장 홈 행사 부분에 진행할 행사 없음과 새 행사가 있고, 누르면 새 행사 창이 열려 만든 행사로 간다', async () => {
   const { api } = open(homeResponse({ council: council() }))
   const section = await screen.findByRole('region', { name: '행사' })
   expect(within(section).getByText('진행할 행사 없음')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '새 행사' }))
-  const form = await screen.findByRole('form', { name: '행사 만들기' })
+  const form = await screen.findByRole('form', { name: '새 행사' })
   api.on('POST', '/api/organizations/c1/events', () =>
     json({ event: eventDetail({ id: 'e7', name: '봄 축제' }) }, 201),
   )
   fireEvent.change(within(form).getByLabelText('행사명'), { target: { value: '봄 축제' } })
   fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
   await waitFor(() => expect(pathNow()).toBe('/events/c1/e7'))
-  expect(screen.queryByRole('form', { name: '행사 만들기' })).toBeNull()
+  expect(screen.queryByRole('form', { name: '새 행사' })).toBeNull()
 })
 
 test('행사를 만들 수 없는 회장단과 행사가 있는 회장단에게는 새 행사가 없다', async () => {
@@ -334,15 +341,39 @@ test('행사를 만들 수 없는 회장단과 행사가 있는 회장단에게�
   expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
 })
 
-test('진행할 행사가 없는 학생회의 부장 홈 이번 주 행사 자리에 진행할 행사 없음과 새 행사가 있다(완료한 행사만 있어도)', async () => {
-  open(homeResponse({ departments: [department] }), {
-    view: head(),
-    events: [homeEvent('done', { status: 'completed' })],
-  })
-  const section = await screen.findByRole('region', { name: '이번 주 행사' })
-  expect(within(section).getByText('진행할 행사 없음')).toBeTruthy()
-  fireEvent.click(within(section).getByRole('button', { name: '새 행사' }))
-  expect(await screen.findByRole('form', { name: '행사 만들기' })).toBeTruthy()
+test('진행할 행사가 없는 학생회의 부장·부부장 홈 이번 주 행사 자리에 진행할 행사 없음과 새 행사가 있다(완료한 행사만 있어도)', async () => {
+  for (const rank of ['head', 'vice_head'] as const) {
+    open(homeResponse({ departments: [department] }), {
+      view: head(rank),
+      events: [homeEvent('done', { status: 'completed' })],
+    })
+    const section = await screen.findByRole('region', { name: '이번 주 행사' })
+    expect(within(section).getByText('진행할 행사 없음')).toBeTruthy()
+    fireEvent.click(within(section).getByRole('button', { name: '새 행사' }))
+    expect(await screen.findByRole('form', { name: '새 행사' })).toBeTruthy()
+    cleanup()
+  }
+})
+
+test('행사 목록이 잘렸거나 읽지 못하면 진행할 행사가 없는지 몰라 부장 홈에 새 행사를 두지 않는다', async () => {
+  const reads = [
+    () => json({ events: [homeEvent('done', { status: 'completed' })], truncated: true }),
+    () => json({ error: 'INTERNAL' }, 500),
+  ]
+  for (const eventsRead of reads) {
+    const { api } = open(homeResponse({ departments: [department] }), {
+      view: head(),
+      eventsRead,
+    })
+    await screen.findByRole('region', { name: '기획부' })
+    await waitFor(() =>
+      expect(api.calls.some(call => call.path === '/api/organizations/c1/events')).toBe(true),
+    )
+    await settle()
+    expect(screen.queryByRole('region', { name: '이번 주 행사' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
+    cleanup()
+  }
 })
 
 test('학생회에 진행할 행사가 하나라도 있으면 부장 홈에 새 행사가 없다', async () => {

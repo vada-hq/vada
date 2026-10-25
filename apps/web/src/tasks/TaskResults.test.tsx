@@ -170,7 +170,7 @@ test('공지 만들기는 공지방에 보통 메시지로 taskId를 보낸다. 
 test('행사 만들기는 이름과 taskId를 보낸다', async () => {
   const { api } = setup(detail({ canMake: ['event'] }))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
-  const dialog = await screen.findByRole('dialog', { name: '행사 만들기' })
+  const dialog = await screen.findByRole('dialog', { name: '새 행사' })
   fireEvent.change(within(dialog).getByLabelText(/행사명/), { target: { value: '봄 축제' } })
   api.on('POST', `${BASE}/events`, () => json({ event: { id: EVENT_ID } }, 201))
   fireEvent.submit(within(dialog).getByRole('form'))

@@ -35,7 +35,7 @@ function NoEvents({ canCreate }: { canCreate: boolean }) {
         title="아직 행사가 없어요"
         description={
           canCreate
-            ? "오른쪽 위 '행사 만들기'로 첫 행사를 만들어 보세요. 이름만 넣으면 돼요."
+            ? "오른쪽 위 '새 행사'로 첫 행사를 만들어 보세요. 이름만 넣으면 돼요."
             : '회장단과 부서장이 행사를 만들면 여기에 보여요.'
         }
       />
@@ -164,7 +164,7 @@ export default function EventsPage({ view, onForbidden, onTasksChanged }: Props)
     <PageColumn>
       {canCreateEvent(view) && (
         <PageActions>
-          <Button onClick={dialogs.startCreate}>행사 만들기</Button>
+          <Button onClick={dialogs.startCreate}>새 행사</Button>
         </PageActions>
       )}
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}

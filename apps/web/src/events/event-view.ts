@@ -15,7 +15,7 @@ const WHEN_TBD = '일시 미정'
 export type { EventTab }
 
 // 행사를 만들 수 있는가: 학생회 읽기의 event.create(회장단과 부서장, DEC-93). 화면은 직급을 다시 세지 않는다(DEC-38).
-// 행사 화면의 [행사 만들기]와 홈 빈 상태의 [새 행사]가 이것 하나로 정한다.
+// 행사 화면과 홈 빈 상태의 [새 행사]가 이것 하나로 정한다.
 export const canCreateEvent = (view: Pick<CouncilView, 'permissions'>) =>
   view.permissions.includes('event.create')
 
