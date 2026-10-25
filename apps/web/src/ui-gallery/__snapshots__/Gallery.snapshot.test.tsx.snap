@@ -3198,7 +3198,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 8일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="강새내 동작" type="button" id="radix-_id41_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3222,7 +3224,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 9일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가 동작" type="button" id="radix-_id42_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3261,9 +3265,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김바다 동작" type="button" id="radix-_id44_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3288,7 +3294,8 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id45_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3313,7 +3320,9 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 3일 (토) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박해수 동작" type="button" id="radix-_id46_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3360,8 +3369,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id49_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3384,8 +3395,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부부장 · 10월 7일 (수) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="오재정 동작" type="button" id="radix-_id50_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3430,9 +3444,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id53_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3456,7 +3471,8 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id54_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3479,8 +3495,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 5일 (월) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="정기획 동작" type="button" id="radix-_id55_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3503,8 +3522,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 6일 (화) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="한기획 동작" type="button" id="radix-_id56_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3576,7 +3598,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 8일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="강새내 동작" type="button" id="radix-_id60_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3600,7 +3624,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 9일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가 동작" type="button" id="radix-_id61_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3639,9 +3665,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김바다 동작" type="button" id="radix-_id63_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3666,7 +3694,8 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id64_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3691,7 +3720,9 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 3일 (토) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박해수 동작" type="button" id="radix-_id65_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3738,8 +3769,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id68_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3762,8 +3795,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부부장 · 10월 7일 (수) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="오재정 동작" type="button" id="radix-_id69_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3805,9 +3841,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id72_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3831,7 +3868,8 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id73_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3854,8 +3892,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 5일 (월) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="정기획 동작" type="button" id="radix-_id74_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3878,8 +3919,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 6일 (화) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="한기획 동작" type="button" id="radix-_id75_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -3963,9 +4007,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -3980,7 +4026,8 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -3995,7 +4042,9 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 3일 (토) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 </ul>
@@ -4022,8 +4071,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -4036,8 +4087,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부부장 · 10월 7일 (수) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 </ul>
@@ -4062,9 +4116,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -4078,7 +4133,8 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -4091,8 +4147,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 5일 (월) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -4105,8 +4164,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 6일 (화) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 </ul>
@@ -4144,7 +4206,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 8일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 <li class="flex items-center gap-3 px-4 py-3">
@@ -4158,7 +4222,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 9일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
+</p>
 </div>
 </li>
 </ul>
@@ -4191,7 +4257,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 8일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="강새내 동작" type="button" id="radix-_id85_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4215,7 +4283,9 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 9일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가 동작" type="button" id="radix-_id86_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4254,9 +4324,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 1일 (목) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="김바다 동작" type="button" id="radix-_id88_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4281,7 +4353,8 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id89_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4306,7 +4379,9 @@ exports[`처음 모양 1`] = `
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">부서 없음 · 10월 3일 (토) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="박해수 동작" type="button" id="radix-_id90_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4353,8 +4428,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id93_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4377,8 +4454,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부부장 · 10월 7일 (수) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="오재정 동작" type="button" id="radix-_id94_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4423,9 +4503,10 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 · 10월 2일 (금) 10:00 들어옴</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="이윤슬 동작" type="button" id="radix-_id97_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4449,7 +4530,8 @@ exports[`처음 모양 1`] = `
 </span>
 <div class="min-w-0 flex-1">
 <p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
-<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · 기획부 · 10월 4일 (일) 10:00 들어옴</p>
+<p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="최재정 동작" type="button" id="radix-_id98_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4472,8 +4554,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 5일 (월) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="정기획 동작" type="button" id="radix-_id99_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
@@ -4496,8 +4581,11 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획</p>
-<p class="text-xs wrap-anywhere text-gray-500">기획부 부장 · 10월 6일 (화) 10:00 들어옴</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+</p>
+<p class="text-xs wrap-anywhere text-gray-500">
+<span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
+</p>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="한기획 동작" type="button" id="radix-_id100_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">

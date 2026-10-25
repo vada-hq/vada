@@ -52,12 +52,13 @@ const departments: TeamDepartment[] = [
   { id: 'd3', name: '홍'.repeat(DEPARTMENT_NAME_MAX), role: null, memberCount: 0 },
 ]
 
-const row = (manage: boolean) => (member: TeamMember) => (
+const row = (manage: boolean) => (member: TeamMember, group: string) => (
   <MemberRow
     key={member.id}
     member={member}
     departments={departments}
     titles={titles}
+    inDepartment={departments.some(item => item.id === group) ? group : null}
     actions={{ assign: manage, rank: manage, transfer: false, remove: manage }}
     saving={false}
     triggerRef={noop}

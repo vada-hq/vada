@@ -151,6 +151,13 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
   expect(names('재정부')).toEqual(['이재정', '한겸직'])
   expect(names('기획부')).toEqual(['최부회', '한겸직'])
   expect(within(group('재정부')).getByText('부장 이재정, 한겸직 · 2명')).toBeTruthy()
+  // 부서 묶음의 줄은 그 부서를 빼고 다른 소속만 적는다.
+  const rowText = (name: string) =>
+    within(screen.getByRole('list', { name: `${name} 구성원` }))
+      .getAllByRole('listitem')
+      .map(item => item.textContent?.replace(/\d+월.*$/, ''))
+  expect(rowText('재정부')).toEqual(['이재정부장', '한겸직부장기획부 · '])
+  expect(rowText('기획부')).toEqual(['최부회부장', '한겸직재정부 부장 · '])
 })
 
 test('부서가 없으면 부서 없음이고, 회장단에게만 [부서 추가]가 있다', async () => {
