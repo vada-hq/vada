@@ -1,0 +1,90 @@
+import {
+  TASK_STATUSES,
+  type EventSummary,
+  type TaskAction,
+  type TaskSummary,
+  type TeamResponse,
+} from '@vada/contracts'
+import {
+  choiceValue,
+  detailAssigneeChoices,
+  detailDepartmentChoices,
+  eventChoices,
+  type Choice,
+} from './task-form-options'
+import { STATUS_LABEL } from './task-view'
+
+export type Column = 'title' | 'status' | 'assignee' | 'due' | 'department' | 'event'
+// 칸에서 고르는 것 넷. 제목과 마감은 글로만 보인다.
+export type CellField = 'status' | 'assignee' | 'department' | 'event'
+
+export const COLUMN_LABEL: Record<Column, string> = {
+  title: '제목',
+  status: '상태',
+  assignee: '담당자',
+  due: '마감',
+  department: '부서',
+  event: '행사',
+}
+
+// 행사의 업무 탭은 행사 열이 없다.
+export const columnsOf = (inEvent: boolean): Column[] => [
+  'title',
+  'status',
+  'assignee',
+  'due',
+  'department',
+  ...(inEvent ? [] : (['event'] as const)),
+]
+
+// 서버가 준 actions대로만 고를 수 있다(DEC-38). 행사는 제목·마감과 같은 task.edit다.
+const ACTION: Record<CellField, TaskAction> = {
+  status: 'task.change_status',
+  assignee: 'task.change_assignee',
+  department: 'task.change_department',
+  event: 'task.edit',
+}
+
+export const isCellField = (column: Column): column is CellField =>
+  column === 'status' || column === 'assignee' || column === 'department' || column === 'event'
+
+export type Lookups = { team: TeamResponse | null; events: EventSummary[] | null }
+
+// 지금 값이 선택지에 없으면(떠난 담당자, 지운 부서, 목록이 넘친 행사) 그 값을 맨 앞에 더해 보이게 한다.
+function withCurrent(choices: Choice[], current: Choice | null): Choice[] {
+  if (current === null || choices.some(item => item.id === current.id)) return choices
+  return [current, ...choices]
+}
+
+function choicesOfField(task: TaskSummary, field: CellField, lookups: Lookups): Choice[] | null {
+  const { team, events } = lookups
+  if (field === 'status')
+    return TASK_STATUSES.map(status => ({ id: status, label: STATUS_LABEL[status] }))
+  if (field === 'assignee') {
+    if (!team) return null
+    const gone = task.assignee && {
+      id: task.assignee.id,
+      label: task.assignee.current ? task.assignee.name : `떠난 사람: ${task.assignee.name}`,
+    }
+    return withCurrent(detailAssigneeChoices(team, task), gone)
+  }
+  if (field === 'department') {
+    if (!team) return null
+    const current = task.department && { id: task.department.id, label: task.department.name }
+    return withCurrent(detailDepartmentChoices(team), current)
+  }
+  return events && eventChoices(events, task.event)
+}
+
+// 고를 수 있으면 선택지, 아니면 null(글자로 보이고 aria-readonly다). 선택지를 읽기 전에도 null이다.
+export function cellChoices(task: TaskSummary, field: CellField, lookups: Lookups) {
+  if (!task.actions.includes(ACTION[field])) return null
+  return choicesOfField(task, field, lookups)
+}
+
+export function cellValue(task: TaskSummary, field: CellField): string {
+  if (field === 'status') return task.status
+  if (field === 'assignee') return choiceValue(task.assignee?.id ?? null)
+  if (field === 'department') return choiceValue(task.department?.id ?? null)
+  return choiceValue(task.event?.id ?? null)
+}

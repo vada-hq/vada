@@ -97,7 +97,7 @@
 - 닿는 곳: `apps/web/src/tasks/`(빠른 추가 부품(새), `TasksPage.tsx`, `TaskDialogs.tsx`, `task-form-options.ts`, `useTaskCreate.ts`, 지우는 `TaskCreateDialog.tsx`·`useTaskCreateForm.ts`와 시험), `events/EventDetailView.tsx`·`EventsPage.test.tsx`, `lib/use-record-dialogs.ts`, `lib/messages.ts`, `ui-gallery/`, `docs/tech-debt.md`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 5. 넓은 화면의 업무 표와 고르는 칸(화면) [ ]
+### 5. 넓은 화면의 업무 표와 고르는 칸(화면) [x]
 - 할 수 있게 되는 것: 넓은 화면에서 업무가 표로 보이고 상태·담당자·부서·행사를 칸에서 바로 고른다.
 - 수용 기준: 1024px 이상이면 목록 배치가 열 제목·상태·담당자·마감·부서·행사의 표이고, 그 아래 폭은 지금 목록 줄이다(창 폭을 바꾸면 따라 바뀐다). 행사의 업무 탭에는 행사 열이 없다. 묶음(급한 순, 부서)은 표 안의 머리 줄로 남는다. `actions`에 그 동작이 있는 칸만 고르는 칸이고 나머지는 글자이며 `aria-readonly`다. 고르면 바로 보내고 그 칸만 막힌 뒤 응답대로 바뀐다. 떠난 담당자는 '떠난 사람: 이름'으로 보이고 다른 사람을 고르면 바뀐다. 같은 값을 다시 고르면 요청이 없다. '정한 것' '키보드와 낭독기'의 키가 모두 동작한다(Tab 한 번, 화살표, Home/End, Ctrl+Home/End, Enter, F2, Escape). 제목을 누르거나 제목 칸에서 Enter면 상세가 열린다. 다시 읽기가 와도 열린 고르는 칸과 초점이 그대로이고, 줄이 옮기거나 빠지면 초점이 '다시 읽기와 초점'대로 간다. 오류는 '정한 것' '오류'대로다. 1024px와 1280px에서 표가 화면 밖으로 넘치지 않는다(제목은 `wrap-anywhere`). 부품 확인 화면에 표가 있다.
 - 닿는 곳: `apps/web/src/tasks/`(표 부품(새), 칸 키보드 훅(새), `TasksPage.tsx`, `TaskListBody.tsx`, `task-groups.ts`), 넓은 화면 훅(`chat/useSplit.ts`를 `src/lib`로 옮겨 같이 쓴다, 자주 잡힌 것 9), `ui-gallery/`.

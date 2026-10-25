@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   koreanDateOf,
   TASK_DONE_LIMIT,
@@ -14,6 +14,9 @@ import { TASKS_LOAD_FAILED } from '@/lib/messages'
 import { byDue, groupByDepartment, groupByDue, type TaskSection } from './task-groups'
 import { TaskRow } from './TaskRow'
 import { TaskSectionList } from './TaskSectionList'
+import { TaskTable } from './TaskTable'
+import type { Lookups } from './task-table-cells'
+import type { TaskCells } from './useTaskCells'
 import type { useStatusChange } from './useStatusChange'
 import type { useTaskAssign } from './useTaskAssign'
 import type { TaskList } from './useTasks'
@@ -25,8 +28,12 @@ const EMPTY: Record<TaskFilter, string> = {
 const overflow = (filter: TaskFilter) =>
   `업무가 많아 ${filter === 'open' ? TASK_OPEN_LIMIT : TASK_DONE_LIMIT}개만 보여요.`
 
+// 넓은 화면(lg 이상)이면 표로 그리고, 칸에서 고른다. 좁으면 지금의 줄이다.
+export type TableSetup = { wide: boolean; lookups: Lookups; cells: TaskCells }
+
 type Props = {
   list: TaskList
+  table: TableSetup
   view: TaskView
   filter: TaskFilter
   change: ReturnType<typeof useStatusChange>
@@ -87,15 +94,29 @@ function Ready({
   truncated,
   ...props
 }: Props & { tasks: TaskSummary[]; truncated: boolean }) {
-  const { view, filter } = props
+  const { view, filter, table } = props
   const [today] = useState(() => koreanDateOf(new Date()))
+  // 고른 칸의 응답으로 줄을 먼저 바꿔 두고, 다시 읽은 목록이 오면 그 목록을 따른다.
+  const { patches, clearPatches } = table.cells
+  const shown = tasks.map(task => patches[task.id] ?? task)
+  useEffect(clearPatches, [tasks, clearPatches])
+  const sections = sectionsOf(shown, view, filter, today)
+  const summary = view !== 'mine' && filter === 'open'
   return (
     <>
-      <TaskSectionList
-        sections={sectionsOf(tasks, view, filter, today)}
-        summary={view !== 'mine' && filter === 'open'}
-        row={taskRowOf(props)}
-      />
+      {table.wide ? (
+        <TaskTable
+          sections={sections}
+          summary={summary}
+          inEvent={props.inEvent}
+          lookups={table.lookups}
+          cells={table.cells}
+          onOpenTask={props.onOpenTask}
+          onOpenEvent={props.onOpenEvent}
+        />
+      ) : (
+        <TaskSectionList sections={sections} summary={summary} row={taskRowOf(props)} />
+      )}
       {truncated && <StateMessage kind="notice">{overflow(filter)}</StateMessage>}
     </>
   )

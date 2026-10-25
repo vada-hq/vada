@@ -6,16 +6,18 @@ import { Button } from '@/components/ui/button'
 import { useEvents } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
 import { recalledDepartment } from '@/lib/menu-memory'
+import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskDialogs } from './TaskDialogs'
-import { TaskListBody } from './TaskListBody'
+import { TaskListBody, type TableSetup } from './TaskListBody'
 import { NO_ASSIGNEE_LABEL } from './task-view'
 import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
 import { useTaskControls } from './useTaskControls'
 import { useTaskAssign } from './useTaskAssign'
+import { useTaskCells } from './useTaskCells'
 import { useTasks, type TaskList } from './useTasks'
 
 type Props = {
@@ -62,7 +64,15 @@ function CreateRow({
 // 내 업무는 급한 순(지남·오늘·7일 안·나중·마감 없음), 전체와 담당자 없음은 부서 묶음에 진행 상황 수를 단다(요구 1, 14, 15, 20).
 // 행사 화면의 업무 탭은 같은 화면을 그 행사로 좁힌 것이다.
 // 달력은 끝난 업무와 행사도 함께 그린다. 그래서 달력일 때만 끝난 업무와 행사를 더 읽는다.
-function useTaskLists(props: Props, view: TaskView, filter: TaskFilter, layout: TaskLayout) {
+function useTaskLists(
+  props: Props,
+  {
+    view,
+    filter,
+    layout,
+    wide,
+  }: { view: TaskView; filter: TaskFilter; layout: TaskLayout; wide: boolean },
+) {
   const councilId = props.view.council.id
   const calendar = layout === 'calendar'
   const eventId = props.eventId
@@ -72,7 +82,8 @@ function useTaskLists(props: Props, view: TaskView, filter: TaskFilter, layout: 
     props.onForbidden,
   )
   const done = useTasks(councilId, { view, filter: 'done', eventId }, props.onForbidden, calendar)
-  const events = useEvents(councilId, props.onForbidden, calendar)
+  // 표의 행사 칸이 고를 행사도 읽는다(행사의 업무 탭은 행사 열이 없다).
+  const events = useEvents(councilId, props.onForbidden, calendar || (wide && !eventId))
   return { list, done, events }
 }
 
@@ -109,7 +120,8 @@ function useTasksPage(props: Props) {
   const { view, filter, layout, dept } = controls
   const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
   const opened = useOpeners(councilId, inEvent)
-  const lists = useTaskLists(props, view, filter, layout)
+  const wide = useSplit()
+  const lists = useTaskLists(props, { view, filter, layout, wide })
   const list = narrowed(lists.list, dept)
   const done = narrowed(lists.done, dept)
   const events = lists.events
@@ -121,6 +133,15 @@ function useTasksPage(props: Props) {
   const change = useStatusChange(councilId, changed, props.onForbidden)
   const assign = useTaskAssign(councilId, changed, props.onForbidden)
   const team = useTeam(councilId, props.onForbidden)
+  const cells = useTaskCells(councilId, {
+    onDone: changed,
+    onForbidden: props.onForbidden,
+    onLost: message => {
+      dialogs.lose(message)
+    },
+  })
+  const eventList = events.state.kind === 'ready' ? events.state.data.events : null
+  const table: TableSetup = { wide, lookups: { team: team.data, events: eventList }, cells }
   const rows = {
     view,
     change,
@@ -140,6 +161,7 @@ function useTasksPage(props: Props) {
     events,
     changed,
     rows,
+    table,
   }
 }
 
@@ -168,7 +190,7 @@ function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
 
 export default function TasksPage(props: Props) {
   const page = useTasksPage(props)
-  const { controls, dialogs, list, changed, rows } = page
+  const { controls, dialogs, list, changed, rows, table } = page
   const { view, filter, layout } = controls
   return (
     <PageColumn>
@@ -207,7 +229,7 @@ export default function TasksPage(props: Props) {
         {layout === 'calendar' ? (
           <TaskCalendarBody open={list} done={page.done} events={page.events} {...rows} />
         ) : (
-          <TaskListBody list={list} filter={filter} {...rows} />
+          <TaskListBody list={list} table={table} filter={filter} {...rows} />
         )}
       </div>
     </PageColumn>
