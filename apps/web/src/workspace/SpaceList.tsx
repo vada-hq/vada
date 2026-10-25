@@ -31,14 +31,17 @@ function EventLine({
     <NavItem active={active} className="mb-0.5 flex items-center gap-2" onClick={onOpen}>
       <span
         aria-hidden
-        className="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500"
+        className="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500"
       >
         {eventInitial(event.name)}
       </span>
       <span className="min-w-0 flex-1 truncate" title={event.name}>
         {event.name}
       </span>
-      <span className="shrink-0 text-xs text-gray-500">{EVENT_STATUS_LABEL[event.status]}</span>
+      {/* 켜진 줄의 파란 바탕(blue-50)에서 gray-500은 4.5:1에 조금 모자라 한 단계 진하게 한다(WCAG 1.4.3). */}
+      <span className={`shrink-0 text-xs ${active ? 'text-gray-600' : 'text-gray-500'}`}>
+        {EVENT_STATUS_LABEL[event.status]}
+      </span>
     </NavItem>
   )
 }
