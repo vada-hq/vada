@@ -61,6 +61,28 @@ export const decide = (actor: Actor, facts: TaskFacts, action: TaskAction): Erro
 export const actionsOf = (actor: Actor, facts: TaskFacts): TaskAction[] =>
   TASK_ACTIONS.filter(action => decide(actor, facts, action) === null)
 
+type CreateInput = { departmentId: string | null; assigneeId: string | null }
+
+// 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
+// 만들기 경로(service.createTask)와 선택지 셈(create-options.ts)이 이 판정 하나를 같이 쓴다.
+export const decideCreate = (
+  actor: Actor,
+  input: CreateInput,
+  eventOwnerId: string | null,
+): ErrorCode | null => {
+  const mine =
+    input.assigneeId === actor.memberId &&
+    (!input.departmentId ||
+      actor.departments.some(item => item.departmentId === input.departmentId))
+  const facts = factsOf({
+    createdBy: null,
+    departmentId: input.departmentId,
+    assigneeId: mine ? input.assigneeId : null,
+    eventOwnerId,
+  })
+  return decide(actor, facts, 'task.edit')
+}
+
 // 결과물을 이을 수 있는 업무인가(기능 015): 끝나지 않았고(취소한 업무는 읽기에서 이미 없다) 내가 그 업무의 상태를 바꿀 수 있다.
 // 상세의 canMake와 만들기 경로의 확인이 같은 판정을 쓴다.
 export const canLinkResult = (actor: Actor, facts: TaskFacts, status: TaskStatus) =>

@@ -1,12 +1,13 @@
 import { Hono, type Context } from 'hono'
-import type { TaskResponse, TasksResponse } from '@vada/contracts'
+import type { TaskCreateOptionsResponse, TaskResponse, TasksResponse } from '@vada/contracts'
 import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import type { TaskPush } from './notify.js'
-import { listQueryOf } from './list-query.js'
+import { createOptionsOf } from './create-options.js'
+import { listQueryOf, optionsQueryOf } from './list-query.js'
 import { taskDetailOf, taskListOf } from './queries.js'
 import { addTaskWriteRoutes, TASK_WRITE_LIMIT } from './write-routes.js'
 
@@ -53,6 +54,15 @@ export function createTaskRoutes(
       snapshot,
     )
     return c.json(list satisfies TasksResponse)
+  })
+  // :taskId보다 앞에 둔다(options가 번호로 읽히지 않게). 선택지는 사람마다 달라 저장하지 않는다.
+  routes.get(`${root}/tasks/options`, auth, async c => {
+    const request = asked(c)
+    const { event } = optionsQueryOf(c.req.queries())
+    c.header('Cache-Control', 'private, no-store')
+    const read = async (tx: Tx) =>
+      createOptionsOf(tx, await authorize(tx, request), event, request.now)
+    return c.json((await db.transaction(read, snapshot)) satisfies TaskCreateOptionsResponse)
   })
   routes.get(`${root}/tasks/:taskId`, auth, async c => {
     const request = asked(c)

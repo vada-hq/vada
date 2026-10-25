@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { TASK_ACTIONS, type TaskAction, type TaskDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
+import { createRateLimiter } from '../http/rate-limit.js'
 import { createRecord } from '../records/records.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
@@ -93,7 +94,10 @@ async function start() {
     createApp({
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
-      tasks: createTaskRoutes(db, testSession, { clock: () => noon }),
+      tasks: createTaskRoutes(db, testSession, {
+        clock: () => noon,
+        writeLimiter: createRateLimiter({ limit: 100_000, windowMs: 10_000 }),
+      }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/tasks`
@@ -120,7 +124,7 @@ async function start() {
         },
       })
     })
-  return { council, api, base, make, close }
+  return { council, db, pg, api, base, make, close }
 }
 
 test('업무 × 사람 × 동작: 읽기 actions에 있으면 쓰기가 성공하고, 없으면 403으로 거절된다', async () => {
@@ -162,6 +166,132 @@ test('부장이 맡긴 업무를 담당자가 지우려 하면 403이고 업무�
       task: TaskDetail
     }
     assert.equal(read.task.title, '현수막 주문')
+  } finally {
+    await s.close()
+  }
+})
+
+// 만들기 선택지(기능 018 조각 1): 선택지에 있는 (부서, 담당자) 짝은 만들기가 201이고 없는 짝은 403이다.
+// 둘이 같은 decideCreate를 쓰므로 판정을 바꾸면 이 표의 두 쪽(선택지, 만들기)이 함께 실패한다.
+type Options = { departments: { id: string | null; assignees: { id: string | null }[] }[] }
+const pairsOf = (options: Options) =>
+  options.departments.flatMap(item => item.assignees.map(who => `${item.id}|${who.id}`)).sort()
+
+test('만들기 선택지 × 직급: 선택지에 있는 짝은 201이고 없는 짝은 403이며 기록이 늘지 않는다', async () => {
+  const s = await start()
+  try {
+    const { people, departments } = s.council
+    const id = (person: keyof typeof people) => people[person].memberId
+    const withNone: (string | null)[] = [
+      null,
+      id('president'),
+      id('vicePresident'),
+      id('financeMember'),
+      id('planningHead'),
+      id('planningViceHead'),
+      id('planningMember'),
+      id('plain'),
+    ]
+    const pairs = (department: string | null, who: (string | null)[]) =>
+      who.map(item => `${department}|${item}`)
+    const { finance, planning } = departments
+    const eventId = await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'event',
+        councilId: s.council.councilId,
+        actor: id('president'),
+        values: { name: '봄 축제', ownerId: id('plain') },
+      }),
+    )
+    const everything = [finance, planning, null].flatMap(item => pairs(item, withNone))
+    const onlyMe = (person: keyof typeof people) => [
+      ...pairs(planning, [id(person)]),
+      ...pairs(null, [id(person)]),
+    ]
+    // 직급마다 기대하는 선택지. 부장은 자기 부서의 모두, 그 밖은 나만이다. 떠난 사람은 어디에도 없다.
+    const cases: { name: string; person: Person; event?: string; expected: string[] }[] = [
+      { name: '회장단', person: 'president', expected: everything },
+      {
+        name: '부장',
+        person: 'planningHead',
+        expected: [...pairs(planning, withNone), ...pairs(null, [id('planningHead')])],
+      },
+      { name: '부원', person: 'planningMember', expected: onlyMe('planningMember') },
+      { name: '부서 없는 운영진', person: 'plain', expected: pairs(null, [id('plain')]) },
+      { name: '행사 책임자', person: 'plain', event: eventId, expected: everything },
+      {
+        name: '책임자가 아닌 부원의 그 행사',
+        person: 'planningMember',
+        event: eventId,
+        expected: onlyMe('planningMember'),
+      },
+    ]
+    // 후보에는 선택지에 없어야 하는 사람(떠난 사람, 다른 학생회 사람)도 넣는다.
+    const other = await seedCouncil(s.db, s.pg, 'o')
+    const outsiders = [id('ended'), other.people.president.memberId]
+    let created = 0
+    for (const item of cases) {
+      const user = `s-${item.person}`
+      const query = item.event ? `?event=${item.event}` : ''
+      const response = await s.api.get(`${s.base}/options${query}`, user)
+      assert.equal(response.status, 200, item.name)
+      assert.equal(response.headers.get('cache-control'), 'private, no-store')
+      const options = (await response.json()) as Options
+      assert.deepEqual(pairsOf(options), [...item.expected].sort(), `${item.name} 선택지`)
+      const offered = new Set(pairsOf(options))
+      const grid = [finance, planning, null].flatMap(department =>
+        [...withNone, ...outsiders].map(assignee => ({ department, assignee })),
+      )
+      for (const { department, assignee } of grid) {
+        const cell = `${item.name} ${department} ${assignee}`
+        const made = await s.api.post(
+          s.base,
+          {
+            title: '표 시험',
+            departmentId: department,
+            assigneeId: assignee,
+            eventId: item.event ?? null,
+          },
+          user,
+        )
+        const inOptions = offered.has(`${department}|${assignee}`)
+        assert.equal(made.status === 201, inOptions, `${cell} 만들기 ${made.status}`)
+        if (inOptions) created += 1
+        else if (!outsiders.includes(assignee as string))
+          assert.equal(made.status, 403, `${cell} 선택지에 없는 짝은 403`)
+      }
+    }
+    const all = (await (await s.api.get(`${s.base}?view=all`, 's-president')).json()) as {
+      tasks: unknown[]
+    }
+    assert.equal(all.tasks.length, created, '거절된 만들기가 기록을 남겼다')
+  } finally {
+    await s.close()
+  }
+})
+
+test('만들기 선택지: 다른 학생회 행사 404, 틀린 번호·모르는 키 400, 운영진이 아니면 403, 로그인 없으면 401', async () => {
+  const s = await start()
+  try {
+    const other = await seedCouncil(s.db, s.pg, 'o')
+    const foreign = await s.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'event',
+        councilId: other.councilId,
+        actor: other.people.president.memberId,
+        values: { name: '남의 축제', ownerId: other.people.plain.memberId },
+      }),
+    )
+    const get = (query: string, user?: string) => s.api.get(`${s.base}/options${query}`, user)
+    assert.equal((await get(`?event=${foreign}`, 's-president')).status, 404)
+    assert.equal((await get('?event=nope', 's-president')).status, 400)
+    assert.equal((await get('?x=1', 's-president')).status, 400)
+    assert.equal((await get('', 'o-president')).status, 403)
+    assert.equal((await get('', 's-ended')).status, 403)
+    assert.equal((await get('')).status, 401)
+    const text = JSON.stringify(await (await get('', 's-president')).json())
+    assert.ok(!text.includes(other.people.president.memberId), '다른 학생회 사람이 실렸다')
+    assert.ok(!text.includes(s.council.people.ended.memberId), '떠난 사람이 실렸다')
   } finally {
     await s.close()
   }

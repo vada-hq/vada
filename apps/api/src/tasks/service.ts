@@ -18,7 +18,7 @@ import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { dueAtOf, dueDateOf } from './due.js'
 import { eventChangeOf, eventLinkOf } from './event-link.js'
 import { humanMoveOf } from './lifecycle.js'
-import { decide, factsOf, type TaskFacts } from './policy.js'
+import { decide, decideCreate, factsOf } from './policy.js'
 import { taskDetailOf, taskRowOf } from './queries.js'
 
 // 고칠 업무와 요청 시각. 조각 4의 맡기기도 같은 모양으로 부른다.
@@ -72,24 +72,6 @@ async function noticeAssignment(
   return { taskId, recipientId: next, assignerId: actor.memberId }
 }
 
-// 만들기의 '본인': 담당자가 나여도 부서가 없거나 내 부서일 때만 담당자 기준을 준다(남의 부서 목록에 넣지 않는다).
-function createFacts(
-  actor: Actor,
-  input: CreateTaskRequest,
-  eventOwnerId: string | null,
-): TaskFacts {
-  const mine =
-    input.assigneeId === actor.memberId &&
-    (!input.departmentId ||
-      actor.departments.some(item => item.departmentId === input.departmentId))
-  return factsOf({
-    createdBy: null,
-    departmentId: input.departmentId,
-    assigneeId: mine ? input.assigneeId : null,
-    eventOwnerId,
-  })
-}
-
 export async function createTask(
   tx: Tx,
   actor: Actor,
@@ -98,7 +80,7 @@ export async function createTask(
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
   // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다.
   const link = await eventLinkOf(tx, actor, input.eventId)
-  const denied = decide(actor, createFacts(actor, input, link.ownerId), 'task.edit')
+  const denied = decideCreate(actor, input, link.ownerId)
   if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   await assertDepartment(tx, actor, input.departmentId)
