@@ -75,7 +75,7 @@ test('모르는 쿼리 키와 값은 기본값으로 읽는다', () => {
   assert.deepEqual(read(`/tasks/${C}?view=nope&filter=&layout=x&dept=not-uuid&q=검색어`), {})
   assert.deepEqual(read(`/tasks/${C}?view=all&view=done`), { view: 'all' })
   assert.deepEqual(read(`/finance/${C}?tab=nope&view=all`), { view: 'all' })
-  assert.deepEqual(read(`/finance/${C}?tab=requests&view=mine`), {})
+  assert.deepEqual(read(`/finance/${C}?tab=requests&view=mine`), { tab: 'requests' })
   assert.deepEqual(read(`/events/${C}/${R}?tab=overview`), {})
   assert.deepEqual(read(`/events/${C}/${R}?tab=nope`), {})
   assert.deepEqual(read(`/chat/${C}/${R}?tab=notices`), {})
@@ -143,7 +143,7 @@ test('기록 주소의 상위 목록은 종류마다 여는 메뉴와 탭이다'
   assert.equal(up('chat'), `/chat/${C}`)
   assert.equal(up('events'), `/events/${C}`)
   assert.equal(up('tasks'), `/tasks/${C}`)
-  assert.equal(up('purchases'), `/finance/${C}`)
+  assert.equal(up('purchases'), `/finance/${C}?tab=requests`)
   assert.equal(up('expenses'), `/finance/${C}?tab=expenses`)
   assert.equal(up('incomes'), `/finance/${C}?tab=incomes`)
   const menu = parseAppPath(`/tasks/${C}`)!

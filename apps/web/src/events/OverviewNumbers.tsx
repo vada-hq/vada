@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import type { EventDetail, RegistrationFormsResponse, SettlementResponse } from '@vada/contracts'
-import { cardClass } from '@/components/ui/card'
+import { Meter } from '@/components/Meter'
+import { NumberCard } from '@/components/NumberCard'
 import type { PolledState } from '@/lib/use-polled-read'
-import { cn } from '@/lib/utils'
 import { wonLabel } from '../finance/purchase-view'
 import type { EventTab } from './event-view'
 import { OverviewLink } from './OverviewLink'
@@ -10,39 +10,6 @@ import { registrationTotals } from './overview-view'
 
 const LOADING = '불러오는 중이에요'
 const FAILED = '읽지 못했어요'
-
-// 수 카드 하나: 이름과 그 탭으로 가는 링크, 큰 수, 보조 글. 수를 아직 못 읽었으면 그 자리에 이유를 쓴다.
-function NumberCard({
-  label,
-  link,
-  value,
-  sub,
-  children,
-}: {
-  label: string
-  link: ReactNode
-  value: string | null
-  sub: string
-  children?: ReactNode
-}) {
-  return (
-    <section aria-label={label} className={cn(cardClass, 'flex flex-col gap-1 p-4')}>
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm text-gray-600">{label}</h3>
-        {link}
-      </div>
-      {value === null ? (
-        <span className="py-1.5 text-sm text-gray-500">{sub}</span>
-      ) : (
-        <>
-          <span className="text-2xl font-bold text-gray-900">{value}</span>
-          <span className="text-xs text-gray-500">{sub}</span>
-        </>
-      )}
-      {children}
-    </section>
-  )
-}
 
 function TasksNumber({ tasks, link }: { tasks: EventDetail['tasks']; link: ReactNode }) {
   if (tasks.total === 0)
@@ -55,12 +22,7 @@ function TasksNumber({ tasks, link }: { tasks: EventDetail['tasks']; link: React
       value={`${done}/${tasks.total}`}
       sub={tasks.open === 0 ? '모두 끝났어요' : `끝난 업무 · 남은 것 ${tasks.open}개`}
     >
-      <progress
-        className="mt-1 h-1.5 w-full appearance-none overflow-hidden rounded-full bg-gray-200 [&::-moz-progress-bar]:bg-blue-600 [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-blue-600"
-        value={done}
-        max={tasks.total}
-        aria-label="끝난 업무"
-      />
+      <Meter className="mt-1" value={done} max={tasks.total} label="끝난 업무" />
     </NumberCard>
   )
 }

@@ -324,6 +324,8 @@ export const INCOME_FAILED = '보내지 못했어요. 연결을 확인하고 다
 export const CLOSING_LOAD_FAILED = '결산서를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const CLOSING_LOST = '이 기간을 볼 수 없어요. 다른 학생회의 기간이거나 없어졌을 수 있어요.'
 export const CLOSING_HIDDEN = '결산이 공개되면 보여요.'
+// 재정 개요 탭: 지금 기간의 결산서를 읽어 예산과 쓴 돈을 보인다.
+export const OVERVIEW_LOAD_FAILED = '재정 개요를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const CLOSING_ERRORS: Record<string, string> = {
   PERIOD_NOT_ENDED: '아직 끝나지 않은 기간이에요. 기간이 끝난 다음 날부터 공개할 수 있어요.',
   PREVIOUS_PERIOD_OPEN: '앞 기간의 결산이 아직 공개되지 않았어요. 앞 기간부터 공개해 주세요.',

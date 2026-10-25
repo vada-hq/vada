@@ -50,11 +50,12 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
   }
 }
 
-// 요청 줄은 그 요청의 주소로 연다(닫으면 홈으로 돌아온다). '받은 것' 모두 보기는 결재 대기 거르기, '내 요청'은 재정 첫 화면(내 요청)이다.
+// 요청 줄은 그 요청의 주소로 연다(닫으면 홈으로 돌아온다). '받은 것' 모두 보기는 결재 대기 거르기, '내 요청'은 구매 요청 탭(내 요청)이다.
+// 재정부의 재정 첫 화면은 개요라서 탭을 적어 보낸다.
 const requestOpeners = (councilId: string) => ({
   openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
-  seeReceived: () => openMenu('finance', councilId, { view: 'pending' }),
-  seeMine: () => openMenu('finance', councilId),
+  seeReceived: () => openMenu('finance', councilId, { tab: 'requests', view: 'pending' }),
+  seeMine: () => openMenu('finance', councilId, { tab: 'requests' }),
 })
 
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.

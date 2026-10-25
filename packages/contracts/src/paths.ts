@@ -23,6 +23,7 @@ export const TASK_LAYOUTS = ['list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
 
 export const FINANCE_TABS = [
+  'overview',
   'requests',
   'expenses',
   'incomes',
@@ -60,7 +61,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     dept: { values: 'uuid', fallback: null },
   },
   finance: {
-    tab: { values: FINANCE_TABS, fallback: 'requests' },
+    // 기본 탭은 사람마다 다르다(재정부는 개요, 나머지는 구매 요청). 그래서 고른 탭은 모두 주소에 남긴다.
+    tab: { values: FINANCE_TABS, fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: 'mine' },
     period: { values: 'uuid', fallback: null },
   },

@@ -10,12 +10,19 @@ type TabsProps = {
   onTab: (tab: FinanceTab) => void
   // 납부자 명단 탭은 `fee_payment.view`가 있는 재정부와 회장단에게만 보인다.
   showFees: boolean
+  // 개요 탭은 공개 전 결산을 읽을 수 있는 재정부(`finance.manage`)에게만 보인다.
+  showOverview: boolean
 }
 
-export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
+export function FinanceTabs({ tab, onTab, showFees, showOverview }: TabsProps) {
   return (
-    // 탭이 일곱이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
+    // 탭이 여덟이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
     <div role="tablist" aria-label="재정 보기" className="flex flex-wrap border-b">
+      {showOverview && (
+        <TabButton aria-selected={tab === 'overview'} onClick={() => onTab('overview')}>
+          개요
+        </TabButton>
+      )}
       <TabButton aria-selected={tab === 'requests'} onClick={() => onTab('requests')}>
         구매 요청
       </TabButton>

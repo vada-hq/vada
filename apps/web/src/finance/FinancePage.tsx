@@ -20,6 +20,7 @@ import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpensesPanel } from './ExpensesPanel'
 import { FeePaymentsTab } from './FeePaymentsTab'
 import { IncomesTab } from './IncomesTab'
+import { OverviewTab } from './OverviewTab'
 import { financeOpeners } from './finance-openers'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
@@ -78,19 +79,26 @@ function Body({
   )
 }
 
-// 재정부가 고치는 탭(납부자 명단, 계좌, 예산, 수입, 결산). 보는 것은 탭마다 정한 권한이 가른다.
+// 재정부가 고치는 탭(개요, 납부자 명단, 계좌, 예산, 수입, 결산). 보는 것은 탭마다 정한 권한이 가른다.
 function ManagedTab({
   tab,
   view,
   onForbidden,
   openers,
 }: {
-  tab: 'fees' | 'accounts' | 'budget' | 'incomes' | 'closing'
+  tab: 'overview' | 'fees' | 'accounts' | 'budget' | 'incomes' | 'closing'
   view: CouncilView
   onForbidden: () => void
   openers: ClosingOpeners
 }) {
   const shared = { councilId: view.council.id, onForbidden }
+  if (tab === 'overview')
+    return (
+      <OverviewTab
+        {...shared}
+        onOpenBudget={() => openMenu('finance', view.council.id, { tab: 'budget' })}
+      />
+    )
   if (tab === 'fees')
     return (
       <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
@@ -211,12 +219,13 @@ function RequestDialogs({
   )
 }
 
-// 옆 메뉴 '재정': 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)과 예산 탭. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
-// 탭과 거르기는 주소가 원문이고, 요청·지출 상세는 그 종류의 주소로 연다. 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
+// 옆 메뉴 '재정': 재정부는 개요 탭, 나머지는 구매 요청 탭(거르기 셋: 내 요청, 결재 대기, 전체)으로 연다. 거르기를 바꾸면 이전 거르기의 늦은 응답은 버린다.
+// 탭과 거르기는 주소가 원문이고, 요청·지출 상세는 그 종류의 주소로 연다. 납부자 명단이나 개요를 보던 중 권한을 잃으면(탭이 사라지면) 구매 요청으로 돌아간다.
 export default function FinancePage(props: Props) {
   const councilId = props.view.council.id
   const can = (action: Action) => props.view.permissions.includes(action)
-  const { tab, filter, setTab, setFilter } = useFinanceControls(councilId, can('fee_payment.view'))
+  const access = { fees: can('fee_payment.view'), overview: can('finance.manage') }
+  const { tab, filter, setTab, setFilter } = useFinanceControls(councilId, access)
   const dialogs = useRecordDialogs(useAddressRecord('purchases', councilId))
   const expenseDialogs = useRecordDialogs(useAddressRecord('expenses', councilId))
   const list = usePurchases(councilId, filter, props.onForbidden)
@@ -246,7 +255,7 @@ export default function FinancePage(props: Props) {
         }}
         onForbidden={props.onForbidden}
       />
-      <FinanceTabs tab={tab} onTab={setTab} showFees={can('fee_payment.view')} />
+      <FinanceTabs tab={tab} onTab={setTab} showFees={access.fees} showOverview={access.overview} />
       <FinanceTabPanel
         tab={tab}
         filter={filter}
