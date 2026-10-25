@@ -118,7 +118,8 @@
 - `.sql` 파일은 `.gitattributes`로 LF로 고정한다. drizzle이 남기는 적용 기록의 해시가 파일 내용 기준이라, 줄바꿈이 바뀌면 기록과 어긋나 보인다.
 - 개발 DB의 시험 학생회는 진행 에이전트가 `pnpm --filter @vada/api test-data seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `assign <user-id> <planning|finance> --apply`로 넣는다. 끝난 기간(시험 1학기)과 지금 기간은 `periods <user-id> --apply`로 둔다(재정부 계정, 있으면 바꾸지 않는다). `--apply`가 없으면 대상과 하려는 일만 보여 주고 아무것도 쓰지 않는다.
 - 시연 학생회(섭외·리허설용, 학교 이름 'VADA 시연 학교')는 진행 에이전트가 `pnpm --filter @vada/api demo <user-id> [--apply] [--from-shell]`로 둔다. 내용은 서비스 함수가 아니라 리허설 시나리오(`src/flows/rehearsal.ts`)를 실제 HTTP 경로로 돈 결과다: 바깥 거래 하나에서 흐름 서버와 드라이버로 행사 A는 완료까지, B는 구매 요청까지, C는 만들기만 하고, 마지막 단계가 돌리는 때다(날짜는 돌리는 때 기준). 가상 운영진은 로그인 수단이 없는 계정(`@demo.vada.invalid`, Google 연결 없음)이고 회장만 명령에 준 실제 계정이다. 중간에 하나라도 실패하면 학생회도 계정도 남지 않는다(올린 증빙 파일만 저장소에 남을 수 있다). 증빙 파일을 저장소(R2)에 올리므로 R2 값 넷이 셸이나 `.env`에 있어야 하고, 없으면 연결하기 전에 멈춘다. 미리 보기가 기본이고 `--apply`가 있어야 쓴다. 학교 이름이 이미 있으면 아무것도 바꾸지 않고 멈춘다. 배포 DB는 셸에 `DATABASE_URL`을 주고 `--from-shell`을 붙인다(db:migrate와 같은 규칙). 다시 넣으려면 학교 이름을 바꾼다.
-- 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `demo`, `pg-smoke`를 실행하지 않는다. 넷 다 실제 DB에 연결한다.
+- 개인정보 요청은 `pnpm --filter @vada/api privacy <일> [--apply] [--from-shell]`로 처리한다. 지금 일은 `withdraw --email <가입 이메일>`(이메일로 온 탈퇴 요청과 만 14세 미만 정리)이고, 앱의 탈퇴(`POST /api/me/withdrawal`)와 같은 서비스(`src/withdrawal/service.ts`)를 부른다(회장 막기 같음, 다시 로그인 검사만 없음). 본인 확인은 사람이 먼저 한다(vada-docs DEC-72). 미리 보기가 기본이고, 미리 보기도 개수를 세려고 연결한다. 출력은 대상(호스트·DB 이름)과 개수(계정, 소속, 판, 기기, 세션)뿐이고 이메일·이름·번호는 찍지 않는다(DEC-56). 없는 이메일이나 지금 기수의 회장이면 바꾸지 않고 멈춘다. 배포 DB 규칙은 `demo`와 같다. 운영 DB에서 돌릴 때는 기능 021 명세 '위험'의 DEC-56 단서를 따른다(보호책임자가 미리 보기 개수를 확인한 뒤 `--apply`).
+- 작업자와 검토자는 `db:migrate`(미리 보기 포함), `test-data`, `demo`, `privacy`(미리 보기 포함), `pg-smoke`를 실행하지 않는다. 다섯 다 실제 DB에 연결한다.
 
 ## 로그·비밀
 

@@ -24,6 +24,7 @@ import { createSettlementRoutes } from './settlement/routes.js'
 import { createTaskPush, type AfterTimer } from './tasks/notify.js'
 import { createTaskRoutes } from './tasks/routes.js'
 import { createTeamRoutes } from './team/routes.js'
+import { createWithdrawalRoutes } from './withdrawal/routes.js'
 import type { AppOptions } from './app.js'
 import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
@@ -83,6 +84,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     profile: createProfileRoutes(db, session),
+    withdrawal: createWithdrawalRoutes(db, session, clock),
     tasks: createTaskRoutes(db, session, { clock, push: push.task }),
     home: createHomeRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),

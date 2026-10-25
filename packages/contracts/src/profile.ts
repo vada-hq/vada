@@ -12,3 +12,8 @@ export interface MeProfileResponse {
 // 내 이름 고치기. 바뀐 사람은 나로 판에 남는다.
 export const UpdateMeProfileSchema = z.strictObject({ name: memberNameInput })
 export type UpdateMeProfileRequest = z.infer<typeof UpdateMeProfileSchema>
+
+// 탈퇴(POST /api/me/withdrawal, 본문 없음). 되면 계정과 로그인이 지워지고 로그인 쿠키도 지워진다(기능 021).
+export interface WithdrawalResponse {
+  withdrawn: true
+}

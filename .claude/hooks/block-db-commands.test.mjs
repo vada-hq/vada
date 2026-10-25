@@ -27,6 +27,10 @@ const blocked = [
   'pnpm --filter @vada/api demo -- x --apply',
   'cd apps/api && pnpm pg-smoke',
   'pnpm exec tsx scripts/manage-demo-data.ts x',
+  'pnpm --filter @vada/api privacy withdraw --email a@b.test',
+  'pnpm --filter @vada/api privacy withdraw --email a@b.test --from-shell --apply',
+  'cd apps/api && pnpm run privacy -- withdraw --email a@b.test',
+  'pnpm exec tsx scripts/manage-privacy.ts withdraw --email a@b.test',
 ]
 
 const allowed = [
@@ -40,6 +44,9 @@ const allowed = [
   'pnpm --filter @vada/api test',
   'pnpm exec oxlint apps/api/scripts/pg-smoke-cases.ts',
   'pnpm exec tsx --test scripts/demo-command.test.ts',
+  'pnpm exec tsx --test scripts/privacy-command.test.ts',
+  'pnpm exec tsx --test src/withdrawal/withdrawal.test.ts',
+  'grep -rn privacy apps/api',
   'cat scripts/manage-test-data.ts | head',
   'echo db:migrate',
   'out=$(git diff --stat); echo $? ; for f in a b; do echo $f; done',

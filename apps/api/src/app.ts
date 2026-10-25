@@ -23,6 +23,7 @@ import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createHomeRoutes } from './home/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
+import type { createWithdrawalRoutes } from './withdrawal/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -44,6 +45,8 @@ export type AppOptions = {
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
   // 내 이름(운영진 이름) 읽기와 고치기
   profile?: ReturnType<typeof createProfileRoutes>
+  // 탈퇴: 로그인한 사람 자신의 계정을 지운다(/api/me/withdrawal)
+  withdrawal?: ReturnType<typeof createWithdrawalRoutes>
   // 업무: 목록, 하나 읽기
   tasks?: ReturnType<typeof createTaskRoutes>
   // 홈: 그 사람의 부분을 한 번에 읽기

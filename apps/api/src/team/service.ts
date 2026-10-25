@@ -1,8 +1,10 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import type { DepartmentRank } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { currentCouncilMembership } from '../access/current-cohort.js'
 import { can } from '../access/permissions.js'
 import {
+  cohort,
   councilMembership,
   department,
   departmentMembership,
@@ -17,7 +19,7 @@ import {
   updateRecords,
   type AnyRecordChange,
 } from '../records/records.js'
-import type { Tx } from '../db/types.js'
+import type { Db, Tx } from '../db/types.js'
 
 // 회장단이 하는 운영진 편성(DEC-28, DEC-47). 모두 학생회 행을 잠근 거래 안에서 부른다(authorizeChange).
 // 대상은 요청한 사람과 같은 기수의 지금 소속이어야 한다. 다른 학생회의 운영진이나 내보낸 운영진은 404다.
@@ -148,6 +150,27 @@ export async function changeRank(
     reason: null,
     changes: { councilRank: rank },
   })
+}
+
+// 그 운영진이 지금 기수의 회장인 학생회들. 회장은 넘긴 뒤에만 나가거나 탈퇴한다(DEC-47, DEC-64).
+// 지난 기수의 회장 직급은 넘길 수 없으므로 세지 않는다. 지금 기수의 뜻은 current-cohort.ts 한 곳이다.
+export async function currentPresidentCouncils(
+  db: Pick<Db, 'select'>,
+  memberId: string,
+  now: Date,
+): Promise<string[]> {
+  const rows = await db
+    .select({ councilId: cohort.councilId })
+    .from(councilMembership)
+    .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
+    .where(
+      and(
+        eq(councilMembership.memberId, memberId),
+        eq(councilMembership.councilRank, 'president'),
+        currentCouncilMembership(now),
+      ),
+    )
+  return rows.map(row => row.councilId)
 }
 
 // 회장 넘기기: 한 번에 거두고 준다. 넘긴 사람은 직급 없음이 된다(바탕 spec).
