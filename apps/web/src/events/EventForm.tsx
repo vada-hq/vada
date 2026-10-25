@@ -24,11 +24,11 @@ type Props = {
 // 행사 만들기·고치기 폼. 버튼은 끄지 않고 누를 때 확인한다. 보내는 동안 모든 칸과 버튼을 막는다.
 export function EventForm(props: Props) {
   const { formRef, errors, attempt } = useFormCheck(() => eventFieldErrors(props.values))
-  const body = (
-    <>
-      {props.children(errors)}
-      {props.problem && <StateMessage kind="error">{props.problem}</StateMessage>}
-    </>
+  // 저장 실패 이유는 버튼 줄 바로 위에 둔다. 패널은 칸이 스크롤되므로 칸 끝에 두면 누른 자리에서 보이지 않는다.
+  const problem = props.problem && (
+    <StateMessage kind="error" className="w-full">
+      {props.problem}
+    </StateMessage>
   )
   const buttons = (
     <>
@@ -54,12 +54,16 @@ export function EventForm(props: Props) {
     >
       {panel ? (
         <>
-          <SidePanelBody>{body}</SidePanelBody>
-          <SidePanelFooter>{buttons}</SidePanelFooter>
+          <SidePanelBody>{props.children(errors)}</SidePanelBody>
+          <SidePanelFooter>
+            {problem}
+            {buttons}
+          </SidePanelFooter>
         </>
       ) : (
         <>
-          {body}
+          {props.children(errors)}
+          {problem}
           <DialogFooter>{buttons}</DialogFooter>
         </>
       )}

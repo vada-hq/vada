@@ -16,8 +16,9 @@ type Props = {
 
 export type EventFieldFocus = 'startsAt' | 'place'
 
-// 일시·장소 값은 신청 화면이 행사에서 그대로 읽는다(public-form). 패널의 반영 힌트는 이것을 말한다.
-const REFLECTED = '신청 화면에 자동 반영'
+// 패널의 반영 힌트. 신청 화면은 일시·장소를 행사에서 그대로 읽고(public-form), 일시는 업무 달력(eventBarsOf)과 홈의 행사 줄(HomeEventRow)에도 나간다.
+const WHEN_REFLECTED = '일정 및 신청 화면에 자동 반영'
+const PLACE_REFLECTED = '신청 화면에 자동 반영'
 
 // 이름 칸. 만들기는 이 칸 하나만 받고 일시·장소는 만든 뒤 상세에서 채운다.
 // 만들기 대화상자가 열리는 순간에는 팀을 읽는 중이라 이름 칸이 없고 포커스가 닫기(×)에 간다. 칸이 생길 때 옮긴다(autoFocus).
@@ -80,7 +81,7 @@ export function EventEditFields({ values, disabled, onChange, errors = {} }: Pro
       <SidePanelSection title="행사 정보">
         <EventNameField values={values} disabled={disabled} onChange={onChange} errors={errors} />
       </SidePanelSection>
-      <SidePanelSection title="일시" hint={REFLECTED}>
+      <SidePanelSection title="일시" hint={WHEN_REFLECTED}>
         <Field label="시작 일시" error={errors.startsAt}>
           <Input
             name="startsAt"
@@ -111,7 +112,7 @@ export function EventEditFields({ values, disabled, onChange, errors = {} }: Pro
           />
         </Field>
       </SidePanelSection>
-      <SidePanelSection title="장소" hint={REFLECTED}>
+      <SidePanelSection title="장소" hint={PLACE_REFLECTED}>
         <Field
           label="장소명"
           aside={

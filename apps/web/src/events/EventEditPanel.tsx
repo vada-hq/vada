@@ -37,7 +37,7 @@ export function EventEditPanel({ focus, saving, onClose, ...props }: Props) {
       <SidePanelContent
         ref={content}
         title="행사 기본정보 수정"
-        description={<KkirukLine>저장하면 끼룩이가 신청 화면에도 함께 반영해요</KkirukLine>}
+        description={<KkirukLine>저장하면 끼룩이가 일정·신청 화면에도 함께 반영해요</KkirukLine>}
         // 닫기(×)보다 고칠 칸에 먼저 포커스를 둔다. autoFocus를 쓰면 연 버튼을 기억하기 전에 포커스가 옮겨 닫을 때 돌아가지 못한다.
         onOpenAutoFocus={event => {
           event.preventDefault()

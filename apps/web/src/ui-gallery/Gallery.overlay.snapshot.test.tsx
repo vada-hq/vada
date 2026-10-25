@@ -23,6 +23,8 @@ const openers: [string, ComponentType][] = [
   ['내 이름 창 열기', MyNameSection],
   ['기본정보 수정 패널 열기', EventEditSection],
   ['미정·양식 둘 패널 열기', EventEditSection],
+  ['보내는 중 패널 열기', EventEditSection],
+  ['저장 실패 패널 열기', EventEditSection],
 ]
 
 test.each(openers)('%s', (name, Section) => {
