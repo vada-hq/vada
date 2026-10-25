@@ -26,6 +26,14 @@ export async function startPopupLogin(
   }
 }
 
+// 본 창이 로그인 창의 알림을 듣는다. 돌려준 함수로 그만 듣는다. BroadcastChannel이 없는 브라우저에서는 듣지 않는다.
+export function onPopupLogin(listener: () => void): () => void {
+  if (typeof BroadcastChannel === 'undefined') return () => {}
+  const channel = new BroadcastChannel(AUTH_CHANNEL)
+  channel.onmessage = listener
+  return () => channel.close()
+}
+
 // 로그인이 끝난 창(/auth-done)이 본 창에 알리고 스스로 닫는다.
 export function finishPopupLogin(
   channel: { postMessage: (message: string) => void; close: () => void } | null,

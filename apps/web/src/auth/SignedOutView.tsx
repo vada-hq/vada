@@ -13,6 +13,8 @@ type Props = {
   homeScreenApp: boolean
   busy: boolean
   message: string
+  // 방금 탈퇴해 로그인 전 화면으로 왔다.
+  withdrawn: boolean
   onRecheck: () => void
   onLogin: () => void
   onLoginInApp: () => void
@@ -35,6 +37,7 @@ export default function SignedOutView({
   homeScreenApp,
   busy,
   message,
+  withdrawn,
   onRecheck,
   onLogin,
   onLoginInApp,
@@ -47,6 +50,7 @@ export default function SignedOutView({
         <SessionFailed onRecheck={onRecheck} />
       ) : (
         <div className="flex flex-col gap-3">
+          {withdrawn && <StateMessage kind="notice">탈퇴 완료</StateMessage>}
           {invite?.from === 'link' && (
             <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 들어갈 수 있어요.</Alert>
           )}

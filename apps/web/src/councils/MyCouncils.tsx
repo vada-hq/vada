@@ -9,7 +9,7 @@ import { useNotificationOpen } from '../workspace/useNotificationOpen'
 import Workspace from '../workspace/Workspace'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import NoCouncilFlow from './NoCouncilFlow'
+import NoCouncilFlow, { type CardFrame } from './NoCouncilFlow'
 import { useMyCouncils } from './useMyCouncils'
 
 type Props = {
@@ -19,8 +19,7 @@ type Props = {
   // 방금 들어온 학생회. 있으면 그 학생회 홈으로 연다(DEC-69).
   initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
-  // compact는 할 일이 있는 화면(학생회 만들기)이라 계정을 맨 아래 한 줄로 내린다.
-  card: (content: ReactNode, compact?: boolean) => ReactNode
+  card: (content: ReactNode, frame?: CardFrame) => ReactNode
   onEnterCode: (code: string) => void
   logoutBusy: boolean
   onLogout: () => void

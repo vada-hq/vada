@@ -62,6 +62,12 @@ export const PEOPLE_ERRORS: Record<string, string> = {
   NOT_FOUND: NOT_FOUND_RELOADED,
 }
 
+// 탈퇴 확인 창. 오류는 버튼 옆에 보인다. 표에 없는 코드는 일반 문구다(profile/useWithdrawal.ts).
+export const WITHDRAW_ERRORS: Record<string, string> = {
+  REAUTH_REQUIRED: '다시 로그인한 뒤 탈퇴할 수 있어요.',
+  PRESIDENT_CANNOT_WITHDRAW: '회장 직급을 넘긴 뒤 탈퇴할 수 있어요.',
+}
+
 export const INVITE_LOAD_ERRORS = {
   forbidden: PERMISSION_CHANGED,
   failed: '초대 링크를 불러오지 못했어요.',

@@ -34,6 +34,7 @@ import { ApplicantRowSection, RegistrationSection } from './RegistrationSections
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { CreateCouncilSection } from './OnboardingSections'
 import { JoinSection, MyNameSection } from './JoinSections'
+import { WithdrawSection } from './WithdrawSections'
 
 // 새 부품이나 변형을 더하면 해당 묶음 파일에도 더한다(AGENTS.md "화면" 절). 와이어프레임 스크린샷과 나란히 비교하는 화면이다.
 export default function Gallery() {
@@ -77,6 +78,7 @@ export default function Gallery() {
       <CreateCouncilSection />
       <JoinSection />
       <MyNameSection />
+      <WithdrawSection />
       <AgreementSection />
       <KakaoSection />
       <LongTextSection />

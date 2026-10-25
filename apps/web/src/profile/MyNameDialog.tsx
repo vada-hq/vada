@@ -19,11 +19,20 @@ type Props = {
   error: string | null
   onSave: (name: string) => void
   onClose: () => void
+  // 계정을 다루는 창이 이것 하나라 탈퇴도 여기서 연다(기능 021 조각 7).
+  onWithdraw: () => void
 }
 
-// '내 이름' 창: 운영진 이름 고치기. 같은 이름이면 보내지 않고 닫는다(서버도 판을 남기지 않는다).
+// '내 이름' 창: 운영진 이름 고치기와 탈퇴로 가는 버튼. 같은 이름이면 보내지 않고 닫는다(서버도 판을 남기지 않는다).
 // 칸 하나라 Enter로도 저장하도록 form이다. 저장 버튼은 끄지 않고 누를 때 확인한다.
-export default function MyNameDialog({ name: current, busy, error, onSave, onClose }: Props) {
+export default function MyNameDialog({
+  name: current,
+  busy,
+  error,
+  onSave,
+  onClose,
+  onWithdraw,
+}: Props) {
   const [name, setName] = useState(current)
   const { formRef, errors, attempt } = useFormCheck(() => myNameErrors(name))
   return (
@@ -59,6 +68,16 @@ export default function MyNameDialog({ name: current, busy, error, onSave, onClo
           </Field>
           {error && <StateMessage kind="error">{error}</StateMessage>}
           <DialogFooter>
+            {/* 이름 저장과 떨어뜨려 왼쪽 끝에 둔다. 누르면 확인 창이 한 번 더 묻는다. */}
+            <Button
+              type="button"
+              variant="ghost"
+              className="mr-auto"
+              busy={busy}
+              onClick={onWithdraw}
+            >
+              탈퇴
+            </Button>
             <Button type="button" variant="outline" busy={busy} onClick={onClose}>
               닫기
             </Button>

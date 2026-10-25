@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import PushSettingsButton from '../push/PushSettings'
+import WithdrawEntry from '../profile/WithdrawEntry'
 import AuthPage, { AuthPageCard } from './AuthPage'
 import { Button } from '@/components/ui/button'
 
@@ -10,16 +11,19 @@ type Props = {
   compact?: boolean
   // 부품 확인 화면은 페이지(가운데 정렬, 화면 높이) 없이 카드만 그린다.
   page?: boolean
+  // 학생회가 없을 때의 카드에만 [탈퇴]를 둔다. 학생회가 있으면 옆 메뉴의 내 이름 창에서 탈퇴한다.
+  withdraw?: boolean
   busy: boolean
   onLogout: () => void
   children: ReactNode
 }
 
-// 로그인한 사람의 가운데 카드: 이름과 이메일, 안에 들어갈 내용, 휴대폰 알림과 로그아웃.
+// 로그인한 사람의 가운데 카드: 이름과 이메일, 안에 들어갈 내용, 휴대폰 알림과 로그아웃(학생회가 없으면 탈퇴도).
 export default function SignedInCard({
   user,
   compact = false,
   page = true,
+  withdraw = false,
   busy,
   onLogout,
   children,
@@ -55,6 +59,7 @@ export default function SignedInCard({
         <Button variant="outline" className="flex-1" busy={busy} onClick={onLogout}>
           {logoutLabel}
         </Button>
+        {withdraw && <WithdrawEntry />}
       </div>
     </Frame>
   )
