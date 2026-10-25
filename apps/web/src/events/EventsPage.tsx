@@ -144,7 +144,7 @@ function OpenEvent({
 // 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사의 주소로 열린다.
 export default function EventsPage({ view, onForbidden, onTasksChanged }: Props) {
   const councilId = view.council.id
-  const open = useEventAddress(councilId)
+  const open = useEventAddress(councilId, view.me.memberId)
   const dialogs = useRecordDialogs()
   const list = useEvents(councilId, onForbidden)
   const lost = { onLost: dialogs.lose, onForbidden }

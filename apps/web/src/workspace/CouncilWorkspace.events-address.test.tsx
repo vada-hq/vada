@@ -12,6 +12,7 @@ import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 import { resetLeaveGuard } from '@/lib/leave-guard'
 import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
+import { rememberTaskLayout } from '@/lib/task-layout'
 import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 import type { Page } from './pages'
 
@@ -78,6 +79,7 @@ function setup(path: string, detail: () => Response = () => json({ event: eventD
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
+  window.localStorage.clear()
   resetLeaveGuard()
 })
 afterEach(async () => {
@@ -331,4 +333,12 @@ test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
   expect(await pressed('끝나지 않은 것')).toBe('true')
   expect(screen.queryByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeNull()
+})
+
+test('마지막에 고른 배치는 행사 업무 탭으로 들어갈 때 주소에 실린다', async () => {
+  rememberTaskLayout('m1', 'list')
+  setup(EVENT_AT)
+  onEventTasks()
+  fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&layout=list`))
 })

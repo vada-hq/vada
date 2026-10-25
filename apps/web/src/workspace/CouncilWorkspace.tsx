@@ -89,7 +89,12 @@ export default function CouncilWorkspace({
 }: Props) {
   const here = useHere()
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
-  const nav = useWorkspaceNav(returnFocusTo, council.id, target.page)
+  const nav = useWorkspaceNav(
+    returnFocusTo,
+    council.id,
+    target.page,
+    data.view?.me.memberId ?? null,
+  )
   // 본문 위치는 방문 기록 칸마다 기억한다. 직접 연 첫 칸은 표시가 없어 주소로 가른다.
   useScrollMemory(nav.main, here.key || `path:${here.path}`)
   const openers = useOpeners(council.id, nav)

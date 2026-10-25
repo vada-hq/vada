@@ -46,6 +46,32 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  /* 범주 색 여덟(업무 카드의 부서 색, DEC-94): 선 500, 칩 배경 100, 칩 글자 700. 와이어프레임 부서 색 넷(teal, violet, emerald, pink)에
+     상태 색(빨강·노랑·파랑·초록)과 멀리 떨어진 넷을 더했다. */
+  --color-category-1: var(--color-teal-500);
+  --color-category-1-soft: var(--color-teal-100);
+  --color-category-1-strong: var(--color-teal-700);
+  --color-category-2: var(--color-violet-500);
+  --color-category-2-soft: var(--color-violet-100);
+  --color-category-2-strong: var(--color-violet-700);
+  --color-category-3: var(--color-emerald-500);
+  --color-category-3-soft: var(--color-emerald-100);
+  --color-category-3-strong: var(--color-emerald-700);
+  --color-category-4: var(--color-pink-500);
+  --color-category-4-soft: var(--color-pink-100);
+  --color-category-4-strong: var(--color-pink-700);
+  --color-category-5: var(--color-sky-500);
+  --color-category-5-soft: var(--color-sky-100);
+  --color-category-5-strong: var(--color-sky-700);
+  --color-category-6: var(--color-orange-500);
+  --color-category-6-soft: var(--color-orange-100);
+  --color-category-6-strong: var(--color-orange-700);
+  --color-category-7: var(--color-indigo-500);
+  --color-category-7-soft: var(--color-indigo-100);
+  --color-category-7-strong: var(--color-indigo-700);
+  --color-category-8: var(--color-lime-600);
+  --color-category-8-soft: var(--color-lime-100);
+  --color-category-8-strong: var(--color-lime-800);
   /* 반경 세 단계(기준 14px일 때): 작은 값 3.5px 버튼·입력칸·칩, 중간 값 5.25px 배너, 큰 값 8.75px 카드·대화상자. */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;

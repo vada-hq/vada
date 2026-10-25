@@ -19,7 +19,8 @@ export type AppMenu = (typeof APP_MENUS)[number]
 // 화면의 탭·보기 타입이 이 목록에서 나온다. 한쪽에만 탭을 더하면 주소가 그 탭을 기본값으로 읽는다.
 export const EVENT_TABS = ['overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
-export const TASK_LAYOUTS = ['list', 'calendar'] as const
+// 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
+export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
 
 export const FINANCE_TABS = [
@@ -60,7 +61,7 @@ type QuerySpec = Record<string, QueryRule>
 const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): QuerySpec => ({
   view: { values: TASK_VIEWS, fallback: startView, onlyWith },
   filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
-  layout: { values: TASK_LAYOUTS, fallback: 'list', onlyWith },
+  layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
   dept: { values: 'uuid', fallback: null, onlyWith },
 })
 

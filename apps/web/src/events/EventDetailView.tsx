@@ -8,6 +8,7 @@ import { TabButton } from '@/components/ui/tab-button'
 import { leave } from '@/lib/app-location'
 import { openEventTasks, openRecord } from '@/lib/go-to'
 import { EVENT_COMPLETED_NOTICE, EVENT_LOAD_FAILED } from '@/lib/messages'
+import { withTaskLayout } from '@/lib/task-layout'
 import { RegistrationTab } from '../registrations/RegistrationTab'
 import TasksPage from '../tasks/TasksPage'
 import { backLabel } from './event-back'
@@ -181,19 +182,27 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
           )}
         </Loaded>
       ) : (
-        <OverviewPanel councilId={view.council.id} detail={detail} {...props} />
+        <OverviewPanel
+          councilId={view.council.id}
+          memberId={view.me.memberId}
+          detail={detail}
+          {...props}
+        />
       )}
     </div>
   )
 }
 
 // 개요 탭. 개요에서 누른 업무와 업무 만들기는 업무 탭으로, 일시 넣기는 머리의 고치기로 넘긴다.
+// 업무 탭으로 가는 링크에는 그 사람이 마지막에 고른 업무 배치를 싣는다(lib/task-layout.ts).
 function OverviewPanel({
   councilId,
+  memberId,
   detail,
   ...props
 }: Pick<PanelProps, 'onTab' | 'onOpenTasks' | 'onEdit' | 'onLost' | 'onForbidden'> & {
   councilId: string
+  memberId: string
   detail: ReturnType<typeof useEventDetail>
 }) {
   return (
@@ -204,7 +213,9 @@ function OverviewPanel({
           event={loaded}
           onTab={props.onTab}
           onOpenTask={taskId => openRecord('tasks', councilId, taskId)}
-          onOpenUnassigned={() => openEventTasks(councilId, loaded.id, { view: 'unassigned' })}
+          onOpenUnassigned={() =>
+            openEventTasks(councilId, loaded.id, withTaskLayout(memberId, { view: 'unassigned' }))
+          }
           onCreateTask={() => props.onOpenTasks({ create: true })}
           onEdit={props.onEdit}
           onLost={props.onLost}

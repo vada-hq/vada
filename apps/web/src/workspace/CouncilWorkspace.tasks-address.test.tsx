@@ -91,6 +91,7 @@ const startAt = (path: string, page: Page = 'tasks') => {
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
+  window.localStorage.clear()
 })
 afterEach(async () => {
   cleanup()
@@ -127,8 +128,24 @@ test('거르기와 배치도 주소에 남고 기본값은 남지 않는다', as
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
   fireEvent.click(screen.getByRole('button', { name: '달력' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&layout=calendar`))
-  fireEvent.click(screen.getByRole('button', { name: '목록' }))
+  fireEvent.click(screen.getByRole('button', { name: '표' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&layout=list`))
+  fireEvent.click(screen.getByRole('button', { name: '보드' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+})
+
+test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아오면 표다. 새로 열어도 같다', async () => {
+  const view = startAt(`/tasks/${COUNCIL_ID}`)
+  fireEvent.click(await screen.findByRole('button', { name: '표' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
+  fireEvent.click(screen.getAllByRole('button', { name: '홈' })[0]!)
+  await waitFor(() => expect(pathNow()).toBe(`/home/${COUNCIL_ID}`))
+  fireEvent.click(screen.getAllByRole('button', { name: /^업무/ })[0]!)
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
+  view.unmount()
+  startAt(`/home/${COUNCIL_ID}`, 'home')
+  fireEvent.click((await screen.findAllByRole('button', { name: /^업무/ }))[0]!)
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
 })
 
 test('새로 고침하면 주소의 보기·거르기가 그대로 열린다', async () => {
