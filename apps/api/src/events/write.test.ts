@@ -7,7 +7,8 @@ import {
   EVENT_PLACE_MAX,
   type EventDetail,
 } from '@vada/contracts'
-import { removeMember } from '../team/service.js'
+import { removeFromDepartment, removeMember } from '../team/service.js'
+import { clockNow, createRecord } from '../records/records.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { inCouncilChange } from '../access/authorize.js'
 import { MISSING, NOON, startEvents, withEvents, type EventKit } from '../test-support/events.js'
@@ -83,6 +84,46 @@ test(
     }
     // 같은 부서의 다른 부서장이 만든 행사는 책임자가 아니라 고치지 못한다.
     assert.equal((await t.post(`/${made.planningHead}`, FULL, 's-planningViceHead')).status, 403)
+  }),
+)
+
+test(
+  '부장 소속이 끝난 지금 운영진과 지난 기수에서만 부장이던 운영진은 만들 수 없다(403)',
+  withEvents(async t => {
+    const { councilId, departments, people } = t.council
+    // 기획부장의 부서 소속을 끝낸다. 학생회 소속은 그대로라 지금 운영진이다.
+    await inCouncilChange(
+      t.db,
+      { userId: 's-president', councilId, action: 'council.view', now: NOON },
+      (tx, actor) =>
+        removeFromDepartment(tx, actor, people.planningHead.memberId, departments.planning),
+    )
+    // 직급 없는 운영진에게 지난 기수(2025)의 끝나지 않은 부장 소속을 둔다.
+    await t.db.transaction(async tx => {
+      const cohortId = await createRecord(tx, {
+        kind: 'cohort',
+        councilId,
+        actor: null,
+        values: { name: '2025', startsOn: '2025-01-01', endsOn: '2025-12-31' },
+      })
+      await createRecord(tx, {
+        kind: 'department_membership',
+        councilId,
+        actor: null,
+        values: {
+          memberId: people.plain.memberId,
+          departmentId: departments.planning,
+          cohortId,
+          departmentRank: 'head',
+          startsAt: clockNow,
+        },
+      })
+    })
+    for (const user of ['s-planningHead', 's-plain'])
+      assert.equal((await t.post('', FULL, user)).status, 403, user)
+    assert.equal(await t.eventCount(), 0)
+    // 부부장은 지금 부서 직급이 있어 그대로 만든다.
+    assert.equal((await t.post('', FULL, 's-planningViceHead')).status, 201)
   }),
 )
 
