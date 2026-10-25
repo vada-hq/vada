@@ -10,6 +10,7 @@ import {
 import { createApp } from '../app.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
 import { clockNow, updateRecord } from '../records/records.js'
+import { sectionKeys } from '../test-support/home.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { withSettlement, type SettlementKit } from '../test-support/settlement.js'
 import { createTaskRoutes } from '../tasks/routes.js'
@@ -91,9 +92,9 @@ test('부장은 직급이 있는 부서의 수와 지난 업무·담당자 없�
     assert.equal(card.unassigned.total, 2)
     // 부부장도 같고, 소속만 있는 부원과 재정부원은 부서를 받지 않는다.
     assert.equal((await h.read('s-planningViceHead')).departments?.[0]?.name, '기획부')
-    assert.deepEqual(Object.keys(await h.read('s-planningMember')).sort(), ['mine', 'today'])
+    assert.deepEqual(sectionKeys(await h.read('s-planningMember')), ['mine', 'today'])
     // 재정부원은 부서를 받지 않고 재정 부분만 더 받는다.
-    assert.deepEqual(Object.keys(await h.read('s-financeMember')).sort(), [
+    assert.deepEqual(sectionKeys(await h.read('s-financeMember')), [
       'mine',
       'received',
       'settling',

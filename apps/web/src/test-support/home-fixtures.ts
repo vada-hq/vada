@@ -56,8 +56,17 @@ export const homeTask = (
 
 const noCounts = { overdue: 0, today: 0, soon: 0, later: 0, noDue: 0 }
 
+// 새 홈(기능 027)의 공통 칸은 부원 홈의 빈 값이다. 지금 화면은 이 칸을 읽지 않는다.
 export const homeResponse = (extra: Partial<HomeResponse> = {}): HomeResponse => ({
   today: '2026-10-23',
+  kind: 'member',
+  financeView: false,
+  asOf: '2026-10-23T09:00',
+  myTasks: { open: 0, overdue: 0, nearest: null },
+  featuredEvents: [],
+  participating: { events: [], total: 0 },
+  upcoming: { items: [], total: 0 },
+  myRequests: { requests: [], total: 0 },
   mine: { tasks: [], counts: noCounts },
   ...extra,
 })
