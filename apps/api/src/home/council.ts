@@ -10,7 +10,8 @@ import type { Actor } from '../access/actor.js'
 import { councilMembership, departmentMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { openEventsOf, taskCountsByEvent } from '../events/queries.js'
-import { listOf, type OpenTask } from './open-tasks.js'
+import type { OpenTask } from '../tasks/open-tasks.js'
+import { listOf } from './open-tasks.js'
 import { settlementSummaryOf } from '../settlement/settling.js'
 
 type Reader = Pick<Db, 'select'>

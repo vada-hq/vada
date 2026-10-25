@@ -12,6 +12,7 @@ import { event, member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong, completionApprovalsOf } from './completion.js'
+import { eventHeaderOf } from './header.js'
 import { eventHistoryOf } from './history.js'
 import { actionsOf, blockersOf, factsOf } from './policy.js'
 import { eventStatusOf } from './status.js'
@@ -211,7 +212,7 @@ export async function taskCountsByEvent(db: Reader, eventIds: string[]) {
   return counts
 }
 
-// 행사 하나와 그 사람이 할 수 있는 동작(events/policy.ts). 쓰기의 거절과 같은 판정이다.
+// 행사 하나와 머리의 셈(header.ts), 그 사람이 할 수 있는 동작(events/policy.ts). 동작은 쓰기의 거절과 같은 판정이다.
 export async function eventDetailOf(
   db: Reader,
   actor: Actor,
@@ -224,6 +225,7 @@ export async function eventDetailOf(
   return {
     ...summary!,
     tasks: (await taskCountsByEvent(db, [eventId])).get(eventId) ?? { open: 0, total: 0 },
+    ...(await eventHeaderOf(db, actor, row, { status: summary!.status, now })),
     history: await eventHistoryOf(db, eventId),
     approvals: await completionApprovalsOf(db, eventId),
     actions: actionsOf(actor, facts),

@@ -3,7 +3,8 @@ import type { HomeDepartment } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { department } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { listOf, type OpenTask } from './open-tasks.js'
+import type { OpenTask } from '../tasks/open-tasks.js'
+import { listOf } from './open-tasks.js'
 
 type Reader = Pick<Db, 'select'>
 

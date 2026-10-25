@@ -12,9 +12,11 @@ export const EVENT_PLACE_MAX = 100
 // 목록 상한. 넘치면 truncated다.
 export const EVENT_LIST_LIMIT = 200
 
-// 상태는 저장하지 않고 센다(서버가 센다). 마지막 결재가 완료이면 completed, 아니면 시각으로 센다.
+// 상태는 저장하지 않고 센다(서버가 센다). 마지막 결재가 완료이면 completed, 아니면 시각으로 센다. 화면 이름은 labels.ts에 있다.
 export const EVENT_STATUSES = ['tbd', 'upcoming', 'ongoing', 'ended', 'completed'] as const
 export type EventStatus = (typeof EVENT_STATUSES)[number]
+// 끝난 지 이 날수부터 행사 머리에 '끝난 지 N일'을 보인다(DEC-93). 완료를 잊은 행사 알림도 같은 날수를 쓴다.
+export const EVENT_ENDED_NOTICE_DAYS = 7
 
 // 끝만 있는 행사는 없고, 끝은 시작 뒤다. 일시는 한국 시각 YYYY-MM-DDTHH:mm이라 글자 순서가 시간 순서다.
 const hasValidSpan = (input: { startsAt: string | null; endsAt: string | null }) =>
@@ -87,9 +89,21 @@ export interface EventVersion {
   changes: EventChange[]
 }
 
+// 행사 머리의 다음 일정: 지금 뒤의 가장 이른 것. 업무는 마감 날짜(한국), 행사 시작은 한국 시각 YYYY-MM-DDTHH:mm이다.
+type EventNext =
+  { kind: 'task'; dueDate: string; title: string } | { kind: 'start'; startsAt: string }
+
 export interface EventDetail extends EventSummary {
   // 지우지 않은 이 행사의 업무 수
   tasks: { open: number; total: number }
+  // 담당 부서 이름: 이 행사에 이은 취소·끝나지 않은 업무를 맡은 부서, 중복 없이 이름순(DEC-25, DEC-93). 없으면 빈 목록이다.
+  departments: string[]
+  // 건강도의 근거(DEC-93): 끝나지 않은 업무 가운데 마감이 지난 것과 담당자 없는 것(업무 화면의 '담당자 없음')의 수. 둘 다 0이면 안정이다.
+  health: { overdue: number; unassigned: number }
+  // 없으면 null이다.
+  next: EventNext | null
+  // 끝난 지 며칠(한국 날짜로 센다). 끝났고 완료하지 않은 행사만 수이고, 나머지는 null이다.
+  endedDays: number | null
   // 오래된 판부터 모두
   history: EventVersion[]
   // 완료와 완료 취소 결재를 오래된 것부터 모두(DEC-68)
