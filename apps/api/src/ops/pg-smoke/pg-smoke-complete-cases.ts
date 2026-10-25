@@ -6,7 +6,14 @@ import { createExpense } from '../../expenses/service.js'
 import { clockNow } from '../../records/records.js'
 import { applyToForm } from '../../registrations/apply.js'
 import type { SmokeConnection } from './pg-smoke-connection.js'
-import { fail, pass, unexpectedFailures, withConnections, type SmokeCase } from './pg-smoke-kit.js'
+import {
+  fail,
+  pass,
+  unexpectedFailures,
+  withConnections,
+  type SmokeCase,
+  SMOKE_RECEIPT_KEY,
+} from './pg-smoke-kit.js'
 import { outcomeProblem, raceHolding, warmed } from './pg-smoke-money-kit.js'
 import {
   completeAs,
@@ -68,6 +75,7 @@ async function expenseRound(world: World, open: () => SmokeConnection) {
   const eventId = await newEvent(world)
   const lineId = await settledLine(world, eventId)
   const input = {
+    commandId: randomUUID(),
     vendor: '문구점',
     eventId: null,
     sourceMessageId: null,
@@ -83,7 +91,12 @@ async function expenseRound(world: World, open: () => SmokeConnection) {
     lines: [{ lineItemId: lineId, amount: LINE_WON }],
   }
   const spend = (db: Db) =>
-    db.transaction(tx => createExpense(tx, world.finance, input, world.context.now))
+    db.transaction(tx =>
+      createExpense(tx, world.finance, input, {
+        now: world.context.now,
+        receiptKey: SMOKE_RECEIPT_KEY,
+      }),
+    )
   const problem = await completeFirst(open, world, { eventId, other: spend })
   if (problem) return problem
   const lines = await count(

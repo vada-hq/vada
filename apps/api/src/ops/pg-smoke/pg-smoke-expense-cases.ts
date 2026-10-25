@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { koreanDateOf } from '@vada/contracts'
 import { cancelExpense, createExpense, reimburseExpense } from '../../expenses/service.js'
 import type { Db } from '../../db/types.js'
@@ -11,6 +12,7 @@ import {
   withConnections,
   type SmokeCase,
   type SmokeContext,
+  SMOKE_RECEIPT_KEY,
 } from './pg-smoke-kit.js'
 import {
   moneyScene,
@@ -94,6 +96,7 @@ async function expenseIn(db: Db, run: Run, label: string) {
       tx,
       actor,
       {
+        commandId: randomUUID(),
         vendor: '문구점',
         eventId: null,
         sourceMessageId: null,
@@ -108,7 +111,7 @@ async function expenseIn(db: Db, run: Run, label: string) {
         accountId: null,
         lines: [],
       },
-      context.now,
+      { now: context.now, receiptKey: SMOKE_RECEIPT_KEY },
     ),
   )
   return detail.id

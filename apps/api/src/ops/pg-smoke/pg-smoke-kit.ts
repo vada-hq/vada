@@ -174,3 +174,6 @@ export async function versionsOf(sql: SmokeSql, recordId: string) {
     last: data && typeof data === 'object' ? (data as Record<string, unknown>) : {},
   }
 }
+
+// 명령 영수증의 본문 해시 키. 점검은 고정 값을 쓴다.
+export const SMOKE_RECEIPT_KEY = 'smoke-receipt-key'

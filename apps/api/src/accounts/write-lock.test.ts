@@ -18,7 +18,7 @@ test(
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
         accounts: createAccountRoutes(db, testSession),
-        expenses: createExpenseRoutes(db, testSession),
+        expenses: createExpenseRoutes(db, testSession, { receiptKey: 'test-receipt-key' }),
       }),
     )
     const id = await t.make({ name: '기존' })

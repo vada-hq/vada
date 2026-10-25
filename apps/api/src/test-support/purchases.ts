@@ -79,6 +79,7 @@ export async function startPurchases(
       tasks: createTaskRoutes(db, testSession, { clock }),
       chat: createChatRoutes(db, testSession, { clock, storage: store.storage }),
       expenses: createExpenseRoutes(db, testSession, {
+        receiptKey: 'test-receipt-key',
         clock,
         writeLimiter,
         ...(options.noStorage ? {} : { storage: store.storage }),

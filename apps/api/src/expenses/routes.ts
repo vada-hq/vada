@@ -37,9 +37,10 @@ type WriteKit = {
   writeLimiter: RateLimiter
   clock: () => Date
   db: Db
+  receiptKey: string
 }
 
-function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
+function addWriteRoutes({ routes, auth, writeLimiter, clock, db, receiptKey }: WriteKit) {
   const changing = (c: Context<SessionEnv>) => ({
     userId: c.get('userId'),
     councilId: c.req.param('councilId'),
@@ -52,7 +53,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
     const input = c.req.valid('json')
     const asked = changing(c)
     const detail = await inCouncilChange(db, asked, (tx, actor) =>
-      createExpense(tx, actor, input, asked.now),
+      createExpense(tx, actor, input, { now: asked.now, receiptKey }),
     )
     return c.json({ expense: detail } satisfies ExpenseResponse, CREATED)
   })
@@ -83,12 +84,14 @@ export function createExpenseRoutes(
   db: Db,
   getSession: SessionReader,
   options: {
+    // 명령 영수증의 본문 해시 키(서버 비밀 값). 없으면 지출을 적지 못한다.
+    receiptKey: string
     clock?: () => Date
     writeLimiter?: RateLimiter
     uploadLimiter?: RateLimiter
     // 없으면 증빙 사진만 막힌다(STORAGE_NOT_CONFIGURED).
     storage?: FileStorage | undefined
-  } = {},
+  },
 ) {
   const clock = options.clock ?? (() => new Date())
   const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
@@ -118,7 +121,7 @@ export function createExpenseRoutes(
     )
     return c.json({ expense: detail } satisfies ExpenseResponse)
   })
-  addWriteRoutes({ routes, auth, writeLimiter, clock, db })
+  addWriteRoutes({ routes, auth, writeLimiter, clock, db, receiptKey: options.receiptKey })
   addEvidenceRoutes({
     routes,
     auth,

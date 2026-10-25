@@ -62,7 +62,7 @@ function modulesOf(session: () => Promise<null>) {
     home: createHomeRoutes(db, session),
     purchases: createPurchaseRoutes(db, session),
     budget: createBudgetRoutes(db, session),
-    expenses: createExpenseRoutes(db, session),
+    expenses: createExpenseRoutes(db, session, { receiptKey: 'test-receipt-key' }),
     incomes: createIncomeRoutes(db, session),
     closing: createClosingRoutes(db, session),
     closingExport: createClosingExportRoutes(db, session),

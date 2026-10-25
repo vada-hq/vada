@@ -55,6 +55,7 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
       purchases: createPurchaseRoutes(db, testSession, { clock, writeLimiter }),
       budget: createBudgetRoutes(db, testSession, { clock }),
       expenses: createExpenseRoutes(db, testSession, {
+        receiptKey: 'test-receipt-key',
         clock,
         writeLimiter,
         storage: store.storage,
