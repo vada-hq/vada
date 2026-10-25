@@ -18,6 +18,8 @@ import { createPurchaseRoutes } from './purchases/routes.js'
 import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
 import { createPushRoutes } from './push/routes.js'
 import { createProfileRoutes } from './profile/routes.js'
+import { createProductInfoRoutes } from './product-info/routes.js'
+import type { ProductLookup } from './product-info/reef.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createSettlementRoutes } from './settlement/routes.js'
@@ -50,6 +52,8 @@ export type AppDeps = {
         after: AfterTimer
       }
     | undefined
+  // 쿠팡 상품 정보를 부르는 함수. 운영은 ReefAPI, 시험은 가짜 fetch를 넣는다. 없으면(키 없음) 불러오기만 꺼진다.
+  productLookup?: ProductLookup | undefined
 }
 
 function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
@@ -73,7 +77,7 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
 // 반환 타입이 AppOptions의 모든 모듈을 요구하므로 AppOptions에 모듈을 더하고 여기 연결하지 않으면 타입 오류다.
 // 가입 동의, 휴대폰 기기 저장, 내 이름은 시각을 쓰지 않아 시계를 받지 않는다.
 export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
-  const { clock, writeLimiter, receiptKey, storage } = deps
+  const { clock, writeLimiter, receiptKey, storage, productLookup } = deps
   const push = pushModules(db, session, deps)
   return {
     councils: createCouncilRoutes(db, session, clock),
@@ -98,6 +102,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     deposits: createDepositRoutes(db, session, { clock }),
     settlement: createSettlementRoutes(db, session, { clock }),
     feePayments: createFeePaymentRoutes(db, session, { clock }),
+    productInfo: createProductInfoRoutes(db, session, { clock, lookup: productLookup }),
     publicRegistrations: createPublicRegistrationRoutes(db, { clock, receiptKey }),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }

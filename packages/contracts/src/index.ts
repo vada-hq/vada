@@ -278,3 +278,5 @@ export * from './settlement.js'
 export * from './paths.js'
 // 내 이름(운영진 이름) 읽기와 고치기(기능 020).
 export * from './profile.js'
+// 쿠팡 상품 정보 불러오기(기능 022).
+export * from './product-info.js'

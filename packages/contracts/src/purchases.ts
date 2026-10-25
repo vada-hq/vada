@@ -56,11 +56,12 @@ const isWebUrl = (value: string) => {
 }
 
 // 링크는 운영진이 쓴 주소라 http와 https만 받는다(javascript: 같은 주소가 화면에서 실행되지 않게).
-const itemLink = token(PURCHASE_ITEM_LINK_MAX).refine(isWebUrl)
+// 상품 정보 불러오기(기능 022)도 품목 링크로 쓸 주소를 받으므로 같은 규칙을 쓴다.
+export const itemLinkInput = token(PURCHASE_ITEM_LINK_MAX).refine(isWebUrl)
 const CreateLineItemSchema = z.strictObject({
   name: text(PURCHASE_ITEM_NAME_MAX),
   quantity: z.number().int().min(1).max(PURCHASE_QUANTITY_MAX),
-  link: itemLink.nullable().default(null),
+  link: itemLinkInput.nullable().default(null),
   options: text(PURCHASE_ITEM_OPTIONS_MAX).nullable().default(null),
 })
 

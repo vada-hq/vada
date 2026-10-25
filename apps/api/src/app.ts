@@ -23,6 +23,7 @@ import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createHomeRoutes } from './home/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
+import type { createProductInfoRoutes } from './product-info/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -74,6 +75,8 @@ export type AppOptions = {
   settlement?: ReturnType<typeof createSettlementRoutes>
   // 학생회비 납부자 명단: 보기, 올리기, 빼기
   feePayments?: ReturnType<typeof createFeePaymentRoutes>
+  // 쿠팡 상품 정보 불러오기(ReefAPI). 키가 없으면 경로는 있고 불러오기만 꺼진다.
+  productInfo?: ReturnType<typeof createProductInfoRoutes>
   // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기
   publicRegistrations?: ReturnType<typeof createPublicRegistrationRoutes>
 }

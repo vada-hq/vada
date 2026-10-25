@@ -96,6 +96,13 @@ function probesOf(app: ReturnType<typeof createApp>): Probe[] {
       body: {},
     },
     { method: 'POST', route: '/api/me/push/test', path: '/api/me/push/test', body: PUSH_BODY },
+    // 상품 정보는 읽기 경로가 없다. 쿠팡 주소가 아니라 밖으로 부르지 않는다.
+    {
+      method: 'POST',
+      route: '/api/organizations/:councilId/product-info',
+      path: `/api/organizations/${councilId}/product-info`,
+      body: { url: 'https://coupa.ng/probe' },
+    },
   ]
 }
 

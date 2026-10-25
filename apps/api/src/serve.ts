@@ -13,6 +13,7 @@ import { realTimer } from './tasks/notify.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { startPurge } from './purge/run.js'
+import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
 import type { Db } from './db/types.js'
 
 type Env = NodeJS.ProcessEnv
@@ -43,6 +44,13 @@ function storageOf(env: Env) {
   return config ? createR2Storage(config) : undefined
 }
 
+// 쿠팡 상품 정보(ReefAPI) 키. 없으면 불러오기만 꺼지고 사람이 품목을 적는다(DEC-89). 키 값은 출력하지 않는다.
+function productLookupOf(env: Env) {
+  const apiKey = reefKeyFrom(env)
+  if (apiKey) console.log('상품 정보 불러오기 켜짐 (ReefAPI)')
+  return apiKey ? createReefLookup({ apiKey }) : undefined
+}
+
 function appOf(env: Env, db: Db) {
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET!,
@@ -57,6 +65,7 @@ function appOf(env: Env, db: Db) {
     receiptKey: env.BETTER_AUTH_SECRET!,
     storage: storageOf(env),
     push: pushOf(env),
+    productLookup: productLookupOf(env),
   })
   return createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, ...modules })
 }
