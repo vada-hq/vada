@@ -31,6 +31,19 @@ test('챙길 것: 지난 업무와 담당자 없는 업무를 수와 앞의 두 
   ])
 })
 
+test('챙길 것의 담당자 없음은 머리와 같이 담당자 없음, 떠난 담당자, 부서 없는 업무를 센다', () => {
+  const tasks = [
+    task('1', { assignee: null }),
+    task('2', { assignee: { id: 'm9', name: '떠난 운영진 1', current: false } }),
+    task('3', { department: null }),
+    task('4'),
+  ]
+  const items = attentionOf(eventDetail(), tasks, null)
+  expect(items.map(item => [item.key, item.value, item.detail])).toEqual([
+    ['unassigned', '3개', '업무1 · 업무2 외 1개'],
+  ])
+})
+
 test('챙길 것: 끝난 행사는 정산에 남은 것을, 정산이 끝났고 완료할 수 있으면 완료를 말한다', () => {
   const ended = eventDetail({ status: 'ended' })
   const left = attentionOf(ended, [], settlementOf().settlement)
