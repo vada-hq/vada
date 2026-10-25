@@ -3,10 +3,12 @@ import type { Actor } from '../access/actor.js'
 import { event, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { decide, factsOf } from './policy.js'
+import { eventDepartmentIdsOf } from '../access/event-departments.js'
+import { decide, decideEventLink, factsOf, type EventScope } from './policy.js'
 
-// 업무가 이을 행사. 이 학생회의 행사만 valid다. 다른 학생회 행사의 책임자는 맥락에 넣지 않는다(권한이 없는 사람에게 행사가 있는지 드러내지 않는다).
-type EventLink = { valid: boolean; ownerId: string | null }
+// 업무가 이을 행사. 이 학생회의 행사만 valid다. 다른 학생회 행사의 책임자와 담당 부서는 맥락에 넣지 않는다(권한이 없는 사람에게 행사가 있는지 드러내지 않는다).
+type EventLink = EventScope & { valid: boolean }
+const NO_EVENT: EventLink = { valid: true, ownerId: null, departmentIds: null }
 
 // 쓰기 거래 안에서 부른다. 행사를 고치는 쓰기와 학생회 행 잠금으로 줄을 서므로, 여기서 읽은 행사는 거래가 끝날 때까지 바뀌지 않는다.
 export async function eventLinkOf(
@@ -14,13 +16,15 @@ export async function eventLinkOf(
   actor: Actor,
   eventId: string | null,
 ): Promise<EventLink> {
-  if (!eventId) return { valid: true, ownerId: null }
+  if (!eventId) return NO_EVENT
   const [found] = await tx
     .select({ ownerId: event.ownerId })
     .from(event)
     .innerJoin(record, eq(record.id, event.id))
     .where(and(eq(event.id, eventId), eq(record.councilId, actor.councilId)))
-  return found ? { valid: true, ownerId: found.ownerId } : { valid: false, ownerId: null }
+  if (!found) return { ...NO_EVENT, valid: false }
+  const departmentIds = await eventDepartmentIdsOf(tx, actor.councilId, eventId)
+  return { valid: true, ownerId: found.ownerId, departmentIds }
 }
 
 type Row = {
@@ -31,6 +35,7 @@ type Row = {
 }
 
 // 고치기가 정한 행사: 칸을 빼면 그대로, 같은 값이면 확인도 판도 없다. 바꾸면 뒤의 행사 맥락에서도 task.edit가 있어야 한다(앞은 업무를 읽을 때 이미 봤다).
+// 뒤의 행사에 이 업무의 부서가 담당 부서가 아니면 새 부서를 잇는 것이다(decideEventLink). 이 업무는 아직 앞의 행사에 있어 뒤의 담당 부서에 세지 않는다.
 // 403이 409보다 먼저다.
 export async function eventChangeOf(
   tx: Tx,
@@ -40,7 +45,9 @@ export async function eventChangeOf(
 ): Promise<{ eventId?: string | null }> {
   if (wanted === undefined || wanted === row.eventId) return {}
   const link = await eventLinkOf(tx, actor, wanted)
-  const denied = decide(actor, factsOf({ ...row, eventOwnerId: link.ownerId }), 'task.edit')
+  const denied =
+    decide(actor, factsOf({ ...row, eventOwnerId: link.ownerId }), 'task.edit') ??
+    decideEventLink(actor, row.departmentId, link)
   if (denied) throw new ApiError(denied)
   if (!link.valid) throw new ApiError('EVENT_INVALID')
   return { eventId: wanted }

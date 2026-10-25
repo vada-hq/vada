@@ -263,8 +263,31 @@ test('업무 칸: 부서 정하기는 회장단만이다', () => {
     assert.equal(can(denied, 'task.set_department', { departmentId: 'planning' }), false)
 })
 
-test('내 권한 목록: 회장단은 업무 다섯을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
-  const tasks = ['task.manage', 'task.delete', 'task.set_department', 'task.assign', 'task.status']
+test('업무 칸: 행사에 새 부서의 업무 잇기는 그 행사의 책임자와 회장단만이다(DEC-94)', () => {
+  for (const who of [president, vicePresident]) {
+    assert.equal(can(who, 'task.link_event_department', { eventOwnerId: 'x' }), true, who.memberId)
+    assert.equal(can(who, 'task.link_event_department'), true, who.memberId)
+  }
+  for (const who of [planningHead, planningViceHead, planningMember, financeMember, plain]) {
+    const own = { eventOwnerId: who.memberId }
+    assert.equal(can(who, 'task.link_event_department', own), true, who.memberId)
+    assert.equal(can(who, 'task.link_event_department', { eventOwnerId: 'x' }), false, who.memberId)
+    // 부서와 담당자는 이 칸의 맥락이 아니다: 그 부서 부장이어도, 담당자여도 거부다.
+    const department = { departmentId: 'planning', assigneeId: who.memberId }
+    assert.equal(can(who, 'task.link_event_department', department), false, who.memberId)
+    assert.equal(can(who, 'task.link_event_department'), false, who.memberId)
+  }
+})
+
+test('내 권한 목록: 회장단은 업무 여섯을 받고, 부장과 직급 없는 운영진은 받지 않는다', () => {
+  const tasks = [
+    'task.manage',
+    'task.delete',
+    'task.set_department',
+    'task.assign',
+    'task.status',
+    'task.link_event_department',
+  ]
   const taskActions = (who: Actor) =>
     permissionsOf(who).filter(action => action.startsWith('task.'))
   for (const who of [president, vicePresident]) assert.deepEqual(taskActions(who), tasks)

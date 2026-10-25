@@ -139,8 +139,15 @@ interface TaskCreateDepartment {
   name: string | null
   assignees: TaskCreateAssignee[]
 }
+// 부서마다 그 부서의 업무를 이을 수 있는 행사(DEC-94). 만들기·행사 바꾸기와 같은 판정(tasks/policy.ts decideEventLink)으로 셌다.
+// 고치기의 행사 선택칸은 여기 있는 행사만 보인다. 부서가 null이면 학생회 업무다.
+interface TaskLinkableEvents {
+  departmentId: string | null
+  eventIds: string[]
+}
 export interface TaskCreateOptionsResponse {
   departments: TaskCreateDepartment[]
+  linkableEvents: TaskLinkableEvents[]
 }
 export interface TaskResponse {
   task: TaskDetail

@@ -124,7 +124,27 @@ async function start() {
         },
       })
     })
-  return { council, db, pg, api, base, make, close }
+  const event = (ownerId: string) =>
+    db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'event',
+        councilId: council.councilId,
+        actor: idOf('president'),
+        values: { name: '봄 축제', ownerId },
+      }),
+    )
+  const task = (eventId: string | null, departmentId: string, assigneeId: string | null = null) =>
+    db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'task',
+        councilId: council.councilId,
+        actor: idOf('president'),
+        values: { title: '현수막 주문', departmentId, assigneeId, eventId },
+      }),
+    )
+  const count = async () =>
+    Number(((await pg.query('SELECT count(*) AS n FROM task')).rows[0] as { n: string }).n)
+  return { council, db, pg, api, base, make, event, task, count, close }
 }
 
 test('업무 × 사람 × 동작: 읽기 actions에 있으면 쓰기가 성공하고, 없으면 403으로 거절된다', async () => {
@@ -195,41 +215,62 @@ test('만들기 선택지 × 직급: 선택지에 있는 짝은 201이고 없는
     const pairs = (department: string | null, who: (string | null)[]) =>
       who.map(item => `${department}|${item}`)
     const { finance, planning } = departments
-    const eventId = await s.db.transaction(tx =>
-      createRecord(tx, {
-        kind: 'event',
-        councilId: s.council.councilId,
-        actor: id('president'),
-        values: { name: '봄 축제', ownerId: id('plain') },
-      }),
-    )
+    // 행사 칸마다 새 행사를 둔다: 앞 칸이 만든 업무가 그 행사의 담당 부서를 바꾸지 않게 한다.
+    const freshEvent = () => s.event(id('plain'))
+    const staffedEvent = async () => {
+      const eventId = await freshEvent()
+      await s.task(eventId, planning)
+      return eventId
+    }
     const everything = [finance, planning, null].flatMap(item => pairs(item, withNone))
     const onlyMe = (person: keyof typeof people) => [
       ...pairs(planning, [id(person)]),
       ...pairs(null, [id(person)]),
     ]
+    const headPairs = [...pairs(planning, withNone), ...pairs(null, [id('planningHead')])]
     // 직급마다 기대하는 선택지. 부장은 자기 부서의 모두, 그 밖은 나만이다. 떠난 사람은 어디에도 없다.
+    // 행사에서는 그 행사의 담당 부서가 아닌 부서가 책임자와 회장단에게만 있다(DEC-94).
     const cases: { name: string; person: Person; event?: string; expected: string[] }[] = [
       { name: '회장단', person: 'president', expected: everything },
-      {
-        name: '부장',
-        person: 'planningHead',
-        expected: [...pairs(planning, withNone), ...pairs(null, [id('planningHead')])],
-      },
+      { name: '부장', person: 'planningHead', expected: headPairs },
       { name: '부원', person: 'planningMember', expected: onlyMe('planningMember') },
       { name: '부서 없는 운영진', person: 'plain', expected: pairs(null, [id('plain')]) },
-      { name: '행사 책임자', person: 'plain', event: eventId, expected: everything },
+      { name: '행사 책임자', person: 'plain', event: await freshEvent(), expected: everything },
       {
-        name: '책임자가 아닌 부원의 그 행사',
+        name: '회장단의 남의 행사',
+        person: 'president',
+        event: await freshEvent(),
+        expected: everything,
+      },
+      {
+        name: '기획부 업무가 없는 행사의 부원',
         person: 'planningMember',
-        event: eventId,
+        event: await freshEvent(),
+        expected: pairs(null, [id('planningMember')]),
+      },
+      {
+        name: '기획부 업무가 없는 행사의 부장',
+        person: 'planningHead',
+        event: await freshEvent(),
+        expected: pairs(null, [id('planningHead')]),
+      },
+      {
+        name: '기획부 업무가 있는 행사의 부원',
+        person: 'planningMember',
+        event: await staffedEvent(),
         expected: onlyMe('planningMember'),
+      },
+      {
+        name: '기획부 업무가 있는 행사의 부장',
+        person: 'planningHead',
+        event: await staffedEvent(),
+        expected: headPairs,
       },
     ]
     // 후보에는 선택지에 없어야 하는 사람(떠난 사람, 다른 학생회 사람)도 넣는다.
     const other = await seedCouncil(s.db, s.pg, 'o')
     const outsiders = [id('ended'), other.people.president.memberId]
-    let created = 0
+    let created = await s.count()
     for (const item of cases) {
       const user = `s-${item.person}`
       const query = item.event ? `?event=${item.event}` : ''
@@ -261,10 +302,7 @@ test('만들기 선택지 × 직급: 선택지에 있는 짝은 201이고 없는
           assert.equal(made.status, 403, `${cell} 선택지에 없는 짝은 403`)
       }
     }
-    const all = (await (await s.api.get(`${s.base}?view=all`, 's-president')).json()) as {
-      tasks: unknown[]
-    }
-    assert.equal(all.tasks.length, created, '거절된 만들기가 기록을 남겼다')
+    assert.equal(await s.count(), created, '거절된 만들기가 기록을 남겼다')
   } finally {
     await s.close()
   }
@@ -292,6 +330,63 @@ test('만들기 선택지: 다른 학생회 행사 404, 틀린 번호·모르는
     const text = JSON.stringify(await (await get('', 's-president')).json())
     assert.ok(!text.includes(other.people.president.memberId), '다른 학생회 사람이 실렸다')
     assert.ok(!text.includes(s.council.people.ended.memberId), '떠난 사람이 실렸다')
+  } finally {
+    await s.close()
+  }
+})
+
+// 행사 바꾸기(DEC-94): 선택지의 이을 수 있는 행사(linkableEvents)에 있으면 바꾸기가 200이고, 없으면 403이며 행사가 그대로다.
+// 만들기·선택지·바꾸기가 같은 decideEventLink를 쓰므로 어느 한 경로에서 판정을 지우면 이 표나 위 표가 실패한다.
+type Target = 'staffed' | 'empty' | 'plainOwns'
+const TARGETS: Target[] = ['staffed', 'empty', 'plainOwns']
+// 기획부 업무가 있는 행사는 누구나, 빈 행사는 회장단만, 책임자의 행사는 책임자와 회장단이다.
+const LINKABLE: Record<Person, Target[]> = {
+  president: ['staffed', 'empty', 'plainOwns'],
+  planningHead: ['staffed'],
+  planningMember: ['staffed'],
+  plain: ['staffed', 'plainOwns'],
+}
+
+test('행사 바꾸기 × 직급: 이을 수 있는 행사에 있으면 200, 없으면 403이고 행사가 그대로다', async () => {
+  const s = await start()
+  try {
+    const id = (person: Person) => s.council.people[person].memberId
+    const { planning } = s.council.departments
+    // 사람마다 고칠 수 있는 기획부 업무: 회장단과 부장은 맡지 않은 것, 부원과 책임자는 자기가 맡은 것.
+    // 책임자는 자기 행사의 업무만 고치므로 자기 행사에서 시작한다.
+    const own = async (person: Person) => {
+      if (person === 'plain') return s.task(await s.event(id('plain')), planning, id('plain'))
+      return s.task(null, planning, person === 'planningMember' ? id(person) : null)
+    }
+    const target = async (kind: Target) => {
+      if (kind === 'plainOwns') return s.event(id('plain'))
+      const eventId = await s.event(id('president'))
+      if (kind === 'staffed') await s.task(eventId, planning)
+      return eventId
+    }
+    const eventOf = async (taskId: string) => {
+      const read = await s.api.get(`${s.base}/${taskId}`, 's-president')
+      return ((await read.json()) as { task: TaskDetail }).task.event?.id ?? null
+    }
+    for (const person of PEOPLE)
+      for (const kind of TARGETS) {
+        const cell = `${person} ${kind}`
+        const taskId = await own(person)
+        const eventId = await target(kind)
+        const user = `s-${person}`
+        const options = (await (await s.api.get(`${s.base}/options`, user)).json()) as Options & {
+          linkableEvents: { departmentId: string | null; eventIds: string[] }[]
+        }
+        const linkable = options.linkableEvents
+          .find(item => item.departmentId === planning)!
+          .eventIds.includes(eventId)
+        assert.equal(linkable, LINKABLE[person].includes(kind), `${cell} 선택지`)
+        const before = await eventOf(taskId)
+        const body = { title: '현수막 주문', body: null, dueDate: null, eventId }
+        const response = await s.api.post(`${s.base}/${taskId}`, body, user)
+        assert.equal(response.status, linkable ? 200 : 403, `${cell} 바꾸기`)
+        assert.equal(await eventOf(taskId), linkable ? eventId : before, `${cell} 행사`)
+      }
   } finally {
     await s.close()
   }
