@@ -11,6 +11,7 @@ import {
 import { asElement } from '@/test-support/elements'
 import { BASE, showFinance } from '@/test-support/expense-harness'
 import {
+  CURRENT_PERIOD,
   incomeDetail,
   INCOME_ITEM,
   OLD_PERIOD,
@@ -37,10 +38,14 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
+// 예산 항목은 대화상자의 기간으로 읽는다.
+const CURRENT_BUDGET = `${BASE}/budget?period=${CURRENT_PERIOD}`
+const OLD_INCOME_ITEM = '88888888-8888-4888-8888-888888888882'
+
 function serve() {
   const api = serveIncomes([])
   api.on('GET', `${BASE}/accounts`, () => json(standardAccounts()))
-  api.on('GET', `${BASE}/budget`, () =>
+  api.on('GET', CURRENT_BUDGET, () =>
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
       items: [
@@ -123,7 +128,7 @@ test('출처는 사람이 적는 다섯만 보이고, 금액이 없거나 0이�
 
 test('수입 예산 항목은 서버가 고를 수 있다고 한 것만 보인다', async () => {
   const api = serve()
-  api.on('GET', `${BASE}/budget`, () =>
+  api.on('GET', CURRENT_BUDGET, () =>
     json({
       period: { id: 'p1', name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
       items: [
@@ -286,10 +291,31 @@ test('403이면 대화상자를 닫고 권한이 바뀌었다고 알리고 학�
   expect(handlers.onForbidden).toHaveBeenCalled()
 })
 
-test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고 예산 항목 칸이 없다', async () => {
+test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고, 예산 항목은 그 기간의 수입 항목에서 고른다', async () => {
   const api = serve()
   api.on('GET', `${INCOMES}?period=${OLD_PERIOD}`, () => json({ incomes: [], truncated: false }))
   api.on('POST', INCOMES, () => json({ income: incomeDetail('i1') }, 201))
+  api.on('GET', `${BASE}/budget?period=${OLD_PERIOD}`, () =>
+    json({
+      period: {
+        id: OLD_PERIOD,
+        name: '2026년 1학기',
+        startsOn: '2020-01-01',
+        endsOn: '2020-12-31',
+      },
+      items: [
+        {
+          id: OLD_INCOME_ITEM,
+          purpose: '1학기 학생회비',
+          amount: 700000,
+          type: 'income',
+          event: null,
+          selectable: true,
+        },
+      ],
+      suggested: null,
+    }),
+  )
   showFinance()
   openIncomesTab()
   await screen.findByRole('button', { name: '수입 적기' })
@@ -299,15 +325,16 @@ test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고 예
   await screen.findByRole('form', { name: '수입 적기' })
   const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
   expect([date.min, date.max, date.value]).toEqual(['2020-01-01', '2020-12-31', '2020-12-31'])
-  expect(screen.queryByLabelText('수입 예산 항목')).toBeNull()
-  // 예산 항목은 지금 기간만 읽으므로 읽지도 않는다.
-  expect(api.calls.some(call => call.path === `${BASE}/budget`)).toBe(false)
+  // 지금 기간의 항목(지원금 예산)이 아니라 고른 기간의 항목이 보인다.
+  await screen.findByRole('option', { name: /1학기 학생회비/ })
+  expect(screen.queryByRole('option', { name: /지원금 예산/ })).toBeNull()
   fill('금액(원)', '1000')
+  fill('수입 예산 항목', OLD_INCOME_ITEM)
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
     receivedOn: '2020-12-31',
-    budgetItemId: null,
+    budgetItemId: OLD_INCOME_ITEM,
   })
 })
 

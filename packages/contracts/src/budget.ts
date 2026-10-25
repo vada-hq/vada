@@ -32,6 +32,9 @@ export const CreateBudgetItemSchema = z.strictObject({
 })
 export type CreateBudgetItem = z.infer<typeof CreateBudgetItemSchema>
 
+// 예산 읽기의 기간(선택). 없으면 오늘이 든 기간이다. 끝난 기간에 늦게 적는 수입이 그 기간의 수입 항목을 고른다(DEC-70).
+export const BudgetQuerySchema = z.strictObject({ period: recordIdInput.optional() })
+
 // 요청이나 지출의 행사와 예산 항목의 행사가 둘 다 있으면 같아야 한다(DEC-81, RULE-40). 한쪽이 없으면 맞다.
 // 승인, 직접 지출, 결재·지출 화면의 항목 고르기가 이 술어 하나를 쓴다. 표를 넘는 규칙이라 DB 제약은 없다.
 export const eventsAgree = (recordEventId: string | null, itemEventId: string | null) =>

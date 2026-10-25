@@ -94,8 +94,21 @@ export async function budgetViewOf(
   }
 }
 
-// 오늘의 예산. 기간이 없으면 지금 기수의 이름과 날짜를 채워 둘 값으로 준다.
-export async function budgetOf(db: Reader, actor: Actor, now: Date): Promise<BudgetResponse> {
+// 고른 기간(이 학생회 것만, 아니면 404)이나 오늘의 예산. 오늘 기간이 없으면 지금 기수의 이름과 날짜를 채워 둘 값으로 준다.
+export async function budgetOf(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+  periodId?: string,
+): Promise<BudgetResponse> {
+  if (periodId) {
+    const picked = await periodWhere(
+      db,
+      and(eq(fiscalPeriod.id, periodId), eq(fiscalPeriod.councilId, actor.councilId)),
+    )
+    if (!picked) throw new ApiError('NOT_FOUND')
+    return budgetViewOf(db, picked)
+  }
   const period = await currentPeriodOf(db, actor, now)
   if (period) return budgetViewOf(db, period)
   const [current] = await db

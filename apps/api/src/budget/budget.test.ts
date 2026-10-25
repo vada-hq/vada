@@ -331,3 +331,46 @@ test(
     )
   }),
 )
+
+test(
+  '기간을 주면 그 기간의 예산을 준다. 끝난 기간도 되고, 다른 학생회 기간은 404, 틀린 번호와 모르는 키는 400이다',
+  runPurchases(async s => {
+    const PAST = { name: '2026 1학기', startsOn: '2026-03-01', endsOn: '2026-08-31' }
+    const inPast = new Date('2026-05-01T03:00:00Z')
+    const today = new Date('2026-10-25T03:00:00Z')
+    const theirs = `/api/organizations/${s.other.councilId}`
+    s.setNow(inPast)
+    const past = (await viewOf(await makePeriod(s, PAST))).period!
+    await makeItem(s, { purpose: '1학기 학생회비', amount: 7, type: 'income' })
+    const otherView = await s.api.post(`${theirs}/fiscal-periods`, PAST, 'o-financeMember')
+    const other = (await viewOf(otherView)).period!
+    const theirItem = { purpose: '남의 것', amount: 5, type: 'income' }
+    await s.api.post(`${theirs}/budget-items`, theirItem, 'o-financeMember')
+    s.setNow(today)
+    const current = (await viewOf(await makePeriod(s))).period!
+    await makeItem(s, { purpose: '2학기 학생회비', amount: 9, type: 'income' })
+    const read = (query: string, user = 's-plain') => s.api.get(`${root(s)}/budget${query}`, user)
+    const view = await viewOf(await read(`?period=${past.id}`))
+    assert.deepEqual(
+      [view.period?.id, view.items.map(item => item.purpose)],
+      [past.id, ['1학기 학생회비']],
+    )
+    const upper = await viewOf(await read(`?period=${current.id.toUpperCase()}`))
+    assert.deepEqual(
+      upper.items.map(item => item.purpose),
+      ['2학기 학생회비'],
+    )
+    assert.equal((await viewOf(await read(''))).period?.id, current.id)
+    const theirRead = await read(`?period=${other.id}`, FINANCE)
+    assert.equal(theirRead.status, 404)
+    assert.equal(await errorOf(theirRead), 'NOT_FOUND')
+    const bad = ['?period=x', '?period=', `?period=${past.id}&period=${past.id}`, '?extra=1']
+    for (const query of bad) {
+      const response = await read(query)
+      assert.equal(response.status, 400, query)
+      assert.equal(await errorOf(response), 'INVALID_INPUT', query)
+    }
+    assert.equal((await read(`?period=${past.id}`, 'o-president')).status, 403)
+    assert.equal((await s.api.get(`${root(s)}/budget?period=${past.id}`)).status, 401)
+  }),
+)

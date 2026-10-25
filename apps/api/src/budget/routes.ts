@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import {
+  BudgetQuerySchema,
   CreateBudgetItemSchema,
   CreateFiscalPeriodSchema,
   type BudgetResponse,
@@ -7,6 +8,7 @@ import {
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import type { Db } from '../db/types.js'
+import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { budgetOf } from './queries.js'
 import { addBudgetItem, createFiscalPeriod } from './service.js'
@@ -35,8 +37,9 @@ export function createBudgetRoutes(
   routes.get(`${root}/budget`, auth, async c => {
     const now = clock()
     const request = asked(c.get('userId'), c.req.param('councilId'), now)
+    const { period } = parseQuery(BudgetQuerySchema, c.req.queries())
     const view = await db.transaction(
-      async tx => budgetOf(tx, await authorize(tx, request), now),
+      async tx => budgetOf(tx, await authorize(tx, request), now, period),
       snapshot,
     )
     return c.json(view satisfies BudgetResponse)

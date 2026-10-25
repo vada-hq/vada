@@ -253,6 +253,7 @@ export {
 export {
   BUDGET_ITEM_TYPES,
   BUDGET_PURPOSE_MAX,
+  BudgetQuerySchema,
   CreateBudgetItemSchema,
   CreateFiscalPeriodSchema,
   eventsAgree,

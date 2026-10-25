@@ -192,15 +192,15 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
     >
       <SourceAndAmount {...shared} />
       <DateAndNote {...shared} range={range} />
-      {period.current && (
-        <IncomeItemSelect
-          councilId={props.councilId}
-          value={values.budgetItemId}
-          disabled={saving}
-          onChange={budgetItemId => setValues(before => ({ ...before, budgetItemId }))}
-          onForbidden={props.onForbidden}
-        />
-      )}
+      <IncomeItemSelect
+        councilId={props.councilId}
+        periodId={period.id}
+        value={values.budgetItemId}
+        disabled={saving}
+        onChange={budgetItemId => setValues(before => ({ ...before, budgetItemId }))}
+        onForbidden={props.onForbidden}
+      />
+
       <ExpenseAccountSelect
         account={account}
         disabled={saving}
