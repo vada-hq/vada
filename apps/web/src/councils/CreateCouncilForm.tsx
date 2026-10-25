@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
 import { useInvite } from '../team/useInvite'
 import CreateBasicStep from './CreateBasicStep'
 import CreateInviteStep from './CreateInviteStep'
 import CreateStructureStep from './CreateStructureStep'
 import { inviteLink } from './invite-path'
-import { useCouncilDraft } from './useCouncilDraft'
+import { useCouncilDraft, type CouncilDraftState } from './useCouncilDraft'
 import { useCreateCouncil } from './useCreateCouncil'
 import { useLinkedMemberName } from './useLinkedMemberName'
 
@@ -25,21 +25,50 @@ export default function CreateCouncilForm({ userName, onCreated, onCancel }: Pro
   const create = useCreateCouncil()
   const [step, setStep] = useState<'basic' | 'structure'>('basic')
   const [created, setCreated] = useState<MyCouncil | null>(null)
-  if (created) return <CreatedInvite council={created} onHome={() => onCreated(created)} />
-  if (step === 'basic')
-    return <CreateBasicStep draft={draft} onNext={() => setStep('structure')} onCancel={onCancel} />
+  // 단계가 바뀌면 누른 버튼이 사라져 초점이 페이지 맨 앞으로 간다. 새 단계의 제목으로 옮긴다(처음 열 때도 같다).
+  const frame = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    frame.current?.querySelector<HTMLElement>('h2')?.focus()
+  }, [step, created])
+  return (
+    <div ref={frame} className="contents">
+      {created ? (
+        <CreatedInvite council={created} onHome={() => onCreated(created)} />
+      ) : step === 'basic' ? (
+        <CreateBasicStep draft={draft} onNext={() => setStep('structure')} onCancel={onCancel} />
+      ) : (
+        <StructureStep
+          draft={draft}
+          linkedName={linkedName}
+          create={create}
+          onStep={setStep}
+          onCreated={setCreated}
+        />
+      )}
+    </div>
+  )
+}
+
+type StructureProps = {
+  draft: CouncilDraftState
+  linkedName: string | null
+  create: ReturnType<typeof useCreateCouncil>
+  onStep: (step: 'basic') => void
+  onCreated: (council: MyCouncil) => void
+}
+function StructureStep({ draft, linkedName, create, onStep, onCreated }: StructureProps) {
   return (
     <CreateStructureStep
       draft={draft}
       linkedName={linkedName}
       saving={create.saving}
       error={create.error}
-      onBack={() => setStep('basic')}
-      onYearReset={() => setStep('basic')}
+      onBack={() => onStep('basic')}
+      onYearReset={() => onStep('basic')}
       onSubmit={() => {
         const parsed = draft.parse(linkedName === null)
         if (!parsed.success) return
-        void create.submit(parsed.data).then(council => council && setCreated(council))
+        void create.submit(parsed.data).then(council => council && onCreated(council))
       }}
     />
   )

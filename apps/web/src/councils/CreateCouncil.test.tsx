@@ -49,7 +49,8 @@ async function toStructure() {
   await screen.findByText('조직 구조 2/3')
 }
 const departmentInputs = () =>
-  screen.getAllByLabelText('부서 이름').map(input => asElement(input, HTMLInputElement))
+  screen.getAllByLabelText(/^부서 이름 \d+$/).map(input => asElement(input, HTMLInputElement))
+const title = () => screen.getByRole('heading', { level: 2, name: '학생회 만들기' })
 const postBody = () => api.calls.find(call => call.method === 'POST')?.body
 
 test('1단계에는 유형 세로 라디오 셋(기본 학부·학과), 학교, 학생회 이름, 운영 연도가 있다', () => {
@@ -249,4 +250,49 @@ test('부서는 재정 부서를 더해 20개가 되면 더하기 단추가 없�
   for (let index = 0; index < 13; index++) fireEvent.click(button('부서 추가'))
   expect(departmentInputs()).toHaveLength(19)
   expect(within(form()).queryByRole('button', { name: '부서 추가' })).toBeNull()
+})
+
+test('단계가 바뀌면 초점이 새 단계의 제목으로 간다([다음], [이전], 운영 연도 되돌림, 만든 뒤)', async () => {
+  serve()
+  api.on('POST', '/api/organizations/create', () => json({ council: myCouncil('c9') }, 201))
+  open()
+  await waitFor(() => expect(document.activeElement).toBe(title()))
+  fireEvent.change(screen.getByLabelText('운영 연도'), { target: { value: '2025' } })
+  await toStructure()
+  await waitFor(() => expect(document.activeElement).toBe(title()))
+  fireEvent.click(button('이전'))
+  await waitFor(() => expect(document.activeElement).toBe(title()))
+  fireEvent.click(button('다음'))
+  await screen.findByText('조직 구조 2/3')
+  vi.setSystemTime(new Date('2026-12-31T15:00:00Z'))
+  fireEvent.click(button('학생회 만들기'))
+  await screen.findByText('기본 정보 1/3')
+  await waitFor(() => expect(document.activeElement).toBe(title()))
+  fireEvent.click(button('다음'))
+  await screen.findByText('조직 구조 2/3')
+  fireEvent.click(button('학생회 만들기'))
+  await screen.findByText('초대 링크 3/3')
+  await waitFor(() => expect(document.activeElement).toBe(title()))
+})
+
+test('부서 칸은 차례로 구분된 필수 칸이고, 더하면 새 줄로, 빼면 그 자리의 줄로 초점이 간다', async () => {
+  serve()
+  open()
+  await toStructure()
+  expect(screen.getByLabelText('재정 부서 이름').getAttribute('aria-required')).toBe('true')
+  expect(screen.getByLabelText('부서 이름 1')).toBe(departmentInputs()[0])
+  expect(screen.getByLabelText('부서 이름 2')).toBe(departmentInputs()[1])
+  for (const input of departmentInputs()) expect(input.getAttribute('aria-required')).toBe('true')
+  fireEvent.click(button('복지부'))
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 3')))
+  fireEvent.click(button('기획부 빼기'))
+  // 뺀 줄 자리에 온 홍보부로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 1')))
+  expect(departmentInputs()[0]!.value).toBe('홍보부')
+  fireEvent.click(button('복지부 빼기'))
+  // 마지막 줄이면 앞 줄로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서 이름 1')))
+  fireEvent.click(button('홍보부 빼기'))
+  // 줄이 없으면 재정 부서 칸으로 간다.
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('재정 부서 이름')))
 })

@@ -11,7 +11,7 @@ type RowProps = {
   label: string
   value: string
   error: string | undefined
-  rowKey?: number
+  rowKey: number | 'finance'
   onChange: (value: string) => void
   children: ReactNode
 }
@@ -24,6 +24,7 @@ function DepartmentRow({ label, value, error, rowKey, onChange, children }: RowP
       <div className="flex items-center gap-2">
         <Input
           aria-label={label}
+          aria-required
           value={value}
           data-row={rowKey}
           aria-invalid={error ? true : undefined}
@@ -46,15 +47,25 @@ type Props = Pick<
   'draft' | 'set' | 'renameDepartment' | 'removeDepartment' | 'addDepartment'
 > & { errors: FieldErrors }
 
+type Row = number | 'finance'
+// 줄을 빼면 그 자리에 온 줄, 마지막 줄이었으면 앞 줄, 줄이 없으면 재정 부서 칸으로 초점을 옮긴다.
+// 누른 빼기 단추가 사라져 초점이 페이지 맨 앞으로 가지 않게 한다.
+function rowAfterRemove(rows: { key: number }[], key: number): Row {
+  const index = rows.findIndex(row => row.key === key)
+  return rows[index + 1]?.key ?? rows[index - 1]?.key ?? 'finance'
+}
+
 // 조직 구조의 부서 목록(기능 020 정한 것 6): 재정 역할 부서(뺄 수 없음), 미리 둔 부서, 더하기 단추와 [부서 추가].
-// 재정 부서만 남겨도 만든다. [부서 추가]는 빈 줄을 더하고 그 칸으로 초점을 옮긴다.
+// 재정 부서만 남겨도 만든다. 줄을 더하면 새 줄로 초점을 옮긴다. 칸 이름은 줄 차례('부서 이름 1')로 가른다.
 export default function DepartmentListFields({ draft: value, set, errors, ...on }: Props) {
   const listRef = useRef<HTMLUListElement>(null)
-  const [focusKey, setFocusKey] = useState<number | null>(null)
+  // turn은 같은 줄로 다시 옮길 때도 효과가 돌게 하는 번호다.
+  const [focus, setFocus] = useState<{ row: Row; turn: number } | null>(null)
+  const focusRow = (row: Row) => setFocus(current => ({ row, turn: (current?.turn ?? 0) + 1 }))
   useEffect(() => {
-    if (focusKey === null) return
-    listRef.current?.querySelector<HTMLElement>(`[data-row="${focusKey}"]`)?.focus()
-  }, [focusKey])
+    if (!focus) return
+    listRef.current?.querySelector<HTMLElement>(`[data-row="${focus.row}"]`)?.focus()
+  }, [focus])
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold text-gray-900">부서</h3>
@@ -62,6 +73,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
         <DepartmentRow
           label="재정 부서 이름"
           value={value.financeName}
+          rowKey="finance"
           error={errors.financeDepartmentName}
           onChange={name => set('financeName')({ target: { value: name } })}
         >
@@ -70,7 +82,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
         {value.departments.map((row, index) => (
           <DepartmentRow
             key={row.key}
-            label="부서 이름"
+            label={`부서 이름 ${index + 1}`}
             value={row.name}
             rowKey={row.key}
             error={errors[`departments.${index}`]}
@@ -81,7 +93,10 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
               variant="ghost"
               size="icon"
               aria-label={`${row.name.trim() || '빈 부서'} 빼기`}
-              onClick={() => on.removeDepartment(row.key)}
+              onClick={() => {
+                focusRow(rowAfterRemove(value.departments, row.key))
+                on.removeDepartment(row.key)
+              }}
             >
               <X />
             </Button>
@@ -96,7 +111,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => on.addDepartment(name)}
+              onClick={() => focusRow(on.addDepartment(name))}
             >
               <Plus />
               {name}
@@ -106,7 +121,7 @@ export default function DepartmentListFields({ draft: value, set, errors, ...on 
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setFocusKey(on.addDepartment())}
+            onClick={() => focusRow(on.addDepartment())}
           >
             <Plus />
             부서 추가

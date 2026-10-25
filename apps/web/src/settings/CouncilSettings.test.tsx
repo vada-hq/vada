@@ -122,6 +122,18 @@ test('직급 없는 운영진은 보기만 하고 저장 버튼이 없다', () =
   expect(api.calls).toEqual([])
 })
 
+test('유형 선택지는 학생회 만들기와 같은 차례(넓은 범위부터)다', () => {
+  mockApi()
+  render(<CouncilSettings view={councilView('c1')} onSaved={() => {}} onForbidden={() => {}} />)
+  const select = asElement(screen.getByLabelText('단위'), HTMLSelectElement)
+  expect([...select.options].map(option => option.textContent)).toEqual([
+    '총학생회',
+    '단과대 학생회',
+    '학부·학과 학생회',
+  ])
+  expect(select.value).toBe('department')
+})
+
 // 같은 화면이 열린 채 학생회가 다시 읽히면(403 뒤 다시 읽기, 다른 곳의 저장) 입력칸이 서버의 새 값으로 다시 채워진다.
 test('열린 채 학생회가 바뀌면 고치지 않던 쪽의 입력칸을 서버 값으로 다시 채우고, 고치던 다른 쪽과 같은 값의 다시 읽기는 건드리지 않는다', () => {
   mockApi()
