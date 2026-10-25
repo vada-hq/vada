@@ -18,7 +18,8 @@ import { isPlanRoom } from './plan-room.js'
 // 1:1과 행사방, 부서 간 방은 편성이 아니라 사람이 정하므로 건드리지 않는다.
 // 학생회 행을 잠근 거래 안에서 부른다. 잠그지 않으면 같은 방을 만드는 두 거래가 방을 둘 만든다.
 
-type Scope = { councilId: string; cohortId: string; memberId: string }
+// memberId는 없던 방을 만들 때 기록에 남는 만든 사람이다. 사람 없이 바꾸는 운영 명령(회장 되찾기)은 null이다.
+type Scope = { councilId: string; cohortId: string; memberId: string | null }
 type Wanted = { type: 'all_members' | 'leadership' | 'department'; departmentId: string | null }
 
 const sameRoom = (a: Wanted, b: Wanted) => a.type === b.type && a.departmentId === b.departmentId
