@@ -1,9 +1,9 @@
 import { and, eq } from 'drizzle-orm'
 import { lockCouncil } from '../src/access/authorize.js'
 import { actorOf } from '../src/access/actor.js'
-import { budgetOf, currentPeriodOf } from '../src/budget/queries.js'
+import { currentPeriodOf } from '../src/budget/queries.js'
 import { createFiscalPeriod } from '../src/budget/service.js'
-import { fiscalPeriod } from '../src/db/schema.js'
+import { cohort, fiscalPeriod } from '../src/db/schema.js'
 import type { Db } from '../src/db/types.js'
 import { requireGoogleUser, testCouncilId } from './test-data.js'
 
@@ -18,7 +18,7 @@ const shiftDay = (day: string, days: number) =>
     .toISOString()
     .slice(0, ISO_DATE_LENGTH)
 
-// 시험 학생회에 지금 기간과 그 바로 앞의 끝난 기간을 둔다. 지금 기간의 이름과 날짜는 예산 탭이 채우는 값(지금 기수)이다.
+// 시험 학생회에 지금 기간과 그 바로 앞의 끝난 기간을 둔다. 지금 기간의 이름과 날짜는 지금 기수의 것이다.
 // 이미 있으면 바꾸지 않고 'unchanged'를 돌려준다. 만들기와 이전 기간 잇기는 예산 서비스(createFiscalPeriod)가 한다(재정부 계정이어야 한다).
 export async function seedTestPeriods(
   db: Db,
@@ -33,8 +33,11 @@ export async function seedTestPeriods(
     const actor = await actorOf(tx, userId, councilId, now)
     if (!actor) throw new Error('Test council has no current cohort')
     const current = await currentPeriodOf(tx, actor, now)
-    const { suggested } = await budgetOf(tx, actor, now)
-    const base = current ?? suggested
+    const [cohortRow] = await tx
+      .select({ name: cohort.name, startsOn: cohort.startsOn, endsOn: cohort.endsOn })
+      .from(cohort)
+      .where(eq(cohort.id, actor.cohortId))
+    const base = current ?? cohortRow
     if (!base) throw new Error('Test council has no current cohort')
     const past = {
       name: TEST_PAST_PERIOD_NAME,

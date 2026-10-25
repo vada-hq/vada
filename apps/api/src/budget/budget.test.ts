@@ -16,16 +16,12 @@ const makeItem = (s: PurchaseKit, body: unknown, user = FINANCE) =>
   s.api.post(`${root(s)}/budget-items`, body, user)
 
 test(
-  '기간이 없으면 period null과 지금 기수의 이름·날짜를 주고, 모든 운영진이 읽는다',
+  '기간이 없으면 period null과 빈 항목을 주고, 모든 운영진이 읽는다',
   runPurchases(async s => {
     for (const user of ['s-financeMember', 's-president', 's-planningMember', 's-plain']) {
       const response = await s.api.get(`${root(s)}/budget`, user)
       assert.equal(response.status, 200, user)
-      assert.deepEqual(await viewOf(response), {
-        period: null,
-        items: [],
-        suggested: { name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' },
-      })
+      assert.deepEqual(await viewOf(response), { period: null, items: [] })
     }
     assert.equal((await s.api.get(`${root(s)}/budget`, 's-ended')).status, 403)
     assert.equal((await s.api.get(`${root(s)}/budget`, 'o-president')).status, 403)
@@ -47,8 +43,8 @@ test(
     assert.equal(response.status, 201)
     const view = await viewOf(response)
     assert.deepEqual(
-      [view.period?.name, view.period?.startsOn, view.period?.endsOn, view.items, view.suggested],
-      [PERIOD.name, PERIOD.startsOn, PERIOD.endsOn, [], null],
+      [view.period?.name, view.period?.startsOn, view.period?.endsOn, view.items],
+      [PERIOD.name, PERIOD.startsOn, PERIOD.endsOn, []],
     )
     assert.equal(await s.count('SELECT count(*) AS n FROM budget'), 1)
     assert.equal(await s.versions(view.period!.id), 1)

@@ -155,16 +155,16 @@ test('예산 편성은 이름과 금액이 비거나 금액이 숫자가 아니�
   api.on('POST', `${ORG}/budget-items/batch`, () => json(budgetWithPeriod(), 201))
   fireEvent.click(await screen.findByRole('button', { name: '예산 편성' }))
   await screen.findByRole('form', { name: '예산 편성' })
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   expect(screen.getByText('항목 이름을 입력해 주세요')).toBeTruthy()
   fill('항목 1 이름', '간식')
   fill('항목 1 금액', '-5')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
   expect(screen.getByLabelText('항목 1 금액').getAttribute('aria-invalid')).toBe('true')
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fill('항목 1 금액', '12000')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     items: [{ purpose: '간식', amount: 12000, type: 'expense', eventId: null }],
@@ -175,7 +175,7 @@ test('기간이 없을 때 편성하면(409) 문구와 아무것도 저장하지
   const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
   api.on('POST', `${ORG}/budget-items/batch`, () => json({ error: 'NO_FISCAL_PERIOD' }, 409))
   await openPlan('간식', '1000')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toMatch(/지금 회계 기간이 없어요/)
   expect(alert.textContent).toMatch(/아무것도 저장하지 않았어요/)
@@ -185,7 +185,7 @@ test('저장하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
   const { api, handlers } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
   api.on('POST', `${ORG}/budget-items/batch`, () => json({ error: 'FORBIDDEN' }, 403))
   await openPlan('간식', '1000')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
@@ -210,15 +210,15 @@ test('금액 칸은 숫자만 받고(1e3, 0x10 거부) 0원은 막으며, 쉼표
   await openPlan('간식', '')
   for (const bad of ['1e3', '0x10', '1.5', '12원'] as const) {
     fill('항목 1 금액', bad)
-    fireEvent.click(button('저장'))
+    fireEvent.click(button('예산 저장'))
     expect(screen.getByText('숫자만 입력해 주세요')).toBeTruthy()
   }
   fill('항목 1 금액', '0')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   expect(screen.getByText('0원보다 큰 금액을 입력해 주세요')).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fill('항목 1 금액', '12,000')
-  fireEvent.click(button('저장'))
+  fireEvent.click(button('예산 저장'))
   await waitFor(() =>
     expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
       items: [{ amount: 12000 }],

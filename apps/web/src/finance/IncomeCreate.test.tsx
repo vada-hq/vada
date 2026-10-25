@@ -66,7 +66,6 @@ function serve() {
           selectable: true,
         },
       ],
-      suggested: null,
     }),
   )
   return api
@@ -149,7 +148,6 @@ test('수입 예산 항목은 서버가 고를 수 있다고 한 것만 보인�
           selectable: false,
         },
       ],
-      suggested: null,
     }),
   )
   showFinance()
@@ -313,7 +311,6 @@ test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고, �
           selectable: true,
         },
       ],
-      suggested: null,
     }),
   )
   showFinance()

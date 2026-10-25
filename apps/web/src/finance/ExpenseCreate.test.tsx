@@ -109,7 +109,6 @@ function serve() {
           selectable: true,
         },
       ],
-      suggested: null,
     }),
   )
   return api
@@ -423,7 +422,7 @@ test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비
   await readyDirect()
   await screen.findByRole('option', { name: /행사 홍보/ })
   choose('예산 항목', BUDGET)
-  api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [], suggested: null }))
+  api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [] }))
   document.dispatchEvent(new Event('visibilitychange'))
   await waitFor(() => expect(screen.queryByRole('option', { name: /행사 홍보/ })).toBeNull())
   await settle()
@@ -598,7 +597,6 @@ test('요청 없이 적을 때 예산 항목 고르기에는 지출 항목만 �
           selectable: true,
         },
       ],
-      suggested: null,
     }),
   )
   showFinance()
@@ -627,7 +625,6 @@ test('요청 없이 적을 때 예산 항목은 고를 수 있는 것만 보이�
         item('a2', '다른 행사 항목', 'other-event'),
         item('a3', '끝난 항목', null, false),
       ],
-      suggested: null,
     }),
   )
   showFinance()

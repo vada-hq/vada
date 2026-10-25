@@ -80,13 +80,12 @@ export type BudgetItemView = BudgetItemUsage & {
   event: EventRef | null
   // 결재·지출·수입에서 고를 수 있는가. 완료한 행사의 항목이면 false다(RULE-11). 서버가 정책에서 정한다.
   selectable: boolean
-  // 지울 수 있는가. 결재·지출·수입·요청이 이 항목을 가리킨 적이 없을 때만이다(DEC-92). 그 가리킴은 지워지지 않아 지금 가리킴으로 센다.
+  // 지울 수 있는가. 결재·지출·수입·요청이 가리킨 적 없고 만든 뒤 고친 적도 없을 때만이다(DEC-92, 이력을 지우지 않게).
   deletable: boolean
   history: BudgetItemVersion[]
 }
-// 기간이 없으면 period가 null이고, 화면이 채워 둘 이름과 날짜(지금 기수)를 suggested로 준다.
+// 기간이 없으면 period가 null이고 항목도 없다.
 export interface BudgetResponse {
   period: FiscalPeriodView | null
   items: BudgetItemView[]
-  suggested: { name: string; startsOn: string; endsOn: string } | null
 }

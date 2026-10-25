@@ -36,7 +36,7 @@ function serve(accounts = standardAccounts()) {
   )
   api.on('GET', `${BASE}/members`, () => json({ members: [], departments: [] }))
   api.on('GET', `${REQUESTS}?view=all`, () => json({ requests: [], truncated: false }))
-  api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [], suggested: null }))
+  api.on('GET', `${BASE}/budget`, () => json({ period: null, items: [] }))
   return api
 }
 const openForm = async () => {

@@ -15,7 +15,7 @@ export const BUDGET_ERRORS = changeErrors({
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
   BUDGET_ITEM_DUPLICATE: '같은 이름의 예산 항목이 있어요. 이름을 바꿔 주세요.',
-  BUDGET_ITEM_IN_USE: '결재나 지출에 쓰인 항목이라 지울 수 없어요.',
+  BUDGET_ITEM_IN_USE: '요청·지출·수입에 쓰였거나 고친 항목이라 지울 수 없어요.',
   PERIOD_CLOSED: '결산을 공개한 기간이라 바꿀 수 없어요.',
 })
 export const BUDGET_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'

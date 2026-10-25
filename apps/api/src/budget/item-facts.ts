@@ -54,20 +54,28 @@ export async function budgetItemHistoriesOf(
   return histories
 }
 
-// 결재(품목), 지출, 수입, 요청의 기본 예산 항목이 가리키는 항목들. 이 가리킴은 한 번 걸리면 비우는 쓰기가 없어(취소해도 남는다)
-// 지금 가리킴이 '쓰인 적 있음'과 같다. 지우기를 막는 판단(DEC-92)과 화면의 '지우기' 표시가 이것 하나를 쓴다.
+// 예산 항목을 가리키는 칸 전부: 결재(품목), 지출, 수입, 요청의 기본 예산 항목. DB의 budget_item 외래 키와 같아야 한다
+// (item-facts.test.ts가 pg_constraint와 맞대어, 새 외래 키가 생기면 실패한다).
+export const BUDGET_ITEM_REFERENCES = [
+  lineItem.budgetItemId,
+  expense.budgetItemId,
+  income.budgetItemId,
+  request.defaultBudgetItemId,
+] as const
+
+// 쓰인 적 있는 항목들. 이 가리킴은 한 번 걸리면 비우는 쓰기가 없어(취소해도 남는다) 지금 가리킴이 '쓰인 적 있음'과 같다.
 export async function usedBudgetItemIds(db: Reader, ids: readonly string[]): Promise<Set<string>> {
   const used = new Set<string>()
   if (!ids.length) return used
   const wanted = [...ids]
-  for (const column of [
-    lineItem.budgetItemId,
-    expense.budgetItemId,
-    income.budgetItemId,
-    request.defaultBudgetItemId,
-  ]) {
+  for (const column of BUDGET_ITEM_REFERENCES) {
     const rows = await db.select({ id: column }).from(column.table).where(inArray(column, wanted))
     for (const row of rows) if (row.id) used.add(row.id)
   }
   return used
 }
+
+// 지울 수 있는 항목(DEC-92): 쓰인 적 없고 만든 뒤 바뀐 적도 없다(판이 만들기 판 하나뿐). 고치기와 예산 옮기기는 판을 남기므로
+// 그런 항목을 지우면 이력이 함께 사라진다(RULE-15). 판 수는 부르는 쪽이 이미 읽은 이력에서 센다.
+export const deletableOf = (used: ReadonlySet<string>, id: string, versions: number) =>
+  !used.has(id) && versions <= 1

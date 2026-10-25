@@ -7,7 +7,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { assertEventOpen, isPeriodClosed } from '../policy/locks.js'
 import { updateRecord } from '../records/records.js'
-import { usedBudgetItemIds } from './item-facts.js'
+import { deletableOf, usedBudgetItemIds } from './item-facts.js'
 import { assertNamesFree } from './names.js'
 import { budgetViewOf, periodById } from './queries.js'
 
@@ -20,6 +20,7 @@ async function changeableItem(tx: Tx, actor: Actor, itemId: string) {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   const [item] = await tx
     .select({
+      purpose: budgetItem.purpose,
       eventId: budgetItem.eventId,
       budgetId: budgetItem.budgetId,
       periodId: budget.fiscalPeriodId,
@@ -46,12 +47,14 @@ export async function updateBudgetItem(
   input: UpdateBudgetItem,
 ): Promise<BudgetResponse> {
   const item = await changeableItem(tx, actor, itemId)
-  await assertNamesFree(
-    tx,
-    item.budgetId,
-    [{ purpose: input.purpose, eventId: item.eventId }],
-    itemId,
-  )
+  // 이름을 바꿀 때만 같은 이름을 본다. 금액만 고치는 것은 막지 않는다(막기 전에 생긴 같은 이름의 항목도 고칠 수 있게).
+  if (input.purpose !== item.purpose)
+    await assertNamesFree(
+      tx,
+      item.budgetId,
+      [{ purpose: input.purpose, eventId: item.eventId }],
+      itemId,
+    )
   await updateRecord(tx, {
     kind: 'budget_item',
     id: itemId,
@@ -62,7 +65,8 @@ export async function updateBudgetItem(
   return viewOfPeriod(tx, item.periodId)
 }
 
-// 쓰인 적 없는 항목만 판, 하위 행, 기록 행을 한 거래로 지운다(부서 지우기와 같은 순서). 쓰인 항목을 지우면 결재와 지출이 떨어진다.
+// 쓰인 적 없고 고친 적도 없는 항목만 판, 하위 행, 기록 행을 한 거래로 지운다(부서 지우기와 같은 순서).
+// 쓰인 항목을 지우면 결재와 지출이 떨어지고, 고친 항목을 지우면 고친 이력이 사라진다(RULE-15). 둘 다 409다.
 // 가리키는 쓰기(결재, 지출, 수입, 요청)도 학생회 행 잠금 뒤라, 보고 지우는 사이에 새 가리킴이 끼지 않는다.
 export async function deleteBudgetItem(
   tx: Tx,
@@ -70,7 +74,12 @@ export async function deleteBudgetItem(
   itemId: string,
 ): Promise<BudgetResponse> {
   const item = await changeableItem(tx, actor, itemId)
-  if ((await usedBudgetItemIds(tx, [itemId])).size) throw new ApiError('BUDGET_ITEM_IN_USE')
+  const versions = await tx
+    .select({ no: recordVersion.versionNo })
+    .from(recordVersion)
+    .where(eq(recordVersion.recordId, itemId))
+  if (!deletableOf(await usedBudgetItemIds(tx, [itemId]), itemId, versions.length))
+    throw new ApiError('BUDGET_ITEM_IN_USE')
   await tx.delete(recordVersion).where(eq(recordVersion.recordId, itemId))
   await tx.delete(budgetItem).where(eq(budgetItem.id, itemId))
   await tx.delete(record).where(eq(record.id, itemId))

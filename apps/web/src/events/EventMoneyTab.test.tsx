@@ -450,8 +450,12 @@ test('재정 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 �
   fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
   expect((await select()).value).toBe('e1')
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  // 예산 편성 창은 이 행사의 지출로 고정해 행사·종류 칸이 없고 기본 행 셋이 있다(와이어프레임 EVT-FIN-01B).
   fireEvent.click(screen.getByRole('button', { name: '예산 편성' }))
-  expect((await select()).value).toBe('e1')
+  const plan = await screen.findByRole('form', { name: '행사 예산 편성' })
+  expect(within(plan).queryByLabelText('행사')).toBeNull()
+  expect(within(plan).queryByLabelText('종류')).toBeNull()
+  expect(within(plan).getByLabelText('항목 1 이름')).toHaveProperty('value', '행사 운영비')
   fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[0]!)
   fireEvent.click(screen.getByRole('button', { name: '지출 적기' }))
   expect((await select()).value).toBe('e1')

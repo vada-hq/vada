@@ -25,6 +25,7 @@ function setup() {
     <EventMoneyAdd
       view={councilView('c1', { permissions })}
       event={eventDetail({ id: 'e1', status })}
+      budgetNames={[]}
       {...handlers}
     />
   )
