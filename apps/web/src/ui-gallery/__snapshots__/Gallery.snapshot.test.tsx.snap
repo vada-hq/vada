@@ -191,17 +191,17 @@ exports[`처음 모양 1`] = `
 <div role="group" aria-labelledby="_id6_">
 <p id="_id6_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
 <button type="button" aria-current="page" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
 <span class="min-w-0 flex-1 truncate" title="2026 체육대회">2026 체육대회</span>
-<span class="shrink-0 text-xs text-gray-500">진행 중</span>
+<span class="shrink-0 text-xs text-gray-600">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
 <span class="min-w-0 flex-1 truncate" title="2026학년도 새내기 배움터">2026학년도 새내기 배움터</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
 <span class="min-w-0 flex-1 truncate" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 <span class="shrink-0 text-xs text-gray-500">후속 정리 중</span>
 </button>
@@ -222,29 +222,29 @@ exports[`처음 모양 1`] = `
 <div role="group" aria-labelledby="_id7_">
 <p id="_id7_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
 <span class="min-w-0 flex-1 truncate" title="2026 체육대회">2026 체육대회</span>
 <span class="shrink-0 text-xs text-gray-500">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">가</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">가</span>
 <span class="min-w-0 flex-1 truncate" title="가을 축제">가을 축제</span>
 <span class="shrink-0 text-xs text-gray-500">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
 <span class="min-w-0 flex-1 truncate" title="2026학년도 새내기 배움터">2026학년도 새내기 배움터</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">학</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">학</span>
 <span class="min-w-0 flex-1 truncate" title="학술제">학술제</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" aria-current="page" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
 <span class="min-w-0 flex-1 truncate" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
-<span class="shrink-0 text-xs text-gray-500">후속 정리 중</span>
+<span class="shrink-0 text-xs text-gray-600">후속 정리 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
@@ -290,17 +290,17 @@ exports[`처음 모양 1`] = `
 <div role="group" aria-labelledby="_id10_">
 <p id="_id10_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
 <button type="button" aria-current="page" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
 <span class="min-w-0 flex-1 truncate" title="2026 체육대회">2026 체육대회</span>
-<span class="shrink-0 text-xs text-gray-500">진행 중</span>
+<span class="shrink-0 text-xs text-gray-600">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
 <span class="min-w-0 flex-1 truncate" title="2026학년도 새내기 배움터">2026학년도 새내기 배움터</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
 <span class="min-w-0 flex-1 truncate" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 <span class="shrink-0 text-xs text-gray-500">후속 정리 중</span>
 </button>
@@ -321,29 +321,29 @@ exports[`처음 모양 1`] = `
 <div role="group" aria-labelledby="_id11_">
 <p id="_id11_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">공간</p>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">체</span>
 <span class="min-w-0 flex-1 truncate" title="2026 체육대회">2026 체육대회</span>
 <span class="shrink-0 text-xs text-gray-500">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">가</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">가</span>
 <span class="min-w-0 flex-1 truncate" title="가을 축제">가을 축제</span>
 <span class="shrink-0 text-xs text-gray-500">진행 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">새</span>
 <span class="min-w-0 flex-1 truncate" title="2026학년도 새내기 배움터">2026학년도 새내기 배움터</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">학</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">학</span>
 <span class="min-w-0 flex-1 truncate" title="학술제">학술제</span>
 <span class="shrink-0 text-xs text-gray-500">기획 중</span>
 </button>
 <button type="button" aria-current="page" class="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0.5 flex items-center gap-2">
-<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500">소</span>
 <span class="min-w-0 flex-1 truncate" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
-<span class="shrink-0 text-xs text-gray-500">후속 정리 중</span>
+<span class="shrink-0 text-xs text-gray-600">후속 정리 중</span>
 </button>
 <button type="button" class="w-full cursor-pointer rounded-sm px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">행사 모두 보기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 w-full justify-start gap-1">
