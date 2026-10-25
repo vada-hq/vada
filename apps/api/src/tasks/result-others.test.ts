@@ -363,7 +363,12 @@ test(
       t.council.people.president.memberId,
     ])
     assert.equal((await detailOf(t, taskId)).results[0]!.title, '')
-    // 지난 기수에 보낸 글은 들어오기 전 것이라 보이지 않는다.
+    // 참여 줄을 되살리면 다시 보인다. 지난 기수에 보낸 글은 들어오기 전 것이라 보이지 않는다.
+    await t.pg.query(
+      `INSERT INTO room_membership (room_id, member_id, joined_at) VALUES ($1, $2, '2026-10-24T00:00:00Z')`,
+      [room, t.council.people.president.memberId],
+    )
+    assert.equal((await detailOf(t, taskId)).results[0]!.title, '비밀 첫 줄')
     await t.pg.query("UPDATE message SET sent_at = '2020-01-01' WHERE id = $1", [sent.id])
     const [result] = (await detailOf(t, taskId)).results
     assert.equal(result!.kind, 'message')

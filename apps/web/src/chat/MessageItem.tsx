@@ -102,7 +102,7 @@ export default function MessageItem({ councilId, message, continued, mine, ...ac
         {mine && <MineTime message={message} continued={continued} />}
       </div>
       <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-        <MessageMenu actions={actions} busy={false} />
+        <MessageMenu actions={actions} />
       </div>
     </li>
   )

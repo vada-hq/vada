@@ -30,7 +30,7 @@ const stageReaders: Record<
 > = {
   request: requestStagesOf,
   registration_form: formStagesOf,
-  message: noticeStagesOf,
+  message: (_tx, ids) => Promise.resolve(noticeStagesOf(ids)),
   event: eventStagesOf,
 }
 
