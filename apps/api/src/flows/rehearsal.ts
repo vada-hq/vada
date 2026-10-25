@@ -49,7 +49,7 @@ const STEPS = [
   { name: 'finance', who: '재정부장', ago: { days: 13, hours: 22 }, run: financeBaseStep },
   {
     name: 'event',
-    who: '부회장, 회장, 재정부장',
+    who: '기획부장, 회장, 재정부장',
     ago: { days: 13, hours: 0 },
     run: createEventStep,
   },

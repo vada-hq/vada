@@ -9,6 +9,7 @@ export type Criterion =
   | 'leadership'
   | 'president'
   | 'department_head'
+  | 'any_department_head'
   | 'finance'
   | 'room_member'
   | 'assignee'
@@ -56,8 +57,8 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'task.set_department': { who: ['leadership', 'event_owner'] },
   'task.assign': { who: ['department_head', 'event_owner'] },
   'task.status': { who: ['department_head', 'assignee', 'event_owner'] },
-  // 행사 칸. 만들 때 책임자도 정한다. 고치기는 회장단과 그 행사의 책임자다(DEC-79). 책임자를 정하는 화면은 없다.
-  'event.create': { who: ['leadership'] },
+  // 행사 칸. 만들기는 회장단과 부서장이고 만든 사람이 책임자다(DEC-79, DEC-93). 고치기는 회장단과 그 행사의 책임자다. 책임자를 정하는 길은 없다.
+  'event.create': { who: ['leadership', 'any_department_head'] },
   'event.update': { who: ['leadership', 'event_owner'] },
   // 행사 완료와 완료 취소는 회장단이다(DEC-39). 책임자도 물려받지 않는다.
   'event.complete': { who: ['leadership'] },
@@ -88,12 +89,6 @@ export const isFinanceMember = (actor: Actor) =>
 
 function meets(actor: Actor, criterion: Criterion, context: Context) {
   switch (criterion) {
-    case 'member':
-      return true
-    case 'leadership':
-      return isLeadership(actor)
-    case 'president':
-      return actor.councilRank === 'president'
     // 상속(기준 3): 회장단은 모든 부서에서 부장 권한을 가진다.
     case 'department_head':
       return (
@@ -103,6 +98,23 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
       )
     case 'assigned_creator':
       return meetsContext(actor, 'assignee', context) && context.createdBy === actor.memberId
+    default:
+      return meetsStanding(actor, criterion, context)
+  }
+}
+
+// 요청한 사람의 직급과 소속만 보는 기준. 맥락을 보는 기준은 meetsContext로 넘긴다.
+function meetsStanding(actor: Actor, criterion: Criterion, context: Context) {
+  switch (criterion) {
+    case 'member':
+      return true
+    case 'leadership':
+      return isLeadership(actor)
+    case 'president':
+      return actor.councilRank === 'president'
+    // 어느 부서든 부서 직급(부부장 포함, 기준 4)이 있는 사람. 부서를 맥락으로 묻지 않는 칸(행사 만들기)이 쓴다.
+    case 'any_department_head':
+      return headDepartmentIds(actor).length > 0
     // 재정 권한은 직급으로 물려받지 않는다(기준 3).
     case 'finance':
       return isFinanceMember(actor)

@@ -61,7 +61,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
   })
 }
 
-// 행사: 모든 운영진이 본다(DEC-28 기준 1, PRIN-5). 만들기는 회장단, 고치기는 회장단과 그 행사의 책임자다(DEC-79).
+// 행사: 모든 운영진이 본다(DEC-28 기준 1, PRIN-5). 만들기는 회장단과 부서장(DEC-93), 고치기는 회장단과 그 행사의 책임자다(DEC-79).
 export function createEventRoutes(
   db: Db,
   getSession: SessionReader,

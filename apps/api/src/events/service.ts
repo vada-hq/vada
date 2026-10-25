@@ -7,7 +7,6 @@ import {
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
-import { lockCurrentMembers } from '../chat/current-members.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
@@ -22,13 +21,6 @@ import { eventDetailOf, eventRowOf } from './queries.js'
 
 const fromKorean = (value: string | null) => (value ? dateFromKorean(value) : null)
 
-// 책임자는 지금 이 학생회의 운영진이어야 한다. 소속 줄을 잠가 확인과 쓰기 사이에 내보내지지 않게 한다.
-async function assertOwner(tx: Tx, actor: Actor, ownerId: string | null, now: Date) {
-  if (!ownerId) return
-  const alive = await lockCurrentMembers(tx, actor.councilId, [ownerId], now)
-  if (!alive.has(ownerId)) throw new ApiError('MEMBER_INVALID')
-}
-
 export async function createEvent(
   tx: Tx,
   actor: Actor,
@@ -36,7 +28,6 @@ export async function createEvent(
   now: Date,
 ): Promise<EventDetail> {
   if (!can(actor, 'event.create')) throw new ApiError('FORBIDDEN')
-  await assertOwner(tx, actor, input.ownerId, now)
   // 업무를 이으면 행사와 연결 한 줄이 한 거래에서 생긴다. 업무는 그대로이고 완료할 때 끝남이 된다. 거절이면 아무것도 생기지 않는다.
   if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const id = await createRecord(tx, {
@@ -49,7 +40,8 @@ export async function createEvent(
       startsAt: fromKorean(input.startsAt),
       endsAt: fromKorean(input.endsAt),
       place: input.place,
-      ownerId: input.ownerId,
+      // 만든 사람이 책임자다(DEC-79). 만든 사람은 잠근 학생회 행 아래에서 방금 지금 운영진으로 확인됐다.
+      ownerId: actor.memberId,
     },
   })
   return eventDetailOf(tx, actor, id, now)

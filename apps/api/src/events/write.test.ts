@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { codePoints, EVENT_NAME_MAX, EVENT_PLACE_MAX, type EventDetail } from '@vada/contracts'
+import {
+  codePoints,
+  dateFromKorean,
+  EVENT_NAME_MAX,
+  EVENT_PLACE_MAX,
+  type EventDetail,
+} from '@vada/contracts'
 import { removeMember } from '../team/service.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { inCouncilChange } from '../access/authorize.js'
-import { MISSING, NOON, startEvents, withEvents } from '../test-support/events.js'
+import { MISSING, NOON, startEvents, withEvents, type EventKit } from '../test-support/events.js'
 
 const FULL = {
   name: '가을 축제',
@@ -16,17 +22,27 @@ const created = async (response: Response) => {
   assert.equal(response.status, 201)
   return ((await response.json()) as { event: EventDetail }).event
 }
+// 남이 책임자인 행사. 만들기 요청은 책임자를 받지 않으므로(만든 사람이 책임자, DEC-79) 고치기 시험은 기록을 바로 만든다.
+const ownedBy = async (t: EventKit, ownerId: string) => ({
+  id: await t.make({
+    name: FULL.name,
+    startsAt: dateFromKorean(FULL.startsAt),
+    endsAt: dateFromKorean(FULL.endsAt),
+    place: FULL.place,
+    ownerId,
+  }),
+})
 
 test(
-  '회장단이 행사를 만들면 판 1이 열리고 책임자와 일시가 한국 시각으로 보인다',
+  '회장단이 행사를 만들면 판 1이 열리고 만든 사람이 책임자이며 일시가 한국 시각으로 보인다',
   withEvents(async t => {
-    const owner = t.council.people.financeMember.memberId
-    const event = await created(await t.post('', { ...FULL, ownerId: owner }))
+    const owner = t.council.people.president.memberId
+    const event = await created(await t.post('', FULL))
     assert.equal(event.name, '가을 축제')
     assert.equal(event.startsAt, '2026-11-05T14:00')
     assert.equal(event.endsAt, '2026-11-05T18:00')
     assert.equal(event.place, '대운동장')
-    assert.deepEqual(event.owner, { id: owner, name: 's financeMember', current: true })
+    assert.deepEqual(event.owner, { id: owner, name: 's president', current: true })
     assert.equal(event.status, 'upcoming')
     assert.deepEqual(event.tasks, { open: 0, total: 0 })
     assert.deepEqual(
@@ -41,28 +57,39 @@ test(
 )
 
 test(
-  '이름만으로도 만들고 부회장도 만든다. 일시와 장소와 책임자는 비어 있다',
+  '이름만으로도 만들고 부회장도 만든다. 일시와 장소는 비어 있고 책임자는 부회장이다',
   withEvents(async t => {
     const event = await created(await t.post('', { name: '  뒤풀이  ' }, 's-vicePresident'))
     assert.equal(event.name, '뒤풀이')
-    assert.deepEqual(
-      [event.startsAt, event.endsAt, event.place, event.owner],
-      [null, null, null, null],
-    )
+    assert.deepEqual([event.startsAt, event.endsAt, event.place], [null, null, null])
+    assert.equal(event.owner?.id, t.council.people.vicePresident.memberId)
     assert.equal(event.status, 'tbd')
   }),
 )
 
 test(
-  '부장, 부부장, 부원, 직급 없는 운영진, 재정부원은 만들 수 없고 아무것도 남지 않는다',
+  '부장과 부부장도 만들고 만든 사람이 책임자라 그 행사를 고친다(DEC-93)',
   withEvents(async t => {
-    for (const user of [
-      's-planningHead',
-      's-planningViceHead',
-      's-planningMember',
-      's-plain',
-      's-financeMember',
-    ])
+    const made: Record<string, string> = {}
+    for (const name of ['planningHead', 'planningViceHead'] as const) {
+      const person = t.council.people[name]
+      const event = await created(await t.post('', FULL, person.userId))
+      assert.deepEqual(event.owner, { id: person.memberId, name: `s ${name}`, current: true })
+      assert.equal(event.history[0]?.by?.id, person.memberId)
+      assert.deepEqual(event.actions, ['event.update'])
+      const edit = await t.post(`/${event.id}`, { ...FULL, place: '강당' }, person.userId)
+      assert.equal(edit.status, 200, name)
+      made[name] = event.id
+    }
+    // 같은 부서의 다른 부서장이 만든 행사는 책임자가 아니라 고치지 못한다.
+    assert.equal((await t.post(`/${made.planningHead}`, FULL, 's-planningViceHead')).status, 403)
+  }),
+)
+
+test(
+  '부원, 직급 없는 운영진, 재정부원은 만들 수 없고 아무것도 남지 않는다',
+  withEvents(async t => {
+    for (const user of ['s-planningMember', 's-plain', 's-financeMember'])
       assert.equal((await t.post('', FULL, user)).status, 403, user)
     assert.equal(await t.eventCount(), 0)
     assert.equal(await t.count("SELECT count(*) AS n FROM record WHERE kind = 'event'"), 0)
@@ -70,22 +97,29 @@ test(
 )
 
 test(
-  '로그인하지 않으면 401, 다른 학생회 사람과 내보낸 운영진은 403이다',
+  '로그인하지 않으면 401, 다른 학생회 회장단·부서장과 내보낸 운영진은 403이다',
   withEvents(async t => {
     assert.equal((await t.api.post(t.base, FULL)).status, 401)
-    assert.equal((await t.post('', FULL, 'o-president')).status, 403)
+    for (const user of ['o-president', 'o-planningHead', 'o-planningViceHead'])
+      assert.equal((await t.post('', FULL, user)).status, 403, user)
     assert.equal((await t.post('', FULL, 's-ended')).status, 403)
     assert.equal(await t.eventCount(), 0)
   }),
 )
 
 test(
-  '책임자가 내보낸 사람이거나 다른 학생회 사람이면 409 MEMBER_INVALID이고 아무것도 남지 않는다',
+  '책임자는 받지 않는다: ownerId를 보내면 자기 번호든 남의 번호든 null이든 400이고 아무것도 남지 않는다',
   withEvents(async t => {
-    for (const ownerId of [t.council.people.ended.memberId, t.other.people.president.memberId]) {
-      const response = await t.post('', { ...FULL, ownerId })
-      assert.equal(response.status, 409)
-      assert.deepEqual(await response.json(), { error: 'MEMBER_INVALID' })
+    const { people } = t.council
+    for (const [user, ownerId] of [
+      ['s-president', people.planningMember.memberId],
+      ['s-president', people.president.memberId],
+      ['s-president', null],
+      ['s-planningHead', people.planningHead.memberId],
+      ['s-planningHead', people.plain.memberId],
+    ] as const) {
+      const response = await t.post('', { ...FULL, ownerId }, user)
+      assert.equal(response.status, 400, `${user} ${ownerId}`)
     }
     assert.equal(await t.eventCount(), 0)
     assert.equal(await t.count("SELECT count(*) AS n FROM record WHERE kind = 'event'"), 0)
@@ -167,7 +201,7 @@ test(
   '회장단과 책임자가 고친다. 부장 같은 다른 운영진은 403이고, 같은 값이면 판이 늘지 않는다',
   withEvents(async t => {
     const owner = t.council.people.planningMember
-    const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
+    const event = await ownedBy(t, owner.memberId)
     const edit = { ...FULL, place: '강당' }
     assert.equal((await t.post(`/${event.id}`, edit, 's-planningHead')).status, 403)
     assert.equal((await t.post(`/${event.id}`, edit, 's-financeMember')).status, 403)
@@ -198,7 +232,7 @@ test(
   '고치기도 만들기와 같은 입력 경우를 400으로 거절하고 아무것도 바꾸지 않는다',
   withEvents(async t => {
     const owner = t.council.people.planningMember
-    const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
+    const event = await ownedBy(t, owner.memberId)
     const bad: Record<string, unknown>[] = [
       { name: '' },
       { name: '   ' },
@@ -242,7 +276,7 @@ test(
   '고치기는 일시를 비우거나 바꾸고, 끝만 남기면 400이며, 다른 학생회 행사와 틀린 번호는 404이다',
   withEvents(async t => {
     const owner = t.council.people.planningMember
-    const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
+    const event = await ownedBy(t, owner.memberId)
     const cleared = await t.post(
       `/${event.id}`,
       { name: FULL.name, startsAt: null, endsAt: null, place: null },
@@ -276,9 +310,9 @@ test(
 )
 
 test(
-  '책임자가 없는 행사도 회장단이 고치고, 책임자를 정하는 길은 없다',
+  '책임자가 없는 행사(만든 사람이 책임자가 되기 전의 기록)도 회장단이 고치고, 책임자를 정하는 길은 없다',
   withEvents(async t => {
-    const event = await created(await t.post('', FULL))
+    const event = { id: await t.make({ ...FULL, startsAt: null, endsAt: null }) }
     assert.equal((await t.post(`/${event.id}`, FULL, 's-planningHead')).status, 403)
     assert.equal((await t.post(`/${event.id}`, { ...FULL, place: '강당' })).status, 200)
     assert.equal((await t.post(`/${event.id}/owner`, { ownerId: null })).status, 404)
@@ -289,7 +323,7 @@ test(
   '책임자가 떠난 뒤에도 책임자 칸은 남고 current:false이며 같은 값으로 다시 보내도 409가 아니다',
   withEvents(async t => {
     const owner = t.council.people.planningMember
-    const event = await created(await t.post('', { ...FULL, ownerId: owner.memberId }))
+    const event = await ownedBy(t, owner.memberId)
     await inCouncilChange(
       t.db,
       { userId: 's-president', councilId: t.council.councilId, action: 'council.view', now: NOON },

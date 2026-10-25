@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { ChatMessage, TaskDetail } from '@vada/contracts'
+import type { ChatMessage, EventDetail, TaskDetail } from '@vada/contracts'
 import { createRecord } from '../records/records.js'
 import { MISSING, withSettlement, type SettlementKit } from '../test-support/settlement.js'
 
@@ -251,6 +251,31 @@ test(
     const untouched = await taskFor(t)
     await t.completion(free, 'completed', new Date('2026-10-25T06:00:00Z'))
     assert.equal(await statusOf(t, untouched), 'todo')
+  }),
+)
+
+test(
+  '업무에서 만든 행사의 책임자는 만든 사람이다: 그 부서 부장이 만들면 부장이 책임자이고, 담당자인 부원은 403이다(DEC-82, DEC-93)',
+  withSettlement(async t => {
+    const taskId = await taskFor(t, { departmentId: t.council.departments.planning })
+    assert.deepEqual((await detailOf(t, taskId, PLANNING_HEAD)).canMake, ['request', 'event'])
+    assert.deepEqual((await detailOf(t, taskId, PLANNER)).canMake, ['request'])
+    const denied = await t.api.post(
+      `${councilBase(t)}/events`,
+      { name: '봄 축제', taskId },
+      PLANNER,
+    )
+    assert.equal(denied.status, 403)
+    assert.equal(await links(t), 0)
+    const response = await t.api.post(
+      `${councilBase(t)}/events`,
+      { name: '봄 축제', taskId },
+      PLANNING_HEAD,
+    )
+    assert.equal(response.status, 201)
+    const { event } = (await response.json()) as { event: EventDetail }
+    assert.equal(event.owner?.id, t.council.people.planningHead.memberId)
+    assert.equal(await links(t), 1)
   }),
 )
 

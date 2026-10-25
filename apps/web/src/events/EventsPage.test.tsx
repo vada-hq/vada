@@ -163,18 +163,17 @@ test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에
     startsAt: null,
     endsAt: null,
     place: null,
-    ownerId: MEMBER.m1,
   })
 })
 
 test('만들기 409와 429는 폼 안에 문구로 보이고 대화상자는 열려 있다', async () => {
   const { api } = setup()
-  api.on('POST', BASE, () => json({ error: 'MEMBER_INVALID' }, 409))
+  api.on('POST', BASE, () => json({ error: 'TASK_INVALID' }, 409))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
   fireEvent.change(await screen.findByLabelText('이름'), { target: { value: '행사' } })
   fireEvent.click(screen.getByRole('button', { name: '만들기' }))
   const form = screen.getByRole('form', { name: '행사 만들기' })
-  expect((await within(form).findByRole('alert')).textContent).toBe(EVENT_ERRORS.MEMBER_INVALID)
+  expect((await within(form).findByRole('alert')).textContent).toBe(EVENT_ERRORS.TASK_INVALID)
   api.on('POST', BASE, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   fireEvent.click(screen.getByRole('button', { name: '만들기' }))
   await waitFor(() =>

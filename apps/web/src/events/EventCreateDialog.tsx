@@ -39,7 +39,6 @@ function CreateForm({ view, saving, setSaving, onClose, taskId, ...handlers }: F
   const [values, setValues] = useState(emptyEventFields)
   const request = {
     ...eventFieldsRequest(values),
-    ownerId: view.me.memberId,
     ...(taskId ? { taskId } : {}),
   }
   const submit = useEventSubmit(eventsPath(view.council.id), CreateEventSchema, request, {
