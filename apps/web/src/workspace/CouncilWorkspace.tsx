@@ -104,9 +104,10 @@ export default function CouncilWorkspace({
       user={user}
       logoutBusy={logoutBusy}
       onLogout={onLogout}
-      // 내 이름은 학생회 보기(사용자 줄)와 운영진 목록에 함께 나온다.
+      // 내 이름은 학생회 보기(사용자 줄)와 운영진 목록에 함께 나온다. 이름 바꾸기는 내 권한을 바꾸지 않으므로
+      // 내 변경의 읽기(own)로 두지 않는다. 그사이 다른 사람이 바꾼 권한은 바깥 변경으로 알린다.
       onRenamed={() => {
-        data.reloadAfterOwnChange()
+        data.reload()
         data.team.reload()
       }}
       menuRef={from === 'sidebar' ? nav.councilMenu : undefined}

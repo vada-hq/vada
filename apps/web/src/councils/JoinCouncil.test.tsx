@@ -94,7 +94,7 @@ test('내 이름이 너무 길면 칸 아래에 알리고 들어가지 않는다
 
 test('이미 이어진 운영진이면 칸 없이 그 이름을 보이고, 이름 없이 들어간다', async () => {
   const { api, onJoined } = open(council(), { name: '김회장' })
-  const card = await screen.findByRole('region', { name: '학생회 들어가기' })
+  const card = await screen.findByRole('form', { name: '학생회 들어가기' })
   await within(card).findByText('김회장')
   expect(screen.queryByLabelText('내 이름')).toBeNull()
   expect(factOf('내 이름')).toBe('김회장')
@@ -139,4 +139,15 @@ test('이미 들어온 학생회면 내 이름을 묻지 않고 그 학생회를
   await waitFor(() => expect(onJoined).toHaveBeenCalledWith('c1'))
   expect(api.calls.some(call => call.path === '/api/me/profile')).toBe(false)
   api.assertNoUnexpectedRequests()
+})
+
+test('내 이름 칸에서 Enter로도 들어간다', async () => {
+  const { api, onJoined } = open()
+  await screen.findByLabelText('내 이름')
+  fireEvent.submit(screen.getByRole('form', { name: '학생회 들어가기' }))
+  await waitFor(() => expect(onJoined).toHaveBeenCalledWith('c1'))
+  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    code: 'ABCD2345',
+    memberName: 'Kim Hoejang',
+  })
 })
