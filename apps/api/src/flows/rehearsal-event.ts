@@ -44,17 +44,16 @@ function schedule(ctx: Ctx) {
   }
 }
 
-// 1 행사 만들기: 부회장이 책임자를 기획부장으로 두고 만들고, 회장이 장소를 고친다(DEC-79). 재정부장이 행사용 예산 항목을 더한다.
-// 행사 만들기는 회장단만 한다(event.create). 그래서 명세의 '기획부장이 만든다'를 '기획부장을 책임자로 두고 부회장이 만든다'로 한다.
+// 1 행사 만들기: 기획부장이 만들어 책임자가 되고(DEC-79, DEC-93), 회장이 장소를 고친다. 재정부장이 행사용 예산 항목을 더한다.
 export async function createEventStep(ctx: Ctx) {
-  const { vice, chief, financeHead } = ctx.cast
+  const { planHead, chief, financeHead } = ctx.cast
   const { w, plan } = ctx
-  await seesPermission(ctx, vice, 'event.create')
+  await seesPermission(ctx, planHead, 'event.create')
   const dates = schedule(ctx)
   const created = await create<EventResponse>(
-    vice,
+    planHead,
     `${org(ctx)}/events`,
-    { name: plan.name, ...dates, place: '학생회관', ownerId: w.memberIds.planHead },
+    { name: plan.name, ...dates, place: '학생회관' },
     '행사 만들기',
   )
   w.eventId = created.event.id

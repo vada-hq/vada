@@ -20,14 +20,13 @@ export type EventStatus = (typeof EVENT_STATUSES)[number]
 const hasValidSpan = (input: { startsAt: string | null; endsAt: string | null }) =>
   input.endsAt === null || (input.startsAt !== null && input.endsAt > input.startsAt)
 
-// 행사 만들기(회장단). 책임자는 비울 수 있다.
+// 행사 만들기(회장단과 부서장, DEC-93). 책임자는 받지 않는다: 서버가 만든 사람으로 채운다(DEC-79). 보내면 모르는 키라 400이다.
 export const CreateEventSchema = z
   .strictObject({
     name: text(EVENT_NAME_MAX),
     startsAt: koreanDateTime.nullable().default(null),
     endsAt: koreanDateTime.nullable().default(null),
     place: text(EVENT_PLACE_MAX).nullable().default(null),
-    ownerId: recordIdInput.nullable().default(null),
     // 이 행사를 이을 업무(기능 015). 업무 자신의 행사는 바뀌지 않는다. 비우거나 빼면 잇지 않는다.
     taskId: recordIdInput.nullish(),
   })
