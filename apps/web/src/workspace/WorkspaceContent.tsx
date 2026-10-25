@@ -29,9 +29,6 @@ type Props = {
   page: Page
   taskId?: string | undefined
   requestId?: string | undefined
-  // 업무에서 눌러 연 행사. 행사 화면이 이 행사를 열고 시작한다.
-  eventId?: string | undefined
-  eventTab?: EventTab | undefined
   // 주소의 칸. 바뀌면 페이지가 새로 열려 주소로 연 기록을 다시 연다. 기록 주소가 아니면 늘 같다.
   linkKey: string
   // 업무 카드·상세에서 행사 이름을, 홈에서 행사 줄을 눌렀다.
@@ -108,8 +105,6 @@ function PageOf({
   page,
   taskId,
   requestId,
-  eventId,
-  eventTab,
   onOpenEvent,
   onOpenRequest,
   onOpenPage,
@@ -122,8 +117,6 @@ function PageOf({
     return (
       <EventsPage
         view={view}
-        initialEventId={eventId}
-        initialTab={eventTab}
         onForbidden={data.reload}
         onTasksChanged={() => void tasks.reload()}
       />

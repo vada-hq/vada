@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { openHistory } from '@/test-support/history'
 import { councilView } from '@/test-support/council-fixtures'
@@ -15,17 +15,28 @@ import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { settle } from '@/test-support/settle'
-import { EVENT_ERRORS, EVENT_LOST } from '@/lib/messages'
+import { COUNCIL_ID } from '@/test-support/workspace-at'
+import { ADDRESS_LOST, EVENT_ERRORS } from '@/lib/messages'
 import EventsPage from './EventsPage'
-import type { EventTab } from './event-view'
 
+// 주소는 uuid여야 읽히므로 행사 시험은 이 학생회와 행사 번호를 쓴다.
+const EVENT2 = '00000000-0000-4000-8000-0000000000e2'
+const EVENT9 = '00000000-0000-4000-8000-0000000000e9'
+const TASK_ID = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+const LIST_AT = `/events/${COUNCIL_ID}`
+const pathNow = () => window.location.pathname + window.location.search
+
+beforeEach(() => {
+  window.history.replaceState(null, '', LIST_AT)
+})
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
-const BASE = '/api/organizations/c1/events'
-const OPEN_TASKS = `/api/organizations/c1/tasks?view=all&status=open&event=${EVENT_ID}`
+const BASE = `/api/organizations/${COUNCIL_ID}/events`
+const OPEN_TASKS = `/api/organizations/${COUNCIL_ID}/tasks?view=all&status=open&event=${EVENT_ID}`
 const openTask = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
   title: '현수막 주문',
@@ -39,16 +50,14 @@ const openTask = (id: string, extra: Record<string, unknown> = {}) => ({
   ...extra,
 })
 
-function setup(
-  options: { permissions?: string[]; initialEventId?: string; initialTab?: EventTab } = {},
-) {
+function setup(options: { permissions?: string[]; at?: string } = {}) {
   const api = mockApi()
   api.on('GET', BASE, () =>
     json({
       events: [
         eventSummary(),
         eventSummary({
-          id: 'e2',
+          id: EVENT2,
           name: '날짜 미정 행사',
           startsAt: null,
           endsAt: null,
@@ -61,7 +70,7 @@ function setup(
     }),
   )
   // 업무 탭의 업무 만들기가 운영진을 읽는다.
-  api.on('GET', '/api/organizations/c1/members', () => json(uuidTeam()))
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(uuidTeam()))
   // 개요가 같이 읽는 세 탭의 요약. 시험마다 바꿔 끼운다.
   api.on('GET', OPEN_TASKS, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${BASE}/${EVENT_ID}/registration-forms`, () =>
@@ -71,36 +80,22 @@ function setup(
     json(settlementOf({ remaining: [], settled: true })),
   )
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
-  const view = councilView('c1', { memberId: MEMBER.m1 })
+  const view = councilView(COUNCIL_ID, { memberId: MEMBER.m1 })
   if (options.permissions) view.permissions = options.permissions as typeof view.permissions
-  render(
-    <EventsPage
-      view={view}
-      initialEventId={options.initialEventId}
-      initialTab={options.initialTab}
-      {...handlers}
-    />,
-  )
+  window.history.replaceState(null, '', options.at ?? LIST_AT)
+  render(<EventsPage view={view} {...handlers} />)
   return { api, handlers }
 }
 
-test('홈에서 연 행사는 정한 탭으로 시작하고, 목록에서 연 다른 행사는 개요로 시작한다', async () => {
-  setup({ initialEventId: 'e1', initialTab: 'money' })
+test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목록에서 다시 연 행사는 개요로 시작한다', async () => {
+  setup({ at: `${LIST_AT}/${EVENT_ID}?tab=money` })
   const money = await screen.findByRole('tab', { name: '예산·정산' })
   expect(money.getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
   const overview = await screen.findByRole('tab', { name: '개요' })
   expect(overview.getAttribute('aria-selected')).toBe('true')
-})
-
-test('홈에서 예산·정산 탭으로 연 행사를 닫고 목록에서 다시 열면 개요로 열린다', async () => {
-  setup({ initialEventId: EVENT_ID, initialTab: 'money' })
-  await screen.findByRole('tab', { name: '예산·정산' })
-  fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  const overview = await screen.findByRole('tab', { name: '개요' })
-  expect(overview.getAttribute('aria-selected')).toBe('true')
+  expect(pathNow()).toBe(`${LIST_AT}/${EVENT2}`)
 })
 
 test('목록 줄에 이름, 일시가 보이고 책임자는 보이지 않으며, 예정과 날짜 미정은 묶음으로 나뉜다', async () => {
@@ -140,13 +135,13 @@ test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자
 
 test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에 알리며, 보내는 동안 다시 보내지 않고 이름만 보내고 만든 행사를 연다', async () => {
   const { api } = setup()
-  const created = eventDetail({ id: 'e9', name: '봄 축제' })
+  const created = eventDetail({ id: EVENT9, name: '봄 축제' })
   let posts = 0
   api.on('POST', BASE, () => {
     posts += 1
     return json({ event: created }, 201)
   })
-  api.on('GET', `${BASE}/e9`, () => json({ event: created }))
+  api.on('GET', `${BASE}/${EVENT9}`, () => json({ event: created }))
   const form = await openCreate()
   const submit = within(form).getByRole('button', { name: '만들기' })
   const name = await within(form).findByLabelText('이름')
@@ -297,7 +292,7 @@ test('챙길 것은 지난 업무와 담당자 없는 업무를 보이고, [업�
 
 test('챙길 것의 담당자 없음 [업무 보기]는 업무 탭을 담당자 없는 업무만 보이는 보기로 열고, 풀면 전체로 돌아온다', async () => {
   const { api } = setup()
-  const unassigned = `/api/organizations/c1/tasks?view=unassigned&status=open&event=${EVENT_ID}`
+  const unassigned = `/api/organizations/${COUNCIL_ID}/tasks?view=unassigned&status=open&event=${EVENT_ID}`
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
   api.on('GET', OPEN_TASKS, () =>
     json({
@@ -323,20 +318,14 @@ test('챙길 것의 담당자 없음 [업무 보기]는 업무 탭을 담당자 
   await settle()
 })
 
-test('다음 업무의 제목을 누르면 업무 탭에서 그 업무가 열린다', async () => {
+test('다음 업무의 제목을 누르면 그 업무가 업무 주소로 열린다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
-  api.on('GET', OPEN_TASKS, () => json({ tasks: [openTask('t1')], truncated: false }))
-  api.on('GET', '/api/organizations/c1/tasks/t1', () =>
-    json({ task: taskDetail({ event: { id: EVENT_ID, name: '신입생 환영회' } }) }),
-  )
+  api.on('GET', OPEN_TASKS, () => json({ tasks: [openTask(TASK_ID)], truncated: false }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   const next = await screen.findByRole('region', { name: '다음 업무' })
   fireEvent.click(await within(next).findByRole('button', { name: '현수막 주문' }))
-  expect(await screen.findByRole('dialog')).toBeTruthy()
-  // 열린 대화상자 밖은 화면 낭독기에서 숨으므로 숨은 것까지 찾는다.
-  const tab = screen.getByRole('tab', { name: '업무', hidden: true })
-  expect(tab.getAttribute('aria-selected')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${TASK_ID}`)
 })
 
 test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 단계를 보이고, [업무 만들기]는 업무 탭에서 만들기를 연다', async () => {
@@ -405,36 +394,43 @@ test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 
   expect(api.calls.some(call => call.method !== 'GET')).toBe(false)
 })
 
-test('열린 행사가 사라지면(404) 목록으로 돌아가 이유를 보인다', async () => {
+test('열린 행사가 사라지면(404) 찾을 수 없음을 보이고 행사 목록으로 가는 버튼이 있다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  expect((await screen.findByRole('alert')).textContent).toBe(EVENT_LOST)
-  expect(screen.getByRole('button', { name: '날짜 미정 행사' })).toBeTruthy()
+  expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
+  expect(await screen.findByRole('button', { name: '날짜 미정 행사' })).toBeTruthy()
+  expect(pathNow()).toBe(LIST_AT)
 })
 
 test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이어진다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
-  api.on('GET', `/api/organizations/c1/tasks?view=all&status=open&event=${EVENT_ID}`, () =>
-    json({
-      tasks: [
-        {
-          id: 't1',
-          title: '현수막 주문',
-          status: 'todo',
-          dueDate: null,
-          overdue: false,
-          department: null,
-          event: { id: EVENT_ID, name: '신입생 환영회' },
-          assignee: null,
-          actions: ['task.change_status'],
-        },
-      ],
-      truncated: false,
-    }),
+  api.on(
+    'GET',
+    `/api/organizations/${COUNCIL_ID}/tasks?view=all&status=open&event=${EVENT_ID}`,
+    () =>
+      json({
+        tasks: [
+          {
+            id: 't1',
+            title: '현수막 주문',
+            status: 'todo',
+            dueDate: null,
+            overdue: false,
+            department: null,
+            event: { id: EVENT_ID, name: '신입생 환영회' },
+            assignee: null,
+            actions: ['task.change_status'],
+          },
+        ],
+        truncated: false,
+      }),
   )
-  api.on('POST', '/api/organizations/c1/tasks', () => json({ error: 'EVENT_INVALID' }, 409))
+  api.on('POST', `/api/organizations/${COUNCIL_ID}/tasks`, () =>
+    json({ error: 'EVENT_INVALID' }, 409),
+  )
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
   await screen.findByRole('button', { name: '현수막 주문' })
@@ -451,10 +447,7 @@ test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이�
   await settle()
 })
 
-test.each([
-  [403, /권한이 바뀌었어요/],
-  [404, new RegExp(EVENT_LOST)],
-])('고치다가 %i이면 대화상자를 닫고 이유를 보인다', async (status, message) => {
+test.each([403, 404])('고치다가 %i이면 대화상자를 닫고 찾을 수 없음을 보인다', async status => {
   const { api, handlers } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
   api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ error: 'X' }, status))
@@ -463,7 +456,7 @@ test.each([
   fireEvent.change(screen.getByLabelText('이름'), { target: { value: '새 이름' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect((await screen.findByRole('alert')).textContent).toMatch(message)
+  expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   if (status === 403) expect(handlers.onForbidden).toHaveBeenCalled()
 })
 
@@ -483,10 +476,12 @@ test('업무 탭에서 업무를 만들면 행사 상세도 다시 읽는다', a
   const { api } = setup()
   const detailPath = `${BASE}/${EVENT_ID}`
   api.on('GET', detailPath, () => json({ event: eventDetail() }))
-  api.on('GET', `/api/organizations/c1/tasks?view=all&status=open&event=${EVENT_ID}`, () =>
-    json({ tasks: [], truncated: false }),
+  api.on(
+    'GET',
+    `/api/organizations/${COUNCIL_ID}/tasks?view=all&status=open&event=${EVENT_ID}`,
+    () => json({ tasks: [], truncated: false }),
   )
-  api.on('POST', '/api/organizations/c1/tasks', () => json({ task: taskDetail() }, 201))
+  api.on('POST', `/api/organizations/${COUNCIL_ID}/tasks`, () => json({ task: taskDetail() }, 201))
   const reads = () => api.calls.filter(call => call.path === detailPath).length
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))

@@ -11,6 +11,8 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
+import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { FeeAccountSelect, useFeeAccount } from './FeeAccountSelect'
 import { FormEventFacts } from './FormEventFacts'
@@ -84,6 +86,8 @@ function useFormEditor(props: Props) {
   const [saving, setSaving] = useState(false)
   const account = useFeeAccount(councilId, handlers.onForbidden, chosen)
   const post = useStaffPost(handlers, setSaving)
+  // 고치던 것이 남았으면 탭·메뉴·뒤로·새로고침으로 떠날 때 묻는다(떠날 때 확인). 만들기 직후나 저장 뒤에는 화면이 사라져 풀린다.
+  useUnsavedInput(!sameJson(values, mode.values) || chosen !== mode.chosen)
   const request = {
     ...formRequest(values, account.pick.id),
     ...(!form && taskId ? { taskId } : {}),
@@ -105,7 +109,21 @@ function useFormEditor(props: Props) {
     const result = await post.send<RegistrationFormResponse>(mode.path, request)
     if (result.ok) onDone(result.data.form)
   }
-  return { mode, values, setValues, setChosen, saving, account, post, formRef, errors, submit }
+  // 목록으로 돌아가는 닫기도 앱 안의 이동이라 남은 입력이 있으면 먼저 묻는다.
+  const close = () => askLeave(props.onClose)
+  return {
+    mode,
+    values,
+    setValues,
+    setChosen,
+    saving,
+    account,
+    post,
+    formRef,
+    errors,
+    submit,
+    close,
+  }
 }
 
 type Editor = ReturnType<typeof useFormEditor>
@@ -137,7 +155,7 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
       </FormSection>
       {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
+        <Button type="button" variant="outline" busy={saving} onClick={editor.close}>
           닫기
         </Button>
         <Button type="submit" busy={saving}>
@@ -158,7 +176,7 @@ export function FormEditor(props: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-start gap-1">
-        <Button variant="ghost" size="sm" className="-ml-2" busy={saving} onClick={props.onClose}>
+        <Button variant="ghost" size="sm" className="-ml-2" busy={saving} onClick={editor.close}>
           <ChevronLeft aria-hidden />
           {props.backLabel ?? '신청 양식 목록'}
         </Button>
