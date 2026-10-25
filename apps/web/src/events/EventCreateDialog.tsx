@@ -20,7 +20,7 @@ type Props = EventDialogHandlers & {
 export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
   const [saving, setSaving] = useState(false)
   return (
-    <EventDialogShell title="행사 만들기" saving={saving} onClose={onClose}>
+    <EventDialogShell title="새 행사" saving={saving} onClose={onClose}>
       <CreateForm
         view={view}
         saving={saving}
@@ -32,7 +32,7 @@ export function EventCreateDialog({ view, onClose, ...handlers }: Props) {
   )
 }
 
-// 행사 화면 [행사 만들기]와 홈 빈 상태 [새 행사]가 같이 여는 새 행사 창: 만들면 창을 닫고 그 행사를 연다.
+// 행사 화면과 홈 빈 상태의 [새 행사]가 같이 여는 새 행사 창: 만들면 창을 닫고 그 행사를 연다.
 export function NewEventDialog({
   view,
   onClose,
@@ -70,7 +70,7 @@ function CreateForm({ view, saving, setSaving, onClose, taskId, ...handlers }: F
   })
   return (
     <EventForm
-      label="행사 만들기"
+      label="새 행사"
       submitLabel="만들기"
       values={values}
       layout="dialog"
