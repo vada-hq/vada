@@ -103,3 +103,27 @@ test('다른 연결에는 새지 않는다', async () => {
     await second.close()
   }
 })
+
+test('뒤로 미룬 간격에서도 고친 기록의 새 판은 그 시각에 시작한다', async () => {
+  const { db, close } = await createTestDb()
+  try {
+    await setOffset(db, `${-THREE_DAYS} milliseconds`)
+    const made = await makeMember(db)
+    await db.transaction(tx =>
+      updateRecord(tx, {
+        kind: 'member',
+        id: made.id,
+        actor: null,
+        reason: null,
+        changes: { name: '바뀐 이름' },
+      }),
+    )
+    const rows = await db.execute(
+      sql`select lower(valid)::text as lo from record_version where record_id = ${made.id} order by version_no desc limit 1`,
+    )
+    const row = (Array.isArray(rows) ? rows[0] : rows.rows[0]) as { lo: string }
+    near(new Date(row.lo), Date.now() - THREE_DAYS)
+  } finally {
+    await close()
+  }
+})
