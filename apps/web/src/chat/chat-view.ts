@@ -1,7 +1,8 @@
 import { koreanDateOf, koreanOf, type RoomSummary } from '@vada/contracts'
+import { countLabel } from '@/components/ui/count-badge'
 
-const MAX_BADGE = 99
-export const unreadLabel = (count: number) => (count > MAX_BADGE ? `${MAX_BADGE}+` : String(count))
+// 안 읽은 수 글. 옆 메뉴 수 배지와 같은 상한이다.
+export const unreadLabel = (count: number) => countLabel(count)
 
 const NAMES = {
   all_members: '공지방',

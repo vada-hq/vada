@@ -28,7 +28,7 @@ function EventLine({
   onOpen: () => void
 }) {
   return (
-    <NavItem active={active} className="mb-0.5 flex items-center gap-2" onClick={onOpen}>
+    <NavItem active={active} className="gap-2" onClick={onOpen}>
       <span
         aria-hidden
         className="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-500"
@@ -72,7 +72,7 @@ export default function SpaceList({
       ))}
       <NavItem
         active={active?.kind === 'allEvents'}
-        className="py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700"
+        className="mb-0 py-1.5 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700"
         onClick={onSeeAll}
       >
         행사 모두 보기

@@ -11,6 +11,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from '@/components/ui/menu'
+import { cn } from '@/lib/utils'
 import type { Page } from './pages'
 
 type Props = {
@@ -18,25 +19,42 @@ type Props = {
   councils: MyCouncil[]
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
-  // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
+  // 머리 칸 단추. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
   menuRef?: Ref<HTMLButtonElement> | undefined
+  // 휴대폰 서랍 안이면 오른쪽 위의 닫기 단추 자리를 비운다.
+  inSheet?: boolean
 }
 
-// 옆 메뉴 위 블록: 학생회 이름 메뉴(학생회 고르기, 설정). 오른쪽 여백은 시트 닫기 버튼 자리다.
-export default function CouncilMenu({ council, councils, onSelect, onPage, menuRef }: Props) {
+// 옆 메뉴 머리(와이어프레임 사이드바 v6.2): 파란 네모 'V'와 'Vada' / 회색 학생회 이름 두 줄, 아래 경계선.
+// 와이어프레임은 누를 수 없지만 여러 학생회를 고르고 설정을 여는 자리라(DEC-87, DEC-38) 칸 전체가 학생회 메뉴 단추이고
+// 오른쪽에 위아래 화살표를 둔다(DEC-96). 학생회 이름은 와이어프레임 gray-400이 흰 바탕에서 4.5:1에 못 미쳐 gray-500이다.
+export default function CouncilMenu({
+  council,
+  councils,
+  onSelect,
+  onPage,
+  menuRef,
+  inSheet = false,
+}: Props) {
   return (
-    <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-3 pr-10 pl-4">
-      <BrandMark />
+    <div className="shrink-0 border-b border-gray-100">
       <Menu>
         <MenuTrigger asChild>
           <Button
             ref={menuRef}
             variant="ghost"
-            className="min-w-0 flex-1 justify-between px-2 text-gray-900"
+            className={cn(
+              'h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-gray-50',
+              inSheet && 'pr-12',
+            )}
             aria-label={`학생회 메뉴: ${council.name}`}
           >
-            <span className="truncate text-sm font-semibold">{council.name}</span>
-            <ChevronsUpDown aria-hidden />
+            <BrandMark />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-sm font-semibold text-gray-900">Vada</span>
+              <span className="truncate text-xs font-normal text-gray-500">{council.name}</span>
+            </span>
+            <ChevronsUpDown aria-hidden className="text-gray-500" />
           </Button>
         </MenuTrigger>
         <MenuContent align="start">

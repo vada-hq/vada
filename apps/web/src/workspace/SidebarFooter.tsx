@@ -6,18 +6,22 @@ import { useRenameMe } from '../profile/useRenameMe'
 import { useWithdrawal } from '../profile/useWithdrawal'
 import WithdrawDialog from '../profile/WithdrawDialog'
 import PushSettingsButton from '../push/PushSettings'
-import { councilRankLabel, placementsText } from '../team/team-view'
+import { sidebarRoleLine } from '../team/team-view'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
 
-// 아바타와 이름, 직급·부서 줄.
+// 와이어프레임 발 두 줄: 회색 원 안 사람 아이콘 + 이름 / '{부서} · {직급}'(작은 회색 글).
 function Who({ name, position }: { name: string; position: string | null }) {
   return (
     <>
       <Avatar />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-xs font-medium text-gray-700">{name}</span>
-        {position && <span className="truncate text-xs text-gray-500">{position}</span>}
+        {position && (
+          <span className="truncate text-xs font-normal text-gray-500" title={position}>
+            {position}
+          </span>
+        )}
       </span>
     </>
   )
@@ -32,7 +36,7 @@ type Props = {
   onRenamed: () => void
 }
 
-// 옆 메뉴 아래 사용자 줄: 운영진 이름과 직급·부서, 휴대폰 알림, 로그아웃. 이름을 누르면 '내 이름' 창에서 고치고, 그 창에서 탈퇴한다.
+// 옆 메뉴 아래 사용자 줄(와이어프레임 사이드바 v6.2, px-4 py-3, 위 경계선): 운영진 이름과 '{부서} · {직급}', 휴대폰 알림, 로그아웃. 이름을 누르면 '내 이름' 창에서 고치고, 그 창에서 탈퇴한다.
 // 학생회를 읽기 전에는 로그인 계정 이름을 보인다.
 export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRenamed }: Props) {
   const [renaming, setRenaming] = useState(false)
@@ -43,14 +47,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
   const withdrawal = useWithdrawal(user.id)
   const userLine = useRef<HTMLButtonElement>(null)
   const name = view?.me.name ?? user.name
-  const position =
-    view &&
-    (councilRankLabel(view.me.councilRank, view.council.titles) ||
-      placementsText(
-        { departments: view.me.departments },
-        view.me.departments,
-        view.council.titles,
-      ))
+  const position = view && sidebarRoleLine(view.me, view.council.titles)
   return (
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
       {view ? (
@@ -59,7 +56,8 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
           variant="ghost"
           // 버튼 안의 직급·부서 줄도 이름에 넣는다(aria-label이 안의 글을 덮는다).
           aria-label={[`내 이름: ${name}`, position].filter(Boolean).join(', ')}
-          className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left"
+          // 올렸을 때 바탕은 gray-50이다. gray-100 위의 작은 gray-500 글은 4.5:1에 못 미친다(WCAG 1.4.3).
+          className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left hover:bg-gray-50"
           onClick={() => {
             rename.reset()
             setRenaming(true)
