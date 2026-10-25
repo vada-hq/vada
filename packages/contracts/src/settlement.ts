@@ -1,4 +1,5 @@
 // 행사 정산 읽기(기능 008). 돈은 모두 정수 원이다.
+import type { BudgetItemUsage } from './budget.js'
 import type { EventSummary } from './events.js'
 
 // 남은 것 목록은 종류마다 이만큼만 준다. 수(count)는 전체다.
@@ -25,13 +26,12 @@ export interface SettlementRemaining {
   targets: SettlementTarget[]
 }
 
-export interface SettlementBudgetItem {
+// 행사 '예산·정산'의 항목 줄. 쓴 돈과 남은 돈은 예산 탭과 같은 셈이다.
+export interface SettlementBudgetItem extends BudgetItemUsage {
   id: string
   type: 'expense' | 'income'
   purpose: string
   amount: number
-  // 지출 항목은 쓴 돈, 수입 항목은 들어온 돈
-  used: number
 }
 
 export interface SettlementApproval {

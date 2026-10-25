@@ -53,8 +53,21 @@ const budgetItems: BudgetItemView[] = [
     type: 'expense',
     event: null,
     selectable: true,
+    actual: 0,
+    committed: 0,
+    available: 300000,
   },
-  { id: 'b2', purpose: longName, amount: 50000, type: 'expense', event: null, selectable: true },
+  {
+    id: 'b2',
+    purpose: longName,
+    amount: 50000,
+    type: 'expense',
+    event: null,
+    selectable: true,
+    actual: 0,
+    committed: 0,
+    available: 50000,
+  },
 ]
 
 export function FinanceSection() {

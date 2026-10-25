@@ -1,6 +1,7 @@
 import type { EventSettlement } from '@vada/contracts'
 import { Fact } from '@/components/Fact'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { BudgetItemLine } from '../finance/BudgetItemLine'
 import { wonLabel } from '../finance/purchase-view'
 import { differenceLabel } from './settlement-view'
 
@@ -21,7 +22,7 @@ export function SettlementNumbers({ settlement }: { settlement: EventSettlement 
   )
 }
 
-// 예산 항목마다 쓴 돈(지출 항목) 또는 들어온 돈(수입 항목).
+// 예산 항목마다 배정, 실제, 지출 예정, 사용 가능(수입 항목은 들어온 돈). 예산 탭과 같은 줄이다.
 export function SettlementItems({ items }: { items: EventSettlement['budget']['items'] }) {
   if (items.length === 0) return null
   return (
@@ -29,19 +30,10 @@ export function SettlementItems({ items }: { items: EventSettlement['budget']['i
       <h3 className="text-sm font-medium text-gray-700">예산 항목</h3>
       <ul className="flex flex-col gap-2">
         {items.map(item => (
-          <li key={item.id} className="flex flex-col gap-1 rounded-sm border p-3 text-xs">
-            <span className="flex items-start gap-2">
-              <span className="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">
-                {item.purpose}
-              </span>
-              <Badge tone={item.type === 'income' ? 'info' : 'neutral'}>
-                {item.type === 'income' ? '수입' : '지출'}
-              </Badge>
-            </span>
-            <span className="text-gray-500">
-              {item.type === 'income' ? '수입' : '지출'} {wonLabel(item.used)} / 예산{' '}
-              {wonLabel(item.amount)}
-            </span>
+          <li key={item.id}>
+            <Card className="p-3">
+              <BudgetItemLine item={item} />
+            </Card>
           </li>
         ))}
       </ul>

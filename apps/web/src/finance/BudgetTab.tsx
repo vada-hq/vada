@@ -2,14 +2,13 @@ import { useState } from 'react'
 import type { BudgetResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { BUDGET_LOAD_FAILED } from '@/lib/messages'
 import { periodRange } from './budget-form'
+import { BudgetItemLine } from './BudgetItemLine'
 import { BudgetItemDialog } from './BudgetItemDialog'
 import type { BudgetChangeHandlers } from './useBudgetChange'
 import { PeriodCreateDialog } from './PeriodCreateDialog'
-import { wonLabel } from './purchase-view'
 import { useBudget } from './useBudget'
 
 type Props = {
@@ -25,19 +24,8 @@ function Items({ items }: { items: BudgetResponse['items'] }) {
     <ul aria-label="예산 항목" className="flex flex-col gap-2">
       {items.map(item => (
         <li key={item.id}>
-          <Card className="flex items-start justify-between gap-3 p-3 text-sm">
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="wrap-anywhere text-gray-900">{item.purpose}</span>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={item.type === 'income' ? 'info' : 'neutral'}>
-                  {item.type === 'income' ? '수입' : '지출'}
-                </Badge>
-                {item.event && (
-                  <span className="text-xs text-gray-500 wrap-anywhere">{item.event.name}</span>
-                )}
-              </div>
-            </div>
-            <span className="shrink-0 font-medium text-gray-700">{wonLabel(item.amount)}</span>
+          <Card className="p-3">
+            <BudgetItemLine item={item} eventName={item.event?.name ?? null} />
           </Card>
         </li>
       ))}

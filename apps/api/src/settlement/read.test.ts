@@ -69,7 +69,7 @@ test(
     assert.equal(s.budget.expense, 100000)
     assert.equal(s.budget.income, 30000)
     assert.deepEqual(
-      s.budget.items.map(item => [item.type, item.amount, item.used]),
+      s.budget.items.map(item => [item.type, item.amount, item.actual]),
       [
         ['expense', 100000, 10000],
         ['income', 30000, 12000],
@@ -355,7 +355,7 @@ test(
       })
     const s = await t.settlement(ev)
     assert.deepEqual(
-      s.budget.items.map(item => item.used),
+      s.budget.items.map(item => item.actual),
       [20, 9],
     )
   }),

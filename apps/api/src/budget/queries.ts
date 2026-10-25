@@ -1,11 +1,12 @@
 import { and, asc, desc, eq, gte, inArray, lt, lte, type SQL } from 'drizzle-orm'
-import { koreanDateOf, type BudgetItemType, type BudgetResponse } from '@vada/contracts'
+import { koreanDateOf, type BudgetResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { budget, budgetItem, cohort, event, fiscalPeriod, record } from '../db/schema.js'
+import { budget, budgetItem, cohort, fiscalPeriod, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
 import { budgetItemSelectable } from './policy.js'
+import { budgetItemsWithUsage } from './usage.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -17,6 +18,7 @@ async function periodWhere(db: Reader, where: SQL | undefined) {
       name: fiscalPeriod.name,
       startsOn: fiscalPeriod.startsOn,
       endsOn: fiscalPeriod.endsOn,
+      councilId: fiscalPeriod.councilId,
       budgetId: budget.id,
     })
     .from(fiscalPeriod)
@@ -58,37 +60,27 @@ export async function previousPeriodIdFor(db: Reader, councilId: string, startsO
   return next ? null : latest.id
 }
 
-// 기간 하나와 그 예산 항목(목적순). 수입 항목도 종류와 함께 준다.
+// 기간 하나와 그 예산 항목(목적순). 수입 항목도 종류와 함께 주고, 항목마다 쓴 돈과 남은 돈(usage.ts)을 붙인다.
 export async function budgetViewOf(
   db: Reader,
   period: NonNullable<Awaited<ReturnType<typeof currentPeriodOf>>>,
 ): Promise<BudgetResponse> {
-  const items = await db
-    .select({
-      id: budgetItem.id,
-      purpose: budgetItem.purpose,
-      amount: budgetItem.amount,
-      type: budgetItem.type,
-      eventId: budgetItem.eventId,
-      eventName: event.name,
-    })
-    .from(budgetItem)
-    .leftJoin(event, eq(event.id, budgetItem.eventId))
-    .where(eq(budgetItem.budgetId, period.budgetId))
-    .orderBy(asc(budgetItem.purpose), asc(budgetItem.id))
+  const items = await budgetItemsWithUsage(
+    db,
+    period.councilId,
+    eq(budgetItem.budgetId, period.budgetId),
+    [asc(budgetItem.purpose), asc(budgetItem.id)],
+  )
   const { id, name, startsOn, endsOn } = period
   const completed = await completedEventIdsAmong(db, [
     ...new Set(items.flatMap(item => (item.eventId ? [item.eventId] : []))),
   ])
   return {
     period: { id, name, startsOn, endsOn },
-    items: items.map(item => ({
-      id: item.id,
-      purpose: item.purpose,
-      amount: Number(item.amount),
-      type: item.type as BudgetItemType,
-      event: item.eventId && item.eventName ? { id: item.eventId, name: item.eventName } : null,
-      selectable: budgetItemSelectable(item.eventId, completed),
+    items: items.map(({ eventId, eventName, ...item }) => ({
+      ...item,
+      event: eventId && eventName ? { id: eventId, name: eventName } : null,
+      selectable: budgetItemSelectable(eventId, completed),
     })),
     suggested: null,
   }

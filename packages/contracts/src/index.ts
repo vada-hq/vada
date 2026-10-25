@@ -265,6 +265,7 @@ export {
   FISCAL_PERIOD_NAME_MAX,
   WON_MAX,
   type BudgetItemType,
+  type BudgetItemUsage,
   type BudgetItemView,
   type BudgetResponse,
   type EventRef,

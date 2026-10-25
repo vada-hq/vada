@@ -111,7 +111,7 @@
 - 닿는 곳: api `flows/rehearsal.ts`·`rehearsal-money.ts`(또는 새 단계 파일)·`rehearsal.test.ts`, `scripts/demo-data.ts`, vada `docs/features/006-launch-prep.md`·`017-rehearsal-scenario.md`, vada-docs `rfcs/0007-design-into-vada.md`·`legal/privacy-policy.md`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 5. 약정과 사용 가능(묶음 2-1) [ ]
+### 5. 약정과 사용 가능(묶음 2-1) [x]
 - 먼저 main에: `work/fix-income-budget-item`(같은 `budget/queries.ts`).
 - 할 수 있게 되는 것: 승인한 금액이 결제 전에도 예산에서 빠져 보인다.
 - 수용 기준: 예산 읽기 응답의 항목마다 배정, 실제, 지출 예정(약정), 사용 가능이 있다(정한 것 6). 품목을 승인하면 그 항목의 지출 예정이 승인 금액만큼 늘고 사용 가능이 준다. 결제하면 지출 예정에서 실제로 옮긴다. 나눠 결제하면 남은 금액만 지출 예정이다. 승인 품목을 취소하거나 지출을 취소하면 바로 맞게 바뀐다. 결제가 승인 금액보다 크면 지출 예정은 0이다. 일부만 승인한 요청의 승인 품목도 센다. 예산 탭과 행사 '예산·정산'의 항목 줄에 지출 예정과 사용 가능이 있고, 같은 항목의 숫자가 두 곳에서 같다. 다른 학생회 품목은 세지 않는다.

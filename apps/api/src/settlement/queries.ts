@@ -8,47 +8,34 @@ import {
   budgetItem,
   deposit,
   expense,
-  income,
-  lineItem,
-  paymentLine,
   record,
   registration,
   registrationForm,
 } from '../db/schema.js'
+import { budgetItemsWithUsage } from '../budget/usage.js'
 import { sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
 import { isSettled, remainingOf } from './remaining.js'
 
 type Reader = Pick<Db, 'select'>
 
-// 항목마다 쓴 돈(logical-model '예산 항목별로 쓴 돈'): 그 항목에 잡힌 품목의 결제 내역 금액과 직접 이은 지출. 취소한 지출은 뺀다.
-// 수입 항목은 이은 수입 가운데 취소하지 않은 것이다.
-const usedSql = sql<number>`(case ${budgetItem.type}
-  when 'income' then (select coalesce(sum(${income.amount}), 0) from ${income}
-    where ${income.budgetItemId} = ${budgetItem.id} and ${income.cancelledAt} is null)
-  else (select coalesce(sum(${paymentLine.amount}), 0) from ${paymentLine}
-      join ${lineItem} on ${lineItem.id} = ${paymentLine.lineItemId}
-      join ${expense} on ${expense.id} = ${paymentLine.expenseId}
-    where ${lineItem.budgetItemId} = ${budgetItem.id} and ${expense.cancelledAt} is null)
-    + (select coalesce(sum(${expense.amount}), 0) from ${expense}
-    where ${expense.budgetItemId} = ${budgetItem.id} and ${expense.cancelledAt} is null)
-  end)`.mapWith(Number)
-
+// 이 행사의 예산 항목(만든 순)과 항목마다 쓴 돈·남은 돈. 셈은 예산 탭과 같은 모듈이다(usage.ts).
 async function budgetOf(db: Reader, actor: Actor, eventId: string) {
-  const rows = await db
-    .select({
-      id: budgetItem.id,
-      type: budgetItem.type,
-      purpose: budgetItem.purpose,
-      amount: sumOf(budgetItem.amount),
-      used: usedSql,
-    })
-    .from(budgetItem)
-    .innerJoin(record, eq(record.id, budgetItem.id))
-    .where(and(eq(record.councilId, actor.councilId), eq(budgetItem.eventId, eventId)))
-    .groupBy(budgetItem.id, record.createdAt)
-    .orderBy(asc(record.createdAt), asc(budgetItem.id))
-  const items = rows.map(row => ({ ...row, type: row.type as SettlementBudgetItem['type'] }))
+  const rows = await budgetItemsWithUsage(db, actor.councilId, eq(budgetItem.eventId, eventId), [
+    asc(record.createdAt),
+    asc(budgetItem.id),
+  ])
+  const items = rows.map(
+    ({ id, type, purpose, amount, actual, committed, available }): SettlementBudgetItem => ({
+      id,
+      type,
+      purpose,
+      amount,
+      actual,
+      committed,
+      available,
+    }),
+  )
   const totalOf = (type: string) =>
     items.filter(item => item.type === type).reduce((sum, item) => sum + item.amount, 0)
   return { expense: totalOf('expense'), income: totalOf('income'), items }
@@ -106,7 +93,7 @@ export async function settlementOf(
   const fee = await feeOf(db, actor, eventId)
   const income = budget.items
     .filter(item => item.type === 'income')
-    .reduce((sum, item) => sum + item.used, 0)
+    .reduce((sum, item) => sum + item.actual, 0)
   const remaining = await remainingOf(db, scope)
   return {
     budget,
