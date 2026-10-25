@@ -303,15 +303,12 @@ exports[`작업 공간: 대화 방 1`] = `
 </span>2020년 3월 2일 (월)<span class="h-px flex-1 bg-gray-300" aria-hidden="true">
 </span>
 </li>
-<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
-<div class="flex min-w-0 gap-2 flex-1">
-<div class="flex min-w-0 flex-col gap-1 flex-1">
-<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
-<span class="font-medium wrap-anywhere text-gray-700">이재정</span>
-<time datetime="2020-03-02T01:30:00Z">10:30</time>
-</p>
-<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">안녕하세요</p>
-</div>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">이</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<span class="text-xs wrap-anywhere text-gray-500">이재정</span>
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">안녕하세요</p>
+<time datetime="2020-03-02T01:30:00Z" class="text-xs text-gray-400">10:30</time>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id2_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -326,12 +323,12 @@ exports[`작업 공간: 대화 방 1`] = `
 </button>
 </div>
 </li>
-<li class="group relative flex flex-wrap items-start gap-x-2 gap-y-1 rounded-sm px-2 py-0.5">
-<div class="flex min-w-0 gap-2 flex-1">
-<div class="flex min-w-0 flex-col gap-1 flex-1">
+<li class="group relative flex items-end gap-2 rounded-sm px-2 py-0.5">
+<span aria-hidden="true" class="w-8 shrink-0">
+</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">모레 회의 있어요</p>
 <time datetime="2020-03-02T01:30:00Z" class="sr-only">10:30</time>
-<p class="text-sm/6 wrap-anywhere whitespace-pre-wrap text-gray-900">모레 회의 있어요</p>
-</div>
 </div>
 <div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" aria-label="메시지 동작" type="button" id="radix-_id3_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
@@ -566,24 +563,39 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <div class="mx-auto w-full max-w-5xl flex flex-col gap-5">
 <ul aria-label="대화방" class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-2 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">공지방</span>
-<span class="shrink-0 text-xs text-gray-400">2020년 3월 2일</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
+<span class="flex items-center gap-2">
+<span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+<span title="공지방" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">공지방</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700" aria-label="나를 부른 메시지 1개">@</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700" aria-label="안 읽은 메시지 3개">3</span>
-</button>
-</li>
-<li>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-2 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">회장단방</span>
-<span class="shrink-0 text-xs text-gray-400">
+<span data-slot="badge" class="inline-flex items-center gap-1 border px-2 py-0.5 text-xs whitespace-nowrap rounded-full border-transparent bg-red-600 font-bold text-white" aria-label="안 읽은 메시지 3개">3</span>
 </span>
+<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+</span>
+<span class="text-xs text-gray-400">참여 3명</span>
 </button>
 </li>
 <li>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-2 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">재정부</span>
-<span class="shrink-0 text-xs text-gray-400">2020년 3월 2일</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
+<span class="flex items-center gap-2">
+<span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+<span title="회장단방" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">회장단방</span>
+</span>
+<span class="shrink-0 self-start text-xs text-gray-400">
+</span>
+</span>
+<span class="text-xs text-gray-400">참여 3명</span>
+</button>
+</li>
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
+<span class="flex items-center gap-2">
+<span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+<span title="재정부" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">재정부</span>
+</span>
+<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+</span>
+<span class="text-xs text-gray-400">참여 3명</span>
 </button>
 </li>
 </ul>
@@ -591,10 +603,14 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <h2 class="text-sm font-semibold text-gray-900">1:1 대화</h2>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full justify-start gap-2 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
-<span class="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">박새내</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
+<span class="flex items-center gap-2">
+<span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+<span title="박새내" class="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900">박새내</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">보기만</span>
-<span class="shrink-0 text-xs text-gray-400">2020년 3월 2일</span>
+</span>
+<span class="shrink-0 self-start text-xs text-gray-400">2020년 3월 2일</span>
+</span>
 </button>
 </li>
 </ul>
