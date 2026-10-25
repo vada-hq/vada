@@ -18,7 +18,7 @@
 | 세션을 옮기나 | 기능(또는 기반 일 하나)이 바뀔 때 문맥을 비운다. 넘기는 것은 파일(명세, 진행 기록, git)이다 | [Claude Code 모범 사례](https://code.claude.com/docs/en/best-practices): 무관한 작업 사이 `/clear`, "명세가 끝나면 새 세션에서 실행". [Anthropic 긴 작업 하네스](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents): 한 번에 기능 하나, 진행 파일과 git으로 인계 |
 | 자동 압축 | 압축 창을 400K 토큰으로 낮춘다 | 1M 창 모델은 기본으로 약 967K에서야 압축한다([model-config](https://code.claude.com/docs/en/model-config#default-auto-compact-thresholds)). 기능 2 진행 세션은 호출마다 평균 약 49만 토큰이었다. 문서에 권장 숫자는 없어 처음 값이고 잰 뒤 고친다 |
 | `/compact`, `/clear` | 사람이 기능 경계에서 `/clear`, 긴 일 앞의 자연스러운 끊김에서만 `/compact 초점`. 조각 중간에는 하지 않는다 | [prompt-caching](https://code.claude.com/docs/en/prompt-caching): 모델과 effort는 세션 처음에 정하고 압축은 작업 사이 끊김에 |
-| 세션을 여러 개 쓰나 | 한 사람이 한 기능에 진행 세션 하나. 나란히 하는 일은 그 안의 하위 에이전트로 한다(작업자 둘까지). 사람끼리는 서로 다른 기능을 각자의 작업 폴더에서 한다 | [agents](https://code.claude.com/docs/en/agents): 같은 파일을 만지면 worktree로 격리. [Anthropic 다중 에이전트](https://www.anthropic.com/engineering/built-multi-agent-research-system): 코딩은 나란히 할 일이 적고 토큰을 약 15배 쓴다 |
+| 세션을 여러 개 쓰나 | 한 사람이 한 기능에 진행 세션 하나. 나란히 하는 일은 그 안의 하위 에이전트로 한다(수 제한 없음). 사람끼리는 서로 다른 기능을 각자의 작업 폴더에서 한다 | [agents](https://code.claude.com/docs/en/agents): 같은 파일을 만지면 worktree로 격리. [Anthropic 다중 에이전트](https://www.anthropic.com/engineering/built-multi-agent-research-system): 코딩은 나란히 할 일이 적고 토큰을 약 15배 쓴다 |
 | 에이전트 팀, 클라우드 세션 | 쓰지 않는다 | 에이전트 팀은 실험 기능이고 기본으로 꺼져 있다. 토큰을 약 7배 쓰고 Windows Terminal 분할창을 지원하지 않는다. 클라우드 세션은 비밀 값과 DB 접근이 필요하고 회사 공용 계정의 사용량을 나눠 쓴다 |
 | 워크플로 | 사람이 "워크플로로" 또는 `ultracode`라고 한 일에만 쓴다. 맞는 일: 저장소 전체 점검, 교차 확인하는 조사 | [workflows](https://code.claude.com/docs/en/workflows): 사람이 고르는 기능이다. 하위 에이전트 몇 개를 넘는 일에 쓴다 |
 | 역할별 모델과 effort | 아래 '역할' 표 | 아래 |
@@ -41,7 +41,7 @@
 
 - 작업자는 `isolation: worktree`로 임시 작업 폴더에서 일한다. 진행 세션의 파일을 건드리지 못한다. 작업 폴더는 진행 세션의 HEAD에서 딴다(프로젝트 설정 `worktree.baseRef: "head"`). 그래야 아직 올리지 않은 명세 커밋과 앞 조각 가지가 보인다. 이 컴퓨터의 전역 설정은 `fresh`(원격 main에서 딴다)라서 프로젝트 설정으로 덮는다.
 - 작업자는 시작할 때 가지 이름을 `work/NNN-조각번호`로 바꾸고(`git branch -m`), `pnpm install --frozen-lockfile --prefer-offline`으로 의존성을 깐다. 다른 폴더의 `node_modules`를 연결하지 않는다. 작업공간 링크가 그 폴더의 `packages/`를 가리켜, 작업 폴더에서 고친 계약 대신 main의 계약으로 시험하게 된다.
-- 동시에 시험을 돌리는 에이전트는 작업자와 깊은 검토를 합쳐 둘까지다(`docs/work-method.md` '동시에 하는 일'). 이 컴퓨터는 논리 코어가 8개이고, 시험이 겹치면 2~3배 느려졌다. 깊은 검토는 코드를 고장 내 시험을 여러 번 돌리므로 같이 센다. 조사와 보통 검토는 시험을 돌리지 않고 읽기만 하므로 더 많이 돌려도 된다.
+- 동시에 도는 작업자와 깊은 검토의 수는 제한하지 않는다(`docs/work-method.md` '동시에 하는 일', 2026-10-25 주인 지시). 한 작업자 안의 API 시험은 `--test-concurrency=2`로 돌린다(이 컴퓨터에서 여러 파일을 한꺼번에 돌리면 메모리가 모자란다).
 - 워크플로의 동시 에이전트는 4로 둔다(`CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`). 문서에 코어당 기준이 없어 처음 값이다.
 - 팀원이 함께 일하면 사람마다 다른 기능을 맡고, 각자의 클론이나 작업 폴더에서 일한다. 같은 파일을 두 세션이 동시에 고치지 않는다([Codex 긴 작업](https://learn.chatgpt.com/docs/long-running-work.md)도 같다).
 
