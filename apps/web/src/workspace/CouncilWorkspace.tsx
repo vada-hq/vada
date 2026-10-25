@@ -26,15 +26,17 @@ type Nav = ReturnType<typeof useWorkspaceNav>
 
 // 주소로 연 기록을 페이지가 한 번 여는 값. 칸(key)이 바뀌면 페이지가 새로 열려, 같은 알림을 또 눌러도 닫았던 상세가 다시 열린다.
 function recordOf(target: Props['target']) {
-  const { kind, id, tab } = target.record ?? { kind: null, id: undefined, tab: undefined }
+  const { kind, id } = target.record ?? { kind: null, id: undefined }
   return {
     roomId: kind === 'chat' ? id : undefined,
     taskId: kind === 'tasks' ? id : undefined,
     requestId: kind === 'purchases' ? id : undefined,
-    eventId: kind === 'events' ? id : undefined,
-    eventTab: kind === 'events' ? tab : undefined,
   }
 }
+
+// 기록 주소의 칸이 바뀌면 페이지를 새로 열어 주소로 연 기록을 다시 연다. 행사는 화면이 주소를 읽어 그리므로 탭을 바꿔 쓸 때 새로 열지 않는다.
+const pageOpensAnew = (target: Props['target'], released: boolean) =>
+  (target.record !== null && target.record.kind !== 'events') || released
 
 // 화면이 누르는 이동은 주소를 쌓는 것이다. 기록은 그 종류의 주소로 연다.
 function useOpeners(councilId: string, nav: Nav) {
@@ -121,7 +123,7 @@ export default function CouncilWorkspace({
           ...lists,
           ...openers,
           ...recordOf(target),
-          linkKey: target.record || here.released ? here.key : '',
+          linkKey: pageOpensAnew(target, here.released) ? here.key : '',
           mainRef: nav.main,
         }}
       />

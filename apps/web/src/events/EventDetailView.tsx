@@ -1,13 +1,16 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft } from 'lucide-react'
-import type { CouncilView, EventDetail } from '@vada/contracts'
+import { menuPath, type CouncilView, type EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
+import { leave } from '@/lib/app-location'
+import { openRecord } from '@/lib/go-to'
 import { EVENT_COMPLETED_NOTICE, EVENT_LOAD_FAILED } from '@/lib/messages'
 import { RegistrationTab } from '../registrations/RegistrationTab'
 import TasksPage from '../tasks/TasksPage'
+import { backLabel } from './event-back'
 import type { EventTab } from './event-view'
 import { EventHeader, type EventEditing } from './EventHeader'
 import type { EventFieldFocus } from './EventFields'
@@ -27,9 +30,11 @@ const TABS: { tab: Tab; label: string }[] = [
 type Props = EventDialogHandlers & {
   view: CouncilView
   eventId: string
-  // 홈에서 연 행사는 정산이 남았으면 '예산·정산' 탭으로 시작한다.
-  initialTab?: EventTab | undefined
-  onBack: () => void
+  // 열린 탭. 주소의 쿼리가 원문이라 새로고침해도 같다.
+  tab: Tab
+  onTab: (tab: Tab) => void
+  // 들어온 곳의 주소. 뒤로 버튼의 이름이 된다.
+  from: string | null
   // 내 변경이 목록에 닿았다(행사 목록을 다시 읽는다).
   onChanged: () => void
   // 행사의 업무가 바뀌었다(옆 메뉴의 업무 수를 다시 읽는다).
@@ -48,31 +53,29 @@ function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
   )
 }
 
-// 탭과, 다른 탭이나 머리로 넘겨 여는 것(개요에서 누른 업무, 업무 만들기, 고치기). 넘긴 것은 탭을 직접 바꾸면 버린다.
-type TaskLink = { taskId?: string; create?: boolean; view?: 'unassigned' }
-function useDetailState(initialTab: Tab | undefined) {
-  const [tab, setTab] = useState<Tab>(initialTab ?? 'overview')
+// 업무 탭으로 넘겨 여는 것(개요의 업무 만들기, 담당자 없음 보기)과 머리의 고치기. 넘긴 것은 탭을 직접 바꾸면 버린다.
+type TaskLink = { create?: boolean; view?: 'unassigned' }
+function useDetailState(onTab: (tab: Tab) => void) {
   const [taskLink, setTaskLink] = useState<TaskLink>({})
   const [editing, setEditing] = useState<EventEditing | null>(null)
   return {
-    tab,
     taskLink,
     editing,
     setEditing,
     moveTo: (next: Tab) => {
       setTaskLink({})
-      setTab(next)
+      onTab(next)
     },
     openTasks: (link: TaskLink) => {
       setTaskLink(link)
-      setTab('tasks')
+      onTab('tasks')
     },
   }
 }
 
 // 행사 하나: 머리(이름, 상태, 일시·장소, 고치기)와 탭 넷(개요, 업무, 참가 신청, 예산·정산). 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
-export default function EventDetailView({ view, eventId, initialTab, onBack, ...props }: Props) {
-  const state = useDetailState(initialTab)
+export default function EventDetailView({ view, eventId, tab, onTab, from, ...props }: Props) {
+  const state = useDetailState(onTab)
   const detail = useEventDetail(view.council.id, eventId, {
     onLost: props.onLost,
     onForbidden: props.onForbidden,
@@ -80,9 +83,14 @@ export default function EventDetailView({ view, eventId, initialTab, onBack, ...
   const event = detail.state.kind === 'ready' ? detail.state.data.event : null
   return (
     <div className="flex flex-col gap-4">
-      <Button variant="ghost" size="sm" className="-ml-3 self-start" onClick={onBack}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ml-3 self-start"
+        onClick={() => leave(menuPath('events', view.council.id))}
+      >
         <ChevronLeft aria-hidden />
-        행사 목록
+        {backLabel(from)}
       </Button>
       {event && (
         <EventHeader
@@ -99,9 +107,9 @@ export default function EventDetailView({ view, eventId, initialTab, onBack, ...
         />
       )}
       {event?.status === 'completed' && <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>}
-      <EventTabs tab={state.tab} onTab={state.moveTo} />
+      <EventTabs tab={tab} onTab={state.moveTo} />
       <EventPanel
-        tab={state.tab}
+        tab={tab}
         view={view}
         eventId={eventId}
         detail={detail}
@@ -115,7 +123,7 @@ export default function EventDetailView({ view, eventId, initialTab, onBack, ...
   )
 }
 
-type PanelProps = Omit<Props, 'onBack'> & {
+type PanelProps = Omit<Props, 'from' | 'onTab'> & {
   tab: Tab
   detail: ReturnType<typeof useEventDetail>
   taskLink: TaskLink
@@ -133,7 +141,6 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
         <TasksPage
           view={view}
           eventId={eventId}
-          initialTaskId={props.taskLink.taskId}
           initialView={props.taskLink.view}
           initialCreate={props.taskLink.create}
           onForbidden={props.onForbidden}
@@ -188,7 +195,7 @@ function OverviewPanel({
           councilId={councilId}
           event={loaded}
           onTab={props.onTab}
-          onOpenTask={taskId => props.onOpenTasks({ taskId })}
+          onOpenTask={taskId => openRecord('tasks', councilId, taskId)}
           onOpenUnassigned={() => props.onOpenTasks({ view: 'unassigned' })}
           onCreateTask={() => props.onOpenTasks({ create: true })}
           onEdit={props.onEdit}

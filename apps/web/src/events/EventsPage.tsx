@@ -1,26 +1,25 @@
 import { useState } from 'react'
 import { CalendarDays } from 'lucide-react'
-import { EVENT_LIST_LIMIT, type CouncilView } from '@vada/contracts'
+import { EVENT_LIST_LIMIT, menuPath, type CouncilView } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { EVENTS_LOAD_FAILED } from '@/lib/messages'
+import { navigate } from '@/lib/app-location'
+import { openRecord } from '@/lib/go-to'
+import { ADDRESS_LOST, EVENT_LOST, EVENTS_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import EventRow from './EventRow'
 import { EventCreateDialog } from './EventCreateDialog'
 import EventDetailView from './EventDetailView'
-import { eventGroups, type EventTab } from './event-view'
+import { eventGroups } from './event-view'
+import { useEventAddress } from './useEventAddress'
 import { useEvents, type EventList } from './useEvents'
 
 type Props = {
   view: CouncilView
-  // 업무에서 눌러 연 행사. 있으면 그 행사를 열고 시작한다.
-  initialEventId?: string | undefined
-  // 그 행사를 열 탭(홈에서 정산이 남은 행사는 '예산·정산').
-  initialTab?: EventTab | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
   // 행사의 업무가 바뀌었을 때(옆 메뉴의 업무 수를 다시 읽는다).
@@ -95,42 +94,69 @@ function Cards({
   )
 }
 
-// 홈에서 정한 탭은 처음 연 그 행사에 한 번만 쓴다. 닫고 다시 열면 개요다.
-function useFirstTab(eventId: string | undefined, tab: EventTab | undefined) {
-  const [first, setFirst] = useState(tab)
-  return {
-    tabFor: (openId: string) => (openId === eventId ? first : undefined),
-    consume: (then: () => void) => {
-      setFirst(undefined)
-      then()
-    },
-  }
+// 행사를 볼 수 없을 때(없거나 다른 학생회 것이거나 권한을 잃음)는 있는지 없는지를 가르지 않고 같은 말을 한다.
+// 권한이 바뀌어 잃었으면(찾을 수 없다는 말이 아닌 이유) 그 이유를 아래에 덧붙인다.
+function NotFound({ councilId, reason }: { councilId: string; reason: string }) {
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <StateMessage kind="notice">{ADDRESS_LOST}</StateMessage>
+      {reason !== EVENT_LOST && <StateMessage kind="error">{reason}</StateMessage>}
+      <Button
+        variant="outline"
+        onClick={() => navigate(menuPath('events', councilId), { replace: true })}
+      >
+        행사 목록
+      </Button>
+    </div>
+  )
 }
 
-// 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사가 열린다.
-export default function EventsPage({
+// 열린 행사(주소가 정한다). 뒤로는 들어온 곳이고, 탭은 주소의 쿼리다.
+function OpenEvent({
   view,
-  initialEventId,
-  initialTab,
+  open,
   onForbidden,
+  onChanged,
   onTasksChanged,
-}: Props) {
-  const dialogs = useRecordDialogs(initialEventId)
-  const first = useFirstTab(initialEventId, initialTab)
-  const list = useEvents(view.council.id, onForbidden)
+}: Pick<Props, 'view' | 'onForbidden' | 'onTasksChanged'> & {
+  open: NonNullable<ReturnType<typeof useEventAddress>>
+  onChanged: () => void
+}) {
+  const [gone, setGone] = useState<{ id: string; reason: string } | null>(null)
+  if (gone?.id === open.eventId)
+    return <NotFound councilId={view.council.id} reason={gone.reason} />
+  return (
+    <EventDetailView
+      key={open.eventId}
+      view={view}
+      eventId={open.eventId}
+      tab={open.tab}
+      from={open.from}
+      onTab={open.setTab}
+      onChanged={onChanged}
+      onTasksChanged={onTasksChanged}
+      onLost={reason => setGone({ id: open.eventId, reason })}
+      onForbidden={onForbidden}
+    />
+  )
+}
+
+// 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사의 주소로 열린다.
+export default function EventsPage({ view, onForbidden, onTasksChanged }: Props) {
+  const councilId = view.council.id
+  const open = useEventAddress(councilId)
+  const dialogs = useRecordDialogs()
+  const list = useEvents(councilId, onForbidden)
   const lost = { onLost: dialogs.lose, onForbidden }
-  if (dialogs.openId !== null)
+  if (open)
     return (
       <PageColumn>
-        <EventDetailView
-          key={dialogs.openId}
+        <OpenEvent
           view={view}
-          eventId={dialogs.openId}
-          initialTab={first.tabFor(dialogs.openId)}
-          onBack={() => first.consume(dialogs.closeDetail)}
+          open={open}
+          onForbidden={onForbidden}
           onChanged={() => void list.reload()}
           onTasksChanged={onTasksChanged}
-          {...lost}
         />
       </PageColumn>
     )
@@ -148,13 +174,13 @@ export default function EventsPage({
           onClose={dialogs.closeCreate}
           onDone={event => {
             dialogs.closeCreate()
-            dialogs.openRecord(event.id)
+            openRecord('events', councilId, event.id)
             void list.reload()
           }}
           {...lost}
         />
       )}
-      <Cards list={list} view={view} onOpen={dialogs.openRecord} />
+      <Cards list={list} view={view} onOpen={id => openRecord('events', councilId, id)} />
     </PageColumn>
   )
 }

@@ -26,6 +26,8 @@ export type Here = {
   location: AppLocation | null
   // 기록 상세 창이 같은 페이지에 남으려고 칸을 상위 목록으로 바꿔 쓴 칸. 페이지를 새로 그리지 않는다.
   released: boolean
+  // 이 칸으로 들어온 곳의 주소(앱 안에서 쌓은 칸일 때). 링크로 바로 들어왔으면 null이다. 화면 안 뒤로 버튼이 들어온 곳의 이름을 말하는 데 쓴다.
+  from: string | null
 }
 
 type Mode = 'push' | 'adopt' | 'replace'
@@ -39,12 +41,14 @@ function stateObject(): Record<string, unknown> {
 
 function read(): Here {
   const key = stateObject()[NAV_KEY]
+  const from = stateObject()[FROM_KEY]
   const path = window.location.pathname + window.location.search
   return {
     path,
     key: typeof key === 'string' ? key : '',
     location: parseAppPath(path),
     released: stateObject()[RELEASED_KEY] === true,
+    from: typeof from === 'string' ? from : null,
   }
 }
 
@@ -57,7 +61,8 @@ function current() {
   if (
     next.path !== snapshot.path ||
     next.key !== snapshot.key ||
-    next.released !== snapshot.released
+    next.released !== snapshot.released ||
+    next.from !== snapshot.from
   )
     snapshot = next
   return snapshot

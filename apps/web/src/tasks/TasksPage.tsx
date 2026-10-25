@@ -82,11 +82,13 @@ function narrowed(list: TaskList, department: string | null): TaskList {
   return { ...list, state: { ...list.state, tasks } }
 }
 
-// 업무 화면에서 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭은 그 화면 안의 창으로 연다.
-function useOpeners(councilId: string, inEvent: boolean, open: (taskId: string) => void) {
-  if (inEvent) return { openTask: open, openEvent: undefined, openEventFromTask: undefined }
+// 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭에서 연 업무도 업무 주소라 닫으면 그 행사의 탭이다.
+// 행사의 업무 탭은 이미 그 행사 안이라 행사 이름으로 가는 길이 없다.
+function useOpeners(councilId: string, inEvent: boolean) {
+  const openTask = (taskId: string) => openRecord('tasks', councilId, taskId)
+  if (inEvent) return { openTask, openEvent: undefined, openEventFromTask: undefined }
   return {
-    openTask: (taskId: string) => openRecord('tasks', councilId, taskId),
+    openTask,
     openEvent: (eventId: string) => openRecord('events', councilId, eventId),
     // 업무 상세 창에서 가면 그 상세 위에 쌓아, 행사에서 뒤로가 그 업무 상세다.
     openEventFromTask: (eventId: string) =>
@@ -105,7 +107,7 @@ function useTasksPage(props: Props) {
   )
   const { view, filter, layout, dept } = controls
   const dialogs = useRecordDialogs(props.initialTaskId, props.initialCreate)
-  const opened = useOpeners(councilId, inEvent, dialogs.openRecord)
+  const opened = useOpeners(councilId, inEvent)
   const lists = useTaskLists(props, view, filter, layout)
   const list = narrowed(lists.list, dept)
   const done = narrowed(lists.done, dept)

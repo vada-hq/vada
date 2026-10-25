@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventAction, EventDetail } from '@vada/contracts'
@@ -13,12 +14,18 @@ import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
 import { COMPLETION_ERRORS, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 import EventDetailView from './EventDetailView'
-import { dayLabel } from './event-view'
+import { dayLabel, type EventTab } from './event-view'
 
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
 })
+
+// 탭은 주소가 정하는데, 이 시험은 주소 없이 탭만 본다.
+function Harness(props: Omit<ComponentProps<typeof EventDetailView>, 'tab' | 'onTab' | 'from'>) {
+  const [tab, setTab] = useState<EventTab>('overview')
+  return <EventDetailView {...props} tab={tab} onTab={setTab} from={null} />
+}
 
 const ORG = '/api/organizations/c1'
 const EVENT = `${ORG}/events/e1`
@@ -41,12 +48,11 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
     onTasksChanged: vi.fn(),
   }
   render(
-    <EventDetailView
+    <Harness
       view={councilView('c1', {
         permissions: ['council.view', 'finance.manage', 'purchase.request'],
       })}
       eventId="e1"
-      onBack={vi.fn()}
       {...handlers}
     />,
   )
@@ -339,10 +345,9 @@ test('정산을 불러오지 못하면 다시 시도할 수 있다', async () =>
     return calls === 1 ? json({ error: 'INTERNAL' }, 500) : json(settlementOf())
   })
   render(
-    <EventDetailView
+    <Harness
       view={councilView('c1')}
       eventId="e1"
-      onBack={vi.fn()}
       onLost={vi.fn()}
       onForbidden={vi.fn()}
       onChanged={vi.fn()}
