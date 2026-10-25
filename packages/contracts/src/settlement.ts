@@ -1,4 +1,5 @@
 // 행사 정산 읽기(기능 008). 돈은 모두 정수 원이다.
+import type { EventSummary } from './events.js'
 
 // 남은 것 목록은 종류마다 이만큼만 준다. 수(count)는 전체다.
 export const SETTLEMENT_TARGET_LIMIT = 50
@@ -64,4 +65,21 @@ export interface EventSettlement {
 
 export interface SettlementResponse {
   settlement: EventSettlement
+}
+
+// 행사 하나의 정산 남은 것 수(행사 '돈' 탭의 항목 수 합)와 정산이 끝났는가. 홈 '정산할 행사'와 재정 '행사 정산' 탭이 같이 쓴다.
+export interface EventSettlementRow {
+  event: EventSummary
+  settlement: { remaining: number; settled: boolean }
+}
+
+// 재정 '행사 정산' 탭(DEC-38)은 이만큼까지 주고 넘치면 truncated다.
+export const EVENT_SETTLEMENTS_LIMIT = 50
+
+// 지금 회계 기간의 행사: 끝났고 완료하지 않은 것(홈 '정산할 행사'와 같은 행사, 같은 차례) → 진행 중·예정·날짜 미정 → 완료(최근에 끝난 순).
+// 기간이 없으면(period null) 기간으로 거르지 않는다.
+export interface EventSettlementsResponse {
+  period: { id: string; name: string } | null
+  events: EventSettlementRow[]
+  truncated: boolean
 }

@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm'
 import {
   EVENT_LIST_LIMIT,
   koreanOf,
@@ -90,18 +90,23 @@ async function summariesOf(
   }))
 }
 
-// 진행 중 → 예정(시작이 가까운 순) → 날짜 미정(만든 순) → 끝남(최근에 끝난 순). 한 개 더 읽어 넘쳤는지 안다.
-export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<EventsResponse> {
+// 진행 중 → 예정(시작이 가까운 순) → 날짜 미정(만든 순) → 끝남(최근에 끝난 순).
+const listOrder = (now: Date) => {
   const group = groupSql(now)
+  return [
+    group,
+    sql`case when ${group} < 2 then ${event.startsAt} end asc`,
+    sql`case when ${group} = 2 then ${record.createdAt} end asc`,
+    sql`case when ${group} = 3 then ${endsAtSql} end desc`,
+    event.id,
+  ]
+}
+
+// 한 개 더 읽어 넘쳤는지 안다.
+export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<EventsResponse> {
   const rows = await eventSelect(db)
     .where(eq(record.councilId, actor.councilId))
-    .orderBy(
-      group,
-      sql`case when ${group} < 2 then ${event.startsAt} end asc`,
-      sql`case when ${group} = 2 then ${record.createdAt} end asc`,
-      sql`case when ${group} = 3 then ${endsAtSql} end desc`,
-      event.id,
-    )
+    .orderBy(...listOrder(now))
     .limit(EVENT_LIST_LIMIT + 1)
   return {
     events: await summariesOf(db, actor, rows.slice(0, EVENT_LIST_LIMIT), now),
@@ -124,6 +129,40 @@ const openScope = (actor: Actor) =>
 export async function endedOpenEventsOf(db: Reader, actor: Actor, now: Date, limit: number) {
   const { rows, total } = await endedOpenRows(db, actor, now, limit)
   return { events: await summariesOf(db, actor, rows, now), total }
+}
+
+// 행사 끝 날짜(end-day.ts의 eventEndDayOf와 같다: 끝 시각, 없으면 시작 시각). 한국 날짜 범위는 [from, until) 순간으로 받는다.
+const endDaySql = sql`coalesce(${event.endsAt}, ${event.startsAt})`
+const instant = (value: Date) => sql`${value.toISOString()}::timestamptz`
+
+// 재정 '행사 정산' 탭의 끝났고 완료하지 않은 것 밖의 행사(끝나지 않은 것과 완료한 것), 목록과 같은 차례.
+// 기간이 있으면 결산 점검(closing/pending.ts)과 같은 기준으로 거른다: 완료하지 않은 행사는 끝 날짜가 기간 끝일 이하이거나 날짜 미정,
+// 완료한 행사는 끝 날짜가 기간 안이다. 기간이 없으면 거르지 않는다. 한 개 더 읽어 넘쳤는지 안다.
+export async function periodEventsOf(
+  db: Reader,
+  actor: Actor,
+  now: Date,
+  options: { range: { from: Date; until: Date } | null; limit: number },
+) {
+  const { range, limit } = options
+  const open = and(
+    sql`${groupSql(now)} < 3`,
+    range ? or(isNull(event.startsAt), sql`${endDaySql} < ${instant(range.until)}`) : undefined,
+  )
+  const done = and(
+    completedSql,
+    range
+      ? sql`${endDaySql} >= ${instant(range.from)} and ${endDaySql} < ${instant(range.until)}`
+      : undefined,
+  )
+  const rows = await eventSelect(db)
+    .where(and(eq(record.councilId, actor.councilId), or(open, done)))
+    .orderBy(...listOrder(now))
+    .limit(limit + 1)
+  return {
+    events: await summariesOf(db, actor, rows.slice(0, limit), now),
+    truncated: rows.length > limit,
+  }
 }
 
 // 홈의 행사 카드: 완료하지 않은 행사. 끝난 행사(정산이 남은 것)는 끝난 지 오래된 것부터 endedLimit개까지만 주고 전체 수를 따로 준다.

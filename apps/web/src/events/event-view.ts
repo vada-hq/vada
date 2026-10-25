@@ -18,6 +18,12 @@ export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'succes
 
 export type { EventTab }
 
+// 정산 남은 것(행사 '돈' 탭의 항목 수 합). 끝났고 남은 것이 없으면 '완료 가능'이다. 홈과 재정 '행사 정산' 탭이 같이 쓴다.
+const EVENT_SETTLED_LABEL = '완료 가능'
+export const remainingLabel = (remaining: number) => `정산 남은 것 ${remaining}`
+export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
+  settled ? EVENT_SETTLED_LABEL : remainingLabel(remaining)
+
 export const momentLabel = (value: string) => dayTime(value).text
 
 // '10월 25일 (토) 14:00 ~ 18:00'. 끝이 다른 날이면 끝에도 날짜를 쓴다. 시작이 없으면 '날짜 미정'이다.

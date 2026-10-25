@@ -25,6 +25,7 @@ import { financeOpeners } from './finance-openers'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
+import { SettlementsTab } from './SettlementsTab'
 import { RequestCreateDialog } from './RequestCreateDialog'
 import { RequestDetailDialog } from './RequestDetailDialog'
 import { useExpenses, type ExpenseList } from './useExpenses'
@@ -141,6 +142,8 @@ function FinanceTabPanel({
         </>
       ) : tab === 'expenses' ? (
         <ExpensesPanel list={expenses} onOpen={openers.onOpenExpense} />
+      ) : tab === 'settlements' ? (
+        <SettlementsTab councilId={view.council.id} onForbidden={onForbidden} />
       ) : (
         <ManagedTab tab={tab} view={view} onForbidden={onForbidden} openers={openers} />
       )}

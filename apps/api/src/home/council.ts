@@ -11,7 +11,7 @@ import { councilMembership, departmentMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { openEventsOf, taskCountsByEvent } from '../events/queries.js'
 import { listOf, type OpenTask } from './open-tasks.js'
-import { settlementOf } from './settling.js'
+import { settlementSummaryOf } from '../settlement/settling.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -86,7 +86,9 @@ export async function councilOf(
         overdue: mine.filter(row => row.summary.overdue).length,
         unassigned: mine.filter(row => row.unassigned).length,
       },
-      ...(item.status === 'ended' ? { settlement: await settlementOf(db, actor, item) } : {}),
+      ...(item.status === 'ended'
+        ? { settlement: await settlementSummaryOf(db, actor, item) }
+        : {}),
     })
   }
   return {

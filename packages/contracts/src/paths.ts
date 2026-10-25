@@ -28,6 +28,7 @@ export const FINANCE_TABS = [
   'expenses',
   'incomes',
   'budget',
+  'settlements',
   'accounts',
   'fees',
   'closing',

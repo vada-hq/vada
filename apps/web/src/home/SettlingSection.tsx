@@ -1,7 +1,6 @@
 import { Wallet } from 'lucide-react'
 import type { HomeSettling } from '@vada/contracts'
-import { whenLabel } from '../events/event-view'
-import { settlementLabel } from './home-view'
+import { settlementLabel, whenLabel } from '../events/event-view'
 import HomeRow from './HomeRow'
 import HomeSection, { HomeEmpty } from './HomeSection'
 

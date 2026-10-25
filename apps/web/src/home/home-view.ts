@@ -96,7 +96,3 @@ export const firstLine = (body: string) => body.split('\n')[0]?.trim() ?? ''
 
 // 낸 날·올린 날(한국 날짜): '10월 20일'
 export const createdDay = (iso: string) => monthDay(koreanDay(iso))
-
-const EVENT_SETTLED_LABEL = '완료 가능'
-export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
-  settled ? EVENT_SETTLED_LABEL : `정산 남은 것 ${remaining}`

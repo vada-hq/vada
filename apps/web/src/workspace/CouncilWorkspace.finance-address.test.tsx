@@ -70,6 +70,15 @@ function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, hom
     }),
   )
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
+  api.on('GET', `${base}/event-settlements`, () =>
+    json({
+      period: null,
+      events: [
+        { event: eventSummary({ status: 'ended' }), settlement: { remaining: 1, settled: false } },
+      ],
+      truncated: false,
+    }),
+  )
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
   // 재정부의 재정 첫 화면(개요)이 지금 기간의 결산서를 읽는다.
   api.on('GET', `${base}/fiscal-periods`, () => json(standardPeriods()))
@@ -103,7 +112,7 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 여덟이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
+test('재정 탭 아홉이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
@@ -111,6 +120,7 @@ test('재정 탭 여덟이 주소에 남고 기록을 쌓지 않으며, 탭이 �
     ['지출', '?tab=expenses'],
     ['수입', '?tab=incomes'],
     ['예산', '?tab=budget'],
+    ['행사 정산', '?tab=settlements'],
     ['계좌', '?tab=accounts'],
     ['납부자 명단', '?tab=fees'],
     ['결산', '?tab=closing'],
@@ -134,6 +144,20 @@ test('새로 고침하면 주소의 탭이 그대로 열리고, 모르는 탭은
   expect(await isSelected('개요')).toBe(true)
   await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
   expect(push).not.toHaveBeenCalled()
+})
+
+test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 예산·정산이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
+  startAt(`/finance/${COUNCIL_ID}?tab=settlements`, 'finance', MEMBER_PERMISSIONS)
+  expect(await isSelected('행사 정산')).toBe(true)
+  api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () => json(settlementOf()))
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`))
+  expect(
+    (await screen.findByRole('tab', { name: '예산·정산' })).getAttribute('aria-selected'),
+  ).toBe('true')
+  act(() => window.history.back())
+  expect(await isSelected('행사 정산')).toBe(true)
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=settlements`)
 })
 
 test('요청 거르기가 주소에 남고 내 요청으로 돌아오면 주소에서 빠진다', async () => {

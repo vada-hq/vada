@@ -1,5 +1,6 @@
 import type { EventSummary } from './events.js'
 import type { PurchaseRequestSummary } from './purchases.js'
+import type { EventSettlementRow } from './settlement.js'
 import type { TaskSummary } from './tasks.js'
 
 // 홈(010). 한 번 읽어 그 사람의 부분을 모두 받는다. 있는 부분만 오고, 화면은 직급을 다시 계산하지 않는다(DEC-38).
@@ -78,7 +79,7 @@ export interface HomeReceived {
 
 // 정산할 행사: 끝났고 완료하지 않은 행사(끝난 지 오래된 것부터 HOME_ENDED_LIMIT개까지)와 정산에 남은 것 수.
 export interface HomeSettling {
-  events: { event: EventSummary; settlement: { remaining: number; settled: boolean } }[]
+  events: EventSettlementRow[]
   total: number
 }
 
