@@ -12,6 +12,7 @@ import {
   teamResponse,
 } from '@/test-support/council-fixtures'
 import { budgetWithoutPeriod } from '@/test-support/budget-fixtures'
+import { closingFixture } from '@/test-support/closing-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { expenseDetail, expenseSummary } from '@/test-support/expense-fixtures'
 import { homeRequest, homeResponse, onHomeExtras } from '@/test-support/home-fixtures'
@@ -70,6 +71,11 @@ function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, hom
   )
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  // 재정부의 재정 첫 화면(개요)이 지금 기간의 결산서를 읽는다.
+  api.on('GET', `${base}/fiscal-periods`, () => json(standardPeriods()))
+  api.on('GET', `${base}/fiscal-periods/${CURRENT_PERIOD}/closing`, () =>
+    json({ closing: closingFixture() }),
+  )
   return render(<WorkspaceAt startPage={startPage} />)
 }
 const startAt = (path: string, page: Page = 'finance', permissions?: Action[]) => {
@@ -97,19 +103,20 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 일곱이 주소에 남고 기록을 쌓지 않으며, 기본 탭은 주소에 없다', async () => {
+test('재정 탭 여덟이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
+    ['구매 요청', '?tab=requests'],
     ['지출', '?tab=expenses'],
     ['수입', '?tab=incomes'],
     ['예산', '?tab=budget'],
     ['계좌', '?tab=accounts'],
     ['납부자 명단', '?tab=fees'],
     ['결산', '?tab=closing'],
-    ['구매 요청', ''],
+    ['개요', '?tab=overview'],
   ]
-  expect(await isSelected('구매 요청')).toBe(true)
+  expect(await isSelected('개요')).toBe(true)
   for (const [name, search] of tabs) {
     fireEvent.click(await screen.findByRole('tab', { name }))
     await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}${search}`))
@@ -124,21 +131,21 @@ test('새로 고침하면 주소의 탭이 그대로 열리고, 모르는 탭은
   cleanup()
   const push = vi.spyOn(window.history, 'pushState')
   startAt(`/finance/${COUNCIL_ID}?tab=nope`)
-  expect(await isSelected('구매 요청')).toBe(true)
+  expect(await isSelected('개요')).toBe(true)
   await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
   expect(push).not.toHaveBeenCalled()
 })
 
 test('요청 거르기가 주소에 남고 내 요청으로 돌아오면 주소에서 빠진다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?view=all`)
+  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   const pressed = async (name: string) =>
     (await screen.findByRole('button', { name })).getAttribute('aria-pressed')
   expect(await pressed('전체')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?view=pending`))
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=pending`))
   expect(await pressed('결재 대기')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '내 요청' }))
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests`))
 })
 
 test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열린다', async () => {
@@ -174,7 +181,7 @@ test('납부자 명단 권한이 없으면 그 탭 주소는 구매 요청 탭�
 })
 
 test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 거르기의 목록으로 돌아간다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?view=all`)
+  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   const dialog = await screen.findByRole('dialog')
@@ -186,12 +193,12 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
     screen.getByRole('button', { name: '전체', hidden: true }).getAttribute('aria-pressed'),
   ).toBe('true')
   await closeDialog(dialog)
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?view=all`)
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   expect(await isSelected('구매 요청')).toBe(true)
 })
 
 test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 번 더 닫으면 목록이다', async () => {
-  startAt(`/finance/${COUNCIL_ID}`)
+  startAt(`/finance/${COUNCIL_ID}?tab=requests`)
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   const request = await screen.findByRole('dialog')
   fireEvent.click(await within(request).findByRole('button', { name: /인쇄소/ }))
@@ -202,7 +209,7 @@ test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 �
   const again = await screen.findByRole('dialog')
   await within(again).findByText('행사 포스터 인쇄')
   await closeDialog(again)
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`)
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests`)
 })
 
 test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 가면 그 지출이다', async () => {
@@ -232,7 +239,7 @@ test('홈의 받은 것 모두 보기는 결재 대기 거르기로 재정을 �
   expect(
     (await screen.findByRole('button', { name: '결재 대기' })).getAttribute('aria-pressed'),
   ).toBe('true')
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?view=pending`)
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=pending`)
 })
 
 test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있고, 닫으면 그 행사의 돈 탭이다', async () => {
@@ -285,14 +292,14 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
 })
 
 test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 목록의 보던 보기에 남는다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?view=all`)
+  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   api.on('GET', requestsOf('all'), () =>
     json({ requests: [purchaseSummary(GONE)], truncated: false }),
   )
   api.on('GET', `${base}/purchase-requests/${GONE}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${GONE}` }))
   expect((await screen.findByRole('alert')).textContent).toBe(PURCHASE_LOST)
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?view=all`))
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`))
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 

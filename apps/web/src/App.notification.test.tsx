@@ -437,7 +437,7 @@ test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}`)
   await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
-  await lostSettled(`/finance/${C1}`)
+  await lostSettled(`/finance/${C1}?tab=requests`)
   expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
   expect(screen.queryByRole('dialog')).toBeNull()
 })
@@ -451,7 +451,7 @@ test('홈에서 지운 요청의 알림을 눌러도 재정 목록에서 이유�
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
-  await lostSettled(`/finance/${C1}`)
+  await lostSettled(`/finance/${C1}?tab=requests`)
   expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
 })
 

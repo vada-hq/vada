@@ -124,6 +124,8 @@ test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다
     return json({ request: purchaseDetail() })
   })
   expect((await screen.findAllByLabelText('결재 대기 요청 2개'))[0]!.textContent).toBe('2')
+  // 재정부의 재정 첫 화면은 개요다.
+  fireEvent.click(await screen.findByRole('tab', { name: '구매 요청' }))
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
   )
