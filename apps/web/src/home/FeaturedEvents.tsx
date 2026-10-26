@@ -20,20 +20,20 @@ const TITLE = '학생회 주요 행사'
 // 제목 옆 수(카드 머리와 같은 규칙): 읽었으면 0도 '0개', 읽지 못했으면 '집계 전'.
 const countOf = (read: TilesRead) => (read.kind === 'ready' ? `${read.tiles.length}개` : '집계 전')
 
-// 타일은 좁다(1024px 창에서 약 125px). 긴 행사명은 두 줄까지 보이고 줄임표다(읽는 이름은 전체이고, 누르면 행사 화면이다).
+// 좁은 타일에서도 이름이 온 폭을 쓰도록 상태 칩은 아래에 둔다. 긴 이름은 두 줄까지 보이고 읽는 이름은 전체다.
 function Tile({ tile }: { tile: FeaturedTile }) {
   return (
     // 같은 줄 타일은 높이가 같아서 날짜를 맨 아래에 붙여 세 타일의 날짜 선을 맞춘다.
     <li className="relative flex flex-col rounded-lg border px-3 py-2 transition-colors hover:border-blue-300 hover:bg-blue-50">
-      <div className="flex items-start gap-2">
+      <div className="flex flex-col items-start gap-1">
         <Button
           variant="link"
-          className="h-auto min-w-0 flex-1 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
+          className="h-auto w-full min-w-0 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
           onClick={tile.onOpen}
         >
           {tile.name}
         </Button>
-        <span className="shrink-0">{tile.chip}</span>
+        <span>{tile.chip}</span>
       </div>
       <p className="mt-auto pt-1 text-xs text-gray-500">{tile.when}</p>
     </li>
