@@ -123,7 +123,14 @@ async function startAccounts() {
   const spend = async (body: Values = {}, user = FINANCE) => {
     const response = await api.post(
       expensesBase,
-      { vendor: '다이소', description: '마커', amount: 5000, paidOn: '2026-10-25', ...body },
+      {
+        method: 'card',
+        vendor: '다이소',
+        description: '마커',
+        amount: 5000,
+        paidOn: '2026-10-25',
+        ...body,
+      },
       user,
     )
     const copy = response.clone()

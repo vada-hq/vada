@@ -15,7 +15,13 @@ import {
 
 const FINANCE = 's-financeMember'
 const PRESIDENT = 's-president'
-const BODY = { vendor: '다이소', description: '마커 구입', amount: 15000, paidOn: '2026-10-25' }
+const BODY = {
+  method: 'card',
+  vendor: '다이소',
+  description: '마커 구입',
+  amount: 15000,
+  paidOn: '2026-10-25',
+}
 
 const urlOf = (councilId: string) => `/api/organizations/${councilId}/expenses`
 const send = (s: PurchaseKit, body: object, user = FINANCE, councilId = s.council.councilId) =>

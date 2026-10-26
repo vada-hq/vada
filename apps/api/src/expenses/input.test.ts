@@ -7,7 +7,7 @@ import { errorOf, ITEM, MISSING, runPurchases, startPurchases } from '../test-su
 
 const FINANCE = 's-financeMember'
 const emoji = (n: number) => '😀'.repeat(n)
-const BASE = { vendor: 'a', description: 'b', amount: 1000, paidOn: '2026-10-25' }
+const BASE = { method: 'card', vendor: 'a', description: 'b', amount: 1000, paidOn: '2026-10-25' }
 const LINE = { lineItemId: MISSING, amount: 1000 }
 
 test(
@@ -18,6 +18,7 @@ test(
     const ok = await s.api.post(
       url,
       {
+        method: 'card',
         vendor: emoji(100),
         description: emoji(200),
         amount: 1_000_000_000,
@@ -48,6 +49,9 @@ test(
       ['결제일 없음', { ...BASE, paidOn: undefined }],
       ['결제일 형식', { ...BASE, paidOn: '2026-13-01' }],
       ['결제일 시각', { ...BASE, paidOn: '2026-10-25T10:00' }],
+      ['결제 수단 없음', { ...BASE, method: undefined }],
+      ['결제 수단 빈칸', { ...BASE, method: '' }],
+      ['결제 수단 null', { ...BASE, method: null }],
       ['결제 수단 모름', { ...BASE, method: 'bitcoin' }],
       ['먼저 낸 사람 uuid 아님', { ...BASE, paidBy: 'x' }],
       ['부탁한 사람 uuid 아님', { ...BASE, requestedBy: 'x' }],
@@ -75,7 +79,8 @@ test('결제 수단은 카드, 계좌 이체, 현금이다', () => {
   assert.deepEqual([...EXPENSE_METHODS], ['card', 'transfer', 'cash'])
   const command = { ...BASE, commandId: randomUUID() }
   assert.equal(CreateExpenseSchema.safeParse({ ...command, method: 'transfer' }).success, true)
-  assert.equal(CreateExpenseSchema.safeParse(command).data?.method, 'card')
+  const { method: _method, ...withoutMethod } = command
+  assert.equal(CreateExpenseSchema.safeParse(withoutMethod).success, false)
 })
 
 test('요청 내기와 지출 적기는 한도 하나를 같이 쓴다: 합쳐 21번째는 429이고 지출도 요청도 생기지 않는다', async () => {

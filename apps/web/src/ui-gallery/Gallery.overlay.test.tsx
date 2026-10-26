@@ -3,6 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { asElement } from '@/test-support/elements'
+import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { EventEditSection } from './EventEditSections'
 import { ActionMenuSection } from './MenuSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -133,5 +134,20 @@ test('떠날 때 확인 대화상자는 입력을 버리고 나가는 빨간 버
     'bg-destructive',
   )
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('지출 적기 표본은 1280·390 폭의 실제 칸과 필수 오류·금액 확인 창을 보여 준다', async () => {
+  render(<ExpenseCreateSection />)
+  const section = screen
+    .getByRole('heading', { level: 2, name: '지출 적기 · 390' })
+    .closest('section')!
+  const scoped = within(section)
+  expect(scoped.getByLabelText('사용처')).toHaveProperty('value', 'print.example.com')
+  fireEvent.click(scoped.getByRole('button', { name: '적기' }))
+  expect(scoped.getByText('결제 수단을 골라 주세요')).toBeTruthy()
+  fireEvent.click(scoped.getByRole('button', { name: '금액 확인 창 열기' }))
+  const confirm = await screen.findByRole('dialog', { name: '금액과 자릿수를 확인하세요' })
+  fireEvent.click(within(confirm).getByRole('button', { name: '그래도 적기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })

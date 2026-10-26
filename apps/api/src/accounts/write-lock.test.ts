@@ -24,7 +24,13 @@ test(
     const id = await t.make({ name: '기존' })
     const spendId = await t.make({ name: '지출용' })
     const expenses = t.base.replace('accounts', 'expenses')
-    const spend = { vendor: '가게', description: '물건', amount: 1000, paidOn: '2020-01-01' }
+    const spend = {
+      method: 'card',
+      vendor: '가게',
+      description: '물건',
+      amount: 1000,
+      paidOn: '2020-01-01',
+    }
     const calls: [string, unknown, number][] = [
       [t.base, { ...BODY, name: '새 계좌' }, 201],
       [`${t.base}/${id}`, { ...BODY, name: '고침' }, 200],

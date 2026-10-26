@@ -128,7 +128,6 @@ function expenseBody(ctx: Ctx, kind: 'request' | 'direct', commandId: string) {
     return {
       commandId,
       vendor: '광고사',
-      description: '현수막 제작',
       amount: BANNER_WON,
       paidOn,
       method: 'card',
@@ -182,14 +181,14 @@ export async function spendStep(ctx: Ctx) {
   )
   if (!payable.requests.some(item => item.id === w.requestId && item.payable))
     throw new Error('지출: 재정부원의 결제할 요청에 이 요청이 없다')
-  await sees<PurchaseRequestResponse>(
+  const { request } = await sees<PurchaseRequestResponse>(
     financeStaff,
     `${org(ctx)}/purchase-requests/${w.requestId}`,
     body => body.request.items.filter(item => item.payable).map(item => item.id),
     w.lineItemIds.banner,
   )
   await seesPermission(ctx, financeStaff, 'finance.manage')
-  const sent = expenseBody(ctx, 'request', randomUUID())
+  const sent = { ...expenseBody(ctx, 'request', randomUUID()), description: request.title }
   const path = `${org(ctx)}/expenses`
   const first = await create<ExpenseResponse>(financeStaff, path, sent, '지출 적기')
   w.expenseIds.request = first.expense.id

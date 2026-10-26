@@ -7,7 +7,13 @@ import { withSettlement, type SettlementKit } from '../test-support/settlement.j
 
 const FINANCE = 's-financeMember'
 const DAY = (value: string) => new Date(`${value}:00Z`)
-const EXPENSE = { vendor: '문구점', description: '마커', amount: 10000, paidOn: '2026-10-25' }
+const EXPENSE = {
+  method: 'card',
+  vendor: '문구점',
+  description: '마커',
+  amount: 10000,
+  paidOn: '2026-10-25',
+}
 const post = (t: SettlementKit, path: string, body: unknown) =>
   t.api.post(`/api/organizations/${t.council.councilId}${path}`, body, FINANCE)
 const errorOf = async (response: Response) => ((await response.json()) as { error?: string }).error

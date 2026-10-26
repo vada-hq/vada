@@ -119,7 +119,13 @@ test(
     const made = (await (
       await s.api.post(
         `${s.base}/expenses`,
-        { vendor: '다이소', description: '마커', amount: 1000, paidOn: '2026-10-25' },
+        {
+          method: 'card',
+          vendor: '다이소',
+          description: '마커',
+          amount: 1000,
+          paidOn: '2026-10-25',
+        },
         FINANCE,
       )
     ).json()) as { expense: ExpenseDetail }
@@ -140,7 +146,13 @@ test(
     const made = (await (
       await s.api.post(
         `${s.base}/expenses`,
-        { vendor: '다이소', description: '마커', amount: 1000, paidOn: '2026-10-25' },
+        {
+          method: 'card',
+          vendor: '다이소',
+          description: '마커',
+          amount: 1000,
+          paidOn: '2026-10-25',
+        },
         FINANCE,
       )
     ).json()) as { expense: ExpenseDetail }

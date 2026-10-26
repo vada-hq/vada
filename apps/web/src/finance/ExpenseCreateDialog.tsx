@@ -1,11 +1,5 @@
 import { useState } from 'react'
-import {
-  EXPENSE_METHODS,
-  koreanDateOf,
-  type ExpenseDetail,
-  type ExpenseMethod,
-  type TeamResponse,
-} from '@vada/contracts'
+import { koreanDateOf, type ExpenseDetail, type TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,13 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { NativeSelect } from '@/components/ui/native-select'
 import { useUnsavedInput } from '@/lib/leave-guard'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { sameJson } from '@/lib/same-json'
-import { useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useTeam } from '@/team/useTeam'
 import {
   emptyExpense,
@@ -29,12 +20,12 @@ import {
   expenseOf,
   linesTotal,
   withMode,
-  type ExpenseMode,
+  needsAmountConfirm,
   type ExpenseStart,
-  type ExpenseValues,
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
-import { METHOD_LABEL } from './expense-view'
+import { ModeToggle, NameFields, PaymentFields, type FieldsProps } from './ExpenseFields'
+import { ExpenseAmountConfirm } from './ExpenseAmountConfirm'
 import { EventField } from './EventField'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 import { ExpenseDirectFields } from './ExpenseDirectFields'
@@ -62,99 +53,6 @@ type Props = Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'> & {
 export function ExpenseCreateDialog({ open, ...props }: Props) {
   if (!open) return null
   return <OpenCreateDialog {...props} />
-}
-
-const MODE_LABEL: Record<ExpenseMode, string> = {
-  request: '요청한 품목 결제',
-  direct: '요청 없이',
-}
-
-function ModeToggle({
-  mode,
-  disabled,
-  onMode,
-}: {
-  mode: ExpenseMode
-  disabled: boolean
-  onMode: (mode: ExpenseMode) => void
-}) {
-  return (
-    <div role="group" aria-label="지출 방식" className="flex flex-wrap gap-2">
-      {(Object.keys(MODE_LABEL) as ExpenseMode[]).map(item => (
-        <Button
-          key={item}
-          type="button"
-          size="sm"
-          variant={mode === item ? 'secondary' : 'outline'}
-          aria-pressed={mode === item}
-          busy={disabled}
-          onClick={() => item !== mode && onMode(item)}
-        >
-          {MODE_LABEL[item]}
-        </Button>
-      ))}
-    </div>
-  )
-}
-
-type FieldsProps = {
-  values: ExpenseValues
-  disabled: boolean
-  today: string
-  onChange: (values: ExpenseValues) => void
-  errors: FieldErrors
-}
-
-// 사용처와 내역(위쪽 두 칸).
-function NameFields({ values, disabled, onChange, errors }: Omit<FieldsProps, 'today'>) {
-  return (
-    <>
-      <Field label="사용처" required error={errors.vendor}>
-        <Input
-          value={values.vendor}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, vendor: event.target.value })}
-        />
-      </Field>
-      <Field label="내역" required error={errors.description}>
-        <Input
-          value={values.description}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, description: event.target.value })}
-        />
-      </Field>
-    </>
-  )
-}
-
-// 결제일(오늘 뒤는 못 고른다), 결제 수단, 사유(아래쪽 칸).
-function PaymentFields({ values, disabled, today, onChange, errors }: FieldsProps) {
-  return (
-    <>
-      <Field label="결제일" required error={errors.paidOn}>
-        <Input
-          type="date"
-          max={today}
-          value={values.paidOn}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, paidOn: event.target.value })}
-        />
-      </Field>
-      <Field label="결제 수단" required>
-        <NativeSelect
-          value={values.method}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, method: event.target.value as ExpenseMethod })}
-        >
-          {EXPENSE_METHODS.map(method => (
-            <option key={method} value={method}>
-              {METHOD_LABEL[method]}
-            </option>
-          ))}
-        </NativeSelect>
-      </Field>
-    </>
-  )
 }
 
 type ModeProps = Omit<FieldsProps, 'today'> & {
@@ -200,6 +98,7 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   const [today] = useState(() => koreanDateOf(new Date()))
   const [initial] = useState(() => emptyExpense(today, eventId ?? null, start))
   const [values, setValues] = useState(initial)
+  const [confirming, setConfirming] = useState(false)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   const settle = useUnsavedInput(!sameJson(values, initial))
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
@@ -219,45 +118,60 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   } = useFormCheck(() => withContract(expenseErrors(values, today), create.parsed))
   const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
-    <form
-      ref={formRef}
-      noValidate
-      aria-label="지출 적기"
-      className="flex flex-col gap-4"
-      onSubmit={event => {
-        event.preventDefault()
-        if (attempt()) void create.submit()
-      }}
-    >
-      <ModeToggle
-        mode={values.mode}
-        disabled={saving}
-        onMode={mode => setValues(withMode(values, mode))}
-      />
-      <NameFields {...shared} />
-      <ModeFields
-        {...shared}
-        team={team}
-        councilId={props.councilId}
-        onForbidden={props.onForbidden}
-      />
-      <PaymentFields {...shared} today={today} />
-      <ExpenseAccountSelect
-        account={account}
-        disabled={saving}
-        onPick={accountId => setValues({ ...values, accountId })}
-      />
-      <ExpensePayerFields {...shared} team={team} memberId={memberId} />
-      {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
-      <DialogFooter>
-        <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
-          닫기
-        </Button>
-        <Button type="submit" busy={saving}>
-          적기
-        </Button>
-      </DialogFooter>
-    </form>
+    <>
+      <form
+        ref={formRef}
+        noValidate
+        aria-label="지출 적기"
+        className="flex flex-col gap-4"
+        onSubmit={event => {
+          event.preventDefault()
+          if (!attempt()) return
+          if (needsAmountConfirm(values)) setConfirming(true)
+          else void create.submit()
+        }}
+      >
+        <ModeToggle
+          mode={values.mode}
+          disabled={saving}
+          onMode={mode => setValues(withMode(values, mode))}
+        />
+        <NameFields {...shared} />
+        <ModeFields
+          {...shared}
+          team={team}
+          councilId={props.councilId}
+          onForbidden={props.onForbidden}
+        />
+        <PaymentFields {...shared} today={today} />
+        <ExpenseAccountSelect
+          account={account}
+          disabled={saving}
+          onPick={accountId => setValues({ ...values, accountId })}
+        />
+        <ExpensePayerFields {...shared} team={team} memberId={memberId} />
+        {create.problem && <StateMessage kind="error">{create.problem}</StateMessage>}
+        <DialogFooter>
+          <Button type="button" variant="outline" busy={saving} onClick={props.onClose}>
+            닫기
+          </Button>
+          <Button type="submit" busy={saving}>
+            적기
+          </Button>
+        </DialogFooter>
+      </form>
+      {confirming && (
+        <ExpenseAmountConfirm
+          busy={saving}
+          error={create.problem}
+          onClose={() => setConfirming(false)}
+          onConfirm={() => {
+            if (attempt()) void create.submit()
+            else setConfirming(false)
+          }}
+        />
+      )}
+    </>
   )
 }
 

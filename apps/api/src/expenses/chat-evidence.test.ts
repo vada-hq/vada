@@ -20,7 +20,13 @@ import { createExpenseRoutes } from './routes.js'
 
 const FINANCE = 's-financeMember'
 const MISSING = '019e0000-0000-7000-8000-000000000000'
-const BASE = { vendor: '다이소', description: '마커', amount: 15000, paidOn: '2026-10-25' }
+const BASE = {
+  method: 'card',
+  vendor: '다이소',
+  description: '마커',
+  amount: 15000,
+  paidOn: '2026-10-25',
+}
 const JOINED = '2026-03-01T00:00:00Z'
 const SIZE = 4321
 const noon = new Date('2026-10-25T03:00:00Z')

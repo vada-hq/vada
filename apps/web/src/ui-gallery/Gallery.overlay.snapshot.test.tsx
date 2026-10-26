@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import { afterEach, expect, test } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { snapshotHtml } from '@/test-support/snapshot-html'
+import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { MyNameSection } from './JoinSections'
 import { EventEditSection } from './EventEditSections'
 import { CreateCouncilSection } from './OnboardingSections'
@@ -44,5 +45,11 @@ test('입금 확인 창(금액 칸)', () => {
   render(<ApplicantRowSection />)
   fireEvent.click(screen.getAllByRole('button', { name: '입금 확인' })[0]!)
   expect(screen.getByRole('dialog', { name: '김새내님의 입금을 확인할까요?' })).toBeTruthy()
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('지출 금액과 자릿수 확인 창', () => {
+  render(<ExpenseCreateSection />)
+  fireEvent.click(screen.getAllByRole('button', { name: '금액 확인 창 열기' })[0]!)
   expect(snapshotHtml()).toMatchSnapshot()
 })

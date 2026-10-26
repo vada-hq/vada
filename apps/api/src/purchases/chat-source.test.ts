@@ -17,7 +17,13 @@ import {
 const FINANCE = 's-financeMember'
 const PLANNING = 's-planningMember'
 const JOINED = '2026-03-01T00:00:00Z'
-const EXPENSE = { vendor: '다이소', description: '마커', amount: 15000, paidOn: '2026-10-25' }
+const EXPENSE = {
+  method: 'card',
+  vendor: '다이소',
+  description: '마커',
+  amount: 15000,
+  paidOn: '2026-10-25',
+}
 
 // 두 학생회의 대화방을 만들고 모두 3월에 들어온 것으로 둔다.
 async function withChat(s: PurchaseKit) {

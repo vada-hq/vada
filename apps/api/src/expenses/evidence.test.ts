@@ -11,7 +11,13 @@ import { errorOf, MISSING, runPurchases, startPurchases } from '../test-support/
 import type { PurchaseKit } from '../test-support/purchases.js'
 
 const FINANCE = 's-financeMember'
-const BASE = { vendor: '다이소', description: '마커', amount: 15000, paidOn: '2026-10-25' }
+const BASE = {
+  method: 'card',
+  vendor: '다이소',
+  description: '마커',
+  amount: 15000,
+  paidOn: '2026-10-25',
+}
 
 const expenseOf = async (response: Response) =>
   ((await response.json()) as { expense: ExpenseDetail }).expense

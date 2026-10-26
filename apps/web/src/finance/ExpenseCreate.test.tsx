@@ -129,13 +129,16 @@ const choose = (label: string, value: string) =>
 const today = () => koreanDateOf(new Date())
 const tomorrow = () => koreanDateOf(new Date(Date.now() + 24 * 60 * 60 * 1000))
 
-async function fillRequestPayment() {
+async function fillRequestPayment(method = 'card') {
   await openForm()
   fill('사용처', '인쇄소')
   fill('내역', '포스터 인쇄')
   await screen.findByRole('option', { name: '행사 포스터' })
   choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
+  fill('사용처', '인쇄소')
+  fill('내역', '포스터 인쇄')
+  if (method) choose('결제 수단', method)
 }
 
 test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워지고 합이 금액이 된다', async () => {
@@ -225,6 +228,7 @@ test('요청 없이 적으면 먼저 낸 사람, 부탁한 사람, 예산 항목
   fill('사용처', '편의점')
   fill('내역', '간식')
   fill('금액(원)', '12000')
+  choose('결제 수단', 'card')
   await screen.findByRole('option', { name: /행사 홍보/ })
   choose('예산 항목', BUDGET)
   choose('부탁한 사람', JAEJEONG)
@@ -267,6 +271,7 @@ test('방식을 바꾸면 그 방식에만 있던 값은 몰래 나가지 않는
   fill('사용처', '편의점')
   fill('내역', '간식')
   fill('금액(원)', '12000')
+  choose('결제 수단', 'card')
   await screen.findByRole('option', { name: /행사 홍보/ })
   choose('예산 항목', BUDGET)
   fireEvent.click(screen.getByRole('button', { name: '요청한 품목 결제' }))
@@ -296,6 +301,7 @@ test('결제일은 오늘까지만 받고, 필수 칸이 비거나 값이 맞지
   fill('사용처', '편의점')
   fill('내역', '   ')
   fill('금액(원)', '1000')
+  choose('결제 수단', 'card')
   fireEvent.click(submit())
   expect(screen.getByText('내역을 입력해 주세요')).toBeTruthy()
   fill('내역', '간식')
@@ -316,6 +322,7 @@ async function readyDirect() {
   fill('사용처', '편의점')
   fill('내역', '간식')
   fill('금액(원)', '1000')
+  choose('결제 수단', 'card')
 }
 
 test('두 번 누르면 한 번만 나가고 보내는 동안 닫을 수 없다', async () => {
@@ -539,6 +546,7 @@ test('행사가 있는 요청을 고르면 지출의 행사가 그 행사로 채
   choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
   await waitFor(() => expect(select().value).toBe(SPRING))
   expect(select().disabled).toBe(true)
+  choose('결제 수단', 'card')
   fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
   fireEvent.click(submit())
   await screen.findByRole('button', { name: '사진 올리기' })
@@ -665,6 +673,7 @@ async function fillDirect() {
   fill('사용처', '편의점')
   fill('내역', '간식')
   fill('금액(원)', '12000')
+  choose('결제 수단', 'card')
 }
 const press = async () => {
   fireEvent.click(submit())
@@ -738,4 +747,100 @@ test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 비우거나 닫�
   fill('사용처', '인쇄소')
   fireEvent.click(screen.getAllByRole('button', { name: '닫기' }).at(-1)!)
   await waitFor(() => expect(hasUnsavedInput()).toBe(false))
+})
+
+test('결제 수단은 빈칸이고 누르면 해당 칸에 필수 오류와 포커스가 간다', async () => {
+  const api = serve()
+  showFinance()
+  await fillRequestPayment('')
+  const method = asElement(screen.getByLabelText('결제 수단'), HTMLSelectElement)
+  expect(method.value).toBe('')
+  fireEvent.click(submit())
+  expect(await screen.findByText('결제 수단을 골라 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(method))
+  expect(method.getAttribute('aria-required')).toBe('true')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('요청 제목·품목 도메인·오늘로 채워지고 고친 값이 보내진다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ error: 'FAILED' }, 500))
+  showFinance()
+  await openForm()
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
+  fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
+  expect(screen.getByLabelText('내역')).toHaveProperty('value', '행사 포스터')
+  expect(screen.getByLabelText('사용처')).toHaveProperty('value', 'example.com')
+  expect(screen.getByLabelText('결제일')).toHaveProperty('value', today())
+  fill('내역', '고친 내역')
+  fill('사용처', '고친 가게')
+  fill('결제일', '2020-01-01')
+  choose('결제 수단', 'transfer')
+  document.dispatchEvent(new Event('visibilitychange'))
+  await settle()
+  fireEvent.click(submit())
+  await screen.findByRole('alert')
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    description: '고친 내역',
+    vendor: '고친 가게',
+    paidOn: '2020-01-01',
+    method: 'transfer',
+  })
+})
+
+test.each([36000, 36001])(
+  '승인액 1.2배 경계(%i)에서 초과만 확인하고 닫으면 보내지 않는다',
+  async amount => {
+    const api = serve()
+    api.on('POST', EXPENSES, () => json({ error: 'FAILED' }, 500))
+    showFinance()
+    await fillRequestPayment()
+    choose('결제 수단', 'cash')
+    fill('A2 포스터 결제 금액', String(amount))
+    fireEvent.click(submit())
+    if (amount === 36001) {
+      const confirm = await screen.findByRole('dialog', { name: '금액과 자릿수를 확인하세요' })
+      expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+      fireEvent.click(within(confirm).getAllByRole('button', { name: '닫기' })[0]!)
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog', { name: '금액과 자릿수를 확인하세요' })).toBeNull(),
+      )
+      expect(screen.getByLabelText('A2 포스터 결제 금액')).toHaveProperty('value', '36001')
+      fireEvent.click(submit())
+      const reopened = await screen.findByRole('dialog', { name: '금액과 자릿수를 확인하세요' })
+      fireEvent.click(within(reopened).getByRole('button', { name: '그래도 적기' }))
+    }
+    await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+      lines: [{ lineItemId: ITEM_1, amount }],
+    })
+  },
+)
+
+test('금액 확인 뒤 보내는 중에는 재전송·닫기를 막고 실패는 확인 창에 보인다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', EXPENSES, () => pending.promise)
+  showFinance()
+  await fillRequestPayment()
+  fill('A2 포스터 결제 금액', '36001')
+  fireEvent.click(submit())
+  const confirm = await screen.findByRole('dialog', { name: '금액과 자릿수를 확인하세요' })
+  const send = within(confirm).getByRole('button', { name: '그래도 적기' })
+  fireEvent.click(send)
+  fireEvent.click(send)
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
+  expect(send).toHaveProperty('disabled', true)
+  expect(within(confirm).getAllByRole('button', { name: '닫기' })[0]).toHaveProperty(
+    'disabled',
+    true,
+  )
+  fireEvent.keyDown(confirm, { key: 'Escape' })
+  expect(screen.getByRole('dialog', { name: '금액과 자릿수를 확인하세요' })).toBeTruthy()
+  pending.resolve(json({ error: 'LINE_ITEM_NOT_PAYABLE' }, 409))
+  expect((await within(confirm).findByRole('alert')).textContent).toContain(
+    '결제할 수 없는 품목이 있어요',
+  )
+  await waitFor(() => expect(send).toHaveProperty('disabled', false))
 })

@@ -15,7 +15,13 @@ const FINANCE = 's-financeMember'
 const PRESIDENT = 's-president'
 const PLANNER = 's-planningMember'
 const DAY = (value: string) => new Date(`${value}:00Z`)
-const EXPENSE = { vendor: '문구점', description: '마커', amount: 10000, paidOn: '2026-10-25' }
+const EXPENSE = {
+  method: 'card',
+  vendor: '문구점',
+  description: '마커',
+  amount: 10000,
+  paidOn: '2026-10-25',
+}
 const NO_SUCH = '01a164e0-8f14-7fff-b9d9-fc48438f6ee9'
 
 const root = (t: SettlementKit) => `/api/organizations/${t.council.councilId}`

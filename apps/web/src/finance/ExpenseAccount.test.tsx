@@ -42,7 +42,9 @@ function serve(accounts = standardAccounts()) {
 const openForm = async () => {
   openExpensesTab()
   fireEvent.click(await screen.findByRole('button', { name: '지출 적기' }))
-  return screen.findByRole('form', { name: '지출 적기' })
+  const form = await screen.findByRole('form', { name: '지출 적기' })
+  fireEvent.change(screen.getByLabelText('결제 수단'), { target: { value: 'card' } })
+  return form
 }
 const account = () => asElement(screen.getByLabelText('계좌'), HTMLSelectElement)
 

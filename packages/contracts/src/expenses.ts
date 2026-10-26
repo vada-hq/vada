@@ -48,7 +48,7 @@ export const CreateExpenseSchema = z
     description: text(EXPENSE_DESCRIPTION_MAX),
     amount: z.number().int().min(1).max(WON_MAX),
     paidOn: koreanDate,
-    method: z.enum(EXPENSE_METHODS).default('card'),
+    method: z.enum(EXPENSE_METHODS),
     // 비면 학생회 돈으로 냈다.
     paidBy: recordIdInput.nullable().default(null),
     reason: text(EXPENSE_REASON_MAX).nullable().default(null),
