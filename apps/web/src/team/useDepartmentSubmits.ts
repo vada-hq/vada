@@ -17,6 +17,8 @@ export function useDepartmentSubmits(
   saving: boolean,
   requests: ReturnType<typeof useDepartmentRequests>,
   dialogs: ReturnType<typeof useDepartmentDialogs>,
+  // 목록을 다시 읽는다. 그사이 쓰인 부서라 없애지 못했으면 다시 읽어 '그만 쓰기'를 보인다.
+  reload: () => void,
 ) {
   const { renamingDepartment, removingDepartment, name } = dialogs
   const renamed = renamingDepartment
@@ -40,6 +42,7 @@ export function useDepartmentSubmits(
     const action = isUsedDepartment(removingDepartment) ? 'retire' : 'delete'
     const code = await requests.run(`${departmentPath(removingDepartment)}/${action}`, {}, 'remove')
     if (code === null || isFinal(code)) dialogs.closeRemove()
+    if (code === 'DEPARTMENT_IN_USE') reload()
   }
   // 재정 역할 주고 거두기. 이름과 함께 보낸다(UpdateDepartmentSchema).
   function toggleFinance(department: TeamDepartment) {

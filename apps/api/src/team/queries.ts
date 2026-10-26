@@ -1,25 +1,46 @@
-import { and, asc, eq, isNull } from 'drizzle-orm'
+import { and, asc, eq, exists, isNull, or, sql } from 'drizzle-orm'
+import type { AnyPgColumn, PgTable } from 'drizzle-orm/pg-core'
 import type { TeamResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { councilMembership, department, departmentMembership, member } from '../db/schema.js'
+import {
+  councilMembership,
+  department,
+  departmentMembership,
+  meeting,
+  member,
+  task,
+} from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { joinedDisplayNameOf } from './display-name.js'
 
-// 한 번이라도 소속이 있었던 부서(끝난 소속, 지난 기수 포함). 쓴 부서는 '그만 쓰기', 쓰이지 않은 부서는 '없애기'다(DEC-91).
-async function usedDepartments(db: Pick<Db, 'selectDistinct'>, councilId: string) {
+// 쓰인 부서: 한 번이라도 소속이 있었거나(끝난 소속, 지난 기수 포함) 업무나 회의가 가리킨다. 이런 부서는 지우면
+// 기록이 끊기므로(없애기는 외래 키로 막힌다) '그만 쓰기'이고, 쓰이지 않은 부서만 '없애기'다(DEC-91).
+async function usedDepartments(db: Pick<Db, 'select'>, councilId: string) {
+  const refers = (table: PgTable, column: AnyPgColumn) =>
+    exists(
+      db
+        .select({ one: sql`1` })
+        .from(table)
+        .where(eq(column, department.id)),
+    )
   const rows = await db
-    .selectDistinct({ id: departmentMembership.departmentId })
-    .from(departmentMembership)
-    .innerJoin(department, eq(department.id, departmentMembership.departmentId))
-    .where(eq(department.councilId, councilId))
+    .select({ id: department.id })
+    .from(department)
+    .where(
+      and(
+        eq(department.councilId, councilId),
+        or(
+          refers(departmentMembership, departmentMembership.departmentId),
+          refers(task, task.departmentId),
+          refers(meeting, meeting.hostDepartmentId),
+        ),
+      ),
+    )
   return new Set(rows.map(row => row.id))
 }
 
 // 운영진과 부서 목록. 지금 기수의 끝나지 않은 소속만 보인다. 들어온 순서대로 놓고, 이메일은 넣지 않는다(바탕 spec G12).
-export async function teamOf(
-  db: Pick<Db, 'select' | 'selectDistinct'>,
-  actor: Actor,
-): Promise<TeamResponse> {
+export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<TeamResponse> {
   const members = await db
     .select({
       id: member.id,

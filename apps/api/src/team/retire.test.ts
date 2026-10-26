@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { CreateCouncilResponse, InviteCodeResponse, TeamResponse } from '@vada/contracts'
+import type {
+  CreateCouncilResponse,
+  InviteCodeResponse,
+  TaskCreateOptionsResponse,
+  TeamResponse,
+} from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
 import { createInviteRoutes } from '../invites/routes.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { addUser } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createTeamRoutes } from './routes.js'
@@ -27,6 +33,7 @@ async function setup(testDb: TestDb) {
       councils: createCouncilRoutes(testDb.db, testSession, clock),
       invites: createInviteRoutes(testDb.db, testSession, clock),
       team: createTeamRoutes(testDb.db, testSession, clock),
+      tasks: createTaskRoutes(testDb.db, testSession, { clock }),
     }),
   )
   for (const user of ['u1', 'u2', 'u3', 'u4'])
@@ -241,6 +248,46 @@ test('그만 쓰기는 회장단만 한다. 다른 학생회의 부서는 404, �
     // 다른 학생회의 같은 모양 부서도 그대로다.
     const other = (await (await api.get(`${otherBase}/members`, 'u3')).json()) as TeamResponse
     assert.ok(other.departments.some(item => item.id === otherPlanning))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('업무가 가리키는 부서는 쓰인 부서다. 그만 쓴 부서는 업무 고르는 칸에서 빠지고 새 업무에 쓸 수 없지만, 그 부서의 업무는 그대로 열린다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, planning } = await setup(testDb)
+    const created = await api.post(`${base}/departments`, { name: '체육부' }, 'u1')
+    const sports = ((await created.json()) as TeamResponse).departments.find(
+      item => item.name === '체육부',
+    )!.id
+    const task = await api.post(
+      `${base}/tasks`,
+      { title: '체육대회 준비', departmentId: sports },
+      'u1',
+    )
+    assert.equal(task.status, 201)
+    const taskId = ((await task.json()) as { task: { id: string } }).task.id
+    let team = (await (await api.get(`${base}/members`, 'u1')).json()) as TeamResponse
+    // 소속은 없었어도 업무가 가리키므로 '그만 쓰기' 대상이다.
+    assert.equal(team.departments.find(item => item.id === sports)!.used, true)
+    for (const id of [planning, sports])
+      assert.equal((await api.post(`${base}/departments/${id}/retire`, {}, 'u1')).status, 200)
+    team = (await (await api.get(`${base}/members`, 'u1')).json()) as TeamResponse
+    assert.ok(!team.departments.some(item => item.id === sports))
+    const options = (await (
+      await api.get(`${base}/tasks/options`, 'u1')
+    ).json()) as TaskCreateOptionsResponse
+    assert.ok(!options.departments.some(item => item.id === sports || item.id === planning))
+    const refused = await api.post(
+      `${base}/tasks`,
+      { title: '새 업무', departmentId: sports },
+      'u1',
+    )
+    assert.equal(refused.status, 409)
+    assert.deepEqual(await refused.json(), { error: 'TASK_DEPARTMENT_INVALID' })
+    const opened = await api.get(`${base}/tasks/${taskId}`, 'u1')
+    assert.equal(opened.status, 200)
   } finally {
     await testDb.close()
   }

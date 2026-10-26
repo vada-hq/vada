@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import type {
   AssignTaskRequest,
   ChangeTaskStatusRequest,
@@ -34,14 +34,20 @@ async function taskFor(tx: Tx, actor: Actor, target: Target, action: TaskAction)
   return row
 }
 
-// 부서는 이 학생회의 것이어야 한다. 외래 키는 학생회까지 맞추지 못한다.
+// 새로 정하는 부서는 이 학생회의 것이고 그만 쓰지 않은 것이어야 한다(DEC-91). 외래 키는 학생회까지 맞추지 못한다.
 async function assertDepartment(tx: Tx, actor: Actor, departmentId: string | null) {
   if (!departmentId) return
   const [found] = await tx
     .select({ id: department.id })
     .from(department)
     .innerJoin(record, eq(record.id, department.id))
-    .where(and(eq(department.id, departmentId), eq(record.councilId, actor.councilId)))
+    .where(
+      and(
+        eq(department.id, departmentId),
+        eq(record.councilId, actor.councilId),
+        isNull(department.retiredAt),
+      ),
+    )
   if (!found) throw new ApiError('TASK_DEPARTMENT_INVALID')
 }
 
@@ -203,7 +209,8 @@ export async function setTaskDepartment(
 ): Promise<TaskDetail> {
   const row = await taskFor(tx, actor, target, 'task.change_department')
   await assertDepartmentLink(tx, actor, row, input.departmentId)
-  await assertDepartment(tx, actor, input.departmentId)
+  // 이미 그 부서인 업무는 부서가 그만 쓰였어도 그대로 둔다(바뀌는 것이 없다).
+  if (input.departmentId !== row.departmentId) await assertDepartment(tx, actor, input.departmentId)
   if (input.departmentId !== row.departmentId)
     await updateRecord(tx, {
       kind: 'task',

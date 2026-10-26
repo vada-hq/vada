@@ -20,7 +20,7 @@ export function useDepartments(view: CouncilView, team: Team, reading: Reading) 
   const dialogs = useDepartmentDialogs(team.data, manage, requests.report)
   // 추가 칸과 묶음 머리의 ⋯ 메뉴는 권한과 함께 사라진다.
   useLost(manage, () => requests.report(PERMISSION_CHANGED), reading)
-  const submits = useDepartmentSubmits(team.saving, requests, dialogs)
+  const submits = useDepartmentSubmits(team.saving, requests, dialogs, team.reload)
   useRenameFocus(dialogs.renamingDepartment?.id ?? null, menuFocus.restore)
 
   // 닫을 때 포커스를 그 부서의 ⋯ 버튼으로 돌려주려고 어느 부서인지 기억한다.

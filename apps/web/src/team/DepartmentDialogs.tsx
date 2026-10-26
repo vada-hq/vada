@@ -45,7 +45,7 @@ export function RemoveDepartmentDialog({ department, ...props }: DialogProps) {
       title={retiring ? `${name} 부서를 그만 쓸까요?` : `${name} 부서를 없앨까요?`}
       description={
         retiring
-          ? `남은 ${left}명은 이 부서에서 빠지고, 지난 기록은 남아요. 되돌릴 수 없어요.`
+          ? `${left > 0 ? `남은 ${left}명은 이 부서에서 빠지고, ` : ''}지난 기록은 남아요. 되돌릴 수 없어요.`
           : '없앤 부서는 되돌릴 수 없어요.'
       }
       confirmLabel={retiring ? '그만 쓰기' : '없애기'}

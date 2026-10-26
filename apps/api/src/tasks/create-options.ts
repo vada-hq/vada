@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, isNull } from 'drizzle-orm'
 import { EVENT_LIST_LIMIT, type TaskCreateOptionsResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentCouncilMembership } from '../access/current-cohort.js'
@@ -33,7 +33,8 @@ export async function createOptionsOf(
   const departments = await tx
     .select({ id: department.id, name: department.name })
     .from(department)
-    .where(eq(department.councilId, actor.councilId))
+    // 그만 쓴 부서는 고르는 칸에서 빠진다(DEC-91).
+    .where(and(eq(department.councilId, actor.councilId), isNull(department.retiredAt)))
     .orderBy(asc(department.id))
   const candidates: { id: string | null; name: string | null }[] = [
     { id: null, name: null },

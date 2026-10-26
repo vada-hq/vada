@@ -493,11 +493,14 @@ test('사람이 없는 부서의 없애기는 확인 창을 거친다. 닫으면
   fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
   confirm = await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
   fireEvent.click(within(confirm).getByRole('button', { name: '없애기' }))
-  // 그사이 쓰인 부서는 다시 눌러도 같으므로 확인 창을 닫고 까닭을 쪽에 보인다.
+  // 그사이 쓰인 부서는 다시 눌러도 같으므로 확인 창을 닫고 까닭을 쪽에 보이며, 목록을 다시 읽어 '그만 쓰기'가 보이게 한다.
+  const reads = () => api.calls.filter(call => call.path.endsWith('/members')).length
+  const before = reads()
   expect(
     await screen.findByText('그사이 쓰인 부서라 없앨 수 없어요. 그만 쓰기를 해 주세요.'),
   ).toBeTruthy()
   await noDialog()
+  await waitFor(() => expect(reads()).toBe(before + 1))
   used = false
   fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
   confirm = await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
