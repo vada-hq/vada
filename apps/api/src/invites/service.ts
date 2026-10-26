@@ -1,5 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import type { InvitePreviewResponse, JoinCouncilRequest } from '@vada/contracts'
+import type { InviteCodeResponse, InvitePreviewResponse, JoinCouncilRequest } from '@vada/contracts'
 import { actorOf, type Actor } from '../access/actor.js'
 import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
@@ -131,6 +131,16 @@ export async function joinCouncil(
   }
   await syncRooms(tx, { councilId, cohortId, memberId })
   return councilId
+}
+
+// 회장단이 보는 이 학생회의 초대 코드와 만든 시각. 코드 바꾸기 응답도 같은 거래에서 이것으로 만든다.
+export async function councilInvite(db: Reader, councilId: string): Promise<InviteCodeResponse> {
+  const [row] = await db
+    .select({ code: inviteCode.code, createdAt: inviteCode.createdAt })
+    .from(inviteCode)
+    .where(eq(inviteCode.councilId, councilId))
+  if (!row) throw new Error('Invite code missing')
+  return { code: row.code, createdAt: row.createdAt.toISOString() }
 }
 
 // 초대 코드 바꾸기: 이 학생회의 코드 한 줄을 새 코드로 바꾸고 새 코드를 돌려준다. 바꾸면 옛 코드로는 들어올 수 없다(DEC-47).

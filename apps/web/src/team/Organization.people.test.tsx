@@ -64,9 +64,12 @@ function Harness({
 function serve(team: TeamResponse = teamResponse()) {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/members', () => json(team))
-  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
+  api.on('GET', '/api/organizations/c1/invite', () => json(INVITE))
   return api
 }
+const INVITE = { code: 'ABCD2345', createdAt: '2026-10-25T05:00:00.000Z' }
+const inviteReads = (api: ReturnType<typeof mockApi>) =>
+  api.calls.filter(call => call.path.endsWith('/invite')).length
 const withoutMember = (id: string) => {
   const team = teamResponse()
   team.members = team.members.filter(member => member.id !== id)
@@ -133,13 +136,14 @@ test('목록을 불러오지 못하면 다시 시도할 수 있고, 403이면 �
   expect(forbidden).toHaveBeenCalled()
 })
 
-test('직급 없는 운영진은 초대 링크와 ⋯ 메뉴를 보지 않고 서버에 초대 코드를 묻지 않는다', async () => {
+test('직급 없는 운영진은 [구성원 초대]와 ⋯ 메뉴를 보지 않고 서버에 초대 코드를 묻지 않는다', async () => {
   const api = serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await loaded()
+  expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
   expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
   expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
-  expect(api.calls.some(call => call.path.endsWith('/invite'))).toBe(false)
+  expect(inviteReads(api)).toBe(0)
 })
 
 // 동작 버튼은 서버가 준 권한 하나하나로 보이거나 숨는다(DEC-38). 회장단 전체 묶음이 아니라 권한 하나만 가진 사람으로 본다.
@@ -172,16 +176,12 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
     const api = serve()
     render(<Harness permissions={permissions} />)
     await loaded()
-    // 초대 링크는 코드를 받아 온 뒤에야 나타난다. 있어야 하는 경우에는 기다린 뒤에 확인한다.
-    if (invite) await screen.findByRole('region', { name: '초대 링크' })
     expect(
-      !!screen.queryByRole('region', { name: '초대 링크' }),
-      `초대 링크 ${permissions.join(',')}`,
+      !!screen.queryByRole('button', { name: '구성원 초대' }),
+      `구성원 초대 ${permissions.join(',')}`,
     ).toBe(invite)
-    expect(
-      api.calls.some(call => call.path.endsWith('/invite')),
-      `초대 코드 요청 ${permissions.join(',')}`,
-    ).toBe(invite)
+    // 창을 열기 전에는 누구도 초대 코드를 읽지 않는다.
+    expect(inviteReads(api), `초대 코드 요청 ${permissions.join(',')}`).toBe(0)
     for (const [name, items] of Object.entries(menus)) {
       if (items.length === 0) {
         expect(
@@ -206,86 +206,55 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
   }
 })
 
-// 코드 바꾸기는 확인 창을 거친다(기능 020 정한 것 14).
-function rotate(card: HTMLElement) {
-  fireEvent.click(within(card).getByRole('button', { name: '코드 바꾸기' }))
-  const dialog = screen.getByRole('dialog', { name: '초대 코드를 바꿀까요?' })
-  fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
+// 구성원 초대 창(기능 023 조각 6). 창 안의 복사·코드 바꾸기는 InviteSheet.test.tsx가 본다. 여기서는 조직 화면과 이은 곳을 본다.
+async function openInvite() {
+  await loaded()
+  fireEvent.click(screen.getByRole('button', { name: '구성원 초대' }))
+  return screen.findByRole('dialog', { name: '구성원 초대' })
 }
 
-test('회장단은 초대 링크를 복사하고 코드를 바꾼다. 바꾸면 새 링크를 보여 주고 옛 링크는 막혔다고 알린다', async () => {
+test('회장단이 머리의 [구성원 초대]를 누르면 그때 코드를 읽어 링크·코드·만든 시각을 창에 보이고, 닫으면 조직 화면이다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-25T06:00:00Z'))
   const api = serve()
-  api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ code: 'WXYZ6789' }))
-  const writeText = vi.fn(async (_text: string) => {})
-  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
   render(<Harness permissions={LEADER_PERMISSIONS} />)
-  const card = await screen.findByRole('region', { name: '초대 링크' })
-  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
-    `${window.location.origin}/join/ABCD2345`,
-  )
-  fireEvent.click(within(card).getByRole('button', { name: '링크 복사' }))
+  const sheet = await openInvite()
+  const link = await within(sheet).findByRole('textbox', { name: '초대 링크' })
+  expect(asElement(link, HTMLInputElement).value).toBe(`${window.location.origin}/join/ABCD2345`)
   expect(
-    await within(card).findByText('초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.'),
-  ).toBeTruthy()
-  expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/join/ABCD2345`)
-  rotate(card)
-  expect(
-    await within(card).findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.'),
-  ).toBeTruthy()
-  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
-    `${window.location.origin}/join/WXYZ6789`,
-  )
+    asElement(within(sheet).getByRole('textbox', { name: '초대 코드' }), HTMLInputElement).value,
+  ).toBe('ABCD2345')
+  expect(within(sheet).getByText('만든 시각 10월 25일 (일) 14:00')).toBeTruthy()
+  expect(inviteReads(api)).toBe(1)
+  // 조직 화면에는 옛 초대 링크 카드가 없다.
+  fireEvent.click(within(sheet).getByRole('button', { name: '닫기' }))
+  await noDialog()
+  expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
+  expect(inviteReads(api)).toBe(1)
 })
 
-test('초대 링크를 불러올 때 403이면 학생회를 다시 읽게 하고, 그 밖의 실패는 다시 시도할 수 있다', async () => {
+test('초대 코드를 읽을 때 403이면 학생회를 다시 읽게 하고 창에 까닭을 보인다', async () => {
   const api = mockApi()
   api.on('GET', '/api/organizations/c1/members', () => json(teamResponse()))
-  let invites = 0
-  api.on('GET', '/api/organizations/c1/invite', () =>
-    invites++ === 0
-      ? json({ error: 'FORBIDDEN' }, 403)
-      : invites === 2
-        ? json({ error: 'Internal server error' }, 500)
-        : json({ code: 'ABCD2345' }),
-  )
+  api.on('GET', '/api/organizations/c1/invite', () => json({ error: 'FORBIDDEN' }, 403))
   const changed = vi.fn()
   render(<Harness permissions={LEADER_PERMISSIONS} onCouncilChanged={changed} />)
-  expect(await screen.findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  const sheet = await openInvite()
+  expect(await within(sheet).findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
   expect(changed).toHaveBeenCalledTimes(1)
-  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByText('초대 링크를 불러오지 못했어요.')).toBeTruthy()
-  expect(changed).toHaveBeenCalledTimes(1)
-  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  const card = await screen.findByRole('region', { name: '초대 링크' })
-  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
-    `${window.location.origin}/join/ABCD2345`,
-  )
-  expect(invites).toBe(3)
 })
 
-test('코드를 바꿀 때 403이면 학생회를 다시 읽게 하고 까닭을 보이며, 그 밖의 실패는 다시 눌러 바꿀 수 있다', async () => {
+test('코드를 바꿀 때 403이면 학생회를 다시 읽게 한다', async () => {
   const api = serve()
-  let rotations = 0
-  api.on('POST', '/api/organizations/c1/invite/rotate', () =>
-    rotations++ === 0
-      ? json({ error: 'FORBIDDEN' }, 403)
-      : rotations === 2
-        ? json({ error: 'Internal server error' }, 500)
-        : json({ code: 'WXYZ6789' }),
-  )
+  api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ error: 'FORBIDDEN' }, 403))
   const changed = vi.fn()
   render(<Harness permissions={LEADER_PERMISSIONS} onCouncilChanged={changed} />)
-  const card = await screen.findByRole('region', { name: '초대 링크' })
-  rotate(card)
-  expect(await within(card).findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  const sheet = await openInvite()
+  fireEvent.click(await within(sheet).findByRole('button', { name: '코드 바꾸기' }))
+  const dialog = screen.getByRole('dialog', { name: '초대 코드를 바꿀까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
+  expect(await within(dialog).findByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
   expect(changed).toHaveBeenCalledTimes(1)
-  rotate(card)
-  expect(await within(card).findByText('코드를 바꾸지 못했어요. 다시 시도해 주세요.')).toBeTruthy()
-  expect(changed).toHaveBeenCalledTimes(1)
-  rotate(card)
-  expect(
-    await within(card).findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.'),
-  ).toBeTruthy()
 })
 
 test('회장단의 ⋯ 메뉴: 회장 줄에는 직급과 내보내기가 없고, 내 줄에는 내보내기가 없고, 회장 넘기기는 회장에게만 있다', async () => {
@@ -620,7 +589,6 @@ test('내보내기나 회장 넘기기가 오래된 화면 때문에 409로 막�
       reads++
       return json(teamResponse())
     })
-    api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
     api.on('POST', `/api/organizations/c1${path}`, () => json({ error: code }, 409))
     render(<Harness permissions={permissions} />)
     fireEvent.click(within(await openMenu(name)).getByRole('menuitem', { name: item }))
@@ -864,12 +832,14 @@ test('부서 배정·확인 대화상자가 열린 채 권한을 잃어 닫히�
   }
 })
 
-test('초대 링크 카드는 초대 권한을 잃어 사라지면 까닭을 쪽에 보인다', async () => {
+test('열린 초대 창은 초대 권한을 잃으면 닫히고 까닭을 쪽에 보인다', async () => {
   serve()
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
-  await screen.findByRole('region', { name: '초대 링크' })
+  const sheet = await openInvite()
+  await within(sheet).findByRole('region', { name: '초대 링크' })
   view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
-  expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
+  await noDialog()
+  expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
   expect(await screen.findByText(LOST)).toBeTruthy()
 })
 
@@ -1025,13 +995,16 @@ const removeOwnDepartment = async (api: ReturnType<typeof mockApi>) => {
   await noDialog()
 }
 
-test('내 변경 뒤 다시 읽기가 실패하고 대화상자를 닫은 다음 코드 바꾸기가 403이면 사라진 초대 카드의 까닭을 보인다', async () => {
+test('내 변경 뒤 다시 읽기가 실패하고 대화상자를 닫은 다음 코드 바꾸기가 403이면 초대 창이 닫히고 까닭을 보인다', async () => {
   const api = serve()
   api.on('POST', '/api/organizations/c1/invite/rotate', () => json({ error: 'FORBIDDEN' }, 403))
   await removeOwnDepartment(api)
-  const card = await screen.findByRole('region', { name: '초대 링크' })
-  rotate(card)
-  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  const sheet = await openInvite()
+  fireEvent.click(await within(sheet).findByRole('button', { name: '코드 바꾸기' }))
+  const dialog = screen.getByRole('dialog', { name: '초대 코드를 바꿀까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
+  await noDialog()
+  expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
   expect(await screen.findByText(LOST)).toBeTruthy()
 })
 

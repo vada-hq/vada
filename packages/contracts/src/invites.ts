@@ -30,7 +30,8 @@ export interface InvitePreviewResponse {
 export interface JoinCouncilResponse {
   council: MyCouncil
 }
-// 초대 코드 보기와 바꾸기(회장단)
+// 초대 코드 보기와 바꾸기(회장단). createdAt은 그 코드를 만든(마지막으로 바꾼) 시각(ISO)이다.
 export interface InviteCodeResponse {
   code: string
+  createdAt: string
 }

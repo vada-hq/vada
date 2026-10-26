@@ -6,6 +6,7 @@ import { asElement } from '@/test-support/elements'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { EventEditSection } from './EventEditSections'
 import { ActionMenuSection } from './MenuSections'
+import { OrgInviteSection } from './OrgSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 
 // 부품 확인 화면의 대화상자·옆 메뉴·동작 메뉴·확인 창. 시험마다 그 묶음만 그린다(전체 화면은 Gallery.test.tsx).
@@ -36,6 +37,17 @@ test('오른쪽 패널 예시는 열고 패널 닫기로 닫을 수 있다', asy
   const panel = await screen.findByRole('dialog', { name: '예시 패널' })
   expect(panel.className).toContain('right-0')
   fireEvent.click(within(panel).getByRole('button', { name: '패널 닫기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('구성원 초대 창 예시는 휴대폰에서 아래, 넓은 화면에서 오른쪽에 열리고 닫기로 닫을 수 있다', async () => {
+  render(<OrgInviteSection />)
+  fireEvent.click(screen.getByRole('button', { name: '구성원 초대 창 열기' }))
+  const sheet = await screen.findByRole('dialog', { name: '구성원 초대' })
+  expect(sheet.className).toContain('bottom-0')
+  expect(sheet.className).toContain('sm:right-0')
+  expect(within(sheet).getByRole('heading', { name: '구성원 초대' })).toBeTruthy()
+  fireEvent.click(within(sheet).getByRole('button', { name: '닫기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 

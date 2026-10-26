@@ -46,7 +46,6 @@ function serve(status = 200, team: TeamResponse = teamResponse()) {
   api.on('GET', '/api/organizations/c1/members', () =>
     status === 200 ? json(team) : json({ error: 'Internal server error' }, status),
   )
-  api.on('GET', '/api/organizations/c1/invite', () => json({ code: 'ABCD2345' }))
 }
 async function chooseMenuItem(name: string, item: string) {
   fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 동작` }), { key: 'Enter' })
@@ -74,14 +73,14 @@ test('목록: 직급 없는 운영진', async () => {
 test('목록: 회장단', async () => {
   serve()
   render(<Harness permissions={LEADER_PERMISSIONS} />)
-  await screen.findByRole('region', { name: '초대 링크' })
+  await loaded()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('목록: 회장', async () => {
   serve()
   render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
-  await screen.findByRole('region', { name: '초대 링크' })
+  await loaded()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 

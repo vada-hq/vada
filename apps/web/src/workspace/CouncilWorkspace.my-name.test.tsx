@@ -123,7 +123,7 @@ test('저장하지 못하면 창 안에 알리고 창은 그대로다', async ()
 
 test('이름을 바꾸는 사이 다른 사람이 내 권한을 바꿨으면 권한이 바뀌었다고 알린다', async () => {
   open({ demotedAfterRename: true })
-  await screen.findByRole('button', { name: '코드 바꾸기' })
+  await screen.findByRole('button', { name: '구성원 초대' })
   fireEvent.click(await within(footer()).findByRole('button', { name: '내 이름: 김바다, 회장' }))
   const dialog = await screen.findByRole('dialog', { name: '내 이름' })
   fireEvent.change(within(dialog).getByLabelText('내 이름'), { target: { value: '김새이름' } })

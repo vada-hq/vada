@@ -351,16 +351,23 @@ test('초대 코드 보기와 바꾸기는 회장단만 한다. 바꾸면 옛 �
     }
     assert.equal((await api.get(`/api/organizations/${other.id}/invite`, 'u1')).status, 403)
     assert.equal((await api.post(`/api/organizations/${council.id}/invite/rotate`, {})).status, 401)
+    const before = (await (
+      await api.get(`/api/organizations/${council.id}/invite`, 'u1')
+    ).json()) as InviteCodeResponse
     const rotated = await api.post(`/api/organizations/${council.id}/invite/rotate`, {}, 'u1')
     assert.equal(rotated.status, 200)
-    const { code: next } = (await rotated.json()) as InviteCodeResponse
+    const after = (await rotated.json()) as InviteCodeResponse
+    const next = after.code
     assert.match(next, /^[2-9A-HJ-NP-Z]{8}$/)
     assert.notEqual(next, code)
+    // 만든 시각은 ISO 글이고, 바꾸면 새 시각이 된다(기능 023 정한 것 7).
+    assert.equal(new Date(after.createdAt).toISOString(), after.createdAt)
+    assert.ok(Date.parse(after.createdAt) > Date.parse(before.createdAt))
     assert.deepEqual(
       (await (
         await api.get(`/api/organizations/${council.id}/invite`, 'u1')
       ).json()) as InviteCodeResponse,
-      { code: next },
+      after,
     )
     assert.equal((await api.get(`/api/invites/${code}`, 'u3')).status, 404)
     assert.equal((await api.post('/api/organizations/join', { code }, 'u3')).status, 404)
