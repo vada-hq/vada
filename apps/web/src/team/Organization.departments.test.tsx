@@ -218,14 +218,20 @@ test('[부서 추가]를 누르면 이름 칸이 펼쳐진다. 이름 없이 누
   taken = true
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정부' } })
   fireEvent.click(submit)
-  const reason = await screen.findByText('같은 이름의 부서가 있어요.')
+  const reason = await screen.findByText(
+    '같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.',
+  )
   // 쪽 위가 아니라 추가 칸과 같은 묶음 안, 칸 바로 아래에 보인다. 이름을 고치면 사라진다.
   expect(form.parentElement!.contains(reason)).toBe(true)
   expect(form.compareDocumentPosition(reason) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  expect(screen.getAllByText('같은 이름의 부서가 있어요.')).toHaveLength(1)
+  expect(
+    screen.getAllByText('같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.'),
+  ).toHaveLength(1)
   expect(within(form).getByLabelText('새 부서 이름').getAttribute('aria-invalid')).toBe('true')
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정국' } })
-  expect(screen.queryByText('같은 이름의 부서가 있어요.')).toBeNull()
+  expect(
+    screen.queryByText('같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.'),
+  ).toBeNull()
 })
 
 test('부서 추가 칸은 [닫기]나 Esc로 접히고 초점이 [부서 추가]로 돌아온다', async () => {
@@ -338,10 +344,14 @@ test('같은 이름의 부서가 있으면 이름 칸 아래에 까닭을 보이
   const input = within(form).getByLabelText('부서 이름')
   fireEvent.change(input, { target: { value: '재정부' } })
   fireEvent.submit(form)
-  expect(await within(form).findByText('같은 이름의 부서가 있어요.')).toBeTruthy()
+  expect(
+    await within(form).findByText('같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.'),
+  ).toBeTruthy()
   expect(input.getAttribute('aria-invalid')).toBe('true')
   fireEvent.change(input, { target: { value: '재정국' } })
-  expect(within(form).queryByText('같은 이름의 부서가 있어요.')).toBeNull()
+  expect(
+    within(form).queryByText('같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.'),
+  ).toBeNull()
 })
 
 // 검토 지적: 이름 바꾸기는 권한을 잃으면 열려 있지도, 다시 보내지도 못한다.
@@ -432,17 +442,42 @@ test('재정 역할을 주면 이름과 함께 role finance를, 거두면 role n
   ])
 })
 
-test('지금 사람이 있는 부서의 없애기는 확인 창 없이 까닭을 보이고 보내지 않는다', async () => {
-  const api = serve()
+// 쓴 부서 그만 쓰기(기능 023 조각 7, DEC-91): 쓴 부서의 ⋯에는 '없애기' 대신 '그만 쓰기'가 있고, 확인 창에 남은 인원이 보인다.
+test("쓴 부서의 '그만 쓰기'는 확인 창에 남은 인원을 보이고, 확인하면 그 부서가 목록에서 빠진다. 재정 역할 부서는 창 안에 까닭을 보인다", async () => {
+  const used = teamResponse()
+  used.departments = used.departments.map(item =>
+    item.id === 'd2' ? { ...item, used: true } : { ...item, used: item.memberCount > 0 },
+  )
+  const api = serve(used)
+  api.on('POST', '/api/organizations/c1/departments/d1/retire', () =>
+    json({ error: 'DEPARTMENT_HAS_ROLE' }, 409),
+  )
+  api.on('POST', '/api/organizations/c1/departments/d2/retire', () => financeOnly())
   render(<Harness permissions={LEADER_PERMISSIONS} />)
-  fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '없애기' }))
+  let menu = await openMenu('재정부')
+  expect(within(menu).queryByRole('menuitem', { name: '없애기' })).toBeNull()
+  fireEvent.click(within(menu).getByRole('menuitem', { name: '그만 쓰기' }))
+  let confirm = await screen.findByRole('dialog', { name: '재정부 부서를 그만 쓸까요?' })
+  expect(within(confirm).getByText(/남은 1명은 이 부서에서 빠지고/)).toBeTruthy()
+  fireEvent.click(within(confirm).getByRole('button', { name: '그만 쓰기' }))
   expect(
-    await screen.findByText('부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.'),
+    await within(confirm).findByText(
+      '재정 역할이 있는 부서는 그만 쓸 수 없어요. 먼저 재정 역할을 거둬 주세요.',
+    ),
   ).toBeTruthy()
-  expect(screen.queryByRole('dialog')).toBeNull()
-  expect(posts(api)).toEqual([])
+  fireEvent.click(within(confirm).getAllByRole('button', { name: '닫기' })[0]!)
+  await noDialog()
+  menu = await openMenu('기획부')
+  fireEvent.click(within(menu).getByRole('menuitem', { name: '그만 쓰기' }))
+  confirm = await screen.findByRole('dialog', { name: '기획부 부서를 그만 쓸까요?' })
+  fireEvent.click(within(confirm).getByRole('button', { name: '그만 쓰기' }))
+  await gone('기획부')
+  await noDialog()
+  expect(posts(api).map(call => call.path)).toEqual([
+    '/api/organizations/c1/departments/d1/retire',
+    '/api/organizations/c1/departments/d2/retire',
+  ])
 })
-
 test('사람이 없는 부서의 없애기는 확인 창을 거친다. 닫으면 보내지 않고, 예전에 쓰였으면 까닭을 쪽에 보인다', async () => {
   const api = serve()
   let used = true
@@ -458,9 +493,9 @@ test('사람이 없는 부서의 없애기는 확인 창을 거친다. 닫으면
   fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
   confirm = await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
   fireEvent.click(within(confirm).getByRole('button', { name: '없애기' }))
-  // 쓰인 부서는 다시 눌러도 같으므로 확인 창을 닫고 까닭을 쪽에 보인다.
+  // 그사이 쓰인 부서는 다시 눌러도 같으므로 확인 창을 닫고 까닭을 쪽에 보인다.
   expect(
-    await screen.findByText('부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.'),
+    await screen.findByText('그사이 쓰인 부서라 없앨 수 없어요. 그만 쓰기를 해 주세요.'),
   ).toBeTruthy()
   await noDialog()
   used = false

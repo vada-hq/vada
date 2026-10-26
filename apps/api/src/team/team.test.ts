@@ -146,7 +146,7 @@ test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직�
     )
     assert.ok(team.members.every(item => !Number.isNaN(Date.parse(item.joinedAt))))
     assert.deepEqual(team.departments, [
-      { id: finance, name: '재정부', role: 'finance', memberCount: 0 },
+      { id: finance, name: '재정부', role: 'finance', memberCount: 0, used: false },
     ])
     assert.ok(!JSON.stringify(team).includes('@'))
     assert.deepEqual(Object.keys(team.members[0]!).sort(), [
@@ -637,8 +637,8 @@ test('운영진 목록은 한 시점의 모습이다: 읽기 전용 REPEATABLE R
     assert.equal((await api.get(`${base}/members`, 'u1')).status, 200)
     assert.equal(queries[0], 'set transaction isolation level repeatable read read only')
     const reads = queries.slice(1)
-    // 지금 소속 2(학생회, 부서), 운영진, 부서 소속, 부서
-    assert.equal(reads.length, 5, JSON.stringify(reads))
+    // 지금 소속 2(학생회, 부서), 운영진, 부서 소속, 부서, 쓰인 부서
+    assert.equal(reads.length, 6, JSON.stringify(reads))
     assert.ok(
       reads.every(query => query.startsWith('select ')),
       JSON.stringify(reads),

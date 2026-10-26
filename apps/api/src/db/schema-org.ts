@@ -78,6 +78,8 @@ export const department = pgTable('department', {
   councilId: uuid('council_id').notNull(),
   name: text('name').notNull(),
   role: text('role').$type<'finance'>(),
+  // 그만 쓴 시각(DEC-91). 그만 쓴 부서는 목록과 고르는 칸에서 빠지고 기록은 남는다.
+  retiredAt: at('retired_at'),
 })
 
 export const departmentMembership = pgTable('department_membership', {

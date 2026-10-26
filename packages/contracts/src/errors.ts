@@ -27,6 +27,8 @@ export const ERROR_STATUS = {
   // 그만둔다고 알린 학생회는 파기할 때까지 읽기만 된다(기능 021, DEC-55)
   COUNCIL_CLOSING: 409,
   DEPARTMENT_IN_USE: 409,
+  // 재정 역할이 있는 부서는 그만 쓰지 못한다. 먼저 역할을 거둔다(기능 023 정한 것 8, DEC-87)
+  DEPARTMENT_HAS_ROLE: 409,
   DEPARTMENT_NAME_TAKEN: 409,
   EMAIL_IN_USE: 409,
   EVENT_INVALID: 409,

@@ -21,6 +21,7 @@ import { json } from '../http/validate.js'
 import type { Db, Tx } from '../db/types.js'
 import { moveDepartment } from './move.js'
 import { teamOf } from './queries.js'
+import { retireDepartment } from './retire.js'
 import {
   assignDepartment,
   changeRank,
@@ -149,6 +150,10 @@ function departmentRoutes({ routes, auth, change }: Kit) {
       (tx, actor) => updateDepartment(tx, actor, departmentId, c.req.valid('json')),
       nameConflicts,
     )
+  })
+  routes.post(`${root}/departments/:departmentId/retire`, json(EmptyRequestSchema), auth, c => {
+    const departmentId = recordIdOf(c.req.param('departmentId'))
+    return change(c, 'department.manage', (tx, actor) => retireDepartment(tx, actor, departmentId))
   })
   routes.post(`${root}/departments/:departmentId/delete`, json(EmptyRequestSchema), auth, c => {
     const departmentId = recordIdOf(c.req.param('departmentId'))

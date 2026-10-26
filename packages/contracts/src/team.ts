@@ -36,6 +36,8 @@ export interface TeamDepartment {
   name: string
   role: DepartmentRole | null
   memberCount: number
+  // 한 번이라도 소속이 있었는가(끝난 소속 포함). 쓴 부서는 '없애기' 대신 '그만 쓰기'다(DEC-91). 서버는 늘 보낸다.
+  used?: boolean
 }
 // 운영진 > 사람과 부서 화면이 같이 쓴다. 회장단의 변경도 이 응답을 돌려주고, 화면은 받은 값으로 목록을 통째로 바꾼다.
 export interface TeamResponse {

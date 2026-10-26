@@ -43,7 +43,14 @@ export async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
   const [row] = await tx
     .select({ id: department.id, name: department.name, role: department.role })
     .from(department)
-    .where(and(eq(department.id, departmentId), eq(department.councilId, actor.councilId)))
+    .where(
+      and(
+        eq(department.id, departmentId),
+        eq(department.councilId, actor.councilId),
+        // 그만 쓴 부서는 배정·옮기기·고치기·없애기·그만 쓰기의 대상이 아니다(DEC-91). 없는 부서와 같이 404다.
+        isNull(department.retiredAt),
+      ),
+    )
   if (!row) throw new ApiError('NOT_FOUND')
   return row
 }

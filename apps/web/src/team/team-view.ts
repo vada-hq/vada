@@ -58,6 +58,11 @@ export function sidebarRoleLine(
 }
 
 // 학생회 직급이나 부서 직급이 하나라도 붙어 있는가. 서버는 이런 사람을 내보내거나 직급 있는 소속을 끝낼 때 직급 칸(rank.manage)도 본다.
+// 한 번이라도 소속이 있었던 부서인가(DEC-91). 쓴 부서는 '그만 쓰기', 쓰이지 않은 부서는 '없애기'다.
+// 서버는 used를 늘 보낸다. 없으면(옛 응답) 지금 사람이 있는지로 가린다.
+export const isUsedDepartment = (department: TeamDepartment) =>
+  department.used ?? department.memberCount > 0
+
 export const holdsRank = (member: Pick<TeamMember, 'councilRank' | 'departments'>) =>
   member.councilRank !== null || member.departments.some(item => item.rank !== null)
 

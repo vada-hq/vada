@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CouncilView, TeamDepartment } from '@vada/contracts'
-import { DEPARTMENT_IN_USE, PERMISSION_CHANGED } from '@/lib/messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useLost, type Reading } from '@/lib/use-lost'
 import { useDepartmentRequests } from './useDepartmentRequests'
 import { useDepartmentDialogs } from './useDepartmentDialogs'
@@ -8,7 +8,7 @@ import { useDepartmentSubmits } from './useDepartmentSubmits'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
 
-// 조직 화면의 부서 고치기 상태와 동작: 오류 문구, 제자리 이름 바꾸기, 없애기 확인, 부서 추가 칸, 서버 변경.
+// 조직 화면의 부서 고치기 상태와 동작: 오류 문구, 제자리 이름 바꾸기, 없애기·그만 쓰기 확인, 부서 추가 칸, 서버 변경.
 // 화면(Organization)은 이것을 그리기만 한다. reading은 view를 가져온 학생회 읽기다(내 변경으로 잃은 권한은 알리지 않는다).
 export function useDepartments(view: CouncilView, team: Team, reading: Reading) {
   const manage = view.permissions.includes('department.manage')
@@ -46,11 +46,9 @@ export function useDepartments(view: CouncilView, team: Team, reading: Reading) 
     setName: dialogs.setName,
     openRename: (department: TeamDepartment) =>
       open(department, () => dialogs.openRename(department)),
-    // 지금 사람이 있는 부서는 쓴 부서라 서버가 없애지 않는다. 확인 창 없이 그 까닭을 보인다.
+    // 쓰인 적 없는 부서는 없애기, 쓴 부서는 그만 쓰기의 확인 창을 연다(DEC-91).
     openRemove: (department: TeamDepartment) =>
-      department.memberCount > 0
-        ? requests.report(DEPARTMENT_IN_USE)
-        : open(department, () => dialogs.openRemove(department)),
+      open(department, () => dialogs.openRemove(department)),
     closeRename: () => {
       dialogs.closeRename()
       requests.clear()

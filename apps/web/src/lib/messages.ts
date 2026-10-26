@@ -48,12 +48,12 @@ export const COUNCIL_SETTINGS_ERRORS = changeErrors({
   FORBIDDEN: PERMISSION_CHANGED,
 })
 
-// 조직 화면은 지금 사람이 있는 부서의 '없애기'에 서버에 묻지 않고 이 문구를 보인다.
-export const DEPARTMENT_IN_USE = '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.'
-
 export const DEPARTMENT_ERRORS = changeErrors({
-  DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
-  DEPARTMENT_IN_USE,
+  // 그만 쓴 부서도 이름을 그대로 가진다(Slack 보관 채널과 같이). 다시 쓰려면 다른 이름으로 만든다.
+  DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요. 그만 쓴 부서의 이름도 쓸 수 없어요.',
+  // 확인 창을 연 사이 누가 그 부서에 사람을 넣어 쓴 부서가 됐다. 목록을 다시 읽으면 '그만 쓰기'가 보인다.
+  DEPARTMENT_IN_USE: '그사이 쓰인 부서라 없앨 수 없어요. 그만 쓰기를 해 주세요.',
+  DEPARTMENT_HAS_ROLE: '재정 역할이 있는 부서는 그만 쓸 수 없어요. 먼저 재정 역할을 거둬 주세요.',
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: NOT_FOUND_RELOADED,
 })
