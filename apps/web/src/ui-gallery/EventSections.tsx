@@ -73,8 +73,8 @@ export const detail = (
 
 export const tabs = (
   <div role="tablist" aria-label="행사 보기" className="flex border-b">
-    {['개요', '업무', '재정', '인원 관리'].map((label, index) => (
-      <TabButton key={label} aria-selected={index === 0}>
+    {['메시지', '개요', '업무', '재정', '인원 관리'].map(label => (
+      <TabButton key={label} aria-selected={label === '개요'}>
         {label}
       </TabButton>
     ))}

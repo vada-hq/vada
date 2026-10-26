@@ -4,6 +4,8 @@ import type { CouncilTitles, TeamDepartment, TeamMember } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { OrgGroupCard } from './OrgGroupCard'
 import { orgGroups, type DepartmentGroup } from './team-view'
+import { departmentColorOf } from '@/lib/department-color'
+import { cn } from '@/lib/utils'
 
 type Props = {
   members: TeamMember[]
@@ -60,6 +62,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
           <OrgGroupCard
             key={group.department.id}
             title={group.department.name}
+            className={cn('border-l-4', departmentColorOf(group.department.id, departments).line)}
             groupKey={group.department.id}
             badge={group.department.role === 'finance' && <Badge tone="info">재정</Badge>}
             meta={departmentMeta(group, titles)}

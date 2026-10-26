@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import type { AppQuery, EventTab, HomeResponse } from '@vada/contracts'
-import { openMenu, openRecord } from '@/lib/go-to'
+import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
 import type { RoomListState } from '../chat/useRoomList'
 import { PushBandSlot } from '../push/push-band-slot'
@@ -195,7 +195,7 @@ function CurrentHome({
       <AttentionTiles items={items} />
       <MessageInbox
         rooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
-        onOpenRoom={roomId => openRecord('chat', councilId, roomId)}
+        onOpenRoom={(roomId, eventId) => openMessageRoom(councilId, roomId, eventId)}
         onSeeAll={() => openMenu('chat', councilId)}
       />
       <div className="grid gap-6 lg:grid-cols-3">

@@ -18,10 +18,15 @@ const PRODUCT_INFO_LIMIT = { limit: 20, windowMs: 60_000 }
 export function createProductInfoRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; lookup?: ProductLookup | undefined } = {},
+  options: {
+    clock?: () => Date
+    lookup?: ProductLookup | undefined
+    // 전송 후 선조회와 같은 캐시·진행 조회·하루 상한을 쓴다.
+    productInfo?: ReturnType<typeof createProductInfo> | undefined
+  } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
-  const productInfo = createProductInfo({ lookup: options.lookup, clock })
+  const productInfo = options.productInfo ?? createProductInfo({ lookup: options.lookup, clock })
   const limiter = createRateLimiter(PRODUCT_INFO_LIMIT)
   const routes = new Hono<SessionEnv>()
   routes.post(root, json(ProductInfoSchema), requireSession(getSession), async c => {

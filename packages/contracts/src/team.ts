@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isUuid, text, token, UUID_LENGTH } from './input.js'
+import type { DepartmentColorKey } from './department-colors.js'
 import {
   DEPARTMENT_RANKS,
   DEPARTMENT_ROLES,
@@ -31,6 +32,8 @@ export interface TeamDepartment {
   name: string
   role: DepartmentRole | null
   memberCount: number
+  // 이전 응답/견본에 없으면 식별자의 기본색을 쓴다. 서버는 표시색을 항상 준다.
+  color?: DepartmentColorKey | null
 }
 // 운영진 > 사람과 부서 화면이 같이 쓴다. 회장단의 변경도 이 응답을 돌려주고, 화면은 받은 값으로 목록을 통째로 바꾼다.
 export interface TeamResponse {

@@ -10,5 +10,5 @@ export const isPlanRoom = isNull(chatRoom.eventId)
 // chat_room을 합친 조회에서 쓴다.
 export const inNoticeRoom = eq(chatRoom.type, 'all_members')
 
-// 학생회 공간의 공지방. 업무의 공지 만들기가 올리는 곳이다(행사에 이은 업무의 행사 공지방은 행사 방을 만들 때 더한다).
+// 학생회 공간의 공지방. 행사 공지방이 없을 때 끼룩이 글이 오르는 곳이다(행사에 이은 업무의 공지는 그 행사 공지방, chat/send.ts).
 export const inCouncilNoticeRoom = and(inNoticeRoom, isPlanRoom)

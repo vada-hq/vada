@@ -13,6 +13,7 @@ import { settle } from '@/test-support/settle'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
+import { serveEventRooms, WithChat } from '@/test-support/event-rooms'
 import EventsPage from './EventsPage'
 
 // 행사 기본정보 수정 패널(와이어프레임 EVT-02B, DEC-93). 머리의 [기본정보 수정]으로 연다.
@@ -24,7 +25,8 @@ afterEach(async () => {
 })
 
 const BASE = `/api/organizations/${COUNCIL_ID}/events`
-const EVENT_AT = `/events/${COUNCIL_ID}/${EVENT_ID}`
+// 고치기는 개요의 요약 줄에서 연다(메시지 탭은 요약 줄 대신 방 전환이다, 022 정한 것 28).
+const EVENT_AT = `/events/${COUNCIL_ID}/${EVENT_ID}?tab=overview`
 const pathNow = () => window.location.pathname + window.location.search
 
 function setup(event: EventDetail, forms: RegistrationForm[] = []) {
@@ -43,12 +45,21 @@ function setup(event: EventDetail, forms: RegistrationForm[] = []) {
   api.on('GET', `${BASE}/${EVENT_ID}/settlement`, () =>
     json(settlementOf({ remaining: [], settled: true })),
   )
+  serveEventRooms(api, COUNCIL_ID, EVENT_ID)
   window.history.replaceState(null, '', EVENT_AT)
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
   // 떠날 때 확인 창은 작업 공간이 하나 둔다(CouncilWorkspace).
   render(
     <>
-      <EventsPage view={councilView(COUNCIL_ID, { memberId: MEMBER.m1 })} {...handlers} />
+      <WithChat councilId={COUNCIL_ID}>
+        {chat => (
+          <EventsPage
+            view={councilView(COUNCIL_ID, { memberId: MEMBER.m1 })}
+            {...handlers}
+            {...chat}
+          />
+        )}
+      </WithChat>
       <LeaveConfirm />
     </>,
   )
@@ -156,7 +167,7 @@ test('참여 정보는 양식의 참가비·정원을 읽기만 하고, [신청 
       'true',
     ),
   )
-  expect(pathNow()).toBe(`${EVENT_AT}?tab=registrations`)
+  expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=registrations`)
 })
 
 test('양식이 여럿이면 양식 이름마다 참가비·정원이 있고, 없으면 신청 양식 없음이다', async () => {
@@ -225,7 +236,7 @@ test('고친 값이 있으면 [신청 양식에서 수정]도 먼저 묻고, 나
   fireEvent.click(within(forms).getByRole('button', { name: '신청 양식에서 수정' }))
   fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=registrations`))
+  await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=registrations`))
 })
 
 test('고친 값이 있는 동안만 새로 고침·닫기에 브라우저 확인을 건다', async () => {

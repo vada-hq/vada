@@ -100,6 +100,7 @@ function LeadOrg({ renaming = false, adding = false }: { renaming?: boolean; add
           saving={false}
           triggerRef={noop}
           onRename={noop}
+          onColor={noop}
           onToggleFinance={noop}
           onRemove={noop}
         />

@@ -36,6 +36,7 @@ import {
   ItemCancelSection,
 } from './FinanceSections'
 import { EventHeaderSection, EventSection } from './EventSections'
+import { EventMessagesSection, EventRoomListSection } from './EventMessageSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
@@ -66,6 +67,7 @@ import { JoinSection, MyNameSection } from './JoinSections'
 import { ProductPanelSection } from './ProductSections'
 import { WithdrawSection } from './WithdrawSections'
 import { OrgInviteSection, OrgSection } from './OrgSections'
+import { DepartmentColorSection } from './DepartmentColorSections'
 
 // 새 부품이나 변형을 더하면 해당 묶음 파일에도 더한다(AGENTS.md "화면" 절). 와이어프레임 스크린샷과 나란히 비교하는 화면이다.
 export const gallerySections = [
@@ -91,6 +93,8 @@ export const gallerySections = [
   PushSection,
   EventSection,
   EventHeaderSection,
+  EventMessagesSection,
+  EventRoomListSection,
   EventEditSection,
   SettlementSection,
   TaskSection,
@@ -110,6 +114,7 @@ export const gallerySections = [
   FinanceHomeSection,
   HomeFinanceSummarySection,
   OrgSection,
+  DepartmentColorSection,
   OrgInviteSection,
   PublicSection,
   ApplyNoticeSection,

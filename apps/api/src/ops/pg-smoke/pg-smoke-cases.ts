@@ -30,6 +30,7 @@ import {
 import { sameCommandTogetherCase, sameExpenseTogetherCase } from './pg-smoke-command-cases.js'
 import { lastSeatTogetherCase } from './pg-smoke-registration-cases.js'
 import { moveTogetherCase } from './pg-smoke-move-case.js'
+import { eventRoomsTogetherCase } from './pg-smoke-event-room-case.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
 import { writePathCase } from './pg-smoke-write-case.js'
@@ -106,4 +107,5 @@ export const smokeCases: readonly SmokeCase[] = [
   publishTogetherCase,
   publishAndSpendCase,
   publishAndCompleteCase,
+  eventRoomsTogetherCase,
 ]

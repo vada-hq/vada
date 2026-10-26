@@ -16,6 +16,7 @@ import { settlementOf } from '@/test-support/settlement-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
+import { serveEventRooms, WithChat } from '@/test-support/event-rooms'
 import { ADDRESS_LOST, EVENT_ERRORS } from '@/lib/messages'
 import EventsPage from './EventsPage'
 
@@ -82,22 +83,28 @@ function setup(options: { permissions?: string[]; at?: string } = {}) {
   api.on('GET', `${BASE}/${EVENT_ID}/settlement`, () =>
     json(settlementOf({ remaining: [], settled: true })),
   )
+  serveEventRooms(api, COUNCIL_ID, EVENT_ID)
+  serveEventRooms(api, COUNCIL_ID, EVENT2)
   const handlers = { onForbidden: vi.fn(), onTasksChanged: vi.fn() }
   const view = councilView(COUNCIL_ID, { memberId: MEMBER.m1 })
   if (options.permissions) view.permissions = options.permissions as typeof view.permissions
   window.history.replaceState(null, '', options.at ?? LIST_AT)
-  render(<EventsPage view={view} {...handlers} />)
+  render(
+    <WithChat councilId={COUNCIL_ID}>
+      {chat => <EventsPage view={view} {...handlers} {...chat} />}
+    </WithChat>,
+  )
   return { api, handlers }
 }
 
-test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목록에서 다시 연 행사는 개요로 시작한다', async () => {
+test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목록에서 다시 연 행사는 메시지로 시작한다', async () => {
   setup({ at: `${LIST_AT}/${EVENT_ID}?tab=money` })
   const money = await screen.findByRole('tab', { name: '재정' })
   expect(money.getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
-  const overview = await screen.findByRole('tab', { name: '개요' })
-  expect(overview.getAttribute('aria-selected')).toBe('true')
+  const messages = await screen.findByRole('tab', { name: '메시지' })
+  expect(messages.getAttribute('aria-selected')).toBe('true')
   expect(pathNow()).toBe(`${LIST_AT}/${EVENT2}`)
 })
 
@@ -119,6 +126,12 @@ test('[새 행사]는 event.create가 있을 때만 보인다', async () => {
   await screen.findByRole('button', { name: '신입생 환영회' })
   expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
 })
+
+// 목록에서 행사를 열고 개요 탭으로 옮긴다. 행사는 메시지 탭으로 열린다(022 정한 것 28).
+async function openOverview() {
+  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '개요' }))
+}
 
 // 만들기는 이름 하나만 받는다. 일시·장소는 만든 뒤 상세에서 채운다(notes/frontend-fix-plan.md A4).
 async function openCreate() {
@@ -202,7 +215,7 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
       actions: [],
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const tasks = await screen.findByRole('region', { name: '업무' })
   expect(within(tasks).getByText('1/3')).toBeTruthy()
   expect(within(tasks).getByRole('progressbar', { name: '끝난 업무' })).toHaveProperty('value', 1)
@@ -224,7 +237,7 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
 test('개요의 지출 카드에서 [재정 보기]를 누르면 재정 탭이 열린다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const money = await screen.findByRole('region', { name: '지출' })
   fireEvent.click(within(money).getByRole('button', { name: '재정 보기' }))
   expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true')
@@ -237,7 +250,7 @@ test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록
   api.on('POST', `${BASE}/${EVENT_ID}`, () =>
     json({ event: eventDetail({ name: '신입생 환영회(수정)' }, ['event.update']) }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const before = reads()
   fireEvent.change(screen.getByLabelText('행사명'), { target: { value: '신입생 환영회(수정)' } })
@@ -259,7 +272,7 @@ test('빈 일시·장소는 머리에 미정으로 보이고, 준비 단계의 [
     'event.update',
   ])
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const bar = await screen.findByRole('group', { name: '행사 요약' })
   expect(bar.textContent).toContain('일시 미정')
   expect(bar.textContent).toContain('장소 미정')
@@ -281,7 +294,7 @@ test('챙길 것은 지난 업무와 담당자 없는 업무를 보이고, [업�
       truncated: false,
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const attention = await screen.findByRole('region', { name: '챙길 것' })
   expect(within(attention).getByText('마감이 지난 업무')).toBeTruthy()
   expect(within(attention).getByText('현수막 주문 · 의자 빌리기')).toBeTruthy()
@@ -306,7 +319,7 @@ test('챙길 것의 담당자 없음 [업무 보기]는 업무 탭을 담당자 
   api.on('GET', unassigned, () =>
     json({ tasks: [openTask('t2', { title: '의자 빌리기' })], truncated: false }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const attention = await screen.findByRole('region', { name: '챙길 것' })
   const rows = within(attention).getAllByRole('listitem')
   const row = rows.find(item => within(item).queryByText('담당자 없는 업무'))!
@@ -322,7 +335,7 @@ test('다음 업무의 제목을 누르면 그 업무가 업무 주소로 열린
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
   api.on('GET', OPEN_TASKS, () => json({ tasks: [openTask(TASK_ID)], truncated: false }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const next = await screen.findByRole('region', { name: '다음 업무' })
   fireEvent.click(await within(next).findByRole('button', { name: '현수막 주문' }))
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${TASK_ID}`)
@@ -344,7 +357,7 @@ test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 �
       }),
     ),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   const steps = await screen.findByRole('region', { name: '준비 시작하기' })
   expect(within(steps).getByText('4단계 중 0단계 끝남')).toBeTruthy()
   expect(screen.queryByRole('region', { name: '업무' })).toBeNull()
@@ -360,7 +373,7 @@ test('고칠 수 없으면 빈 칸은 미정으로만 보이고 [기본정보 �
   const { api } = setup()
   const empty = eventDetail({ startsAt: null, endsAt: null, place: null, status: 'tbd' })
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: empty }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   expect(await screen.findByText('장소 미정')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '기본정보 수정' })).toBeNull()
 })
@@ -368,7 +381,7 @@ test('고칠 수 없으면 빈 칸은 미정으로만 보이고 [기본정보 �
 test('고치기에서 끝이 시작보다 이르면 저장을 눌러도 보내지 않고 끝 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const end = screen.getByLabelText('종료 일시')
   fireEvent.change(end, { target: { value: '2026-10-24T13:00' } })
@@ -386,7 +399,7 @@ test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 
   api.on('GET', `${BASE}/${EVENT_ID}`, () =>
     json({ event: eventDetail({ startsAt: null, endsAt: null }, ['event.update']) }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   // 비어 있는 끝은 '종료 시간 미정' 체크로 열린다. 풀어야 칸이 켜진다.
   fireEvent.click(screen.getByRole('checkbox', { name: '종료 시간 미정' }))
@@ -400,7 +413,7 @@ test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 
 test('열린 행사가 사라지면(404) 찾을 수 없음을 보이고 행사 목록으로 가는 버튼이 있다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ error: 'NOT_FOUND' }, 404))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   expect(await screen.findByRole('button', { name: '날짜 미정 행사' })).toBeTruthy()
@@ -434,7 +447,7 @@ test('업무 탭은 그 행사의 업무만 읽고, 만들면 그 행사에 이�
   api.on('POST', `/api/organizations/${COUNCIL_ID}/tasks`, () =>
     json({ error: 'EVENT_INVALID' }, 409),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
   await screen.findByRole('button', { name: '현수막 주문' })
   expect(screen.queryByRole('tab', { name: '내 업무' })).toBeNull()
@@ -456,7 +469,7 @@ test.each([403, 404])('고치다가 %i이면 대화상자를 닫고 찾을 수 �
   const { api, handlers } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, ['event.update']) }))
   api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ error: 'X' }, status))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   fireEvent.change(screen.getByLabelText('행사명'), { target: { value: '새 이름' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
@@ -469,7 +482,7 @@ test('대화상자가 열린 채 다시 읽은 actions에서 권한이 빠지면
   const { api } = setup()
   let actions: 'event.update'[] = ['event.update']
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail({}, actions) }))
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   actions = []
   document.dispatchEvent(new Event('visibilitychange'))
@@ -488,7 +501,7 @@ test('업무 탭에서 업무를 만들면 행사 상세도 다시 읽는다', a
   )
   api.on('POST', `/api/organizations/${COUNCIL_ID}/tasks`, () => json({ task: taskDetail() }, 201))
   const reads = () => api.calls.filter(call => call.path === detailPath).length
-  fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
+  await openOverview()
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
   const input = await screen.findByRole('textbox', { name: '새 업무' })
   await settle()

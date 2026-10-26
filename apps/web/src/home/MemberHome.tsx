@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { dateFromKorean, type EventTab, type HomeResponse } from '@vada/contracts'
-import { openMenu, openRecord } from '@/lib/go-to'
+import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import type { RoomListState } from '../chat/useRoomList'
 import type { Page } from '../workspace/pages'
 import HomeFeaturedEvents from './HomeFeaturedEvents'
@@ -69,7 +69,7 @@ export default function MemberHome({
             <MessageInbox
               inCard
               rooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
-              onOpenRoom={roomId => openRecord('chat', councilId, roomId)}
+              onOpenRoom={(roomId, eventId) => openMessageRoom(councilId, roomId, eventId)}
               onSeeAll={() => openMenu('chat', councilId)}
             />
           }
