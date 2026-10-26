@@ -219,8 +219,11 @@ test('모르는 주소는 찾을 수 없음이고 상위 목록으로 가는 버
   expect(pathNow()).toBe(`/home/${C1}`)
 })
 
-test('찾을 수 없음에서 홈으로 간 칸은 옆 메뉴를 열었다 닫아도 홈에 남는다', async () => {
-  window.history.replaceState(null, '', `/tasks/0199d1a0-0000-7000-8000-0000000000ee/${T1}`)
+test.each([
+  `/tasks/0199d1a0-0000-7000-8000-0000000000ee/${T1}`,
+  '/council/0199d1a0-0000-7000-8000-0000000000ee',
+])('다른 학생회 %s는 찾을 수 없음이고 홈으로 간 뒤 서랍을 닫아도 홈이다', async path => {
+  window.history.replaceState(null, '', path)
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '홈으로' }))
   expect(await heading('홈')).toBeTruthy()
