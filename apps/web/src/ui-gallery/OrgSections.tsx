@@ -16,6 +16,7 @@ import { DepartmentMenu } from '@/team/DepartmentMenu'
 import { DepartmentRename } from '@/team/DepartmentRename'
 import { MemberRow } from '@/team/MemberRow'
 import { OrgLayout } from '@/team/OrgLayout'
+import { PersonPicker } from '@/team/PersonPicker'
 import { Section } from './GallerySection'
 
 const noop = () => {}
@@ -57,8 +58,8 @@ const departments: TeamDepartment[] = [
   { id: 'd3', name: '홍'.repeat(DEPARTMENT_NAME_MAX), role: null, memberCount: 0 },
 ]
 
-// 줄은 누르면 사람 상세를 연다. 권한과 관계없이 모양이 같다.
-const row = (member: TeamMember, group: string) => (
+// 줄은 누르면 사람 상세를 연다. 회장단이 보는 미배정 묶음의 줄에는 '부서 배정'과 '내보내기'가 있다.
+const rowOf = (lead: boolean) => (member: TeamMember, group: string) => (
   <MemberRow
     key={member.id}
     member={member}
@@ -66,8 +67,22 @@ const row = (member: TeamMember, group: string) => (
     titles={titles}
     inDepartment={departments.some(item => item.id === group) ? group : null}
     onOpen={noop}
+    actions={
+      lead &&
+      group === 'unassigned' && (
+        <>
+          <Button variant="outline" size="sm" touch>
+            부서 배정
+          </Button>
+          <Button variant="outline" size="sm" touch className="text-red-700">
+            내보내기
+          </Button>
+        </>
+      )
+    }
   />
 )
+const pickerProps = { people: members, saving: false, onPick: noop }
 
 const addProps = {
   saving: false,
@@ -88,16 +103,26 @@ function LeadOrg({ renaming = false, adding = false }: { renaming?: boolean; add
       departments={departments}
       titles={titles}
       unassignedFirst
-      person={row}
+      person={rowOf(true)}
+      councilAction={
+        <PersonPicker label="부회장 지정" accessibleName="회장단에 부회장 지정" {...pickerProps} />
+      }
       departmentAction={department => (
-        <DepartmentMenu
-          department={department}
-          saving={false}
-          triggerRef={noop}
-          onRename={noop}
-          onToggleFinance={noop}
-          onRemove={noop}
-        />
+        <>
+          <PersonPicker
+            label="부장 지정"
+            accessibleName={`${department.name} 부장 지정`}
+            {...pickerProps}
+          />
+          <DepartmentMenu
+            department={department}
+            saving={false}
+            triggerRef={noop}
+            onRename={noop}
+            onToggleFinance={noop}
+            onRemove={noop}
+          />
+        </>
       )}
       departmentEditor={department =>
         renaming &&
@@ -125,7 +150,7 @@ function MemberOrg() {
       departments={departments}
       titles={titles}
       unassignedFirst={false}
-      person={row}
+      person={rowOf(false)}
       departmentAction={() => null}
       departmentEditor={() => null}
       add={null}
