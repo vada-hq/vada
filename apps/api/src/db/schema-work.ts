@@ -38,6 +38,8 @@ export const lineItem = pgTable('line_item', {
   link: text('link'),
   options: text('options'),
   quantity: integer('quantity').notNull(),
+  estimatedUnitPrice: won('estimated_unit_price'),
+  estimatedShippingFee: won('estimated_shipping_fee'),
   amount: won('amount'),
   budgetItemId: uuid('budget_item_id'),
 })

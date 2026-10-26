@@ -61,7 +61,7 @@ export function useDecisionRows({
   const [rows, setRows] = useState<Record<string, RowValues>>(initial)
   // 사용 가능을 넘는 승인을 보내기 전 확인 창이 열려 있는가.
   const [confirming, setConfirming] = useState(false)
-  const rowOf = (id: string) => rows[id] ?? emptyRow()
+  const rowOf = (id: string) => rows[id] ?? emptyRow(items.find(item => item.id === id))
   const chosenOf = (id: string) => chosenItem(rowOf(id), councilId, budgetItems)
   const entries = (): DecisionEntry[] =>
     items.map(item => ({ id: item.id, row: rowOf(item.id), chosen: chosenOf(item.id) }))

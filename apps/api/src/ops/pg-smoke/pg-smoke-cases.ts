@@ -34,6 +34,7 @@ import { eventRoomsTogetherCase } from './pg-smoke-event-room-case.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
 import { writePathCase } from './pg-smoke-write-case.js'
+import { purchaseEstimateCase } from './pg-smoke-purchase-estimate-case.js'
 
 // 실제 PostgreSQL에서 돌리는 점검 사례의 목록. 사례마다 새 시험 사용자와 학생회를 만든다.
 // 동시에 움직이는 쪽은 연결을 따로 열어(ctx.connect) Promise.allSettled로 함께 시작한다. PGlite는 거래를 하나씩 돌리므로
@@ -76,6 +77,7 @@ export {
 
 export const smokeCases: readonly SmokeCase[] = [
   writePathCase,
+  purchaseEstimateCase,
   joinTwiceCase,
   rotateTogetherCase,
   transferAndRemoveCase,
