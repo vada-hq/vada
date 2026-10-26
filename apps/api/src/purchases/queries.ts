@@ -8,6 +8,8 @@ import {
   type PurchaseRequestSummary,
   type PurchaseRequestsResponse,
 } from '@vada/contracts'
+import { shipmentChangeCode } from '../shipments/policy.js'
+import { shipmentsOf } from '../shipments/queries.js'
 import type { Actor } from '../access/actor.js'
 import {
   approval,
@@ -254,6 +256,7 @@ export async function requestDetailOf(
   const row = await requestRowOf(db, actor, requestId)
   const decisions = await decisionsOf(db, requestId)
   const items = await itemsOf(db, actor, row)
+  const facts = await factsOf(db, row)
   return {
     ...summaryOf(
       row,
@@ -263,8 +266,11 @@ export async function requestDetailOf(
     items,
     decisions,
     expenses: await expensesOf(db, requestId),
+    shipments: await shipmentsOf(db, actor, row),
+    canAddShipment:
+      shipmentChangeCode(actor, facts) === null && items.some(item => item.status === 'approved'),
     history: await requestHistoryOf(db, requestId),
     // 완료한 행사의 요청은 취소도 결재도 잠겨 있어 동작을 주지 않는다(DEC-68). 쓰기와 같은 decide다.
-    actions: actionsOf(actor, await factsOf(db, row)),
+    actions: actionsOf(actor, facts),
   }
 }

@@ -143,6 +143,7 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
       ![
         'chat.use',
         'purchase.cancel',
+        'purchase.shipment',
         'purchase.approve',
         'finance.manage',
         'fee_payment.manage',
@@ -200,6 +201,7 @@ test('내 권한 목록: 재정부원은 구매 요청, 결재, 재정 관리를
     )
   assert.deepEqual(purchases(financeMember), [
     'purchase.request',
+    'purchase.shipment',
     'purchase.approve',
     'finance.manage',
   ])
@@ -478,4 +480,13 @@ test('내 권한 목록: 회장단은 신청 관리·보기와 납부 보기를,
   ])
   for (const who of [planningHead, planningViceHead, planningMember, plain])
     assert.deepEqual(mine(who), [])
+})
+
+test('송장은 재정부와 요청자만 변경하고 회장단도 물려받지 않는다', () => {
+  assert.equal(can(financeMember, 'purchase.shipment'), true)
+  for (const who of [president, vicePresident, planningHead, planningMember, plain]) {
+    assert.equal(can(who, 'purchase.shipment'), false)
+    assert.equal(can(who, 'purchase.shipment', { requestedBy: 'someone' }), false)
+    assert.equal(can(who, 'purchase.shipment', { requestedBy: who.memberId }), true)
+  }
 })

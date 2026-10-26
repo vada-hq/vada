@@ -19,8 +19,9 @@ test('응답 계약으로 이미 나간 코드와 상태는 그대로다', () =>
       statusOf('VERSION_CONFLICT'),
       statusOf('BODY_TOO_LARGE'),
       statusOf('UNSUPPORTED_MEDIA_TYPE'),
-      statusOf('DELIVERY_PROVIDER_FAILED'),
+      statusOf('LINE_ITEM_NOT_SHIPPABLE'),
+      statusOf('SHIPMENT_CANCELLED'),
     ],
-    [400, 401, 403, 404, 409, 413, 415, 502],
+    [400, 401, 403, 404, 409, 413, 415, 409, 409],
   )
 })

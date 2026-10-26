@@ -222,6 +222,7 @@ test('내 학생회 목록과 학생회 하나 보기: 만든 사람은 회장�
     const notListed = [
       'chat.use',
       'purchase.cancel',
+      'purchase.shipment',
       'purchase.approve',
       'finance.manage',
       'fee_payment.manage',

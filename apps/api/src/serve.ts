@@ -1,3 +1,4 @@
+import { createDeliveryLookup } from './shipments/provider.js'
 import { serve } from '@hono/node-server'
 import { readRuntime } from './runtime.js'
 import { attachWeb } from './web.js'
@@ -66,6 +67,9 @@ function appOf(env: Env, db: Db) {
     storage: storageOf(env),
     push: pushOf(env),
     productLookup: productLookupOf(env),
+    deliveryLookup: env.DELIVERY_TRACKER_API_KEY?.trim()
+      ? createDeliveryLookup({ apiKey: env.DELIVERY_TRACKER_API_KEY.trim() })
+      : undefined,
   })
   return createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, ...modules })
 }
