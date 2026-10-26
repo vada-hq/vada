@@ -52,12 +52,14 @@ test(
     assert.deepEqual(old.estimate, { subtotal: null, total: null })
     const partial = await s.made({
       title: '배송 미확인',
+      body: `${'a'.repeat(99)}😀뒤에 적은 글`,
       items: [
         { ...ITEM, estimatedUnitPrice: 100 },
         { name: '무료', quantity: 1, estimatedUnitPrice: 0, estimatedShippingFee: 0 },
       ],
     })
     assert.deepEqual(partial.estimate, { subtotal: 300, total: null })
+    assert.equal(partial.bodyPreview, `${'a'.repeat(99)}😀`)
   }),
 )
 
