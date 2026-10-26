@@ -11,11 +11,11 @@ import {
   roomMembership,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { completedEventIdsAmong } from '../policy/locks.js'
 import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
+import { isArchivedEvent } from './archive.js'
 import { currentMembersAmong } from './current-members.js'
 import { excerptOf } from './excerpt.js'
 import { createPresence } from './presence.js'
@@ -84,10 +84,6 @@ const roomTitleOf = (sent: Sent) =>
 const titleOf = (sent: Sent) =>
   sent.eventName ? `${sent.eventName} ${roomTitleOf(sent)}` : roomTitleOf(sent)
 
-// 완료한 행사의 방(보관)은 알리지 않는다(DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
-const isArchived = async (db: Db, sent: Sent) =>
-  sent.eventId !== null && (await completedEventIdsAmong(db, [sent.eventId])).size > 0
-
 async function calledOf(db: Db, messageId: string) {
   const rows = await db
     .select({ recipientId: notification.recipientId })
@@ -104,8 +100,8 @@ export function createChatPush(db: Db, send: PushSender) {
   const fanout = createFanout(db, send)
   async function run(messageId: string, now: Date, except: string | undefined) {
     const sent = await sentMessage(db, messageId)
-    // 보내자마자 지운 메시지는 알리지 않는다(본문이 없다, DEC-54).
-    if (!sent?.councilId || sent.body === null || (await isArchived(db, sent))) return
+    // 보내자마자 지운 메시지와 보관된 행사 방의 글은 알리지 않는다(DEC-54, DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
+    if (!sent?.councilId || sent.body === null || (await isArchivedEvent(db, sent.eventId))) return
     const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
       id => !presence.isViewing(sent.roomId, id, now),
     )

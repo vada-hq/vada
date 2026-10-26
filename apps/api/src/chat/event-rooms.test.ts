@@ -13,6 +13,7 @@ import { createEventRoutes } from '../events/routes.js'
 import type { PushSender } from '../push/sender.js'
 import { createRecord } from '../records/records.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
@@ -56,6 +57,7 @@ async function start() {
       chat: createChatRoutes(db, testSession, { clock: () => now, push: waiting }),
       team: createTeamRoutes(db, testSession, () => now),
       settlement: createSettlementRoutes(db, testSession, { clock: () => now }),
+      tasks: createTaskRoutes(db, testSession, { clock: () => now }),
     }),
   )
   const base = `/api/organizations/${council.councilId}`
@@ -521,5 +523,30 @@ test(
     await t.list()
     await t.eventRooms(mine)
     assert.deepEqual(await t.eventRoomMap(roomless), {})
+  }),
+)
+
+test(
+  '행사가 완료된 열린 업무에는 공지 만들기가 없고, 완료를 취소하면 다시 있다(보내기의 보관 판정과 같은 규칙)',
+  run(async t => {
+    const eventId = await t.createEvent()
+    const taskId = await t.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'task',
+        councilId: t.council.councilId,
+        actor: t.person.president.memberId,
+        values: { title: '공지 올리기', departmentId: t.council.departments.planning, eventId },
+      }),
+    )
+    const canMake = async () => {
+      const response = await t.api.get(`${t.base}/tasks/${taskId}`, 's-president')
+      assert.equal(response.status, 200)
+      return ((await response.json()) as { task: { canMake: string[] } }).task.canMake
+    }
+    assert.ok((await canMake()).includes('message'))
+    await t.complete(eventId)
+    assert.ok(!(await canMake()).includes('message'))
+    await t.cancelCompletion(eventId)
+    assert.ok((await canMake()).includes('message'))
   }),
 )

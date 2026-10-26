@@ -5,12 +5,12 @@ import { chatRoom, record, roomMembership, task } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { authorizeChange, authorizeWrite, type AccessRequest } from '../access/authorize.js'
 import { ApiError } from '../http/errors.js'
-import { lockedCompleted } from '../policy/locks.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
 import { messageOf } from './messages.js'
 import { isStorageKeyConflict, type VerifiedPhoto } from '../storage/uploads.js'
+import { assertRoomOpen } from './archive.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
 import { inNoticeRoom, isPlanRoom } from './plan-room.js'
@@ -96,13 +96,6 @@ async function isTaskNoticeRoom(tx: Tx, actor: Actor, roomId: string, taskId: st
       ),
     )
   return found !== undefined
-}
-
-// 완료한 행사의 방은 보관이라 새 메시지를 받지 않는다(DEC-90, DEC-83). 행사 행을 FOR SHARE로 잠근 뒤 보아
-// 완료(행사 행 FOR NO KEY UPDATE)와 겹치면 하나로 정해진다. 끼룩이 글과 같은 '행사 행 → 내 참여 줄' 순서로 잠근다.
-async function assertRoomOpen(tx: Tx, room: { eventId: string | null }) {
-  if (room.eventId && (await lockedCompleted(tx, [room.eventId])))
-    throw new ApiError('ROOM_ARCHIVED')
 }
 
 // 글 보내기. 내 참여 줄을 FOR NO KEY UPDATE로 잠근 뒤에 보낸다: 내보내기나 부서 빼기가 먼저 줄을 지웠으면 잠금이 줄을 찾지 못해 403이고,
