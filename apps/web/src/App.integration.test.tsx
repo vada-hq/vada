@@ -82,9 +82,10 @@ function openCouncil(id = '0199d1a0-0000-7000-8000-0000000000c1', name = '컴퓨
   emptyRooms(id)
   api.on('GET', `/api/organizations/${id}`, () => json(councilView(id, { name })))
   api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
-  // 회장단에게는 조직 화면 위에 초대 링크가 보인다.
-  api.on('GET', `/api/organizations/${id}/invite`, () => json({ code: 'ABCD2345' }))
+  // 회장단은 조직 화면 머리의 [구성원 초대]로 초대 창을 열 수 있다.
+  api.on('GET', `/api/organizations/${id}/invite`, () => json(INVITE))
 }
+const INVITE = { code: 'ABCD2345', createdAt: '2026-10-25T05:00:00.000Z' }
 
 // 학생회 만들기는 열 때 내 이름(이어진 운영진)을 읽는다. 이 시험들은 아직 이어지지 않은 사람이다.
 function openCreate() {
@@ -544,9 +545,6 @@ test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다
       ? json({ error: 'Internal server error' }, 500)
       : json({ error: 'FORBIDDEN' }, 403),
   )
-  api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/invite', () =>
-    json({ code: 'ABCD2345' }),
-  )
   emptyRooms('0199d1a0-0000-7000-8000-0000000000c1')
   await renderApp()
   await openPeople()
@@ -711,7 +709,7 @@ function councilReads(...after: (() => Response | Promise<Response>)[]) {
     json(teamResponse()),
   )
   api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/invite', () =>
-    json({ code: 'ABCD2345' }),
+    json(INVITE),
   )
   api.on('POST', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/president/transfer', () =>
     json(teamResponse()),
@@ -734,31 +732,34 @@ async function transferPresident() {
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await waitFor(() => expect(councilGets()).toHaveLength(2))
 }
-// 코드 바꾸기는 확인 창을 거친다(기능 020 정한 것 14).
-function rotateInvite() {
-  fireEvent.click(
-    within(screen.getByRole('region', { name: '초대 링크' })).getByRole('button', {
-      name: '코드 바꾸기',
-    }),
-  )
+// 머리글의 [구성원 초대]로 창을 열고 코드를 바꾼다. 코드 바꾸기는 확인 창을 거친다(기능 020 정한 것 14).
+async function rotateInvite() {
+  fireEvent.click(await screen.findByRole('button', { name: '구성원 초대' }))
+  const sheet = await screen.findByRole('dialog', { name: '구성원 초대' })
+  fireEvent.click(await within(sheet).findByRole('button', { name: '코드 바꾸기' }))
   const dialog = screen.getByRole('dialog', { name: '초대 코드를 바꿀까요?' })
   fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
 }
+const inviteGone = () =>
+  waitFor(() => {
+    expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
 
 test('회장 넘기기가 성공해 다시 읽은 학생회에서 내 권한이 줄어도 권한이 바뀌었다는 경고를 보이지 않는다', async () => {
   councilReads(demoted)
   await transferPresident()
-  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  await inviteGone()
   await settle()
   expect(screen.queryByText(LOST)).toBeNull()
 })
 
-test('회장 넘기기 뒤 다시 읽기가 실패하고 코드 바꾸기가 403이면 사라진 초대 카드의 까닭을 보인다', async () => {
+test('회장 넘기기 뒤 다시 읽기가 실패하고 코드 바꾸기가 403이면 초대 창이 닫히고 까닭을 보인다', async () => {
   councilReads(() => json({ error: 'Internal server error' }, 500), demoted)
   await transferPresident()
   await settle()
-  rotateInvite()
-  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  await rotateInvite()
+  await inviteGone()
   expect(await screen.findByText(LOST)).toBeTruthy()
 })
 
@@ -766,13 +767,13 @@ test('회장 넘기기 뒤 내 다시 읽기가 늦게 와도 버려지고, 그 
   const late = deferredResponse()
   councilReads(() => late.promise, demoted)
   await transferPresident()
-  rotateInvite()
-  // 403 문구는 초대 카드 안에도 잠깐 보이므로, 카드가 사라진 뒤의 쪽 문구를 본다.
-  await waitFor(() => expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull())
+  await rotateInvite()
+  // 403 문구는 확인 창 안에도 잠깐 보이므로, 창이 닫힌 뒤의 쪽 문구를 본다.
+  await inviteGone()
   expect(await screen.findByText(LOST)).toBeTruthy()
   late.resolve(json(councilView('0199d1a0-0000-7000-8000-0000000000c1')))
   await settle()
-  expect(screen.queryByRole('region', { name: '초대 링크' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
   expect(screen.getByText(LOST)).toBeTruthy()
 })
 

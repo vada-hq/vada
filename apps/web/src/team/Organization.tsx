@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { UserPlus } from 'lucide-react'
 import type { CouncilView, TeamDepartment, TeamMember } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
+import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -9,7 +12,7 @@ import { DepartmentAdd } from './DepartmentAdd'
 import { DepartmentDialogs } from './DepartmentDialogs'
 import { DepartmentMenu } from './DepartmentMenu'
 import { DepartmentRename } from './DepartmentRename'
-import InviteCard from './InviteCard'
+import { InviteSheet, InviteSheetBody } from './InviteSheet'
 import { MemberRow } from './MemberRow'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
 import { OrgLayout } from './OrgLayout'
@@ -30,7 +33,7 @@ type Props = {
 }
 
 // 조직(DEC-91): 사람과 부서를 한 화면에서 본다. 모든 운영진이 회장단과 부서별 사람을 보고, 회장단은 그 자리에서 부서를 고친다.
-// 사람 줄의 ⋯ 메뉴(부서 배정, 직급, 회장 넘기기, 내보내기)와 회장단의 초대 링크 카드는 사람 화면의 것 그대로다.
+// 사람 줄의 ⋯ 메뉴(부서 배정, 직급, 회장 넘기기, 내보내기)는 사람 화면의 것 그대로다. 회장단은 머리글의 [구성원 초대]로 초대 창을 연다.
 // 동작 버튼은 서버가 준 내 권한 목록으로만 보이거나 숨긴다(DEC-38). 대화상자는 대상이 목록에 있고 권한이 있을 때만 열려 있다.
 export default function Organization({
   view,
@@ -48,7 +51,7 @@ export default function Organization({
   return (
     <PageColumn>
       {people.can('invite.manage') && (
-        <InviteCard councilId={view.council.id} onForbidden={onCouncilChanged} />
+        <Invite councilId={view.council.id} onForbidden={onCouncilChanged} />
       )}
       {messages.map(text => (
         <PageMessage key={text} text={text} />
@@ -191,6 +194,24 @@ function AssignDialog({ people, view, team }: Omit<DialogProps, 'departments'>) 
       onAssign={(departmentId, rank) => people.assign(member, departmentId, rank)}
       onRemove={departmentId => people.removeFrom(member, departmentId)}
     />
+  )
+}
+
+// 회장단에게만 머리글의 [구성원 초대]와 그 창(DEC-47, DEC-91). 권한을 잃으면 둘 다 사라진다.
+function Invite({ councilId, onForbidden }: { councilId: string; onForbidden: () => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <PageActions>
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          <UserPlus aria-hidden />
+          구성원 초대
+        </Button>
+      </PageActions>
+      <InviteSheet open={open} onOpenChange={setOpen}>
+        <InviteSheetBody councilId={councilId} onForbidden={onForbidden} />
+      </InviteSheet>
+    </>
   )
 }
 

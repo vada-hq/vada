@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from './test-support/render-app'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { messagePage, room, roomDetail, roomList } from './test-support/chat-fixtures'
@@ -118,7 +118,7 @@ function openWorkspace() {
     json(teamResponse()),
   )
   api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/invite', () =>
-    json({ code: 'ABCD2345' }),
+    json({ code: 'ABCD2345', createdAt: '2026-10-25T05:00:00.000Z' }),
   )
   api.on('GET', '/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/rooms', () =>
     json(roomList({ rooms: [room(R1, { unread: 3, mentions: 1 }), ...roomList().rooms.slice(1)] })),
@@ -178,8 +178,7 @@ test('작업 공간: 조직', async () => {
   await renderApp()
   await openPeople()
   await screen.findByRole('heading', { level: 2, name: '회장단' })
-  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
-  await screen.findByRole('region', { name: '초대 링크' })
+  await screen.findByRole('button', { name: '구성원 초대' })
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -223,9 +222,19 @@ test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   await renderApp()
   await openPeople()
   await screen.findByRole('heading', { level: 2, name: '회장단' })
-  // 초대 링크는 따로 불러와 늦게 그려진다. 끝난 상태를 찍는다.
-  await screen.findByRole('region', { name: '초대 링크' })
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   await screen.findByRole('dialog')
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+// 열린 창이 주소 기록을 더해 뒤 시험의 시작 화면을 바꾸므로, 창을 연 채 찍는 시험은 맨 끝에 둔다.
+test('작업 공간: 조직의 구성원 초대 창', async () => {
+  pinToday()
+  openWorkspace()
+  await renderApp()
+  await openPeople()
+  fireEvent.click(await screen.findByRole('button', { name: '구성원 초대' }))
+  const sheet = await screen.findByRole('dialog', { name: '구성원 초대' })
+  await within(sheet).findByRole('region', { name: '초대 코드' })
   expect(snapshotHtml()).toMatchSnapshot()
 })

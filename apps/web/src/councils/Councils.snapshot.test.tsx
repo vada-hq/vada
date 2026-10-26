@@ -84,7 +84,9 @@ test('만들기: 오류', async () => {
 test('만들기: 성공하면 초대 링크', async () => {
   const api = mockApi()
   api.on('POST', '/api/organizations/create', () => json({ council: myCouncil('c9') }))
-  api.on('GET', '/api/organizations/c9/invite', () => json({ code: 'ABCD2345' }))
+  api.on('GET', '/api/organizations/c9/invite', () =>
+    json({ code: 'ABCD2345', createdAt: '2026-06-15T03:00:00.000Z' }),
+  )
   createForm(api)
   await submitCreate()
   await screen.findByRole('textbox', { name: '초대 링크' })
