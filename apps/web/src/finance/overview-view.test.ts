@@ -1,51 +1,24 @@
 import { expect, test } from 'vitest'
-import { closingFixture } from '@/test-support/closing-fixtures'
-import { overviewOf, rateOf, sourcesLabel } from './overview-view'
+import { overviewFixture } from '@/test-support/overview-fixtures'
+import { placeOf, rateOf, sourcesLabel, wholeRateOf } from './overview-view'
 
-const line = (purpose: string, budget: number, actual: number) => ({
-  id: purpose,
-  purpose,
-  budget,
-  actual,
-  difference: budget - actual,
-  rate: null,
+test('맨 위 집행률은 소수 한 자리, 행사 줄은 정수이고 예산이 0이면 없다', () => {
+  expect(rateOf(413_000, 1_000_000)).toBe(41.3)
+  expect(rateOf(1, 3)).toBe(33.3)
+  expect(rateOf(150, 100)).toBe(150)
+  expect(rateOf(10, 0)).toBeNull()
+  expect(wholeRateOf(270_000, 500_000)).toBe(54)
+  expect(wholeRateOf(0, 0)).toBeNull()
 })
 
-test('총예산은 수입 예산 항목의 합이고, 남은 예산과 집행률은 지출 예산 합과 이 기간 지출 합으로 셈한다', () => {
-  const closing = closingFixture({
-    income: {
-      ...closingFixture().income,
-      items: [line('학생회비', 2_500_000, 2_000_000), line('학교 지원금', 500_000, 0)],
-    },
-    expense: {
-      items: [line('체육대회', 1_000_000, 600_000), line('간식', 200_000, 50_000)],
-      noItem: 30_000,
-      otherPeriod: 0,
-      total: 680_000,
-    },
-  })
-  expect(overviewOf(closing)).toEqual({
-    total: 3_000_000,
-    sources: ['학생회비', '학교 지원금'],
-    expenseBudget: 1_200_000,
-    spent: 680_000,
-    left: 520_000,
-    rate: 57,
-  })
-})
-
-test('지출 예산이 0이면 집행률은 없고, 예산보다 많이 쓰면 남은 예산은 음수다', () => {
-  expect(rateOf(100, 0)).toBeNull()
-  expect(rateOf(1, 3)).toBe(33)
-  const over = closingFixture({
-    expense: { items: [line('간식', 100, 150)], noItem: 0, otherPeriod: 0, total: 150 },
-  })
-  expect(overviewOf(over).left).toBe(-50)
-  expect(overviewOf(over).rate).toBe(150)
-})
-
-test('재원 이름은 첫 이름과 나머지 수로 줄인다', () => {
+test('재원 이름은 첫 이름과 나머지 수다', () => {
   expect(sourcesLabel([])).toBeNull()
   expect(sourcesLabel(['학생회비'])).toBe('학생회비')
-  expect(sourcesLabel(['학생회비', '학교 지원금', '후원'])).toBe('학생회비 외 2건')
+  expect(sourcesLabel(['학생회비', '지원금', '이월금'])).toBe('학생회비 외 2건')
+})
+
+test('최근 지출의 자리는 행사가 있으면 행사, 없으면 사용처다', () => {
+  const [withEvent, withoutEvent] = overviewFixture().recent
+  expect(withEvent && placeOf(withEvent)).toBe('체육대회')
+  expect(withoutEvent && placeOf(withoutEvent)).toBe('편의점')
 })

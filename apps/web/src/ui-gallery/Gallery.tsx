@@ -24,6 +24,7 @@ import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
+import { OverviewSection } from './OverviewSections'
 import { BudgetItemLineSection, BudgetPlanSection } from './BudgetSections'
 import {
   DecisionPanelSection,
@@ -104,6 +105,7 @@ export const gallerySections = [
   RegistrationSection,
   ApplicantRowSection,
   FinanceSection,
+  OverviewSection,
   DecisionSection,
   DecisionPanelSection,
   ItemCancelSection,

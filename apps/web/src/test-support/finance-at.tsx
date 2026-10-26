@@ -7,7 +7,7 @@ import { COUNCIL_ID } from './workspace-at'
 export { COUNCIL_ID }
 
 // 작업 공간이 하는 일 하나: 주소가 기록이면 그 기록을 열고 시작하는 새 페이지로 그린다.
-// 재정부의 재정 첫 화면은 개요라서, 주소를 정하지 않은 시험은 구매 요청 탭에서 시작한다(첫 화면은 OverviewTab.test가 본다).
+// 재정 첫 화면은 모든 운영진에게 개요라서, 주소를 정하지 않은 시험은 구매 요청 탭에서 시작한다(첫 화면은 OverviewTab.test가 본다).
 export function FinanceAt(props: ComponentProps<typeof FinancePage>) {
   if (window.location.pathname === '/')
     window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=requests`)

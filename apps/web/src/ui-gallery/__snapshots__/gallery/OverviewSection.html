@@ -1,0 +1,529 @@
+<div>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">재정 개요 탭</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full flex-col gap-6">
+<div class="flex flex-col gap-3">
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+<section aria-label="총예산" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-blue-50 text-blue-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column lucide-bar-chart-3" aria-hidden="true">
+<path d="M3 3v16a2 2 0 0 0 2 2h16">
+</path>
+<path d="M18 17V9">
+</path>
+<path d="M13 17V5">
+</path>
+<path d="M8 17v-3">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">편성</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">총예산</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-blue-600">30,000,000원</span>
+<span class="text-xs text-gray-500">학생회비 외 1건</span>
+</section>
+<section aria-label="실제 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-green-50 text-green-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check lucide-check-circle-2" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="m16 9-5.5 5.5L8 12">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">실제 지출</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-green-600">12,400,000원</span>
+<span class="text-xs text-gray-500">결제 완료 9건</span>
+</section>
+<section aria-label="지출 예정" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-orange-50 text-orange-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 6v6l4 2">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">지출 예정</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-orange-600">3,100,000원</span>
+<span class="text-xs text-gray-500">결제 예정 3건</span>
+</section>
+<section aria-label="사용 가능" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-violet-50 text-violet-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 16v-4">
+</path>
+<path d="M12 8h.01">
+</path>
+</svg>
+</span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">사용 가능</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-violet-600">14,500,000원</span>
+<span class="text-xs text-gray-500">새로 쓸 수 있는 금액</span>
+</section>
+</div>
+<section aria-label="전체 예산 집행률" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<p class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+<span class="font-semibold text-gray-900">전체 예산 집행률 41.3%</span>
+<span class="text-gray-600">지출 예정 포함 51.7%</span>
+</p>
+<div class="relative w-full overflow-hidden rounded-full bg-gray-200 h-3">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-300 [&amp;::-webkit-progress-value]:bg-blue-300" value="15500000" max="30000000" aria-label="지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-600 [&amp;::-webkit-progress-value]:bg-blue-600" value="12400000" max="30000000" aria-label="실제 지출">
+</progress>
+</div>
+<div class="flex gap-4 text-xs text-gray-500">
+<span class="flex items-center gap-1.5">
+<span aria-hidden="true" class="size-2 rounded-full bg-blue-600">
+</span>실제 지출</span>
+<span class="flex items-center gap-1.5">
+<span aria-hidden="true" class="size-2 rounded-full bg-blue-300">
+</span>지출 예정</span>
+</div>
+</section>
+<section aria-label="행사별" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<h3 class="border-b px-4 py-3 text-sm font-semibold text-gray-900">행사별</h3>
+<ul aria-label="행사별 예산" class="flex flex-col divide-y">
+<li class="relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="체육대회">
+<span class="line-clamp-2">체육대회</span>
+</button>
+<span class="shrink-0 text-sm font-semibold tabular-nums text-blue-600">2,300,000원</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 5,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 2,100,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">예정 600,000원</span>
+</span>
+</p>
+<div class="flex items-center justify-end gap-2">
+<div class="relative h-2 overflow-hidden rounded-full bg-gray-200 w-12">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-300 [&amp;::-webkit-progress-value]:bg-blue-300" value="2700000" max="5000000" aria-label="체육대회 지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-600 [&amp;::-webkit-progress-value]:bg-blue-600" value="2100000" max="5000000" aria-label="체육대회 실제 지출">
+</progress>
+</div>
+<span class="w-9 text-right text-xs text-gray-700 tabular-nums">54%</span>
+</div>
+</li>
+<li class="relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="신입생 환영 행사">
+<span class="line-clamp-2">신입생 환영 행사</span>
+</button>
+<span class="shrink-0 text-sm font-semibold tabular-nums text-blue-600">1,000,000원</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 3,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 1,800,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">예정 200,000원</span>
+</span>
+</p>
+<div class="flex items-center justify-end gap-2">
+<div class="relative h-2 overflow-hidden rounded-full bg-gray-200 w-12">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-300 [&amp;::-webkit-progress-value]:bg-blue-300" value="2000000" max="3000000" aria-label="신입생 환영 행사 지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-600 [&amp;::-webkit-progress-value]:bg-blue-600" value="1800000" max="3000000" aria-label="신입생 환영 행사 실제 지출">
+</progress>
+</div>
+<span class="w-9 text-right text-xs text-gray-700 tabular-nums">67%</span>
+</div>
+</li>
+<li class="relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="가을 축제">
+<span class="line-clamp-2">가을 축제</span>
+</button>
+<span class="shrink-0 text-sm font-semibold tabular-nums text-blue-600">8,000,000원</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 8,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 0원</span>
+</span>
+<span> · <span class="whitespace-nowrap">예정 0원</span>
+</span>
+</p>
+<div class="flex items-center justify-end gap-2">
+<div class="relative h-2 overflow-hidden rounded-full bg-gray-200 w-12">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-300 [&amp;::-webkit-progress-value]:bg-blue-300" value="0" max="8000000" aria-label="가을 축제 지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-blue-600 [&amp;::-webkit-progress-value]:bg-blue-600" value="0" max="8000000" aria-label="가을 축제 실제 지출">
+</progress>
+</div>
+<span class="w-9 text-right text-xs text-gray-700 tabular-nums">0%</span>
+</div>
+</li>
+<li class="relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50" title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold tabular-nums text-red-600">-60,000원</span>
+</div>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 300,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 336,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">예정 24,000원</span>
+</span>
+</p>
+<div class="flex items-center justify-end gap-2">
+<div class="relative h-2 overflow-hidden rounded-full bg-gray-200 w-12">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-red-600 [&amp;::-webkit-progress-value]:bg-red-600" value="360000" max="300000" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-red-600 [&amp;::-webkit-progress-value]:bg-red-600" value="336000" max="300000" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 실제 지출">
+</progress>
+</div>
+<span class="w-9 text-right text-xs text-gray-700 tabular-nums">120%</span>
+</div>
+</li>
+</ul>
+</section>
+<section aria-label="최근 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<div class="flex items-center justify-between gap-3 border-b px-4 py-3">
+<h3 class="text-sm font-semibold text-gray-900">최근 지출</h3>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">지출 전체 보기</button>
+</div>
+<ul aria-label="최근 지출 목록" class="flex flex-col divide-y">
+<li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50">
+<span class="line-clamp-2">현수막 제작</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">180,000원</span>
+</div>
+<p class="text-xs wrap-anywhere text-gray-500">6월 17일 (수) · 체육대회</p>
+</li>
+<li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50">
+<span class="line-clamp-2">생수 구매</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">120,000원</span>
+</div>
+<p class="text-xs wrap-anywhere text-gray-500">6월 16일 (화) · 체육대회</p>
+</li>
+<li class="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50">
+<div class="flex items-start gap-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 min-w-0 flex-1 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring/50">
+<span class="line-clamp-2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</button>
+<span class="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">75,000원</span>
+</div>
+<p class="text-xs wrap-anywhere text-gray-500">6월 15일 (월) · 문구점</p>
+</li>
+</ul>
+</section>
+<section aria-label="예산 항목별 현황" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h3 class="text-sm font-semibold text-gray-900">예산 항목별 현황</h3>
+<div class="@container">
+<ul aria-label="지출 예산 항목" class="grid gap-2 @2xl:grid-cols-2 @4xl:grid-cols-3">
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="식비" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">식비</span>
+</div>
+<span title="체육대회" class="line-clamp-1 text-xs wrap-anywhere text-gray-500">체육대회</span>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 5,000,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 2,100,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 600,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-blue-700">사용 가능 2,300,000원</p>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm h-full p-3">
+<div class="flex min-w-0 flex-col gap-1">
+<div class="flex items-start gap-2">
+<span title="간식" class="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">간식</span>
+</div>
+<span title="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름" class="line-clamp-1 text-xs wrap-anywhere text-gray-500">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<p class="text-xs text-gray-500 tabular-nums">
+<span>
+<span class="whitespace-nowrap">배정 300,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">실제 지출 336,000원</span>
+</span>
+<span> · <span class="whitespace-nowrap">지출 예정 24,000원</span>
+</span>
+</p>
+<p class="text-base font-semibold tabular-nums text-red-600">사용 가능 -60,000원</p>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<p class="flex justify-between gap-3 text-sm text-gray-700">
+<span>예산 항목 안 정한 지출</span>
+<span class="whitespace-nowrap tabular-nums">75,000원</span>
+</p>
+</section>
+</div>
+<div class="flex flex-col gap-3">
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+<section aria-label="총예산" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-blue-50 text-blue-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column lucide-bar-chart-3" aria-hidden="true">
+<path d="M3 3v16a2 2 0 0 0 2 2h16">
+</path>
+<path d="M18 17V9">
+</path>
+<path d="M13 17V5">
+</path>
+<path d="M8 17v-3">
+</path>
+</svg>
+</span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">총예산</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-blue-600">100,000원</span>
+<span class="text-xs text-gray-500">학생회비</span>
+</section>
+<section aria-label="실제 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-green-50 text-green-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check lucide-check-circle-2" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="m16 9-5.5 5.5L8 12">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">실제 지출</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-green-600">130,000원</span>
+<span class="text-xs text-gray-500">결제 완료 1건</span>
+</section>
+<section aria-label="지출 예정" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-orange-50 text-orange-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 6v6l4 2">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">지출 예정</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-orange-600">0원</span>
+<span class="text-xs text-gray-500">결제 예정 0건</span>
+</section>
+<section aria-label="사용 가능" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-violet-50 text-violet-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 16v-4">
+</path>
+<path d="M12 8h.01">
+</path>
+</svg>
+</span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">사용 가능</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-red-600">-30,000원</span>
+<span class="text-xs text-gray-500">새로 쓸 수 있는 금액</span>
+</section>
+</div>
+<section aria-label="전체 예산 집행률" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<p class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+<span class="font-semibold text-gray-900">전체 예산 집행률 130%</span>
+<span class="text-gray-600">지출 예정 포함 130%</span>
+</p>
+<div class="relative w-full overflow-hidden rounded-full bg-gray-200 h-3">
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-red-600 [&amp;::-webkit-progress-value]:bg-red-600" value="130000" max="100000" aria-label="지출 예정 포함">
+</progress>
+<progress class="absolute inset-0 size-full appearance-none overflow-hidden rounded-full [&amp;::-webkit-progress-bar]:bg-transparent bg-transparent [&amp;::-moz-progress-bar]:bg-red-600 [&amp;::-webkit-progress-value]:bg-red-600" value="130000" max="100000" aria-label="실제 지출">
+</progress>
+</div>
+<div class="flex gap-4 text-xs text-gray-500">
+<span class="flex items-center gap-1.5">
+<span aria-hidden="true" class="size-2 rounded-full bg-blue-600">
+</span>실제 지출</span>
+<span class="flex items-center gap-1.5">
+<span aria-hidden="true" class="size-2 rounded-full bg-blue-300">
+</span>지출 예정</span>
+</div>
+</section>
+<section aria-label="행사별" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<h3 class="border-b px-4 py-3 text-sm font-semibold text-gray-900">행사별</h3>
+<div class="p-4">
+<p class="text-sm wrap-anywhere text-gray-500">행사 예산 없음</p>
+</div>
+</section>
+<section aria-label="최근 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<div class="flex items-center justify-between gap-3 border-b px-4 py-3">
+<h3 class="text-sm font-semibold text-gray-900">최근 지출</h3>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">지출 전체 보기</button>
+</div>
+<div class="p-4">
+<p class="text-sm wrap-anywhere text-gray-500">지출 없음</p>
+</div>
+</section>
+<section aria-label="예산 항목별 현황" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h3 class="text-sm font-semibold text-gray-900">예산 항목별 현황</h3>
+<p class="text-sm wrap-anywhere text-gray-500">지출 예산 항목 없음</p>
+</section>
+</div>
+<div class="flex flex-col gap-3">
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+<section aria-label="총예산" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-blue-50 text-blue-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column lucide-bar-chart-3" aria-hidden="true">
+<path d="M3 3v16a2 2 0 0 0 2 2h16">
+</path>
+<path d="M18 17V9">
+</path>
+<path d="M13 17V5">
+</path>
+<path d="M8 17v-3">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">편성</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">총예산</h3>
+</div>
+<span class="py-1.5 text-sm text-gray-500">수입 예산 없음</span>
+</section>
+<section aria-label="실제 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-green-50 text-green-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check lucide-check-circle-2" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="m16 9-5.5 5.5L8 12">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">실제 지출</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-green-600">0원</span>
+<span class="text-xs text-gray-500">결제 완료 0건</span>
+</section>
+<section aria-label="지출 예정" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-orange-50 text-orange-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 6v6l4 2">
+</path>
+</svg>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">내역</button>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">지출 예정</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-orange-600">0원</span>
+<span class="text-xs text-gray-500">결제 예정 0건</span>
+</section>
+<section aria-label="사용 가능" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-1 p-4">
+<div class="mb-2 flex items-start justify-between gap-2">
+<span aria-hidden="true" class="flex size-9 items-center justify-center rounded-md [&amp;_svg]:size-4 bg-violet-50 text-violet-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+<path d="M12 16v-4">
+</path>
+<path d="M12 8h.01">
+</path>
+</svg>
+</span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-sm text-gray-600">사용 가능</h3>
+</div>
+<span class="font-bold wrap-anywhere text-lg sm:text-2xl lg:text-xl xl:text-2xl text-violet-600">0원</span>
+<span class="text-xs text-gray-500">새로 쓸 수 있는 금액</span>
+</section>
+</div>
+<section aria-label="전체 예산 집행률" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<p class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+<span class="font-semibold text-gray-900">전체 예산 집행률 </span>
+</p>
+<span class="text-sm text-gray-500">수입 예산 없음</span>
+</section>
+<section aria-label="행사별" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<h3 class="border-b px-4 py-3 text-sm font-semibold text-gray-900">행사별</h3>
+<div class="p-4">
+<p class="text-sm wrap-anywhere text-gray-500">행사 예산 없음</p>
+</div>
+</section>
+<section aria-label="최근 지출" class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<div class="flex items-center justify-between gap-3 border-b px-4 py-3">
+<h3 class="text-sm font-semibold text-gray-900">최근 지출</h3>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-3.5 h-auto p-0 text-xs text-gray-500">지출 전체 보기</button>
+</div>
+<div class="p-4">
+<p class="text-sm wrap-anywhere text-gray-500">지출 없음</p>
+</div>
+</section>
+<section aria-label="예산 항목별 현황" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h3 class="text-sm font-semibold text-gray-900">예산 항목별 현황</h3>
+<p class="text-sm wrap-anywhere text-gray-500">지출 예산 항목 없음</p>
+</section>
+</div>
+</div>
+</div>
+</section>
+</div>

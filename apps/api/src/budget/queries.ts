@@ -94,22 +94,25 @@ export async function budgetViewOf(
   }
 }
 
-// 고른 기간(이 학생회 것만, 아니면 404)이나 오늘의 예산. 오늘 기간이 없으면 period가 null이다(만들기 창은 화면이 학기로 채운다).
+// 고른 기간(이 학생회 것만, 아니면 404)이나 오늘이 든 기간. 고르지 않았고 오늘 기간이 없으면 null이다. 예산 읽기와 재정 첫 화면이 같이 쓴다.
+export async function pickedPeriodOf(db: Reader, actor: Actor, now: Date, periodId?: string) {
+  if (!periodId) return currentPeriodOf(db, actor, now)
+  const picked = await periodWhere(
+    db,
+    and(eq(fiscalPeriod.id, periodId), eq(fiscalPeriod.councilId, actor.councilId)),
+  )
+  if (!picked) throw new ApiError('NOT_FOUND')
+  return picked
+}
+
+// 고른 기간이나 오늘의 예산. 기간이 없으면 period가 null이다(만들기 창은 화면이 학기로 채운다).
 export async function budgetOf(
   db: Reader,
   actor: Actor,
   now: Date,
   periodId?: string,
 ): Promise<BudgetResponse> {
-  if (periodId) {
-    const picked = await periodWhere(
-      db,
-      and(eq(fiscalPeriod.id, periodId), eq(fiscalPeriod.councilId, actor.councilId)),
-    )
-    if (!picked) throw new ApiError('NOT_FOUND')
-    return budgetViewOf(db, picked)
-  }
-  const period = await currentPeriodOf(db, actor, now)
+  const period = await pickedPeriodOf(db, actor, now, periodId)
   if (period) return budgetViewOf(db, period)
   return { period: null, items: [] }
 }
