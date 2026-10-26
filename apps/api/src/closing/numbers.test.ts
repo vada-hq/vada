@@ -17,6 +17,7 @@ test(
     const closing = await readClosing(t, period)
     assert.equal(closing.expense.total, 110)
     assert.equal(closing.expense.noItem, 110)
+    assert.equal(closing.checks.find(check => check.kind === 'no_period')?.count, 2)
   }),
 )
 
@@ -79,6 +80,7 @@ test(
         ['no_account', 1],
         ['no_item', 1],
         ['other_period_item', 0],
+        ['no_period', 0],
       ],
     )
     assert.deepEqual(closing.exportInfo, {
@@ -213,7 +215,7 @@ test(
 )
 
 test(
-  '점검: 증빙·사유·환급·계좌·예산 항목이 빠진 지출과 다른 기간 항목. 취소한 지출과 기간 밖 지출은 세지 않는다',
+  '점검: 빠진 칸·다른 기간 항목·회계 기간 없는 지출. 취소한 지출은 세지 않는다',
   withSettlement(async t => {
     const { period, budget } = await t.budgetOf()
     const item = await t.budgetItem(budget, { purpose: '대관' })
@@ -257,6 +259,7 @@ test(
       no_account: 2,
       no_item: 3,
       other_period_item: 1,
+      no_period: 1,
     })
     const reasonless = closing.checks.find(c => c.kind === 'no_reason')
     assert.deepEqual(

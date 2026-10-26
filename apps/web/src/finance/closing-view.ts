@@ -17,6 +17,7 @@ export const CHECK_LABEL: Record<ClosingCheckKind, string> = {
   no_account: '계좌가 없는 지출',
   no_item: '예산 항목이 없는 지출',
   other_period_item: '다른 기간 예산 항목을 고른 지출',
+  no_period: '회계 기간이 없는 지출',
 }
 
 // 음수(남은 돈이 모자람, 차이)는 부호를 붙여 적는다.

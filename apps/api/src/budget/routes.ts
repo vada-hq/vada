@@ -50,13 +50,19 @@ function itemRoutes({ routes, auth, clock, change }: Kit) {
   routes.post(`${root}/budget-items`, json(CreateBudgetItemSchema), auth, async c => {
     const input = c.req.valid('json')
     const now = clock()
-    const view = await change(c, now, (tx, actor) => addBudgetItem(tx, actor, input, now))
+    const { period: periodId } = parseQuery(BudgetQuerySchema, c.req.queries())
+    const view = await change(c, now, (tx, actor) =>
+      addBudgetItem(tx, actor, input, { now, periodId }),
+    )
     return c.json(view satisfies BudgetResponse, CREATED)
   })
   routes.post(`${root}/budget-items/batch`, json(CreateBudgetItemsSchema), auth, async c => {
     const { items } = c.req.valid('json')
     const now = clock()
-    const view = await change(c, now, (tx, actor) => addBudgetItems(tx, actor, items, now))
+    const { period: periodId } = parseQuery(BudgetQuerySchema, c.req.queries())
+    const view = await change(c, now, (tx, actor) =>
+      addBudgetItems(tx, actor, items, { now, periodId }),
+    )
     return c.json(view satisfies BudgetResponse, CREATED)
   })
   routes.post(`${root}/budget-items/:itemId`, json(UpdateBudgetItemSchema), auth, async c => {

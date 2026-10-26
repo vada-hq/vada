@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { EXPENSE_METHODS } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
@@ -71,20 +72,40 @@ export function NameFields({ values, disabled, onChange, errors }: Omit<FieldsPr
 }
 
 // 결제일은 미래 날짜를 막고, 결제 수단은 직접 고르게 한다(DEC-92).
-export function PaymentFields({ values, disabled, today, onChange, errors }: FieldsProps) {
+export function PaymentFields({
+  values,
+  disabled,
+  today,
+  onChange,
+  errors,
+  paidOnNotice,
+}: FieldsProps & {
+  paidOnNotice?: string | undefined
+}) {
+  const noticeId = useId()
   return (
     <>
-      <Field label="결제일" required error={errors.paidOn}>
-        <Input
-          type="date"
-          max={today}
-          value={values.paidOn}
-          disabled={disabled}
-          onChange={event => onChange({ ...values, paidOn: event.target.value })}
-        />
-      </Field>
+      <div className="flex flex-col gap-2">
+        <Field label="결제일" required error={errors.paidOn}>
+          <Input
+            type="date"
+            className="max-sm:min-h-11"
+            max={today}
+            value={values.paidOn}
+            disabled={disabled}
+            aria-describedby={paidOnNotice ? noticeId : undefined}
+            onChange={event => onChange({ ...values, paidOn: event.target.value })}
+          />
+        </Field>
+        {paidOnNotice && (
+          <p id={noticeId} role="status" className="text-xs break-keep text-amber-700">
+            {paidOnNotice}
+          </p>
+        )}
+      </div>
       <Field label="결제 수단" required error={errors.method}>
         <NativeSelect
+          className="max-sm:min-h-11"
           value={values.method}
           disabled={disabled}
           onChange={event =>

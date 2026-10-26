@@ -7,6 +7,7 @@ import {
   type PurchaseView,
 } from '@vada/contracts'
 import { useHere } from '@/lib/app-location'
+import { openMenu } from '@/lib/go-to'
 import { pickQuery, useMenuQuery } from '@/lib/use-menu-query'
 
 // 요청·지출·수입 상세가 열린 동안 뒤의 탭은 그 기록의 탭이다. 그 전에 보던 다른 탭의 기억을 따르지 않는다.
@@ -26,6 +27,8 @@ export function useFinanceControls(councilId: string, access: TabAccess) {
   const tab = asked === 'fees' && !access.fees ? 'overview' : asked
   // 권한은 화면이 열린 뒤에도 바뀌므로 매번 본다. 주소가 이 메뉴 첫 화면일 때만 바꿔 쓴다.
   useEffect(() => {
+    if (url.active && asked === 'accounts')
+      openMenu('settings', councilId, { tab: 'accounts' }, { replace: true })
     if (url.active && asked !== tab) url.set({ tab: null })
   })
   return {

@@ -11,6 +11,7 @@ import { budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fix
 import { asElement } from '@/test-support/elements'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { periodSummary } from '@/test-support/income-fixtures'
 
 // 회계 기간 만들기는 오늘이 든 학기로 채운다. 시험의 오늘은 2026-10-26(2학기)이다.
 beforeEach(() => {
@@ -27,12 +28,17 @@ afterEach(async () => {
 const ORG = `/api/organizations/${COUNCIL_ID}`
 const BUDGET = `${ORG}/budget`
 
-function show(permissions = FINANCE_PERMISSIONS, budget = budgetWithoutPeriod()) {
+function show(
+  permissions = FINANCE_PERMISSIONS,
+  budget = budgetWithoutPeriod(),
+  periods = budget.period ? [periodSummary(budget.period.id, budget.period)] : [],
+) {
   const api = mockApi()
   api.on('GET', `${ORG}/purchase-requests?view=mine`, () =>
     json({ requests: [], truncated: false }),
   )
   api.on('GET', BUDGET, () => json(budget))
+  api.on('GET', `${ORG}/fiscal-periods`, () => json({ periods }))
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(<FinanceAt view={councilView(COUNCIL_ID, { permissions })} {...handlers} />)
   fireEvent.click(screen.getByRole('tab', { name: '예산' }))
@@ -42,7 +48,7 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const button = (name: string) => asElement(screen.getByRole('button', { name }), HTMLButtonElement)
 
-test('재정부의 탭은 개요, 구매 요청, 지출, 수입, 예산, 계좌, 납부자 명단, 결산이다', async () => {
+test('재정 탭에는 계좌가 없다', async () => {
   show()
   await screen.findByText(/아직 회계 기간이 없어요/)
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
@@ -52,10 +58,63 @@ test('재정부의 탭은 개요, 구매 요청, 지출, 수입, 예산, 계좌,
     '수입',
     '예산',
     '행사 정산',
-    '계좌',
     '납부자 명단',
     '결산',
   ])
+})
+
+test('오늘이 든 기간이 없어도 미리 만든 다음 기간을 골라 편성한다', async () => {
+  const period = periodSummary('77777777-7777-4777-8777-777777777779', {
+    name: '2027년 1학기',
+    startsOn: '2027-01-01',
+    endsOn: '2027-06-30',
+    current: false,
+  })
+  const { api } = show(FINANCE_PERMISSIONS, budgetWithoutPeriod(), [period])
+  api.on('GET', `${BUDGET}?period=${period.id}`, () => json({ period, items: [] }))
+  await waitFor(() =>
+    expect(
+      asElement(screen.getByRole('combobox', { name: '회계 기간' }), HTMLSelectElement).value,
+    ).toBe(period.id),
+  )
+  expect(screen.getByRole('button', { name: '예산 편성' })).toBeTruthy()
+})
+
+test('다음 기간을 만들면 그 기간을 골라 예산 편성하고 새로고침할 주소에도 남긴다', async () => {
+  const { api } = show(FINANCE_PERMISSIONS, budgetWithPeriod())
+  const id = '77777777-7777-4777-8777-777777777779'
+  const period = periodSummary(id, {
+    name: '2027년 1학기',
+    startsOn: '2027-03-01',
+    endsOn: '2027-08-31',
+    current: false,
+  })
+  const next = { period, items: [] }
+  api.on('GET', `${ORG}/fiscal-periods`, () => json({ periods: [period] }))
+  api.on('POST', `${ORG}/fiscal-periods`, () => json(next, 201))
+  api.on('GET', `${BUDGET}?period=${id}`, () => json(next))
+  api.on('POST', `${ORG}/budget-items/batch?period=${id}`, () => json(next, 201))
+  fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
+  await screen.findByRole('form', { name: '회계 기간 만들기' })
+  fill('이름', period.name)
+  fill('시작일', period.startsOn)
+  fill('끝일', period.endsOn)
+  fireEvent.click(button('만들기'))
+  await waitFor(() => expect(window.location.search).toContain(`period=${id}`))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() =>
+    expect(
+      asElement(screen.getByRole('combobox', { name: '회계 기간' }), HTMLSelectElement).value,
+    ).toBe(id),
+  )
+  await openPlan('다음 학기 식비', '1000')
+  fireEvent.click(button('예산 저장'))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(
+    api.calls.some(
+      call => call.method === 'POST' && call.path.endsWith(`/budget-items/batch?period=${id}`),
+    ),
+  ).toBe(true)
 })
 
 test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 오늘이 든 학기의 이름과 날짜로 채워진다', async () => {
@@ -124,7 +183,7 @@ test('보내는 동안 막히고 두 번 눌러도 한 번만 간다', async () 
 
 test('기간이 있으면 이름, 기간, 지출 항목과 [예산 편성]이 보인다', async () => {
   show(FINANCE_PERMISSIONS, budgetWithPeriod())
-  expect(await screen.findByText('2026년 2학기')).toBeTruthy()
+  expect(await screen.findByRole('option', { name: '2026년 2학기 (지금)' })).toBeTruthy()
   expect(screen.getByText('2026-09-01 ~ 2027-02-28')).toBeTruthy()
   const list = screen.getByRole('list', { name: '예산 항목' })
   expect(within(list).getByText('행사 홍보')).toBeTruthy()
@@ -134,7 +193,7 @@ test('기간이 있으면 이름, 기간, 지출 항목과 [예산 편성]이 �
 
 test('재정부가 아니면 보기만 하고 만들기와 편성 버튼이 없다', async () => {
   show(MEMBER_PERMISSIONS, budgetWithPeriod())
-  await screen.findByText('2026년 2학기')
+  await screen.findByRole('option', { name: '2026년 2학기 (지금)' })
   expect(screen.queryByRole('button', { name: '예산 편성' })).toBeNull()
   cleanup()
   show(MEMBER_PERMISSIONS)
