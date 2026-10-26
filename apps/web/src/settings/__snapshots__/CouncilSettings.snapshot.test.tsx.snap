@@ -2,7 +2,7 @@
 
 exports[`권한 없음: 보기만 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <p class="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
@@ -91,7 +91,7 @@ exports[`권한 없음: 보기만 1`] = `
 
 exports[`성공 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
@@ -192,7 +192,7 @@ exports[`성공 1`] = `
 
 exports[`오류: 권한을 잃음 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
@@ -293,7 +293,7 @@ exports[`오류: 권한을 잃음 1`] = `
 
 exports[`오류: 임기 시작 전 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
@@ -394,7 +394,7 @@ exports[`오류: 임기 시작 전 1`] = `
 
 exports[`임기 순서 오류 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
@@ -495,7 +495,7 @@ exports[`임기 순서 오류 1`] = `
 
 exports[`입력 전: 회장단 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
@@ -595,7 +595,7 @@ exports[`입력 전: 회장단 1`] = `
 
 exports[`진행 중 1`] = `
 "<div>
-<div class="mx-auto w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full max-w-5xl flex flex-col gap-4">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
 <form novalidate="" aria-label="학생회 정보" class="flex flex-col gap-4">
 <h2 class="text-base font-semibold text-gray-900">학생회 정보</h2>
