@@ -1,6 +1,11 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { koreanDateOf, type EventSummary, type TaskSummary } from '@vada/contracts'
+import {
+  KOREAN_DATE_LENGTH,
+  koreanDateOf,
+  type EventSummary,
+  type TaskSummary,
+} from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -24,16 +29,20 @@ type Props = {
   row: (task: TaskSummary) => ReactNode
   onOpenTask: (taskId: string) => void
   onOpenEvent?: ((eventId: string) => void) | undefined
+  initialDate?: string | undefined
 }
 
-// 달과 고른 날. 달을 옮기면 그 달에 오늘이 있으면 오늘, 없으면 1일을 고른다.
-function useCalendarState() {
+// 행사 일시는 한국 시각 글이다. 늦게 읽혀도 첫 화면에 반영하되 사람이 고른 월·날짜는 재조회가 덮지 않는다.
+// 달을 옮기면 그 달에 오늘이 있으면 오늘, 없으면 1일을 고른다.
+function useCalendarState(initialDate: string | undefined) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [month, setMonth] = useState(() => monthOf(today))
-  const [selected, setSelected] = useState(today)
+  const initialDay = initialDate?.slice(0, KOREAN_DATE_LENGTH) ?? today
+  const [navigation, setNavigation] = useState<{ month: string; selected: string } | null>(null)
+  const month = navigation?.month ?? monthOf(initialDay)
+  const selected = navigation?.selected ?? initialDay
+  const setSelected = (day: string) => setNavigation({ month, selected: day })
   const go = (next: string) => {
-    setMonth(next)
-    setSelected(next === monthOf(today) ? today : `${next}-01`)
+    setNavigation({ month: next, selected: next === monthOf(today) ? today : `${next}-01` })
   }
   return { today, month, selected, setSelected, go }
 }
@@ -101,8 +110,8 @@ function WeekdayHeader() {
 
 // 업무 화면의 달력 보기: 월 달력(행사는 여러 날 막대, 업무는 마감날의 제목) 아래에 고른 날의 줄 목록을 둔다.
 // 달력은 한 달의 흐름을, 아래 목록은 그날의 자세한 내용과 동작을 맡는다(휴대폰은 칸에 점만 보인다).
-export function TaskCalendar({ tasks, events, row, onOpenTask, onOpenEvent }: Props) {
-  const { today, month, selected, setSelected, go } = useCalendarState()
+export function TaskCalendar({ tasks, events, row, onOpenTask, onOpenEvent, initialDate }: Props) {
+  const { today, month, selected, setSelected, go } = useCalendarState(initialDate)
   const listRef = useRef<HTMLDivElement>(null)
   const byDay = useMemo(() => tasksByDay(tasks), [tasks])
   const undated = tasks.filter(task => task.dueDate === null)

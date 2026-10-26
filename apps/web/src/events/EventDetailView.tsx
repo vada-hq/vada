@@ -160,6 +160,7 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
         <TasksPage
           view={view}
           eventId={eventId}
+          calendarEvent={detail.state.kind === 'ready' ? detail.state.data.event : undefined}
           initialCreate={props.taskLink.create}
           onForbidden={props.onForbidden}
           onChanged={() => {

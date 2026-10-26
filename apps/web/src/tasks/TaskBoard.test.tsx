@@ -222,7 +222,7 @@ test('행사의 업무 탭 달력에는 그 행사만 있다', async () => {
     `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks&layout=calendar`,
   )
   serve([], [], EVENT_ID)
-  const day = { startsAt: '2026-10-30T14:00', endsAt: '2026-10-30T18:00' }
+  const day = { startsAt: '2027-02-01T00:10', endsAt: '2027-02-01T18:00' }
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
     json({
       events: [
@@ -234,7 +234,8 @@ test('행사의 업무 탭 달력에는 그 행사만 있다', async () => {
   )
   render(page(EVENT_ID))
   expect(
-    await screen.findByRole('button', { name: '10월 30일 (금) 업무 0개, 행사 1개' }),
+    await screen.findByRole('button', { name: '2월 1일 (월) 업무 0개, 행사 1개' }),
   ).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '2027년 2월' })).toBeTruthy()
   vi.useRealTimers()
 })

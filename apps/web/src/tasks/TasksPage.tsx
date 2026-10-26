@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { CouncilView, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
+import type { CouncilView, EventSummary, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { useEvents, type EventList } from '@/events/useEvents'
@@ -33,6 +33,8 @@ type Props = {
   initialCreate?: boolean | undefined
   // 행사의 업무 탭이면 그 행사의 업무만 보이고, 빠른 추가는 그 행사로 만든다.
   eventId?: string | undefined
+  // 행사 상세가 이미 읽은 일시. 목록 상한이나 재조회 지연 때문에 달력이 오늘 월로 돌아가지 않게 한다.
+  calendarEvent?: Pick<EventSummary, 'id' | 'startsAt' | 'endsAt'> | undefined
   // 우리 학생회 공간은 같은 전체 업무 보드를 메뉴 대신 공간의 주소로 연다.
   councilSpace?: boolean | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
@@ -177,6 +179,8 @@ function useTasksPage(props: Props) {
     list,
     done,
     events,
+    eventId: props.eventId,
+    calendarEvent: props.calendarEvent,
     changed,
     rows,
     table,
@@ -227,7 +231,16 @@ function TasksBody({
 }) {
   const { controls, list, rows, table } = page
   if (controls.layout === 'calendar')
-    return <TaskCalendarBody open={list} done={page.done} events={page.events} {...rows} />
+    return (
+      <TaskCalendarBody
+        open={list}
+        done={page.done}
+        events={page.events}
+        eventId={page.eventId}
+        calendarEvent={page.calendarEvent}
+        {...rows}
+      />
+    )
   if (page.board)
     return (
       <TaskBoard
