@@ -90,7 +90,7 @@ export interface EventVersion {
 }
 
 // 행사 머리의 다음 일정: 지금 뒤의 가장 이른 것. 업무는 마감 날짜(한국), 행사 시작은 한국 시각 YYYY-MM-DDTHH:mm이다.
-type EventNext =
+export type EventNext =
   { kind: 'task'; dueDate: string; title: string } | { kind: 'start'; startsAt: string }
 
 export interface EventDetail extends EventSummary {

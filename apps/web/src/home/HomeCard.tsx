@@ -1,11 +1,9 @@
 import { useId, type ReactNode } from 'react'
 import { ChevronRight, type LucideIcon } from 'lucide-react'
+import { HOME_CARD_ROWS } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-
-// 카드마다 그리는 줄 수(DEC-95, 기획자 HOME_PROTOTYPE_LIMIT). contracts의 HOME_CARD_ROWS(027 조각 4)가 main에 오르면 그 값을 쓴다.
-const CARD_ROWS = 3
 
 // 카드 자료의 상태. 아직 읽지 못했거나 읽기에 실패한 카드는 0으로 세지 않는다(DEC-95, 기획자 D-11 ③).
 // 줄은 서버가 정한 차례 그대로이고 카드는 다시 줄 세우지 않는다. total은 줄 수가 아니라 전체 수다.
@@ -45,7 +43,7 @@ function CardCount({
   aside,
 }: Pick<Props, 'read' | 'onSeeAll' | 'aside'> & { unit: string }) {
   if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-gray-500">집계 전</span>
-  const seeAll = read.total > CARD_ROWS && onSeeAll !== undefined
+  const seeAll = read.total > HOME_CARD_ROWS && onSeeAll !== undefined
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
       {aside !== undefined && <span className="text-xs break-keep text-gray-500">{aside}</span>}
@@ -94,7 +92,7 @@ function CardBody({
       </div>
     )
   const listClass = tiles ? 'grid gap-3 p-4 @2xl:grid-cols-3' : 'divide-y divide-gray-100'
-  return <ul className={listClass}>{read.rows.slice(0, CARD_ROWS)}</ul>
+  return <ul className={listClass}>{read.rows.slice(0, HOME_CARD_ROWS)}</ul>
 }
 
 // 와이어프레임 HomePrototypeFootnote: 카드 아래 옅은 회색 줄. 어디를 눌러도 그 화면으로 간다.

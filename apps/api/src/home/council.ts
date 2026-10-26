@@ -36,7 +36,7 @@ function blockedOf(open: OpenTask[]): HomeBlocked[] {
 
 // 미배정 운영진(DEC-87): 이 학생회 지금 기수의 끝나지 않은 학생회 소속이 있고, 학생회 직급이 없고, 그 기수에 열린 부서 소속이 없다.
 // 기수(actor.cohortId)가 학생회를 가른다. 다른 학생회에서 부서가 있는 사람도 이 기수에 부서가 없으면 센다.
-async function unassignedMembersOf(db: Reader, actor: Actor): Promise<number> {
+export async function unassignedMembersOf(db: Reader, actor: Actor): Promise<number> {
   const placed = db
     .select({ id: departmentMembership.id })
     .from(departmentMembership)

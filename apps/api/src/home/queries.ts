@@ -18,6 +18,7 @@ import { openEventsOf } from '../events/queries.js'
 import { requestListOf } from '../purchases/queries.js'
 import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
 import { councilOf } from './council.js'
+import { councilBoardOf } from './council-board.js'
 import { departmentsOf } from './departments.js'
 import { financeOf } from './finance.js'
 import { hasFinanceView, homeKindOf, levelOf } from './level.js'
@@ -83,6 +84,7 @@ async function commonOf(db: Reader, actor: Actor, now: Date) {
 export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeResponse> {
   const level = levelOf(actor)
   const { home, open } = await commonOf(db, actor, now)
+  if (home.kind === 'council') home.councilBoard = await councilBoardOf(db, actor, now, open)
   if (level.finance) Object.assign(home, await financeOf(db, actor, now, level.council))
   if (level.council) home.council = await councilOf(db, actor, now, open)
   else if (level.departmentIds.length)

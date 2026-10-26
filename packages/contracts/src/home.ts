@@ -1,5 +1,5 @@
 import type { EventRef } from './budget.js'
-import type { EventSummary } from './events.js'
+import type { EventNext, EventSummary } from './events.js'
 import { DAY_MS, koreanDateOf } from './korean-time.js'
 import type { PurchaseRequestSummary } from './purchases.js'
 import type { EventSettlementRow } from './settlement.js'
@@ -162,6 +162,52 @@ export interface HomeMyRequests {
   total: number
 }
 
+// 회장단 '전체 행사 진행 현황'의 행사 카드 수(DEC-95). 서버가 이만큼만 보내고 상태별 수를 따로 준다.
+export const HOME_COUNCIL_EVENT_CARDS = 3
+
+// 회장단 홈 행사 카드의 행사. 책임자는 싣지 않는다(DEC-95, 기획자 정의서 '책임부서·책임자는 표시하지 않는다').
+export type HomeBoardEventRef = Pick<EventSummary, 'id' | 'name' | 'startsAt' | 'endsAt' | 'status'>
+
+// 행사 카드 하나. tasks의 done·total은 행사 업무 탭과 같은 셈(taskCountsByEvent), overdue·unassigned는 끝나지 않은 업무 가운데
+// 업무 화면의 지남·담당자 없음이다. next는 행사 머리의 다음 일정과 같은 셈이다(DEC-93).
+export interface HomeBoardEvent {
+  event: HomeBoardEventRef
+  tasks: { done: number; total: number; overdue: number; unassigned: number }
+  next: EventNext | null
+}
+
+// 후속 정리 중인 행사 한 줄(끝났고 완료하지 않은 행사). 남은 정리는 끝나지 않은 업무 수와 정산에 남은 것 수(DEC-93)이고,
+// 정산 수는 재정 '행사 정산' 탭과 같은 셈이다. endedDays는 행사 머리의 '끝난 지 N일'과 같은 셈이다.
+export interface HomeFollowUp {
+  event: HomeBoardEventRef
+  endedDays: number | null
+  remaining: { tasks: number; settlement: number }
+}
+
+// 확인이 필요한 운영 상황의 갈래. 지남이면서 담당자 없는 업무는 지남 한 번으로 센다.
+export type HomeAttentionReason = 'overdue' | 'unassigned'
+
+export interface HomeAttention {
+  task: TaskSummary
+  reason: HomeAttentionReason
+}
+
+// 회장단 홈(HOME-01C)의 칸. 회장단 홈 종류에만 온다.
+export interface HomeCouncilBoard {
+  events: {
+    // 완료하지 않았고 끝나지 않은 행사 가운데 진행 중 → 기획 중(시작 순, 날짜 미정은 끝), HOME_COUNCIL_EVENT_CARDS개
+    cards: HomeBoardEvent[]
+    // 행사 목록 상태 칩과 같은 이름의 수: 기획 중(날짜 미정·예정), 진행 중, 후속 정리 중
+    counts: { planning: number; ongoing: number; followUp: number }
+  }
+  // 재정 '행사 정산' 탭과 같은 행사·차례(끝난 지 오래된 것부터) HOME_LIST_LIMIT줄까지와 전체 수
+  followUp: { events: HomeFollowUp[]; total: number }
+  // 학생회 업무 가운데 지남(마감 순) → 담당자 없음(마감 순), HOME_LIST_LIMIT줄까지와 전체 수
+  attention: { items: HomeAttention[]; total: number }
+  // 지금 기수에 학생회 직급도 열린 부서 소속도 없는 운영진 수(DEC-87)
+  unassignedMembers: number
+}
+
 export interface HomeResponse {
   // 한국 날짜(YYYY-MM-DD). 묶음은 이 날짜로 나눈 것이다.
   today: string
@@ -176,6 +222,8 @@ export interface HomeResponse {
   participating: HomeParticipating
   upcoming: HomeUpcoming
   myRequests: HomeMyRequests
+  // 회장단 홈 종류에만 온다.
+  councilBoard?: HomeCouncilBoard
   // 아래는 지금 화면(기능 010)의 칸이다. 네 종류의 새 홈이 오르면 걷는다(기능 027 조각 10).
   mine: HomeMine
   // 부서 직급이 있고 학생회 직급이 없을 때만 온다(회장단은 council의 blocked로 본다).

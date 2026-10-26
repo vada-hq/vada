@@ -6,6 +6,8 @@ type Props = {
   title: string
   // 제목 아래 한 줄. 없는 것(false·null)은 빼고 가운뎃점으로 잇는다.
   meta?: ReactNode[]
+  // 새 홈 카드 줄의 메타 아래 한 줄(후속 정리 중인 행사의 남은 정리)
+  sub?: ReactNode
   // 오른쪽 끝: 마감, 요청 상태, 막힌 수
   side?: ReactNode
   // 왼쪽 끝: 아이콘 칸 같은 줄 머리
@@ -18,17 +20,22 @@ type Props = {
   card?: boolean
 }
 
-// 카드 줄의 메타: 한 줄에 가운뎃점으로 잇고 넘치면 말줄임이다.
-function CardMeta({ parts }: { parts: ReactNode[] }) {
+// 카드 줄의 메타: 한 줄에 가운뎃점으로 잇고 넘치면 말줄임이다. 그 아래 한 줄(sub)도 말줄임이다.
+function CardMeta({ parts, sub }: { parts: ReactNode[]; sub: ReactNode }) {
   return (
-    <p className="truncate text-xs text-gray-500">
-      {parts.map((part, index) => (
-        <span key={index}>
-          {index > 0 && <span aria-hidden> · </span>}
-          {part}
-        </span>
-      ))}
-    </p>
+    <>
+      {parts.length > 0 && (
+        <p className="truncate text-xs text-gray-500">
+          {parts.map((part, index) => (
+            <span key={index}>
+              {index > 0 && <span aria-hidden> · </span>}
+              {part}
+            </span>
+          ))}
+        </p>
+      )}
+      {sub && <p className="truncate text-xs text-gray-700">{sub}</p>}
+    </>
   )
 }
 
@@ -66,6 +73,7 @@ function RowTitle({
 export default function HomeRow({
   title,
   meta = [],
+  sub,
   side,
   lead,
   chip,
@@ -83,7 +91,7 @@ export default function HomeRow({
       {lead}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <RowTitle title={title} chip={chip} card={card} onOpen={onOpen} />
-        {card && parts.length > 0 && <CardMeta parts={parts} />}
+        {card && <CardMeta parts={parts} sub={sub} />}
         {!card && parts.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
             {parts.map((part, index) => [
