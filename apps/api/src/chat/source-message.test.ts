@@ -7,7 +7,13 @@ import { errorOf, ITEM, runPurchases, type PurchaseKit } from '../test-support/p
 const FINANCE = 's-financeMember'
 const PLANNING = 's-planningMember'
 const JOINED = '2026-03-01T00:00:00Z'
-const EXPENSE = { vendor: '다이소', description: '마커', amount: 15000, paidOn: '2026-10-25' }
+const EXPENSE = {
+  vendor: '다이소',
+  description: '마커',
+  amount: 15000,
+  paidOn: '2026-10-25',
+  method: 'card',
+}
 
 // 내 학생회 공지방에 기획부원이 보낸 메시지 하나. 모두 3월에 들어온 것으로 둔다.
 async function sourceOf(s: PurchaseKit) {

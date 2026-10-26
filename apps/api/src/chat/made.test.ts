@@ -7,7 +7,7 @@ import { ITEM, runPurchases, type PurchaseKit } from '../test-support/purchases.
 const FINANCE = 's-financeMember'
 const PLANNING = 's-planningMember'
 const JOINED = '2026-03-01T00:00:00Z'
-const EXPENSE = { vendor: '다이소', amount: 15000, paidOn: '2026-10-25' }
+const EXPENSE = { vendor: '다이소', amount: 15000, paidOn: '2026-10-25', method: 'card' }
 
 // 두 학생회의 공지방에 같은 모양의 메시지를 하나씩 둔다.
 async function scene(s: PurchaseKit) {
