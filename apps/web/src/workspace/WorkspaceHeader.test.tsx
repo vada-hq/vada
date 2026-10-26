@@ -16,9 +16,10 @@ function show(trail = trailOf('events', COUNCIL, eventTrail('신입생 환영회
 }
 
 // 와이어프레임 사이드바 v6.2 머리글(OPS-TASK-01·EVT-02): 높이 h-16, 남은 폭을 다 쓰고 왼쪽에 붙는다.
-test('머리글은 높이 h-16이고 가운데로 모으지 않는다', () => {
+// 제목이 두 줄이 되는 휴대폰에서는 그만큼 높아지므로 최소 높이다.
+test('머리글은 높이가 h-16부터이고 가운데로 모으지 않는다', () => {
   const { banner } = show()
-  expect(banner.className).toContain('h-16')
+  expect(banner.className.split(' ')).toContain('min-h-16')
   const all = [banner, ...banner.querySelectorAll('*')]
   expect(all.some(node => /\bmx-auto\b|\bmax-w-/.test(node.getAttribute('class') ?? ''))).toBe(
     false,
@@ -53,6 +54,20 @@ test('넘치면 학생회 이름과 행사명이 말줄임되고 올리면 전�
     expect(crumb.className).not.toContain('truncate')
     expect(crumb.closest('li')!.className).toContain('shrink-0')
   }
+})
+
+// 행사 화면에서 행사명 전체는 이 제목에만 있다. 휴대폰에서 끝까지 볼 수 있게 두 줄까지 줄바꿈하고,
+// 넓은 화면(md 이상)은 한 줄 말줄임에 올리면 전체 이름이다. 제목 굵기는 와이어프레임대로 semibold다.
+test('긴 행사명 제목은 휴대폰에서 두 줄까지 줄바꿈하고 넓은 화면은 한 줄 말줄임이다', () => {
+  const name = '2026 소프트웨어융합대학 체육대회 및 신입생 환영 한마당'
+  const { banner } = show(trailOf('events', COUNCIL, eventTrail(name, '개요')))
+  const title = within(banner).getByRole('heading', { level: 1, name })
+  const classes = title.className.split(' ')
+  expect(classes).toEqual(
+    expect.arrayContaining(['line-clamp-2', 'wrap-anywhere', 'md:line-clamp-1', 'font-semibold']),
+  )
+  expect(classes).not.toContain('truncate')
+  expect(title.getAttribute('title')).toBe(name)
 })
 
 test('홈은 학생회 이름 한 칸이 마지막 칸이라 진하고 제목은 홈이다', () => {

@@ -240,7 +240,7 @@ exports[`작업 공간: 대화 방 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -264,7 +264,7 @@ exports[`작업 공간: 대화 방 1`] = `
 <span class="text-gray-700">대화</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="대화">대화</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="대화">대화</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -493,7 +493,7 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -517,7 +517,7 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 <span class="text-gray-700">대화</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="대화">대화</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="대화">대화</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
@@ -720,7 +720,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -744,7 +744,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <span class="text-gray-700">조직</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="조직">조직</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="조직">조직</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -1207,7 +1207,7 @@ exports[`작업 공간: 조직 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1231,7 +1231,7 @@ exports[`작업 공간: 조직 1`] = `
 <span class="text-gray-700">조직</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="조직">조직</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="조직">조직</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -1550,7 +1550,7 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1567,7 +1567,7 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 <span class="truncate text-gray-700" title="컴퓨터학부 학생회">컴퓨터학부 학생회</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="홈">홈</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="홈">홈</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -1693,7 +1693,7 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1710,7 +1710,7 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 <span class="truncate text-gray-700" title="컴퓨터학부 학생회">컴퓨터학부 학생회</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="홈">홈</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="홈">홈</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -1850,7 +1850,7 @@ exports[`작업 공간: 홈 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1867,7 +1867,7 @@ exports[`작업 공간: 홈 1`] = `
 <span class="truncate text-gray-700" title="컴퓨터학부 학생회">컴퓨터학부 학생회</span>
 </li>
 </ol>
-<h1 class="mt-0.5 truncate text-xl font-bold text-gray-900" title="홈">홈</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="홈">홈</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>

@@ -53,7 +53,7 @@ export function EventSection() {
   )
 }
 
-const detail = (
+export const detail = (
   extra: Partial<EventDetail>,
   actions: EventAction[] = ['event.update'],
 ): EventDetail => ({
@@ -71,7 +71,7 @@ const detail = (
   ...extra,
 })
 
-const tabs = (
+export const tabs = (
   <div role="tablist" aria-label="행사 보기" className="flex border-b">
     {['개요', '업무', '재정', '인원 관리'].map((label, index) => (
       <TabButton key={label} aria-selected={index === 0}>
@@ -142,7 +142,7 @@ const HEADERS: { key: string; event: EventDetail }[] = [
 // 휴대폰 폭은 행동 자리가 다른 앞의 넷만, 긴 이름으로 본다.
 const MOBILE_SAMPLES = 4
 
-const headerHandlers = {
+export const headerHandlers = {
   councilId: 'c1',
   editing: null,
   onEdit: noop,
