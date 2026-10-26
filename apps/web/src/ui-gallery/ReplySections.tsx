@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import type { ChatMessage, RoomParticipant } from '@vada/contracts'
+import { ARCHIVED_LABEL } from '@/chat/chat-view'
 import Composer from '@/chat/Composer'
 import MessageItem from '@/chat/MessageItem'
 import { ProductPanelFrame } from '@/chat/ProductPanel'
 import { ReplyThread } from '@/chat/ReplyPanel'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { SEND_ERRORS } from '@/lib/messages'
 import { Section } from './GallerySection'
 
 const noop = () => {}
@@ -95,7 +95,7 @@ function SamplePanel({ open, onClose }: { open: Open; onClose: () => void }) {
         onOlder={() => Promise.resolve(true)}
       />
       {readOnly ? (
-        <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
+        <StateMessage kind="notice">{ARCHIVED_LABEL}</StateMessage>
       ) : (
         <Composer
           key={original.id}

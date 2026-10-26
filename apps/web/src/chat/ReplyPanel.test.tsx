@@ -8,6 +8,7 @@ import { json } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { SEND_ERRORS, SEND_FAILED } from '@/lib/messages'
 import { resetWindowHistory } from '@/lib/use-window-history'
+import { ARCHIVED_LABEL } from './chat-view'
 import { resetDrafts } from './composer-drafts'
 
 beforeEach(() => {
@@ -45,14 +46,18 @@ function serve({
   replies = [message(REPLY, '몇 시예요?', { sentAt: LAST_REPLY_AT })],
   readAt = null,
   readOnly = false,
+  eventId = null,
 }: {
   flow?: ChatMessage[]
   replies?: ChatMessage[]
   readAt?: string | null
   readOnly?: boolean
+  eventId?: string | null
 } = {}) {
   const api = serveChat()
-  api.on('GET', `${chatBase}/rooms/r1`, () => json(roomDetail(room('r1', { readOnly }), readAt)))
+  api.on('GET', `${chatBase}/rooms/r1`, () =>
+    json(roomDetail(room('r1', { readOnly, eventId }), readAt)),
+  )
   api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage(flow)))
   for (const original of flow) {
     const list = original.id === ORIGINAL ? replies : []
@@ -231,4 +236,15 @@ test('답글의 … 메뉴로 낸 구매 요청은 그 답글을 근거로 하�
   expect(within(records).getByRole('button').textContent).toBe('구매 요청 · 몇 시예요?')
   const sent = api.calls.find(call => call.path === `${chatBase}/purchase-requests`)
   expect(sent?.body).toMatchObject({ sourceMessageId: REPLY })
+})
+
+test('완료한 행사 방(보관)의 원글은 답글을 읽기만 하고 입력칸 자리에 완료된 행사가 보인다', async () => {
+  serve({ readOnly: true, eventId: 'e1' })
+  render(<SideChatHarness />)
+  await openAllRoom()
+  fireEvent.click(await screen.findByRole('button', { name: '답글 1' }))
+  const box = within(panel())
+  expect(await box.findByText('몇 시예요?')).toBeTruthy()
+  expect(box.getByText(ARCHIVED_LABEL)).toBeTruthy()
+  expect(box.queryByRole('textbox', { name: '답글' })).toBeNull()
 })
