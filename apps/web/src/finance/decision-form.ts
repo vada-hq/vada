@@ -54,8 +54,8 @@ export function tallyOf(choices: readonly Choice[]): Tally {
   return { approve: count('approve'), reject: count('reject'), unreviewed: count(null) }
 }
 
-export const tallyText = (tally: Tally) =>
-  `승인 ${tally.approve} · 반려 ${tally.reject} · 미검토 ${tally.unreviewed}`
+// 수 세기 '승인 N · 반려 N · 미검토 N'의 앞 둘. 미검토는 누른 뒤 빨갛게 알리므로 화면이 따로 그린다.
+export const decidedText = (tally: Tally) => `승인 ${tally.approve} · 반려 ${tally.reject}`
 
 // 보내기 버튼 이름은 고른 조합을 따른다(와이어프레임 FIN-REV-01, DEC-92).
 export function submitLabelOf(tally: Tally) {

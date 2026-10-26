@@ -24,7 +24,7 @@ import { IncomesTab } from './IncomesTab'
 import { OverviewTab } from './OverviewTab'
 import { financeOpeners } from './finance-openers'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
-import { neededSoon, VIEW_EMPTY } from './purchase-view'
+import { neededMarkOf, VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { SettlementsTab } from './SettlementsTab'
 import { RequestCreateDialog } from './RequestCreateDialog'
@@ -52,6 +52,7 @@ function Body({
   onOpen: (requestId: string) => void
 }) {
   const { state } = list
+  // 기기 시각이다. 목록 응답에 서버 시각이 없다(홈 응답에만 있다).
   const now = useNow()
   if (state.kind === 'loading')
     return <StateMessage kind="loading">구매 요청 불러오는 중…</StateMessage>
@@ -73,7 +74,7 @@ function Body({
           <li key={request.id}>
             <RequestCard
               request={request}
-              soon={view === 'pending' && neededSoon(request.neededBy, now)}
+              mark={view === 'pending' ? neededMarkOf(request.neededBy, now) : null}
               onOpen={() => onOpen(request.id)}
             />
           </li>

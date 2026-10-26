@@ -7,8 +7,8 @@ import {
 } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { emptyRow, type RowValues } from '@/finance/decision-form'
-import { DecisionRows } from '@/finance/DecisionPanel'
-import { DecisionRow } from '@/finance/DecisionRow'
+import { DecisionFrame, DecisionRows, NeedsBudget } from '@/finance/DecisionPanel'
+import { DecisionRow, PendingItemCard } from '@/finance/DecisionRow'
 import { ItemCancelDialog } from '@/finance/ItemCancel'
 import RequestCard from '@/finance/RequestCard'
 import { RequestItems } from '@/finance/RequestItems'
@@ -44,9 +44,20 @@ const lineItem = (name: string): PurchaseLineItem => ({
   payable: false,
   actions: [],
 })
+// 예산 항목과 결재 칸 품목의 번호는 서버처럼 UUID다. 계약 검사가 UUID만 받아, 아니면 누를 때 확인이 '그래도 승인'까지 가지 못한다.
+const B1 = '0199d1a0-0000-7000-8000-0000000000b1'
+const B2 = '0199d1a0-0000-7000-8000-0000000000b2'
+const UUID_TAIL_LENGTH = 12
+const uuidOf = (index: number) =>
+  `0199d1a0-0000-7000-8000-${String(index).padStart(UUID_TAIL_LENGTH, '0')}`
+// 예산 없음 표본의 품목 번호(결재 칸 표본의 번호와 겹치지 않게).
+const WAITING_LINES = [
+  '0199d1a0-0000-7000-8000-0000000000a9',
+  '0199d1a0-0000-7000-8000-0000000000aa',
+]
 const budgetItems: BudgetItemView[] = [
   {
-    id: 'b1',
+    id: B1,
     purpose: '행사 홍보',
     amount: 300000,
     type: 'expense',
@@ -59,7 +70,7 @@ const budgetItems: BudgetItemView[] = [
     available: 300000,
   },
   {
-    id: 'b2',
+    id: B2,
     purpose: longName,
     amount: 50000,
     type: 'expense',
@@ -82,7 +93,8 @@ export function FinanceSection() {
         ))}
       </div>
       <div className="flex w-80 flex-col gap-2">
-        <RequestCard request={request('1', {})} soon onOpen={noop} />
+        <RequestCard request={request('1', {})} mark="soon" onOpen={noop} />
+        <RequestCard request={request('5', { title: '지난 요청' })} mark="overdue" onOpen={noop} />
         <RequestCard
           request={request('2', { status: 'partial', neededBy: null, itemCount: 1 })}
           onOpen={noop}
@@ -106,7 +118,7 @@ export function DecisionSection() {
   // 누르고 난 뒤의 모양: 비운 칸 아래에 이유가 보인다.
   const tried = { amount: '금액을 입력해 주세요', budgetItemId: '예산 항목을 골라 주세요' }
   const rows = [
-    { item: lineItem('A2 포스터'), values: filled, chosen: 'b1', errors: {} },
+    { item: lineItem('A2 포스터'), values: filled, chosen: B1, errors: {} },
     {
       item: lineItem('테이프'),
       values: { ...emptyRow(), choice: 'approve' },
@@ -119,8 +131,8 @@ export function DecisionSection() {
       chosen: '',
       errors: { choice: '승인이나 반려를 골라 주세요' },
     },
-    { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: 'b2', errors: {} },
-    { item: lineItem(longName), values: filled, chosen: 'b2', errors: {} },
+    { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: B2, errors: {} },
+    { item: lineItem(longName), values: filled, chosen: B2, errors: {} },
   ] satisfies { item: PurchaseLineItem; values: RowValues; chosen: string; errors: object }[]
   return (
     <Section title="결재 줄">
@@ -166,36 +178,79 @@ function Width({
 }
 
 // 결재 칸 한 벌(024 조각 7, 와이어프레임 FIN-REV-01 '품목별 검토'): 승인(사용 가능 안), 승인(같은 항목 합이 넘어 초과), 반려, 미검토.
-export function DecisionPanelSection() {
-  const items = ['A2 포스터', '현수막', '테이프', '간식'].map(lineItem)
-  const initial: Record<string, RowValues> = {
-    'A2 포스터': { ...emptyRow(), amount: '30000', budgetItemId: 'b2', choice: 'approve' },
-    현수막: { ...emptyRow(), amount: '40,000', budgetItemId: 'b2', choice: 'approve' },
-    테이프: {
-      ...emptyRow(),
-      amount: '3000',
-      budgetItemId: 'b1',
-      choice: 'reject',
-      reason: '이미 있어요',
-    },
-  }
-  const panel = (
-    <DecisionRows
-      councilId="gallery"
-      items={items}
-      budgetItems={budgetItems}
-      decide={idleDecide}
-      onInvalidItem={noop}
-      initial={initial}
-    />
+// 줄 이름 → 처음 입력값. 금액은 쉼표 꼴로 맞춘다.
+type Preset = [name: string, values: RowValues | null]
+const approveRow = (amount: string, budgetItemId: string): RowValues => ({
+  ...emptyRow(),
+  amount,
+  budgetItemId,
+  choice: 'approve',
+})
+const rejectRow: RowValues = { ...emptyRow(), choice: 'reject', reason: '이미 있어요' }
+
+function GalleryRows({ presets }: { presets: Preset[] }) {
+  const items = presets.map(([name], index) => ({
+    ...lineItem(name),
+    id: uuidOf(index + 1),
+    options: index === 0 ? 'A2 · 무광' : null,
+    link: index === 0 ? 'https://www.coupang.com/vp/products/123456' : null,
+  }))
+  const initial = Object.fromEntries(
+    presets.flatMap(([, values], index) => (values ? [[uuidOf(index + 1), values]] : [])),
   )
+  return (
+    <DecisionFrame count={items.length}>
+      <DecisionRows
+        councilId="gallery"
+        items={items}
+        budgetItems={budgetItems}
+        decide={idleDecide}
+        onInvalidItem={noop}
+        initial={initial}
+      />
+    </DecisionFrame>
+  )
+}
+
+// 승인(같은 항목 합이 넘어 '승인하면 -20,000원'), 반려(금액 칸 숨김), 미검토, 긴 이름.
+const mixed: Preset[] = [
+  ['A2 포스터', approveRow('30,000', B2)],
+  ['현수막', approveRow('40,000', B2)],
+  ['테이프', rejectRow],
+  ['간식', null],
+  [longName, approveRow('3,000', B1)],
+]
+// 미검토가 없어 [부분 승인 처리]를 누르면 '사용 가능 금액 초과' 확인 창이 열린다.
+const complete: Preset[] = [
+  ['A2 포스터', approveRow('30,000', B2)],
+  ['현수막', approveRow('40,000', B2)],
+  ['테이프', rejectRow],
+]
+
+// 결재 칸 한 벌(024 조각 7, 와이어프레임 FIN-REV-01 '품목별 검토').
+export function DecisionPanelSection() {
   return (
     <Section title="결재 칸">
       <Width label="1280px 창(요청 상세 대화상자)" className="w-116 shrink-0">
-        {panel}
+        <GalleryRows presets={mixed} />
       </Width>
       <Width label="390px 창" className="w-77.5 shrink-0">
-        {panel}
+        <GalleryRows presets={mixed} />
+      </Width>
+      <Width label="1280px 창(누르면 그래도 승인 창)" className="w-116 shrink-0">
+        <GalleryRows presets={complete} />
+      </Width>
+      <Width label="1280px 창(예산 없음)" className="w-116 shrink-0">
+        <div className="flex flex-col gap-4">
+          <DecisionFrame count={1}>
+            <PendingItemCard item={{ ...lineItem('A2 포스터'), id: WAITING_LINES[0]! }} />
+            <NeedsBudget hasPeriod={false} onOpenBudget={noop} />
+          </DecisionFrame>
+          <DecisionFrame count={1}>
+            <PendingItemCard item={{ ...lineItem('A2 포스터'), id: WAITING_LINES[1]! }} />
+            <NeedsBudget hasPeriod onOpenBudget={noop} />
+          </DecisionFrame>
+        </div>
       </Width>
     </Section>
   )

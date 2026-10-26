@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { PurchaseLineItem } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -5,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { BUDGET_LOAD_FAILED } from '@/lib/budget-messages'
 import { expenseItems, itemsForEvent } from './budget-form'
 import { eventItemsFirst } from './decision-budget'
-import { submitLabelOf, tallyText, type Tally } from './decision-form'
+import { decidedText, submitLabelOf, type Tally } from './decision-form'
 import { BudgetOverConfirm } from './BudgetOverConfirm'
-import { DecisionRow } from './DecisionRow'
+import { DecisionRow, PendingItemCard } from './DecisionRow'
 import { useDecisionRows, type DecisionRowsOptions } from './use-decision-rows'
 import { useBudget, type BudgetState } from './useBudget'
 import type { useDecide } from './useDecide'
@@ -26,7 +27,7 @@ type Props = {
 }
 
 // 결재할 예산이 없다: 기간이 없거나 항목이 하나도 없다.
-function NeedsBudget({
+export function NeedsBudget({
   hasPeriod,
   onOpenBudget,
 }: {
@@ -68,7 +69,6 @@ export function DecisionRows(options: DecisionRowsOptions) {
       ))}
       <SubmitBar
         tally={state.tally}
-        showTally={items.length > 1}
         unreviewedShown={state.unreviewedShown}
         busy={decide.saving}
         onSubmit={state.submit}
@@ -88,29 +88,32 @@ export function DecisionRows(options: DecisionRowsOptions) {
   )
 }
 
-// 보내기 줄(와이어프레임 FIN-REV-01 아래 줄): 고른 수, 고르지 않은 품목이 남았다는 글, 고른 조합을 따르는 버튼 하나.
+// 보내기 줄(와이어프레임 FIN-REV-01 아래 줄): 고른 수 '승인 N · 반려 N · 미검토 N'과 고른 조합을 따르는 버튼 하나.
+// 미검토가 남은 채 누르면 수의 '미검토 N'만 빨갛게 알린다(같은 수를 두 번 말하지 않는다).
 function SubmitBar({
   tally,
-  showTally,
   unreviewedShown,
   busy,
   onSubmit,
 }: {
   tally: Tally
-  // 품목이 하나면 버튼 이름이 곧 고른 것이라 수를 보이지 않는다.
-  showTally: boolean
   unreviewedShown: boolean
   busy: boolean
   onSubmit: () => void
 }) {
+  const warn = unreviewedShown && tally.unreviewed > 0
   return (
     <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 border-t pt-3">
-      {showTally && <span className="text-xs text-gray-500">{tallyText(tally)}</span>}
-      {unreviewedShown && tally.unreviewed > 0 && (
-        <span role="alert" className="text-xs text-red-600">
-          미검토 품목이 {tally.unreviewed}개 있어요
+      <span className="text-xs text-gray-500">
+        {decidedText(tally)}
+        {' · '}
+        <span
+          role={warn ? 'alert' : undefined}
+          className={warn ? 'font-medium text-red-600' : undefined}
+        >
+          미검토 {tally.unreviewed}
         </span>
-      )}
+      </span>
       <Button busy={busy} onClick={onSubmit}>
         {submitLabelOf(tally)}
       </Button>
@@ -123,15 +126,24 @@ function Body({
   reload,
   ...rest
 }: Omit<Props, 'onForbidden'> & { state: BudgetState; reload: () => void }) {
-  if (state.kind === 'loading') return <StateMessage kind="loading">예산 불러오는 중…</StateMessage>
+  const waiting = (notice: ReactNode) => (
+    <>
+      {rest.items.map(item => (
+        <PendingItemCard key={item.id} item={item} />
+      ))}
+      {notice}
+    </>
+  )
+  if (state.kind === 'loading')
+    return waiting(<StateMessage kind="loading">예산 불러오는 중…</StateMessage>)
   if (state.kind === 'failed')
-    return (
+    return waiting(
       <div className="flex flex-col items-start gap-3">
         <StateMessage kind="error">{BUDGET_LOAD_FAILED}</StateMessage>
         <Button variant="outline" size="sm" onClick={reload}>
           다시 시도
         </Button>
-      </div>
+      </div>,
     )
   const { period } = state.budget
   const items = eventItemsFirst(
@@ -139,7 +151,7 @@ function Body({
     rest.eventId,
   )
   if (!period || items.length === 0)
-    return <NeedsBudget hasPeriod={period !== null} onOpenBudget={rest.onOpenBudget} />
+    return waiting(<NeedsBudget hasPeriod={period !== null} onOpenBudget={rest.onOpenBudget} />)
   return (
     <DecisionRows
       councilId={rest.councilId}
@@ -158,11 +170,20 @@ export function DecisionPanel({ items, onForbidden, ...rest }: Props) {
   const pending = items.filter(item => item.status === 'pending')
   if (pending.length === 0) return null
   return (
+    <DecisionFrame count={pending.length}>
+      <Body {...rest} items={pending} state={budget.state} reload={() => void budget.reload()} />
+    </DecisionFrame>
+  )
+}
+
+// 결재 칸의 틀: 머리 '결재 N건'(와이어프레임 '품목별 검토 N건', 제품은 이 일을 '결재'로 부른다)과 품목들.
+export function DecisionFrame({ count, children }: { count: number; children: ReactNode }) {
+  return (
     <section aria-label="결재" className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold text-gray-900">
-        결재 <span className="font-normal text-gray-500">{pending.length}건</span>
+        결재 <span className="font-normal text-gray-500">{count}건</span>
       </h3>
-      <Body {...rest} items={pending} state={budget.state} reload={() => void budget.reload()} />
+      {children}
     </section>
   )
 }

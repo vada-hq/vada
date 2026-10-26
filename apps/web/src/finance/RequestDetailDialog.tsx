@@ -126,6 +126,15 @@ function CancelButton({ detail }: { detail: ReturnType<typeof useRequestDetail> 
   )
 }
 
+// 결재할 수 있고 대기 품목이 있으면 결재 칸을 보인다.
+const decidingOf = (request: PurchaseRequestDetail) =>
+  request.actions.includes('purchase_request.decide') &&
+  request.items.some(item => item.status === 'pending')
+
+// 위 품목 목록에 둘 품목. 결재 중이면 대기 품목은 결재 칸에만 있다.
+const listedItems = (request: PurchaseRequestDetail, deciding: boolean) =>
+  deciding ? request.items.filter(item => item.status !== 'pending') : request.items
+
 function Loaded({
   request,
   detail,
@@ -141,13 +150,12 @@ function Loaded({
   onOpenBudget: (() => void) | undefined
   onOpenExpense: (expenseId: string) => void
 }) {
-  const deciding =
-    request.actions.includes('purchase_request.decide') &&
-    request.items.some(i => i.status === 'pending')
+  const deciding = decidingOf(request)
   return (
     <div className="flex flex-col gap-6">
       <Facts request={request} />
-      <RequestItems items={request.items} cancel={detail.itemCancel} />
+      {/* 결재 중이면 대기 품목은 결재 칸에만 있다(와이어프레임 FIN-REV-01: 품목 카드 하나에 구매 정보와 검토). */}
+      <RequestItems items={listedItems(request, deciding)} cancel={detail.itemCancel} />
       <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
       {deciding && (
         <DecisionPanel

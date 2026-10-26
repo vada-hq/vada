@@ -41,18 +41,18 @@ test('이미 음수인 항목에 승인하면 승인 금액 그대로가 더 넘
   expect(over).toEqual([{ id: 'a', purpose: '항목 a', available: -2000, after: -7000 }])
 })
 
-test('항목 옆 줄은 사용 가능과, 넘으면 초과액이다', () => {
-  expect(usageLineOf(item('a', 50_000), [])).toEqual({ available: '50,000원', over: null })
+test('항목 옆 줄은 사용 가능과, 넘으면 승인한 뒤의 사용 가능이다', () => {
+  expect(usageLineOf(item('a', 50_000), [])).toEqual({ available: '50,000원', after: null })
   expect(
     usageLineOf(item('a', 50_000), [
       { id: 'a', purpose: '항목 a', available: 50_000, after: -10_000 },
     ]),
-  ).toEqual({ available: '50,000원', over: '10,000원' })
-  expect(usageLineOf(item('a', -2000), [])).toEqual({ available: '-2,000원', over: null })
-  // 이미 넘은 항목은 이번 승인 뒤의 초과액 전체다.
+  ).toEqual({ available: '50,000원', after: '-10,000원' })
+  expect(usageLineOf(item('a', -2000), [])).toEqual({ available: '-2,000원', after: null })
+  // 이미 넘은 항목은 이번 승인 뒤의 값 그대로다.
   expect(
     usageLineOf(item('a', -2000), [{ id: 'a', purpose: '항목 a', available: -2000, after: -7000 }]),
-  ).toEqual({ available: '-2,000원', over: '7,000원' })
+  ).toEqual({ available: '-2,000원', after: '-7,000원' })
 })
 
 test('요청 행사의 항목이 먼저이고 그 아래 행사 없는 항목이다', () => {

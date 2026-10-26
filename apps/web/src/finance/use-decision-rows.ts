@@ -35,6 +35,19 @@ const errorsOfRow = (errors: FieldErrors, id: string) => ({
   reason: errors[`${id}.reason`],
 })
 
+// 보일 문제: 줄마다의 칸 문제와, 한 번 누른 뒤 고르지 않은 품목이 남아 있는가(보내기 옆 '미검토 N'을 빨갛게).
+const shownErrors = (errors: FieldErrors) => ({
+  errorsOf: (id: string) => errorsOfRow(errors, id),
+  unreviewedShown: Object.keys(errors).some(key => key.endsWith('.choice')),
+})
+
+// 고른 예산 항목(기억한 것 포함)으로 센 초과.
+const overagesOfEntries = (entries: DecisionEntry[], budgetItems: readonly BudgetItemView[]) =>
+  overagesOf(
+    entries.map(({ row, chosen }) => ({ ...row, budgetItemId: chosen })),
+    budgetItems,
+  )
+
 // 결재 줄들의 입력값과 한 번에 보내기(DEC-92: 품목마다 고른 뒤 한 번에 처리).
 // 승인이 되면 마지막에 승인한 항목을 기억하고, 항목이 맞지 않다고 하면(BUDGET_ITEM_INVALID) 예산을 다시 읽게 한다.
 export function useDecisionRows({
@@ -54,10 +67,7 @@ export function useDecisionRows({
     items.map(item => ({ id: item.id, row: rowOf(item.id), chosen: chosenOf(item.id) }))
   const check = useFormCheck<HTMLDivElement>(() => decisionErrors(entries()))
   const tally = tallyOf(items.map(item => rowOf(item.id).choice))
-  const overages = overagesOf(
-    entries().map(({ row, chosen }) => ({ ...row, budgetItemId: chosen })),
-    budgetItems,
-  )
+  const overages = overagesOfEntries(entries(), budgetItems)
 
   async function send() {
     setConfirming(false)
@@ -77,18 +87,22 @@ export function useDecisionRows({
     else void send()
   }
 
+  // '그래도 승인': 창이 열린 사이 요청을 다시 읽어 새 대기 품목이 생겼을 수 있어 한 번 더 확인한다.
+  function confirm() {
+    if (check.attempt()) void send()
+    else setConfirming(false)
+  }
+
   return {
     formRef: check.formRef,
-    errorsOf: (id: string) => errorsOfRow(check.errors, id),
-    // 한 번 누른 뒤 고르지 않은 품목이 남아 있는가(보내기 옆 문구).
-    unreviewedShown: Object.keys(check.errors).some(key => key.endsWith('.choice')),
+    ...shownErrors(check.errors),
     rowOf,
     chosenOf,
     tally,
     overages,
     confirming,
     submit,
-    confirm: () => void send(),
+    confirm,
     cancelConfirm: () => setConfirming(false),
     change: (id: string, patch: Partial<RowValues>) =>
       setRows({ ...rows, [id]: { ...rowOf(id), ...patch } }),

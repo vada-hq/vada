@@ -2,7 +2,6 @@ import type { BudgetItemView } from '@vada/contracts'
 import { wonOf } from '@/lib/won-input'
 import { signedWon } from './closing-view'
 import type { Choice } from './decision-form'
-import { wonLabel } from './purchase-view'
 
 // 결재 줄에서 예산에 닿는 값만. 승인을 고른 줄의 금액이 그 항목에서 빠진다.
 type Line = { choice: Choice; amount: string; budgetItemId: string }
@@ -30,10 +29,10 @@ export function overagesOf(lines: readonly Line[], items: readonly BudgetItemVie
   })
 }
 
-// 예산 항목 칸 옆 줄: 그 항목의 사용 가능과, 이번 승인 뒤 배정을 넘는 금액(초과액).
+// 예산 항목 칸 옆 줄: 그 항목의 사용 가능과, 이번 승인으로 음수가 되면 승인한 뒤의 사용 가능(확인 창과 같은 값).
 export function usageLineOf(item: BudgetItemView, overages: readonly Overage[]) {
   const over = overages.find(overage => overage.id === item.id)
-  return { available: signedWon(availableOf(item)), over: over ? wonLabel(-over.after) : null }
+  return { available: signedWon(availableOf(item)), after: over ? signedWon(over.after) : null }
 }
 
 // 결재 칸의 항목 차례: 그 요청 행사의 항목이 먼저, 그 아래 행사 없는 항목(DEC-92, DEC-81). 행사 없는 요청은 받은 차례다.

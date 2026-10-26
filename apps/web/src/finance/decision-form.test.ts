@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest'
-import { submitLabelOf, tallyOf, tallyText } from './decision-form'
+import { decidedText, submitLabelOf, tallyOf } from './decision-form'
 
 test('고른 것을 승인·반려·미검토로 센다', () => {
   const tally = tallyOf(['approve', 'reject', null, 'approve', null])
   expect(tally).toEqual({ approve: 2, reject: 1, unreviewed: 2 })
-  expect(tallyText(tally)).toBe('승인 2 · 반려 1 · 미검토 2')
+  expect(decidedText(tally)).toBe('승인 2 · 반려 1')
 })
 
 test.each([

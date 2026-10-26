@@ -16,6 +16,7 @@ import { asElement } from '@/test-support/elements'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
+import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { forgetRememberedItems } from './decision-form'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
@@ -29,6 +30,7 @@ afterEach(async () => {
 const ORG = `/api/organizations/${COUNCIL_ID}`
 const BASE = `${ORG}/purchase-requests`
 const REQUEST = '0199d1a0-0000-7000-8000-00000000a001'
+const LINE_3 = '0199d1a0-0000-7000-8000-00000000c003'
 
 const pendingItem = (id: string, name: string) => ({
   id,
@@ -77,6 +79,8 @@ const choose = (item: string, choice: '승인' | '반려') =>
 const submitButton = () =>
   asElement(screen.getByRole('button', { name: /처리$/ }), HTMLButtonElement)
 const submit = () => fireEvent.click(submitButton())
+// 보내기 줄의 수 세기 '승인 N · 반려 N · 미검토 N'
+const tallyLine = () => screen.getByText(/^승인 \d+ · 반려 \d+/).textContent
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(c => c.method === 'POST')
@@ -106,20 +110,23 @@ test('purchase_request.decide가 없으면 결재 칸이 없고 예산도 읽지
 test('처리 버튼은 늘 켜져 있고 안 고른 품목이 있으면 보내지 않고 수와 줄마다 이유를 보인다', async () => {
   const { api } = setup()
   await open()
-  expect(screen.getByText('승인 0 · 반려 0 · 미검토 2')).toBeTruthy()
+  expect(tallyLine()).toBe('승인 0 · 반려 0 · 미검토 2')
+  expect(screen.queryByRole('alert')).toBeNull()
   expect(submitButton().textContent).toBe('최종 처리')
   expect(submitButton().disabled).toBe(false)
   submit()
   expect(screen.getAllByText('승인이나 반려를 골라 주세요')).toHaveLength(2)
-  expect(screen.getByRole('alert').textContent).toBe('미검토 품목이 2개 있어요')
+  // 수 세기의 미검토만 빨갛게 알리고 같은 수를 따로 말하지 않는다.
+  expect(screen.getByRole('alert').textContent).toBe('미검토 2')
+  expect(screen.queryByText(/미검토 품목이/)).toBeNull()
   await waitFor(() =>
     expect(document.activeElement).toBe(
       screen.getByRole('radiogroup', { name: '포스터 검토 결과' }),
     ),
   )
   choose('포스터', '승인')
-  expect(screen.getByText('승인 1 · 반려 0 · 미검토 1')).toBeTruthy()
-  expect(screen.getByRole('alert').textContent).toBe('미검토 품목이 1개 있어요')
+  expect(tallyLine()).toBe('승인 1 · 반려 0 · 미검토 1')
+  expect(screen.getByRole('alert').textContent).toBe('미검토 1')
   submit()
   expect(posts(api)).toHaveLength(0)
 })
@@ -177,6 +184,14 @@ test('반려를 고르면 사유 칸이 열리고 승인의 문제는 사라지�
   choose('테이프', '반려')
   expect(tape.queryByText('금액을 입력해 주세요')).toBeNull()
   expect(tape.getByText('반려 사유를 입력해 주세요')).toBeTruthy()
+  // 반려에는 쓰이지 않는 금액·예산 항목 칸은 숨기고, 승인으로 돌아가면 쓴 값이 그대로다.
+  expect(screen.queryByLabelText('테이프 금액')).toBeNull()
+  expect(screen.queryByLabelText('테이프 예산 항목')).toBeNull()
+  choose('테이프', '승인')
+  expect(asElement(screen.getByLabelText('테이프 예산 항목'), HTMLSelectElement).value).toBe(
+    BUDGET_A,
+  )
+  choose('테이프', '반려')
   fill('테이프 반려 사유', '   ')
   submit()
   expect(posts(api)).toHaveLength(0)
@@ -212,7 +227,7 @@ test('고른 대로 한 번에 보내고 요청을 다시 읽는다', async () =
   })
 })
 
-test('예산 항목 옆에 사용 가능이 있고 이번 승인으로 넘으면 초과액이 보인다', async () => {
+test('예산 항목 옆에 사용 가능이 있고 이번 승인으로 넘으면 승인한 뒤의 사용 가능이 보인다', async () => {
   setup()
   const poster = within(await open())
   const tape = within(screen.getByRole('group', { name: '결재 테이프' }))
@@ -227,11 +242,12 @@ test('예산 항목 옆에 사용 가능이 있고 이번 승인으로 넘으면
   expect(tape.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원')
   choose('테이프', '승인')
   // 같은 항목에 두 줄을 승인하면 합이 넘는다.
-  expect(poster.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원 · 초과 30,000원')
-  expect(tape.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원 · 초과 30,000원')
+  // 같은 항목에 두 줄을 승인하면 합이 넘고, 두 줄 모두 그 항목의 같은 값을 보인다(확인 창과 같은 말).
+  expect(poster.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원 · 승인하면 -30,000원')
+  expect(tape.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원 · 승인하면 -30,000원')
   // 이미 음수인 항목은 그 값 그대로 보인다.
   fill('테이프 예산 항목', BUDGET_B)
-  expect(tape.getByText(/사용 가능/).textContent).toBe('사용 가능 -10,000원 · 초과 90,000원')
+  expect(tape.getByText(/사용 가능/).textContent).toBe('사용 가능 -10,000원 · 승인하면 -90,000원')
   expect(poster.getByText(/사용 가능/).textContent).toBe('사용 가능 150,000원')
 })
 
@@ -260,6 +276,63 @@ test('사용 가능을 넘으면 그래도 승인을 한 번 묻고, 닫으면 �
     }),
   )
   await waitFor(() => expect(posts(api)).toHaveLength(1))
+})
+
+test('그래도 승인 창이 열린 사이 새 대기 품목이 생기면 보내지 않고 미검토를 알린다', async () => {
+  const { api } = setup()
+  answer(api)
+  await open()
+  approveBoth('100000', '80000')
+  submit()
+  const confirm = await screen.findByRole('dialog', { name: '사용 가능 금액 초과' })
+  api.on('GET', `${BASE}/${REQUEST}`, () =>
+    json({
+      request: twoPending({
+        items: [
+          pendingItem(LINE_1, '포스터'),
+          pendingItem(LINE_2, '테이프'),
+          pendingItem(LINE_3, '풀'),
+        ],
+      }),
+    }),
+  )
+  window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
+  // 확인 창이 열려 있어 뒤 화면은 보조 기술에 숨겨져 있다.
+  await screen.findByRole('group', { name: '결재 풀', hidden: true })
+  fireEvent.click(within(confirm).getByRole('button', { name: '그래도 승인' }))
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', { name: '사용 가능 금액 초과' })).toBeNull(),
+  )
+  expect(screen.getByRole('alert').textContent).toBe('미검토 1')
+  expect(posts(api)).toHaveLength(0)
+})
+
+test('품목이 하나여도 고른 수를 보인다', async () => {
+  setup(twoPending({ items: [pendingItem(LINE_1, '포스터')] }))
+  await open()
+  expect(tallyLine()).toBe('승인 0 · 반려 0 · 미검토 1')
+})
+
+test('결재 중이면 대기 품목은 결재 칸에만 있고 옵션과 링크가 그 머리에 있다', async () => {
+  const withFacts = {
+    ...pendingItem(LINE_1, '포스터'),
+    options: 'A2 · 무광',
+    link: 'https://shop.example/p',
+  }
+  setup(
+    twoPending({
+      items: [withFacts, { ...pendingItem(LINE_2, '테이프'), status: 'approved', amount: 3000 }],
+    }),
+  )
+  const poster = within(await open())
+  expect(screen.getAllByText('포스터 × 2')).toHaveLength(1)
+  expect(poster.getByText('포스터 × 2')).toBeTruthy()
+  expect(poster.getByText('A2 · 무광')).toBeTruthy()
+  expect(poster.getByRole('link', { name: 'https://shop.example/p' })).toBeTruthy()
+  // 대기가 아닌 품목은 위 품목 목록에 남는다.
+  const list = within(screen.getByRole('region', { name: '품목' }))
+  expect(list.getByText('테이프 × 2')).toBeTruthy()
+  expect(list.queryByText('포스터 × 2')).toBeNull()
 })
 
 test('사용 가능 안이면 묻지 않고 보낸다', async () => {

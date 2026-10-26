@@ -51,10 +51,18 @@ export const VIEW_EMPTY: Record<PurchaseView, string> = {
 export const neededByLabel = (neededBy: string | null) =>
   neededBy ? `${monthDay(neededBy)}까지 필요` : '필요한 때 없음'
 
-// 결재 목록에서 '임박'을 붙이는 기간: 필요한 때가 오늘(한국)부터 이 날수 안이거나 지났다(DEC-92, 024 정한 것 9). 시범 운영에서 고친다.
+// 결재 목록에서 '임박'을 붙이는 기간: 필요한 때가 오늘(한국)부터 이 날수 안(DEC-92, 024 정한 것 9). 시범 운영에서 고친다.
 const NEEDED_SOON_DAYS = 3
-export const neededSoon = (neededBy: string | null, now: Date) =>
-  neededBy !== null && neededBy <= koreanDateOf(new Date(now.getTime() + NEEDED_SOON_DAYS * DAY_MS))
+export type NeededMark = 'overdue' | 'soon' | null
+
+// 필요한 때 표시: 이미 지났으면 '지남'(업무의 지남과 같은 빨강), 3일 안이면 '임박'(노랑), 아니면 없다.
+export function neededMarkOf(neededBy: string | null, now: Date): NeededMark {
+  if (neededBy === null) return null
+  if (neededBy < koreanDateOf(now)) return 'overdue'
+  return neededBy <= koreanDateOf(new Date(now.getTime() + NEEDED_SOON_DAYS * DAY_MS))
+    ? 'soon'
+    : null
+}
 
 // 정수 원 → '12,000원'
 export const wonLabel = (amount: number) =>

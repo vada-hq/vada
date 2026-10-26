@@ -108,14 +108,15 @@ test('결재 대기가 넘치면 300개라고 알린다', async () => {
   expect(await screen.findByText('요청이 많아서 300개만 보여요.')).toBeTruthy()
 })
 
-test('결재 대기에서 필요한 때가 오늘(한국)부터 3일 안이거나 지났으면 임박 표시가 있다', async () => {
+test('결재 대기에서 필요한 때가 3일 안이면 임박(노랑), 이미 지났으면 지남(빨강)이다', async () => {
   // 한국 10월 25일 오전. 시각만 고정하고 타이머는 그대로 둔다.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-24T23:30:00Z'))
   try {
     const api = mockApi()
     const requests = [
-      purchaseSummary('지남', { neededBy: '2026-10-20' }),
+      purchaseSummary('어제', { neededBy: '2026-10-24' }),
+      purchaseSummary('오늘', { neededBy: '2026-10-25' }),
       purchaseSummary('3일 뒤', { neededBy: '2026-10-28' }),
       purchaseSummary('4일 뒤', { neededBy: '2026-10-29' }),
       purchaseSummary('없음', { neededBy: null }),
@@ -123,18 +124,24 @@ test('결재 대기에서 필요한 때가 오늘(한국)부터 3일 안이거�
     api.on('GET', listPath('mine'), () => list(requests))
     api.on('GET', listPath('pending'), () => list(requests))
     show()
-    const soonOf = (id: string) =>
-      within(
-        screen.getByRole('heading', { name: `요청 ${id}` }).closest('div')!.parentElement!,
-      ).queryByText('임박') !== null
+    const markOf = (id: string) => {
+      const card = screen
+        .getByRole('heading', { name: `요청 ${id}` })
+        .closest('div')!.parentElement!
+      const badge = within(card).queryByText(/^(임박|지남)$/)
+      return badge
+        ? `${badge.textContent} ${badge.className.includes('yellow') ? '노랑' : '빨강'}`
+        : null
+    }
     // 내 요청에는 표시가 없다(재정 역할 부서의 결재 목록에만).
     await screen.findByRole('heading', { name: '요청 3일 뒤' })
-    expect(soonOf('3일 뒤')).toBe(false)
+    expect(markOf('3일 뒤')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-    await waitFor(() => expect(soonOf('3일 뒤')).toBe(true))
-    expect(soonOf('지남')).toBe(true)
-    expect(soonOf('4일 뒤')).toBe(false)
-    expect(soonOf('없음')).toBe(false)
+    await waitFor(() => expect(markOf('3일 뒤')).toBe('임박 노랑'))
+    expect(markOf('오늘')).toBe('임박 노랑')
+    expect(markOf('어제')).toBe('지남 빨강')
+    expect(markOf('4일 뒤')).toBeNull()
+    expect(markOf('없음')).toBeNull()
   } finally {
     vi.useRealTimers()
   }
