@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { RefreshCw } from 'lucide-react'
 import {
   DEPARTMENT_NAME_MAX,
   MEMBER_NAME_MAX,
@@ -6,7 +7,11 @@ import {
   type TeamDepartment,
   type TeamMember,
 } from '@vada/contracts'
+import { InviteFields } from '@/components/InviteFields'
+import { Button } from '@/components/ui/button'
+import type { InviteNotice } from '@/lib/messages'
 import { DepartmentAdd } from '@/team/DepartmentAdd'
+import { InviteSheet } from '@/team/InviteSheet'
 import { DepartmentMenu } from '@/team/DepartmentMenu'
 import { DepartmentRename } from '@/team/DepartmentRename'
 import { MemberRow } from '@/team/MemberRow'
@@ -148,6 +153,37 @@ function Width({
       <p className="text-xs text-gray-400">{label}</p>
       <div className={className}>{children}</div>
     </div>
+  )
+}
+
+// 올해 날짜라 만든 시각에 연도가 붙지 않는다.
+const INVITE_CREATED_AT = `${new Date().getFullYear()}-10-25T05:00:00.000Z`
+
+// 구성원 초대 창(와이어프레임 ORG-03C): 휴대폰은 아래, 넓은 화면은 오른쪽 시트. 서버를 부르지 않고 견본 코드를 보인다.
+// 긴 링크가 칸을 넘지 않는지 보려고 링크는 실제 주소 모양이다.
+export function OrgInviteSection() {
+  const [open, setOpen] = useState(false)
+  const [notice, setNotice] = useState<InviteNotice | null>(null)
+  return (
+    <Section title="구성원 초대 창">
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        구성원 초대 창 열기
+      </Button>
+      <InviteSheet open={open} onOpenChange={setOpen}>
+        <InviteFields
+          link="https://vada-web.onrender.com/join/ABCD2345"
+          code="ABCD2345"
+          createdAt={INVITE_CREATED_AT}
+          notice={notice}
+          onCopy={(_, what) => setNotice(what === 'link' ? 'copied' : 'code-copied')}
+        >
+          <Button variant="outline" size="sm" touch>
+            <RefreshCw />
+            코드 바꾸기
+          </Button>
+        </InviteFields>
+      </InviteSheet>
+    </Section>
   )
 }
 

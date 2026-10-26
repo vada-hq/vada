@@ -25,7 +25,9 @@ afterEach(() => {
 
 function serve(linkedName: string | null = null) {
   api.on('GET', '/api/me/profile', () => json({ name: linkedName }))
-  api.on('GET', '/api/organizations/c9/invite', () => json({ code: 'ABCD2345' }))
+  api.on('GET', '/api/organizations/c9/invite', () =>
+    json({ code: 'ABCD2345', createdAt: '2026-10-25T05:00:00.000Z' }),
+  )
 }
 function open(props: { onCreated?: () => void; onCancel?: () => void } = {}) {
   render(
@@ -263,6 +265,10 @@ test('[학생회 만들기]는 보내는 동안 busy이고 두 번 가지 않으
     HTMLInputElement,
   )
   expect(link.value).toBe(`${window.location.origin}/join/ABCD2345`)
+  // 조직 화면의 구성원 초대 창과 같은 부품이라 짧은 코드도 보인다(기능 023 조각 6).
+  expect(
+    asElement(screen.getByRole('textbox', { name: '초대 코드' }), HTMLInputElement).value,
+  ).toBe('ABCD2345')
   expect(screen.queryByRole('button', { name: '이전' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '링크 복사' }))
   expect(await screen.findByText('초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.')).toBeTruthy()

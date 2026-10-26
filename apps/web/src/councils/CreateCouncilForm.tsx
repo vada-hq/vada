@@ -5,7 +5,6 @@ import { useInvite } from '../team/useInvite'
 import CreateBasicStep from './CreateBasicStep'
 import CreateInviteStep from './CreateInviteStep'
 import CreateStructureStep from './CreateStructureStep'
-import { inviteLink } from './invite-path'
 import { useCouncilDraft, type CouncilDraftState } from './useCouncilDraft'
 import { useCreateCouncil } from './useCreateCouncil'
 
@@ -79,11 +78,11 @@ function CreatedInvite({ council, onHome }: { council: MyCouncil; onHome: () => 
   const invite = useInvite(council.id, () => {})
   return (
     <CreateInviteStep
-      link={invite.code ? inviteLink(invite.code) : null}
+      invite={invite.invite}
       loadError={invite.loadError}
       notice={invite.notice}
-      onCopy={link => {
-        void invite.copy(link)
+      onCopy={(text, what) => {
+        void invite.copy(text, what)
       }}
       onRetry={invite.retry}
       onHome={onHome}
