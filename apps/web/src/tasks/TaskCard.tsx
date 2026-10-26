@@ -15,7 +15,6 @@ const MOVE_LABEL: Record<TaskStatus, string> = {
   in_progress: '진행 중으로',
   done: '끝남으로',
 }
-const UNASSIGNED_TEXT = '담당자 없음 · 배정 필요'
 const NO_DRAG: TaskCardDrag = { enabled: false, active: false, start: () => false, end: () => {} }
 
 type Props = {
@@ -66,8 +65,6 @@ function StatusMenu({
 }
 
 function AssigneeText({ task }: Pick<Props, 'task'>) {
-  if (task.assignee === null)
-    return <span className="text-xs font-semibold text-red-600">{UNASSIGNED_TEXT}</span>
   const label = assigneeLabel(task.assignee)
   return (
     <span className="max-w-full min-w-0 truncate text-xs text-gray-500" title={label}>
@@ -76,18 +73,18 @@ function AssigneeText({ task }: Pick<Props, 'task'>) {
   )
 }
 
-function cardStyle(color: DepartmentColor, unassigned: boolean, drag: TaskCardDrag) {
+function cardStyle(color: DepartmentColor, drag: TaskCardDrag) {
   return cn(
     cardClass,
     'relative border-l-4 p-4 transition-shadow focus-within:ring-2 focus-within:ring-blue-300 hover:shadow-md',
-    unassigned ? 'border-red-300 border-l-red-500' : color.line,
+    color.line,
     drag.enabled && 'cursor-grab',
     drag.active && 'cursor-grabbing opacity-50',
   )
 }
 
 // 보드의 업무 카드(와이어프레임 OPS-TASK-01·EVT-TASK-01): 흰 카드, 왼쪽 부서 색상선, 업무명, 부서 칩·지남 칩·담당자, 선 아래 마감과 결과물 그림.
-// 부서 색은 소속, 빨강은 긴급도다. 담당자가 없으면 카드 테두리가 빨강이다. 카드에 행사 이름은 없다(DEC-94).
+// 부서 색은 소속, 빨강은 미완료 업무의 마감 지남과 실제 오류에만 쓴다(DEC-97). 카드에 행사 이름은 없다.
 // 카드 전체가 누르는 곳이 되도록 제목 단추를 카드 크기로 늘리고, '⋯'만 그 위에 둔다.
 // 1024px의 좁은 열에서 카드 높이가 늘지 않게 제목은 세 줄, 부서와 담당자는 한 줄에서 자르고 전체 글은 title에 둔다(화면 읽기 이름은 전체 글).
 export function TaskCard({
@@ -100,7 +97,7 @@ export function TaskCard({
   onOpen,
   onChangeStatus,
 }: Props) {
-  const unassigned = task.assignee === null
+  const overdue = task.status !== 'done' && task.overdue
   const department = task.department?.name ?? COUNCIL_TASK_LABEL
   return (
     <li
@@ -109,7 +106,7 @@ export function TaskCard({
         drag.start(event)
       }}
       onDragEnd={drag.end}
-      className={cardStyle(color, unassigned, drag)}
+      className={cardStyle(color, drag)}
     >
       <div className="flex items-start gap-2">
         <Button
@@ -126,18 +123,18 @@ export function TaskCard({
         <Badge className={cn('max-w-full border-transparent', color.chip)} title={department}>
           <span className="truncate">{department}</span>
         </Badge>
-        {task.overdue && <Badge tone="danger">지남</Badge>}
+        {overdue && <Badge tone="danger">지남</Badge>}
         <AssigneeText task={task} />
       </div>
       <div className="flex items-center justify-between border-t border-gray-50 pt-3">
         <span
           className={cn(
             'flex items-center gap-1.5 text-xs',
-            task.overdue ? 'font-semibold text-red-600' : 'text-gray-500',
+            overdue ? 'font-semibold text-red-600' : 'text-gray-500',
           )}
         >
           <Calendar aria-hidden className="size-3.5" />
-          {task.overdue ? `${dueLabel(task.dueDate)} · 지남` : dueLabel(task.dueDate)}
+          {overdue ? `${dueLabel(task.dueDate)} · 지남` : dueLabel(task.dueDate)}
         </span>
         {hasResult && <FileText aria-label="결과물 있음" className="size-4 text-gray-300" />}
       </div>

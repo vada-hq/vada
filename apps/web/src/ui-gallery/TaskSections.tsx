@@ -234,7 +234,7 @@ const boardOpen = [
   }),
   task('b5', { status: 'in_progress', next: 'done', dueDate: null, actions: [] }),
 ]
-const boardDone = [task('b6', { status: 'done', next: null })]
+const boardDone = [task('b6', { status: 'done', next: null, assignee: null })]
 const boardProps = {
   departments: boardDepartments,
   change: boardChange,
