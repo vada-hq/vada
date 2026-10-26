@@ -5,10 +5,12 @@ import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TASKS_LOAD_FAILED } from '@/lib/messages'
+import { cn } from '@/lib/utils'
 import { departmentColorOf } from './department-color'
 import { STATUS_LABEL } from './task-view'
 import { TaskCard } from './TaskCard'
 import type { useStatusChange } from './useStatusChange'
+import { useTaskDrag } from './useTaskDrag'
 import type { TaskList } from './useTasks'
 
 type Props = {
@@ -32,21 +34,31 @@ type Column = { status: TaskStatus; tasks: TaskSummary[]; truncated: boolean }
 
 // 열 머리 수는 그 열에 보이는 카드 수다. 받은 목록이 상한에서 잘렸으면 수 뒤에 '+'다(끝남은 '50+').
 const countText = ({ tasks, truncated }: Column) => `${tasks.length}${truncated ? '+' : ''}`
+const loadedTasks = (list: TaskList) => (list.state.kind === 'ready' ? list.state.tasks : [])
 
 function BoardColumn({
   column,
   footer,
   card,
+  drop,
 }: {
   column: Column
   footer?: ReactNode
   card: (task: TaskSummary) => ReactNode
+  drop: ReturnType<ReturnType<typeof useTaskDrag>['column']>
 }) {
   const id = useId()
   return (
     <section
       aria-labelledby={id}
-      className="flex min-w-0 flex-col gap-3 rounded-xl border border-gray-200/50 bg-gray-100/50 p-3"
+      onDragOver={drop.onDragOver}
+      onDragLeave={drop.onDragLeave}
+      onDrop={drop.onDrop}
+      className={cn(
+        'flex min-h-28 min-w-0 flex-col gap-3 rounded-xl border border-gray-200/50 bg-gray-100/50 p-3',
+        drop.available && 'border-dashed border-primary',
+        drop.active && 'bg-primary/5 ring-2 ring-primary',
+      )}
     >
       <h2
         id={id}
@@ -56,6 +68,7 @@ function BoardColumn({
         <Badge className="rounded-full bg-gray-200 px-1.5 font-bold">{countText(column)}</Badge>
       </h2>
       <ul className="flex flex-col gap-3">{column.tasks.map(card)}</ul>
+      {drop.available && <p className="text-center text-xs text-primary">{drop.label}</p>}
       {footer}
     </section>
   )
@@ -89,6 +102,7 @@ function columnsOf(open: TaskSummary[], openTruncated: boolean, done: Column): C
 // 업무 메뉴와 행사의 업무 탭이 같이 쓴다. 열은 화면 폭을 셋으로 나눠 1024px에서도 가로로 넘치지 않는다.
 export function TaskBoard(props: Props) {
   const { open, done, change } = props
+  const drag = useTaskDrag([...loadedTasks(open), ...loadedTasks(done)], change)
   if (open.state.kind === 'loading' || done.state.kind === 'loading')
     return <StateMessage kind="loading">업무 불러오는 중…</StateMessage>
   if (open.state.kind === 'failed' || done.state.kind === 'failed')
@@ -118,6 +132,7 @@ export function TaskBoard(props: Props) {
       color={departmentColorOf(task.department?.id ?? null, props.departments)}
       busy={change.busy.has(task.id)}
       error={change.errors[task.id]}
+      drag={drag.card(task)}
       onOpen={() => props.onOpenTask(task.id)}
       onChangeStatus={status => void change.change(task.id, status)}
     />
@@ -128,7 +143,7 @@ export function TaskBoard(props: Props) {
     </Button>
   )
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" {...drag.clickGuard}>
       {empty && props.councilEmpty === true && <BoardEmpty onAddFirst={props.onAddFirst} />}
       {empty && props.councilEmpty === false && (
         <StateMessage kind="empty">{props.emptyText}</StateMessage>
@@ -139,6 +154,7 @@ export function TaskBoard(props: Props) {
             key={column.status}
             column={column}
             card={card}
+            drop={drag.column(column.status)}
             footer={column.status === 'done' ? doneFooter : undefined}
           />
         ))}
