@@ -19,8 +19,12 @@ const departmentsOf = (tasks: OpenTask[]) =>
 export const nextDueTaskOf = (tasks: OpenTask[]) =>
   tasks.find(item => item.summary.dueDate !== null && !item.summary.overdue)?.summary
 
-// 지금 뒤의 가장 이른 것. 같은 날이면 행사 시작이 업무 마감(그날 끝)보다 이르다.
-function nextOf(tasks: OpenTask[], startsAt: Date | null, now: Date): EventDetail['next'] {
+// 지금 뒤의 가장 이른 것. 같은 날이면 행사 시작이 업무 마감(그날 끝)보다 이르다. 홈 회장단 행사 카드의 다음 마감이 같이 쓴다.
+export function nextScheduleOf(
+  tasks: OpenTask[],
+  startsAt: Date | null,
+  now: Date,
+): EventDetail['next'] {
   const task = nextDueTaskOf(tasks)
   const start = startsAt && startsAt.getTime() > now.getTime() ? koreanOf(startsAt) : null
   if (start && (!task?.dueDate || start < `${task.dueDate}${DUE_END_OF_DAY}`))
@@ -29,7 +33,8 @@ function nextOf(tasks: OpenTask[], startsAt: Date | null, now: Date): EventDetai
 }
 
 // 끝난 행사의 끝 날짜(한국)부터 오늘(한국)까지 센 날수. 두 날짜 모두 UTC 자정으로 읽어 하루가 정확히 DAY_MS다.
-function endedDaysOf(row: { startsAt: Date | null; endsAt: Date | null }, now: Date) {
+// 홈 '후속 정리 중인 행사'가 같이 쓴다.
+export function endedDaysOf(row: { startsAt: Date | null; endsAt: Date | null }, now: Date) {
   const endDay = eventEndDayOf(row)
   if (endDay === null) return null
   return Math.round((Date.parse(koreanDateOf(now)) - Date.parse(endDay)) / DAY_MS)
@@ -49,7 +54,7 @@ export async function eventHeaderOf(
       overdue: tasks.filter(item => item.summary.overdue).length,
       unassigned: tasks.filter(item => item.unassigned).length,
     },
-    next: nextOf(tasks, row.startsAt, scope.now),
+    next: nextScheduleOf(tasks, row.startsAt, scope.now),
     endedDays: scope.status === 'ended' ? endedDaysOf(row, scope.now) : null,
   }
 }

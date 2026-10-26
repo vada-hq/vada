@@ -1,9 +1,12 @@
-import type { AppQuery, HomeResponse } from '@vada/contracts'
+import { useContext } from 'react'
+import type { AppQuery, EventTab, HomeResponse } from '@vada/contracts'
 import { openMenu, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
 import type { RoomListState } from '../chat/useRoomList'
+import { PushBandSlot } from '../push/push-band-slot'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
+import CouncilHome from './CouncilHome'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
 import DepartmentsSection from './DepartmentsSection'
 import { attentionOf } from './home-attention'
@@ -18,7 +21,7 @@ import WeekEventsSection from './WeekEventsSection'
 
 export type HomeOpeners = {
   // 정산 수가 있는 행사는 '재정' 탭으로 연다.
-  onOpenEvent: (eventId: string, tab?: 'money') => void
+  onOpenEvent: (eventId: string, tab?: EventTab) => void
   onOpenPage: (page: Page) => void
   // 행사를 만들 수 있는 사람에게만 온다(canCreateEvent). 행사 빈 상태의 [새 행사]가 새 행사 창을 연다.
   onNewEvent?: (() => void) | undefined
@@ -27,6 +30,8 @@ export type HomeOpeners = {
 type Props = HomeOpeners & {
   home: HomeResponse
   councilId: string
+  // 인사 카드의 이름(새 홈)
+  name: string
   // 작업 공간이 옆 메뉴 배지와 같이 읽는 대화 목록(DEC-90 홈 메시지함). 같은 응답이라 칩과 배지가 어긋나지 않는다.
   rooms: RoomListState
   onForbidden: () => void
@@ -148,9 +153,9 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
   )
 }
 
-// 맨 위에 숫자 카드, 바로 아래 메시지함, 그 아래 넓은 화면에서 두 단(와이어프레임 홈, Basecamp 홈). 휴대폰은 한 단이다.
-// 목록을 아직 읽지 못했거나 읽지 못하면 메시지함만 빠진다.
-export default function HomeBody({ home, councilId, rooms, onForbidden, ...open }: Props) {
+// 지금 홈(기능 010): 맨 위에 숫자 카드, 바로 아래 메시지함, 그 아래 넓은 화면에서 두 단(와이어프레임 홈, Basecamp 홈). 휴대폰은 한 단이다.
+// 목록을 아직 읽지 못했거나 읽지 못하면 메시지함만 빠진다. 새 배치가 오르지 않은 홈 종류가 그대로 쓴다(명세 027 정한 것 8).
+function CurrentHome({ home, councilId, rooms, onForbidden, ...open }: Omit<Props, 'name'>) {
   const extras = useHomeExtras(councilId, home.today, onForbidden, !home.council)
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const items = attentionOf(home, extras.requests, extras.events.length)
@@ -168,4 +173,27 @@ export default function HomeBody({ home, councilId, rooms, onForbidden, ...open 
       </div>
     </div>
   )
+}
+
+// 홈 종류로 가른다(DEC-95, 명세 027 정한 것 8). 새 배치가 main에 오른 종류만 새 홈이고, 아직인 종류는 지금 홈 그대로다.
+// 지금 오른 것: 회장단(조각 6). 새 홈은 홈 응답 하나로 그려 별도 읽기(useHomeExtras)를 부르지 않는다.
+export default function HomeBody({ name, ...props }: Props) {
+  const setPushSlot = useContext(PushBandSlot)
+  const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
+  if (home.kind === 'council' && home.councilBoard)
+    return (
+      <CouncilHome
+        home={home}
+        board={home.councilBoard}
+        councilId={councilId}
+        name={name}
+        inboxRooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
+        // 작업 공간의 알림 꺼짐 띠가 이 자리에 그려진다. 띠가 없으면 자리도 없다.
+        pushBand={setPushSlot && <div ref={setPushSlot} className="empty:hidden" />}
+        onOpenEvent={onOpenEvent}
+        onOpenPage={onOpenPage}
+        onNewEvent={onNewEvent}
+      />
+    )
+  return <CurrentHome {...props} />
 }

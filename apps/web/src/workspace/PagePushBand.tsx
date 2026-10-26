@@ -9,16 +9,20 @@ const MESSAGE: Partial<Record<Page, string>> = {
   finance: FINANCE_PUSH_OFF,
 }
 
+// 홈은 홈 틀이 띠 자리를 알리면(homeSlot) 그 자리에 그린다(DEC-95 '부서 배정 전' 띠 아래).
 export default function PagePushBand({
   page,
   environment,
+  homeSlot,
 }: {
   page: Page
   environment?: PushEnvironment | undefined
+  homeSlot?: HTMLElement | null | undefined
 }) {
   return (
     <PushOffBand
       environment={environment}
+      slot={page === 'home' ? homeSlot : null}
       visible={page === 'home' || page === 'chat' || page === 'tasks' || page === 'finance'}
       message={MESSAGE[page]}
     />

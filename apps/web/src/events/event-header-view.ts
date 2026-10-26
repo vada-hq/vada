@@ -24,8 +24,8 @@ export function healthOf({ overdue, unassigned }: EventDetail['health']) {
 export const ownerLine = (event: Pick<EventDetail, 'departments' | 'owner'>) =>
   `담당 ${event.departments.join(', ') || NONE} · ${event.owner?.name ?? NONE}`
 
-// 날짜만 있는 마감: '10월 28일 (화)'
-const dueText = (date: string) => `${monthDay(date)} (${dayTime(`${date}T`).weekday})`
+// 날짜만 있는 마감: '10월 28일 (화)'. 홈 카드의 날짜가 같이 쓴다.
+export const dueText = (date: string) => `${monthDay(date)} (${dayTime(`${date}T`).weekday})`
 
 export function nextLabel(next: EventDetail['next']) {
   if (next === null) return '다음 일정 없음'

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { BellOff } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -38,24 +39,31 @@ export default function PushOffBand({
   visible,
   message = PUSH_OFF_CHAT,
   environment,
+  slot,
 }: {
   visible: boolean
   // 화면에 맞는 문구. 기본은 대화다.
   message?: string | undefined
   environment?: PushEnvironment | undefined
+  // 띠를 그릴 다른 자리(홈 틀, push-band-slot.ts). 없으면 제자리에 그린다.
+  slot?: HTMLElement | null | undefined
 }) {
   const [env] = useState(() => environment ?? currentEnvironment())
   const push = usePush(env)
   const [open, setOpen] = useState(false)
   return (
     <>
-      {visible && OFF_STATES.has(push.state) && (
-        <PushOffAlert
-          message={message}
-          className="mx-4 mt-4 sm:mx-6"
-          onTurnOn={() => setOpen(true)}
-        />
-      )}
+      {visible &&
+        OFF_STATES.has(push.state) &&
+        (slot ? (
+          createPortal(<PushOffAlert message={message} onTurnOn={() => setOpen(true)} />, slot)
+        ) : (
+          <PushOffAlert
+            message={message}
+            className="mx-4 mt-4 sm:mx-6"
+            onTurnOn={() => setOpen(true)}
+          />
+        ))}
       <PushDialog
         open={open}
         onOpenChange={next => {

@@ -20,7 +20,7 @@ export const canCreateEvent = (view: Pick<CouncilView, 'permissions'>) =>
   view.permissions.includes('event.create')
 
 // 정산 남은 것(행사 '돈' 탭의 항목 수 합). 끝났고 남은 것이 없으면 '완료 가능'이다. 홈과 재정 '행사 정산' 탭이 같이 쓴다.
-const EVENT_SETTLED_LABEL = '완료 가능'
+export const EVENT_SETTLED_LABEL = '완료 가능'
 export const remainingLabel = (remaining: number) => `정산 남은 것 ${remaining}`
 export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
   settled ? EVENT_SETTLED_LABEL : remainingLabel(remaining)

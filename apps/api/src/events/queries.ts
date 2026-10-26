@@ -28,6 +28,7 @@ const completedSql = sql`exists (select 1 from approval done
     and later.outcome in ('completed', 'completion_cancelled')
     and (later.acted_at, later.id) > (done.acted_at, done.id)))`
 // 0 진행 중, 1 예정, 2 날짜 미정, 3 끝남(완료한 행사도 끝남 자리)
+const GROUP = { ongoing: 0, upcoming: 1, tbd: 2, ended: 3 } as const
 const groupSql = (now: Date) => sql`(case
   when ${completedSql} then 3
   when ${event.startsAt} is null then 2
@@ -218,6 +219,23 @@ export async function openEventsOf(
     events: await summariesOf(db, actor, [...shown, ...others.slice(0, rest)], now),
     truncated: others.length > rest || endedTotal > shown.length,
     endedTotal,
+  }
+}
+
+// 완료하지 않은 행사의 상태별 수(홈 회장단 행사 머리). 묶음은 행사 목록 차례와 같은 groupSql이라 목록의 상태와 같다.
+// 기획 중은 예정과 날짜 미정을 합친 화면 이름이다(DEC-93).
+export async function openEventCountsOf(db: Reader, actor: Actor, now: Date) {
+  // 묶음 식에 지금 시각이 값으로 들어가 GROUP BY로 묶으면 같은 식으로 보지 못한다. 학생회 하나의 열린 행사라 줄을 세어 묶는다.
+  const rows = await db
+    .select({ group: sql<number>`${groupSql(now)}`.mapWith(Number) })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(openScope(actor))
+  const of = (...groups: number[]) => rows.filter(row => groups.includes(row.group)).length
+  return {
+    ongoing: of(GROUP.ongoing),
+    planning: of(GROUP.upcoming, GROUP.tbd),
+    followUp: of(GROUP.ended),
   }
 }
 

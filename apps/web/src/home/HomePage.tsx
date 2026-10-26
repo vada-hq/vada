@@ -54,6 +54,7 @@ export default function HomePage({ view, rooms, onForbidden, ...openers }: Props
       <HomeBody
         home={state.home}
         councilId={view.council.id}
+        name={view.me.name}
         rooms={rooms}
         onForbidden={onForbidden}
         onNewEvent={canCreateEvent(view) ? dialogs.startCreate : undefined}

@@ -1,5 +1,8 @@
 import type {
   EventSummary,
+  HomeBoardEvent,
+  HomeCouncilBoard,
+  HomeFollowUp,
   HomeList,
   HomeResponse,
   HomeTask,
@@ -70,6 +73,46 @@ export const homeResponse = (extra: Partial<HomeResponse> = {}): HomeResponse =>
   mine: { tasks: [], counts: noCounts },
   ...extra,
 })
+
+// 회장단 홈(기능 027 조각 6)의 칸. 시험이 정하지 않으면 비어 있다.
+export const boardEvent = (id: string, extra: Partial<HomeBoardEvent> = {}): HomeBoardEvent => ({
+  event: {
+    id,
+    name: `행사 ${id}`,
+    startsAt: '2026-10-27T10:00',
+    endsAt: '2026-10-27T12:00',
+    status: 'upcoming',
+  },
+  tasks: { done: 1, total: 4, overdue: 0, unassigned: 0 },
+  next: null,
+  ...extra,
+})
+
+export const followUpRow = (id: string, extra: Partial<HomeFollowUp> = {}): HomeFollowUp => ({
+  event: {
+    id,
+    name: `행사 ${id}`,
+    startsAt: '2026-10-08T10:00',
+    endsAt: '2026-10-08T12:00',
+    status: 'ended',
+  },
+  endedDays: 15,
+  remaining: { tasks: 0, settlement: 0 },
+  ...extra,
+})
+
+const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard => ({
+  events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
+  followUp: { events: [], total: 0 },
+  attention: { items: [], total: 0 },
+  unassignedMembers: 0,
+  ...extra,
+})
+
+export const councilHome = (
+  board: Partial<HomeCouncilBoard> = {},
+  extra: Partial<HomeResponse> = {},
+): HomeResponse => homeResponse({ kind: 'council', councilBoard: councilBoard(board), ...extra })
 
 // 줄의 묶음으로 수를 세고, 줄보다 수가 많은 경우는 counts로 덮어쓴다.
 export const homeWithTasks = (tasks: HomeTask[], counts: Partial<typeof noCounts> = {}) => {

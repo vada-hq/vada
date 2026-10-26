@@ -6,6 +6,7 @@ import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
 import { NewEventDialog } from '../events/EventCreateDialog'
+import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
 import { pageTitles } from './pages'
@@ -60,6 +61,8 @@ function CouncilMain({
   content: Omit<ComponentProps<typeof WorkspaceContent>, 'page'>
 }) {
   const [actions, setActions] = useState<HTMLDivElement | null>(null)
+  // 새 홈이 알린 알림 꺼짐 띠 자리. 띠는 여기 하나다.
+  const [homeBand, setHomeBand] = useState<HTMLElement | null>(null)
   return (
     <>
       <WorkspaceHeader
@@ -70,9 +73,11 @@ function CouncilMain({
         onMenu={() => nav.setNavOpen(true)}
         actionsRef={setActions}
       />
-      <PagePushBand page={nav.page} />
+      <PagePushBand page={nav.page} homeSlot={homeBand} />
       <PageActionsProvider value={actions}>
-        <WorkspaceContent {...content} page={nav.page} />
+        <PushBandSlot.Provider value={setHomeBand}>
+          <WorkspaceContent {...content} page={nav.page} />
+        </PushBandSlot.Provider>
       </PageActionsProvider>
     </>
   )
