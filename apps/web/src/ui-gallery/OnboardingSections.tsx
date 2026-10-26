@@ -11,7 +11,11 @@ import { RealFrame } from './RealFrame'
 
 // 운영 연도 선택지가 날마다 바뀌지 않게 연 날을 고정한다(스냅숏).
 const OPENED = new Date('2026-06-15T03:00:00Z')
-const SAMPLE_LINK = 'https://vada.example/join/ABCD2345'
+// 올해 날짜라 만든 시각에 연도가 붙지 않는다.
+const SAMPLE_INVITE = {
+  code: 'ABCD2345',
+  createdAt: `${new Date().getFullYear()}-10-25T05:00:00.000Z`,
+}
 
 const SAMPLE_ADDED = ['복지부', '문화부', '체육부', '학술부']
 
@@ -64,10 +68,10 @@ export function CreateCouncilSection() {
       </RealFrame>
       <RealFrame>
         <CreateInviteStep
-          link={SAMPLE_LINK}
+          invite={SAMPLE_INVITE}
           loadError={null}
           notice={notice}
-          onCopy={() => setNotice('copied')}
+          onCopy={(_, what) => setNotice(what === 'link' ? 'copied' : 'code-copied')}
           onRetry={() => {}}
           onHome={() => {}}
         />
