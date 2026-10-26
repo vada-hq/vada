@@ -24,6 +24,18 @@ test('기본 최대 폭은 1024px이고 가운데로 모으지 않는다', () =>
   expect(className).not.toContain('mx-auto')
 })
 
+// 본문 끝까지 쓰는 화면(와이어프레임 OPS-TASK-01 업무 보드)은 기본 상한을 푼다.
+test('본문 끝까지 쓰는 화면은 상한을 풀 수 있다', () => {
+  render(
+    <PageColumn data-testid="column" width="max-w-none">
+      본문
+    </PageColumn>,
+  )
+  const { className } = screen.getByTestId('column')
+  expect(className).toContain('max-w-none')
+  expect(className).not.toContain('max-w-5xl')
+})
+
 test('화면이 와이어프레임 폭을 넘기면 그 폭이다', () => {
   render(
     <PageColumn data-testid="column" width="max-w-3xl">

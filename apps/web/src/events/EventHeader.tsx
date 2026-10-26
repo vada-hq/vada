@@ -42,7 +42,7 @@ function EventTitle({ event, tabLabel }: { event: EventDetail; tabLabel: string 
     <>
       <div className="flex items-start gap-3 empty:hidden">
         <PageHeading trail={eventTrail(event.name, tabLabel)}>
-          <h2 className="min-w-0 flex-1 text-xl font-bold text-gray-900 wrap-anywhere">
+          <h2 className="min-w-0 flex-1 text-xl font-semibold text-gray-900 wrap-anywhere">
             {event.name}
           </h2>
         </PageHeading>
