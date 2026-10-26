@@ -96,6 +96,7 @@ const ownersOf: Partial<
     ...(await optional(tx, field(v, 'defaultBudgetItemId', 'default_budget_item_id'))),
     ...(await optional(tx, field(v, 'eventId', 'event_id'))),
   ],
+  shipment: (tx, _, v) => optional(tx, field(v, 'requestId', 'request_id')),
   line_item: async (tx, _, v) => [
     ...(await optional(tx, field(v, 'requestId', 'request_id'))),
     ...(await optional(tx, field(v, 'budgetItemId', 'budget_item_id'))),

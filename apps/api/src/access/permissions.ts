@@ -67,6 +67,7 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).
   'purchase.request': { who: ['member'] },
   'purchase.cancel': { who: ['requester'] },
+  'purchase.shipment': { who: ['finance', 'requester'] },
   'purchase.approve': { who: ['finance'] },
   'finance.manage': { who: ['finance'] },
   // 참가 신청 칸(DEC-28 '행사', DEC-25). 관리는 그 행사의 책임자와 담당 부서, 회장단(기준 3 상속)이고 신청자 정보 보기는 거기에 재정부를 더한다.

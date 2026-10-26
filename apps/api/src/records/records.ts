@@ -1,38 +1,14 @@
 import { and, eq, sql } from 'drizzle-orm'
 import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
+import { councilMembership, record, recordVersion } from '../db/schema.js'
 import {
-  account,
-  accountClosing,
-  approval,
-  attendance,
-  budget,
-  budgetItem,
-  chatRoom,
-  cohort,
-  council,
-  councilMembership,
-  department,
-  departmentMembership,
-  deposit,
-  event,
-  evidence,
-  expense,
-  feePayment,
-  file,
-  fiscalPeriod,
-  income,
-  lineItem,
-  member,
-  message,
-  notification,
-  paymentLine,
-  record,
-  recordVersion,
-  registration,
-  registrationForm,
-  request,
-  task,
-} from '../db/schema.js'
+  recordTables,
+  councilColumn,
+  withoutCouncil,
+  type RecordKind,
+  type RecordTable,
+} from './tables.js'
+export type { RecordKind } from './tables.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import {
@@ -52,53 +28,8 @@ import {
 // 지금 상태도 판이다. 만들 때 판 1을 열고, 바꿀 때 지금 판을 닫고 새 판을 연다. 판에는 하위 행의 칸 값 전체를 담는다.
 // 시각은 clock_timestamp()로 적어, 한 거래에서 두 번 바꿔도 판이 겹치거나 비지 않는다.
 
-// 바탕이 다루는 종류와 하위 표. 다음 덩어리가 자기 종류를 여기에 더한다.
-const tables = {
-  council,
-  member,
-  cohort,
-  council_membership: councilMembership,
-  department,
-  department_membership: departmentMembership,
-  chat_room: chatRoom,
-  message,
-  file,
-  notification,
-  task,
-  event,
-  account,
-  fiscal_period: fiscalPeriod,
-  budget,
-  budget_item: budgetItem,
-  request,
-  line_item: lineItem,
-  expense,
-  payment_line: paymentLine,
-  evidence,
-  approval,
-  registration_form: registrationForm,
-  registration,
-  attendance,
-  deposit,
-  income,
-  account_closing: accountClosing,
-  fee_payment: feePayment,
-}
-export type RecordKind = keyof typeof tables
-type Table<K extends RecordKind> = (typeof tables)[K]
-// 하위 표에도 학생회 번호를 두는 종류(AGENTS.md 마이그레이션). 모듈이 기록의 학생회 번호를 그대로 넣는다.
-const councilColumn: ReadonlySet<RecordKind> = new Set([
-  'cohort',
-  'department',
-  'fiscal_period',
-  'account',
-  'fee_payment',
-])
-// 학생회를 넘어 이어지는 운영진과 학생회 자신만 학생회 번호를 비운다.
-const withoutCouncil: ReadonlySet<RecordKind> = new Set(['council', 'member'])
-
 export type RecordValues<K extends RecordKind> = Omit<
-  PgInsertValue<Table<K>>,
+  PgInsertValue<RecordTable<K>>,
   'id' | 'kind' | 'councilId'
 >
 export type RecordChange<K extends RecordKind> = {
@@ -108,7 +39,7 @@ export type RecordChange<K extends RecordKind> = {
   actor: string | null
   // 바꾼 사유. 확정한 기록(record.confirmed_at이 있음)을 바꿀 때만 꼭 받는다.
   reason: string | null
-  changes: PgUpdateSetSource<Table<K>>
+  changes: PgUpdateSetSource<RecordTable<K>>
 }
 // 종류마다의 변경. 여러 종류를 한 번에 바꿀 때 칸 이름을 종류별로 검사한다.
 export type AnyRecordChange = { [K in RecordKind]: RecordChange<K> }[RecordKind]
@@ -152,11 +83,11 @@ export async function createRecord<K extends RecordKind>(
     .values({ kind, councilId, createdBy: actor, createdAt: clockNow })
     .returning({ id: record.id })
   const id = created!.id
-  const table: Table<RecordKind> = tables[kind]
+  const table: RecordTable<RecordKind> = recordTables[kind]
   await tx
     .insert(table)
     .values({ ...values, id, ...(councilColumn.has(kind) ? { councilId } : {}) } as PgInsertValue<
-      Table<RecordKind>
+      RecordTable<RecordKind>
     >)
   await tx.execute(sql`INSERT INTO record_version (record_id, version_no, valid, data, changed_by)
     SELECT r.id, 1, tstzrange(r.created_at, NULL), to_jsonb(t), r.created_by FROM record r JOIN ${table} t ON t.id = r.id WHERE r.id = ${id}`)
@@ -201,6 +132,7 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
   // 요청의 행사는 낼 때 고르고 바꾸지 않는다(DEC-68).
   request: new Set(['eventId', 'event_id']),
   line_item: new Set(['requestId', 'request_id']),
+  shipment: new Set(['requestId', 'request_id']),
   payment_line: new Set(['expenseId', 'expense_id', 'lineItemId', 'line_item_id']),
   evidence: new Set(['expenseId', 'expense_id']),
   approval: new Set([
@@ -268,7 +200,7 @@ function assertNoOwnershipChange(changes: readonly AnyRecordChange[]) {
 // 하위 행 잠금이 가장 먼저다. 이어서 확정 여부와 회장이었는지 읽기는 이 잠금 뒤에 해야 같은 기록을 바꾸던 거래가 끝난 값을 본다.
 // 학생회 행을 잠그지 않고 이 모듈을 부르는 쪽은 이 순서에 기댄다. 순서를 바꾸지 않는다.
 // FOR NO KEY UPDATE: 같은 기록을 바꾸는 거래는 한 줄로 세우되, 이 행을 가리키는 행을 넣을 때의 외래 키 검사(FOR KEY SHARE)는 막지 않는다.
-async function lockRecord(tx: Tx, table: Table<RecordKind>, id: string) {
+async function lockRecord(tx: Tx, table: RecordTable<RecordKind>, id: string) {
   const [current] = await tx
     .select({ id: table.id })
     .from(table)
@@ -309,7 +241,7 @@ async function assertOpenVersion(tx: Tx, change: AnyRecordChange) {
 
 // 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
 // 새 판은 꼭 하나 열려야 한다. 열린 판이 없으면(판 없이 만든 기록, 이미 닫힌 판) 하위 행만 바뀌고 이력이 빠지므로 거래를 되돌린다.
-async function openNextVersion(tx: Tx, table: Table<RecordKind>, change: AnyRecordChange) {
+async function openNextVersion(tx: Tx, table: RecordTable<RecordKind>, change: AnyRecordChange) {
   const opened = await tx.execute(sql`WITH closed AS (
         UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(${clockNow}, lower(valid) + interval '1 microsecond'))
         WHERE record_id = ${change.id} AND upper_inf(valid)
@@ -343,7 +275,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[],
   const presidentCohorts = new Set<string>()
   const watch = await watchBefore(tx, changes)
   for (const change of changes) {
-    const table: Table<RecordKind> = tables[change.kind]
+    const table: RecordTable<RecordKind> = recordTables[change.kind]
     await lockRecord(tx, table, change.id)
     await assertChangeStaysInCouncil(tx, change)
     await assertReasonGiven(tx, change)

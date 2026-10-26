@@ -149,7 +149,7 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
   })
   const app = createApp({ auth: noAuth, trustedOrigin: origin })
   app.get('/api/organizations/:organizationId/provider', () => {
-    throw new ApiError('DELIVERY_PROVIDER_FAILED')
+    throw new ApiError('STORAGE_NOT_CONFIGURED')
   })
   app.get('/api/organizations/:organizationId/unavailable', () => {
     throw new HTTPException(503, { message: 'upstream secret-token' })
@@ -158,8 +158,8 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
     throw new ApiError('VERSION_CONFLICT')
   })
   const failed = await app.request('/api/organizations/org-1/provider')
-  assert.equal(failed.status, 502)
-  assert.deepEqual(await failed.json(), { error: 'DELIVERY_PROVIDER_FAILED' })
+  assert.equal(failed.status, 503)
+  assert.deepEqual(await failed.json(), { error: 'STORAGE_NOT_CONFIGURED' })
   assert.equal((await app.request('/api/organizations/org-1/unavailable')).status, 503)
   assert.equal((await app.request('/api/organizations/org-1/conflict')).status, 409)
   assert.deepEqual(
@@ -169,8 +169,8 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
         event: 'request_failed',
         method: 'GET',
         route: '/api/organizations/:organizationId/provider',
-        code: 'DELIVERY_PROVIDER_FAILED',
-        status: 502,
+        code: 'STORAGE_NOT_CONFIGURED',
+        status: 503,
       },
       {
         event: 'request_failed',
@@ -270,7 +270,7 @@ test('서버 쪽 실패만 오류 수집기로 보내고, 로그와 같은 정�
     throw crash
   })
   app.get('/api/organizations/:organizationId/provider', () => {
-    throw new ApiError('DELIVERY_PROVIDER_FAILED')
+    throw new ApiError('STORAGE_NOT_CONFIGURED')
   })
   app.get('/api/organizations/:organizationId/conflict', () => {
     throw new ApiError('VERSION_CONFLICT')
@@ -290,7 +290,7 @@ test('서버 쪽 실패만 오류 수집기로 보내고, 로그와 같은 정�
     event: 'request_failed',
     method: 'GET',
     route: '/api/organizations/:organizationId/provider',
-    code: 'DELIVERY_PROVIDER_FAILED',
-    status: 502,
+    code: 'STORAGE_NOT_CONFIGURED',
+    status: 503,
   })
 })

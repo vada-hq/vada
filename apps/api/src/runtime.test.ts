@@ -51,3 +51,12 @@ test('explicit production startup validates config and never reveals values in e
   }
   assert.throws(() => readRuntime({}, true, () => ({})))
 })
+
+test('배송 조회 키는 선택 값이며 없어도 운영 서버 설정이 유효하다', () => {
+  assert.equal(readRuntime(env, true).env.DELIVERY_TRACKER_API_KEY, undefined)
+  assert.equal(
+    readRuntime({ ...env, DELIVERY_TRACKER_API_KEY: 'client:secret' }, true).env
+      .DELIVERY_TRACKER_API_KEY,
+    'client:secret',
+  )
+})

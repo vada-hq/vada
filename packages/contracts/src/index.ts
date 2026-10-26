@@ -290,3 +290,4 @@ export * from './paths.js'
 export * from './profile.js'
 // 쿠팡 상품 정보 불러오기(기능 022).
 export * from './product-info.js'
+export * from './shipments.js'

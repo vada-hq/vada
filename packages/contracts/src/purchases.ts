@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { PurchaseShipment } from './shipments.js'
 import { WON_MAX, type EventRef } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
@@ -178,6 +179,8 @@ export interface PurchaseRequestDetail extends PurchaseRequestSummary {
   items: PurchaseLineItem[]
   decisions: PurchaseDecision[]
   expenses: PurchaseExpenseRef[]
+  shipments: PurchaseShipment[]
+  canAddShipment: boolean
   // 오래된 판부터 모두
   history: PurchaseVersion[]
   actions: PurchaseAction[]
