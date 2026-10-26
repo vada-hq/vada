@@ -59,6 +59,7 @@ import { ApplyNoticeSection, PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { CreateCouncilSection } from './OnboardingSections'
+import { CouncilEntrySection } from './CouncilEntrySections'
 import { JoinSection, MyNameSection } from './JoinSections'
 import { WithdrawSection } from './WithdrawSections'
 import { OrgInviteSection, OrgSection } from './OrgSections'
@@ -124,6 +125,7 @@ export const gallerySections = [
   FeePaymentUploadSection,
   AuthSection,
   CreateCouncilSection,
+  CouncilEntrySection,
   JoinSection,
   MyNameSection,
   WithdrawSection,

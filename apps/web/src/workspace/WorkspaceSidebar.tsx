@@ -2,13 +2,14 @@ import type { Ref } from 'react'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
 import CouncilMenu from './CouncilMenu'
 import type { TaskCount } from '../tasks/task-view'
-import type { Page } from './pages'
+import type { CouncilEntry, Page } from './pages'
 import SidebarFooter from './SidebarFooter'
 import SidebarNav from './SidebarNav'
 import type { ActiveItem } from './space-view'
 import type { SpaceProps } from './SpaceList'
 
 type Props = {
+  onAddCouncil?: ((entry: CouncilEntry) => void) | undefined
   council: MyCouncil
   councils: MyCouncil[]
   view: CouncilView | null
@@ -47,6 +48,7 @@ export default function WorkspaceSidebar({
   logoutBusy,
   onLogout,
   onRenamed,
+  onAddCouncil,
 }: Props) {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -57,6 +59,7 @@ export default function WorkspaceSidebar({
         onPage={onPage}
         menuRef={menuRef}
         inSheet={inSheet}
+        onAddCouncil={onAddCouncil}
       />
       <SidebarNav
         active={active}

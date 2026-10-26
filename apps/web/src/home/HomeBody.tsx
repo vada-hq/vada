@@ -19,6 +19,9 @@ import RequestsSection from './RequestsSection'
 import SettlingSection from './SettlingSection'
 import { useHomeExtras, type HomeExtras } from './useHomeExtras'
 import WeekEventsSection from './WeekEventsSection'
+import UnassignedBand from './UnassignedBand'
+import type { ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
 
 export type HomeOpeners = {
   // 정산 수가 있는 행사는 '재정' 탭으로 연다.
@@ -89,13 +92,26 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
         />
       )}
       {home.council && (
-        <CouncilEvents
-          council={home.council}
-          today={home.today}
-          onOpenEvent={open.onOpenEvent}
-          onSeeEvents={seeEvents}
-          onNewEvent={open.onNewEvent}
-        />
+        <div className="flex min-w-0 flex-col gap-3">
+          {home.council.unassignedMembers > 0 && (
+            <Button
+              variant="link"
+              className="min-h-11 w-full justify-between break-keep whitespace-normal"
+              aria-label={`미배정 구성원 ${home.council.unassignedMembers}명`}
+              onClick={() => open.onOpenPage('people')}
+            >
+              <span>미배정 구성원</span>
+              <span className="text-right tabular-nums">{home.council.unassignedMembers}명</span>
+            </Button>
+          )}
+          <CouncilEvents
+            council={home.council}
+            today={home.today}
+            onOpenEvent={open.onOpenEvent}
+            onSeeEvents={seeEvents}
+            onNewEvent={open.onNewEvent}
+          />
+        </div>
       )}
       {home.departments && (
         <DepartmentsSection
@@ -163,13 +179,17 @@ function CurrentHome({
   councilId,
   rooms,
   onForbidden,
+  awaitingDepartment = false,
+  pushBand,
   ...open
-}: Omit<Props, 'name' | 'awaitingDepartment'>) {
+}: Omit<Props, 'name'> & { pushBand?: ReactNode }) {
   const extras = useHomeExtras(councilId, home.today, onForbidden, !home.council)
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const items = attentionOf(home, extras.requests, extras.events.length)
   return (
     <div className="flex flex-col gap-6">
+      {awaitingDepartment && <UnassignedBand />}
+      {pushBand}
       <AttentionTiles items={items} />
       <MessageInbox
         rooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
@@ -216,5 +236,5 @@ export default function HomeBody({ name, awaitingDepartment = false, ...props }:
         {...opens}
       />
     )
-  return <CurrentHome {...props} />
+  return <CurrentHome {...props} awaitingDepartment={awaitingDepartment} pushBand={pushBand} />
 }

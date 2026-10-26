@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { menuPath, type MyCouncil } from '@vada/contracts'
 import { layerDirectRecord, navigate, startAt, useHere } from '@/lib/app-location'
 import { openMenu } from '@/lib/go-to'
@@ -11,6 +11,8 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import NoCouncilFlow, { type CardFrame } from './NoCouncilFlow'
 import { useMyCouncils } from './useMyCouncils'
+import AdditionalCouncilFlow from './AdditionalCouncilFlow'
+import type { CouncilEntry } from '../workspace/pages'
 
 type Props = {
   user: { id: string; name: string; email: string }
@@ -55,6 +57,7 @@ function NotFound({ fallback }: { fallback: string }) {
 // 로그인한 뒤의 첫 화면: 학생회가 없으면 안내(초대 코드, 만들기), 있으면 주소가 가리키는 작업 공간이다.
 export default function MyCouncils({ user, userId, initialCouncilId, card, ...rest }: Props) {
   const { state, reload, add, remove } = useMyCouncils()
+  const [entry, setEntry] = useState<CouncilEntry | null>(null)
   const here = useHere()
   const councils = state.kind === 'ready' ? state.councils : NONE
   // lost는 안정된 함수여야 한다(바뀌면 잃은 학생회마다 다시 불려 목록 읽기가 끝없이 되풀이된다). 그래서 목록은 ref로 읽는다.
@@ -89,6 +92,24 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
   if (state.kind === 'loading')
     return card(<StateMessage kind="loading">학생회 확인 중…</StateMessage>)
   if (state.kind === 'failed') return card(<LoadFailed onRetry={reload} />)
+  if (entry && councils.length)
+    return (
+      <AdditionalCouncilFlow
+        entry={entry}
+        councils={councils}
+        userName={user.name}
+        card={card}
+        onClose={() => {
+          setEntry(null)
+          reload()
+        }}
+        onEntered={council => {
+          add(council)
+          navigate(menuPath('home', council.id))
+          setEntry(null)
+        }}
+      />
+    )
   if (!state.councils.length)
     return (
       <NoCouncilFlow
@@ -113,6 +134,7 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
       onLogout={rest.onLogout}
       onCouncilsChanged={reload}
       onCouncilLost={lost}
+      onAddCouncil={setEntry}
     />
   )
 }

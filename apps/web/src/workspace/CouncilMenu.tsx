@@ -1,5 +1,5 @@
 import type { Ref } from 'react'
-import { Check, ChevronsUpDown, Settings } from 'lucide-react'
+import { Check, ChevronsUpDown, LogIn, Plus, Settings } from 'lucide-react'
 import type { MyCouncil } from '@vada/contracts'
 import { BrandMark } from '@/components/BrandMark'
 import { Button } from '@/components/ui/button'
@@ -12,9 +12,11 @@ import {
   MenuTrigger,
 } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
-import type { Page } from './pages'
+import { scopeText } from '@/lib/council-text'
+import type { CouncilEntry, Page } from './pages'
 
 type Props = {
+  onAddCouncil?: ((entry: CouncilEntry) => void) | undefined
   council: MyCouncil
   councils: MyCouncil[]
   onSelect: (councilId: string) => void
@@ -35,6 +37,7 @@ export default function CouncilMenu({
   onPage,
   menuRef,
   inSheet = false,
+  onAddCouncil,
 }: Props) {
   return (
     <div className="shrink-0 border-b border-gray-100">
@@ -58,20 +61,39 @@ export default function CouncilMenu({
             <ChevronsUpDown aria-hidden className="text-gray-500" />
           </Button>
         </MenuTrigger>
-        <MenuContent align="start">
+        <MenuContent align="start" className="w-72">
           <MenuLabel>학생회 고르기</MenuLabel>
           {councils.map(item => (
-            <MenuItem key={item.id} onSelect={() => onSelect(item.id)}>
+            <MenuItem
+              key={item.id}
+              aria-label={`${item.name} ${scopeText(item)}`.trim()}
+              className="min-h-11 break-keep"
+              onSelect={() => onSelect(item.id)}
+            >
               {item.id === council.id ? (
                 <Check aria-hidden />
               ) : (
                 <span aria-hidden className="size-4 shrink-0" />
               )}
-              {item.name}
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="wrap-anywhere">{item.name}</span>
+                {scopeText(item) && (
+                  <span className="text-xs wrap-anywhere text-gray-500">{scopeText(item)}</span>
+                )}
+              </span>
             </MenuItem>
           ))}
           <MenuSeparator />
-          <MenuItem onSelect={() => onPage('settings')}>
+          <MenuItem className="min-h-11" onSelect={() => onAddCouncil?.('join')}>
+            <LogIn aria-hidden />
+            초대 코드로 들어가기
+          </MenuItem>
+          <MenuItem className="min-h-11" onSelect={() => onAddCouncil?.('create')}>
+            <Plus aria-hidden />
+            학생회 만들기
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem className="min-h-11" onSelect={() => onPage('settings')}>
             <Settings aria-hidden />
             설정
           </MenuItem>

@@ -387,7 +387,7 @@ test('학생회 이름 메뉴로 다른 학생회를 고른다', async () => {
   await renderApp()
   const menu = await screen.findByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   fireEvent.keyDown(menu, { key: 'Enter' })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회 한양대학교 ERICA' }))
   expect(
     await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' }),
   ).toBeTruthy()
@@ -464,7 +464,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 그 학생회
     within(list)
       .getAllByRole('menuitem')
       .map(item => item.textContent),
-  ).toEqual(['경영학부 학생회', '설정'])
+  ).toEqual(['경영학부 학생회한양대학교 ERICA', '초대 코드로 들어가기', '학생회 만들기', '설정'])
   fireEvent.keyDown(list, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
   await openPeople()
@@ -599,7 +599,7 @@ test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생�
       key: 'Enter',
     },
   )
-  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회 한양대학교 ERICA' }))
   const next = await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() => expect(document.activeElement).toBe(next))
   // 메뉴를 닫을 때 Radix가 거는 지연 작업이 포커스를 도로 가져가지 않는다. 메뉴가 닫히고 그 작업이 끝난 뒤에 본다.
@@ -625,7 +625,7 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
       key: 'Enter',
     },
   )
-  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회 한양대학교 ERICA' }))
   await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' })),
