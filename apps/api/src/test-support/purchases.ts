@@ -1,3 +1,5 @@
+import { createShipmentRoutes } from '../shipments/routes.js'
+import type { DeliveryLookup } from '../shipments/provider.js'
 import assert from 'node:assert/strict'
 import type { PurchaseRequestDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
@@ -30,6 +32,7 @@ export const detailOf = async (response: Response) =>
 // 구매 요청 시험의 바탕: 학생회 둘(내 것 's', 다른 것 'o'), 모든 사람의 기기 하나씩, 알림 보내기를 기록하는 가짜 보내기.
 export async function startPurchases(
   options: {
+    deliveryLookup?: DeliveryLookup
     withPush?: boolean
     limiter?: RateLimiter
     uploadLimiter?: RateLimiter
@@ -75,6 +78,7 @@ export async function startPurchases(
         ...(options.withPush === false ? {} : { push }),
         writeLimiter,
       }),
+      shipments: createShipmentRoutes(db, testSession, { clock, lookup: options.deliveryLookup }),
       budget: createBudgetRoutes(db, testSession, { clock }),
       tasks: createTaskRoutes(db, testSession, { clock }),
       chat: createChatRoutes(db, testSession, { clock, storage: store.storage }),

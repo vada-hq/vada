@@ -30,6 +30,7 @@ export const ACTIONS = [
   'event.complete', // 행사 완료와 완료 취소(회장단)
   'purchase.request', // 구매 요청 내기(모든 운영진)
   'purchase.cancel', // 구매 요청 취소(요청한 사람만)
+  'purchase.shipment', // 송장 넣기·고치기·취소(재정 역할 부서와 요청한 사람, DEC-92)
   'purchase.approve', // 구매 품목 결재(재정부, 자기 요청 포함)
   'finance.manage', // 회계 기간, 예산 항목, 지출, 증빙, 취소, 환급(재정부)
   'registration.manage', // 신청 양식 만들기·고치기·멈추기, 신청 취소, 출석(그 행사의 책임자와 담당 부서, 회장단)

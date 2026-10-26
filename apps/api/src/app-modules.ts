@@ -1,3 +1,5 @@
+import { createShipmentRoutes } from './shipments/routes.js'
+import type { DeliveryLookup } from './shipments/provider.js'
 import { createAgreement } from './agreement/routes.js'
 import { createAccountRoutes } from './accounts/routes.js'
 import { createBudgetRoutes } from './budget/routes.js'
@@ -55,6 +57,7 @@ export type AppDeps = {
     | undefined
   // 쿠팡 상품 정보를 부르는 함수. 운영은 ReefAPI, 시험은 가짜 fetch를 넣는다. 없으면(키 없음) 불러오기만 꺼진다.
   productLookup?: ProductLookup | undefined
+  deliveryLookup?: DeliveryLookup | undefined
 }
 
 function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
@@ -92,6 +95,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     tasks: createTaskRoutes(db, session, { clock, push: push.task }),
     home: createHomeRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),
+    shipments: createShipmentRoutes(db, session, { clock, lookup: deps.deliveryLookup }),
     budget: createBudgetRoutes(db, session, { clock }),
     expenses: createExpenseRoutes(db, session, { clock, writeLimiter, storage, receiptKey }),
     incomes: createIncomeRoutes(db, session, { clock, writeLimiter }),

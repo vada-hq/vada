@@ -62,6 +62,8 @@ export const purchaseDetail = (
     },
   ],
   expenses: [],
+  shipments: [],
+  canAddShipment: false,
   history: [
     {
       versionNo: 1,

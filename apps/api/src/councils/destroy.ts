@@ -34,6 +34,8 @@ export const DESTROY_STEPS = [
   { table: 'evidence', column: 'id' },
   { table: 'file', column: 'id' },
   { table: 'message', column: 'id' },
+  { table: 'shipment_item', column: 'shipment_id' },
+  { table: 'shipment', column: 'id' },
   { table: 'line_item', column: 'id' },
   { table: 'request', column: 'id' },
   { table: 'expense', column: 'id' },

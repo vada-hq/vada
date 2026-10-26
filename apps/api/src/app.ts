@@ -1,3 +1,4 @@
+import type { createShipmentRoutes } from './shipments/routes.js'
 import { Hono } from 'hono'
 import type { HealthResponse } from '@vada/contracts'
 import type { createAgreement } from './agreement/routes.js'
@@ -54,6 +55,7 @@ export type AppOptions = {
   home?: ReturnType<typeof createHomeRoutes>
   // 구매 요청: 목록, 하나 읽기, 내기, 취소, 결재
   purchases?: ReturnType<typeof createPurchaseRoutes>
+  shipments?: ReturnType<typeof createShipmentRoutes>
   // 회계 기간과 지출 예산 항목
   budget?: ReturnType<typeof createBudgetRoutes>
   // 지출: 목록, 하나 읽기, 적기, 취소, 환급
