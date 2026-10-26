@@ -14,7 +14,7 @@ type TabsProps = {
 // 개요는 모든 운영진의 첫 탭이다(DEC-92).
 export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
   return (
-    // 탭이 여덟이라 390px에서 한 줄에 다 들어가지 않는다. 탭 부품은 부모에 overflow를 주지 못하므로(tab-button.tsx) 넘치면 줄을 바꾼다.
+    // 390px에서 한 줄에 다 들어가지 않아 넘치면 줄을 바꾼다.
     <div role="tablist" aria-label="재정 보기" className="flex flex-wrap border-b">
       <TabButton aria-selected={tab === 'overview'} onClick={() => onTab('overview')}>
         개요
@@ -30,9 +30,6 @@ export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
       </TabButton>
       <TabButton aria-selected={tab === 'settlements'} onClick={() => onTab('settlements')}>
         행사 정산
-      </TabButton>
-      <TabButton aria-selected={tab === 'accounts'} onClick={() => onTab('accounts')}>
-        계좌
       </TabButton>
       {showFees && (
         <TabButton aria-selected={tab === 'fees'} onClick={() => onTab('fees')}>

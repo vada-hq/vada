@@ -86,6 +86,7 @@ export const CLOSING_CHECK_KINDS = [
   'no_account',
   'no_item',
   'other_period_item',
+  'no_period',
 ] as const
 export type ClosingCheckKind = (typeof CLOSING_CHECK_KINDS)[number]
 

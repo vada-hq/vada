@@ -39,7 +39,7 @@ export const FINANCE_TABS = [
   'incomes',
   'budget',
   'settlements',
-  'accounts',
+  'accounts', // 옛 재정 주소는 설정의 계좌로 옮긴다(DEC-92).
   'fees',
   'closing',
 ] as const

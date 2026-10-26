@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import {
   accountItem,
   accountsResponse,
@@ -11,7 +11,8 @@ import {
 } from '@/test-support/account-fixtures'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
-import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
+import { BASE, serveFinance } from '@/test-support/expense-harness'
+import { AccountsTab } from './AccountsTab'
 import { ACCOUNT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
@@ -23,14 +24,22 @@ afterEach(async () => {
 
 const ACCOUNTS = `${BASE}/accounts`
 
-async function open(
-  accounts = standardAccounts(),
-  permissions?: Parameters<typeof showFinance>[0],
-) {
+function showAccounts(permissions?: readonly string[]) {
+  const handlers = { onForbidden: vi.fn() }
+  render(
+    <AccountsTab
+      councilId={BASE.split('/').at(-1)!}
+      canManage={permissions === undefined || permissions.includes('finance.manage')}
+      {...handlers}
+    />,
+  )
+  return handlers
+}
+
+async function open(accounts = standardAccounts(), permissions?: readonly string[]) {
   const api = serveFinance()
   api.on('GET', ACCOUNTS, () => json(accounts))
-  const handlers = showFinance(permissions)
-  fireEvent.click(screen.getByRole('tab', { name: '계좌' }))
+  const handlers = showAccounts(permissions)
   await screen.findByRole('list', { name: '계좌' })
   return { api, handlers }
 }
@@ -43,18 +52,8 @@ function cardOf(name: string) {
   return card
 }
 
-test('탭에 계좌가 있고 카드에 이름, 은행, 계좌번호, 예금주, 종류, 닫힘이 보인다', async () => {
+test('카드에 이름, 은행, 계좌번호, 예금주, 종류, 닫힘이 보인다', async () => {
   await open()
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
-    '개요',
-    '지출',
-    '수입',
-    '예산',
-    '행사 정산',
-    '계좌',
-    '납부자 명단',
-    '결산',
-  ])
   const main = within(cardOf('학생회비 통장'))
   expect(main.getByText('국민은행')).toBeTruthy()
   expect(main.getByText('123-45-678901')).toBeTruthy()
@@ -86,8 +85,7 @@ test('신청 양식이 쓰는 계좌는 사용 수가 보이고 서버가 닫기
 test('계좌가 없으면 빈 문구가 보인다', async () => {
   const api = serveFinance()
   api.on('GET', ACCOUNTS, () => json(accountsResponse()))
-  showFinance()
-  fireEvent.click(screen.getByRole('tab', { name: '계좌' }))
+  showAccounts()
   expect(await screen.findByText('계좌 없음')).toBeTruthy()
 })
 
@@ -234,8 +232,7 @@ test('닫다 권한을 잃으면(403) 학생회를 다시 읽게 하고 이유�
 test('불러오지 못하면 오류와 [다시 시도]가 보인다', async () => {
   const api = serveFinance()
   api.on('GET', ACCOUNTS, () => json({ error: 'FAILED' }, 500))
-  showFinance()
-  fireEvent.click(screen.getByRole('tab', { name: '계좌' }))
+  showAccounts()
   expect(await screen.findByText(/계좌를 불러오지 못했어요/)).toBeTruthy()
   expect(screen.getByRole('button', { name: '다시 시도' })).toBeTruthy()
 })

@@ -112,7 +112,7 @@ export function AccountsTab({ councilId, canManage, onForbidden }: Props) {
       </div>
     )
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 max-sm:[&_button]:min-h-11">
       {lost && <StateMessage kind="error">{lost}</StateMessage>}
       {canManage && (
         <Button className="self-start" onClick={() => start({ kind: 'add' })}>

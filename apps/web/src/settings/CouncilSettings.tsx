@@ -2,6 +2,9 @@ import type { CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { useUnsavedInput } from '@/lib/leave-guard'
+import { useMenuQuery } from '@/lib/use-menu-query'
+import { AccountsTab } from '@/finance/AccountsTab'
+import { SettingsTabs } from './SettingsTabs'
 import CohortForm from './CohortForm'
 import CouncilInfoForm from './CouncilInfoForm'
 import type { Form } from './council-settings-form'
@@ -17,32 +20,48 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
   const note = (form: Form) =>
     message?.form === form && <StateMessage kind={message.kind}>{message.text}</StateMessage>
   const canCouncil = view.permissions.includes('council.update')
+  const query = useMenuQuery('settings', view.council.id)
+  const accounts = query.query['section'] === 'accounts'
   return (
     <PageColumn>
-      {!canCouncil && <p className="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>}
-      <CouncilInfoForm
-        value={settings.council}
-        canEdit={canCouncil}
-        saving={saving === 'council'}
-        busy={saving !== null}
-        note={note('council')}
-        onEdit={settings.editCouncil}
-        onEditTitle={settings.editTitle}
-        onSubmit={event => {
-          void settings.save(event, 'council')
-        }}
+      <SettingsTabs
+        accounts={accounts}
+        onChange={next => query.set({ section: next ? 'accounts' : null })}
       />
-      <CohortForm
-        value={settings.cohort}
-        canEdit={view.permissions.includes('cohort.update')}
-        saving={saving === 'cohort'}
-        busy={saving !== null}
-        note={note('cohort')}
-        onEdit={settings.editCohort}
-        onSubmit={event => {
-          void settings.save(event, 'cohort')
-        }}
-      />
+      {accounts ? (
+        <AccountsTab
+          councilId={view.council.id}
+          canManage={view.permissions.includes('finance.manage')}
+          onForbidden={onForbidden}
+        />
+      ) : (
+        <>
+          {!canCouncil && <p className="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>}
+          <CouncilInfoForm
+            value={settings.council}
+            canEdit={canCouncil}
+            saving={saving === 'council'}
+            busy={saving !== null}
+            note={note('council')}
+            onEdit={settings.editCouncil}
+            onEditTitle={settings.editTitle}
+            onSubmit={event => {
+              void settings.save(event, 'council')
+            }}
+          />
+          <CohortForm
+            value={settings.cohort}
+            canEdit={view.permissions.includes('cohort.update')}
+            saving={saving === 'cohort'}
+            busy={saving !== null}
+            note={note('cohort')}
+            onEdit={settings.editCohort}
+            onSubmit={event => {
+              void settings.save(event, 'cohort')
+            }}
+          />
+        </>
+      )}
     </PageColumn>
   )
 }
