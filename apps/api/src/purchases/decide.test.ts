@@ -22,10 +22,10 @@ async function prepare(s: PurchaseKit, user = 's-planningMember', endsOn = '2026
     { name: `2학기 ${endsOn}`, startsOn: '2026-09-01', endsOn },
     FINANCE,
   )
+  // 한 시험에서 여러 번 부르면 두 번째부터는 기간과 같은 이름의 항목이 이미 있어 막힌다(같은 이름 막기, DEC-92). 있는 것을 읽어 쓴다.
   await s.api.post(`${root}/budget-items`, { purpose: '소모품', amount: 100000 }, FINANCE)
-  const view = (await (
-    await s.api.post(`${root}/budget-items`, { purpose: '행사', amount: 200000 }, FINANCE)
-  ).json()) as BudgetResponse
+  await s.api.post(`${root}/budget-items`, { purpose: '행사', amount: 200000 }, FINANCE)
+  const view = (await (await s.api.get(`${root}/budget`, FINANCE)).json()) as BudgetResponse
   const request = await s.made(
     {
       title: '마커와 자석',
