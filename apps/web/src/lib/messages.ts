@@ -254,7 +254,7 @@ export const FEE_PAYMENT_ERRORS = changeErrors({
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT:
     '올릴 수 없는 내용이에요. 학번이 비었거나 한 번에 올릴 수 있는 수를 넘었는지 확인해 주세요.',
-  BODY_TOO_LARGE: '한 번에 올리기에는 너무 많아요. 나누어서 올려 주세요.',
+  BODY_TOO_LARGE: '한 번에 올릴 수 있는 명단 크기를 넘었어요.',
 })
 export const FEE_PAYMENT_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
 export const EXPENSE_ACCOUNTS_FAILED =

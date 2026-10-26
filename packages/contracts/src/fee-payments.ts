@@ -19,6 +19,8 @@ export const AddFeePaymentsSchema = z
     paidUntil: koreanDate,
     // 줄바꿈·쉼표·공백으로 나눈 학번들
     students: text(FEE_PAYMENT_TEXT_MAX),
+    // 같은 기간의 기존 명단을 바꾸는 확인을 거친 경우에만 보낸다.
+    replace: z.boolean().optional(),
   })
   .refine(value => value.paidUntil >= value.paidFrom)
 export type AddFeePaymentsRequest = z.infer<typeof AddFeePaymentsSchema>

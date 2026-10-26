@@ -41,6 +41,7 @@ const found: FeePaymentsResponse = {
 async function open(permissions: Action[] = MANAGER) {
   const api = serveFinance()
   api.on('GET', FEES, () => json(periods))
+  api.on('GET', `${BASE}/fiscal-periods`, () => json({ periods: [] }))
   const handlers = showFinance(permissions)
   fireEvent.click(screen.getByRole('tab', { name: '납부자 명단' }))
   await screen.findByRole('list', { name: '납부 기간' })
@@ -240,7 +241,7 @@ test('올리기 400이 줄 번호를 주면 그 줄을 알리고 입력이 남�
 
 test.each([
   [400, 'INVALID_INPUT', /올릴 수 없는 내용/],
-  [413, 'BODY_TOO_LARGE', /나누어서 올려/],
+  [413, 'BODY_TOO_LARGE', /명단 크기를 넘었/],
   [429, 'TOO_MANY_REQUESTS', /너무 빨리/],
 ])('올리기 %i는 문구가 보이고 입력이 남는다', async (status, code, text) => {
   const { api } = await openUpload()

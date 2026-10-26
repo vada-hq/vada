@@ -1,4 +1,5 @@
 import type { ReactNode, RefObject } from 'react'
+import { cn } from '@/lib/utils'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +23,7 @@ type Props = {
   onClose: () => void
   // 행이 여럿인 창(예산 편성)은 넓게 연다(와이어프레임 EVT-FIN-01B 편성 창, 약 640px).
   wide?: boolean
+  touch?: boolean
   // 버튼 줄 왼쪽에 두는 것(예산 편성의 합계).
   summary?: ReactNode
   children: ReactNode
@@ -39,6 +41,7 @@ export function BudgetFormDialog({
   onSubmit,
   onClose,
   wide = false,
+  touch = false,
   summary,
   children,
 }: Props) {
@@ -49,7 +52,13 @@ export function BudgetFormDialog({
         if (!open && !saving) onClose()
       }}
     >
-      <DialogContent aria-describedby={undefined} className={wide ? 'max-w-160' : undefined}>
+      <DialogContent
+        aria-describedby={undefined}
+        className={cn(
+          wide && 'max-w-160',
+          touch && '[&_button]:max-sm:min-h-11 [&>button]:max-sm:min-w-11',
+        )}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

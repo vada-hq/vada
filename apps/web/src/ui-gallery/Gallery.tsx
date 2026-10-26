@@ -19,6 +19,7 @@ import { SpaceListSection } from './SpaceSections'
 import { SidebarSection } from './SidebarSections'
 import { HeaderSection } from './HeaderSections'
 import { AccountSection } from './AccountSections'
+import { FeePaymentUploadSection } from './FeePaymentSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
@@ -115,6 +116,7 @@ export const gallerySections = [
   BudgetPlanSection,
   EventSettlementsSection,
   AccountSection,
+  FeePaymentUploadSection,
   AuthSection,
   CreateCouncilSection,
   JoinSection,

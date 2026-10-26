@@ -21,6 +21,7 @@ type Props = {
   confirmLabel: string
   // 되돌리기 어려운 동작은 빨간 버튼이다.
   destructive?: boolean
+  touch?: boolean
   busy?: boolean
   error?: string | null | undefined
   // 설명과 칸 사이에 두는 안내(상태 글 등).
@@ -38,6 +39,8 @@ type Props = {
 }
 
 const VALID: Parsed = { success: true }
+const touchClassOf = (touch: boolean) =>
+  touch ? '[&_button]:max-sm:min-h-11 [&>button]:max-sm:min-w-11' : undefined
 
 // 공용 확인 창: 되돌리기 어려운 동작 앞에 한 번 묻는다. 칸이 없거나 사유·금액 한 칸을 받는다.
 // 확인 버튼은 끄지 않고 누를 때 확인한다(보내는 중에만 막는다). 보내는 동안에는 창을 닫지 않는다.
@@ -47,6 +50,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   destructive = false,
+  touch = false,
   busy = false,
   error,
   children,
@@ -70,6 +74,7 @@ export function ConfirmDialog({
       }}
     >
       <DialogContent
+        className={touchClassOf(touch)}
         {...(description ? {} : { 'aria-describedby': undefined })}
         onCloseAutoFocus={onCloseAutoFocus}
       >
