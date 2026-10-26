@@ -7,6 +7,7 @@ import {
   EmptyRequestSchema,
   UpdateBudgetItemSchema,
   type BudgetResponse,
+  type FinanceOverviewResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
@@ -14,6 +15,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import type { Db, Tx } from '../db/types.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
+import { financeOverviewOf } from './overview.js'
 import { budgetOf } from './queries.js'
 import { deleteBudgetItem, updateBudgetItem } from './item-change.js'
 import { addBudgetItem, addBudgetItems, createFiscalPeriod } from './service.js'
@@ -70,7 +72,7 @@ function itemRoutes({ routes, auth, clock, change }: Kit) {
   })
 }
 
-// 회계 기간과 예산 항목. 모든 운영진이 보고(PRIN-5), 만들고 고치고 지우는 것은 재정부만이다.
+// 회계 기간과 예산 항목, 재정 첫 화면. 모든 운영진이 보고(PRIN-5), 만들고 고치고 지우는 것은 재정부만이다.
 export function createBudgetRoutes(
   db: Db,
   getSession: SessionReader,
@@ -90,6 +92,17 @@ export function createBudgetRoutes(
       snapshot,
     )
     return c.json(view satisfies BudgetResponse)
+  })
+  // 재정 첫 화면(개요): 모든 운영진이 본다(DEC-92). 기간은 예산 읽기와 같은 쿼리다.
+  routes.get(`${root}/finance-overview`, auth, async c => {
+    const now = clock()
+    const request = asked(c.get('userId'), c.req.param('councilId'), now)
+    const { period } = parseQuery(BudgetQuerySchema, c.req.queries())
+    const view = await db.transaction(
+      async tx => financeOverviewOf(tx, await authorize(tx, request), now, period),
+      snapshot,
+    )
+    return c.json(view satisfies FinanceOverviewResponse)
   })
   routes.post(`${root}/fiscal-periods`, json(CreateFiscalPeriodSchema), auth, async c => {
     const input = c.req.valid('json')

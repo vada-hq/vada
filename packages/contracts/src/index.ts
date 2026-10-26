@@ -276,6 +276,8 @@ export {
 } from './budget.js'
 // 예산 편성: 여러 행 넣기와 고치기(기능 024).
 export * from './budget-change.js'
+// 재정 첫 화면(기능 024 조각 8).
+export * from './finance-overview.js'
 export { semesterOf } from './semester.js'
 // 구매 요청은 이름이 많아 한 줄로 다시 내보낸다(파일 길이 상한).
 export * from './purchases.js'

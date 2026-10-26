@@ -26,8 +26,8 @@ const SPEND_RECORD = 'usage_spend_record'
 const lineRecord = alias(record, LINE_RECORD)
 const spendRecord = alias(record, SPEND_RECORD)
 
-// 이 학생회의 취소하지 않은 지출에 든 그 품목의 결제 내역 합
-const paidFor = (line: AnyPgColumn, councilId: string) =>
+// 이 학생회의 취소하지 않은 지출에 든 그 품목의 결제 내역 합. 재정 첫 화면의 지출 예정 품목 수도 이것으로 남은 금액을 본다.
+export const paidFor = (line: AnyPgColumn, councilId: string) =>
   sql`(select coalesce(sum(${paymentLine.amount}), 0) from ${paymentLine}
     join ${expense} on ${expense.id} = ${paymentLine.expenseId}
     join ${record} ${sql.identifier(SPEND_RECORD)} on ${spendRecord.id} = ${expense.id}
