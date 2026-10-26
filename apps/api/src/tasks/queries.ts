@@ -114,12 +114,11 @@ const inMyDepartments = (actor: Actor) => {
   return ids.length > 0 ? inArray(task.departmentId, ids) : sql`false`
 }
 
-// 업무 화면의 '담당자 없음'. 담당자 없음, 떠난 담당자, 부서 없는 업무. 홈이 같이 쓴다.
+// 담당자가 비었거나 떠난 미완료 업무(DEC-94). 홈과 행사 건강도도 이 조건으로 센다.
 export const unassignedCondition = (db: Reader, actor: Actor, now: Date) =>
-  or(
-    isNull(task.assigneeId),
-    sql`not ${assigneeIsCurrent(db, actor, now)}`,
-    isNull(task.departmentId),
+  and(
+    ne(task.status, 'done'),
+    or(isNull(task.assigneeId), sql`not ${assigneeIsCurrent(db, actor, now)}`),
   )
 
 function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL | undefined {

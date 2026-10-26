@@ -54,6 +54,11 @@ test('묶음 머리의 수: 진행 중, 지남, 담당자 없음(끝난 업무�
       task('b', { overdue: true }),
       task('c', { assignee: null }),
       task('d', { assignee: null, status: 'done' }),
+      task('e', { assignee: { id: 'left', name: '떠난 담당자', current: false } }),
+      task('f', {
+        assignee: { id: 'left', name: '떠난 담당자', current: false },
+        status: 'done',
+      }),
     ]),
-  ).toEqual({ inProgress: 1, overdue: 1, unassigned: 1 })
+  ).toEqual({ inProgress: 1, overdue: 1, unassigned: 2 })
 })

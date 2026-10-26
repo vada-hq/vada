@@ -163,3 +163,39 @@ test('학생회 직급이 있으면 부서 직급도 있어도 회장단 홈 칸
     ])
   })()
 })
+
+test('담당자 없음은 부서 유무와 무관하게 홈·행사 카드·업무 목록이 같은 업무를 센다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    const eventId = await t.event({ startsAt: null })
+    const departmentId = planning(t)
+    const missing = await h.task({ eventId, departmentId, assigneeId: null })
+    const noDepartment = await h.task({ eventId, assigneeId: null })
+    const left = await h.task({
+      eventId,
+      departmentId,
+      assigneeId: t.council.people.ended.memberId,
+    })
+    const leftWithoutDepartment = await h.task({
+      eventId,
+      assigneeId: t.council.people.ended.memberId,
+      status: 'in_progress',
+    })
+    await h.task({ eventId, departmentId })
+    await h.task({ eventId })
+    await h.task({ eventId, assigneeId: null, status: 'done' })
+    await h.task({ eventId, assigneeId: t.council.people.ended.memberId, status: 'done' })
+    await h.task({ eventId, assigneeId: null, cancelledAt: clockNow })
+    await h.task({ assigneeId: null }, t.other)
+    const rows = await h.tasksOf('view=unassigned')
+    const expected = [missing, noDepartment, left, leftWithoutDepartment].sort()
+    assert.deepEqual(rows.map(row => row.id).sort(), expected)
+    const home = (await h.read('s-president')).councilBoard!
+    assert.equal(home.attention.total, expected.length)
+    assert.deepEqual(home.attention.items.map(item => item.task.id).sort(), expected)
+    assert.equal(home.events.cards[0]!.tasks.unassigned, rows.length)
+    const card = (await h.read('s-planningHead')).departments![0]!
+    assert.equal(card.counts.unassigned, 2)
+    assert.deepEqual(card.unassigned.tasks.map(row => row.id).sort(), [missing, left].sort())
+  })()
+})
