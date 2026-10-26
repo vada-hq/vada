@@ -12,12 +12,12 @@ import {
   teamResponse,
 } from '@/test-support/council-fixtures'
 import { budgetWithoutPeriod } from '@/test-support/budget-fixtures'
-import { closingFixture } from '@/test-support/closing-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { expenseDetail, expenseSummary } from '@/test-support/expense-fixtures'
 import { homeRequest, homeResponse, onHomeExtras } from '@/test-support/home-fixtures'
 import { CURRENT_PERIOD, OLD_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { overviewFixture } from '@/test-support/overview-fixtures'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
@@ -80,10 +80,10 @@ function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, hom
     }),
   )
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
-  // 재정부의 재정 첫 화면(개요)이 지금 기간의 결산서를 읽는다.
+  // 재정 첫 화면(개요)이 지금 기간의 개요를 읽는다(모든 운영진).
   api.on('GET', `${base}/fiscal-periods`, () => json(standardPeriods()))
-  api.on('GET', `${base}/fiscal-periods/${CURRENT_PERIOD}/closing`, () =>
-    json({ closing: closingFixture() }),
+  api.on('GET', `${base}/finance-overview?period=${CURRENT_PERIOD}`, () =>
+    json({ overview: overviewFixture() }),
   )
   return render(<WorkspaceAt startPage={startPage} />)
 }
@@ -194,11 +194,11 @@ test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열
   expect(await select()).toHaveProperty('value', OLD_PERIOD)
 })
 
-test('납부자 명단 권한이 없으면 그 탭 주소는 구매 요청 탭으로 바꿔 쓴다', async () => {
+test('납부자 명단 권한이 없으면 그 탭 주소는 첫 화면(개요)으로 바꿔 쓴다', async () => {
   const push =
     (startAt(`/finance/${COUNCIL_ID}?tab=fees`, 'finance', MEMBER_PERMISSIONS),
     vi.spyOn(window.history, 'pushState'))
-  expect(await isSelected('구매 요청')).toBe(true)
+  expect(await isSelected('개요')).toBe(true)
   await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
   expect(screen.queryByRole('tab', { name: '납부자 명단' })).toBeNull()
   expect(push).not.toHaveBeenCalled()

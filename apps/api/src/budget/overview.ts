@@ -169,7 +169,7 @@ function eventsOf(items: FinanceOverviewItem[]): FinanceOverviewEvent[] {
 const sum = (values: number[]) => values.reduce((all, value) => all + value, 0)
 
 // 기간 하나의 개요. 기간은 이 학생회 것이어야 한다(부르는 쪽이 고른다).
-export async function overviewOfPeriod(
+async function overviewOfPeriod(
   db: Reader,
   councilId: string,
   period: Period,

@@ -32,6 +32,7 @@ import {
 import { EventHeaderSection, EventSection } from './EventSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
+import { OverviewSection } from './OverviewSections'
 import {
   TaskBoardSection,
   TaskQuickAddSection,
@@ -109,6 +110,7 @@ export default function Gallery() {
       <BudgetItemLineSection />
       <BudgetPlanSection />
       <EventSettlementsSection />
+      <OverviewSection />
       <AccountSection />
       <AuthSection />
       <CreateCouncilSection />
