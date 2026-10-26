@@ -436,3 +436,54 @@ test(
     assert.deepEqual(endpointsOf(s), usersOf('financeMember'))
   }),
 )
+
+test(
+  '원글을 볼 수 없는 사람은 답글에서 불러도, 그 원글에 답글을 쓴 적이 있어도 알림과 부름 수가 없다(보이는 범위, DEC-90)',
+  run(async s => {
+    const planning = await s.roomId('기획부')
+    const people = s.council.people
+    // 기획부원은 5월에 (다시) 들어왔다. 4월 원글은 그 사람에게 보이지 않는다.
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-05-01T00:00:00Z' WHERE room_id = $1 AND member_id = $2`,
+      [planning, people.planningMember.memberId],
+    )
+    const put = (sender: string, body: string, at: string, replyTo: string | null = null) =>
+      s.db.transaction(tx =>
+        createRecord(tx, {
+          kind: 'message',
+          councilId: s.council.councilId,
+          actor: sender,
+          values: { roomId: planning, body, sentAt: new Date(at), replyToId: replyTo },
+        }),
+      )
+    const original = await put(people.planningHead.memberId, '4월 원글', '2026-04-01T00:00:00Z')
+    const reply = (body: unknown) => s.send(planning, 's-planningViceHead', body)
+    assert.equal(
+      (
+        await reply({
+          body: '@기획부원 봐 주세요',
+          mentions: [people.planningMember.memberId],
+          replyTo: original,
+        })
+      ).status,
+      201,
+    )
+    assert.deepEqual(endpointsOf(s), usersOf('planningHead'))
+    const mentions = await s.pg.query<{ n: string }>(
+      `SELECT count(*) AS n FROM notification WHERE recipient_id = $1 AND type = 'mention'`,
+      [people.planningMember.memberId],
+    )
+    assert.equal(Number(mentions.rows[0]!.n), 0)
+    const listed = (await (await s.api.get(`${s.base}/rooms`, 's-planningMember')).json()) as {
+      rooms: { id: string; mentions: number; unread: number }[]
+    }
+    const room = listed.rooms.find(item => item.id === planning)!
+    assert.deepEqual([room.mentions, room.unread], [0, 0])
+    // 들어오기 전에 그 원글에 답글을 쓴 사람도 지금 원글을 볼 수 없으면 받지 않는다.
+    await put(people.planningMember.memberId, '4월 답글', '2026-04-02T00:00:00Z', original)
+    s.calls.length = 0
+    s.setNow(new Date(start.getTime() + 60_000))
+    assert.equal((await reply({ body: '하나 더', replyTo: original })).status, 201)
+    assert.deepEqual(endpointsOf(s), usersOf('planningHead'))
+  }),
+)

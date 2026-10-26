@@ -405,3 +405,77 @@ test(
     assert.equal((await s.list('s-plain')).rooms.find(item => item.id === all)!.unread, 1)
   }),
 )
+
+test(
+  '방의 가장 최근 원글로 읽음을 보내면 그 뒤 답글까지 읽은 것이다. 더 새 원글이 있으면 지금처럼 그 원글까지만이다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const unreadOf = async () =>
+      (await s.list('s-financeMember')).rooms.find(item => item.id === all)!.unread
+    const read = async (messageId: string) =>
+      assert.equal(
+        (await s.api.post(`${s.base}/rooms/${all}/read`, { messageId }, 's-financeMember')).status,
+        204,
+      )
+    const a = await s.sent(all, 's-president', { body: 'A' })
+    await s.sent(all, 's-plain', { body: 'A의 답글', replyTo: a.id })
+    assert.equal(await unreadOf(), 2)
+    await read(a.id)
+    assert.equal(await unreadOf(), 0)
+    // A, B 중 A로 읽으면 B와 그 뒤 답글이 남는다.
+    const b = await s.sent(all, 's-president', { body: 'B' })
+    await s.sent(all, 's-plain', { body: 'A의 둘째 답글', replyTo: a.id })
+    await read(a.id)
+    assert.equal(await unreadOf(), 2)
+    await read(b.id)
+    assert.equal(await unreadOf(), 0)
+  }),
+)
+
+test(
+  '볼 수 없는 답글은 가장 최근 원글로 보낸 읽음을 앞당기지 않는다',
+  run(async s => {
+    const planning = await s.roomId(s.council.councilId, '기획부')
+    const head = s.person.planningHead.memberId
+    const member = s.person.planningMember.memberId
+    await s.pg.query(
+      `UPDATE room_membership SET joined_at = '2026-05-01T00:00:00Z' WHERE room_id = $1 AND member_id = $2`,
+      [planning, member],
+    )
+    const early = await s.put({
+      room: planning,
+      sender: head,
+      body: '4월',
+      at: '2026-04-01T00:00:00Z',
+    })
+    const visible = await s.put({
+      room: planning,
+      sender: head,
+      body: '7월',
+      at: '2026-07-01T00:00:00Z',
+    })
+    await s.put({
+      room: planning,
+      sender: head,
+      body: '8월 답글',
+      at: '2026-08-01T00:00:00Z',
+      replyTo: early,
+    })
+    assert.equal(
+      (
+        await s.api.post(
+          `${s.base}/rooms/${planning}/read`,
+          { messageId: visible },
+          's-planningMember',
+        )
+      ).status,
+      204,
+    )
+    const { rows } = await s.pg.query<{ at: string }>(
+      `SELECT to_char(last_read_at at time zone 'UTC', 'YYYY-MM-DD') AS at FROM room_membership
+        WHERE room_id = $1 AND member_id = $2`,
+      [planning, member],
+    )
+    assert.equal(rows[0]!.at, '2026-07-01')
+  }),
+)

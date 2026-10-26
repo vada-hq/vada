@@ -8,7 +8,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
-import { messageOf } from './messages.js'
+import { messageOf, viewersAmong } from './messages.js'
 import { isStorageKeyConflict, type VerifiedPhoto } from '../storage/uploads.js'
 import { assertRoomOpen } from './archive.js'
 import { attachPhotos } from './photos.js'
@@ -147,7 +147,9 @@ export async function sendMessage(
   })
   await attachPhotos(tx, actor, messageId, input.photos)
   await advanceRead(tx, room.id, actor.memberId, messageId)
-  for (const recipientId of called)
+  // 답글의 부름은 그 답글(원글)을 볼 수 있는 사람에게만 남긴다(DEC-90). 들어오기 전 원글이면 참여자여도 부르지 못한다.
+  const seeing = input.replyTo ? await viewersAmong(tx, actor, messageId, called) : null
+  for (const recipientId of called.filter(id => seeing === null || seeing.has(id)))
     await createRecord(tx, {
       kind: 'notification',
       councilId: actor.councilId,
