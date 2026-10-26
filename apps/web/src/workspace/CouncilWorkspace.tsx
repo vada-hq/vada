@@ -2,6 +2,7 @@ import { useState, type ComponentProps } from 'react'
 import type { EventTab, MyCouncil } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
+import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
@@ -9,7 +10,7 @@ import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
-import { pageTitles } from './pages'
+import { trailOf } from './pages'
 import { activeItemOf } from './space-view'
 import { useCouncilData } from './useCouncilData'
 import { useSpace } from './useSpace'
@@ -63,12 +64,14 @@ function CouncilMain({
   const [actions, setActions] = useState<HTMLDivElement | null>(null)
   // 새 홈이 알린 알림 꺼짐 띠 자리. 띠는 여기 하나다.
   const [homeBand, setHomeBand] = useState<HTMLElement | null>(null)
+  // 화면이 넘긴 제목과 더 깊은 경로 칸(행사 화면의 행사명과 탭). 그 화면이 닫히면 비운다.
+  const [deeper, setDeeper] = useState<PageTrail | null>(null)
+  const trail = trailOf(nav.page, council.name, deeper)
   return (
     <>
       <WorkspaceHeader
-        councilName={council.name}
-        section={pageTitles[nav.page].section}
-        title={pageTitles[nav.page].title}
+        crumbs={trail.crumbs}
+        title={trail.title}
         menuRef={nav.headerMenu}
         onMenu={() => nav.setNavOpen(true)}
         actionsRef={setActions}
@@ -76,7 +79,9 @@ function CouncilMain({
       <PagePushBand page={nav.page} homeSlot={homeBand} />
       <PageActionsProvider value={actions}>
         <PushBandSlot.Provider value={setHomeBand}>
-          <WorkspaceContent {...content} page={nav.page} />
+          <PageTrailProvider value={setDeeper}>
+            <WorkspaceContent {...content} page={nav.page} />
+          </PageTrailProvider>
         </PushBandSlot.Provider>
       </PageActionsProvider>
     </>

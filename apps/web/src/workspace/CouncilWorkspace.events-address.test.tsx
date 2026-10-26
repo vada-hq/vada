@@ -343,3 +343,35 @@ test('마지막에 고른 배치는 행사 업무 탭으로 들어갈 때 주소
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&layout=list`))
 })
+
+// 머리글 경로 줄(DEC-96): 행사 화면은 행사명과 탭 이름을 머리글에 넘긴다.
+const pathLine = () =>
+  within(within(screen.getByRole('banner')).getByRole('list', { name: '경로' }))
+    .getAllByRole('listitem')
+    .map(item => item.textContent)
+
+test('행사 업무 탭의 경로 줄은 학생회 > 행사 > 행사명 > 업무이고 제목은 행사명이다', async () => {
+  setup(`${EVENT_AT}?tab=tasks`)
+  onEventTasks()
+  const banner = screen.getByRole('banner')
+  expect(
+    await within(banner).findByRole('heading', { level: 1, name: '신입생 환영회' }),
+  ).toBeTruthy()
+  expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사', '신입생 환영회', '업무'])
+  // 행사명은 머리글 제목 하나에만 있다.
+  expect(screen.getAllByRole('heading', { name: '신입생 환영회' })).toHaveLength(1)
+  fireEvent.click(screen.getByRole('tab', { name: '재정' }))
+  await waitFor(() =>
+    expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사', '신입생 환영회', '재정']),
+  )
+})
+
+test('행사에서 행사 목록으로 나오면 경로 줄과 제목이 행사 목록의 것이다', async () => {
+  setup(EVENT_AT)
+  await within(screen.getByRole('banner')).findByRole('heading', { name: '신입생 환영회' })
+  fireEvent.click(screen.getAllByRole('button', { name: '행사 모두 보기' })[0]!)
+  await waitFor(() => expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사']))
+  expect(within(screen.getByRole('banner')).getByRole('heading', { level: 1 }).textContent).toBe(
+    '행사',
+  )
+})

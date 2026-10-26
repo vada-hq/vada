@@ -1,8 +1,11 @@
 import { useEffect, type ReactNode } from 'react'
 import type { EventDetail } from '@vada/contracts'
 import { HistoryMenu } from '@/components/HistoryMenu'
+import PageActions from '@/components/PageActions'
+import PageHeading from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
+import { eventTrail } from '../workspace/pages'
 import { ApprovalNote } from './ApprovalNote'
 import { versionLine } from './event-history'
 import { EventCompletion } from './EventCompletion'
@@ -27,18 +30,28 @@ type Props = EventDialogHandlers & {
   // 이름 줄과 요약 줄 사이의 탭 줄(와이어프레임: 제목 → 탭 → 행사 요약 줄).
   // 행사를 읽기 전후로 같은 자리에 둬, 읽는 사이 누른 탭과 초점이 사라지지 않는다.
   tabs: ReactNode
+  // 열린 탭의 이름. 머리글 경로 줄의 끝 칸이다(DEC-96).
+  tabLabel: string
 }
 
-// 이름 줄: 이름, 완료 사유(DEC-80), '⋯' 이력. 와이어프레임의 [행사 설정]은 요약 줄의 [기본정보 수정]과 같은 곳으로 가서 두지 않는다.
-function EventTitle({ event }: { event: EventDetail }) {
+// 이름 줄: 이름, '⋯' 이력, 완료 사유(DEC-80). 와이어프레임의 [행사 설정]은 요약 줄의 [기본정보 수정]과 같은 곳으로 가서 두지 않는다.
+// 작업 공간에서는 이름과 경로 칸(행사명 > 탭)을 공통 머리글 제목으로, '⋯'를 머리글 오른쪽 행동 칸으로 보낸다
+// (와이어프레임 EVT-02: 머리글 제목이 행사명이고 그 아래 바로 탭 줄). 그러면 이 줄은 비어 숨는다.
+function EventTitle({ event, tabLabel }: { event: EventDetail; tabLabel: string }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h2 className="text-xl font-bold text-gray-900 wrap-anywhere">{event.name}</h2>
-        <ApprovalNote approvals={event.approvals} />
+    <>
+      <div className="flex items-start gap-3 empty:hidden">
+        <PageHeading trail={eventTrail(event.name, tabLabel)}>
+          <h2 className="min-w-0 flex-1 text-xl font-bold text-gray-900 wrap-anywhere">
+            {event.name}
+          </h2>
+        </PageHeading>
+        <PageActions>
+          <HistoryMenu history={event.history} line={versionLine} />
+        </PageActions>
       </div>
-      <HistoryMenu history={event.history} line={versionLine} />
-    </div>
+      <ApprovalNote approvals={event.approvals} />
+    </>
   )
 }
 
@@ -76,6 +89,7 @@ export function EventHeader({
   onChanged,
   onStale,
   tabs,
+  tabLabel,
   ...handlers
 }: Props) {
   const canEdit = event?.actions.includes('event.update') ?? false
@@ -89,7 +103,7 @@ export function EventHeader({
   }, [allowed, onLost, setEditing])
   return (
     <div className="flex flex-col gap-4">
-      {event && <EventTitle event={event} />}
+      {event && <EventTitle event={event} tabLabel={tabLabel} />}
       <div className="flex flex-col">
         {tabs}
         {event && (

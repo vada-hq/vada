@@ -44,6 +44,8 @@ type Props = EventDialogHandlers & {
   onTasksChanged: () => void
 }
 
+const tabLabelOf = (tab: Tab) => TABS.find(item => item.tab === tab)?.label ?? ''
+
 function EventTabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
   return (
     <div role="tablist" aria-label="행사 보기" className="flex border-b">
@@ -120,6 +122,7 @@ export default function EventDetailView({ view, eventId, tab, onTab, from, ...pr
           state.refreshMoney()
         }}
         tabs={<EventTabs tab={tab} onTab={state.moveTo} />}
+        tabLabel={tabLabelOf(tab)}
       />
       {event?.status === 'completed' && <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>}
       <EventPanel
