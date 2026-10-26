@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { CalendarDays, MapPin, type LucideIcon } from 'lucide-react'
-import { EVENT_STATUS_LABEL, type EventDetail } from '@vada/contracts'
+import type { EventDetail } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { endedLabel, healthOf, nextLabel, ownerLine } from './event-header-view'
-import { EVENT_STATUS_TONE, whenLabel } from './event-view'
+import { whenLabel } from './event-view'
+import EventStatusChip from './EventStatusChip'
 
 // 칸 하나(행사일, 장소). 비었으면 '미정'으로 보인다(와이어프레임: 미정 정보는 빈칸이 아닌 미정).
 function Meta({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
@@ -42,7 +43,7 @@ function Summary({ event }: { event: EventDetail }) {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
+        <EventStatusChip status={event.status} />
         <Badge tone={health.tone} className="whitespace-normal">
           {health.text}
         </Badge>

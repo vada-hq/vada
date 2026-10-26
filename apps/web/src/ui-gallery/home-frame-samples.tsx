@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import { BarChart2, ChevronRight, ClipboardList } from 'lucide-react'
 import type { RoomSummary } from '@vada/contracts'
 import { Alert } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
+import EventStatusChip from '@/events/EventStatusChip'
 import type { FeaturedTile, TilesRead } from '@/home/FeaturedEvents'
 import type { CardRead } from '@/home/HomeCard'
 import HomeChip from '@/home/HomeChip'
@@ -61,7 +61,7 @@ function EventTile({ id, name, overdue }: { id: string; name: string; overdue: n
   return (
     <li key={id} className="flex min-w-0 flex-col gap-1.5 rounded-lg border p-3">
       <div className="flex items-center gap-2">
-        <Badge tone={overdue > 0 ? 'success' : 'info'}>{overdue > 0 ? '진행 중' : '기획 중'}</Badge>
+        <EventStatusChip status={overdue > 0 ? 'ongoing' : 'upcoming'} />
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-gray-900">{name}</span>
         <span className="shrink-0 text-xs text-gray-500">10월 30일 · D-4</span>
       </div>
@@ -133,7 +133,7 @@ export const shortcut = (
 const featured = (name: string): FeaturedTile => ({
   id: name,
   name,
-  chip: <Badge tone="info">기획 중</Badge>,
+  chip: <EventStatusChip status="upcoming" />,
   when: '10월 30일 (금) · D-4',
   onOpen: noop,
 })
@@ -145,7 +145,7 @@ const PARTICIPATING_TOTAL = 6
 const participatingRow = (id: string, name: string, done: number) => (
   <li key={id} className="flex flex-col gap-1.5 px-5 py-2.5">
     <div className="flex items-center gap-2">
-      <Badge tone="info">기획 중</Badge>
+      <EventStatusChip status="upcoming" />
       <span className="min-w-0 flex-1 text-sm font-bold break-keep text-gray-900 wrap-anywhere">
         {name}
       </span>

@@ -1,7 +1,7 @@
-import { EVENT_STATUS_LABEL, type HomeEventCard } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
+import type { EventSummary, HomeEventCard } from '@vada/contracts'
 import { cn } from '@/lib/utils'
-import { dateBlock, EVENT_STATUS_TONE, settlementLabel, spanLabel } from '../events/event-view'
+import { dateBlock, settlementLabel, spanLabel } from '../events/event-view'
+import EventStatusChip from '../events/EventStatusChip'
 import { dDay } from './home-view'
 import HomeRow from './HomeRow'
 import { riskParts } from './risk-parts'
@@ -30,24 +30,27 @@ export function DateBox({ startsAt, past }: { startsAt: string | null; past: boo
   )
 }
 
-// 오른쪽 끝: 진행 중·끝남은 상태, 예정은 남은 날. 날짜 미정은 제목 아래 날짜 자리가 말한다.
-function Side({ card, today }: Pick<Props, 'card' | 'today'>) {
-  const { event } = card
-  if (event.status === 'upcoming' && event.startsAt)
-    return <span className="font-medium text-gray-700">{dDay(today, event.startsAt)}</span>
-  if (event.status === 'ongoing' || event.status === 'ended')
-    return <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
-  return null
+// 일시와 시작까지 남은 날: '월요일 18:00', 'D-3'. 남은 날은 예정 행사만이고 날짜 쪽에 둔다(와이어프레임 '{날짜} · D-N').
+// 오른쪽 끝은 행사 화면과 같은 상태 칩이라(DEC-93) 남은 날이 상태 자리를 차지하지 않는다.
+export function whenParts(event: EventSummary, today: string) {
+  return [
+    spanLabel(event),
+    event.status === 'upcoming' && event.startsAt && (
+      <span key="d-day" className="font-medium text-gray-700">
+        {dDay(today, event.startsAt)}
+      </span>
+    ),
+  ]
 }
 
-// 학생회의 행사 한 줄: 이름, 날짜 · 업무 진행 · 막힌 수(있을 때만) · 정산에 남은 것. 카드 대신 줄로 두어 견주기 쉽게 한다(NN/g Cards).
+// 학생회의 행사 한 줄: 이름, 날짜 · 남은 날 · 업무 진행 · 막힌 수(있을 때만) · 정산에 남은 것. 카드 대신 줄로 두어 견주기 쉽게 한다(NN/g Cards).
 export default function HomeEventRow({ card, today, onOpen }: Props) {
   const { event, tasks, settlement } = card
   return (
     <HomeRow
       title={event.name}
       meta={[
-        spanLabel(event),
+        ...whenParts(event, today),
         tasks.total > 0 && `업무 ${tasks.done}/${tasks.total}`,
         ...riskParts(tasks),
         settlement && (
@@ -57,7 +60,7 @@ export default function HomeEventRow({ card, today, onOpen }: Props) {
         ),
       ]}
       lead={<DateBox startsAt={event.startsAt} past={event.status === 'ended'} />}
-      side={<Side card={card} today={today} />}
+      side={<EventStatusChip status={event.status} />}
       onOpen={() => (settlement ? onOpen(event.id, 'money') : onOpen(event.id))}
     />
   )

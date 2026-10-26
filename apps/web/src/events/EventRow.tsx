@@ -1,8 +1,8 @@
-import { EVENT_STATUS_LABEL, type EventSummary } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
+import type { EventSummary } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { dateBlock, EVENT_STATUS_TONE, spanLabel, whenLabel } from './event-view'
+import { dateBlock, spanLabel, whenLabel } from './event-view'
+import EventStatusChip from './EventStatusChip'
 
 type Props = { event: EventSummary; onOpen: () => void }
 
@@ -52,9 +52,7 @@ export default function EventRow({ event, onOpen }: Props) {
           {event.place && <span className="wrap-anywhere">{event.place}</span>}
         </p>
       </div>
-      {BADGED.has(event.status) && (
-        <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
-      )}
+      {BADGED.has(event.status) && <EventStatusChip status={event.status} />}
     </div>
   )
 }
