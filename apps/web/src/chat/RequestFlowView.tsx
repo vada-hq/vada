@@ -20,6 +20,8 @@ type Props = Omit<RequestAccess, 'onOpenRequest'> & {
   councilId: string
   meId: string
   flow: RequestFlow
+  // 행사 방에서 열면 그 행사를 고른 채로 시작한다. 사람이 바꿀 수 있다(DEC-90, 022 정한 것 29).
+  eventId?: string | null | undefined
   onForbidden: () => void
   // 상품 정보 패널에서 열면 그 링크의 품목을 패널의 상품으로 채운다.
   picked?: LoadedPick | undefined
@@ -52,6 +54,7 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
       open
       pickTask
       councilId={councilId}
+      eventId={props.eventId ?? null}
       start={seed}
       requesters={canAssign ? requestersOf(team, meId) : null}
       onClose={flow.close}

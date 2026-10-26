@@ -96,6 +96,8 @@ function PageOf({
     return (
       <EventsPage
         view={view}
+        team={data.team}
+        rooms={rooms}
         onForbidden={data.reload}
         onTasksChanged={() => void tasks.reload()}
       />

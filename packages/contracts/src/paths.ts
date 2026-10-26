@@ -18,7 +18,8 @@ export const APP_MENUS = [
 export type AppMenu = (typeof APP_MENUS)[number]
 
 // 화면의 탭·보기 타입이 이 목록에서 나온다. 한쪽에만 탭을 더하면 주소가 그 탭을 기본값으로 읽는다.
-export const EVENT_TABS = ['overview', 'tasks', 'registrations', 'money'] as const
+// 메시지가 행사의 첫 탭이자 기본 탭이다(DEC-90 "행사 화면의 첫 탭은 메시지다", 022 정한 것 28).
+export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
@@ -50,7 +51,7 @@ export type RecordKind = keyof typeof RECORD_PARENTS
 export const RECORD_KINDS = Object.keys(RECORD_PARENTS) as RecordKind[]
 
 // onlyWith가 있으면 그 키가 그 값일 때만 남는다(그 키는 규칙에서 앞에 둔다).
-// 그 값이 그 키의 기본값이면 그 키가 쿼리에서 빠지므로 이 규칙의 값도 늘 빠진다.
+// 그 키가 쿼리에 없으면 그 키의 기본값으로 본다(기본 탭의 쿼리도 남는다).
 type QueryRule = {
   values: readonly string[] | 'uuid'
   fallback: string | null
@@ -86,8 +87,10 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   chat: {},
   // 업무 탭의 보기와 거르기는 업무 탭일 때만 남는다. 다른 탭으로 가면 빠진다.
+  // 메시지 탭의 방(DEC-96: 처음 여는 방이면 주소에 없다)은 메시지 탭일 때만 남는다.
   events: {
-    tab: { values: EVENT_TABS, fallback: 'overview' },
+    tab: { values: EVENT_TABS, fallback: 'messages' },
+    room: { values: 'uuid', fallback: null, onlyWith: { key: 'tab', value: 'messages' } },
     ...taskQuery('all', { key: 'tab', value: 'tasks' }),
   },
   tasks: {},
@@ -110,7 +113,8 @@ function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
   const query: Record<string, string> = {}
   for (const [key, rule] of Object.entries(spec)) {
     const value = params.get(key)
-    if (rule.onlyWith && query[rule.onlyWith.key] !== rule.onlyWith.value) continue
+    const needs = rule.onlyWith
+    if (needs && (query[needs.key] ?? spec[needs.key]?.fallback) !== needs.value) continue
     if (value !== null && value !== rule.fallback && allowed(rule, value))
       query[key] = value.toLowerCase()
   }
@@ -179,6 +183,15 @@ export const menuPath = (menu: AppMenu, councilId: string, query: AppQuery = {})
   appPath({ type: 'menu', menu, councilId, query })
 export const recordPath = (record: RecordKind, councilId: string, recordId: string) =>
   appPath({ type: 'record', record, councilId, recordId, query: {} })
+// 행사 메시지 탭의 그 방(022 정한 것 28). 방이 없으면 처음 여는 방이다. 홈 메시지함의 행사 방 칩도 이 주소로 연다(DEC-90).
+export const eventRoomPath = (councilId: string, eventId: string, roomId: string | null) =>
+  appPath({
+    type: 'record',
+    record: 'events',
+    councilId,
+    recordId: eventId,
+    query: roomId === null ? {} : { room: roomId },
+  })
 
 // 기록 주소의 상위 목록. 없는 기록, 볼 수 없는 기록의 '찾을 수 없음'이 이리로 돌아간다.
 // 쿼리는 읽기가 돌려주는 꼴(기본값 없음)이라, 만든 주소를 다시 읽은 값과 같다.

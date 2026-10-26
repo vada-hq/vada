@@ -22,6 +22,8 @@ const T2 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e70'
 const T3 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e71'
 const EVENT2 = '00000000-0000-4000-8000-0000000000e2'
 const EVENT_AT = `/events/${COUNCIL_ID}/${EVENT_ID}`
+// 행사는 메시지 탭이 기본이라(022 정한 것 28) 개요는 쿼리에 남는다.
+const OVERVIEW_AT = `${EVENT_AT}?tab=overview`
 const pathNow = () => window.location.pathname + window.location.search
 const settle = () => act(() => windowHistoryIdle())
 
@@ -54,6 +56,8 @@ function setup(path: string, detail: () => Response = () => json({ event: eventD
     }),
   )
   api.on('GET', `${base}/events/${EVENT_ID}`, detail)
+  api.on('GET', `${base}/events/${EVENT_ID}/rooms`, () => json({ rooms: [], archived: false }))
+  api.on('GET', `${base}/events/${EVENT2}/rooms`, () => json({ rooms: [], archived: false }))
   api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () =>
     json(settlementOf({ remaining: [], settled: true })),
   )
@@ -104,21 +108,21 @@ test('행사 주소의 탭이 열리고, 새로 고침해도 같다', async () =
   expect(pathNow()).toBe(`${EVENT_AT}?tab=money`)
 })
 
-test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으며, 개요는 쿼리가 없다', async () => {
+test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으며, 메시지는 쿼리가 없다', async () => {
   setup(EVENT_AT)
-  expect(await selected('개요')).toBe('true')
+  expect(await selected('메시지')).toBe('true')
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(screen.getByRole('tab', { name: '인원 관리' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=registrations`))
   expect(await selected('인원 관리')).toBe('true')
-  fireEvent.click(screen.getByRole('tab', { name: '개요' }))
+  fireEvent.click(screen.getByRole('tab', { name: '메시지' }))
   await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
   expect(push).not.toHaveBeenCalled()
 })
 
-test('모르는 탭은 개요로 읽고 주소를 고쳐 쓴다', async () => {
+test('모르는 탭은 메시지로 읽고 주소를 고쳐 쓴다', async () => {
   setup(`${EVENT_AT}?tab=nope`)
-  expect(await selected('개요')).toBe('true')
+  expect(await selected('메시지')).toBe('true')
   await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
 })
 
@@ -155,7 +159,7 @@ test('주소로 바로 들어온 행사의 뒤로는 행사 목록이다', async
 })
 
 test('개요에서 누른 업무는 업무 주소로 열리고, 닫으면 그 행사 개요로 돌아온다', async () => {
-  setup(EVENT_AT)
+  setup(OVERVIEW_AT)
   const next = await screen.findByRole('region', { name: '다음 업무' })
   fireEvent.click(await within(next).findByRole('button', { name: '현수막 주문' }))
   const dialog = await screen.findByRole('dialog')
@@ -164,7 +168,7 @@ test('개요에서 누른 업무는 업무 주소로 열리고, 닫으면 그 �
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await settle()
-  expect(pathNow()).toBe(EVENT_AT)
+  expect(pathNow()).toBe(OVERVIEW_AT)
   expect(await selected('개요')).toBe('true')
 })
 
@@ -216,7 +220,7 @@ test('신청 양식을 고치다 나가기를 고르면 탭이 바뀐다', async
   await startEditing()
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
-  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
   expect(await selected('개요')).toBe('true')
 })
 
@@ -252,7 +256,7 @@ test('고친 것이 없으면 확인 없이 옮겨 간다', async () => {
   fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
   await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
-  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
   expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
 })
 
@@ -306,7 +310,7 @@ test('행사 업무 탭에서 보기를 바꿔도 뒤로는 행사에 들어오�
 })
 
 test('개요의 담당자 없음 [업무 보기]는 그 거르기가 든 업무 탭 주소로 한 칸 쌓고, 뒤로는 개요다', async () => {
-  setup(EVENT_AT)
+  setup(OVERVIEW_AT)
   onEventTasks()
   const attention = await screen.findByRole('region', { name: '챙길 것' })
   const row = (await within(attention).findAllByRole('listitem')).find(item =>
@@ -320,7 +324,7 @@ test('개요의 담당자 없음 [업무 보기]는 그 거르기가 든 업무 
   // 화면 안의 뒤로도 들어온 곳(개요)의 이름을 단다.
   expect(screen.getByRole('button', { name: '개요' })).toBeTruthy()
   act(() => window.history.back())
-  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
   expect(await selected('개요')).toBe('true')
 })
 
@@ -329,7 +333,7 @@ test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에
   onEventTasks()
   expect(await selected('업무')).toBe('true')
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
-  await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
+  await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
   fireEvent.click(screen.getByRole('tab', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
   expect(await pressed('끝나지 않은 것')).toBe('true')

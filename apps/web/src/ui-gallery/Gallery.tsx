@@ -34,6 +34,7 @@ import {
   ItemCancelSection,
 } from './FinanceSections'
 import { EventHeaderSection, EventSection } from './EventSections'
+import { EventMessagesSection, EventRoomListSection } from './EventMessageSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
@@ -79,6 +80,7 @@ export default function Gallery() {
       <MessageMenuSection />
       <KkirukMessageSection />
       <RoomRowSection />
+      <EventRoomListSection />
       <MessageBubbleSection />
       <DirectPanelSection />
       <ProductPanelSection />
@@ -89,6 +91,7 @@ export default function Gallery() {
       <PushSection />
       <EventSection />
       <EventHeaderSection />
+      <EventMessagesSection />
       <EventEditSection />
       <SettlementSection />
       <TaskSection />

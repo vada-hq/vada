@@ -127,6 +127,7 @@ function ProductContent({ page, target }: Props) {
         canRequest={canRequest}
         canAssign={view.permissions.includes('finance.manage')}
         flow={flow}
+        eventId={target.eventId}
         picked={product ? { link: target.url, product } : undefined}
         onMade={(_, made) => target.onMade?.(made)}
         onOpenRequest={page.onOpenRequest}

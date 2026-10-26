@@ -11,7 +11,7 @@ import { roomToShow, saveRoom, savedRoom } from './last-room'
 import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
-import type { RoomList as RoomListHook } from './useRoomList'
+import type { RoomList as RoomListHook, RoomSource } from './useRoomList'
 import { useSplit } from '@/lib/use-split'
 
 export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string }
@@ -90,16 +90,19 @@ function ListScreen(props: Props & { activeRoomId: string | null }) {
 
 // 방 하나. 뒤로 가기가 없으면(PC 두 칸) 목록이 옆에 늘 보인다.
 // sendLabel이 있으면 1:1 패널의 방이다: 제목은 패널 머리가 보이고 보내기 버튼에 받는 사람을 적는다.
+// space가 있으면 공간 메시지 탭의 방이다: 그 공간의 방 목록을 쓰고 제목은 방 전환이 보인다.
 export function Room({
   page,
   roomId,
   onBack,
   sendLabel,
+  space,
 }: {
   page: PageProps
   roomId: string
   onBack?: () => void
   sendLabel?: string
+  space?: RoomSource
 }) {
   const { view } = page
   return (
@@ -107,7 +110,8 @@ export function Room({
       councilId={page.councilId}
       roomId={roomId}
       meId={view.me.memberId}
-      rooms={page.rooms}
+      rooms={space ?? page.rooms}
+      bare={space !== undefined}
       sendLabel={sendLabel}
       request={{
         canRequest: view.permissions.includes('purchase.request'),

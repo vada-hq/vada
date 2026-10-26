@@ -12,13 +12,14 @@ import {
   SEND_ERRORS,
 } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
-import { roomName } from './chat-view'
+import { ARCHIVED_LABEL, roomName } from './chat-view'
 import Composer from './Composer'
 import MessageItem from './MessageItem'
 import { firstUnreadId, flowOf, type FlowItem } from './message-flow'
 import { useMessageFlows } from './MessageFlows'
+import { ProductOpenContext, useEventProductOpener } from './product-open'
 import type { RequestAccess } from './RequestFlowView'
-import type { RoomList } from './useRoomList'
+import type { RoomSource } from './useRoomList'
 import type { MessageActionSet } from './useMessageActions'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
@@ -28,7 +29,8 @@ type Props = {
   councilId: string
   roomId: string
   meId: string
-  rooms: RoomList
+  // 이 방이 든 목록(대화 목록, 또는 행사 메시지 탭의 방들). 읽음·보내기 뒤 다시 읽는다.
+  rooms: RoomSource
   // 메시지에서 구매 요청 만들기: 권한(`purchase.request`, 대신 내기 `finance.manage`)은 받은 값 그대로다.
   request: RequestAccess
   // 메시지에서 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
@@ -39,6 +41,8 @@ type Props = {
   onForbidden: () => void
   // 1:1 패널의 방(022 조각 7): 제목은 패널 머리가 보이고, 보내기 버튼에 받는 사람을 적는다('{이름}에게 보내기').
   sendLabel?: string | undefined
+  // 행사 메시지 탭의 방: 방 전환이 방 이름을 보이므로 제목 줄을 두지 않는다(022 정한 것 28).
+  bare?: boolean
 }
 
 function Title({
@@ -216,6 +220,7 @@ function Messages({
 }
 
 // 입력칸. 상대가 떠난 1:1처럼 보기만 되는 방에는 입력칸 대신 알림을 보인다.
+// 행사 방이 보기만이면 완료로 보관된 것이라 '완료된 행사'다(022 정한 것 26).
 function Bottom({
   state,
   councilId,
@@ -229,7 +234,11 @@ function Bottom({
   room: Room
 }) {
   if (state.room.readOnly)
-    return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
+    return (
+      <StateMessage kind="notice">
+        {state.room.eventId ? ARCHIVED_LABEL : SEND_ERRORS.ROOM_READ_ONLY}
+      </StateMessage>
+    )
   return (
     <div className="shrink-0 bg-white">
       <Composer
@@ -249,10 +258,14 @@ function Bottom({
 }
 
 // 방을 열 때의 안 읽은 수
-const unreadOf = (rooms: RoomList, roomId: string) =>
+const unreadOf = (rooms: RoomSource, roomId: string) =>
   rooms.state.kind === 'ready'
     ? (rooms.state.data.rooms.find(item => item.id === roomId)?.unread ?? 0)
     : 0
+
+// 행사 방 메시지에서 연 요청은 그 행사로 시작한다(DEC-90, 022 정한 것 29). 보관된 행사(보기만)는 요청을 이을 수 없어 고르지 않는다.
+const requestEventOf = (state: RoomState) =>
+  state.kind === 'ready' && !state.room.readOnly ? (state.room.eventId ?? null) : null
 
 // 방 하나: 이름과 내가 볼 수 있는 메시지 흐름(공지방은 같은 기수의 들어오기 전 것도, DEC-90).
 export default function RoomView({
@@ -265,14 +278,18 @@ export default function RoomView({
   onBack,
   onForbidden,
   sendLabel,
+  bare = false,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
   const [unreadAtOpen] = useState(() => unreadOf(rooms, roomId))
+  const eventId = requestEventOf(state)
+  const productOpener = useEventProductOpener(eventId)
   const flows = useMessageFlows({
     councilId,
     meId,
     request,
+    eventId,
     canWriteExpense,
     onForbidden,
     onMade: room.markMade,
@@ -286,18 +303,20 @@ export default function RoomView({
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
   return (
     <PageColumn className="h-full gap-3">
-      {sendLabel === undefined && (
+      {sendLabel === undefined && !bare && (
         <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
       )}
       {flows.views}
-      <Messages
-        councilId={councilId}
-        meId={meId}
-        state={state}
-        room={room}
-        unread={unreadAtOpen}
-        menu={flows.menu}
-      />
+      <ProductOpenContext value={productOpener}>
+        <Messages
+          councilId={councilId}
+          meId={meId}
+          state={state}
+          room={room}
+          unread={unreadAtOpen}
+          menu={flows.menu}
+        />
+      </ProductOpenContext>
       <Bottom {...{ state, councilId, roomId, meId, room, rooms, sendLabel }} />
     </PageColumn>
   )

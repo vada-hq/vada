@@ -1,4 +1,5 @@
 import { useNow } from '@/lib/use-now'
+import type { ReactNode } from 'react'
 import type { RoomListResponse, RoomSummary } from '@vada/contracts'
 import { MessageSquarePlus } from 'lucide-react'
 import PageActions from '@/components/PageActions'
@@ -21,13 +22,35 @@ type Props = {
 }
 
 const isDirect = (room: RoomSummary) => room.type === 'direct'
+const isEventRoom = (room: RoomSummary) => Boolean(room.eventId)
 
-// 대화 첫 화면: 방 줄 목록(공지방이 맨 앞), 그 아래 1:1 대화 묶음. 방 순서는 서버가 정했다.
+// 묶음 하나: 작은 제목과 방 줄 카드. 방이 없으면 두지 않는다.
+function Group({
+  title,
+  rooms,
+  row,
+}: {
+  title: string
+  rooms: RoomSummary[]
+  row: (room: RoomSummary) => ReactNode
+}) {
+  if (rooms.length === 0) return null
+  return (
+    <section aria-label={title} className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+      <ul className={cn(cardClass, 'divide-y')}>{rooms.map(row)}</ul>
+    </section>
+  )
+}
+
+// 대화 첫 화면: 학생회 방 줄 목록(공지방이 맨 앞), 그 아래 '행사' 묶음과 '1:1 대화' 묶음. 방 순서는 서버가 정했다.
+// 행사 방은 메시지가 생긴 방만 서버가 싣고, 이름에 행사 이름이 붙는다(022 정한 것 27, DEC-90).
 // 1:1 열기는 머리글 오른쪽에 둔다(Teams 목록 위 New message, 카카오톡 오른쪽 위).
 export default function RoomList(props: Props) {
   const { data, note, activeRoomId, canDirect, onOpenRoom, onDirect } = props
   const now = useNow()
-  const rooms = data.rooms.filter(room => !isDirect(room))
+  const rooms = data.rooms.filter(room => !isDirect(room) && !isEventRoom(room))
+  const events = data.rooms.filter(room => !isDirect(room) && isEventRoom(room))
   const directs = data.rooms.filter(isDirect)
   const row = (room: RoomSummary) => (
     <RoomRow
@@ -52,12 +75,8 @@ export default function RoomList(props: Props) {
       <ul aria-label="대화방" className={cn(cardClass, 'divide-y')}>
         {rooms.map(row)}
       </ul>
-      {directs.length > 0 && (
-        <section aria-label="1:1 대화" className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-gray-900">1:1 대화</h2>
-          <ul className={cn(cardClass, 'divide-y')}>{directs.map(row)}</ul>
-        </section>
-      )}
+      <Group title="행사" rooms={events} row={row} />
+      <Group title="1:1 대화" rooms={directs} row={row} />
     </PageColumn>
   )
 }

@@ -49,6 +49,9 @@ function open({ page = 'home', events = [THREE], permissions }: Setup = {}) {
   })
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  // 행사 화면은 메시지 탭 배지를 위해 그 행사의 방을 읽는다(022 조각 9).
+  for (const id of [EVENT_ID, NEW_ID])
+    api.on('GET', `${base}/events/${id}/rooms`, () => json({ rooms: [], archived: false }))
   render(<WorkspaceAt startPage={page} />)
   return { api, reads: () => reads }
 }
@@ -126,7 +129,7 @@ test('행사가 없으면 두 링크만 있고 안내 문구가 없다', async (
   expect(group.textContent).toBe('공간행사 모두 보기새 행사')
 })
 
-test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 개요가 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
+test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 메시지 탭이 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
   const made = row(NEW_ID, '가을 축제', 'upcoming')
   const { api } = open({ events: [THREE, [made, ...THREE]] })
   api.on('POST', `${base}/events`, () =>
@@ -140,7 +143,7 @@ test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 개요
   const dialog = await screen.findByRole('dialog', { name: '새 행사' })
   fireEvent.change(within(dialog).getByLabelText(/행사명/), { target: { value: '가을 축제' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '만들기' }))
-  expect(await screen.findByRole('tab', { name: '개요', selected: true })).toBeTruthy()
+  expect(await screen.findByRole('tab', { name: '메시지', selected: true })).toBeTruthy()
   expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/${NEW_ID}`)
   await within(group).findByText('가을 축제')
   expect(current()).toEqual(['가가을 축제기획 중'])
@@ -183,6 +186,8 @@ test('행사 기본정보를 고치면 옆 메뉴가 바로 다시 읽어 새 �
   )
   const group = await spaces()
   fireEvent.click(await within(group).findByRole('button', { name: /2026 체육대회/ }))
+  // 고치기는 개요의 요약 줄에 있다(메시지 탭은 요약 줄 대신 방 전환이다).
+  fireEvent.click(await screen.findByRole('tab', { name: '개요' }))
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const panel = await screen.findByRole('dialog', { name: '행사 기본정보 수정' })
   fireEvent.click(within(panel).getByRole('button', { name: '저장' }))

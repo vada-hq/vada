@@ -10,7 +10,7 @@ import {
 import { navigate } from './app-location'
 import { afterWindowsClosed } from './use-window-history'
 
-// 기록 하나로 가는 주소. 행사는 탭이 기본(개요)이 아니면 쿼리에 둔다.
+// 기록 하나로 가는 주소. 행사는 탭이 기본(메시지)이 아니면 쿼리에 둔다.
 const recordTarget = (kind: RecordKind, councilId: string, id: string, tab?: EventTab) =>
   tab
     ? appPath({ type: 'record', record: kind, councilId, recordId: id, query: { tab } })
@@ -30,7 +30,7 @@ export const openRecord = (
 // 창을 닫는 것은 부르는 쪽이 한다.
 export const openEventTab = (councilId: string, eventId: string, tab: EventTab) =>
   afterWindowsClosed(() =>
-    navigate(recordTarget('events', councilId, eventId, tab === 'overview' ? undefined : tab), {
+    navigate(recordTarget('events', councilId, eventId, tab === 'messages' ? undefined : tab), {
       replace: true,
     }),
   )
