@@ -86,6 +86,34 @@ test('입력을 버리고 나가면 그 메뉴가 열린다', async () => {
   await waitFor(() => expect(screen.queryByText(LEAVE_TITLE)).toBeNull())
 })
 
+test.each(['초대 코드로 들어가기', '학생회 만들기'])(
+  '설정 입력을 남겨 두고 %s를 누르면 확인하고, 닫기면 입력을 유지한다',
+  async label => {
+    await openSettings()
+    edit()
+    const openEntry = async () => {
+      fireEvent.keyDown(menu('Vada 컴퓨터학부 학생회 학생회 메뉴'), { key: 'Enter' })
+      fireEvent.click(await screen.findByRole('menuitem', { name: label }))
+    }
+    await openEntry()
+    const dialog = await screen.findByRole('dialog', { name: LEAVE_TITLE })
+    expect(pathNow()).toBe(`/settings/${C1}`)
+    fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+    await waitFor(() => expect(screen.queryByText(LEAVE_TITLE)).toBeNull())
+    await settle()
+    expect(pathNow()).toBe(`/settings/${C1}`)
+    expect((nameField() as HTMLInputElement).value).toBe('고친 이름 학생회')
+    await openEntry()
+    fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+    expect(
+      await screen.findByRole(label === '학생회 만들기' ? 'heading' : 'textbox', {
+        name: label === '학생회 만들기' ? '기본 정보' : '초대 코드',
+      }),
+    ).toBeTruthy()
+    expect(screen.queryByText(LEAVE_TITLE)).toBeNull()
+  },
+)
+
 test('고치지 않았거나 원래 값으로 되돌렸으면 묻지 않는다', async () => {
   await openSettings()
   fireEvent.change(nameField(), { target: { value: '고친 이름 학생회' } })

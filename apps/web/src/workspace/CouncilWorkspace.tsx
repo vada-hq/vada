@@ -5,6 +5,7 @@ import { PageActionsProvider } from '@/components/PageActions'
 import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
+import { askLeave } from '@/lib/leave-guard'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
@@ -139,10 +140,12 @@ export default function CouncilWorkspace({
         onSelect(councilId, from)
       }}
       onPage={nav.openPage}
-      onAddCouncil={entry => {
-        nav.closeNav()
-        onAddCouncil?.(entry)
-      }}
+      onAddCouncil={entry =>
+        askLeave(() => {
+          nav.closeNav()
+          onAddCouncil?.(entry)
+        })
+      }
     />
   )
   return (
