@@ -7,6 +7,8 @@ import { PushBandSlot } from '../push/push-band-slot'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
 import CouncilHome from './CouncilHome'
+import FinanceHome from './FinanceHome'
+import { useFinanceView } from './use-finance-view'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
 import DepartmentsSection from './DepartmentsSection'
 import { attentionOf } from './home-attention'
@@ -185,24 +187,42 @@ function CurrentHome({
 }
 
 // 홈 종류로 가른다(DEC-95, 명세 027 정한 것 8). 새 배치가 main에 오른 종류만 새 홈이고, 아직인 종류는 지금 홈 그대로다.
-// 지금 오른 것: 회장단(조각 6), 부원(조각 7). 새 홈은 홈 응답 하나로 그려 별도 읽기(useHomeExtras)를 부르지 않는다.
+// 지금 오른 것: 회장단(조각 6), 부원(조각 7), 재정부(조각 8). 새 홈은 별도 읽기(useHomeExtras)를 부르지 않는다.
 export default function HomeBody({ name, awaitingDepartment = false, ...props }: Props) {
   const setPushSlot = useContext(PushBandSlot)
   const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
+  const { finance, switcher } = useFinanceView(home, councilId)
   // 작업 공간의 알림 꺼짐 띠가 새 홈 틀의 이 자리에 그려진다. 띠가 없으면 자리도 없다.
   const pushBand = setPushSlot && <div ref={setPushSlot} className="empty:hidden" />
   const opens = { onOpenEvent, onOpenPage, onNewEvent }
+  if (finance && home.financeBoard)
+    return (
+      <>
+        {switcher}
+        <FinanceHome
+          home={home}
+          board={home.financeBoard}
+          councilId={councilId}
+          name={name}
+          rooms={rooms}
+          pushBand={pushBand}
+        />
+      </>
+    )
   if (home.kind === 'council' && home.councilBoard)
     return (
-      <CouncilHome
-        home={home}
-        board={home.councilBoard}
-        councilId={councilId}
-        name={name}
-        inboxRooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
-        pushBand={pushBand}
-        {...opens}
-      />
+      <>
+        {switcher}
+        <CouncilHome
+          home={home}
+          board={home.councilBoard}
+          councilId={councilId}
+          name={name}
+          inboxRooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
+          pushBand={pushBand}
+          {...opens}
+        />
+      </>
     )
   if (home.kind === 'member')
     return (

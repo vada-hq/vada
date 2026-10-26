@@ -89,6 +89,7 @@ test('부장은 직급이 있는 부서의 수와 지난 업무·담당자 없�
     assert.deepEqual(sectionKeys(await h.read('s-planningMember')), ['mine', 'today'])
     // 재정부원은 부서를 받지 않고 재정 부분만 더 받는다.
     assert.deepEqual(sectionKeys(await h.read('s-financeMember')), [
+      'financeBoard',
       'mine',
       'received',
       'settling',
@@ -141,12 +142,22 @@ test('직급을 잃으면 다음 읽기에서 그 부분이 빠진다', async ()
 test('학생회 직급이 있으면 부서 직급도 있어도 회장단 홈 칸만 받고 옛 council·departments는 없다', async () => {
   await withSettlement(async t => {
     const h = open(t)
-    assert.deepEqual(sectionKeys(await h.read('s-president')), ['councilBoard', 'mine', 'today'])
+    assert.deepEqual(sectionKeys(await h.read('s-president')), [
+      'councilBoard',
+      'financeSummary',
+      'mine',
+      'today',
+    ])
     await t.pg.query(
       `UPDATE council_membership SET council_rank = 'vice_president' WHERE member_id = $1`,
       [t.council.people.planningHead.memberId],
     )
-    assert.deepEqual(sectionKeys(await h.read('s-planningHead')), ['councilBoard', 'mine', 'today'])
+    assert.deepEqual(sectionKeys(await h.read('s-planningHead')), [
+      'councilBoard',
+      'financeSummary',
+      'mine',
+      'today',
+    ])
     // 회장단이면서 재정이면 재정 보기용 받은 것은 그대로 받는다(조각 8이 쓴다).
     await t.make(t.council, 'department_membership', {
       memberId: t.council.people.vicePresident.memberId,
@@ -157,6 +168,8 @@ test('학생회 직급이 있으면 부서 직급도 있어도 회장단 홈 칸
     })
     assert.deepEqual(sectionKeys(await h.read('s-vicePresident')), [
       'councilBoard',
+      'financeBoard',
+      'financeSummary',
       'mine',
       'received',
       'today',
