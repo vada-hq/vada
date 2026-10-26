@@ -131,7 +131,8 @@ test('요청을 결재하면 옆 메뉴의 결재 대기 수를 다시 읽는다
   )
   fireEvent.change(await screen.findByLabelText('포스터 금액'), { target: { value: '1000' } })
   fireEvent.change(screen.getByLabelText('포스터 예산 항목'), { target: { value: BUDGET_A } })
-  fireEvent.click(screen.getByRole('button', { name: '포스터 승인' }))
+  fireEvent.click(screen.getByRole('radio', { name: '포스터 승인' }))
+  fireEvent.click(screen.getByRole('button', { name: '승인 완료 처리' }))
   expect((await screen.findAllByLabelText('결재 대기 요청 1개'))[0]!.textContent).toBe('1')
 })
 

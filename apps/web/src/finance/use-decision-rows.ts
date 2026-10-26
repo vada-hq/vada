@@ -1,14 +1,15 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { BudgetItemView, PurchaseLineItem } from '@vada/contracts'
-import { useFormCheck } from '@/lib/use-form-check'
+import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { overagesOf } from './decision-budget'
 import {
-  approvalOf,
   chosenItem,
   decisionErrors,
+  decisionOf,
   emptyRow,
-  rejectionOf,
   rememberItem,
-  type DecisionAction,
+  tallyOf,
+  type DecisionEntry,
   type RowValues,
 } from './decision-form'
 import type { useDecide } from './useDecide'
@@ -16,85 +17,80 @@ import type { useDecide } from './useDecide'
 // 예산을 다시 읽어야 하는 오류(항목이 지금 기간에 맞지 않거나 기간이 없어졌다).
 const REREAD_BUDGET = new Set(['BUDGET_ITEM_INVALID', 'NO_FISCAL_PERIOD'])
 
-// 누른 버튼이 다루는 줄만 확인해, 문제는 그 줄에만 보인다.
-function useDecisionCheck(rowOf: (id: string) => RowValues, chosenOf: (id: string) => string) {
-  const first: { action: DecisionAction; items: PurchaseLineItem[] } = {
-    action: 'approve',
-    items: [],
-  }
-  // 범위를 상태로도 둬서, 다른 줄·다른 버튼을 누르면 다시 그려 새 문제가 보이게 한다. ref는 누른 바로 그 확인에 쓴다.
-  const [, setScopeShown] = useState(first)
-  const scope = useRef(first)
-  const { formRef, errors, attempt, reset } = useFormCheck<HTMLDivElement>(() =>
-    decisionErrors(
-      scope.current.items.map(item => ({
-        id: item.id,
-        action: scope.current.action,
-        row: rowOf(item.id),
-        chosen: chosenOf(item.id),
-      })),
-    ),
-  )
-  const errorsOf = (id: string) => ({
-    amount: errors[`${id}.amount`],
-    budgetItemId: errors[`${id}.budgetItemId`],
-    reason: errors[`${id}.reason`],
-  })
-  // 확인할 줄을 정하고 확인한다. 보내도 되면 true.
-  const attemptFor = (action: DecisionAction, items: PurchaseLineItem[]) => {
-    scope.current = { action, items }
-    setScopeShown(scope.current)
-    return attempt()
-  }
-  return { formRef, errorsOf, attemptFor, reset }
+export type DecisionRowsOptions = {
+  councilId: string
+  items: readonly PurchaseLineItem[]
+  budgetItems: readonly BudgetItemView[]
+  decide: ReturnType<typeof useDecide>
+  onInvalidItem: () => void
+  // 처음 입력값. 부품 확인 화면이 고른 뒤의 모양을 보이려고 준다. 실제 화면은 비워 둔다.
+  initial?: Record<string, RowValues>
 }
 
-// 결재 줄들의 입력값과 보내기. 승인이 되면 마지막에 승인한 항목을 기억하고, 항목이 맞지 않다고 하면(BUDGET_ITEM_INVALID) 예산을 다시 읽게 한다.
-export function useDecisionRows(
-  councilId: string,
-  budgetItems: readonly BudgetItemView[],
-  decide: ReturnType<typeof useDecide>,
-  onInvalidItem: () => void,
-) {
-  const [rows, setRows] = useState<Record<string, RowValues>>({})
+// 줄 하나의 칸 문제. 칸 이름은 '줄 id.칸'이다.
+const errorsOfRow = (errors: FieldErrors, id: string) => ({
+  choice: errors[`${id}.choice`],
+  amount: errors[`${id}.amount`],
+  budgetItemId: errors[`${id}.budgetItemId`],
+  reason: errors[`${id}.reason`],
+})
+
+// 결재 줄들의 입력값과 한 번에 보내기(DEC-92: 품목마다 고른 뒤 한 번에 처리).
+// 승인이 되면 마지막에 승인한 항목을 기억하고, 항목이 맞지 않다고 하면(BUDGET_ITEM_INVALID) 예산을 다시 읽게 한다.
+export function useDecisionRows({
+  councilId,
+  items,
+  budgetItems,
+  decide,
+  onInvalidItem,
+  initial = {},
+}: DecisionRowsOptions) {
+  const [rows, setRows] = useState<Record<string, RowValues>>(initial)
+  // 사용 가능을 넘는 승인을 보내기 전 확인 창이 열려 있는가.
+  const [confirming, setConfirming] = useState(false)
   const rowOf = (id: string) => rows[id] ?? emptyRow()
   const chosenOf = (id: string) => chosenItem(rowOf(id), councilId, budgetItems)
-  const approval = (item: PurchaseLineItem) =>
-    approvalOf(item.id, rowOf(item.id).amount, chosenOf(item.id))
-  const rejection = (item: PurchaseLineItem) => rejectionOf(item.id, rowOf(item.id).reason)
+  const entries = (): DecisionEntry[] =>
+    items.map(item => ({ id: item.id, row: rowOf(item.id), chosen: chosenOf(item.id) }))
+  const check = useFormCheck<HTMLDivElement>(() => decisionErrors(entries()))
+  const tally = tallyOf(items.map(item => rowOf(item.id).choice))
+  const overages = overagesOf(
+    entries().map(({ row, chosen }) => ({ ...row, budgetItemId: chosen })),
+    budgetItems,
+  )
 
-  const decisionOf = (item: PurchaseLineItem, action: DecisionAction) =>
-    action === 'approve' ? approval(item) : rejection(item)
-  const check = useDecisionCheck(rowOf, chosenOf)
-
-  async function send(decisions: unknown[], approved: PurchaseLineItem[]) {
-    const last = approved.at(-1)
+  async function send() {
+    setConfirming(false)
+    const current = entries()
     // 보내기 전의 줄 값으로 기억할 항목을 정한다(보내는 동안 다시 그려져도 같다).
-    const remembered = last ? chosenOf(last.id) : null
-    const result = await decide.decide(decisions)
+    const remembered = current.filter(entry => entry.row.choice === 'approve').at(-1)?.chosen
+    const result = await decide.decide(current.map(decisionOf))
     if (result.ok && remembered) rememberItem(councilId, remembered)
     if (!result.ok && REREAD_BUDGET.has(result.code)) onInvalidItem()
   }
 
-  // 버튼은 끄지 않는다. 누를 때 확인해 문제가 있으면 그 줄의 칸 아래에 보이고 아무것도 보내지 않는다.
-  async function submit(action: DecisionAction, items: PurchaseLineItem[]) {
-    if (!check.attemptFor(action, items)) return
-    await send(
-      items.map(item => decisionOf(item, action)),
-      action === 'approve' ? items : [],
-    )
+  // 버튼은 끄지 않는다. 누를 때 확인해 문제가 있으면(고르지 않은 품목 포함) 그 줄의 칸 아래에 보이고 보내지 않는다.
+  // 사용 가능을 넘는 항목이 있으면 막지 않고 한 번 묻는다(DEC-92 '그래도 승인').
+  function submit() {
+    if (!check.attempt()) return
+    if (overages.length > 0) setConfirming(true)
+    else void send()
   }
 
   return {
     formRef: check.formRef,
-    errorsOf: check.errorsOf,
+    errorsOf: (id: string) => errorsOfRow(check.errors, id),
+    // 한 번 누른 뒤 고르지 않은 품목이 남아 있는가(보내기 옆 문구).
+    unreviewedShown: Object.keys(check.errors).some(key => key.endsWith('.choice')),
     rowOf,
     chosenOf,
+    tally,
+    overages,
+    confirming,
     submit,
-    change: (id: string, patch: Partial<RowValues>) => {
-      // [반려]로 사유 칸을 열면 앞서 [승인]에서 본 문제는 걷는다.
-      if (patch.rejecting) check.reset()
-      setRows({ ...rows, [id]: { ...rowOf(id), ...patch } })
-    },
+    confirm: () => void send(),
+    cancelConfirm: () => setConfirming(false),
+    change: (id: string, patch: Partial<RowValues>) =>
+      setRows({ ...rows, [id]: { ...rowOf(id), ...patch } }),
   }
 }

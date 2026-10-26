@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { openMenu, openRecord } from '@/lib/go-to'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useAddressRecord } from '@/lib/use-address-record'
+import { useNow } from '@/lib/use-now'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
@@ -23,7 +24,7 @@ import { IncomesTab } from './IncomesTab'
 import { OverviewTab } from './OverviewTab'
 import { financeOpeners } from './finance-openers'
 import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
-import { VIEW_EMPTY } from './purchase-view'
+import { neededSoon, VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { SettlementsTab } from './SettlementsTab'
 import { RequestCreateDialog } from './RequestCreateDialog'
@@ -53,6 +54,7 @@ function Body({
   onOpen: (requestId: string) => void
 }) {
   const { state } = list
+  const now = useNow()
   if (state.kind === 'loading')
     return <StateMessage kind="loading">구매 요청 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
@@ -71,7 +73,11 @@ function Body({
       <ul className="flex flex-col gap-2">
         {state.requests.map(request => (
           <li key={request.id}>
-            <RequestCard request={request} onOpen={() => onOpen(request.id)} />
+            <RequestCard
+              request={request}
+              soon={view === 'pending' && neededSoon(request.neededBy, now)}
+              onOpen={() => onOpen(request.id)}
+            />
           </li>
         ))}
       </ul>

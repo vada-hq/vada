@@ -72,6 +72,7 @@ export async function requestStep(ctx: Ctx) {
 }
 
 // 7 결재: 재정부장이 두 품목을 행사 예산 항목으로 승인하고, 하나는 사지 않기로 해 취소한다(DEC-73).
+// 화면 차례와 같다: 결재 대기(필요한 때 순, 3일 안이라 '임박')에서 요청을 열고 두 품목에 [승인]을 골라 [승인 완료 처리] 한 번으로 보낸 뒤 간식을 취소한다.
 export async function decideStep(ctx: Ctx) {
   const { financeHead } = ctx.cast
   const { w } = ctx

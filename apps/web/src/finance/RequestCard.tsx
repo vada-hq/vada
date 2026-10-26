@@ -1,15 +1,19 @@
 import type { PurchaseRequestSummary } from '@vada/contracts'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { neededByLabel } from './purchase-view'
 import { StatusBadge } from './StatusBadge'
 
 // 요청 카드: 제목(눌러 상세), 상태, 요청한 사람, 필요한 때, 품목 수. 목록의 제목은 화면 제목(h1) 바로 아래라 h2다.
+// soon이면 필요한 때 옆에 '임박'을 붙인다(결재 목록에서만, DEC-92).
 export default function RequestCard({
   request,
+  soon = false,
   onOpen,
 }: {
   request: PurchaseRequestSummary
+  soon?: boolean
   onOpen: () => void
 }) {
   return (
@@ -28,7 +32,10 @@ export default function RequestCard({
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
         <span className="wrap-anywhere">{request.requestedBy.name}</span>
-        <span>{neededByLabel(request.neededBy)}</span>
+        <span className="inline-flex items-center gap-1.5">
+          {neededByLabel(request.neededBy)}
+          {soon && <Badge tone="danger">임박</Badge>}
+        </span>
         <span>품목 {request.itemCount}개</span>
       </div>
     </Card>
