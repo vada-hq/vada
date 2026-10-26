@@ -108,6 +108,38 @@ test('결재 대기가 넘치면 300개라고 알린다', async () => {
   expect(await screen.findByText('요청이 많아서 300개만 보여요.')).toBeTruthy()
 })
 
+test('결재 대기에서 필요한 때가 오늘(한국)부터 3일 안이거나 지났으면 임박 표시가 있다', async () => {
+  // 한국 10월 25일 오전. 시각만 고정하고 타이머는 그대로 둔다.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-24T23:30:00Z'))
+  try {
+    const api = mockApi()
+    const requests = [
+      purchaseSummary('지남', { neededBy: '2026-10-20' }),
+      purchaseSummary('3일 뒤', { neededBy: '2026-10-28' }),
+      purchaseSummary('4일 뒤', { neededBy: '2026-10-29' }),
+      purchaseSummary('없음', { neededBy: null }),
+    ]
+    api.on('GET', listPath('mine'), () => list(requests))
+    api.on('GET', listPath('pending'), () => list(requests))
+    show()
+    const soonOf = (id: string) =>
+      within(
+        screen.getByRole('heading', { name: `요청 ${id}` }).closest('div')!.parentElement!,
+      ).queryByText('임박') !== null
+    // 내 요청에는 표시가 없다(재정 역할 부서의 결재 목록에만).
+    await screen.findByRole('heading', { name: '요청 3일 뒤' })
+    expect(soonOf('3일 뒤')).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
+    await waitFor(() => expect(soonOf('3일 뒤')).toBe(true))
+    expect(soonOf('지남')).toBe(true)
+    expect(soonOf('4일 뒤')).toBe(false)
+    expect(soonOf('없음')).toBe(false)
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
 test('보기를 바꾸면 이전 보기의 늦은 응답은 버린다', async () => {
   const api = mockApi()
   const slow = deferredResponse()

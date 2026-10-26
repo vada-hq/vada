@@ -1,4 +1,10 @@
-import type { LineItemStatus, PurchaseStatus, PurchaseView } from '@vada/contracts'
+import {
+  DAY_MS,
+  koreanDateOf,
+  type LineItemStatus,
+  type PurchaseStatus,
+  type PurchaseView,
+} from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
@@ -44,6 +50,11 @@ export const VIEW_EMPTY: Record<PurchaseView, string> = {
 
 export const neededByLabel = (neededBy: string | null) =>
   neededBy ? `${monthDay(neededBy)}까지 필요` : '필요한 때 없음'
+
+// 결재 목록에서 '임박'을 붙이는 기간: 필요한 때가 오늘(한국)부터 이 날수 안이거나 지났다(DEC-92, 024 정한 것 9). 시범 운영에서 고친다.
+const NEEDED_SOON_DAYS = 3
+export const neededSoon = (neededBy: string | null, now: Date) =>
+  neededBy !== null && neededBy <= koreanDateOf(new Date(now.getTime() + NEEDED_SOON_DAYS * DAY_MS))
 
 // 정수 원 → '12,000원'
 export const wonLabel = (amount: number) =>

@@ -95,8 +95,9 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
       </BudgetFormDialog>
       <BudgetOverConfirm
         open={confirming && over !== null}
-        purpose={values.purpose.trim() || item.purpose}
-        available={over ?? 0}
+        lines={[
+          { id: item.id, purpose: values.purpose.trim() || item.purpose, available: over ?? 0 },
+        ]}
         when="저장하면"
         confirmLabel="그래도 저장"
         busy={saving}

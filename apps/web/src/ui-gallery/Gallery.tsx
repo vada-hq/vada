@@ -23,7 +23,12 @@ import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
 import { BudgetItemLineSection, BudgetPlanSection } from './BudgetSections'
-import { DecisionSection, FinanceSection, ItemCancelSection } from './FinanceSections'
+import {
+  DecisionPanelSection,
+  DecisionSection,
+  FinanceSection,
+  ItemCancelSection,
+} from './FinanceSections'
 import { EventHeaderSection, EventSection } from './EventSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
@@ -96,6 +101,7 @@ export default function Gallery() {
       <ApplicantRowSection />
       <FinanceSection />
       <DecisionSection />
+      <DecisionPanelSection />
       <ItemCancelSection />
       <ExpenseSection />
       <IncomeSection />

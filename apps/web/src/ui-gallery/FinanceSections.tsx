@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   PURCHASE_STATUSES,
   type BudgetItemView,
@@ -6,7 +6,8 @@ import {
   type PurchaseRequestSummary,
 } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
-import { emptyRow } from '@/finance/decision-form'
+import { emptyRow, type RowValues } from '@/finance/decision-form'
+import { DecisionRows } from '@/finance/DecisionPanel'
 import { DecisionRow } from '@/finance/DecisionRow'
 import { ItemCancelDialog } from '@/finance/ItemCancel'
 import RequestCard from '@/finance/RequestCard'
@@ -81,7 +82,7 @@ export function FinanceSection() {
         ))}
       </div>
       <div className="flex w-80 flex-col gap-2">
-        <RequestCard request={request('1', {})} onOpen={noop} />
+        <RequestCard request={request('1', {})} soon onOpen={noop} />
         <RequestCard
           request={request('2', { status: 'partial', neededBy: null, itemCount: 1 })}
           onOpen={noop}
@@ -100,16 +101,27 @@ export function FinanceSection() {
 }
 
 export function DecisionSection() {
-  const filled = { ...emptyRow(), amount: '15000' }
-  const rejecting = { ...emptyRow(), rejecting: true, reason: '이미 있어요' }
+  const filled: RowValues = { ...emptyRow(), amount: '15000', choice: 'approve' }
+  const rejecting: RowValues = { ...emptyRow(), choice: 'reject', reason: '이미 있어요' }
   // 누르고 난 뒤의 모양: 비운 칸 아래에 이유가 보인다.
   const tried = { amount: '금액을 입력해 주세요', budgetItemId: '예산 항목을 골라 주세요' }
   const rows = [
     { item: lineItem('A2 포스터'), values: filled, chosen: 'b1', errors: {} },
-    { item: lineItem('테이프'), values: emptyRow(), chosen: '', errors: tried },
+    {
+      item: lineItem('테이프'),
+      values: { ...emptyRow(), choice: 'approve' },
+      chosen: '',
+      errors: tried,
+    },
+    {
+      item: lineItem('미검토'),
+      values: emptyRow(),
+      chosen: '',
+      errors: { choice: '승인이나 반려를 골라 주세요' },
+    },
     { item: lineItem('사유를 쓰는 중'), values: rejecting, chosen: 'b2', errors: {} },
     { item: lineItem(longName), values: filled, chosen: 'b2', errors: {} },
-  ]
+  ] satisfies { item: PurchaseLineItem; values: RowValues; chosen: string; errors: object }[]
   return (
     <Section title="결재 줄">
       <div className="flex w-80 flex-col gap-2">
@@ -118,13 +130,73 @@ export function DecisionSection() {
             key={row.item.id}
             {...row}
             budgetItems={budgetItems}
+            overages={[]}
             disabled={false}
             onChange={noop}
-            onApprove={noop}
-            onReject={noop}
           />
         ))}
       </div>
+    </Section>
+  )
+}
+
+const idleDecide = {
+  saving: false,
+  problem: null,
+  decide: () => Promise.resolve({ ok: true as const }),
+  clearProblem: noop,
+}
+
+// 실제 화면의 결재 칸 폭: 요청 상세 대화상자(최대 512px, 안쪽 여백 24px)라 1280px 창은 464px, 390px 창은 약 310px다.
+function Width({
+  label,
+  className,
+  children,
+}: {
+  label: string
+  className: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex max-w-full flex-col gap-1 overflow-x-auto">
+      <p className="text-xs text-gray-400">{label}</p>
+      <div className={className}>{children}</div>
+    </div>
+  )
+}
+
+// 결재 칸 한 벌(024 조각 7, 와이어프레임 FIN-REV-01 '품목별 검토'): 승인(사용 가능 안), 승인(같은 항목 합이 넘어 초과), 반려, 미검토.
+export function DecisionPanelSection() {
+  const items = ['A2 포스터', '현수막', '테이프', '간식'].map(lineItem)
+  const initial: Record<string, RowValues> = {
+    'A2 포스터': { ...emptyRow(), amount: '30000', budgetItemId: 'b2', choice: 'approve' },
+    현수막: { ...emptyRow(), amount: '40,000', budgetItemId: 'b2', choice: 'approve' },
+    테이프: {
+      ...emptyRow(),
+      amount: '3000',
+      budgetItemId: 'b1',
+      choice: 'reject',
+      reason: '이미 있어요',
+    },
+  }
+  const panel = (
+    <DecisionRows
+      councilId="gallery"
+      items={items}
+      budgetItems={budgetItems}
+      decide={idleDecide}
+      onInvalidItem={noop}
+      initial={initial}
+    />
+  )
+  return (
+    <Section title="결재 칸">
+      <Width label="1280px 창(요청 상세 대화상자)" className="w-116 shrink-0">
+        {panel}
+      </Width>
+      <Width label="390px 창" className="w-77.5 shrink-0">
+        {panel}
+      </Width>
     </Section>
   )
 }

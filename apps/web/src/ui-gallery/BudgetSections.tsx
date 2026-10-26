@@ -282,8 +282,7 @@ export function BudgetPlanSection() {
       </Button>
       <BudgetOverConfirm
         open={open === 'over'}
-        purpose="행사 홍보"
-        available={-50000}
+        lines={[{ id: 'b1', purpose: '행사 홍보', available: -50000 }]}
         when="저장하면"
         confirmLabel="그래도 저장"
         busy={false}
