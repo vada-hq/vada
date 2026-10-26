@@ -56,6 +56,7 @@ export function DecisionRows(options: DecisionRowsOptions) {
     <div ref={formRef} className="flex flex-col gap-3">
       {items.map(item => (
         <DecisionRow
+          councilId={options.councilId}
           key={item.id}
           item={item}
           values={state.rowOf(item.id)}
@@ -129,7 +130,7 @@ function Body({
   const waiting = (notice: ReactNode) => (
     <>
       {rest.items.map(item => (
-        <PendingItemCard key={item.id} item={item} />
+        <PendingItemCard key={item.id} item={item} councilId={rest.councilId} />
       ))}
       {notice}
     </>

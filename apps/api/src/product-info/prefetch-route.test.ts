@@ -70,7 +70,10 @@ test(
       finish()
       const response = await reading
       assert.equal(response.status, 200)
-      assert.deepEqual(await response.json(), { product, reason: null })
+      assert.deepEqual(await response.json(), {
+        product: { ...product, fetchedAt: NOW.toISOString() },
+        reason: null,
+      })
       assert.equal(calls, 1, '선조회와 실제 상품 패널/양식 조회는 캐시와 진행 조회를 공유한다')
     } finally {
       finish()

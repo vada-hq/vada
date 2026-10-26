@@ -69,6 +69,7 @@ export function TaskMake({ kind, ...props }: Props) {
         <RequestCreateDialog
           open
           councilId={view.council.id}
+          memberId={view.me.memberId}
           taskId={task.id}
           eventId={task.event?.id ?? null}
           start={{ title: task.title }}

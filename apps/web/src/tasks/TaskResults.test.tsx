@@ -6,14 +6,19 @@ import { asElement } from '@/test-support/elements'
 import { councilView } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { eventSummary } from '@/test-support/event-fixtures'
+import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
-import { ROOM_LOST, TASK_INVALID } from '@/lib/messages'
+import { resetAddress } from '@/test-support/address-reset'
+import { PurchaseRoute } from '@/test-support/purchase-route'
+import { confirmLeave } from '@/lib/leave-guard'
+import { ROOM_LOST, TASK_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { TaskDetailDialog } from './TaskDetailDialog'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -29,6 +34,7 @@ function setup(task: TaskDetail) {
   const api = mockApi()
   let current = task
   api.on('GET', URL_TASK, () => json({ task: current }))
+  api.on('GET', `${BASE}/purchase-requests/r1`, () => json({ request: purchaseDetail('r1') }))
   api.on('GET', `${BASE}/events`, () =>
     json({ events: [eventSummary({ id: EVENT_ID, name: '환영회' })], truncated: false }),
   )
@@ -39,11 +45,16 @@ function setup(task: TaskDetail) {
     onForbidden: vi.fn(),
   }
   render(
-    <TaskDetailDialog
+    <PurchaseRoute
       view={councilView('c1', { memberId: MEMBER_ID })}
-      taskId={TASK_ID}
-      {...handlers}
-    />,
+      onForbidden={handlers.onForbidden}
+    >
+      <TaskDetailDialog
+        view={councilView('c1', { memberId: MEMBER_ID })}
+        taskId={TASK_ID}
+        {...handlers}
+      />
+    </PurchaseRoute>,
   )
   return { api, handlers, change: (next: TaskDetail) => (current = next) }
 }
@@ -90,8 +101,8 @@ test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있�
   expect(within(region).queryByRole('button', { name: '행사 만들기' })).toBeNull()
 })
 
-test('구매 요청 만들기는 제목이 채워진 기존 창을 열고 taskId를 보내며, 만들면 업무를 다시 읽는다', async () => {
-  const { api, handlers, change } = setup(detail({ canMake: ['request'], event: null }))
+test('구매 요청 만들기는 제목이 채워진 전용 페이지를 열고 taskId를 보존해 보낸다', async () => {
+  const { api, change } = setup(detail({ canMake: ['request'], event: null }))
   fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
   const form = await screen.findByRole('form', { name: '구매 요청 내기' })
   expect(asElement(within(form).getByLabelText(/제목/), HTMLInputElement).value).toBe('현수막 사기')
@@ -107,9 +118,7 @@ test('구매 요청 만들기는 제목이 채워진 기존 창을 열고 taskId
   await waitFor(() => expect(screen.queryByRole('form', { name: '구매 요청 내기' })).toBeNull())
   const post = api.calls.find(call => call.method === 'POST')!
   expect(post.body).toMatchObject({ title: '현수막 사기', taskId: TASK_ID })
-  const region = screen.getByRole('region', { name: '결과물' })
-  expect(await within(region).findByText('진행 중')).toBeTruthy()
-  expect(handlers.onChanged).toHaveBeenCalled()
+  expect(window.location.pathname).toBe('/purchases/c1/r1')
 })
 
 test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그대로다', async () => {
@@ -125,6 +134,7 @@ test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그�
   const reads = () => api.calls.filter(call => call.path === URL_TASK).length
   const before = reads()
   fireEvent.click(within(form).getByRole('button', { name: '취소' }))
+  confirmLeave()
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })
 
@@ -135,7 +145,7 @@ test('403이면 창을 닫고 이유를 부모에게 넘긴다', async () => {
   fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
   api.on('POST', `${BASE}/purchase-requests`, () => json({ error: 'FORBIDDEN' }, 403))
   fireEvent.submit(form)
-  await waitFor(() => expect(handlers.onLost).toHaveBeenCalled())
+  expect(await screen.findByText(PERMISSION_CHANGED)).toBeTruthy()
   expect(handlers.onForbidden).toHaveBeenCalled()
 })
 

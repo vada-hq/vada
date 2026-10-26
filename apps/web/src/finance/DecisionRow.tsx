@@ -9,8 +9,11 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import { usageLineOf, type Overage } from './decision-budget'
 import type { Choice, RowValues } from './decision-form'
 import { ItemLink } from './RequestItems'
+import { RequestProductInfo } from './RequestProductInfo'
+import { ItemEstimate } from './ItemEstimate'
 
 type Props = {
+  councilId?: string
   item: PurchaseLineItem
   values: RowValues
   // 화면에 보일 예산 항목(고르지 않았으면 마지막에 승인한 항목, 목록에 없으면 빈 값)
@@ -141,12 +144,14 @@ function ChoiceField({
 }
 
 // 카드 머리: 이름과 수량(품목 목록과 같은 '× 3'), 아래 줄에 옵션과 링크(가격 근거). 와이어프레임 FIN-REV-01의 구매 정보 자리다.
-function RowHead({ item }: { item: PurchaseLineItem }) {
+function RowHead({ item, councilId }: { item: PurchaseLineItem; councilId?: string | undefined }) {
   return (
     <div className="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
       <span className="text-sm font-semibold wrap-anywhere text-gray-900">
         {item.name} × {item.quantity}
       </span>
+      <RequestProductInfo councilId={councilId} link={item.link} />
+      <ItemEstimate item={item} />
       {(item.options || item.link) && (
         <div className="flex flex-col gap-1 text-xs text-gray-500">
           {item.options && <span className="wrap-anywhere">{item.options}</span>}
@@ -158,10 +163,16 @@ function RowHead({ item }: { item: PurchaseLineItem }) {
 }
 
 // 결재할 수 없는 동안(예산을 읽는 중, 예산 없음) 대기 품목을 머리만으로 보인다. 품목 목록에서 빠져 있어서다.
-export function PendingItemCard({ item }: { item: PurchaseLineItem }) {
+export function PendingItemCard({
+  item,
+  councilId,
+}: {
+  item: PurchaseLineItem
+  councilId?: string
+}) {
   return (
     <Card className="flex flex-col">
-      <RowHead item={item} />
+      <RowHead item={item} councilId={councilId} />
     </Card>
   )
 }
@@ -173,7 +184,7 @@ export function DecisionRow(props: Props) {
   const { item, values, disabled, errors, onChange } = props
   return (
     <Card role="group" aria-label={`결재 ${item.name}`} className="flex flex-col">
-      <RowHead item={item} />
+      <RowHead item={item} councilId={props.councilId} />
       <div className="@container flex flex-col gap-4 px-4 py-3">
         {values.choice !== 'reject' && <BudgetFields {...props} />}
         <div className={cn('flex flex-col gap-2', values.choice !== 'reject' && 'border-t pt-3')}>

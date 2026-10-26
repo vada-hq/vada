@@ -55,6 +55,8 @@ test('ReefAPI 부르기: 판매 단위 목록을 옮기고 주소의 itemId와 �
       shipping: '무료배송',
       deliveryEta: '내일(토) 도착 보장',
       rocket: true,
+      imageUrl: null,
+      inStock: true,
     },
   })
   const byVendor = await lookup(

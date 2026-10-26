@@ -5,7 +5,7 @@ import { sameJson } from '@/lib/same-json'
 import { useLatest } from '@/lib/use-latest'
 
 // 운영진과 부서 목록(운영진 > 사람, 부서가 같이 쓴다). onForbidden은 권한이나 소속이 바뀌었을 때 학생회를 다시 읽게 한다.
-export function useTeam(councilId: string, onForbidden: () => void) {
+export function useTeam(councilId: string, onForbidden: () => void, enabled = true) {
   const base = `/api/organizations/${encodeURIComponent(councilId)}`
   const [data, setData] = useState<TeamResponse | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -21,6 +21,7 @@ export function useTeam(councilId: string, onForbidden: () => void) {
     }
   }, [])
   useEffect(() => {
+    if (!enabled) return
     const controller = new AbortController()
     setLoadFailed(false)
     void getJson<TeamResponse>(`${base}/members`, controller.signal).then(result => {
@@ -31,7 +32,7 @@ export function useTeam(councilId: string, onForbidden: () => void) {
       setLoadFailed(true)
     })
     return () => controller.abort()
-  }, [base, attempt, forbidden])
+  }, [base, attempt, forbidden, enabled])
 
   // 회장단의 변경은 목록 전체를 돌려준다. 성공하면 null을, 실패하면 오류 코드를 돌려준다.
   // 권한이 바뀌었으면(권한 오류) 학생회를 다시 읽고, 화면이 오래됐으면(권한·없음 오류) 목록도 다시 읽는다.

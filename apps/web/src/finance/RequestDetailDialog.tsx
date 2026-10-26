@@ -16,6 +16,10 @@ import { RequestShipments } from './RequestShipments'
 import { RequestDecisions } from './RequestRecords'
 import { StatusBadge } from './StatusBadge'
 import { useRequestDetail } from './useRequestDetail'
+import { RequestProgress } from './RequestProgress'
+import { PurchaseColumns } from './PurchaseColumns'
+import { RequestDetailSummary } from './RequestDetailSummary'
+import PageHeading from '@/components/PageHeading'
 
 type Props = PurchaseDialogHandlers & {
   councilId: string
@@ -34,15 +38,75 @@ export function RequestDetailDialog({ requestId, ...props }: Props) {
   return <OpenRequestDialog key={requestId} requestId={requestId} {...props} />
 }
 
+export function RequestDetailPage(props: Props & { requestId: string }) {
+  return <OpenRequestDialog key={props.requestId} {...props} page />
+}
+
 function OpenRequestDialog({
   councilId,
   requestId,
   onClose,
   onOpenBudget,
   onOpenExpense,
+  page = false,
   ...handlers
-}: Props & { requestId: string }) {
+}: Props & { requestId: string; page?: boolean }) {
   const detail = useRequestDetail(councilId, requestId, handlers)
+  const title = detail.request?.title ?? '구매 요청'
+  const content = (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        {page ? (
+          <PageHeading
+            trail={{
+              title,
+              crumbs: [
+                { label: '구매 요청', truncate: false },
+                { label: title, truncate: true },
+              ],
+            }}
+          >
+            <h1 className="text-xl font-semibold wrap-anywhere">{title}</h1>
+          </PageHeading>
+        ) : (
+          <DialogHeader>
+            <DialogTitle className="wrap-anywhere">{title}</DialogTitle>
+          </DialogHeader>
+        )}
+        {detail.request && (
+          <div className="ml-auto">
+            <HistoryMenu history={detail.request.history} line={versionLine} />
+          </div>
+        )}
+      </div>
+      {detail.request ? (
+        <Loaded
+          request={detail.request}
+          detail={detail}
+          councilId={councilId}
+          onForbidden={handlers.onForbidden}
+          onLost={handlers.onLost}
+          onOpenBudget={onOpenBudget}
+          onOpenExpense={onOpenExpense}
+        />
+      ) : detail.loadFailed ? (
+        <div className="flex flex-col items-start gap-3">
+          <StateMessage kind="error">{PURCHASE_LOAD_FAILED}</StateMessage>
+          <Button variant="outline" onClick={detail.retry}>
+            다시 시도
+          </Button>
+        </div>
+      ) : (
+        <StateMessage kind="loading">불러오는 중이에요</StateMessage>
+      )}
+    </>
+  )
+  if (page)
+    return (
+      <section aria-label="구매 요청 상세" className="flex flex-col gap-6">
+        {content}
+      </section>
+    )
   return (
     <Dialog
       open
@@ -51,32 +115,7 @@ function OpenRequestDialog({
       }}
     >
       <DialogContent aria-describedby={undefined} record={{ kind: 'purchases', id: requestId }}>
-        <DialogHeader className="flex-row items-center justify-between gap-2">
-          <DialogTitle className="wrap-anywhere">
-            {detail.request?.title ?? '구매 요청'}
-          </DialogTitle>
-          {detail.request && <HistoryMenu history={detail.request.history} line={versionLine} />}
-        </DialogHeader>
-        {detail.request ? (
-          <Loaded
-            request={detail.request}
-            detail={detail}
-            councilId={councilId}
-            onForbidden={handlers.onForbidden}
-            onLost={handlers.onLost}
-            onOpenBudget={onOpenBudget}
-            onOpenExpense={onOpenExpense}
-          />
-        ) : detail.loadFailed ? (
-          <div className="flex flex-col items-start gap-3">
-            <StateMessage kind="error">{PURCHASE_LOAD_FAILED}</StateMessage>
-            <Button variant="outline" onClick={detail.retry}>
-              다시 시도
-            </Button>
-          </div>
-        ) : (
-          <StateMessage kind="loading">불러오는 중이에요</StateMessage>
-        )}
+        {content}
       </DialogContent>
     </Dialog>
   )
@@ -156,7 +195,27 @@ function Loaded({
 }) {
   const deciding = decidingOf(request)
   return (
-    <div className="flex flex-col gap-6">
+    <PurchaseColumns
+      summary={
+        <>
+          <RequestDetailSummary request={request} councilId={councilId} />
+          <RequestProgress request={request} />
+          <RequestShipments
+            councilId={councilId}
+            request={request}
+            actions={detail.shipments}
+            busy={detail.saving}
+            onLost={onLost}
+            onForbidden={onForbidden}
+          />
+          <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
+          {request.actions.includes('purchase_request.cancel') && <CancelButton detail={detail} />}
+          {detail.problem && !request.actions.includes('purchase_request.cancel') && (
+            <StateMessage kind="error">{detail.problem}</StateMessage>
+          )}
+        </>
+      }
+    >
       {detail.loadFailed && (
         <div className="flex flex-col items-start gap-3">
           <StateMessage kind="error">{PURCHASE_LOAD_FAILED}</StateMessage>
@@ -168,19 +227,11 @@ function Loaded({
       <Facts request={request} />
       {/* 결재 중이면 대기 품목은 결재 칸에만 있다(와이어프레임 FIN-REV-01: 품목 카드 하나에 구매 정보와 검토). */}
       <RequestItems
+        councilId={councilId}
         items={listedItems(request, deciding)}
         cancel={detail.itemCancel}
         shipments={request.shipments}
       />
-      <RequestShipments
-        councilId={councilId}
-        request={request}
-        actions={detail.shipments}
-        busy={detail.saving}
-        onLost={onLost}
-        onForbidden={onForbidden}
-      />
-      <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
       {deciding && (
         <DecisionPanel
           councilId={councilId}
@@ -196,10 +247,6 @@ function Loaded({
         <StateMessage kind="error">{detail.decide.problem}</StateMessage>
       )}
       <RequestDecisions decisions={request.decisions} items={request.items} />
-      {request.actions.includes('purchase_request.cancel') && <CancelButton detail={detail} />}
-      {detail.problem && !request.actions.includes('purchase_request.cancel') && (
-        <StateMessage kind="error">{detail.problem}</StateMessage>
-      )}
-    </div>
+    </PurchaseColumns>
   )
 }

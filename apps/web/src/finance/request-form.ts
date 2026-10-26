@@ -1,16 +1,25 @@
 // 요청 내기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
+import type { ProductInfo } from '@vada/contracts'
+
 export type ItemValues = {
   // 줄을 지워도 입력칸 상태가 섞이지 않게 하는 키(서버로 보내지 않는다)
   key: number
   name: string
+  nameEdited?: boolean
   quantity: string
   link: string
   options: string
-  // 불러온 가격은 확인용이며 요청 본문에는 보내지 않는다(022-6, DEC-40).
+  // 조회 원본은 표시용이고, 예상 단가·배송비만 아래의 별도 계약 필드로 보낸다.
   loadedPrice?: number | null
+  loadedProduct?: ProductInfo
+  estimatedUnitPrice: string
+  estimatedShippingFee: string
+  unitPriceEdited?: boolean
+  shippingFeeEdited?: boolean
 }
 export type RequestValues = {
   title: string
+  titleEdited?: boolean
   body: string
   neededBy: string
   // 낼 때 고르고 바꾸지 않는다. 비면 행사에 잇지 않는다.
@@ -24,7 +33,16 @@ export type RequestValues = {
 // 메시지에서 열 때 미리 채우는 값
 export type RequestStart = Partial<
   Pick<RequestValues, 'title' | 'body' | 'requestedBy' | 'sourceMessageId'>
-> & { items?: { name: string; link: string; loadedPrice: number | null }[] }
+> & {
+  items?: {
+    name: string
+    link: string
+    loadedPrice: number | null
+    loadedProduct?: ProductInfo
+    estimatedUnitPrice?: string
+    estimatedShippingFee?: string
+  }[]
+}
 
 let lastKey = 0
 export const newItem = (): ItemValues => ({
@@ -33,6 +51,8 @@ export const newItem = (): ItemValues => ({
   quantity: '1',
   link: '',
   options: '',
+  estimatedUnitPrice: '',
+  estimatedShippingFee: '',
 })
 export const emptyRequest = (
   eventId: string | null = null,
@@ -45,6 +65,15 @@ export const emptyRequest = (
   requestedBy: start.requestedBy ?? null,
   sourceMessageId: start.sourceMessageId ?? null,
   items: start.items?.length ? start.items.map(item => ({ ...newItem(), ...item })) : [newItem()],
+})
+
+// 새로고침 뒤 숫자 키의 전역 순번이 다시 시작해도 새 품목과 겹치지 않는다.
+export const restoredRequest = (values: RequestValues): RequestValues => ({
+  ...values,
+  items: values.items.map(item => {
+    const fresh = newItem()
+    return { ...fresh, ...item, key: fresh.key }
+  }),
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
@@ -63,5 +92,9 @@ export const requestOf = (values: RequestValues) => ({
     quantity: item.quantity.trim() === '' ? Number.NaN : Number(item.quantity),
     link: orNull(item.link),
     options: orNull(item.options),
+    estimatedUnitPrice:
+      item.estimatedUnitPrice.trim() === '' ? null : Number(item.estimatedUnitPrice),
+    estimatedShippingFee:
+      item.estimatedShippingFee.trim() === '' ? null : Number(item.estimatedShippingFee),
   })),
 })

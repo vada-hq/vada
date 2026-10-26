@@ -7,6 +7,8 @@ import { useTeam } from '@/team/useTeam'
 import { messagePage, roomDetail, roomList } from './chat-fixtures'
 import { councilView, MEMBER_PERMISSIONS, teamResponse } from './council-fixtures'
 import { json, mockApi } from './mock-api'
+import { PurchaseRoute } from './purchase-route'
+import { purchaseDetail } from './purchase-fixtures'
 
 export const chatBase = '/api/organizations/c1'
 
@@ -26,17 +28,22 @@ export function ChatHarness({
   // 실제 앱에서는 주소가 정하는 화면을 상태로 둔다.
   const [screen, setScreen] = useState<Screen>({ kind: 'list' })
   return (
-    <ChatPage
-      councilId="c1"
+    <PurchaseRoute
       view={councilView('c1', { permissions: granted, memberId })}
-      team={team}
-      rooms={rooms}
       onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
-      onOpenRequest={onOpenRequest}
-      screen={screen}
-      onScreen={setScreen}
-      onBack={() => setScreen({ kind: 'list' })}
-    />
+    >
+      <ChatPage
+        councilId="c1"
+        view={councilView('c1', { permissions: granted, memberId })}
+        team={team}
+        rooms={rooms}
+        onForbidden={() => setGranted(MEMBER_PERMISSIONS)}
+        onOpenRequest={onOpenRequest}
+        screen={screen}
+        onScreen={setScreen}
+        onBack={() => setScreen({ kind: 'list' })}
+      />
+    </PurchaseRoute>
   )
 }
 
@@ -48,6 +55,7 @@ export function serveChat() {
   api.on('GET', `${chatBase}/rooms/r1`, () => json(roomDetail()))
   api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage()))
   api.on('POST', `${chatBase}/rooms/r1/read`, () => new Response(null, { status: 204 }))
+  api.on('GET', `${chatBase}/purchase-requests/r7`, () => json({ request: purchaseDetail('r7') }))
   return api
 }
 

@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { PurchaseRoute } from '@/test-support/purchase-route'
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventRoomsResponse, RoomSummary } from '@vada/contracts'
@@ -32,9 +34,9 @@ const plan = (extra: Partial<RoomSummary> = {}) =>
   eventRoom(PLAN, { type: 'department', name: '기획부', departmentId: 'd1', unread: 3, ...extra })
 
 beforeEach(() => window.history.replaceState(null, '', EVENT_AT))
-afterEach(() => {
+afterEach(async () => {
   cleanup()
-  window.history.replaceState(null, '', '/')
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -58,16 +60,21 @@ function setup(body: EventRoomsResponse, options: { completed?: boolean } = {}) 
   for (const summary of body.rooms)
     serveRoom(api, summary, summary.type === 'department' ? '부서방 글' : '공지방 글')
   render(
-    <WithChat councilId={COUNCIL_ID}>
-      {chat => (
-        <EventsPage
-          view={councilView(COUNCIL_ID, { memberId: MEMBER.m1, permissions: MEMBER_PERMISSIONS })}
-          onForbidden={vi.fn()}
-          onTasksChanged={vi.fn()}
-          {...chat}
-        />
-      )}
-    </WithChat>,
+    <PurchaseRoute
+      view={councilView(COUNCIL_ID, { memberId: MEMBER.m1, permissions: MEMBER_PERMISSIONS })}
+      onForbidden={() => {}}
+    >
+      <WithChat councilId={COUNCIL_ID}>
+        {chat => (
+          <EventsPage
+            view={councilView(COUNCIL_ID, { memberId: MEMBER.m1, permissions: MEMBER_PERMISSIONS })}
+            onForbidden={vi.fn()}
+            onTasksChanged={vi.fn()}
+            {...chat}
+          />
+        )}
+      </WithChat>
+    </PurchaseRoute>,
   )
   return api
 }

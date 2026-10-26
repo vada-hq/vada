@@ -58,7 +58,12 @@ export function EventMoneyAdd({ view, event, onAdded, budgetNames, ...handlers }
           </Button>
         )}
       </div>
-      <RequestCreateDialog {...shared} open={adding === 'request'} onCreated={done} />
+      <RequestCreateDialog
+        {...shared}
+        memberId={view.me.memberId}
+        open={adding === 'request'}
+        onCreated={done}
+      />
       {adding === 'budget' && (
         <BudgetItemDialog
           {...shared}

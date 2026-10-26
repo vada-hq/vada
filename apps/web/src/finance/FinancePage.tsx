@@ -8,7 +8,6 @@ import {
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { openMenu, openRecord } from '@/lib/go-to'
 import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useAddressRecord } from '@/lib/use-address-record'
 import { useNow } from '@/lib/use-now'
@@ -27,11 +26,11 @@ import { FinanceTabs, RequestFilter, type FinanceTab } from './FinanceTabs'
 import { neededMarkOf, VIEW_EMPTY } from './purchase-view'
 import RequestCard from './RequestCard'
 import { SettlementsTab } from './SettlementsTab'
-import { RequestCreateDialog } from './RequestCreateDialog'
-import { RequestDetailDialog } from './RequestDetailDialog'
 import { useExpenses, type ExpenseList } from './useExpenses'
 import { useFinanceControls } from './useFinanceQuery'
 import { usePurchases, type PurchaseList } from './usePurchases'
+import { navigate, useHere } from '@/lib/app-location'
+import { PurchasePage } from './PurchasePage'
 
 const overflow = (view: PurchaseView) =>
   `요청이 많아서 ${view === 'pending' ? PURCHASE_PENDING_LIMIT : PURCHASE_RECENT_LIMIT}개만 보여요.`
@@ -174,61 +173,23 @@ function CreateRow({
   )
 }
 
-type Dialogs = ReturnType<typeof useRecordDialogs>
-
-// 상세와 내기 대화상자. 바뀌면 목록과 수를 다시 읽고, 대상을 잃으면 이유를 보인다.
-function RequestDialogs({
-  councilId,
-  dialogs,
-  onChanged,
-  onForbidden,
-}: {
-  councilId: string
-  dialogs: Dialogs
-  onChanged: () => void
-  onForbidden: () => void
-}) {
-  const shared = {
-    councilId,
-    onForbidden,
-    onLost: (message: string) => {
-      dialogs.lose(message)
-      onChanged()
-    },
-  }
-  return (
-    <>
-      <RequestDetailDialog
-        {...shared}
-        requestId={dialogs.openId}
-        onClose={dialogs.closeDetail}
-        onChanged={onChanged}
-        // 예산 탭은 요청 상세를 닫고 간다(창의 칸을 거둔 뒤 쌓아, 뒤로가 요청 목록이다).
-        onOpenBudget={() => openMenu('finance', councilId, { tab: 'budget' })}
-        // 지출은 이 요청 상세 위에 쌓아, 지출을 닫으면 이 요청으로 돌아온다.
-        onOpenExpense={id => openRecord('expenses', councilId, id, { overRecord: true })}
-      />
-      <RequestCreateDialog
-        {...shared}
-        open={dialogs.creating}
-        onClose={dialogs.closeCreate}
-        onCreated={() => {
-          onChanged()
-          dialogs.closeCreate()
-        }}
-      />
-    </>
-  )
-}
-
 // 옆 메뉴 '재정': 모든 운영진에게 개요 탭으로 연다(DEC-92). 구매 요청 탭의 거르기는 셋(내 요청, 결재 대기, 전체)이고, 바꾸면 이전 거르기의 늦은 응답은 버린다.
 // 탭과 거르기는 주소가 원문이고, 요청·지출 상세는 그 종류의 주소로 연다. 납부자 명단을 보던 중 권한을 잃으면(탭이 사라지면) 개요로 돌아간다.
 export default function FinancePage(props: Props) {
+  const { location } = useHere()
+  const active = location?.councilId === props.view.council.id.toLowerCase()
+  if (active && location?.type === 'record' && location.record === 'purchases')
+    return <PurchasePage {...props} requestId={location.recordId} />
+  if (active && location?.type === 'menu' && location.query['compose'] === 'new')
+    return <PurchasePage {...props} />
+  return <FinanceList {...props} />
+}
+
+function FinanceList(props: Props) {
   const councilId = props.view.council.id
   const can = (action: Action) => props.view.permissions.includes(action)
   const access = { fees: can('fee_payment.view') }
   const { tab, filter, setTab, setFilter } = useFinanceControls(councilId, access)
-  const dialogs = useRecordDialogs(useAddressRecord('purchases', councilId))
   const expenseDialogs = useRecordDialogs(useAddressRecord('expenses', councilId))
   const list = usePurchases(councilId, filter, props.onForbidden)
   // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
@@ -236,8 +197,10 @@ export default function FinancePage(props: Props) {
   return (
     <PageColumn>
       <CreateRow
-        lost={dialogs.lost ?? expenseDialogs.lost}
-        onCreate={can('purchase.request') ? dialogs.startCreate : null}
+        lost={expenseDialogs.lost}
+        onCreate={
+          can('purchase.request') ? () => navigate(`/finance/${councilId}/requests/new`) : null
+        }
         onCreateExpense={
           tab === 'expenses' && can('finance.manage') ? expenseDialogs.startCreate : null
         }
@@ -246,12 +209,6 @@ export default function FinancePage(props: Props) {
         view={props.view}
         dialogs={expenseDialogs}
         onChanged={() => void expenses.reload()}
-        onForbidden={props.onForbidden}
-      />
-      <RequestDialogs
-        councilId={councilId}
-        dialogs={dialogs}
-        onChanged={() => void list.reload()}
         onForbidden={props.onForbidden}
       />
       <FinanceTabs tab={tab} onTab={setTab} showFees={access.fees} />

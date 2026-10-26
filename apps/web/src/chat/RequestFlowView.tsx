@@ -26,15 +26,6 @@ type Props = Omit<RequestAccess, 'onOpenRequest'> & {
   picked?: LoadedPick | undefined
 }
 
-// 재정부는 나 말고 다른 지금 운영진도 요청한 사람으로 고른다.
-function requestersOf(team: TeamResponse | null, meId: string) {
-  const others = (team?.members ?? []).filter(member => member.id !== meId)
-  return [
-    { id: meId, label: '나' },
-    ...others.map(member => ({ id: member.id, label: member.name })),
-  ]
-}
-
 function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) {
   const { flow, councilId, meId, team, canAssign } = props
   // 열려 있는 동안 권한을 잃으면 닫고 이유를 보인다.
@@ -50,9 +41,9 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
       open
       pickTask
       councilId={councilId}
+      memberId={meId}
       eventId={props.eventId ?? null}
       start={seed}
-      requesters={canAssign ? requestersOf(team, meId) : null}
       onClose={flow.close}
       onCreated={request => flow.finish(request.id)}
       onLost={flow.lose}

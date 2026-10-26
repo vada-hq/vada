@@ -4,6 +4,8 @@ import { wonLabel } from './purchase-view'
 import { ItemCancelButton } from './ItemCancel'
 import { ItemStatusBadge } from './StatusBadge'
 import type { ItemCancel } from './useCancelItem'
+import { RequestProductInfo } from './RequestProductInfo'
+import { ItemEstimate } from './ItemEstimate'
 
 // 링크는 운영진이 쓴 주소다. 계약이 http·https만 받지만 화면도 새 창과 noopener noreferrer로만 연다.
 export function ItemLink({ href }: { href: string }) {
@@ -36,10 +38,12 @@ export function RequestItems({
   items,
   cancel,
   shipments = [],
+  councilId,
 }: {
   items: PurchaseLineItem[]
   cancel: ItemCancel
   shipments?: PurchaseShipment[]
+  councilId?: string
 }) {
   const covered = new Set(
     shipments.filter(shipment => !shipment.cancelledAt).flatMap(shipment => shipment.lineItemIds),
@@ -60,6 +64,8 @@ export function RequestItems({
               {covered.has(item.id) && <Badge>송장 등록됨</Badge>}
             </div>
             <ItemFacts item={item} />
+            <ItemEstimate item={item} />
+            <RequestProductInfo councilId={councilId} link={item.link} />
             <ItemCancelButton item={item} cancel={cancel} />
           </li>
         ))}

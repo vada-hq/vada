@@ -120,5 +120,11 @@ test('불러온 값은 사람이 적은 이름을 덮지 않고, 다른 판매 �
     '내가 쓴 이름',
   )
   const other = withLoaded({ name: '', link: COUPANG, loadedPrice: null }, loaded, '1')
-  expect(other).toEqual({ name: '파랑 1개', link: COUPANG, loadedPrice: 1200 })
+  expect(other).toMatchObject({
+    name: '파랑 1개',
+    link: COUPANG,
+    loadedPrice: 1200,
+    estimatedUnitPrice: '1200',
+  })
+  expect(other.loadedProduct).toEqual(loaded)
 })

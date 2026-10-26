@@ -5,13 +5,15 @@ import type { ProductInfo } from '@vada/contracts'
 import { message, messagePage } from '@/test-support/chat-fixtures'
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
+import { resetAddress } from '@/test-support/address-reset'
 import { resetWindowHistory } from '@/lib/use-window-history'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
   vi.unstubAllGlobals()
   resetWindowHistory()
+  await resetAddress()
 })
 
 const LINK = 'https://www.coupang.com/vp/products/7334523?itemId=18698271'
