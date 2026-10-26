@@ -29,6 +29,7 @@ function show(event: EventDetail, editing: EventEditing | null = null) {
       event={event}
       editing={editing}
       tabs={<div role="tablist" aria-label="행사 보기" />}
+      tabLabel="개요"
       {...handlers}
     />,
   )

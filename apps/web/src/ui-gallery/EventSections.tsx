@@ -160,7 +160,7 @@ export function EventHeaderSection() {
         {HEADERS.map(({ key, event: sample }) => (
           <div key={key} className="flex flex-col gap-1">
             <p className="text-xs text-gray-500">{key}</p>
-            <EventHeader event={sample} tabs={tabs} {...headerHandlers} />
+            <EventHeader event={sample} tabs={tabs} tabLabel="개요" {...headerHandlers} />
           </div>
         ))}
       </div>
@@ -174,6 +174,7 @@ export function EventHeaderSection() {
               departments: [longName, '재정부'],
             }}
             tabs={tabs}
+            tabLabel="개요"
             {...headerHandlers}
           />
         ))}

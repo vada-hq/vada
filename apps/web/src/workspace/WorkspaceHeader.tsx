@@ -1,12 +1,12 @@
 import type { Ref } from 'react'
 import { ChevronRight, Menu as MenuIcon } from 'lucide-react'
-import { pageWidthClass } from '@/components/PageColumn'
+import type { Crumb } from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type Props = {
-  councilName: string
-  section: string | null
+  // 경로 줄의 칸. 맨 앞은 학생회 이름이다(pages.ts trailOf).
+  crumbs: Crumb[]
   title: string
   onMenu: () => void
   menuRef?: Ref<HTMLButtonElement>
@@ -14,44 +14,57 @@ type Props = {
   actionsRef?: Ref<HTMLDivElement>
 }
 
-// 머리글: 경로와 제목, 오른쪽에 페이지 행동. 본문과 같은 폭으로 가운데에 모은다.
+// 경로 줄: 작은 회색 글을 > 아이콘으로 잇고 마지막 칸만 진하다. 칸은 누를 수 없다(와이어프레임 사이드바 v6.2).
+// 색은 와이어프레임(gray-400, 마지막 gray-600)보다 한 단계 진하다(작은 글의 대비 4.5:1, WCAG 1.4.3).
+function Trail({ crumbs }: { crumbs: Crumb[] }) {
+  return (
+    <ol aria-label="경로" className="flex min-w-0 items-center gap-1 text-xs text-gray-500">
+      {crumbs.map((crumb, index) => (
+        <li
+          // 같은 이름의 칸이 둘일 수 있어(조직 > 조직) 차례를 키로 쓴다.
+          key={index}
+          className={cn('flex items-center gap-1', crumb.truncate ? 'min-w-0' : 'shrink-0')}
+        >
+          {index > 0 && <ChevronRight aria-hidden className="size-3 shrink-0" />}
+          <span
+            className={cn(
+              crumb.truncate && 'truncate',
+              index === crumbs.length - 1 && 'text-gray-700',
+            )}
+            title={crumb.truncate ? crumb.label : undefined}
+          >
+            {crumb.label}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+// 머리글(와이어프레임 사이드바 v6.2 OPS-TASK-01·EVT-02): 높이 h-16, 남은 폭을 다 쓰고 왼쪽에 붙는다.
+// 경로 줄과 제목, 오른쪽에 페이지 행동. 좌우 여백은 본문(main)과 같아 제목과 본문의 왼쪽 줄이 맞는다.
 // 제목은 앱 페이지 제목 범위(20~24px, Polaris·Primer 20, Atlassian 24)의 아래 끝이다.
 // 옆 메뉴가 숨는 폭(768px 미만)에서만 메뉴 버튼을 보여 준다.
-export default function WorkspaceHeader({
-  councilName,
-  section,
-  title,
-  onMenu,
-  menuRef,
-  actionsRef,
-}: Props) {
+export default function WorkspaceHeader({ crumbs, title, onMenu, menuRef, actionsRef }: Props) {
   return (
-    <header className="shrink-0 border-b bg-white px-4 py-3 sm:px-6">
-      <div className={cn(pageWidthClass, 'flex min-h-11 items-center gap-3')}>
-        <Button
-          ref={menuRef}
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          aria-label="메뉴 열기"
-          onClick={onMenu}
-        >
-          <MenuIcon />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="truncate">{councilName}</span>
-            {section && (
-              <>
-                <ChevronRight aria-hidden className="size-3 shrink-0" />
-                <span className="shrink-0 text-gray-600">{section}</span>
-              </>
-            )}
-          </p>
-          <h1 className="mt-0.5 truncate text-xl font-bold text-gray-900">{title}</h1>
-        </div>
-        <div ref={actionsRef} className="flex shrink-0 items-center gap-2" />
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 sm:px-6">
+      <Button
+        ref={menuRef}
+        variant="ghost"
+        size="icon"
+        className="md:hidden"
+        aria-label="메뉴 열기"
+        onClick={onMenu}
+      >
+        <MenuIcon />
+      </Button>
+      <div className="min-w-0 flex-1">
+        <Trail crumbs={crumbs} />
+        <h1 className="mt-0.5 truncate text-xl font-bold text-gray-900" title={title}>
+          {title}
+        </h1>
       </div>
+      <div ref={actionsRef} className="flex shrink-0 items-center gap-2" />
     </header>
   )
 }
