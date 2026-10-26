@@ -19,6 +19,7 @@ const accepted = (seed: ReturnType<typeof expenseSeedOf>) =>
     vendor: '가게',
     description: seed.description,
     amount: 1000,
+    method: 'card',
     paidOn: seed.paidOn,
   }).success
 

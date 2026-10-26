@@ -14,7 +14,7 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import { usePolledRead, type PolledState } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { purchasePath, purchasesPath } from './finance-api'
-import { setLineAmount, toggleLine, type ExpenseValues } from './expense-form'
+import { setLineAmount, toggleLine, withRequest, type ExpenseValues } from './expense-form'
 import { wonLabel } from './purchase-view'
 
 type Common = {
@@ -28,23 +28,6 @@ type Common = {
 // 결제할 수 있는 품목이 하나라도 있다고 서버가 한(payable) 요청만 고른다. 품목 하나가 승인되고 다른 품목이 대기여도 요청 상태는 대기라서 상태로는 가를 수 없다.
 const payable = (requests: PurchaseRequestsResponse['requests']) =>
   requests.filter(request => request.payable)
-
-// 요청을 고르면 지출의 행사가 그 요청의 행사로 채워지고 잠긴다(행사가 없는 요청이면 고른 행사를 그대로 둔다).
-function withRequest(
-  values: ExpenseValues,
-  requestId: string | null,
-  requests: PurchaseRequestsResponse['requests'],
-): ExpenseValues {
-  const event = requests.find(request => request.id === requestId)?.event ?? null
-  return {
-    ...values,
-    requestId,
-    lines: [],
-    // 전에 요청에서 채워 잠근 행사는 요청을 비우거나 행사 없는 요청으로 바꾸면 함께 지운다.
-    eventId: event ? event.id : values.eventLocked ? null : values.eventId,
-    eventLocked: event !== null,
-  }
-}
 
 function loadingOr<T>(state: PolledState<T>, show: (data: T) => ReactNode): ReactNode {
   if (state.kind === 'ready') return show(state.data)
@@ -122,6 +105,37 @@ function lineError(values: ExpenseValues, errors: FieldErrors, lineItemId: strin
   return index === -1 ? undefined : errors[`lines.${index}.amount`]
 }
 
+export function ExpensePaymentItems({
+  items,
+  values,
+  disabled,
+  errors,
+  onChange,
+}: {
+  items: PurchaseLineItem[]
+  values: ExpenseValues
+  disabled: boolean
+  errors: FieldErrors
+  onChange: (values: ExpenseValues) => void
+}) {
+  return (
+    <ul aria-label="결제할 품목" className="flex flex-col gap-2">
+      {items.map((item, index) => (
+        <ItemRow
+          key={item.id}
+          item={item}
+          line={values.lines.find(line => line.lineItemId === item.id)}
+          disabled={disabled}
+          invalid={index === 0 && errors.lines !== undefined}
+          error={lineError(values, errors, item.id)}
+          onToggle={() => onChange(toggleLine(values, item))}
+          onAmount={amount => onChange(setLineAmount(values, item.id, amount))}
+        />
+      ))}
+    </ul>
+  )
+}
+
 // 고른 요청의 승인된 품목. 품목을 고르면 결제 금액이 승인 금액으로 채워지고, 고른 금액의 합이 지출 금액이 된다.
 function ItemPicker({
   councilId,
@@ -150,20 +164,13 @@ function ItemPicker({
     if (items.length === 0)
       return <StateMessage kind="empty">결제할 수 있는 승인된 품목이 없어요.</StateMessage>
     return (
-      <ul aria-label="결제할 품목" className="flex flex-col gap-2">
-        {items.map((item, index) => (
-          <ItemRow
-            key={item.id}
-            item={item}
-            line={values.lines.find(line => line.lineItemId === item.id)}
-            disabled={disabled}
-            invalid={index === 0 && errors.lines !== undefined}
-            error={lineError(values, errors, item.id)}
-            onToggle={() => onChange(toggleLine(values, item))}
-            onAmount={amount => onChange(setLineAmount(values, item.id, amount))}
-          />
-        ))}
-      </ul>
+      <ExpensePaymentItems
+        items={items}
+        values={values}
+        disabled={disabled}
+        errors={errors}
+        onChange={onChange}
+      />
     )
   })
 }
@@ -181,7 +188,7 @@ export function ExpenseRequestFields({ errors, ...props }: Common & { errors: Fi
     values.requestId !== null &&
     !payable(requests).some(request => request.id === values.requestId)
   useEffect(() => {
-    if (gone) onChange(withRequest(values, null, requests))
+    if (gone) onChange(withRequest(values, null))
   }, [gone, values, requests, onChange])
   return loadingOr(list.state, ({ requests }) => (
     <>
@@ -195,7 +202,9 @@ export function ExpenseRequestFields({ errors, ...props }: Common & { errors: Fi
         ]}
         value={values.requestId}
         disabled={disabled}
-        onChange={requestId => onChange(withRequest(values, requestId, requests))}
+        onChange={requestId =>
+          onChange(withRequest(values, requests.find(request => request.id === requestId) ?? null))
+        }
       />
       {values.requestId && <ItemPicker {...props} requestId={values.requestId} errors={errors} />}
       {errors.lines && (

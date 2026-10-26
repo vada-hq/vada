@@ -84,6 +84,8 @@ test('리허설 시나리오가 모든 모듈로 끝까지 돌아 행사 A가 �
     assert.equal(expenses.expenses.length, 2)
     assert.ok(expenses.expenses.every(item => item.evidenceCount === 1))
     assert.equal(expenses.expenses.find(item => item.paidBy)?.reimbursed, true)
+    assert.equal(expenses.expenses.find(item => item.paidBy)?.method, 'cash')
+    assert.equal(expenses.expenses.find(item => item.paidBy === null)?.description, '행사 물품')
     const form = await get<RegistrationFormResponse>(chief, `${org}/registration-forms/${w.formId}`)
     assert.equal(form.form.applicantCount, 2)
     const applicants = await get<ApplicantsResponse>(
@@ -118,6 +120,7 @@ test('리허설 시나리오가 모든 모듈로 끝까지 돌아 행사 A가 �
     assert.equal(task.task.status, 'done')
     // 완료한 행사에 지출을 적으면 409 EVENT_COMPLETED
     const late = await cast.financeStaff.api.post(`${org}/expenses`, {
+      method: 'card',
       commandId: crypto.randomUUID(),
       vendor: '늦은 지출',
       description: '완료 뒤 지출',

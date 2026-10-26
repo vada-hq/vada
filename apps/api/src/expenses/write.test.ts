@@ -44,6 +44,7 @@ async function prepare(s: PurchaseKit) {
 type Prepared = Awaited<ReturnType<typeof prepare>>
 
 const lineBody = (p: Prepared, extra: object = {}) => ({
+  method: 'card',
   vendor: '다이소',
   description: '마커 구입',
   amount: 15000,
@@ -166,7 +167,13 @@ test(
     ])
     assert.deepEqual(detail.lines, [])
     const bare = await expenseOf(
-      await post(s, { vendor: 'a', description: 'b', amount: 1, paidOn: '2026-10-25' }),
+      await post(s, {
+        method: 'card',
+        vendor: 'a',
+        description: 'b',
+        amount: 1,
+        paidOn: '2026-10-25',
+      }),
     )
     assert.equal(bare.method, 'card')
     assert.equal(bare.budgetItem, null)
@@ -295,6 +302,7 @@ test(
       assert.equal(paidBy.status, 409, memberId)
       assert.equal(await errorOf(paidBy), 'MEMBER_INVALID', memberId)
       const requestedBy = await post(s, {
+        method: 'card',
         vendor: 'a',
         description: 'b',
         amount: 1,
@@ -354,6 +362,7 @@ test(
     const before = await counts(s)
     for (const id of [foreign.items[0]!.id, income, later, MISSING]) {
       const response = await post(s, {
+        method: 'card',
         vendor: 'a',
         description: 'b',
         amount: 1,

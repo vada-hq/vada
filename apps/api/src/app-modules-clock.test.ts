@@ -77,7 +77,7 @@ async function statuses() {
   ).json()) as PublicRegistrationForm
   const expense = await api.post(
     `${org()}/expenses`,
-    { vendor: '문구점', description: '마커', amount: 1000, paidOn: '2026-10-26' },
+    { method: 'card', vendor: '문구점', description: '마커', amount: 1000, paidOn: '2026-10-26' },
     finance(),
   )
   return { event: events.events[0]?.status, form: form.status, expense: expense.status }
@@ -105,7 +105,7 @@ test('요청 내기와 지출 적기가 쓰기 한도 하나를 같이 쓴다', 
   assert.equal(takes.length, 1)
   await api.post(
     `${org()}/expenses`,
-    { vendor: '문구점', description: '마커', amount: 1000, paidOn: '2026-10-25' },
+    { method: 'card', vendor: '문구점', description: '마커', amount: 1000, paidOn: '2026-10-25' },
     finance(),
   )
   assert.equal(takes.length, 2)

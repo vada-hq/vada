@@ -36,6 +36,7 @@ async function pay(s: PurchaseKit, itemIds: string[], councilId = s.council.coun
   const response = await s.api.post(
     `/api/organizations/${councilId}/expenses`,
     {
+      method: 'card',
       vendor: '문구점',
       description: '마커',
       amount: 1000 * itemIds.length,

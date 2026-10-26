@@ -20,6 +20,7 @@ import { SidebarSection } from './SidebarSections'
 import { HeaderSection } from './HeaderSections'
 import { AccountSection } from './AccountSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
+import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
@@ -110,6 +111,7 @@ export default function Gallery() {
       <DecisionPanelSection />
       <ItemCancelSection />
       <ExpenseSection />
+      <ExpenseCreateSection />
       <IncomeSection />
       <ClosingSection />
       <BudgetItemLineSection />

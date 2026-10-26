@@ -9,7 +9,13 @@ import { withSettlement, type SettlementKit } from '../test-support/settlement.j
 
 const PRESIDENT = 's-president'
 const DAY = (value: string) => new Date(`${value}:00Z`)
-const EXPENSE = { vendor: '문구점', description: '마커', amount: 10000, paidOn: '2026-10-24' }
+const EXPENSE = {
+  method: 'card',
+  vendor: '문구점',
+  description: '마커',
+  amount: 10000,
+  paidOn: '2026-10-24',
+}
 
 // 공개한 기간(2026-09-01~2027-02-28)과 공개하지 않은 앞 기간(2026-03-01~2026-08-31)
 async function periodsOf(t: SettlementKit) {

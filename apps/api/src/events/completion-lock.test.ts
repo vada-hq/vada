@@ -15,7 +15,13 @@ const OWNER = 's-planningMember'
 let tokens = 0
 const hashOf = (value: string) => createHash('sha256').update(value).digest('hex')
 const DAY = (value: string) => new Date(`${value}:00Z`)
-const EXPENSE = { vendor: '문구점', description: '마커', amount: 10000, paidOn: '2026-10-25' }
+const EXPENSE = {
+  method: 'card',
+  vendor: '문구점',
+  description: '마커',
+  amount: 10000,
+  paidOn: '2026-10-25',
+}
 
 type Shared = { period: string; budget: string; account: string }
 type Scene = Awaited<ReturnType<typeof sceneOf>>

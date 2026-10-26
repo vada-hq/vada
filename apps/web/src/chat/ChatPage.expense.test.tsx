@@ -58,7 +58,9 @@ const menuOf = async (name: string) => {
 const openForm = async () => {
   await openAllRoom()
   fireEvent.click(await menuOf('지출 적기'))
-  return screen.findByRole('form', { name: '지출 적기' })
+  const form = await screen.findByRole('form', { name: '지출 적기' })
+  fireEvent.change(screen.getByLabelText('결제 수단'), { target: { value: 'card' } })
+  return form
 }
 const posts = (api: ReturnType<typeof serve>) =>
   api.calls.filter(call => call.method === 'POST' && call.path === EXPENSES)

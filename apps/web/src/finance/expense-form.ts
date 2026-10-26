@@ -1,17 +1,17 @@
-import type { ExpenseMethod, PurchaseLineItem } from '@vada/contracts'
+import type { ExpenseMethod, PurchaseLineItem, PurchaseRequestSummary } from '@vada/contracts'
 import { requiredText } from '@/lib/use-form-check'
 
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
 // 요청한 품목 결제(request)는 승인된 품목을 골라 결제 금액을 적고, 요청 없이(direct)는 금액과 예산 항목을 직접 적는다.
 export type ExpenseMode = 'request' | 'direct'
-export type PayLine = { lineItemId: string; amount: string }
+export type PayLine = { lineItemId: string; amount: string; approvedAmount: number }
 export type ExpenseValues = {
   mode: ExpenseMode
   vendor: string
   description: string
   amount: string
   paidOn: string
-  method: ExpenseMethod
+  method: ExpenseMethod | ''
   // 비면 학생회 돈이다.
   paidBy: string | null
   reason: string
@@ -43,7 +43,7 @@ export const emptyExpense = (
   description: start.description ?? '',
   amount: '',
   paidOn: start.paidOn ?? today,
-  method: 'card',
+  method: '',
   paidBy: start.paidBy ?? null,
   reason: '',
   budgetItemId: null,
@@ -83,9 +83,20 @@ export function toggleLine(values: ExpenseValues, item: PurchaseLineItem): Expen
   const has = values.lines.some(line => line.lineItemId === item.id)
   return {
     ...values,
+    vendor:
+      !has && values.lines.length === 0 && values.vendor === ''
+        ? sellerDomain(item.link)
+        : values.vendor,
     lines: has
       ? values.lines.filter(line => line.lineItemId !== item.id)
-      : [...values.lines, { lineItemId: item.id, amount: String(item.amount ?? '') }],
+      : [
+          ...values.lines,
+          {
+            lineItemId: item.id,
+            amount: String(item.amount ?? ''),
+            approvedAmount: item.amount ?? 0,
+          },
+        ],
   }
 }
 
@@ -117,12 +128,15 @@ export function expenseOf(values: ExpenseValues) {
 }
 
 const DIGITS = /^[0-9]+$/
+const methodError = (method: ExpenseValues['method']) =>
+  method === '' ? '결제 수단을 골라 주세요' : undefined
 
 // 누를 때 확인하는 칸. 사용처·내역·결제일은 늘, 금액은 요청 없이 적을 때, 요청과 품목은 요청한 품목을 결제할 때 필수다.
 // 결제일은 오늘 뒤일 수 없다(서버도 막는다).
 export function expenseErrors(values: ExpenseValues, today: string) {
   const amount = values.amount.trim()
   return {
+    method: methodError(values.method),
     vendor: requiredText(values.vendor, '사용처를'),
     description: requiredText(values.description, '내역을'),
     paidOn:
@@ -145,3 +159,36 @@ export function expenseErrors(values: ExpenseValues, today: string) {
         }),
   }
 }
+
+// 판매처가 따로 저장되지 않은 품목은 링크의 도메인으로 채운다(024-10, DEC-92).
+function sellerDomain(link: string | null) {
+  if (!link) return ''
+  try {
+    const url = new URL(link)
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.hostname : ''
+  } catch {
+    return ''
+  }
+}
+
+export function withRequest(
+  values: ExpenseValues,
+  request: PurchaseRequestSummary | null,
+): ExpenseValues {
+  const event = request?.event ?? null
+  return {
+    ...values,
+    requestId: request?.id ?? null,
+    description: request?.title ?? '',
+    vendor: '',
+    lines: [],
+    eventId: event ? event.id : values.eventLocked ? null : values.eventId,
+    eventLocked: event !== null,
+  }
+}
+
+// 승인액 대비 20% 초과는 자릿수 실수를 한 번 더 확인한다(DEC-92). 합계로 비교하면 다른 품목의 적은 결제가 초과를 숨긴다.
+const AMOUNT_CONFIRM_RATIO = 1.2
+export const needsAmountConfirm = (values: ExpenseValues) =>
+  values.mode === 'request' &&
+  values.lines.some(line => Number(line.amount) > line.approvedAmount * AMOUNT_CONFIRM_RATIO)
