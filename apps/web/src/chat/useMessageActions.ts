@@ -1,5 +1,5 @@
 import type { ChatMessage, MadeRecord } from '@vada/contracts'
-import { Receipt, ShoppingCart } from 'lucide-react'
+import { MessageSquareReply, Receipt, ShoppingCart } from 'lucide-react'
 import { openRecord } from '@/lib/go-to'
 import type { MessageAction } from './MessageMenu'
 
@@ -16,6 +16,8 @@ export type MessageActionSet = {
   onWriteExpense: (message: ChatMessage) => void
   // 상품 정보 패널에서 낸 요청을 그 메시지 아래 기록에 바로 더한다. 방 흐름 밖(부품 확인 화면)에서는 없다.
   onMade?: ((messageId: string, made: MadeRecord) => void) | undefined
+  // 답글 패널 열기(022 조각 11). 방 흐름의 원글에만 있고, 답글 패널 안(답글과 그 원글)에는 없다.
+  onReply?: ((message: ChatMessage) => void) | undefined
 }
 
 export type MessageActionArgs = MessageActionSet & { message: ChatMessage }
@@ -44,10 +46,18 @@ export function useMessageActions({
   onRequest,
   canWriteExpense,
   onWriteExpense,
+  onReply,
 }: MessageActionArgs & { councilId: string }) {
   const actions: MessageAction[] = []
-  // 지운 메시지로는 아무것도 만들지 않는다(본문과 사진이 없다).
+  // 지운 메시지로는 아무것도 만들지 않는다(본문과 사진이 없다). 달린 답글은 원글 아래 '답글 {n}'으로 연다.
   if (message.body === null) return { actions }
+  if (onReply)
+    actions.push({
+      key: 'reply',
+      label: '답글',
+      icon: MessageSquareReply,
+      onSelect: () => onReply(message),
+    })
   const request = blockingOf(message, 'purchase_request')
   const expense = blockingOf(message, 'expense')
   if (canRequest && request) actions.push(viewAction(councilId, request))

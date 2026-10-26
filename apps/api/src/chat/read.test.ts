@@ -388,6 +388,24 @@ test(
       detail.participants.map(item => item.name),
       ['s planningHead', 's planningMember', 's planningViceHead'],
     )
+    assert.equal(detail.readAt, null)
+  }),
+)
+
+test(
+  '방 하나를 열면 내 읽은 시각이 같이 나온다(새 답글 표시, 022 정한 것 32). 읽음을 옮기면 바뀐다',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const lee = s.person.vicePresident.memberId
+    const one = await s.send(all, lee, '하나', '2026-04-01T00:00:00Z')
+    const detailOf = async (user: string) =>
+      ((await (await s.api.get(`${s.base}/rooms/${all}`, user)).json()) as RoomDetailResponse)
+        .readAt
+    assert.equal(await detailOf('s-president'), null)
+    assert.equal((await readUpTo(s, all, one)).status, 204)
+    assert.equal(await detailOf('s-president'), '2026-04-01T00:00:00.000Z')
+    // 내 읽음만 보인다(다른 사람의 읽음은 그대로 null).
+    assert.equal(await detailOf('s-vicePresident'), null)
   }),
 )
 

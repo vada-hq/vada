@@ -296,5 +296,10 @@ export async function roomDetailOf(
     .innerJoin(member, eq(member.id, roomMembership.memberId))
     .where(eq(roomMembership.roomId, roomId))
     .orderBy(asc(joinedDisplayNameOf(member, actor.councilId)))
-  return { room, participants }
+  // 내 읽은 시각. 화면은 방을 열 때의 이 값으로 '새 답글'을 가른다(022 정한 것 32).
+  const [mine] = await db
+    .select({ readAt: roomMembership.lastReadAt })
+    .from(roomMembership)
+    .where(and(eq(roomMembership.roomId, roomId), eq(roomMembership.memberId, actor.memberId)))
+  return { room, participants, readAt: mine?.readAt?.toISOString() ?? null }
 }

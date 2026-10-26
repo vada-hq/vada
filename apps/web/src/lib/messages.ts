@@ -99,6 +99,10 @@ export const ROOMS_LOAD_FAILED = '대화방을 불러오지 못했어요. 연결
 export const ROOM_LOAD_FAILED = '이 방을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const ROOM_SYNC_FAILED = '새 메시지를 불러오지 못하고 있어요. 연결을 확인해 주세요.'
 export const OLDER_LOAD_FAILED = '이전 메시지를 불러오지 못했어요.'
+// 답글 패널(022 조각 11). 원글이 지워졌거나 방을 볼 수 없게 되면 잃은 것이다.
+export const REPLIES_LOST = '이 메시지의 답글을 볼 수 없어요'
+export const REPLIES_LOAD_FAILED = '답글을 불러오지 못했어요. 연결을 확인해 주세요.'
+export const REPLIES_SYNC_FAILED = '새 답글을 불러오지 못하고 있어요. 연결을 확인해 주세요.'
 
 // 1:1 열기는 그 동작 옆에 오류를 보인다. 표에 없는 코드는 일반 문구다.
 export const DIRECT_ERRORS = changeErrors({

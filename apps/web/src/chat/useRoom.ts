@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MadeRecord } from '@vada/contracts'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react'
+import type { ChatMessage, MadeRecord } from '@vada/contracts'
 import { useActive } from '@/lib/use-active'
 import { useVisiblePoll } from '@/lib/use-visible-poll'
 import { CHAT_POLL_MS, isRoomLost } from './chat-api'
@@ -10,11 +18,25 @@ import {
   readMessages,
   readNewer,
   withMade,
+  withOriginal,
   withSync,
   type RoomState,
 } from './room-state'
 
 export type { RoomState }
+
+// 이미 보이는 메시지 고치기: 이 화면에서 낸 요청·지출을 아래 기록에 더하고, 답글 패널이 읽은 원글로 답글 수를 맞춘다.
+function useMessageEdits(setState: Dispatch<SetStateAction<RoomState>>) {
+  const markMade = useCallback(
+    (messageId: string, made: MadeRecord) => setState(now => withMade(now, messageId, made)),
+    [setState],
+  )
+  const replaceOriginal = useCallback(
+    (original: ChatMessage) => setState(now => withOriginal(now, original)),
+    [setState],
+  )
+  return { markMade, replaceOriginal }
+}
 
 // 방 하나의 정보와 메시지 흐름. 처음엔 가장 최근 쪽을 읽고, 화면이 보이는 동안 3초마다 마지막 메시지 뒤를 이어 읽는다.
 // 방을 바꾸면 화면이 새로 그려진다(key). 그래서 이전 방의 늦은 응답이 덮을 일이 없다.
@@ -41,8 +63,9 @@ export function useRoom(councilId: string, roomId: string) {
   const catchUp = useCallback(async () => {
     if (busy.current || !ready) return
     busy.current = true
-    const outcome = await readNewer(where, lastId, more => {
-      if (isActive()) setState(before => appended(before, more))
+    const read = (cursor?: { after: string }) => readMessages(where, cursor)
+    const outcome = await readNewer(read, lastId, page => {
+      if (isActive()) setState(before => appended(before, page.messages))
       return isActive()
     })
     busy.current = false
@@ -64,10 +87,7 @@ export function useRoom(councilId: string, roomId: string) {
     setState(now => prepended(now, result.data))
     return true
   }, [where, firstId, lose, isActive])
-  const markMade = useCallback(
-    (messageId: string, made: MadeRecord) => setState(now => withMade(now, messageId, made)),
-    [],
-  )
-  return { state, retry: first, lose, loadOlder, sync: catchUp, markMade }
+  const edits = useMessageEdits(setState)
+  return { state, retry: first, lose, loadOlder, sync: catchUp, ...edits }
 }
 export type Room = ReturnType<typeof useRoom>

@@ -17,7 +17,13 @@ type Args = {
   onSent: () => void
   // 방을 잃었다(401·403·404).
   onLost: () => void
+  // 답글 입력칸이면 원글 번호(022 조각 11). 쓰던 글은 원글마다 따로 남는다.
+  replyTo?: string | undefined
 }
+
+// 보내지 않은 글을 두는 칸. 답글은 방 입력칸과 섞이지 않게 원글마다 따로 둔다.
+const draftSlot = (roomId: string, replyTo: string | undefined) =>
+  replyTo ? `${roomId}/reply/${replyTo}` : roomId
 
 // 보낸 글을 뺀 나머지. 보낸 글 뒤에 이어 쳤으면 그 부분만 남고, 중간을 고쳤으면 고친 글을 그대로 둔다.
 function unsentBody(now: string, sent: string) {
@@ -38,8 +44,9 @@ function useDraft(meId: string, councilId: string, roomId: string) {
 }
 
 // 입력칸 하나: 글, 부른 사람, 사진, 보내기. 보내기에 실패하면 글과 사진을 그대로 두고 자동으로 다시 보내지 않는다.
-export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
-  const { body, setBody, picks, setPicks } = useDraft(meId, councilId, roomId)
+export function useComposer({ councilId, meId, roomId, onSent, onLost, replyTo }: Args) {
+  const slot = draftSlot(roomId, replyTo)
+  const { body, setBody, picks, setPicks } = useDraft(meId, councilId, slot)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // 보내다 보기만 되는 방이 된 것을 알게 되면 입력칸을 닫는다.
@@ -67,12 +74,13 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
       ...(body.trim() === '' ? {} : { body }),
       mentions,
       photos: keys,
+      ...(replyTo ? { replyTo } : {}),
     }
     // 보내는 중에 방을 떠나도 보낸 글이 임시 글로 되살아나지 않게, 먼저 비우고 실패하면 되돌린다.
-    keepDraft(meId, councilId, roomId, { body: '', picks: [] })
+    keepDraft(meId, councilId, slot, { body: '', picks: [] })
     const result = await postJson(messagesPath(councilId, roomId), payload)
     busy.current = false
-    if (!result.ok) keepDraft(meId, councilId, roomId, { body, picks })
+    if (!result.ok) keepDraft(meId, councilId, slot, { body, picks })
     if (!isActive()) return
     setSending(false)
     if (result.ok) {

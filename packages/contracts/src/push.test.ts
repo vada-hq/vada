@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { parseAppPath } from './paths.js'
 import {
+  chatReplyTag,
+  chatReplyUrl,
   chatRoomFromPath,
   chatRoomUrl,
   purchaseRequestFromPath,
@@ -27,6 +30,17 @@ test('옛 알림 주소 셋은 영구히 같은 꼴이고 같은 값으로 읽�
     requestId: R,
   })
   assert.equal(taskTag(R), `task:${R}`)
+})
+
+test('답글 알림 주소는 그 방 주소에 원글을 붙이고, 화면은 방과 원글로 읽는다', () => {
+  const M = '0199d1a0-0000-7000-8000-00000000000c'
+  assert.equal(chatReplyUrl(C, R, M), `/chat/${C}/${R}?reply=${M}`)
+  assert.deepEqual(chatRoomFromPath(chatReplyUrl(C, R, M)), { councilId: C, roomId: R })
+  const location = parseAppPath(chatReplyUrl(C, R, M))
+  assert.deepEqual(location?.query, { reply: M })
+  // uuid가 아닌 원글은 버린다(방만 열린다).
+  assert.deepEqual(parseAppPath(`/chat/${C}/${R}?reply=x`)?.query, {})
+  assert.equal(chatReplyTag(M), `reply:${M}`)
 })
 
 test('알림 주소 읽기: 다른 종류, uuid가 아닌 칸, 다른 모양은 읽지 않는다', () => {

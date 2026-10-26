@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentProps } from 'react'
+import { useState, type ComponentProps } from 'react'
 import type { EventTab, MyCouncil } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
@@ -6,19 +6,14 @@ import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
-import DirectPanel from '../chat/DirectPanel'
-import { DirectOpenContext } from '../chat/direct-open'
-import { ProductOpenContext, useProductPanel } from '../chat/product-open'
-import ProductPanel from '../chat/ProductPanel'
-import { useDirectPanel } from '../chat/useDirectPanel'
-import type { RoomList } from '../chat/useRoomList'
+import { SidePanelOpeners, useSidePanels } from '../chat/side-panels'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
 import { trailOf } from './pages'
 import { activeItemOf } from './space-view'
-import { useCouncilData, type CouncilData } from './useCouncilData'
+import { useCouncilData } from './useCouncilData'
 import { useSpace } from './useSpace'
 import { useWorkspaceLists } from './useWorkspaceLists'
 import { useWorkspaceNav } from './useWorkspaceNav'
@@ -94,48 +89,6 @@ function CouncilMain({
   )
 }
 
-// 이름 누르기와 입력칸 '/'로 여는 1:1 패널(022 조각 7)과 쿠팡 링크로 여는 상품 정보 패널(022 조각 6). 어느 화면에서든 오른쪽 자리 하나에 열린다.
-// 상품 정보는 열려 있는 1:1 위에 덮이고 닫으면 그 1:1로 돌아간다(와이어프레임 P-15). 다른 1:1을 열면 상품 정보는 닫힌다.
-function useCouncilPanels(councilId: string, data: CouncilData, rooms: RoomList) {
-  const { view } = data
-  const direct = useDirectPanel({
-    councilId,
-    view,
-    team: data.team,
-    rooms,
-    onForbidden: data.reload,
-  })
-  const product = useProductPanel()
-  const closeProduct = product.close
-  const opener = useMemo(
-    () =>
-      direct.opener && {
-        ...direct.opener,
-        open: (...args: Parameters<NonNullable<typeof direct.opener>['open']>) => {
-          closeProduct()
-          direct.opener?.open(...args)
-        },
-      },
-    [direct.opener, closeProduct],
-  )
-  const page = view && {
-    councilId,
-    view,
-    team: data.team,
-    rooms,
-    onForbidden: data.reload,
-    onOpenRequest: (id: string) => openRecord('purchases', councilId, id),
-  }
-  const panel =
-    page &&
-    (product.target ? (
-      <ProductPanel page={page} target={product.target} onClose={product.close} />
-    ) : (
-      direct.target && <DirectPanel page={page} target={direct.target} onClose={direct.close} />
-    ))
-  return { opener, openProduct: product.open, panel }
-}
-
 export default function CouncilWorkspace({
   council,
   councils,
@@ -162,7 +115,15 @@ export default function CouncilWorkspace({
   const { lists, counts, openEvents } = useWorkspaceLists(council.id, data)
   const { space, newEvent } = useSpace(data, nav, openEvents)
   const openEventId = target.record?.kind === 'events' ? target.record.id : null
-  const panels = useCouncilPanels(council.id, data, lists.rooms)
+  // 이름 누르기·입력칸 '/'의 1:1, 원글의 답글, 쿠팡 링크의 상품 정보는 어느 화면에서든 오른쪽 자리 하나에 열린다(022 조각 6·7·11).
+  const panels = useSidePanels({
+    councilId: council.id,
+    view: data.view,
+    team: data.team,
+    rooms: lists.rooms,
+    onForbidden: data.reload,
+    onOpenRequest: id => openRecord('purchases', council.id, id),
+  })
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
@@ -190,37 +151,35 @@ export default function CouncilWorkspace({
     />
   )
   return (
-    <DirectOpenContext value={panels.opener}>
-      <ProductOpenContext value={panels.openProduct}>
-        <WorkspaceFrame
-          sidebar={sidebar}
-          navOpen={nav.navOpen}
-          onNavOpenChange={nav.setNavOpen}
-          panel={panels.panel}
-        >
-          <CouncilMain
-            council={council}
-            nav={nav}
-            content={{
-              data,
-              ...lists,
-              ...openers,
-              ...recordOf(target),
-              linkKey: pageOpensAnew(target, here.released) ? here.key : '',
-              mainRef: nav.main,
-            }}
+    <SidePanelOpeners panels={panels}>
+      <WorkspaceFrame
+        sidebar={sidebar}
+        navOpen={nav.navOpen}
+        onNavOpenChange={nav.setNavOpen}
+        panel={panels.panel}
+      >
+        <CouncilMain
+          council={council}
+          nav={nav}
+          content={{
+            data,
+            ...lists,
+            ...openers,
+            ...recordOf(target),
+            linkKey: pageOpensAnew(target, here.released) ? here.key : '',
+            mainRef: nav.main,
+          }}
+        />
+        {newEvent.open && data.view && (
+          <NewEventDialog
+            view={data.view}
+            onClose={newEvent.close}
+            onLost={newEvent.lose}
+            onForbidden={data.reload}
           />
-          {newEvent.open && data.view && (
-            <NewEventDialog
-              view={data.view}
-              onClose={newEvent.close}
-              onLost={newEvent.lose}
-              onForbidden={data.reload}
-            />
-          )}
-          <LeaveConfirm />
-        </WorkspaceFrame>
-      </ProductOpenContext>
-    </DirectOpenContext>
+        )}
+        <LeaveConfirm />
+      </WorkspaceFrame>
+    </SidePanelOpeners>
   )
 }

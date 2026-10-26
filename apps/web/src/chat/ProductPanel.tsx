@@ -25,11 +25,14 @@ function useReturnFocusOnClose() {
 // 상품 정보 패널의 틀(022 정한 것 20, 와이어프레임 P-15): 머리에 '상품 정보'와 [닫기], 아래에 내용.
 // 자리와 폭은 1:1 패널과 같다: 1280px 이상은 작업 공간 오른쪽에 붙고, 768~1279px은 오른쪽 위에 겹쳐 뜨며, 휴대폰은 전체 화면이다.
 // 1:1 패널의 호박색 머리(받는 사람 표시)와 달리 보통 머리다. 열리면 머리로 포커스를 옮기고, Esc·뒤로 가기로 닫으며, 닫으면 연 링크로 포커스가 돌아간다.
+// 답글 패널(022 조각 11)도 같은 틀에 제목만 '답글'이다.
 export function ProductPanelFrame({
+  title = '상품 정보',
   focusKey,
   onClose,
   children,
 }: {
+  title?: string
   // 바뀌면(다른 링크) 머리로 다시 포커스를 옮긴다.
   focusKey: string
   onClose: () => void
@@ -42,7 +45,7 @@ export function ProductPanelFrame({
   useWindowHistory(onClose)
   return (
     <aside
-      aria-label="상품 정보"
+      aria-label={title}
       className="fixed inset-0 z-40 flex flex-col bg-white md:left-auto md:w-96 md:border-l md:shadow-2xl xl:static xl:z-auto xl:shrink-0 xl:shadow-none"
       onKeyDown={event => {
         // 패널 안에서 연 대화상자(구매 요청)는 포털이라 React 이벤트가 여기까지 오른다. 그 Esc는 그 창만 닫는다.
@@ -56,7 +59,7 @@ export function ProductPanelFrame({
           tabIndex={-1}
           className="min-w-0 text-base font-semibold text-gray-900 outline-none"
         >
-          상품 정보
+          {title}
         </h2>
         <Button
           variant="ghost"

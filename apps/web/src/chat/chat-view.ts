@@ -1,4 +1,4 @@
-import { koreanDateOf, koreanOf, type RoomSummary } from '@vada/contracts'
+import { dayTimeLabel, koreanDateOf, koreanOf, type RoomSummary } from '@vada/contracts'
 import { countLabel } from '@/components/ui/count-badge'
 
 // 안 읽은 수 글. 옆 메뉴 수 배지와 같은 상한이다.
@@ -51,4 +51,10 @@ export function timeLabel(iso: string | null, now: Date) {
   if (iso === null) return ''
   const { date, time } = korean(iso)
   return date === koreanDateOf(now) ? time : dateLabel(iso, now)
+}
+
+// 원글 아래 마지막 답글 시각(022 조각 11). 오늘(한국)이면 시각, 아니면 '10월 25일 (토) 14:00'(올해가 아니면 연도).
+export function lastReplyLabel(iso: string, now: Date) {
+  const { date, time } = korean(iso)
+  return date === koreanDateOf(now) ? time : dayTimeLabel(iso, now)
 }

@@ -7,11 +7,14 @@ import {
 } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { KkirukLine } from '@/components/KkirukLine'
+import { MessageSquareReply } from 'lucide-react'
 import PersonName from '@/components/PersonName'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { openRecord } from '@/lib/go-to'
+import { useNow } from '@/lib/use-now'
 import { cn } from '@/lib/utils'
-import { clockLabel } from './chat-view'
+import { clockLabel, lastReplyLabel } from './chat-view'
 import { useOpenDirectFor } from './direct-open'
 import { bodyParts } from './message-links'
 import MessageMenu from './MessageMenu'
@@ -24,6 +27,8 @@ type Props = MessageActionArgs & {
   // 같은 사람이 바로 앞에 이어 쓴 메시지면 이름과 시각을 다시 보이지 않는다.
   continued: boolean
   mine: boolean
+  // 방을 열 때의 이전 읽은 시각 뒤에 답글이 달린 원글(022 정한 것 32). '새 답글'을 보인다.
+  newReplies?: boolean | undefined
 }
 
 // 본문 말풍선(와이어프레임 메시지 화면). 줄바꿈은 그대로 두고, 주소는 새 탭에서 여는 링크다(쓰던 입력과 흐름을 잃지 않게, NN/g 새 탭 지침).
@@ -109,6 +114,65 @@ function MadeList({ councilId, made }: { councilId: string; made: MadeRecord[] }
   )
 }
 
+// 원글 아래 답글 요약(022 정한 것 31·32, Slack 스레드 요약 줄): '답글 {n}', 마지막 답글 시각, 방을 열 때 읽은 뒤 답글이 있으면 '새 답글'.
+// 누르면 답글 패널이 열린다. 수는 서버가 준 그대로다(지운 답글도 센다, 022-10). 답글을 열 수 없는 곳(답글 패널 안의 원글)에는 없다.
+function ReplySummary({
+  message,
+  fresh,
+  onReply,
+}: {
+  message: ChatMessage
+  fresh: boolean
+  onReply: ((message: ChatMessage) => void) | undefined
+}) {
+  const now = useNow()
+  if (!onReply || message.replyCount === 0) return null
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <Button
+        variant="link"
+        size="sm"
+        touch
+        className="h-auto px-0 py-0.5 font-semibold"
+        aria-haspopup="dialog"
+        onClick={() => onReply(message)}
+      >
+        {`답글 ${message.replyCount}`}
+      </Button>
+      {message.lastReplyAt && (
+        <time dateTime={message.lastReplyAt} className="text-xs text-gray-500">
+          {lastReplyLabel(message.lastReplyAt, now)}
+        </time>
+      )}
+      {fresh && <Badge tone="info">새 답글</Badge>}
+    </div>
+  )
+}
+
+// 메시지 위 [답글] 단추(Slack·Teams의 메시지 위 동작 줄). 답글과 지운 메시지에는 없다.
+// 휴대폰(640px 미만)은 '…'의 '답글'과 '답글 {n}'으로 연다. 늘 보이는 단추 하나가 말풍선 줄의 폭(80%)을 더 줄이지 않게 한다.
+function ReplyButton({
+  message,
+  onReply,
+}: {
+  message: ChatMessage
+  onReply: ((message: ChatMessage) => void) | undefined
+}) {
+  if (!onReply || message.body === null) return null
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="max-sm:hidden"
+      aria-label="답글"
+      aria-haspopup="dialog"
+      onClick={() => onReply(message)}
+    >
+      <MessageSquareReply />
+    </Button>
+  )
+}
+
 // 지운 메시지의 자리(DEC-54). 본문과 사진은 서버가 주지 않는다. 내 것이든 남의 것이든 같은 옅은 말풍선이라
 // 파란 내 말풍선처럼 강조되어 읽히지 않는다(카카오톡·Slack의 '삭제된 메시지' 자리).
 function Deleted() {
@@ -188,7 +252,7 @@ export default function MessageItem(props: Props) {
 // 사람의 글(와이어프레임 메시지 화면): 내 메시지는 오른쪽 파란 말풍선, 남의 메시지는 왼쪽에 얼굴과 이름, 흰 말풍선.
 // 말풍선 묶음은 줄의 60%까지다(와이어프레임). 휴대폰은 칸이 좁아 80%다(사이드챗의 85%와 비슷하게). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
-function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
+function PersonItem({ councilId, message, continued, mine, newReplies, ...actionArgs }: Props) {
   const photos = message.photos
   const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
@@ -216,8 +280,15 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         <MadeList councilId={councilId} made={message.made} />
         <Time message={message} continued={continued} />
+        <ReplySummary message={message} fresh={!!newReplies} onReply={actionArgs.onReply} />
       </div>
-      <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+      <div
+        className={cn(
+          'flex items-center pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100',
+          mine && 'flex-row-reverse',
+        )}
+      >
+        <ReplyButton message={message} onReply={actionArgs.onReply} />
         <MessageMenu actions={actions} />
       </div>
     </li>

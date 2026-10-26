@@ -411,6 +411,9 @@ test(
     )
     assert.deepEqual(endpointsOf(s), usersOf('president'))
     assert.equal(s.calls[0]![1].title, '공지방')
+    // 누르면 그 방을 열고 원글의 답글 패널을 연다(022 조각 11). 원글마다 갈아 끼운다.
+    assert.equal(s.calls[0]![1].url, `/chat/${s.council.councilId}/${all}?reply=${original.id}`)
+    assert.equal(s.calls[0]![1].tag, `reply:${original.id}`)
     // 둘째 답글: 원글 쓴 회장과 먼저 답글을 쓴 사람에게 간다. 부른 기획부장은 부름 문구로 받는다.
     s.calls.length = 0
     const called = s.council.people.planningHead.memberId

@@ -23,6 +23,7 @@ import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { DirectPanelSection } from './DirectSections'
 import { ProductPanelSection } from './ProductSections'
+import { ReplyPanelSection } from './ReplySections'
 import { ExpenseSection } from './ExpenseSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
@@ -84,6 +85,7 @@ export default function Gallery() {
       <MessageBubbleSection />
       <DirectPanelSection />
       <ProductPanelSection />
+      <ReplyPanelSection />
       <EmptyAvatarSection />
       <DialogSheetSection />
       <ConfirmSection />

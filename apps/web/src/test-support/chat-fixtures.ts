@@ -59,12 +59,16 @@ export function roomList(options: Partial<RoomListResponse> = {}): RoomListRespo
   }
 }
 
-export const roomDetail = (summary: RoomSummary = room('r1')): RoomDetailResponse => ({
+export const roomDetail = (
+  summary: RoomSummary = room('r1'),
+  readAt: string | null = null,
+): RoomDetailResponse => ({
   room: summary,
   participants: [
     { memberId: 'm1', name: '김회장' },
     { memberId: 'm2', name: '이재정' },
   ],
+  readAt,
 })
 
 export const messagePage = (

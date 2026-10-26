@@ -23,6 +23,8 @@ type Props = {
   onLost: () => void
   // 1:1 패널의 보내기 버튼 글('{이름}에게 보내기'). 없으면 그림 버튼이다.
   sendLabel?: string | undefined
+  // 답글 입력칸이면 원글 번호(022 조각 11). 사진·부르기·실패 보존은 방 입력칸과 같고 글은 원글마다 남는다.
+  replyTo?: string | undefined
 }
 
 // '@'를 치면 뜨는 참여자 목록. 고르면 "@이름 "이 들어간다.
@@ -120,6 +122,9 @@ function SendButton({
   )
 }
 
+// 입력칸의 이름. 답글 입력칸은 '답글'이다(022 조각 11).
+const fieldLabel = (replyTo: string | undefined) => (replyTo ? '답글' : '메시지')
+
 // 입력칸: 글, '@' 부르기, 사진 붙이기, 보내기. 버튼은 계약의 검사로 켜고 끈다.
 export default function Composer({ participants, meId, sendLabel, ...args }: Props) {
   const composer = useComposer({ ...args, meId })
@@ -149,7 +154,7 @@ export default function Composer({ participants, meId, sendLabel, ...args }: Pro
         <Textarea
           ref={field}
           rows={1}
-          aria-label="메시지"
+          aria-label={fieldLabel(args.replyTo)}
           className="min-h-10 flex-1"
           value={body}
           onChange={onChange}

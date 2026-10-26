@@ -6,7 +6,7 @@ import type {
   RoomParticipant,
   RoomSummary,
 } from '@vada/contracts'
-import { getJson } from '@/lib/api'
+import { getJson, type ApiResult } from '@/lib/api'
 import { isRoomLost, roomPath } from './chat-api'
 
 export type RoomState =
@@ -20,6 +20,8 @@ export type RoomState =
       participants: RoomParticipant[]
       messages: ChatMessage[]
       hasOlder: boolean
+      // 방을 열 때의 내 이전 읽은 시각. 그 뒤 답글이 달린 원글에 '새 답글'을 보인다(022 정한 것 32).
+      readAt: string | null
       // 새 메시지를 읽지 못하고 있다(연결 문제). 보이던 흐름은 그대로 둔다.
       syncFailed?: boolean
     }
@@ -38,6 +40,7 @@ export async function loadRoom(councilId: string, roomId: string): Promise<RoomS
       participants: detail.data.participants,
       messages: page.data.messages,
       hasOlder: page.data.hasOlder,
+      readAt: detail.data.readAt,
     }
   // 하나라도 잃었으면(401·403·404) 다른 쪽이 어떻든 잃은 것이다.
   const lost = [detail, page].some(result => !result.ok && isRoomLost(result.status))
@@ -58,18 +61,23 @@ export function readMessages(
 // 한 번의 따라잡기에서 이어 읽는 쪽 수의 상한. 서버가 계속 새 쪽을 주어도 끝이 있게 한다.
 const MAX_CATCH_UP_PAGES = 20
 
+// 커서 뒤 한 쪽을 읽는 길. 방 흐름과 답글 패널(022 조각 11)이 같은 따라잡기를 쓴다.
+type PageReader<Page extends MessagePageResponse> = (cursor?: {
+  after: string
+}) => Promise<ApiResult<Page>>
+
 // 마지막 메시지 뒤를 쪽마다 onPage에 넘긴다. 다음 쪽이 더 있으면 이어서 읽는다. onPage가 false를 주면(화면이 사라짐) 멈춘다.
-export async function readNewer(
-  where: RoomAt,
+export async function readNewer<Page extends MessagePageResponse>(
+  read: PageReader<Page>,
   start: string | undefined,
-  onPage: (messages: ChatMessage[]) => boolean,
+  onPage: (page: Page) => boolean,
 ): Promise<'done' | 'lost' | 'failed'> {
   let after = start
   for (let pages = 0; pages < MAX_CATCH_UP_PAGES; pages++) {
     // 다음 쪽의 커서는 이 쪽의 끝이라 차례로 읽는다.
-    const result = await readMessages(where, after ? { after } : undefined)
+    const result = await read(after ? { after } : undefined)
     if (!result.ok) return isRoomLost(result.status) ? 'lost' : 'failed'
-    if (!onPage(result.data.messages)) return 'done'
+    if (!onPage(result.data)) return 'done'
     after = result.data.messages.at(-1)?.id ?? after
     if (!result.data.hasNewer) return 'done'
   }
@@ -100,5 +108,12 @@ export function withMade(state: RoomState, messageId: string, made: MadeRecord):
       ? { ...item, made: [...item.made, made] }
       : item,
   )
+  return { ...state, messages }
+}
+
+// 답글 패널이 읽은 원글(답글 수, 마지막 답글 시각)로 흐름의 그 메시지를 바꾼다. 방 흐름의 따라잡기는 새 원글만 읽기 때문이다.
+export function withOriginal(state: RoomState, original: ChatMessage): RoomState {
+  if (state.kind !== 'ready' || !state.messages.some(item => item.id === original.id)) return state
+  const messages = state.messages.map(item => (item.id === original.id ? original : item))
   return { ...state, messages }
 }

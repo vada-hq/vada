@@ -162,7 +162,7 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 - 닿는 곳: `apps/api/migrations/`(새), `db/schema.ts`, `db/schema-match.test.ts`, contracts `chat.ts`(`SendMessageSchema.replyTo`, `ChatMessage`, 답글 응답), api `chat/send.ts`, `chat/messages.ts`, `chat/queries.ts`, `chat/notify.ts`, `chat/routes.ts`. vada-docs `logical-model.md`('메시지' 줄, 답글 RULE).
 - 검토: 깊게(표, 학생회 격리, 알림 받는 사람). 마이그레이션: 있음(적용 먼저).
 
-### 11. 답글(화면) [ ]
+### 11. 답글(화면) [x]
 - 먼저 main에: 조각 10, 조각 6·7(`MessageItem.tsx`, 오른쪽 패널).
 - 할 수 있게 되는 것: 공지에 대한 질문과 반응을 답글로 달고 읽는다.
 - 수용 기준: 메시지 '…'과 메시지 위 단추에 '답글'이 있고(답글에는 없음), 누르면 PC는 오른쪽 패널, 390px는 전체 화면으로 원글과 답글, 답글 입력칸이 열린다. 방 흐름의 원글 아래 '답글 {n}'과 마지막 답글 시각이 있고, 방을 열 때의 이전 읽은 시각 뒤 답글이 있으면 '새 답글'이 보인다. 답글 입력칸도 사진·부르기·보내기 실패 보존이 방 입력칸과 같고, 쓰던 글은 원글마다 남는다. 휴대폰 알림을 눌러 답글이 열린다.

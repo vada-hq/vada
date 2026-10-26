@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { token } from './input.js'
-import { parseAppPath, recordPath, type RecordKind } from './paths.js'
+import { appPath, parseAppPath, recordPath, type RecordKind } from './paths.js'
 
 // 휴대폰 알림(웹 푸시). 브라우저 PushSubscription.toJSON()의 모양이다.
 // 구독 주소는 기기를 가리키는 비밀 주소라 로그와 응답에 넣지 않는다.
@@ -51,6 +51,17 @@ export function chatRoomFromPath(pathname: string) {
   return found && { councilId: found.councilId, roomId: found.recordId }
 }
 export const chatRoomTag = (roomId: string) => `room:${roomId}`
+// 답글 알림은 그 방을 열고 원글의 답글 패널을 연다(022 조각 11, DEC-90). 알림은 원글마다 갈아 끼워
+// 같은 방의 다른 알림이 답글 알림을 덮어 원글로 가는 길을 잃지 않게 한다.
+export const chatReplyUrl = (councilId: string, roomId: string, originalId: string) =>
+  appPath({
+    type: 'record',
+    record: 'chat',
+    councilId,
+    recordId: roomId,
+    query: { reply: originalId },
+  })
+export const chatReplyTag = (originalId: string) => `reply:${originalId}`
 
 export const taskUrl = (councilId: string, taskId: string) => recordPath('tasks', councilId, taskId)
 export function taskFromPath(pathname: string) {

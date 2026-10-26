@@ -5,6 +5,7 @@ import { message, messagePage, room, roomDetail } from '@/test-support/chat-fixt
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { resizeToJpeg } from '@/lib/photo-resize'
+import Composer from './Composer'
 import { draftOf } from './composer-drafts'
 
 vi.mock('@/lib/photo-resize', async importOriginal => ({
@@ -344,4 +345,44 @@ test('보내는 중에 방을 떠나도 보낸 글이 임시 글로 남지 않�
   expect(draftOf('m1', 'c1', 'r1').body).toBe('')
   pending.resolve(json({ error: 'x', code: 'INTERNAL' }, 500))
   await waitFor(() => expect(draftOf('m1', 'c1', 'r1').body).toBe('보낼 글'))
+})
+
+// 답글 입력칸(022 조각 11): 부르기·사진은 방 입력칸과 같고 원글 번호를 같이 싣는다. 쓰던 글은 방 입력칸과 따로 원글마다 남는다.
+test('답글 입력칸은 부른 사람·사진과 원글 번호를 함께 보내고, 쓰던 글은 원글마다 따로 남는다', async () => {
+  const api = serve()
+  const ORIGINAL = '33333333-3333-4333-8333-333333333333'
+  const participants = [
+    { memberId: 'm1', name: '김회장' },
+    { memberId: ANOTHER, name: '이재정' },
+  ]
+  const view = render(
+    <Composer
+      councilId="c1"
+      roomId="r1"
+      replyTo={ORIGINAL}
+      participants={participants}
+      meId="m1"
+      onSent={() => {}}
+      onLost={() => {}}
+    />,
+  )
+  const reply = () => screen.getByLabelText<HTMLTextAreaElement>('답글')
+  fireEvent.change(reply(), { target: { value: '@이' } })
+  fireEvent.click(
+    within(await screen.findByRole('list', { name: '부를 사람' })).getByRole('button'),
+  )
+  await waitFor(() => expect(draftOf('m1', 'c1', 'r1/reply/' + ORIGINAL).body).toBe('@이재정 '))
+  expect(draftOf('m1', 'c1', 'r1').body).toBe('')
+  choose('a.jpg')
+  await screen.findByRole('button', { name: 'a.jpg 빼기' })
+  await waitFor(() => expect(sendButton().disabled).toBe(false))
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(1))
+  expect(sends(api)[0]!.body).toEqual({
+    body: '@이재정 ',
+    mentions: [ANOTHER],
+    photos: ['k1'],
+    replyTo: ORIGINAL,
+  })
+  view.unmount()
 })

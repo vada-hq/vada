@@ -9,14 +9,17 @@ type Props = Omit<
 >
 
 // 대화의 어느 화면인지는 주소가 정한다: 방은 /chat/{학생회}/{방}, 나머지는 첫 화면(목록)이다.
+// 답글 알림 주소(?reply={원글})는 그 방을 열고 원글의 답글 패널을 연다(022 조각 11).
 function screenOf(here: ReturnType<typeof useHere>, councilId: string): Screen {
   const location = here.location
   if (location?.councilId !== councilId) return { kind: 'list' }
-  if (location.type === 'record')
-    return location.record === 'chat'
-      ? { kind: 'room', roomId: location.recordId }
-      : { kind: 'list' }
-  return { kind: 'list' }
+  if (location.type !== 'record' || location.record !== 'chat') return { kind: 'list' }
+  const reply = location.query['reply']
+  return {
+    kind: 'room',
+    roomId: location.recordId,
+    reply: reply ? { messageId: reply, key: here.key || here.path } : undefined,
+  }
 }
 
 export default function ChatRoute(props: Props) {

@@ -122,6 +122,8 @@ export interface RoomParticipant {
 export interface RoomDetailResponse {
   room: RoomSummary
   participants: RoomParticipant[]
+  // 이 응답을 읽은 때의 내 읽은 시각(방 단위, 처음이면 null). 화면은 방을 열 때의 이 값보다 뒤 답글이 있는 원글에 '새 답글'을 보인다(022 정한 것 32).
+  readAt: string | null
 }
 
 // 내가 볼 수 있는 메시지 한 쪽(들어온 뒤의 것, 공지방은 같은 기수의 들어오기 전 것도, DEC-90). 오래된 것부터 담긴다. 커서가 없으면 가장 최근 쪽이다.

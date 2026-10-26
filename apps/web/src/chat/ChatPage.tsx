@@ -14,7 +14,10 @@ import RoomView from './RoomView'
 import type { RoomList as RoomListHook, RoomSource } from './useRoomList'
 import { useSplit } from '@/lib/use-split'
 
-export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string }
+// reply: 답글 알림 주소가 연 원글(022 조각 11). key는 주소 칸마다 달라 같은 알림을 또 누르면 다시 연다.
+export type Screen =
+  | { kind: 'list' }
+  | { kind: 'room'; roomId: string; reply?: { messageId: string; key: string } | undefined }
 
 type Props = {
   councilId: string
@@ -97,12 +100,14 @@ export function Room({
   onBack,
   sendLabel,
   space,
+  replyTo,
 }: {
   page: PageProps
   roomId: string
   onBack?: () => void
   sendLabel?: string
   space?: RoomSource
+  replyTo?: { messageId: string; key: string } | undefined
 }) {
   const { view } = page
   return (
@@ -113,6 +118,7 @@ export function Room({
       rooms={space ?? page.rooms}
       bare={space !== undefined}
       sendLabel={sendLabel}
+      replyTo={replyTo}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
         canAssign: view.permissions.includes('finance.manage'),
@@ -149,7 +155,12 @@ function Split({
       <div className="flex min-w-0 flex-1 flex-col">
         {roomId && (
           <RoomGate rooms={page.rooms} roomId={roomId} onList={() => onScreen({ kind: 'list' })}>
-            <Room key={roomId} page={page} roomId={roomId} />
+            <Room
+              key={roomId}
+              page={page}
+              roomId={roomId}
+              replyTo={screen.kind === 'room' ? screen.reply : undefined}
+            />
           </RoomGate>
         )}
       </div>
@@ -184,7 +195,13 @@ export default function ChatPage({
         roomId={screen.roomId}
         onList={() => onScreen({ kind: 'list' })}
       >
-        <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={onBack} />
+        <Room
+          key={screen.roomId}
+          page={props}
+          roomId={screen.roomId}
+          onBack={onBack}
+          replyTo={screen.reply}
+        />
       </RoomGate>
     )
   return <ListScreen {...page} activeRoomId={null} />

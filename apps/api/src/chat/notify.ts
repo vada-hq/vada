@@ -1,5 +1,11 @@
 import { and, eq, ne, or } from 'drizzle-orm'
-import { chatRoomTag, chatRoomUrl, type RoomType } from '@vada/contracts'
+import {
+  chatReplyTag,
+  chatReplyUrl,
+  chatRoomTag,
+  chatRoomUrl,
+  type RoomType,
+} from '@vada/contracts'
 import {
   chatRoom,
   cohort,
@@ -147,6 +153,16 @@ async function recipientsOf(
   return threadRecipients(db, sent, { candidates: audience, called, now })
 }
 
+// 알림을 누르면 열 주소와 갈아 끼울 열쇠. 답글은 방을 열고 그 원글의 답글 패널을 연다(022 조각 11).
+function linkOf(sent: Sent, councilId: string) {
+  return sent.replyToId
+    ? {
+        url: chatReplyUrl(councilId, sent.roomId, sent.replyToId),
+        tag: chatReplyTag(sent.replyToId),
+      }
+    : { url: chatRoomUrl(councilId, sent.roomId), tag: chatRoomTag(sent.roomId) }
+}
+
 // 메시지를 보낸 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
 // 받는 사람: 그 방의 지금 참여자 - 보낸 사람 - 10초 안에 그 방을 본 사람. 부름 받은 사람은 부름 문구로 한 번만 받는다.
 // 답글은 방 전체가 아니라 원글 쓴 사람, 그 원글에 답글을 쓴 사람, 부른 사람에게만 간다(DEC-90).
@@ -165,8 +181,7 @@ export function createChatPush(db: Db, send: PushSender) {
       { now, skip: sent.senderId ?? except ?? null, called },
       id => presence.isViewing(sent.roomId, id, now),
     )
-    const url = chatRoomUrl(sent.councilId, sent.roomId)
-    const tag = chatRoomTag(sent.roomId)
+    const { url, tag } = linkOf(sent, sent.councilId)
     const excerpt = excerptOf(sent.body)
     const normal: PushMessage = { title: titleOf(sent), body: excerpt, url, tag }
     const mention: PushMessage = {

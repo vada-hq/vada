@@ -85,7 +85,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   settings: {},
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
-  chat: {},
+  // 답글 알림이 여는 원글(022 조각 11). 방을 열고 그 원글의 답글 패널을 연다.
+  chat: { reply: { values: 'uuid', fallback: null } },
   // 업무 탭의 보기와 거르기는 업무 탭일 때만 남는다. 다른 탭으로 가면 빠진다.
   // 메시지 탭의 방(DEC-96: 처음 여는 방이면 주소에 없다)은 메시지 탭일 때만 남는다.
   events: {

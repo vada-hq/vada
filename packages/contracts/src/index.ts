@@ -62,6 +62,8 @@ export {
 } from './korean-time.js'
 export { dayLabel, dayTime, dayTimeLabel, monthDay, monthDayTime } from './korean-date-text.js'
 export {
+  chatReplyTag,
+  chatReplyUrl,
   chatRoomFromPath,
   chatRoomTag,
   chatRoomUrl,

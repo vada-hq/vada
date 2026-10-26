@@ -1,21 +1,16 @@
 import { useState } from 'react'
+import type { ChatMessage } from '@vada/contracts'
 import { ArrowLeft } from 'lucide-react'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  OLDER_LOAD_FAILED,
-  ROOM_LOAD_FAILED,
-  ROOM_LOST,
-  ROOM_SYNC_FAILED,
-  SEND_ERRORS,
-} from '@/lib/messages'
+import { ROOM_LOAD_FAILED, ROOM_LOST, ROOM_SYNC_FAILED, SEND_ERRORS } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
 import { ARCHIVED_LABEL, roomName } from './chat-view'
 import Composer from './Composer'
-import MessageItem from './MessageItem'
-import { firstUnreadId, flowOf, type FlowItem } from './message-flow'
+import { Flow, Older } from './FlowList'
+import { firstUnreadId, flowOf } from './message-flow'
 import { useMessageFlows } from './MessageFlows'
 import { ProductOpenContext, useEventProductOpener } from './product-open'
 import type { RequestAccess } from './RequestFlowView'
@@ -24,6 +19,7 @@ import type { MessageActionSet } from './useMessageActions'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
 import { useStickToBottom } from './useStickToBottom'
+import { useReplyLinks } from './useReplyLinks'
 
 type Props = {
   councilId: string
@@ -43,6 +39,8 @@ type Props = {
   sendLabel?: string | undefined
   // 행사 메시지 탭의 방: 방 전환이 방 이름을 보이므로 제목 줄을 두지 않는다(022 정한 것 28).
   bare?: boolean
+  // 주소(답글 알림)가 연 원글(022 조각 11). key는 주소 칸마다 달라 같은 알림을 또 누르면 다시 연다.
+  replyTo?: { messageId: string; key: string } | undefined
 }
 
 function Title({
@@ -63,24 +61,6 @@ function Title({
       )}
       <h2 className="min-w-0 flex-1 text-base font-semibold wrap-anywhere text-gray-900">{name}</h2>
       {readOnly && <Badge>보기만</Badge>}
-    </div>
-  )
-}
-
-function Older({ onLoad }: { onLoad: () => Promise<boolean> }) {
-  const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const load = async () => {
-    setBusy(true)
-    setFailed(!(await onLoad()))
-    setBusy(false)
-  }
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <Button variant="outline" size="sm" busy={busy} onClick={() => void load()}>
-        이전 메시지 보기
-      </Button>
-      {failed && <StateMessage kind="error">{OLDER_LOAD_FAILED}</StateMessage>}
     </div>
   )
 }
@@ -120,61 +100,6 @@ function Unavailable({
 
 type Ready = Extract<RoomState, { kind: 'ready' }>
 
-// 새 메시지 경계(Slack '여기부터 새 메시지')
-function UnreadLine() {
-  return (
-    <li className="flex items-center gap-2 py-1 text-xs font-medium text-red-600">
-      <span className="h-px flex-1 bg-red-200" aria-hidden />
-      여기부터 새 메시지
-      <span className="h-px flex-1 bg-red-200" aria-hidden />
-    </li>
-  )
-}
-
-function DateLine({ label }: { label: string }) {
-  return (
-    <li className="flex items-center gap-2 pt-3 pb-1 text-xs text-gray-500">
-      <span className="h-px flex-1 bg-gray-300" aria-hidden />
-      {label}
-      <span className="h-px flex-1 bg-gray-300" aria-hidden />
-    </li>
-  )
-}
-
-// 날짜 구분선, 새 메시지 경계, 메시지 줄. 메시지가 적으면 입력칸 바로 위에 붙인다(Slack·카카오톡).
-function Flow({
-  items,
-  councilId,
-  meId,
-  menu,
-}: {
-  items: FlowItem[]
-  councilId: string
-  meId: string
-  menu: MessageActionSet
-}) {
-  return (
-    <ul className="mt-auto flex flex-col">
-      {items.map(item =>
-        item.kind === 'date' ? (
-          <DateLine key={item.key} label={item.label} />
-        ) : item.kind === 'unread' ? (
-          <UnreadLine key={item.key} />
-        ) : (
-          <MessageItem
-            key={item.key}
-            councilId={councilId}
-            message={item.message}
-            continued={item.continued}
-            mine={item.message.senderId === meId}
-            {...menu}
-          />
-        ),
-      )}
-    </ul>
-  )
-}
-
 function Messages({
   councilId,
   state,
@@ -182,6 +107,7 @@ function Messages({
   meId,
   unread,
   menu,
+  fresh,
 }: {
   councilId: string
   meId: string
@@ -189,8 +115,9 @@ function Messages({
   room: Room
   // 방을 열 때의 안 읽은 수. 경계는 처음 그린 흐름에서 한 번만 정한다(새로 온 메시지로 옮겨 가지 않게).
   unread: number
-  // 메시지 '…' 메뉴에 들어갈 동작들(구매 요청, 지출)
+  // 메시지 '…' 메뉴에 들어갈 동작들(답글, 구매 요청, 지출)
   menu: MessageActionSet
+  fresh: (message: ChatMessage) => boolean
 }) {
   const now = useNow()
   const [unreadFrom] = useState(() => firstUnreadId(state.messages, unread, meId))
@@ -212,6 +139,7 @@ function Messages({
           councilId={councilId}
           meId={meId}
           menu={menu}
+          fresh={fresh}
         />
       )}
       {state.syncFailed && <StateMessage kind="error">{ROOM_SYNC_FAILED}</StateMessage>}
@@ -279,6 +207,7 @@ export default function RoomView({
   onForbidden,
   sendLabel,
   bare = false,
+  replyTo,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
@@ -294,10 +223,15 @@ export default function RoomView({
     onForbidden,
     onMade: room.markMade,
   })
-  useReadMarker({ councilId, roomId }, state, {
-    onRead: () => void rooms.reload(),
-    onLost: room.lose,
-  })
+  const replies = useReplyLinks(roomId, state, room, replyTo)
+  useReadMarker(
+    { councilId, roomId },
+    state.kind === 'ready' ? state.messages.at(-1)?.id : undefined,
+    {
+      onRead: () => void rooms.reload(),
+      onLost: room.lose,
+    },
+  )
 
   if (state.kind !== 'ready')
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
@@ -314,7 +248,8 @@ export default function RoomView({
           state={state}
           room={room}
           unread={unreadAtOpen}
-          menu={flows.menu}
+          menu={{ ...flows.menu, onReply: replies.onReply }}
+          fresh={replies.fresh}
         />
       </ProductOpenContext>
       <Bottom {...{ state, councilId, roomId, meId, room, rooms, sendLabel }} />
