@@ -19,6 +19,7 @@ export function useSpace(
   const canCreate = data.view !== null && canCreateEvent(data.view)
   const space: SpaceProps = {
     events: openEvents,
+    onOpenCouncil: () => nav.openPage('council'),
     onOpenEvent: nav.openEvent,
     onSeeAll: () => nav.openPage('events'),
     onNewEvent: canCreate

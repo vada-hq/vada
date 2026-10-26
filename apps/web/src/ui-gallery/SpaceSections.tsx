@@ -54,6 +54,7 @@ export function SpaceListSection() {
           >
             <SpaceList
               events={sample.events}
+              onOpenCouncil={noop}
               active={sample.active}
               onOpenEvent={noop}
               onSeeAll={noop}

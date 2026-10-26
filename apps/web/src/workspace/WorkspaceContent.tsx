@@ -17,6 +17,7 @@ import { Card } from '@/components/ui/card'
 import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
+import CouncilSpacePage from './CouncilSpacePage'
 
 type Props = {
   data: CouncilData
@@ -92,6 +93,16 @@ function PageOf({
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat')
     return <LeadPage {...{ data, rooms, page, onOpenEvent, onOpenPage, view }} />
+  if (page === 'council')
+    return (
+      <CouncilSpacePage
+        view={view}
+        rooms={rooms}
+        team={data.team}
+        onForbidden={data.reload}
+        onTasksChanged={() => void tasks.reload()}
+      />
+    )
   if (page === 'events')
     return (
       <EventsPage
@@ -146,7 +157,10 @@ export default function WorkspaceContent({
   ...props
 }: Props & { mainRef: Ref<HTMLElement> }) {
   return (
-    <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+    <main
+      ref={mainRef}
+      className={`min-h-0 flex-1 overflow-y-auto ${props.page === 'council' ? '' : 'p-4 sm:p-6'}`}
+    >
       <Body {...props} />
     </main>
   )

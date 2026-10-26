@@ -9,6 +9,7 @@ export const APP_MENUS = [
   'home',
   'chat',
   'events',
+  'council',
   'tasks',
   'finance',
   'people',
@@ -20,6 +21,8 @@ export type AppMenu = (typeof APP_MENUS)[number]
 // 화면의 탭·보기 타입이 이 목록에서 나온다. 한쪽에만 탭을 더하면 주소가 그 탭을 기본값으로 읽는다.
 export const EVENT_TABS = ['overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
+export const COUNCIL_TABS = ['messages', 'tasks'] as const
+export type CouncilTab = (typeof COUNCIL_TABS)[number]
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
@@ -72,6 +75,10 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   home: { view: { values: HOME_VIEWS, fallback: null } },
   chat: {},
   events: {},
+  council: {
+    tab: { values: COUNCIL_TABS, fallback: 'messages' },
+    ...taskQuery('all', { key: 'tab', value: 'tasks' }),
+  },
   tasks: taskQuery('mine'),
   finance: {
     // 기본 탭은 사람마다 다르다(재정부는 개요, 나머지는 구매 요청). 그래서 고른 탭은 모두 주소에 남긴다.

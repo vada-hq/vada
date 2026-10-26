@@ -54,6 +54,7 @@ const EVENTS: SidebarEvent[] = [
 ]
 const space = {
   events: EVENTS,
+  onOpenCouncil: noop,
   onOpenEvent: noop,
   onSeeAll: noop,
   onNewEvent: noop,

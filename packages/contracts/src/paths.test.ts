@@ -15,8 +15,8 @@ const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
 
-test('메뉴 여덟과 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
-  assert.equal(APP_MENUS.length, 8)
+test('메뉴 아홉과 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
+  assert.equal(APP_MENUS.length, 9)
   assert.equal(RECORD_KINDS.length, 6)
   for (const menu of APP_MENUS) {
     const path = menuPath(menu, C)
@@ -108,6 +108,29 @@ test('홈의 재정 보기는 view=finance이고 기본(운영 보기)은 주소
   assert.equal(menuPath('home', C), `/home/${C}`)
   assert.deepEqual(parseAppPath(`/home/${C}?view=finance`)?.query, { view: 'finance' })
   assert.deepEqual(parseAppPath(`/home/${C}?view=ops`)?.query, {})
+})
+
+test('우리 학생회는 메시지가 기본이고 업무 탭만 업무 쿼리를 받는다', () => {
+  assert.deepEqual(parseAppPath(`/council/${C}`), {
+    type: 'menu',
+    menu: 'council',
+    councilId: C,
+    query: {},
+  })
+  const query = { tab: 'tasks', view: 'unassigned', filter: 'done', layout: 'list', dept: P }
+  const path = `/council/${C}?tab=tasks&view=unassigned&filter=done&layout=list&dept=${P}`
+  assert.equal(menuPath('council', C, query), path)
+  assert.deepEqual(parseAppPath(path)?.query, query)
+  assert.equal(
+    menuPath('council', C, { tab: 'tasks', view: 'all', layout: 'board' }),
+    `/council/${C}?tab=tasks`,
+  )
+  for (const tab of ['messages', 'unknown', 'money']) {
+    assert.deepEqual(
+      parseAppPath(`/council/${C}?tab=${tab}&layout=list&view=mine&dept=${P}`)?.query,
+      {},
+    )
+  }
 })
 
 test('모르는 쿼리 키와 값은 기본값으로 읽는다', () => {

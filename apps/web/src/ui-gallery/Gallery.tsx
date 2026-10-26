@@ -18,6 +18,7 @@ import {
 import { SpaceListSection } from './SpaceSections'
 import { SidebarSection } from './SidebarSections'
 import { HeaderSection } from './HeaderSections'
+import { CouncilSpaceSection } from './CouncilSpaceSections'
 import { AccountSection } from './AccountSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
@@ -71,6 +72,7 @@ export const gallerySections = [
   SidebarSection,
   SpaceListSection,
   HeaderSection,
+  CouncilSpaceSection,
   ActionMenuSection,
   MessageMenuSection,
   KkirukMessageSection,

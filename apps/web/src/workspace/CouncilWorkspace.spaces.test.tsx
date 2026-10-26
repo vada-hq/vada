@@ -70,6 +70,7 @@ test('최상위 행사 칸이 없고, 공간 묶음에 행사 줄(첫 글자, �
     .getAllByRole('button')
     .map(button => button.textContent)
   expect(lines).toEqual([
+    '우리 학생회',
     '체2026 체육대회진행 중',
     '새2026학년도 새내기 배움터기획 중',
     '축축제후속 정리 중',
@@ -118,12 +119,12 @@ test('부원에게는 [+ 새 행사]가 없다', async () => {
   expect(within(group).queryByRole('button', { name: '새 행사' })).toBeNull()
 })
 
-test('행사가 없으면 두 링크만 있고 안내 문구가 없다', async () => {
+test('행사가 없으면 우리 학생회와 두 링크만 있고 안내 문구가 없다', async () => {
   const { reads } = open({ events: [[]] })
   const group = await spaces()
   await waitFor(() => expect(reads()).toBeGreaterThan(0))
   await within(group).findByRole('button', { name: '새 행사' })
-  expect(group.textContent).toBe('공간행사 모두 보기새 행사')
+  expect(group.textContent).toBe('공간우리 학생회행사 모두 보기새 행사')
 })
 
 test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 개요가 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
