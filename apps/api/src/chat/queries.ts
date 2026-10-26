@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, gte, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gt, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import {
   type RoomDetailResponse,
   type RoomListResponse,
@@ -112,12 +112,14 @@ async function memberCounts(db: Reader, roomIds: string[]) {
   return new Map(rows.map(row => [row.roomId, row.members]))
 }
 
-// 방마다 나를 부른 안 읽은 메시지 수.
+// 방마다 나를 부른 안 읽은 메시지 수. 내가 볼 수 있는 메시지만 센다(visibleMessage): 들어오기 전 것과 원글이 안 보이는 답글은 없다.
 async function mentionCounts(db: Reader, actor: Actor) {
   const rows = await db
     .select({ roomId: message.roomId, mentions: count() })
     .from(notification)
     .innerJoin(message, eq(message.id, notification.recordId))
+    .innerJoin(record, eq(record.id, message.id))
+    .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .innerJoin(
       roomMembership,
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
@@ -128,7 +130,7 @@ async function mentionCounts(db: Reader, actor: Actor) {
         eq(notification.type, 'mention'),
         // 지운 메시지의 부름은 세지 않는다(DEC-54, 그 자리에는 '삭제된 메시지'뿐이다).
         isNull(message.deletedAt),
-        gte(message.sentAt, roomMembership.joinedAt),
+        visibleMessage(actor),
         or(isNull(roomMembership.lastReadAt), gt(message.sentAt, roomMembership.lastReadAt)),
       ),
     )

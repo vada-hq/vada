@@ -2,6 +2,7 @@ import { and, eq, ne, or } from 'drizzle-orm'
 import { chatRoomTag, chatRoomUrl, type RoomType } from '@vada/contracts'
 import {
   chatRoom,
+  cohort,
   department,
   event,
   member,
@@ -15,9 +16,11 @@ import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
+import { cohortIsCurrent } from '../access/current-cohort.js'
 import { isArchivedEvent } from './archive.js'
 import { currentMembersAmong } from './current-members.js'
 import { excerptOf } from './excerpt.js'
+import { viewersAmong } from './messages.js'
 import { createPresence } from './presence.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -31,6 +34,7 @@ const ROOM_TITLES: Partial<Record<RoomType, string>> = {
 async function sentMessage(db: Db, messageId: string) {
   const [row] = await db
     .select({
+      id: message.id,
       roomId: message.roomId,
       body: message.body,
       councilId: record.councilId,
@@ -103,6 +107,34 @@ async function threadOf(db: Db, originalId: string) {
   return new Set(rows.map(row => row.memberId))
 }
 
+// 그 학생회의 지금 기수. 지금 운영진은 모두 이 기수에 있다(DEC-57).
+async function currentCohortOf(db: Db, councilId: string, now: Date) {
+  const [current] = await db
+    .select({ id: cohort.id })
+    .from(cohort)
+    .where(and(eq(cohort.councilId, councilId), cohortIsCurrent(now)))
+  return current?.id ?? null
+}
+
+// 답글을 받을 사람: 답글 묶음에 들었거나 부름 받은 사람 가운데 그 답글(원글)을 볼 수 있는 사람(DEC-90).
+// 나갔다 다시 들어와 원글이 들어오기 전 것이 된 사람은 묶음에 들었어도 받지 않는다.
+async function threadRecipients(
+  db: Db,
+  sent: Sent,
+  { candidates, called, now }: { candidates: string[]; called: Set<string>; now: Date },
+) {
+  const thread = await threadOf(db, sent.replyToId!)
+  const cohortId = await currentCohortOf(db, sent.councilId!, now)
+  if (cohortId === null) return []
+  const seeing = await viewersAmong(
+    db,
+    { councilId: sent.councilId!, cohortId },
+    sent.id,
+    candidates.filter(id => thread.has(id) || called.has(id)),
+  )
+  return candidates.filter(id => seeing.has(id))
+}
+
 // 알릴 사람: 방의 지금 참여자 - 보낸 사람 - 보는 중인 사람. 답글이면 그 가운데 답글 묶음에 들었거나 부름 받은 사람만이다.
 async function recipientsOf(
   db: Db,
@@ -110,10 +142,9 @@ async function recipientsOf(
   { now, skip, called }: { now: Date; skip: string | null; called: Set<string> },
   isViewing: (memberId: string) => boolean,
 ) {
-  const thread = sent.replyToId ? await threadOf(db, sent.replyToId) : null
-  return (await audienceOf(db, sent, now, skip)).filter(
-    id => !isViewing(id) && (thread === null || thread.has(id) || called.has(id)),
-  )
+  const audience = (await audienceOf(db, sent, now, skip)).filter(id => !isViewing(id))
+  if (!sent.replyToId) return audience
+  return threadRecipients(db, sent, { candidates: audience, called, now })
 }
 
 // 메시지를 보낸 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).

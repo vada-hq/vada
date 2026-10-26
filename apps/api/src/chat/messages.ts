@@ -30,6 +30,8 @@ import { inNoticeRoom } from './plan-room.js'
 import { displayNameOf } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
+// 보이는 조건에 드는 것: 누가(운영진), 어느 학생회에서, 지금 어느 기수인가. 요청한 사람(Actor)이나 알림 받을 사람이다.
+type Viewer = Pick<Actor, 'memberId' | 'councilId' | 'cohortId'>
 
 // 메시지 한 줄과 보낸 사람. 보낸 사람은 기록을 만든 운영진이다.
 const columns = {
@@ -117,6 +119,27 @@ export async function visibleInRoom(db: Reader, actor: Actor, roomId: string, me
   return found
 }
 
+// 이 중 그 메시지를 볼 수 있는 운영진(같은 학생회, 같은 지금 기수). 답글의 부름과 알림 받는 사람을 거르는 데 쓴다(DEC-90:
+// 원글이 보이지 않는 사람에게는 답글도 보이지 않으므로 알림도 부름도 가지 않는다). 사람마다 같은 조건(visibleMessage)으로 본다.
+export async function viewersAmong(
+  db: Reader,
+  base: Omit<Viewer, 'memberId'>,
+  messageId: string,
+  memberIds: readonly string[],
+) {
+  const seeing = new Set<string>()
+  for (const memberId of new Set(memberIds)) {
+    const [found] = await db
+      .select({ id: message.id })
+      .from(message)
+      .innerJoin(record, eq(record.id, message.id))
+      .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
+      .where(and(eq(message.id, messageId), visibleMessage({ ...base, memberId })))
+    if (found) seeing.add(memberId)
+  }
+  return seeing
+}
+
 // 커서는 메시지 번호다. 이 쪽(방 흐름이나 한 원글의 답글)에서 내가 볼 수 있는 메시지가 아니면
 // (들어오기 전, 다른 기수, 다른 방, 다른 쪽, 없는 것, 형식 틀림) 같은 오류다.
 async function assertCursor(db: Reader, actor: Actor, scope: SQL | undefined, cursor: string) {
@@ -179,7 +202,7 @@ const sentCohort = alias(cohort, SENT_COHORT)
 
 // 보낸 날(한국 날짜)의 기수가 내 지금 기수다(DEC-48). 보낸 날의 기수는 그날까지 시작한 가장 늦은 기수다(DEC-57).
 // 끝 날짜 뒤에 보낸 것도 다음 기수가 시작하기 전까지는 같은 기수다. 서버 시간대가 UTC여도 같다.
-const sentInMyCohort = (actor: Actor, at: SQL) =>
+const sentInMyCohort = (actor: Viewer, at: SQL) =>
   exists(
     sql`(select 1 from ${cohort} ${sql.identifier(SENT_COHORT)} where ${and(
       eq(sentCohort.id, actor.cohortId),
@@ -195,7 +218,7 @@ const inMessageRoom = (memberId: string) =>
   )
 
 // 보낸 시각이 at인 이 방 메시지를 이 사람이 볼 수 있다: 들어온 뒤의 것이거나 공지방 메시지 가운데 같은 기수의 것(들어오기 전 것도).
-const visibleAt = (actor: Actor, at: SQL) =>
+const visibleAt = (actor: Viewer, at: SQL) =>
   or(
     sinceJoined(actor.memberId, at),
     and(inNoticeRoom, inMessageRoom(actor.memberId), sentInMyCohort(actor, at)),
@@ -208,7 +231,7 @@ const originalSentAt = sql`(select o.sent_at from message o where o.id = ${messa
 // 공지방 메시지 가운데 같은 기수의 것(들어오기 전 것도). 답글은 원글도 그렇게 보여야 한다(원글이 안 보이면 답글도 안 보인다).
 // 방 흐름, 답글, 커서, 읽음, 안 읽은 수, 사진, 근거 잇기, 업무 결과물 제목이 이 조건 하나를 쓴다(보이는 조건과 여는 조건이 갈라지지 않게).
 // record, chat_room을 합친 조회에서 쓴다.
-export const visibleMessage = (actor: Actor) =>
+export const visibleMessage = (actor: Viewer) =>
   and(
     eq(record.councilId, actor.councilId),
     visibleAt(actor, sql`${message.sentAt}`),
