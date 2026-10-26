@@ -10,6 +10,7 @@ export const DialogTrigger = DialogPrimitive.Trigger
 export const DialogClose = DialogPrimitive.Close
 
 type ContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
+  closeDisabled?: boolean
   // 주소로 열리는 기록 상세 창이 자기 기록을 말한다. 주소 칸이 이 기록의 것일 때만 그 칸을 이어받는다.
   record?: { kind: RecordKind; id: string } | undefined
 }
@@ -49,6 +50,7 @@ export function WindowHistory({
 // 통일 규칙: 오버레이 검정 45%, 반경 큰 값, 큰 그림자, 안쪽 여백 21px, 폭 약 440px.
 // 내용을 오버레이 안에 둔다(Radix 문서의 scrollable overlay). 좁거나 낮은 화면에서는 오버레이가 스크롤되어 내용이 잘리지 않는다.
 export function DialogContent({
+  closeDisabled,
   className,
   children,
   onOpenAutoFocus,
@@ -73,6 +75,7 @@ export function DialogContent({
           {children}
           <DialogPrimitive.Close
             aria-label="닫기"
+            disabled={closeDisabled}
             className="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
             <X className="size-4" />

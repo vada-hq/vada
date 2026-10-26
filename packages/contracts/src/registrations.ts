@@ -264,6 +264,8 @@ export interface CheckInResult {
   registrationId: string
   name: string
   studentId: string | null
+  // 현장 입금 확인의 기본값. 이전 서버 응답과 공존할 때 없음을 무료로 해석하지 않는다.
+  appliedFee?: number
   already: boolean
   // 그 줄의 새 모습(이름·학번은 위에 이미 있고 열람 기록이 남는다)
   applicant: ApplicantChange
