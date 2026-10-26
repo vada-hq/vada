@@ -35,6 +35,7 @@ async function liveExpenseFrom(tx: Tx, messageId: string) {
 }
 
 // 같은 메시지로 같은 종류의 살아 있는 기록이 있으면 409다(022 정한 것 23). 요청과 지출은 서로 막지 않는다.
+// 라우트는 학생회 행을 먼저 잠가 이미 줄을 세우고, 메시지 행 잠금은 학생회 행을 잠그지 않는 길을 위한 방어다.
 // 메시지 행을 잠근 뒤에 읽으므로 같은 메시지로 둘이 동시에 와도 뒤의 것은 앞의 것이 끝난 뒤의 연결을 본다(READ COMMITTED).
 // FOR NO KEY UPDATE라서 이 메시지를 가리키는 연결을 넣을 때의 외래 키 검사는 막지 않는다.
 async function assertSourceUnused(tx: Tx, recordId: string, messageId: string) {

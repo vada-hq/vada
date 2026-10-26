@@ -30,7 +30,9 @@ import {
 // 022 조각 5: 같은 메시지로 요청 둘(또는 지출 둘)이 동시에 온다. 라우트처럼 학생회 행 잠금(inCouncilChange) 뒤에
 // 근거 잇기(chat/source-message.ts)가 메시지 행을 잠그고 그 메시지의 연결을 다시 읽는다.
 // 기대: 먼저 잠근 쪽만 성공하고 뒤의 것은 SOURCE_MESSAGE_USED, 그 메시지의 연결은 하나다.
-// 잠그지 않거나 거래의 처음 스냅숏으로 읽으면(REPEATABLE READ) 둘 다 지나가 연결이 둘이 된다.
+// 지금 길에서는 학생회 행 잠금이 먼저 줄을 세우므로 이 경우는 두 잠금을 합친 결과를 본다. 메시지 행 잠금만의
+// 효과는 증명하지 않는다(학생회 행을 잠그지 않는 길을 위한 방어). 거래의 처음 스냅숏으로 읽으면(REPEATABLE READ)
+// 둘 다 지나가 연결이 둘이 된다.
 
 const EXPECTED = new Set(['SOURCE_MESSAGE_USED'])
 const OUTCOMES = ['ok', 'SOURCE_MESSAGE_USED'] as const
