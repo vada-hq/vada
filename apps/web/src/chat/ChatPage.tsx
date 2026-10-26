@@ -29,6 +29,8 @@ type Props = {
 }
 
 type PageProps = Omit<Props, 'onScreen'>
+// 방 하나를 여는 데 드는 것. 1:1 패널도 같은 방 화면을 쓴다.
+export type RoomPage = PageProps
 
 // 방 목록을 아직 못 보일 때: 불러오는 중, 못 불러왔으면 다시 시도.
 function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
@@ -87,7 +89,18 @@ function ListScreen(props: Props & { activeRoomId: string | null }) {
 }
 
 // 방 하나. 뒤로 가기가 없으면(PC 두 칸) 목록이 옆에 늘 보인다.
-function Room({ page, roomId, onBack }: { page: PageProps; roomId: string; onBack?: () => void }) {
+// sendLabel이 있으면 1:1 패널의 방이다: 제목은 패널 머리가 보이고 보내기 버튼에 받는 사람을 적는다.
+export function Room({
+  page,
+  roomId,
+  onBack,
+  sendLabel,
+}: {
+  page: PageProps
+  roomId: string
+  onBack?: () => void
+  sendLabel?: string
+}) {
   const { view } = page
   return (
     <RoomView
@@ -95,6 +108,7 @@ function Room({ page, roomId, onBack }: { page: PageProps; roomId: string; onBac
       roomId={roomId}
       meId={view.me.memberId}
       rooms={page.rooms}
+      sendLabel={sendLabel}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
         canAssign: view.permissions.includes('finance.manage'),

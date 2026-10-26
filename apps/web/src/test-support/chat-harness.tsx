@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { fireEvent, screen } from '@testing-library/react'
 import type { Action } from '@vada/contracts'
 import ChatPage, { type Screen } from '@/chat/ChatPage'
+import DirectPanel from '@/chat/DirectPanel'
+import { DirectOpenContext } from '@/chat/direct-open'
+import { useDirectPanel } from '@/chat/useDirectPanel'
 import { useRoomList } from '@/chat/useRoomList'
 import { useTeam } from '@/team/useTeam'
 import { messagePage, roomDetail, roomList } from './chat-fixtures'
@@ -37,6 +40,34 @@ export function ChatHarness({
       onScreen={setScreen}
       onBack={() => setScreen({ kind: 'list' })}
     />
+  )
+}
+
+// 작업 공간처럼 1:1 패널을 대화 화면 옆에 둔다(022 조각 7). 이름 누르기와 '/'가 이 패널을 연다.
+export function DirectChatHarness() {
+  const team = useTeam('c1', () => {})
+  const rooms = useRoomList('c1', () => {}, true)
+  const [view] = useState(() => councilView('c1', { permissions: MEMBER_PERMISSIONS }))
+  const [screen, setScreen] = useState<Screen>({ kind: 'list' })
+  const page = { councilId: 'c1', view, team, rooms, onForbidden: () => {} }
+  const direct = useDirectPanel(page)
+  return (
+    <DirectOpenContext value={direct.opener}>
+      <ChatPage
+        {...page}
+        onOpenRequest={() => {}}
+        screen={screen}
+        onScreen={setScreen}
+        onBack={() => setScreen({ kind: 'list' })}
+      />
+      {direct.target && (
+        <DirectPanel
+          page={{ ...page, onOpenRequest: () => {} }}
+          target={direct.target}
+          onClose={direct.close}
+        />
+      )}
+    </DirectOpenContext>
   )
 }
 

@@ -37,6 +37,8 @@ type Props = {
   onBack?: (() => void) | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
+  // 1:1 패널의 방(022 조각 7): 제목은 패널 머리가 보이고, 보내기 버튼에 받는 사람을 적는다('{이름}에게 보내기').
+  sendLabel?: string | undefined
 }
 
 function Title({
@@ -221,7 +223,11 @@ function Bottom({
   meId,
   room,
   rooms,
-}: Pick<Props, 'councilId' | 'roomId' | 'meId' | 'rooms'> & { state: Ready; room: Room }) {
+  sendLabel,
+}: Pick<Props, 'councilId' | 'roomId' | 'meId' | 'rooms' | 'sendLabel'> & {
+  state: Ready
+  room: Room
+}) {
   if (state.room.readOnly)
     return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
   return (
@@ -231,6 +237,7 @@ function Bottom({
         roomId={roomId}
         participants={state.participants}
         meId={meId}
+        sendLabel={sendLabel}
         onSent={() => {
           void room.sync()
           void rooms.reload()
@@ -257,6 +264,7 @@ export default function RoomView({
   canWriteExpense,
   onBack,
   onForbidden,
+  sendLabel,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
@@ -271,7 +279,9 @@ export default function RoomView({
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
   return (
     <PageColumn className="h-full gap-3">
-      <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
+      {sendLabel === undefined && (
+        <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
+      )}
       {flows.views}
       <Messages
         councilId={councilId}
@@ -281,7 +291,7 @@ export default function RoomView({
         unread={unreadAtOpen}
         menu={flows.menu}
       />
-      <Bottom {...{ state, councilId, roomId, meId, room, rooms }} />
+      <Bottom {...{ state, councilId, roomId, meId, room, rooms, sendLabel }} />
     </PageColumn>
   )
 }

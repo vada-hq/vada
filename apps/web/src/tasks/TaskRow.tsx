@@ -1,8 +1,10 @@
 import type { TaskStatus, TaskSummary, TeamResponse } from '@vada/contracts'
+import PersonName from '@/components/PersonName'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
+import { useOpenDirectFor } from '../chat/direct-open'
 import { choiceValue, detailAssigneeChoices } from './task-form-options'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel, nextLabel } from './task-view'
 import { TaskEventLink } from './TaskEventLink'
@@ -30,19 +32,21 @@ type Props = {
 }
 
 // 제목 아래 한 줄: 부서, 행사, 담당자. 없는 것은 빼고 가운뎃점으로 잇는다.
+// 담당자 이름을 누르면 그 사람과 1:1이 열린다(022 조각 7). 떠난 사람과 나는 글만이다.
 function Meta({ task, show, onOpenEvent }: Pick<Props, 'task' | 'show' | 'onOpenEvent'>) {
+  const openFor = useOpenDirectFor()
   const parts = [
     show.department && <span key="department">{task.department?.name ?? COUNCIL_TASK_LABEL}</span>,
     show.event && task.event && (
       <TaskEventLink key="event" event={task.event} onOpen={onOpenEvent} className="text-xs" />
     ),
     show.assignee && (
-      <span
+      <PersonName
         key="assignee"
-        className={cn('wrap-anywhere', task.assignee === null && 'text-yellow-700')}
-      >
-        {assigneeLabel(task.assignee)}
-      </span>
+        name={assigneeLabel(task.assignee)}
+        onOpen={task.assignee?.current ? openFor(task.assignee.id) : undefined}
+        className={cn('text-xs', task.assignee === null && 'text-yellow-700')}
+      />
     ),
   ].filter(Boolean)
   return (

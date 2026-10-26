@@ -1,9 +1,11 @@
 import { Ellipsis } from 'lucide-react'
 import type { CouncilTitles, TeamDepartment, TeamMember } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
+import PersonName from '@/components/PersonName'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
+import { useOpenDirectFor } from '../chat/direct-open'
 import type { rowActions } from './people-access'
 import { dayTimeLabel } from '@/lib/korean-date-text'
 import { councilRankLabel, departmentRankLabel, placementsText } from './team-view'
@@ -49,12 +51,14 @@ export function MemberRow(props: Props) {
     departments: member.departments.filter(item => item.id !== inDepartment),
   }
   const placements = placementsText(others, departments, titles)
+  // 이름을 누르면 그 사람과 1:1이 열린다(022 조각 7). 내 이름은 글만이다.
+  const openFor = useOpenDirectFor()
   return (
     <li className="flex items-center gap-3 px-4 py-3">
       <Avatar />
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
-          {member.name}
+          <PersonName name={member.name} onOpen={openFor(member.id)} />
           <RankBadge member={member} titles={titles} inDepartment={inDepartment} />
         </p>
         <p className="text-xs wrap-anywhere text-gray-500">

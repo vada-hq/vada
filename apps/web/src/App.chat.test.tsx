@@ -206,3 +206,20 @@ test('PC에서 대화 메뉴 첫 화면은 기억한 방이고 주소는 그대�
   expect(await screen.findByText('전체방 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
 })
+
+// 022 조각 7: 이름을 누르면 지금 화면은 그대로 두고 작업 공간 오른쪽에 1:1 패널이 열린다.
+test('방에서 보낸 사람 이름을 누르면 방은 그대로이고 작업 공간 오른쪽에 그 사람과의 1:1이 열린다', async () => {
+  const DIRECT = '0199d1a0-0000-7000-8000-0000000000d2'
+  api.on('POST', `/api/organizations/${C1}/direct`, () => json({ roomId: DIRECT }))
+  serveRoom(DIRECT, room(DIRECT, { type: 'direct', name: '이재정' }), '1:1 글')
+  window.history.replaceState(null, '', `/chat/${C1}/${ALL}`)
+  await renderApp()
+  fireEvent.click(await screen.findByRole('button', { name: '이재정 1:1 대화' }))
+  const panel = await screen.findByRole('complementary', { name: '이재정 1:1 대화' })
+  expect(await within(panel).findByText('1:1 글')).toBeTruthy()
+  expect(within(panel).getByRole('button', { name: '이재정에게 보내기' })).toBeTruthy()
+  expect(screen.getByText('전체방 글')).toBeTruthy()
+  expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
+  fireEvent.click(within(panel).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('complementary', { name: '이재정 1:1 대화' })).toBeNull()
+})

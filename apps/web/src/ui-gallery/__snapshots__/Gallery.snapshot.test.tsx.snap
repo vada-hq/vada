@@ -1934,7 +1934,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">박</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">박해랑</span>
+<span class="wrap-anywhere text-xs text-gray-500">박해랑</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">현수막 2개 사 주세요
 색은 파랑이면 좋겠어요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
@@ -1971,7 +1971,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">이</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">이재정</span>
+<span class="wrap-anywhere text-xs text-gray-500">이재정</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">장소 다시 알려 주세요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2011,7 +2011,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">이</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">이재정</span>
+<span class="wrap-anywhere text-xs text-gray-500">이재정</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">장소 다시 알려 주세요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2191,7 +2191,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<span class="wrap-anywhere text-xs text-gray-500">정하늘</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">진행 요원 6명이 입을 조끼가 필요해요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2239,7 +2239,7 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">떠난 운영진 2</span>
+<span class="wrap-anywhere text-xs text-gray-500">떠난 운영진 2</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">조끼는 작년 것이 창고에 있어요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2259,7 +2259,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<span class="wrap-anywhere text-xs text-gray-500">정하늘</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2329,7 +2329,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<span class="wrap-anywhere text-xs text-gray-500">정하늘</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">진행 요원 6명이 입을 조끼가 필요해요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2377,7 +2377,7 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">떠난 운영진 2</span>
+<span class="wrap-anywhere text-xs text-gray-500">떠난 운영진 2</span>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">조끼는 작년 것이 창고에 있어요</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2397,7 +2397,7 @@ exports[`처음 모양 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<span class="wrap-anywhere text-xs text-gray-500">정하늘</span>
 <p class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">삭제된 메시지</p>
 <time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -2454,6 +2454,92 @@ exports[`처음 모양 1`] = `
 </div>
 </li>
 </ul>
+</div>
+</section>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">1:1 패널</h2>
+<div class="flex flex-wrap items-start gap-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">1:1 패널 열기</button>
+<div class="flex h-160 w-full overflow-hidden rounded-lg border bg-white">
+<div class="flex min-w-0 flex-1 flex-col gap-3 p-4">
+<h3 class="text-base font-semibold text-gray-900">기획부 방</h3>
+<div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+<ul class="mt-auto flex flex-col">
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700 text-xs text-gray-500" type="button" aria-label="정하늘 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">정하늘</span>
+</button>
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">부스 배치안 초안 올렸어요. 테이블 수는 아직 미정이에요.</p>
+<time datetime="2026-10-23T00:30:00Z" class="text-xs text-gray-500">09:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-500 size-8">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user size-4" aria-hidden="true">
+<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2">
+</path>
+<circle cx="12" cy="7" r="4">
+</circle>
+</svg>
+</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<span class="wrap-anywhere text-xs text-gray-500">떠난 운영진 2</span>
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">작년 배치안은 드라이브에 있어요.</p>
+<time datetime="2026-10-23T00:30:00Z" class="text-xs text-gray-500">09:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5 flex-row-reverse">
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-end">
+<span class="sr-only">나</span>
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap bg-primary text-primary-foreground">확인할게요. 오늘 안에 확정합시다.</p>
+<time datetime="2026-10-23T00:30:00Z" class="text-xs text-gray-500">09:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+</div>
+</li>
+</ul>
+</div>
+<form class="flex flex-col gap-2 border-t bg-white pt-3">
+<ul aria-label="1:1 대화할 사람" class="flex max-h-40 flex-col overflow-y-auto rounded-sm border bg-white">
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 w-full justify-start wrap-anywhere whitespace-normal" type="button">정하늘</button>
+</li>
+</ul>
+<div class="flex items-end gap-2">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" accept="image/*" multiple="" hidden="" tabindex="-1" aria-label="사진 고르기" type="file">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4" type="button" aria-label="사진 붙이기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus" aria-hidden="true">
+<path d="M16 5h6">
+</path>
+<path d="M19 2v6">
+</path>
+<path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5">
+</path>
+<path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21">
+</path>
+<circle cx="9" cy="9" r="2">
+</circle>
+</svg>
+</button>
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive resize-y read-only:border-border read-only:bg-gray-50 min-h-10 flex-1" rows="1" aria-label="메시지">/정</textarea>
+<button data-slot="button" disabled="" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 p-2 [&amp;_svg]:size-4 size-10" type="submit" aria-label="보내기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal lucide-send-horizonal" aria-hidden="true">
+<path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z">
+</path>
+<path d="M6 12h16">
+</path>
+</svg>
+</button>
+</div>
+</form>
+</div>
+</div>
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
@@ -3667,7 +3753,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
 <span aria-hidden="true">·</span>
-<span class="wrap-anywhere">김새내</span>
+<span class="wrap-anywhere text-xs">김새내</span>
 </div>
 </div>
 <span class="shrink-0 text-xs text-gray-500">10월 25일</span>
@@ -3684,7 +3770,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
 <span aria-hidden="true">·</span>
-<span class="wrap-anywhere">김새내</span>
+<span class="wrap-anywhere text-xs">김새내</span>
 </div>
 </div>
 <span class="shrink-0 text-xs font-medium text-red-600">10월 25일</span>
@@ -3700,7 +3786,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
 <span aria-hidden="true">·</span>
-<span class="wrap-anywhere text-yellow-700">담당자 없음</span>
+<span class="wrap-anywhere text-xs text-yellow-700">담당자 없음</span>
 </div>
 </div>
 <span class="shrink-0 text-xs text-gray-500">마감 없음</span>
@@ -3717,7 +3803,7 @@ exports[`처음 모양 1`] = `
 <span aria-hidden="true">·</span>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs">신입생 환영회</button>
 <span aria-hidden="true">·</span>
-<span class="wrap-anywhere">김새내</span>
+<span class="wrap-anywhere text-xs">김새내</span>
 </div>
 </div>
 <span class="shrink-0 text-xs text-gray-500">10월 25일</span>
@@ -3733,7 +3819,7 @@ exports[`처음 모양 1`] = `
 <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
 <span>기획부</span>
 <span aria-hidden="true">·</span>
-<span class="wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+<span class="wrap-anywhere text-xs">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </div>
 </div>
 <span class="shrink-0 text-xs text-gray-500">10월 25일</span>
@@ -10269,7 +10355,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">강새내</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
 </p>
@@ -10295,7 +10383,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
 </p>
@@ -10337,7 +10427,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김바다</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -10364,7 +10456,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -10390,7 +10484,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">박해수</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
@@ -10441,7 +10537,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
@@ -10467,7 +10565,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">오재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
@@ -10516,7 +10616,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -10542,7 +10644,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
 </div>
@@ -10567,7 +10671,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">정기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
@@ -10594,7 +10700,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">한기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
@@ -10669,7 +10777,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">강새내</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
 </p>
@@ -10695,7 +10805,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
 </p>
@@ -10737,7 +10849,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김바다</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -10764,7 +10878,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -10790,7 +10906,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">박해수</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
@@ -10841,7 +10959,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
@@ -10867,7 +10987,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">오재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
@@ -10913,7 +11035,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -10939,7 +11063,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
 </div>
@@ -10964,7 +11090,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">정기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
@@ -10991,7 +11119,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">한기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
@@ -11079,7 +11209,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김바다</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -11096,7 +11228,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -11112,7 +11246,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">박해수</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
@@ -11143,7 +11279,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
@@ -11159,7 +11297,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">오재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
@@ -11188,7 +11328,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -11204,7 +11346,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
 </div>
@@ -11219,7 +11363,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">정기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
@@ -11236,7 +11382,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">한기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>
@@ -11277,7 +11425,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">강새내</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
 </p>
@@ -11293,7 +11443,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
 </p>
@@ -11328,7 +11480,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">강새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">강새내</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 8일 (목) 10:00 들어옴</span>
 </p>
@@ -11354,7 +11508,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가가</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 9일 (금) 10:00 들어옴</span>
 </p>
@@ -11396,7 +11552,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김바다<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김바다</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -11423,7 +11581,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -11449,7 +11609,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박해수<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">박해수</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">부회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 3일 (토) 10:00 들어옴</span>
@@ -11500,7 +11662,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">기획부 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
@@ -11526,7 +11690,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">오재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">오재정</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 7일 (수) 10:00 들어옴</span>
@@ -11575,7 +11741,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이윤슬</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">이윤슬</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
 </p>
@@ -11601,7 +11769,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">최재정</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">최재정</span>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">재정부 부장 · <span class="whitespace-nowrap">10월 4일 (일) 10:00 들어옴</span>
 </p>
 </div>
@@ -11626,7 +11796,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">정기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">정기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 5일 (월) 10:00 들어옴</span>
@@ -11653,7 +11825,9 @@ exports[`처음 모양 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">한기획<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">한기획</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 6일 (화) 10:00 들어옴</span>

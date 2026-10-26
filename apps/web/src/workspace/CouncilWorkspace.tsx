@@ -6,13 +6,17 @@ import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 import { useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
+import DirectPanel from '../chat/DirectPanel'
+import { DirectOpenContext } from '../chat/direct-open'
+import { useDirectPanel } from '../chat/useDirectPanel'
+import type { RoomList } from '../chat/useRoomList'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
 import { trailOf } from './pages'
 import { activeItemOf } from './space-view'
-import { useCouncilData } from './useCouncilData'
+import { useCouncilData, type CouncilData } from './useCouncilData'
 import { useSpace } from './useSpace'
 import { useWorkspaceLists } from './useWorkspaceLists'
 import { useWorkspaceNav } from './useWorkspaceNav'
@@ -88,6 +92,33 @@ function CouncilMain({
   )
 }
 
+// 이름 누르기와 입력칸 '/'로 여는 1:1 패널(022 조각 7). 어느 화면에서든 오른쪽에 하나 열린다.
+function useCouncilDirect(councilId: string, data: CouncilData, rooms: RoomList) {
+  const { view } = data
+  const direct = useDirectPanel({
+    councilId,
+    view,
+    team: data.team,
+    rooms,
+    onForbidden: data.reload,
+  })
+  const panel = direct.target && view && (
+    <DirectPanel
+      page={{
+        councilId,
+        view,
+        team: data.team,
+        rooms,
+        onForbidden: data.reload,
+        onOpenRequest: id => openRecord('purchases', councilId, id),
+      }}
+      target={direct.target}
+      onClose={direct.close}
+    />
+  )
+  return { opener: direct.opener, panel }
+}
+
 export default function CouncilWorkspace({
   council,
   councils,
@@ -114,6 +145,7 @@ export default function CouncilWorkspace({
   const { lists, counts, openEvents } = useWorkspaceLists(council.id, data)
   const { space, newEvent } = useSpace(data, nav, openEvents)
   const openEventId = target.record?.kind === 'events' ? target.record.id : null
+  const direct = useCouncilDirect(council.id, data, lists.rooms)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
@@ -141,28 +173,35 @@ export default function CouncilWorkspace({
     />
   )
   return (
-    <WorkspaceFrame sidebar={sidebar} navOpen={nav.navOpen} onNavOpenChange={nav.setNavOpen}>
-      <CouncilMain
-        council={council}
-        nav={nav}
-        content={{
-          data,
-          ...lists,
-          ...openers,
-          ...recordOf(target),
-          linkKey: pageOpensAnew(target, here.released) ? here.key : '',
-          mainRef: nav.main,
-        }}
-      />
-      {newEvent.open && data.view && (
-        <NewEventDialog
-          view={data.view}
-          onClose={newEvent.close}
-          onLost={newEvent.lose}
-          onForbidden={data.reload}
+    <DirectOpenContext value={direct.opener}>
+      <WorkspaceFrame
+        sidebar={sidebar}
+        navOpen={nav.navOpen}
+        onNavOpenChange={nav.setNavOpen}
+        panel={direct.panel}
+      >
+        <CouncilMain
+          council={council}
+          nav={nav}
+          content={{
+            data,
+            ...lists,
+            ...openers,
+            ...recordOf(target),
+            linkKey: pageOpensAnew(target, here.released) ? here.key : '',
+            mainRef: nav.main,
+          }}
         />
-      )}
-      <LeaveConfirm />
-    </WorkspaceFrame>
+        {newEvent.open && data.view && (
+          <NewEventDialog
+            view={data.view}
+            onClose={newEvent.close}
+            onLost={newEvent.lose}
+            onForbidden={data.reload}
+          />
+        )}
+        <LeaveConfirm />
+      </WorkspaceFrame>
+    </DirectOpenContext>
   )
 }

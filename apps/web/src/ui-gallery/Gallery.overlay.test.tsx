@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { asElement } from '@/test-support/elements'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
+import { DirectPanelSection } from './DirectSections'
 import { EventEditSection } from './EventEditSections'
 import { ActionMenuSection } from './MenuSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -150,4 +151,17 @@ test('지출 적기 표본은 1280·390 폭의 실제 칸과 필수 오류·금�
   const confirm = await screen.findByRole('dialog', { name: '금액과 자릿수를 확인하세요' })
   fireEvent.click(within(confirm).getByRole('button', { name: '그래도 적기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test("1:1 패널 예시는 '/' 목록이나 보낸 사람 이름으로 열고, 다른 이름을 누르면 바뀌며 닫기로 닫는다", () => {
+  render(<DirectPanelSection />)
+  const list = screen.getByRole('list', { name: '1:1 대화할 사람' })
+  fireEvent.click(within(list).getByRole('button', { name: '정하늘' }))
+  const panel = screen.getByRole('complementary', { name: '정하늘 1:1 대화' })
+  expect(within(panel).getByRole('button', { name: '정하늘에게 보내기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /떠난 운영진 2/ })).toBeNull()
+  fireEvent.click(within(panel).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('complementary')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '1:1 패널 열기' }))
+  expect(screen.getByRole('complementary', { name: '정하늘 1:1 대화' })).toBeTruthy()
 })

@@ -292,7 +292,9 @@ exports[`작업 공간: 대화 방 1`] = `
 <li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
 <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">이</span>
 <div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
-<span class="text-xs wrap-anywhere text-gray-500">이재정</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700 text-xs text-gray-500" type="button" aria-label="이재정 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">이재정</span>
+</button>
 <p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">안녕하세요</p>
 <time datetime="2020-03-02T01:30:00Z" class="text-xs text-gray-500">10:30</time>
 </div>
@@ -801,7 +803,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 text-sm [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal text-inherit underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700" type="button" aria-label="박새내 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">박새내</span>
+</button>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 19일 (월) 00:30 들어옴</span>
 </p>
@@ -843,7 +849,9 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김회장</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -894,7 +902,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 text-sm [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal text-inherit underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700" type="button" aria-label="이재정 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">이재정</span>
+</button>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>
@@ -1288,7 +1300,11 @@ exports[`작업 공간: 조직 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">박새내</p>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 text-sm [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal text-inherit underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700" type="button" aria-label="박새내 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">박새내</span>
+</button>
+</p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 19일 (월) 00:30 들어옴</span>
 </p>
@@ -1330,7 +1346,9 @@ exports[`작업 공간: 조직 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">김회장<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<span class="wrap-anywhere">김회장</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">회장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 1일 (목) 10:00 들어옴</span>
@@ -1381,7 +1399,11 @@ exports[`작업 공간: 조직 1`] = `
 </svg>
 </span>
 <div class="min-w-0 flex-1">
-<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">이재정<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
+<p class="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:underline focus-visible:ring-blue-700 text-sm [&amp;_svg]:size-4 relative h-auto max-w-full min-w-0 justify-start border-0 p-0 font-normal text-inherit underline decoration-dotted underline-offset-2 before:absolute before:inset-x-0 before:-inset-y-3.5 hover:text-amber-700" type="button" aria-label="이재정 1:1 대화">
+<span class="wrap-anywhere text-left whitespace-normal">이재정</span>
+</button>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">부장</span>
 </p>
 <p class="text-xs wrap-anywhere text-gray-500">
 <span class="whitespace-nowrap">10월 2일 (금) 10:00 들어옴</span>

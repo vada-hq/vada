@@ -1,10 +1,12 @@
 import { Calendar, Ellipsis, FileText } from 'lucide-react'
 import { TASK_STATUSES, type TaskStatus, type TaskSummary } from '@vada/contracts'
+import PersonName from '@/components/PersonName'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
+import { useOpenDirectFor } from '../chat/direct-open'
 import type { DepartmentColor } from './department-color'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
 
@@ -58,10 +60,22 @@ function StatusMenu({
   )
 }
 
+// 담당자 이름을 누르면 그 사람과 1:1이 열린다(022 조각 7). 카드 전체를 덮는 제목 단추 위에 둔다. 떠난 사람은 글만이다.
 function AssigneeText({ task }: Pick<Props, 'task'>) {
+  const openFor = useOpenDirectFor()
   if (task.assignee === null)
     return <span className="text-xs font-semibold text-red-600">{UNASSIGNED_TEXT}</span>
   const label = assigneeLabel(task.assignee)
+  const onOpen = task.assignee.current ? openFor(task.assignee.id) : undefined
+  if (onOpen)
+    return (
+      <PersonName
+        name={label}
+        truncate
+        onOpen={onOpen}
+        className="relative z-10 text-xs text-gray-500"
+      />
+    )
   return (
     <span className="max-w-full min-w-0 truncate text-xs text-gray-500" title={label}>
       {label}
