@@ -6,7 +6,7 @@ import { cardClass } from '@/components/ui/card'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
 import type { DepartmentColor } from './department-color'
-import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
+import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel, nextLabel } from './task-view'
 
 // 카드 '⋯' 메뉴의 상태 항목 이름(DEC-94): 어디로 가는지를 적는다.
 const MOVE_LABEL: Record<TaskStatus, string> = {
@@ -23,6 +23,7 @@ type Props = {
   error?: string | undefined
   // 이어진 결과물이 있으면 문서 그림을 단다. 목록 응답에 결과물 요약이 없어 026 조각 10(정한 것 15)이 칸을 더하기 전까지 보드는 넘기지 않는다.
   hasResult?: boolean | undefined
+  mobile?: boolean | undefined
   onOpen: () => void
   onChangeStatus: (status: TaskStatus) => void
 }
@@ -63,17 +64,48 @@ function AssigneeText({ task }: Pick<Props, 'task'>) {
     return <span className="text-xs font-semibold text-red-600">{UNASSIGNED_TEXT}</span>
   const label = assigneeLabel(task.assignee)
   return (
-    <span className="max-w-full min-w-0 truncate text-xs text-gray-500" title={label}>
+    <span
+      className="max-w-full min-w-0 truncate text-xs break-keep text-gray-500 max-sm:line-clamp-2 max-sm:whitespace-normal max-sm:wrap-anywhere"
+      title={label}
+    >
       {label}
     </span>
   )
 }
 
-// 보드의 업무 카드(와이어프레임 OPS-TASK-01·EVT-TASK-01): 흰 카드, 왼쪽 부서 색상선, 업무명, 부서 칩·지남 칩·담당자, 선 아래 마감과 결과물 그림.
-// 부서 색은 소속, 빨강은 긴급도다. 담당자가 없으면 카드 테두리가 빨강이다. 카드에 행사 이름은 없다(DEC-94).
-// 카드 전체가 누르는 곳이 되도록 제목 단추를 카드 크기로 늘리고, '⋯'만 그 위에 둔다.
-// 1024px의 좁은 열에서 카드 높이가 늘지 않게 제목은 세 줄, 부서와 담당자는 한 줄에서 자르고 전체 글은 title에 둔다(화면 읽기 이름은 전체 글).
-export function TaskCard({ task, color, busy, error, hasResult, onOpen, onChangeStatus }: Props) {
+// 휴대폰에서는 메뉴를 열지 않고 다음 상태로 옮긴다(DEC-94). 권한과 목적지는 서버 응답을 따른다.
+function MobileAction({
+  task,
+  busy,
+  onChangeStatus,
+}: Pick<Props, 'task' | 'busy' | 'onChangeStatus'>) {
+  const next = task.next
+  if (!task.actions.includes('task.change_status') || task.status === 'done' || !next) return null
+  return (
+    <Button
+      touch
+      size="sm"
+      variant="outline"
+      className="relative z-10 self-start"
+      busy={busy}
+      onClick={() => onChangeStatus(next)}
+    >
+      {nextLabel(next)}
+    </Button>
+  )
+}
+
+// 카드 전체로 상세를 열어 긴 제목·담당자·부서를 확인할 수 있다. 오른쪽 동작만 카드의 누르는 영역 위에 둔다.
+export function TaskCard({
+  task,
+  color,
+  busy,
+  error,
+  hasResult,
+  mobile,
+  onOpen,
+  onChangeStatus,
+}: Props) {
   const unassigned = task.assignee === null
   const department = task.department?.name ?? COUNCIL_TASK_LABEL
   return (
@@ -87,17 +119,23 @@ export function TaskCard({ task, color, busy, error, hasResult, onOpen, onChange
       <div className="flex items-start gap-2">
         <Button
           variant="link"
-          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm leading-tight font-bold whitespace-normal text-gray-800 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0"
+          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm leading-tight font-bold break-keep whitespace-normal text-gray-800 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 max-sm:min-h-11"
           title={task.title}
           onClick={onOpen}
         >
           <span className="line-clamp-3">{task.title}</span>
         </Button>
-        <StatusMenu task={task} busy={busy} onChangeStatus={onChangeStatus} />
+        {mobile ? (
+          <MobileAction task={task} busy={busy} onChangeStatus={onChangeStatus} />
+        ) : (
+          <StatusMenu task={task} busy={busy} onChangeStatus={onChangeStatus} />
+        )}
       </div>
       <div className="mt-2 mb-3 flex flex-wrap items-center gap-2">
         <Badge className={cn('max-w-full border-transparent', color.chip)} title={department}>
-          <span className="truncate">{department}</span>
+          <span className="truncate break-keep max-sm:line-clamp-2 max-sm:whitespace-normal max-sm:wrap-anywhere">
+            {department}
+          </span>
         </Badge>
         {task.overdue && <Badge tone="danger">지남</Badge>}
         <AssigneeText task={task} />

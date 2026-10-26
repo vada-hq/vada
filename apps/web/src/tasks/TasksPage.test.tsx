@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { TaskSummary } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -16,6 +16,8 @@ function readsOf(api: ReturnType<typeof mockApi>) {
     ).length
 }
 
+// 줄 목록의 동작은 표 배치에서 유지한다. 보드의 휴대폰 상태 탭은 TaskBoard.mobile.test가 검사한다.
+beforeEach(() => window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`))
 afterEach(() => {
   cleanup()
   window.history.replaceState(null, '', '/')

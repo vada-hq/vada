@@ -99,6 +99,7 @@ const press = (key: string, init: KeyboardEventInit = {}) =>
 test('넓은 화면은 표(열 제목 여섯)이고 좁은 화면은 지금의 줄이다. 행사의 업무 탭은 행사 열이 없다', async () => {
   wide(false)
   serve(() => [task('a')])
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`)
   const narrow = render(page())
   fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
   await screen.findByRole('button', { name: '업무 a' })

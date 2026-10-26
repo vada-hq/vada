@@ -8,6 +8,7 @@ import { TASKS_LOAD_FAILED } from '@/lib/messages'
 import { departmentColorOf } from './department-color'
 import { STATUS_LABEL } from './task-view'
 import { TaskCard } from './TaskCard'
+import { TaskStatusTabs, statusCount, type MobileStatus, type StatusColumn } from './TaskStatusTabs'
 import type { useStatusChange } from './useStatusChange'
 import type { TaskList } from './useTasks'
 
@@ -26,12 +27,10 @@ type Props = {
   emptyText: string
   // 빈 상태의 [첫 업무 추가]. 만들 수 없는 사람에게는 없다.
   onAddFirst?: (() => void) | undefined
+  mobile?: MobileStatus | undefined
 }
 
-type Column = { status: TaskStatus; tasks: TaskSummary[]; truncated: boolean }
-
-// 열 머리 수는 그 열에 보이는 카드 수다. 받은 목록이 상한에서 잘렸으면 수 뒤에 '+'다(끝남은 '50+').
-const countText = ({ tasks, truncated }: Column) => `${tasks.length}${truncated ? '+' : ''}`
+type Column = StatusColumn
 
 function BoardColumn({
   column,
@@ -53,7 +52,7 @@ function BoardColumn({
         className="mb-1 flex items-center justify-between gap-2 px-1 text-xs font-bold tracking-wider text-gray-500"
       >
         {STATUS_LABEL[column.status]}
-        <Badge className="rounded-full bg-gray-200 px-1.5 font-bold">{countText(column)}</Badge>
+        <Badge className="rounded-full bg-gray-200 px-1.5 font-bold">{statusCount(column)}</Badge>
       </h2>
       <ul className="flex flex-col gap-3">{column.tasks.map(card)}</ul>
       {footer}
@@ -68,7 +67,7 @@ function BoardEmpty({ onAddFirst }: Pick<Props, 'onAddFirst'>) {
       <Clipboard aria-hidden className="size-8 text-gray-300" />
       <p className="mt-3 text-base font-semibold text-gray-700">업무 없음</p>
       {onAddFirst && (
-        <Button size="sm" className="mt-4" onClick={onAddFirst}>
+        <Button touch size="sm" className="mt-4" onClick={onAddFirst}>
           <Plus aria-hidden />첫 업무 추가
         </Button>
       )}
@@ -83,6 +82,14 @@ function columnsOf(open: TaskSummary[], openTruncated: boolean, done: Column): C
     truncated: openTruncated,
   })
   return [byStatus('todo'), byStatus('in_progress'), done]
+}
+
+function EmptyBoardState({ empty, props }: { empty: boolean; props: Props }) {
+  if (!empty) return null
+  if (props.councilEmpty === true) return <BoardEmpty onAddFirst={props.onAddFirst} />
+  if (props.councilEmpty === false)
+    return <StateMessage kind="empty">{props.emptyText}</StateMessage>
+  return null
 }
 
 // 넓은 화면(lg 이상)의 상태 열 보드(DEC-94): 열 셋(할 일·진행 중·끝남), 열 머리에 수, 카드. '검토 필요' 열은 없다(DEC-39).
@@ -120,29 +127,36 @@ export function TaskBoard(props: Props) {
       error={change.errors[task.id]}
       onOpen={() => props.onOpenTask(task.id)}
       onChangeStatus={status => void change.change(task.id, status)}
+      mobile={props.mobile !== undefined}
     />
   )
   const doneFooter = finished.truncated && (
-    <Button variant="ghost" size="sm" className="self-center" onClick={props.onShowDoneTable}>
+    <Button touch variant="ghost" size="sm" className="self-center" onClick={props.onShowDoneTable}>
       표로 보기
     </Button>
   )
   return (
     <div className="flex flex-col gap-4">
-      {empty && props.councilEmpty === true && <BoardEmpty onAddFirst={props.onAddFirst} />}
-      {empty && props.councilEmpty === false && (
-        <StateMessage kind="empty">{props.emptyText}</StateMessage>
+      <EmptyBoardState empty={empty} props={props} />
+      {props.mobile ? (
+        <TaskStatusTabs
+          columns={columns}
+          mobile={props.mobile}
+          card={card}
+          doneFooter={doneFooter}
+        />
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {columns.map(column => (
+            <BoardColumn
+              key={column.status}
+              column={column}
+              card={card}
+              footer={column.status === 'done' ? doneFooter : undefined}
+            />
+          ))}
+        </div>
       )}
-      <div className="grid grid-cols-3 gap-4">
-        {columns.map(column => (
-          <BoardColumn
-            key={column.status}
-            column={column}
-            card={card}
-            footer={column.status === 'done' ? doneFooter : undefined}
-          />
-        ))}
-      </div>
     </div>
   )
 }

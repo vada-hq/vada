@@ -11,7 +11,7 @@ type Args = {
   councilId: string
   eventId: string | undefined
   view: TaskView
-  // 넓은 화면의 보드일 때만 센다.
+  // 상태 열과 휴대폰 상태 탭 모두 보드일 때만 센다.
   board: boolean
   // 부서로 좁히기 전 목록과 좁힌(보이는) 목록
   raw: TaskList[]

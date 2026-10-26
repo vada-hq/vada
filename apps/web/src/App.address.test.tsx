@@ -51,6 +51,13 @@ beforeEach(() => {
     api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
       json({ tasks: [], truncated: false }),
     )
+    for (const view of ['mine', 'all'])
+      api.on('GET', `/api/organizations/${id}/tasks?view=${view}&status=done`, () =>
+        json({ tasks: [], truncated: false }),
+      )
+    api.on('GET', `/api/organizations/${id}/tasks?view=all&status=open`, () =>
+      json({ tasks: [], truncated: false }),
+    )
     api.on('GET', `/api/organizations/${id}/tasks/${T1}`, () =>
       json({ task: taskDetail({ title: '현수막 주문' }) }),
     )

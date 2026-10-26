@@ -12,6 +12,7 @@ import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { groupByDepartment } from '@/tasks/task-groups'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
+export { TaskMobileBoardSection } from './TaskMobileBoardSection'
 
 const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
   id,

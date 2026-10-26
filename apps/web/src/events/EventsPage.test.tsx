@@ -76,6 +76,12 @@ function setup(options: { permissions?: string[]; at?: string } = {}) {
   )
   // 개요가 같이 읽는 세 탭의 요약. 시험마다 바꿔 끼운다.
   api.on('GET', OPEN_TASKS, () => json({ tasks: [], truncated: false }))
+  for (const view of ['all', 'unassigned'])
+    api.on(
+      'GET',
+      `/api/organizations/${COUNCIL_ID}/tasks?view=${view}&status=done&event=${EVENT_ID}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${BASE}/${EVENT_ID}/registration-forms`, () =>
     json({ forms: [], truncated: false, actions: [] }),
   )

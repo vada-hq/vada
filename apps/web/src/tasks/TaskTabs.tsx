@@ -42,6 +42,7 @@ function LayoutSwitch({ value, onChange }: NonNullable<Props['layout']>) {
     <div role="group" aria-label="보기 모양" className="flex rounded-md border p-0.5">
       {LAYOUTS.map(({ layout, label, Icon }) => (
         <Button
+          touch
           key={layout}
           size="sm"
           variant={value === layout ? 'secondary' : 'ghost'}
@@ -81,6 +82,7 @@ export function TaskTabs(props: Props) {
       <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
         {narrow && (
           <Button
+            touch
             size="sm"
             variant="outline"
             className="h-auto max-w-full text-left wrap-anywhere whitespace-normal"

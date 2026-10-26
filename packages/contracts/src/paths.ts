@@ -1,7 +1,7 @@
 import { HOME_VIEWS } from './home.js'
 import { isUuid } from './input.js'
 import { PURCHASE_VIEWS } from './purchases.js'
-import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
+import { TASK_FILTERS, TASK_STATUSES, TASK_VIEWS, type TaskView } from './tasks.js'
 
 // 화면 주소의 원문(기능 016). 서버 진입 목록(web.ts), 알림 주소(push.ts), 화면 해석기가 모두 이것만 쓴다.
 // 주소는 볼 권한을 주지 않는다. 학생회 격리는 서버의 읽기가 요청마다 지킨다.
@@ -66,6 +66,7 @@ const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): Query
   view: { values: TASK_VIEWS, fallback: startView, onlyWith },
   filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
   layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
+  status: { values: TASK_STATUSES, fallback: 'todo', onlyWith },
   dept: { values: 'uuid', fallback: null, onlyWith },
 })
 

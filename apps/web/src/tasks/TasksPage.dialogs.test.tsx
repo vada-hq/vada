@@ -49,6 +49,7 @@ function Page(props: Parameters<typeof TasksPage>[0]) {
 function setup() {
   const api = mockApi()
   api.on('GET', LIST, () => json({ tasks: [summary], truncated: false }))
+  api.on('GET', `${BASE}?view=mine&status=done`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${BASE}/${T1}`, () => json({ task: taskDetail({ id: T1 }) }))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', `${BASE}/options`, () =>

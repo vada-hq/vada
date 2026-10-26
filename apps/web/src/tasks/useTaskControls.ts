@@ -1,6 +1,7 @@
 import {
   TASK_FILTERS,
   TASK_LAYOUTS,
+  TASK_STATUSES,
   TASK_VIEWS,
   type TaskFilter,
   type TaskLayout,
@@ -28,6 +29,8 @@ export function useTaskControls(
     view: pick(TASK_VIEWS, query['view'], startView),
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),
     layout: pick<TaskLayout>(TASK_LAYOUTS, query['layout'], 'board'),
+    status: pick(TASK_STATUSES, query['status'], 'todo'),
+    setStatus: (status: (typeof TASK_STATUSES)[number]) => url.set({ status }),
     dept: query['dept'] ?? null,
     // 보기를 바꾸면 그 보기에서 고른 부서 거르기는 풀린다.
     setView: (view: TaskView) => url.set({ view, dept: null }),

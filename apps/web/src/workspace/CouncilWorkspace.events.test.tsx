@@ -31,11 +31,14 @@ const eventTask: TaskSummary = {
 }
 
 function open(startPage: Page = 'chat', tasks: TaskSummary[] = []) {
+  if (startPage === 'tasks')
+    window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`)
   const api = mockApi()
   api.on('GET', base, () => json(councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks, truncated: false }))
+  api.on('GET', `${base}/tasks?view=mine&status=done`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))

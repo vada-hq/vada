@@ -73,6 +73,7 @@ function setup(startPage: Page, home: HomeResponse = homeWithTasks([homeTask(T1,
       truncated: false,
     }),
   )
+  api.on('GET', list('department', 'done'), () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/tasks/${T1}`, () =>
     json({
       task: taskDetail({
@@ -120,12 +121,14 @@ test('보기 탭을 누르면 주소의 쿼리가 바뀌고 기록은 쌓이지 
 })
 
 test('거르기와 배치도 주소에 남고 기본값은 남지 않는다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all`)
+  startAt(`/tasks/${COUNCIL_ID}?view=all&layout=list`)
   expect(await selected('전체')).toBe('true')
   fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&filter=done`))
+  await waitFor(() =>
+    expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&filter=done&layout=list`),
+  )
   fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&layout=list`))
   fireEvent.click(screen.getByRole('button', { name: '달력' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&layout=calendar`))
   fireEvent.click(screen.getByRole('button', { name: '표' }))
@@ -149,7 +152,7 @@ test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아�
 })
 
 test('새로 고침하면 주소의 보기·거르기가 그대로 열린다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all&filter=done`)
+  startAt(`/tasks/${COUNCIL_ID}?view=all&filter=done&layout=list`)
   expect(await selected('전체')).toBe('true')
   await waitFor(() => expect(readsOf(list('all', 'done'))).toBeGreaterThan(0))
   expect(screen.getByRole('button', { name: '끝남' }).getAttribute('aria-pressed')).toBe('true')

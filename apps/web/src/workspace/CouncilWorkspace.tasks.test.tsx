@@ -37,6 +37,7 @@ function open(tasks: () => { tasks: TaskSummary[]; truncated: boolean }, startPa
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', mine, () => json(tasks()))
+  api.on('GET', `${base}/tasks?view=mine&status=done`, () => json({ tasks: [], truncated: false }))
   render(<WorkspaceAt startPage={startPage} />)
   return api
 }

@@ -103,6 +103,30 @@ test('행사 업무 탭의 보기와 거르기는 업무 메뉴와 같은 키로
   assert.equal(menuPath('tasks', C, { view: 'all' }), `/tasks/${C}?view=all`)
 })
 
+test('휴대폰 업무 상태는 세 값만 읽고 기본은 할 일이며 업무 탭에서만 남는다', () => {
+  for (const status of ['in_progress', 'done']) {
+    const path = menuPath('tasks', C, { status })
+    assert.equal(path, `/tasks/${C}?status=${status}`)
+    assert.equal(parseAppPath(path)?.query['status'], status)
+    assert.equal(
+      menuPath('council', C, { tab: 'tasks', status }),
+      `/council/${C}?tab=tasks&status=${status}`,
+    )
+    const event = appPath({
+      type: 'record',
+      record: 'events',
+      councilId: C,
+      recordId: R,
+      query: { tab: 'tasks', status },
+    })
+    assert.equal(parseAppPath(event)?.query['status'], status)
+  }
+  for (const status of ['todo', 'unknown'])
+    assert.deepEqual(parseAppPath(`/tasks/${C}?status=${status}`)?.query, {})
+  assert.equal(menuPath('council', C, { status: 'done' }), `/council/${C}`)
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=money&status=done`)?.query, { tab: 'money' })
+})
+
 test('홈의 재정 보기는 view=finance이고 기본(운영 보기)은 주소에 없다', () => {
   assert.equal(menuPath('home', C, { view: 'finance' }), `/home/${C}?view=finance`)
   assert.equal(menuPath('home', C), `/home/${C}`)

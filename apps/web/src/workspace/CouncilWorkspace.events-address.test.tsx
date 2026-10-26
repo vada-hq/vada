@@ -62,6 +62,9 @@ function setup(path: string, detail: () => Response = () => json({ event: eventD
   )
   const open = () => json({ tasks: [eventTask], truncated: false })
   api.on('GET', `${base}/tasks?view=all&status=open&event=${EVENT_ID}`, open)
+  api.on('GET', `${base}/tasks?view=all&status=done&event=${EVENT_ID}`, () =>
+    json({ tasks: [], truncated: false }),
+  )
   api.on('GET', `${base}/tasks?view=mine&status=open`, open)
   api.on('GET', `${base}/tasks?view=mine&status=done`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/tasks/${T1}`, () =>
@@ -135,14 +138,14 @@ test('행사 목록에서 연 행사는 행사 주소로 한 칸 쌓이고, 뒤�
 })
 
 test('업무에서 연 행사의 뒤로는 업무이고 들어온 곳의 이름이 붙는다', async () => {
-  setup(`/tasks/${COUNCIL_ID}`)
+  setup(`/tasks/${COUNCIL_ID}?layout=list`)
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   await selected('개요')
   expect(pathNow()).toBe(EVENT_AT)
   expect(screen.queryByRole('button', { name: '행사 목록' })).toBeNull()
   // 뒤로 단추는 본문에 있다. 옆 메뉴의 '업무' 칸도 같은 이름이라 본문 안에서 찾는다.
   fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: '업무' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
   expect(await screen.findByRole('button', { name: '현수막 주문' })).toBeTruthy()
 })
 
@@ -271,25 +274,28 @@ function onEventTasks() {
   api.on('GET', `${base}/tasks?view=unassigned&status=open&event=${EVENT_ID}`, () =>
     json({ tasks: [unassigned], truncated: false }),
   )
+  api.on('GET', `${base}/tasks?view=unassigned&status=done&event=${EVENT_ID}`, () =>
+    json({ tasks: [], truncated: false }),
+  )
 }
 const pressed = (name: string) =>
   screen.findByRole('button', { name }).then(button => button.getAttribute('aria-pressed'))
 
 test('행사 업무 탭에서 고른 끝남은 주소에 남아 새로 고침해도 끝남이고, 기본값을 고르면 주소에서 빠진다', async () => {
-  const view = setup(`${EVENT_AT}?tab=tasks`)
+  const view = setup(`${EVENT_AT}?tab=tasks&layout=list`)
   onEventTasks()
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done&layout=list`))
   expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
   expect(push).not.toHaveBeenCalled()
   view.unmount()
-  setup(`${EVENT_AT}?tab=tasks&filter=done`)
+  setup(`${EVENT_AT}?tab=tasks&filter=done&layout=list`)
   onEventTasks()
   expect(await pressed('끝남')).toBe('true')
   expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&layout=list`))
   expect(await pressed('끝나지 않은 것')).toBe('true')
 })
 
@@ -298,8 +304,9 @@ test('행사 업무 탭에서 보기를 바꿔도 뒤로는 행사에 들어오�
   onEventTasks()
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
+  fireEvent.click(await screen.findByRole('button', { name: '표' }))
   fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done&layout=list`))
   act(() => window.history.back())
   await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}`))
   expect(await screen.findByRole('button', { name: '둘째 행사' })).toBeTruthy()
@@ -332,7 +339,9 @@ test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에
   await waitFor(() => expect(pathNow()).toBe(EVENT_AT))
   fireEvent.click(screen.getByRole('tab', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
-  expect(await pressed('끝나지 않은 것')).toBe('true')
+  expect((await screen.findByRole('tab', { name: /^할 일 / })).getAttribute('aria-selected')).toBe(
+    'true',
+  )
   expect(screen.queryByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeNull()
 })
 

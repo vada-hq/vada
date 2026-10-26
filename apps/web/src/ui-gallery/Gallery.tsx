@@ -39,6 +39,7 @@ import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
   TaskBoardSection,
+  TaskMobileBoardSection,
   TaskQuickAddSection,
   TaskResultsSection,
   TaskSection,
@@ -91,6 +92,7 @@ export const gallerySections = [
   TaskSection,
   TaskTableSection,
   TaskBoardSection,
+  TaskMobileBoardSection,
   TaskQuickAddSection,
   TaskUndoBarSection,
   TaskResultsSection,

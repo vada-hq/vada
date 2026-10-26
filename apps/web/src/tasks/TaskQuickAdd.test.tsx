@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { TaskCreateOptionsResponse, TaskSummary } from '@vada/contracts'
 import { PERMISSION_CHANGED, TASK_ERRORS } from '@/lib/messages'
@@ -10,6 +10,7 @@ import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
 
+beforeEach(() => window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`))
 afterEach(() => {
   cleanup()
   window.history.replaceState(null, '', '/')
