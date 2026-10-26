@@ -1,27 +1,15 @@
-import type { Closing } from '@vada/contracts'
+import type { FinanceOverviewExpense } from '@vada/contracts'
 
 const PERCENT = 100
+// 맨 위 집행률은 소수 한 자리(와이어프레임 FIN-00 '41.3%'), 행사 줄은 정수다.
+const TENTHS = 10
 
-const sum = (lines: { budget: number }[]) => lines.reduce((total, line) => total + line.budget, 0)
-
-// 집행률(%): 쓴 돈 ÷ 예산, 반올림. 예산이 0이면 없다(결산서 줄의 rate와 같은 규칙).
+// 집행률(%): 쓴 돈 ÷ 예산. 예산이 0 이하면 없다.
 export const rateOf = (spent: number, budget: number) =>
-  budget > 0 ? Math.round((spent * PERCENT) / budget) : null
+  budget > 0 ? Math.round((spent * PERCENT * TENTHS) / budget) / TENTHS : null
 
-// 재정 개요의 수. 총예산은 재원(수입 예산 항목)의 합이다(와이어프레임 FIN-00 '총예산은 재원의 합').
-// 남은 예산과 집행률은 지출 예산 항목의 합과 이 기간 지출 전체(항목 없는 지출 포함)로 셈한다.
-export function overviewOf(closing: Closing) {
-  const expenseBudget = sum(closing.expense.items)
-  const spent = closing.expense.total
-  return {
-    total: sum(closing.income.items),
-    sources: closing.income.items.map(item => item.purpose),
-    expenseBudget,
-    spent,
-    left: expenseBudget - spent,
-    rate: rateOf(spent, expenseBudget),
-  }
-}
+export const wholeRateOf = (spent: number, budget: number) =>
+  budget > 0 ? Math.round((spent * PERCENT) / budget) : null
 
 // '학생회비 외 1건'
 export function sourcesLabel(sources: string[]) {
@@ -29,3 +17,6 @@ export function sourcesLabel(sources: string[]) {
   if (first === undefined) return null
   return rest.length === 0 ? first : `${first} 외 ${rest.length}건`
 }
+
+// 최근 지출의 '행사 또는 사용처' 칸: 행사가 있으면 행사, 없으면 사용처(와이어프레임 FIN-00 열 이름).
+export const placeOf = (expense: FinanceOverviewExpense) => expense.event?.name ?? expense.vendor

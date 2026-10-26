@@ -1,4 +1,4 @@
-import { and, eq, sql, type SQL } from 'drizzle-orm'
+import { and, eq, isNull, sql, type SQL } from 'drizzle-orm'
 import { alias, type AnyPgColumn } from 'drizzle-orm/pg-core'
 import type { BudgetItemType, BudgetItemUsage } from '@vada/contracts'
 import {
@@ -26,7 +26,7 @@ const SPEND_RECORD = 'usage_spend_record'
 const lineRecord = alias(record, LINE_RECORD)
 const spendRecord = alias(record, SPEND_RECORD)
 
-// 이 학생회의 취소하지 않은 지출에 든 그 품목의 결제 내역 합
+// 이 학생회의 취소하지 않은 지출에 든 그 품목의 결제 내역 합. 재정 첫 화면의 지출 예정 품목 수도 이것으로 남은 금액을 본다.
 const paidFor = (line: AnyPgColumn, councilId: string) =>
   sql`(select coalesce(sum(${paymentLine.amount}), 0) from ${paymentLine}
     join ${expense} on ${expense.id} = ${paymentLine.expenseId}
@@ -53,16 +53,22 @@ const actualSql = (councilId: string) =>
       and ${spendRecord.councilId} = ${councilId})
   end)`.mapWith(Number)
 
-// 약정: 취소하지 않은 요청에서 마지막 결재가 승인인 품목마다 max(승인 금액 − 결제 내역 합, 0)의 합. 결제가 승인 금액을 넘어도 음수가 되지 않는다.
+// 약정 금액과 개요의 예정 건수가 같은 품목을 세도록 조건을 함께 쓴다. 요청과 품목의 record를 연결한 질의에서 쓴다.
+export const committedLine = (councilId: string) =>
+  and(
+    isNull(request.cancelledAt),
+    sql`${lastOutcomeOf(lineItem.id)} = 'approved'`,
+    sql`coalesce(${lineItem.amount}, 0) > ${paidFor(lineItem.id, councilId)}`,
+  )
+
+// 약정: 남은 승인 금액이 양수인 품목만 더해 초과 결제해도 음수가 되지 않는다.
 const committedSql = (councilId: string) =>
   sql<number>`(select coalesce(sum(greatest(coalesce(${lineItem.amount}, 0) - ${paidFor(lineItem.id, councilId)}, 0)), 0)
     from ${lineItem}
       join ${record} ${sql.identifier(LINE_RECORD)} on ${lineRecord.id} = ${lineItem.id}
       join ${request} on ${request.id} = ${lineItem.requestId}
     where ${lineItem.budgetItemId} = ${budgetItem.id} and ${lineRecord.councilId} = ${councilId}
-      and ${request.cancelledAt} is null and ${lastOutcomeOf(lineItem.id)} = 'approved')`.mapWith(
-    Number,
-  )
+      and ${committedLine(councilId)})`.mapWith(Number)
 
 // 수입 항목에는 약정과 사용 가능이 없다(결재와 지출에서 고를 수 없다, DEC-45).
 function usageOf(
