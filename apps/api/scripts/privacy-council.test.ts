@@ -327,6 +327,17 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
     ])
   const eventId = await ofKind('event')
   const messageId = await ofKind('message')
+  // 배송(024 조각 2): 그 학생회 요청과 품목에 송장 하나를 둔다.
+  const shipmentId = await raw('shipment', {
+    council_id: councilId,
+    request_id: await ofKind('request'),
+    carrier_id: 'kr.cjlogistics',
+    tracking_number: '123456789',
+  })
+  await pg.query(
+    'INSERT INTO shipment_item (shipment_id, line_item_id, council_id) VALUES ($1, $2, $3)',
+    [shipmentId, await ofKind('line_item'), councilId],
+  )
   await raw('audit_body', { council_id: councilId, name: '감사위원회' })
   await raw('voting_body', { council_id: councilId, name: '대의원회' })
   const meeting = await raw('meeting', { title: '회의', held_at: new Date(), event_id: eventId })
