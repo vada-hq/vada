@@ -296,4 +296,5 @@ export * from './profile.js'
 // 쿠팡 상품 정보 불러오기(기능 022).
 export * from './product-info.js'
 export * from './coupang-url.js'
+export { bodyParts } from './message-links.js'
 export * from './shipments.js'
