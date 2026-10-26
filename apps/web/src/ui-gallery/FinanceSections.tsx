@@ -126,8 +126,8 @@ export function DecisionSection() {
       errors: tried,
     },
     {
-      item: lineItem('미검토'),
-      values: emptyRow(),
+      item: { ...lineItem('미검토'), estimatedUnitPrice: 100, estimatedShippingFee: null },
+      values: emptyRow({ quantity: 3, estimatedUnitPrice: 100, estimatedShippingFee: null }),
       chosen: '',
       errors: { choice: '승인이나 반려를 골라 주세요' },
     },

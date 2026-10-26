@@ -213,7 +213,7 @@ test(
 )
 
 test(
-  '근거 메시지: 요청과 지출이 같은 거래에서 evidence_link 한 줄을 남기고, 주지 않으면 없으며, 응답에 싣지 않는다',
+  '근거 메시지: 요청과 지출이 evidence_link를 남기고, 요청 상세는 접근 가능한 원문의 참조만 싣는다',
   runPurchases(async s => {
     const chat = await withChat(s)
     const messageId = await chat.say(
@@ -230,8 +230,11 @@ test(
       sourceMessageId: messageId,
     })
     assert.equal(response.status, 201)
-    assert.ok(!(await response.clone().text()).includes(messageId))
     const request = await detailOf(response)
+    assert.deepEqual(request.sourceMessage, {
+      id: messageId,
+      roomId: await chat.roomId(s.council.councilId, 'all'),
+    })
     const saved = await detailOf(await s.api.get(`${s.base}/${request.id}`, FINANCE))
     assert.equal(saved.items[0]!.name, '고쳐 적은 네임펜')
     assert.equal(saved.items[0]!.link, 'https://www.coupang.com/vp/products/7334523')

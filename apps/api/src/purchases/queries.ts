@@ -38,8 +38,11 @@ import {
   requestStatusOf,
 } from './policy.js'
 import { displayNameOf, joinedDisplayNameOf, recordCouncilSql } from '../team/display-name.js'
+import { estimateColumns } from './estimate.js'
+import { purchaseSourceMessage } from './source-message.js'
 
 type Reader = Pick<Db, 'select'>
+const BODY_PREVIEW_MAX = 100
 
 // 요청 줄과 품목·결재 수. 학생회 경계는 기록의 학생회 번호로 건다. 기본 키로 묶어 다른 표의 칸은 그 기본 키에 딸린 값이다.
 function summaryRows(
@@ -60,6 +63,7 @@ function summaryRows(
       requesterName: joinedDisplayNameOf(member, record.councilId),
       createdAt: record.createdAt,
       ...itemCountColumns(),
+      ...estimateColumns(),
     })
     .from(request)
     .innerJoin(record, eq(record.id, request.id))
@@ -87,6 +91,13 @@ function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
     createdAt: row.createdAt.toISOString(),
     event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
     payable,
+    estimate: { subtotal: row.estimatedSubtotal, total: row.estimatedTotal },
+    bodyPreview:
+      row.body
+        ?.split(/\r?\n/u)
+        .map(line => line.trim())
+        .find(Boolean)
+        ?.slice(0, BODY_PREVIEW_MAX) ?? null,
   }
 }
 
@@ -141,14 +152,16 @@ export async function requestRowOf(db: Reader, actor: Actor, requestId: string) 
 // 취소되지 않은 결제 내역이 있는 품목은 '결제함'이다(DEC-24).
 export const isPaid = sql<boolean>`exists (select 1 from ${paymentLine} inner join ${expense} on ${expense.id} = ${paymentLine.expenseId} where ${paymentLine.lineItemId} = ${lineItem.id} and ${expense.cancelledAt} is null)`
 
-async function itemsOf(db: Reader, actor: Actor, row: Row) {
-  const rows = await db
+const itemRows = (db: Reader, requestId: string) =>
+  db
     .select({
       id: lineItem.id,
       name: lineItem.name,
       quantity: lineItem.quantity,
       link: lineItem.link,
       options: lineItem.options,
+      estimatedUnitPrice: lineItem.estimatedUnitPrice,
+      estimatedShippingFee: lineItem.estimatedShippingFee,
       amount: lineItem.amount,
       budgetItemId: lineItem.budgetItemId,
       purpose: budgetItem.purpose,
@@ -159,8 +172,11 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
     .from(lineItem)
     .innerJoin(record, eq(record.id, lineItem.id))
     .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
-    .where(eq(lineItem.requestId, row.id))
+    .where(eq(lineItem.requestId, requestId))
     .orderBy(asc(record.createdAt), asc(lineItem.id))
+
+async function itemsOf(db: Reader, actor: Actor, row: Row) {
+  const rows = await itemRows(db, row.id)
   // 쓰기와 같은 판정(decideLineItem)으로 품목 동작을 준다.
   const completed = await completedEventIdsAmong(db, [
     ...new Set([row.eventId, ...rows.map(item => item.budgetEventId)].filter(id => id !== null)),
@@ -182,6 +198,9 @@ async function itemsOf(db: Reader, actor: Actor, row: Row) {
       quantity: item.quantity,
       link: item.link,
       options: item.options,
+      estimatedUnitPrice: item.estimatedUnitPrice === null ? null : Number(item.estimatedUnitPrice),
+      estimatedShippingFee:
+        item.estimatedShippingFee === null ? null : Number(item.estimatedShippingFee),
       amount: item.amount === null ? null : Number(item.amount),
       budgetItem:
         item.budgetItemId && item.purpose ? { id: item.budgetItemId, purpose: item.purpose } : null,
@@ -263,6 +282,7 @@ export async function requestDetailOf(
       items.some(item => item.payable),
     ),
     body: row.body,
+    sourceMessage: await purchaseSourceMessage(db, actor, requestId),
     items,
     decisions,
     expenses: await expensesOf(db, requestId),

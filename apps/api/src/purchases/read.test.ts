@@ -52,6 +52,8 @@ test(
         itemCount: 1,
         event: null,
         payable: false,
+        estimate: { subtotal: null, total: null },
+        bodyPreview: null,
         createdAt: undefined,
       },
     )
