@@ -8,7 +8,7 @@ import {
 } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
-import { openMenu, openRecord } from '@/lib/go-to'
+import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
 import type { RoomListState } from '../chat/useRoomList'
 import { myTasksLabel, remainingTidyLabel } from './council-view'
@@ -87,7 +87,7 @@ export default function FinanceHome({ home, board, councilId, name, rooms, pushB
             <MessageInbox
               inCard
               rooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
-              onOpenRoom={id => openRecord('chat', councilId, id)}
+              onOpenRoom={(id, eventId) => openMessageRoom(councilId, id, eventId)}
               onSeeAll={() => openMenu('chat', councilId)}
             />
           }

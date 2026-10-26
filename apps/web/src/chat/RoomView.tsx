@@ -12,13 +12,14 @@ import {
   SEND_ERRORS,
 } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
-import { roomName } from './chat-view'
+import { ARCHIVED_LABEL, roomName } from './chat-view'
+import { ProductOpenContext, useEventProductOpener } from './product-open'
 import Composer from './Composer'
 import MessageItem from './MessageItem'
 import { firstUnreadId, flowOf, type FlowItem } from './message-flow'
 import { useMessageFlows } from './MessageFlows'
 import type { RequestAccess } from './RequestFlowView'
-import type { RoomList } from './useRoomList'
+import type { RoomSource } from './useRoomList'
 import type { MessageActionSet } from './useMessageActions'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
@@ -28,7 +29,8 @@ type Props = {
   councilId: string
   roomId: string
   meId: string
-  rooms: RoomList
+  rooms: RoomSource
+  bare?: boolean | undefined
   // 메시지에서 구매 요청 만들기: 권한(`purchase.request`, 대신 내기 `finance.manage`)은 받은 값 그대로다.
   request: RequestAccess
   // 메시지에서 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
@@ -221,9 +223,18 @@ function Bottom({
   meId,
   room,
   rooms,
-}: Pick<Props, 'councilId' | 'roomId' | 'meId' | 'rooms'> & { state: Ready; room: Room }) {
-  if (state.room.readOnly)
-    return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
+  readOnly,
+}: Pick<Props, 'councilId' | 'roomId' | 'meId' | 'rooms'> & {
+  state: Ready
+  room: Room
+  readOnly: boolean
+}) {
+  if (readOnly)
+    return (
+      <StateMessage kind="notice">
+        {state.room.eventId ? ARCHIVED_LABEL : SEND_ERRORS.ROOM_READ_ONLY}
+      </StateMessage>
+    )
   return (
     <div className="shrink-0 bg-white">
       <Composer
@@ -242,7 +253,7 @@ function Bottom({
 }
 
 // 방을 열 때의 안 읽은 수
-const unreadOf = (rooms: RoomList, roomId: string) =>
+const unreadOf = (rooms: RoomSource, roomId: string) =>
   rooms.state.kind === 'ready'
     ? (rooms.state.data.rooms.find(item => item.id === roomId)?.unread ?? 0)
     : 0
@@ -255,13 +266,16 @@ export default function RoomView({
   rooms,
   request,
   canWriteExpense,
+  bare = false,
   onBack,
   onForbidden,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
   const [unreadAtOpen] = useState(() => unreadOf(rooms, roomId))
-  const flows = useMessageFlows({ councilId, meId, request, canWriteExpense, onForbidden })
+  const eventId = state.kind === 'ready' ? (state.room.eventId ?? null) : null
+  const openProduct = useEventProductOpener(eventId)
+  const flows = useMessageFlows({ councilId, meId, request, canWriteExpense, eventId, onForbidden })
   useReadMarker({ councilId, roomId }, state, {
     onRead: () => void rooms.reload(),
     onLost: room.lose,
@@ -269,19 +283,24 @@ export default function RoomView({
 
   if (state.kind !== 'ready')
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
+  const listedRoom =
+    rooms.state.kind === 'ready' ? rooms.state.data.rooms.find(item => item.id === roomId) : null
+  const readOnly = state.room.readOnly || !!listedRoom?.readOnly
   return (
     <PageColumn className="h-full gap-3">
-      <Title name={roomName(state.room)} readOnly={state.room.readOnly} onBack={onBack} />
+      {!bare && <Title name={roomName(state.room)} readOnly={readOnly} onBack={onBack} />}
       {flows.views}
-      <Messages
-        councilId={councilId}
-        meId={meId}
-        state={state}
-        room={room}
-        unread={unreadAtOpen}
-        menu={flows.menu}
-      />
-      <Bottom {...{ state, councilId, roomId, meId, room, rooms }} />
+      <ProductOpenContext value={openProduct}>
+        <Messages
+          councilId={councilId}
+          meId={meId}
+          state={state}
+          room={room}
+          unread={unreadAtOpen}
+          menu={flows.menu}
+        />
+      </ProductOpenContext>
+      <Bottom {...{ state, councilId, roomId, meId, room, rooms, readOnly }} />
     </PageColumn>
   )
 }

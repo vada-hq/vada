@@ -10,7 +10,7 @@ type Props = {
   rooms: RoomSummary[]
   // 인사 카드 안(인사 h2 아래)이면 제목을 h3으로 둔다.
   inCard?: boolean
-  onOpenRoom: (roomId: string) => void
+  onOpenRoom: (roomId: string, eventId?: string | null) => void
   // 대화 방 목록으로 간다.
   onSeeAll: () => void
 }
@@ -45,7 +45,7 @@ export default function MessageInbox({ rooms, inCard = false, onOpenRoom, onSeeA
           size="sm"
           className={cn(chipClass, isPersonalRoom(room) && PERSONAL_CHIP)}
           aria-label={`${chipName(room)}, 안 읽은 메시지 ${room.unread}개`}
-          onClick={() => onOpenRoom(room.id)}
+          onClick={() => onOpenRoom(room.id, room.eventId)}
         >
           {chipName(room)}{' '}
           <span className="font-bold text-red-600">{unreadLabel(room.unread)}</span>

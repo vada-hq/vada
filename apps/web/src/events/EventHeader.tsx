@@ -32,6 +32,8 @@ type Props = EventDialogHandlers & {
   tabs: ReactNode
   // 열린 탭의 이름. 머리글 경로 줄의 끝 칸이다(DEC-96).
   tabLabel: string
+  // 요약 줄 대신 둘 줄. 메시지 탭은 요약 줄 대신 방 전환이다(022 정한 것 28). 없으면(undefined) 요약 줄이다.
+  bar?: ReactNode
 }
 
 // 이름 줄: 이름, '⋯' 이력, 완료 사유(DEC-80). 와이어프레임의 [행사 설정]은 요약 줄의 [기본정보 수정]과 같은 곳으로 가서 두지 않는다.
@@ -90,6 +92,7 @@ export function EventHeader({
   onStale,
   tabs,
   tabLabel,
+  bar,
   ...handlers
 }: Props) {
   const canEdit = event?.actions.includes('event.update') ?? false
@@ -106,22 +109,24 @@ export function EventHeader({
       {event && <EventTitle event={event} tabLabel={tabLabel} />}
       <div className="flex flex-col">
         {tabs}
-        {event && (
-          <EventStatusBar
-            event={event}
-            actions={
-              <BarActions
-                councilId={councilId}
+        {bar !== undefined
+          ? bar
+          : event && (
+              <EventStatusBar
                 event={event}
-                canEdit={canEdit}
-                onEdit={() => setEditing({ focus: undefined })}
-                onChanged={onChanged}
-                onStale={onStale}
-                {...handlers}
+                actions={
+                  <BarActions
+                    councilId={councilId}
+                    event={event}
+                    canEdit={canEdit}
+                    onEdit={() => setEditing({ focus: undefined })}
+                    onChanged={onChanged}
+                    onStale={onStale}
+                    {...handlers}
+                  />
+                }
               />
-            }
-          />
-        )}
+            )}
       </div>
       {event && editing && (
         <EventEditDialog

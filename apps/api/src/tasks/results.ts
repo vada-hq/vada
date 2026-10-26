@@ -1,6 +1,7 @@
 import { asc, eq, sql } from 'drizzle-orm'
 import type { TaskResult, TaskResultKind } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { isArchivedEvent } from '../chat/archive.js'
 import { visibleMessage } from '../chat/messages.js'
 import { can } from '../access/permissions.js'
 import {
@@ -60,7 +61,7 @@ export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promi
 
 // 이 업무에서 만들 수 있는 결과물 종류. 업무를 이을 수 있고(canLinkResult를 부르는 쪽이 넘긴다) 그 결과물을 만들 권한이 있을 때다.
 // 요청 purchase.request, 양식은 업무의 행사에 만들 수 있을 때(행사 책임자·담당 부서·회장단이고 완료 전, 그 행사에 만든다),
-// 공지는 모든 운영진(공지방에 누구나 보낸다, DEC-90), 행사 event.create다. 만든 행사를 업무의 행사로 바꾸지 않는다(권한 맥락이 바뀐다).
+// 공지는 모든 운영진(공지방에 누구나 보낸다, DEC-90)이고 업무의 행사가 완료됐으면 없다(그 행사 공지방이 보관, 보내기와 같은 규칙), 행사 event.create다. 만든 행사를 업무의 행사로 바꾸지 않는다(권한 맥락이 바뀐다).
 export async function canMakeOf(
   db: Reader,
   actor: Actor,
@@ -71,7 +72,7 @@ export async function canMakeOf(
   if (can(actor, 'purchase.request')) kinds.push('request')
   if (task.eventId && (await canMakeForm(db, actor, task.eventId, task.eventOwnerId)))
     kinds.push('registration_form')
-  kinds.push('message')
+  if (!(await isArchivedEvent(db, task.eventId))) kinds.push('message')
   if (can(actor, 'event.create')) kinds.push('event')
   return kinds
 }

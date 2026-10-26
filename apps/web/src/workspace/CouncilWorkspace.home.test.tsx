@@ -37,6 +37,7 @@ function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   api.on('GET', `${base}/purchase-requests/${R1}`, () => json({ request: purchaseDetail(R1) }))
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', `${base}/events/${EVENT_ID}/rooms`, () => json({ rooms: [], archived: false }))
   api.on('GET', `${base}/tasks?view=mine&status=open`, () =>
     json({ tasks: [homeTask(T1, 'overdue')], truncated: false }),
   )
@@ -110,10 +111,11 @@ test('끝난 행사 카드를 누르면 행사 화면이 재정 탭으로 열린
   expect(await tabSelected('재정')).toBe('true')
 })
 
-test('정산 수가 없는 행사 카드는 개요로 열린다', async () => {
+// 행사의 기본 탭은 메시지다(DEC-90, 022 정한 것 28). 홈 카드는 탭을 정하지 않고 연다.
+test('정산 수가 없는 행사 카드는 메시지 탭으로 열린다', async () => {
   open(homeResponse({ council: councilOf([card()]) }))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
-  expect(await tabSelected('개요')).toBe('true')
+  expect(await tabSelected('메시지')).toBe('true')
 })
 
 test('정산할 행사 줄을 누르면 행사 화면이 재정 탭으로 열린다', async () => {

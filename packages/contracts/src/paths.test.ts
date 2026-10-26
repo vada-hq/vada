@@ -4,6 +4,7 @@ import {
   APP_MENUS,
   appPath,
   ENTRY_PATHS,
+  eventRoomPath,
   menuPath,
   parentOf,
   parseAppPath,
@@ -94,13 +95,27 @@ test('행사 업무 탭의 보기와 거르기는 업무 메뉴와 같은 키로
     `/events/${C}/${R}?tab=money`,
   )
   assert.equal(event({ filter: 'done' }), `/events/${C}/${R}`)
-  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=overview&filter=done`)?.query, {})
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=overview&filter=done`)?.query, {
+    tab: 'overview',
+  })
   assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=registrations&dept=${P}`)?.query, {
     tab: 'registrations',
   })
   // 업무 메뉴의 주소는 그대로다.
   assert.equal(menuPath('tasks', C, { view: 'mine', filter: 'done' }), `/tasks/${C}?filter=done`)
   assert.equal(menuPath('tasks', C, { view: 'all' }), `/tasks/${C}?view=all`)
+})
+
+test('행사의 기본 탭은 메시지이고, 메시지 탭의 방은 메시지 탭일 때만 주소에 남는다', () => {
+  // DEC-90 "행사 화면의 첫 탭은 메시지다", DEC-96 "처음 여는 방이면 주소에 없다"
+  assert.equal(eventRoomPath(C, R, null), `/events/${C}/${R}`)
+  assert.equal(eventRoomPath(C, R, P), `/events/${C}/${R}?room=${P}`)
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?room=${P}`)?.query, { room: P })
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=messages&room=${P}`)?.query, { room: P })
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=overview&room=${P}`)?.query, {
+    tab: 'overview',
+  })
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?room=not-uuid`)?.query, {})
 })
 
 test('홈의 재정 보기는 view=finance이고 기본(운영 보기)은 주소에 없다', () => {
@@ -139,7 +154,8 @@ test('모르는 쿼리 키와 값은 기본값으로 읽는다', () => {
   assert.deepEqual(read(`/tasks/${C}?view=all&view=done`), { view: 'all' })
   assert.deepEqual(read(`/finance/${C}?tab=nope&view=all`), { view: 'all' })
   assert.deepEqual(read(`/finance/${C}?tab=requests&view=mine`), { tab: 'requests' })
-  assert.deepEqual(read(`/events/${C}/${R}?tab=overview`), {})
+  assert.deepEqual(read(`/events/${C}/${R}?tab=overview`), { tab: 'overview' })
+  assert.deepEqual(read(`/events/${C}/${R}?tab=messages`), {})
   assert.deepEqual(read(`/events/${C}/${R}?tab=nope`), {})
   assert.deepEqual(read(`/chat/${C}/${R}?tab=notices`), {})
   assert.deepEqual(read(`/home/${C}?tab=money`), {})

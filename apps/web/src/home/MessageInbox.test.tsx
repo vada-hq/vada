@@ -95,6 +95,19 @@ test('칩을 누르면 그 방이 열린 대화 화면, 전체 보기는 대화 
   expect(window.location.pathname).toBe('/chat/c1')
 })
 
+test('행사 방 칩은 해당 행사의 메시지 탭에서 그 방을 연다', async () => {
+  const eventId = '00000000-0000-4000-8000-0000000000e1'
+  const roomId = '00000000-0000-4000-8000-0000000000a1'
+  open(roomsOf([room(roomId, { eventId, eventName: '체육대회', unread: 2 })]))
+  const inbox = await screen.findByRole('region', { name: '메시지함' })
+  fireEvent.click(
+    within(inbox).getByRole('button', { name: '체육대회 공지방, 안 읽은 메시지 2개' }),
+  )
+  expect(window.location.pathname + window.location.search).toBe(
+    `/events/c1/${eventId}?room=${roomId}`,
+  )
+})
+
 test.each([
   [
     '안 읽은 방이 없으면',

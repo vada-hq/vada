@@ -169,6 +169,50 @@ test('공지 만들기는 공지방에 보통 메시지로 taskId를 보낸다. 
   })
 })
 
+test('학생회 업무의 공지는 행사 방이 아닌 학생회 공지방에 보낸다', async () => {
+  const { api } = setup(detail({ canMake: ['message'] }))
+  api.on('GET', `${BASE}/rooms`, () =>
+    json({
+      rooms: [
+        { id: 'event-notice', type: 'all_members', eventId: EVENT_ID, eventName: '환영회' },
+        { id: ROOM_ID, type: 'all_members', eventId: null, eventName: null },
+      ],
+      unreadTotal: 0,
+      mentionTotal: 0,
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
+  fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 총회' } })
+  api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ id: 'm1' }, 201))
+  await waitFor(() => {
+    submitIn('공지 만들기')
+    expect(api.calls.some(call => call.path === `${BASE}/rooms/${ROOM_ID}/messages`)).toBe(true)
+  })
+})
+
+test('행사에 이은 업무의 공지는 그 행사의 공지방에 보낸다', async () => {
+  const { api } = setup(detail({ canMake: ['message'], event: { id: EVENT_ID, name: '환영회' } }))
+  api.on('GET', `${BASE}/events/${EVENT_ID}/rooms`, () =>
+    json({
+      rooms: [
+        { id: 'dept', type: 'department', eventId: EVENT_ID, eventName: '환영회' },
+        { id: ROOM_ID, type: 'all_members', eventId: EVENT_ID, eventName: '환영회' },
+      ],
+      archived: false,
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
+  fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 리허설' } })
+  api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ id: 'm1' }, 201))
+  await waitFor(() => {
+    submitIn('공지 만들기')
+    expect(api.calls.some(call => call.path === `${BASE}/rooms/${ROOM_ID}/messages`)).toBe(true)
+  })
+  expect(api.calls.some(call => call.path === `${BASE}/rooms`)).toBe(false)
+})
+
 test('행사 만들기는 이름과 taskId를 보낸다', async () => {
   const { api } = setup(detail({ canMake: ['event'] }))
   fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))

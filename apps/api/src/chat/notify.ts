@@ -3,6 +3,7 @@ import { chatRoomTag, chatRoomUrl, type RoomType } from '@vada/contracts'
 import {
   chatRoom,
   department,
+  event,
   member,
   message,
   notification,
@@ -14,6 +15,7 @@ import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
+import { isArchivedEvent } from './archive.js'
 import { currentMembersAmong } from './current-members.js'
 import { excerptOf } from './excerpt.js'
 import { createPresence } from './presence.js'
@@ -36,6 +38,8 @@ async function sentMessage(db: Db, messageId: string) {
       senderName: displayNameOf(member, record.councilId),
       roomType: chatRoom.type,
       departmentName: department.name,
+      eventId: chatRoom.eventId,
+      eventName: event.name,
     })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
@@ -43,6 +47,7 @@ async function sentMessage(db: Db, messageId: string) {
     .leftJoin(member, eq(member.id, record.createdBy))
     .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
     .leftJoin(department, eq(department.id, chatRoom.departmentId))
+    .leftJoin(event, eq(event.id, chatRoom.eventId))
     .where(eq(message.id, messageId))
   return row
 }
@@ -71,10 +76,13 @@ async function audienceOf(db: Db, sent: Sent, now: Date, skip: string | null) {
 type Sent = NonNullable<Awaited<ReturnType<typeof sentMessage>>>
 
 // 알림 제목: 1:1은 보낸 사람, 부서방은 부서 이름, 나머지는 방 종류 이름이다(끼룩이 글은 공지방).
-const titleOf = (sent: Sent) =>
+// 행사 방은 앞에 행사 이름을 붙인다('{행사} 공지방', '{행사} {부서}', 022 정한 것 1).
+const roomTitleOf = (sent: Sent) =>
   (sent.roomType === 'direct' ? sent.senderName : sent.departmentName) ??
   ROOM_TITLES[sent.roomType as RoomType] ??
   '대화'
+const titleOf = (sent: Sent) =>
+  sent.eventName ? `${sent.eventName} ${roomTitleOf(sent)}` : roomTitleOf(sent)
 
 async function calledOf(db: Db, messageId: string) {
   const rows = await db
@@ -92,8 +100,8 @@ export function createChatPush(db: Db, send: PushSender) {
   const fanout = createFanout(db, send)
   async function run(messageId: string, now: Date, except: string | undefined) {
     const sent = await sentMessage(db, messageId)
-    // 보내자마자 지운 메시지는 알리지 않는다(본문이 없다, DEC-54).
-    if (!sent?.councilId || sent.body === null) return
+    // 보내자마자 지운 메시지와 보관된 행사 방의 글은 알리지 않는다(DEC-54, DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
+    if (!sent?.councilId || sent.body === null || (await isArchivedEvent(db, sent.eventId))) return
     const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
       id => !presence.isViewing(sent.roomId, id, now),
     )

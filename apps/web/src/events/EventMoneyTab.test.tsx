@@ -4,7 +4,8 @@ import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventAction, EventDetail } from '@vada/contracts'
-import { councilView } from '@/test-support/council-fixtures'
+import { councilView, teamResponse } from '@/test-support/council-fixtures'
+import { serveEventRooms, WithChat } from '@/test-support/event-rooms'
 import { budgetWithPeriod } from '@/test-support/budget-fixtures'
 import { eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -27,9 +28,32 @@ afterEach(async () => {
 })
 
 // 탭은 주소가 정하는데, 이 시험은 주소 없이 탭만 본다.
-function Harness(props: Omit<ComponentProps<typeof EventDetailView>, 'tab' | 'onTab' | 'from'>) {
+type HarnessProps = Omit<
+  ComponentProps<typeof EventDetailView>,
+  'tab' | 'onTab' | 'from' | 'room' | 'onRoom' | 'team' | 'rooms'
+>
+function Harness(props: HarnessProps) {
   const [tab, setTab] = useState<EventTab>('overview')
-  return <EventDetailView {...props} tab={tab} onTab={setTab} from={null} />
+  return (
+    <WithChat councilId="c1">
+      {chat => (
+        <EventDetailView
+          {...props}
+          {...chat}
+          tab={tab}
+          onTab={setTab}
+          room={null}
+          onRoom={() => {}}
+          from={null}
+        />
+      )}
+    </WithChat>
+  )
+}
+// 행사 화면이 늘 읽는 것: 운영진, 대화 목록, 그 행사의 방(메시지 탭 배지)
+function serveChat(api: ReturnType<typeof mockApi>) {
+  api.on('GET', `${ORG}/members`, () => json(teamResponse()))
+  serveEventRooms(api, 'c1', 'e1')
 }
 
 const ORG = '/api/organizations/c1'
@@ -46,6 +70,7 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
   let current = initial
   api.on('GET', EVENT, () => json({ event: current }))
   api.on('GET', `${EVENT}/settlement`, () => json(settlement))
+  serveChat(api)
   const handlers = {
     onLost: vi.fn(),
     onForbidden: vi.fn(),
@@ -68,9 +93,10 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
 const button = (name: string) => screen.getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('탭은 개요, 업무, 재정, 인원 관리이고 재정 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
+test('탭은 메시지, 개요, 업무, 재정, 인원 관리이고 재정 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
   openMoney()
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+    '메시지',
     '개요',
     '업무',
     '재정',
@@ -349,6 +375,7 @@ test('상태 옆에 마지막 완료·완료 취소 결재의 이름, 날짜, �
 test('정산을 불러오지 못하면 다시 시도할 수 있다', async () => {
   const api = mockApi()
   api.on('GET', EVENT, () => json({ event: event() }))
+  serveChat(api)
   let calls = 0
   api.on('GET', `${EVENT}/settlement`, () => {
     calls += 1

@@ -11,7 +11,7 @@ import { roomToShow, saveRoom, savedRoom } from './last-room'
 import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
-import type { RoomList as RoomListHook } from './useRoomList'
+import type { RoomList as RoomListHook, RoomSource } from './useRoomList'
 import { useSplit } from '@/lib/use-split'
 import ProductPanel from './ProductPanel'
 import { ProductOpenContext, useProductPanel } from './product-open'
@@ -90,14 +90,25 @@ function ListScreen(props: Props & { activeRoomId: string | null }) {
 }
 
 // 방 하나. 뒤로 가기가 없으면(PC 두 칸) 목록이 옆에 늘 보인다.
-function Room({ page, roomId, onBack }: { page: PageProps; roomId: string; onBack?: () => void }) {
+export function Room({
+  page,
+  roomId,
+  onBack,
+  space,
+}: {
+  page: PageProps
+  roomId: string
+  onBack?: () => void
+  space?: RoomSource
+}) {
   const { view } = page
   return (
     <RoomView
       councilId={page.councilId}
       roomId={roomId}
       meId={view.me.memberId}
-      rooms={page.rooms}
+      rooms={space ?? page.rooms}
+      bare={space !== undefined}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
         canAssign: view.permissions.includes('finance.manage'),

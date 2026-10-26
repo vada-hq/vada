@@ -5,6 +5,7 @@ import type {
   EventDetail,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { syncEventRooms } from '../chat/rooms.js'
 import type { Tx } from '../db/types.js'
 import { decide, factsOf, roleAllows } from '../events/policy.js'
 import { eventDetailOf } from '../events/detail.js'
@@ -88,5 +89,7 @@ export async function cancelCompletion(
     outcome: 'completion_cancelled',
     reason: input.reason,
   })
+  // 보관이 풀린 행사 방의 참여를 지금 편성으로 맞춘다(보관 동안에는 맞추지 않았다, DEC-90).
+  await syncEventRooms(tx, actor, row.id)
   return eventDetailOf(tx, actor, row.id, target.now)
 }

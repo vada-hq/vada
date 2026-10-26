@@ -36,6 +36,7 @@ import {
   ItemCancelSection,
 } from './FinanceSections'
 import { EventHeaderSection, EventSection } from './EventSections'
+import { EventMessagesSection, EventRoomListSection } from './EventMessageSections'
 import { EventEditSection } from './EventEditSections'
 import { EventSettlementsSection, SettlementSection } from './SettlementSections'
 import {
@@ -92,6 +93,8 @@ export const gallerySections = [
   PushSection,
   EventSection,
   EventHeaderSection,
+  EventMessagesSection,
+  EventRoomListSection,
   EventEditSection,
   SettlementSection,
   TaskSection,

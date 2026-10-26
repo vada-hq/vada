@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { SendMessageSchema, statusOf, type RoomListResponse } from '@vada/contracts'
+import {
+  SendMessageSchema,
+  statusOf,
+  type EventRoomsResponse,
+  type RoomListResponse,
+} from '@vada/contracts'
 import { chatBase, messagesPath } from '@/chat/chat-api'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -26,13 +31,27 @@ import type { TaskDialogHandlers } from './task-requests'
 type Props = Pick<TaskDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
   taskId: string
+  // 업무가 이은 행사. 있으면 그 행사의 공지방에 올린다(022 정한 것 29).
+  eventId: string | null
   onClose: () => void
   onMade: () => void
 }
 
-// 공지를 올릴 방(학생회 공지방, DEC-90)을 찾는다. 공지방은 all_members 종류의 방이다.
-// 행사에 이은 업무의 행사 공지방은 행사 방을 만들 때 더한다.
-function useNoticeRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onForbidden'>) {
+// 공지를 올릴 방을 찾는다(DEC-90). 공지방은 all_members 종류의 방이다. 행사에 이은 업무는 그 행사의 공지방(행사 방 읽기),
+// 아니면 학생회 공지방(대화 목록에서 행사 방이 아닌 것)이다. 서버도 다른 공지방이면 받지 않는다.
+const noticeRoomRead = (councilId: string, eventId: string | null, signal: AbortSignal) =>
+  eventId === null
+    ? getJson<RoomListResponse>(`${chatBase(councilId)}/rooms`, signal)
+    : getJson<EventRoomsResponse>(
+        `${chatBase(councilId)}/events/${encodeURIComponent(eventId)}/rooms`,
+        signal,
+      )
+
+function useNoticeRoom(
+  councilId: string,
+  eventId: string | null,
+  handlers: Pick<Props, 'onLost' | 'onForbidden'>,
+) {
   const [roomId, setRoomId] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -40,29 +59,35 @@ function useNoticeRoom(councilId: string, handlers: Pick<Props, 'onLost' | 'onFo
   useEffect(() => {
     const controller = new AbortController()
     setFailed(false)
-    void getJson<RoomListResponse>(`${chatBase(councilId)}/rooms`, controller.signal).then(
-      result => {
-        if (controller.signal.aborted) return
-        if (result.ok) {
-          // 조각 8에서 RoomSummary에 eventId가 생기면 eventId === null인 방(학생회 공지방)으로 고른다.
-          const room = result.data.rooms.find(item => item.type === 'all_members')
-          return room ? setRoomId(room.id) : setFailed(true)
-        }
-        if (result.status === statusOf('FORBIDDEN')) {
-          onForbidden()
-          return onLost(PERMISSION_CHANGED)
-        }
-        setFailed(true)
-      },
-    )
+    void noticeRoomRead(councilId, eventId, controller.signal).then(result => {
+      if (controller.signal.aborted) return
+      if (result.ok) {
+        const room = result.data.rooms.find(
+          item => item.type === 'all_members' && (item.eventId ?? null) === eventId,
+        )
+        return room ? setRoomId(room.id) : setFailed(true)
+      }
+      if (result.status === statusOf('FORBIDDEN')) {
+        onForbidden()
+        return onLost(PERMISSION_CHANGED)
+      }
+      setFailed(true)
+    })
     return () => controller.abort()
-  }, [councilId, attempt, onLost, onForbidden])
+  }, [councilId, eventId, attempt, onLost, onForbidden])
   return { roomId, failed, retry: () => setAttempt(value => value + 1) }
 }
 
 // 공지 만들기: 글 하나를 공지방에 보통 메시지로 올리고 이 업무에 잇는다(기능 015, DEC-90).
-export function NoticeMakeDialog({ councilId, taskId, onClose, onMade, ...handlers }: Props) {
-  const room = useNoticeRoom(councilId, handlers)
+export function NoticeMakeDialog({
+  councilId,
+  taskId,
+  eventId,
+  onClose,
+  onMade,
+  ...handlers
+}: Props) {
+  const room = useNoticeRoom(councilId, eventId, handlers)
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
