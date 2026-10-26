@@ -45,9 +45,5 @@ export function usePeopleRequests(
         member.id === me,
       )
     },
-    toggleViceRank: (member: TeamMember) => {
-      const rank = member.councilRank === 'vice_president' ? null : 'vice_president'
-      void run(`${memberPath(member)}/rank`, { rank }, member.id === me)
-    },
   }
 }

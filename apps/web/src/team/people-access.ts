@@ -13,15 +13,28 @@ const removable = (member: TeamMember, me: string, can: Can) =>
   member.id !== me &&
   (!holdsRank(member) || can('rank.manage'))
 
-// 줄마다 그 동작의 권한으로 보인다. 하나도 없으면 ⋯ 메뉴도 없다.
-export function rowActions(member: TeamMember, me: string, can: Can) {
+// 사람 상세의 동작. 각 동작의 권한으로 보인다(DEC-38). 서버와 같은 조건이다.
+// place는 부서에 직급 없이 넣기와 직급 없는 소속 옮기기·빼기, rank는 부서 직급 바꾸기와 직급 붙은 소속 옮기기·빼기다.
+export function personActions(member: TeamMember, me: string, can: Can) {
   return {
-    assign: can('member.manage'),
-    rank: can('rank.manage') && member.councilRank !== 'president',
+    place: can('member.manage'),
+    rank: can('member.manage') && can('rank.manage'),
+    vice: can('rank.manage') && member.councilRank !== 'president',
     transfer: can('president.transfer') && member.id !== me,
     remove: removable(member, me, can),
   }
 }
+export type PersonActions = ReturnType<typeof personActions>
+
+// 그 소속을 옮기거나 뺄 수 있는가. 직급이 붙은 소속을 끝내는 것은 그 직급을 거두는 일이기도 하다.
+export const canMovePlacement = (
+  actions: PersonActions,
+  placement: TeamMember['departments'][number],
+) => actions.place && (placement.rank === null || actions.rank)
+
+// 사람 상세의 대상. 모든 운영진이 보므로 권한과 관계없이, 목록에서 사라지면 없다.
+export const findViewing = (members: TeamMember[] | undefined, viewing: string | null) =>
+  members?.find(member => member.id === viewing) ?? null
 
 // 부서 배정 대화상자의 대상. 권한을 잃었거나 대상이 목록에서 사라지면 없다.
 export const findEditing = (members: TeamMember[] | undefined, editing: string | null, can: Can) =>
