@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { PurchaseLineItem, PurchaseRequestDetail, PurchaseShipment } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
-import { PERMISSION_CHANGED, PURCHASE_LOST } from '@/lib/messages'
+import { PERMISSION_CHANGED, PURCHASE_LOAD_FAILED, PURCHASE_LOST } from '@/lib/messages'
 import StateMessage from '@/components/StateMessage'
 import { RequestDetailDialog } from './RequestDetailDialog'
 
@@ -177,6 +177,62 @@ test('업체 조회 안 됨에도 택배사 링크와 송장을 보인다', asyn
   expect(screen.getByRole('link', { name: '택배사에서 보기' }).getAttribute('href')).toBe(TRACKING)
   expect(screen.getByText('123-456')).toBeTruthy()
 })
+
+async function submitShipment(action: '등록' | '수정' | '취소') {
+  if (action === '취소') {
+    fireEvent.click(await screen.findByRole('button', { name: '송장 취소' }))
+    const form = within(await screen.findByRole('dialog', { name: '이 송장을 취소할까요?' }))
+    fill(form.getByLabelText('취소 사유'), '잘못 등록한 송장')
+    fireEvent.click(form.getByRole('button', { name: '송장 취소' }))
+    return
+  }
+  if (action === '수정') fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form =
+    action === '등록'
+      ? await openCreate()
+      : within(await screen.findByRole('dialog', { name: '송장 고치기' }))
+  fill(form.getByLabelText('송장 번호'), '123999')
+  fireEvent.click(form.getByLabelText('네임펜'))
+  if (action === '수정') fireEvent.click(form.getByLabelText('테이프'))
+  fireEvent.click(form.getByRole('button', { name: action === '등록' ? '넣기' : '저장' }))
+}
+
+test.each(['등록', '수정', '취소'] as const)(
+  '송장 %s 성공 후 상세 재조회가 실패해도 서버 응답을 보존하고 다시 읽을 수 있다',
+  async action => {
+    const first = request({ shipments: action === '등록' ? [] : [shipment()] })
+    const { api } = setup(first)
+    const changed = shipment({
+      trackingNumber: action === '취소' ? '123-456' : '123999',
+      lineItemIds: [ITEM_B],
+      ...(action === '취소' ? { cancelledAt: '2026-10-26T06:00:00Z', editable: false } : {}),
+    })
+    const path = action === '등록' ? URL : `${URL}/${SHIPMENT}${action === '취소' ? '/cancel' : ''}`
+    api.on('POST', path, () => {
+      api.on('GET', BASE, () => json({ error: 'INTERNAL' }, 500))
+      return json({ shipment: changed }, action === '등록' ? 201 : 200)
+    })
+    await submitShipment(action)
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /송장/ })).toBeNull())
+    const delivery = within(screen.getByRole('region', { name: '배송' }))
+    if (action === '취소') {
+      expect(delivery.getByText('송장 취소됨')).toBeTruthy()
+      expect(delivery.queryByRole('button', { name: '고치기' })).toBeNull()
+    } else {
+      expect(delivery.getByText('123999')).toBeTruthy()
+      expect(delivery.getByText('테이프')).toBeTruthy()
+      expect(delivery.queryByText('123-456')).toBeNull()
+      const form = await openCreate()
+      expect(form.getByLabelText<HTMLInputElement>('테이프').checked).toBe(false)
+      fireEvent.click(form.getByText('닫기'))
+    }
+    expect(screen.getByText(PURCHASE_LOAD_FAILED)).toBeTruthy()
+    api.on('GET', BASE, () => json({ request: request({ shipments: [changed] }) }))
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+    await waitFor(() => expect(screen.queryByText(PURCHASE_LOAD_FAILED)).toBeNull())
+    expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+  },
+)
 
 test('조회 API 연결 실패에도 공개 조회 링크를 남긴다', async () => {
   const { api } = setup(request({ shipments: [shipment({ editable: false })] }))

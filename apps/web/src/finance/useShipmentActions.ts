@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { ShipmentInput, ShipmentResponse } from '@vada/contracts'
+import type { PurchaseShipment, ShipmentInput, ShipmentResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
 import { purchaseShipmentPath, purchaseShipmentsPath } from './finance-api'
 import { problemText, reportLost, type PurchaseDialogHandlers } from './purchase-requests'
@@ -17,7 +17,7 @@ export function useShipmentActions(
   councilId: string,
   requestId: string,
   latest: { current: PurchaseDialogHandlers },
-  reload: () => Promise<void>,
+  refresh: { reload: () => Promise<void>; applySaved: (shipment: PurchaseShipment) => void },
 ) {
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
@@ -30,10 +30,13 @@ export function useShipmentActions(
     try {
       const result = await postJson<ShipmentResponse>(path, input)
       if (!result.ok && reportLost(latest.current, result.status)) return 'failed'
+      // 저장은 이미 끝났다. 상세 재조회가 실패해도 이전 송장을 보이거나 다시 등록하지 않게
+      // 서버가 반환한 송장을 먼저 반영하고, 나머지 상세/권한은 재조회로 갱신한다.
+      if (result.ok) refresh.applySaved(result.data.shipment)
       if (!result.ok) setProblem(problemText(result.code))
       if (result.ok || REREAD.has(result.code)) {
         latest.current.onChanged()
-        await reload()
+        await refresh.reload()
         return result.ok ? 'done' : 'closed'
       }
       return 'failed'

@@ -157,6 +157,14 @@ function Loaded({
   const deciding = decidingOf(request)
   return (
     <div className="flex flex-col gap-6">
+      {detail.loadFailed && (
+        <div className="flex flex-col items-start gap-3">
+          <StateMessage kind="error">{PURCHASE_LOAD_FAILED}</StateMessage>
+          <Button variant="outline" onClick={detail.retry}>
+            다시 시도
+          </Button>
+        </div>
+      )}
       <Facts request={request} />
       {/* 결재 중이면 대기 품목은 결재 칸에만 있다(와이어프레임 FIN-REV-01: 품목 카드 하나에 구매 정보와 검토). */}
       <RequestItems

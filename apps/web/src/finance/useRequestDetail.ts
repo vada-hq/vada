@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { PurchaseRequestDetail, PurchaseRequestResponse } from '@vada/contracts'
+import type {
+  PurchaseRequestDetail,
+  PurchaseRequestResponse,
+  PurchaseShipment,
+} from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { useLatest } from '@/lib/use-latest'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
@@ -14,6 +18,17 @@ type CancelOutcome = 'done' | 'closed' | 'failed'
 const CLOSED = new Set(['REQUEST_CLOSED', 'EVENT_COMPLETED'])
 
 type Latest = { current: PurchaseDialogHandlers }
+
+function withShipment(current: PurchaseRequestDetail | null, shipment: PurchaseShipment) {
+  if (!current) return current
+  const exists = current.shipments.some(row => row.id === shipment.id)
+  return {
+    ...current,
+    shipments: exists
+      ? current.shipments.map(row => (row.id === shipment.id ? shipment : row))
+      : [...current.shipments, shipment],
+  }
+}
 
 // 요청 취소. 한 번에 하나만 나간다. 이미 닫힌 요청(409)이면 이유를 보이고 요청을 다시 읽는다.
 function useCancel(
@@ -87,7 +102,10 @@ export function useRequestDetail(
   const cancel = useCancel(councilId, requestId, latest, load)
   const decide = useDecide(councilId, requestId, latest, load)
   const itemCancel = useCancelItem(councilId, requestId, latest, load)
-  const shipments = useShipmentActions(councilId, requestId, latest, load)
+  const shipments = useShipmentActions(councilId, requestId, latest, {
+    reload: load,
+    applySaved: shipment => setRequest(current => withShipment(current, shipment)),
+  })
 
   return {
     request,
