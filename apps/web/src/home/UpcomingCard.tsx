@@ -2,7 +2,7 @@ import { Calendar } from 'lucide-react'
 import type { HomeUpcoming, HomeUpcomingItem } from '@vada/contracts'
 import { upcomingParts } from './council-view'
 import HomeCard from './HomeCard'
-import HomeChip from './HomeChip'
+import { ScheduleTag } from './HomeChip'
 import HomeRow from './HomeRow'
 
 type UpcomingOpeners = {
@@ -25,8 +25,9 @@ function open(item: HomeUpcomingItem, opens: UpcomingOpeners) {
 export default function UpcomingCard({
   title,
   upcoming,
+  headClassName,
   ...opens
-}: UpcomingOpeners & { title: string; upcoming: HomeUpcoming }) {
+}: UpcomingOpeners & { title: string; upcoming: HomeUpcoming; headClassName?: string }) {
   const rows = upcoming.items.map(item => {
     const parts = upcomingParts(item)
     return (
@@ -41,7 +42,7 @@ export default function UpcomingCard({
         }
         title={parts.title}
         meta={parts.meta}
-        side={<HomeChip label={parts.chip} />}
+        side={<ScheduleTag label={parts.chip} />}
         onOpen={() => open(item, opens)}
       />
     )
@@ -52,6 +53,7 @@ export default function UpcomingCard({
       icon={Calendar}
       read={{ kind: 'ready', total: upcoming.total, rows }}
       empty="7일 안 일정 없음"
+      headClassName={headClassName}
     />
   )
 }

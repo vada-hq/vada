@@ -5,6 +5,7 @@ import { ATTENTION_CHIP, attentionParts, followUpParts, remainingTidyLabel } fro
 import HomeCard from './HomeCard'
 import HomeChip from './HomeChip'
 import { HOME_PLANS } from './home-kinds'
+import { COLUMN_HEAD } from './HomeLayout'
 import HomeRow from './HomeRow'
 
 const [ATTENTION, FOLLOW_UP] = HOME_PLANS.council.columns
@@ -40,6 +41,7 @@ export function AttentionCard({
       read={{ kind: 'ready', total: attention.total, rows }}
       empty="확인할 일 없음"
       onSeeAll={onSeeAll}
+      headClassName={COLUMN_HEAD}
       footnote={
         unassignedMembers > 0
           ? { label: '미배정 구성원', text: `${unassignedMembers}명`, onOpen: onSeePeople }
@@ -50,13 +52,15 @@ export function AttentionCard({
 }
 
 // 회장단 '후속 정리 중인 행사'(3열 가운데): 끝났고 완료하지 않은 행사, 끝난 지 오래된 것부터(재정 '행사 정산' 탭과 같은 차례).
-// 정산이 남은 행사는 행사 '재정' 탭으로 연다(DEC-95).
+// 정산이 남은 행사는 행사 '재정' 탭으로 연다(DEC-95). 전체 보기는 같은 셈·차례의 재정 '행사 정산' 탭이다(정한 것 6).
 export function FollowUpCard({
   followUp,
   onOpenEvent,
+  onSeeAll,
 }: {
   followUp: HomeCouncilBoard['followUp']
   onOpenEvent: (eventId: string, tab?: 'money') => void
+  onSeeAll: () => void
 }) {
   const rows = followUp.events.map(row => (
     <HomeRow
@@ -81,6 +85,8 @@ export function FollowUpCard({
       unit="개"
       read={{ kind: 'ready', total: followUp.total, rows }}
       empty="후속 정리 중인 행사 없음"
+      onSeeAll={onSeeAll}
+      headClassName={COLUMN_HEAD}
     />
   )
 }

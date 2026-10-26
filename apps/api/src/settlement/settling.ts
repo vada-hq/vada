@@ -7,8 +7,8 @@ import { isSettled, remainingOf } from './remaining.js'
 type Reader = Pick<Db, 'select'>
 
 // 정산에 남은 것 수는 행사 '돈' 탭의 항목 수 합이다(같은 remainingOf).
-// 홈 행사 카드, 홈 '정산할 행사', 재정 '행사 정산' 탭이 이것 하나로 세어 같은 행사에 같은 수가 나온다.
-export async function settlementSummaryOf(
+// 홈 '후속 정리 중인 행사'·'정산할 행사'와 재정 '행사 정산' 탭이 이것 하나로 세어 같은 행사에 같은 수가 나온다.
+async function settlementSummaryOf(
   db: Reader,
   actor: Actor,
   event: { id: string; status: EventStatus },

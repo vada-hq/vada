@@ -78,7 +78,7 @@ test('회장단 행사 카드는 진행 중 → 기획 중(날짜순, 미정은 
   })()
 })
 
-test('행사 카드의 업무 n/m은 행사 업무 탭과, 다음 마감은 행사 머리의 다음 일정과 같다', async () => {
+test('행사 카드의 업무 n/m은 행사 업무 탭과, 다음 마감과 이유 칩 수는 행사 머리와 같다', async () => {
   await withSettlement(async t => {
     const h = open(t)
     const planning = t.council.departments.planning
@@ -103,6 +103,11 @@ test('행사 카드의 업무 n/m은 행사 업무 탭과, 다음 마감은 행�
     for (const card of [first!, second!]) {
       const { event } = await h.get<EventResponse>(`/events/${card.event.id}`)
       assert.deepEqual(card.next, event.next)
+      // 이유 칩의 지남·담당자 없음은 행사 머리 건강도의 근거 수와 같다.
+      assert.deepEqual(
+        { overdue: card.tasks.overdue, unassigned: card.tasks.unassigned },
+        event.health,
+      )
     }
     assert.deepEqual(first!.next, { kind: 'task', dueDate: '2026-10-28', title: '다음 마감' })
     assert.equal(second!.next?.kind, 'start')
@@ -211,11 +216,10 @@ test('확인이 필요한 운영 상황은 지남 → 담당자 없음이고 수
   })()
 })
 
-test('회장단 홈 칸은 회장단에게만 오고 미배정 수가 지금 칸과 같다', async () => {
+test('회장단 홈 칸은 회장단에게만 오고 미배정 수가 부서에 넣으면 준다', async () => {
   await withSettlement(async t => {
     const h = open(t)
     const home = await h.read('s-vicePresident')
-    assert.equal(home.councilBoard?.unassignedMembers, home.council?.unassignedMembers)
     assert.equal(home.councilBoard?.unassignedMembers, 1)
     for (const user of ['s-financeMember', 's-planningHead', 's-planningMember', 's-plain'])
       assert.equal((await h.read(user)).councilBoard, undefined, user)

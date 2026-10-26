@@ -127,13 +127,13 @@ test('행사 카드: 상태 칩, 이름, 날짜 · D-N, 업무 막대, 이유 �
   expect(pathNow()).toBe('/events/c1/e1?tab=tasks')
 })
 
-test('끝나지 않은 행사가 셋보다 많으면 전체 n개 보기로 행사 목록에 간다', async () => {
+test('행사가 셋보다 많으면 머리 상태별 수의 합으로 전체 n개 보기가 있고 행사 목록에 간다', async () => {
   const cards = ['e1', 'e2', 'e3'].map(id => boardEvent(id))
   const { onOpenPage } = open(
-    councilHome({ events: { cards, counts: { planning: 3, ongoing: 1, followUp: 0 } } }),
+    councilHome({ events: { cards, counts: { planning: 3, ongoing: 1, followUp: 2 } } }),
   )
   const events = await card('전체 행사 진행 현황')
-  fireEvent.click(within(events).getByRole('button', { name: '전체 4개 보기' }))
+  fireEvent.click(within(events).getByRole('button', { name: '전체 6개 보기' }))
   expect(onOpenPage).toHaveBeenCalledWith('events')
 })
 
@@ -141,6 +141,9 @@ test('행사가 없으면 진행할 행사 없음과 [새 행사]가 있고 누�
   open(councilHome())
   const events = await card('전체 행사 진행 현황')
   expect(within(events).getByText('진행할 행사 없음')).toBeTruthy()
+  // 행사가 하나도 없으면 머리는 상태별 수 대신 회색 '0개'다.
+  expect(within(events).getByText('0개')).toBeTruthy()
+  expect(within(events).queryByText(/기획 중 0/)).toBeNull()
   fireEvent.click(within(events).getByRole('button', { name: '새 행사' }))
   expect(await screen.findByRole('dialog', { name: '새 행사' })).toBeTruthy()
 })
@@ -173,9 +176,9 @@ test('확인이 필요한 운영 상황: 지남 다음 담당자 없음, 줄에 
   )
   const attention = await card('확인이 필요한 운영 상황')
   const [first, second] = within(attention).getAllByRole('listitem')
-  expect(first!.textContent).toContain('기획부 · 가을 축제 · 10월 21일 (수)')
+  expect(first!.textContent).toContain('기획부 · 가을 축제 · 10월 21일 (수) 마감')
   expect(within(first!).getByText('지남')).toBeTruthy()
-  expect(second!.textContent).toContain('학생회 업무 · 10월 28일 (수)')
+  expect(second!.textContent).toContain('학생회 업무 · 10월 28일 (수) 마감')
   expect(within(second!).getByText('담당자 없음')).toBeTruthy()
   fireEvent.click(within(first!).getByRole('button', { name: '업무 late' }))
   expect(pathNow()).toBe('/tasks/c1/late')
@@ -254,11 +257,12 @@ test('가까운 주요 일정: 날짜와 종류 칩이 있고 줄을 누르면 �
   const [due, close, start] = within(upcoming).getAllByRole('listitem')
   expect(due!.textContent).toContain('10월 24일 (토)')
   expect(due!.textContent).toContain('가을 축제 · 업무 마감')
-  expect(within(due!).getByText('마감')).toBeTruthy()
+  // 일정 종류는 상태 칩('지남')과 갈라 테두리 없는 태그다(와이어프레임 HomePrototypeScheduleTag).
+  expect(within(due!).getByText('마감').className).toContain('border-transparent')
   expect(within(close!).getByRole('button', { name: '진로 특강 신청 마감' })).toBeTruthy()
-  expect(close!.textContent).toContain('참가 신청 · 18:00')
+  expect(close!.textContent).toContain('18:00 · 참가 신청')
   expect(within(start!).getByText('행사')).toBeTruthy()
-  expect(start!.textContent).toContain('행사 시작 · 10:00')
+  expect(start!.textContent).toContain('10:00 · 행사 시작')
   // 일정은 도착할 원래 화면 하나가 없어 전체 보기 없이 수만 있다(DEC-95).
   expect(within(upcoming).getByText('4건')).toBeTruthy()
   expect(within(upcoming).queryByRole('button', { name: /전체/ })).toBeNull()
@@ -268,4 +272,13 @@ test('가까운 주요 일정: 날짜와 종류 칩이 있고 줄을 누르면 �
   expect(onOpenEvent).toHaveBeenLastCalledWith('e2')
   fireEvent.click(within(due!).getByRole('button', { name: '부스 배치안 확정' }))
   expect(pathNow()).toBe('/tasks/c1/t1')
+})
+
+test('후속 정리 중인 행사가 셋보다 많으면 전체 n개 보기로 재정 행사 정산 탭에 간다', async () => {
+  const events = ['e1', 'e2', 'e3', 'e4'].map(id => followUpRow(id))
+  open(councilHome({ followUp: { events, total: 5 } }))
+  const followUp = await card('후속 정리 중인 행사')
+  expect(within(followUp).getAllByRole('listitem')).toHaveLength(3)
+  fireEvent.click(within(followUp).getByRole('button', { name: '전체 5개 보기' }))
+  expect(pathNow()).toBe('/finance/c1?tab=settlements')
 })

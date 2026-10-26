@@ -17,7 +17,6 @@ import type { Db } from '../db/types.js'
 import { openEventsOf } from '../events/queries.js'
 import { requestListOf } from '../purchases/queries.js'
 import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
-import { councilOf } from './council.js'
 import { councilBoardOf } from './council-board.js'
 import { departmentsOf } from './departments.js'
 import { financeOf } from './finance.js'
@@ -80,13 +79,12 @@ async function commonOf(db: Reader, actor: Actor, now: Date) {
 }
 
 // 새 칸은 모든 종류가 받고, 지금 화면의 부분은 계층(levelOf)이 가른 것만 읽는다(기능 010, 조각 10까지).
-// 회장단은 모든 부서에서 부장 권한을 물려받아 '내 부서'를 받지 않고 council의 부서별 막힌 곳으로 본다.
+// 회장단은 새 홈(councilBoard)만 그려 옛 council 칸을 읽지 않고, 모든 부서에서 부장 권한을 물려받아도 '내 부서'를 받지 않는다(기능 027 조각 6).
 export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeResponse> {
   const level = levelOf(actor)
   const { home, open } = await commonOf(db, actor, now)
-  if (home.kind === 'council') home.councilBoard = await councilBoardOf(db, actor, now, open)
   if (level.finance) Object.assign(home, await financeOf(db, actor, now, level.council))
-  if (level.council) home.council = await councilOf(db, actor, now, open)
+  if (level.council) home.councilBoard = await councilBoardOf(db, actor, now, open)
   else if (level.departmentIds.length)
     home.departments = await departmentsOf(db, actor, level.departmentIds, open)
   return home

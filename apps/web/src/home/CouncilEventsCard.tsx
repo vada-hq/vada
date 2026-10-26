@@ -3,7 +3,13 @@ import { Star } from 'lucide-react'
 import type { HomeBoardEvent, HomeCouncilBoard } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import EventStatusChip from '../events/EventStatusChip'
-import { eventDayLabel, nextDeadlineLabel, openEventTotal, statusCountsLabel } from './council-view'
+import {
+  allEventTotal,
+  eventDayLabel,
+  nextDeadlineLabel,
+  openEventTotal,
+  statusCountsLabel,
+} from './council-view'
 import HomeCard from './HomeCard'
 import HomeChip from './HomeChip'
 import { HOME_PLANS } from './home-kinds'
@@ -30,7 +36,8 @@ function ReasonChip({
     <Button
       variant="ghost"
       size="sm"
-      className="relative h-auto p-0 hover:bg-transparent"
+      // 휴대폰에서 누르는 영역을 44px로 키우되 줄 높이는 그대로 둔다(WCAG 2.5.8, 머리 링크와 같은 방식).
+      className="relative h-auto p-0 hover:bg-transparent max-sm:-my-2.5 max-sm:min-h-11"
       onClick={onOpen}
     >
       <HomeChip label={label} count={count} />
@@ -63,7 +70,7 @@ function EventTile({
         <span className="shrink-0 text-xs text-gray-500">{eventDayLabel(event, today)}</span>
       </div>
       <HomeProgress label="업무" done={tasks.done} total={tasks.total} />
-      <div className="flex min-h-6 flex-wrap items-center gap-1.5">
+      <div className="flex min-h-6 flex-wrap items-center gap-1.5 max-sm:gap-3">
         {clear && <span className="text-xs text-gray-500">확인 필요 없음</span>}
         {tasks.overdue > 0 && (
           <ReasonChip
@@ -114,6 +121,7 @@ export default function CouncilEventsCard({
       tiles
       read={{ kind: 'ready', total: openEventTotal(events.counts), rows }}
       aside={statusCountsLabel(events.counts)}
+      seeAllTotal={allEventTotal(events.counts)}
       onSeeAll={onSeeAll}
       empty="진행할 행사 없음"
       emptyAction={onNewEvent && <NewEventButton onNewEvent={onNewEvent} />}

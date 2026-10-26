@@ -15,7 +15,7 @@ import { myTasksLabel } from './council-view'
 import HomeFrame from './HomeFrame'
 import HomeGreeting, { HomeShortcut } from './HomeGreeting'
 import { HOME_PLANS } from './home-kinds'
-import { CouncilLayout } from './HomeLayout'
+import { COLUMN_HEAD, CouncilLayout } from './HomeLayout'
 import MessageInbox from './MessageInbox'
 import UpcomingCard from './UpcomingCard'
 
@@ -100,11 +100,17 @@ export default function CouncilHome({
             onSeeAll={() => openMenu('tasks', councilId, { view: 'all' })}
             onSeePeople={() => openMenu('people', councilId)}
           />,
-          <FollowUpCard key="follow-up" followUp={board.followUp} onOpenEvent={open.onOpenEvent} />,
+          <FollowUpCard
+            key="follow-up"
+            followUp={board.followUp}
+            onOpenEvent={open.onOpenEvent}
+            onSeeAll={() => openMenu('finance', councilId, { tab: 'settlements' })}
+          />,
           <UpcomingCard
             key="upcoming"
             title={HOME_PLANS.council.columns[2]}
             upcoming={home.upcoming}
+            headClassName={COLUMN_HEAD}
             onOpenTask={openTask}
             onOpenEvent={open.onOpenEvent}
           />,

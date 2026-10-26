@@ -30,8 +30,12 @@ type Props = {
   footnote?: CardFootnote | null | undefined
   // 읽었을 때 수 대신 둘 머리 글(회장단 행사 머리의 상태별 수, '바로가기')
   aside?: ReactNode
-  // 줄 대신 칸 카드로 늘어놓는다(가로 전체 카드). 본문이 좁으면 한 단이다.
+  // 줄 대신 칸 카드로 늘어놓는다(가로 전체 카드). 본문이 좁으면 한 단이고 머리도 제목 아래에 수를 둔다.
   tiles?: boolean | undefined
+  // '전체 {n} 보기'의 수가 줄의 전체 수와 다를 때(회장단 행사 현황: 머리 상태별 수의 합)
+  seeAllTotal?: number | undefined
+  // 머리 바에 더할 모양(같은 줄 카드의 머리 높이 맞추기)
+  headClassName?: string | undefined
 }
 
 // 머리 오른쪽: 3건 이하면 회색 '{n}건'(0도 '0건'), 넘으면 파란 '전체 {n}건 보기'. 읽지 못했으면 '집계 전'만이다.
@@ -41,9 +45,11 @@ function CardCount({
   unit,
   onSeeAll,
   aside,
-}: Pick<Props, 'read' | 'onSeeAll' | 'aside'> & { unit: string }) {
+  seeAllTotal,
+}: Pick<Props, 'read' | 'onSeeAll' | 'aside' | 'seeAllTotal'> & { unit: string }) {
   if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-gray-500">집계 전</span>
-  const seeAll = read.total > HOME_CARD_ROWS && onSeeAll !== undefined
+  const total = seeAllTotal ?? read.total
+  const seeAll = total > HOME_CARD_ROWS && onSeeAll !== undefined
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
       {aside !== undefined && <span className="text-xs break-keep text-gray-500">{aside}</span>}
@@ -58,7 +64,7 @@ function CardCount({
           className="h-auto shrink-0 gap-0.5 p-0 text-xs max-sm:-my-3 max-sm:min-h-11"
           onClick={onSeeAll}
         >
-          {`전체 ${read.total}${unit} 보기`}
+          {`전체 ${total}${unit} 보기`}
           <ChevronRight aria-hidden />
         </Button>
       )}
@@ -125,6 +131,8 @@ export default function HomeCard({
   footnote,
   aside,
   tiles,
+  seeAllTotal,
+  headClassName,
 }: Props) {
   const titleId = useId()
   return (
@@ -134,7 +142,13 @@ export default function HomeCard({
       className={cn(cardClass, 'flex min-w-0 flex-col overflow-hidden')}
     >
       {/* 머리 바는 한 줄이다. 좁으면 제목만 어절로 접혀 같은 줄 카드의 머리 아래선이 덜 어긋난다. */}
-      <div className="flex items-start justify-between gap-2 border-b border-gray-100 bg-gray-50 px-5 py-3">
+      <div
+        className={cn(
+          'flex items-start justify-between gap-2 border-b border-gray-100 bg-gray-50 px-5 py-3',
+          tiles && '@max-2xl:flex-col @max-2xl:gap-1',
+          headClassName,
+        )}
+      >
         <h2
           id={titleId}
           className="flex min-w-0 items-center gap-1.5 text-sm font-semibold break-keep text-gray-700 wrap-anywhere"
@@ -142,7 +156,13 @@ export default function HomeCard({
           <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
           {title}
         </h2>
-        <CardCount read={read} unit={unit} onSeeAll={onSeeAll} aside={aside} />
+        <CardCount
+          read={read}
+          unit={unit}
+          onSeeAll={onSeeAll}
+          aside={aside}
+          seeAllTotal={seeAllTotal}
+        />
       </div>
       <div className="flex-1">
         <CardBody read={read} empty={empty} emptyAction={emptyAction} tiles={tiles} />

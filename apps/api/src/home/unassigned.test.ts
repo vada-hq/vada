@@ -44,12 +44,13 @@ test('미배정 수는 이 학생회의 직급·부서 없는 운영진만 센�
       assert.equal(response.status, 200, user)
       return (await response.json()) as HomeResponse
     }
-    const unassigned = async (user = 's-president') => (await read(user)).council?.unassignedMembers
+    const unassigned = async (user = 's-president') =>
+      (await read(user)).councilBoard?.unassignedMembers
 
     // plain과 두 학생회에 든 사람. 회장·부회장, 부서원, 내보낸 사람, 다른 학생회 사람은 세지 않는다.
     assert.equal(await unassigned(), 2)
     assert.equal(await unassigned('s-vicePresident'), 2)
-    assert.equal((await read('o-president', o.councilId)).council?.unassignedMembers, 1)
+    assert.equal((await read('o-president', o.councilId)).councilBoard?.unassignedMembers, 1)
 
     const { plain, planningMember } = s.people
     const assign = await api.post(
@@ -78,7 +79,7 @@ test('미배정 수는 이 학생회의 직급·부서 없는 운영진만 센�
 
     // 회장단이 아니면 학생회 부분째 없다(부서 없는 운영진, 부서장, 부서원).
     for (const user of ['s-plain', 's-planningHead', 's-financeMember'])
-      assert.equal((await read(user)).council, undefined, user)
+      assert.equal((await read(user)).councilBoard, undefined, user)
     assert.equal((await api.get(`${base}/home`, 'o-president')).status, 403)
     assert.equal((await api.get(`${base}/home`)).status, 401)
   } finally {

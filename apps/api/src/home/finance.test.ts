@@ -160,7 +160,7 @@ test('정산할 행사는 끝난 지 오래된 것부터 10개까지이고 전�
   })()
 })
 
-test('회장단이면서 재정이면 받은 것은 받고 정산할 행사는 학생회 행사 카드로만 본다', async () => {
+test('회장단이면서 재정이면 받은 것은 받고 정산할 행사는 회장단 홈 후속 정리로만 본다', async () => {
   await withSettlement(async t => {
     const h = open(t)
     const { vicePresident } = t.council.people
@@ -176,7 +176,7 @@ test('회장단이면서 재정이면 받은 것은 받고 정산할 행사는 �
     const home = await h.read('s-vicePresident')
     assert.equal(home.received?.total, 1)
     assert.equal(home.settling, undefined)
-    assert.ok(home.council!.events.some(card => card.settlement))
+    assert.equal(home.councilBoard?.followUp.total, 1)
     // 재정이 아닌 회장단은 받은 것이 없다.
     assert.equal((await h.read('s-president')).received, undefined)
   })()

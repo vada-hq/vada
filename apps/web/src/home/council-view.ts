@@ -17,12 +17,16 @@ import { dDay } from './home-view'
 
 type Counts = HomeCouncilBoard['events']['counts']
 
-// 행사 머리의 상태별 수: 행사 목록 상태 칩과 같은 이름(DEC-93).
+// 행사 머리의 상태별 수: 행사 목록 상태 칩과 같은 이름(DEC-93). 행사가 하나도 없으면 없다(머리는 회색 '0개', 와이어프레임).
 export const statusCountsLabel = ({ planning, ongoing, followUp }: Counts) =>
-  `기획 중 ${planning} · 진행 중 ${ongoing} · 후속 정리 중 ${followUp}`
+  planning + ongoing + followUp === 0
+    ? undefined
+    : `기획 중 ${planning} · 진행 중 ${ongoing} · 후속 정리 중 ${followUp}`
 
-// 카드에 오른 행사(끝나지 않은 행사)의 전체 수. 셋을 넘으면 '전체 {n}개 보기'다.
+// 카드에 오른 행사(끝나지 않은 행사)의 수. 0이면 '진행할 행사 없음'이다.
 export const openEventTotal = ({ planning, ongoing }: Counts) => planning + ongoing
+// '전체 {n}개 보기'의 수: 머리 상태별 수의 합(완료하지 않은 행사 모두). 머리 수와 링크 수가 어긋나 보이지 않게 한다.
+export const allEventTotal = (counts: Counts) => openEventTotal(counts) + counts.followUp
 
 const dayOf = (value: string) => dueText(value.slice(0, KOREAN_DATE_LENGTH))
 
@@ -56,7 +60,7 @@ export const remainingTidyLabel = ({ tasks, settlement }: HomeFollowUp['remainin
 export const attentionParts = ({ task }: HomeAttention) => [
   task.department?.name ?? COUNCIL_TASK_LABEL,
   task.event?.name ?? null,
-  task.dueDate ? dueText(task.dueDate) : null,
+  task.dueDate ? `${dueText(task.dueDate)} 마감` : null,
 ]
 
 export const ATTENTION_CHIP = { overdue: '지남', unassigned: '담당자 없음' } as const
@@ -76,8 +80,8 @@ export function upcomingParts(item: HomeUpcomingItem) {
     return {
       date,
       title: `${item.event.name} 신청 마감`,
-      meta: ['참가 신청', item.time],
+      meta: [item.time, '참가 신청'],
       chip: '마감' as const,
     }
-  return { date, title: item.event.name, meta: ['행사 시작', item.time], chip: '행사' as const }
+  return { date, title: item.event.name, meta: [item.time, '행사 시작'], chip: '행사' as const }
 }
