@@ -35,9 +35,9 @@
 차례
 
 1. 시작: `git status`가 깨끗한지 본다(이어서 하던 수정이 남았으면 그것부터 끝낸다). `git fetch origin && git switch --detach origin/main && pnpm install --frozen-lockfile`(바뀐 의존성이 없으면 1초 안에 끝난다). `gh run list --branch main --limit 3`에서 이 폴더가 올린 커밋이 실패했으면 그것부터 고친다.
-2. 고친다. 전체 시험은 돌리지 않는다. 바꾼 모듈의 시험 파일만 돌리고, 화면 문구나 부품을 바꿨으면 `src/ui-gallery` 시험도 돌린다(스냅숏이 바뀌면 `-u`로 갱신하고 차이를 본다). 그다음 `pnpm check`.
+2. 고친다. 전체 시험은 돌리지 않는다. 바꾼 모듈의 시험 파일만 돌리고, 화면 문구나 부품을 바꿨으면 `src/ui-gallery` 시험도 돌린다(섹션별 `__snapshots__/gallery/*.html` 스냅숏이 바뀌면 `-u`로 갱신하고 차이를 본다. 지운 섹션의 파일이 남으면 시험이 실패하므로 함께 지운다). 그다음 `pnpm check`.
 3. 커밋한다. 수정 하나에 커밋 하나다.
-4. `git fetch origin && git rebase origin/main`. 충돌을 풀었으면 `git diff --check`와 `pnpm check`를 다시 돌린다. 스냅숏 충돌은 손으로 고치지 않고 다시 만든다. `git push origin HEAD:main`이 거절되면(그사이 다른 폴더가 올림) 4를 되풀이한다.
+4. `git fetch origin && git rebase origin/main`. 충돌을 풀었으면 `git diff --check`와 `pnpm check`를 다시 돌린다. 스냅숏 충돌은 손으로 고치지 않고 해당 시험을 `-u`로 돌려 다시 만든다. `git push origin HEAD:main`이 거절되면(그사이 다른 폴더가 올림) 4를 되풀이한다.
 5. 올린 커밋의 main CI를 뒤에서 지켜본다(`gh run watch <id> --exit-status`를 백그라운드로). 사람에게는 무엇을 고쳤고 약 10분 뒤 배포되면 어느 화면에서 보면 되는지 한 줄로 알리고, 기다리지 않고 다음 요청을 받는다. CI가 실패하면 다음 일보다 먼저 고친다(배포는 멈추고 운영은 그대로다).
 
 - 마이그레이션은 칸·표를 더하는 것만 만든다. 번호와 `migrations/meta/_journal.json`이 순번이라 두 폴더가 같은 번호를 만들면 부딪친다. 그래서 만들기 직전에 4의 fetch·rebase를 하고, 만들면 바로 개발 DB에 적용(`pnpm --filter @vada/api db:migrate --apply`)한 뒤 다른 수정을 기다리지 않고 올린다. 운영 DB는 main CI가 배포 전에 적용한다. 나머지 순서는 아래 '마이그레이션'을 따른다.

@@ -114,6 +114,7 @@
 ### 10. 큰 파일 나누기 [x]
 - 할 수 있게 되는 것: 표 정의와 부품 확인 화면을 영역별 파일에서 찾는다.
 - 수용 기준: `schema.ts`가 영역별 파일로 나뉘고 모두 300줄 안이다. 맞춤 시험(`schema-match.test.ts`)과 `npm run check:design`이 전과 같이 통과한다. `ui-gallery/Gallery.tsx`가 300줄 안이고 `/ui.html`이 전과 같게 보인다.
+- 갤러리 겉 모양은 화면과 공유하는 섹션 목록마다 `__snapshots__/gallery/<영문 컴포넌트 이름>.html`로 따로 검사한다. 새 섹션은 자동으로 포함하고, 지운 섹션의 파일이 남으면 실패한다. 공용 부품을 바꾸면 영향받는 섹션 파일에만 차이가 드러나며, 스냅숏 충돌은 손으로 고치지 않고 시험을 `-u`로 돌려 다시 만든다.
 - 닿는 곳: `api/src/db/schema*.ts`, `drizzle.config.ts`, `web/src/ui-gallery/`.
 - 검토: 보통.
 

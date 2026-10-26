@@ -1,0 +1,173 @@
+<div>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">업무 표</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="w-full max-w-5xl">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<table role="grid" aria-label="업무 표" class="w-full border-collapse text-left">
+<thead>
+<tr role="row">
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 min-w-40">제목</th>
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">상태</th>
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">담당자</th>
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">마감</th>
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">부서</th>
+<th role="columnheader" scope="col" class="px-2 py-2 text-xs font-medium text-gray-500 w-px whitespace-nowrap">행사</th>
+</tr>
+</thead>
+<tbody>
+<tr role="row">
+<th colspan="6" scope="colgroup" role="rowheader" class="bg-gray-50 px-3 py-2 text-left">
+<span class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+<span class="text-sm font-semibold wrap-anywhere text-gray-900">기획부<span class="ml-1.5 font-normal text-gray-500">3</span>
+</span>
+<span class="flex flex-wrap gap-x-2 text-xs">
+<span class="text-gray-500">진행 중 1</span>
+<span class="text-red-600">지남 1</span>
+<span class="text-yellow-700">담당자 없음 1</span>
+</span>
+</span>
+</th>
+</tr>
+<tr role="row" class="border-t">
+<td role="gridcell" data-row="1" data-col="0" tabindex="0" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 p-1" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 제목 고치기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" aria-hidden="true">
+<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+</path>
+<path d="m15 5 4 4">
+</path>
+</svg>
+</button>
+</div>
+</td>
+<td role="gridcell" data-row="1" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 상태" tabindex="-1">
+<option value="todo">할 일</option>
+<option value="in_progress">진행 중</option>
+<option value="done">끝남</option>
+</select>
+</td>
+<td role="gridcell" data-row="1" data-col="2" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 담당자" tabindex="-1">
+<option value="p1">김새내</option>
+<option value="">담당자 없음</option>
+</select>
+</td>
+<td role="gridcell" data-row="1" data-col="3" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-4 text-xs text-gray-500 h-auto justify-start px-1 py-0.5" tabindex="-1" data-edit-start="true" aria-label="신입생 환영회 장소 예약 마감 고치기">10월 25일</button>
+</td>
+<td role="gridcell" data-row="1" data-col="4" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 부서" tabindex="-1">
+<option value="d1">기획부</option>
+<option value="">학생회 업무</option>
+</select>
+</td>
+<td role="gridcell" data-row="1" data-col="5" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs max-w-32" aria-label="신입생 환영회 장소 예약 행사" tabindex="-1">
+<option value="">행사 없음</option>
+</select>
+</td>
+</tr>
+<tr role="row" class="border-t">
+<td role="gridcell" data-row="2" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+</div>
+</td>
+<td role="gridcell" data-row="2" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs" aria-label="신입생 환영회 장소 예약 상태" tabindex="-1">
+<option value="todo">할 일</option>
+<option value="in_progress">진행 중</option>
+<option value="done">끝남</option>
+</select>
+</td>
+<td role="gridcell" data-row="2" data-col="2" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs wrap-anywhere text-yellow-700">담당자 없음</span>
+</td>
+<td role="gridcell" data-row="2" data-col="3" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs font-medium text-red-600">10월 25일</span>
+</td>
+<td role="gridcell" data-row="2" data-col="4" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
+</td>
+<td role="gridcell" data-row="2" data-col="5" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">행사 없음</span>
+</td>
+</tr>
+<tr role="row" class="border-t">
+<td role="gridcell" data-row="3" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">신입생 환영회 장소 예약</button>
+</div>
+</td>
+<td role="gridcell" data-row="3" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs opacity-45" aria-label="신입생 환영회 장소 예약 상태" aria-busy="true" tabindex="-1">
+<option value="todo">할 일</option>
+<option value="in_progress">진행 중</option>
+<option value="done">끝남</option>
+</select>
+</td>
+<td role="gridcell" data-row="3" data-col="2" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">김새내</span>
+</td>
+<td role="gridcell" data-row="3" data-col="3" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500">10월 25일</span>
+</td>
+<td role="gridcell" data-row="3" data-col="4" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">기획부</span>
+</td>
+<td role="gridcell" data-row="3" data-col="5" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left whitespace-normal wrap-anywhere text-xs" tabindex="-1">신입생 환영회</button>
+</td>
+</tr>
+<tr role="row">
+<th colspan="6" scope="colgroup" role="rowheader" class="bg-gray-50 px-3 py-2 text-left">
+<span class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+<span class="text-sm font-semibold wrap-anywhere text-gray-900">학생회 업무<span class="ml-1.5 font-normal text-gray-500">1</span>
+</span>
+<span class="flex flex-wrap gap-x-2 text-xs">
+</span>
+</span>
+</th>
+</tr>
+<tr role="row" class="border-t">
+<td role="gridcell" data-row="4" data-col="0" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset min-w-40">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+</div>
+</td>
+<td role="gridcell" data-row="4" data-col="1" tabindex="-1" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 text-base font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer h-8 w-auto py-1 sm:text-xs" aria-label="https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 상태" tabindex="-1">
+<option value="todo">할 일</option>
+<option value="in_progress">진행 중</option>
+<option value="done">끝남</option>
+</select>
+</td>
+<td role="gridcell" data-row="4" data-col="2" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">떠난 사람: 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
+</td>
+<td role="gridcell" data-row="4" data-col="3" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500">10월 25일</span>
+</td>
+<td role="gridcell" data-row="4" data-col="4" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">학생회 업무</span>
+</td>
+<td role="gridcell" data-row="4" data-col="5" tabindex="-1" aria-readonly="true" class="px-2 py-2 align-middle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset w-px whitespace-nowrap">
+<span class="text-xs text-gray-500 wrap-anywhere">행사 없음</span>
+</td>
+</tr>
+<tr role="presentation">
+<td role="presentation" colspan="6" class="px-3 pb-2">
+<p role="alert" class="text-xs text-destructive wrap-anywhere">너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</div>

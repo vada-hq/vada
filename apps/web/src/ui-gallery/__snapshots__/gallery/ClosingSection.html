@@ -1,0 +1,29 @@
+<div>
+<section class="flex flex-col gap-3 border-b py-6">
+<h2 class="text-base">결산 상태 배지와 점검</h2>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-80 flex-col gap-3">
+<div class="flex gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">작성 중</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">공개됨</span>
+</div>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-4">
+<h3 class="text-sm font-semibold text-gray-900">점검</h3>
+<ul class="flex flex-col gap-2">
+<li class="text-xs font-medium text-gray-700">완료하지 않은 행사의 입금</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</button>
+<span class="text-xs text-gray-500">입금 4건 · 120,000원</span>
+</li>
+<li class="flex flex-col gap-1 rounded-sm border p-3">
+<span class="text-sm font-medium text-gray-900">증빙이 없는 지출 3개</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 · 36,000원</button>
+<span class="text-xs text-gray-500">외 2개</span>
+</li>
+</ul>
+<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">다음 기간 행사에 받은 입금 2건 60,000원은 이 결산서의 수입에 없고 통장에는 있어요.</div>
+</div>
+</div>
+</div>
+</section>
+</div>
