@@ -141,7 +141,7 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 - 닿는 곳: web 1:1 패널(새, `chat/` 또는 `workspace/`), `chat/MessageItem.tsx`, `Composer.tsx`·`useMentionInput.ts`, `DirectDialog.tsx`, `tasks/`의 담당자 표시, `team/`의 사람 목록, `workspace/WorkspaceFrame.tsx`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 8. 행사 방과 보관(서버) [ ]
+### 8. 행사 방과 보관(서버) [x]
 - 먼저 main에: 조각 1(공지방 판정·보이기), 조각 3(`RoomSummary`).
 - 할 수 있게 되는 것: 행사마다 공지방과 부서방이 생기고, 완료된 행사의 방은 읽기만 된다.
 - 수용 기준: 행사를 만들면 공지방(모든 운영진)과 부서마다 부서방(그 부서 소속)이 생기고, 이미 있는 행사도 방 목록을 읽으면 생긴다. 부서를 옮기면 보관되지 않은 행사 부서방 참여가 바뀐다. 행사 만들기와 편성 바꾸기가 겹쳐도 방은 하나씩이다(pg-smoke). 행사 공지방에도 조각 1의 들어오기 전 규칙이 맞다. 학생회 편성 방을 고르는 조회가 행사 방을 잡지 않는다(`isPlanRoom`). 대화 목록에는 메시지가 있는 행사 방만 `eventId`·`eventName`과 함께 있다. `GET /api/organizations/:councilId/events/:eventId/rooms`(`EventRoomsResponse { rooms: RoomSummary[]; archived: boolean }`)는 메시지가 없어도 그 행사의 공지방과 내 부서방을 준다. 다른 학생회의 행사는 404다. 행사가 완료되면 보내기·답글은 409 `ROOM_ARCHIVED`, 목록·합계 배지·알림에서 빠지고 읽기는 된다. 완료를 취소하면 다시 보낸다. 행사 방 메시지로 만든 요청·근거 잇기가 된다. 행사에 이은 업무의 공지 만들기는 그 행사 공지방에 올린다.

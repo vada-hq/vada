@@ -172,6 +172,7 @@ export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어�
 export const SEND_ERRORS = changeErrors({
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 보내 주세요.',
   ROOM_READ_ONLY: '이 방은 보기만 할 수 있어요.',
+  ROOM_ARCHIVED: '완료된 행사의 방이라 보낼 수 없어요.',
   TASK_INVALID,
   INVALID_INPUT: '보낼 수 없는 내용이에요. 글과 사진을 확인해 주세요.',
   UPLOAD_MISMATCH: '올린 사진을 확인하지 못했어요. 그 사진을 빼고 다시 올려 주세요.',

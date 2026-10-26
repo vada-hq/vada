@@ -9,6 +9,7 @@ import {
   type Action,
   type ChatMessage,
   type ChatPhotoListResponse,
+  type EventRoomsResponse,
   type OpenDirectResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
@@ -31,13 +32,14 @@ import { json } from '../http/validate.js'
 import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
 import { openDirect } from './direct.js'
+import { eventRoomsOf } from './event-rooms.js'
 import { messagePage } from './messages.js'
 import type { ChatPush } from './notify.js'
 import { issuePhotoUpload, photoToView, verifyPhotos, visiblePhotoList } from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
 import { roomAccess } from './room-access.js'
-import { ensureCouncilRooms } from './rooms.js'
+import { ensureCouncilRooms, ensureEventRooms } from './rooms.js'
 import { postMessage, SEND_LIMIT } from './send.js'
 
 const root = '/organizations/:councilId'
@@ -80,13 +82,27 @@ const requestOf = (c: Context<SessionEnv>, now: Date) => ({
 function listRoutes({ routes, auth, db, asked }: Kit) {
   routes.get(`${root}/rooms`, auth, async c => {
     const request = asked(c)
-    // 이 기능 전에 만든 학생회의 방을 채운다. 이미 있으면 쓰지 않는다.
-    await ensureCouncilRooms(db, await authorize(db, request))
+    // 이 기능 전에 만든 학생회와 행사의 방을 채운다. 이미 있으면 쓰지 않는다.
+    const actor = await authorize(db, request)
+    await ensureCouncilRooms(db, actor)
+    await ensureEventRooms(db, actor)
     const list = await db.transaction(
       async tx => roomListOf(tx, await authorize(tx, request), request.now),
       snapshot,
     )
     return c.json(list satisfies RoomListResponse)
+  })
+  // 행사 메시지 탭의 방(DEC-90). 번호 형식은 운영진인지 본 뒤에 본다(운영진이 아니면 403).
+  routes.get(`${root}/events/:eventId/rooms`, auth, async c => {
+    const request = asked(c)
+    const actor = await authorize(db, request)
+    const eventId = recordIdOf(c.req.param('eventId'))
+    await ensureEventRooms(db, actor)
+    const rooms = await db.transaction(
+      async tx => eventRoomsOf(tx, await authorize(tx, request), request.now, eventId),
+      snapshot,
+    )
+    return c.json(rooms satisfies EventRoomsResponse)
   })
 }
 

@@ -254,11 +254,12 @@ test('거부된 편성 요청은 방도 참여도 바꾸지 않는다', async ()
   }
 })
 
-test('행사방은 편성 방으로 잡히지 않아 맞출 때 참여가 그대로다', async () => {
+test('행사방은 편성 방으로 잡히지 않는다: 학생회 공지방은 하나이고 행사 공지방은 행사 방으로 따로 맞춘다', async () => {
   const s = await start()
   try {
     const kim = await s.memberOf('kim')
-    // 행사방은 편성이 아니라 행사가 정한다(event_id가 있다). 종류 칸이 전체방과 같아도 편성 방이 아니다.
+    // 행사방은 행사가 정한다(event_id가 있다). 종류 칸이 전체방과 같아도 학생회 편성 방이 아니다.
+    // 행사 공지방의 참여도 편성을 따르므로(022 조각 8) 들어온 사람이 행사 공지방에도 들고, 학생회 공지방이 둘이 되지 않는다.
     const event = (
       await s.pg.query<{ id: string }>(
         `INSERT INTO record (kind, council_id) VALUES ('event', $1) RETURNING id`,
@@ -283,7 +284,9 @@ test('행사방은 편성 방으로 잡히지 않아 맞출 때 참여가 그대
     await s.join('lee')
     const members = async (id: string) =>
       (await s.pg.query('SELECT 1 FROM room_membership WHERE room_id = $1', [id])).rows.length
-    assert.equal(await members(room), 1)
+    assert.equal(await members(room), 2)
+    const eventRooms = await s.pg.query('SELECT 1 FROM chat_room WHERE event_id = $1', [event])
+    assert.equal(eventRooms.rows.length, 1)
     const all = await s.pg.query(
       `SELECT count(*)::int AS n FROM chat_room WHERE type = 'all_members' AND event_id IS NULL`,
     )

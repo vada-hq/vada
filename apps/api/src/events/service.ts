@@ -10,6 +10,7 @@ import { can } from '../access/permissions.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { postKkirukNotice } from '../chat/kkiruk-post.js'
+import { syncEventRooms } from '../chat/rooms.js'
 import { createRecord, updateRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
@@ -66,6 +67,13 @@ export async function createEvent(
   // 행사가 생기면 공지방에 끼룩이 글이 올라 회장단이 안다(DEC-93). 만든 사람의 이름은 글에 넣지 않는다:
   // 정해진 글로 남으면 그 사람이 탈퇴해도 '떠난 운영진 N'(DEC-54)으로 바뀌지 않는다. 만든 사람은 행사의 책임자로 보인다.
   const notice = await noticeOf(tx, actor, id, createdNoticeOf(input.name))
+  // 같은 거래에서 행사 방(공지방, 운영진이 있는 부서마다 부서방)을 만든다(DEC-90). 학생회 행을 잠근 거래라 방이 둘 생기지 않는다.
+  // 만들기 글 뒤에 만들어 글은 우리 학생회 공지방에 오른다: 새 행사는 학생회 공간의 소식이고, 행사 방은 첫 메시지 뒤에 목록에 나온다.
+  await syncEventRooms(
+    tx,
+    { councilId: actor.councilId, cohortId: actor.cohortId, memberId: actor.memberId },
+    id,
+  )
   return { event: await eventDetailOf(tx, actor, id, now), notice }
 }
 

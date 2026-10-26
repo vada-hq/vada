@@ -47,6 +47,8 @@ export const ERROR_STATUS = {
   PRESIDENT_REQUIRED: 409,
   RECORD_CONFIRMED: 409,
   REQUEST_CLOSED: 409,
+  // 완료한 행사의 방은 보관이라 새 메시지를 받지 않는다(022 정한 것 26, DEC-90)
+  ROOM_ARCHIVED: 409,
   ROOM_READ_ONLY: 409,
   // 같은 메시지로 만든 살아 있는 요청(반려·취소 아님)이나 지출(취소 아님)이 이미 있다(022 정한 것 23)
   SOURCE_MESSAGE_USED: 409,

@@ -1,10 +1,11 @@
 import { and, asc, eq, inArray, ne } from 'drizzle-orm'
 import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { chatRoom, roomMembership } from '../db/schema.js'
+import { chatRoom, record, roomMembership, task } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { authorizeChange, authorizeWrite, type AccessRequest } from '../access/authorize.js'
 import { ApiError } from '../http/errors.js'
+import { lockedCompleted } from '../policy/locks.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { currentMembersAmong, lockCurrentMembers } from './current-members.js'
@@ -12,7 +13,7 @@ import { messageOf } from './messages.js'
 import { isStorageKeyConflict, type VerifiedPhoto } from '../storage/uploads.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
-import { inCouncilNoticeRoom } from './plan-room.js'
+import { inNoticeRoom, isPlanRoom } from './plan-room.js'
 import { roomAccess } from './room-access.js'
 import { lockedSentAt } from './sent-at.js'
 
@@ -75,12 +76,33 @@ async function calledFrom(
   return rows.map(row => row.memberId).filter(id => alive.has(id))
 }
 
-async function isCouncilNoticeRoom(tx: Tx, roomId: string) {
+// 업무의 공지 결과물이 오르는 공지방: 행사에 이은 업무면 그 행사의 공지방, 아니면 학생회 공지방이다(022 정한 것 3·29).
+// 이 학생회의 업무가 아니면 학생회 공지방으로 보고 넘긴다(그 업무는 assertLinkableTask가 409로 막는다).
+async function isTaskNoticeRoom(tx: Tx, actor: Actor, roomId: string, taskId: string) {
+  const [linked] = await tx
+    .select({ eventId: task.eventId })
+    .from(task)
+    .innerJoin(record, eq(record.id, task.id))
+    .where(and(eq(task.id, taskId), eq(record.councilId, actor.councilId)))
+  const eventId = linked?.eventId ?? null
   const [found] = await tx
     .select({ id: chatRoom.id })
     .from(chatRoom)
-    .where(and(eq(chatRoom.id, roomId), inCouncilNoticeRoom))
+    .where(
+      and(
+        eq(chatRoom.id, roomId),
+        inNoticeRoom,
+        eventId === null ? isPlanRoom : eq(chatRoom.eventId, eventId),
+      ),
+    )
   return found !== undefined
+}
+
+// 완료한 행사의 방은 보관이라 새 메시지를 받지 않는다(DEC-90, DEC-83). 행사 행을 FOR SHARE로 잠근 뒤 보아
+// 완료(행사 행 FOR NO KEY UPDATE)와 겹치면 하나로 정해진다. 끼룩이 글과 같은 '행사 행 → 내 참여 줄' 순서로 잠근다.
+async function assertRoomOpen(tx: Tx, room: { eventId: string | null }) {
+  if (room.eventId && (await lockedCompleted(tx, [room.eventId])))
+    throw new ApiError('ROOM_ARCHIVED')
 }
 
 // 글 보내기. 내 참여 줄을 FOR NO KEY UPDATE로 잠근 뒤에 보낸다: 내보내기나 부서 빼기가 먼저 줄을 지웠으면 잠금이 줄을 찾지 못해 403이고,
@@ -96,7 +118,9 @@ export async function sendMessage(
   // 업무를 잇는 보내기는 sendAs가 학생회 행을 잠근 뒤 권한을 다시 본 actor(authorizeChange)로 부른다.
   const room = await roomAccess(tx, actor, input.roomId)
   // 공지는 공지방에 보낸 보통 메시지다(DEC-90). 업무의 공지 결과물은 공지방에 보낼 때만 잇는다. 보내기는 그 방 참여자 누구나 한다.
-  if (input.taskId && !(await isCouncilNoticeRoom(tx, room.id))) throw new ApiError('INVALID_INPUT')
+  if (input.taskId && !(await isTaskNoticeRoom(tx, actor, room.id, input.taskId)))
+    throw new ApiError('INVALID_INPUT')
+  await assertRoomOpen(tx, room)
   const [mine] = await tx
     .select({ memberId: roomMembership.memberId })
     .from(roomMembership)
