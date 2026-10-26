@@ -63,6 +63,7 @@ export const PEOPLE_ERRORS = changeErrors({
   CANNOT_REMOVE_SELF: '나를 내보낼 수는 없어요.',
   PRESIDENT_REQUIRED: '회장의 직급은 회장 넘기기로만 바꿀 수 있어요.',
   ALREADY_PRESIDENT: '이미 회장이에요.',
+  ALREADY_IN_DEPARTMENT: '이미 그 부서에 있어요.',
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: NOT_FOUND_RELOADED,
 })
