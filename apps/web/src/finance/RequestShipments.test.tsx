@@ -148,6 +148,26 @@ test('등록 권한이 없어도 배송과 품목 대응·마지막 시각을 �
   expect(region.queryByRole('button', { name: '송장 취소' })).toBeNull()
 })
 
+test('저장 응답 뒤 상세 재조회가 끝나기 전에도 중복 등록을 막는다', async () => {
+  const { api } = setup()
+  const pending = deferredResponse()
+  let saved = false
+  api.on('GET', BASE, () => (saved ? pending.promise : json({ request: request() })))
+  api.on('POST', URL, () => {
+    saved = true
+    return json({ shipment: shipment() }, 201)
+  })
+  const form = await openCreate()
+  fill(form.getByLabelText('송장 번호'), '123456')
+  fireEvent.click(form.getByRole('button', { name: '넣기' }))
+  await waitFor(() => expect(api.calls.filter(call => call.path === BASE)).toHaveLength(2))
+  expect(form.getByRole<HTMLButtonElement>('button', { name: '넣기' }).disabled).toBe(true)
+  fireEvent.click(form.getByRole('button', { name: '넣기' }))
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
+  pending.resolve(json({ request: request({ shipments: [shipment()] }) }))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '송장 넣기' })).toBeNull())
+})
+
 test('업체 조회 안 됨에도 택배사 링크와 송장을 보인다', async () => {
   const { api } = setup(request({ shipments: [shipment()] }))
   api.on('GET', `${URL}/${SHIPMENT}/tracking`, () =>
