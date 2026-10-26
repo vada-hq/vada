@@ -15,6 +15,7 @@ import {
   finishTogetherCase,
   noticeAndRequestTogetherCase,
   joinTwiceCase,
+  moveTogetherCase,
   rotateTogetherCase,
   sendAndRemoveCase,
   sendTogetherCase,
@@ -167,6 +168,17 @@ test('회장단 둘이 동시에 초대 코드 바꾸기: 예상하지 못한 DB
       contextOf(testDb, failingParticipants(testDb, '40001')),
     )
     assert.ok(!verdict.ok && verdict.code === '40001', JSON.stringify(verdict))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('같은 사람을 서로 다른 부서로 동시에 옮기기: 열린 부서 소속은 1개이고 한쪽만 NOT_FOUND로 끝난다 (PGlite는 순서대로 돌려 모양만 본다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    const detail = passed(await moveTogetherCase.run(contextOf(testDb)))
+    assert.match(detail, /열린 부서 소속 1개/)
+    assert.match(detail, /NOT_FOUND/)
   } finally {
     await testDb.close()
   }
