@@ -48,6 +48,8 @@ export const ERROR_STATUS = {
   RECORD_CONFIRMED: 409,
   REQUEST_CLOSED: 409,
   ROOM_READ_ONLY: 409,
+  // 같은 메시지로 만든 살아 있는 요청(반려·취소 아님)이나 지출(취소 아님)이 이미 있다(022 정한 것 23)
+  SOURCE_MESSAGE_USED: 409,
   TASK_ASSIGNEE_INVALID: 409,
   TASK_DEPARTMENT_INVALID: 409,
   TASK_INVALID: 409,

@@ -125,7 +125,7 @@ export async function sendMessage(
       actor: null,
       values: { recipientId, recordId: messageId, type: 'mention', notifiedAt: clockNow },
     })
-  return messageOf(tx, messageId)
+  return messageOf(tx, actor, messageId)
 }
 
 // 요청한 사람의 권한을 보고 보낸다. 업무를 잇는 보내기는 업무 상태를 옮기는 쓰기라 다른 직원 쓰기처럼 학생회 행을 잠근 뒤 권한을 다시 본다.

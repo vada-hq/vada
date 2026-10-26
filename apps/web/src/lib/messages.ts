@@ -219,6 +219,7 @@ export const PURCHASE_ERRORS = changeErrors({
   TASK_INVALID,
   MESSAGE_INVALID:
     '이 메시지를 더는 볼 수 없어 요청을 낼 수 없어요. 방에서 나갔는지 확인해 주세요.',
+  SOURCE_MESSAGE_USED: '이 메시지로 낸 요청이 이미 있어요. 메시지 아래에서 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 })
@@ -296,6 +297,7 @@ export const EXPENSE_CREATE_ERRORS = changeErrors({
   ...EXPENSE_ERRORS,
   MESSAGE_INVALID:
     '이 메시지를 근거로 할 수 없어요. 볼 수 없는 대화의 메시지예요. 닫고 대화에서 다시 열어 주세요.',
+  SOURCE_MESSAGE_USED: '이 메시지로 적은 지출이 이미 있어요. 메시지 아래에서 확인해 주세요.',
   COMMAND_REUSED: '앞서 보내던 지출과 달라서 새로 준비했어요. 다시 적어 주세요.',
   COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 적어 주세요.',
 })

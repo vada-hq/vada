@@ -63,6 +63,8 @@ export interface ChatMessage {
   sentAt: string
   deletedAt: string | null
   photos: ChatPhoto[]
+  // 이 메시지를 근거로 만든 구매 요청(제목)과 지출(내역), 만든 차례(DEC-71, DEC-90). 보는 사람이 읽을 수 있는 기록만 싣는다.
+  made: { kind: 'purchase_request' | 'expense'; id: string; title: string }[]
 }
 
 export interface RoomSummary {
