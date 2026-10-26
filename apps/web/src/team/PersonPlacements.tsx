@@ -71,8 +71,10 @@ function PlacementRow({
         {actions.rank ? (
           <NativeSelect
             aria-label={`${name} 부서 직급`}
-            className="w-28"
+            className="w-28 max-sm:min-h-11"
             value={rankValue(placement.rank)}
+            // 보내는 중에는 다시 바꾸지 못한다(두 번 보내기 금지). 끝나면 받은 값으로 돌아온다.
+            disabled={saving}
             onChange={event => onSave(rankChange(member, placement, rankOf(event.target.value)))}
           >
             <RankOptions titles={titles} />
