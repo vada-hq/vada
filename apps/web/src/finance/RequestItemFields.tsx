@@ -5,6 +5,8 @@ import { Field as LabeledField } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import type { FieldErrors } from '@/lib/use-form-check'
 import type { ItemValues } from './request-form'
+import { sellerOf } from '@/lib/seller'
+import { wonLabel } from './purchase-view'
 
 type Props = {
   index: number
@@ -78,6 +80,12 @@ export function RequestItemFields({
         error={errors.link}
         {...text('link')}
       />
+      {sellerOf(values.link) && (
+        <span className="text-xs text-gray-500">{sellerOf(values.link)}</span>
+      )}
+      {values.loadedPrice != null && (
+        <span className="text-xs text-gray-500">{`불러온 가격 ${wonLabel(values.loadedPrice)}`}</span>
+      )}
       <Field label="옵션" error={errors.options} {...text('options')} />
       {removable && (
         <Button

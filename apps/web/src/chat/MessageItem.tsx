@@ -1,4 +1,9 @@
-import { DELETED_MESSAGE, isLeftMemberName } from '@vada/contracts'
+import {
+  coupangProductOf,
+  DELETED_MESSAGE,
+  isLeftMemberName,
+  type ChatMessage,
+} from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { KkirukLine } from '@/components/KkirukLine'
 import { cn } from '@/lib/utils'
@@ -6,6 +11,7 @@ import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
 import MessageMenu from './MessageMenu'
 import MessagePhotos from './MessagePhotos'
+import { useProductOpener } from './product-open'
 import { useMessageActions, type MessageActionArgs } from './useMessageActions'
 
 type Props = MessageActionArgs & {
@@ -19,7 +25,8 @@ type Props = MessageActionArgs & {
 // 내 말풍선은 파란 바탕에 흰 글자이고(대비 5.2:1, WCAG 1.4.3), 안의 링크는 같은 흰 글자에 밑줄로 가른다.
 // 와이어프레임의 옅은 파랑(blue-100)은 밑줄 없이 색만 달라 링크인지 알기 어렵다(WCAG 1.4.1).
 // 남의 말풍선은 흰 바탕에 테두리, 링크는 파란 글자에 밑줄이다.
-function Body({ body, mine }: { body: string; mine: boolean }) {
+function Body({ message, mine }: { message: ChatMessage; mine: boolean }) {
+  const openProduct = useProductOpener()
   return (
     <p
       className={cn(
@@ -29,13 +36,19 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
           : 'border border-gray-200 bg-white text-gray-800',
       )}
     >
-      {bodyParts(body).map((part, index) =>
+      {bodyParts(message.body ?? '').map((part, index) =>
         part.kind === 'link' ? (
           <a
             key={index}
             href={part.text}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={event => {
+              if (openProduct && coupangProductOf(part.text)) {
+                event.preventDefault()
+                openProduct({ url: part.text, message })
+              }
+            }}
             className={cn(
               'underline underline-offset-2',
               mine ? 'text-primary-foreground' : 'text-blue-700',
@@ -146,7 +159,7 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
         {message.body === null ? (
           <Deleted />
         ) : (
-          message.body !== '' && <Body body={message.body} mine={mine} />
+          message.body !== '' && <Body message={message} mine={mine} />
         )}
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         <Time message={message} continued={continued} />

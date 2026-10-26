@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { RequestCreateDialog } from '../finance/RequestCreateDialog'
-import { requestSeedOf } from './request-seed'
+import { requestSeedOf, type LoadedPick } from './request-seed'
 import type { RequestFlow } from './useRequestFlow'
 
 export type RequestAccess = {
@@ -21,6 +21,7 @@ type Props = Omit<RequestAccess, 'onOpenRequest'> & {
   meId: string
   flow: RequestFlow
   onForbidden: () => void
+  picked?: LoadedPick | undefined
 }
 
 // 재정부는 나 말고 다른 지금 운영진도 요청한 사람으로 고른다.
@@ -37,7 +38,11 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
   // 열려 있는 동안 권한을 잃으면 닫고 이유를 보인다.
   useDialogGuard(message !== null, props.canRequest ? null : PERMISSION_CHANGED, flow.lose)
   if (message === null) return null
-  const seed = requestSeedOf(message, { meId, members: team?.members ?? null, canAssign })
+  const seed = requestSeedOf(
+    message,
+    { meId, members: team?.members ?? null, canAssign },
+    props.picked,
+  )
   return (
     <RequestCreateDialog
       open
