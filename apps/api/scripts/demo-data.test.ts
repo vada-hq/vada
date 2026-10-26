@@ -154,10 +154,14 @@ test('리허설 화면 기준 - 행사 B와 C, 부탁 메시지, 회장의 홈',
       ),
       2,
     )
-    // 회장 홈의 할 일이 비지 않는다
+    // 회장 홈(회장단 홈 HOME-01C)의 행사 현황에 행사 B와 C가 있고 할 일이 비지 않는다
     const home = await get<HomeResponse>(`${org}/home`)
-    assert.ok(home.council!.events.some(card => card.tasks.total > 0))
-    assert.ok(home.council!.events.length > 0)
+    const cards = home.councilBoard!.events.cards
+    assert.deepEqual(
+      [b.id, c.id].filter(id => cards.some(card => card.event.id === id)),
+      [b.id, c.id],
+    )
+    assert.ok(cards.some(card => card.event.id === b.id && card.tasks.total > 0))
   } finally {
     await close()
   }
