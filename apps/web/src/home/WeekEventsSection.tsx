@@ -1,9 +1,8 @@
 import { CalendarDays } from 'lucide-react'
-import { EVENT_STATUS_LABEL, type EventSummary } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
-import { EVENT_STATUS_TONE, spanLabel } from '../events/event-view'
-import { dDay, SHORT_LIST } from './home-view'
-import { DateBox } from './HomeEventRow'
+import type { EventSummary } from '@vada/contracts'
+import EventStatusChip from '../events/EventStatusChip'
+import { SHORT_LIST } from './home-view'
+import { DateBox, whenParts } from './HomeEventRow'
 import HomeRow from './HomeRow'
 import HomeSection from './HomeSection'
 import NoOpenEvents from './NoOpenEvents'
@@ -32,16 +31,8 @@ export default function WeekEventsSection({ events, today, noOpenEvents, ...open
           key={event.id}
           title={event.name}
           lead={<DateBox startsAt={event.startsAt} past={false} />}
-          meta={[spanLabel(event), event.place]}
-          side={
-            event.status === 'ongoing' ? (
-              <Badge tone={EVENT_STATUS_TONE.ongoing}>{EVENT_STATUS_LABEL.ongoing}</Badge>
-            ) : (
-              event.startsAt && (
-                <span className="font-medium text-gray-700">{dDay(today, event.startsAt)}</span>
-              )
-            )
-          }
+          meta={[...whenParts(event, today), event.place]}
+          side={<EventStatusChip status={event.status} />}
           onOpen={() => open.onOpenEvent(event.id)}
         />
       ))}
