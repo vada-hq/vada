@@ -24,6 +24,7 @@ import { FeePaymentUploadSection } from './FeePaymentSections'
 import { MessageBubbleSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
+import { ShipmentSection } from './ShipmentSections'
 import { ClosingSection } from './ClosingSections'
 import { IncomeSection } from './IncomeSections'
 import { OverviewSection } from './OverviewSections'
@@ -115,6 +116,7 @@ export const gallerySections = [
   DecisionPanelSection,
   ItemCancelSection,
   ExpenseSection,
+  ShipmentSection,
   ExpenseCreateSection,
   IncomeSection,
   ClosingSection,

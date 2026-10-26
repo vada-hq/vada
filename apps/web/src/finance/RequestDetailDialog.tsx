@@ -12,6 +12,7 @@ import type { PurchaseDialogHandlers } from './purchase-requests'
 import { DecisionPanel } from './DecisionPanel'
 import { RequestExpenses } from './RequestExpenses'
 import { RequestItems } from './RequestItems'
+import { RequestShipments } from './RequestShipments'
 import { RequestDecisions } from './RequestRecords'
 import { StatusBadge } from './StatusBadge'
 import { useRequestDetail } from './useRequestDetail'
@@ -62,6 +63,7 @@ function OpenRequestDialog({
             detail={detail}
             councilId={councilId}
             onForbidden={handlers.onForbidden}
+            onLost={handlers.onLost}
             onOpenBudget={onOpenBudget}
             onOpenExpense={onOpenExpense}
           />
@@ -140,6 +142,7 @@ function Loaded({
   detail,
   councilId,
   onForbidden,
+  onLost,
   onOpenBudget,
   onOpenExpense,
 }: {
@@ -147,6 +150,7 @@ function Loaded({
   detail: ReturnType<typeof useRequestDetail>
   councilId: string
   onForbidden: () => void
+  onLost: PurchaseDialogHandlers['onLost']
   onOpenBudget: (() => void) | undefined
   onOpenExpense: (expenseId: string) => void
 }) {
@@ -155,7 +159,19 @@ function Loaded({
     <div className="flex flex-col gap-6">
       <Facts request={request} />
       {/* 결재 중이면 대기 품목은 결재 칸에만 있다(와이어프레임 FIN-REV-01: 품목 카드 하나에 구매 정보와 검토). */}
-      <RequestItems items={listedItems(request, deciding)} cancel={detail.itemCancel} />
+      <RequestItems
+        items={listedItems(request, deciding)}
+        cancel={detail.itemCancel}
+        shipments={request.shipments}
+      />
+      <RequestShipments
+        councilId={councilId}
+        request={request}
+        actions={detail.shipments}
+        busy={detail.saving}
+        onLost={onLost}
+        onForbidden={onForbidden}
+      />
       <RequestExpenses expenses={request.expenses} onOpen={onOpenExpense} />
       {deciding && (
         <DecisionPanel

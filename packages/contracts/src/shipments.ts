@@ -12,6 +12,23 @@ export const SHIPMENT_CARRIERS = [
   'kr.logen',
 ] as const
 export type ShipmentCarrier = (typeof SHIPMENT_CARRIERS)[number]
+export const SHIPMENT_CARRIER_LABELS: Record<ShipmentCarrier, string> = {
+  'kr.coupangls': '쿠팡 CLS',
+  'kr.cjlogistics': 'CJ대한통운',
+  'kr.hanjin': '한진',
+  'kr.lotte': '롯데',
+  'kr.epost': '우체국',
+  'kr.logen': '로젠',
+}
+// 조회 API에 연결하지 못해도 같은 택배사 공개 화면으로 갈 수 있다.
+export const SHIPMENT_TRACKING_PAGES: Record<ShipmentCarrier, string> = {
+  'kr.coupangls': 'https://www.coupangls.com/',
+  'kr.cjlogistics': 'https://www.cjlogistics.com/ko/tool/parcel/tracking',
+  'kr.hanjin': 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038',
+  'kr.lotte': 'https://www.lotteglogis.com/home/reservation/tracking/index',
+  'kr.epost': 'https://service.epost.go.kr/iservice/usr/trace/usrtrc001k01.jsp',
+  'kr.logen': 'https://www.ilogen.com/web/personal/trace',
+}
 export const TRACKING_NUMBER_MAX = 50
 export const ShipmentSchema = z.strictObject({
   carrierId: z.enum(SHIPMENT_CARRIERS),

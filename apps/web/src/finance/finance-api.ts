@@ -14,6 +14,10 @@ export const purchaseItemCancelPath = (councilId: string, requestId: string, lin
   `${purchasePath(councilId, requestId)}/items/${encodeURIComponent(lineItemId)}/cancel`
 export const purchaseDecisionsPath = (councilId: string, requestId: string) =>
   `${purchasePath(councilId, requestId)}/decisions`
+export const purchaseShipmentsPath = (councilId: string, requestId: string) =>
+  `${purchasePath(councilId, requestId)}/shipments`
+export const purchaseShipmentPath = (councilId: string, requestId: string, shipmentId: string) =>
+  `${purchaseShipmentsPath(councilId, requestId)}/${encodeURIComponent(shipmentId)}`
 
 export const councilPath = (councilId: string) =>
   `/api/organizations/${encodeURIComponent(councilId)}`
