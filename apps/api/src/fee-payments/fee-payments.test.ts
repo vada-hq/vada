@@ -19,8 +19,10 @@ test(
       ),
       4,
     )
-    const again = await t.upload(body('20260001 20260005'))
-    assert.deepEqual(await again.json(), { added: 1, skipped: 1 })
+    const again = await t.upload(
+      body('20260001 20260002 20260003 20260004 20260005', { replace: true }),
+    )
+    assert.deepEqual(await again.json(), { added: 1, skipped: 4 })
     // 시작일이 다르면 같은 학번도 새 기간이다.
     const next = await t.upload({
       paidFrom: '2026-09-01',
@@ -182,7 +184,10 @@ test(
       await t.api.get(`${t.base}?studentId=20260001`, 's-financeMember')
     ).json()) as { matches: unknown[]; periods: { count: number }[] }
     assert.deepEqual([read.matches.length, read.periods[0]!.count], [0, 1])
-    assert.deepEqual(await (await t.upload(body('20260001'))).json(), { added: 1, skipped: 0 })
+    assert.deepEqual(await (await t.upload(body('20260001', { replace: true }))).json(), {
+      added: 1,
+      skipped: 0,
+    })
   }),
 )
 

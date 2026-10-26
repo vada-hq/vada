@@ -12,6 +12,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow } from '../records/records.js'
 import { clearFeeStudentIds } from './purge.js'
 import { parseStudents, type ParsedStudents } from './parse.js'
+import { prepareFeeReplacement } from './replace.js'
 
 const PERIOD_LIST_LIMIT = 200
 // 한 번에 넣는 줄 수. 20,000개를 한 문장에 담지 않으려는 크기다.
@@ -54,6 +55,7 @@ export async function addFeePayments(
 ): Promise<AddFeePaymentsResponse | Exclude<ParsedStudents, { kind: 'ok' }>> {
   const parsed = parseStudents(input.students)
   if (parsed.kind !== 'ok') return parsed
+  await prepareFeeReplacement(tx, actor, input, parsed.ids)
   let added = 0
   for (let from = 0; from < parsed.ids.length; from += INSERT_CHUNK)
     added += await insertChunk(tx, actor, input, parsed.ids.slice(from, from + INSERT_CHUNK))
