@@ -133,12 +133,16 @@ function useTasksPage(props: Props) {
     shown: [list, done],
     onForbidden: props.onForbidden,
   })
-  const changed = () => {
-    void list.reload()
-    if (lists.both) void done.reload()
+  const reloaded = async () => {
+    const reloads = [list.reload()]
+    if (lists.both) reloads.push(done.reload())
     props.onChanged()
+    await Promise.all(reloads)
   }
-  const change = useStatusChange(councilId, changed, props.onForbidden)
+  const changed = () => {
+    void reloaded()
+  }
+  const change = useStatusChange(councilId, reloaded, props.onForbidden)
   const undo = useAssigneeUndo(councilId, changed, props.onForbidden)
   const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
   const team = useTeam(councilId, props.onForbidden)
