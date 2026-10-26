@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import type { MyCouncil } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
 import CreateCouncilForm from './CreateCouncilForm'
 import NoCouncil from './NoCouncil'
 
@@ -13,25 +14,52 @@ type Props = {
   userName: string
   onEnterCode: (code: string) => void
   onCreated: (council: MyCouncil) => void
+  initialCreating?: boolean
+  onClose?: (() => void) | undefined
 }
 
 // 학생회가 없을 때: 안내(초대 코드, 만들기)를 보이다가 [학생회 만들기]를 누르면 만들기 단계로 바뀐다.
-export default function NoCouncilFlow({ card, userName, onEnterCode, onCreated }: Props) {
-  const [creating, setCreating] = useState(false)
+export default function NoCouncilFlow({
+  card,
+  userName,
+  onEnterCode,
+  onCreated,
+  initialCreating = false,
+  onClose,
+}: Props) {
+  const [creating, setCreating] = useState(initialCreating)
   if (!creating)
     return card(
-      <NoCouncil onEnterCode={onEnterCode} onCreate={() => setCreating(true)} />,
-      'no-council',
+      <>
+        <NoCouncil
+          onEnterCode={onEnterCode}
+          onCreate={() => setCreating(true)}
+          additional={Boolean(onClose)}
+        />
+        {onClose && (
+          <Button touch variant="outline" className="mt-4 w-full" onClick={onClose}>
+            닫기
+          </Button>
+        )}
+      </>,
+      onClose ? 'compact' : 'no-council',
     )
   return card(
-    <CreateCouncilForm
-      userName={userName}
-      onCancel={() => setCreating(false)}
-      onCreated={council => {
-        setCreating(false)
-        onCreated(council)
-      }}
-    />,
+    <>
+      <CreateCouncilForm
+        userName={userName}
+        onCancel={() => setCreating(false)}
+        onCreated={council => {
+          setCreating(false)
+          onCreated(council)
+        }}
+      />
+      {onClose && (
+        <Button touch variant="outline" className="mt-4 w-full" onClick={onClose}>
+          닫기
+        </Button>
+      )}
+    </>,
     'compact',
   )
 }

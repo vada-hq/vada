@@ -1875,6 +1875,8 @@ exports[`작업 공간: 홈 1`] = `
 <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
 <div class="w-full max-w-5xl flex flex-col gap-4">
 <div class="flex flex-col gap-6">
+<div class="empty:hidden">
+</div>
 <section aria-label="지금 볼 것" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input text-gray-700 hover:bg-gray-50 text-sm [&amp;_svg]:size-4 h-auto flex-col items-start gap-1 bg-card p-4 text-left shadow-sm">
 <span class="text-xs font-medium text-gray-500">지난 내 업무</span>

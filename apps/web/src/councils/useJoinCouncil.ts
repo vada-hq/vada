@@ -4,6 +4,7 @@ import {
   type InvitePreviewResponse,
   type JoinCouncilRequest,
   type JoinCouncilResponse,
+  type MyCouncil,
 } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { JOIN_COUNCIL_ERRORS, JOIN_COUNCIL_FAILED } from '@/lib/messages'
@@ -32,7 +33,11 @@ async function readInvite(
 }
 
 // 초대 링크 화면의 상태와 서버 부르기: 초대 확인, 들어가기. 이미 들어왔으면 묻지 않고 그 학생회를 연다.
-export function useJoinCouncil(code: string, onJoined: (councilId: string) => void) {
+export function useJoinCouncil(
+  code: string,
+  onJoined: (councilId: string) => void,
+  onJoinedCouncil?: (council: MyCouncil) => void,
+) {
   const [view, setView] = useState<JoinView>({ kind: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const [joining, setJoining] = useState(false)
@@ -55,7 +60,11 @@ export function useJoinCouncil(code: string, onJoined: (councilId: string) => vo
     setError('')
     const body: JoinCouncilRequest = memberName === undefined ? { code } : { code, memberName }
     const result = await postJson<JoinCouncilResponse>('/api/organizations/join', body)
-    if (result.ok) return onJoined(result.data.council.id)
+    if (result.ok) {
+      if (onJoinedCouncil) onJoinedCouncil(result.data.council)
+      else onJoined(result.data.council.id)
+      return
+    }
     setJoining(false)
     if (result.status === statusOf('NOT_FOUND')) setView({ kind: 'invalid' })
     else setError(JOIN_COUNCIL_ERRORS[result.code] ?? JOIN_COUNCIL_FAILED)

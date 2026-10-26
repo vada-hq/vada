@@ -1,4 +1,5 @@
 import StateMessage from '@/components/StateMessage'
+import type { MyCouncil } from '@vada/contracts'
 import { AskToJoin, FailedInvite, InvalidInvite } from './JoinCouncilViews'
 import { useJoinCouncil } from './useJoinCouncil'
 
@@ -8,12 +9,20 @@ type Props = {
   googleName: string
   leaveLabel: string
   onJoined: (councilId: string) => void
+  onJoinedCouncil?: ((council: MyCouncil) => void) | undefined
   onLeave: () => void
 }
 
 // 초대 링크(/join/코드): 초대받은 학생회(이름과 구분 정보)와 [들어가기]. 이미 들어왔으면 묻지 않고 그 학생회를 연다(바탕 spec '화면').
-export default function JoinCouncil({ code, googleName, leaveLabel, onJoined, onLeave }: Props) {
-  const { view, joining, error, join, retry } = useJoinCouncil(code, onJoined)
+export default function JoinCouncil({
+  code,
+  googleName,
+  leaveLabel,
+  onJoined,
+  onJoinedCouncil,
+  onLeave,
+}: Props) {
+  const { view, joining, error, join, retry } = useJoinCouncil(code, onJoined, onJoinedCouncil)
   if (view.kind === 'loading') return <StateMessage kind="loading">초대 확인 중…</StateMessage>
   if (view.kind === 'invalid') return <InvalidInvite leaveLabel={leaveLabel} onLeave={onLeave} />
   if (view.kind === 'failed')

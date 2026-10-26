@@ -99,6 +99,7 @@ export default function CouncilWorkspace({
   onLogout,
   onCouncilsChanged,
   onCouncilLost,
+  onAddCouncil,
 }: Props) {
   const here = useHere()
   const data = useCouncilData(council.id, onCouncilLost, onCouncilsChanged)
@@ -138,6 +139,10 @@ export default function CouncilWorkspace({
         onSelect(councilId, from)
       }}
       onPage={nav.openPage}
+      onAddCouncil={entry => {
+        nav.closeNav()
+        onAddCouncil?.(entry)
+      }}
     />
   )
   return (

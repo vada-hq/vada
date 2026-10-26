@@ -192,7 +192,7 @@ test('학생회를 바꾸면 그 학생회 홈 주소로 한 칸 쌓인다', asy
   fireEvent.keyDown(screen.getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }), {
     key: 'Enter',
   })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '다른 학생회' }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: '다른 학생회 한양대학교 ERICA' }))
   expect(await heading('홈')).toBeTruthy()
   expect(pathNow()).toBe(`/home/${C2}`)
   expect(push).toHaveBeenCalledTimes(1)

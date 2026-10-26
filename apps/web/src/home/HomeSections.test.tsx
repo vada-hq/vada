@@ -72,6 +72,44 @@ const council = (extra: Partial<HomeCouncil> = {}): HomeCouncil => ({
   ...extra,
 })
 
+test('기존 배치의 회장단 겸직 홈도 학생회 부분 맨 위에 미배정 줄을 두고 사람으로 연다', async () => {
+  const { onOpenPage } = open(
+    homeResponse({ kind: 'finance', council: council({ unassignedMembers: 2 }) }),
+  )
+  const row = await screen.findByRole('button', { name: '미배정 구성원 2명' })
+  fireEvent.click(row)
+  expect(onOpenPage).toHaveBeenCalledWith('people')
+})
+
+test.each([0, 2])('회장단 부분이 없거나 미배정이 0이면 줄이 없다(%s)', async count => {
+  open(homeResponse(count === 0 ? { council: council() } : {}), {
+    view: councilView('c1', { councilRank: null }),
+  })
+  await screen.findByText('오늘까지 할 업무 없음')
+  expect(screen.queryByRole('button', { name: /미배정 구성원/ })).toBeNull()
+})
+
+test('기존 배치도 부서 배정 전 띠를 두고 소속을 다시 읽어 배정되면 거둔다', async () => {
+  const home = homeResponse()
+  const api = mockApi()
+  api.on('GET', '/api/organizations/c1/home', () => json(home))
+  onHomeExtras(api)
+  const props = { rooms: noRooms, onForbidden: vi.fn(), onOpenEvent: vi.fn(), onOpenPage: vi.fn() }
+  const shown = render(<HomePage {...props} view={councilView('c1', { councilRank: null })} />)
+  const band = await screen.findByText('부서 배정 전')
+  expect(band.closest('[role="status"]')?.textContent).toBe('부서 배정 전 부서는 회장단이 정해요.')
+  shown.rerender(
+    <HomePage
+      {...props}
+      view={councilView('c1', {
+        councilRank: null,
+        departments: [{ id: 'd1', name: '기획부', role: null, rank: null }],
+      })}
+    />,
+  )
+  expect(screen.queryByText('부서 배정 전')).toBeNull()
+})
+
 // 부서 거르기는 주소에 uuid로 남는다.
 const DEPT = '0199d1a0-0000-7000-8000-0000000000d1'
 const department: HomeDepartment = {

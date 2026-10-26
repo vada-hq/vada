@@ -5,6 +5,7 @@ import type { Target } from './address'
 export type Page = AppMenu
 // 학생회를 고른 곳. 작업 공간이 새로 그려진 뒤 포커스를 그 자리의 버튼으로 돌려놓는다.
 export type Opener = 'sidebar' | 'header'
+export type CouncilEntry = 'join' | 'create'
 
 // 머리글 경로 줄에서 학생회 이름 뒤에 붙는 메뉴 칸(crumbs)과 제목(DEC-96). 홈은 학생회 이름 한 칸뿐이다.
 // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91, DEC-96).
@@ -43,6 +44,7 @@ export const eventTrail = (name: string, tab: string): PageTrail => ({
 })
 
 export type WorkspaceProps = {
+  onAddCouncil?: ((entry: CouncilEntry) => void) | undefined
   councils: MyCouncil[]
   // 주소가 가리키는 학생회와 메뉴, 연 기록.
   target: Extract<Target, { kind: 'ready' }>
