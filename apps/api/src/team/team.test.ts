@@ -845,6 +845,15 @@ test('옮기기 실패: 같은 부서 400, 옛 소속 없음 404, 이미 든 부
       ['모르는 키', () => move(member.u2, { ...body, extra: 1 }), 400],
       ['직급 형식', () => move(member.u2, { ...body, rank: 'president' }), 400],
       ['빠진 칸', () => move(member.u2, { fromDepartmentId: finance, rank: null }), 400],
+      ['uuid가 아닌 부서', () => move(member.u2, { ...body, toDepartmentId: 'not-a-uuid' }), 400],
+      ['빈 부서', () => move(member.u2, { ...body, fromDepartmentId: '' }), 400],
+      ['NUL 부서', () => move(member.u2, { ...body, toDepartmentId: '\u0000' }), 400],
+      [
+        '대문자만 다른 같은 부서',
+        () => move(member.u2, { ...body, toDepartmentId: finance.toUpperCase() }),
+        400,
+      ],
+      ['uuid가 아닌 사람', () => move('not-a-uuid', body), 404],
       ['로그인 안 함', () => move(member.u2, body, ''), 401],
       ['부원', () => move(member.u2, body, 'u3'), 403],
     ]
@@ -854,6 +863,38 @@ test('옮기기 실패: 같은 부서 400, 옛 소속 없음 404, 이미 든 부
       if (error) assert.deepEqual(await response.json(), { error }, label)
     }
     assert.deepEqual(await snapshot(), before)
+  } finally {
+    await testDb.close()
+  }
+})
+
+// x는 A와 B 두 학생회의 재정부 부장이다. A에서 B의 재정부를 옛 부서로 보내면, x에게 그 부서 소속이 실제로 있어도 404다.
+test('옮기기 격리: 다른 학생회의 부서 소속은 그 사람에게 있어도 옛 소속으로 찾지 않고 404이며, B의 소속은 그대로다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, a, b } = await twoCouncils(testDb)
+    const created = (await (
+      await api.post(`${a.base}/departments`, { name: '기획부' }, 'a')
+    ).json()) as TeamResponse
+    const planning = created.departments.find(item => item.name === '기획부')!.id
+    const response = await api.post(
+      `${a.base}/members/${a.xId}/departments/move`,
+      { fromDepartmentId: b.finance, toDepartmentId: planning, rank: null },
+      'a',
+    )
+    assert.equal(response.status, 404)
+    assert.deepEqual(
+      (
+        await testDb.pg.query(
+          'SELECT department_id, department_rank, ends_at IS NULL AS open FROM department_membership WHERE member_id = $1 ORDER BY department_id',
+          [a.xId],
+        )
+      ).rows,
+      [
+        { department_id: a.finance, department_rank: 'head', open: true },
+        { department_id: b.finance, department_rank: 'head', open: true },
+      ].sort((left, right) => left.department_id.localeCompare(right.department_id)),
+    )
   } finally {
     await testDb.close()
   }
