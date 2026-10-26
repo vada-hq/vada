@@ -3,6 +3,7 @@ import CouncilHome from '@/home/CouncilHome'
 import { Section } from './GallerySection'
 import { noop, pushBand, today, Width } from './home-frame-samples'
 import { longName } from './sample-text'
+import { financeSummary } from './finance-home-samples'
 
 // 회장단 홈(기능 027 조각 6, HOME-01C)을 실제 부품으로 그린다. 폭은 실제 화면의 본문 폭이다(Width).
 
@@ -154,6 +155,7 @@ function Sample({ empty = false, band = false }: { empty?: boolean; band?: boole
     <CouncilHome
       home={{
         ...home,
+        financeSummary: empty ? { overview: null, missing: [] } : financeSummary,
         councilBoard: value,
         upcoming: empty ? { items: [], total: 0 } : home.upcoming,
       }}

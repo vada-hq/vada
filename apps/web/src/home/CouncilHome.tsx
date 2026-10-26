@@ -18,6 +18,7 @@ import { HOME_PLANS } from './home-kinds'
 import { COLUMN_HEAD, CouncilLayout } from './HomeLayout'
 import MessageInbox from './MessageInbox'
 import UpcomingCard from './UpcomingCard'
+import FinanceSummary from './FinanceSummary'
 
 type Props = {
   home: HomeResponse
@@ -38,7 +39,7 @@ const DESCRIPTION = '학생회 행사와 확인할 일을 봐요'
 
 // 회장단 홈(HOME-01C, DEC-95): 인사 카드(메시지함 오른쪽, 주요 행사 타일 없음, 아래 '내 업무' 바로가기)
 // → 전체 행사 진행 현황 → 3열(확인이 필요한 운영 상황 · 후속 정리 중인 행사 · 가까운 주요 일정).
-// 맨 아래 '전체 재정 요약' 한 줄은 재정 셈이 붙는 조각(명세 027 조각 8)이 이 배치의 bottom에 채운다.
+// 맨 아래 '전체 재정 요약'은 재정 첫 화면과 같은 셈이다(명세 027 조각 8).
 // 줄은 원래 기록을 연다: 업무는 업무 주소, 행사는 행사 주소(정산이 남으면 '재정' 탭), 참가 신청 마감은 '인원 관리' 탭.
 export default function CouncilHome({
   home,
@@ -80,6 +81,12 @@ export default function CouncilHome({
       }
     >
       <CouncilLayout
+        bottom={
+          <FinanceSummary
+            summary={home.financeSummary}
+            onOpen={() => openMenu('finance', councilId)}
+          />
+        }
         top={
           <CouncilEventsCard
             events={board.events}

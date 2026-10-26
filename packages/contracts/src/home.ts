@@ -1,4 +1,5 @@
 import type { EventRef } from './budget.js'
+import type { HomeFinanceBoard, HomeFinanceSummary } from './home-finance.js'
 import type { EventNext, EventSummary } from './events.js'
 import { DAY_MS, koreanDateOf } from './korean-time.js'
 import type { PurchaseRequestSummary } from './purchases.js'
@@ -71,7 +72,7 @@ export interface HomeCouncil {
   unassignedMembers: number
 }
 
-// 재정부가 받은 것: 결재 대기 요청(요청 목록 pending 보기와 같다), 오래된 것부터 HOME_LIST_LIMIT줄까지.
+// 재정부가 받은 것: 결재 대기 요청(pending 보기와 같다), 필요한 때 순·비면 끝·같으면 오래된 순 HOME_LIST_LIMIT줄까지.
 // total은 그 보기가 준 수다(보기에 상한이 있어 truncated면 그보다 많다).
 export interface HomeReceived {
   requests: PurchaseRequestSummary[]
@@ -224,6 +225,9 @@ export interface HomeResponse {
   myRequests: HomeMyRequests
   // 회장단 홈 종류에만 온다.
   councilBoard?: HomeCouncilBoard
+  // 회장단(재정 역할 없이도 읽음)의 한 줄과 재정부 카드. 겸직이면 둘 다 온다.
+  financeSummary?: HomeFinanceSummary
+  financeBoard?: HomeFinanceBoard
   // 아래는 지금 화면(기능 010)의 칸이다. 네 종류의 새 홈이 오르면 걷는다(기능 027 조각 10).
   mine: HomeMine
   // 부서 직급이 있고 학생회 직급이 없을 때만 온다(회장단은 council의 blocked로 본다).

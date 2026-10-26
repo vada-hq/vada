@@ -9,11 +9,12 @@ import {
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
-import { endedDaysOf, nextScheduleOf } from '../events/header.js'
+import { nextScheduleOf } from '../events/header.js'
 import { openEventCountsOf, openEventsOf, taskCountsByEvent } from '../events/queries.js'
 import { settlingOf } from '../settlement/settling.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
 import { unassignedMembersOf } from './council.js'
+import { followUpRowsOf } from './follow-up.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -62,19 +63,8 @@ async function eventCardsOf(db: Reader, actor: Actor, now: Date, open: OpenTask[
 // 후속 정리 중인 행사: 재정 '행사 정산' 탭과 같은 읽기(settlingOf)에 끝나지 않은 업무 수와 끝난 지 며칠을 붙인다.
 async function followUpOf(db: Reader, actor: Actor, now: Date) {
   const { events, total } = await settlingOf(db, actor, now, HOME_LIST_LIMIT)
-  const counts = await taskCountsByEvent(
-    db,
-    events.map(row => row.event.id),
-  )
   return {
-    events: events.map(({ event, settlement }) => ({
-      event: refOf(event),
-      endedDays: endedDaysOf(
-        { startsAt: dateOf(event.startsAt), endsAt: dateOf(event.endsAt) },
-        now,
-      ),
-      remaining: { tasks: counts.get(event.id)?.open ?? 0, settlement: settlement.remaining },
-    })),
+    events: await followUpRowsOf(db, events, now),
     total,
   }
 }
