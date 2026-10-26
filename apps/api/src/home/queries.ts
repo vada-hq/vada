@@ -20,6 +20,8 @@ import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
 import { councilBoardOf } from './council-board.js'
 import { departmentsOf } from './departments.js'
 import { financeOf } from './finance.js'
+import { financeBudgetOf } from './finance-budget.js'
+import { financeBoardOf } from './finance-board.js'
 import { hasFinanceView, homeKindOf, levelOf } from './level.js'
 import { mineOf } from './mine.js'
 import { participatingOf, staffedEventIdsOf } from './participating.js'
@@ -69,8 +71,9 @@ async function commonOf(db: Reader, actor: Actor, now: Date) {
     financeView: hasFinanceView(actor),
     asOf: koreanOf(now),
     myTasks,
-    // 회장단 인사 카드에는 주요 행사 타일이 없다(행사는 전체 행사 진행 현황에서 본다).
-    featuredEvents: kind === 'council' ? [] : await featuredEventsOf(db, actor, now),
+    // 회장단은 재정 보기가 있을 때만 타일을 읽는다. 운영 보기에서는 행사 현황을 본다.
+    featuredEvents:
+      kind === 'council' && !hasFinanceView(actor) ? [] : await featuredEventsOf(db, actor, now),
     ...(await scheduleOf(db, actor, now, { kind, open, mine: tasks })),
     myRequests: await myRequestsOf(db, actor, today),
     mine,
@@ -84,6 +87,17 @@ export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeR
   const level = levelOf(actor)
   const { home, open } = await commonOf(db, actor, now)
   if (level.finance) Object.assign(home, await financeOf(db, actor, now, level.council))
+  if (level.finance || level.council) {
+    const budget = await financeBudgetOf(db, actor, now)
+    if (level.council) home.financeSummary = budget.summary
+    if (home.received)
+      home.financeBoard = await financeBoardOf(db, actor, now, {
+        pending: home.received,
+        budget,
+        open,
+        settling: home.settling,
+      })
+  }
   if (level.council) home.councilBoard = await councilBoardOf(db, actor, now, open)
   else if (level.departmentIds.length)
     home.departments = await departmentsOf(db, actor, level.departmentIds, open)

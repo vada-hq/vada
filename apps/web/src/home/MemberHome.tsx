@@ -2,10 +2,8 @@ import type { ReactNode } from 'react'
 import { dateFromKorean, type EventTab, type HomeResponse } from '@vada/contracts'
 import { openMenu, openRecord } from '@/lib/go-to'
 import type { RoomListState } from '../chat/useRoomList'
-import EventStatusChip from '../events/EventStatusChip'
 import type { Page } from '../workspace/pages'
-import { eventDayLabel } from './council-view'
-import FeaturedEvents, { type FeaturedTile } from './FeaturedEvents'
+import HomeFeaturedEvents from './HomeFeaturedEvents'
 import HomeFrame from './HomeFrame'
 import HomeGreeting from './HomeGreeting'
 import { inboxRooms } from './home-view'
@@ -41,15 +39,6 @@ const DESCRIPTION = '학생회 주요 행사와 참여 행사·일정을 봐요'
 // 행사를 만들 수 없는 사람의 행사 빈 상태: 누가 만드는지 한 줄(DEC-95, DEC-78 이동 규칙 9).
 const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
 
-const tilesOf = (home: HomeResponse, onOpen: (eventId: string) => void): FeaturedTile[] =>
-  home.featuredEvents.map(event => ({
-    id: event.id,
-    name: event.name,
-    chip: <EventStatusChip status={event.status} />,
-    when: eventDayLabel(event, home.today),
-    onOpen: () => onOpen(event.id),
-  }))
-
 // 부원 홈(HOME-01M, DEC-95): 인사 카드(메시지함, 학생회 주요 행사 타일 3) → 2×2
 // '참여 행사 진행' · '가까운 일정' / '내 요청'(와이어프레임 '확정된 결정·안내' 자리) · '내 업무·메시지'.
 // 부서 없는 운영진도 이 홈이고, 맨 위 띠와 빈 참여 행사, 학생회 행사로 채운 가까운 일정을 본다(서버가 범위를 정한다).
@@ -84,7 +73,7 @@ export default function MemberHome({
               onSeeAll={() => openMenu('chat', councilId)}
             />
           }
-          featured={<FeaturedEvents read={{ kind: 'ready', tiles: tilesOf(home, openEvent) }} />}
+          featured={<HomeFeaturedEvents home={home} onOpen={openEvent} />}
         />
       }
     >
