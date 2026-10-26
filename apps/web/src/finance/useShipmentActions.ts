@@ -27,17 +27,20 @@ export function useShipmentActions(
     sending.current = true
     setSaving(true)
     setProblem(null)
-    const result = await postJson<ShipmentResponse>(path, input)
-    sending.current = false
-    setSaving(false)
-    if (!result.ok && reportLost(latest.current, result.status)) return 'failed'
-    if (!result.ok) setProblem(problemText(result.code))
-    if (result.ok || REREAD.has(result.code)) {
-      latest.current.onChanged()
-      await reload()
-      return result.ok ? 'done' : 'closed'
+    try {
+      const result = await postJson<ShipmentResponse>(path, input)
+      if (!result.ok && reportLost(latest.current, result.status)) return 'failed'
+      if (!result.ok) setProblem(problemText(result.code))
+      if (result.ok || REREAD.has(result.code)) {
+        latest.current.onChanged()
+        await reload()
+        return result.ok ? 'done' : 'closed'
+      }
+      return 'failed'
+    } finally {
+      sending.current = false
+      setSaving(false)
     }
-    return 'failed'
   }
   return {
     saving,
