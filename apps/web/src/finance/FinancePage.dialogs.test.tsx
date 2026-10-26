@@ -26,7 +26,7 @@ const confirmButton = async () => {
 const BASE = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 const LIST = `${BASE}?view=mine`
 
-function setup(detail = purchaseDetail()) {
+function setup(detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')) {
   const api = mockApi()
   api.on('GET', LIST, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
@@ -49,8 +49,10 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
 test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않고 칸 아래에 알리며, 쓰고 보내면 닫히고 목록과 수를 다시 읽는다', async () => {
-  const { api, reads } = setup()
-  api.on('POST', BASE, () => json({ request: purchaseDetail() }, 201))
+  const { api } = setup()
+  api.on('POST', BASE, () =>
+    json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') }, 201),
+  )
   await openCreate()
   expect(submit().disabled).toBe(false)
   fireEvent.click(submit())
@@ -63,7 +65,6 @@ test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않�
   expect(screen.getByLabelText('품목 1 이름').getAttribute('aria-invalid')).toBe('true')
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
   fill('품목 1 이름', '박스 테이프')
-  const before = reads()
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
@@ -71,9 +72,19 @@ test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않�
     eventId: null,
     body: null,
     neededBy: null,
-    items: [{ name: '박스 테이프', quantity: 1, link: null, options: null }],
+    items: [
+      {
+        name: '박스 테이프',
+        quantity: 1,
+        link: null,
+        options: null,
+        estimatedUnitPrice: null,
+        estimatedShippingFee: null,
+      },
+    ],
   })
-  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+  await screen.findByRole('heading', { name: '행사 포스터 인쇄' })
+  expect(window.location.pathname).toContain('/purchases/')
 })
 
 test('품목은 더하고 뺄 수 있고 한 줄은 못 빼며 상한에서 더하기가 막힌다', async () => {
@@ -96,7 +107,9 @@ test('품목은 더하고 뺄 수 있고 한 줄은 못 빼며 상한에서 더�
 
 test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이면 [내기]를 눌러도 보내지 않는다', async () => {
   const { api } = setup()
-  api.on('POST', BASE, () => json({ request: purchaseDetail() }, 201))
+  api.on('POST', BASE, () =>
+    json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') }, 201),
+  )
   await openCreate()
   const posts = () => api.calls.filter(call => call.method === 'POST').length
   fill('제목', '포스터')
@@ -123,7 +136,16 @@ test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이�
     eventId: null,
     body: '행사용',
     neededBy: '2026-10-30',
-    items: [{ name: 'A2 포스터', quantity: 3, link: 'https://example.com/p', options: '무광' }],
+    items: [
+      {
+        name: 'A2 포스터',
+        quantity: 3,
+        link: 'https://example.com/p',
+        options: '무광',
+        estimatedUnitPrice: null,
+        estimatedShippingFee: null,
+      },
+    ],
   })
 })
 
@@ -137,7 +159,7 @@ test('보내는 동안 막히고 두 번 눌러도 한 번만 간다', async () 
   fireEvent.click(submit())
   await waitFor(() => expect(submit().disabled).toBe(true))
   fireEvent.submit(screen.getByRole('form', { name: '구매 요청 내기' }))
-  pending.resolve(json({ request: purchaseDetail() }, 201))
+  pending.resolve(json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') }, 201))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
@@ -172,7 +194,7 @@ test('카드를 누르면 상세에 요청, 품목, 결재가 보이고 이력�
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
   )
-  const dialog = await screen.findByRole('dialog')
+  const dialog = await screen.findByRole('region', { name: '구매 요청 상세' })
   await within(dialog).findByText('10월 말 행사용이에요.')
   expect(within(dialog).getByText('행사 포스터 인쇄')).toBeTruthy()
   expect(within(dialog).getByText('A2 포스터 × 3')).toBeTruthy()
@@ -189,7 +211,7 @@ test('카드를 누르면 상세에 요청, 품목, 결재가 보이고 이력�
 })
 
 test('결제한 품목에는 결제함이 보인다', async () => {
-  const detail = purchaseDetail()
+  const detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')
   setup({ ...detail, items: detail.items.map(item => ({ ...item, paid: item.id === 'i2' })) })
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
@@ -255,7 +277,7 @@ test('이미 결재가 시작됐으면(409) 이유를 보이고 요청을 다시
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   fireEvent.click(await confirmButton())
   expect(await screen.findByText(/이미 결재가 시작됐거나 취소된 요청/)).toBeTruthy()
-  expect(screen.getByRole('dialog', { name: '행사 포스터 인쇄' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '행사 포스터 인쇄' })).toBeTruthy()
   expect(reads).toBeGreaterThan(1)
 })
 
@@ -338,7 +360,9 @@ test('상세를 못 읽으면 다시 시도를 보인다', async () => {
   let attempts = 0
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {
     attempts += 1
-    return attempts === 1 ? json({ error: 'INTERNAL' }, 500) : json({ request: purchaseDetail() })
+    return attempts === 1
+      ? json({ error: 'INTERNAL' }, 500)
+      : json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') })
   })
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),

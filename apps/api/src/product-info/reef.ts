@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { ProductInfo } from '@vada/contracts'
+import { productImageUrlOf, type ProductInfo } from '@vada/contracts'
 import type { CoupangProduct } from './coupang-url.js'
 
 // ReefAPI 쿠팡 상품 하나 보기(reefapi.com/docs/coupang, 한 번에 2 credits, 실패는 무료).
@@ -37,6 +37,8 @@ const ReefItem = z.object({
   shipping: z.string().nullish(),
   delivery_eta: z.string().nullish(),
   is_rocket: z.boolean().nullish(),
+  image: z.unknown().optional(),
+  in_stock: z.boolean().nullish().catch(null),
 })
 type ReefItem = z.infer<typeof ReefItem>
 const ReefEnvelope = z.discriminatedUnion('ok', [
@@ -118,6 +120,8 @@ function productOf(
     shipping: selected.shipping ?? null,
     deliveryEta: selected.delivery_eta ?? null,
     rocket: selected.is_rocket ?? false,
+    imageUrl: productImageUrlOf(selected.image),
+    inStock: selected.in_stock ?? null,
   }
 }
 

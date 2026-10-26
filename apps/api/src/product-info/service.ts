@@ -21,8 +21,9 @@ function logOutcome(outcome: LoggedOutcome) {
   else console.log(line)
 }
 
-function responseOf(result: LookupResult): ProductInfoResponse {
-  if (result.outcome === 'ok') return { product: result.product, reason: null }
+function responseOf(result: LookupResult, fetchedAt: Date): ProductInfoResponse {
+  if (result.outcome === 'ok')
+    return { product: { ...result.product, fetchedAt: fetchedAt.toISOString() }, reason: null }
   return { product: null, reason: result.outcome === 'not_found' ? 'not_found' : 'unavailable' }
 }
 
@@ -46,7 +47,7 @@ export function createProductInfo({
     }
     const result = await reef(product)
     logOutcome(result.outcome)
-    const response = responseOf(result)
+    const response = responseOf(result, clock())
     if (response.reason !== 'unavailable') cache.set(product.url, response, clock())
     return response
   }

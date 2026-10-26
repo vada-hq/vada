@@ -17,6 +17,12 @@ import { recalledQuery } from './menu-memory'
 const NAV_KEY = 'vadaNav'
 const FROM_KEY = 'vadaFrom'
 const RELEASED_KEY = 'vadaReleased'
+const PAGE_STATE_KEY = 'vadaPage'
+// 주소에 넣을 수 없는 현재 페이지의 초안. 새 history 칸으로 나가면 복사하지 않는다.
+export const pageState = (): unknown => stateObject()[PAGE_STATE_KEY]
+export function savePageState(value: unknown) {
+  window.history.replaceState({ ...stateObject(), [PAGE_STATE_KEY]: value }, '')
+}
 
 export type Here = {
   // 경로와 쿼리. 읽는 쪽이 비교하려면 parseAppPath/appPath를 거친다.
@@ -105,30 +111,35 @@ function stateFor(mode: Mode, tag?: string) {
   return state
 }
 
-function write(path: string, mode: Mode, tag?: string) {
-  if (mode === 'replace') window.history.replaceState(stateFor(mode, tag), '', path)
-  else window.history.pushState(stateFor(mode, tag), '', path)
+function write(path: string, mode: Mode, tag?: string, page?: unknown) {
+  const state = stateFor(mode, tag)
+  delete state[PAGE_STATE_KEY]
+  if (page !== undefined) state[PAGE_STATE_KEY] = page
+  if (mode === 'replace') window.history.replaceState(state, '', path)
+  else window.history.pushState(state, '', path)
   noteIndex(window.history.state)
   notify()
 }
 
 const tagOf = (location: AppLocation | null) =>
-  location?.type === 'record' ? adoptTag(location.record, location.recordId) : undefined
+  location?.type === 'record' && location.record !== 'purchases'
+    ? adoptTag(location.record, location.recordId)
+    : undefined
 
-type GoOptions = { replace?: boolean; overRecord?: boolean | undefined }
+type GoOptions = { replace?: boolean; overRecord?: boolean | undefined; pageState?: unknown }
 
 function go(target: string, options: GoOptions) {
   const parsed = parseAppPath(target)
   const path = parsed ? appPath(parsed) : target
   const tag = tagOf(parsed)
   if (options.replace) {
-    write(path, 'replace', tag)
+    write(path, 'replace', tag, options.pageState)
     return
   }
   // 기록 상세 위에 쌓는 이동은 그 칸을 창에서 떼어 두고 쌓아, 뒤로가 그 기록 상세로 돌아오게 한다.
   if (options.overRecord) releaseAdopted()
   const mode: Mode = tag ? 'adopt' : 'push'
-  afterWindowsClosed(() => write(path, mode, tag))
+  afterWindowsClosed(() => write(path, mode, tag, options.pageState))
 }
 
 // 앱 안에서 한 칸 쌓거나(기본) 현재 칸의 주소를 바꿔 쓴다(replace). 알려진 학생회 안 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다.
@@ -180,7 +191,8 @@ function layerRecord(location: Extract<AppLocation, { type: 'record' }>) {
 // 이미 이 층이 쌓은 칸(새로 고침한 칸 포함)이면 하지 않는다.
 export function layerDirectRecord() {
   const here = current()
-  if (here.location?.type !== 'record' || here.key !== '') return
+  if (here.location?.type !== 'record' || here.location.record === 'purchases' || here.key !== '')
+    return
   layerRecord(here.location)
 }
 

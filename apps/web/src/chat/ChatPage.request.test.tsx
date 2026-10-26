@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LEADER_PERMISSIONS, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
@@ -11,8 +12,9 @@ import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { PERMISSION_CHANGED, TASK_INVALID } from '@/lib/messages'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   vi.unstubAllGlobals()
 })
 
@@ -112,8 +114,8 @@ test('메시지로 제목과 내용을 채우고, 일반 운영진에게는 요�
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posts(api)[0]?.body).toMatchObject({ sourceMessageId: MSG, title: '현수막 2개 사 주세요' })
   expect(posts(api)[0]?.body).not.toHaveProperty('requestedBy')
-  fireEvent.click(await screen.findByRole('button', { name: '재정에서 보기' }))
-  expect(onOpenRequest).toHaveBeenCalledWith('r7')
+  await waitFor(() => expect(window.location.pathname).toBe('/purchases/c1/r7'))
+  expect(onOpenRequest).not.toHaveBeenCalled()
 })
 
 test('재정부는 요청한 사람이 남의 메시지면 보낸 사람이고, 보낸 사람이 떠났으면 나다', async () => {
@@ -129,6 +131,7 @@ test('재정부는 요청한 사람이 남의 메시지면 보낸 사람이고, 
   expect(posts(api)[0]?.body).toMatchObject({ requestedBy: JAE, sourceMessageId: MSG })
   view.unmount()
   cleanup()
+  await resetAddress()
 
   serve(message(MSG, '대신 부탁해요', { senderId: GONE, senderName: '떠난 사람' }))
   render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
@@ -149,7 +152,7 @@ test('409와 429 문구는 버튼 옆에 보이고, 보내는 동안 두 번 누
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   pending.resolve(json({ error: 'MESSAGE_INVALID' }, 409))
   expect(await screen.findByText(/이 메시지를 더는 볼 수 없어/)).toBeTruthy()
-  expect(screen.getByRole('dialog')).toBeTruthy()
+  expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
   api.on('POST', PURCHASE, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   fireEvent.click(submit())
   expect(await screen.findByText(/너무 빨리 보내고 있어요/)).toBeTruthy()
@@ -218,5 +221,5 @@ test('고른 업무가 그사이 끝났으면 409 문구가 버튼 옆에 보이
   fill('품목 1 이름', '현수막')
   fireEvent.click(submit())
   expect(await screen.findByText(TASK_INVALID)).toBeTruthy()
-  expect(screen.getByRole('dialog')).toBeTruthy()
+  expect(screen.getByRole('form', { name: '구매 요청 내기' })).toBeTruthy()
 })

@@ -234,7 +234,7 @@ test('서버 진입 목록은 목록의 모든 꼴과 끝 슬래시를 담는다
     const own = ENTRY_PATHS.filter(
       p => p.startsWith(`/${menu}/:council{`) && !p.includes(':record'),
     )
-    assert.equal(own.length, 2, menu)
+    assert.equal(own.length, menu === 'finance' ? 4 : 2, menu)
     assert.ok(own.some(p => p.endsWith('}/')))
   }
   for (const kind of RECORD_KINDS) {

@@ -1,39 +1,34 @@
-import { useState } from 'react'
-import { PURCHASE_ITEMS_MAX, type PurchaseRequestDetail } from '@vada/contracts'
+import { useEffect, useRef, useState } from 'react'
+import { PURCHASE_TITLE_MAX, type PurchaseRequestDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { DialogFooter } from '@/components/ui/dialog'
 import { useUnsavedInput } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
-import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import {
   emptyRequest,
-  newItem,
+  restoredRequest,
   requestOf,
-  type ItemValues,
   type RequestStart,
   type RequestValues,
 } from './request-form'
-import { EventField } from './EventField'
-import { TaskField } from './TaskField'
-import { RequesterField } from './RequesterField'
-import { RequestItemFields } from './RequestItemFields'
+import { RequestItemList } from './RequestItemList'
 import { useRequestCreate } from './useRequestCreate'
 import { useRequestProductSeeds } from './use-request-product-seeds'
+import { navigate } from '@/lib/app-location'
+import { purchaseDraftOf, savePurchaseDraft, type PurchaseDraft } from './purchase-draft'
+import { RequestSummary } from './RequestSummary'
+import { RequestBasics } from './RequestBasics'
+import { PurchaseColumns } from './PurchaseColumns'
+import { clipText } from '@/chat/request-seed'
+import PageHeading from '@/components/PageHeading'
 
-type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
+type RequestCreateProps = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
+  memberId: string
   // 행사 화면에서 열면 그 행사로 채운다.
   eventId?: string | null
   // 대화의 메시지에서 열면 그 메시지로 채운 값(제목, 내용, 요청한 사람, 근거 메시지).
@@ -50,62 +45,33 @@ type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   // 낸 요청을 받는다. 부모가 목록을 다시 읽고 대화상자를 닫는다.
   onCreated: (request: PurchaseRequestDetail) => void
 }
+type Props = RequestCreateProps
 
-// 구매 요청 내기 대화상자. 닫혀 있으면 아무것도 하지 않는다.
+// 기존 진입점은 팝업을 그리지 않고 같은 작성 주소로 옮긴다.
 export function RequestCreateDialog({ open, ...props }: Props) {
   if (!open) return null
-  return <OpenCreateDialog {...props} />
+  return <CreateEntry {...props} />
 }
 
-function ItemList({
-  items,
-  disabled,
-  errors,
-  onChange,
-}: {
-  items: ItemValues[]
-  disabled: boolean
-  errors: FieldErrors
-  onChange: (items: ItemValues[]) => void
-}) {
-  // 상한에서도 버튼은 켜 두고, 누르면 옆에 이유를 보인다.
-  const [pressedAtMax, setPressedAtMax] = useState(false)
-  const atMax = items.length >= PURCHASE_ITEMS_MAX
-  return (
-    <div className="flex flex-col gap-3">
-      {items.map((item, index) => (
-        <RequestItemFields
-          key={item.key}
-          index={index}
-          values={item}
-          disabled={disabled}
-          removable={items.length > 1}
-          onChange={next => onChange(items.map(it => (it.key === item.key ? next : it)))}
-          onRemove={() => onChange(items.filter(it => it.key !== item.key))}
-          errors={itemErrors(errors, index)}
-        />
-      ))}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          busy={disabled}
-          onClick={() => {
-            setPressedAtMax(atMax)
-            if (!atMax) onChange([...items, newItem()])
-          }}
-        >
-          품목 더하기
-        </Button>
-        {atMax && pressedAtMax && (
-          <p role="alert" className="text-xs text-red-600">
-            {`품목은 ${PURCHASE_ITEMS_MAX}개까지 더할 수 있어요`}
-          </p>
-        )}
-      </div>
-    </div>
-  )
+function CreateEntry(props: Omit<Props, 'open'>) {
+  const started = useRef(false)
+  useEffect(() => {
+    if (started.current) return
+    started.current = true
+    navigate(`/finance/${props.councilId}/requests/new`, {
+      overRecord: true,
+      pageState: {
+        kind: 'purchase',
+        councilId: props.councilId,
+        memberId: props.memberId,
+        eventId: props.eventId,
+        taskId: props.taskId,
+        pickTask: props.pickTask,
+        start: props.start,
+      },
+    })
+  }, [props])
+  return null
 }
 
 const DIGITS = /^[0-9]+$/
@@ -129,49 +95,8 @@ function requestErrors(values: RequestValues) {
 }
 
 // 한 줄의 문제만 골라 그 줄에 넘긴다.
-const itemErrors = (errors: FieldErrors, index: number) => ({
-  name: errors[`items.${index}.name`],
-  quantity: errors[`items.${index}.quantity`],
-  link: errors[`items.${index}.link`],
-  options: errors[`items.${index}.options`],
-})
-
 // 계약이 막은 형식 문제 가운데 칸 이름만으로는 알기 어려운 것
 const CONTRACT_MESSAGES = { link: 'http:// 또는 https://로 시작하는 주소를 입력해 주세요' }
-
-// 필요한 때와 내용. 아래쪽 두 칸이다.
-function WhenAndBody({
-  values,
-  disabled,
-  error,
-  onChange,
-}: {
-  values: RequestValues
-  disabled: boolean
-  // 내용 칸의 문제
-  error: string | undefined
-  onChange: (patch: Partial<RequestValues>) => void
-}) {
-  return (
-    <>
-      <Field label="필요한 때" optional>
-        <Input
-          type="date"
-          value={values.neededBy}
-          disabled={disabled}
-          onChange={event => onChange({ neededBy: event.target.value })}
-        />
-      </Field>
-      <Field label="내용" optional error={error}>
-        <Textarea
-          value={values.body}
-          disabled={disabled}
-          onChange={event => onChange({ body: event.target.value })}
-        />
-      </Field>
-    </>
-  )
-}
 
 type FormProps = Omit<Props, 'open'> & { saving: boolean; setSaving: (saving: boolean) => void }
 
@@ -203,11 +128,27 @@ function CreateForm({
   ...props
 }: FormProps) {
   const [initial] = useState(() => emptyRequest(eventId ?? null, start))
-  const [values, setValues] = useState(initial)
-  useRequestProductSeeds(props.councilId, initial, setValues)
+  const [draft] = useState<PurchaseDraft>(
+    () =>
+      purchaseDraftOf(props.councilId, props.memberId) ?? {
+        kind: 'purchase',
+        councilId: props.councilId,
+        memberId: props.memberId,
+        ...(eventId !== undefined ? { eventId } : {}),
+        ...(start ? { start } : {}),
+        ...(taskId ? { taskId } : {}),
+        pickTask,
+      },
+  )
+  const [restored] = useState(() => (draft.values ? restoredRequest(draft.values) : initial))
+  const [values, setValues] = useState(restored)
+  useRequestProductSeeds(props.councilId, restored, setValues)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   useUnsavedInput(!sameJson(values, initial))
-  const [picked, setPicked] = useState<Choice | null>(null)
+  const [picked, setPicked] = useState<Choice | null>(draft?.picked ?? null)
+  useEffect(() => {
+    savePurchaseDraft(draft, values, picked)
+  }, [draft, values, picked])
   const linked = taskId ?? picked?.id
   const request = { ...requestOf(values), ...(linked ? { taskId: linked } : {}) }
   const create = useRequestCreate(props.councilId, request, { ...props, setSaving })
@@ -222,68 +163,75 @@ function CreateForm({
       ref={formRef}
       noValidate
       aria-label="구매 요청 내기"
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-6"
       onSubmit={event => {
         event.preventDefault()
         if (attempt()) void create.submit()
       }}
     >
-      <Field label="제목" required error={fieldErrors.title}>
-        <Input
-          value={values.title}
-          disabled={saving}
-          onChange={event => set({ title: event.target.value })}
-        />
-      </Field>
-      <RequesterField
-        choices={requesters ?? null}
-        value={values.requestedBy}
-        disabled={saving}
-        onChange={requestedBy => set({ requestedBy })}
-      />
-      <EventField
-        councilId={props.councilId}
-        value={values.eventId}
-        disabled={saving}
-        onChange={next => set({ eventId: next })}
-        onForbidden={props.onForbidden}
-      />
-      {pickTask && (
-        <TaskField
+      <PurchaseColumns
+        summary={
+          <>
+            <RequestSummary values={values} />
+            <CreateFooter problem={create.problem} saving={saving} onClose={props.onClose} />
+          </>
+        }
+      >
+        <RequestBasics
           councilId={props.councilId}
-          value={picked}
-          disabled={saving}
-          onChange={setPicked}
+          values={values}
+          saving={saving}
+          errors={fieldErrors}
+          requesters={requesters}
+          pickTask={pickTask}
+          picked={picked}
+          onChange={set}
+          onPick={setPicked}
           onForbidden={props.onForbidden}
         />
-      )}
-      <ItemList
-        items={values.items}
-        disabled={saving}
-        errors={fieldErrors}
-        onChange={items => set({ items })}
-      />
-      <WhenAndBody values={values} disabled={saving} error={fieldErrors.body} onChange={set} />
-      <CreateFooter problem={create.problem} saving={saving} onClose={props.onClose} />
+        <section aria-label="요청 품목" className="flex flex-col gap-3">
+          <h2 className="text-base font-semibold">요청 품목</h2>
+          <RequestItemList
+            councilId={props.councilId}
+            items={values.items}
+            disabled={saving}
+            errors={fieldErrors}
+            onChange={items => {
+              const loaded = items.find(
+                item =>
+                  item.loadedProduct &&
+                  (values.title.trim() === '' || values.title.trim() === item.link),
+              )
+              set({
+                items,
+                ...(!values.titleEdited && loaded?.loadedProduct
+                  ? { title: clipText(loaded.loadedProduct.name, PURCHASE_TITLE_MAX) }
+                  : {}),
+              })
+            }}
+          />
+        </section>
+      </PurchaseColumns>
     </form>
   )
 }
 
-function OpenCreateDialog(props: Omit<Props, 'open'>) {
+export function RequestCreatePage(props: Omit<Props, 'open'>) {
   const [saving, setSaving] = useState(false)
   return (
-    <Dialog
-      open
-      onOpenChange={open => {
-        if (!open && !saving) props.onClose()
-      }}
-    >
-      <DialogContent aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>구매 요청 내기</DialogTitle>
-        </DialogHeader>
-        <CreateForm {...props} saving={saving} setSaving={setSaving} />
-      </DialogContent>
-    </Dialog>
+    <div className="flex flex-col gap-6">
+      <PageHeading
+        trail={{
+          title: '구매 요청 내기',
+          crumbs: [
+            { label: '구매 요청', truncate: false },
+            { label: '새 요청', truncate: false },
+          ],
+        }}
+      >
+        <h1 className="text-xl font-semibold">구매 요청 내기</h1>
+      </PageHeading>
+      <CreateForm {...props} saving={saving} setSaving={setSaving} />
+    </div>
   )
 }

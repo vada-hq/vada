@@ -82,6 +82,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   },
   tasks: taskQuery('mine'),
   finance: {
+    compose: { values: ['new'], fallback: null },
     // 기본 탭은 사람마다 다르다(재정부는 개요, 나머지는 구매 요청). 그래서 고른 탭은 모두 주소에 남긴다.
     tab: { values: FINANCE_TABS, fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: 'mine' },
@@ -156,16 +157,34 @@ function splitTarget(input: string) {
 
 // 경로(와 쿼리)를 읽는다. 끝 슬래시 하나는 같은 화면이다. 모르는 꼴은 null이다.
 // '//'나 역슬래시로 시작하는 주소, 바깥 주소는 메뉴·종류가 아니라 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
+function menuLocationOf(
+  head: string | undefined,
+  councilId: string,
+  params: URLSearchParams,
+): AppLocation | null {
+  if (!isMenu(head)) return null
+  const query = cleanQuery(MENU_QUERY[head], params)
+  return {
+    type: 'menu',
+    menu: head,
+    councilId,
+    query: head === 'finance' && query['compose'] === 'new' ? { compose: 'new' } : query,
+  }
+}
+
+const isPurchaseCreate = (head: string | undefined, record: string | undefined, rest: string[]) =>
+  head === 'finance' && record === 'requests' && rest.length === 1 && rest[0] === 'new'
+
 export function parseAppPath(input: string): AppLocation | null {
   if (!input.startsWith('/')) return null
   const { segments, params } = splitTarget(input)
   const [head, council, record, ...rest] = segments
   const councilId = decodeId(council)
-  if (!councilId || rest.length > 0) return null
-  if (record === undefined)
-    return isMenu(head)
-      ? { type: 'menu', menu: head, councilId, query: cleanQuery(MENU_QUERY[head], params) }
-      : null
+  if (!councilId) return null
+  if (isPurchaseCreate(head, record, rest))
+    return { type: 'menu', menu: 'finance', councilId, query: { compose: 'new' } }
+  if (rest.length > 0) return null
+  if (record === undefined) return menuLocationOf(head, councilId, params)
   const recordId = decodeId(record)
   if (!recordId || !isRecordKind(head)) return null
   const query = cleanQuery(RECORD_QUERY[head], params)
@@ -176,6 +195,12 @@ export function parseAppPath(input: string): AppLocation | null {
 // uuid가 아닌 id로 만든 주소는 읽히지 않는다.
 export function appPath(location: AppLocation) {
   const council = encodeURIComponent(location.councilId.toLowerCase())
+  if (
+    location.type === 'menu' &&
+    location.menu === 'finance' &&
+    location.query['compose'] === 'new'
+  )
+    return `/finance/${council}/requests/new`
   const base =
     location.type === 'menu'
       ? `/${location.menu}/${council}`
@@ -227,6 +252,7 @@ export const ENTRY_PATHS = [
     '/apply/:code',
     '/r',
     '/auth-done',
+    `/finance/:council{${UUID_SEGMENT}}/requests/new`,
     ...APP_MENUS.map(menu => `/${menu}/:council{${UUID_SEGMENT}}`),
     ...RECORD_KINDS.map(kind => `/${kind}/:council{${UUID_SEGMENT}}/:record{${UUID_SEGMENT}}`),
   ]),

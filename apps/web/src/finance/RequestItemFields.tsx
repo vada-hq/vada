@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react'
+import type { ProductInfo } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field as LabeledField } from '@/components/ui/field'
@@ -7,8 +8,12 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import type { ItemValues } from './request-form'
 import { sellerOf } from '@/lib/seller'
 import { wonLabel } from './purchase-view'
+import { ProductPreview } from './ProductPreview'
+import { useItemProduct } from './use-item-product'
+import { RequestEstimateFields } from './RequestEstimateFields'
 
 type Props = {
+  councilId: string
   index: number
   values: ItemValues
   disabled: boolean
@@ -42,6 +47,7 @@ function Field({
 
 // 품목 한 줄: 이름, 수량, 링크, 옵션. 길이 상한은 계약이 판단하므로(safeParse) 여기에 숫자를 적지 않는다.
 export function RequestItemFields({
+  councilId,
   index,
   values,
   disabled,
@@ -51,15 +57,60 @@ export function RequestItemFields({
   errors,
 }: Props) {
   const item = `품목 ${index + 1}`
+  const product = useItemProduct(councilId, values, onChange)
   const text = (field: 'name' | 'link' | 'options') => ({
     item,
     disabled,
     value: values[field],
     onChange: (event: { target: { value: string } }) =>
-      onChange({ ...values, [field]: event.target.value }),
+      onChange({
+        ...values,
+        [field]: event.target.value,
+        ...(field === 'name' ? { nameEdited: true } : {}),
+      }),
   })
   return (
     <Card role="group" aria-label={item} className="flex flex-col gap-3 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold">{item}</h3>
+        {removable && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            busy={disabled}
+            aria-label={`${item} 빼기`}
+            onClick={onRemove}
+          >
+            빼기
+          </Button>
+        )}
+      </div>
+      <Field
+        label="링크"
+        inputMode="url"
+        autoCapitalize="none"
+        error={errors.link}
+        {...text('link')}
+        onChange={event => onChange(changedLink(values, event.target.value))}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            void product.load()
+          }
+        }}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="self-start"
+        busy={disabled || product.state === 'loading'}
+        onClick={() => void product.load()}
+      >
+        불러오기
+      </Button>
+      <ProductReadout state={product.state} product={values.loadedProduct} />
       <Field label="이름" required error={errors.name} {...text('name')} />
       <Field
         label="수량"
@@ -73,33 +124,54 @@ export function RequestItemFields({
         value={values.quantity}
         onChange={event => onChange({ ...values, quantity: event.target.value })}
       />
-      <Field
-        label="링크"
-        inputMode="url"
-        autoCapitalize="none"
-        error={errors.link}
-        {...text('link')}
-      />
       {sellerOf(values.link) && (
         <span className="text-xs text-gray-500">{sellerOf(values.link)}</span>
       )}
-      {values.loadedPrice != null && (
+      {!values.loadedProduct && values.loadedPrice != null && (
         <span className="text-xs text-gray-500">{`불러온 가격 ${wonLabel(values.loadedPrice)}`}</span>
       )}
       <Field label="옵션" error={errors.options} {...text('options')} />
-      {removable && (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="self-start"
-          busy={disabled}
-          aria-label={`${item} 빼기`}
-          onClick={onRemove}
-        >
-          빼기
-        </Button>
-      )}
+      <RequestEstimateFields
+        item={item}
+        values={values}
+        disabled={disabled}
+        errors={errors}
+        onChange={onChange}
+      />
     </Card>
   )
+}
+
+function ProductReadout({
+  state,
+  product,
+}: {
+  state: ReturnType<typeof useItemProduct>['state']
+  product: ProductInfo | undefined
+}) {
+  return (
+    <>
+      {state === 'loading' && (
+        <p role="status" className="text-xs text-gray-500">
+          상품 정보를 불러오는 중이에요.
+        </p>
+      )}
+      {state === 'none' && (
+        <p role="status" className="text-xs text-gray-500">
+          상품 정보를 읽지 못했어요. 이름과 수량을 직접 적어 주세요.
+        </p>
+      )}
+      {product && <ProductPreview product={product} />}
+    </>
+  )
+}
+
+function changedLink(values: ItemValues, link: string): ItemValues {
+  const next = { ...values, link }
+  delete next.loadedProduct
+  delete next.loadedPrice
+  if (!values.nameEdited) next.name = ''
+  if (!values.unitPriceEdited) next.estimatedUnitPrice = ''
+  if (!values.shippingFeeEdited) next.estimatedShippingFee = ''
+  return next
 }

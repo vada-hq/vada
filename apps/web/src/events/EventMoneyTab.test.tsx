@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { useState, type ComponentProps } from 'react'
+import { PurchaseRoute } from '@/test-support/purchase-route'
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -35,19 +36,21 @@ type HarnessProps = Omit<
 function Harness(props: HarnessProps) {
   const [tab, setTab] = useState<EventTab>('overview')
   return (
-    <WithChat councilId="c1">
-      {chat => (
-        <EventDetailView
-          {...props}
-          {...chat}
-          tab={tab}
-          onTab={setTab}
-          room={null}
-          onRoom={() => {}}
-          from={null}
-        />
-      )}
-    </WithChat>
+    <PurchaseRoute view={props.view} onForbidden={props.onForbidden}>
+      <WithChat councilId="c1">
+        {chat => (
+          <EventDetailView
+            {...props}
+            {...chat}
+            tab={tab}
+            onTab={setTab}
+            room={null}
+            onRoom={() => {}}
+            from={null}
+          />
+        )}
+      </WithChat>
+    </PurchaseRoute>
   )
 }
 // 행사 화면이 늘 읽는 것: 운영진, 대화 목록, 그 행사의 방(메시지 탭 배지)
@@ -477,6 +480,7 @@ test('재정 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 �
   fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
   expect((await select()).value).toBe('e1')
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  await screen.findByRole('button', { name: '예산 편성' })
   // 예산 편성 창은 이 행사의 지출로 고정해 행사·종류 칸이 없고 기본 행 셋이 있다(와이어프레임 EVT-FIN-01B).
   fireEvent.click(screen.getByRole('button', { name: '예산 편성' }))
   const plan = await screen.findByRole('form', { name: '행사 예산 편성' })
