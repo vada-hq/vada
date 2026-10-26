@@ -13,6 +13,7 @@ import {
   type OpenDirectResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
+  type ReplyPageResponse,
   type RoomDetailResponse,
   type RoomListResponse,
 } from '@vada/contracts'
@@ -38,6 +39,7 @@ import type { ChatPush } from './notify.js'
 import { issuePhotoUpload, photoToView, verifyPhotos, visiblePhotoList } from './photos.js'
 import { roomDetailOf, roomListOf } from './queries.js'
 import { markRead } from './read-marker.js'
+import { replyPage } from './replies.js'
 import { roomAccess } from './room-access.js'
 import { ensureCouncilRooms, ensureEventRooms } from './rooms.js'
 import { postMessage, SEND_LIMIT } from './send.js'
@@ -123,6 +125,19 @@ function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
     })
     return c.json(page satisfies MessagePageResponse)
   })
+  // 원글과 그 답글(DEC-90). 방 흐름과 같은 커서이고, 원글이 내게 보이지 않거나 답글이면 404다.
+  routes.get(`${root}/rooms/:roomId/messages/:messageId/replies`, auth, async c => {
+    const query = MessagePageQuerySchema.safeParse(c.req.query())
+    if (!query.success) throw new ApiError('INVALID_INPUT')
+    const messageId = recordIdOf(c.req.param('messageId'))
+    const page = await inRoom(c, async (tx, actor, roomId, now) => {
+      const read = await replyPage(tx, actor, { roomId, messageId }, query.data)
+      // 답글을 최신까지 읽는 사람도 그 방을 보는 중이다(방 흐름과 같은 규칙).
+      if (query.data.before === undefined && !read.hasNewer) push?.seen(roomId, actor.memberId, now)
+      return read
+    })
+    return c.json(page satisfies ReplyPageResponse)
+  })
   routes.post(`${root}/rooms/:roomId/read`, json(ReadMarkerSchema), auth, async c => {
     const request = asked(c)
     const roomId = recordIdOf(c.req.param('roomId'))
@@ -138,7 +153,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!sendLimiter.take(request.userId, request.now)) throw new ApiError('TOO_MANY_REQUESTS')
     const roomId = recordIdOf(c.req.param('roomId'))
-    const { body, mentions, photos: keys, taskId } = c.req.valid('json')
+    const { body, mentions, photos: keys, taskId, replyTo } = c.req.valid('json')
     // 사진은 거래 밖에서 저장소를 확인한다(저장소를 기다리는 동안 참여 줄 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
     const photos = keys.length
       ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
@@ -149,6 +164,7 @@ function writeRoutes({ routes, auth, db, asked, sendLimiter, change, push, clock
       mentions,
       photos,
       taskId,
+      replyTo,
     })
     // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않고, notify는 던지지 않는다.
     void push?.notify(sent.id, clock())

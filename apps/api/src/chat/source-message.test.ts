@@ -165,3 +165,56 @@ test(
     assert.equal(await errorOf(await spend(s, messageId)), 'MESSAGE_INVALID')
   }),
 )
+
+// 답글도 그 방의 메시지라 요청·지출을 만들고 근거로 잇는다(DEC-90). 원글이 안 보이면 답글도 안 보여 MESSAGE_INVALID다.
+test(
+  '답글로도 요청과 지출을 만들고 그 답글을 근거로 잇는다. 원글이 보이지 않는 사람에게는 MESSAGE_INVALID다',
+  runPurchases(async s => {
+    const original = await sourceOf(s)
+    const { rows } = await s.pg.query<{ room_id: string }>(
+      'SELECT room_id FROM message WHERE id = $1',
+      [original],
+    )
+    const room = rows[0]!.room_id
+    const replied = await s.api.post(
+      `/api/organizations/${s.council.councilId}/rooms/${room}/messages`,
+      { body: '저도 마커 필요해요', replyTo: original },
+      FINANCE,
+    )
+    assert.equal(replied.status, 201)
+    const reply = ((await replied.json()) as ChatMessage).id
+    const request = await s.made(asSource(reply, '답글로 만든 요청'), PLANNING)
+    const expense = await spent(s, reply)
+    const links = await s.pg.query<{ record_id: string }>(
+      'SELECT record_id FROM evidence_link WHERE message_id = $1 ORDER BY record_id',
+      [reply],
+    )
+    assert.deepEqual(
+      links.rows.map(row => row.record_id),
+      [request.id, expense.id].sort(),
+    )
+    // 같은 답글로 다시 만들면 막힌다(원글과 따로 센다).
+    assert.equal(
+      await errorOf(await s.create(asSource(reply, '다시'), PLANNING)),
+      'SOURCE_MESSAGE_USED',
+    )
+    await s.made(asSource(original), PLANNING)
+    // 원글을 지난 기수로 옮기면 지금 보낸 답글도 보이지 않는다.
+    await s.pg.query(`UPDATE message SET sent_at = '2025-10-25T03:00:00Z' WHERE id = $1`, [
+      original,
+    ])
+    const fresh = await s.pg.query<{ id: string }>(
+      `INSERT INTO record (kind, council_id, created_by) VALUES ('message', $1, $2) RETURNING id`,
+      [s.council.councilId, s.council.people.financeMember.memberId],
+    )
+    await s.pg.query(
+      `INSERT INTO message (id, room_id, body, sent_at, reply_to_id) VALUES ($1, $2, '새 답글', now(), $3)`,
+      [fresh.rows[0]!.id, room, original],
+    )
+    assert.equal(
+      await errorOf(await s.create(asSource(fresh.rows[0]!.id, '안 보임'), PLANNING)),
+      'MESSAGE_INVALID',
+    )
+    assert.equal(await errorOf(await spend(s, fresh.rows[0]!.id)), 'MESSAGE_INVALID')
+  }),
+)

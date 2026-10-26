@@ -1,4 +1,4 @@
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq, ne, or } from 'drizzle-orm'
 import { chatRoomTag, chatRoomUrl, type RoomType } from '@vada/contracts'
 import {
   chatRoom,
@@ -40,6 +40,7 @@ async function sentMessage(db: Db, messageId: string) {
       departmentName: department.name,
       eventId: chatRoom.eventId,
       eventName: event.name,
+      replyToId: message.replyToId,
     })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
@@ -92,8 +93,32 @@ async function calledOf(db: Db, messageId: string) {
   return new Set(rows.map(row => row.recipientId))
 }
 
+// 답글 묶음에 든 사람(DEC-90): 원글을 쓴 사람과 그 원글에 답글을 쓴 사람. 답글 알림은 이들과 부른 사람에게만 간다.
+async function threadOf(db: Db, originalId: string) {
+  const rows = await db
+    .select({ memberId: record.createdBy })
+    .from(message)
+    .innerJoin(record, eq(record.id, message.id))
+    .where(or(eq(message.id, originalId), eq(message.replyToId, originalId)))
+  return new Set(rows.map(row => row.memberId))
+}
+
+// 알릴 사람: 방의 지금 참여자 - 보낸 사람 - 보는 중인 사람. 답글이면 그 가운데 답글 묶음에 들었거나 부름 받은 사람만이다.
+async function recipientsOf(
+  db: Db,
+  sent: Sent,
+  { now, skip, called }: { now: Date; skip: string | null; called: Set<string> },
+  isViewing: (memberId: string) => boolean,
+) {
+  const thread = sent.replyToId ? await threadOf(db, sent.replyToId) : null
+  return (await audienceOf(db, sent, now, skip)).filter(
+    id => !isViewing(id) && (thread === null || thread.has(id) || called.has(id)),
+  )
+}
+
 // 메시지를 보낸 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
 // 받는 사람: 그 방의 지금 참여자 - 보낸 사람 - 10초 안에 그 방을 본 사람. 부름 받은 사람은 부름 문구로 한 번만 받는다.
+// 답글은 방 전체가 아니라 원글 쓴 사람, 그 원글에 답글을 쓴 사람, 부른 사람에게만 간다(DEC-90).
 // 재시작 중이면 그 알림은 사라진다(outbox는 '나중', 기능 003 '위험').
 export function createChatPush(db: Db, send: PushSender) {
   const presence = createPresence()
@@ -102,10 +127,13 @@ export function createChatPush(db: Db, send: PushSender) {
     const sent = await sentMessage(db, messageId)
     // 보내자마자 지운 메시지와 보관된 행사 방의 글은 알리지 않는다(DEC-54, DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
     if (!sent?.councilId || sent.body === null || (await isArchivedEvent(db, sent.eventId))) return
-    const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
-      id => !presence.isViewing(sent.roomId, id, now),
-    )
     const called = await calledOf(db, messageId)
+    const viewers = await recipientsOf(
+      db,
+      sent,
+      { now, skip: sent.senderId ?? except ?? null, called },
+      id => presence.isViewing(sent.roomId, id, now),
+    )
     const url = chatRoomUrl(sent.councilId, sent.roomId)
     const tag = chatRoomTag(sent.roomId)
     const excerpt = excerptOf(sent.body)

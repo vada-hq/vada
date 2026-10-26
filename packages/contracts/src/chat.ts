@@ -74,6 +74,9 @@ export interface ChatMessage {
   photos: ChatPhoto[]
   // 이 메시지를 근거로 만든 구매 요청(제목)과 지출(내역), 만든 차례(DEC-71, DEC-90). 보는 사람이 읽을 수 있는 기록만 싣는다.
   made: MadeRecord[]
+  // 원글에 달린 답글 가운데 내가 볼 수 있는 것의 수와 마지막 답글 시각(DEC-90). 답글 자신과 답글 없는 원글은 0과 null이다.
+  replyCount: number
+  lastReplyAt: string | null
 }
 
 export interface RoomSummary {
@@ -122,10 +125,17 @@ export interface RoomDetailResponse {
 }
 
 // 내가 볼 수 있는 메시지 한 쪽(들어온 뒤의 것, 공지방은 같은 기수의 들어오기 전 것도, DEC-90). 오래된 것부터 담긴다. 커서가 없으면 가장 최근 쪽이다.
+// 방 흐름(GET .../messages)에는 원글만 있다. 답글은 원글을 열어 읽는다(DEC-90).
 export interface MessagePageResponse {
   messages: ChatMessage[]
   hasOlder: boolean
   hasNewer: boolean
+}
+
+// 원글 하나와 그 답글 한 쪽(GET .../rooms/:roomId/messages/:messageId/replies). 커서는 방 흐름과 같고(MessagePageQuerySchema)
+// 답글 번호다. 쪽 안은 보낸 순이다. 원글이 내게 보이지 않거나 답글이면 404다.
+export interface ReplyPageResponse extends MessagePageResponse {
+  original: ChatMessage
 }
 
 // 읽음 표시: 이 메시지까지 읽었다. 뒤로 가지 않는다.
@@ -151,8 +161,12 @@ export const SendMessageSchema = z
     photos: z.array(token(PHOTO_KEY_MAX)).max(PHOTO_MAX_COUNT).default([]),
     // 이 메시지를 공지 결과물로 이을 업무(기능 015). 공지방에 보낼 때만 받고 아니면 서버가 400이다(DEC-90).
     taskId: recordIdInput.nullish(),
+    // 답글이면 원글 번호(DEC-90). 같은 방의, 내가 볼 수 있는 원글이어야 하고 답글에는 답글을 달지 않는다(서버가 404·400).
+    replyTo: recordIdInput.nullish(),
   })
   .refine(value => value.body !== undefined || value.photos.length > 0)
+  // 업무의 공지 결과물은 공지방 흐름에 보이는 원글이라 답글로 잇지 않는다.
+  .refine(value => !(value.taskId && value.replyTo))
   .refine(value => new Set(value.photos).size === value.photos.length)
 export type SendMessageRequest = z.input<typeof SendMessageSchema>
 

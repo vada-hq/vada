@@ -20,6 +20,8 @@ export const message = (
   deletedAt: null,
   photos: [],
   made: [],
+  replyCount: 0,
+  lastReplyAt: null,
   ...options,
 })
 

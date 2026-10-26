@@ -213,3 +213,42 @@ test('0018: 지운 메시지는 본문 없이 지운 시각만 있고, 비운 �
     await close()
   }
 })
+
+// 답글(0020, 기능 022 조각 10, DEC-90): 답글은 같은 방의 원글만 가리킨다. 다른 방의 원글이나 없는 메시지를 가리키는 행은 외래 키가 막는다.
+test('0020: 답글은 같은 방의 메시지만 원글로 가리키고, 다른 방·없는 메시지를 가리키면 외래 키가 막는다', async () => {
+  const { pg, close } = await createTestDb()
+  try {
+    const { rows } = await pg.query<{ id: string }>(
+      `INSERT INTO record (kind) VALUES ('chat_room'), ('chat_room'), ('message'), ('message'), ('message')
+       RETURNING id`,
+    )
+    const [room, otherRoom, original, reply, stray] = rows.map(row => row.id)
+    for (const id of [room, otherRoom])
+      await pg.query(`INSERT INTO chat_room (id, type) VALUES ($1, 'all_members')`, [id])
+    const insert = (id: string | undefined, roomId: string | undefined, replyTo: string | null) =>
+      pg.query(
+        `INSERT INTO message (id, room_id, body, sent_at, reply_to_id)
+         VALUES ($1, $2, '글', '2026-10-25T03:00:00Z', $3)`,
+        [id, roomId, replyTo],
+      )
+    await insert(original, room, null)
+    await insert(reply, room, original!)
+    await assert.rejects(insert(stray, otherRoom, original!), { code: '23503' })
+    await assert.rejects(insert(stray, room, '019e0000-0000-7000-8000-000000000000'), {
+      code: '23503',
+    })
+    // 답글을 다른 방으로 옮겨도 막힌다.
+    await assert.rejects(
+      pg.query('UPDATE message SET room_id = $1 WHERE id = $2', [otherRoom, reply]),
+      {
+        code: '23503',
+      },
+    )
+    const { rows: indexes } = await pg.query<{ def: string }>(
+      `SELECT indexdef AS def FROM pg_indexes WHERE tablename = 'message' AND indexdef LIKE '%(reply_to_id)%'`,
+    )
+    assert.equal(indexes.length, 1)
+  } finally {
+    await close()
+  }
+})

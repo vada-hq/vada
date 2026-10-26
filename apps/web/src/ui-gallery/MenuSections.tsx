@@ -116,6 +116,8 @@ export function MessageMenuSection() {
     deletedAt: null,
     photos: [],
     made: [],
+    replyCount: 0,
+    lastReplyAt: null,
   }
   return (
     <Section title="메시지 메뉴">
@@ -147,6 +149,8 @@ export function KkirukMessageSection() {
     deletedAt: null,
     photos: [],
     made: [],
+    replyCount: 0,
+    lastReplyAt: null,
   })
   const flow = [
     sample('k1', '가을 축제가 생겼어요', null),

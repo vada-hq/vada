@@ -34,6 +34,8 @@ const sample = (id: string, sender: DirectPerson | null, body: string): ChatMess
   deletedAt: null,
   photos: [],
   made: [],
+  replyCount: 0,
+  lastReplyAt: null,
 })
 const MAIN: ChatMessage[] = [
   sample('g1', PEOPLE[1]!, '부스 배치안 초안 올렸어요. 테이블 수는 아직 미정이에요.'),

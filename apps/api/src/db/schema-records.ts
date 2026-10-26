@@ -31,6 +31,8 @@ export const message = pgTable('message', {
   sentAt: at('sent_at').notNull(),
   isNotice: boolean('is_notice').notNull().default(false),
   deletedAt: at('deleted_at'),
+  // 답글의 원글(0020, DEC-90). 원글은 비어 있고, 답글은 같은 방의 원글을 가리킨다(같은 방은 DB가, 한 단계는 서버가 막는다).
+  replyToId: uuid('reply_to_id'),
 })
 
 export const file = pgTable('file', {

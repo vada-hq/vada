@@ -550,3 +550,33 @@ test(
     assert.ok((await canMake()).includes('message'))
   }),
 )
+
+test(
+  '보관된 행사 방의 답글은 409 ROOM_ARCHIVED이고 아무것도 남지 않는다. 완료를 취소하면 답글이 된다',
+  run(async t => {
+    const eventId = await t.createEvent()
+    const room = await t.eventRoomId(eventId, 'notice')
+    const original = (await (await t.send(room, { body: '내일 봬요' }, 's-president')).json()) as {
+      id: string
+    }
+    await t.complete(eventId)
+    const messages = async () =>
+      Number((await t.pg.query<{ n: string }>('SELECT count(*) AS n FROM message')).rows[0]!.n)
+    const before = await messages()
+    const refused = await t.send(room, { body: '수고했어요', replyTo: original.id }, 's-plain')
+    assert.equal(refused.status, 409)
+    assert.deepEqual(await refused.json(), { error: 'ROOM_ARCHIVED' })
+    assert.equal(await messages(), before)
+    // 읽기는 된다.
+    const replies = await t.api.get(
+      `${t.base}/rooms/${room}/messages/${original.id}/replies`,
+      's-plain',
+    )
+    assert.equal(replies.status, 200)
+    await t.cancelCompletion(eventId)
+    assert.equal(
+      (await t.send(room, { body: '다시 열었어요', replyTo: original.id }, 's-plain')).status,
+      201,
+    )
+  }),
+)

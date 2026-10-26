@@ -395,3 +395,44 @@ test(
     assert.ok(endpointsOf(s).includes(endpointOf('s-financeMember')))
   }),
 )
+
+test(
+  '답글 알림은 원글 쓴 사람, 그 원글에 답글을 쓴 사람, 부른 사람에게만 가고 나와 답글을 보는 중인 사람은 뺀다(DEC-90)',
+  run(async s => {
+    const all = await s.roomId('all')
+    const original = (await (
+      await s.send(all, 's-president', { body: '내일 행사 공지' })
+    ).json()) as ChatMessage
+    s.calls.length = 0
+    // 첫 답글: 원글 쓴 회장에게만 간다. 방의 다른 사람에게는 없다.
+    assert.equal(
+      (await s.send(all, 's-plain', { body: '몇 시예요?', replyTo: original.id })).status,
+      201,
+    )
+    assert.deepEqual(endpointsOf(s), usersOf('president'))
+    assert.equal(s.calls[0]![1].title, '공지방')
+    // 둘째 답글: 원글 쓴 회장과 먼저 답글을 쓴 사람에게 간다. 부른 기획부장은 부름 문구로 받는다.
+    s.calls.length = 0
+    const called = s.council.people.planningHead.memberId
+    await s.send(all, 's-financeMember', {
+      body: '@기획부장 확인 부탁해요',
+      mentions: [called],
+      replyTo: original.id,
+    })
+    assert.deepEqual(endpointsOf(s), usersOf('president', 'plain', 'planningHead'))
+    const byEndpoint = new Map(s.calls.map(call => [call[0].endpoint, call[1]]))
+    assert.equal(
+      byEndpoint.get(endpointOf('s-planningHead'))!.title,
+      's financeMember님이 나를 불렀어요',
+    )
+    // 답글을 최신까지 읽는 회장은 보는 중이라 빠진다. 보낸 사람(답글을 쓴 사람이어도)은 받지 않는다.
+    s.calls.length = 0
+    const replies = await s.api.get(
+      `${s.base}/rooms/${all}/messages/${original.id}/replies`,
+      's-president',
+    )
+    assert.equal(replies.status, 200)
+    await s.send(all, 's-plain', { body: '알겠어요', replyTo: original.id })
+    assert.deepEqual(endpointsOf(s), usersOf('financeMember'))
+  }),
+)
