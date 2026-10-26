@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { drizzle } from 'drizzle-orm/pglite'
-import type { CreateCouncilResponse, InviteCodeResponse, TeamResponse } from '@vada/contracts'
+import {
+  defaultDepartmentColor,
+  type CreateCouncilResponse,
+  type InviteCodeResponse,
+  type TeamResponse,
+} from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
@@ -146,7 +151,13 @@ test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직�
     )
     assert.ok(team.members.every(item => !Number.isNaN(Date.parse(item.joinedAt))))
     assert.deepEqual(team.departments, [
-      { id: finance, name: '재정부', role: 'finance', memberCount: 0 },
+      {
+        id: finance,
+        name: '재정부',
+        role: 'finance',
+        color: defaultDepartmentColor(finance),
+        memberCount: 0,
+      },
     ])
     assert.ok(!JSON.stringify(team).includes('@'))
     assert.deepEqual(Object.keys(team.members[0]!).sort(), [
