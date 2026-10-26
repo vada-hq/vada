@@ -1,5 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import type { DepartmentRank } from '@vada/contracts'
+import type { DepartmentColorKey, DepartmentRank } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentCouncilMembership } from '../access/current-cohort.js'
 import { can } from '../access/permissions.js'
@@ -41,7 +41,12 @@ export async function currentMembership(tx: Tx, actor: Actor, memberId: string) 
 
 export async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
   const [row] = await tx
-    .select({ id: department.id, name: department.name, role: department.role })
+    .select({
+      id: department.id,
+      name: department.name,
+      role: department.role,
+      color: department.color,
+    })
     .from(department)
     .where(and(eq(department.id, departmentId), eq(department.councilId, actor.councilId)))
   if (!row) throw new ApiError('NOT_FOUND')
@@ -280,6 +285,24 @@ export async function updateDepartment(
     actor: actor.memberId,
     reason: null,
     changes: { name: input.name, role: input.role },
+  })
+}
+
+// 색만 바꿔 동시 변경된 이름·재정 역할을 덮지 않는다. 같은 선택색이면 판을 더 만들지 않는다.
+export async function updateDepartmentColor(
+  tx: Tx,
+  actor: Actor,
+  departmentId: string,
+  color: DepartmentColorKey,
+) {
+  const current = await departmentOf(tx, actor, departmentId)
+  if (current.color === color) return
+  await updateRecord(tx, {
+    kind: 'department',
+    id: departmentId,
+    actor: actor.memberId,
+    reason: null,
+    changes: { color },
   })
 }
 

@@ -7,6 +7,7 @@ import {
   MoveDepartmentSchema,
   TransferPresidentSchema,
   UpdateDepartmentSchema,
+  UpdateDepartmentColorSchema,
   type Action,
   type ErrorCode,
   type TeamResponse,
@@ -30,6 +31,7 @@ import {
   removeMember,
   transferPresident,
   updateDepartment,
+  updateDepartmentColor,
 } from './service.js'
 
 // 미리 본 뒤 다른 요청이나 다른 기록과 겹쳐 생긴 제약 위반을 같은 오류 코드로 바꾼다. 길마다 낼 수 있는 위반만 넘긴다. 그 밖의 위반은 500이다.
@@ -150,6 +152,17 @@ function departmentRoutes({ routes, auth, change }: Kit) {
       nameConflicts,
     )
   })
+  routes.post(
+    `${root}/departments/:departmentId/color`,
+    json(UpdateDepartmentColorSchema),
+    auth,
+    c => {
+      const departmentId = recordIdOf(c.req.param('departmentId'))
+      return change(c, 'department.manage', (tx, actor) =>
+        updateDepartmentColor(tx, actor, departmentId, c.req.valid('json').color),
+      )
+    },
+  )
   routes.post(`${root}/departments/:departmentId/delete`, json(EmptyRequestSchema), auth, c => {
     const departmentId = recordIdOf(c.req.param('departmentId'))
     return change(

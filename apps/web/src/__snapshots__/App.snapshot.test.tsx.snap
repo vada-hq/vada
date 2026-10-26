@@ -874,7 +874,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </ul>
 </section>
 <div class="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3">
-<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-6">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -924,7 +924,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-7">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1357,7 +1357,7 @@ exports[`작업 공간: 조직 1`] = `
 </ul>
 </section>
 <div class="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3">
-<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-6">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1407,7 +1407,7 @@ exports[`작업 공간: 조직 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-7">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1702,7 +1702,7 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 </ul>
 </section>
 <div class="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3">
-<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id7_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-6">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1752,7 +1752,7 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 </li>
 </ul>
 </section>
-<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
+<section aria-labelledby="_id10_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col border-l-4 border-l-category-7">
 <div class="flex items-start gap-2 border-b px-4 py-3">
 <div class="min-w-0 flex-1">
 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">

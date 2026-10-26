@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DepartmentAdd } from './DepartmentAdd'
 import { DepartmentDialogs } from './DepartmentDialogs'
+import { DepartmentColorDialog } from './DepartmentColorDialog'
 import { DepartmentMenu } from './DepartmentMenu'
 import { DepartmentRename } from './DepartmentRename'
 import { InviteSheet, InviteSheetBody } from './InviteSheet'
@@ -81,6 +82,7 @@ function departmentSlots(state: DepartmentsState, saving: boolean) {
           saving={saving}
           triggerRef={state.menuFocus.triggerRef(department.id)}
           onRename={() => state.openRename(department)}
+          onColor={() => state.color.open(department)}
           onToggleFinance={() => state.toggleFinance(department)}
           onRemove={() => state.openRemove(department)}
         />
@@ -173,6 +175,18 @@ function Dialogs({ people, departments, view, team }: DialogProps) {
         }}
       />
       <DepartmentDialogs state={departments} saving={team.saving} />
+      {departments.color.department && (
+        <DepartmentColorDialog
+          department={departments.color.department}
+          color={departments.color.color}
+          saving={team.saving}
+          error={departments.problemIn('color')}
+          onColor={departments.color.setColor}
+          onSave={() => void departments.color.save()}
+          onClose={departments.color.close}
+          onCloseAutoFocus={departments.menuFocus.onCloseAutoFocus}
+        />
+      )}
     </>
   )
 }

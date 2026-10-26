@@ -1,5 +1,5 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
-import type { TeamResponse } from '@vada/contracts'
+import { defaultDepartmentColor, type TeamResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { councilMembership, department, departmentMembership, member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
@@ -30,7 +30,12 @@ export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<Team
     )
     .orderBy(asc(departmentMembership.departmentId))
   const departments = await db
-    .select({ id: department.id, name: department.name, role: department.role })
+    .select({
+      id: department.id,
+      name: department.name,
+      role: department.role,
+      color: department.color,
+    })
     .from(department)
     .where(eq(department.councilId, actor.councilId))
     .orderBy(asc(department.id))
@@ -46,6 +51,7 @@ export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<Team
     })),
     departments: departments.map(row => ({
       ...row,
+      color: row.color ?? defaultDepartmentColor(row.id),
       memberCount: placements.filter(item => item.departmentId === row.id).length,
     })),
   }

@@ -7,7 +7,7 @@ const final = new Set(['FORBIDDEN', 'NOT_FOUND', 'DEPARTMENT_IN_USE'])
 export const isFinal = (code: string) => final.has(code)
 
 // 오류를 보일 자리: 만들기 칸 아래, 열린 대화상자 안, 쪽 위.
-export type Scope = 'create' | 'rename' | 'remove' | 'list'
+export type Scope = 'create' | 'rename' | 'remove' | 'color' | 'list'
 type Problem = { scope: Scope; text: string }
 
 // 부서 화면이 서버에 보내는 변경과 그 오류 문구. 실패하면 오류 코드를, 성공하면 null을 돌려준다.
