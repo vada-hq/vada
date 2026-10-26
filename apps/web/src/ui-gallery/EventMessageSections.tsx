@@ -47,6 +47,8 @@ const sample = (id: string, sender: string, body: string): ChatMessage => ({
   deletedAt: null,
   photos: [],
   made: [],
+  replyCount: 0,
+  lastReplyAt: null,
 })
 const FLOW = [
   sample(
