@@ -1,5 +1,6 @@
 import type { TaskSummary } from '@vada/contracts'
 import { COUNCIL_TASK_LABEL } from './task-view'
+import { isUnassignedTask } from './task-unassigned'
 
 // 내 업무를 급한 순으로 나누는 묶음(screens.md 내 업무: 지남, 오늘, 7일 안, 그 뒤).
 type DueGroupKey = 'overdue' | 'today' | 'week' | 'later' | 'none'
@@ -45,7 +46,7 @@ export function sectionSummary(tasks: TaskSummary[]) {
   return {
     inProgress: tasks.filter(task => task.status === 'in_progress').length,
     overdue: tasks.filter(task => task.overdue).length,
-    unassigned: tasks.filter(task => task.assignee === null && task.status !== 'done').length,
+    unassigned: tasks.filter(isUnassignedTask).length,
   }
 }
 

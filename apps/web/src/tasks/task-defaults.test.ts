@@ -115,6 +115,7 @@ test('행사의 업무 탭에서 고를 부서가 없으면(학생회 업무만)
 
 test('만든 업무가 지금 보기에 있는지 본다', () => {
   const mine = {
+    status: 'todo' as const,
     department: { id: 'd1', name: '재정부' },
     assignee: { ...person('m2'), current: true },
     event: null,
@@ -123,6 +124,13 @@ test('만든 업무가 지금 보기에 있는지 본다', () => {
   expect(visibleInView(mine, context('mine'))).toBe(true)
   expect(visibleInView(mine, context('unassigned'))).toBe(false)
   expect(visibleInView(open, context('unassigned'))).toBe(true)
+  expect(
+    visibleInView(
+      { ...mine, assignee: { ...mine.assignee, current: false } },
+      context('unassigned'),
+    ),
+  ).toBe(true)
+  expect(visibleInView({ ...open, status: 'done' }, context('unassigned'))).toBe(false)
   expect(visibleInView(open, context('mine'))).toBe(false)
   expect(visibleInView(mine, context('department'))).toBe(true)
   expect(visibleInView({ ...mine, department: null }, context('department'))).toBe(false)

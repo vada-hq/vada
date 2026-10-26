@@ -124,7 +124,7 @@ test('내 부서는 내가 속한 부서가 맡은 업무만 주고, 부서가 �
   }
 })
 
-test('담당자 없음은 담당자 없는 것, 떠난 담당자(current:false), 부서 없는 업무를 준다', async () => {
+test('담당자 없음은 부서와 무관하게 담당자가 없거나 떠난 미완료 업무만 준다', async () => {
   const t = await start()
   try {
     const { planningMember, ended } = t.council.people
@@ -132,9 +132,21 @@ test('담당자 없음은 담당자 없는 것, 떠난 담당자(current:false),
     await t.make({ title: '없음', departmentId: planning })
     await t.make({ title: '떠남', departmentId: planning, assigneeId: ended.memberId })
     await t.make({ title: '부서 없음', assigneeId: planningMember.memberId })
+    await t.make({ title: '둘 다 없음' })
+    await t.make({ title: '부서 없이 떠남', assigneeId: ended.memberId, status: 'in_progress' })
+    await t.make({ title: '끝남', status: 'done' })
+    await t.make({ title: '떠났지만 끝남', assigneeId: ended.memberId, status: 'done' })
+    await t.make({ title: '취소', cancelledAt: clockNow })
+    await t.make({ title: '다른 학생회' }, t.other)
     await t.make({ title: '정상', departmentId: planning, assigneeId: planningMember.memberId })
     const result = await t.list('view=unassigned')
-    assert.deepEqual(result.tasks.map(row => row.title).sort(), ['떠남', '부서 없음', '없음'])
+    assert.deepEqual(result.tasks.map(row => row.title).sort(), [
+      '둘 다 없음',
+      '떠남',
+      '부서 없이 떠남',
+      '없음',
+    ])
+    assert.deepEqual(await t.titles('view=unassigned&status=done'), [])
     const left = result.tasks.find(row => row.title === '떠남')
     assert.equal(left?.assignee?.current, false)
     assert.equal(left?.assignee?.name, 's ended')

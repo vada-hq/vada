@@ -1,4 +1,5 @@
 import type { CouncilView, TaskCreateOptionsResponse, TaskDetail, TaskView } from '@vada/contracts'
+import { isUnassignedTask } from './task-unassigned'
 
 // 빠른 추가가 새 업무의 자리를 정하는 데 쓰는, 지금 보는 곳.
 export type QuickAddContext = {
@@ -54,19 +55,19 @@ export function defaultPlacement(
 
 // 보기 탭이 받아들이는 업무인가.
 function inTab(
-  task: Pick<TaskDetail, 'department' | 'assignee'>,
+  task: Pick<TaskDetail, 'department' | 'assignee' | 'status'>,
   view: CouncilView,
   tab: TaskView,
 ) {
   if (tab === 'mine') return task.assignee?.id === view.me.memberId
-  if (tab === 'unassigned') return task.assignee === null
+  if (tab === 'unassigned') return isUnassignedTask(task)
   if (tab === 'department') return view.me.departments.some(item => item.id === task.department?.id)
   return true
 }
 
 // 만든 업무가 지금 보기에 보이는가(행사, 부서 거르기, 보기 탭). 아니면 빠른 추가가 그렇다고 알린다.
 export function visibleInView(
-  task: Pick<TaskDetail, 'department' | 'assignee' | 'event'>,
+  task: Pick<TaskDetail, 'department' | 'assignee' | 'event' | 'status'>,
   { view, taskView, dept, eventId }: QuickAddContext,
 ): boolean {
   if (eventId !== undefined && task.event?.id !== eventId) return false

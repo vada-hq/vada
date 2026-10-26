@@ -3874,6 +3874,7 @@ exports[`처음 모양 1`] = `
 <span class="text-sm font-semibold wrap-anywhere text-gray-900">학생회 업무<span class="ml-1.5 font-normal text-gray-500">1</span>
 </span>
 <span class="flex flex-wrap gap-x-2 text-xs">
+<span class="text-yellow-700">담당자 없음 1</span>
 </span>
 </span>
 </th>

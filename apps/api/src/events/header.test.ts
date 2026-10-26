@@ -65,13 +65,13 @@ test(
     // 지금은 한국 2026-10-25 12:00이다. 어제 마감은 지났고 오늘 마감은 아직이다.
     await task({ eventId: id, ...staffed, dueAt: due('2026-10-24') })
     await task({ eventId: id, ...staffed, dueAt: due('2026-10-25') })
-    // 담당자 없음: 담당자가 없거나, 떠났거나, 부서가 없다(업무 화면의 '담당자 없음'과 같다).
+    // 담당자가 없거나 떠난 업무만 센다. 부서가 없어도 담당자가 있으면 세지 않는다(DEC-94).
     await task({ eventId: id, departmentId: planning })
     await task({ eventId: id, departmentId: planning, assigneeId: ended.memberId })
     await task({ eventId: id, assigneeId: planningMember.memberId })
     await task({ eventId: id, status: 'done', dueAt: due('2026-10-01') })
     await task({ eventId: id, cancelledAt: clockNow, dueAt: due('2026-10-01') })
-    assert.deepEqual((await t.detail(id)).health, { overdue: 1, unassigned: 3 })
+    assert.deepEqual((await t.detail(id)).health, { overdue: 1, unassigned: 2 })
   }),
 )
 
