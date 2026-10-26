@@ -31,6 +31,7 @@ export {
   type EventRoomsResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
+  type ReplyPageResponse,
   type OpenDirectResponse,
   type SendMessageRequest,
   type RoomDetailResponse,

@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, gte, inArray, isNull, max, ne, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gt, gte, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import {
   type RoomDetailResponse,
   type RoomListResponse,
@@ -48,6 +48,8 @@ async function myRooms(db: Reader, actor: Actor) {
 
 // 방마다 안 읽은 수(내가 읽은 뒤 남이 보낸 것)와 마지막 메시지 시각. 내가 볼 수 있는 메시지만 센다(visibleMessage):
 // 들어온 뒤의 것과 공지방의 같은 기수 메시지라, 늦게 들어온 사람에게는 공지방이 안 읽은 방으로 나온다(DEC-90).
+// 답글도 안 읽은 수에 든다(방 단위 읽음, DEC-90). 마지막 메시지 시각은 방 줄의 미리보기와 같은 원글만 본다
+// (답글은 방 흐름에 없어 미리보기에도 없다, 022 정한 것 8. Slack도 스레드 답글로 채널 줄이 바뀌지 않는다).
 async function messageStats(db: Reader, actor: Actor) {
   const rows = await db
     .select({
@@ -57,7 +59,10 @@ async function messageStats(db: Reader, actor: Actor) {
         and (${roomMembership.lastReadAt} is null or ${message.sentAt} > ${roomMembership.lastReadAt}))`.mapWith(
           Number,
         ),
-      lastAt: max(message.sentAt),
+      lastAt:
+        sql<Date | null>`max(${message.sentAt}) filter (where ${message.replyToId} is null)`.mapWith(
+          message.sentAt,
+        ),
     })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
@@ -71,7 +76,7 @@ async function messageStats(db: Reader, actor: Actor) {
   return new Map(rows.map(row => [row.roomId, row]))
 }
 
-// 방마다 내가 볼 수 있는 마지막 메시지(보낸 시각, 번호 차례로 마지막)의 보낸 사람과 미리보기.
+// 방마다 내가 볼 수 있는 마지막 원글(보낸 시각, 번호 차례로 마지막)의 보낸 사람과 미리보기. 답글은 넣지 않는다(022 정한 것 8).
 // 방 흐름과 같은 조건(visibleMessage)이라 들어오기 전 부서방 메시지는 미리보기에도 없다(DEC-20, DEC-90).
 // 내 방의 보이는 메시지를 다 훑는다. 메시지가 많아져 느려지면 방마다 LATERAL로 하나씩 읽고 (room_id, sent_at, id) 인덱스를 둔다.
 async function lastMessages(db: ListReader, actor: Actor) {
@@ -89,7 +94,7 @@ async function lastMessages(db: ListReader, actor: Actor) {
       and(eq(roomMembership.roomId, message.roomId), eq(roomMembership.memberId, actor.memberId)),
     )
     .leftJoin(member, eq(member.id, record.createdBy))
-    .where(visibleMessage(actor))
+    .where(and(visibleMessage(actor), isNull(message.replyToId)))
     .orderBy(message.roomId, desc(message.sentAt), desc(message.id))
   return new Map(
     rows.map(row => [row.roomId, { senderName: row.senderName, preview: previewOf(row.body) }]),

@@ -14,6 +14,7 @@ import { assertRoomOpen } from './archive.js'
 import { attachPhotos } from './photos.js'
 import { advanceRead } from './read-marker.js'
 import { inNoticeRoom, isPlanRoom } from './plan-room.js'
+import { assertOriginal } from './replies.js'
 import { roomAccess } from './room-access.js'
 import { lockedSentAt } from './sent-at.js'
 
@@ -24,6 +25,8 @@ type SendInput = {
   photos: VerifiedPhoto[]
   // 이 메시지를 공지 결과물로 이을 업무(기능 015). 공지방에 보낼 때만 받는다(DEC-90).
   taskId?: string | null | undefined
+  // 답글이면 원글 번호(DEC-90). 같은 방의, 내가 볼 수 있는 원글이어야 한다.
+  replyTo?: string | null | undefined
 }
 
 // 보내기 속도 제한: 계정마다 10초에 20개(기능 003 '속도 제한'). 넘으면 TOO_MANY_REQUESTS다.
@@ -121,6 +124,9 @@ export async function sendMessage(
     .for('no key update')
   if (!mine) throw new ApiError('FORBIDDEN')
   await assertWritable(tx, actor, room, now)
+  // 답글은 원글 아래 한 단계다(DEC-90). 원글 행은 답글을 넣을 때 외래 키 검사가 FOR KEY SHARE로 잡는다.
+  if (input.replyTo)
+    await assertOriginal(tx, actor, { roomId: room.id, messageId: input.replyTo }, 'INVALID_INPUT')
   if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, now)
   const called = await calledFrom(tx, actor, { roomId: room.id, mentions: input.mentions }, now)
   // 잠금 순서: 내 참여 줄 → 방 행.
@@ -131,7 +137,13 @@ export async function sendMessage(
     actor: actor.memberId,
     ...(input.taskId ? { taskId: input.taskId } : {}),
     // is_notice 칸은 남아 있지만 읽는 코드가 없다(DEC-90). 새 메시지는 늘 false다.
-    values: { roomId: room.id, body: input.body, sentAt, isNotice: false },
+    values: {
+      roomId: room.id,
+      body: input.body,
+      sentAt,
+      isNotice: false,
+      replyToId: input.replyTo ?? null,
+    },
   })
   await attachPhotos(tx, actor, messageId, input.photos)
   await advanceRead(tx, room.id, actor.memberId, messageId)

@@ -78,6 +78,8 @@ const chatMessage = (id: string, senderName: string | null, body: string): ChatM
   deletedAt: null,
   photos: [],
   made: [],
+  replyCount: 0,
+  lastReplyAt: null,
 })
 // 지운 메시지(DEC-54): 본문 없이 지운 시각만 있다.
 const deletedMessage = (id: string, senderName: string): ChatMessage => ({
