@@ -21,6 +21,8 @@ import { createPushDeviceRoutes, forgetPushDevice } from './push/devices.js'
 import { createPushRoutes } from './push/routes.js'
 import { createProfileRoutes } from './profile/routes.js'
 import { createProductInfoRoutes } from './product-info/routes.js'
+import { createProductInfo } from './product-info/service.js'
+import { createProductPrefetch } from './product-info/prefetch.js'
 import type { ProductLookup } from './product-info/reef.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
@@ -83,11 +85,13 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
 export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
   const { clock, writeLimiter, receiptKey, storage, productLookup } = deps
   const push = pushModules(db, session, deps)
+  const productInfo = createProductInfo({ lookup: productLookup, clock })
+  const prefetchProducts = createProductPrefetch(productInfo)
   return {
     councils: createCouncilRoutes(db, session, clock),
     invites: createInviteRoutes(db, session, clock),
     team: createTeamRoutes(db, session, clock),
-    chat: createChatRoutes(db, session, { clock, push: push.chat, storage }),
+    chat: createChatRoutes(db, session, { clock, push: push.chat, storage, prefetchProducts }),
     push: push.routes,
     pushDevices: createPushDeviceRoutes(db, session),
     profile: createProfileRoutes(db, session),
@@ -108,7 +112,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     deposits: createDepositRoutes(db, session, { clock }),
     settlement: createSettlementRoutes(db, session, { clock }),
     feePayments: createFeePaymentRoutes(db, session, { clock }),
-    productInfo: createProductInfoRoutes(db, session, { clock, lookup: productLookup }),
+    productInfo: createProductInfoRoutes(db, session, { clock, productInfo }),
     publicRegistrations: createPublicRegistrationRoutes(db, { clock, receiptKey }),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }
