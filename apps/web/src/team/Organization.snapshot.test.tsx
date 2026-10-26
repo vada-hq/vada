@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Action, TeamResponse } from '@vada/contracts'
 import {
   councilView,
@@ -55,6 +55,16 @@ async function openMenuItem(name: string, item: string) {
   await chooseMenuItem(name, item)
   await screen.findByRole('dialog')
 }
+// 사람 줄을 눌러 사람 상세를 연다.
+async function openPerson(name: string) {
+  fireEvent.click((await screen.findAllByRole('button', { name: new RegExp(`^${name}`) }))[0]!)
+  return screen.findByRole('dialog', { name })
+}
+// 사람 상세 안의 버튼으로 확인 창을 연다.
+async function openConfirm(name: string, item: string, title: string) {
+  fireEvent.click(within(await openPerson(name)).getByRole('button', { name: item }))
+  await screen.findByRole('dialog', { name: title })
+}
 const loaded = () => screen.findByRole('heading', { name: '회장단' })
 
 test('불러오는 중', () => {
@@ -98,25 +108,24 @@ test('불러오기 오류', async () => {
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
-test('권한 하나만 있는 사람의 메뉴', async () => {
+test('권한 하나만 있는 사람의 사람 상세', async () => {
   serve()
   render(<Harness permissions={['council.view', 'rank.manage']} />)
-  fireEvent.keyDown(await screen.findByRole('button', { name: '이재정 동작' }), { key: 'Enter' })
-  await screen.findByRole('menu')
+  await openPerson('이재정')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('확인 대화상자: 내보내기', async () => {
   serve()
   render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
-  await openMenuItem('박새내', '내보내기')
+  await openConfirm('박새내', '내보내기', '박새내님을 내보낼까요?')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
 test('확인 대화상자: 회장 넘기기', async () => {
   serve()
   render(<Harness permissions={PRESIDENT_PERMISSIONS} />)
-  await openMenuItem('이재정', '위원장 넘기기')
+  await openConfirm('이재정', '위원장 넘기기', '이재정님에게 위원장 직급을 넘길까요?')
   expect(snapshotHtml()).toMatchSnapshot()
 })
 

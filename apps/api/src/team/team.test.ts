@@ -960,6 +960,41 @@ test('옮기기 권한: 직급이 붙은 소속을 옮기거나 새 부서에 �
   }
 })
 
+// 기능 023 위험 '되돌리기와 방': 되돌리기로 다시 연 소속의 부서방 참여는 되돌린 때부터다(DEC-20, 그사이 메시지는 보이지 않는다).
+test('옮겼다 되돌리면 옛 부서방에 다시 들고, 방 참여 시작 시각은 되돌린 때다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { member, finance, planning, move } = await moveSetup(testDb)
+    const joinedAt = async () =>
+      (
+        await testDb.pg.query<{ joined_at: Date }>(
+          `SELECT rm.joined_at FROM room_membership rm JOIN chat_room cr ON cr.id = rm.room_id
+           WHERE rm.member_id = $1 AND cr.type = 'department' AND cr.department_id = $2`,
+          [member.u2, finance],
+        )
+      ).rows.map(row => row.joined_at.getTime())
+    const [first] = await joinedAt()
+    assert.ok(first)
+    const body = { fromDepartmentId: finance, toDepartmentId: planning, rank: null }
+    assert.equal((await move(member.u2, body)).status, 200)
+    assert.deepEqual(await joinedAt(), [])
+    assert.equal(
+      (
+        await move(member.u2, {
+          fromDepartmentId: planning,
+          toDepartmentId: finance,
+          rank: 'head',
+        })
+      ).status,
+      200,
+    )
+    const [again] = await joinedAt()
+    assert.ok(again! > first)
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('옮기기 중간에 새 소속 열기가 실패하면 거래 전체가 되돌아가 옛 부서에 그대로 있다(두 부서에도, 어디에도 없지 않다)', async () => {
   const testDb = await createTestDb()
   try {

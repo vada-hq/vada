@@ -57,20 +57,15 @@ const departments: TeamDepartment[] = [
   { id: 'd3', name: '홍'.repeat(DEPARTMENT_NAME_MAX), role: null, memberCount: 0 },
 ]
 
-const row = (manage: boolean) => (member: TeamMember, group: string) => (
+// 줄은 누르면 사람 상세를 연다. 권한과 관계없이 모양이 같다.
+const row = (member: TeamMember, group: string) => (
   <MemberRow
     key={member.id}
     member={member}
     departments={departments}
     titles={titles}
     inDepartment={departments.some(item => item.id === group) ? group : null}
-    actions={{ assign: manage, rank: manage, transfer: false, remove: manage }}
-    saving={false}
-    triggerRef={noop}
-    onAssign={noop}
-    onToggleRank={noop}
-    onTransfer={noop}
-    onRemove={noop}
+    onOpen={noop}
   />
 )
 
@@ -93,7 +88,7 @@ function LeadOrg({ renaming = false, adding = false }: { renaming?: boolean; add
       departments={departments}
       titles={titles}
       unassignedFirst
-      person={row(true)}
+      person={row}
       departmentAction={department => (
         <DepartmentMenu
           department={department}
@@ -130,7 +125,7 @@ function MemberOrg() {
       departments={departments}
       titles={titles}
       unassignedFirst={false}
-      person={row(false)}
+      person={row}
       departmentAction={() => null}
       departmentEditor={() => null}
       add={null}

@@ -14,10 +14,8 @@ import { DepartmentMenu } from './DepartmentMenu'
 import { DepartmentRename } from './DepartmentRename'
 import { InviteSheet, InviteSheetBody } from './InviteSheet'
 import { MemberRow } from './MemberRow'
-import MemberDepartmentsDialog from './MemberDepartmentsDialog'
 import { OrgLayout } from './OrgLayout'
-import { rowActions } from './people-access'
-import { PeopleConfirmDialogs } from './PeopleConfirmDialogs'
+import { PeopleOverlays } from './PeopleOverlays'
 import { useDepartments, type DepartmentsState } from './useDepartments'
 import { usePeople, type PeopleState } from './usePeople'
 import type { Team } from './useTeam'
@@ -33,8 +31,8 @@ type Props = {
 }
 
 // 조직(DEC-91): 사람과 부서를 한 화면에서 본다. 모든 운영진이 회장단과 부서별 사람을 보고, 회장단은 그 자리에서 부서를 고친다.
-// 사람 줄의 ⋯ 메뉴(부서 배정, 직급, 회장 넘기기, 내보내기)는 사람 화면의 것 그대로다. 회장단은 머리글의 [구성원 초대]로 초대 창을 연다.
-// 동작 버튼은 서버가 준 내 권한 목록으로만 보이거나 숨긴다(DEC-38). 대화상자는 대상이 목록에 있고 권한이 있을 때만 열려 있다.
+// 사람 줄을 누르면 사람 상세가 열리고(DEC-91), 회장단은 머리글의 [구성원 초대]로 초대 창을 연다.
+// 동작 버튼은 서버가 준 내 권한 목록으로만 보이거나 숨긴다(DEC-38). 창은 대상이 목록에 있고 권한이 있을 때만 열려 있다.
 export default function Organization({
   view,
   reading,
@@ -66,7 +64,8 @@ export default function Organization({
         )}
         {...departmentSlots(departments, team.saving)}
       />
-      <Dialogs people={people} departments={departments} view={view} team={team} />
+      <PeopleOverlays people={people} view={view} team={team} />
+      <DepartmentDialogs state={departments} saving={team.saving} />
     </PageColumn>
   )
 }
@@ -123,7 +122,7 @@ function departmentSlots(state: DepartmentsState, saving: boolean) {
 
 type RowProps = {
   member: TeamMember
-  // 줄이 든 묶음. 겸직자는 묶음마다 줄이 있어 닫은 뒤 초점을 연 묶음의 줄로 돌려준다.
+  // 줄이 든 묶음. 부서 묶음이면 그 부서의 직급을 배지로 보인다.
   group: string
   people: PeopleState
   team: Team
@@ -131,68 +130,13 @@ type RowProps = {
 }
 
 function PersonRow({ member, group, people, team, view }: RowProps) {
-  const key = `${group}:${member.id}`
   return (
     <MemberRow
       member={member}
       departments={team.data?.departments ?? []}
       titles={view.council.titles}
       inDepartment={team.data?.departments.some(item => item.id === group) ? group : null}
-      actions={rowActions(member, people.me, people.can)}
-      saving={team.saving}
-      triggerRef={people.menuFocus.triggerRef(key)}
-      onAssign={() => people.openAssign(member, key)}
-      // '{부회장} 해제'는 그 줄이 회장단 묶음에서 빠져 초점이 body로 떨어진다. 조각 5(묶음 머리의 부회장 지정)에서 고친다.
-      onToggleRank={() => people.toggleViceRank(member)}
-      onTransfer={() => people.askConfirm('transfer', member, key)}
-      onRemove={() => people.askConfirm('remove', member, key)}
-    />
-  )
-}
-
-type DialogProps = {
-  people: PeopleState
-  departments: DepartmentsState
-  view: CouncilView
-  team: Team
-}
-
-function Dialogs({ people, departments, view, team }: DialogProps) {
-  return (
-    <>
-      <AssignDialog people={people} view={view} team={team} />
-      <PeopleConfirmDialogs
-        confirming={people.confirming}
-        titles={view.council.titles}
-        saving={team.saving}
-        error={people.message}
-        onCloseAutoFocus={people.menuFocus.onCloseAutoFocus}
-        onClose={people.cancelConfirm}
-        onConfirm={() => {
-          void people.confirmed()
-        }}
-      />
-      <DepartmentDialogs state={departments} saving={team.saving} />
-    </>
-  )
-}
-
-function AssignDialog({ people, view, team }: Omit<DialogProps, 'departments'>) {
-  const member = people.editingMember
-  if (!member || !team.data) return null
-  return (
-    <MemberDepartmentsDialog
-      key={member.id}
-      member={member}
-      departments={team.data.departments}
-      titles={view.council.titles}
-      saving={team.saving}
-      canRank={people.can('rank.manage')}
-      error={people.message}
-      onClose={people.closeAssign}
-      onCloseAutoFocus={people.menuFocus.onCloseAutoFocus}
-      onAssign={(departmentId, rank) => people.assign(member, departmentId, rank)}
-      onRemove={departmentId => people.removeFrom(member, departmentId)}
+      onOpen={() => people.openPerson(member)}
     />
   )
 }
