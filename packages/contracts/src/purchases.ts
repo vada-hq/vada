@@ -4,6 +4,12 @@ import { WON_MAX, type EventRef } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { recordIdInput } from './team.js'
+import { purchaseEstimateOf, type PurchaseEstimate } from './purchase-estimate.js'
+export {
+  purchaseEstimateOf,
+  purchaseEstimatesOf,
+  type PurchaseEstimate,
+} from './purchase-estimate.js'
 
 // 구매 요청(DEC-15, DEC-40). 요청서 한 장에 품목 여럿이고, 상태는 저장하지 않고 품목의 결재로 센다. 값은 DB CHECK와 같다.
 export const PURCHASE_TITLE_MAX = 100
@@ -59,14 +65,20 @@ const isWebUrl = (value: string) => {
 // 링크는 운영진이 쓴 주소라 http와 https만 받는다(javascript: 같은 주소가 화면에서 실행되지 않게).
 // 상품 정보 불러오기(기능 022)도 품목 링크로 쓸 주소를 받으므로 같은 규칙을 쓴다.
 export const itemLinkInput = token(PURCHASE_ITEM_LINK_MAX).refine(isWebUrl)
-const CreateLineItemSchema = z.strictObject({
-  name: text(PURCHASE_ITEM_NAME_MAX),
-  quantity: z.number().int().min(1).max(PURCHASE_QUANTITY_MAX),
-  link: itemLinkInput.nullable().default(null),
-  options: text(PURCHASE_ITEM_OPTIONS_MAX).nullable().default(null),
-})
+const CreateLineItemSchema = z
+  .strictObject({
+    name: text(PURCHASE_ITEM_NAME_MAX),
+    quantity: z.number().int().min(1).max(PURCHASE_QUANTITY_MAX),
+    link: itemLinkInput.nullable().default(null),
+    options: text(PURCHASE_ITEM_OPTIONS_MAX).nullable().default(null),
+    estimatedUnitPrice: z.number().int().min(0).max(WON_MAX).nullish(),
+    estimatedShippingFee: z.number().int().min(0).max(WON_MAX).nullish(),
+  })
+  .refine(item => item.estimatedUnitPrice == null || purchaseEstimateOf(item).subtotal !== null, {
+    path: ['estimatedUnitPrice'],
+  })
 
-// 요청 내기. 금액, 예산 항목, 사유는 받지 않는다(DEC-40). 행사는 낼 때 고르고 바꾸지 않는다(DEC-68).
+// 예상 가격은 선택값이다(DEC-92). 승인 금액, 예산 항목, 사유는 받지 않는다(DEC-40).
 export const CreatePurchaseRequestSchema = z.strictObject({
   title: text(PURCHASE_TITLE_MAX),
   eventId: recordIdInput.nullable().default(null),
@@ -74,7 +86,7 @@ export const CreatePurchaseRequestSchema = z.strictObject({
   neededBy: koreanDate.nullable().default(null),
   // 재정부가 부탁한 사람 대신 낼 때의 요청한 사람. 비우면 나다.
   requestedBy: recordIdInput.nullable().default(null),
-  // 이 요청의 근거가 된 메시지. 내가 지금 볼 수 있는 것만 된다. 응답에는 싣지 않는다.
+  // 이 요청의 근거가 된 메시지. 내가 지금 볼 수 있는 것만 된다. 상세도 보는 사람의 접근권한을 다시 확인한다.
   sourceMessageId: recordIdInput.nullable().default(null),
   // 이 요청을 이을 업무(기능 015). 이 학생회의 끝나지 않은 업무로 내가 상태를 바꿀 수 있는 것만 된다. 비우거나 빼면 잇지 않는다.
   taskId: recordIdInput.nullish(),
@@ -128,6 +140,8 @@ export interface PurchaseRequestSummary {
   event: EventRef | null
   // 결제할 수 있는 품목이 하나라도 있는가(지출의 '결제할 요청'에 보인다). 서버가 정책에서 정한다.
   payable: boolean
+  // 예상 가격은 승인 금액·약정과 별개다. 옛 클라이언트/저장된 응답에는 없을 수 있다.
+  estimate?: PurchaseEstimate
 }
 
 export interface PurchaseLineItem {
@@ -136,6 +150,8 @@ export interface PurchaseLineItem {
   quantity: number
   link: string | null
   options: string | null
+  estimatedUnitPrice?: number | null
+  estimatedShippingFee?: number | null
   // 승인할 때 정한 금액(그 줄 합계, 정수 원). 결재 전에는 null이다.
   amount: number | null
   budgetItem: { id: string; purpose: string } | null
@@ -176,6 +192,8 @@ export interface PurchaseVersion {
 
 export interface PurchaseRequestDetail extends PurchaseRequestSummary {
   body: string | null
+  // 현재 이 원문을 읽을 수 있을 때만 참조한다. 본문은 복사하지 않는다.
+  sourceMessage?: { id: string; roomId: string } | null
   items: PurchaseLineItem[]
   decisions: PurchaseDecision[]
   expenses: PurchaseExpenseRef[]
