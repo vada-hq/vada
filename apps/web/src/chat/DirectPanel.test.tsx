@@ -139,3 +139,19 @@ test('1:1을 열지 못하면 패널에 이유를 보인다', async () => {
   fireEvent.click(screen.getByRole('button', { name: '이재정 1:1 대화' }))
   expect(await within(panel()).findByText(/이 운영진을 찾지 못했어요/)).toBeTruthy()
 })
+
+test('패널 안에서 연 포털(메뉴·대화상자)의 Esc는 패널을 닫지 않는다', async () => {
+  const { createPortal } = await import('react-dom')
+  const { DirectPanelFrame } = await import('./DirectPanel')
+  const onClose = vi.fn()
+  render(
+    <DirectPanelFrame name="이재정" onClose={onClose}>
+      {createPortal(<button type="button">포털 안</button>, document.body)}
+      <button type="button">패널 안</button>
+    </DirectPanelFrame>,
+  )
+  fireEvent.keyDown(screen.getByRole('button', { name: '포털 안' }), { key: 'Escape' })
+  expect(onClose).not.toHaveBeenCalled()
+  fireEvent.keyDown(screen.getByRole('button', { name: '패널 안' }), { key: 'Escape' })
+  expect(onClose).toHaveBeenCalledTimes(1)
+})

@@ -26,7 +26,10 @@ export function DirectPanelFrame({
       aria-label={`${name} 1:1 대화`}
       className="fixed inset-0 z-40 flex flex-col bg-white md:left-auto md:w-96 md:border-l-2 md:border-amber-300 md:shadow-2xl xl:static xl:z-auto xl:shrink-0 xl:shadow-none"
       onKeyDown={event => {
-        if (event.key === 'Escape') onClose()
+        // 패널 안에서 연 메뉴·대화상자는 포털이라 React 이벤트가 여기까지 오른다. 그 Esc는 그것만 닫아야
+        // 보내는 중 닫기 막음(요청 창)을 우회하지 않는다.
+        const inside = event.currentTarget.contains(event.target as Node)
+        if (event.key === 'Escape' && inside && !event.defaultPrevented) onClose()
       }}
     >
       <div className="flex shrink-0 items-center gap-2 border-b border-amber-200 bg-amber-50 py-2 pr-2 pl-4">
