@@ -9,6 +9,7 @@ type Props = {
   saving: boolean
   triggerRef: (element: HTMLElement | null) => void
   onRename: () => void
+  onColor?: () => void
   onToggleFinance: () => void
   onRemove: () => void
 }
@@ -48,6 +49,16 @@ export function DepartmentMenu({ department, saving, triggerRef, ...on }: Props)
         >
           이름 바꾸기
         </MenuItem>
+        {on.onColor && (
+          <MenuItem
+            onSelect={() => {
+              renaming.current = true
+              on.onColor?.()
+            }}
+          >
+            색상 바꾸기
+          </MenuItem>
+        )}
         <MenuItem onSelect={on.onToggleFinance}>
           {finance ? '재정 역할 거두기' : '재정 역할 주기'}
         </MenuItem>

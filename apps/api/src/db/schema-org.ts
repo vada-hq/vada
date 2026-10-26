@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { integer, jsonb, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core'
+import type { DepartmentColorKey } from '@vada/contracts'
 
 import { at, day, tstzrange } from './schema-columns.js'
 
@@ -78,6 +79,7 @@ export const department = pgTable('department', {
   councilId: uuid('council_id').notNull(),
   name: text('name').notNull(),
   role: text('role').$type<'finance'>(),
+  color: text('color').$type<DepartmentColorKey>(),
 })
 
 export const departmentMembership = pgTable('department_membership', {

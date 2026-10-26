@@ -7,6 +7,7 @@ import { useDepartmentDialogs } from './useDepartmentDialogs'
 import { useDepartmentSubmits } from './useDepartmentSubmits'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
+import { useDepartmentColor } from './useDepartmentColor'
 
 // 조직 화면의 부서 고치기 상태와 동작: 오류 문구, 제자리 이름 바꾸기, 없애기 확인, 부서 추가 칸, 서버 변경.
 // 화면(Organization)은 이것을 그리기만 한다. reading은 view를 가져온 학생회 읽기다(내 변경으로 잃은 권한은 알리지 않는다).
@@ -18,6 +19,7 @@ export function useDepartments(view: CouncilView, team: Team, reading: Reading) 
   const menuFocus = useMenuFocus()
   const requests = useDepartmentRequests(team.change)
   const dialogs = useDepartmentDialogs(team.data, manage, requests.report)
+  const color = useDepartmentColor(manage, team, requests, menuFocus)
   // 추가 칸과 묶음 머리의 ⋯ 메뉴는 권한과 함께 사라진다.
   useLost(manage, () => requests.report(PERMISSION_CHANGED), reading)
   const submits = useDepartmentSubmits(team.saving, requests, dialogs)
@@ -31,6 +33,7 @@ export function useDepartments(view: CouncilView, team: Team, reading: Reading) 
   }
   return {
     ...submits,
+    color,
     manage,
     newName,
     setNewName,
