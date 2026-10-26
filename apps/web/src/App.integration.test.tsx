@@ -725,10 +725,16 @@ const councilGets = () =>
 async function transferPresident() {
   await renderApp()
   await openPeople()
-  fireEvent.keyDown(await screen.findByRole('button', { name: '이재정 동작' }), { key: 'Enter' })
-  fireEvent.click(await screen.findByRole('menuitem', { name: '회장 넘기기' }))
-  const dialog = await screen.findByRole('dialog', { name: '이재정님에게 회장 직급을 넘길까요?' })
+  // 사람 줄을 눌러 사람 상세를 열고, 그 안의 [회장 넘기기]로 확인 창을 연다.
+  fireEvent.click((await screen.findAllByRole('button', { name: /^이재정/ }))[0]!)
+  const sheet = await screen.findByRole('dialog', { name: '이재정' })
+  fireEvent.click(within(sheet).getByRole('button', { name: '회장 넘기기' }))
+  const title = '이재정님에게 회장 직급을 넘길까요?'
+  const dialog = await screen.findByRole('dialog', { name: title })
   fireEvent.click(within(dialog).getByRole('button', { name: '넘기기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: title })).toBeNull())
+  // 넘긴 뒤에도 사람 상세는 열려 있으므로 닫는다.
+  fireEvent.click(await within(sheet).findByRole('button', { name: '닫기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await waitFor(() => expect(councilGets()).toHaveLength(2))
 }
