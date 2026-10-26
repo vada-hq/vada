@@ -140,7 +140,8 @@ test('업무에서 연 행사의 뒤로는 업무이고 들어온 곳의 이름�
   await selected('개요')
   expect(pathNow()).toBe(EVENT_AT)
   expect(screen.queryByRole('button', { name: '행사 목록' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '업무' }))
+  // 뒤로 단추는 본문에 있다. 옆 메뉴의 '업무' 칸도 같은 이름이라 본문 안에서 찾는다.
+  fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
   expect(await screen.findByRole('button', { name: '현수막 주문' })).toBeTruthy()
 })
