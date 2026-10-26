@@ -88,13 +88,15 @@ function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
   }
 }
 
-// 결재 대기는 오래된 순이고 취소된 요청은 뺀다. 내 요청과 전체는 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
+// 결재 대기는 필요한 때가 가까운 순, 필요한 때가 없으면 끝이고 그 안은 오래된 순이다(DEC-92, 024 정한 것 9). 취소된 요청은 뺀다.
+// 홈 '받은 것'이 이 목록을 그대로 잘라 쓰므로 차례는 서버가 정한다(화면에서 고치면 잘린 뒤의 급한 요청이 올라오지 못한다).
+// 내 요청과 전체는 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
 function listOptions(actor: Actor, view: PurchaseRequestListQuery['view']) {
   if (view === 'pending')
     return {
       where: isNull(request.cancelledAt),
       having: sql`count(*) filter (where ${lastOutcomeOf(lineItem.id)} is null) > 0`,
-      order: [asc(record.createdAt), asc(request.id)],
+      order: [sql`${request.neededBy} asc nulls last`, asc(record.createdAt), asc(request.id)],
       limit: PURCHASE_PENDING_LIMIT,
     }
   return {

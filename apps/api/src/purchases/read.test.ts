@@ -28,7 +28,7 @@ const read = async (s: PurchaseKit, id: string, user = 's-president') =>
 const two = { title: '둘', items: [ITEM, { name: '자석', quantity: 2 }] }
 
 test(
-  '목록 거르기: 내 요청과 전체는 최근 순, 결재 대기는 오래된 순이고 취소된 요청은 대기에서 빠진다',
+  '목록 거르기: 내 요청과 전체는 최근 순, 필요한 때가 없는 결재 대기는 오래된 순이고 취소된 요청은 대기에서 빠진다',
   runPurchases(async s => {
     const a = await s.made({ title: 'A', items: [ITEM] }, 's-planningMember')
     await s.made({ title: 'B', items: [ITEM] }, 's-plain')
@@ -55,6 +55,32 @@ test(
         createdAt: undefined,
       },
     )
+  }),
+)
+
+test(
+  '결재 대기는 필요한 때가 가까운 순이고, 필요한 때가 없으면 끝에 오래된 순이다',
+  runPurchases(async s => {
+    await s.made({ title: '없음 1', items: [ITEM] }, 's-planningMember')
+    await s.made({ title: '먼 날', neededBy: '2026-12-20', items: [ITEM] }, 's-planningMember')
+    await s.made({ title: '없음 2', items: [ITEM] }, 's-plain')
+    await s.made({ title: '가까운 날', neededBy: '2026-11-02', items: [ITEM] }, 's-plain')
+    await s.made({ title: '같은 날 나중', neededBy: '2026-11-02', items: [ITEM] }, 's-plain')
+    assert.deepEqual(await titles(s, 'view=pending', 's-financeMember'), [
+      '가까운 날',
+      '같은 날 나중',
+      '먼 날',
+      '없음 1',
+      '없음 2',
+    ])
+    // 내 요청과 전체는 그대로 최근 순이다.
+    assert.deepEqual(await titles(s, 'view=all'), [
+      '같은 날 나중',
+      '가까운 날',
+      '없음 2',
+      '먼 날',
+      '없음 1',
+    ])
   }),
 )
 
