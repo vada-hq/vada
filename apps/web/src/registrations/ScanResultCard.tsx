@@ -1,6 +1,7 @@
 import { CheckCircle2, Info, XCircle, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { ScanOutcome } from './check-in'
 
 type Look = { icon: LucideIcon; color: string; title: string; description?: string }
@@ -29,10 +30,30 @@ function lookOf(outcome: ScanOutcome): Look {
 }
 
 // 찍은 결과: 누구인지(이름·학번)를 크게 보인다. 보이는 동안 판독이 멈추고, [다음]을 누르면 다시 읽는다.
-export function ScanResultCard({ outcome, onNext }: { outcome: ScanOutcome; onNext: () => void }) {
+export function ScanResultCard({
+  outcome,
+  onNext,
+  busy = false,
+  children,
+}: {
+  outcome: ScanOutcome
+  onNext: () => void
+  busy?: boolean
+  children?: ReactNode
+}) {
   const look = lookOf(outcome)
   const Icon = look.icon
   const who = outcome.kind === 'checked' || outcome.kind === 'already' ? outcome : null
+  const next = useRef<HTMLButtonElement>(null)
+  const payment = who
+    ? `${who.applicant.id}:${who.applicant.deposit.status}:${who.applicant.deposit.amount}`
+    : null
+  const previous = useRef(payment)
+  useEffect(() => {
+    // 성공하면 누른 입금 버튼이 사라진다. 초점을 논리적인 다음 동작에 남긴다.
+    if (previous.current !== payment && previous.current !== null) next.current?.focus()
+    previous.current = payment
+  }, [payment])
   // 결과가 바뀌면 보조기술이 읽는다(status). 카드가 카메라 화면보다 크면 카드 안에서 스크롤한다.
   return (
     <section
@@ -53,8 +74,11 @@ export function ScanResultCard({ outcome, onNext }: { outcome: ScanOutcome; onNe
           {who.studentId && <p className="text-sm text-gray-600">학번 {who.studentId}</p>}
         </div>
       )}
+      {children}
       <div className="flex justify-end">
-        <Button onClick={onNext}>다음</Button>
+        <Button ref={next} className="min-h-11" busy={busy} onClick={onNext}>
+          다음
+        </Button>
       </div>
     </section>
   )

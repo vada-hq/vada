@@ -40,6 +40,7 @@ test(
       registrationId: id,
       name: kim.name,
       studentId: kim.studentId,
+      appliedFee: 5000,
       already: false,
       applicant: {
         id,

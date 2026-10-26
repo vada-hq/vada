@@ -13,10 +13,16 @@ type Options = EventDialogHandlers & {
   onChecked: (applicant: ApplicantChange) => void
 }
 
+const withApplicant = (current: ScanOutcome | null, applicant: ApplicantChange) =>
+  current && 'applicant' in current && current.applicant.id === applicant.id
+    ? { ...current, applicant }
+    : current
+
 // 찍은 글자 하나의 흐름: 우리 QR이 아니면 안내만, 맞으면 판독을 멈추고 출석을 보내 결과를 보인다. [다음]이 판독을 다시 연다.
 export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Options) {
   // 결과를 보이는 동안과 요청 중에는 판독을 멈춘다.
   const paused = useRef(false)
+  const lastText = useRef<string | null>(null)
   // 닫힌 뒤에 온 응답은 그리지 않는다.
   const alive = useRef(true)
   const hintTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -40,6 +46,7 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
   async function onText(text: string) {
     const tokenHash = tokenHashOfQr(text)
     if (tokenHash === null) return showHint()
+    lastText.current = text
     paused.current = true
     setHint(false)
     setChecking(true)
@@ -56,5 +63,14 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
     setOutcome(null)
     paused.current = false
   }
-  return { paused, onText, checking, outcome, hint, next }
+  function changed(applicant: ApplicantChange) {
+    onChecked(applicant)
+    if (alive.current) setOutcome(current => withApplicant(current, applicant))
+  }
+  function reload() {
+    if (!lastText.current) return
+    setOutcome(null)
+    void onText(lastText.current)
+  }
+  return { paused, onText, checking, outcome, hint, next, changed, reload }
 }

@@ -12,6 +12,7 @@ export type ScanOutcome =
       applicant: ApplicantChange
       name: string
       studentId: string | null
+      appliedFee?: number
     }
   | { kind: 'missing' }
   | { kind: 'failed'; message: string }
@@ -25,8 +26,14 @@ export async function checkInByHash(
 ): Promise<ScanOutcome | 'lost'> {
   const result = await postJson<CheckInResult>(checkInPath(councilId, eventId), { tokenHash })
   if (result.ok) {
-    const { applicant, name, studentId, already } = result.data
-    return { kind: already ? 'already' : 'checked', applicant, name, studentId }
+    const { applicant, name, studentId, appliedFee, already } = result.data
+    return {
+      kind: already ? 'already' : 'checked',
+      applicant,
+      name,
+      studentId,
+      ...(appliedFee === undefined ? {} : { appliedFee }),
+    }
   }
   if (result.status === statusOf('FORBIDDEN')) {
     handlers.onForbidden()

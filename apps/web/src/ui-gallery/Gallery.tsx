@@ -60,6 +60,7 @@ import { FinanceHomeSection, HomeFinanceSummarySection } from './FinanceHomeSect
 import { HomeEventStatusSection } from './HomeEventStatusSections'
 import { ApplyNoticeSection, PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
+import { ScanPaymentSection } from './ScanPaymentSection'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { CreateCouncilSection } from './OnboardingSections'
 import { CouncilEntrySection } from './CouncilEntrySections'
@@ -119,6 +120,7 @@ export const gallerySections = [
   PublicSection,
   ApplyNoticeSection,
   RegistrationSection,
+  ScanPaymentSection,
   ApplicantRowSection,
   FinanceSection,
   OverviewSection,

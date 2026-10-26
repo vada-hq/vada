@@ -11,7 +11,13 @@ import { assertEventAction } from './policy.js'
 import { applicantChangeOf, lockedLiveRegistration } from './staff-registration.js'
 
 type Method = 'qr' | 'manual'
-type Target = { registrationId: string; formId: string; name: string; studentId: string | null }
+type Target = {
+  registrationId: string
+  formId: string
+  name: string
+  studentId: string | null
+  appliedFee: number | string
+}
 
 async function activeAttendanceId(tx: Tx, registrationId: string) {
   const [row] = await tx
@@ -49,6 +55,7 @@ async function confirm(
     registrationId: target.registrationId,
     name: target.name,
     studentId: target.studentId,
+    appliedFee: Number(target.appliedFee),
     already,
     applicant: await applicantChangeOf(tx, actor, target.registrationId),
   }
@@ -62,6 +69,7 @@ async function linkedRegistration(tx: Tx, eventId: string, tokenHash: string) {
       formId: registration.formId,
       name: registration.name,
       studentId: registration.studentId,
+      appliedFee: registration.appliedFee,
     })
     .from(registrationLink)
     .innerJoin(registration, eq(registration.id, registrationLink.registrationId))
@@ -113,7 +121,13 @@ export async function checkInManually(
   return confirm(
     tx,
     actor,
-    { registrationId: row.id, formId: row.formId, name: row.name, studentId: row.studentId },
+    {
+      registrationId: row.id,
+      formId: row.formId,
+      name: row.name,
+      studentId: row.studentId,
+      appliedFee: row.appliedFee,
+    },
     { method: 'manual', ip: target.ip },
   )
 }

@@ -1,4 +1,4 @@
-import { useRef, type RefObject } from 'react'
+import { useRef, useState, type ReactNode, type RefObject } from 'react'
 import type { ApplicantChange } from '@vada/contracts'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { cn } from '@/lib/utils'
 import type { ScanOutcome } from './check-in'
 import { ScanResultCard } from './ScanResultCard'
+import { ScanPayment } from './ScanPayment'
 import { useCameraScan, type CameraState } from './useCameraScan'
 import { useScanFlow } from './useScanFlow'
 
@@ -41,15 +42,19 @@ const PROBLEM_TEXT: Partial<Record<CameraState, string>> = {
 // 신청자마다의 QR을 운영진이 휴대폰 카메라로 찍는다(대리 출석 막기). 찍히면 바로 출석으로 남기고,
 // 결과를 보이는 동안에는 읽지 않는다. [다음]을 누르면 다시 읽는다. 카메라를 못 쓰면 목록에서 이름으로 출석한다.
 export function CheckInScanner({ onClose, ...props }: Props) {
+  const [saving, setSaving] = useState(false)
+  const close = () => {
+    if (!saving) onClose()
+  }
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open) onClose()
+        if (!open) close()
       }}
     >
-      <DialogContent aria-describedby="check-in-description">
-        <Scanner onClose={onClose} {...props} />
+      <DialogContent aria-describedby="check-in-description" closeDisabled={saving}>
+        <Scanner onClose={close} saving={saving} onSaving={setSaving} {...props} />
       </DialogContent>
     </Dialog>
   )
@@ -61,10 +66,12 @@ type ViewProps = {
   hidden: boolean
   outcome: ScanOutcome | null
   onNext: () => void
+  saving: boolean
+  children: ReactNode
 }
 
 // 카메라 화면(정사각형)과 읽을 네모. 결과는 그 위에 겹친다.
-function ScanView({ video, hidden, outcome, onNext }: ViewProps) {
+function ScanView({ video, hidden, outcome, onNext, saving, children }: ViewProps) {
   return (
     <div
       className={cn(
@@ -84,14 +91,18 @@ function ScanView({ video, hidden, outcome, onNext }: ViewProps) {
       {/* 결과는 카메라 화면 위에 겹친다. 판독을 멈춘 동안이라 가려도 되고, 작은 휴대폰에서도 [다음]이 화면 아래로 밀리지 않는다. */}
       {outcome && (
         <div className="absolute inset-3 flex flex-col justify-end">
-          <ScanResultCard outcome={outcome} onNext={onNext} />
+          <ScanResultCard outcome={outcome} onNext={onNext} busy={saving}>
+            {children}
+          </ScanResultCard>
         </div>
       )}
     </div>
   )
 }
 
-function Scanner({ onClose, ...options }: Props) {
+type ScannerProps = Props & { saving: boolean; onSaving: (saving: boolean) => void }
+
+function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
   const video = useRef<HTMLVideoElement>(null)
   const flow = useScanFlow(options)
   const { camera, retry } = useCameraScan(video, flow.paused, flow.onText)
@@ -112,7 +123,24 @@ function Scanner({ onClose, ...options }: Props) {
         hidden={problem !== undefined}
         outcome={flow.outcome}
         onNext={flow.next}
-      />
+        saving={saving}
+      >
+        {flow.outcome && 'applicant' in flow.outcome && (
+          <ScanPayment
+            councilId={options.councilId}
+            outcome={flow.outcome}
+            onChange={flow.changed}
+            onGone={onClose}
+            onSaving={onSaving}
+            onReload={flow.reload}
+            onForbidden={options.onForbidden}
+            onLost={message => {
+              onClose()
+              options.onLost(message)
+            }}
+          />
+        )}
+      </ScanView>
       {problem && (
         <div className="flex flex-col items-start gap-2">
           <Alert tone="warning">{problem}</Alert>
@@ -123,7 +151,7 @@ function Scanner({ onClose, ...options }: Props) {
       )}
       {flow.hint && <p className="text-sm text-yellow-700">참가 신청 QR이 아니에요.</p>}
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" touch busy={saving} onClick={onClose}>
           닫기
         </Button>
       </DialogFooter>

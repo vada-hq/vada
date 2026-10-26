@@ -14,10 +14,17 @@ import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { CancelDepositDialog, ConfirmDepositDialog, RefundDialog } from './DepositDialogs'
 import { registrationPath } from './registration-api'
 import { useStaffPost } from './useStaffPost'
+import { won } from '@/public/registration-text'
+
+type DepositApplicant = Pick<Applicant, 'id' | 'name' | 'appliedFee' | 'deposit' | 'actions'>
 
 type Props = EventDialogHandlers & {
   councilId: string
-  applicant: Applicant
+  applicant: DepositApplicant
+  // 스캐너에서는 이미 이름/정액을 보고 있어 별도 금액 창은 다른 금액일 때만 연다.
+  quickConfirm?: boolean
+  onSaving?: (saving: boolean) => void
+  onReload?: () => void
   // 서버가 돌려준 줄의 새 모습. 환불함이면 이름이 비어 줄이 빠진다(부모가 정한다).
   onChange: (change: ApplicantChange) => void
   // 신청이 없어졌다(404). 줄을 뺀다.
@@ -27,8 +34,8 @@ type Props = EventDialogHandlers & {
 type Step = 'confirm' | 'cancel' | 'refund' | null
 
 // 입금 쓰기 셋. 404·403은 useStaffPost가 부모에게 알려 닫고, 그 밖의 실패는 창 안(없으면 버튼 아래)에 보인다.
-function useDepositPost({ councilId, applicant, onChange, onGone, ...handlers }: Props) {
-  const post = useStaffPost(handlers, undefined, applicant.actions)
+function useDepositPost({ councilId, applicant, onChange, onGone, onSaving, ...handlers }: Props) {
+  const post = useStaffPost(handlers, onSaving, applicant.actions)
   const [step, setStep] = useState<Step>(null)
   const path = (tail: string) => `${registrationPath(councilId, applicant.id)}/${tail}`
   async function run(tail: string, body: unknown) {
@@ -63,19 +70,50 @@ function allowedOf({ applicant }: Pick<Props, 'applicant'>): Allowed {
 
 // 열린 확인 창의 동작이 줄에서 사라졌는가.
 const STEP_ACTION = { confirm: 'confirm', cancel: 'undo', refund: 'refund' } as const
+const quickAmountOf = ({ quickConfirm, applicant }: Props) =>
+  quickConfirm ? applicant.appliedFee : undefined
 
 type Open = (next: Step) => void
 
-function DepositButtons({ allowed, busy, open }: { allowed: Allowed; busy: boolean; open: Open }) {
+function DepositButtons({
+  allowed,
+  busy,
+  open,
+  quickAmount,
+  onQuick,
+}: {
+  allowed: Allowed
+  busy: boolean
+  open: Open
+  quickAmount: number | undefined
+  onQuick: () => void
+}) {
   return (
     <div className="flex flex-wrap gap-2">
+      {allowed.confirm && quickAmount !== undefined && (
+        <Button className="min-h-11" busy={busy} onClick={onQuick}>
+          {won(quickAmount)} 입금 확인
+        </Button>
+      )}
       {allowed.confirm && (
-        <Button size="sm" busy={busy} onClick={() => open('confirm')}>
-          입금 확인
+        <Button
+          size="sm"
+          className={quickAmount !== undefined ? 'min-h-11' : undefined}
+          variant={quickAmount !== undefined ? 'outline' : 'default'}
+          busy={busy}
+          onClick={() => open('confirm')}
+        >
+          {quickAmount !== undefined ? '다른 금액' : '입금 확인'}
         </Button>
       )}
       {allowed.undo && (
-        <Button variant="outline" size="sm" busy={busy} onClick={() => open('cancel')}>
+        <Button
+          variant="outline"
+          size="sm"
+          touch={quickAmount !== undefined}
+          busy={busy}
+          onClick={() => open('cancel')}
+        >
           확인 취소
         </Button>
       )}
@@ -89,7 +127,7 @@ function DepositButtons({ allowed, busy, open }: { allowed: Allowed; busy: boole
 }
 
 type StepsProps = {
-  applicant: Applicant
+  applicant: DepositApplicant
   allowed: Allowed
   step: Step
   post: ReturnType<typeof useStaffPost>
@@ -134,6 +172,28 @@ function DepositSteps({ applicant, allowed, step, post, open, run }: StepsProps)
 }
 
 // 신청자 한 줄의 [입금 확인]·[확인 취소]·[환불함]. 확인을 거쳐 보낸다.
+function DepositProblem({
+  post,
+  step,
+  onReload,
+}: {
+  post: ReturnType<typeof useStaffPost>
+  step: Step
+  onReload: Props['onReload']
+}) {
+  if (!post.problem || step !== null) return null
+  return (
+    <>
+      <StateMessage kind="error">{post.problem}</StateMessage>
+      {onReload && (
+        <Button variant="outline" touch busy={post.busy} onClick={onReload}>
+          새로 읽기
+        </Button>
+      )}
+    </>
+  )
+}
+
 export function DepositActions(props: Props) {
   const { post, step, setStep, open, run } = useDepositPost(props)
   const [gone, setGone] = useState<string | null>(null)
@@ -151,8 +211,17 @@ export function DepositActions(props: Props) {
   return (
     <>
       {gone && <StateMessage kind="error">{gone}</StateMessage>}
-      <DepositButtons allowed={allowed} busy={post.busy} open={openStep} />
-      {post.problem && step === null && <StateMessage kind="error">{post.problem}</StateMessage>}
+      <DepositButtons
+        allowed={allowed}
+        busy={post.busy}
+        open={openStep}
+        quickAmount={quickAmountOf(props)}
+        onQuick={() => {
+          post.clear()
+          void run('deposit', { amount: props.applicant.appliedFee })
+        }}
+      />
+      <DepositProblem post={post} step={step} onReload={props.onReload} />
       <DepositSteps
         applicant={props.applicant}
         allowed={allowed}
