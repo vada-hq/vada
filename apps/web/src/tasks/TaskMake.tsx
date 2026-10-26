@@ -85,6 +85,7 @@ export function TaskMake({ kind, ...props }: Props) {
         <NoticeMakeDialog
           councilId={view.council.id}
           taskId={task.id}
+          eventId={task.event?.id ?? null}
           onClose={onClose}
           onMade={onMade}
           onLost={onLost}

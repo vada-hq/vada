@@ -12,8 +12,22 @@ const NAMES = {
   inter_department: '부서 간 대화',
 } as const
 
+type Named = Pick<RoomSummary, 'type' | 'name' | 'eventName'>
+
 // 부서방은 부서 이름, 1:1은 상대 이름을 서버가 준다. 나머지는 종류로 이름을 붙인다.
-export const roomName = (room: Pick<RoomSummary, 'type' | 'name'>) => room.name ?? NAMES[room.type]
+const baseName = (room: Named) => room.name ?? NAMES[room.type]
+
+// 공간(행사, 우리 학생회) 안의 방 전환 이름: '공지방', '회장단방', '{부서} 방'(022 정한 것 28). 공간 이름은 탭 위 제목이 말한다.
+export const switchName = (room: Named) =>
+  room.type === 'department' && room.name !== null ? `${room.name} 방` : baseName(room)
+
+// 목록·제목·홈 칩의 방 이름. 행사 방은 행사 이름을 앞에 붙여 학생회 방과 가른다:
+// '{행사 이름} 공지방', '{행사 이름} {부서 이름} 방'(022 정한 것 1·27, Slack 채널 이름 접두사).
+export const roomName = (room: Named) =>
+  room.eventName ? `${room.eventName} ${switchName(room)}` : baseName(room)
+
+// 보관된 행사 방의 입력칸 자리(022 정한 것 26·33)
+export const ARCHIVED_LABEL = '완료된 행사'
 
 const korean = (iso: string) => {
   const [date = '', time = ''] = koreanOf(new Date(iso)).split('T')

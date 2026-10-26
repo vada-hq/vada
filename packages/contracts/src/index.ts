@@ -27,6 +27,7 @@ export {
   type ChatMessage,
   type ChatPhoto,
   type ChatPhotoListResponse,
+  type EventRoomsResponse,
   type PhotoUploadResponse,
   type MessagePageResponse,
   type OpenDirectResponse,

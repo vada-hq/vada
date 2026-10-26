@@ -208,15 +208,14 @@ test(
 test(
   '행사 공지방이 있으면 그 방에 올린다',
   run(async t => {
+    // 행사를 만들면 같은 거래에서 행사 방이 생긴다(022 조각 8). 만들기 글은 그 전에 학생회 공지방에 오른다.
     const event = await create(t, FULL)
-    const roomId = await t.db.transaction(tx =>
-      createRecord(tx, {
-        kind: 'chat_room',
-        councilId: t.council.councilId,
-        actor: null,
-        values: { type: 'all_members', eventId: event.id },
-      }),
-    )
+    const [{ id: roomId }] = (
+      await t.pg.query<{ id: string }>(
+        "SELECT id FROM chat_room WHERE event_id = $1 AND type = 'all_members'",
+        [event.id],
+      )
+    ).rows as [{ id: string }]
     await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
     const rows = await t.pg.query<{ room_id: string; body: string }>(
       'SELECT room_id, body FROM message ORDER BY sent_at DESC LIMIT 1',
@@ -242,7 +241,8 @@ test(
     assert.deepEqual(t.calls.map(call => call[0].endpoint).sort(), current)
     assert.deepEqual(
       { title: t.calls[0]![1].title, body: t.calls[0]![1].body },
-      { title: '공지방', body: '가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관' },
+      // 행사 공지방의 글이라 제목 앞에 행사 이름이 붙는다(022 정한 것 1).
+      { title: '가을 축제 공지방', body: '가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관' },
     )
   }),
 )
@@ -285,7 +285,8 @@ test(
     assert.equal(await unreadOf(t, planningHead.memberId), 0)
     assert.equal(await unreadOf(t, president.memberId), 1)
     await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
-    assert.equal(await unreadOf(t, president.memberId), 0)
+    // 바꾸기 글은 행사 공지방에 올라 회장에게 들지 않는다. 학생회 공지방의 만들기 글은 그대로 안 읽음이다.
+    assert.equal(await unreadOf(t, president.memberId), 1)
     assert.equal(await unreadOf(t, planningHead.memberId), 1)
   }),
 )

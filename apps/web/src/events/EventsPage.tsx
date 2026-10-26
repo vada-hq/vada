@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CalendarDays } from 'lucide-react'
 import { EVENT_LIST_LIMIT, menuPath, type CouncilView } from '@vada/contracts'
+import type { RoomPage } from '../chat/ChatPage'
 import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
@@ -24,6 +25,9 @@ type Props = {
   onForbidden: () => void
   // 행사의 업무가 바뀌었을 때(옆 메뉴의 업무 수를 다시 읽는다).
   onTasksChanged: () => void
+  // 행사 메시지 탭의 방 화면이 쓰는 운영진과 대화 목록
+  team: RoomPage['team']
+  rooms: RoomPage['rooms']
 }
 
 // 빈 목록: 무엇이 여기에 오는지와 첫 행사를 어떻게 만드는지 말한다(NN/g, 빈 화면).
@@ -118,7 +122,9 @@ function OpenEvent({
   onForbidden,
   onChanged,
   onTasksChanged,
-}: Pick<Props, 'view' | 'onForbidden' | 'onTasksChanged'> & {
+  team,
+  rooms,
+}: Pick<Props, 'view' | 'onForbidden' | 'onTasksChanged' | 'team' | 'rooms'> & {
   open: NonNullable<ReturnType<typeof useEventAddress>>
   onChanged: () => void
 }) {
@@ -131,6 +137,10 @@ function OpenEvent({
       view={view}
       eventId={open.eventId}
       tab={open.tab}
+      room={open.room}
+      onRoom={open.setRoom}
+      team={team}
+      rooms={rooms}
       from={open.from}
       onTab={open.setTab}
       onChanged={onChanged}
@@ -142,7 +152,7 @@ function OpenEvent({
 }
 
 // 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사의 주소로 열린다.
-export default function EventsPage({ view, onForbidden, onTasksChanged }: Props) {
+export default function EventsPage({ view, onForbidden, onTasksChanged, team, rooms }: Props) {
   const councilId = view.council.id
   const open = useEventAddress(councilId, view.me.memberId)
   const dialogs = useRecordDialogs()
@@ -157,6 +167,8 @@ export default function EventsPage({ view, onForbidden, onTasksChanged }: Props)
           onForbidden={onForbidden}
           onChanged={() => void list.reload()}
           onTasksChanged={onTasksChanged}
+          team={team}
+          rooms={rooms}
         />
       </PageColumn>
     )

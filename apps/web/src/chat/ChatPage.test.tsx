@@ -41,6 +41,37 @@ test('방 줄은 이름, 마지막 시각, 마지막 말, 참여 인원, 안 읽
   expect(within(all).getByText('참여 12명')).toBeTruthy()
 })
 
+test('메시지가 생긴 행사 방은 학생회 방과 1:1 사이 행사 묶음에 행사 이름과 함께 있다(정한 것 27)', async () => {
+  const api = serve()
+  const [notice, lead, dept, direct] = roomList().rooms
+  const event = { eventId: 'e1', eventName: '봄 축제' }
+  api.on('GET', `${base}/rooms`, () =>
+    json(
+      roomList({
+        rooms: [
+          notice!,
+          lead!,
+          dept!,
+          room('e-all', event),
+          room('e-plan', { ...event, type: 'department', name: '기획부', departmentId: 'd2' }),
+          direct!,
+        ],
+      }),
+    ),
+  )
+  render(<Harness />)
+  const events = await screen.findByRole('region', { name: '행사' })
+  expect(
+    within(events)
+      .getAllByRole('button')
+      .map(item => item.textContent?.split('2020')[0]),
+  ).toEqual(['봄 축제 공지방', '봄 축제 기획부 방'])
+  const list = screen.getByRole('list', { name: '대화방' })
+  expect(within(list).queryByText(/봄 축제/)).toBeNull()
+  const sections = screen.getAllByRole('region').map(item => item.getAttribute('aria-label'))
+  expect(sections).toEqual(['행사', '1:1 대화'])
+})
+
 test('안 읽은 수가 99를 넘으면 99+다', async () => {
   const api = serve()
   api.on('GET', `${base}/rooms`, () =>

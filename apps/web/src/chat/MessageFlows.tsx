@@ -10,16 +10,17 @@ type Props = {
   request: RequestAccess
   // 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
   canWriteExpense: boolean
+  eventId: string | null
   onForbidden: () => void
 }
 
 // 메시지에서 시작하는 재정 흐름들(구매 요청 만들기, 지출 적기). 대화상자들(`views`)과 메뉴가 쓸 시작 동작을 함께 준다.
-export function useMessageFlows({ request, canWriteExpense, ...common }: Props) {
+export function useMessageFlows({ request, canWriteExpense, eventId, ...common }: Props) {
   const requestFlow = useRequestFlow()
   const expenseFlow = useExpenseFlow()
   const views = (
     <>
-      <RequestFlowView {...request} {...common} flow={requestFlow} />
+      <RequestFlowView {...request} {...common} eventId={eventId} flow={requestFlow} />
       <ExpenseFlowView
         {...common}
         team={request.team}

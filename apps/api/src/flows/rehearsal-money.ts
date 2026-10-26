@@ -3,10 +3,10 @@ import type {
   ApplicantsResponse,
   ChatMessage,
   EventResponse,
+  EventRoomsResponse,
   ExpenseResponse,
   PurchaseRequestResponse,
   PurchaseRequestsResponse,
-  RoomListResponse,
   TaskResponse,
 } from '@vada/contracts'
 import { DAY_MS } from '@vada/contracts'
@@ -27,14 +27,18 @@ const SNACK_WON = 20_000
 export const DIRECT_WON = 12_000
 const NEEDED_IN_DAYS = 3
 
-// 6 구매 요청: 기획부원이 기획부 방에 부탁 메시지를 올리고, 그 메시지에서 품목 둘의 요청을 낸다(업무에 잇는다).
+// 6 구매 요청: 기획부원이 행사 기획부 방에 부탁 메시지를 올리고, 그 메시지에서 품목 둘의 요청을 낸다(업무에 잇는다).
 export async function requestStep(ctx: Ctx) {
   const { planner } = ctx.cast
   const { w } = ctx
   await seesPermission(ctx, planner, 'purchase.request')
-  const rooms = await read<RoomListResponse>(planner, `${org(ctx)}/rooms`, '방 목록 읽기')
+  const rooms = await read<EventRoomsResponse>(
+    planner,
+    `${org(ctx)}/events/${w.eventId}/rooms`,
+    '행사 방 읽기',
+  )
   const room = rooms.rooms.find(item => item.type === 'department')
-  if (!room) throw new Error('구매 요청: 기획부원의 방 목록에 부서방이 없다')
+  if (!room) throw new Error('구매 요청: 기획부원의 행사 방 목록에 부서방이 없다')
   const message = await create<ChatMessage>(
     planner,
     `${org(ctx)}/rooms/${room.id}/messages`,

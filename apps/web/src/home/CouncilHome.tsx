@@ -7,7 +7,7 @@ import {
   type HomeResponse,
   type RoomSummary,
 } from '@vada/contracts'
-import { openEventTasks, openMenu, openRecord } from '@/lib/go-to'
+import { openEventTasks, openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import type { Page } from '../workspace/pages'
 import { AttentionCard, FollowUpCard } from './CouncilColumns'
 import CouncilEventsCard from './CouncilEventsCard'
@@ -66,7 +66,7 @@ export default function CouncilHome({
             <MessageInbox
               inCard
               rooms={inboxRooms}
-              onOpenRoom={roomId => openRecord('chat', councilId, roomId)}
+              onOpenRoom={(roomId, eventId) => openMessageRoom(councilId, roomId, eventId)}
               onSeeAll={() => openMenu('chat', councilId)}
             />
           }

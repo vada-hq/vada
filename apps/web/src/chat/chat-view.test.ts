@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { dateLabel, roomName, timeLabel, unreadLabel } from './chat-view'
+import { dateLabel, roomName, switchName, timeLabel, unreadLabel } from './chat-view'
 
 const now = new Date('2026-10-21T03:00:00Z') // 한국 12:00
 
@@ -33,4 +33,18 @@ test('방 이름은 종류로 붙이고, 부서와 1:1은 받은 이름이다', 
   expect(roomName({ type: 'department', name: '재정부' })).toBe('재정부')
   expect(roomName({ type: 'direct', name: '박새내' })).toBe('박새내')
   expect(roomName({ type: 'direct', name: null })).toBe('1:1 대화')
+})
+
+test('행사 방은 행사 이름을 앞에 붙인다(정한 것 1·27)', () => {
+  const event = { eventName: '봄 축제' }
+  expect(roomName({ type: 'all_members', name: null, ...event })).toBe('봄 축제 공지방')
+  expect(roomName({ type: 'department', name: '기획부', ...event })).toBe('봄 축제 기획부 방')
+  expect(roomName({ type: 'department', name: '기획부', eventName: null })).toBe('기획부')
+})
+
+test('공간 안의 방 전환은 공간 이름 없이 공지방, 회장단방, {부서} 방이다(정한 것 28)', () => {
+  const event = { eventName: '봄 축제' }
+  expect(switchName({ type: 'all_members', name: null, ...event })).toBe('공지방')
+  expect(switchName({ type: 'leadership', name: null })).toBe('회장단방')
+  expect(switchName({ type: 'department', name: '기획부', ...event })).toBe('기획부 방')
 })

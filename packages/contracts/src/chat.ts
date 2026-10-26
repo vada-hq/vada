@@ -82,12 +82,23 @@ export interface RoomSummary {
   lastMessage: { senderName: string | null; preview: string } | null
   // 방 참여 인원(참여자 목록과 같은 수)
   memberCount: number
+  // 행사 방(DEC-90)은 그 행사의 번호와 이름, 학생회 방과 1:1은 null이다. 화면은 '{행사 이름} 공지방', '{행사 이름} {부서 이름} 방'으로 부른다.
+  // 서버는 늘 채운다. 선택 칸인 것은 이 칸을 모르는 화면 시험 자료(home/)가 고쳐지기 전까지다(022 조각 8 보고).
+  eventId?: string | null
+  eventName?: string | null
 }
 
 export interface RoomListResponse {
   rooms: RoomSummary[]
   unreadTotal: number
   mentionTotal: number
+}
+
+// 행사 메시지 탭의 방(GET .../events/:eventId/rooms): 그 행사의 공지방과 내 부서방이다. 메시지가 없어도 있다.
+// 완료한 행사는 보관이라 읽기만 되고(archived) 방마다 readOnly다(DEC-83, DEC-90).
+export interface EventRoomsResponse {
+  rooms: RoomSummary[]
+  archived: boolean
 }
 
 export interface RoomParticipant {
