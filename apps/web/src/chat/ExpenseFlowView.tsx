@@ -1,4 +1,4 @@
-import type { TeamResponse } from '@vada/contracts'
+import type { MadeRecord, TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
@@ -16,6 +16,8 @@ type Props = {
   canManage: boolean
   flow: ExpenseFlow
   onForbidden: () => void
+  // 적은 지출을 그 메시지 아래 기록에 바로 더한다.
+  onMade: (messageId: string, made: MadeRecord) => void
 }
 
 // 지출 적기 대화상자와, 적은 뒤 열리는 지출 상세(그 메시지의 사진 붙이기가 먼저 보인다), 잃은 이유.
@@ -26,6 +28,7 @@ export default function ExpenseFlowView({
   canManage,
   flow,
   onForbidden,
+  onMade,
 }: Props) {
   const { writing, made } = flow
   // 열려 있는 동안 권한을 잃으면 닫고 이유를 보인다.
@@ -45,7 +48,16 @@ export default function ExpenseFlowView({
         memberId={meId}
         start={start}
         onClose={flow.close}
-        onCreated={expense => flow.finish(expense.id)}
+        onCreated={expense => {
+          if (writing)
+            onMade(writing.id, {
+              kind: 'expense',
+              id: expense.id,
+              title: expense.description,
+              blocking: true,
+            })
+          flow.finish(expense.id)
+        }}
         onLost={flow.lose}
         onForbidden={onForbidden}
       />

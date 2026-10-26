@@ -1,6 +1,5 @@
-import type { ProductInfoResponse } from '@vada/contracts'
+import { coupangProductOf, type CoupangProduct, type ProductInfoResponse } from '@vada/contracts'
 import { createExpiringCache } from './cache.js'
-import { coupangProductOf, type CoupangProduct } from './coupang-url.js'
 import { createDailyCap } from './daily-cap.js'
 import type { LookupOutcome, LookupResult, ProductLookup } from './reef.js'
 

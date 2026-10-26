@@ -11,7 +11,14 @@ import { canSeeMessage } from './photos.js'
 // 반려·취소된 요청은 그 메시지로 새 요청을 막지 않는다(DEC-73 반려 뒤 새 요청).
 const CLOSED_STATUSES: readonly string[] = ['rejected', 'cancelled']
 
-// 이 메시지로 만든 요청 가운데 반려·취소가 아닌 것이 있는가. 상태는 요청 목록·상세와 같은 셈(requestStatusOf)이다.
+// 요청이 그 메시지로 새 요청을 막는가(반려·취소가 아님). 상태는 요청 목록·상세와 같은 셈(requestStatusOf)이다.
+// 메시지 아래 기록(made.ts)도 같은 판단으로 메뉴의 '구매 요청 보기'를 가른다.
+export const requestBlocks = (
+  cancelledAt: Date | null,
+  counts: Parameters<typeof requestStatusOf>[1],
+) => !CLOSED_STATUSES.includes(requestStatusOf(cancelledAt !== null, counts))
+
+// 이 메시지로 만든 요청 가운데 반려·취소가 아닌 것이 있는가.
 async function liveRequestFrom(tx: Tx, messageId: string) {
   const rows = await tx
     .select({ cancelledAt: request.cancelledAt, ...itemCountColumns() })
@@ -20,7 +27,7 @@ async function liveRequestFrom(tx: Tx, messageId: string) {
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
     .where(eq(evidenceLink.messageId, messageId))
     .groupBy(request.id)
-  return rows.some(row => !CLOSED_STATUSES.includes(requestStatusOf(row.cancelledAt !== null, row)))
+  return rows.some(row => requestBlocks(row.cancelledAt, row))
 }
 
 // 이 메시지로 만든 지출 가운데 취소되지 않은 것이 있는가.

@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import type { ProductInfo } from '@vada/contracts'
-import type { CoupangProduct } from './coupang-url.js'
+import type { CoupangProduct, ProductInfo } from '@vada/contracts'
 
 // ReefAPI 쿠팡 상품 하나 보기(reefapi.com/docs/coupang, 한 번에 2 credits, 실패는 무료).
 const PRODUCT_ENDPOINT = 'https://api.reefapi.com/coupang/v1/product'

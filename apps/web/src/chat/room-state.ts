@@ -1,5 +1,6 @@
 import type {
   ChatMessage,
+  MadeRecord,
   MessagePageResponse,
   RoomDetailResponse,
   RoomParticipant,
@@ -89,4 +90,15 @@ export function prepended(state: RoomState, older: MessagePageResponse): RoomSta
 
 export function withSync(state: RoomState, syncFailed: boolean): RoomState {
   return state.kind === 'ready' ? { ...state, syncFailed } : state
+}
+
+// 이 화면에서 낸 요청·지출을 그 메시지 아래 기록에 더한다. 따라잡기는 새 메시지만 읽어 이미 보이는 메시지의 기록은 다음에 방을 열 때 온다.
+export function withMade(state: RoomState, messageId: string, made: MadeRecord): RoomState {
+  if (state.kind !== 'ready') return state
+  const messages = state.messages.map(item =>
+    item.id === messageId && !item.made.some(known => known.id === made.id)
+      ? { ...item, made: [...item.made, made] }
+      : item,
+  )
+  return { ...state, messages }
 }

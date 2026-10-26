@@ -1,13 +1,22 @@
-import { DELETED_MESSAGE, isLeftMemberName } from '@vada/contracts'
+import {
+  DELETED_MESSAGE,
+  coupangProductOf,
+  isLeftMemberName,
+  type ChatMessage,
+  type MadeRecord,
+} from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { KkirukLine } from '@/components/KkirukLine'
 import PersonName from '@/components/PersonName'
+import { Button } from '@/components/ui/button'
+import { openRecord } from '@/lib/go-to'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { useOpenDirectFor } from './direct-open'
 import { bodyParts } from './message-links'
 import MessageMenu from './MessageMenu'
 import MessagePhotos from './MessagePhotos'
+import { useProductOpener } from './product-open'
 import { useMessageActions, type MessageActionArgs } from './useMessageActions'
 
 type Props = MessageActionArgs & {
@@ -18,10 +27,21 @@ type Props = MessageActionArgs & {
 }
 
 // 본문 말풍선(와이어프레임 메시지 화면). 줄바꿈은 그대로 두고, 주소는 새 탭에서 여는 링크다(쓰던 입력과 흐름을 잃지 않게, NN/g 새 탭 지침).
+// 쿠팡 상품 링크(022 정한 것 13의 모양)는 누르면 상품 정보 패널이 열린다(정한 것 20). 주소는 그대로라 Ctrl·⌘·가운데 누르기는 새 탭이다.
 // 내 말풍선은 파란 바탕에 흰 글자이고(대비 5.2:1, WCAG 1.4.3), 안의 링크는 같은 흰 글자에 밑줄로 가른다.
 // 와이어프레임의 옅은 파랑(blue-100)은 밑줄 없이 색만 달라 링크인지 알기 어렵다(WCAG 1.4.1).
 // 남의 말풍선은 흰 바탕에 테두리, 링크는 파란 글자에 밑줄이다.
-function Body({ body, mine }: { body: string; mine: boolean }) {
+function Body({
+  message,
+  mine,
+  onMade,
+}: {
+  message: ChatMessage
+  mine: boolean
+  onMade?: ((messageId: string, made: MadeRecord) => void) | undefined
+}) {
+  const openProduct = useProductOpener()
+  const opensPanel = (url: string) => openProduct !== null && coupangProductOf(url) !== null
   return (
     <p
       className={cn(
@@ -31,13 +51,24 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
           : 'border border-gray-200 bg-white text-gray-800',
       )}
     >
-      {bodyParts(body).map((part, index) =>
+      {bodyParts(message.body ?? '').map((part, index) =>
         part.kind === 'link' ? (
           <a
             key={index}
             href={part.text}
             target="_blank"
             rel="noopener noreferrer"
+            aria-haspopup={opensPanel(part.text) ? 'dialog' : undefined}
+            onClick={event => {
+              const modified = event.ctrlKey || event.metaKey || event.shiftKey || event.altKey
+              if (modified || !openProduct || !opensPanel(part.text)) return
+              event.preventDefault()
+              openProduct({
+                url: part.text,
+                message,
+                onMade: made => onMade?.(message.id, made),
+              })
+            }}
             className={cn(
               'underline underline-offset-2',
               mine ? 'text-primary-foreground' : 'text-blue-700',
@@ -50,6 +81,31 @@ function Body({ body, mine }: { body: string; mine: boolean }) {
         ),
       )}
     </p>
+  )
+}
+
+const MADE_LABEL = { purchase_request: '구매 요청', expense: '지출' } as const
+const MADE_RECORD = { purchase_request: 'purchases', expense: 'expenses' } as const
+
+// 메시지 아래 기록(022 정한 것 22): 이 메시지로 만든 요청·지출을 만든 차례로 '구매 요청 · {제목}', '지출 · {내역}'. 누르면 그 상세다.
+function MadeList({ councilId, made }: { councilId: string; made: MadeRecord[] }) {
+  if (made.length === 0) return null
+  return (
+    <ul aria-label="이 메시지로 만든 기록" className="flex flex-col items-start">
+      {made.map(record => (
+        <li key={record.id}>
+          <Button
+            variant="link"
+            size="sm"
+            touch
+            className="h-auto px-0 py-0.5 text-left break-keep wrap-anywhere whitespace-normal"
+            onClick={() => openRecord(MADE_RECORD[record.kind], councilId, record.id)}
+          >
+            {`${MADE_LABEL[record.kind]} · ${record.title}`}
+          </Button>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -134,7 +190,7 @@ export default function MessageItem(props: Props) {
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
-  const { actions } = useMessageActions({ message, ...actionArgs })
+  const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
     <li
       className={cn(
@@ -155,9 +211,10 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
         {message.body === null ? (
           <Deleted />
         ) : (
-          message.body !== '' && <Body body={message.body} mine={mine} />
+          message.body !== '' && <Body message={message} mine={mine} onMade={actionArgs.onMade} />
         )}
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
+        <MadeList councilId={councilId} made={message.made} />
         <Time message={message} continued={continued} />
       </div>
       <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">

@@ -1,10 +1,10 @@
-import type { ChatMessage, TeamResponse } from '@vada/contracts'
+import type { ChatMessage, MadeRecord, TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { RequestCreateDialog } from '../finance/RequestCreateDialog'
-import { requestSeedOf } from './request-seed'
+import { requestSeedOf, type LoadedPick } from './request-seed'
 import type { RequestFlow } from './useRequestFlow'
 
 export type RequestAccess = {
@@ -21,6 +21,10 @@ type Props = Omit<RequestAccess, 'onOpenRequest'> & {
   meId: string
   flow: RequestFlow
   onForbidden: () => void
+  // 상품 정보 패널에서 열면 그 링크의 품목을 패널의 상품으로 채운다.
+  picked?: LoadedPick | undefined
+  // 낸 요청을 그 메시지 아래 기록에 바로 더한다(다음 읽기를 기다리지 않게).
+  onMade?: ((messageId: string, made: MadeRecord) => void) | undefined
 }
 
 // 재정부는 나 말고 다른 지금 운영진도 요청한 사람으로 고른다.
@@ -37,7 +41,12 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
   // 열려 있는 동안 권한을 잃으면 닫고 이유를 보인다.
   useDialogGuard(message !== null, props.canRequest ? null : PERMISSION_CHANGED, flow.lose)
   if (message === null) return null
-  const seed = requestSeedOf(message, { meId, members: team?.members ?? null, canAssign })
+  // 품목(seed.items)은 재정 양식이 시작 품목을 받을 때 채워진다(022-6 보고의 finance 변경 초안).
+  const seed = requestSeedOf(
+    message,
+    { meId, members: team?.members ?? null, canAssign },
+    props.picked,
+  )
   return (
     <RequestCreateDialog
       open
@@ -46,7 +55,15 @@ function Dialog({ message, ...props }: Props & { message: ChatMessage | null }) 
       start={seed}
       requesters={canAssign ? requestersOf(team, meId) : null}
       onClose={flow.close}
-      onCreated={request => flow.finish(request.id)}
+      onCreated={request => {
+        props.onMade?.(message.id, {
+          kind: 'purchase_request',
+          id: request.id,
+          title: request.title,
+          blocking: true,
+        })
+        flow.finish(request.id)
+      }}
       onLost={flow.lose}
       onForbidden={props.onForbidden}
     />

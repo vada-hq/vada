@@ -5,6 +5,7 @@ import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { asElement } from '@/test-support/elements'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { DirectPanelSection } from './DirectSections'
+import { ProductPanelSection } from './ProductSections'
 import { EventEditSection } from './EventEditSections'
 import { ActionMenuSection } from './MenuSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -164,4 +165,21 @@ test("1:1 패널 예시는 '/' 목록이나 보낸 사람 이름으로 열고, �
   expect(screen.queryByRole('complementary')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '1:1 패널 열기' }))
   expect(screen.getByRole('complementary', { name: '정하늘 1:1 대화' })).toBeTruthy()
+})
+
+test('상품 정보 패널 예시는 쿠팡 링크로 열리고 상태마다 내용이 다르며 닫기로 닫는다', async () => {
+  render(<ProductPanelSection />)
+  fireEvent.click(screen.getByRole('link', { name: /coupang\.com/ }))
+  const panel = () => screen.getByRole('complementary', { name: '상품 정보' })
+  expect(within(panel()).getByText('불러온 정보')).toBeTruthy()
+  expect(within(panel()).getByRole('button', { name: '구매 요청 만들기' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '상품 정보 열기 (실패)' }))
+  expect(within(panel()).getByText('상품 정보 없음')).toBeTruthy()
+  expect(within(panel()).queryByRole('button', { name: '구매 요청 만들기' })).toBeNull()
+  fireEvent.click(within(panel()).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('complementary', { name: '상품 정보' })).toBeNull()
+  // 막힌 메시지의 메뉴는 보기다.
+  fireEvent.keyDown(screen.getAllByRole('button', { name: '메시지 동작' })[1]!, { key: 'Enter' })
+  expect(await screen.findByRole('menuitem', { name: '구매 요청 보기' })).toBeTruthy()
+  expect(screen.getByRole('menuitem', { name: '지출 적기' })).toBeTruthy()
 })

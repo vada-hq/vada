@@ -7,7 +7,7 @@ type Props = {
   sidebar: (from: Opener) => ReactNode
   navOpen: boolean
   onNavOpenChange: (open: boolean) => void
-  // 오른쪽 1:1 패널(022 조각 7). 열렸을 때만 있다. 자리와 폭은 패널이 정한다.
+  // 오른쪽 패널 하나(022 조각 7의 1:1, 조각 6의 상품 정보). 열렸을 때만 있다. 자리와 폭은 패널이 정한다.
   panel?: ReactNode
   children: ReactNode
 }

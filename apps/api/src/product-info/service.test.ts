@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test, type TestContext } from 'node:test'
-import type { CoupangProduct } from './coupang-url.js'
+import type { CoupangProduct } from '@vada/contracts'
 import type { LookupResult } from './reef.js'
 import { createProductInfo } from './service.js'
 

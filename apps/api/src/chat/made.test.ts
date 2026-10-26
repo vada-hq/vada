@@ -71,8 +71,8 @@ test(
       FINANCE,
     )
     const expected = [
-      { kind: 'purchase_request', id: request.id, title: '마커 사기' },
-      { kind: 'expense', id: expense.id, title: '마커 값' },
+      { kind: 'purchase_request', id: request.id, title: '마커 사기', blocking: true },
+      { kind: 'expense', id: expense.id, title: '마커 값', blocking: true },
     ]
     for (const user of [PLANNING, FINANCE, 's-president', 's-plain']) {
       const messages = await page(s.council.councilId, mine, user)
@@ -83,7 +83,7 @@ test(
 )
 
 test(
-  '취소한 요청과 지출도 그 메시지에서 만든 기록이라 남는다',
+  '취소한 요청과 지출도 그 메시지에서 만든 기록이라 남되 새 기록을 막지 않고, 반려된 요청도 막지 않는다',
   runPurchases(async s => {
     const { mine, say, page, spent } = await scene(s)
     const sent = await say(s.council.councilId, mine, PLANNING)
@@ -102,10 +102,19 @@ test(
       { reason: '잘못 적음' },
       FINANCE,
     )
+    const rejected = await s.made(
+      { title: '펜', items: [ITEM], sourceMessageId: sent.id },
+      PLANNING,
+    )
+    await s.decide(rejected.items[0]!.id, 'rejected')
     const made = madeOn(await page(s.council.councilId, mine, 's-plain'), sent.id)
     assert.deepEqual(
-      made?.map(item => item.id),
-      [request.id, expense.id],
+      made?.map(item => [item.id, item.blocking]),
+      [
+        [request.id, false],
+        [expense.id, false],
+        [rejected.id, false],
+      ],
     )
   }),
 )
@@ -143,7 +152,7 @@ test(
       their.id,
     ])
     assert.deepEqual(madeOn(await page(s.council.councilId, mine, 's-plain'), my.id), [
-      { kind: 'purchase_request', id: ownRequest.id, title: '내 것' },
+      { kind: 'purchase_request', id: ownRequest.id, title: '내 것', blocking: true },
     ])
     assert.deepEqual(
       madeOn(await page(s.other.councilId, theirs, 'o-plain'), their.id)?.map(item => item.id),

@@ -25,6 +25,7 @@ export {
   SendMessageSchema,
   ROOM_TYPES,
   type ChatMessage,
+  type MadeRecord,
   type ChatPhoto,
   type ChatPhotoListResponse,
   type PhotoUploadResponse,
@@ -290,3 +291,5 @@ export * from './paths.js'
 export * from './profile.js'
 // 쿠팡 상품 정보 불러오기(기능 022).
 export * from './product-info.js'
+// 받는 쿠팡 상품 주소의 모양. 서버는 이 주소만 부르고, 대화 화면은 이 주소만 상품 정보 패널로 연다.
+export * from './coupang-url.js'

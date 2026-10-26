@@ -2,8 +2,10 @@ import { and, eq, inArray } from 'drizzle-orm'
 import type { ChatMessage } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
-import { evidenceLink, expense, record, request } from '../db/schema.js'
+import { evidenceLink, expense, lineItem, record, request } from '../db/schema.js'
 import type { Db } from '../db/types.js'
+import { itemCountColumns } from '../purchases/last-outcome.js'
+import { requestBlocks } from './source-message.js'
 
 type Reader = Pick<Db, 'select'>
 type Made = ChatMessage['made'][number]
@@ -19,21 +21,39 @@ const linkColumns = {
   createdAt: record.createdAt,
 }
 
-const requestRows = (db: Reader, actor: Actor, messageIds: string[]) =>
-  db
-    .select({ ...linkColumns, title: request.title })
+// 상태(막는지)는 품목의 마지막 결재로 센다. 요청마다 품목이 있어 한 줄로 묶는다.
+async function requestRows(db: Reader, actor: Actor, messageIds: string[]) {
+  const rows = await db
+    .select({
+      ...linkColumns,
+      title: request.title,
+      cancelledAt: request.cancelledAt,
+      ...itemCountColumns(),
+    })
     .from(evidenceLink)
     .innerJoin(request, eq(request.id, evidenceLink.recordId))
     .innerJoin(record, eq(record.id, request.id))
+    .innerJoin(lineItem, eq(lineItem.requestId, request.id))
     .where(and(linkedTo(actor, messageIds), eq(request.type, 'purchase')))
+    .groupBy(evidenceLink.messageId, record.id, request.id)
+  return rows.map(row => ({
+    messageId: row.messageId,
+    id: row.id,
+    createdAt: row.createdAt,
+    title: row.title,
+    blocking: requestBlocks(row.cancelledAt, row),
+  }))
+}
 
-const expenseRows = (db: Reader, actor: Actor, messageIds: string[]) =>
-  db
-    .select({ ...linkColumns, title: expense.description })
+async function expenseRows(db: Reader, actor: Actor, messageIds: string[]) {
+  const rows = await db
+    .select({ ...linkColumns, title: expense.description, cancelledAt: expense.cancelledAt })
     .from(evidenceLink)
     .innerJoin(expense, eq(expense.id, evidenceLink.recordId))
     .innerJoin(record, eq(record.id, expense.id))
     .where(linkedTo(actor, messageIds))
+  return rows.map(({ cancelledAt, ...row }) => ({ ...row, blocking: cancelledAt === null }))
+}
 
 // 메시지마다 만든 차례(만든 시각, 번호)의 요청·지출. 화면은 메시지 아래에 '구매 요청 · {제목}', '지출 · {내역}'으로 보인다.
 export async function madeOf(db: Reader, actor: Actor, messageIds: string[]) {
@@ -45,7 +65,7 @@ export async function madeOf(db: Reader, actor: Actor, messageIds: string[]) {
     ...requests.map(row => ({ ...row, kind: 'purchase_request' as const })),
     ...expenses.map(row => ({ ...row, kind: 'expense' as const })),
   ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id))
-  for (const { messageId, kind, id, title } of rows)
-    byMessage.set(messageId, [...(byMessage.get(messageId) ?? []), { kind, id, title }])
+  for (const { messageId, kind, id, title, blocking } of rows)
+    byMessage.set(messageId, [...(byMessage.get(messageId) ?? []), { kind, id, title, blocking }])
   return byMessage
 }

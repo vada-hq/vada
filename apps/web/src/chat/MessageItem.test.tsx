@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ChatMessage } from '@vada/contracts'
 import { message } from '@/test-support/chat-fixtures'
 import MessageItem from './MessageItem'
@@ -79,4 +79,64 @@ test('탈퇴한 사람의 얼굴은 첫 글자가 아니라 사람 아이콘이�
   expect(screen.getByText('떠난 운영진 2')).toBeTruthy()
   expect(screen.queryByText('떠')).toBeNull()
   expect(screen.getByRole('listitem').querySelector('svg.lucide-user')).toBeTruthy()
+})
+
+const REQUEST_ID = 'r-1'
+const EXPENSE_ID = 'e-1'
+const MADE = message('a2', '마커 사 주세요', {
+  made: [
+    { kind: 'purchase_request', id: REQUEST_ID, title: '마커 사기', blocking: true },
+    { kind: 'expense', id: EXPENSE_ID, title: '마커 값', blocking: false },
+  ],
+})
+
+const openMenu = () =>
+  fireEvent.keyDown(screen.getByRole('button', { name: '메시지 동작' }), { key: 'Enter' })
+
+// 022 정한 것 22: 메시지 아래에 만든 기록이 만든 차례로 있고, 누르면 그 상세 주소로 간다.
+test('메시지 아래에 구매 요청·지출 기록이 있고 누르면 그 상세로 간다', () => {
+  draw(MADE)
+  const list = screen.getByRole('list', { name: '이 메시지로 만든 기록' })
+  const lines = within(list).getAllByRole('button')
+  expect(lines.map(line => line.textContent)).toEqual(['구매 요청 · 마커 사기', '지출 · 마커 값'])
+  fireEvent.click(lines[0]!)
+  expect(window.location.pathname).toContain(REQUEST_ID)
+  fireEvent.click(lines[1]!)
+  expect(window.location.pathname).toContain(EXPENSE_ID)
+})
+
+test('만든 기록이 없으면 기록 줄도 없다', () => {
+  draw(message('a3', '그냥 말'))
+  expect(screen.queryByRole('list', { name: '이 메시지로 만든 기록' })).toBeNull()
+})
+
+// 022 정한 것 23: 막는 기록이 있는 종류만 메뉴의 만들기 자리가 '… 보기'가 된다(요청과 지출은 서로 막지 않는다).
+test('막는 요청이 있으면 메뉴는 구매 요청 보기이고, 막지 않는 지출뿐이면 지출 적기 그대로다', async () => {
+  draw(MADE)
+  openMenu()
+  expect(await screen.findByRole('menuitem', { name: '구매 요청 보기' })).toBeTruthy()
+  expect(screen.queryByRole('menuitem', { name: '구매 요청 만들기' })).toBeNull()
+  expect(screen.getByRole('menuitem', { name: '지출 적기' })).toBeTruthy()
+})
+
+test('막는 지출이 있으면 메뉴는 지출 보기이고 누르면 그 지출로 간다', async () => {
+  draw(
+    message('a4', '영수증이요', {
+      made: [{ kind: 'expense', id: 'e-9', title: '현수막 값', blocking: true }],
+    }),
+  )
+  openMenu()
+  expect(screen.queryByRole('menuitem', { name: '지출 적기' })).toBeNull()
+  expect(await screen.findByRole('menuitem', { name: '구매 요청 만들기' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('menuitem', { name: '지출 보기' }))
+  expect(window.location.pathname).toContain('e-9')
+})
+
+// 상품 정보 패널을 열 수 없는 곳(작업 공간 밖)에서는 쿠팡 링크도 보통 링크처럼 새 탭이다.
+test('패널을 열 수 없는 곳에서는 쿠팡 링크도 새 탭 링크다', () => {
+  const url = 'https://www.coupang.com/vp/products/1'
+  draw(message('a5', url))
+  const link = screen.getByRole('link', { name: url })
+  expect(link.getAttribute('target')).toBe('_blank')
+  expect(link.getAttribute('aria-haspopup')).toBeNull()
 })

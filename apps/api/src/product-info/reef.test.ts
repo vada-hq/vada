@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { coupangProductOf } from './coupang-url.js'
+import { coupangProductOf } from '@vada/contracts'
 import { createReefLookup, reefKeyFrom } from './reef.js'
 import { fakeReef, reefItem, reefProduct } from '../test-support/reef.js'
 
