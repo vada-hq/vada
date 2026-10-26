@@ -81,6 +81,10 @@ type Row = Awaited<ReturnType<typeof summaryRows>>[number]
 const statusOfRow = (row: Row) => requestStatusOf(row.cancelledAt !== null, row)
 
 function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
+  const firstLine = row.body
+    ?.split(/\r?\n/u)
+    .map(line => line.trim())
+    .find(Boolean)
   return {
     id: row.id,
     title: row.title,
@@ -92,12 +96,7 @@ function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
     event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
     payable,
     estimate: { subtotal: row.estimatedSubtotal, total: row.estimatedTotal },
-    bodyPreview:
-      row.body
-        ?.split(/\r?\n/u)
-        .map(line => line.trim())
-        .find(Boolean)
-        ?.slice(0, BODY_PREVIEW_MAX) ?? null,
+    bodyPreview: firstLine ? Array.from(firstLine).slice(0, BODY_PREVIEW_MAX).join('') : null,
   }
 }
 
