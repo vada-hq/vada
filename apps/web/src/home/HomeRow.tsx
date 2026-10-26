@@ -6,10 +6,12 @@ type Props = {
   title: string
   // 제목 아래 한 줄. 없는 것(false·null)은 빼고 가운뎃점으로 잇는다.
   meta?: ReactNode[]
-  // 오른쪽 끝: 마감, 상태, D-n
+  // 오른쪽 끝: 마감, 요청 상태, 막힌 수
   side?: ReactNode
-  // 왼쪽 끝: 행사의 날짜 칸
+  // 왼쪽 끝: 아이콘 칸 같은 줄 머리
   lead?: ReactNode
+  // 제목 앞 칩: 행사 상태(와이어프레임 행사 줄·DEC-95 '상태 칩, 행사명, 날짜')
+  chip?: ReactNode
   onOpen: () => void
   // 새 홈 카드(HomeCard)의 줄: 머리 바와 같은 안쪽 여백, 제목은 어절로 접고 메타는 한 줄 말줄임(와이어프레임 줄,
   // 1024px 3열에서 낱자로 끊기지 않게). 전체 글은 누르면 여는 원래 기록에 있다.
@@ -30,8 +32,46 @@ function CardMeta({ parts }: { parts: ReactNode[] }) {
   )
 }
 
+// 줄 제목(누르면 연다). 칩이 있으면 제목 앞에 두고, 긴 제목이 접혀도 칩은 첫 줄에 붙는다.
+function RowTitle({
+  title,
+  chip,
+  card,
+  onOpen,
+}: Pick<Props, 'title' | 'chip' | 'onOpen'> & { card: boolean }) {
+  const heading = (
+    <Button
+      variant="link"
+      className={cn(
+        'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0',
+        card && 'break-keep',
+        // Button은 shrink-0이라 칩 옆에서는 줄어들게 해야 긴 제목이 칸 안에서 접힌다.
+        chip !== undefined && 'min-w-0 shrink',
+      )}
+      onClick={onOpen}
+    >
+      {title}
+    </Button>
+  )
+  if (chip === undefined) return heading
+  return (
+    <div className="flex min-w-0 items-baseline gap-2">
+      <span className="shrink-0">{chip}</span>
+      {heading}
+    </div>
+  )
+}
+
 // 홈의 한 줄. 줄 어디를 눌러도 원래 화면이 열린다(홈은 읽기만 한다, DEC-69).
-export default function HomeRow({ title, meta = [], side, lead, onOpen, card = false }: Props) {
+export default function HomeRow({
+  title,
+  meta = [],
+  side,
+  lead,
+  chip,
+  onOpen,
+  card = false,
+}: Props) {
   const parts = meta.filter(part => part !== false && part !== null && part !== undefined)
   return (
     <li
@@ -42,16 +82,7 @@ export default function HomeRow({ title, meta = [], side, lead, onOpen, card = f
     >
       {lead}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <Button
-          variant="link"
-          className={cn(
-            'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0',
-            card && 'break-keep',
-          )}
-          onClick={onOpen}
-        >
-          {title}
-        </Button>
+        <RowTitle title={title} chip={chip} card={card} onOpen={onOpen} />
         {card && parts.length > 0 && <CardMeta parts={parts} />}
         {!card && parts.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">

@@ -1,9 +1,9 @@
-import { EVENT_STATUS_LABEL, type EventSettlementRow } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
+import type { EventSettlementRow } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { EVENT_STATUS_TONE, settlementLabel } from '../events/event-view'
+import { settlementLabel } from '../events/event-view'
+import EventStatusChip from '../events/EventStatusChip'
 import { nameLinkClass, settlementDate, settlementMark } from './event-settlement-view'
 
 type Props = {
@@ -59,9 +59,7 @@ export function EventSettlementTable({ rows, onOpen }: Props) {
                 </Button>
               </td>
               <td className="px-4 py-3">
-                <Badge tone={EVENT_STATUS_TONE[row.event.status]}>
-                  {EVENT_STATUS_LABEL[row.event.status]}
-                </Badge>
+                <EventStatusChip status={row.event.status} />
               </td>
               <td className="px-4 py-3 text-sm text-gray-500">{settlementDate(row.event)}</td>
               <MarkCell row={row} />
