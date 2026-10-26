@@ -20,6 +20,7 @@ import { SidebarSection } from './SidebarSections'
 import { HeaderSection } from './HeaderSections'
 import { CouncilSpaceSection } from './CouncilSpaceSections'
 import { AccountSection } from './AccountSections'
+import { FinancePeriodsSection } from './FinancePeriodsSections'
 import { FeePaymentUploadSection } from './FeePaymentSections'
 import { MessageBubbleSection, MessageMadeSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
@@ -141,6 +142,7 @@ export const gallerySections = [
   BudgetPlanSection,
   EventSettlementsSection,
   AccountSection,
+  FinancePeriodsSection,
   FeePaymentUploadSection,
   AuthSection,
   CreateCouncilSection,

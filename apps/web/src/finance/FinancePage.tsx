@@ -12,7 +12,6 @@ import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import { useAddressRecord } from '@/lib/use-address-record'
 import { useNow } from '@/lib/use-now'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import { AccountsTab } from './AccountsTab'
 import { BudgetTab } from './BudgetTab'
 import type { ClosingOpeners } from './ClosingChecks'
 import { ClosingTab } from './ClosingTab'
@@ -84,7 +83,7 @@ function Body({
   )
 }
 
-// 재정부가 고치는 탭(납부자 명단, 계좌, 예산, 수입, 결산)과 모두가 보는 개요. 보는 것은 탭마다 정한 권한이 가른다.
+// 재정부가 고치는 탭과 모두가 보는 개요. 보는 것은 탭마다 정한 권한이 가른다.
 function ManagedTab({
   tab,
   view,
@@ -105,11 +104,7 @@ function ManagedTab({
     )
   if (tab === 'incomes') return <IncomesTab {...shared} canManage={canManage} />
   if (tab === 'closing') return <ClosingTab {...shared} canManage={canManage} openers={openers} />
-  return tab === 'accounts' ? (
-    <AccountsTab {...shared} canManage={canManage} />
-  ) : (
-    <BudgetTab {...shared} canManage={canManage} />
-  )
+  return tab === 'accounts' ? null : <BudgetTab {...shared} canManage={canManage} />
 }
 
 function FinanceTabPanel({

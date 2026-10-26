@@ -23,7 +23,8 @@ import {
   type ExpenseStart,
 } from './expense-form'
 import type { ExpenseDialogHandlers } from './expense-requests'
-import { ModeToggle, NameFields, PaymentFields, type FieldsProps } from './ExpenseFields'
+import { ModeToggle, NameFields, type FieldsProps } from './ExpenseFields'
+import { ExpensePaymentFields } from './ExpensePaymentFields'
 import { ExpenseAmountConfirm } from './ExpenseAmountConfirm'
 import { EventField } from './EventField'
 import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
@@ -157,7 +158,12 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
           onLinkedUsed={onLinkedUsed}
           onAuto={autoChange}
         />
-        <PaymentFields {...shared} today={today} />
+        <ExpensePaymentFields
+          {...shared}
+          today={today}
+          councilId={props.councilId}
+          onForbidden={props.onForbidden}
+        />
         <ExpenseAccountSelect
           account={account}
           disabled={saving}

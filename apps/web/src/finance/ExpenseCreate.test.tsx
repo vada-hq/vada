@@ -20,6 +20,7 @@ import { settle } from '@/test-support/settle'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { EXPENSE_CREATE_ERRORS, EXPENSE_ERRORS } from '@/lib/messages'
 import { hasUnsavedInput } from '@/lib/leave-guard'
+import { periodSummary, CURRENT_PERIOD } from '@/test-support/income-fixtures'
 
 afterEach(async () => {
   cleanup()
@@ -128,6 +129,43 @@ const choose = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const today = () => koreanDateOf(new Date())
 const tomorrow = () => koreanDateOf(new Date(Date.now() + 24 * 60 * 60 * 1000))
+
+test('결제일이 어느 회계 기간에도 없으면 칸 아래 알리고 날짜가 기간 안이면 거둔다', async () => {
+  const api = serve()
+  api.on('GET', `${BASE}/fiscal-periods`, () =>
+    json({
+      periods: [
+        periodSummary(CURRENT_PERIOD, {
+          startsOn: '2026-09-01',
+          endsOn: '2026-12-31',
+        }),
+      ],
+    }),
+  )
+  showFinance()
+  await openForm()
+  fill('결제일', '2026-08-31')
+  expect(await screen.findByText('이 날짜가 든 회계 기간이 없어요')).toBeTruthy()
+  expect(screen.getByLabelText('결제일').getAttribute('aria-describedby')).toBeTruthy()
+  fill('결제일', '2026-09-01')
+  expect(screen.queryByText('이 날짜가 든 회계 기간이 없어요')).toBeNull()
+})
+
+test.each(['loading', 'failed'])(
+  '기간을 아직 모르거나 읽지 못하면 기간이 없다고 단정하지 않는다: %s',
+  async state => {
+    const api = serve()
+    const pending = deferredResponse()
+    api.on('GET', `${BASE}/fiscal-periods`, () =>
+      state === 'loading' ? pending.promise : json({ error: 'INTERNAL' }, 500),
+    )
+    showFinance()
+    await openForm()
+    fill('결제일', '2026-08-31')
+    await settle()
+    expect(screen.queryByText('이 날짜가 든 회계 기간이 없어요')).toBeNull()
+  },
+)
 
 async function fillRequestPayment(method = 'card') {
   await openForm()

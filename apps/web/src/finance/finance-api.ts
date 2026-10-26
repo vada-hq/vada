@@ -32,7 +32,8 @@ export const eventSettlementsPath = (councilId: string) =>
 export const fiscalPeriodsPath = (councilId: string) => `${councilPath(councilId)}/fiscal-periods`
 const budgetItemsPath = (councilId: string) => `${councilPath(councilId)}/budget-items`
 // 예산 편성: 여러 행을 한 거래로 넣는다.
-export const budgetItemsBatchPath = (councilId: string) => `${budgetItemsPath(councilId)}/batch`
+export const budgetItemsBatchPath = (councilId: string, periodId?: string) =>
+  `${budgetItemsPath(councilId)}/batch${periodId ? `?period=${encodeURIComponent(periodId)}` : ''}`
 export const budgetItemPath = (councilId: string, itemId: string) =>
   `${budgetItemsPath(councilId)}/${encodeURIComponent(itemId)}`
 export const budgetItemDeletePath = (councilId: string, itemId: string) =>

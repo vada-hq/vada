@@ -10,7 +10,7 @@ import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import { assertEventsOpen } from '../policy/locks.js'
 import { assertNamesFree } from './names.js'
-import { budgetViewOf, currentPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
+import { budgetViewOf, pickedPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 뒤에 부른다. 같은 학생회의 쓰기는 그 잠금으로 한 줄로 서므로 겹침을 먼저 보고 넣어도 새지 않는다.
 // 재정부만 쓴다(회장단도 403). 재정은 직급으로 물려받지 않는다.
@@ -63,13 +63,13 @@ export async function createFiscalPeriod(
   return budgetViewOf(tx, (await periodById(tx, periodId))!)
 }
 
-// 예산 항목(지출 기본, 수입)은 오늘이 든 기간에 더한다. 기간이 없으면 409다. 행사를 이으면 그 행사가 완료 전이어야 한다(DEC-68).
+// 기간을 고르면 다음 기간도 미리 편성한다(DEC-92). 생략하면 오늘이 든 기간이다. 행사는 완료 전이어야 한다(DEC-68).
 // 여러 행(예산 편성, DEC-92)은 한 거래로 넣는다. 한 행이라도 막히면 거래가 되돌아가 아무것도 남지 않는다.
 export async function addBudgetItems(
   tx: Tx,
   actor: Actor,
   inputs: readonly CreateBudgetItem[],
-  now: Date,
+  choice: { now: Date; periodId?: string | undefined },
 ): Promise<BudgetResponse> {
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   for (const eventId of new Set(inputs.map(input => input.eventId)))
@@ -78,7 +78,7 @@ export async function addBudgetItems(
     tx,
     inputs.map(input => input.eventId),
   )
-  const period = await currentPeriodOf(tx, actor, now)
+  const period = await pickedPeriodOf(tx, actor, choice.now, choice.periodId)
   if (!period) throw new ApiError('NO_FISCAL_PERIOD')
   await assertNamesFree(tx, period.budgetId, inputs)
   for (const input of inputs)
@@ -97,5 +97,9 @@ export async function addBudgetItems(
   return budgetViewOf(tx, period)
 }
 
-export const addBudgetItem = (tx: Tx, actor: Actor, input: CreateBudgetItem, now: Date) =>
-  addBudgetItems(tx, actor, [input], now)
+export const addBudgetItem = (
+  tx: Tx,
+  actor: Actor,
+  input: CreateBudgetItem,
+  choice: { now: Date; periodId?: string | undefined },
+) => addBudgetItems(tx, actor, [input], choice)

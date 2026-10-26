@@ -40,6 +40,7 @@ export const CLOSING_CHECK_LABEL: Record<ClosingCheckKind, string> = {
   no_account: '계좌 없음',
   no_item: '예산 항목 없음',
   other_period_item: '다른 기간 예산 항목',
+  no_period: '회계 기간 없음',
 }
 
 // 행사 상태의 화면 이름(DEC-93). 셈은 서버의 events/status.ts(DEC-83)이고, 날짜 미정과 예정은 같은 이름이다(날짜 미정은 일시 칸의 '일시 미정'이 말한다).

@@ -20,6 +20,7 @@ import { budgetItemsBatchPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
 type Props = BudgetChangeHandlers & {
+  periodId?: string | undefined
   councilId: string
   // 행사 화면에서 열면 그 행사의 지출 예산으로 고정하고 기본 행 셋을 둔다(종류·행사 칸 없음, 와이어프레임 그대로).
   eventId?: string | null
@@ -75,6 +76,7 @@ function SharedFields({ councilId, values, saving, onChange, onForbidden }: Shar
 // 제출 버튼은 와이어프레임처럼 '예산 저장'이다.
 export function BudgetItemDialog({
   councilId,
+  periodId,
   eventId = null,
   existing,
   onStale,
@@ -88,13 +90,18 @@ export function BudgetItemDialog({
   }))
   const [saving, setSaving] = useState(false)
   const body = budgetItemsOf(values)
-  const change = useBudgetChange(budgetItemsBatchPath(councilId), body, CreateBudgetItemsSchema, {
-    ...handlers,
-    setSaving,
-    onRejected: code => {
-      if (code === 'BUDGET_ITEM_DUPLICATE') onStale()
+  const change = useBudgetChange(
+    budgetItemsBatchPath(councilId, periodId),
+    body,
+    CreateBudgetItemsSchema,
+    {
+      ...handlers,
+      setSaving,
+      onRejected: code => {
+        if (code === 'BUDGET_ITEM_DUPLICATE') onStale()
+      },
     },
-  })
+  )
   const {
     formRef,
     errors: fieldErrors,

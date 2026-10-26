@@ -119,7 +119,7 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 아홉이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
+test('재정 탭이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
@@ -128,7 +128,6 @@ test('재정 탭 아홉이 주소에 남고 기록을 쌓지 않으며, 탭이 �
     ['수입', '?tab=incomes'],
     ['예산', '?tab=budget'],
     ['행사 정산', '?tab=settlements'],
-    ['계좌', '?tab=accounts'],
     ['납부자 명단', '?tab=fees'],
     ['결산', '?tab=closing'],
     ['개요', '?tab=overview'],
@@ -139,6 +138,14 @@ test('재정 탭 아홉이 주소에 남고 기록을 쌓지 않으며, 탭이 �
     await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}${search}`))
     expect(await isSelected(name)).toBe(true)
   }
+  expect(push).not.toHaveBeenCalled()
+})
+
+test('옛 계좌 탭 주소는 설정의 계좌로 옮기고 기록을 쌓지 않는다', async () => {
+  const push = vi.spyOn(window.history, 'pushState')
+  startAt(`/finance/${COUNCIL_ID}?tab=accounts`)
+  await waitFor(() => expect(pathNow()).toBe(`/settings/${COUNCIL_ID}?tab=accounts`))
+  expect(await isSelected('계좌')).toBe(true)
   expect(push).not.toHaveBeenCalled()
 })
 

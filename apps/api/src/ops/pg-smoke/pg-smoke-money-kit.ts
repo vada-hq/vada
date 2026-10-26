@@ -77,7 +77,7 @@ export async function moneyScene(
     }),
   )
   const budget = await first('council.view', (tx, actor) =>
-    addBudgetItem(tx, actor, BUDGET_ITEM, context.now),
+    addBudgetItem(tx, actor, BUDGET_ITEM, { now: context.now }),
   )
   return {
     host: { userId: host, councilId },
