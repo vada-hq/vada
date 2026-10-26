@@ -59,7 +59,9 @@ test('배송비 미확인은 결재 칸에 설명하고 무료배송 0은 그 �
     onChange: vi.fn(),
   }
   const { rerender } = render(<DecisionRow item={unknown} {...props} />)
-  expect(screen.getByText(/배송비 미확인/)).toBeTruthy()
+  expect(
+    screen.getByText('배송비 미확인 · 상품 합계만 채웠어요. 승인 전 확인해 주세요.'),
+  ).toBeTruthy()
   rerender(<DecisionRow item={{ ...item, estimatedShippingFee: 0 }} {...props} />)
   expect(screen.queryByText(/배송비 미확인/)).toBeNull()
 })

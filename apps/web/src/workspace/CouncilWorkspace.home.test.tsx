@@ -101,7 +101,7 @@ test('받은 것 줄을 누르면 재정 화면에서 그 요청 상세가 열�
   )
   fireEvent.click(await screen.findByRole('button', { name: /요청 7c9e6679/ }))
   await waitFor(() =>
-    expect(within(screen.getByRole('dialog')).getByText('행사 포스터 인쇄')).toBeTruthy(),
+    expect(screen.getByRole('heading', { level: 1, name: '행사 포스터 인쇄' })).toBeTruthy(),
   )
 })
 

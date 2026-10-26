@@ -449,24 +449,24 @@ test('요청과 다른 행사의 항목이면(409 EVENT_MISMATCH) 결재 문구�
   expect(asElement(screen.getByLabelText('포스터 금액'), HTMLInputElement).value).toBe('1000')
 })
 
-test('결재하다 요청이 사라지면(404) 대화상자를 닫고 이유를 보인다', async () => {
+test('결재하다 요청이 사라지면(404) 상세를 거두고 페이지에 이유를 보인다', async () => {
   const { api } = setup()
   answer(api, () => json({ error: 'NOT_FOUND' }, 404))
   await open()
   approveBoth()
   submit()
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toMatch(/이 요청을 볼 수 없어요/)
 })
 
-test('결재하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 대화상자를 닫는다', async () => {
+test('결재하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 상세를 거둔다', async () => {
   const { api, handlers } = setup()
   answer(api, () => json({ error: 'FORBIDDEN' }, 403))
   await open()
   approveBoth()
   submit()
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toBe(PERMISSION_CHANGED)
 })
 
@@ -474,11 +474,11 @@ test('회계 기간이 없으면 결재 대신 안내와 예산 탭으로 가는
   const { api } = setup(twoPending(), budgetWithoutPeriod())
   api.on('GET', `${ORG}/budget`, () => json(budgetWithoutPeriod()))
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${REQUEST}` }))
-  const dialog = await screen.findByRole('dialog')
+  const dialog = await screen.findByRole('region', { name: '구매 요청 상세' })
   expect(await within(dialog).findByText('회계 기간을 먼저 만들어 주세요.')).toBeTruthy()
   expect(within(dialog).queryByLabelText('포스터 금액')).toBeNull()
   fireEvent.click(within(dialog).getByRole('button', { name: '예산 탭으로 가기' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
   expect(await screen.findByRole('button', { name: '회계 기간 만들기' })).toBeTruthy()
 })
@@ -515,7 +515,7 @@ test('결재 뒤 상태 배지가 바뀐다', async () => {
     return json({ request: twoPending() })
   })
   await open()
-  const dialog = screen.getByRole('dialog')
+  const dialog = screen.getByRole('region', { name: '구매 요청 상세' })
   expect(within(dialog).getByText('결재 대기')).toBeTruthy()
   approveBoth()
   submit()
@@ -542,7 +542,9 @@ test.each([
     approveBoth()
     submit()
     await waitFor(() => expect(screen.queryByRole('group', { name: '결재 포스터' })).toBeNull())
-    expect(within(screen.getByRole('dialog')).getByText(message)).toBeTruthy()
+    expect(
+      within(screen.getByRole('region', { name: '구매 요청 상세' })).getByText(message),
+    ).toBeTruthy()
   },
 )
 

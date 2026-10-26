@@ -106,6 +106,13 @@ afterEach(async () => {
 
 const isSelected = async (name: string) =>
   (await screen.findByRole('tab', { name })).getAttribute('aria-selected') === 'true'
+const requestPage = () => screen.findByRole('region', { name: '구매 요청 상세' })
+const backFromRequest = async () => {
+  fireEvent.click(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' }))
+  await waitFor(() => expect(window.location.pathname).not.toContain('/purchases/'))
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
+  await act(() => windowHistoryIdle())
+}
 const closeDialog = async (dialog: HTMLElement) => {
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -208,15 +215,14 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
   startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
-  const dialog = await screen.findByRole('dialog')
-  await within(dialog).findByText('행사 포스터 인쇄')
+  await requestPage()
+  await screen.findByRole('heading', { level: 1, name: '행사 포스터 인쇄' })
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${R1}`)
   expect(push).toHaveBeenCalledTimes(1)
-  // 상세 뒤의 목록은 보던 거르기를 지킨다.
-  expect(
-    screen.getByRole('button', { name: '전체', hidden: true }).getAttribute('aria-pressed'),
-  ).toBe('true')
-  await closeDialog(dialog)
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.queryByRole('button', { name: '전체' })).toBeNull()
+  await backFromRequest()
+  expect(screen.getByRole('button', { name: '전체' }).getAttribute('aria-pressed')).toBe('true')
   expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   expect(await isSelected('구매 요청')).toBe(true)
 })
@@ -224,15 +230,15 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
 test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 번 더 닫으면 목록이다', async () => {
   startAt(`/finance/${COUNCIL_ID}?tab=requests`)
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
-  const request = await screen.findByRole('dialog')
+  const request = await requestPage()
   fireEvent.click(await within(request).findByRole('button', { name: /인쇄소/ }))
   await waitFor(() => expect(pathNow()).toBe(`/expenses/${COUNCIL_ID}/${X1}`))
   const expense = await screen.findByRole('dialog', { name: '인쇄소' })
   await closeDialog(expense)
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${R1}`)
-  const again = await screen.findByRole('dialog')
-  await within(again).findByText('행사 포스터 인쇄')
-  await closeDialog(again)
+  await requestPage()
+  await screen.findByRole('heading', { level: 1, name: '행사 포스터 인쇄' })
+  await backFromRequest()
   expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests`)
 })
 
@@ -290,10 +296,10 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
     json({ request: purchaseDetail(R1, { actions: ['purchase_request.decide'] }) }),
   )
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
-  const dialog = await screen.findByRole('dialog')
+  const dialog = await requestPage()
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${R1}`)
   await within(dialog).findByRole('button', { name: '예산 탭으로 가기' })
-  await closeDialog(dialog)
+  await backFromRequest()
   expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`)
   // 요청을 바꿨을 수 있으므로 돌아온 돈 탭은 정산을 다시 읽는다.
   await waitFor(() =>
@@ -307,7 +313,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   // 예산 탭 길은 요청 상세를 닫고 재정 예산 탭을 쌓는다.
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
   fireEvent.click(
-    await within(await screen.findByRole('dialog')).findByRole('button', {
+    await within(await requestPage()).findByRole('button', {
       name: '예산 탭으로 가기',
     }),
   )
@@ -315,7 +321,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   expect(await isSelected('예산')).toBe(true)
 })
 
-test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 목록의 보던 보기에 남는다', async () => {
+test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 보던 목록으로 돌아갈 수 있다', async () => {
   startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
   api.on('GET', requestsOf('all'), () =>
     json({ requests: [purchaseSummary(GONE)], truncated: false }),
@@ -323,7 +329,13 @@ test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404)
   api.on('GET', `${base}/purchase-requests/${GONE}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${GONE}` }))
   expect((await screen.findByRole('alert')).textContent).toBe(PURCHASE_LOST)
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`))
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${GONE}`)
+  expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
+  await backFromRequest()
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
+  expect((await screen.findByRole('button', { name: '전체' })).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 

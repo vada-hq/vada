@@ -67,7 +67,7 @@ const open = async () => {
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),
   )
-  return screen.findByRole('dialog')
+  return screen.findByRole('region', { name: '구매 요청 상세' })
 }
 const cancelCalls = (api: ReturnType<typeof mockApi>) =>
   api.calls.filter(c => c.path.endsWith('/items/i1/cancel'))
@@ -156,7 +156,7 @@ test('403이면 학생회를 다시 읽고 이유를 보인다', async () => {
   expect(handlers.onForbidden).toHaveBeenCalled()
 })
 
-test('404면 닫고 이유를 보인다', async () => {
+test('404면 상세 내용을 거두고 페이지에 이유를 보인다', async () => {
   const { api } = setup(detail([item('i1', '포스터')]))
   api.on('POST', `${BASE}/0199d1a0-0000-7000-8000-00000000a001/items/i1/cancel`, () =>
     json({ error: 'NOT_FOUND' }, 404),
@@ -167,4 +167,7 @@ test('404면 닫고 이유를 보인다', async () => {
   fireEvent.change(within(dialog).getByLabelText('취소 사유'), { target: { value: '사유' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '품목 취소' }))
   expect((await screen.findByRole('alert')).textContent).toBe(PURCHASE_LOST)
+  expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' })).toBeTruthy()
 })

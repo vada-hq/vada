@@ -339,18 +339,22 @@ function requestApi(id = '0199d1a0-0000-7000-8000-0000000000c1', requestId = R1)
     json({ request: purchaseDetail(requestId, { title: '테이프 구매' }) }),
   )
 }
-const requestDialog = () =>
-  waitFor(() => expect(within(screen.getByRole('dialog')).getByText('테이프 구매')).toBeTruthy(), {
-    timeout: 5000,
-  })
+const requestPage = () =>
+  waitFor(
+    () => {
+      expect(screen.getByRole('region', { name: '구매 요청 상세' })).toBeTruthy()
+      expect(screen.getByRole('heading', { level: 1, name: '테이프 구매' })).toBeTruthy()
+    },
+    { timeout: 5000 },
+  )
 const financeHeading = () => screen.findByRole('heading', { level: 1, name: '재정', hidden: true })
 
 test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정 화면과 그 요청 상세가 열린다', async () => {
   requestApi('0199d1a0-0000-7000-8000-0000000000c2')
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c2/${R1}`)
   await renderApp()
-  await requestDialog()
-  expect(await financeHeading()).toBeTruthy()
+  await requestPage()
+  expect(screen.queryByRole('dialog')).toBeNull()
   expect(
     api.calls.some(
       call =>
@@ -375,8 +379,8 @@ test('열려 있는 동안 서비스 워커가 요청 주소를 알리면 보던
       data: { type: 'vada:open', url: `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}` },
     }),
   )
-  await requestDialog()
-  expect(await financeHeading()).toBeTruthy()
+  await requestPage()
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
 
 test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
@@ -390,11 +394,11 @@ test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린
       }),
     )
   press()
-  await requestDialog()
-  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await requestPage()
+  fireEvent.click(screen.getByRole('button', { name: /돌아가기|구매 요청 목록으로/ }))
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   press()
-  await requestDialog()
+  await requestPage()
 })
 
 test.each([
@@ -423,7 +427,7 @@ test.each([
   expect(requestCalls()).toEqual([])
 })
 
-test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 보이고 상세는 닫힌다', async () => {
+test('지운 요청의 알림을 누르면 상세 대신 이유와 목록으로 가는 버튼이 보인다', async () => {
   api.on(
     'GET',
     `/api/organizations/0199d1a0-0000-7000-8000-0000000000c1/purchase-requests?view=mine`,
@@ -437,12 +441,16 @@ test('지운 요청의 알림을 누르면 "이 요청을 볼 수 없어요"가 
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}`)
   await renderApp()
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
-  await lostSettled(`/finance/${C1}?tab=requests`)
+  await lostSettled(`/purchases/${C1}/${R1}`)
   expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
+  expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '구매 요청 목록으로' }))
+  await lostSettled(`/finance/${C1}?tab=requests`)
+  expect(await financeHeading()).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
-test('홈에서 지운 요청의 알림을 눌러도 재정 목록에서 이유가 남는다', async () => {
+test('홈에서 지운 요청의 알림을 누르면 요청 페이지에 이유가 남고 홈으로 돌아갈 수 있다', async () => {
   requestApi()
   api.on('GET', `/api/organizations/${C1}/purchase-requests/${R1}`, () =>
     json({ error: 'NOT_FOUND' }, 404),
@@ -451,8 +459,10 @@ test('홈에서 지운 요청의 알림을 눌러도 재정 목록에서 이유�
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(PURCHASE_LOST)
-  await lostSettled(`/finance/${C1}?tab=requests`)
+  await lostSettled(`/purchases/${C1}/${R1}`)
   expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
+  fireEvent.click(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
 })
 
 test('홈에서 연 요청의 예산 탭으로 가기는 재정의 예산 탭을 연다', async () => {
@@ -463,16 +473,18 @@ test('홈에서 연 요청의 예산 탭으로 가기는 재정의 예산 탭을
   await renderApp()
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
-  await requestDialog()
+  await requestPage()
   fireEvent.click(await screen.findByRole('button', { name: '예산 탭으로 가기' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
-  // 예산 탭 주소로 한 칸 쌓이고, 뒤로 가면 홈이다(요청 상세는 닫고 갔다).
+  // 예산 페이지에서 뒤로 가면 요청 상세, 다시 뒤로 가면 들어온 홈이다.
   await waitFor(() =>
     expect(window.location.pathname + window.location.search).toBe(`/finance/${C1}?tab=budget`),
   )
   expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
   act(() => window.history.back())
+  await requestPage()
+  fireEvent.click(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' }))
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
 })
 
@@ -480,9 +492,9 @@ test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재�
   requestApi()
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}`)
   await renderApp()
-  await requestDialog()
-  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await requestPage()
+  fireEvent.click(screen.getByRole('button', { name: /돌아가기|구매 요청 목록으로/ }))
+  await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
   expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
