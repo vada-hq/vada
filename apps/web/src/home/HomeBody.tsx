@@ -11,6 +11,7 @@ import { CouncilBlocked, CouncilEvents } from './CouncilSection'
 import DepartmentsSection from './DepartmentsSection'
 import { attentionOf } from './home-attention'
 import { inboxRooms, mineRows } from './home-view'
+import MemberHome from './MemberHome'
 import MessageInbox from './MessageInbox'
 import MineSection from './MineSection'
 import ReceivedSection from './ReceivedSection'
@@ -32,6 +33,8 @@ type Props = HomeOpeners & {
   councilId: string
   // 인사 카드의 이름(새 홈)
   name: string
+  // 학생회 직급도 부서도 없는 운영진이면 부원 홈 맨 위에 '부서 배정 전' 띠(DEC-87)
+  awaitingDepartment?: boolean
   // 작업 공간이 옆 메뉴 배지와 같이 읽는 대화 목록(DEC-90 홈 메시지함). 같은 응답이라 칩과 배지가 어긋나지 않는다.
   rooms: RoomListState
   onForbidden: () => void
@@ -155,7 +158,13 @@ function SideColumn({ home, councilId, extras, mineIds, ...open }: Parts) {
 
 // 지금 홈(기능 010): 맨 위에 숫자 카드, 바로 아래 메시지함, 그 아래 넓은 화면에서 두 단(와이어프레임 홈, Basecamp 홈). 휴대폰은 한 단이다.
 // 목록을 아직 읽지 못했거나 읽지 못하면 메시지함만 빠진다. 새 배치가 오르지 않은 홈 종류가 그대로 쓴다(명세 027 정한 것 8).
-function CurrentHome({ home, councilId, rooms, onForbidden, ...open }: Omit<Props, 'name'>) {
+function CurrentHome({
+  home,
+  councilId,
+  rooms,
+  onForbidden,
+  ...open
+}: Omit<Props, 'name' | 'awaitingDepartment'>) {
   const extras = useHomeExtras(councilId, home.today, onForbidden, !home.council)
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const items = attentionOf(home, extras.requests, extras.events.length)
@@ -176,10 +185,13 @@ function CurrentHome({ home, councilId, rooms, onForbidden, ...open }: Omit<Prop
 }
 
 // 홈 종류로 가른다(DEC-95, 명세 027 정한 것 8). 새 배치가 main에 오른 종류만 새 홈이고, 아직인 종류는 지금 홈 그대로다.
-// 지금 오른 것: 회장단(조각 6). 새 홈은 홈 응답 하나로 그려 별도 읽기(useHomeExtras)를 부르지 않는다.
-export default function HomeBody({ name, ...props }: Props) {
+// 지금 오른 것: 회장단(조각 6), 부원(조각 7). 새 홈은 홈 응답 하나로 그려 별도 읽기(useHomeExtras)를 부르지 않는다.
+export default function HomeBody({ name, awaitingDepartment = false, ...props }: Props) {
   const setPushSlot = useContext(PushBandSlot)
   const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
+  // 작업 공간의 알림 꺼짐 띠가 새 홈 틀의 이 자리에 그려진다. 띠가 없으면 자리도 없다.
+  const pushBand = setPushSlot && <div ref={setPushSlot} className="empty:hidden" />
+  const opens = { onOpenEvent, onOpenPage, onNewEvent }
   if (home.kind === 'council' && home.councilBoard)
     return (
       <CouncilHome
@@ -188,11 +200,20 @@ export default function HomeBody({ name, ...props }: Props) {
         councilId={councilId}
         name={name}
         inboxRooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
-        // 작업 공간의 알림 꺼짐 띠가 이 자리에 그려진다. 띠가 없으면 자리도 없다.
-        pushBand={setPushSlot && <div ref={setPushSlot} className="empty:hidden" />}
-        onOpenEvent={onOpenEvent}
-        onOpenPage={onOpenPage}
-        onNewEvent={onNewEvent}
+        pushBand={pushBand}
+        {...opens}
+      />
+    )
+  if (home.kind === 'member')
+    return (
+      <MemberHome
+        home={home}
+        councilId={councilId}
+        name={name}
+        rooms={rooms}
+        awaitingDepartment={awaitingDepartment}
+        pushBand={pushBand}
+        {...opens}
       />
     )
   return <CurrentHome {...props} />
