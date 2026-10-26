@@ -85,7 +85,7 @@ DEC-91과 proposal은 다시 정하지 않는다. 코드로 옮기려고 더 정
   - 버림: `pages.ts`의 'organization', `Workspace.tsx` `startPageOf`, `LegacyTeamPage`, `ConfirmDialog.tsx` 변경, `queries.ts`의 `ne(department.name, '회장단')`, `rank-select.tsx`·`council-settings-form.ts`·`schema-org.ts`의 부부장 → 부원.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 3. 옮기기 API [ ]
+### 3. 옮기기 API [x]
 - 할 수 있게 되는 것: 한 요청으로 사람을 다른 부서로 옮긴다.
 - 수용 기준: '정한 것' 4대로 옮기면 옛 소속이 끝나고(끝 시각, 판) 새 부서 소속이 보낸 직급으로 열리며 응답이 새 목록이다. 같은 거래에서 학생회 잠금과 권한 다시 보기, 방 맞추기가 된다(옛 부서방에서 빠지고 새 부서방에 듦). 직급 있는 소속을 `rank.manage` 없이 옮기면 403이고 아무것도 바뀌지 않는다. 같은 부서 400, 옛 소속 없음 404, 이미 든 부서 409, 다른 학생회 부서나 사람 404, 모르는 키 400, 로그인 안 함 401. 중간 단계가 실패하면 두 부서에 남지 않는다. 같은 사람을 두 요청이 동시에 옮겨도 열린 소속이 셋이 되지 않는다(pg-smoke 경우를 더함).
 - 닿는 곳: contracts `team.ts`(`MoveDepartmentSchema`), `errors.ts`(`ALREADY_IN_DEPARTMENT`), web `lib/messages.ts`, api `team/routes.ts`·`service.ts`·`team.test.ts`, `http/boundary.test.ts`, `ops/pg-smoke/`.

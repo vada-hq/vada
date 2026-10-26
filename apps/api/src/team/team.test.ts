@@ -722,3 +722,226 @@ test('경로의 부서 번호나 운영진 번호가 uuid가 아니면 404다: �
     await testDb.close()
   }
 })
+
+// 부서 옮기기(기능 023 조각 3, DEC-91) ------------------------------------------------------------
+
+// 기획부를 더하고, u2를 재정부 부장, u4를 재정부와 기획부에 직급 없이 넣는다. u3은 부서가 없다.
+async function moveSetup(testDb: TestDb) {
+  const ctx = await setup(testDb)
+  const { api, base, member, finance } = ctx
+  const created = (await (
+    await api.post(`${base}/departments`, { name: '기획부' }, 'u1')
+  ).json()) as TeamResponse
+  const planning = created.departments.find(item => item.name === '기획부')!.id
+  const assign = async (memberId: string, departmentId: string, rank: string | null) =>
+    assert.equal(
+      (await api.post(`${base}/members/${memberId}/departments`, { departmentId, rank }, 'u1'))
+        .status,
+      200,
+    )
+  await assign(member.u2, finance, 'head')
+  await assign(member.u4, finance, null)
+  await assign(member.u4, planning, null)
+  const move = (memberId: string, body: object, user = 'u1') =>
+    api.post(`${base}/members/${memberId}/departments/move`, body, user)
+  return { ...ctx, planning, move }
+}
+
+// 그 사람의 부서 소속(부서, 직급, 열림)과 부서방 참여. 실패한 요청 뒤 아무것도 바뀌지 않았는지 맞대어 본다.
+async function placementState(testDb: TestDb, memberId: string) {
+  const placements = (
+    await testDb.pg.query<{ department_id: string; department_rank: string | null; open: boolean }>(
+      `SELECT department_id, department_rank, ends_at IS NULL AS open FROM department_membership
+       WHERE member_id = $1 ORDER BY department_id`,
+      [memberId],
+    )
+  ).rows
+  const rooms = (
+    await testDb.pg.query(
+      `SELECT cr.department_id FROM room_membership rm JOIN chat_room cr ON cr.id = rm.room_id
+       WHERE rm.member_id = $1 AND cr.type = 'department' ORDER BY cr.department_id`,
+      [memberId],
+    )
+  ).rows
+  return { placements, rooms }
+}
+
+test('옮기기: 옛 소속을 끝내고(판) 새 부서 소속을 보낸 직급으로 열며, 부서방도 같은 거래에서 옮기고 새 목록을 돌려준다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { member, finance, planning, move } = await moveSetup(testDb)
+    const [{ id: old }] = (
+      await testDb.pg.query<{ id: string }>(
+        'SELECT id FROM department_membership WHERE member_id = $1',
+        [member.u2],
+      )
+    ).rows as [{ id: string }]
+    const before = await versionsOf(testDb, old)
+    const response = await move(member.u2, {
+      fromDepartmentId: finance,
+      toDepartmentId: planning,
+      rank: null,
+    })
+    assert.equal(response.status, 200)
+    const team = (await response.json()) as TeamResponse
+    assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
+      { id: planning, rank: null },
+    ])
+    assert.equal(team.departments.find(item => item.id === finance)!.memberCount, 1)
+    assert.equal(team.departments.find(item => item.id === planning)!.memberCount, 2)
+    assert.equal(await versionsOf(testDb, old), before + 1)
+    assert.deepEqual(await placementState(testDb, member.u2), {
+      placements: [
+        { department_id: finance, department_rank: 'head', open: false },
+        { department_id: planning, department_rank: null, open: true },
+      ].sort((a, b) => a.department_id.localeCompare(b.department_id)),
+      rooms: [{ department_id: planning }],
+    })
+    // 되돌리기: 옛 부서와 옛 직급으로 한 요청에 돌아가고, 끝났던 같은 소속을 다시 연다.
+    assert.equal(
+      (await move(member.u2, { fromDepartmentId: planning, toDepartmentId: finance, rank: 'head' }))
+        .status,
+      200,
+    )
+    const back = await placementState(testDb, member.u2)
+    assert.deepEqual(
+      back.placements.filter(row => row.open),
+      [{ department_id: finance, department_rank: 'head', open: true }],
+    )
+    assert.equal(back.placements.length, 2)
+    assert.deepEqual(back.rooms, [{ department_id: finance }])
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('옮기기 실패: 같은 부서 400, 옛 소속 없음 404, 이미 든 부서 409, 다른 학생회 부서·사람 404, 모르는 키 400, 로그인 안 함 401, 부원 403이고 아무것도 바뀌지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { member, finance, planning, otherFinance, otherPresident, move } =
+      await moveSetup(testDb)
+    const snapshot = async () => [
+      await placementState(testDb, member.u2),
+      await placementState(testDb, member.u3),
+      await placementState(testDb, member.u4),
+    ]
+    const before = await snapshot()
+    const body = { fromDepartmentId: finance, toDepartmentId: planning, rank: null }
+    const cases: [string, () => ReturnType<typeof move>, number, string?][] = [
+      ['같은 부서', () => move(member.u2, { ...body, toDepartmentId: finance }), 400],
+      ['옛 소속 없음', () => move(member.u3, body), 404, 'NOT_FOUND'],
+      ['이미 든 부서', () => move(member.u4, body), 409, 'ALREADY_IN_DEPARTMENT'],
+      [
+        '다른 학생회의 새 부서',
+        () => move(member.u2, { ...body, toDepartmentId: otherFinance }),
+        404,
+      ],
+      [
+        '다른 학생회의 옛 부서',
+        () => move(member.u2, { ...body, fromDepartmentId: otherFinance }),
+        404,
+      ],
+      ['다른 학생회의 사람', () => move(otherPresident, body), 404],
+      ['모르는 키', () => move(member.u2, { ...body, extra: 1 }), 400],
+      ['직급 형식', () => move(member.u2, { ...body, rank: 'president' }), 400],
+      ['빠진 칸', () => move(member.u2, { fromDepartmentId: finance, rank: null }), 400],
+      ['로그인 안 함', () => move(member.u2, body, ''), 401],
+      ['부원', () => move(member.u2, body, 'u3'), 403],
+    ]
+    for (const [label, send, status, error] of cases) {
+      const response = await send()
+      assert.equal(response.status, status, label)
+      if (error) assert.deepEqual(await response.json(), { error }, label)
+    }
+    assert.deepEqual(await snapshot(), before)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('옮기기 권한: 직급이 붙은 소속을 옮기거나 새 부서에 직급을 주려면 직급 칸도 필요하다. 아무것도 바뀌지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, member, finance, planning, move } = await moveSetup(testDb)
+    assert.equal(
+      (await api.post(`${base}/members/${member.u3}/rank`, { rank: 'vice_president' }, 'u1'))
+        .status,
+      200,
+    )
+    await withRankManageForPresidentOnly(async () => {
+      const before = await placementState(testDb, member.u2)
+      // 부회장 u3은 member.manage만 있다. 재정부 부장 u2를 옮기지 못한다.
+      assert.equal(
+        (
+          await move(
+            member.u2,
+            { fromDepartmentId: finance, toDepartmentId: planning, rank: null },
+            'u3',
+          )
+        ).status,
+        403,
+      )
+      assert.deepEqual(await placementState(testDb, member.u2), before)
+      // 직급 없는 u4를 새 부서의 부장으로 옮기지 못한다.
+      const u4 = await placementState(testDb, member.u4)
+      assert.equal(
+        (await api.post(`${base}/members/${member.u4}/departments/${planning}/remove`, {}, 'u3'))
+          .status,
+        200,
+      )
+      const afterRemove = await placementState(testDb, member.u4)
+      assert.equal(
+        (
+          await move(
+            member.u4,
+            { fromDepartmentId: finance, toDepartmentId: planning, rank: 'head' },
+            'u3',
+          )
+        ).status,
+        403,
+      )
+      assert.deepEqual(await placementState(testDb, member.u4), afterRemove)
+      // 직급 없이 옮기는 것은 member.manage만으로 된다.
+      assert.equal(
+        (
+          await move(
+            member.u4,
+            { fromDepartmentId: finance, toDepartmentId: planning, rank: null },
+            'u3',
+          )
+        ).status,
+        200,
+      )
+      assert.notDeepEqual(await placementState(testDb, member.u4), u4)
+    })
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('옮기기 중간에 새 소속 열기가 실패하면 거래 전체가 되돌아가 옛 부서에 그대로 있다(두 부서에도, 어디에도 없지 않다)', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { member, finance, planning, move } = await moveSetup(testDb)
+    const before = await placementState(testDb, member.u2)
+    // 옛 소속을 끝낸 뒤, 새 부서 소속을 쓰는 순간 DB가 거부한다.
+    await testDb.pg.exec(`
+      CREATE FUNCTION refuse_planning() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN
+        IF NEW.department_id = '${planning}' THEN RAISE EXCEPTION 'refused'; END IF;
+        RETURN NEW;
+      END $$;
+      CREATE TRIGGER refuse_planning BEFORE INSERT OR UPDATE ON department_membership
+        FOR EACH ROW EXECUTE FUNCTION refuse_planning();
+    `)
+    const response = await move(member.u2, {
+      fromDepartmentId: finance,
+      toDepartmentId: planning,
+      rank: null,
+    })
+    assert.equal(response.status, 500)
+    assert.deepEqual(await placementState(testDb, member.u2), before)
+  } finally {
+    await testDb.close()
+  }
+})
