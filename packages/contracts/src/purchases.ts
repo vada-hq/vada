@@ -142,6 +142,7 @@ export interface PurchaseRequestSummary {
   payable: boolean
   // 예상 가격은 승인 금액·약정과 별개다. 옛 클라이언트/저장된 응답에는 없을 수 있다.
   estimate?: PurchaseEstimate
+  bodyPreview?: string | null
 }
 
 export interface PurchaseLineItem {
