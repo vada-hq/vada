@@ -25,6 +25,12 @@ export type PurchaseNotice = {
 }
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 요청 행 → 품목 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
+const itemValues = (requestId: string, item: CreatePurchaseRequest['items'][number]) => ({
+  requestId,
+  ...item,
+  estimatedUnitPrice: item.estimatedUnitPrice?.toString() ?? null,
+  estimatedShippingFee: item.estimatedShippingFee?.toString() ?? null,
+})
 
 // 새 요청은 재정부의 지금 부서원(만든 사람과 요청한 사람 제외)마다 알림 기록 하나를 남긴다(T3). 재정부가 없어도 요청은 만들어진다.
 async function noticeNewRequest(
@@ -84,7 +90,7 @@ export async function createPurchaseRequest(
       kind: 'line_item',
       councilId: actor.councilId,
       actor: actor.memberId,
-      values: { requestId, ...item },
+      values: itemValues(requestId, item),
     })
   const notice = await noticeNewRequest(tx, actor, { requestId, requestedBy }, now)
   return { request: await requestDetailOf(tx, actor, requestId), notice }

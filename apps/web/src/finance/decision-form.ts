@@ -1,4 +1,4 @@
-import { DecideLineItemsSchema, type BudgetItemView } from '@vada/contracts'
+import { DecideLineItemsSchema, purchaseEstimateOf, type BudgetItemView } from '@vada/contracts'
 import { withContract, type FieldErrors } from '@/lib/use-form-check'
 import { wonOf } from '@/lib/won-input'
 
@@ -12,12 +12,15 @@ export type RowValues = {
   reason: string
   choice: Choice
 }
-export const emptyRow = (): RowValues => ({
-  amount: '',
-  budgetItemId: null,
-  reason: '',
-  choice: null,
-})
+export const emptyRow = (item?: Parameters<typeof purchaseEstimateOf>[0]): RowValues => {
+  const estimate = item ? purchaseEstimateOf(item) : null
+  return {
+    amount: String(estimate?.total ?? estimate?.subtotal ?? ''),
+    budgetItemId: null,
+    reason: '',
+    choice: null,
+  }
+}
 
 // 마지막에 승인한 예산 항목은 학생회마다 이 화면을 쓰는 동안 기억한다(DEC-40: 결재자의 수고를 줄인다).
 const lastApproved = new Map<string, string>()

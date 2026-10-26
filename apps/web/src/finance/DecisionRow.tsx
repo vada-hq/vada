@@ -1,4 +1,4 @@
-import type { BudgetItemView, PurchaseLineItem } from '@vada/contracts'
+import { purchaseEstimateOf, type BudgetItemView, type PurchaseLineItem } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -53,9 +53,13 @@ function BudgetFields({
   onChange,
 }: Props) {
   const picked = budgetItems.find(budgetItem => budgetItem.id === chosen)
+  const shippingHint =
+    purchaseEstimateOf(item).subtotal !== null && item.estimatedShippingFee == null
+      ? { hint: '배송비 미확인 · 상품 합계만 채웠어요. 승인 전 확인해 주세요.' }
+      : {}
   return (
     <div className="grid gap-3 @sm:grid-cols-3">
-      <Field label="금액(합계, 원)" required error={errors.amount}>
+      <Field label="금액(합계, 원)" required error={errors.amount} {...shippingHint}>
         <Input
           inputMode="numeric"
           aria-label={`${item.name} 금액`}

@@ -3,8 +3,8 @@ import { WON_MAX } from './budget.js'
 export type PurchaseEstimate = { subtotal: number | null; total: number | null }
 export type EstimatedPurchaseItem = {
   quantity: number
-  estimatedUnitPrice?: number | null
-  estimatedShippingFee?: number | null
+  estimatedUnitPrice?: number | null | undefined
+  estimatedShippingFee?: number | null | undefined
 }
 
 const validWon = (value: number) => Number.isSafeInteger(value) && value >= 0 && value <= WON_MAX
