@@ -4,6 +4,7 @@ import {
   ChangeRankSchema,
   CreateDepartmentSchema,
   EmptyRequestSchema,
+  MoveDepartmentSchema,
   TransferPresidentSchema,
   UpdateDepartmentSchema,
   type Action,
@@ -18,6 +19,7 @@ import { ApiError } from '../http/errors.js'
 import { sqlState } from '../http/on-error.js'
 import { json } from '../http/validate.js'
 import type { Db, Tx } from '../db/types.js'
+import { moveDepartment } from './move.js'
 import { teamOf } from './queries.js'
 import {
   assignDepartment,
@@ -95,6 +97,12 @@ function memberRoutes({ routes, auth, change }: Kit) {
     const memberId = recordIdOf(c.req.param('memberId'))
     return change(c, 'member.manage', (tx, actor) =>
       assignDepartment(tx, actor, { memberId, departmentId, rank }),
+    )
+  })
+  routes.post(`${root}/members/:memberId/departments/move`, json(MoveDepartmentSchema), auth, c => {
+    const memberId = recordIdOf(c.req.param('memberId'))
+    return change(c, 'member.manage', (tx, actor) =>
+      moveDepartment(tx, actor, memberId, c.req.valid('json')),
     )
   })
   routes.post(

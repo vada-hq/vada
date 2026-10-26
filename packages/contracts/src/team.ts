@@ -44,6 +44,16 @@ export const AssignDepartmentSchema = z.strictObject({
   rank: z.enum(DEPARTMENT_RANKS).nullable(),
 })
 export type AssignDepartmentRequest = z.infer<typeof AssignDepartmentSchema>
+// 부서 옮기기(DEC-91): 옛 부서 소속을 끝내고 새 부서 소속을 한 번에 연다. rank는 새 부서의 직급이다.
+// 되돌리기가 옛 부서와 옛 직급으로 한 요청에 돌아가려고 직급을 받는다(기능 023 정한 것 4). 같은 부서면 400이다.
+export const MoveDepartmentSchema = z
+  .strictObject({
+    fromDepartmentId: recordIdInput,
+    toDepartmentId: recordIdInput,
+    rank: z.enum(DEPARTMENT_RANKS).nullable(),
+  })
+  .refine(value => value.fromDepartmentId !== value.toDepartmentId)
+export type MoveDepartmentRequest = z.infer<typeof MoveDepartmentSchema>
 // 부회장 주고 거두기. 회장 직급은 넘기기로만 바뀐다.
 export const ChangeRankSchema = z.strictObject({ rank: z.enum(['vice_president']).nullable() })
 export type ChangeRankRequest = z.infer<typeof ChangeRankSchema>

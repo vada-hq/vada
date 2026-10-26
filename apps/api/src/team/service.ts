@@ -24,7 +24,7 @@ import type { Db, Tx } from '../db/types.js'
 // 회장단이 하는 운영진 편성(DEC-28, DEC-47). 모두 학생회 행을 잠근 거래 안에서 부른다(authorizeChange).
 // 대상은 요청한 사람과 같은 기수의 지금 소속이어야 한다. 다른 학생회의 운영진이나 내보낸 운영진은 404다.
 
-async function currentMembership(tx: Tx, actor: Actor, memberId: string) {
+export async function currentMembership(tx: Tx, actor: Actor, memberId: string) {
   const [row] = await tx
     .select({ id: councilMembership.id, councilRank: councilMembership.councilRank })
     .from(councilMembership)
@@ -39,7 +39,7 @@ async function currentMembership(tx: Tx, actor: Actor, memberId: string) {
   return row
 }
 
-async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
+export async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
   const [row] = await tx
     .select({ id: department.id, name: department.name, role: department.role })
     .from(department)
@@ -48,7 +48,7 @@ async function departmentOf(tx: Tx, actor: Actor, departmentId: string) {
   return row
 }
 
-const placementOf = (tx: Tx, actor: Actor, memberId: string, departmentId: string) =>
+export const placementOf = (tx: Tx, actor: Actor, memberId: string, departmentId: string) =>
   tx
     .select({
       id: departmentMembership.id,

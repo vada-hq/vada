@@ -29,6 +29,7 @@ import {
 } from './pg-smoke-closing-cases.js'
 import { sameCommandTogetherCase, sameExpenseTogetherCase } from './pg-smoke-command-cases.js'
 import { lastSeatTogetherCase } from './pg-smoke-registration-cases.js'
+import { moveTogetherCase } from './pg-smoke-move-case.js'
 import { sessionDuringJoinCase } from './pg-smoke-session-case.js'
 import { assignAndRemoveCase, changeStatusTogetherCase } from './pg-smoke-task-cases.js'
 import { writePathCase } from './pg-smoke-write-case.js'
@@ -57,6 +58,7 @@ export {
   noticeAndRequestTogetherCase,
   joinTwiceCase,
   lastSeatTogetherCase,
+  moveTogetherCase,
   publishAndCompleteCase,
   publishAndSpendCase,
   publishTogetherCase,
@@ -76,6 +78,7 @@ export const smokeCases: readonly SmokeCase[] = [
   joinTwiceCase,
   rotateTogetherCase,
   transferAndRemoveCase,
+  moveTogetherCase,
   createAndJoinCase,
   sessionDuringJoinCase,
   sendAndRemoveCase,
