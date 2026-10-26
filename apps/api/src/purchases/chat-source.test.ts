@@ -223,13 +223,18 @@ test(
     )
     const response = await s.create({
       title: '현수막',
-      items: [ITEM],
+      items: [
+        { ...ITEM, name: '고쳐 적은 네임펜', link: 'https://www.coupang.com/vp/products/7334523' },
+      ],
       requestedBy: s.council.people.planningMember.memberId,
       sourceMessageId: messageId,
     })
     assert.equal(response.status, 201)
     assert.ok(!(await response.clone().text()).includes(messageId))
     const request = await detailOf(response)
+    const saved = await detailOf(await s.api.get(`${s.base}/${request.id}`, FINANCE))
+    assert.equal(saved.items[0]!.name, '고쳐 적은 네임펜')
+    assert.equal(saved.items[0]!.link, 'https://www.coupang.com/vp/products/7334523')
     const spent = await expenseOf(s, { ...EXPENSE, sourceMessageId: messageId })
     assert.equal(spent.status, 201)
     assert.ok(!(await spent.clone().text()).includes(messageId))

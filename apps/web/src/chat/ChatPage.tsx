@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentProps } from 'react'
 import type { CouncilView } from '@vada/contracts'
 import PageColumn, { pageWidthClass } from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -13,6 +13,8 @@ import RoomList from './RoomList'
 import RoomView from './RoomView'
 import type { RoomList as RoomListHook } from './useRoomList'
 import { useSplit } from '@/lib/use-split'
+import ProductPanel from './ProductPanel'
+import { ProductOpenContext, useProductPanel } from './product-open'
 
 export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string }
 
@@ -28,7 +30,8 @@ type Props = {
   onScreen: (screen: Screen) => void
 }
 
-type PageProps = Omit<Props, 'onScreen'>
+export type RoomPage = Omit<Props, 'onScreen'>
+type PageProps = RoomPage
 
 // 방 목록을 아직 못 보일 때: 불러오는 중, 못 불러왔으면 다시 시도.
 function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
@@ -141,7 +144,7 @@ function Split({
 
 // 대화: 휴대폰은 방 목록 → 방, PC는 목록과 방을 나란히.
 // 어느 화면인지는 부르는 쪽(주소)이 정하고, 뒤로는 들어온 곳으로 가는 동작을 받는다.
-export default function ChatPage({
+function ChatBody({
   screen,
   onScreen,
   onBack,
@@ -170,4 +173,20 @@ export default function ChatPage({
       </RoomGate>
     )
   return <ListScreen {...page} activeRoomId={null} />
+}
+
+export default function ChatPage(props: ComponentProps<typeof ChatBody>) {
+  const product = useProductPanel()
+  return (
+    <ProductOpenContext value={product.open}>
+      <div className="flex h-full min-h-0 min-w-0">
+        <div className="min-w-0 flex-1">
+          <ChatBody {...props} />
+        </div>
+        {product.target && (
+          <ProductPanel page={props} target={product.target} onClose={product.close} />
+        )}
+      </div>
+    </ProductOpenContext>
+  )
 }

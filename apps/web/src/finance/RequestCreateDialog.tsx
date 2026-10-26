@@ -30,6 +30,7 @@ import { TaskField } from './TaskField'
 import { RequesterField } from './RequesterField'
 import { RequestItemFields } from './RequestItemFields'
 import { useRequestCreate } from './useRequestCreate'
+import { useRequestProductSeeds } from './use-request-product-seeds'
 
 type Props = Pick<PurchaseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
@@ -203,6 +204,7 @@ function CreateForm({
 }: FormProps) {
   const [initial] = useState(() => emptyRequest(eventId ?? null, start))
   const [values, setValues] = useState(initial)
+  useRequestProductSeeds(props.councilId, initial, setValues)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   useUnsavedInput(!sameJson(values, initial))
   const [picked, setPicked] = useState<Choice | null>(null)

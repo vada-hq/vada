@@ -6,6 +6,8 @@ export type ItemValues = {
   quantity: string
   link: string
   options: string
+  // 불러온 가격은 확인용이며 요청 본문에는 보내지 않는다(022-6, DEC-40).
+  loadedPrice?: number | null
 }
 export type RequestValues = {
   title: string
@@ -22,7 +24,7 @@ export type RequestValues = {
 // 메시지에서 열 때 미리 채우는 값
 export type RequestStart = Partial<
   Pick<RequestValues, 'title' | 'body' | 'requestedBy' | 'sourceMessageId'>
->
+> & { items?: { name: string; link: string; loadedPrice: number | null }[] }
 
 let lastKey = 0
 export const newItem = (): ItemValues => ({
@@ -42,7 +44,7 @@ export const emptyRequest = (
   eventId,
   requestedBy: start.requestedBy ?? null,
   sourceMessageId: start.sourceMessageId ?? null,
-  items: [newItem()],
+  items: start.items?.length ? start.items.map(item => ({ ...newItem(), ...item })) : [newItem()],
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
