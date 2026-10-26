@@ -113,7 +113,7 @@ test('카드에 업무명, 부서 칩, 지남 칩, 담당자, 마감이 있고 �
   const b = screen.getByRole('button', { name: '업무 b' }).closest('li')!
   expect(within(b).getByText('학생회 업무')).toBeTruthy()
   expect(within(b).getByText('지남')).toBeTruthy()
-  expect(within(b).getByText('담당자 없음 · 배정 필요')).toBeTruthy()
+  expect(within(b).getByText('담당자 없음')).toBeTruthy()
   expect(within(b).getByText('10월 25일 · 지남')).toBeTruthy()
   const c = screen.getByRole('button', { name: '업무 c' }).closest('li')!
   expect(within(c).getByText('떠난 사람: 떠난이')).toBeTruthy()
