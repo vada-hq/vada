@@ -181,3 +181,38 @@ test('회장단이면서 재정이면 받은 것은 받고 정산할 행사는 �
     assert.equal((await h.read('s-president')).received, undefined)
   })()
 })
+
+// 필요한 때 순(DEC-92): 가까운 것 → 먼 것 → 필요한 때 없는 것은 오래된 순. 홈은 재정 결재 대기를 그대로 자른다.
+test('받은 것은 재정 결재 대기와 같은 필요한 때 순이고 다른 학생회 요청은 섞이지 않는다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    await t.requestWithItem(null, { title: '없음 오래됨' })
+    await t.requestWithItem(null, { title: '10일 뒤', neededBy: '2026-11-04' })
+    await t.requestWithItem(null, { title: '2일 뒤', neededBy: '2026-10-27' })
+    await t.requestWithItem(null, { title: '없음 새것' })
+    await t.requestWithItem(null, { title: '남의 학생회', neededBy: '2026-10-26' }, t.other)
+    const order = ['2일 뒤', '10일 뒤', '없음 오래됨', '없음 새것']
+    const home = await h.read('s-financeMember')
+    assert.deepEqual(
+      home.received!.requests.map(row => row.title),
+      order,
+    )
+    assert.deepEqual(
+      (await h.pendingScreen()).map(row => row.title),
+      order,
+    )
+  })()
+})
+
+test('필요한 때가 가장 가까운 요청은 가장 늦게 냈어도 받은 것 10줄의 맨 앞이다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    for (let index = 0; index < HOME_LIST_LIMIT + 1; index++)
+      await t.requestWithItem(null, { title: `요청 ${index}` })
+    await t.requestWithItem(null, { title: '급함', neededBy: '2026-10-26' })
+    const { received } = await h.read('s-financeMember')
+    assert.equal(received!.requests.length, HOME_LIST_LIMIT)
+    assert.equal(received!.total, HOME_LIST_LIMIT + 2)
+    assert.equal(received!.requests[0]?.title, '급함')
+  })()
+})
