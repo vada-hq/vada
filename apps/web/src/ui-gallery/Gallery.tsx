@@ -48,6 +48,7 @@ import {
 } from './HomeSections'
 import { HomeFrameSection } from './HomeFrameSections'
 import { CouncilHomeSection } from './CouncilHomeSections'
+import { MemberHomeSection } from './MemberHomeSections'
 import { HomeEventStatusSection } from './HomeEventStatusSections'
 import { ApplyNoticeSection, PublicSection } from './PublicSections'
 import { ApplicantRowSection, RegistrationSection } from './RegistrationSections'
@@ -96,6 +97,7 @@ export default function Gallery() {
       <HomeEventStatusSection />
       <HomeFrameSection />
       <CouncilHomeSection />
+      <MemberHomeSection />
       <OrgSection />
       <PublicSection />
       <ApplyNoticeSection />

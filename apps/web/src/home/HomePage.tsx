@@ -9,6 +9,7 @@ import type { RoomListState } from '../chat/useRoomList'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { canCreateEvent } from '../events/event-view'
 import HomeBody, { type HomeOpeners } from './HomeBody'
+import { awaitingDepartment } from './member-view'
 import { useHome } from './useHome'
 
 // 줄을 눌러 업무·요청·행사를 그 화면에서 연다.
@@ -55,6 +56,7 @@ export default function HomePage({ view, rooms, onForbidden, ...openers }: Props
         home={state.home}
         councilId={view.council.id}
         name={view.me.name}
+        awaitingDepartment={awaitingDepartment(view.me)}
         rooms={rooms}
         onForbidden={onForbidden}
         onNewEvent={canCreateEvent(view) ? dialogs.startCreate : undefined}

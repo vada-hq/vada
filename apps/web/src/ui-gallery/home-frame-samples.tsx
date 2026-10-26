@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { BarChart2, ChevronRight, ClipboardList } from 'lucide-react'
 import type { RoomSummary } from '@vada/contracts'
-import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import EventStatusChip from '@/events/EventStatusChip'
@@ -166,14 +165,7 @@ export const MORE_THAN_SHOWN = 5
 // 첫날 막 들어온 운영진: 행사를 만들 수 없는 사람의 빈 상태에는 누가 만드는지 한 줄을 둔다(DEC-78 규칙 9).
 export const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
 
-// 띠 자리 견본. '부서 배정 전' 띠는 기능 020 조각 5의 부품이 들어올 자리이고, 알림 꺼짐 띠는 PushOffBand의 보이는 부분 그대로다.
-export function AssignBand() {
-  return (
-    <Alert tone="info" role="status" className="text-sm">
-      <strong className="font-semibold">부서 배정 전</strong> 부서는 회장단이 정해요.
-    </Alert>
-  )
-}
+// 알림 꺼짐 띠 견본: PushOffBand의 보이는 부분 그대로다.
 export const pushBand = <PushOffAlert message={PUSH_OFF_CHAT} onTurnOn={noop} />
 
 // 회장단 맨 아래 '전체 재정 요약' 한 줄 자리 견본(줄 내용은 기능 027 조각 8, 와이어프레임 HOME-01C 맨 아래).

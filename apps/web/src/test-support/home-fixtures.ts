@@ -4,6 +4,7 @@ import type {
   HomeCouncilBoard,
   HomeFollowUp,
   HomeList,
+  HomeParticipation,
   HomeResponse,
   HomeTask,
   HomeTaskGroup,
@@ -59,10 +60,11 @@ export const homeTask = (
 
 const noCounts = { overdue: 0, today: 0, soon: 0, later: 0, noDue: 0 }
 
-// 새 홈(기능 027)의 공통 칸은 부원 홈의 빈 값이다. 지금 화면은 이 칸을 읽지 않는다.
+// 새 홈(기능 027)의 공통 칸은 빈 값이다. 지금 화면은 이 칸을 읽지 않는다.
+// 종류는 아직 지금 홈(기능 010)을 그리는 부서장이다(명세 027 정한 것 8). 새 홈은 councilHome, memberHome으로 만든다.
 export const homeResponse = (extra: Partial<HomeResponse> = {}): HomeResponse => ({
   today: '2026-10-23',
-  kind: 'member',
+  kind: 'department',
   financeView: false,
   asOf: '2026-10-23T09:00',
   myTasks: { open: 0, overdue: 0, nearest: null },
@@ -113,6 +115,20 @@ export const councilHome = (
   board: Partial<HomeCouncilBoard> = {},
   extra: Partial<HomeResponse> = {},
 ): HomeResponse => homeResponse({ kind: 'council', councilBoard: councilBoard(board), ...extra })
+
+// 부원 홈(기능 027 조각 7, HOME-01M). 시험이 정하지 않으면 공통 칸이 비어 있다.
+export const memberHome = (extra: Partial<HomeResponse> = {}): HomeResponse =>
+  homeResponse({ kind: 'member', ...extra })
+
+export const participation = (
+  id: string,
+  extra: Partial<HomeParticipation> = {},
+): HomeParticipation => ({
+  event: homeEvent(id, { startsAt: '2026-10-28T10:00', endsAt: null, status: 'upcoming' }),
+  tasks: { done: 2, total: 5 },
+  next: null,
+  ...extra,
+})
 
 // 줄의 묶음으로 수를 세고, 줄보다 수가 많은 경우는 counts로 덮어쓴다.
 export const homeWithTasks = (tasks: HomeTask[], counts: Partial<typeof noCounts> = {}) => {

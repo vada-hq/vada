@@ -5,9 +5,9 @@ import HomeCard, { type CardRead } from '@/home/HomeCard'
 import HomeFrame from '@/home/HomeFrame'
 import HomeGreeting from '@/home/HomeGreeting'
 import { CouncilLayout, GridLayout } from '@/home/HomeLayout'
+import UnassignedBand from '@/home/UnassignedBand'
 import { Section } from './GallerySection'
 import {
-  AssignBand,
   asOf,
   eventTiles,
   failed,
@@ -105,7 +105,7 @@ function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) 
     <HomeFrame
       asOf={read ? undefined : asOf}
       today={today}
-      assignBand={firstDay && <AssignBand />}
+      assignBand={firstDay && <UnassignedBand />}
       pushBand={firstDay && pushBand}
       greeting={
         <HomeGreeting
