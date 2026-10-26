@@ -1,4 +1,5 @@
 import {
+  isUnassignedMember,
   type CouncilRank,
   type CouncilTitles,
   type CouncilView,
@@ -83,9 +84,11 @@ export function orgGroups(members: TeamMember[], departments: TeamDepartment[]) 
       const people = members.filter(member => placedIn(member, department.id))
       return { department, members: people, heads: people.filter(m => headOf(m, department.id)) }
     }),
-    unassigned: members.filter(
-      member =>
-        member.councilRank === null && !member.departments.some(item => listed.has(item.id)),
+    unassigned: members.filter(member =>
+      isUnassignedMember({
+        councilRank: member.councilRank,
+        departments: member.departments.filter(item => listed.has(item.id)),
+      }),
     ),
   }
 }

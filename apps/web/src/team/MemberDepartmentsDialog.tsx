@@ -48,11 +48,8 @@ export default function MemberDepartmentsDialog(props: Props) {
         {others.length > 0 ? (
           <MemberDepartmentAdd {...props} others={others} add={add} />
         ) : (
-          departments.length === 0 && (
-            <p className="text-sm text-gray-500">
-              부서가 없어요. 운영진 &gt; 부서에서 먼저 만들어 주세요.
-            </p>
-          )
+          // 부서는 조직 화면의 [부서 추가]로 만든다(기능 023 정한 것 10의 빈 상태).
+          departments.length === 0 && <p className="text-sm text-gray-500">부서 없음</p>
         )}
         {error && <StateMessage kind="error">{error}</StateMessage>}
       </DialogContent>

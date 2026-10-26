@@ -11,8 +11,10 @@ type Props = {
   badge?: ReactNode
   // 제목 아래 작은 글(부장 목록, 인원).
   meta: string
-  // 머리 오른쪽 끝(부서 ⋯ 메뉴).
+  // 머리 오른쪽 끝(부서 ⋯ 메뉴, '{부장} 지정').
   action?: ReactNode
+  // 머리와 목록 사이(미배정 묶음의 이름 찾기).
+  tools?: ReactNode
   // 머리 자리를 대신하는 제자리 편집(이름 바꾸기). 있으면 제목은 화면 읽기 프로그램에만 남는다.
   editor?: ReactNode
   // 회장단 카드: 와이어프레임처럼 굵은 테두리와 회색 머리.
@@ -70,6 +72,7 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, .
           </>
         )}
       </div>
+      {props.tools}
       {props.people.length === 0 ? (
         <p className="px-4 py-3 text-sm text-gray-500">구성원 없음</p>
       ) : (

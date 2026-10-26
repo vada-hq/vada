@@ -26,6 +26,11 @@ export interface TeamMember {
   // 지금 소속을 연 시각(ISO). 다시 들어오면 다시 들어온 시각이다.
   joinedAt: string
 }
+// 미배정 운영진(DEC-87, DEC-91): 학생회 직급이 없고 열린 부서 소속이 없다. 목록에는 지금 기수의 끝나지 않은 소속과
+// 열린 부서 소속만 오므로 이 줄 하나로 가린다. 회장단 홈의 미배정 수(서버 unassignedMembersOf)와 같은 대상이다(기능 023 정한 것 3).
+export const isUnassignedMember = (member: Pick<TeamMember, 'councilRank' | 'departments'>) =>
+  member.councilRank === null && member.departments.length === 0
+
 export interface TeamDepartment {
   id: string
   name: string

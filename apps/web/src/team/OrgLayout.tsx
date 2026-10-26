@@ -3,6 +3,7 @@ import { Star } from 'lucide-react'
 import type { CouncilTitles, TeamDepartment, TeamMember } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { OrgGroupCard } from './OrgGroupCard'
+import { UnassignedGroup } from './UnassignedGroup'
 import { orgGroups, type DepartmentGroup } from './team-view'
 
 type Props = {
@@ -13,7 +14,9 @@ type Props = {
   unassignedFirst: boolean
   // 사람 한 줄(key를 단 li). groupKey는 그 줄이 든 묶음이다.
   person: (member: TeamMember, groupKey: string) => ReactNode
-  // 부서 머리 오른쪽의 ⋯ 메뉴. 고칠 수 없으면 null.
+  // 회장단 머리 오른쪽의 '{부회장} 지정'. 할 수 없으면 null.
+  councilAction?: ReactNode
+  // 부서 머리 오른쪽의 '{부장} 지정'과 ⋯ 메뉴. 고칠 수 없으면 null.
   departmentAction: (department: TeamDepartment) => ReactNode
   // 이름을 바꾸는 중인 부서면 머리 자리의 편집 칸, 아니면 null.
   departmentEditor: (department: TeamDepartment) => ReactNode
@@ -32,12 +35,10 @@ const departmentMeta = ({ members, heads }: DepartmentGroup, titles: CouncilTitl
 // 격자는 창 폭이 아니라 본문 폭(@container)을 본다. 옆 메뉴가 있는 1024px 창의 본문은 약 736px다.
 export function OrgLayout({ members, departments, titles, unassignedFirst, ...slots }: Props) {
   const groups = orgGroups(members, departments)
-  const unassigned = groups.unassigned.length > 0 && (
-    <OrgGroupCard
-      title="미배정 구성원"
-      groupKey="unassigned"
-      meta={headcount(groups.unassigned)}
+  const unassigned = (
+    <UnassignedGroup
       people={groups.unassigned}
+      searchable={unassignedFirst}
       person={slots.person}
     />
   )
@@ -50,6 +51,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
         groupKey="council"
         icon={<Star aria-hidden className="size-4 shrink-0 text-yellow-500" />}
         meta={headcount(groups.council)}
+        action={slots.councilAction}
         className="@2xl:mx-auto @2xl:w-1/2"
         people={groups.council}
         person={slots.person}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
-import type { CouncilView, TeamDepartment, TeamMember } from '@vada/contracts'
+import type { CouncilView, TeamDepartment } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
 import PageActions from '@/components/PageActions'
@@ -13,11 +13,11 @@ import { DepartmentDialogs } from './DepartmentDialogs'
 import { DepartmentMenu } from './DepartmentMenu'
 import { DepartmentRename } from './DepartmentRename'
 import { InviteSheet, InviteSheetBody } from './InviteSheet'
-import { MemberRow } from './MemberRow'
 import { OrgLayout } from './OrgLayout'
+import { councilAction, headAction, PersonRow } from './OrgPeopleSlots'
 import { PeopleOverlays } from './PeopleOverlays'
 import { useDepartments, type DepartmentsState } from './useDepartments'
-import { usePeople, type PeopleState } from './usePeople'
+import { usePeople } from './usePeople'
 import type { Team } from './useTeam'
 
 // reading은 view를 가져온 학생회 읽기다. onCouncilChanged는 바깥 변경을 알게 돼(403) 학생회를 다시 읽고,
@@ -46,6 +46,7 @@ export default function Organization({
   const titles = view.council.titles
   // 권한을 잃으면 사람 쪽과 부서 쪽이 같은 까닭을 함께 알린다. 같은 글은 한 번만 보인다.
   const messages = [...new Set([people.pageMessage, departments.problemIn('list')])].filter(Boolean)
+  const slots = departmentSlots(departments, team.saving)
   return (
     <PageColumn>
       {people.can('invite.manage') && (
@@ -62,7 +63,14 @@ export default function Organization({
         person={(member, group) => (
           <PersonRow key={member.id} member={member} group={group} {...{ people, team, view }} />
         )}
-        {...departmentSlots(departments, team.saving)}
+        councilAction={councilAction({ people, team, view })}
+        {...slots}
+        departmentAction={department => (
+          <>
+            {headAction({ people, team, view }, department)}
+            {slots.departmentAction(department)}
+          </>
+        )}
       />
       <PeopleOverlays people={people} view={view} team={team} />
       <DepartmentDialogs state={departments} saving={team.saving} />
@@ -118,27 +126,6 @@ function departmentSlots(state: DepartmentsState, saving: boolean) {
       />
     ),
   }
-}
-
-type RowProps = {
-  member: TeamMember
-  // 줄이 든 묶음. 부서 묶음이면 그 부서의 직급을 배지로 보인다.
-  group: string
-  people: PeopleState
-  team: Team
-  view: CouncilView
-}
-
-function PersonRow({ member, group, people, team, view }: RowProps) {
-  return (
-    <MemberRow
-      member={member}
-      departments={team.data?.departments ?? []}
-      titles={view.council.titles}
-      inDepartment={team.data?.departments.some(item => item.id === group) ? group : null}
-      onOpen={() => people.openPerson(member)}
-    />
-  )
 }
 
 // 회장단에게만 머리글의 [구성원 초대]와 그 창(DEC-47, DEC-91). 권한을 잃으면 둘 다 사라진다.

@@ -52,6 +52,16 @@ export const rankChange = (
   text: `${member.name} 직급 바꾸기 완료`,
 })
 
+// 부서 머리의 '{부장} 지정'. 부장이 있어도 둘째를 정할 수 있다(DEC-91).
+export const headChange = (
+  member: TeamMember,
+  placement: Placement,
+  titles: CouncilTitles,
+): Undoable => ({
+  ...rankChange(member, placement, 'head'),
+  text: `${member.name} ${titles.head} 지정 완료`,
+})
+
 export function viceChange(member: TeamMember, titles: CouncilTitles): Undoable {
   const giving = member.councilRank !== 'vice_president'
   const rank = (value: 'vice_president' | null) => ({

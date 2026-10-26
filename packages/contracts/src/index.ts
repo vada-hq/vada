@@ -140,6 +140,7 @@ export {
   DEPARTMENT_NAME_MAX,
   LEFT_MEMBER_NAME_PREFIX,
   isLeftMemberName,
+  isUnassignedMember,
   CreateDepartmentSchema,
   UpdateDepartmentSchema,
   type CreateDepartmentRequest,
