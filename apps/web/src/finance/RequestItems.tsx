@@ -1,4 +1,4 @@
-import type { PurchaseLineItem } from '@vada/contracts'
+import type { PurchaseLineItem, PurchaseShipment } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { wonLabel } from './purchase-view'
 import { ItemCancelButton } from './ItemCancel'
@@ -32,7 +32,18 @@ function ItemFacts({ item }: { item: PurchaseLineItem }) {
 
 // 품목 목록: 이름과 수량, 상태(결제함), 옵션, 링크, 승인한 금액과 예산 항목, 서버가 준 [품목 취소]
 // 결재 중이면 대기 품목은 결재 칸에만 있어(같은 품목을 두 번 보이지 않음) 남은 것이 없으면 목록도 없다.
-export function RequestItems({ items, cancel }: { items: PurchaseLineItem[]; cancel: ItemCancel }) {
+export function RequestItems({
+  items,
+  cancel,
+  shipments = [],
+}: {
+  items: PurchaseLineItem[]
+  cancel: ItemCancel
+  shipments?: PurchaseShipment[]
+}) {
+  const covered = new Set(
+    shipments.filter(shipment => !shipment.cancelledAt).flatMap(shipment => shipment.lineItemIds),
+  )
   if (items.length === 0) return null
   return (
     <section aria-label="품목" className="flex flex-col gap-2">
@@ -46,6 +57,7 @@ export function RequestItems({ items, cancel }: { items: PurchaseLineItem[]; can
               </span>
               <ItemStatusBadge status={item.status} />
               {item.paid && <Badge tone="success">결제함</Badge>}
+              {covered.has(item.id) && <Badge>송장 등록됨</Badge>}
             </div>
             <ItemFacts item={item} />
             <ItemCancelButton item={item} cancel={cancel} />
