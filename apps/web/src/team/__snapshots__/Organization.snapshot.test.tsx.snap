@@ -1563,7 +1563,7 @@ exports[`확인 대화상자: 회장 넘기기 1`] = `
 <li class="flex flex-col gap-2 px-3 py-2.5">
 <div class="flex items-center gap-2">
 <span class="min-w-0 flex-1 text-sm break-keep wrap-anywhere text-gray-800">재정부</span>
-<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-28" aria-label="재정부 부서 직급">
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-28 max-sm:min-h-11" aria-label="재정부 부서 직급">
 <option value="">직급 없음</option>
 <option value="head">국장</option>
 <option value="vice_head">차장</option>

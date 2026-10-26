@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import type { TeamResponse } from '@vada/contracts'
+import type { Action, TeamResponse } from '@vada/contracts'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useLatest } from '@/lib/use-latest'
 import { changedByOwnRead, type Reading } from '@/lib/use-lost'
 import {
@@ -20,23 +21,49 @@ export function usePeopleDialogs(
   { can, reading }: { can: Can; reading: Reading },
   onClosed: (reason: string) => void,
 ) {
-  const [viewing, setViewing] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
-  const viewingMember = findViewing(data?.members, viewing)
+  const { viewing, viewingMember, viewingReason, openViewing } = useViewing(data, can)
   const editingMember = findEditing(data?.members, editing, can)
   const confirming = findConfirming(data?.members, confirm, me, can)
   const viewingGone = isGone(data, viewing, viewingMember)
   const editingGone = isGone(data, editing, editingMember)
   const confirmGone = isGone(data, confirm, confirming)
   // 닫힌 창의 대상을 지운다. 나중에 같은 운영진이 다시 목록에 나타나도 창이 저절로 열리지 않게 한다.
-  const viewingReason = closedReason(data?.members, viewing)
   const editingReason = closedReason(data?.members, editing)
   const confirmReason = closedReason(data?.members, confirm?.memberId ?? null)
-  useWhenClosed(viewingGone, { reason: viewingReason, reading }, onClosed, () => setViewing(null))
+  useWhenClosed(viewingGone, { reason: viewingReason, reading }, onClosed, () => openViewing(null))
   useWhenClosed(editingGone, { reason: editingReason, reading }, onClosed, () => setEditing(null))
   useWhenClosed(confirmGone, { reason: confirmReason, reading }, onClosed, () => setConfirm(null))
-  return { viewingMember, editingMember, confirming, setViewing, setEditing, setConfirm }
+  return {
+    viewingMember,
+    editingMember,
+    confirming,
+    setViewing: openViewing,
+    setEditing,
+    setConfirm,
+  }
+}
+
+// 사람 상세의 동작을 내는 권한(people-access.ts personActions).
+const MANAGING: Action[] = ['member.manage', 'rank.manage', 'president.transfer']
+
+// 사람 상세의 대상. 상세는 누구나 보지만, 연 뒤에 편성 권한을 하나라도 잃으면 닫고 까닭을 보인다(자주 잡힌 것 1).
+// 그래서 연 때의 권한을 기억해 지금 권한과 맞댄다.
+function useViewing(data: TeamResponse | null, can: Can) {
+  const [viewing, setViewing] = useState<string | null>(null)
+  const held = MANAGING.filter(action => can(action))
+  const [openedWith, setOpenedWith] = useState<Action[]>(held)
+  const lostPermission = viewing !== null && openedWith.some(action => !held.includes(action))
+  return {
+    viewing,
+    viewingMember: lostPermission ? null : findViewing(data?.members, viewing),
+    viewingReason: lostPermission ? PERMISSION_CHANGED : closedReason(data?.members, viewing),
+    openViewing: (id: string | null) => {
+      setOpenedWith(held)
+      setViewing(id)
+    },
+  }
 }
 
 // 목록을 읽은 뒤 열려 있던(대상을 기억하던) 창의 대상을 못 찾으면 닫힌 것이다.

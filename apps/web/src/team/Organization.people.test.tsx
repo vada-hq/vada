@@ -456,16 +456,16 @@ test('부서 직급 선택칸과 직급이 붙은 소속 옮기기·빼기는 ra
   view.rerender(
     <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
   )
-  // 사람 상세는 누구나 보므로 열린 채이고, 직급은 글로만 보인다.
-  await waitFor(() => expect(within(sheet).queryByLabelText('재정부 부서 직급')).toBeNull())
-  expect(within(sheet).getByText('국장')).toBeTruthy()
-  expect(within(sheet).queryByRole('button', { name: '재정부에서 옮기기' })).toBeNull()
-  expect(within(sheet).queryByRole('button', { name: '재정부에서 빼기' })).toBeNull()
+  // 연 상세는 권한을 잃어 닫힌다. 다시 열면 직급은 글로만 보인다.
+  await noDialog()
+  const again = await openPerson('이재정')
+  expect(within(again).queryByLabelText('재정부 부서 직급')).toBeNull()
+  expect(within(again).getByText('국장')).toBeTruthy()
+  expect(within(again).queryByRole('button', { name: '재정부에서 옮기기' })).toBeNull()
+  expect(within(again).queryByRole('button', { name: '재정부에서 빼기' })).toBeNull()
   // 부서에 직급 없이 넣는 일은 member.manage만으로 된다.
-  expect(
-    asElement(within(sheet).getByRole('button', { name: '부서 더하기' }), HTMLButtonElement)
-      .disabled,
-  ).toBe(false)
+  expect(within(again).getByRole('button', { name: '부서 더하기' })).toBeTruthy()
+  expect(sheet.isConnected).toBe(false)
 })
 
 test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () => {
@@ -488,17 +488,17 @@ test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () =>
 })
 
 // 사람 상세가 열린 채 rank.manage를 잃으면 직급을 고를 칸이 사라진다. 그 뒤 부서를 더하면 직급 없이 보낸다.
-test('사람 상세가 열린 채 rank.manage를 잃으면 직급을 고를 수 없고, 부서를 더해도 직급을 보내지 않는다', async () => {
+test('사람 상세가 열린 채 rank.manage를 잃으면 닫히고, 다시 열면 직급을 고를 수 없고 부서를 더해도 직급을 보내지 않는다', async () => {
   const api = serve()
   api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(teamResponse()))
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
-  const sheet = await openPerson('박새내')
+  await openPerson('박새내')
   view.rerender(
     <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
   )
-  await waitFor(() =>
-    expect(within(sheet).queryByRole('button', { name: '부위원장 지정' })).toBeNull(),
-  )
+  await noDialog()
+  const sheet = await openPerson('박새내')
+  expect(within(sheet).queryByRole('button', { name: '부위원장 지정' })).toBeNull()
   await pick(sheet, '부서 더하기', '재정부')
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]!.body).toEqual({ departmentId: 'd1', rank: null })
@@ -738,22 +738,23 @@ test('확인 대화상자가 열린 채 권한을 잃으면 닫히고, 사람 �
   ]) {
     const api = serve()
     const view = render(<Harness permissions={permissions} />)
-    const { sheet } = await openConfirm(name, item, title)
+    await openConfirm(name, item, title)
     view.rerender(<Harness permissions={lost} />)
-    await closed(title)
-    expect(actionsIn(sheet), item).not.toContain(item)
+    // 확인 창과 그것을 연 사람 상세가 함께 닫힌다.
+    await noDialog()
     expect(posts(api), `${item}`).toEqual([])
     cleanup()
   }
 })
 
-test('사람 상세가 열린 채 member.manage를 잃으면 부서 동작이 사라지고, 아무것도 보내지 않는다', async () => {
+test('사람 상세가 열린 채 member.manage를 잃으면 닫히고 까닭을 보이며, 아무것도 보내지 않는다', async () => {
   const api = serve()
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
   const sheet = await openPerson('박새내')
   expect(actionsIn(sheet)).toContain('부서 더하기')
   view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
-  await waitFor(() => expect(actionsIn(sheet)).toEqual([]))
+  await noDialog()
+  expect(await screen.findByText(LOST)).toBeTruthy()
   expect(posts(api)).toEqual([])
 })
 
@@ -881,21 +882,27 @@ test('사람 상세·확인 대화상자가 열린 채 대상이 목록에서 �
   }
 })
 
-// 사람 상세는 모든 운영진이 보므로 권한을 잃어도 열린 채이고, 동작만 사라지며 까닭을 상세 안에 보인다.
-test('사람 상세·확인 대화상자가 열린 채 권한을 잃으면 확인 창은 닫히고 까닭을 사람 상세에 보인다', async () => {
+// 사람 상세는 모든 운영진이 보지만, 연 뒤에 편성 권한을 잃으면 닫고 까닭을 쪽에 보인다(자주 잡힌 것 1).
+test('사람 상세·확인 대화상자가 열린 채 권한을 잃으면 둘 다 닫히고 까닭을 쪽에 보인다', async () => {
   for (const item of ['사람 상세', '내보내기']) {
     serve()
     const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
-    const sheet =
-      item === '사람 상세'
-        ? await openPerson('박새내')
-        : (await openConfirm('박새내', '내보내기', '박새내님을 내보낼까요?')).sheet
+    if (item === '사람 상세') await openPerson('박새내')
+    else await openConfirm('박새내', '내보내기', '박새내님을 내보낼까요?')
     view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
-    await closed('박새내님을 내보낼까요?')
-    expect(await within(sheet).findByText(LOST), item).toBeTruthy()
-    expect(actionsIn(sheet), item).toEqual([])
+    await noDialog()
+    expect(await screen.findByText(LOST), item).toBeTruthy()
     cleanup()
   }
+  // rank.manage 하나만 잃어도 닫힌다.
+  serve()
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await openPerson('이재정')
+  view.rerender(
+    <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
+  )
+  await noDialog()
+  expect(await screen.findByText(LOST)).toBeTruthy()
 })
 
 test('열린 초대 창은 초대 권한을 잃으면 닫히고 까닭을 쪽에 보인다', async () => {
@@ -958,8 +965,8 @@ test('사람 상세에서 내 부서 소속을 고쳐 내 권한이 줄어도 �
   render(<SelfChanging from={LEADER_PERMISSIONS} memberId="m2" />)
   const sheet = await openPerson('이재정')
   fireEvent.click(within(sheet).getByRole('button', { name: '재정부에서 빼기' }))
-  // 다시 읽은 권한으로 동작이 사라진다.
-  await waitFor(() => expect(actionsIn(sheet)).toEqual([]))
+  // 다시 읽은 권한으로 상세가 닫힌다. 내 변경에서 온 것이라 까닭은 알리지 않는다.
+  await noDialog()
   await settle()
   expect(screen.queryByText(LOST)).toBeNull()
   expect(screen.queryByText(GONE)).toBeNull()
@@ -999,8 +1006,8 @@ test('내 변경 뒤 다시 읽기가 끝난 다음 바깥에서 권한이 줄�
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   await settle()
   fireEvent.click(screen.getByText('바깥에서 권한 빼기'))
-  expect(await within(sheet).findByText(LOST)).toBeTruthy()
-  expect(actionsIn(sheet)).toEqual([])
+  await noDialog()
+  expect(await screen.findByText(LOST)).toBeTruthy()
 })
 
 test('내 변경 뒤 다시 읽기가 끝난 다음 열려 있던 사람 상세의 대상이 바깥에서 사라지면 경고를 보인다', async () => {
@@ -1088,6 +1095,7 @@ test('확인 창 없는 내 변경(내 부위원장 지정) 뒤 다시 읽기가
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   await settle()
   fireEvent.click(screen.getByText('바깥에서 권한 빼기'))
-  // 사람 상세가 열려 있으므로 사람 쪽 까닭은 상세 안에 보인다.
-  expect(await within(sheet).findByText(LOST)).toBeTruthy()
+  // 권한을 잃은 상세는 닫히고 까닭을 쪽에 보인다.
+  await noDialog()
+  expect(await screen.findByText(LOST)).toBeTruthy()
 })

@@ -239,6 +239,12 @@ test('보내는 동안 다시 눌러도 한 번만 보낸다', async () => {
   const sheet = await openPerson('이재정')
   fireEvent.click(within(sheet).getByRole('button', { name: '부위원장 지정' }))
   fireEvent.click(within(sheet).getByRole('button', { name: '부위원장 지정' }))
+  // 직급 선택칸도 보내는 동안 꺼진다. 꺼진 칸에 바뀜이 와도(이미 열린 목록) 다시 보내지 않는다.
+  const rank = within(sheet).getByRole('combobox', {
+    name: '재정부 부서 직급',
+  }) as HTMLSelectElement
+  expect(rank.disabled).toBe(true)
+  fireEvent.change(rank, { target: { value: 'vice_head' } })
   expect(posts(api)).toHaveLength(1)
   pending.resolve(json(withPlacements([{ id: 'd1', rank: 'head' }], 'vice_president')))
   expect(await within(sheet).findByRole('button', { name: '부위원장 해제' })).toBeTruthy()
