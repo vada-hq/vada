@@ -2,7 +2,7 @@ import { CalendarDays } from 'lucide-react'
 import type { EventSummary } from '@vada/contracts'
 import EventStatusChip from '../events/EventStatusChip'
 import { SHORT_LIST } from './home-view'
-import { DateBox, whenParts } from './HomeEventRow'
+import { whenParts } from './HomeEventRow'
 import HomeRow from './HomeRow'
 import HomeSection from './HomeSection'
 import NoOpenEvents from './NoOpenEvents'
@@ -30,9 +30,8 @@ export default function WeekEventsSection({ events, today, noOpenEvents, ...open
         <HomeRow
           key={event.id}
           title={event.name}
-          lead={<DateBox startsAt={event.startsAt} past={false} />}
           meta={[...whenParts(event, today), event.place]}
-          side={<EventStatusChip status={event.status} />}
+          chip={<EventStatusChip status={event.status} />}
           onOpen={() => open.onOpenEvent(event.id)}
         />
       ))}

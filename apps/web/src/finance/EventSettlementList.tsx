@@ -1,7 +1,7 @@
-import { EVENT_STATUS_LABEL, type EventSettlementRow } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
+import type { EventSettlementRow } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
-import { EVENT_STATUS_TONE, remainingLabel, settlementLabel } from '../events/event-view'
+import { remainingLabel, settlementLabel } from '../events/event-view'
+import EventStatusChip from '../events/EventStatusChip'
 import { rowLinkClass, settlementDate, settlementMark } from './event-settlement-view'
 
 type Props = {
@@ -44,9 +44,7 @@ export function EventSettlementList({ rows, onOpen }: Props) {
               <MarkText row={row} />
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-              <Badge tone={EVENT_STATUS_TONE[row.event.status]}>
-                {EVENT_STATUS_LABEL[row.event.status]}
-              </Badge>
+              <EventStatusChip status={row.event.status} />
               {date && <span>{date}</span>}
             </div>
           </li>
