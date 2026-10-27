@@ -7,11 +7,13 @@ import Gallery from './Gallery'
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  history.replaceState(null, '', '/ui.html')
 })
 
 test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   render(<Gallery />)
-  const headings = screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)
+  const sections = [...document.querySelectorAll('main > section')]
+  const headings = sections.map(section => section.querySelector('h2')!.textContent)
   expect(headings).toEqual(
     expect.arrayContaining([
       '버튼',
@@ -54,11 +56,57 @@ test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
       '숨김',
     ]),
   )
+  const navigation = document.querySelector('nav[aria-label="구역 목록"]')!
+  expect([...navigation.querySelectorAll('a')].map(link => link.textContent)).toEqual([
+    '모든 구역',
+    ...headings,
+  ])
+  for (const section of sections) {
+    const link = section.querySelector('a[href^="/ui.html?"]')!
+    expect(link.textContent).toBe('이것만 열기')
+    expect(new URL(link.getAttribute('href')!, location.href).searchParams.get('section')).toBe(
+      section.querySelector('h2')!.textContent,
+    )
+  }
+})
+
+test('주소에서 고른 구역만 보이고 전체 구역 목록에서 다시 이동할 수 있다', () => {
+  history.replaceState(null, '', '/ui.html?section=메뉴·탭&frame=dialog')
+  render(<Gallery />)
+  expect(screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)).toEqual([
+    '메뉴·탭',
+  ])
+  const navigation = screen.getByRole('navigation', { name: '구역 목록' })
+  expect(within(navigation).getByRole('link', { name: '모든 구역' }).getAttribute('href')).toBe(
+    '/ui.html',
+  )
+  expect(
+    within(navigation).getByRole('link', { name: '메뉴·탭' }).getAttribute('aria-current'),
+  ).toBe('page')
+  const other = within(navigation).getByRole('link', { name: '카드·배너' })
+  expect(new URL(other.getAttribute('href')!, location.href).searchParams.get('section')).toBe(
+    '카드·배너',
+  )
+  expect(screen.queryByText('그런 구역이 없어요')).toBeNull()
+})
+
+test.each(['메뉴', '', '없는 구역'])('일치하지 않는 구역 %j는 안내와 목록만 보인다', section => {
+  history.replaceState(null, '', `/ui.html?${new URLSearchParams({ section })}`)
+  render(<Gallery />)
+  expect(
+    screen.queryAllByRole('heading', { level: 2 }).map(heading => heading.textContent),
+  ).toEqual([])
+  expect(screen.getByText('그런 구역이 없어요')).toBeTruthy()
+  expect(
+    within(screen.getByRole('navigation', { name: '구역 목록' })).getByRole('link', {
+      name: '버튼',
+    }),
+  ).toBeTruthy()
 })
 
 // 페이지의 주소와 클립보드를 감시용 가짜로 바꿔 둔다. 예시가 자기 가짜 주소·가짜 복사 대신 이것들을 쓰면 주소가 바뀌거나 복사가 불린다.
 test('카톡 안 로그인 예시는 그려도 페이지를 넘기지 않고, 버튼을 눌러도 가짜 주소와 가짜 복사만 쓴다', async () => {
-  const page = { href: 'https://vada.test/ui.html' }
+  const page = { href: 'https://vada.test/ui.html', search: '?section=카톡 안 로그인' }
   const writeText = vi.fn(async (_text: string) => {})
   vi.stubGlobal('location', page)
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })

@@ -5,7 +5,10 @@ exports[`기본정보 수정 패널 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">행사 기본정보 수정 패널</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">행사 기본정보 수정 패널</h2>
+<a href="/ui.html?section=%ED%96%89%EC%82%AC+%EA%B8%B0%EB%B3%B8%EC%A0%95%EB%B3%B4+%EC%88%98%EC%A0%95+%ED%8C%A8%EB%84%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">기본정보 수정 패널 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">미정·양식 둘 패널 열기</button>
@@ -143,7 +146,10 @@ exports[`내 이름 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">내 이름 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">내 이름 창</h2>
+<a href="/ui.html?section=%EB%82%B4+%EC%9D%B4%EB%A6%84+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">내 이름 창 열기</button>
 </div>
@@ -195,7 +201,10 @@ exports[`다시 로그인 탈퇴 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">탈퇴 창</h2>
+<a href="/ui.html?section=%ED%83%88%ED%87%B4+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-md">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -283,7 +292,10 @@ exports[`대화상자 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">대화상자·옆 메뉴</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">대화상자·옆 메뉴</h2>
+<a href="/ui.html?section=%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90%C2%B7%EC%98%86+%EB%A9%94%EB%89%B4" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" aria-haspopup="dialog" aria-expanded="true" data-state="open" aria-controls="radix-_id1_">대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">옆 메뉴 열기</button>
@@ -326,7 +338,10 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">행사 기본정보 수정 패널</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">행사 기본정보 수정 패널</h2>
+<a href="/ui.html?section=%ED%96%89%EC%82%AC+%EA%B8%B0%EB%B3%B8%EC%A0%95%EB%B3%B4+%EC%88%98%EC%A0%95+%ED%8C%A8%EB%84%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">기본정보 수정 패널 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">미정·양식 둘 패널 열기</button>
@@ -482,7 +497,10 @@ exports[`보내는 중 탈퇴 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">탈퇴 창</h2>
+<a href="/ui.html?section=%ED%83%88%ED%87%B4+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-md">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -569,7 +587,10 @@ exports[`보내는 중 패널 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">행사 기본정보 수정 패널</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">행사 기본정보 수정 패널</h2>
+<a href="/ui.html?section=%ED%96%89%EC%82%AC+%EA%B8%B0%EB%B3%B8%EC%A0%95%EB%B3%B4+%EC%88%98%EC%A0%95+%ED%8C%A8%EB%84%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">기본정보 수정 패널 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">미정·양식 둘 패널 열기</button>
@@ -698,7 +719,10 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">확인 대화상자</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">확인 대화상자</h2>
+<a href="/ui.html?section=%ED%99%95%EC%9D%B8+%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">확인 대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">일반 확인 대화상자 열기</button>
@@ -740,7 +764,10 @@ exports[`실패 탈퇴 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">탈퇴 창</h2>
+<a href="/ui.html?section=%ED%83%88%ED%87%B4+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-md">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -828,7 +855,10 @@ exports[`옆 메뉴 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">대화상자·옆 메뉴</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">대화상자·옆 메뉴</h2>
+<a href="/ui.html?section=%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90%C2%B7%EC%98%86+%EB%A9%94%EB%89%B4" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="closed">대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">옆 메뉴 열기</button>
@@ -864,7 +894,10 @@ exports[`오른쪽 패널 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">대화상자·옆 메뉴</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">대화상자·옆 메뉴</h2>
+<a href="/ui.html?section=%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90%C2%B7%EC%98%86+%EB%A9%94%EB%89%B4" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="closed">대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">옆 메뉴 열기</button>
@@ -897,7 +930,10 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">확인 대화상자</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">확인 대화상자</h2>
+<a href="/ui.html?section=%ED%99%95%EC%9D%B8+%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">확인 대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">일반 확인 대화상자 열기</button>
@@ -939,7 +975,10 @@ exports[`입금 확인 창(금액 칸) 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">신청자 줄·입금 칩·환불 대기</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">신청자 줄·입금 칩·환불 대기</h2>
+<a href="/ui.html?section=%EC%8B%A0%EC%B2%AD%EC%9E%90+%EC%A4%84%C2%B7%EC%9E%85%EA%B8%88+%EC%B9%A9%C2%B7%ED%99%98%EB%B6%88+%EB%8C%80%EA%B8%B0" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <ul class="flex w-96 max-w-full flex-col gap-2">
 <li class="flex flex-col gap-2 rounded-md border bg-white p-3">
@@ -1054,7 +1093,10 @@ exports[`저장 실패 패널 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">행사 기본정보 수정 패널</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">행사 기본정보 수정 패널</h2>
+<a href="/ui.html?section=%ED%96%89%EC%82%AC+%EA%B8%B0%EB%B3%B8%EC%A0%95%EB%B3%B4+%EC%88%98%EC%A0%95+%ED%8C%A8%EB%84%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">기본정보 수정 패널 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">미정·양식 둘 패널 열기</button>
@@ -1184,7 +1226,10 @@ exports[`지출 금액과 자릿수 확인 창 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">지출 적기 · 1280</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">지출 적기 · 1280</h2>
+<a href="/ui.html?section=%EC%A7%80%EC%B6%9C+%EC%A0%81%EA%B8%B0+%C2%B7+1280" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="max-w-full rounded-lg border bg-background p-6 w-128">
 <h3 class="mb-6 text-base font-semibold">지출 적기</h3>
@@ -1292,7 +1337,10 @@ exports[`지출 금액과 자릿수 확인 창 1`] = `
 </div>
 </section>
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">지출 적기 · 390</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">지출 적기 · 390</h2>
+<a href="/ui.html?section=%EC%A7%80%EC%B6%9C+%EC%A0%81%EA%B8%B0+%C2%B7+390" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="max-w-full rounded-lg border bg-background p-6 w-89.5 [&amp;_input]:text-base [&amp;_select]:text-base">
 <h3 class="mb-6 text-base font-semibold">지출 적기</h3>
@@ -1430,7 +1478,10 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">학생회 만들기 단계</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">학생회 만들기 단계</h2>
+<a href="/ui.html?section=%ED%95%99%EC%83%9D%ED%9A%8C+%EB%A7%8C%EB%93%A4%EA%B8%B0+%EB%8B%A8%EA%B3%84" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-148 lg:has-data-wide-step:max-w-244">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -2117,7 +2168,10 @@ exports[`탈퇴 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">탈퇴 창</h2>
+<a href="/ui.html?section=%ED%83%88%ED%87%B4+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-md">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
@@ -2204,7 +2258,10 @@ exports[`확인 대화상자 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">확인 대화상자</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">확인 대화상자</h2>
+<a href="/ui.html?section=%ED%99%95%EC%9D%B8+%EB%8C%80%ED%99%94%EC%83%81%EC%9E%90" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">확인 대화상자 열기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">일반 확인 대화상자 열기</button>
@@ -2247,7 +2304,10 @@ exports[`회장 탈퇴 창 열기 1`] = `
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
 <section class="flex flex-col gap-3 border-b py-6">
-<h2 class="text-base">탈퇴 창</h2>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">탈퇴 창</h2>
+<a href="/ui.html?section=%ED%83%88%ED%87%B4+%EC%B0%BD" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-md">
 <div class="flex w-full max-w-148 flex-col gap-6 rounded-lg border bg-white p-6 shadow-sm sm:p-10 lg:has-data-wide-step:max-w-244">
