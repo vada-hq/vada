@@ -271,3 +271,8 @@ test('만든 주소를 다시 읽으면 같은 값이다: 상위 목록, 대문�
 test('uuid가 아닌 id로 만든 주소는 읽히지 않는다', () => {
   assert.equal(parseAppPath(menuPath('home', 'c1')), null)
 })
+test('개요의 지출 예정 내역 주소는 기간과 보기 조건을 보존한다', () => {
+  const path = menuPath('finance', C, { tab: 'expenses', period: P, spending: 'committed' })
+  assert.equal(path, `/finance/${C}?tab=expenses&period=${P}&spending=committed`)
+  assert.equal(parseAppPath(path)?.query['spending'], 'committed')
+})

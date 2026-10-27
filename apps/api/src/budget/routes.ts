@@ -16,6 +16,7 @@ import type { Db, Tx } from '../db/types.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { financeOverviewOf } from './overview.js'
+import { financeCommitmentsOf } from './commitments.js'
 import { budgetOf } from './queries.js'
 import { deleteBudgetItem, updateBudgetItem } from './item-change.js'
 import { addBudgetItem, addBudgetItems, createFiscalPeriod } from './service.js'
@@ -43,6 +44,24 @@ type Kit = {
   auth: ReturnType<typeof requireSession>
   clock: () => Date
   change: Change
+}
+
+function commitmentRoute({
+  routes,
+  auth,
+  clock,
+  db,
+}: Pick<Kit, 'routes' | 'auth' | 'clock'> & { db: Db }) {
+  routes.get(`${root}/finance-commitments`, auth, async c => {
+    const now = clock()
+    const request = asked(c.get('userId'), c.req.param('councilId'), now)
+    const { period } = parseQuery(BudgetQuerySchema, c.req.queries())
+    const view = await db.transaction(
+      async tx => financeCommitmentsOf(tx, await authorize(tx, request), now, period),
+      snapshot,
+    )
+    return c.json(view)
+  })
 }
 
 // 예산 항목의 쓰기. 여러 행 넣기(batch)는 항목 번호 경로(:itemId)보다 먼저 둔다. 'batch'가 번호 자리로 읽히지 않게 한다.
@@ -110,6 +129,7 @@ export function createBudgetRoutes(
     )
     return c.json(view satisfies FinanceOverviewResponse)
   })
+  commitmentRoute({ routes, auth, clock, db })
   routes.post(`${root}/fiscal-periods`, json(CreateFiscalPeriodSchema), auth, async c => {
     const input = c.req.valid('json')
     const view = await change(c, clock(), (tx, actor) => createFiscalPeriod(tx, actor, input))

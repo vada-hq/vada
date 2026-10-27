@@ -60,8 +60,8 @@ function openersOf(councilId: string, periodId: string, canManage: boolean): Ove
       ? () => openMenu('finance', councilId, { tab: 'budget', period: periodId })
       : null,
     onSpent: () => openMenu('finance', councilId, { tab: 'expenses', period: periodId }),
-    // 지출 예정은 승인했고 결제하지 않은 품목이라 지출이 아직 없다. 그 품목이 있는 구매 요청 전체로 간다.
-    onCommitted: () => openMenu('finance', councilId, { tab: 'requests', view: 'all' }),
+    onCommitted: () =>
+      openMenu('finance', councilId, { tab: 'expenses', period: periodId, spending: 'committed' }),
     onEvent: eventId => openRecord('events', councilId, eventId, { tab: 'money' }),
     onExpense: expenseId => openRecord('expenses', councilId, expenseId),
   }

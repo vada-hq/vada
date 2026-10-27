@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { WON_MAX, type EventRef } from './budget.js'
+import { WON_MAX, type EventRef, type FiscalPeriodView } from './budget.js'
 import { PHOTO_KEY_MAX } from './chat.js'
 import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
@@ -184,6 +184,17 @@ export interface ExpenseDetail extends ExpenseSummary {
 export interface ExpensesResponse {
   expenses: ExpenseSummary[]
   truncated: boolean
+  // 이전 배포에서 이미 받은 목록도 열 수 있다. 새 서버는 두 값을 항상 준다.
+  allocations?: ExpenseAllocation[]
+  periods?: FiscalPeriodView[]
+}
+// 목록에 받은 지출의 예산 배분. 결제일과 다른 기간의 항목도 그대로 준다(DEC-92).
+export interface ExpenseAllocation {
+  expenseId: string
+  budgetItemId: string
+  purpose: string
+  periodId: string
+  amount: number
 }
 export interface ExpenseResponse {
   expense: ExpenseDetail

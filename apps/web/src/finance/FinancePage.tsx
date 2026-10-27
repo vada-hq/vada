@@ -16,7 +16,7 @@ import { BudgetTab } from './BudgetTab'
 import type { ClosingOpeners } from './ClosingChecks'
 import { ClosingTab } from './ClosingTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
-import { ExpensesPanel } from './ExpensesPanel'
+import { ExpenseBrowser } from './ExpenseBrowser'
 import { FeePaymentsTab } from './FeePaymentsTab'
 import { IncomesTab } from './IncomesTab'
 import { OverviewTab } from './OverviewTab'
@@ -138,7 +138,12 @@ function FinanceTabPanel({
           <Body list={list} view={filter} onOpen={openers.onOpenRequest} />
         </>
       ) : tab === 'expenses' ? (
-        <ExpensesPanel list={expenses} onOpen={openers.onOpenExpense} />
+        <ExpenseBrowser
+          councilId={view.council.id}
+          list={expenses}
+          onOpen={openers.onOpenExpense}
+          onForbidden={onForbidden}
+        />
       ) : tab === 'settlements' ? (
         <SettlementsTab councilId={view.council.id} onForbidden={onForbidden} />
       ) : (

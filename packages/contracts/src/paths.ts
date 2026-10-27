@@ -91,6 +91,11 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     tab: { values: FINANCE_TABS, fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: 'mine' },
     period: { values: 'uuid', fallback: null },
+    spending: {
+      values: ['committed'],
+      fallback: null,
+      onlyWith: { key: 'tab', value: 'expenses' },
+    },
   },
   people: {},
   departments: {},
