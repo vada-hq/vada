@@ -89,6 +89,14 @@ const closedRows: Row[] = [
     prepare: (t, s) => post(t, `/events/${s.event}/complete`, {}, PRESIDENT),
     run: (t, s) => post(t, `/events/${s.event}/cancel-completion`, { reason: '되돌림' }, PRESIDENT),
   },
+  {
+    name: '예산 항목 더하기(오늘이 든 기간)',
+    run: t => post(t, '/budget-items', { purpose: '잠금 비품', amount: 1000 }),
+  },
+  {
+    name: '예산 항목 여러 행 더하기(오늘이 든 기간)',
+    run: t => post(t, '/budget-items/batch', { items: [{ purpose: '잠금 식비', amount: 1000 }] }),
+  },
 ]
 
 // 합계를 바꾸지 않는 쓰기와 다른 기간의 쓰기는 공개한 기간에서도 된다.

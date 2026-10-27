@@ -8,7 +8,7 @@ import type { Tx } from '../db/types.js'
 import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
-import { assertEventsOpen } from '../policy/locks.js'
+import { assertEventsOpen, isPeriodClosed } from '../policy/locks.js'
 import { assertNamesFree } from './names.js'
 import { budgetViewOf, pickedPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
 
@@ -64,6 +64,7 @@ export async function createFiscalPeriod(
 }
 
 // 기간을 고르면 다음 기간도 미리 편성한다(DEC-92). 생략하면 오늘이 든 기간이다. 행사는 완료 전이어야 한다(DEC-68).
+// 공개한 기간은 PERIOD_CLOSED다. 결산서의 예산 칸이 바뀌므로 고치기·지우기(item-change.ts)와 같이 막고, 행사 잠금이 먼저다.
 // 여러 행(예산 편성, DEC-92)은 한 거래로 넣는다. 한 행이라도 막히면 거래가 되돌아가 아무것도 남지 않는다.
 export async function addBudgetItems(
   tx: Tx,
@@ -80,6 +81,7 @@ export async function addBudgetItems(
   )
   const period = await pickedPeriodOf(tx, actor, choice.now, choice.periodId)
   if (!period) throw new ApiError('NO_FISCAL_PERIOD')
+  if (await isPeriodClosed(tx, actor, period.id)) throw new ApiError('PERIOD_CLOSED')
   await assertNamesFree(tx, period.budgetId, inputs)
   for (const input of inputs)
     await createRecord(tx, {
