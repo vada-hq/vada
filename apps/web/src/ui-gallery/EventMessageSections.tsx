@@ -46,6 +46,7 @@ const sample = (id: string, sender: string, body: string): ChatMessage => ({
   sentAt: '2026-10-23T00:30:00Z',
   deletedAt: null,
   photos: [],
+  made: [],
 })
 const FLOW = [
   sample(

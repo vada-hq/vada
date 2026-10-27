@@ -221,6 +221,7 @@ export const PURCHASE_ERRORS = changeErrors({
     '완료한 행사의 요청이라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 바꿀 수 있어요.',
   MEMBER_INVALID: '요청한 사람이 지금 운영진이 아니에요. 다른 사람을 골라 주세요.',
   TASK_INVALID,
+  SOURCE_MESSAGE_USED: '이 메시지로 만든 기록이 이미 있어요. 대화에서 기존 기록을 확인해 주세요.',
   MESSAGE_INVALID:
     '이 메시지를 더는 볼 수 없어 요청을 낼 수 없어요. 방에서 나갔는지 확인해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
@@ -297,6 +298,7 @@ export const EXPENSE_ERRORS = changeErrors({
 })
 // 지출 적기의 409 MESSAGE_INVALID는 근거 메시지 이야기라 사진 고르기·붙이기와 문구가 다르다.
 export const EXPENSE_CREATE_ERRORS = changeErrors({
+  SOURCE_MESSAGE_USED: '이 메시지로 만든 지출이 이미 있어요. 대화에서 기존 지출을 확인해 주세요.',
   ...EXPENSE_ERRORS,
   MESSAGE_INVALID:
     '이 메시지를 근거로 할 수 없어요. 볼 수 없는 대화의 메시지예요. 닫고 대화에서 다시 열어 주세요.',

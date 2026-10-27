@@ -53,6 +53,15 @@ export interface ChatPhotoListResponse {
 // 지운 메시지(DEC-54)의 자리. 서버가 만드는 방 줄 미리보기와 화면의 대화 흐름·업무 결과물이 같은 말을 한다.
 export const DELETED_MESSAGE = '삭제된 메시지'
 
+// 메시지 아래 기록 하나. blocking: 같은 메시지로 같은 종류의 새 기록을 막는다(반려·취소가 아닌 요청, 취소되지 않은 지출,
+// 022 정한 것 23). 화면은 막힌 메뉴 자리에 '구매 요청 보기'·'지출 보기'를 보인다.
+export interface MadeRecord {
+  kind: 'purchase_request' | 'expense'
+  id: string
+  title: string
+  blocking: boolean
+}
+
 export interface ChatMessage {
   id: string
   // 보낸 운영진. 시스템이 만든 메시지는 비어 있다.
@@ -63,6 +72,8 @@ export interface ChatMessage {
   sentAt: string
   deletedAt: string | null
   photos: ChatPhoto[]
+  // 보는 사람이 읽을 수 있는 연결 기록만 싣는다(DEC-90).
+  made: MadeRecord[]
 }
 
 export interface RoomSummary {

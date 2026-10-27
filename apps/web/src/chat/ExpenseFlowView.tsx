@@ -1,4 +1,4 @@
-import type { TeamResponse } from '@vada/contracts'
+import type { TeamResponse, MadeRecord } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
@@ -15,6 +15,7 @@ type Props = {
   // 받은 권한 목록의 값을 그대로 쓴다(화면이 다시 계산하지 않는다).
   canManage: boolean
   flow: ExpenseFlow
+  onMade?: ((messageId: string, made: MadeRecord) => void) | undefined
   onForbidden: () => void
 }
 
@@ -26,6 +27,7 @@ export default function ExpenseFlowView({
   canManage,
   flow,
   onForbidden,
+  onMade,
 }: Props) {
   const { writing, made } = flow
   // 열려 있는 동안 권한을 잃으면 닫고 이유를 보인다.
@@ -45,7 +47,16 @@ export default function ExpenseFlowView({
         memberId={meId}
         start={start}
         onClose={flow.close}
-        onCreated={expense => flow.finish(expense.id)}
+        onCreated={expense => {
+          if (writing)
+            onMade?.(writing.id, {
+              kind: 'expense',
+              id: expense.id,
+              title: expense.description,
+              blocking: true,
+            })
+          flow.finish(expense.id)
+        }}
         onLost={flow.lose}
         onForbidden={onForbidden}
       />

@@ -275,7 +275,15 @@ export default function RoomView({
   const [unreadAtOpen] = useState(() => unreadOf(rooms, roomId))
   const eventId = state.kind === 'ready' ? (state.room.eventId ?? null) : null
   const openProduct = useEventProductOpener(eventId)
-  const flows = useMessageFlows({ councilId, meId, request, canWriteExpense, eventId, onForbidden })
+  const flows = useMessageFlows({
+    councilId,
+    meId,
+    request,
+    canWriteExpense,
+    eventId,
+    onForbidden,
+    onMade: room.addMade,
+  })
   useReadMarker({ councilId, roomId }, state, {
     onRead: () => void rooms.reload(),
     onLost: room.lose,

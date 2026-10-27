@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
 import MessageMenu from './MessageMenu'
+import MessageMade from './MessageMade'
 import MessagePhotos from './MessagePhotos'
 import { useProductOpener } from './product-open'
 import { useMessageActions, type MessageActionArgs } from './useMessageActions'
@@ -138,7 +139,7 @@ export default function MessageItem(props: Props) {
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
   const photos = message.photos
-  const { actions } = useMessageActions({ message, ...actionArgs })
+  const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
     <li
       className={cn(
@@ -162,6 +163,7 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
           message.body !== '' && <Body message={message} mine={mine} />
         )}
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
+        <MessageMade councilId={councilId} records={message.made ?? []} />
         <Time message={message} continued={continued} />
       </div>
       <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">

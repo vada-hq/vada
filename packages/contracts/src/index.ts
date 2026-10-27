@@ -25,6 +25,7 @@ export {
   SendMessageSchema,
   ROOM_TYPES,
   type ChatMessage,
+  type MadeRecord,
   type ChatPhoto,
   type ChatPhotoListResponse,
   type EventRoomsResponse,

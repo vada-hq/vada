@@ -21,7 +21,7 @@ import { HeaderSection } from './HeaderSections'
 import { CouncilSpaceSection } from './CouncilSpaceSections'
 import { AccountSection } from './AccountSections'
 import { FeePaymentUploadSection } from './FeePaymentSections'
-import { MessageBubbleSection, RoomRowSection } from './ChatSections'
+import { MessageBubbleSection, MessageMadeSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
 import { ShipmentSection } from './ShipmentSections'
@@ -89,6 +89,7 @@ export const gallerySections = [
   KkirukMessageSection,
   RoomRowSection,
   MessageBubbleSection,
+  MessageMadeSection,
   EmptyAvatarSection,
   DialogSheetSection,
   ConfirmSection,
