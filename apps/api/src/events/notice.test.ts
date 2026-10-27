@@ -6,7 +6,7 @@ import type { PushSender } from '../push/sender.js'
 import { createRecord } from '../records/records.js'
 import { startEvents, type EventKit } from '../test-support/events.js'
 
-// 행사의 끼룩이 글(025 조각 4, DEC-90, DEC-93): 행사를 만들거나 이름·일시·장소를 바꾸면 같은 거래에서 공지방에 보낸 사람 없는 글 하나.
+// 행사의 자동 글(025 조각 4, DEC-90, DEC-93, DEC-80): 행사를 만들거나 정해진 일시·장소를 다른 값으로 바꾸면 같은 거래에서 공지방에 보낸 사람 없는 글 하나.
 
 const FULL = {
   name: '가을 축제',
@@ -147,6 +147,17 @@ test(
     const before = await messageCount(t)
     assert.equal((await t.post(`/${event.id}`, FULL)).status, 200)
     assert.equal((await t.post(`/${event.id}`, { ...FULL, name: '  가을 축제 ' })).status, 200)
+    assert.equal(await messageCount(t), before)
+  }),
+)
+
+test(
+  '이름을 바꾸거나 미정이던 일시·장소를 처음 정하면 글이 없다(DEC-80, 이력에만 남는다)',
+  run(async t => {
+    const event = await create(t, { name: '가을 축제' })
+    const before = await messageCount(t)
+    assert.equal((await t.post(`/${event.id}`, FULL)).status, 200)
+    assert.equal((await t.post(`/${event.id}`, { ...FULL, name: '가을 체육대회' })).status, 200)
     assert.equal(await messageCount(t), before)
   }),
 )

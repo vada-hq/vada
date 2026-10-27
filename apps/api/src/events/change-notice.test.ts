@@ -43,31 +43,30 @@ test('끝만 바뀌어도 일시 줄이다. 다른 날에 끝나면 끝에도 �
   )
 })
 
-test('비운 칸과 빈 칸에 채운 값은 미정으로 쓴다', () => {
+test('처음 정하거나(미정 → 값) 비우면(값 → 미정) 글이 없다. 전부는 행사 이력에 남는다(DEC-80)', () => {
   const empty = { name: '뒤풀이', startsAt: null, endsAt: null, place: null }
   assert.equal(
     changeNoticeOf(empty, { ...empty, startsAt: at('2026-11-05T19:00'), place: '학생회실' }, NOW),
-    [
-      '뒤풀이 일시가 바뀌었어요 · 미정 → 11월 5일 (목) 19:00',
-      '뒤풀이 장소가 바뀌었어요 · 미정 → 학생회실',
-    ].join('\n'),
+    null,
   )
   assert.equal(
-    changeNoticeOf(BEFORE, { ...BEFORE, endsAt: null, place: null }, NOW),
-    [
-      '가을 축제 일시가 바뀌었어요 · 11월 5일 (목) 14:00 ~ 18:00 → 11월 5일 (목) 14:00',
-      '가을 축제 장소가 바뀌었어요 · 대운동장 → 미정',
-    ].join('\n'),
+    changeNoticeOf(BEFORE, { ...BEFORE, startsAt: null, endsAt: null, place: null }, NOW),
+    null,
   )
 })
 
-test('이름이 바뀌면 이름 줄이 맨 앞이고, 다른 줄은 새 이름으로 부른다', () => {
+test('끝 시각만 비워도 일시는 정해진 채라 일시 줄이다. 장소를 비운 것은 줄이 없다', () => {
+  assert.equal(
+    changeNoticeOf(BEFORE, { ...BEFORE, endsAt: null, place: null }, NOW),
+    '가을 축제 일시가 바뀌었어요 · 11월 5일 (목) 14:00 ~ 18:00 → 11월 5일 (목) 14:00',
+  )
+})
+
+test('이름만 바뀌면 글이 없고, 이름과 장소가 바뀌면 장소 줄만 새 이름으로 부른다', () => {
+  assert.equal(changeNoticeOf(BEFORE, { ...BEFORE, name: '가을 체육대회' }, NOW), null)
   assert.equal(
     changeNoticeOf(BEFORE, { ...BEFORE, name: '가을 체육대회', place: '체육관' }, NOW),
-    [
-      '행사 이름이 바뀌었어요 · 가을 축제 → 가을 체육대회',
-      '가을 체육대회 장소가 바뀌었어요 · 대운동장 → 체육관',
-    ].join('\n'),
+    '가을 체육대회 장소가 바뀌었어요 · 대운동장 → 체육관',
   )
 })
 

@@ -109,7 +109,7 @@ export async function updateEvent(
       reason: null,
       changes,
     })
-  // 이름, 일시, 장소가 바뀌면 같은 거래에서 공지방에 끼룩이 글 하나(DEC-90, DEC-93). 같은 값이면 글이 없다.
+  // 정해진 일시·장소가 다른 값으로 바뀌면 같은 거래에서 공지방에 자동 글 하나(DEC-90, DEC-93, DEC-80).
   const after = {
     name: input.name,
     startsAt: fromKorean(input.startsAt),
