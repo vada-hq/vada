@@ -4,7 +4,6 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { useUnsavedInput } from '@/lib/leave-guard'
-import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
@@ -17,6 +16,7 @@ import {
 } from './request-form'
 import { RequestItemList } from './RequestItemList'
 import { useRequestCreate } from './useRequestCreate'
+import { useRequestValues } from './use-request-values'
 import { useRequestProductSeeds } from './use-request-product-seeds'
 import { navigate } from '@/lib/app-location'
 import { purchaseDraftOf, savePurchaseDraft, type PurchaseDraft } from './purchase-draft'
@@ -141,11 +141,14 @@ function CreateForm({
       },
   )
   const [restored] = useState(() => (draft.values ? restoredRequest(draft.values) : initial))
-  const [values, setValues] = useState(restored)
-  useRequestProductSeeds(props.councilId, restored, setValues)
+  const { values, picked, setValues, setPicked, autoChange, dirty } = useRequestValues(() => ({
+    values: { request: restored, picked: draft.picked ?? null },
+    baseline: { request: initial, picked: null },
+  }))
+  // 메시지의 링크로 채운 상품 정보는 화면이 채운 것이라, 사람이 손대기 전이면 떠날 때 묻는 기준에 넣는다.
+  useRequestProductSeeds(props.councilId, restored, autoChange)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
-  useUnsavedInput(!sameJson(values, initial))
-  const [picked, setPicked] = useState<Choice | null>(draft?.picked ?? null)
+  useUnsavedInput(dirty)
   useEffect(() => {
     savePurchaseDraft(draft, values, picked)
   }, [draft, values, picked])

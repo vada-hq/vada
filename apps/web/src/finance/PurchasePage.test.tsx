@@ -3,11 +3,13 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ProductInfo } from '@vada/contracts'
 import { navigate, pageState } from '@/lib/app-location'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 import { resetAddress } from '@/test-support/address-reset'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { COUNCIL_ID as C, FinanceAt } from '@/test-support/finance-at'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { ProductPreview } from './ProductPreview'
 
 const LINK = 'https://www.coupang.com/vp/products/100?itemId=11'
@@ -99,6 +101,47 @@ test('작성은 별도 주소에서 열리고 새로고침 후 입력·원문·�
   expect(pageState()).toBeUndefined()
   expect(window.location.pathname).toBe(`/purchases/${C}/${REQUEST}`)
   await screen.findByRole('heading', { name: '행사 포스터 인쇄' })
+})
+
+test('메시지와 상품 조회가 저절로 채운 값만 있으면 [취소]는 묻지 않고, 사람이 고치면 묻는다', async () => {
+  const api = setup()
+  api.on('POST', `${BASE}/product-info`, () => json({ product: PRODUCT, reason: null }))
+  open({
+    start: {
+      title: LINK,
+      body: '새내기 안내용 펜이 필요해요',
+      sourceMessageId: SOURCE,
+      items: [{ name: '', link: LINK, loadedPrice: null }],
+    },
+  })
+  await screen.findByText('품절')
+  expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe(PRODUCT.items[0]?.name)
+  expect(hasUnsavedInput()).toBe(false)
+  fill('품목 1 수량', '2')
+  expect(hasUnsavedInput()).toBe(true)
+  fill('품목 1 수량', '1')
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(window.location.pathname).not.toBe(`/finance/${C}/requests/new`))
+})
+
+test('업무만 고른 뒤 늦게 온 상품 조회는 떠날 때 묻는 기준을 옮기지 않는다', async () => {
+  const api = setup()
+  const pending = deferredResponse()
+  api.on('POST', `${BASE}/product-info`, () => pending.promise)
+  api.on('GET', `${BASE}/tasks?view=mine&status=open`, () =>
+    json({ tasks: [taskDetail({ id: TASK, title: '펜 주문' })], truncated: false }),
+  )
+  open({
+    pickTask: true,
+    start: { title: LINK, items: [{ name: '', link: LINK, loadedPrice: null }] },
+  })
+  await screen.findByRole('option', { name: '펜 주문' })
+  fireEvent.change(screen.getByLabelText('업무'), { target: { value: TASK } })
+  expect(hasUnsavedInput()).toBe(true)
+  pending.resolve(json({ product: PRODUCT, reason: null }))
+  await screen.findByText('품절')
+  expect(hasUnsavedInput()).toBe(true)
 })
 
 test('명시 조회의 늦은 응답은 직접 고친 제목·상품명·예상 단가·배송비를 덮지 않는다', async () => {
