@@ -1,4 +1,9 @@
-import type { ExpenseMethod, PurchaseLineItem, PurchaseRequestSummary } from '@vada/contracts'
+import type {
+  ExpenseMethod,
+  PurchaseLineItem,
+  PurchaseRequestDetail,
+  PurchaseRequestSummary,
+} from '@vada/contracts'
 import { requiredText } from '@/lib/use-form-check'
 
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
@@ -15,6 +20,8 @@ export type ExpenseValues = {
   // 비면 학생회 돈이다.
   paidBy: string | null
   reason: string
+  // 마지막 자동값과 비교해 사람이 고친 사유를 보존한다. 서버에는 보내지 않는다.
+  requestReason: string
   budgetItemId: string | null
   requestedBy: string | null
   // 돈이 나간 계좌. undefined는 사람이 아직 고르지 않은 것이라 화면이 대표 계좌로 보고, null은 '없음'을 고른 것이다(account-form.ts의 pickAccount).
@@ -46,6 +53,7 @@ export const emptyExpense = (
   method: '',
   paidBy: start.paidBy ?? null,
   reason: '',
+  requestReason: '',
   budgetItemId: null,
   requestedBy: null,
   accountId: undefined,
@@ -67,7 +75,7 @@ export const linesTotal = (lines: PayLine[]) =>
 
 // 방식을 바꾸면 그 방식에만 있는 값은 비운다(보이지 않는 값이 몰래 나가지 않게).
 export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValues => ({
-  ...values,
+  ...withReasonDefault(values, ''),
   mode,
   requestId: null,
   lines: [],
@@ -177,7 +185,7 @@ export function withRequest(
 ): ExpenseValues {
   const event = request?.event ?? null
   return {
-    ...values,
+    ...withReasonDefault(values, ''),
     requestId: request?.id ?? null,
     description: request?.title ?? '',
     vendor: '',
@@ -185,6 +193,23 @@ export function withRequest(
     eventId: event ? event.id : values.eventLocked ? null : values.eventId,
     eventLocked: event !== null,
   }
+}
+
+function withReasonDefault(values: ExpenseValues, reason: string): ExpenseValues {
+  if (values.reason !== values.requestReason || values.requestReason === reason) return values
+  return {
+    ...values,
+    reason,
+    requestReason: reason,
+  }
+}
+
+export function withRequestReason(
+  values: ExpenseValues,
+  request: Pick<PurchaseRequestDetail, 'id' | 'body'>,
+): ExpenseValues {
+  if (values.mode !== 'request' || values.requestId !== request.id) return values
+  return withReasonDefault(values, request.body ?? '')
 }
 
 // 승인액 대비 20% 초과는 자릿수 실수를 한 번 더 확인한다(DEC-92). 합계로 비교하면 다른 품목의 적은 결제가 초과를 숨긴다.

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import {
   statusOf,
   type PurchaseLineItem,
@@ -14,14 +14,20 @@ import type { FieldErrors } from '@/lib/use-form-check'
 import { usePolledRead, type PolledState } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { purchasePath, purchasesPath } from './finance-api'
-import { setLineAmount, toggleLine, withRequest, type ExpenseValues } from './expense-form'
+import {
+  setLineAmount,
+  toggleLine,
+  withRequest,
+  withRequestReason,
+  type ExpenseValues,
+} from './expense-form'
 import { wonLabel } from './purchase-view'
 
 type Common = {
   councilId: string
   values: ExpenseValues
   disabled: boolean
-  onChange: (values: ExpenseValues) => void
+  onChange: Dispatch<SetStateAction<ExpenseValues>>
   onForbidden: () => void
 }
 
@@ -150,15 +156,17 @@ function ItemPicker({
     () => {},
   )
   // 다시 읽은 상세에서 고른 품목이 결제할 수 없게 됐으면(취소, 행사 완료) 줄을 비워 숨은 줄이 몰래 나가지 않게 한다.
-  const payableIds =
-    detail.state.kind === 'ready'
-      ? new Set(detail.state.data.request.items.filter(item => item.payable).map(item => item.id))
-      : null
-  const stale = payableIds !== null && values.lines.some(line => !payableIds.has(line.lineItemId))
-  const kept = stale ? values.lines.filter(line => payableIds.has(line.lineItemId)) : null
+  const request = detail.state.kind === 'ready' ? detail.state.data.request : null
   useEffect(() => {
-    if (kept) onChange({ ...values, lines: kept })
-  }, [kept, values, onChange])
+    if (!request) return
+    const payableIds = new Set(request.items.filter(item => item.payable).map(item => item.id))
+    onChange(before => {
+      if (before.requestId !== request.id) return before
+      const next = withRequestReason(before, request)
+      const lines = next.lines.filter(line => payableIds.has(line.lineItemId))
+      return lines.length === next.lines.length ? next : { ...next, lines }
+    })
+  }, [request, values.lines, values.requestReason, onChange])
   return loadingOr(detail.state, ({ request }) => {
     const items = request.items.filter(item => item.payable)
     if (items.length === 0)

@@ -178,7 +178,7 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
     paidOn: today(),
     method: 'card',
     paidBy: null,
-    reason: null,
+    reason: purchaseDetail().body,
     budgetItemId: null,
     requestedBy: null,
     accountId: null,
@@ -193,6 +193,121 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   expect(
     api.calls.filter(call => call.method === 'GET' && call.path === EXPENSES).length,
   ).toBeGreaterThan(1)
+})
+
+test('요청을 고르면 상세 본문 전체를 사유로 채운다', async () => {
+  const api = serve()
+  api.on('GET', `${REQUESTS}?view=all`, () =>
+    json({
+      requests: [
+        purchaseSummary('0199d1a0-0000-7000-8000-00000000a001', {
+          title: '행사 포스터',
+          payable: true,
+          bodyPreview: '짧은 미리보기',
+        }),
+      ],
+      truncated: false,
+    }),
+  )
+  showFinance()
+  await fillRequestPayment()
+  expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+    purchaseDetail().body,
+  )
+})
+
+test.each(['선택 전', '선택 후'])(
+  '사람이 %s 직접 쓴 사유는 요청을 바꾸거나 풀어도 보존한다',
+  async when => {
+    const api = serve()
+    api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a002`, () =>
+      json({
+        request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a002', { body: '다른 요청 내용' }),
+      }),
+    )
+    showFinance()
+    await openForm()
+    if (when === '선택 전') fill('사유', '직접 쓴 사유')
+    await screen.findByRole('option', { name: '행사 포스터' })
+    choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
+    await screen.findByRole('checkbox', { name: /A2 포스터/ })
+    if (when === '선택 후') fill('사유', '직접 쓴 사유')
+    choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
+    await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('직접 쓴 사유')
+    choose('결제할 요청', '')
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('직접 쓴 사유')
+    fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('직접 쓴 사유')
+  },
+)
+
+test('자동으로 채운 사유는 다른 요청을 고르면 새 본문으로 바뀐다', async () => {
+  const api = serve()
+  api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a002`, () =>
+    json({
+      request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a002', { body: '다른 요청 내용' }),
+    }),
+  )
+  showFinance()
+  await fillRequestPayment()
+  expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+    purchaseDetail().body,
+  )
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
+  await waitFor(() =>
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+      '다른 요청 내용',
+    ),
+  )
+})
+
+test.each(['선택 해제', '요청 없이'])('%s로 바꾸면 자동으로 채운 사유만 비운다', async action => {
+  serve()
+  showFinance()
+  await fillRequestPayment()
+  expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+    purchaseDetail().body,
+  )
+  if (action === '선택 해제') choose('결제할 요청', '')
+  else fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('')
+})
+
+test.each([null, ''])(
+  '본문이 %s인 요청은 제목을 사유로 쓰지 않고 이전 자동값을 비운다',
+  async body => {
+    const api = serve()
+    api.on('GET', `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a002`, () =>
+      json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a002', { body }) }),
+    )
+    showFinance()
+    await fillRequestPayment()
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+      purchaseDetail().body,
+    )
+    choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
+    await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('')
+  },
+)
+
+test('상세를 기다리는 동안 직접 쓴 사유는 늦은 본문이 덮어쓰지 않는다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  const path = `${REQUESTS}/0199d1a0-0000-7000-8000-00000000a001`
+  api.on('GET', path, () => pending.promise)
+  showFinance()
+  await openForm()
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
+  await waitFor(() => expect(api.calls.some(call => call.path === path)).toBe(true))
+  fill('사유', '기다리며 직접 쓴 사유')
+  pending.resolve(json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') }))
+  await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+  expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+    '기다리며 직접 쓴 사유',
+  )
 })
 
 test('요청을 바꾸면 고른 품목을 비우고, 품목이나 요청이 없으면 적기를 눌러도 보내지 않고 알린다', async () => {

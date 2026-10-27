@@ -7,6 +7,7 @@ import {
   needsAmountConfirm,
   toggleLine,
   withRequest,
+  withRequestReason,
 } from './expense-form'
 
 const TODAY = '2026-10-26'
@@ -46,6 +47,14 @@ test('요청을 바꾸거나 비우면 이전 품목과 자동 채운 사용처�
   expect(after.lines).toEqual([])
   expect(after.vendor).toBe('')
   expect(after.description).toBe('')
+})
+
+test('직접 쓴 사유가 요청 본문과 같아도 다른 요청의 본문으로 덮어쓰지 않는다', () => {
+  const request = purchaseDetail('r1', { body: '직접 쓴 사유' })
+  const entered = { ...emptyExpense(TODAY), reason: '직접 쓴 사유' }
+  const selected = withRequestReason(withRequest(entered, request), request)
+  const other = purchaseDetail('r2', { body: '다른 요청 내용' })
+  expect(withRequestReason(withRequest(selected, other), other).reason).toBe(entered.reason)
 })
 
 test('총액과 관계없이 품목별 승인액의 1.2배 초과만 확인한다', () => {

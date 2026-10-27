@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react'
 import { EXPENSE_METHODS } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
@@ -44,7 +45,7 @@ export type FieldsProps = {
   values: ExpenseValues
   disabled: boolean
   today: string
-  onChange: (values: ExpenseValues) => void
+  onChange: Dispatch<SetStateAction<ExpenseValues>>
   errors: FieldErrors
 }
 
