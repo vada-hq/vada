@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import { Clipboard, Plus } from 'lucide-react'
 import type { TaskStatus, TaskSummary } from '@vada/contracts'
+import type { MenuAction } from '@/components/HistoryMenu'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,8 @@ type Props = {
   emptyText: string
   // 빈 상태의 [첫 업무 추가]. 만들 수 없는 사람에게는 없다.
   onAddFirst?: (() => void) | undefined
+  // 카드 '⋯' 메뉴의 동작. 없으면 '⋯'가 없다.
+  cardMenu?: ((task: TaskSummary) => MenuAction[]) | undefined
 }
 
 type Column = { status: TaskStatus; tasks: TaskSummary[]; truncated: boolean }
@@ -134,7 +137,7 @@ export function TaskBoard(props: Props) {
       error={change.errors[task.id]}
       drag={drag.card(task)}
       onOpen={() => props.onOpenTask(task.id)}
-      onChangeStatus={status => void change.change(task.id, status)}
+      menu={props.cardMenu?.(task)}
     />
   )
   const doneFooter = finished.truncated && (

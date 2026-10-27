@@ -1,5 +1,6 @@
 import { Calendar, Ellipsis, FileText } from 'lucide-react'
-import { TASK_STATUSES, type TaskStatus, type TaskSummary } from '@vada/contracts'
+import type { TaskSummary } from '@vada/contracts'
+import type { MenuAction } from '@/components/HistoryMenu'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
@@ -9,12 +10,6 @@ import type { DepartmentColor } from './department-color'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
 import type { TaskCardDrag } from './useTaskDrag'
 
-// 카드 '⋯' 메뉴의 상태 항목 이름(DEC-94): 어디로 가는지를 적는다.
-const MOVE_LABEL: Record<TaskStatus, string> = {
-  todo: '할 일로',
-  in_progress: '진행 중으로',
-  done: '끝남으로',
-}
 const NO_DRAG: TaskCardDrag = { enabled: false, active: false, start: () => false, end: () => {} }
 
 type Props = {
@@ -26,16 +21,14 @@ type Props = {
   // 이어진 결과물이 있으면 문서 그림을 단다. 목록 응답에 결과물 요약이 없어 026 조각 10(정한 것 15)이 칸을 더하기 전까지 보드는 넘기지 않는다.
   hasResult?: boolean | undefined
   onOpen: () => void
-  onChangeStatus: (status: TaskStatus) => void
+  // 카드 '⋯' 메뉴의 동작(링크 복사, 지우기). 비면 '⋯'가 없다.
+  menu?: MenuAction[] | undefined
 }
 
-// 카드 '⋯'는 드래그 없이 포인터·키보드로 상태를 바꾸는 대안이다(WCAG 2.5.7).
-function StatusMenu({
-  task,
-  busy,
-  onChangeStatus,
-}: Pick<Props, 'task' | 'busy' | 'onChangeStatus'>) {
-  if (!task.actions.includes('task.change_status')) return null
+// 카드 '⋯'는 그 업무에 하는 동작(링크 복사, 지우기)이다. 상태는 끌어 놓기와 상세의 상태 단추로 바꾼다(끌기 없는 길, WCAG 2.5.7).
+// 사용자는 '⋯'에서 지우기·복제 같은 동작을 찾는다(Trello·Linear·Asana 카드 메뉴, notes/task-detail-redesign.md).
+function CardMenu({ task, busy, menu }: Pick<Props, 'task' | 'busy' | 'menu'>) {
+  if (!menu?.length) return null
   return (
     <Menu>
       <MenuTrigger asChild>
@@ -54,9 +47,13 @@ function StatusMenu({
         </Button>
       </MenuTrigger>
       <MenuContent>
-        {TASK_STATUSES.filter(status => status !== task.status).map(status => (
-          <MenuItem key={status} onSelect={() => onChangeStatus(status)}>
-            {MOVE_LABEL[status]}
+        {menu.map(action => (
+          <MenuItem
+            key={action.label}
+            destructive={action.destructive ?? false}
+            onSelect={action.onSelect}
+          >
+            {action.label}
           </MenuItem>
         ))}
       </MenuContent>
@@ -95,7 +92,7 @@ export function TaskCard({
   drag = NO_DRAG,
   hasResult,
   onOpen,
-  onChangeStatus,
+  menu,
 }: Props) {
   const overdue = task.status !== 'done' && task.overdue
   const department = task.department?.name ?? COUNCIL_TASK_LABEL
@@ -117,7 +114,7 @@ export function TaskCard({
         >
           <span className="line-clamp-3">{task.title}</span>
         </Button>
-        <StatusMenu task={task} busy={busy} onChangeStatus={onChangeStatus} />
+        <CardMenu task={task} busy={busy} menu={menu} />
       </div>
       <div className="mt-2 mb-3 flex flex-wrap items-center gap-2">
         <Badge className={cn('max-w-full border-transparent', color.chip)} title={department}>

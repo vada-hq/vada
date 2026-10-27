@@ -28,7 +28,6 @@ function draw(extra: Partial<TaskSummary> = {}, error?: string) {
         color={departmentColorOf(value.department?.id ?? null, [{ id: 'd1', color: 'teal' }])}
         busy={false}
         onOpen={() => {}}
-        onChangeStatus={() => {}}
         error={error}
       />
     </ul>,

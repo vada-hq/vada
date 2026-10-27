@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { X } from 'lucide-react'
+import type { RecordKind } from '@vada/contracts'
 import { cn } from '@/lib/utils'
 import { useReturnFocus, WindowHistory } from './dialog'
 
@@ -10,6 +11,12 @@ type ContentProps = Omit<ComponentProps<typeof DialogPrimitive.Content>, 'title'
   title: string
   // 제목 아래 한 줄(끼룩이 한 줄 등). 창의 설명으로 읽힌다.
   description?: ReactNode
+  // 보이는 제목 자리를 대신하는 내용(그 자리에서 고치는 업무 제목). 주면 title은 화면 읽기용 이름으로만 남는다.
+  heading?: ReactNode
+  // 닫기 앞의 단추(⋯ 메뉴 등)
+  actions?: ReactNode
+  // 주소로 열리는 기록 상세 패널이 자기 기록을 말한다(DialogContent의 record와 같다).
+  record?: { kind: RecordKind; id: string } | undefined
 }
 
 // 오른쪽에 붙는 고치기 패널(와이어프레임 EVT-02B). 뒤 화면을 보며 고치도록 높이 전체에 폭 약 500px(와이어프레임 440px의 1/0.875)이고,
@@ -22,6 +29,9 @@ export function SidePanelContent({
   children,
   title,
   description,
+  heading,
+  actions,
+  record,
   onOpenAutoFocus,
   onCloseAutoFocus,
   ...props
@@ -39,18 +49,25 @@ export function SidePanelContent({
         {...props}
         {...returnFocus}
       >
-        <WindowHistory />
+        <WindowHistory record={record} />
         <div className="flex items-start gap-3 border-b px-6 py-4">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <DialogPrimitive.Title className="text-base font-semibold text-gray-900 wrap-anywhere">
+            <DialogPrimitive.Title
+              className={cn(
+                'text-base font-semibold text-gray-900 wrap-anywhere',
+                heading !== undefined && 'sr-only',
+              )}
+            >
               {title}
             </DialogPrimitive.Title>
+            {heading}
             {description !== undefined && (
               <DialogPrimitive.Description asChild>
                 <div>{description}</div>
               </DialogPrimitive.Description>
             )}
           </div>
+          {actions}
           <DialogPrimitive.Close
             aria-label="닫기"
             className="cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"

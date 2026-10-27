@@ -127,18 +127,12 @@ test('카드를 누르면 그 업무 주소로 상세를 연다', async () => {
   await waitFor(() => expect(window.location.pathname).toBe(`/tasks/${COUNCIL_ID}/a`))
 })
 
-test('카드 ⋯ 메뉴에 지금 상태가 아닌 둘이 있고 고르면 상태를 바꾼다. 상태를 바꿀 수 없으면 메뉴가 없다', async () => {
-  serve([task('a'), task('b', { actions: [] })])
-  api.on('POST', `${base}/a/status`, () => json({ task: task('a', { status: 'done' }) }))
+test('카드 ⋯ 메뉴는 그 업무에 하는 동작(링크 복사)이고 상태 항목은 없다. 상태는 끌기와 상세에서 바꾼다', async () => {
+  serve([task('a')])
   render(page())
   fireEvent.keyDown(await screen.findByRole('button', { name: '업무 a 더 보기' }), { key: 'Enter' })
   const items = await screen.findAllByRole('menuitem')
-  expect(items.map(item => item.textContent)).toEqual(['진행 중으로', '끝남으로'])
-  fireEvent.click(screen.getByRole('menuitem', { name: '끝남으로' }))
-  await waitFor(() =>
-    expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ status: 'done' }),
-  )
-  expect(screen.queryByRole('button', { name: '업무 b 더 보기' })).toBeNull()
+  expect(items.map(item => item.textContent)).toEqual(['링크 복사'])
 })
 
 test('끝난 업무가 넘치면 끝남 열에 50장과 50+가 있고, [표로 보기]가 표의 끝남을 연다', async () => {
