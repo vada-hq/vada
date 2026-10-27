@@ -4,6 +4,7 @@ import {
   account,
   attendance,
   council,
+  deposit,
   event,
   record,
   registration,
@@ -32,6 +33,7 @@ export async function mineRowOf(db: Reader, token: string) {
       studentId: registration.studentId,
       phone: registration.phone,
       appliedFee: registration.appliedFee,
+      depositId: deposit.id,
       councilName: council.name,
       eventName: event.name,
       eventStartsAt: event.startsAt,
@@ -53,6 +55,14 @@ export async function mineRowOf(db: Reader, token: string) {
     .innerJoin(record, eq(record.id, event.id))
     .innerJoin(council, eq(council.id, record.councilId))
     .leftJoin(account, eq(account.id, registrationForm.feeAccountId))
+    .leftJoin(
+      deposit,
+      and(
+        eq(deposit.registrationId, registration.id),
+        isNull(deposit.cancelledAt),
+        isNull(deposit.refundedAt),
+      ),
+    )
     .where(
       and(eq(registrationLink.tokenHash, hashOfToken(token)), isNull(registration.cancelledAt)),
     )
@@ -93,6 +103,7 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
     },
     mine: { name: row.name, studentId: row.studentId, phone: row.phone },
     appliedFee,
+    depositConfirmed: row.depositId !== null,
     account:
       appliedFee > 0 && hasAccount
         ? { bank: row.bank!, accountNumber: row.accountNumber!, holder: row.holder! }

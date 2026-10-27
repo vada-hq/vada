@@ -40,6 +40,7 @@ const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
   form,
   mine: { name: '김새내', studentId: '20260001', phone: null },
   appliedFee: 5000,
+  depositConfirmed: false,
   account: { bank: '국민은행', accountNumber: '123-456-789012', holder: '소프트웨어학부 학생회' },
   qrText: QR_TEXT,
   attended: false,
@@ -72,6 +73,9 @@ export function PublicSection() {
         <AttendanceBlock mine={mineOf({ attended: true })} />
         <MineFacts mine={mineOf()} />
         <FeeBlock mine={mineOf()} />
+        <FeeBlock mine={mineOf({ depositConfirmed: true })} />
+        <FeeBlock mine={mineOf({ appliedFee: 0, account: null })} />
+        <AttendanceBlock mine={mineOf({ event: { ...event, name: unbroken } })} />
       </div>
       <QrCode text={QR_TEXT} label="QR 예시" />
     </Section>

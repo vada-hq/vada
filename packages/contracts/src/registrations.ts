@@ -178,6 +178,8 @@ export interface MyRegistration {
   form: PublicRegistrationForm['form']
   mine: { name: string; studentId: string | null; phone: string | null }
   appliedFee: number
+  // 자기 신청의 현재 입금 확인 여부만 준다. 입금액·환불 내역은 공개하지 않는다.
+  depositConfirmed: boolean
   account: { bank: string; accountNumber: string; holder: string } | null
   qrText: string
   attended: boolean

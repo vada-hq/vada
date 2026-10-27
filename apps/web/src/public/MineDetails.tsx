@@ -2,7 +2,7 @@ import type { MyRegistration } from '@vada/contracts'
 import { Fact } from '@/components/Fact'
 import QrCode from '@/components/QrCode'
 import { Alert } from '@/components/ui/alert'
-import { Card } from '@/components/ui/card'
+import { cardClass } from '@/components/ui/card'
 import { whenLabel } from '@/events/event-view'
 import CopyButton from './CopyButton'
 import { won } from './registration-text'
@@ -11,12 +11,19 @@ import { won } from './registration-text'
 export function AttendanceBlock({ mine }: { mine: MyRegistration }) {
   if (mine.attended) return <Alert tone="success">출석 확인됨</Alert>
   return (
-    <Card className="flex flex-col items-center gap-3 p-4">
-      <QrCode text={mine.qrText} label="출석 확인 QR" />
-      <p className="text-center text-xs text-gray-500">
-        행사장에서 운영진에게 이 QR을 보여 주세요.
+    <section
+      aria-label="출석 QR 보관"
+      className={`${cardClass} flex flex-col items-center gap-3 p-4`}
+    >
+      <h2 className="w-full text-center font-semibold wrap-anywhere">{mine.event.name}</h2>
+      {/* 내부 2모듈에 흰 여백 16px를 더해 224px QR 사방 4모듈 이상을 비운다(DENSO). */}
+      <div className="max-w-full bg-white p-4">
+        <QrCode text={mine.qrText} label="출석 확인 QR" />
+      </div>
+      <p className="text-center text-sm text-muted-foreground">
+        이 화면을 캡처해 보관하고, 행사 당일 운영진에게 보여 주세요.
       </p>
-    </Card>
+    </section>
   )
 }
 
@@ -25,7 +32,10 @@ export function FeeBlock({ mine }: { mine: MyRegistration }) {
   return (
     <div className="flex flex-col gap-3">
       <dl className="flex flex-col gap-3">
-        <Fact label="참가비">{won(mine.appliedFee)}</Fact>
+        <Fact label="참가비">{mine.appliedFee === 0 ? '무료' : won(mine.appliedFee)}</Fact>
+        {mine.appliedFee > 0 && (
+          <Fact label="입금 상태">{mine.depositConfirmed ? '입금 확인됨' : '입금 확인 전'}</Fact>
+        )}
         {mine.account && (
           <>
             <Fact label="입금 계좌">

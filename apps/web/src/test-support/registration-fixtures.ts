@@ -38,6 +38,7 @@ export const myRegistration = (extra: Partial<MyRegistration> = {}): MyRegistrat
   form: publicForm().form,
   mine: { name: '김새내', studentId: '20260001', phone: null },
   appliedFee: 5000,
+  depositConfirmed: false,
   account: { bank: '국민은행', accountNumber: '123-456-789012', holder: '소프트웨어학부 학생회' },
   qrText: `VADA:${'0123456789ABCDEF'.repeat(4)}`,
   attended: false,

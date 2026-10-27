@@ -48,6 +48,7 @@ test(
       form: { name: form.name, opensAt: null, closesAt: '2026-11-01T18:00', notice: '문의는 카톡' },
       mine: person,
       appliedFee: 5000,
+      depositConfirmed: false,
       account: { bank: '국민은행', accountNumber: '123-45-6789012', holder: '한양대 학생회' },
       qrText: `VADA:${sha256(token).toUpperCase()}`,
       attended: false,
@@ -74,6 +75,7 @@ test(
     const token = await t.applied(form.publicCode, person)
     const free = await mineOf(t, token)
     assert.deepEqual([free.appliedFee, free.account], [0, null])
+    assert.equal(free.depositConfirmed, false)
     assert.equal(free.cancellable, true)
     const id = (await t.pg.query('SELECT id FROM registration')).rows[0] as { id: string }
     await t.attend(id.id)
@@ -84,6 +86,55 @@ test(
     assert.equal((await mineOf(t, second)).cancellable, true)
     t.setNow(korean('2026-11-01T18:00:00'))
     assert.equal((await mineOf(t, second)).cancellable, false)
+  }),
+)
+
+test(
+  '내 신청 입금 표시는 자기 신청의 현재 확인 여부만 주고 확인 취소를 반영하며 금액·환불 내역은 숨긴다',
+  withRegistrations(async t => {
+    const form = await split(t)
+    const first = await t.applied(form.publicCode, person)
+    const second = await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const rows = (await t.pg.query('SELECT id FROM registration ORDER BY id')).rows as {
+      id: string
+    }[]
+    assert.equal((await mineOf(t, first)).depositConfirmed, false)
+    assert.equal(
+      (await t.post(`/registrations/${rows[0]!.id}/deposit`, { amount: 3000 })).status,
+      201,
+    )
+    const confirmed = await mineOf(t, first)
+    assert.equal(confirmed.depositConfirmed, true)
+    assert.equal(confirmed.appliedFee, 5000)
+    assert.equal((await mineOf(t, second)).depositConfirmed, false)
+    for (const hidden of ['deposit', 'amount', 'refundAmount', 'refundedAt', 'depositId'])
+      assert.equal(Object.hasOwn(confirmed, hidden), false, hidden)
+    assert.equal(
+      (await t.post(`/registrations/${rows[0]!.id}/deposit/cancel`, { reason: '오인 확인' }))
+        .status,
+      200,
+    )
+    assert.equal((await mineOf(t, first)).depositConfirmed, false)
+    // 다른 학생회에서 확인한 입금도 이 신청에 섞이지 않는다.
+    const event = await t.makeEvent({}, t.other)
+    const foreignForm = await t.makeForm(event, {}, t.other)
+    const foreignId = await t.makeRegistration(foreignForm, {}, t.other)
+    await t.db.transaction(tx =>
+      createRecord(tx, {
+        kind: 'deposit',
+        councilId: t.other.councilId,
+        actor: t.other.people.president.memberId,
+        values: {
+          registrationId: foreignId,
+          amount: '9000',
+          confirmedAt: korean('2026-10-25T12:00'),
+        },
+      }),
+    )
+    assert.equal((await mineOf(t, first)).depositConfirmed, false)
+    assert.equal((await mineOf(t, second)).depositConfirmed, false)
+    await t.cancelMine(first)
+    assert.equal((await t.lookup(first)).status, 404)
   }),
 )
 

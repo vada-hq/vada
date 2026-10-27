@@ -5,6 +5,7 @@ import { CANCEL_PATH, LOOKUP_PATH, myRegistration } from '@/test-support/registr
 import { json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { CANCEL_REGISTRATION_ERRORS, REGISTRATION_LOST } from '@/lib/registration-messages'
+import { qrMatrix, qrPath } from '@/lib/qr-code'
 import MyRegistrationPage from './MyRegistrationPage'
 
 const SAVED_KEY = 'vada.registration.ABCD2345'
@@ -44,6 +45,43 @@ test('참가비가 없으면 계좌가 없고, 출석했으면 QR 대신 출석 
   expect(screen.queryByRole('img', { name: '출석 확인 QR' })).toBeNull()
   expect(screen.queryByText(/은행/)).toBeNull()
   expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
+  expect(screen.getByText('무료')).toBeTruthy()
+  expect(screen.queryByText('입금 확인 전')).toBeNull()
+})
+
+test('QR 캡처 묶음에는 행사명과 안내만 더하고 개인 정보와 입금 상태는 복제하지 않는다', async () => {
+  setup()
+  const qr = await screen.findByRole('img', { name: '출석 확인 QR' })
+  const card = qr.closest('section')!
+  expect(within(card).getByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
+  expect(
+    within(card).getByText('이 화면을 캡처해 보관하고, 행사 당일 운영진에게 보여 주세요.'),
+  ).toBeTruthy()
+  for (const text of ['김새내', '20260001', '입금 확인 전'])
+    expect(within(card).queryByText(text)).toBeNull()
+  expect(qr.parentElement?.className).toContain('p-4')
+  expect(qr.parentElement?.className).toContain('bg-white')
+  const matrix = qrMatrix(myRegistration().qrText)
+  expect(qr.querySelector('path')?.getAttribute('d')).toBe(qrPath(matrix))
+  // size-56(14rem) QR + p-4(1rem)의 흰 바깥 여백. 작게 줄어들면 모듈당 바깥 여백은 더 커진다.
+  const externalModules = matrix.length / 14
+  expect(2 + externalModules).toBeGreaterThanOrEqual(4)
+  const sides = [matrix[0]!, matrix[1]!, matrix.at(-1)!, matrix.at(-2)!]
+  expect(sides.every(row => row.every(value => !value))).toBe(true)
+  expect(matrix.every(row => !row[0] && !row[1] && !row.at(-1) && !row.at(-2))).toBe(true)
+  expect(screen.getByText('입금 확인 전')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /QR.*(저장|공유|다운로드)/ })).toBeNull()
+})
+
+test('개인 링크를 다시 읽으면 확인됨과 확인 취소 상태가 바뀐다', async () => {
+  const api = setup()
+  expect(await screen.findByText('입금 확인 전')).toBeTruthy()
+  api.on('POST', LOOKUP_PATH, () => json({ ...myRegistration(), depositConfirmed: true }))
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByText('입금 확인됨')).toBeTruthy()
+  api.on('POST', LOOKUP_PATH, () => json({ ...myRegistration(), depositConfirmed: false }))
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByText('입금 확인 전')).toBeTruthy()
 })
 
 test('모르는 토큰이면 찾을 수 없다고 하고 기억한 토큰을 지운다', async () => {
