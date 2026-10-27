@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { useUnsavedInput } from '@/lib/leave-guard'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
-import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useTeam } from '@/team/useTeam'
 import {
@@ -33,6 +32,7 @@ import { ExpensePayerFields } from './ExpensePayerFields'
 import { ExpenseRequestFields } from './ExpenseRequestFields'
 import { wonLabel } from './purchase-view'
 import { useExpenseCreate } from './useExpenseCreate'
+import { useExpenseValues } from './use-expense-values'
 
 type Props = Pick<ExpenseDialogHandlers, 'onLost' | 'onForbidden'> & {
   councilId: string
@@ -59,6 +59,8 @@ type ModeProps = Omit<FieldsProps, 'today'> & {
   councilId: string
   team: TeamResponse
   onForbidden: () => void
+  linkedRequestIds: readonly string[] | undefined
+  onAuto: FieldsProps['onChange']
 }
 
 // 방식마다 다른 칸. 요청한 품목 결제는 요청과 품목을 고르고, 요청 없이는 금액과 예산 항목과 부탁한 사람을 적는다.
@@ -96,11 +98,12 @@ type FormProps = Omit<Props, 'open'> & {
 
 function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
-  const [initial] = useState(() => emptyExpense(today, eventId ?? null, start))
-  const [values, setValues] = useState(initial)
+  const { values, setValues, autoChange, dirty } = useExpenseValues(() =>
+    emptyExpense(today, eventId ?? null, start),
+  )
   const [confirming, setConfirming] = useState(false)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
-  const settle = useUnsavedInput(!sameJson(values, initial))
+  const settle = useUnsavedInput(dirty)
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, {
@@ -142,6 +145,8 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
           team={team}
           councilId={props.councilId}
           onForbidden={props.onForbidden}
+          linkedRequestIds={start?.linkedRequestIds}
+          onAuto={autoChange}
         />
         <PaymentFields {...shared} today={today} />
         <ExpenseAccountSelect

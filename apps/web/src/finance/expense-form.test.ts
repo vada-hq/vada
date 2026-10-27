@@ -4,6 +4,7 @@ import {
   emptyExpense,
   expenseErrors,
   expenseOf,
+  linkedRequestOf,
   needsAmountConfirm,
   toggleLine,
   withRequest,
@@ -69,4 +70,14 @@ test('총액과 관계없이 품목별 승인액의 1.2배 초과만 확인한�
       lines: [...amount('12001').lines, { ...values.lines[0]!, lineItemId: 'i2', amount: '1' }],
     }),
   ).toBe(true)
+})
+
+test('연결된 요청 중 결제할 수 있는 것이 꼭 하나일 때만 그 요청이다', () => {
+  const payable = [{ id: 'r1' }, { id: 'r2' }]
+  expect(linkedRequestOf(payable, ['r1'])).toEqual({ id: 'r1' })
+  // 취소한 요청(r9)은 결제할 수 없어 목록에 없으니 다시 낸 요청 하나만 남는다.
+  expect(linkedRequestOf(payable, ['r9', 'r2'])).toEqual({ id: 'r2' })
+  expect(linkedRequestOf(payable, [])).toBeNull()
+  expect(linkedRequestOf(payable, ['r1', 'r2'])).toBeNull()
+  expect(linkedRequestOf(payable, ['r9'])).toBeNull()
 })

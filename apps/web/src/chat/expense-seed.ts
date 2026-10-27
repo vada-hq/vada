@@ -13,6 +13,8 @@ export type ExpenseSeed = {
   // 비면 학생회 돈이다.
   paidBy: string | null
   sourceMessageId: string
+  // 이 메시지로 만든 구매 요청들. 결제할 수 있는 것이 하나면 지출 폼이 그 요청을 골라 둔다.
+  linkedRequestIds: string[]
 }
 
 type Context = {
@@ -34,5 +36,8 @@ export function expenseSeedOf(message: ChatMessage, context: Context): ExpenseSe
     paidOn: koreanDateOf(new Date(message.sentAt)),
     paidBy: payerOf(message, context),
     sourceMessageId: message.id,
+    linkedRequestIds: message.made
+      .filter(made => made.kind === 'purchase_request')
+      .map(made => made.id),
   }
 }

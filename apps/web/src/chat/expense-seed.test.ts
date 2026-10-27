@@ -53,3 +53,16 @@ test('먼저 낸 사람은 남의 메시지면 보낸 사람, 내 것이면 학�
     expenseSeedOf(message('a1', 'x', { senderId: 'm2' }), { ...context, members: null }).paidBy,
   ).toBeNull()
 })
+
+test('이 메시지로 만든 구매 요청만 연결된 요청으로 넘긴다', () => {
+  const made = [
+    { kind: 'purchase_request' as const, id: 'r1', title: '간식', blocking: false },
+    { kind: 'expense' as const, id: 'e1', title: '간식', blocking: true },
+    { kind: 'purchase_request' as const, id: 'r2', title: '간식', blocking: true },
+  ]
+  expect(expenseSeedOf(message('a1', 'x', { made }), context).linkedRequestIds).toEqual([
+    'r1',
+    'r2',
+  ])
+  expect(expenseSeedOf(message('a1', 'x'), context).linkedRequestIds).toEqual([])
+})

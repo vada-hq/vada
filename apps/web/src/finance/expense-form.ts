@@ -35,10 +35,10 @@ export type ExpenseValues = {
   sourceMessageId: string | null
 }
 
-// 메시지에서 열 때 미리 채우는 값
+// 메시지에서 열 때 미리 채우는 값. linkedRequestIds는 그 메시지로 만든 구매 요청들로, 결제할 요청을 골라 두는 데만 쓴다.
 export type ExpenseStart = Partial<
   Pick<ExpenseValues, 'description' | 'paidOn' | 'paidBy' | 'sourceMessageId'>
->
+> & { linkedRequestIds?: readonly string[] }
 
 export const emptyExpense = (
   today: string,
@@ -193,6 +193,17 @@ export function withRequest(
     eventId: event ? event.id : values.eventLocked ? null : values.eventId,
     eventLocked: event !== null,
   }
+}
+
+// 메시지에 연결된 요청 중 결제할 수 있는 것이 꼭 하나면 그 요청이다. 없거나 여럿이면 시스템이 대신 고르지 않는다.
+// 연결이 둘 이상이어도 결제할 수 있는 것만 센다: 같은 메시지로는 앞 요청을 취소·반려한 뒤에만 다시 낼 수 있어서,
+// 연결이 여럿인 것은 대개 결제할 수 없는 옛 요청과 다시 낸 요청 하나이고, 고를 것은 그 하나뿐이다.
+export function linkedRequestOf<T extends { id: string }>(
+  payable: T[],
+  linkedIds: readonly string[],
+): T | null {
+  const [only, ...rest] = payable.filter(request => linkedIds.includes(request.id))
+  return only !== undefined && rest.length === 0 ? only : null
 }
 
 function withReasonDefault(values: ExpenseValues, reason: string): ExpenseValues {

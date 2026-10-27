@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { useEffect, useRef, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import {
   statusOf,
   type PurchaseLineItem,
@@ -15,6 +15,7 @@ import { usePolledRead, type PolledState } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { purchasePath, purchasesPath } from './finance-api'
 import {
+  linkedRequestOf,
   setLineAmount,
   toggleLine,
   withRequest,
@@ -28,6 +29,8 @@ type Common = {
   values: ExpenseValues
   disabled: boolean
   onChange: Dispatch<SetStateAction<ExpenseValues>>
+  // 화면이 저절로 바꾸는 값(골라 두기, 사유 채우기, 결제할 수 없게 된 것 비우기). 사람이 손대기 전이면 떠날 때 묻지 않는다.
+  onAuto: Dispatch<SetStateAction<ExpenseValues>>
   onForbidden: () => void
 }
 
@@ -150,6 +153,7 @@ function ItemPicker({
   disabled,
   errors,
   onChange,
+  onAuto,
 }: Common & { requestId: string; errors: FieldErrors }) {
   const detail = usePolledRead<PurchaseRequestResponse>(
     purchasePath(councilId, requestId),
@@ -160,13 +164,13 @@ function ItemPicker({
   useEffect(() => {
     if (!request) return
     const payableIds = new Set(request.items.filter(item => item.payable).map(item => item.id))
-    onChange(before => {
+    onAuto(before => {
       if (before.requestId !== request.id) return before
       const next = withRequestReason(before, request)
       const lines = next.lines.filter(line => payableIds.has(line.lineItemId))
       return lines.length === next.lines.length ? next : { ...next, lines }
     })
-  }, [request, values.lines, values.requestReason, onChange])
+  }, [request, values.lines, values.requestReason, onAuto])
   return loadingOr(detail.state, ({ request }) => {
     const items = request.items.filter(item => item.payable)
     if (items.length === 0)
@@ -183,9 +187,29 @@ function ItemPicker({
   })
 }
 
+// 메시지에서 열었으면 그 메시지에 연결된 요청을 사람이 고른 것처럼 골라 둔다(이미 아는 것을 다시 묻지 않는다).
+// 목록을 처음 읽었을 때 한 번만 해서, 사람이 바꾸거나 푼 것을 되돌리지 않는다.
+function usePreselect(
+  requests: PurchaseRequestsResponse['requests'] | null,
+  linkedRequestIds: readonly string[] | undefined,
+  onAuto: Common['onAuto'],
+) {
+  const tried = useRef(false)
+  useEffect(() => {
+    if (tried.current || requests === null) return
+    tried.current = true
+    const linked = linkedRequestOf(payable(requests), linkedRequestIds ?? [])
+    if (linked) onAuto(before => (before.requestId === null ? withRequest(before, linked) : before))
+  }, [requests, linkedRequestIds, onAuto])
+}
+
 // 요청한 품목 결제: 요청을 고르고, 그 요청의 승인된 품목을 고른다. 요청을 바꾸면 고른 품목은 비운다.
-export function ExpenseRequestFields({ errors, ...props }: Common & { errors: FieldErrors }) {
-  const { councilId, values, disabled, onChange, onForbidden } = props
+export function ExpenseRequestFields({
+  errors,
+  linkedRequestIds,
+  ...props
+}: Common & { errors: FieldErrors; linkedRequestIds?: readonly string[] | undefined }) {
+  const { councilId, values, disabled, onChange, onAuto, onForbidden } = props
   const list = usePolledRead<PurchaseRequestsResponse>(purchasesPath(councilId, 'all'), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
   })
@@ -196,8 +220,9 @@ export function ExpenseRequestFields({ errors, ...props }: Common & { errors: Fi
     values.requestId !== null &&
     !payable(requests).some(request => request.id === values.requestId)
   useEffect(() => {
-    if (gone) onChange(withRequest(values, null))
-  }, [gone, values, requests, onChange])
+    if (gone) onAuto(withRequest(values, null))
+  }, [gone, values, requests, onAuto])
+  usePreselect(requests, linkedRequestIds, onAuto)
   return loadingOr(list.state, ({ requests }) => (
     <>
       <ChoiceSelect

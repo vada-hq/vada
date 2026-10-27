@@ -6,9 +6,12 @@ import { message, messagePage } from '@/test-support/chat-fixtures'
 import { chatBase, ChatHarness, openAllRoom, serveChat } from '@/test-support/chat-harness'
 import { asElement } from '@/test-support/elements'
 import { expenseDetail } from '@/test-support/expense-fixtures'
+import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
+import { settle } from '@/test-support/settle'
 import { accountItem, accountsResponse, MAIN_ACCOUNT_ID } from '@/test-support/account-fixtures'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { PERMISSION_CHANGED } from '@/lib/messages'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 
 afterEach(() => {
   cleanup()
@@ -331,4 +334,83 @@ test('다른 운영진이 먼저 적어 중복이면 양식을 보존하고 제�
     ),
   ).toBeTruthy()
   expect(value('사용처')).toBe('인쇄소')
+})
+
+const LINKED = '0199d1a0-0000-7000-8000-00000000a001'
+const OTHER = '0199d1a0-0000-7000-8000-00000000a002'
+const linkedTo = (...ids: string[]) =>
+  message(MSG, '간식 샀어요', {
+    senderId: JAE,
+    sentAt: SENT,
+    made: ids.map(id => ({ kind: 'purchase_request' as const, id, title: id, blocking: true })),
+  })
+function serveRequests(sent: ReturnType<typeof message>, payableIds: string[]) {
+  const api = serve(sent)
+  api.on('GET', `${chatBase}/purchase-requests?view=all`, () =>
+    json({
+      requests: [LINKED, OTHER].map(id =>
+        purchaseSummary(id, {
+          title: id === LINKED ? '간식행사 즉석식품 구입' : '다른 요청',
+          status: 'approved',
+          payable: payableIds.includes(id),
+        }),
+      ),
+      truncated: false,
+    }),
+  )
+  for (const id of [LINKED, OTHER])
+    api.on('GET', `${chatBase}/purchase-requests/${id}`, () =>
+      json({ request: purchaseDetail(id, { body: `${id} 본문` }) }),
+    )
+  return api
+}
+
+test('메시지에 결제할 수 있는 요청 하나가 연결돼 있으면 그 요청을 골라 두고, 사람이 바꾸거나 풀 수 있다', async () => {
+  serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openForm()
+  await waitFor(() => expect(value('결제할 요청')).toBe(LINKED))
+  // 사람이 고른 것과 같다: 내역은 요청 제목, 사유는 요청 본문이다.
+  expect(value('내역')).toBe('간식행사 즉석식품 구입')
+  await waitFor(() =>
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+      `${LINKED} 본문`,
+    ),
+  )
+  fill('결제할 요청', OTHER)
+  expect(value('결제할 요청')).toBe(OTHER)
+  fill('결제할 요청', '')
+  await settle()
+  expect(value('결제할 요청')).toBe('')
+})
+
+test.each([
+  ['연결된 요청이 없으면', [] as string[], [LINKED, OTHER]],
+  ['연결된 요청이 둘이면', [LINKED, OTHER], [LINKED, OTHER]],
+  ['연결된 요청을 결제할 수 없으면', [LINKED], [OTHER]],
+])('%s 요청을 고르지 않는다', async (_, linked, payableIds) => {
+  serveRequests(linkedTo(...linked), payableIds)
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openForm()
+  await screen.findByRole('option', { name: '다른 요청' })
+  await settle()
+  expect(value('결제할 요청')).toBe('')
+  expect(value('내역')).toBe('간식 샀어요')
+})
+
+test('저절로 골라 채운 것만 있으면 떠날 때 묻지 않고, 사람이 고치면 묻는다', async () => {
+  serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openAllRoom()
+  fireEvent.click(await menuOf('지출 적기'))
+  await screen.findByRole('form', { name: '지출 적기' })
+  await waitFor(() =>
+    expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
+      `${LINKED} 본문`,
+    ),
+  )
+  await settle()
+  expect(hasUnsavedInput()).toBe(false)
+  fill('사용처', '편의점')
+  expect(hasUnsavedInput()).toBe(true)
 })
