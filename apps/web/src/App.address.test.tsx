@@ -74,7 +74,7 @@ const pathNow = () => window.location.pathname + window.location.search
 // 기록 칸 수는 history.length로 못 센다(뒤로 간 뒤 쌓으면 앞 칸이 지워진다). 쌓은 횟수를 센다.
 const pushes = () => vi.spyOn(window.history, 'pushState')
 const taskOpen = () =>
-  waitFor(() => expect(within(screen.getByRole('dialog')).getByText('현수막 주문')).toBeTruthy())
+  waitFor(() => expect(screen.getByRole('dialog', { name: '현수막 주문' })).toBeTruthy())
 
 test('주소가 없는 시작은 첫 학생회 홈 주소가 된다', async () => {
   await renderApp()

@@ -9,7 +9,6 @@ import {
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { useEvents, type EventList } from '@/events/useEvents'
-import { openRecord } from '@/lib/go-to'
 import { recalledDepartment } from '@/lib/menu-memory'
 import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
@@ -17,10 +16,11 @@ import { useTeam } from '@/team/useTeam'
 import { TaskBoard } from './TaskBoard'
 import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
-import { TaskDialogs } from './TaskDialogs'
 import { TaskListBody, type TableSetup } from './TaskListBody'
 import { TaskQuickAdd } from './TaskQuickAdd'
 import { NO_ASSIGNEE_LABEL } from './task-view'
+import { TaskDeleteConfirm } from './TaskDeleteConfirm'
+import { TaskPanel } from './TaskPanel'
 import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
 import { useTaskControls } from './useTaskControls'
@@ -30,9 +30,11 @@ import { useBoardEmpty } from './useBoardEmpty'
 import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTaskOptions } from './useTaskOptions'
+import { useTaskRemove } from './useTaskRemove'
 import { useTasks, type TaskList } from './useTasks'
 import { homeScopeActive, homeScopeLabel } from './home-task-scope'
 import { useNarrowed } from './useNarrowedTasks'
+import { useTaskOpeners } from './useTaskOpeners'
 
 type Props = {
   view: CouncilView
@@ -83,20 +85,6 @@ function useTaskLists(
   return { list, done, events, linkable, both }
 }
 
-// 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭에서 연 업무도 업무 주소라 닫으면 그 행사의 탭이다.
-// 행사의 업무 탭은 이미 그 행사 안이라 행사 이름으로 가는 길이 없다.
-function useOpeners(councilId: string, inEvent: boolean) {
-  const openTask = (taskId: string) => openRecord('tasks', councilId, taskId)
-  if (inEvent) return { openTask, openEvent: undefined, openEventFromTask: undefined }
-  return {
-    openTask,
-    openEvent: (eventId: string) => openRecord('events', councilId, eventId),
-    // 업무 상세 창에서 가면 그 상세 위에 쌓아, 행사에서 뒤로가 그 업무 상세다.
-    openEventFromTask: (eventId: string) =>
-      openRecord('events', councilId, eventId, { overRecord: true }),
-  }
-}
-
 // 행사의 업무 탭 달력에는 그 행사만 그린다. 학생회의 다른 행사는 업무 메뉴의 달력에 있다.
 function onlyEvent(events: EventList, eventId: string | undefined): EventList {
   const { state } = events
@@ -117,7 +105,7 @@ function useTasksPage(props: Props) {
   )
   const { view, filter, layout, dept } = controls
   const dialogs = useRecordDialogs(props.initialTaskId)
-  const opened = useOpeners(councilId, inEvent)
+  const opened = useTaskOpeners(councilId, inEvent)
   const wide = useSplit()
   const lists = useTaskLists(props, { view, filter, layout, wide })
   const list = useNarrowed(lists.list, dept, controls, props.view)
@@ -142,7 +130,12 @@ function useTasksPage(props: Props) {
   const changed = () => {
     void reloaded()
   }
+  const lost = (message: string) => {
+    dialogs.lose(message)
+    changed()
+  }
   const change = useStatusChange(councilId, reloaded, props.onForbidden)
+  const remove = useTaskRemove(councilId, changed, { onLost: lost, onForbidden: props.onForbidden })
   const undo = useAssigneeUndo(councilId, changed, props.onForbidden)
   const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
   const team = useTeam(councilId, props.onForbidden)
@@ -180,6 +173,8 @@ function useTasksPage(props: Props) {
     eventId: props.eventId,
     calendarEvent: props.calendarEvent,
     changed,
+    lost,
+    remove,
     rows,
     table,
     undo,
@@ -257,7 +252,7 @@ function TasksBody({
         councilEmpty={page.councilEmpty}
         emptyText={viewEmptyText(controls.view, controls.dept)}
         onAddFirst={onAddFirst}
-        cardMenu={cardMenuOf(councilId)}
+        cardMenu={cardMenuOf(councilId, page.remove.ask)}
       />
     )
   return <TaskListBody list={list} table={table} filter={controls.filter} {...rows} />
@@ -284,17 +279,21 @@ export default function TasksPage(props: Props) {
   return (
     <PageColumn>
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
-      <TaskDialogs
+      <TaskPanel
         view={props.view}
-        openId={dialogs.openId}
+        taskId={dialogs.openId}
         onOpenEvent={page.openEventFromTask}
-        onCloseDetail={dialogs.closeDetail}
+        onClose={dialogs.closeDetail}
         onChanged={changed}
         onForbidden={props.onForbidden}
-        onLost={message => {
-          dialogs.lose(message)
-          changed()
-        }}
+        onLost={page.lost}
+      />
+      <TaskDeleteConfirm
+        open={page.remove.open}
+        busy={page.remove.busy}
+        error={page.remove.error}
+        onClose={page.remove.close}
+        onConfirm={page.remove.confirm}
       />
       <TaskTabs
         showViews={!props.eventId}

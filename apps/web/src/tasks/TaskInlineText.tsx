@@ -4,6 +4,7 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { isComposingKey } from '@/lib/composing-key'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import { requiredText, withContract } from '@/lib/use-form-check'
 import { cn } from '@/lib/utils'
 
@@ -49,7 +50,7 @@ function useInlineEdit({ field, value, onSave }: Pick<Props, 'field' | 'value' |
     if (problem) return setError(problem)
     if (await onSave(next)) cancel()
   }
-  return { draft, setDraft, error, cancel, commit, start: () => setDraft(value ?? '') }
+  return { value, draft, setDraft, error, cancel, commit, start: () => setDraft(value ?? '') }
 }
 
 const LABEL: Record<Field, string> = { title: '제목', body: '설명' }
@@ -75,6 +76,8 @@ function Editing({
   edit,
 }: Pick<Props, 'field' | 'busy' | 'problem'> & { edit: ReturnType<typeof useInlineEdit> }) {
   const message = edit.error ?? problem
+  // 칸을 떠나면 저장하지만, 칸을 떠나지 않고 다른 곳으로 가면(뒤로, 메뉴) 쓰던 글을 잃는다. 다를 때만 묻는다(DEC-78 이동 10).
+  useUnsavedInput(edit.draft !== (edit.value ?? ''))
   return (
     <div className="flex flex-col gap-1">
       <Textarea

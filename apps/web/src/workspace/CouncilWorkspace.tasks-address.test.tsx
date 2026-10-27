@@ -190,7 +190,7 @@ test('목록에서 업무를 열면 /tasks/학생회/업무로 한 칸 쌓이고
   const push = pushes()
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog')
-  await within(dialog).findByText('현수막 주문')
+  await screen.findByRole('dialog', { name: '현수막 주문' })
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`)
   expect(push).toHaveBeenCalledTimes(1)
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
@@ -204,7 +204,7 @@ test('홈에서 연 업무를 닫으면 홈으로 돌아간다', async () => {
   setup('home')
   fireEvent.click(await screen.findByRole('button', { name: /업무 3f2b/ }))
   const dialog = await screen.findByRole('dialog')
-  await within(dialog).findByText('현수막 주문')
+  await screen.findByRole('dialog', { name: '현수막 주문' })
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`)
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -216,15 +216,14 @@ test('홈에서 연 업무를 닫으면 홈으로 돌아간다', async () => {
 test('업무 상세에서 누른 행사는 행사 주소로 열리고, 뒤로 가면 그 업무 상세다', async () => {
   startAt(`/tasks/${COUNCIL_ID}?view=all`)
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
-  const dialog = await screen.findByRole('dialog')
-  await within(dialog).findByText('현수막 주문')
-  fireEvent.click(within(dialog).getByRole('button', { name: '신입생 환영회' }))
+  const dialog = await screen.findByRole('dialog', { name: '현수막 주문' })
+  // 행사 칸의 ↗(행사 열기)다.
+  fireEvent.click(await within(dialog).findByRole('button', { name: '신입생 환영회 열기' }))
   expect(await screen.findByRole('heading', { level: 1, name: '행사' })).toBeTruthy()
   await act(() => windowHistoryIdle())
   expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}`)
   act(() => window.history.back())
-  const back = await screen.findByRole('dialog')
-  await within(back).findByText('현수막 주문')
+  await screen.findByRole('dialog', { name: '현수막 주문' })
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`)
 })
 
@@ -297,7 +296,7 @@ test('상세를 여는 동안 뒤의 목록은 보던 보기와 부서 거르기
   startAt(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog')
-  await within(dialog).findByText('현수막 주문')
+  await screen.findByRole('dialog', { name: '현수막 주문' })
   expect(screen.getByRole('button', { name: '기획부 거르기 풀기', hidden: true })).toBeTruthy()
   expect(
     screen.getByRole('tab', { name: '전체', hidden: true }).getAttribute('aria-selected'),

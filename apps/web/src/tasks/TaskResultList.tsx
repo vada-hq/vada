@@ -1,27 +1,30 @@
 import {
   CalendarDays,
+  ChevronRight,
   ClipboardList,
   Megaphone,
   Plus,
   ShoppingCart,
   type LucideIcon,
 } from 'lucide-react'
-import { DELETED_MESSAGE, type TaskDetail, type TaskResultKind } from '@vada/contracts'
+import {
+  DELETED_MESSAGE,
+  type TaskDetail,
+  type TaskResult,
+  type TaskResultKind,
+} from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { SidePanelSection } from '@/components/ui/side-panel'
-import { makeLabel, RESULT_KIND_LABEL, STAGE_CHIP } from './task-results'
-
-// 결과물을 보이는 두 안. menu: 목록 아래 [+ 만들기] 하나(와이어프레임 '작업 문서 및 결과물' 표의 '+ 파일 추가' 줄).
-// inline: 만들 수 있는 것마다 한 줄씩 펼쳐 둔다(무엇이 되는지 먼저 보인다).
-export type ResultsLayout = 'menu' | 'inline'
+import { RESULT_KIND_LABEL, STAGE_CHIP } from './task-results'
 
 type Props = {
   task: Pick<TaskDetail, 'results' | 'canMake'>
-  layout: ResultsLayout
   busy: boolean
   onMake: (kind: TaskResultKind) => void
+  // 결과물 줄을 누르면 그 기록을 연다. 열 곳이 없으면(지운 공지 등) null이고 줄은 글자뿐이다.
+  openerOf: (result: TaskResult) => (() => void) | null
 }
 
 const ICON: Record<TaskResultKind, LucideIcon> = {
@@ -39,23 +42,46 @@ const EFFECT: Record<TaskResultKind, string> = {
   event: '행사를 완료하면 끝남',
 }
 
-function ResultRows({ task }: Pick<Props, 'task'>) {
+// 누를 수 있는 줄은 오른쪽 꺾쇠로 그 기록으로 간다는 것을 보인다(목록 항목 이동의 관례).
+function ResultLine({ result, openable }: { result: TaskResult; openable: boolean }) {
+  const Icon = ICON[result.kind]
+  const chip = STAGE_CHIP[result.stage]
+  return (
+    <>
+      <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-xs font-normal text-gray-500">{RESULT_KIND_LABEL[result.kind]}</span>
+        <span className="text-sm font-normal wrap-anywhere text-gray-900">
+          {result.title ?? DELETED_MESSAGE}
+        </span>
+      </span>
+      {chip && <Badge tone={chip.tone}>{chip.label}</Badge>}
+      {openable && <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-300" />}
+    </>
+  )
+}
+
+function ResultRows({ task, openerOf }: Pick<Props, 'task' | 'openerOf'>) {
   if (task.results.length === 0) return <p className="text-sm text-gray-400">결과물 없음</p>
   return (
     <ul className="flex flex-col divide-y rounded-md border">
       {task.results.map(result => {
-        const Icon = ICON[result.kind]
-        const chip = STAGE_CHIP[result.stage]
+        const open = openerOf(result)
         return (
-          <li key={result.id} className="flex items-center gap-3 px-3 py-2.5">
-            <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-xs text-gray-500">{RESULT_KIND_LABEL[result.kind]}</span>
-              <span className="text-sm wrap-anywhere text-gray-900">
-                {result.title ?? DELETED_MESSAGE}
+          <li key={result.id} className="flex">
+            {open ? (
+              <Button
+                variant="ghost"
+                className="h-auto flex-1 justify-start gap-3 rounded-none px-3 py-2.5 text-left whitespace-normal hover:bg-gray-50"
+                onClick={open}
+              >
+                <ResultLine result={result} openable />
+              </Button>
+            ) : (
+              <span className="flex flex-1 items-center gap-3 px-3 py-2.5">
+                <ResultLine result={result} openable={false} />
               </span>
-            </span>
-            {chip && <Badge tone={chip.tone}>{chip.label}</Badge>}
+            )}
           </li>
         )
       })}
@@ -63,7 +89,7 @@ function ResultRows({ task }: Pick<Props, 'task'>) {
   )
 }
 
-function MakeMenu({ task, busy, onMake }: Omit<Props, 'layout'>) {
+function MakeMenu({ task, busy, onMake }: Omit<Props, 'openerOf'>) {
   return (
     <Menu>
       <MenuTrigger asChild>
@@ -90,47 +116,17 @@ function MakeMenu({ task, busy, onMake }: Omit<Props, 'layout'>) {
   )
 }
 
-function MakeRows({ task, busy, onMake }: Omit<Props, 'layout'>) {
-  return (
-    <div className="flex flex-col gap-2">
-      {task.canMake.map(kind => {
-        const Icon = ICON[kind]
-        return (
-          <Button
-            key={kind}
-            variant="outline"
-            busy={busy}
-            className="h-auto justify-start gap-3 border-dashed px-3 py-2.5 text-left whitespace-normal"
-            onClick={() => onMake(kind)}
-          >
-            <Icon aria-hidden className="text-gray-400" />
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-sm text-gray-900">{makeLabel(kind)}</span>
-              <span className="text-xs font-normal text-gray-500">{EFFECT[kind]}</span>
-            </span>
-          </Button>
-        )
-      })}
-    </div>
-  )
-}
-
 // 업무 상세의 결과물: 이 업무로 만든 구매 요청·신청 양식·공지·행사와 그 진행 단계, 그리고 만들기.
-// 서버가 준 results와 canMake만 쓴다(DEC-38). 만들 수 있을 때만 '저절로 바뀐다'는 한 줄을 단다(와이어프레임 EVT-02B 자동 반영 힌트).
-export function TaskResultList({ task, layout, busy, onMake }: Props) {
+// 서버가 준 results와 canMake만 쓴다(DEC-38). 만들기는 목록 아래 [+ 만들기] 하나다(와이어프레임 '작업 문서 및 결과물' 표의 '+ 파일 추가' 줄). 만들 수 있을 때만 '저절로 바뀐다'는 한 줄을 단다(와이어프레임 EVT-02B 자동 반영 힌트).
+export function TaskResultList({ task, busy, onMake, openerOf }: Props) {
   const canMake = task.canMake.length > 0
   return (
     <SidePanelSection
       title="결과물"
       hint={canMake ? '만들면 업무 상태가 저절로 바뀌어요' : undefined}
     >
-      {(task.results.length > 0 || !canMake || layout === 'menu') && <ResultRows task={task} />}
-      {canMake &&
-        (layout === 'menu' ? (
-          <MakeMenu task={task} busy={busy} onMake={onMake} />
-        ) : (
-          <MakeRows task={task} busy={busy} onMake={onMake} />
-        ))}
+      <ResultRows task={task} openerOf={openerOf} />
+      {canMake && <MakeMenu task={task} busy={busy} onMake={onMake} />}
     </SidePanelSection>
   )
 }

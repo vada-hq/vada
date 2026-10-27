@@ -59,9 +59,7 @@ test('홈의 업무 줄을 누르면 업무 화면에서 그 업무 상세가 �
   open()
   fireEvent.click(await screen.findByRole('button', { name: /업무 3f2b8c1e/ }))
   // 상세가 열리면 뒤의 화면은 보조 기술에서 가려진다.
-  await waitFor(() =>
-    expect(within(screen.getByRole('dialog')).getByText('현수막 주문')).toBeTruthy(),
-  )
+  await waitFor(() => expect(screen.getByRole('dialog', { name: '현수막 주문' })).toBeTruthy())
   expect(screen.queryByRole('heading', { level: 1, name: '홈' })).toBeNull()
 })
 

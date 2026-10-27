@@ -45,6 +45,10 @@ const lastVersion = async (t: SettlementKit, id: string) =>
       [id],
     )
   ).rows[0]!
+const placeOf = (task: TaskDetail) => {
+  const { eventId, roomId } = task.results[0]!
+  return { eventId, roomId }
+}
 const resultsOf = async (t: SettlementKit, id: string) =>
   (await detailOf(t, id)).results.map(({ kind, title, stage }) => ({ kind, title, stage }))
 
@@ -76,6 +80,8 @@ test(
     assert.deepEqual(await resultsOf(t, taskId), [
       { kind: 'registration_form', title: '신청', stage: 'finished' },
     ])
+    // 양식은 그 행사에서 연다.
+    assert.deepEqual(placeOf(await detailOf(t, taskId)), { eventId, roomId: null })
     assert.equal((await detailOf(t, taskId)).history.at(-1)!.cause, 'form_created')
     // taskId가 없으면 연결도 업무 변화도 없다
     const other = await taskFor(t)
@@ -173,6 +179,8 @@ test(
     assert.deepEqual(await resultsOf(t, taskId), [
       { kind: 'message', title: '내일 총회', stage: 'finished' },
     ])
+    // 공지는 올린 방에서 연다. 학생회 공지방이라 행사는 없다.
+    assert.deepEqual(placeOf(await detailOf(t, taskId)), { eventId: null, roomId: room })
     // 사람이 할 일로 되돌리면 그대로 둔다(공지에서 빠지는 길은 없고 단계도 그대로다).
     assert.equal((await setStatus(t, taskId, 'todo')).status, 200)
     assert.equal((await send(t, room, { body: '다른 글' })).status, 201)
@@ -198,6 +206,8 @@ test(
     assert.deepEqual(await resultsOf(t, taskId), [
       { kind: 'message', title: null, stage: 'excluded' },
     ])
+    // 지운 공지는 열 곳이 없다.
+    assert.deepEqual(placeOf(await detailOf(t, taskId)), { eventId: null, roomId: null })
     assert.equal(await statusOf(t, taskId), 'done')
     assert.deepEqual(await resultsOf(t, kept), [
       { kind: 'message', title: '남는 공지', stage: 'finished' },
@@ -205,6 +215,10 @@ test(
     // 볼 수 없는 지운 공지는 볼 수 없는 공지와 같이 빈 제목이다(있었는지 드러내지 않는다).
     await t.pg.query("UPDATE message SET sent_at = '2020-01-01' WHERE id = $1", [sent.id])
     assert.equal((await detailOf(t, taskId)).results[0]!.title, '')
+    assert.deepEqual(placeOf(await detailOf(t, kept)), { eventId: null, roomId: room })
+    await t.pg.query("UPDATE message SET sent_at = '2020-01-01' WHERE body = '남는 공지'")
+    // 볼 수 없는 공지도 열 곳을 싣지 않는다(DEC-59).
+    assert.deepEqual(placeOf(await detailOf(t, kept)), { eventId: null, roomId: null })
   }),
 )
 

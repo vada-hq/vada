@@ -1,11 +1,11 @@
-import type { TaskAction, TaskDetail, TaskResultKind } from '@vada/contracts'
+import type { TaskAction, TaskDetail, TaskResult, TaskResultKind } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { SidePanelSection } from '@/components/ui/side-panel'
 import { monthDayTime } from '@/lib/korean-date-text'
 import type { TaskEdit } from './task-edits'
 import { errorIn, TaskFactGrid, type TaskPickOptions } from './TaskFactGrid'
 import { TaskInlineText } from './TaskInlineText'
-import { TaskResultList, type ResultsLayout } from './TaskResultList'
+import { TaskResultList } from './TaskResultList'
 import { TaskStatusSwitch } from './TaskStatusSwitch'
 import type { TaskProblem } from './useTaskDetail'
 
@@ -16,10 +16,11 @@ export type TaskDetailViewProps = {
   busy: boolean
   problem: TaskProblem | null
   options: TaskPickOptions
-  results: ResultsLayout
   // 바꾼 값 하나를 보낸다. 성공하면 true.
   onEdit: (edit: TaskEdit) => Promise<boolean> | boolean
   onMake: (kind: TaskResultKind) => void
+  // 결과물 줄을 누르면 여는 길. 열 곳이 없으면 null이다.
+  openerOf: (result: TaskResult) => (() => void) | null
   // 행사 고르기 창을 처음 열 때. 이을 수 있는 행사를 그때 읽는다.
   onNeedEvents?: (() => void) | undefined
   onOpenEvent?: ((eventId: string) => void) | undefined
@@ -64,7 +65,7 @@ export function TaskDetailView(props: TaskDetailViewProps) {
         />
         {!task.body && !can('task.edit') && <p className="text-sm text-gray-400">설명 없음</p>}
       </SidePanelSection>
-      <TaskResultList task={task} layout={props.results} busy={busy} onMake={props.onMake} />
+      <TaskResultList task={task} busy={busy} onMake={props.onMake} openerOf={props.openerOf} />
       {task.createdBy && (
         <p className="text-xs text-gray-400">
           {task.createdBy.name} · {monthDayTime(task.createdAt)} 만듦

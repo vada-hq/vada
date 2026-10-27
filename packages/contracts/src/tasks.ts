@@ -110,6 +110,10 @@ export interface TaskResult {
   id: string
   title: string | null
   stage: TaskResultStage
+  // 결과물을 여는 곳. 신청 양식은 그 양식의 행사(인원 관리 탭)이고, 공지는 올린 방과 그 방의 행사(학생회 공지방이면 null)다.
+  // 요청과 행사는 id로 열어 둘 다 null이다. 볼 수 없거나 지운 공지도 null이다(열 곳이 없다).
+  eventId: string | null
+  roomId: string | null
 }
 
 export interface TaskDetail extends TaskSummary {

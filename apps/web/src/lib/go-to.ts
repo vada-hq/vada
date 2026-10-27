@@ -27,9 +27,16 @@ export const openRecord = (
 ) => navigate(recordTarget(kind, councilId, id, options.tab), { overRecord: options.overRecord })
 
 // 홈의 행사 방 칩은 행사 메시지 탭으로 가고, 학생회·1:1 방은 대화 메뉴로 간다.
-export const openMessageRoom = (councilId: string, roomId: string, eventId?: string | null) =>
+// overRecord는 openRecord와 같다(업무 상세의 결과물 공지처럼 기록 상세 위에서 간다).
+export const openMessageRoom = (
+  councilId: string,
+  roomId: string,
+  eventId?: string | null,
+  options: { overRecord?: boolean } = {},
+) =>
   navigate(
     eventId ? eventRoomPath(councilId, eventId, roomId) : recordPath('chat', councilId, roomId),
+    options,
   )
 
 // 열려 있는 행사 안에서 탭을 바꾼다(창 안의 링크). 탭은 기록을 쌓지 않아(useEventAddress) 지금 칸을 바꿔 쓰는데,

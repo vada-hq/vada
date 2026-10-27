@@ -4,6 +4,7 @@ import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { OptionList, type Option } from '@/components/ui/option-list'
+import { TASK_TEAM_FAILED } from '@/lib/messages'
 import { dayLabel } from '@/lib/month-grid'
 import { cn } from '@/lib/utils'
 import type { TaskEdit } from './task-edits'
@@ -13,10 +14,12 @@ import { TaskProperty } from './TaskProperty'
 import type { TaskProblem, TaskWhere } from './useTaskDetail'
 
 // 고르기 창의 선택지. null은 아직 읽는 중이다(창을 열면 '불러오는 중').
+// teamFailed는 사람·부서 목록을 읽지 못했다는 뜻이다(담당자·부서 창에 이유를 보인다).
 export type TaskPickOptions = {
   departments: Option[] | null
   assignees: Option[] | null
   events: Option[] | null
+  teamFailed?: boolean | undefined
 }
 
 type Props = {
@@ -38,14 +41,22 @@ function Picker({
   options,
   value,
   searchLabel,
+  failed,
   onPick,
 }: {
   label: string
   options: Option[] | null
   value: string | null
   searchLabel?: string
+  failed?: boolean | undefined
   onPick: (id: string | null) => void
 }) {
+  if (options === null && failed)
+    return (
+      <StateMessage kind="error" className="p-3">
+        {TASK_TEAM_FAILED}
+      </StateMessage>
+    )
   if (options === null)
     return (
       <StateMessage kind="loading" className="p-3">
@@ -138,6 +149,7 @@ export function TaskFactGrid({
             label="담당자"
             searchLabel="이름으로 찾기"
             options={options.assignees}
+            failed={options.teamFailed}
             value={task.assignee?.id ?? null}
             onPick={assigneeId => pick({ field: 'assignee', assigneeId }, close)}
           />
@@ -171,6 +183,7 @@ export function TaskFactGrid({
           <Picker
             label="담당 부서"
             options={options.departments}
+            failed={options.teamFailed}
             value={task.department?.id ?? null}
             onPick={departmentId => pick({ field: 'department', departmentId }, close)}
           />

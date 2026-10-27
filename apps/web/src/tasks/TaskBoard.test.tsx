@@ -6,6 +6,7 @@ import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
+import { TASK_FAILED } from '@/lib/messages'
 import { withTaskLayout } from '@/lib/task-layout'
 import TasksPage from './TasksPage'
 
@@ -133,6 +134,46 @@ test('카드 ⋯ 메뉴는 그 업무에 하는 동작(링크 복사)이고 상�
   fireEvent.keyDown(await screen.findByRole('button', { name: '업무 a 더 보기' }), { key: 'Enter' })
   const items = await screen.findAllByRole('menuitem')
   expect(items.map(item => item.textContent)).toEqual(['링크 복사'])
+})
+
+async function askCardDelete(name: string) {
+  fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 더 보기` }), {
+    key: 'Enter',
+  })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '지우기' }))
+  return await screen.findByRole('dialog', { name: '이 업무를 지울까요?' })
+}
+
+test('카드 ⋯의 지우기는 task.remove가 있을 때만 있고, 확인을 거쳐 지운 뒤 목록을 다시 읽는다', async () => {
+  serve([task('a', { actions: ['task.change_status', 'task.remove'] })])
+  api.on('POST', `${base}/a/delete`, () => new Response(null, { status: 204 }))
+  render(page())
+  const confirm = await askCardDelete('업무 a')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+  const reads = () => api.calls.filter(call => call.path === listPath('open')).length
+  const before = reads()
+  fireEvent.click(within(confirm).getByRole('button', { name: '지우기' }))
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', { name: '이 업무를 지울까요?' })).toBeNull(),
+  )
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.path)).toEqual([
+    `${base}/a/delete`,
+  ])
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+})
+
+test('카드 지우기가 실패하면 창 안에 이유를 보이고, 닫으면 보내지 않은 채 남는다', async () => {
+  serve([task('a', { actions: ['task.remove'] })])
+  api.on('POST', `${base}/a/delete`, () => json({ error: 'FAILED' }, 500))
+  render(page())
+  const confirm = await askCardDelete('업무 a')
+  fireEvent.click(within(confirm).getByRole('button', { name: '지우기' }))
+  expect(await within(confirm).findByText(TASK_FAILED)).toBeTruthy()
+  fireEvent.click(within(confirm).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', { name: '이 업무를 지울까요?' })).toBeNull(),
+  )
+  expect(screen.getByRole('button', { name: '업무 a' })).toBeTruthy()
 })
 
 test('끝난 업무가 넘치면 끝남 열에 50장과 50+가 있고, [표로 보기]가 표의 끝남을 연다', async () => {

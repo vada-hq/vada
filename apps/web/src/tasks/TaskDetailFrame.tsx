@@ -1,13 +1,7 @@
 import type { ReactNode } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SidePanel, SidePanelBody, SidePanelContent } from '@/components/ui/side-panel'
 
-// 업무 상세를 여는 틀 두 안. panel: 오른쪽 패널(DEC-94, 와이어프레임 OPS 패널, Linear·Jira·Asana·GitHub Projects).
-// dialog: 가운데 창(지금 모양). 몸통은 같고 틀만 다르다. 사람이 스크린샷으로 견줘 고른다.
-export type TaskFrame = 'panel' | 'dialog'
-
 type Props = {
-  frame: TaskFrame
   // 창의 이름(화면 읽기). 보이는 제목은 heading이 그린다.
   title: string
   heading: ReactNode
@@ -26,37 +20,12 @@ const keepWhileEditing = (event: KeyboardEvent) => {
     event.preventDefault()
 }
 
-export function TaskDetailFrame({
-  frame,
-  title,
-  heading,
-  menu,
-  busy,
-  onClose,
-  record,
-  children,
-}: Props) {
+// 업무 상세의 틀: 오른쪽 패널(DEC-94, 와이어프레임 OPS 패널, Linear·Jira·Asana·GitHub Projects).
+// 768px 아래(태블릿 세로·휴대폰)는 높이 전체의 시트로 화면을 다 덮는다. 512px 패널이 남기는 띠가 좁아 뒤 목록을 보며 고칠 수 없다.
+export function TaskDetailFrame({ title, heading, menu, busy, onClose, record, children }: Props) {
   const onOpenChange = (open: boolean) => {
     if (!open && !busy) onClose()
   }
-  if (frame === 'dialog')
-    return (
-      <Dialog open onOpenChange={onOpenChange}>
-        <DialogContent
-          aria-describedby={undefined}
-          record={record}
-          className="max-w-2xl"
-          onEscapeKeyDown={keepWhileEditing}
-        >
-          <DialogHeader className="flex-row items-start gap-2 pr-8">
-            <DialogTitle className="sr-only">{title}</DialogTitle>
-            <div className="min-w-0 flex-1">{heading}</div>
-            {menu}
-          </DialogHeader>
-          {children}
-        </DialogContent>
-      </Dialog>
-    )
   return (
     <SidePanel open onOpenChange={onOpenChange}>
       <SidePanelContent
@@ -64,6 +33,7 @@ export function TaskDetailFrame({
         heading={heading}
         actions={menu}
         record={record}
+        className="sm:w-full sm:border-l-0 md:w-128 md:border-l"
         onEscapeKeyDown={keepWhileEditing}
       >
         <SidePanelBody>{children}</SidePanelBody>
