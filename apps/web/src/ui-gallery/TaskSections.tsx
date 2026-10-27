@@ -278,7 +278,6 @@ export function TaskBoardSection() {
           busy={false}
           hasResult
           onOpen={noop}
-          onChangeStatus={noop}
         />
       </ul>
     </Section>

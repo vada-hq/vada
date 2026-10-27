@@ -15,6 +15,7 @@ import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
 import { TaskBoard } from './TaskBoard'
+import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskDialogs } from './TaskDialogs'
 import { TaskListBody, type TableSetup } from './TaskListBody'
@@ -225,9 +226,11 @@ const viewEmptyText = (view: TaskView, dept: string | null) =>
 // 보드·표·달력 가운데 지금 배치의 몸통. 넓은 화면의 보드가 아니면 지금의 표(넓은 화면)와 줄(좁은 화면)이다.
 function TasksBody({
   page,
+  councilId,
   onAddFirst,
 }: {
   page: ReturnType<typeof useTasksPage>
+  councilId: string
   onAddFirst: (() => void) | undefined
 }) {
   const { controls, list, rows, table } = page
@@ -254,6 +257,7 @@ function TasksBody({
         councilEmpty={page.councilEmpty}
         emptyText={viewEmptyText(controls.view, controls.dept)}
         onAddFirst={onAddFirst}
+        cardMenu={cardMenuOf(councilId)}
       />
     )
   return <TaskListBody list={list} table={table} filter={controls.filter} {...rows} />
@@ -318,7 +322,7 @@ export default function TasksPage(props: Props) {
         />
       )}
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
-        <TasksBody page={page} onAddFirst={first.onAddFirst} />
+        <TasksBody page={page} councilId={props.view.council.id} onAddFirst={first.onAddFirst} />
       </div>
       <TaskUndoBar {...page.undo} />
     </PageColumn>

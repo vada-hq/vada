@@ -5,7 +5,8 @@ import { useLatest } from '@/lib/use-latest'
 import { problemText, reportLost, type TaskDialogHandlers } from './task-requests'
 
 // 오류가 보일 자리. 동작마다 그 동작 옆에 보인다.
-export type TaskWhere = 'status' | 'department' | 'assignee' | 'edit' | 'delete'
+export type TaskWhere =
+  'status' | 'department' | 'assignee' | 'edit' | 'delete' | 'title' | 'body' | 'dueDate' | 'event'
 export type TaskProblem = { where: TaskWhere; text: string }
 
 // 업무 하나를 읽는다. attempt가 바뀌면 다시 읽고, 읽는 동안에도 이미 받은 업무는 그대로 둔다.

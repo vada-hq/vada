@@ -55,7 +55,10 @@ export function linkableEventsOf(
 }
 
 // 행사 고르기: '행사 없음'과 행사들. 지금 이은 행사가 목록에 없으면(목록이 넘쳤거나 읽기 전) 맨 뒤에 더한다.
-export function eventChoices(events: EventSummary[], current: { id: string; name: string } | null) {
+export function eventChoices(
+  events: Pick<EventSummary, 'id' | 'name'>[],
+  current: { id: string; name: string } | null,
+) {
   const listed = events.map((item): Choice => ({ id: item.id, label: item.name }))
   const missing = current !== null && !events.some(item => item.id === current.id)
   return [
