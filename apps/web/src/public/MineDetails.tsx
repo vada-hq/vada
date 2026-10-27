@@ -15,12 +15,14 @@ export function AttendanceBlock({ mine }: { mine: MyRegistration }) {
       aria-label="출석 QR 보관"
       className={`${cardClass} flex flex-col items-center gap-3 p-4`}
     >
-      <h2 className="w-full text-center font-semibold wrap-anywhere">{mine.event.name}</h2>
+      <h2 className="w-full text-center font-semibold break-keep wrap-anywhere">
+        {mine.event.name}
+      </h2>
       {/* 내부 2모듈에 흰 여백 16px를 더해 224px QR 사방 4모듈 이상을 비운다(DENSO). */}
       <div className="max-w-full bg-white p-4">
         <QrCode text={mine.qrText} label="출석 확인 QR" />
       </div>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm break-keep text-muted-foreground">
         이 화면을 캡처해 보관하고, 행사 당일 운영진에게 보여 주세요.
       </p>
     </section>

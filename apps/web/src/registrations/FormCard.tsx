@@ -98,16 +98,16 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
   return (
     <div className="flex flex-wrap gap-2">
       {canEdit && (
-        <Button variant="outline" size="sm" onClick={onEdit}>
+        <Button variant="outline" size="sm" touch onClick={onEdit}>
           고치기
         </Button>
       )}
       {canToggle && (
-        <Button variant="outline" size="sm" busy={busy} onClick={onPause}>
+        <Button variant="outline" size="sm" touch busy={busy} onClick={onPause}>
           {form.paused ? '다시 받기' : '멈추기'}
         </Button>
       )}
-      <Button variant="outline" size="sm" aria-expanded={open} onClick={onToggle}>
+      <Button variant="outline" size="sm" touch aria-expanded={open} onClick={onToggle}>
         {open ? '접기' : '링크와 신청자'}
       </Button>
     </div>
@@ -132,7 +132,7 @@ function Applicants({ form, ...rest }: ApplicantsProps) {
     return (
       <div className="flex flex-col items-start gap-2">
         <p className="text-xs text-gray-500">신청자 정보를 열면 연 기록이 남아요.</p>
-        <Button variant="outline" size="sm" onClick={() => setShown(true)}>
+        <Button variant="outline" size="sm" touch onClick={() => setShown(true)}>
           신청자 보기
         </Button>
       </div>

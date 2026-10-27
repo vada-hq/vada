@@ -209,9 +209,13 @@ type ToolbarProps = {
 function TabToolbar({ actions, scannable, onCreate, onScan }: ToolbarProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {actions.includes('form.create') && <Button onClick={onCreate}>신청 양식 만들기</Button>}
+      {actions.includes('form.create') && (
+        <Button touch onClick={onCreate}>
+          신청 양식 만들기
+        </Button>
+      )}
       {scannable && (
-        <Button variant="outline" onClick={onScan}>
+        <Button variant="outline" touch onClick={onScan}>
           QR로 출석 확인
         </Button>
       )}

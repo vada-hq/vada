@@ -73,10 +73,11 @@ export function DialogContent({
         >
           <WindowHistory record={record} />
           {children}
+          {/* 휴대폰에서는 누르는 자리만 44px로 넓힌다(아이콘 자리는 같다). QR 스캐너처럼 닫는 길이 이것 하나인 창이 있다. */}
           <DialogPrimitive.Close
             aria-label="닫기"
             disabled={closeDisabled}
-            className="absolute top-6 right-6 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
             <X className="size-4" />
           </DialogPrimitive.Close>

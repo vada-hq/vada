@@ -12,6 +12,7 @@ export default function CopyButton({ value, label, failedHint }: Props) {
       <Button
         variant="outline"
         size="sm"
+        touch
         className="self-start"
         onClick={() => {
           void copyText(value).then(ok => setResult(ok ? 'copied' : 'failed'))

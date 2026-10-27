@@ -109,7 +109,10 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
     <>
       <DialogHeader>
         <DialogTitle>QR로 출석 확인</DialogTitle>
-        <DialogDescription id="check-in-description" className={cn(flow.outcome && 'sr-only')}>
+        <DialogDescription
+          id="check-in-description"
+          className={cn('break-keep', flow.outcome && 'sr-only')}
+        >
           {description}
         </DialogDescription>
       </DialogHeader>
@@ -136,8 +139,10 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
       )}
       {problem && (
         <div className="flex flex-col items-start gap-2">
-          <Alert tone="warning">{problem}</Alert>
-          <Button variant="outline" size="sm" onClick={retry}>
+          <Alert tone="warning" className="break-keep">
+            {problem}
+          </Alert>
+          <Button variant="outline" size="sm" touch onClick={retry}>
             다시 시도
           </Button>
         </div>

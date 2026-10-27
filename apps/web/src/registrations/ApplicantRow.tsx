@@ -58,7 +58,7 @@ export function ApplicantRow({ applicant, ...rest }: Props) {
       </div>
       <p className="text-xs text-gray-500 wrap-anywhere">{details.filter(Boolean).join(' · ')}</p>
       <ApplicantActions applicant={applicant} {...rest} />
-      <DepositActions applicant={applicant} {...rest} />
+      <DepositActions applicant={applicant} touch {...rest} />
     </li>
   )
 }

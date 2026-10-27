@@ -92,12 +92,14 @@ export function ScanResultCard({
         <div className="flex flex-col gap-1">
           {who && (
             <>
-              <p className="text-lg font-semibold text-gray-900 wrap-anywhere">{who.name}</p>
+              <p className="text-lg font-semibold break-keep text-gray-900 wrap-anywhere">
+                {who.name}
+              </p>
               {who.studentId && <p className="text-sm text-gray-600">학번 {who.studentId}</p>}
             </>
           )}
           {details.map(line => (
-            <p key={line} className="text-sm text-gray-600 wrap-anywhere">
+            <p key={line} className="text-sm break-keep text-gray-600 wrap-anywhere">
               {line}
             </p>
           ))}

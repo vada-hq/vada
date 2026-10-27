@@ -16,7 +16,7 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
   const [asking, setAsking] = useState(false)
   return (
     <div className="flex flex-col gap-2">
-      <Button variant="outline" className="self-start" onClick={() => setAsking(true)}>
+      <Button variant="outline" touch className="self-start" onClick={() => setAsking(true)}>
         신청 취소
       </Button>
       <ConfirmDialog
@@ -39,7 +39,7 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
 function SaveAddress() {
   return (
     <Alert tone="info" className="flex flex-col gap-2">
-      <span>
+      <span className="break-keep">
         이 주소를 저장해 두세요. 행사장에서 이 주소로 QR을 다시 열어요. 다른 사람에게 보내지 마세요.
       </span>
       <CopyButton
