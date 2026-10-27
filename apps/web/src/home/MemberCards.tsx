@@ -96,6 +96,7 @@ export function MyWorkCard({
       icon={ClipboardList}
       read={{ kind: 'ready', total: rows.length, rows }}
       empty="맡은 업무 없음"
+      aside={myTasks.open === 0 ? null : `${myTasks.open}건`}
     />
   )
 }

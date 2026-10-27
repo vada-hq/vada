@@ -221,6 +221,14 @@ test('내 요청이 없으면 내 요청 없음이다', async () => {
   expect(within(requests).getByText('내 요청 없음')).toBeTruthy()
 })
 
+test.each([0, 1, 3])('내 업무가 %i건이면 머리에 실제 수를 표시하고 0건은 숨긴다', async count => {
+  open(memberHome({ myTasks: { open: count, overdue: 0, nearest: null } }))
+  const work = await card('내 업무')
+  const head = within(work).getByRole('heading', { name: '내 업무' }).parentElement!
+  expect(head.textContent).toBe(count === 0 ? '내 업무' : `내 업무${count}건`)
+  if (count === 0) expect(within(work).getByText('맡은 업무 없음')).toBeTruthy()
+})
+
 test('내 업무 카드에는 업무 수와 가장 가까운 마감만 보이고 누르면 내 업무 탭이다', async () => {
   const nearest = homeTask('t1', 'overdue', { title: '부스 배치안 확정', dueDate: '2026-10-21' })
   open(memberHome({ myTasks: { open: 3, overdue: 1, nearest } }), {
