@@ -22,7 +22,8 @@ import {
   REGISTRATION_STAFF_ERRORS,
   REGISTRATION_STAFF_LOST,
 } from '@/lib/registration-messages'
-import type { EventDetail, FormListAction } from '@vada/contracts'
+import type { AccountItem, EventDetail, FormListAction } from '@vada/contracts'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
 
@@ -37,6 +38,8 @@ type Options = {
   actions?: FormListAction[]
   // 행사 상세. 읽기 전이면 null이다.
   event?: EventDetail | null
+  // 학생회 계좌. 기본은 대표·사업·닫은 통장 셋이다.
+  accounts?: AccountItem[]
 }
 
 function setup(options: Options = {}) {
@@ -51,7 +54,7 @@ function setup(options: Options = {}) {
   )
   api.on('GET', ACCOUNTS_PATH, () =>
     json({
-      accounts: [
+      accounts: options.accounts ?? [
         accountItem(),
         accountItem({
           id: '00000000-0000-4000-8000-0000000000a2',
@@ -330,6 +333,62 @@ test('고치기는 양식 값으로 채운 화면을 열고, 404면 화면을 �
   fireEvent.click(within(form).getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 고치기' })).toBeNull())
   expect(screen.getByText(REGISTRATION_STAFF_LOST)).toBeTruthy()
+})
+
+const noFeeForm = () => staffForm({ payerFee: null, nonPayerFee: null, feeAccount: null })
+
+async function openEditWithFee() {
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.click(within(form).getByLabelText('있음'))
+  fireEvent.change(within(form).getByLabelText('참가비(원)'), { target: { value: '5000' } })
+  const select = await within(form).findByRole<HTMLSelectElement>('combobox', {
+    name: '참가비 받을 계좌',
+  })
+  return { form, select }
+}
+
+test('고치기: 참가비 없던 양식에 참가비를 넣으면 만들기처럼 하나뿐인 계좌가 골라져 저장된다', async () => {
+  const { api } = setup({ forms: [noFeeForm()], accounts: [accountItem()] })
+  api.on('POST', FORM_PATH, () => json({ form: staffForm() }))
+  const { form, select } = await openEditWithFee()
+  await waitFor(() => expect(select).toHaveProperty('value', ACCOUNT_ID))
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]?.body).toMatchObject({
+    payerFee: 5000,
+    nonPayerFee: 5000,
+    feeAccountId: ACCOUNT_ID,
+  })
+})
+
+test('고치기: 대표 계좌 없이 계좌가 둘이면 고르기 전에는 저장하지 않는다', async () => {
+  const { api } = setup({
+    forms: [noFeeForm()],
+    accounts: [
+      accountItem({ type: 'business' }),
+      accountItem({ id: '00000000-0000-4000-8000-0000000000a2', type: 'business' }),
+    ],
+  })
+  const { form, select } = await openEditWithFee()
+  await within(select).findAllByRole('option', { name: /학생회 통장/ })
+  expect(select.value).toBe(select.options[0]?.value)
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  expect(within(form).getByText('참가비 받을 계좌를 골라 주세요')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+})
+
+test('만들기·고치기 화면은 열기만 하면 떠날 때 묻지 않는다', async () => {
+  setup({ forms: [noFeeForm()], actions: ['form.create'] })
+  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  await screen.findByRole('form', { name: '신청 양식 만들기' })
+  await settle()
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  await screen.findByRole('form', { name: '신청 양식 고치기' })
+  await settle()
+  expect(hasUnsavedInput()).toBe(false)
 })
 
 test('[멈추기]는 보내는 동안 다시 보내지 않고, 409·429는 카드 안에 문구를 보인다', async () => {

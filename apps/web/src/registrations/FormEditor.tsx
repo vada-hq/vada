@@ -50,11 +50,12 @@ type Props = EventDialogHandlers & {
 }
 
 // 만들기와 고치기가 다른 것: 처음 값, 처음 고른 계좌(undefined면 대표 계좌), 계약, 보낼 곳, 이름.
+// 계좌 없이 저장된 양식(참가비 없음)을 고치다 참가비를 넣으면 만들기처럼 대표 계좌로 시작한다. 하나뿐인 계좌를 또 고르게 하지 않는다.
 function modeOf(councilId: string, eventId: string, form?: RegistrationForm) {
   if (form)
     return {
       values: valuesOfForm(form),
-      chosen: form.feeAccount?.id ?? (null as string | null | undefined),
+      chosen: form.feeAccount?.id as string | null | undefined,
       schema: UpdateFormSchema,
       path: formPath(councilId, form.id),
       label: '신청 양식 고치기',
