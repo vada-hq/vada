@@ -8,6 +8,7 @@ import {
   type ProductInfo,
   type TeamMember,
 } from '@vada/contracts'
+import { freeForEveryone } from './free-shipping'
 import { bodyParts } from './message-links'
 
 // 메시지 링크로 채우는 초안. 조회 원본은 표시용이며 예상 가격은 024-11의 별도 필드로 보낸다.
@@ -76,9 +77,7 @@ function unitPriceValue(seed: ItemSeed, price: number | null) {
 
 function shippingFeeValue(seed: ItemSeed, shipping: string | null) {
   if (seed.shippingFeeEdited) return seed.estimatedShippingFee ?? ''
-  return /^(무료\s?배송|배송비\s?무료)$/.test(shipping?.trim() ?? '')
-    ? '0'
-    : (seed.estimatedShippingFee ?? '')
+  return freeForEveryone(shipping) ? '0' : (seed.estimatedShippingFee ?? '')
 }
 
 export function withLoaded(seed: ItemSeed, product: ProductInfo, itemId?: string): ItemSeed {

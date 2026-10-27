@@ -124,6 +124,26 @@ test('명시 조회의 늦은 응답은 직접 고친 제목·상품명·예상 
 })
 
 test.each([
+  { shipping: '무료배송 ∙ 오늘출발', fee: '0', total: '12,000원' },
+  { shipping: '와우는 · 무료배송 · 무료반품 · 새벽도착', fee: '', total: '미확인' },
+  { shipping: '19,800원 이상 무료배송', fee: '', total: '미확인' },
+])(
+  '불러온 배송 문구 "$shipping"이면 배송비는 "$fee", 예상 금액은 $total',
+  async ({ shipping, fee, total }) => {
+    const api = setup()
+    api.on('POST', `${BASE}/product-info`, () =>
+      json({ product: { ...PRODUCT, shipping }, reason: null }),
+    )
+    open({ start: { title: LINK, items: [{ name: '', link: LINK, loadedPrice: null }] } })
+    await screen.findByText('품절')
+    expect(screen.getByLabelText<HTMLInputElement>('품목 1 예상 배송비').value).toBe(fee)
+    expect(
+      within(screen.getByRole('complementary', { name: '요청 요약' })).getByText(total),
+    ).toBeTruthy()
+  },
+)
+
+test.each([
   { councilId: C, memberId: 'other-member' },
   { councilId: 'other-council', memberId: view.me.memberId },
 ])(

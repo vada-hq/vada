@@ -166,3 +166,19 @@ test('불러온 값은 사람이 적은 이름을 덮지 않고, 다른 판매 �
   })
   expect(other.loadedProduct).toEqual(loaded)
 })
+
+test('무료배송이 조건 없이 확인되면 배송비를 0으로 채우고, 사람이 적은 배송비나 조건부 무료는 그대로 둔다', () => {
+  const loaded = (shipping: string) => ({ ...product('빨강 3개'), shipping })
+  const seed = { name: '', link: COUPANG, loadedPrice: null }
+  expect(withLoaded(seed, loaded('무료배송 ∙ 오늘출발')).estimatedShippingFee).toBe('0')
+  expect(
+    withLoaded(seed, loaded('와우는 · 무료배송 · 무료반품 · 새벽도착')).estimatedShippingFee,
+  ).toBe('')
+  expect(withLoaded(seed, loaded('19,800원 이상 무료배송')).estimatedShippingFee).toBe('')
+  expect(
+    withLoaded(
+      { ...seed, estimatedShippingFee: '2500', shippingFeeEdited: true },
+      loaded('무료배송 ∙ 오늘출발'),
+    ).estimatedShippingFee,
+  ).toBe('2500')
+})
