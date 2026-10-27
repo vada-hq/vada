@@ -51,12 +51,15 @@ export function congestionOf(
   return (
     [...people.values()]
       .filter(row => row.count >= HOME_CONGESTION_TASKS)
-      .sort(
-        (a, b) =>
+      .sort((a, b) => {
+        const left = a.member
+        const right = b.member
+        return (
           b.count - a.count ||
           a.firstDue.localeCompare(b.firstDue) ||
-          a.member.name.localeCompare(b.member.name) ||
-          a.member.id.localeCompare(b.member.id),
-      )[0] ?? null
+          left.name.localeCompare(right.name) ||
+          left.id.localeCompare(right.id)
+        )
+      })[0] ?? null
   )
 }
