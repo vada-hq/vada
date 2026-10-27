@@ -120,13 +120,15 @@ const openForm = async () => {
   fireEvent.click(await screen.findByRole('button', { name: '지출 적기' }))
   return screen.findByRole('form', { name: '지출 적기' })
 }
+// 지출 탭의 거르기 줄에도 '행사'·'예산 항목'이 있어 창 안에서만 찾는다.
+const inForm = () => within(screen.getByRole('form', { name: '지출 적기' }))
 const fill = (label: string, value: string) =>
-  fireEvent.change(screen.getByLabelText(label), { target: { value } })
+  fireEvent.change(inForm().getByLabelText(label), { target: { value } })
 const submit = () => asElement(screen.getByRole('button', { name: '적기' }), HTMLButtonElement)
 // 보낼 때마다 새로 만드는 명령 번호는 모양만 본다.
 const anyCommandId = expect.stringMatching(/^[0-9a-f-]{36}$/) as string
 const choose = (label: string, value: string) =>
-  fireEvent.change(screen.getByLabelText(label), { target: { value } })
+  fireEvent.change(inForm().getByLabelText(label), { target: { value } })
 const today = () => koreanDateOf(new Date())
 const tomorrow = () => koreanDateOf(new Date(Date.now() + 24 * 60 * 60 * 1000))
 
@@ -198,11 +200,11 @@ test('요청한 품목을 고르면 결제 금액이 승인 금액으로 채워�
   expect(asElement(screen.getByLabelText('A2 포스터 결제 금액'), HTMLInputElement).value).toBe(
     '30000',
   )
-  expect(screen.getByText('합계 30,000원')).toBeTruthy()
+  expect(inForm().getByText('합계 30,000원')).toBeTruthy()
   fireEvent.click(screen.getByRole('checkbox', { name: /테이프/ }))
-  expect(screen.getByText('합계 36,000원')).toBeTruthy()
+  expect(inForm().getByText('합계 36,000원')).toBeTruthy()
   fill('A2 포스터 결제 금액', '25000')
-  expect(screen.getByText('합계 31,000원')).toBeTruthy()
+  expect(inForm().getByText('합계 31,000원')).toBeTruthy()
   expect(submit().disabled).toBe(false)
   fireEvent.click(submit())
   // 적고 나면 상세가 열려 사진을 붙이게 한다.
@@ -690,7 +692,7 @@ test('행사가 있는 요청을 고르면 지출의 행사가 그 행사로 채
   )
   showFinance()
   await openForm()
-  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  const select = () => asElement(inForm().getByLabelText('행사'), HTMLSelectElement)
   await waitFor(() => expect(select().disabled).toBe(false))
   expect(select().value).toBe('')
   fill('사용처', '인쇄소')
@@ -710,7 +712,7 @@ test('요청을 비우면 지출의 행사 잠금이 풀린다', async () => {
   serveWithEvent()
   showFinance()
   await openForm()
-  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  const select = () => asElement(inForm().getByLabelText('행사'), HTMLSelectElement)
   await waitFor(() => expect(select().disabled).toBe(false))
   await screen.findByRole('option', { name: '행사 포스터' })
   choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
@@ -725,7 +727,7 @@ test('요청에서 채운 행사는 직접 적기로 바꿔도 지운다', async
   serveWithEvent()
   showFinance()
   await openForm()
-  const select = () => asElement(screen.getByLabelText('행사'), HTMLSelectElement)
+  const select = () => asElement(inForm().getByLabelText('행사'), HTMLSelectElement)
   await waitFor(() => expect(select().disabled).toBe(false))
   await screen.findByRole('option', { name: '행사 포스터' })
   choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
@@ -793,7 +795,7 @@ test('요청 없이 적을 때 예산 항목은 고를 수 있는 것만 보이�
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
   const names = () =>
     Array.from(
-      asElement(screen.getByLabelText('예산 항목'), HTMLSelectElement).options,
+      asElement(inForm().getByLabelText('예산 항목'), HTMLSelectElement).options,
       option => option.textContent,
     )
   await screen.findByRole('option', { name: /상시 비품/ })
