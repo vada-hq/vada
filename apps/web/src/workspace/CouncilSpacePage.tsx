@@ -50,6 +50,7 @@ function NoticeRoom({ view, rooms, team, onForbidden }: Props) {
       }}
       canWriteExpense={view.permissions.includes('finance.manage')}
       onForbidden={onForbidden}
+      className="overflow-hidden rounded-lg border"
     />
   )
 }

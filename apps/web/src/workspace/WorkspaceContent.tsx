@@ -153,6 +153,9 @@ function Body({ data, ...props }: Props) {
   )
 }
 
+// 본문 여백 없이 칸 끝까지 쓰는 화면. 탭 줄(우리 학생회)이나 목록·방 두 칸(대화)이 스스로 여백을 둔다.
+const EDGE_TO_EDGE = (page: Page) => page === 'council' || page === 'chat'
+
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.
 export default function WorkspaceContent({
   mainRef,
@@ -161,7 +164,7 @@ export default function WorkspaceContent({
   return (
     <main
       ref={mainRef}
-      className={`min-h-0 flex-1 overflow-y-auto ${props.page === 'council' ? '' : 'p-4 sm:p-6'}`}
+      className={`min-h-0 flex-1 overflow-y-auto ${EDGE_TO_EDGE(props.page) ? '' : 'p-4 sm:p-6'}`}
     >
       <Body {...props} />
     </main>

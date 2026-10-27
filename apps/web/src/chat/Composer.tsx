@@ -118,7 +118,7 @@ export default function Composer({ participants, meId, ...args }: Props) {
   if (readOnly) return <StateMessage kind="notice">{SEND_ERRORS.ROOM_READ_ONLY}</StateMessage>
   return (
     <form
-      className="flex flex-col gap-2 border-t bg-white pt-3"
+      className="flex flex-col gap-2"
       onSubmit={event => {
         event.preventDefault()
         void send()

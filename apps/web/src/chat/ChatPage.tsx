@@ -1,10 +1,9 @@
 import { useEffect, useState, type ComponentProps } from 'react'
 import type { CouncilView } from '@vada/contracts'
-import PageColumn, { pageWidthClass } from '@/components/PageColumn'
+import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED, ROOMS_LOAD_FAILED } from '@/lib/messages'
-import { cn } from '@/lib/utils'
 import type { Team } from '../team/useTeam'
 import DirectDialog from './DirectDialog'
 import { roomToShow, saveRoom, savedRoom } from './last-room'
@@ -109,6 +108,8 @@ export function Room({
       meId={view.me.memberId}
       rooms={space ?? page.rooms}
       bare={space !== undefined}
+      // 공간 탭의 방은 본문 여백 안에 놓여 테두리로 칸을 가른다. 대화 화면의 방은 칸 끝까지 채운다.
+      className={space && 'overflow-hidden rounded-lg border'}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
         canAssign: view.permissions.includes('finance.manage'),
@@ -124,6 +125,7 @@ export function Room({
 
 // PC 두 칸: 왼쪽 방 목록은 늘 보이고 오른쪽에 방을 연다(Slack·Teams·NAVER WORKS PC).
 // 고른 방이 없으면 마지막에 연 방을 연다. 대화를 누른 목적은 방 고르기가 아니라 대화를 이어 가기다.
+// 두 칸은 본문 폭 끝까지 쓴다(와이어프레임 MSG-03·US-MSG-01). 1024px 칸에 가두면 넓은 화면에서 흐름이 좁다.
 function Split({
   page,
   screen,
@@ -138,11 +140,11 @@ function Split({
   const ready = page.rooms.state.kind === 'ready' ? page.rooms.state.data : null
   const roomId = screen.kind === 'room' ? screen.roomId : ready ? roomToShow(ready, saved) : null
   return (
-    <div className={cn(pageWidthClass, 'flex h-full gap-6')}>
-      <div className="w-64 shrink-0 overflow-y-auto">
+    <div className="flex h-full">
+      <div className="w-72 shrink-0 overflow-y-auto border-r bg-white p-4">
         <ListScreen {...page} activeRoomId={roomId} onScreen={onScreen} />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-gray-50">
         {roomId && (
           <RoomGate
             rooms={page.rooms}
@@ -189,7 +191,11 @@ function ChatBody({
         <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={onBack} />
       </RoomGate>
     )
-  return <ListScreen {...page} activeRoomId={null} />
+  return (
+    <div className="p-4 sm:p-6">
+      <ListScreen {...page} activeRoomId={null} />
+    </div>
+  )
 }
 
 export default function ChatPage(props: ComponentProps<typeof ChatBody>) {

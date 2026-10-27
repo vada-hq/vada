@@ -139,22 +139,24 @@ function EventMessages({ sample: item }: { sample: Sample }) {
         bar={<RoomSwitch rooms={item.rooms} activeId={item.active} onPick={noop} />}
         {...headerHandlers}
       />
-      <div className="flex h-96 flex-col gap-3">
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="flex h-96 flex-col overflow-hidden rounded-lg border bg-gray-50">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-3 sm:px-4">
           <Flow />
         </div>
-        {item.archived ? (
-          <StateMessage kind="notice">{ARCHIVED_LABEL}</StateMessage>
-        ) : (
-          <Composer
-            councilId="sample"
-            roomId={item.active}
-            participants={[]}
-            meId={ME}
-            onSent={noop}
-            onLost={noop}
-          />
-        )}
+        <div className="shrink-0 border-t bg-white px-4 py-3 sm:px-6">
+          {item.archived ? (
+            <StateMessage kind="notice">{ARCHIVED_LABEL}</StateMessage>
+          ) : (
+            <Composer
+              councilId="sample"
+              roomId={item.active}
+              participants={[]}
+              meId={ME}
+              onSent={noop}
+              onLost={noop}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,6 +11,7 @@ import {
   SEND_ERRORS,
 } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
+import { cn } from '@/lib/utils'
 import { ARCHIVED_LABEL, roomName } from './chat-view'
 import { ProductOpenContext, useEventProductOpener } from './product-open'
 import Composer from './Composer'
@@ -39,6 +39,8 @@ type Props = {
   onBack?: (() => void) | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
+  // 둘레 모양. 본문 여백 안에 놓이는 공간 탭은 테두리를 준다. 대화 화면은 칸 끝까지 채워 주지 않는다.
+  className?: string | undefined
 }
 
 function Title({
@@ -51,7 +53,7 @@ function Title({
   onBack: Props['onBack']
 }) {
   return (
-    <div className="flex min-h-10 items-center gap-2">
+    <div className="flex min-h-14 shrink-0 items-center gap-2 border-b bg-white px-4 py-2 sm:px-6">
       {onBack && (
         <Button variant="ghost" size="icon" aria-label="대화방 목록" onClick={onBack}>
           <ArrowLeft />
@@ -91,10 +93,15 @@ function Unavailable({
   onBack: Props['onBack']
   onRetry: () => void
 }) {
-  if (state.kind === 'loading') return <StateMessage kind="loading">방 불러오는 중…</StateMessage>
+  if (state.kind === 'loading')
+    return (
+      <StateMessage kind="loading" className="p-4 sm:p-6">
+        방 불러오는 중…
+      </StateMessage>
+    )
   const lost = state.kind === 'lost'
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 p-4 sm:p-6">
       <StateMessage kind={lost ? 'notice' : 'error'}>
         {lost ? ROOM_LOST : ROOM_LOAD_FAILED}
       </StateMessage>
@@ -197,7 +204,7 @@ function Messages({
     <div
       ref={scrollRef}
       onScroll={onScroll}
-      className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto"
+      className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-2 py-3 sm:px-4"
     >
       {state.hasOlder && <Older onLoad={room.loadOlder} />}
       {state.messages.length === 0 ? (
@@ -229,25 +236,26 @@ function Bottom({
   room: Room
   readOnly: boolean
 }) {
-  if (readOnly)
-    return (
-      <StateMessage kind="notice">
-        {state.room.eventId ? ARCHIVED_LABEL : SEND_ERRORS.ROOM_READ_ONLY}
-      </StateMessage>
-    )
   return (
-    <div className="shrink-0 bg-white">
-      <Composer
-        councilId={councilId}
-        roomId={roomId}
-        participants={state.participants}
-        meId={meId}
-        onSent={() => {
-          void room.sync()
-          void rooms.reload()
-        }}
-        onLost={room.lose}
-      />
+    // 아래에 붙은 흰 입력 띠(와이어프레임 US-MSG-01·MSG-03). 흐름의 회색 바탕과 위쪽 테두리로 가른다.
+    <div className="shrink-0 border-t bg-white px-4 py-3 sm:px-6">
+      {readOnly ? (
+        <StateMessage kind="notice">
+          {state.room.eventId ? ARCHIVED_LABEL : SEND_ERRORS.ROOM_READ_ONLY}
+        </StateMessage>
+      ) : (
+        <Composer
+          councilId={councilId}
+          roomId={roomId}
+          participants={state.participants}
+          meId={meId}
+          onSent={() => {
+            void room.sync()
+            void rooms.reload()
+          }}
+          onLost={room.lose}
+        />
+      )}
     </div>
   )
 }
@@ -269,6 +277,7 @@ export default function RoomView({
   bare = false,
   onBack,
   onForbidden,
+  className,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
@@ -295,7 +304,8 @@ export default function RoomView({
     rooms.state.kind === 'ready' ? rooms.state.data.rooms.find(item => item.id === roomId) : null
   const readOnly = state.room.readOnly || !!listedRoom?.readOnly
   return (
-    <PageColumn className="h-full gap-3">
+    // 흐름은 옅은 회색 바탕에 흰 말풍선이다(와이어프레임 MSG-03, 카카오톡·iMessage처럼 바탕과 말풍선 색을 나눈다).
+    <div className={cn('flex h-full min-h-0 flex-col bg-gray-50', className)}>
       {!bare && <Title name={roomName(state.room)} readOnly={readOnly} onBack={onBack} />}
       {flows.views}
       <ProductOpenContext value={openProduct}>
@@ -309,6 +319,6 @@ export default function RoomView({
         />
       </ProductOpenContext>
       <Bottom {...{ state, councilId, roomId, meId, room, rooms, readOnly }} />
-    </PageColumn>
+    </div>
   )
 }

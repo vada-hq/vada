@@ -48,9 +48,15 @@ export default function RoomGate({
 }) {
   const check = useRoomCheck(rooms, councilId, roomId)
   if (check === 'known') return children
-  if (check === 'checking') return <StateMessage kind="loading">방 불러오는 중…</StateMessage>
+  // 대화 화면은 본문 여백 없이 칸 끝까지 쓰므로 안내에는 여백을 준다.
+  if (check === 'checking')
+    return (
+      <StateMessage kind="loading" className="p-4 sm:p-6">
+        방 불러오는 중…
+      </StateMessage>
+    )
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 p-4 sm:p-6">
       <StateMessage kind="notice">{ADDRESS_LOST}</StateMessage>
       <Button variant="outline" className="self-start" onClick={onList}>
         대화방 목록
