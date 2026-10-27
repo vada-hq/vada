@@ -8,7 +8,6 @@ import { CouncilLayout, GridLayout } from '@/home/HomeLayout'
 import UnassignedBand from '@/home/UnassignedBand'
 import { Section } from './GallerySection'
 import {
-  asOf,
   eventTiles,
   failed,
   financeLine,
@@ -36,21 +35,11 @@ const readOr = (read: CardRead | undefined, rows: ReactNode[], total?: number) =
   read ?? ready(rows, total)
 
 // 회장단(HOME-01C): 메시지함은 인사 카드 오른쪽, 주요 행사 타일 없음, 행사 현황(가로 전체) → 3열.
-// read를 주면 모든 카드가 그 상태다(첫 읽기 전·실패라 기준 시각도 재정 한 줄도 없다).
+// read를 주면 모든 카드가 그 상태다(첫 읽기 전·실패라 재정 한 줄도 없다).
 function CouncilHome({ read }: { read?: CardRead }) {
   return (
     <HomeFrame
-      asOf={read ? undefined : asOf}
-      today={today}
-      greeting={
-        <HomeGreeting
-          today={today}
-          name="김바다"
-          description="학생회 행사와 확인할 일을 봐요"
-          inbox={inbox}
-          shortcuts={shortcut}
-        />
-      }
+      greeting={<HomeGreeting today={today} name="김바다" inbox={inbox} shortcuts={shortcut} />}
     >
       <CouncilLayout
         top={
@@ -103,15 +92,12 @@ type MemberProps = { tiles?: TilesRead; read?: CardRead; firstDay?: boolean }
 function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) {
   return (
     <HomeFrame
-      asOf={read ? undefined : asOf}
-      today={today}
       assignBand={firstDay && <UnassignedBand />}
       pushBand={firstDay && pushBand}
       greeting={
         <HomeGreeting
           today={today}
           name="정하늘"
-          description="학생회 주요 행사와 참여 행사·일정을 봐요"
           inbox={inbox}
           featured={<FeaturedEvents read={tiles} />}
         />
@@ -144,10 +130,9 @@ function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) 
           />,
           <HomeCard
             key="d"
-            title="내 업무·메시지"
+            title="내 업무"
             icon={ClipboardList}
             read={readOr(read, mineRows)}
-            aside="바로가기"
             empty="맡은 업무 없음"
           />,
         ]}

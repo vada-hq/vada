@@ -14,42 +14,31 @@ afterEach(cleanup)
 const before = (first: HTMLElement, second: HTMLElement) =>
   Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
 
-// 홈 틀(DEC-95): 맨 위 '부서 배정 전' 띠, 그 아래 알림 꺼짐 띠, 끼룩이 한 줄, 인사 카드, 배치 꼴.
-test('띠 둘, 끼룩이 한 줄, 인사 카드, 카드 차례로 그린다', () => {
+test('띠 둘, 인사 카드, 카드 차례이고 기준 시각 안내는 없다', () => {
   render(
-    <HomeFrame
-      asOf="2026-10-26T05:05:00.000Z"
-      today="2026-10-26"
-      assignBand={<p>배정 띠</p>}
-      pushBand={<p>알림 띠</p>}
-      greeting={<p>인사 카드</p>}
-    >
+    <HomeFrame assignBand={<p>배정 띠</p>} pushBand={<p>알림 띠</p>} greeting={<p>인사 카드</p>}>
       <p>카드</p>
     </HomeFrame>,
   )
-  const kkiruk = screen.getByText('끼룩이가 14:05 기준으로 정리했어요')
-  const order = [screen.getByText('배정 띠'), screen.getByText('알림 띠'), kkiruk]
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
+  const order = [screen.getByText('배정 띠'), screen.getByText('알림 띠')]
   order.push(screen.getByText('인사 카드'), screen.getByText('카드'))
   for (let index = 1; index < order.length; index += 1)
     expect(before(order[index - 1] as HTMLElement, order[index] as HTMLElement)).toBe(true)
 })
 
-test('띠가 없으면 끼룩이 한 줄부터다', () => {
+test('띠가 없으면 인사 카드부터다', () => {
   render(
-    <HomeFrame asOf="2026-10-25T05:05:00.000Z" today="2026-10-26" greeting={null}>
-      {null}
+    <HomeFrame greeting={<p>인사 카드</p>}>
+      <p>카드</p>
     </HomeFrame>,
   )
-  expect(screen.getByText('끼룩이가 10월 25일 (일) 14:05 기준으로 정리했어요')).toBeTruthy()
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
+  expect(before(screen.getByText('인사 카드'), screen.getByText('카드'))).toBe(true)
 })
 
-// 기준 시각은 서버가 홈 응답을 만든 시각이라, 응답이 없으면 끼룩이가 말할 것이 없다.
-test('기준 시각이 없으면 끼룩이 한 줄이 없다', () => {
-  render(
-    <HomeFrame today="2026-10-26" greeting={<p>인사 카드</p>}>
-      {null}
-    </HomeFrame>,
-  )
+test('기준 시각 없이 인사 카드를 그린다', () => {
+  render(<HomeFrame greeting={<p>인사 카드</p>}>{null}</HomeFrame>)
   expect(screen.queryByText(/끼룩이가/)).toBeNull()
   expect(screen.getByText('인사 카드')).toBeTruthy()
 })
@@ -60,7 +49,6 @@ test('인사 카드 안 메시지함 제목은 h3이다', () => {
     <HomeGreeting
       today="2026-10-26"
       name="김바다"
-      description="설명"
       inbox={
         <MessageInbox
           rooms={[room('a', { type: 'direct', name: '김민준' })]}
@@ -74,14 +62,12 @@ test('인사 카드 안 메시지함 제목은 h3이다', () => {
   expect(screen.getByRole('heading', { level: 3, name: '메시지함' })).toBeTruthy()
 })
 
-// 인사 카드: 날짜, 인사, 설명 한 줄, 메시지함 자리, 주요 행사 타일 자리, 바로가기 자리. 인사 아래에 처리 건수를 붙이지 않는다.
-test('인사 카드는 날짜, 인사, 설명과 받은 자리를 그린다', () => {
+test('인사 카드는 설명 없이 날짜, 인사와 받은 자리를 그린다', () => {
   const onOpen = vi.fn()
   render(
     <HomeGreeting
       today="2026-10-26"
       name="김바다"
-      description="학생회 행사와 확인할 일을 봐요"
       inbox={<p>메시지함 자리</p>}
       shortcuts={<HomeShortcut icon={ClipboardList} label="내 업무 2" onOpen={onOpen} />}
       featured={<p>타일 자리</p>}
@@ -89,25 +75,26 @@ test('인사 카드는 날짜, 인사, 설명과 받은 자리를 그린다', ()
   )
   const card = screen.getByRole('region', { name: '김바다님, 안녕하세요' })
   expect(within(card).getByText('10월 26일 (월)')).toBeTruthy()
-  expect(within(card).getByText('학생회 행사와 확인할 일을 봐요')).toBeTruthy()
+  expect(within(card).queryByText('학생회 행사와 확인할 일을 봐요')).toBeNull()
   expect(within(card).getByText('메시지함 자리')).toBeTruthy()
   expect(within(card).getByText('타일 자리')).toBeTruthy()
   fireEvent.click(within(card).getByRole('button', { name: '내 업무 2' }))
   expect(onOpen).toHaveBeenCalledOnce()
 })
 
-// 한 단에서는 날짜·인사·설명 → 메시지함 → 바로가기 차례로 쌓인다(DEC-95 휴대폰 인사 카드). 회장단은 넓으면 메시지함이 오른쪽이다.
-test('타일이 없는 인사 카드도 설명, 메시지함, 바로가기 차례다', () => {
+test('타일이 없는 인사 카드도 인사, 메시지함, 바로가기 차례다', () => {
   render(
     <HomeGreeting
       today="2026-10-26"
       name="김바다"
-      description="설명"
       inbox={<p>메시지함 자리</p>}
       shortcuts={<HomeShortcut icon={ClipboardList} label="내 업무 2" onOpen={vi.fn()} />}
     />,
   )
-  const order = [screen.getByText('설명'), screen.getByText('메시지함 자리')]
+  const order = [
+    screen.getByRole('heading', { name: '김바다님, 안녕하세요' }),
+    screen.getByText('메시지함 자리'),
+  ]
   order.push(screen.getByRole('button', { name: '내 업무 2' }))
   expect(before(order[0] as HTMLElement, order[1] as HTMLElement)).toBe(true)
   expect(before(order[1] as HTMLElement, order[2] as HTMLElement)).toBe(true)

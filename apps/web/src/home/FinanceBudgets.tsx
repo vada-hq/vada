@@ -68,7 +68,6 @@ export default function FinanceBudgets({
     <HomeCard
       title="행사별 예산"
       icon={ChartNoAxesColumn}
-      aside={<span>통장 잔액과 다름{budgets.total === 0 && ' · 0개'}</span>}
       unit="개"
       read={{ kind: 'ready', total: budgets.total, rows }}
       empty="행사 예산 없음"

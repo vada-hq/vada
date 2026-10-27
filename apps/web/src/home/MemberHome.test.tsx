@@ -60,19 +60,19 @@ const room = (id: string, extra: Partial<RoomSummary> = {}): RoomSummary => ({
   ...extra,
 })
 
-test('인사 카드 → 참여 행사 진행 · 가까운 일정 / 내 요청 · 내 업무·메시지 차례이고 지금 홈의 부분과 따로 읽기가 없다', async () => {
+test('인사 카드 → 참여 행사 진행 · 가까운 일정 / 내 요청 · 내 업무 차례이고 따로 읽기가 없다', async () => {
   const { api } = open(memberHome())
-  await card('내 업무·메시지')
+  await card('내 업무')
   expect(headings()).toEqual([
     '김회장님, 안녕하세요',
     '참여 행사 진행',
     '가까운 일정',
     '내 요청',
-    '내 업무·메시지',
+    '내 업무',
   ])
-  expect(screen.getByText('학생회 주요 행사와 참여 행사·일정을 봐요')).toBeTruthy()
-  expect(screen.getByText('끼룩이가 09:00 기준으로 정리했어요')).toBeTruthy()
-  for (const name of ['지금 볼 것', '내 업무', '이번 주 행사'])
+  expect(screen.queryByText('학생회 주요 행사와 참여 행사·일정을 봐요')).toBeNull()
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
+  for (const name of ['지금 볼 것', '내 업무·메시지', '이번 주 행사'])
     expect(screen.queryByRole('region', { name })).toBeNull()
   // 주기 읽기와 별도 읽기(내 요청, 행사 목록)가 없다(명세 027 정한 것 3).
   await settle()
@@ -221,7 +221,7 @@ test('내 요청이 없으면 내 요청 없음이다', async () => {
   expect(within(requests).getByText('내 요청 없음')).toBeTruthy()
 })
 
-test('내 업무·메시지: 내 업무 수와 가장 가까운 마감(지났으면 지남), 안 읽은 방 수. 누르면 업무 내 업무 탭과 대화다', async () => {
+test('내 업무 카드에는 업무 수와 가장 가까운 마감만 보이고 누르면 내 업무 탭이다', async () => {
   const nearest = homeTask('t1', 'overdue', { title: '부스 배치안 확정', dueDate: '2026-10-21' })
   open(memberHome({ myTasks: { open: 3, overdue: 1, nearest } }), {
     rooms: roomsOf([
@@ -230,31 +230,36 @@ test('내 업무·메시지: 내 업무 수와 가장 가까운 마감(지났으
       room('c', { unread: 0 }),
     ]),
   })
-  const work = await card('내 업무·메시지')
-  expect(within(work).getByText('바로가기')).toBeTruthy()
-  const [tasks, messages] = within(work).getAllByRole('listitem')
+  const work = await card('내 업무')
+  expect(within(work).queryByText('바로가기')).toBeNull()
+  expect(within(work).queryByText(/안 읽은/)).toBeNull()
+  const rows = within(work).getAllByRole('listitem')
+  expect(rows).toHaveLength(1)
+  const [tasks] = rows
   expect(tasks!.textContent).toContain('가장 가까운 마감 10월 21일 (수) · 부스 배치안 확정')
   expect(within(tasks!).getByText('지남')).toBeTruthy()
   fireEvent.click(within(tasks!).getByRole('button', { name: '내 업무 3' }))
   expect(pathNow()).toBe('/tasks/c1')
-  fireEvent.click(within(messages!).getByRole('button', { name: '안 읽은 방 2' }))
+  const inbox = screen.getByRole('region', { name: '메시지함' })
+  fireEvent.click(within(inbox).getByRole('button', { name: '전체 보기' }))
   expect(pathNow()).toBe('/chat/c1')
 })
 
-test('맡은 업무와 안 읽은 방이 없으면 그렇게 말하고, 대화 목록을 읽기 전이면 집계 전이다', async () => {
+test('맡은 업무가 없으면 대화 목록을 읽었는지와 관계없이 맡은 업무 없음이다', async () => {
   open(memberHome(), { rooms: roomsOf([room('a', { unread: 0 })]) })
-  const work = await card('내 업무·메시지')
-  const [tasks, messages] = within(work).getAllByRole('listitem')
+  const work = await card('내 업무')
+  const [tasks] = within(work).getAllByRole('listitem')
   expect(within(tasks!).getByRole('button', { name: '맡은 업무 없음' })).toBeTruthy()
   expect(within(tasks!).queryByText('지남')).toBeNull()
-  expect(within(messages!).getByRole('button', { name: '안 읽은 메시지 없음' })).toBeTruthy()
+  expect(within(work).queryByText(/안 읽은/)).toBeNull()
   cleanup()
   open(memberHome())
-  const loading = await card('내 업무·메시지')
-  expect(within(loading).getByRole('button', { name: '안 읽은 방 집계 전' })).toBeTruthy()
+  const loading = await card('내 업무')
+  expect(within(loading).getByRole('button', { name: '맡은 업무 없음' })).toBeTruthy()
+  expect(within(loading).queryByText(/집계 전|안 읽은/)).toBeNull()
 })
 
-test('막 들어온 운영진(직급도 부서도 없음): 부서 배정 전 띠 → 인사 카드 → 참여 행사 → 가까운 일정(학생회 행사) → 내 요청 → 내 업무·메시지', async () => {
+test('막 들어온 운영진은 부서 배정 전 띠 → 인사 카드 → 참여 행사 → 가까운 일정 → 내 요청 → 내 업무 차례다', async () => {
   const event = { id: 'e1', name: '가을 축제' }
   open(
     memberHome({
@@ -274,7 +279,7 @@ test('막 들어온 운영진(직급도 부서도 없음): 부서 배정 전 띠
     await card('참여 행사 진행'),
     await card('가까운 일정'),
     await card('내 요청'),
-    await card('내 업무·메시지'),
+    await card('내 업무'),
   ]
   for (let index = 1; index < order.length; index += 1)
     expect(
@@ -287,6 +292,6 @@ test('막 들어온 운영진(직급도 부서도 없음): 부서 배정 전 띠
 
 test('부서가 있는 부원에게는 부서 배정 전 띠가 없다', async () => {
   open(memberHome())
-  await card('내 업무·메시지')
+  await card('내 업무')
   expect(screen.queryByText('부서 배정 전')).toBeNull()
 })

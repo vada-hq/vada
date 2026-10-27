@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { dateFromKorean, type HomeDepartmentBoard, type HomeResponse } from '@vada/contracts'
+import type { HomeDepartmentBoard, HomeResponse } from '@vada/contracts'
 import { openMenu, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
 import type { RoomListState } from '../chat/useRoomList'
@@ -47,13 +47,10 @@ export default function DepartmentHome({
   }
   return (
     <HomeFrame
-      asOf={dateFromKorean(home.asOf).toISOString()}
-      today={home.today}
       pushBand={pushBand}
       greeting={
         <DepartmentGreeting
           home={home}
-          board={board}
           councilId={councilId}
           name={name}
           rooms={rooms}

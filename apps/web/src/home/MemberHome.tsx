@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { dateFromKorean, type EventTab, type HomeResponse } from '@vada/contracts'
+import type { EventTab, HomeResponse } from '@vada/contracts'
 import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import type { RoomListState } from '../chat/useRoomList'
 import type { Page } from '../workspace/pages'
@@ -21,7 +21,7 @@ type Props = {
   councilId: string
   // 인사 카드의 이름(학생회 읽기의 내 이름)
   name: string
-  // 작업 공간이 읽는 대화 목록. 메시지함 칩과 '안 읽은 방' 수가 같은 응답이다(DEC-90, DEC-95).
+  // 작업 공간이 읽는 대화 목록을 메시지함도 쓴다(DEC-90).
   rooms: RoomListState
   // 학생회 직급도 부서도 없으면 맨 위 '부서 배정 전' 띠(DEC-87)
   awaitingDepartment: boolean
@@ -34,13 +34,12 @@ type Props = {
 }
 
 const [PARTICIPATING, UPCOMING] = HOME_PLANS.member.cards
-const DESCRIPTION = '학생회 주요 행사와 참여 행사·일정을 봐요'
 
 // 행사를 만들 수 없는 사람의 행사 빈 상태: 누가 만드는지 한 줄(DEC-95, DEC-78 이동 규칙 9).
 const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
 
 // 부원 홈(HOME-01M, DEC-95): 인사 카드(메시지함, 학생회 주요 행사 타일 3) → 2×2
-// '참여 행사 진행' · '가까운 일정' / '내 요청'(와이어프레임 '확정된 결정·안내' 자리) · '내 업무·메시지'.
+// '참여 행사 진행' · '가까운 일정' / '내 요청'(와이어프레임 '확정된 결정·안내' 자리) · '내 업무'.
 // 부서 없는 운영진도 이 홈이고, 맨 위 띠와 빈 참여 행사, 학생회 행사로 채운 가까운 일정을 본다(서버가 범위를 정한다).
 // 홈 응답 하나로 그리고 따로 읽거나 주기적으로 읽지 않는다(명세 027 정한 것 3).
 export default function MemberHome({
@@ -55,16 +54,12 @@ export default function MemberHome({
   const openEvent = (eventId: string) => open.onOpenEvent(eventId)
   return (
     <HomeFrame
-      // 서버 시각은 한국 시각 글이라 틀이 읽는 순간(ISO)으로 바꿔 준다.
-      asOf={dateFromKorean(home.asOf).toISOString()}
-      today={home.today}
       assignBand={awaitingDepartment && <UnassignedBand />}
       pushBand={pushBand}
       greeting={
         <HomeGreeting
           today={home.today}
           name={name}
-          description={DESCRIPTION}
           inbox={
             <MessageInbox
               inCard
@@ -106,10 +101,8 @@ export default function MemberHome({
           <MyWorkCard
             key="work"
             myTasks={home.myTasks}
-            rooms={rooms}
             // 업무 '내 업무' 탭(업무 메뉴의 기본 보기라 주소에 view가 없다, DEC-94)
             onOpenTasks={() => openMenu('tasks', councilId)}
-            onOpenChat={() => openMenu('chat', councilId)}
           />,
         ]}
       />

@@ -1,15 +1,14 @@
 import type { ReactNode } from 'react'
-import { ChevronRight, ClipboardList, MessageSquare, Receipt, type LucideIcon } from 'lucide-react'
+import { ChevronRight, ClipboardList, Receipt, type LucideIcon } from 'lucide-react'
 import type { HomeMyRequests, HomeMyTasks } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { RoomListState } from '../chat/useRoomList'
 import { STATUS_LABEL, STATUS_TONE } from '../finance/purchase-view'
 import HomeCard from './HomeCard'
 import HomeChip from './HomeChip'
 import { HOME_PLANS } from './home-kinds'
 import HomeRow from './HomeRow'
-import { myTasksRow, requestParts, unreadRoomsLabel } from './member-view'
+import { myTasksRow, requestParts } from './member-view'
 
 const [, , REQUESTS, WORK] = HOME_PLANS.member.cards
 
@@ -52,7 +51,6 @@ export function MyRequestsCard({
   )
 }
 
-// 와이어프레임 '내 업무·메시지' 줄 머리의 색 아이콘 칸(파란 클립보드, 보라 말풍선).
 function IconBox({ icon: Icon, className }: { icon: LucideIcon; className: string }) {
   return (
     <span
@@ -64,7 +62,6 @@ function IconBox({ icon: Icon, className }: { icon: LucideIcon; className: strin
   )
 }
 
-// 줄 끝 바로가기 글: 파란 '내 업무 >', '메시지 >'(와이어프레임 HOME-01M).
 const goTo = (label: string, before?: ReactNode) => (
   <>
     {before}
@@ -73,19 +70,13 @@ const goTo = (label: string, before?: ReactNode) => (
   </>
 )
 
-// 내 업무·메시지(DEC-95): 첫 줄 '내 업무 {n}'과 가장 가까운 마감(지났으면 '지남'), 둘째 줄 안 읽은 방 수. 머리는 '바로가기'.
 // 지남·오늘 줄 목록은 업무 '내 업무' 탭이 맡는다(같은 것을 두 번 싣지 않음).
 export function MyWorkCard({
   myTasks,
-  rooms,
   onOpenTasks,
-  onOpenChat,
 }: {
   myTasks: HomeMyTasks
-  // 메시지함과 같은 대화 목록(DEC-90)
-  rooms: RoomListState
   onOpenTasks: () => void
-  onOpenChat: () => void
 }) {
   const work = myTasksRow(myTasks)
   const rows = [
@@ -98,14 +89,6 @@ export function MyWorkCard({
       side={goTo('내 업무', work.overdue && <HomeChip label="지남" />)}
       onOpen={onOpenTasks}
     />,
-    <HomeRow
-      key="messages"
-      card
-      lead={<IconBox icon={MessageSquare} className="bg-purple-50 text-purple-600" />}
-      title={unreadRoomsLabel(rooms)}
-      side={goTo('메시지')}
-      onOpen={onOpenChat}
-    />,
   ]
   return (
     <HomeCard
@@ -113,7 +96,6 @@ export function MyWorkCard({
       icon={ClipboardList}
       read={{ kind: 'ready', total: rows.length, rows }}
       empty="맡은 업무 없음"
-      aside="바로가기"
     />
   )
 }

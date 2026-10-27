@@ -24,7 +24,7 @@ export const HOME_PLANS = {
   },
   member: {
     layout: 'grid',
-    cards: ['참여 행사 진행', '가까운 일정', '내 요청', '내 업무·메시지'],
+    cards: ['참여 행사 진행', '가까운 일정', '내 요청', '내 업무'],
   },
   finance: {
     layout: 'grid',

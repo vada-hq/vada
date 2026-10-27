@@ -1,5 +1,5 @@
 import { ClipboardList } from 'lucide-react'
-import type { HomeDepartmentBoard, HomeResponse } from '@vada/contracts'
+import type { HomeResponse } from '@vada/contracts'
 import { openMenu, openMessageRoom } from '@/lib/go-to'
 import type { RoomListState } from '../chat/useRoomList'
 import { myTasksLabel } from './council-view'
@@ -10,25 +10,21 @@ import MessageInbox from './MessageInbox'
 
 export default function DepartmentGreeting({
   home,
-  board,
   councilId,
   name,
   rooms,
   onOpenEvent,
 }: {
   home: HomeResponse
-  board: HomeDepartmentBoard
   councilId: string
   name: string
   rooms: RoomListState
   onOpenEvent: (id: string) => void
 }) {
-  const label = board.departments.length === 1 ? board.departments[0]!.name : '우리 부서'
   return (
     <HomeGreeting
       today={home.today}
       name={name}
-      description={`학생회 주요 행사와 ${label}의 행사·일정·구매를 봐요`}
       inbox={
         <MessageInbox
           inCard

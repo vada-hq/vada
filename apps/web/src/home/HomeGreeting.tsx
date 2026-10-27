@@ -9,8 +9,6 @@ type Props = {
   // 홈의 오늘(한국 날짜)
   today: string
   name: string
-  // 이 홈에서 보는 것 한 줄(해요체)
-  description: string
   // 메시지함(MessageInbox). 안 읽은 방이 없으면 메시지함이 스스로 빠진다.
   inbox?: ReactNode
   // 카드 왼쪽 아래 바로가기(HomeShortcut들)
@@ -19,7 +17,7 @@ type Props = {
   featured?: ReactNode
 }
 
-// 인사 카드 아래쪽 바로가기(와이어프레임 HOME-01F '내 업무 2건'·'메시지 방 1개'): 아이콘 붙은 작은 파란 글.
+// 바로가기는 메시지함과 겹치지 않는 내 업무에만 둔다.
 export function HomeShortcut({
   icon: Icon,
   label,
@@ -46,8 +44,7 @@ function GreetingText({
   today,
   title,
   titleId,
-  description,
-}: Pick<Props, 'today' | 'description'> & { title: string; titleId: string }) {
+}: Pick<Props, 'today'> & { title: string; titleId: string }) {
   return (
     <div className="min-w-0">
       <p className="text-xs text-gray-500">{greetingDate(today)}</p>
@@ -57,7 +54,6 @@ function GreetingText({
       >
         {title}
       </h2>
-      <p className="mt-1 text-sm break-keep text-gray-500">{description}</p>
     </div>
   )
 }
@@ -65,22 +61,12 @@ function GreetingText({
 const shortcutRow = (shortcuts: ReactNode) =>
   shortcuts && <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{shortcuts}</div>
 
-// 홈 첫 카드(와이어프레임 HomePrototypeWelcome, DEC-95): 날짜, 인사, 설명 한 줄, 메시지함, 바로가기 | 학생회 주요 행사 타일.
 // 타일이 없는 회장단은 메시지함을 카드 오른쪽에 둬 높이를 늘리지 않는다. 인사 아래에 처리 건수를 붙이지 않는다.
-// 본문이 좁으면(1024px 창 아래) 날짜·인사·설명 → 메시지함 → 바로가기 → 타일 차례로 세로로 쌓는다(와이어프레임 가로 배치는 390px에서 행사명이 잘린다).
-export default function HomeGreeting({
-  today,
-  name,
-  description,
-  inbox,
-  shortcuts,
-  featured,
-}: Props) {
+// 본문이 좁으면 날짜·인사 → 메시지함 → 바로가기 → 타일 차례로 세로로 쌓는다(와이어프레임 가로 배치는 390px에서 행사명이 잘린다).
+export default function HomeGreeting({ today, name, inbox, shortcuts, featured }: Props) {
   const title = `${name}님, 안녕하세요`
   const titleId = useId()
-  const text = (
-    <GreetingText today={today} title={title} titleId={titleId} description={description} />
-  )
+  const text = <GreetingText today={today} title={title} titleId={titleId} />
   if (!featured)
     return (
       // 넓으면 왼쪽 1/3에 글과 바로가기, 오른쪽 2/3에 두 줄을 차지하는 메시지함(와이어프레임처럼 메시지함이 남는 폭을 쓴다).

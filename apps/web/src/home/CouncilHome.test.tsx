@@ -45,7 +45,7 @@ test('인사 카드 → 전체 행사 진행 현황 → 확인이 필요한 운�
     '후속 정리 중인 행사',
     '가까운 주요 일정',
   ])
-  expect(screen.getByText('학생회 행사와 확인할 일을 봐요')).toBeTruthy()
+  expect(screen.queryByText('학생회 행사와 확인할 일을 봐요')).toBeNull()
   for (const name of ['지금 볼 것', '부서별 막힌 곳', '지난 업무', '내 업무', '행사'])
     expect(screen.queryByRole('region', { name })).toBeNull()
   // 회장단 인사 카드에는 주요 행사 타일이 없고, 별도 읽기(내 요청, 행사 목록)도 없다.
@@ -54,10 +54,11 @@ test('인사 카드 → 전체 행사 진행 현황 → 확인이 필요한 운�
   expect(api.calls.map(call => call.path)).toEqual(['/api/organizations/c1/home'])
 })
 
-test('끼룩이 한 줄은 서버 시각이고 인사 카드 아래 내 업무 바로가기가 업무 내 업무로 간다', async () => {
+test('기준 시각 안내 없이 인사 카드 아래 내 업무 바로가기가 내 업무로 간다', async () => {
   open(councilHome({}, { myTasks: { open: 4, overdue: 1, nearest: null } }))
-  expect(await screen.findByText('끼룩이가 09:00 기준으로 정리했어요')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '내 업무 4 · 지남 1' }))
+  const shortcut = await screen.findByRole('button', { name: '내 업무 4 · 지남 1' })
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
+  fireEvent.click(shortcut)
   expect(pathNow()).toBe('/tasks/c1')
 })
 

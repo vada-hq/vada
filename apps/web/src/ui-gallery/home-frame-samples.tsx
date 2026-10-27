@@ -20,7 +20,6 @@ import { longName } from './sample-text'
 
 export const noop = () => {}
 export const today = '2026-10-26'
-export const asOf = '2026-10-26T05:05:00.000Z'
 
 const room = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   id,
@@ -123,7 +122,6 @@ export const mineRows = [
     meta={['가장 가까운 마감 10월 27일 (화)', '부스 배치안 확정']}
     onOpen={noop}
   />,
-  <HomeRow key="b" card title="안 읽은 방 2" onOpen={noop} />,
 ]
 export const shortcut = (
   <HomeShortcut icon={ClipboardList} label="내 업무 4 · 지남 1" onOpen={noop} />
@@ -190,8 +188,12 @@ export const financeLine = (
         <strong className="text-sm font-bold text-gray-900">{value}</strong>
       </span>
     ))}
-    <Button variant="link" size="sm" className="ml-auto h-auto gap-0.5 p-0 text-xs text-gray-500">
-      열람 전용
+    <Button
+      aria-label="전체 재정 요약"
+      variant="link"
+      size="sm"
+      className="ml-auto h-auto gap-0.5 p-0 text-xs text-gray-500"
+    >
       <ChevronRight aria-hidden />
     </Button>
   </section>

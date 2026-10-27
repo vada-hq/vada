@@ -51,7 +51,6 @@ export default function FinanceSummary({
         {missingLabel && (
           <span className="text-xs text-gray-500 wrap-anywhere">{missingLabel}</span>
         )}
-        <span className="ml-auto shrink-0 text-xs text-gray-500">열람 전용</span>
         <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-400" />
       </Button>
     </section>

@@ -6,7 +6,6 @@ import {
   type HomeParticipation,
   type PurchaseRequestSummary,
 } from '@vada/contracts'
-import type { RoomListState } from '../chat/useRoomList'
 import { dueText } from '../events/event-header-view'
 
 // 부원 홈(HOME-01M) 카드의 글. 수와 차례는 서버가 원래 화면과 같은 셈으로 준다(DEC-69). 여기서는 글만 만든다.
@@ -24,7 +23,7 @@ export const participationDay = ({ event }: HomeParticipation) =>
 export const participationNext = ({ next }: HomeParticipation) =>
   next === null ? '다음 마감 없음' : `다음 마감 · ${dueText(next.dueDate)} ${next.title}`
 
-// '내 업무·메시지' 첫 줄: '내 업무 {n}'과 가장 가까운 마감(DEC-95). 맡은 업무가 없으면 '맡은 업무 없음'이다.
+// 가장 가까운 마감은 서버가 정한 업무 하나만 보인다(DEC-95).
 export function myTasksRow({ open, nearest }: HomeMyTasks) {
   if (open === 0) return { title: '맡은 업무 없음', meta: [], overdue: false }
   // nearest는 마감이 있는 업무 가운데 가장 이른 것이라 마감 없는 업무만 있으면 없다.
@@ -32,13 +31,6 @@ export function myTasksRow({ open, nearest }: HomeMyTasks) {
     return { title: `내 업무 ${open}`, meta: [], overdue: false }
   const meta = [`가장 가까운 마감 ${dueText(nearest.dueDate)}`, nearest.title]
   return { title: `내 업무 ${open}`, meta, overdue: nearest.overdue }
-}
-
-// '내 업무·메시지' 둘째 줄: 메시지함과 같은 방 목록으로 센 안 읽은 방 수(DEC-95). 목록을 읽기 전이나 실패면 0이 아니라 '집계 전'이다.
-export function unreadRoomsLabel(rooms: RoomListState) {
-  if (rooms.kind !== 'ready') return '안 읽은 방 집계 전'
-  const count = rooms.data.rooms.filter(room => room.unread > 0).length
-  return count === 0 ? '안 읽은 메시지 없음' : `안 읽은 방 ${count}`
 }
 
 // 내 요청 줄의 메타: '{행사} · 10월 20일 (화) 요청'(낸 날, 한국 날짜).

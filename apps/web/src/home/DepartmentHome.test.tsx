@@ -45,7 +45,8 @@ function open(data = board()) {
 test('부서장 홈은 인사와 네 카드만 보이고 별도 읽기가 없으며 빈 참여 행사에서 만들 수 있다', async () => {
   const { api } = open()
   await screen.findByRole('region', { name: '확인이 필요한 일' })
-  expect(screen.getByText('학생회 주요 행사와 기획부의 행사·일정·구매를 봐요')).toBeTruthy()
+  expect(screen.queryByText('학생회 주요 행사와 기획부의 행사·일정·구매를 봐요')).toBeNull()
+  expect(screen.queryByText(/끼룩이가/)).toBeNull()
   for (const name of [
     '우리 부서 참여 행사',
     '가까운 일정·마감',
@@ -88,7 +89,7 @@ test('책임 행사 네 줄 모두와 업무 앞 세 줄을 함께 보이고 합
   expect(card.queryByText('업무 t3')).toBeNull()
   expect(card.getByText('9건')).toBeTruthy()
   expect(card.getByRole('button', { name: '업무 전체 보기' })).toBeTruthy()
-  expect(screen.getByText('학생회 주요 행사와 우리 부서의 행사·일정·구매를 봐요')).toBeTruthy()
+  expect(screen.queryByText('학생회 주요 행사와 우리 부서의 행사·일정·구매를 봐요')).toBeNull()
   expect(screen.getByText('부서 요청 · 박부원')).toBeTruthy()
 })
 

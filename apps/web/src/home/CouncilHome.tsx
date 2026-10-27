@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { ClipboardList } from 'lucide-react'
 import {
-  dateFromKorean,
   type EventTab,
   type HomeCouncilBoard,
   type HomeResponse,
@@ -35,8 +34,6 @@ type Props = {
   onNewEvent?: (() => void) | undefined
 }
 
-const DESCRIPTION = '학생회 행사와 확인할 일을 봐요'
-
 // 회장단 홈(HOME-01C, DEC-95): 인사 카드(메시지함 오른쪽, 주요 행사 타일 없음, 아래 '내 업무' 바로가기)
 // → 전체 행사 진행 현황 → 3열(확인이 필요한 운영 상황 · 후속 정리 중인 행사 · 가까운 주요 일정).
 // 맨 아래 '전체 재정 요약'은 재정 첫 화면과 같은 셈이다(명세 027 조각 8).
@@ -53,15 +50,11 @@ export default function CouncilHome({
   const openTask = (taskId: string) => openRecord('tasks', councilId, taskId)
   return (
     <HomeFrame
-      // 서버 시각은 한국 시각 글이라 틀이 읽는 순간(ISO)으로 바꿔 준다.
-      asOf={dateFromKorean(home.asOf).toISOString()}
-      today={home.today}
       pushBand={pushBand}
       greeting={
         <HomeGreeting
           today={home.today}
           name={name}
-          description={DESCRIPTION}
           inbox={
             <MessageInbox
               inCard

@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react'
-import { ChevronRight, ClipboardList, MessageSquare } from 'lucide-react'
-import {
-  HOME_CARD_ROWS,
-  dateFromKorean,
-  type HomeFinanceBoard,
-  type HomeResponse,
-} from '@vada/contracts'
+import { ChevronRight, ClipboardList } from 'lucide-react'
+import { HOME_CARD_ROWS, type HomeFinanceBoard, type HomeResponse } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
@@ -19,7 +14,6 @@ import HomeFrame from './HomeFrame'
 import HomeGreeting, { HomeShortcut } from './HomeGreeting'
 import { GridLayout } from './HomeLayout'
 import { inboxRooms } from './home-view'
-import { unreadRoomsLabel } from './member-view'
 import MessageInbox from './MessageInbox'
 
 type Props = {
@@ -75,14 +69,11 @@ export default function FinanceHome({ home, board, councilId, name, rooms, pushB
   const openEvent = (id: string) => openRecord('events', councilId, id, { tab: 'money' })
   return (
     <HomeFrame
-      asOf={dateFromKorean(home.asOf).toISOString()}
-      today={home.today}
       pushBand={pushBand}
       greeting={
         <HomeGreeting
           today={home.today}
           name={name}
-          description="결재할 요청과 필요한 때가 가까운 준비를 봐요"
           inbox={
             <MessageInbox
               inCard
@@ -95,18 +86,11 @@ export default function FinanceHome({ home, board, councilId, name, rooms, pushB
             <HomeFeaturedEvents home={home} onOpen={id => openRecord('events', councilId, id)} />
           }
           shortcuts={
-            <>
-              <HomeShortcut
-                icon={ClipboardList}
-                label={myTasksLabel(home.myTasks)}
-                onOpen={() => openMenu('tasks', councilId)}
-              />
-              <HomeShortcut
-                icon={MessageSquare}
-                label={unreadRoomsLabel(rooms)}
-                onOpen={() => openMenu('chat', councilId)}
-              />
-            </>
+            <HomeShortcut
+              icon={ClipboardList}
+              label={myTasksLabel(home.myTasks)}
+              onOpen={() => openMenu('tasks', councilId)}
+            />
           }
         />
       }
