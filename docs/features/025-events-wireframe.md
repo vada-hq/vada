@@ -154,6 +154,7 @@ DEC-93 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 수용 기준: 내 신청 화면(`/r#토큰`) 맨 위가 와이어프레임 EXT-02B와 같은 배치·표현 방식이다(완료 제목, 행사명, 신청자 이름, 참가비 칸, 안내 사항, 문의. 다르게 한 곳은 DEC-93 근거: 참가비 칸은 '관리자 확인 중' 대신 적용 참가비와 '입금 확인 전'·'입금 확인됨'). 그 아래에 출석 QR, 계좌·예금주, 주소 저장 안내, [신청 취소]가 있다. 운영진이 입금을 확인하면 다시 열 때 '입금 확인됨'이다. 개인 링크 응답에 입금 금액과 환불 정보가 없다. 받지 않을 때(시작 전, 정원 마감, 잠시 멈춤, 마감) 신청 칸 자리에 EXT-02C와 같은 배치·표현 방식의 카드(아이콘, 제목, 설명, [돌아가기])가 있고 문구는 지금 것이다(시작 전이면 시작 시각). 390px에서 넘치지 않는다. 부품 확인 화면에 상태마다 카드가 있다.
 - 닿는 곳: contracts `registrations.ts`(내 신청 응답), api `registrations/my-registration.ts`·`public-form.ts`, web `public/MyRegistrationPage.tsx`·`MineDetails.tsx`·`ApplyPage.tsx`·`FormSummary.tsx`·`registration-text.ts`, `lib/registration-messages.ts`, `ui-gallery/`.
 - 검토: 보통(공개 응답에 싣는 값은 시험으로). 마이그레이션: 없음.
+- 2026-10-28 남은 범위: EXT-02B 완료 화면 배치와 EXT-02C 신청 불가 상태 카드, 중복 행사명·보관 안내 정리(`da062397`과 `apps/web/src/public/MineDetails.tsx`에는 입금 상태·QR 캡처 안내만 반영).
 
 ### 10. 행사 단위 참가자 명단 표(묶음 2-6) [ ]
 - 먼저 main에: 조각 1(입금 금액 칸), 조각 7(인원 관리 탭 구조).
@@ -176,7 +177,7 @@ DEC-93 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 닿는 곳: api `events/history.ts`(판에서 이전 값), `registrations/my-registration.ts`·`access-log.ts`, web `events/EventEditDialog.tsx`(조각 6의 패널), 명단 머리(조각 10), `public/MyRegistrationPage.tsx`, `public/CopyButton.tsx`, `lib/messages.ts`.
 - 검토: 깊게(개인정보: 휴대폰 번호 복사와 열람 기록). 마이그레이션: 없음.
 
-### 13. 출석 결과 카드와 미납 출석(묶음 3-4) [ ]
+### 13. 출석 결과 카드와 미납 출석(묶음 3-4) [x]
 - 먼저 main에: 조각 1(금액 칸). 사람: 휴대폰 둘.
 - 2026-10-27 보완(DEC-100): 스캔 결과는 이름·학번, 적용 참가비와 현재 입금 상태를 나눠 보인다. 유료·입금 확인 전이고 `deposit.confirm`이 있으면 `[적용 참가비 입금 확인]`으로 정액을 바로 기록하며, `[다른 금액]`에서 조각 1의 금액 창을 연다. 기록 후 실제 확인액과 기존 사유 있는 확인 취소를 제공한다. 출석/입금 기록·권한·정산 규칙은 바꾸지 않는다. 체크인 응답에 적용 참가비를 더하고, 이전 응답에서 없으면 무료로 추정하지 않는다.
 - 2026-10-27 사용자 결정: 판정 먼저 카드(입장 가능/참가비 받기/입장 불가), 스캐너에서 [다른 금액] 뺌(명단에서 처리), [입장 안 함]은 출석 취소. 서버 규칙(DEC-93 미납도 출석 기록)은 그대로.
@@ -186,6 +187,7 @@ DEC-93 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 수용 기준: 스캐너의 결과 카드가 와이어프레임 EXT-01B와 같은 배치·표현 방식(아이콘, 제목, 설명)이다(다르게 한 곳은 DEC-93 근거: 학생이 아니라 운영진 화면, 미납이어도 막지 않음). 참가비가 있는데 입금 확인이 없는 신청을 찍으면 출석이 남고 카드에 '입금 확인 전'과 [입금 확인](조각 1의 금액 칸)이 있다. 이미 참석한 QR은 이미 참석했다고, 다른 행사 QR은 찾을 수 없다고 보인다(DEC-66 그대로). 체크인 응답에 입금 여부가 있다. 운영진 둘이 같은 행사의 스캐너를 동시에 열고 다른 신청을 찍으면 둘 다 남는다. 같은 신청을 동시에 찍으면 출석 기록은 하나다. 부품 확인 화면에 카드 상태마다 있다.
 - 닿는 곳: contracts `registrations.ts`(체크인 응답), api `registrations/attendance.ts`, web `registrations/ScanResultCard.tsx`·`useScanFlow.ts`·`check-in.ts`, `ui-gallery/`, vada `docs/features/017-rehearsal-scenario.md` 체크리스트(진행 에이전트: 운영진 여럿이 동시에 스캐너).
 - 검토: 깊게(돈, 동시 처리). 마이그레이션: 없음.
+- 2026-10-28 확인: `3c00e001`·`0f5ea482`, `apps/web/src/registrations/ScanResultCard.tsx`·`scan-verdict.ts`의 판정 카드와 입금 확인 연결이 main에 있다(휴대폰 두 대의 실기기 확인은 별도).
 
 ### 14. 최근 변경 사항(묶음 3-3) [ ]
 - 먼저 main에: 조각 8.
@@ -201,12 +203,13 @@ DEC-93 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 닿는 곳: contracts 신청 고치기 계약(새, `z.strictObject`), api `registrations/staff-registration.ts`·`fee-match.ts`·`policy.ts`·`registration-lock.ts`·`access-log.ts`·`routes.ts`, `http/boundary.test.ts`, web `registrations/ApplicantActions.tsx`, 고치기 창(새), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 깊게(개인정보, 돈, 권한, 동시 처리). 마이그레이션: 없음.
 
-### 16. 행사 방 잇기(묶음 3-6) [ ]
+### 16. 행사 방 잇기(묶음 3-6) [x]
 - 먼저 main에: 022 조각 8·9.
 - 할 수 있게 되는 것: 행사 끼룩이 글이 그 행사 공지방에 오르고, 메시지 탭에서는 머리 대신 방 전환이 보인다.
 - 수용 기준: 행사 방이 있는 행사를 바꾸거나 만들면 끼룩이 글이 그 행사 공지방에 있다(조각 4가 이미 옮겼으면 이 기준만 확인). 메시지 탭에서 조각 5의 머리가 빠지고 '공지방 · ○○부 방' 전환이 있다(DEC-90, 022 조각 9와 맞춤).
 - 닿는 곳: api 끼룩이 글 도우미(조각 4), web `events/EventDetailView.tsx`·`EventHeader.tsx`.
 - 검토: 보통. 마이그레이션: 없음.
+- 2026-10-28 확인: `de763a5a`, `apps/api/src/chat/kkiruk-post.ts`의 행사 공지방 선택과 `apps/web/src/events/EventDetailView.tsx`·`EventHeader.tsx`의 방 전환 표시가 main에 있다.
 
 ### 17. 행사 취소(묶음 3-8, 표 바꿀 수 있음 T1) [ ]
 - 먼저 main에: 022 조각 8(방 보관), 024 조각 1(행사 정산 탭에서 빼기), 조각 9(취소된 행사 카드 자리).

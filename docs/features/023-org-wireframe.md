@@ -85,19 +85,21 @@ DEC-91과 proposal은 다시 정하지 않는다. 코드로 옮기려고 더 정
   - 버림: `pages.ts`의 'organization', `Workspace.tsx` `startPageOf`, `LegacyTeamPage`, `ConfirmDialog.tsx` 변경, `queries.ts`의 `ne(department.name, '회장단')`, `rank-select.tsx`·`council-settings-form.ts`·`schema-org.ts`의 부부장 → 부원.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 추가. 부서 색상 [ ]
+### 추가. 부서 색상 [x]
 - 사용자 승인: 2026-10-26, 조직 메뉴의 부서 색 표시와 제한 팔레트 선택. 기존 023 조각 4·5·7의 미반영 기능을 선행으로 요구하지 않는다.
 - 수용 기준: 부서마다 이름과 색상선이 있고 회장단은 중립색이다. 기본색은 식별자에 고정되어 이름/정렬/필터/다른 부서의 추가·삭제로 바뀌지 않는다. 회장단의 부서 메뉴에서 색상 바꾸기→이름 있는 여덟 라디오 선택→저장하며, 같은 학생회의 다른 운영진과 업무 보드에도 같은 선택색이 보인다. 전송 중 중복 저장·닫기를 막고 실패하면 선택값과 오류가 남는다. 권한을 잃거나 대상이 사라지면 닫고 까닭을 보인다. 키보드 선택과 메뉴로의 초점 복귀를 제공한다.
 - 저장/권한: 선택색은 nullable 팔레트 키로 공유 저장, 같은 학생회의 department.manage와 기존 기록 판 이력을 재사용. 다른 학생회·미인증·임의 CSS/미정의 키/모르는 필드 거절. 색 변경은 이름·재정 역할을 덮어쓰지 않는다. 새 컬럼과 CHECK만 더하는 0021을 먼저 적용하며 작업자는 실제 DB 명령을 실행하지 않는다.
 - 원칙 대조: 기본값을 제공해 새 입력을 요구하지 않으며 필요할 때만 부서 식별을 바꾼다(PRIN-1). 사용자 선택만 저장·이력을 남긴다(PRIN-3). 서버 권한·학생회 격리를 유지한다(PRIN-5). 결정/웹 근거는 DEC-98.
 - 검증: 계약·허용/거절·이력 API·조직 변경/실패/권한·기본색 안정성·업무 공통 토큰·갤러리·정적 검사·CI. 사용자가 제외한 브라우저 시각 대조는 수행하지 않으며 실제 포인터 실기와 자동 시험을 구분한다. 완료는 배포 후 확인까지다.
+- 2026-10-28 확인: `fce295cd`, `apps/web/src/team/DepartmentColorDialog.tsx`와 `packages/contracts/src/department-colors.ts`의 `DEPARTMENT_COLORS`가 main에 있다.
 
-### 3. 옮기기 API [ ]
+### 3. 옮기기 API [x]
 - 할 수 있게 되는 것: 한 요청으로 사람을 다른 부서로 옮긴다.
 - 수용 기준: '정한 것' 4대로 옮기면 옛 소속이 끝나고(끝 시각, 판) 새 부서 소속이 보낸 직급으로 열리며 응답이 새 목록이다. 같은 거래에서 학생회 잠금과 권한 다시 보기, 방 맞추기가 된다(옛 부서방에서 빠지고 새 부서방에 듦). 직급 있는 소속을 `rank.manage` 없이 옮기면 403이고 아무것도 바뀌지 않는다. 같은 부서 400, 옛 소속 없음 404, 이미 든 부서 409, 다른 학생회 부서나 사람 404, 모르는 키 400, 로그인 안 함 401. 중간 단계가 실패하면 두 부서에 남지 않는다. 같은 사람을 두 요청이 동시에 옮겨도 열린 소속이 셋이 되지 않는다(pg-smoke 경우를 더함).
 - 닿는 곳: contracts `team.ts`(`MoveDepartmentSchema`), `errors.ts`(`ALREADY_IN_DEPARTMENT`), web `lib/messages.ts`, api `team/routes.ts`·`service.ts`·`team.test.ts`, `http/boundary.test.ts`, `ops/pg-smoke/`.
 - 가지에서: 없음(가지에 옮기기가 없다).
 - 검토: 깊게. 마이그레이션: 없음.
+- 2026-10-28 확인: `f619bb4f`, `apps/api/src/team/move.ts`와 `routes.ts`의 옮기기 라우트, `packages/contracts/src/team.ts`의 `MoveDepartmentSchema`가 main에 있다.
 
 ### 4. 사람 상세 창과 되돌리기 [ ]
 - 먼저 main에: 조각 2, 조각 3.
@@ -119,6 +121,7 @@ DEC-91과 proposal은 다시 정하지 않는다. 코드로 옮기려고 더 정
   - 그대로: 패널 권한 `member.manage`.
   - 버림: 섞인 이름('부서에 없는 구성원', '배치되지 않은 인원', '배치하기', 149·759·776줄), `service.ts` `assertHeadAvailable`과 `DEPARTMENT_HEAD_EXISTS`(errors·messages), `team.test.ts`의 느슨해진 단언 둘.
 - 검토: 보통(미배정 셈은 다른 학생회 자료로 시험). 마이그레이션: 없음.
+- 2026-10-28 남은 범위: 묶음 머리의 부장·부회장 지정과 저장 뒤 되돌리기(미배정 묶음은 `apps/web/src/team/OrgLayout.tsx`에 있고, `Organization.tsx:147`은 묶음 머리 지정이 조각 5에 남았다고 적는다).
 
 ### 6. 초대 창 [x]
 - 먼저 main에: 조각 2, 기능 020 조각 3.

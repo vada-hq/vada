@@ -127,19 +127,21 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 - 검토: 깊게(외부 서비스, 비밀 값). 마이그레이션: 없음.
 - main: 5d60c88, 56aabb8. 그 뒤 고친 것: 같은 주소의 진행 중인 요청은 함께 기다려 ReefAPI를 한 번만 부른다. 판매 단위는 줄마다 검사해 한 줄이 틀려도 나머지를 주고, 고른 판매 단위는 늘 목록 안의 줄이다(실제 키 확인에서 한 상품의 판매 단위가 41개). 서버 전체 하루 150번(한국 날짜, `apps/api/src/product-info/service.ts`의 `REEF_CALLS_PER_DAY`)을 넘으면 부르지 않고 `unavailable`이다.
 
-### 5. 메시지 아래 기록과 다시 만들기 막기(서버) [ ]
+### 5. 메시지 아래 기록과 다시 만들기 막기(서버) [x]
 - 먼저 main에: 조각 1(`ChatMessage` 계약).
 - 할 수 있게 되는 것: 메시지를 읽는 사람이 그 메시지로 만든 요청·지출을 알고, 같은 메시지로 같은 기록이 두 번 생기지 않는다.
 - 수용 기준: 메시지에서 요청을 만들면 그 방의 메시지 응답에 `made`(구매 요청, 제목)가 있고, 지출도 같다. 그 기록을 볼 수 없는 사람의 응답에는 없다. 같은 메시지로 반려·취소되지 않은 요청이 있으면 새 요청은 409 `SOURCE_MESSAGE_USED`이고 아무것도 남지 않는다. 그 요청이 반려되거나 취소되면 새 요청이 된다. 지출도 같다(취소되지 않은 지출이 있으면 409). 요청이 있는 메시지로 지출은 된다. 같은 메시지로 요청 둘을 동시에 보내면 하나만 생긴다(pg-smoke). 근거 없이 만든 요청은 그대로다.
 - 닿는 곳: contracts `chat.ts`(`ChatMessage.made`), `errors.ts`(`SOURCE_MESSAGE_USED`), api `chat/messages.ts`, `chat/source-message.ts`, `purchases/service.ts`, `expenses/service.ts`, `ops/pg-smoke/`, web `lib/messages.ts`.
 - 검토: 깊게(동시 처리, 보이는 범위). 마이그레이션: 없음.
+- 2026-10-28 확인: `850e228d`와 `packages/contracts/src/chat.ts`의 `made`, `apps/api/src/chat/source-message.ts`의 `SOURCE_MESSAGE_USED` 중복 차단이 main에 있다.
 
-### 6. 상품 정보 패널과 링크로 품목 채우기, 메시지 아래 기록(화면) [ ]
+### 6. 상품 정보 패널과 링크로 품목 채우기, 메시지 아래 기록(화면) [x]
 - 먼저 main에: 조각 4, 조각 5, 조각 3(`MessageItem.tsx`).
 - 할 수 있게 되는 것: 대화의 쿠팡 링크를 눌러 상품 정보를 보고, 메시지에서 연 요청의 품목이 링크로 채워지며, 메시지 아래에서 만든 기록으로 간다.
 - 수용 기준: 쿠팡 상품 링크를 누르면 PC는 오른쪽, 390px는 전체 화면으로 '상품 정보'가 열려 정한 것 20을 보이고, 불러오지 못하면 '상품 정보 없음'과 [쿠팡에서 열기]만 있다. 다른 링크는 새 탭이다. 메시지 '…' → '구매 요청 만들기'는 링크마다 품목을 만들어 링크와 판매처를 보이고, 쿠팡 상품 링크는 불러온 이름과 '불러온 가격'을 보이며, 불러오는 동안에도 양식을 쓸 수 있고 고친 이름을 불러온 값이 덮지 않는다. 보낸 요청의 품목에 링크와 이름이 있고 금액은 없다. 패널의 [구매 요청 만들기]는 고른 판매 단위의 이름으로 채운다. 불러온 이름이 품목 이름 상한(`PURCHASE_ITEM_NAME_MAX`)보다 길면 상한에서 잘라 채운다(쿠팡 상품명은 길어 그대로 채우면 보내기가 400, 022 조각 4 검토). 메시지 아래에 '구매 요청 · {제목}'·'지출 · {내역}'이 있고 누르면 그 상세다. 막힌 메시지의 메뉴에는 '구매 요청 보기'·'지출 보기'가 있다. 409 문구는 보내기 버튼 옆에 보인다.
 - 닿는 곳: web `chat/message-links.ts`, `MessageItem.tsx`, 상품 정보 패널(새, `chat/`), 상품 정보 읽기 훅(새), `request-seed.ts`, `RequestFlowView.tsx`, `useRequestFlow.ts`, `MessageMenu.tsx`·`useMessageActions.ts`, `finance/request-form.ts`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통(쓴 `components/ui` 부품의 주석 조건). 마이그레이션: 없음.
+- 2026-10-28 확인: `apps/web/src/chat/ProductPanel.tsx`의 상품 패널·구매 요청 보기와 `apps/web/src/chat/MessageMade.tsx`의 기록 연결이 main에 있다.
 
 ### 7. 이름 누르기와 `/이름`으로 1:1 열기(화면) [ ]
 - 먼저 main에: 조각 3.
@@ -148,19 +150,21 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 - 닿는 곳: web 1:1 패널(새, `chat/` 또는 `workspace/`), `chat/MessageItem.tsx`, `Composer.tsx`·`useMentionInput.ts`, `DirectDialog.tsx`, `tasks/`의 담당자 표시, `team/`의 사람 목록, `workspace/WorkspaceFrame.tsx`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 8. 행사 방과 보관(서버) [ ]
+### 8. 행사 방과 보관(서버) [x]
 - 먼저 main에: 조각 1(공지방 판정·보이기), 조각 3(`RoomSummary`).
 - 할 수 있게 되는 것: 행사마다 공지방과 부서방이 생기고, 완료된 행사의 방은 읽기만 된다.
 - 수용 기준: 행사를 만들면 공지방(모든 운영진)과 부서마다 부서방(그 부서 소속)이 생기고, 이미 있는 행사도 방 목록을 읽으면 생긴다. 부서를 옮기면 보관되지 않은 행사 부서방 참여가 바뀐다. 행사 만들기와 편성 바꾸기가 겹쳐도 방은 하나씩이다(pg-smoke). 행사 공지방에도 조각 1의 들어오기 전 규칙이 맞다. 학생회 편성 방을 고르는 조회가 행사 방을 잡지 않는다(`isPlanRoom`). 대화 목록에는 메시지가 있는 행사 방만 `eventId`·`eventName`과 함께 있다. `GET /api/organizations/:councilId/events/:eventId/rooms`(`EventRoomsResponse { rooms: RoomSummary[]; archived: boolean }`)는 메시지가 없어도 그 행사의 공지방과 내 부서방을 준다. 다른 학생회의 행사는 404다. 행사가 완료되면 보내기·답글은 409 `ROOM_ARCHIVED`, 목록·합계 배지·알림에서 빠지고 읽기는 된다. 완료를 취소하면 다시 보낸다. 행사 방 메시지로 만든 요청·근거 잇기가 된다. 행사에 이은 업무의 공지 만들기는 그 행사 공지방에 올린다.
 - 닿는 곳: api `chat/rooms.ts`, `chat/plan-room.ts`, `chat/queries.ts`, `chat/room-access.ts`, `chat/send.ts`, `chat/notify.ts`, `events/`(만들기 거래), `team/`(편성 바꾸기), `tasks/results.ts`, contracts `chat.ts`(`RoomSummary.eventId`·`eventName`, 행사 방 응답), `errors.ts`(`ROOM_ARCHIVED`), `ops/pg-smoke/`. vada-docs `logical-model.md`(보관 RULE).
 - 검토: 깊게(동시 처리, 학생회 격리, 데이터가 생김). 마이그레이션: 없음.
+- 2026-10-28 확인: `de763a5a`, `packages/contracts/src/chat.ts`의 `EventRoomsResponse`, `apps/api/src/chat/rooms.ts`의 행사 방 동기화와 `archive.ts`의 `ROOM_ARCHIVED`가 main에 있다.
 
-### 9. 행사 메시지 탭과 목록의 행사 방(화면) [ ]
+### 9. 행사 메시지 탭과 목록의 행사 방(화면) [x]
 - 먼저 main에: 조각 8, 조각 2(홈 칩), 조각 6(`RequestFlowView.tsx`).
 - 할 수 있게 되는 것: 행사 화면에서 그 행사의 공지방·부서방으로 대화하고, 거기서 연 요청이 그 행사에 이어진다.
 - 수용 기준: 행사 상세의 탭 줄 맨 앞이 '메시지'이고 기본 탭이며(`?tab=messages`), 그 탭에서는 요약 줄 대신 방 전환 '공지방 · {부서} 방'과 방마다 안 읽은 배지가 있고 탭 배지는 그 합이다. 행사 방 메시지에서 연 요청은 그 행사가 골라진 채로 열리고 바꿀 수 있다. 대화 목록의 '행사' 묶음에 메시지가 생긴 행사 방이 행사 이름과 함께 있다. 홈 메시지함의 행사 방 칩은 그 행사의 메시지 탭을 그 방으로 연다. 완료된 행사의 메시지 탭은 읽기만이고 입력칸 자리에 '완료된 행사'가 있으며, 목록·홈 칩에 그 방이 없다. 390px에서 탭 줄과 방 전환이 넘치지 않는다.
 - 닿는 곳: web `events/EventDetailView.tsx`·`event-view.ts`, 행사 메시지 탭(새, `events/` 또는 `chat/`), `chat/RoomView.tsx`·`RoomList.tsx`·`chat-view.ts`, `chat/RequestFlowView.tsx`, `finance/request-form.ts`, `home/` 메시지함, contracts `paths.ts`(행사 탭), `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
+- 2026-10-28 확인: `de763a5a`, `apps/web/src/events/EventDetailView.tsx`의 `RoomSwitch`와 `apps/web/src/chat/RoomList.tsx`의 행사 묶음이 main에 있다.
 
 ### 10. 답글(마이그레이션과 서버) [ ]
 - 먼저 main에: 조각 8(보이기·보관), 조각 5(`ChatMessage`). 진행 에이전트가 개발 DB에 먼저 적용한다.

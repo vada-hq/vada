@@ -129,12 +129,13 @@ DEC-94 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 닿는 곳: web `tasks/TaskQuickAdd.tsx`·`useTaskCreate.ts`·`useTaskOptions.ts`·`task-defaults.ts`·`ChoiceSelect.tsx`, `components/ui/sheet.tsx`(아래 시트), `lib/messages.ts`, `ui-gallery/TaskSections.tsx`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 6. '담당자 없음'의 뜻 하나로(묶음 2-4) [ ]
+### 6. '담당자 없음'의 뜻 하나로(묶음 2-4) [x]
 - 먼저 main에: 없음.
 - 할 수 있게 되는 것: 운영진이 어디서 보든 '담당자 없음'의 수와 목록이 같다.
 - 수용 기준: 부서가 없고 담당자가 있는 업무는 '담당자 없음' 목록과 수에 없다. 부서가 없고 담당자도 없는 업무는 있다. 떠난 담당자의 업무는 있다. 끝났거나 취소한 업무는 없다. 서버 목록의 수, 표 묶음 머리의 수, 홈의 '담당자 없음' 수가 같은 업무 모음에서 같다. 다른 학생회 업무는 세지 않는다.
 - 닿는 곳: api `tasks/queries.ts`(`unassignedCondition`, 정한 것 10), `home/open-tasks.ts`(같은 함수인지 확인), web `tasks/task-groups.ts`·`task-defaults.ts`, 관련 시험(`tasks/` 목록 시험, `home/` 시험).
 - 검토: 보통. 마이그레이션: 없음.
+- 2026-10-28 확인: `66f02f45`, `apps/api/src/tasks/queries.ts`의 `unassignedCondition`을 `open-tasks.ts`가 공유하고 `apps/web/src/tasks/task-unassigned.ts`도 같은 뜻으로 판정한다.
 
 ### 7. 칩 줄, 토글, 담당자별, 필터 띠(묶음 2-5) [ ]
 - 먼저 main에: 조각 2, 조각 3, 조각 6.
@@ -192,12 +193,13 @@ DEC-94 '결정'을 따른다. 코드로 옮기려고 더 정한 것은 아래 �
 - 닿는 곳: web `tasks/TaskCard.tsx`·`TaskFacts.tsx`·`TaskTable.tsx`·`TaskPickerRow.tsx`·`TaskRow.tsx`, 022 조각 7의 부품(`chat/` 또는 `src/components`), `lib/use-record-dialogs.ts`, `ui-gallery/TaskSections.tsx`.
 - 검토: 보통. 마이그레이션: 없음.
 
-### 15. 행사에 이은 업무의 공지를 그 행사 공지방으로(묶음 3-4) [ ]
+### 15. 행사에 이은 업무의 공지를 그 행사 공지방으로(묶음 3-4) [x]
 - 먼저 main에: 022 조각 1(공지방), 022 조각 8(행사 방). 025 조각 16(행사 방 잇기)과 같은 때에 해도 된다.
 - 할 수 있게 되는 것: 행사 업무에서 만든 공지가 그 행사 사람들이 보는 행사 공지방에 오른다.
 - 수용 기준: 행사에 이은 업무의 [공지 만들기]는 그 행사 방이 있으면 그 행사 공지방에, 없으면 우리 학생회 공지방에 보통 메시지를 올리고 업무가 끝남이 된다. 행사 없는 업무는 학생회 공지방이다. 다른 학생회의 방에는 오르지 않는다. 화면의 창 제목이 올라갈 방 이름을 보인다. 끝난 업무와 결과물을 이을 수 없는 사람에게는 단추가 없다.
 - 닿는 곳: api `tasks/results.ts`(공지 대상 방 고르기, DEC-93과 같은 방 고르기를 공유 도우미로), `chat/notice.ts`·`chat/rooms.ts`(읽기), web `tasks/NoticeMakeDialog.tsx`, `lib/messages.ts`.
 - 검토: 깊게(학생회 격리, 방 참여 범위). 마이그레이션: 없음.
+- 2026-10-28 확인: `de763a5a`, `apps/web/src/tasks/NoticeMakeDialog.tsx`의 `useNoticeRoom`과 `apps/api/src/chat/send.ts`의 업무 행사 공지방 선택이 main에 있다.
 
 ### 16. 반복(묶음 4-1, 표 바꿀 수 있음 T1) [ ]
 - 먼저 main에: 조각 9(창). 시기: 시범 운영 첫 주 뒤, 묶음 끝.

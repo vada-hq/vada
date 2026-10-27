@@ -93,19 +93,21 @@
 - 닿는 곳: contracts 재정 계약(`FINANCE_TABS`, 탭 응답 모양), api `home/settling.ts`(셈 나눔)·`settlement/remaining.ts`, 재정 읽기 라우트, web `finance/FinanceTabs.tsx`·`useFinanceQuery.ts`·`FinancePage.tsx`, 새 탭 화면, `workspace/CouncilWorkspace.finance-address.test.tsx`, `ui-gallery/`.
 - 검토: 깊게(학생회 격리). 마이그레이션: 없음.
 
-### 2. 배송 서버(묶음 1-3a, 위반 DEC-61·DEC-74, 표 바꿈 S1) [ ]
+### 2. 배송 서버(묶음 1-3a, 위반 DEC-61·DEC-74, 표 바꿈 S1) [x]
 - 먼저 main에: 없음. 사람: 업체 키(없어도 시작은 된다, 조회만 '조회 안 됨').
 - 할 수 있게 되는 것: 재정 역할 부서나 요청한 사람이 송장을 승인 품목에 붙이고, 누구나 배송의 마지막 사건을 조회한다.
 - 수용 기준: 진행 에이전트가 main에 올리기 전에 개발 DB에 S1을 적용한다. 송장 넣기(택배사, 송장 번호, 품목 목록)가 201이고 배송의 판 1이 있다. 송장 하나에 품목 둘, 품목 하나에 송장 둘이 모두 된다. 고치기(택배사, 번호, 품목)와 취소(사유)는 판이 하나 늘고 바꾼 사람이 남는다. 재정 역할 부서와 그 요청의 요청한 사람은 되고, 다른 운영진은 403, 미인증 401이다. 다른 학생회의 요청·품목은 404, 대기·반려·취소한 품목을 이으면 409이고 아무것도 남지 않는다. 완료한 행사의 요청이면 잠김 오류다. 모르는 택배사, 빈 번호, 상한+1, 허용 밖 문자, NUL, 모르는 키는 400이다. 요청 상세 응답에 배송 줄(택배사, 번호, 덮는 품목, 넣은 사람 표시 이름)이 있다. 조회 라우트는 가짜 업체가 받은 값이 택배사와 번호뿐이고 쿼리에 받는 사람·보내는 사람 칸이 없으며, 성공이면 마지막 사건과 시각을, 업체 실패·10초 시간 초과·모양 다름·키 없음이면 200과 `reason`과 택배사 조회 주소를 준다. 10분 안에 같은 송장을 두 번 조회하면 업체는 한 번 불린다. 로그와 Sentry로 가는 값에 송장 번호와 업체 응답이 없다. 리허설 흐름 시험이 그대로 통과한다.
 - 닿는 곳: `apps/api/migrations/`(S1), `db/schema*.ts`, `ops/migrate`의 표 수 시험, contracts 배송 계약(새, `z.strictObject`)·`purchases.ts`(상세 응답)·`permissions.ts`·`errors.ts`·`index.ts`, api 배송 모듈(새: 쓰기, 업체 부르기, 캐시, 라우트)·`purchases/queries.ts`·`access/permissions.ts`·`purchases/lock.ts`, `app.ts`(`AppOptions`)·`serve.ts`·`runtime.ts`, `http/boundary.test.ts`, `.env.example`, vada-docs `logical-model.md`(배송 엔티티와 규칙).
 - 검토: 깊게(표, 권한, 외부 서비스, 격리). 마이그레이션: 있음(S1, 적용 먼저).
+- 2026-10-28 확인: `dbb7fc60`, `packages/contracts/src/shipments.ts`와 `apps/api/src/shipments/routes.ts`의 송장 등록·고치기·취소·조회가 main에 있다(업체 키 설정과 실제 업체 조회는 별도 확인).
 
-### 3. 배송 화면(묶음 1-3b) [ ]
+### 3. 배송 화면(묶음 1-3b) [x]
 - 먼저 main에: 조각 2.
 - 할 수 있게 되는 것: 산 사람이 요청 상세에서 송장을 넣고, 부탁한 사람이 휴대폰에서 배송을 본다.
 - 수용 기준: 요청 상세의 승인 품목 아래 [송장 넣기]가 재정 역할 부서와 요청한 사람에게만 있다. 창에 '택배사'(기본 쿠팡 CLS), '송장 번호'(필수), 덮을 품목(기본은 아직 송장이 없는 승인 품목 모두, 체크박스)이 있고, 누를 때 확인해 문제를 칸 아래에 보인다. 넣으면 배송 줄(택배사, 번호, 마지막 사건과 시각 '10월 25일 (토) 14:00', [택배사에서 보기])이 보이고 덮은 품목에 표시된다. 조회가 안 되면 '조회 안 됨'과 [택배사에서 보기]다. 고치기와 '송장 취소'(사유, 확인 창)가 있다. 보내는 중 버튼은 `busy`다. 403·404를 받으면 창을 닫고 이유를 보인다(자주 잡힌 것 1). 390px에서 긴 번호가 넘치지 않는다(`wrap-anywhere`). 진행 막대의 '배송' 칸은 조각 9와 맞춘다(나중에 오르는 쪽이 맞춤).
 - 닿는 곳: web `finance/RequestDetailDialog.tsx`·`RequestItems.tsx`, 송장 창과 배송 줄 부품(새), `finance-api.ts`, `useRequestDetail.ts`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음.
+- 2026-10-28 확인: `87baee5c`·`ee6de01f`, `apps/web/src/finance/RequestShipments.tsx`의 송장 창·배송 줄과 저장 뒤 상태 보존이 main에 있다.
 
 ### 4. 배송 리허설 단계와 문서(묶음 1-3c) [ ]
 - 먼저 main에: 조각 2, 조각 3.
@@ -153,6 +155,7 @@
 - 수용 기준: 요청 쓰기와 보기가 정한 것 8의 주소를 가진 쪽 화면이고 새로고침해도 그 화면이다. 경로가 보이고, 오른쪽(390px은 아래)에 예상 금액·품목 수·필요한 때 요약이 있으며, 새 품목은 맨 위에 더해진다. 재정·행사·업무·메시지 어디서 열어도 품목 링크 칸의 [불러오기](Enter도)가 022의 상품 정보로 이름·판매처·가격·배송비·도착 예정을 채우고, 사람이 고친 이름을 덮지 않는다. 도착 예정이 필요한 때보다 늦으면 한 줄, 불러오는 중·읽지 못함은 끼룩이 한 줄이고 안내 글에 '예산 항목'이 없다. 수량은 1~99,999 정수이고 100,000은 400이다. 진행 막대는 요청함 → 결재 → 결제 → 배송(송장이 있을 때)이고 반려·취소는 막대 대신 한 줄이며, '결제'는 결제 내역이 있는 품목이다(`purchases/stage.ts`와 같은 판정). 요청 목록 줄에 요청일, 행사 이름, 내용 첫 줄, 품목 수(예상 금액은 조각 11 뒤)가 있다. '내 차례' 칩은 정한 것 13이다. 화면 문구는 AGENTS '화면 문구와 폼'(placeholder 없음, 필수 별표). 리허설 `request`가 통과한다.
 - 닿는 곳: web `finance/` 요청 쪽 화면 둘(새, `RequestCreateDialog.tsx`·`RequestDetailDialog.tsx`를 바꿈)·`RequestItemFields.tsx`·`RequestItems.tsx`·`RequestCard.tsx`·`request-form.ts`·`useRequestCreate.ts`·`purchase-text.ts`, 022의 `RequestFlowView.tsx`·`request-seed.ts`, `workspace/`(주소), contracts `purchases.ts`(`PURCHASE_QUANTITY_MAX`), `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음. 첫날·리허설: 첫날 부탁, 리허설 `request`.
+- 2026-10-28 남은 범위: 수량 상한을 99,999로 확대하고 계약·DB·화면을 맞추기(`apps/web/src/finance/PurchasePage.tsx`의 요청 쪽 화면은 main에 있으나 `packages/contracts/src/purchases.ts:21`의 `PURCHASE_QUANTITY_MAX`는 999이며, 2026-10-27 시연 범위에서도 확대를 제외).
 
 ### Q1-가. 요청 내기를 부서장·재정 역할 부서·회장단으로 좁히기 [ ] — **사용자 확정(10/25, 권장대로), Q1이 '기획자 권한'일 때만**
 - 먼저 main에: 조각 9.
@@ -168,7 +171,7 @@
 - 닿는 곳: web `finance/ExpenseCreateDialog.tsx`·`ExpenseRequestFields.tsx`·`ExpenseDirectFields.tsx`·`expense-form.ts`, contracts 지출 계약(결제 수단 기본값), `flows/rehearsal-money.ts`, `lib/messages.ts`, `ui-gallery/`.
 - 검토: 보통. 마이그레이션: 없음. 첫날·리허설: 첫날 지출 적기, 리허설 `spend`.
 
-### 11. 예상 금액 저장과 결재 금액 미리 채우기(묶음 2-7, 표 바꿈 S2) [ ]
+### 11. 예상 금액 저장과 결재 금액 미리 채우기(묶음 2-7, 표 바꿈 S2) [x]
 - 2026-10-27 사용자 승인으로 보류 해제. `estimatedUnitPrice`·`estimatedShippingFee`는 생략/null과 0을 구별한다. 배송비 미확인은 무료로 추정하지 않고 상품 합계만 보이며, 배송 포함 합계는 미확인이다. 결재 금액은 상품 합계로 시작하되 배송비 확인 안내를 붙인다. 단가도 미확인이면 빈칸이다. 모든 합계는 안전한 정수이며 품목 예상 합계도 `WON_MAX` 이하다. 예상값은 승인 전 금액·예산 약정·지출 계산을 바꾸지 않는다.
 - 구현/배포 경계: 서버·계약·0022·결재 기본값과 생성·상세 페이지 연결을 함께 검증한 뒤, 진행자가 실제 개발 DB 적용·PG 확인·CI·운영 배포를 마쳐야 완료다. 요청 상세의 원문 참조는 DEC-99의 현재 열람권한 안에서만 반환한다.
 - 먼저 main에: 조각 7(결재 금액 칸), 조각 9(요청 양식), 022 조각 6.
@@ -176,6 +179,7 @@
 - 수용 기준: 진행 에이전트가 main에 올리기 전에 개발 DB에 S2를 적용한다. 요청 내기 본문의 품목에 예상 단가와 배송비(선택, 0 이상, `WON_MAX` 이하)가 있고, 음수·상한+1·소수는 400이다. 재정·행사·업무·메시지 어디서 연 양식이든 불러온 값이나 사람이 적은 값을 보낸다(022 조각 6의 '금액 없음' 기준을 이 조각이 바꾼다). 요약·목록·상세에 예상 금액(수량 × 단가 + 배송비)이 있다. 결재 금액 칸이 그 값으로 채워져 있고 고칠 수 있으며, 예상 값이 없으면 빈칸이다. 품목 금액은 여전히 승인할 때 정해진다(승인 전 품목의 금액은 비어 있다).
 - 닿는 곳: `apps/api/migrations/`(S2), `db/schema*.ts`, contracts `purchases.ts`, api `purchases/service.ts`·`queries.ts`, web `finance/request-form.ts`·`decision-form.ts`·`RequestItemFields.tsx`, 022의 `RequestFlowView.tsx`·`request-seed.ts`, `test-support/`, vada-docs `logical-model.md` '품목' 줄.
 - 검토: 깊게(표, 돈). 마이그레이션: 있음(S2, 적용 먼저).
+- 2026-10-28 확인: `ee0cfde1`, `packages/contracts/src/purchases.ts`의 예상 단가·배송비와 `apps/web/src/finance/decision-form.ts`의 예상 금액 결재 초기값이 main에 있다.
 
 ### 12. 행사 안 요청 목록(묶음 3-1) [ ]
 - 먼저 main에: 022 조각 8·9(행사 공간과 행사 탭), 조각 9. 시기: 참가 학생회가 첫 행사를 만들기 전.
@@ -225,6 +229,7 @@
 - 수용 기준: 요청 쓰기 초안 한 벌이 그 기기에 남아 다시 열면 이어 쓰고 '초안 지우기'로 지운다(학생회마다, 로그아웃하면 지움). 같은 행사의 다른 요청(반려·취소 제외)에 정리한 주소가 같은 쿠팡 상품이 있으면 결재 화면에 '중복 구매인지 확인해 주세요'가 있다(다른 학생회 요청은 보지 않음). 요청 카드에 요청한 사람의 지금 부서가 모두 보인다. 결제 합이 승인 금액보다 작은 품목에 '일부 결제'가 있고 끝남 판정은 그대로다.
 - 닿는 곳: web 요청 쪽 화면, `finance/DecisionRow.tsx`·`RequestCard.tsx`, api `purchases/queries.ts`, 022의 주소 정리 도우미, contracts 응답.
 - 검토: 보통(같은 상품 경고는 학생회 격리 시험). 마이그레이션: 없음.
+- 2026-10-28 남은 범위: 기기·학생회별 초안 복구·지우기와 로그아웃 정리, 같은 상품 경고, 요청자의 현재 부서와 품목별 일부 결제 표시(`apps/web/src/finance/purchase-draft.ts`는 현재 history 칸만 저장하고, `RequestProgress.tsx`는 요청 진행의 일부 결제만 표시하며 `RequestCard.tsx`·`RequestItems.tsx`에는 나머지 표시가 없다).
 
 ### 19. 계좌 자리와 기간(묶음 3-8) [ ]
 - 먼저 main에: 조각 6. 시기: 첫 결산 전.

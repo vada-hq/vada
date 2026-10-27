@@ -97,11 +97,12 @@
 
 1·2·4·5·8은 서로 기대지 않아 나란히 만든다(5와 8은 마이그레이션 번호만 차례로). 3은 2가 배포된 뒤, 6은 5 뒤, 7은 6 뒤, 9·10·11은 8 뒤다. 시범 운영 시작 전 필수는 1~9이고, 10은 권장, 11은 '시작 전에 시도'(DEC-54, RFC-7)다.
 
-### 1. 메시지 지우기 문장 고치기(vada-docs) [ ]
+### 1. 메시지 지우기 문장 고치기(vada-docs) [x]
 - 할 수 있게 되는 것: 처리방침과 약관이 지금 실제로 하는 메시지 지우기(학생회 요청 → VADA가 10일 안에)를 적는다.
 - 수용 기준: 처리방침 11조 5항과 약관 10조 ①이 '정한 것' 18의 문장이다. DEC-54 '결과'에 그 한 줄이 있다. 3조 ③ 2(지울 때의 방법)는 그대로다. `legal/internal-management-plan.md` '파기' 칸이 학생회 요청의 메시지 지우기와 학생회 통째 파기를 `privacy` 명령과 보호책임자 확인으로 한다고 적는다. 바뀐 문서끼리 서로 어긋나는 문장이 없다(`screens.md` 21줄은 그대로 맞다).
 - 닿는 곳: vada-docs `legal/privacy-policy.md`, `legal/terms.md`, `legal/internal-management-plan.md`, `decisions/0054-keep-rows-clear-personal-values.md`. 커밋 규칙은 `vada-docs/AGENTS.md`를 따른다.
 - 검토: 보통. 마이그레이션: 없음.
+- 2026-10-28 확인: vada-docs `origin/main`의 `legal/privacy-policy.md:223`, `legal/terms.md:153`, `legal/internal-management-plan.md:55`, `decisions/0054-keep-rows-clear-personal-values.md:61`에 학생회 요청으로 VADA가 메시지를 지우는 문장이 있다.
 
 ### 2. Google 프로필 사진과 토큰을 저장하지 않기 [x]
 - 할 수 있게 되는 것: 로그인이 Google 프로필 사진과 토큰을 DB에 남기지 않는다.
