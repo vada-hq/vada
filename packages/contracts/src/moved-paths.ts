@@ -70,7 +70,11 @@ const purchasesMove: Step = location => {
   if (location.menu !== 'finance') return null
   if (location.query['compose'] === 'new') return at(location, 'purchases', { compose: 'new' })
   if (location.query['tab'] !== 'requests') return null
-  return at(location, 'purchases', without(location.query, ['tab', 'period']))
+  // 옛 기본 mine은 읽을 때 빠지지만, 새 메뉴의 역할별 기본값으로 바뀌면 보던 목록을 잃는다.
+  return at(location, 'purchases', {
+    ...without(location.query, ['tab', 'period']),
+    view: location.query['view'] ?? 'mine',
+  })
 }
 
 // 재정 탭 → 예산 현황(기본)·사용 내역(설계 3.3). 회계 기간은 그대로 싣는다.

@@ -48,12 +48,12 @@ export type FinanceTab = (typeof FINANCE_TABS)[number]
 // 메뉴 v7 재정의 사용 내역(설계 3.3). 화면이 그리기 전에는 주소에만 있다.
 const FINANCE_TAB_VALUES = [...FINANCE_TABS, 'ledger'] as const
 
-// 기록 종류마다 여는 메뉴와 탭. 구매 요청은 구매 메뉴(메뉴 v7), expenses·incomes는 재정의 그 탭이다.
+// 기록 종류마다 여는 메뉴와 탭. 구매 메뉴를 켜는 S1까지 구매 요청은 예전 재정 탭으로 돌아간다.
 const RECORD_PARENTS = {
   chat: { menu: 'chat' },
   events: { menu: 'events' },
   tasks: { menu: 'tasks' },
-  purchases: { menu: 'purchases' },
+  purchases: { menu: 'finance', query: { tab: 'requests' } },
   expenses: { menu: 'finance', query: { tab: 'expenses' } },
   incomes: { menu: 'finance', query: { tab: 'incomes' } },
 } as const satisfies Record<string, { menu: AppMenu; query?: Record<string, string> }>

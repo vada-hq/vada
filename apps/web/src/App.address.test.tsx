@@ -8,6 +8,8 @@ import { councilView, myCouncil, teamResponse } from './test-support/council-fix
 import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
+import { purchaseDetail } from './test-support/purchase-fixtures'
+import { startPathOf } from './workspace/useLastAddress'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -272,6 +274,29 @@ test('/로 열었는데 마지막 주소가 기록이면 바로 들어온 기록
   expect(window.localStorage.getItem(LAST)).toBe(`/tasks/${C1}`)
 })
 
+test('옮기기 전 마지막 구매 상세를 /에서 복원하면 뒤로가 재정 구매 요청 목록으로 바로 돌아간다', async () => {
+  window.localStorage.setItem(LAST, `/purchases/${C1}/${T1}`)
+  api.on('GET', `/api/organizations/${C1}/purchase-requests/${T1}`, () =>
+    json({ request: purchaseDetail(T1, { title: '테이프 구매' }) }),
+  )
+  api.on('GET', `/api/organizations/${C1}/purchase-requests?view=mine`, () =>
+    json({ requests: [], truncated: false }),
+  )
+  const replace = vi.spyOn(window.history, 'replaceState')
+  await renderApp()
+  expect(await heading('테이프 구매')).toBeTruthy()
+  const reads = council(C1).length
+  replace.mockClear()
+  act(() => window.history.back())
+  expect(await heading('재정')).toBeTruthy()
+  expect(pathNow()).toBe(`/finance/${C1}?tab=requests`)
+  expect(replace.mock.calls.some(([, , path]) => String(path).startsWith('/purchases/'))).toBe(
+    false,
+  )
+  expect(council(C1).length).toBe(reads)
+  expect(window.localStorage.getItem(LAST)).toBe(`/finance/${C1}?tab=requests`)
+})
+
 test('새로 고침으로 되살린 창은 칸을 더 쌓지 않는다', async () => {
   window.history.replaceState(null, '', `/tasks/${C1}/${T1}`)
   await renderApp()
@@ -335,6 +360,12 @@ test('마지막 주소가 옛 꼴이면 /로 열 때 새 주소로 연다', asyn
   expect(await heading('업무')).toBeTruthy()
   expect(pathNow()).toBe(`/tasks/${C2}?tab=mine`)
   expect(push).not.toHaveBeenCalled()
+})
+
+test('구매 옮기기를 켜도 마지막 주소의 내 요청 보기는 역할별 기본값으로 바뀌지 않는다', () => {
+  live.moves = ['purchases']
+  window.localStorage.setItem(LAST, `/finance/${C1}?tab=requests&view=mine`)
+  expect(startPathOf('u1', [myCouncil(C1)])).toBe(`/purchases/${C1}?view=mine`)
 })
 
 test('아직 그리지 않은 캘린더 주소는 업무 달력으로 바꿔 쓴다', async () => {

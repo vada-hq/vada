@@ -225,8 +225,8 @@ test('기록 주소의 상위 목록은 종류마다 여는 메뉴와 탭이다'
   assert.equal(up('chat'), `/chat/${C}`)
   assert.equal(up('events'), `/events/${C}`)
   assert.equal(up('tasks'), `/tasks/${C}`)
-  // 메뉴 v7: 구매 요청의 상위는 구매 메뉴다(설계 2.2).
-  assert.equal(up('purchases'), `/purchases/${C}`)
+  // 구매 메뉴를 켜기 전(S0)에는 예전 재정 구매 요청 목록으로 바로 돌아간다.
+  assert.equal(up('purchases'), `/finance/${C}?tab=requests`)
   assert.equal(up('expenses'), `/finance/${C}?tab=expenses`)
   assert.equal(up('incomes'), `/finance/${C}?tab=incomes`)
   const menu = parseAppPath(`/tasks/${C}`)!
@@ -301,7 +301,8 @@ const MOVES: [old: string, now: string][] = [
   [`/tasks/${C}?view=unassigned`, `/tasks/${C}?assignee=none&events=include`],
   [`/tasks/${C}?layout=calendar`, `/calendar/${C}`],
   [`/tasks/${C}?view=all&layout=calendar`, `/calendar/${C}`],
-  [`/finance/${C}?tab=requests`, `/purchases/${C}`],
+  [`/finance/${C}?tab=requests`, `/purchases/${C}?view=mine`],
+  [`/finance/${C}?tab=requests&view=mine`, `/purchases/${C}?view=mine`],
   [`/finance/${C}?tab=requests&view=pending`, `/purchases/${C}?view=pending`],
   [`/finance/${C}?tab=requests&view=all`, `/purchases/${C}?view=all`],
   [`/finance/${C}/requests/new`, `/purchases/${C}/new`],
