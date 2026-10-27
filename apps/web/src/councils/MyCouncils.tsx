@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { menuPath, type MyCouncil } from '@vada/contracts'
-import { layerDirectRecord, navigate, startAt, useHere } from '@/lib/app-location'
+import { layerDirectRecord, navigate, rewriteAddress, startAt, useHere } from '@/lib/app-location'
 import { openMenu } from '@/lib/go-to'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK } from '@/lib/messages'
 import { targetOf } from '../workspace/address'
@@ -79,6 +79,12 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
     if (start && here.path === '/' && window.location.pathname + window.location.search === '/')
       startAt(start)
   }, [start, here.path])
+  const target = targetOf(here, councils, start)
+  // 옮겨 간 옛 주소(메뉴 v7)는 그리기 전에 새 자리로 바꿔 써서 뒤로가 옛 주소로 돌아가지 않는다.
+  const movedTo = target.kind === 'moved' ? target.to : null
+  useLayoutEffect(() => {
+    if (movedTo !== null) rewriteAddress(movedTo)
+  }, [movedTo])
   // 403으로 운영진이 아니게 된 학생회: 목록을 다시 읽다 실패해도 떠나도록 먼저 목록에서 빼고 남은 첫 학생회 홈으로 간다. 서버의 목록은 다시 읽는다.
   const lost = useCallback(
     (councilId: string) => {
@@ -123,7 +129,7 @@ export default function MyCouncils({ user, userId, initialCouncilId, card, ...re
         }}
       />
     )
-  const target = targetOf(here, state.councils, start)
+  if (target.kind === 'moved') return null
   if (target.kind === 'notFound') return card(<NotFound fallback={target.fallback} />)
   return (
     <Workspace

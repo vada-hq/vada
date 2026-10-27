@@ -14,6 +14,14 @@ vi.mock('./auth/auth-client', () => ({
   authClient: { useSession: auth.useSession, signIn: { social: vi.fn() }, signOut: auth.signOut },
 }))
 
+// 메뉴 v7 옮기기는 새 자리를 그리는 조각이 켠다. 시험마다 켠 것을 바꾼다.
+const live = vi.hoisted(() => ({ moves: [] as string[] }))
+vi.mock('./workspace/live-moves', () => ({
+  get LIVE_MOVES() {
+    return live.moves
+  },
+}))
+
 const C1 = '0199d1a0-0000-7000-8000-0000000000c1'
 const C2 = '0199d1a0-0000-7000-8000-0000000000c2'
 const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
@@ -21,6 +29,7 @@ let api: ReturnType<typeof mockApi>
 const listeners: ((event: { data: unknown }) => void)[] = []
 
 beforeEach(() => {
+  live.moves = []
   listeners.length = 0
   window.localStorage.clear()
   window.history.replaceState(null, '', '/')
@@ -293,4 +302,53 @@ test('창을 연 채 메뉴로 가도 뒤로가 두 번 걸리지 않는다', as
   act(() => window.history.back())
   expect(await heading('홈')).toBeTruthy()
   expect(pathNow()).toBe(`/home/${C1}`)
+})
+
+// 메뉴 v7(설계 2.2): 옛 주소는 새 자리로 바꿔 쓰고(replace), 아직 그리지 않은 새 메뉴는 지금 그 일을 그리는 곳으로 바꿔 쓴다.
+test('옮기기를 켜면 옛 주소는 칸을 쌓지 않고 새 주소로 바꿔 쓰여 뒤로가 옛 주소로 가지 않는다', async () => {
+  live.moves = ['chat']
+  await renderApp()
+  expect(await heading('홈')).toBeTruthy()
+  const push = pushes()
+  act(() => window.history.pushState(null, '', `/council/${C1}`))
+  act(() => {
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  })
+  await waitFor(() => expect(pathNow()).toBe(`/chat/${C1}`))
+  expect(push).toHaveBeenCalledTimes(1)
+  act(() => window.history.back())
+  await waitFor(() => expect(pathNow()).toBe(`/home/${C1}`))
+})
+
+test('옮기기를 켜기 전에는 옛 주소가 지금 화면을 그대로 연다', async () => {
+  window.history.replaceState(null, '', `/tasks/${C1}?view=all`)
+  await renderApp()
+  expect(await heading('업무')).toBeTruthy()
+  expect(pathNow()).toBe(`/tasks/${C1}?view=all`)
+})
+
+test('마지막 주소가 옛 꼴이면 /로 열 때 새 주소로 연다', async () => {
+  live.moves = ['tasks']
+  window.localStorage.setItem(LAST, `/council/${C2}?tab=tasks&view=mine`)
+  const push = pushes()
+  await renderApp()
+  expect(await heading('업무')).toBeTruthy()
+  expect(pathNow()).toBe(`/tasks/${C2}?tab=mine`)
+  expect(push).not.toHaveBeenCalled()
+})
+
+test('아직 그리지 않은 캘린더 주소는 업무 달력으로 바꿔 쓴다', async () => {
+  window.history.replaceState(null, '', `/calendar/${C1}`)
+  const push = pushes()
+  await renderApp()
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${C1}?layout=calendar`))
+  expect(await heading('업무')).toBeTruthy()
+  expect(push).not.toHaveBeenCalled()
+})
+
+test('아직 그리지 않은 구매 주소는 재정의 구매 요청 탭으로, 마지막 주소도 같이 바꿔 쓴다', async () => {
+  window.localStorage.setItem(LAST, `/purchases/${C2}?view=all`)
+  await renderApp()
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${C2}?tab=requests&view=all`))
+  expect(await heading('재정')).toBeTruthy()
 })

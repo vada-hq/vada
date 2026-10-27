@@ -1,4 +1,5 @@
 import { parentOf, parseAppPath, type AppLocation } from '@vada/contracts'
+import { drawnMenu } from '../workspace/address'
 import { pageTitles } from '../workspace/pages'
 
 // 행사 화면의 뒤로 버튼이 말하는 이름. 앱 안에서 들어온 곳이 행사 목록 밖(업무, 홈, 재정)이면 그곳의 이름이고,
@@ -14,5 +15,5 @@ export function backLabel(from: string | null, eventId?: string) {
   if (isSameEvent(location, eventId)) return '개요'
   const parent = location ? parentOf(location) : null
   if (parent?.type !== 'menu' || parent.menu === 'events') return '행사 목록'
-  return pageTitles[parent.menu].title
+  return pageTitles[drawnMenu(parent.menu)].title
 }

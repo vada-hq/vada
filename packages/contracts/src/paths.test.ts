@@ -11,13 +11,14 @@ import {
   RECORD_KINDS,
   recordPath,
 } from './paths.js'
+import { movedLocationOf, type AddressMove } from './moved-paths.js'
 
 const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
 
-test('메뉴 아홉과 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
-  assert.equal(APP_MENUS.length, 9)
+test('메뉴 열하나와 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
+  assert.equal(APP_MENUS.length, 11)
   assert.equal(RECORD_KINDS.length, 6)
   for (const menu of APP_MENUS) {
     const path = menuPath(menu, C)
@@ -184,7 +185,9 @@ test('모르는 꼴은 읽지 않는다', () => {
     `/unknown/${C}/${R}`,
     `/home/${C}/${R}`,
     `/people/${C}/${R}`,
-    `/purchases/${C}`,
+    `/purchases/${C}/nope`,
+    `/purchases/${C}/new/x`,
+    `/calendar/${C}/${R}`,
     `/chat/${C}/${R}/x`,
     `/chat/${C}//`,
     `//chat/${C}`,
@@ -222,7 +225,8 @@ test('기록 주소의 상위 목록은 종류마다 여는 메뉴와 탭이다'
   assert.equal(up('chat'), `/chat/${C}`)
   assert.equal(up('events'), `/events/${C}`)
   assert.equal(up('tasks'), `/tasks/${C}`)
-  assert.equal(up('purchases'), `/finance/${C}?tab=requests`)
+  // 메뉴 v7: 구매 요청의 상위는 구매 메뉴다(설계 2.2).
+  assert.equal(up('purchases'), `/purchases/${C}`)
   assert.equal(up('expenses'), `/finance/${C}?tab=expenses`)
   assert.equal(up('incomes'), `/finance/${C}?tab=incomes`)
   const menu = parseAppPath(`/tasks/${C}`)!
@@ -234,7 +238,8 @@ test('서버 진입 목록은 목록의 모든 꼴과 끝 슬래시를 담는다
     const own = ENTRY_PATHS.filter(
       p => p.startsWith(`/${menu}/:council{`) && !p.includes(':record'),
     )
-    assert.equal(own.length, menu === 'finance' ? 4 : 2, menu)
+    // 구매 요청 쓰기: 새 꼴(/purchases/<c>/new)과 옛 꼴(/finance/<c>/requests/new)을 다 받는다.
+    assert.equal(own.length, menu === 'finance' || menu === 'purchases' ? 4 : 2, menu)
     assert.ok(own.some(p => p.endsWith('}/')))
   }
   for (const kind of RECORD_KINDS) {
@@ -270,4 +275,96 @@ test('만든 주소를 다시 읽으면 같은 값이다: 상위 목록, 대문�
 
 test('uuid가 아닌 id로 만든 주소는 읽히지 않는다', () => {
   assert.equal(parseAppPath(menuPath('home', 'c1')), null)
+})
+
+const D = '0199d1a0-0000-7000-8000-00000000000d'
+const movedTo = (path: string, moves?: AddressMove[]) => {
+  const location = parseAppPath(path)
+  assert.ok(location, path)
+  const moved = movedLocationOf(location, { department: D, ...(moves ? { moves } : {}) })
+  return moved && appPath(moved)
+}
+
+// 메뉴 v7 설계 2.2 대응표의 줄마다 하나. 새 꼴은 다시 읽으면 같은 값이고(왕복), 다시 옮기지 않는다.
+const MOVES: [old: string, now: string][] = [
+  [`/council/${C}`, `/chat/${C}`],
+  [`/council/${C}?tab=messages`, `/chat/${C}`],
+  [`/council/${C}?tab=tasks`, `/tasks/${C}?events=include`],
+  [
+    `/council/${C}?tab=tasks&view=unassigned&filter=done&layout=list&dept=${P}`,
+    `/tasks/${C}?filter=done&layout=list&dept=${P}&assignee=none&events=include`,
+  ],
+  [`/council/${C}?tab=tasks&view=mine`, `/tasks/${C}?tab=mine`],
+  [`/council/${C}?tab=tasks&layout=calendar`, `/calendar/${C}`],
+  [`/tasks/${C}?view=department`, `/tasks/${C}?dept=${D}`],
+  [`/tasks/${C}?view=all&filter=done`, `/tasks/${C}?filter=done&events=include`],
+  [`/tasks/${C}?view=unassigned`, `/tasks/${C}?assignee=none&events=include`],
+  [`/tasks/${C}?layout=calendar`, `/calendar/${C}`],
+  [`/tasks/${C}?view=all&layout=calendar`, `/calendar/${C}`],
+  [`/finance/${C}?tab=requests`, `/purchases/${C}`],
+  [`/finance/${C}?tab=requests&view=pending`, `/purchases/${C}?view=pending`],
+  [`/finance/${C}?tab=requests&view=all`, `/purchases/${C}?view=all`],
+  [`/finance/${C}/requests/new`, `/purchases/${C}/new`],
+  [`/finance/${C}?compose=new`, `/purchases/${C}/new`],
+  [`/finance/${C}?tab=overview`, `/finance/${C}`],
+  [`/finance/${C}?tab=budget`, `/finance/${C}`],
+  [`/finance/${C}?tab=expenses`, `/finance/${C}?tab=ledger`],
+  [`/finance/${C}?tab=incomes&period=${P}`, `/finance/${C}?tab=ledger&kind=income&period=${P}`],
+  [`/finance/${C}?tab=settlements`, `/finance/${C}?tab=closing`],
+  [`/finance/${C}?tab=accounts`, `/settings/${C}?section=accounts`],
+  [`/finance/${C}?tab=fees&view=pending`, `/settings/${C}?section=fees`],
+]
+
+test('옛 주소는 메뉴 v7의 새 주소로 옮기고, 새 주소는 다시 읽어도 같고 더 옮기지 않는다', () => {
+  for (const [old, now] of MOVES) {
+    assert.equal(movedTo(old), now, old)
+    assert.equal(appPath(parseAppPath(now)!), now, now)
+    assert.equal(movedTo(now), null, now)
+  }
+})
+
+test('그대로인 주소: 기록 주소(알림), 업무 첫 화면, 결산, 행사의 재정 탭', () => {
+  for (const path of [
+    `/tasks/${C}`,
+    // view=mine은 옛 기본값이라 읽을 때 빠진다(앱이 만든 적 없는 꼴). 업무 첫 화면과 같다.
+    `/tasks/${C}?view=mine`,
+    `/tasks/${C}?layout=list&filter=done`,
+    `/finance/${C}`,
+    `/finance/${C}?tab=closing&period=${P}`,
+    `/events/${C}/${R}?tab=money`,
+    ...RECORD_KINDS.map(kind => recordPath(kind, C, R)),
+    `/home/${C}?view=finance`,
+  ])
+    assert.equal(movedTo(path), null, path)
+})
+
+test('옮기기는 켠 것만 하고, 내 부서를 모르면 부서 칩 없이 학생회 업무다', () => {
+  assert.equal(movedTo(`/council/${C}`, []), null)
+  assert.equal(movedTo(`/council/${C}`, ['tasks']), null)
+  assert.equal(
+    movedTo(`/council/${C}?tab=tasks&layout=calendar`, ['tasks']),
+    `/tasks/${C}?layout=calendar&events=include`,
+  )
+  assert.equal(movedTo(`/tasks/${C}?view=all&layout=calendar`, ['calendar']), `/calendar/${C}`)
+  assert.equal(movedTo(`/finance/${C}?tab=requests`, ['ledger', 'settings']), null)
+  const location = parseAppPath(`/tasks/${C}?view=department`)!
+  assert.equal(appPath(movedLocationOf(location)!), `/tasks/${C}`)
+  const picked = parseAppPath(`/tasks/${C}?view=department&dept=${P}`)!
+  assert.equal(appPath(movedLocationOf(picked)!), `/tasks/${C}?dept=${P}`)
+})
+
+test('새 메뉴 주소: 구매 요청 쓰기와 업무 칩·재정 구분은 그 자리에서만 남는다', () => {
+  assert.deepEqual(parseAppPath(`/purchases/${C}/new?body=x`), {
+    type: 'menu',
+    menu: 'purchases',
+    councilId: C,
+    query: { compose: 'new' },
+  })
+  assert.equal(menuPath('purchases', C, { compose: 'new', view: 'all' }), `/purchases/${C}/new`)
+  assert.equal(menuPath('tasks', C, { tab: 'council' }), `/tasks/${C}`)
+  assert.deepEqual(parseAppPath(`/tasks/${C}?assignee=nobody&events=all&tab=x`)?.query, {})
+  assert.deepEqual(parseAppPath(`/finance/${C}?tab=expenses&kind=income`)?.query, {
+    tab: 'expenses',
+  })
+  assert.deepEqual(parseAppPath(`/settings/${C}?section=nope`)?.query, {})
 })

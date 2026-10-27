@@ -11,6 +11,9 @@ export const APP_MENUS = [
   'events',
   'council',
   'tasks',
+  // 메뉴 v7(설계 2.2): 구매·캘린더는 주소만 먼저 둔다. 화면이 그리기 전까지는 지금 그 일을 그리는 곳으로 바꿔 쓴다(web live-moves).
+  'calendar',
+  'purchases',
   'finance',
   'people',
   'departments',
@@ -24,6 +27,8 @@ export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'mo
 export type EventTab = (typeof EVENT_TABS)[number]
 export const COUNCIL_TABS = ['messages', 'tasks'] as const
 export type CouncilTab = (typeof COUNCIL_TABS)[number]
+// 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
+const TASK_TABS = ['council', 'mine'] as const
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
@@ -40,13 +45,15 @@ export const FINANCE_TABS = [
   'closing',
 ] as const
 export type FinanceTab = (typeof FINANCE_TABS)[number]
+// 메뉴 v7 재정의 사용 내역(설계 3.3). 화면이 그리기 전에는 주소에만 있다.
+const FINANCE_TAB_VALUES = [...FINANCE_TABS, 'ledger'] as const
 
-// 기록 종류마다 여는 메뉴와 탭. purchases·expenses·incomes는 재정의 그 탭이다.
+// 기록 종류마다 여는 메뉴와 탭. 구매 요청은 구매 메뉴(메뉴 v7), expenses·incomes는 재정의 그 탭이다.
 const RECORD_PARENTS = {
   chat: { menu: 'chat' },
   events: { menu: 'events' },
   tasks: { menu: 'tasks' },
-  purchases: { menu: 'finance', query: { tab: 'requests' } },
+  purchases: { menu: 'purchases' },
   expenses: { menu: 'finance', query: { tab: 'expenses' } },
   incomes: { menu: 'finance', query: { tab: 'incomes' } },
 } as const satisfies Record<string, { menu: AppMenu; query?: Record<string, string> }>
@@ -54,9 +61,10 @@ export type RecordKind = keyof typeof RECORD_PARENTS
 export const RECORD_KINDS = Object.keys(RECORD_PARENTS) as RecordKind[]
 
 // onlyWith가 있으면 그 키가 그 값일 때만 남는다(그 키는 규칙에서 앞에 둔다).
-// 그 키가 쿼리에 없으면 그 키의 기본값으로 본다(기본 탭의 쿼리도 남는다).
+// 그 키가 쿼리에 없으면 그 키의 기본값으로 본다(기본 탭의 쿼리도 남는다). also는 uuid 칸이 함께 받는 낱말이다.
 type QueryRule = {
   values: readonly string[] | 'uuid'
+  also?: readonly string[]
   fallback: string | null
   onlyWith?: { key: string; value: string } | undefined
 }
@@ -68,7 +76,8 @@ const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): Query
   filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
   layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
   dept: { values: 'uuid', fallback: null, onlyWith },
-  assignee: { values: 'uuid', fallback: null, onlyWith },
+  // none은 메뉴 v7의 '담당자 없음' 칩이다(옛 보기 unassigned를 옮긴 곳, 설계 2.2).
+  assignee: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
   heads: { values: ['true'], fallback: null, onlyWith },
   attention: { values: ['true'], fallback: null, onlyWith },
   due: { values: ['week'], fallback: null, onlyWith },
@@ -84,17 +93,31 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     tab: { values: COUNCIL_TABS, fallback: 'messages' },
     ...taskQuery('all', { key: 'tab', value: 'tasks' }),
   },
-  tasks: taskQuery('mine'),
+  // tab·events는 메뉴 v7의 탭과 '행사 업무 포함' 칩이다. 화면이 탭을 그리기 전(S4)에는 옛 보기(view)가 화면의 원문이다.
+  tasks: {
+    tab: { values: TASK_TABS, fallback: 'council' },
+    ...taskQuery('mine'),
+    events: { values: ['include'], fallback: null },
+  },
+  calendar: {},
+  // 기본 보기는 사람마다 달라(재정부는 결재 대기, 설계 4) 고른 보기는 모두 주소에 남긴다.
+  purchases: {
+    compose: { values: ['new'], fallback: null },
+    view: { values: PURCHASE_VIEWS, fallback: null },
+  },
   finance: {
     compose: { values: ['new'], fallback: null },
     // 기본 탭은 사람마다 다르다(재정부는 개요, 나머지는 구매 요청). 그래서 고른 탭은 모두 주소에 남긴다.
-    tab: { values: FINANCE_TABS, fallback: null },
+    tab: { values: FINANCE_TAB_VALUES, fallback: null },
+    // 사용 내역의 수입 구분(설계 3.3).
+    kind: { values: ['income'], fallback: null, onlyWith: { key: 'tab', value: 'ledger' } },
     view: { values: PURCHASE_VIEWS, fallback: 'mine' },
     period: { values: 'uuid', fallback: null },
   },
   people: {},
   departments: {},
-  settings: {},
+  // 계좌·납부자 명단이 옮겨 올 칸(설계 3.3).
+  settings: { section: { values: ['accounts', 'fees'], fallback: null } },
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   chat: {},
@@ -117,6 +140,7 @@ export type AppLocation =
   | { type: 'record'; record: RecordKind; councilId: string; recordId: string; query: AppQuery }
 
 function allowed(rule: QueryRule, value: string) {
+  if (rule.also?.includes(value)) return true
   return rule.values === 'uuid' ? isUuid(value) : rule.values.includes(value)
 }
 
@@ -135,6 +159,11 @@ function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
 
 const isMenu = (value: string | undefined): value is AppMenu =>
   APP_MENUS.some(menu => menu === value)
+// 구매 요청 쓰기는 메뉴의 하위 주소다(새로고침해도 쓰던 화면). 옛 꼴(재정 아래)도 계속 읽는다.
+const COMPOSE_MENUS = ['purchases', 'finance'] as const
+type ComposeMenu = (typeof COMPOSE_MENUS)[number]
+const isComposeMenu = (menu: AppMenu): menu is ComposeMenu =>
+  COMPOSE_MENUS.some(item => item === menu)
 const isRecordKind = (value: string | undefined): value is RecordKind =>
   RECORD_KINDS.some(kind => kind === value)
 
@@ -172,12 +201,16 @@ function menuLocationOf(
     type: 'menu',
     menu: head,
     councilId,
-    query: head === 'finance' && query['compose'] === 'new' ? { compose: 'new' } : query,
+    query: isComposeMenu(head) && query['compose'] === 'new' ? { compose: 'new' } : query,
   }
 }
 
-const isPurchaseCreate = (head: string | undefined, record: string | undefined, rest: string[]) =>
-  head === 'finance' && record === 'requests' && rest.length === 1 && rest[0] === 'new'
+function composeMenuOf(head: string | undefined, record: string | undefined, rest: string[]) {
+  if (head === 'purchases' && record === 'new' && rest.length === 0) return head
+  if (head === 'finance' && record === 'requests' && rest.length === 1 && rest[0] === 'new')
+    return head
+  return null
+}
 
 export function parseAppPath(input: string): AppLocation | null {
   if (!input.startsWith('/')) return null
@@ -185,8 +218,8 @@ export function parseAppPath(input: string): AppLocation | null {
   const [head, council, record, ...rest] = segments
   const councilId = decodeId(council)
   if (!councilId) return null
-  if (isPurchaseCreate(head, record, rest))
-    return { type: 'menu', menu: 'finance', councilId, query: { compose: 'new' } }
+  const compose = composeMenuOf(head, record, rest)
+  if (compose) return { type: 'menu', menu: compose, councilId, query: { compose: 'new' } }
   if (rest.length > 0) return null
   if (record === undefined) return menuLocationOf(head, councilId, params)
   const recordId = decodeId(record)
@@ -201,10 +234,12 @@ export function appPath(location: AppLocation) {
   const council = encodeURIComponent(location.councilId.toLowerCase())
   if (
     location.type === 'menu' &&
-    location.menu === 'finance' &&
+    isComposeMenu(location.menu) &&
     location.query['compose'] === 'new'
   )
-    return `/finance/${council}/requests/new`
+    return location.menu === 'finance'
+      ? `/finance/${council}/requests/new`
+      : `/purchases/${council}/new`
   const base =
     location.type === 'menu'
       ? `/${location.menu}/${council}`
@@ -244,7 +279,7 @@ export function parentOf(location: AppLocation): AppLocation {
 }
 
 // 서버 진입 목록(Hono 경로). 학생회와 기록 칸은 uuid만 받아, 모르는 꼴은 서버가 404로 돌린다.
-// 끝 슬래시가 있는 꼴도 같은 화면이다.
+// 끝 슬래시가 있는 꼴도 같은 화면이다. 옮겨 간 옛 꼴(council, 재정 아래 구매 요청 쓰기)도 남긴다. 지우면 북마크·새로고침이 404다.
 const UUID_SEGMENT = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 const withSlash = (paths: string[]) =>
   paths.flatMap(path => (path === '/' ? [path] : [path, `${path}/`]))
@@ -257,6 +292,7 @@ export const ENTRY_PATHS = [
     '/r',
     '/auth-done',
     `/finance/:council{${UUID_SEGMENT}}/requests/new`,
+    `/purchases/:council{${UUID_SEGMENT}}/new`,
     ...APP_MENUS.map(menu => `/${menu}/:council{${UUID_SEGMENT}}`),
     ...RECORD_KINDS.map(kind => `/${kind}/:council{${UUID_SEGMENT}}/:record{${UUID_SEGMENT}}`),
   ]),

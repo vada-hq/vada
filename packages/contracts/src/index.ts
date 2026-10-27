@@ -293,6 +293,7 @@ export * from './deposits.js'
 export * from './settlement.js'
 // 화면 주소의 원문(기능 016).
 export * from './paths.js'
+export { movedLocationOf, type AddressMove } from './moved-paths.js'
 // 내 이름(운영진 이름) 읽기와 고치기(기능 020).
 export * from './profile.js'
 // 쿠팡 상품 정보 불러오기(기능 022).

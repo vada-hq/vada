@@ -15,6 +15,8 @@ export const pageTitles: Record<Page, { crumbs: string[]; title: string }> = {
   events: { crumbs: ['행사'], title: '행사' },
   council: { crumbs: ['우리 학생회'], title: '우리 학생회' },
   tasks: { crumbs: ['업무'], title: '업무' },
+  calendar: { crumbs: ['캘린더'], title: '캘린더' },
+  purchases: { crumbs: ['구매'], title: '구매' },
   finance: { crumbs: ['재정'], title: '재정' },
   people: { crumbs: ['조직'], title: '조직' },
   departments: { crumbs: ['조직'], title: '조직' },
