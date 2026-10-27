@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import { statusOf, type ApplicantChange, type ApplicantChangeResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { ATTENDANCE_CHANGED } from '@/lib/registration-messages'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { won } from '@/public/registration-text'
 import type { ScanOutcome } from './check-in'
@@ -26,31 +27,50 @@ type Props = EventDialogHandlers & {
 }
 
 type Person = Extract<ScanOutcome, { applicant: unknown }>
+type Next = { busy: boolean; onNext: () => void }
 type CollectProps = Omit<Props, 'outcome' | 'busy' | 'paid' | 'onNext'> & {
   outcome: Person
   fee: number
   primary: RefObject<HTMLButtonElement | null>
   onPaid: () => void
-  // 이미 출석한 사람에게 받을 때만 있다. 그 출석은 이번 찍기가 남긴 것이 아니라 [입장 안 함] 대신 [다음 사람]을 둔다.
-  late?: { busy: boolean; onNext: () => void }
+  next: Next
+  // 이미 출석한 사람에게 받는다. 그 출석은 이번 찍기가 남긴 것이 아니라 [입장 안 함] 대신 [다음 사람]을 둔다.
+  late: boolean
 }
 
-// 참가비 받기: [받고 입장]은 적용 참가비를 그대로 기록하고, [입장 안 함]은 방금 남은 출석을 취소한다(출석 취소와 같은 길).
+// [입장 안 함]이 보낸 출석이 더는 지금 출석이 아니다(그사이 다른 운영진이 취소·재출석). 남의 출석을 건드리지 않았으니 넘어간다.
+// [새로 읽기]는 두지 않는다: 같은 QR로 출석을 다시 보내 출석이 없으면 새로 남기기 때문이다.
+function Changed({ primary, next }: Pick<CollectProps, 'primary' | 'next'>) {
+  useEffect(() => primary.current?.focus(), [primary])
+  return (
+    <div className="flex flex-col gap-2">
+      <StateMessage kind="error">{ATTENDANCE_CHANGED}</StateMessage>
+      <Button ref={primary} className="min-h-11 w-full" busy={next.busy} onClick={next.onNext}>
+        다음 사람
+      </Button>
+    </div>
+  )
+}
+
+// 참가비 받기: [받고 입장]은 적용 참가비를 그대로 기록하고, [입장 안 함]은 이번 찍기가 남긴 출석만 취소한다(출석 취소와 같은 길에 출석 번호).
 // 다른 금액은 문 앞에서 드물어 명단의 [입금 확인]에서 받는다. 오류는 버튼 아래에 남고 다시 누를 수 있다.
-function Collect({ councilId, outcome, fee, primary, onPaid, late, ...props }: CollectProps) {
+function Collect({ councilId, outcome, fee, primary, onPaid, next, late, ...props }: CollectProps) {
   const { onChange, onGone, onSaving, onReload, ...handlers } = props
   const { applicant } = outcome
   const post = useStaffPost(handlers, onSaving, applicant.actions)
-  async function send(tail: string, body?: { amount: number }) {
+  const [changed, setChanged] = useState(false)
+  async function send(tail: string, body: { amount: number } | { attendanceId: string }) {
     const result = await post.send<ApplicantChangeResponse>(
       `${registrationPath(councilId, applicant.id)}/${tail}`,
       body,
     )
     if (result.ok) {
-      if (body) onPaid()
+      if ('amount' in body) onPaid()
       onChange(result.data.applicant)
     } else if (result.status === statusOf('NOT_FOUND')) onGone()
+    else if (result.code === 'ATTENDANCE_CHANGED') setChanged(true)
   }
+  if (changed) return <Changed primary={primary} next={next} />
   return (
     <div className="flex flex-col gap-2">
       <Button
@@ -65,8 +85,8 @@ function Collect({ councilId, outcome, fee, primary, onPaid, late, ...props }: C
         <Button
           variant="outline"
           className="min-h-11 w-full"
-          busy={post.busy || late.busy}
-          onClick={late.onNext}
+          busy={post.busy || next.busy}
+          onClick={next.onNext}
         >
           다음 사람
         </Button>
@@ -76,7 +96,7 @@ function Collect({ councilId, outcome, fee, primary, onPaid, late, ...props }: C
           variant="outline"
           className="min-h-11 w-full"
           busy={post.busy}
-          onClick={() => void send('attendance/cancel')}
+          onClick={() => void send('attendance/cancel', { attendanceId: outcome.attendanceId })}
         >
           입장 안 함
         </Button>
@@ -150,7 +170,8 @@ export function ScanActions({ paid = false, ...props }: Props) {
         fee={collect.fee}
         primary={primary}
         onPaid={() => setPaidHere(true)}
-        {...(collect.late ? { late: { busy, onNext } } : {})}
+        next={{ busy, onNext }}
+        late={collect.late}
       />
     )
   }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   ApplySchema,
+  CancelAttendanceSchema,
   CreateFormSchema,
   qrTextOf,
   tokenHashOfQr,
@@ -99,4 +100,19 @@ test('양식 고치기는 학번 받기를 꼭 받는다', () => {
   assert.equal(UpdateFormSchema.safeParse(FULL_FORM).success, true)
   const { collectsStudentId: _omitted, ...missing } = FULL_FORM
   assert.equal(UpdateFormSchema.safeParse(missing).success, false)
+})
+
+test('출석 취소: 본문이 비면 지금 출석이고, 출석 번호는 uuid만 받아 소문자로 맞춘다', () => {
+  const id = '01A17DEC-AEF8-7FFF-9BBF-3722B9D2C88A'
+  assert.deepEqual(CancelAttendanceSchema.parse({}), {})
+  assert.deepEqual(CancelAttendanceSchema.parse({ attendanceId: id }), {
+    attendanceId: id.toLowerCase(),
+  })
+  for (const attendanceId of ['', ' ', 'abc', `${id}0`, null])
+    assert.equal(
+      CancelAttendanceSchema.safeParse({ attendanceId }).success,
+      false,
+      String(attendanceId),
+    )
+  assert.equal(CancelAttendanceSchema.safeParse({ attendanceId: id, x: 1 }).success, false)
 })

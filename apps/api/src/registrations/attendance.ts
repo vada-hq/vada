@@ -38,13 +38,14 @@ async function confirm(
 ): Promise<CheckInResult> {
   const existing = await activeAttendance(tx, target.registrationId)
   const already = existing !== null
-  if (!already)
-    await createRecord(tx, {
+  const attendanceId =
+    existing?.id ??
+    (await createRecord(tx, {
       kind: 'attendance',
       councilId: actor.councilId,
       actor: actor.memberId,
       values: { registrationId: target.registrationId, confirmedAt: clockNow, method: how.method },
-    })
+    }))
   await recordApplicantAccess(tx, {
     actor,
     formId: target.formId,
@@ -54,6 +55,7 @@ async function confirm(
   })
   return {
     registrationId: target.registrationId,
+    attendanceId,
     name: target.name,
     studentId: target.studentId,
     appliedFee: Number(target.appliedFee),
@@ -135,15 +137,27 @@ export async function checkInManually(
 }
 
 // 출석 취소. 출석이 없으면 정책이 409(NOT_CHECKED_IN)로 막는다. 취소하면 같은 신청이 다시 출석할 수 있다(부분 유일 인덱스).
-export async function cancelAttendance(tx: Tx, actor: Actor, registrationId: string) {
+// attendanceId([입장 안 함])가 있으면 신청 행을 잠근 뒤 그 출석이 지금 출석일 때만 취소한다. 그사이 다른 운영진이
+// 취소·재출석했으면(출석이 없어진 경우 포함) 남이 만든 출석을 건드리지 않고 409 ATTENDANCE_CHANGED다.
+export async function cancelAttendance(
+  tx: Tx,
+  actor: Actor,
+  target: { registrationId: string; attendanceId?: string | undefined },
+) {
   const row = await lockedLiveRegistration(
     tx,
     actor,
-    registrationId,
+    target.registrationId,
     'registration.cancel_check_in',
-  )
+  ).catch((error: unknown) => {
+    // NOT_CHECKED_IN은 판정의 마지막(상태) 코드라, 권한·완료·살아 있음은 이미 지났다.
+    if (target.attendanceId && error instanceof ApiError && error.code === 'NOT_CHECKED_IN')
+      throw new ApiError('ATTENDANCE_CHANGED')
+    throw error
+  })
   // 출석이 있음은 정책이 보장했다.
   const { id } = (await activeAttendance(tx, row.id))!
+  if (target.attendanceId && target.attendanceId !== id) throw new ApiError('ATTENDANCE_CHANGED')
   await updateRecord(tx, {
     kind: 'attendance',
     id,

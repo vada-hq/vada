@@ -22,6 +22,7 @@ const paid: ApplicantChange = {
 }
 const person = (extra: Partial<Checked> = {}): Checked => ({
   kind: 'checked',
+  attendanceId: '00000000-0000-4000-8000-0000000000b1',
   name: '김새내',
   studentId: '20260001',
   appliedFee: 5000,
@@ -36,7 +37,15 @@ const examples: Example[] = [
   { outcome: person({ applicant: { ...paid, deposit: { status: 'confirmed', amount: 4000 } } }) },
   { outcome: person({ applicant: { ...unpaid, actions: ['registration.cancel_check_in'] } }) },
   // 이전 서버 응답(적용 참가비 없음)은 무료로 추정하지 않는다.
-  { outcome: { kind: 'checked', name: '김새내', studentId: null, applicant: unpaid } },
+  {
+    outcome: {
+      kind: 'checked',
+      attendanceId: '00000000-0000-4000-8000-0000000000b1',
+      name: '김새내',
+      studentId: null,
+      applicant: unpaid,
+    },
+  },
   {
     outcome: {
       ...person({ applicant: paid }),

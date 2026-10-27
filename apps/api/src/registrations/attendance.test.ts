@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { test } from 'node:test'
-import type { CheckInResult } from '@vada/contracts'
+import type { CheckInResult, StaffCancelResponse } from '@vada/contracts'
 import {
   korean,
   MISSING,
@@ -28,6 +28,17 @@ const onRegistration = (t: RegistrationKit, id: string, path: string, user = 's-
   t.post(`/registrations/${id}/${path}`, {}, user)
 const attendances = (t: RegistrationKit, live = true) =>
   t.count(`SELECT count(*) AS n FROM attendance ${live ? 'WHERE cancelled_at IS NULL' : ''}`)
+const liveAttendanceId = async (t: RegistrationKit, registrationId?: string) =>
+  (
+    (
+      await t.pg.query(
+        `SELECT id FROM attendance WHERE cancelled_at IS NULL ${registrationId ? 'AND registration_id = $1' : ''}`,
+        registrationId ? [registrationId] : [],
+      )
+    ).rows[0] as { id: string }
+  ).id
+const cancelOnly = (t: RegistrationKit, id: string, attendanceId: unknown, user = 's-president') =>
+  t.post(`/registrations/${id}/attendance/cancel`, { attendanceId }, user)
 const logs = (t: RegistrationKit) => t.count('SELECT count(*) AS n FROM applicant_access_log')
 
 test(
@@ -36,8 +47,10 @@ test(
     const { event, form, id, hash } = await started(t)
     const first = await checkIn(t, event, hash.toUpperCase())
     assert.equal(first.status, 200)
+    const attendanceId = await liveAttendanceId(t)
     assert.deepEqual(await first.json(), {
       registrationId: id,
+      attendanceId,
       name: kim.name,
       studentId: kim.studentId,
       appliedFee: 5000,
@@ -62,6 +75,8 @@ test(
     )
     const again = (await (await checkIn(t, event, hash)).json()) as CheckInResult
     assert.equal(again.already, true)
+    // 이미 출석이면 그 출석의 번호다(새로 만들지 않았다).
+    assert.equal(again.attendanceId, attendanceId)
     // 이미 출석이면 처음 출석한 시각을 함께 준다(문 앞에서 QR을 다시 쓴 것인지 가린다).
     const { rows: firstAt } = await t.pg.query<{ confirmed_at: Date }>(
       'SELECT confirmed_at FROM attendance',
@@ -258,5 +273,88 @@ test(
       assert.ok(!text.includes(kim.name) && !text.includes(kim.studentId))
     }
     assert.equal(await attendances(t, false), 0)
+  }),
+)
+
+test(
+  '[입장 안 함]은 이번 찍기의 출석 번호로만 취소한다: 그사이 다른 운영진이 취소·재출석했으면 409 ATTENDANCE_CHANGED이고 아무것도 바뀌지 않는다',
+  withRegistrations(async t => {
+    const { event, form, id, hash } = await started(t)
+    // 운영진 A가 찍었다(출석 1).
+    const mine = (await (await checkIn(t, event, hash)).json()) as CheckInResult
+    assert.equal(mine.attendanceId, await liveAttendanceId(t))
+    // 그사이 운영진 B가 명단에서 출석을 취소하고 다시 출석시켰다(출석 2). 명단의 출석 취소는 번호 없이 지금 출석을 취소한다.
+    assert.equal((await onRegistration(t, id, 'attendance/cancel')).status, 200)
+    assert.equal((await onRegistration(t, id, 'attendance')).status, 200)
+    const theirs = await liveAttendanceId(t)
+    assert.notEqual(theirs, mine.attendanceId)
+    // A의 [입장 안 함]은 A가 만들지 않은 출석 2를 취소하지 않는다.
+    const stale = await cancelOnly(t, id, mine.attendanceId)
+    assert.equal(stale.status, 409)
+    assert.equal(await errorOf(stale), 'ATTENDANCE_CHANGED')
+    assert.equal(await liveAttendanceId(t), theirs)
+    assert.equal(await t.versions(theirs), 1)
+    assert.equal(await t.versions(mine.attendanceId), 2)
+    // 지금 출석의 번호면 취소한다(대문자도 같은 번호). 판의 바꾼 사람과 사유는 명단의 출석 취소와 같다.
+    const done = await cancelOnly(t, id, theirs.toUpperCase())
+    assert.equal(done.status, 200)
+    assert.equal(((await done.json()) as StaffCancelResponse).applicant.attended, false)
+    assert.equal(await attendances(t), 0)
+    const { rows } = await t.pg.query(
+      'SELECT version_no, changed_by, reason FROM record_version WHERE record_id = $1 ORDER BY version_no',
+      [theirs],
+    )
+    assert.deepEqual(rows.at(-1), {
+      version_no: 2,
+      changed_by: t.council.people.president.memberId,
+      reason: null,
+    })
+    // 이번 찍기의 출석을 누가 이미 취소해 지금 출석이 없어도 같은 409다.
+    const gone = await cancelOnly(t, id, theirs)
+    assert.equal(gone.status, 409)
+    assert.equal(await errorOf(gone), 'ATTENDANCE_CHANGED')
+    // 다른 신청의 출석 번호도 이 신청의 지금 출석이 아니다.
+    assert.equal((await onRegistration(t, id, 'attendance')).status, 200)
+    const other = await t.makeRegistration(form.id)
+    assert.equal((await onRegistration(t, other, 'attendance')).status, 200)
+    const crossed = await cancelOnly(t, id, await liveAttendanceId(t, other))
+    assert.equal(await errorOf(crossed), 'ATTENDANCE_CHANGED')
+    assert.equal(await attendances(t), 2)
+  }),
+)
+
+test(
+  '출석 취소의 출석 번호: uuid가 아니거나 빈 값·공백·NUL·서러게이트·이모지·모르는 키면 400이다. 권한 없으면 403, 다른 학생회 신청은 404, 로그인 없으면 401이고 출석은 그대로다',
+  withRegistrations(async t => {
+    const { event, id, hash } = await started(t)
+    const { attendanceId } = (await (await checkIn(t, event, hash)).json()) as CheckInResult
+    for (const bad of [
+      '',
+      '   ',
+      'abc',
+      `${attendanceId}0`,
+      `${attendanceId.slice(0, -1)}\u0000`,
+      `${attendanceId.slice(0, -1)}\uD800`,
+      `${attendanceId.slice(0, -2)}\u{1F600}`,
+      null,
+      1,
+    ])
+      assert.equal((await cancelOnly(t, id, bad)).status, 400, String(bad))
+    assert.equal(
+      (await t.post(`/registrations/${id}/attendance/cancel`, { attendanceId, x: 1 })).status,
+      400,
+    )
+    for (const user of ['s-planningHead', 's-financeMember', 's-plain', 'o-president'])
+      assert.equal((await cancelOnly(t, id, attendanceId, user)).status, 403, user)
+    const theirEvent = await t.makeEvent({}, t.other)
+    const theirForm = await t.makeForm(theirEvent, {}, t.other)
+    const theirs = await t.makeRegistration(theirForm, {}, t.other)
+    assert.equal((await cancelOnly(t, theirs, attendanceId)).status, 404)
+    assert.equal(
+      (await t.api.post(`${t.orgBase}/registrations/${id}/attendance/cancel`, { attendanceId }))
+        .status,
+      401,
+    )
+    assert.equal(await liveAttendanceId(t), attendanceId)
   }),
 )

@@ -74,6 +74,8 @@ export const ERROR_STATUS = {
   FORM_CHANGED: 409,
   FORM_CLOSED: 409,
   NOT_CHECKED_IN: 409,
+  // [입장 안 함]이 보낸 출석이 더는 지금 출석이 아니다(그사이 다른 운영진이 취소·재출석했다)
+  ATTENDANCE_CHANGED: 409,
   REGISTRATION_FULL: 409,
   REGISTRATION_NOT_OPEN: 409,
   // 입금 확인과 환불함(기능 008)

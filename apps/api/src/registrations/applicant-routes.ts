@@ -1,12 +1,17 @@
+import type { Context } from 'hono'
 import {
   ApplicantsQuerySchema,
+  CancelAttendanceSchema,
   CheckInSchema,
   EmptyRequestSchema,
   type ApplicantsResponse,
   type CheckInResult,
   type StaffCancelResponse,
 } from '@vada/contracts'
+import type { Actor } from '../access/actor.js'
 import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
+import type { SessionEnv } from '../auth/require-session.js'
+import type { Tx } from '../db/types.js'
 import { clientIpOf } from '../http/client-ip.js'
 import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
@@ -75,25 +80,34 @@ export function addApplicantRoutes(kit: RouteKit) {
   addCancelRoutes(kit)
 }
 
-// 출석 취소와 신청 취소: 본문이 없고 성공하면 cancelled다. 신청자 정보를 담지 않아 열람 기록이 없다.
+// 출석 취소와 신청 취소: 성공하면 cancelled다. 신청자 정보를 담지 않아 열람 기록이 없다.
+// 신청 취소는 본문이 없고, 출석 취소는 [입장 안 함]이 보내는 출석 번호만 받을 수 있다.
 function addCancelRoutes(kit: RouteKit) {
   const { routes, auth, db } = kit
   const { changing, limited } = kitHelpers(kit)
-  for (const [path, run] of [
-    ['attendance/cancel', cancelAttendance],
-    ['cancel', cancelByStaff],
-  ] as const)
-    routes.post(
-      `${root}/registrations/:registrationId/${path}`,
-      json(EmptyRequestSchema),
-      auth,
-      async c => {
-        limited(c)
-        const applicant = await inCouncilChange(db, changing(c), async (tx, actor) => {
-          await run(tx, actor, registrationIdOf(c))
-          return applicantChangeOf(tx, actor, registrationIdOf(c))
-        })
-        return c.json({ cancelled: true, applicant } satisfies StaffCancelResponse)
-      },
-    )
+  async function cancelled(
+    c: Context<SessionEnv>,
+    run: (tx: Tx, actor: Actor, registrationId: string) => Promise<void>,
+  ) {
+    limited(c)
+    const applicant = await inCouncilChange(db, changing(c), async (tx, actor) => {
+      await run(tx, actor, registrationIdOf(c))
+      return applicantChangeOf(tx, actor, registrationIdOf(c))
+    })
+    return c.json({ cancelled: true, applicant } satisfies StaffCancelResponse)
+  }
+  routes.post(
+    `${root}/registrations/:registrationId/attendance/cancel`,
+    json(CancelAttendanceSchema),
+    auth,
+    c => {
+      const { attendanceId } = c.req.valid('json')
+      return cancelled(c, (tx, actor, registrationId) =>
+        cancelAttendance(tx, actor, { registrationId, attendanceId }),
+      )
+    },
+  )
+  routes.post(`${root}/registrations/:registrationId/cancel`, json(EmptyRequestSchema), auth, c =>
+    cancelled(c, cancelByStaff),
+  )
 }

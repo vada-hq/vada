@@ -26,6 +26,8 @@ export const CANCEL_REGISTRATION_ERRORS: Record<string, string> = {
 export const CANCEL_REGISTRATION_FAILED = '취소하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 
 // 운영진의 참가 신청 화면(기능 007): 양식 만들기·고치기·멈추기, 신청자, 출석
+// [입장 안 함]이 취소하려던 이번 찍기의 출석을 그사이 다른 운영진이 취소·재출석했다.
+export const ATTENDANCE_CHANGED = '다른 운영진이 이미 바꿨어요.'
 export const REGISTRATION_STAFF_ERRORS = changeErrors({
   TASK_INVALID,
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',
@@ -40,6 +42,7 @@ export const REGISTRATION_STAFF_ERRORS = changeErrors({
   FORM_CLOSED:
     '마감한 양식이라 멈추거나 다시 받을 수 없어요. 마감 시각을 고치면 다시 받을 수 있어요.',
   NOT_CHECKED_IN: '출석 기록이 없어요. 화면을 새로 불러와 확인해 주세요.',
+  ATTENDANCE_CHANGED,
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
 })

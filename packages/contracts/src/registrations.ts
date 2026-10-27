@@ -261,9 +261,15 @@ export const CheckInSchema = z.strictObject({
   tokenHash: token(TOKEN_HASH_LENGTH).refine(value => HASH_HEX.test(value)),
 })
 export type CheckInRequest = z.infer<typeof CheckInSchema>
+// 출석 취소. [입장 안 함]은 이번 찍기가 남긴 출석 번호를 보내, 그 출석이 아직 지금 출석일 때만 취소한다.
+// 그사이 다른 운영진이 취소·재출석했으면 남이 만든 출석을 취소하지 않고 409 ATTENDANCE_CHANGED다. 명단의 [출석 취소]는 번호 없이 지금 출석을 취소한다.
+export const CancelAttendanceSchema = z.strictObject({ attendanceId: recordIdInput.optional() })
+export type CancelAttendanceRequest = z.infer<typeof CancelAttendanceSchema>
 // 출석 확인 결과. 스캔한 사람에게 이름과 학번을 크게 보여 준다. 이미 출석이면 오류가 아니라 already다.
 export interface CheckInResult {
   registrationId: string
+  // 지금 출석의 번호. 이번에 만들었으면 새 출석, already면 앞서 있던 출석이다. [입장 안 함]이 이것만 취소한다.
+  attendanceId: string
   name: string
   studentId: string | null
   // 현장 입금 확인의 기본값. 이전 서버 응답과 공존할 때 없음을 무료로 해석하지 않는다.

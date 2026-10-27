@@ -19,9 +19,11 @@ const withApplicant = (current: ScanOutcome | null, applicant: ApplicantChange) 
     : current
 
 // [새로 읽기]는 같은 QR로 출석을 다시 보내 already가 온다. 그 출석은 이번 찍기가 남긴 것이라 이미 출석(입장 불가)으로 부르지 않는다.
+// 출석 번호가 다르면 그사이 다른 운영진이 취소·재출석한 것이라 이번 찍기의 출석이 아니다([입장 안 함]으로 취소하지 않는다).
 function keepChecked(before: ScanOutcome | null, after: ScanOutcome): ScanOutcome {
   if (before?.kind !== 'checked' || after.kind !== 'already') return after
   if (after.applicant.id !== before.applicant.id) return after
+  if (after.attendanceId !== before.attendanceId) return after
   const { checkedInAt: _first, ...person } = after
   return { ...person, kind: 'checked' }
 }

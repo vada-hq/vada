@@ -8,6 +8,8 @@ import { checkInPath } from './registration-api'
 // 찍은 사람. 이름과 학번은 스캔한 운영진이 사람을 알아보도록 크게 보인다.
 type Person = {
   applicant: ApplicantChange
+  // 지금 출석의 번호. [입장 안 함]은 이번 찍기가 남긴 이 출석만 취소한다.
+  attendanceId: string
   name: string
   studentId: string | null
   appliedFee?: number
@@ -29,9 +31,11 @@ export async function checkInByHash(
 ): Promise<ScanOutcome | 'lost'> {
   const result = await postJson<CheckInResult>(checkInPath(councilId, eventId), { tokenHash })
   if (result.ok) {
-    const { applicant, name, studentId, appliedFee, already, checkedInAt } = result.data
+    const { applicant, attendanceId, name, studentId, appliedFee, already, checkedInAt } =
+      result.data
     const person = {
       applicant,
+      attendanceId,
       name,
       studentId,
       ...(appliedFee === undefined ? {} : { appliedFee }),

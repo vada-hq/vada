@@ -47,7 +47,7 @@
 | 납부자 명단 | 재정부가 납부 기간(시작일, 끝일)과 학번 목록을 붙여 넣는다(줄바꿈·쉼표·공백으로 나눔, 한 번에 20,000개). 같은 학생회·학번·시작일이 이미 있으면 건너뛰고 더한 수와 건너뛴 수를 준다. 형식이 틀린 학번이 하나라도 있으면 400과 그 줄 번호. 잘못 올린 학번은 '빼기'로 비운다(행은 남는다). 본문 상한 1 MiB는 `bodyLimitOf`에 둔다 | DEC-26, DEC-54, DEC-62, M3b-1 설계 | 쉽다 |
 | 공개 화면 | `/apply/{코드}`와 `/r`. 로그인과 카톡 밖 넘기기 없음. 신청 전에는 참가비 두 값만, 신청 뒤 내 신청에 적용 참가비와 계좌·예금주. 버튼 아래 고정 고지(학생회 이름, 받는 항목, 목적, 지울 날짜, 문의는 안내에 적힌 곳), 체크칸 없음. 공개 응답은 `no-store` | DEC-62, M3a 설계 | 쉽다 |
 | 속도 제한 | 운영진 쓰기는 계정마다 10초 20번(006과 같다). 공개 신청에는 IP 제한을 두지 않는다(강의실 와이파이의 선착순을 막고, Render의 `X-Forwarded-For`는 꾸밀 수 있다). 봇이 생기면 운영진이 취소하고 Turnstile을 더한다 | [Render XFF](https://feedback.render.com/features/p/send-the-correct-xforwardedfor), [Turnstile](https://developers.cloudflare.com/turnstile/) | 쉽다 |
-| 오류 | 409 `REGISTRATION_NOT_OPEN`, `REGISTRATION_FULL`, `FORM_CHANGED`, `CANCEL_CLOSED`, `CHECKED_IN`, `NOT_CHECKED_IN`(출석이 없는데 취소), `FEE_ACCOUNT_REQUIRED`. 모르는 코드·토큰·취소했거나 비운 신청은 모두 404로 가르지 않는다. 403이 409보다 먼저다 | 기능 004~006, [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-409-conflict) | 쉽다 |
+| 오류 | 409 `REGISTRATION_NOT_OPEN`, `REGISTRATION_FULL`, `FORM_CHANGED`, `CANCEL_CLOSED`, `CHECKED_IN`, `NOT_CHECKED_IN`(출석이 없는데 취소), `ATTENDANCE_CHANGED`(출석 번호를 준 취소인데 그 출석이 더는 지금 출석이 아님), `FEE_ACCOUNT_REQUIRED`. 모르는 코드·토큰·취소했거나 비운 신청은 모두 404로 가르지 않는다. 403이 409보다 먼저다 | 기능 004~006, [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-409-conflict) | 쉽다 |
 
 ### vada-docs에 옮길 것(진행 에이전트)
 
@@ -99,7 +99,7 @@
 
 ### 4. 신청자 목록, 열람 기록, 운영진 취소, 출석(서버) [x]
 - 할 수 있게 되는 것: 열람 권한자가 신청자를 보고 그 열람이 남으며, 관리 권한자가 당일 QR과 이름으로 출석을 남긴다.
-- 수용 기준: `GET registration-forms/:formId/applicants`는 열람 권한자에게 신청 순으로 이름, 학번, 휴대폰, 적용 참가비, 납부자 여부, 같은 학번 표시, 출석, 신청 시각을 주고 열람 기록 한 줄(`list`)을 남긴다. 그 밖의 운영진은 403이고 기록이 없다. 기록을 못 쓰면 목록도 오지 않는다. 관리 권한자는 신청을 취소하고(출석 뒤는 409 `CHECKED_IN`), `POST events/:eventId/check-in`(QR 글자에서 꺼낸 해시)으로 출석하며, 그 결과에 이름·학번이 오고 기록 한 줄(`check_in`)이 남는다. 이미 출석이면 `already: true`, 그 행사 양식이 아니거나 취소·비운 신청이면 404다. `POST registrations/:registrationId/attendance`(이름으로), `.../attendance/cancel`(없으면 409 `NOT_CHECKED_IN`), 취소 뒤 다시 출석이 된다. 방법이 `qr`·`manual`로 남는다. 동시 스캔 둘과 취소·출석 겹침을 pg-smoke에 더한다. 다른 학생회 404, 403, 401.
+- 수용 기준: `GET registration-forms/:formId/applicants`는 열람 권한자에게 신청 순으로 이름, 학번, 휴대폰, 적용 참가비, 납부자 여부, 같은 학번 표시, 출석, 신청 시각을 주고 열람 기록 한 줄(`list`)을 남긴다. 그 밖의 운영진은 403이고 기록이 없다. 기록을 못 쓰면 목록도 오지 않는다. 관리 권한자는 신청을 취소하고(출석 뒤는 409 `CHECKED_IN`), `POST events/:eventId/check-in`(QR 글자에서 꺼낸 해시)으로 출석하며, 그 결과에 이름·학번이 오고 기록 한 줄(`check_in`)이 남는다. 이미 출석이면 `already: true`, 그 행사 양식이 아니거나 취소·비운 신청이면 404다. `POST registrations/:registrationId/attendance`(이름으로), `.../attendance/cancel`(없으면 409 `NOT_CHECKED_IN`), 취소 뒤 다시 출석이 된다. 출석 결과에는 지금 출석의 번호(`attendanceId`)가 오고, 스캐너의 [입장 안 함]은 그 번호를 본문에 보내 그 출석이 아직 지금 출석일 때만 취소한다(그사이 다른 운영진이 취소·재출석했으면 409 `ATTENDANCE_CHANGED`). 명단의 출석 취소는 번호 없이 지금 출석을 취소한다. 방법이 `qr`·`manual`로 남는다. 동시 스캔 둘과 취소·출석 겹침을 pg-smoke에 더한다. 다른 학생회 404, 403, 401.
 - 닿는 곳: contracts `registrations.ts`(`ApplicantsResponse`, `CheckInSchema`, `CheckInResult`), `errors.ts`. `registrations/`(`applicants.ts`, `attendance.ts`, `access-log.ts`, `routes.ts`), `boundary.test.ts`, `ops/pg-smoke/`.
 - 검토: 깊게(개인정보 열람 범위). 마이그레이션: 없음.
 
