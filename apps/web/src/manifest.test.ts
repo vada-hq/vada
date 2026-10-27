@@ -12,6 +12,7 @@ test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
     id: '/',
     name: 'VADA',
     short_name: 'VADA',
+    description: '학생회 대화, 업무, 재정을 한곳에서',
     lang: 'ko',
     start_url: '/',
     scope: '/',
@@ -22,6 +23,7 @@ test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
   expect(manifest.icons).toEqual([
     { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
     { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
     { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ])
 })
@@ -32,6 +34,7 @@ test('아이콘 파일은 PNG이고 적힌 크기와 같다', () => {
     ['icons/icon-32.png', 32],
     ['icons/icon-192.png', 192],
     ['icons/icon-512.png', 512],
+    ['icons/maskable-192.png', 192],
     ['icons/maskable-512.png', 512],
     ['apple-touch-icon.png', 180],
   ] as const) {

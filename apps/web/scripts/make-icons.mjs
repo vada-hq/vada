@@ -5,6 +5,7 @@ import { deflateSync } from 'node:zlib'
 
 const BLUE = [0x15, 0x5d, 0xfc]
 const WHITE = [0xff, 0xff, 0xff]
+const MASKABLE_SCALE = 0.8
 const SAMPLES = 4 // 한 픽셀을 4×4로 나눠 가장자리를 부드럽게 한다.
 
 const crcTable = Array.from({ length: 256 }, (_, n) => {
@@ -85,7 +86,8 @@ for (const [path, size, scale] of [
   ['icons/icon-32.png', 32, 1],
   ['icons/icon-192.png', 192, 1],
   ['icons/icon-512.png', 512, 1],
-  ['icons/maskable-512.png', 512, 0.8],
+  ['icons/maskable-192.png', 192, MASKABLE_SCALE],
+  ['icons/maskable-512.png', 512, MASKABLE_SCALE],
   ['apple-touch-icon.png', 180, 1],
 ]) {
   writeFileSync(new URL(path, publicDir), icon(size, scale))
