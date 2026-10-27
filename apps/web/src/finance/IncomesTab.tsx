@@ -1,5 +1,6 @@
 import { INCOME_LIST_LIMIT, type FiscalPeriodSummary } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { NoPeriod } from './NoPeriod'
 import { Button } from '@/components/ui/button'
 import { INCOMES_LOAD_FAILED, PERIODS_LOAD_FAILED, PERMISSION_CHANGED } from '@/lib/messages'
 import { openRecord } from '@/lib/go-to'
@@ -33,7 +34,7 @@ function IncomeBody({ list, onOpen }: { list: IncomeList; onOpen: (incomeId: str
       </div>
     )
   const { incomes, truncated } = state.data
-  if (incomes.length === 0) return <StateMessage kind="empty">적힌 수입이 없어요.</StateMessage>
+  if (incomes.length === 0) return <StateMessage kind="empty">수입 없음</StateMessage>
   return (
     <>
       <ul className="flex flex-col gap-2">
@@ -108,10 +109,7 @@ export function IncomesTab({ councilId, canManage, onForbidden }: Props) {
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
   if (periods.state.kind === 'loading')
     return <StateMessage kind="loading">불러오는 중…</StateMessage>
-  if (period === null)
-    return (
-      <StateMessage kind="empty">회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.</StateMessage>
-    )
+  if (period === null) return <NoPeriod councilId={councilId} canManage={canManage} />
   return (
     <div className="flex flex-col gap-3">
       <PeriodSelect periods={list} value={period.id} onChange={choice.choose} />

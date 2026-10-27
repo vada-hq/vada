@@ -274,7 +274,7 @@ test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열�
   expect(await within(dialog).findByRole('button', { name: '이재정' })).toBeTruthy()
   expect(within(dialog).queryByRole('button', { name: '김회장' })).toBeNull()
   fireEvent.click(within(dialog).getByRole('button', { name: '박새내' }))
-  expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
+  expect(await screen.findByText('메시지 없음')).toBeTruthy()
   expect(posts(api)[0]?.body).toEqual({ memberId: 'm3' })
 })
 
@@ -289,7 +289,7 @@ test('방금 만든 1:1은 목록에 없어도(메시지가 없는 1:1은 목록
   fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   const dialog = await screen.findByRole('dialog')
   fireEvent.click(await within(dialog).findByRole('button', { name: '박새내' }))
-  expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
+  expect(await screen.findByText('메시지 없음')).toBeTruthy()
   expect(screen.getByRole('textbox', { name: '메시지' })).toBeTruthy()
   expect(screen.queryByText('찾을 수 없음')).toBeNull()
 })

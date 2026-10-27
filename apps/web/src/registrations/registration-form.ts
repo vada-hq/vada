@@ -29,7 +29,7 @@ export type FormValues = {
 }
 
 // 행사에 양식은 보통 하나라서(DEC-44 결과) 이름을 짓지 않아도 되게 채워 둔다.
-const DEFAULT_FORM_NAME = '참가 신청'
+export const DEFAULT_FORM_NAME = '참가 신청'
 
 export const emptyFormValues: FormValues = {
   name: DEFAULT_FORM_NAME,

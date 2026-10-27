@@ -66,9 +66,7 @@ test('링크와 코드를 따로 보이고 따로 복사하며, 만든 시각을
   expect(await within(sheet).findByText('초대 코드를 복사했어요.')).toBeTruthy()
   expect(writeText).toHaveBeenLastCalledWith('ABCD2345')
   fireEvent.click(within(sheet).getByRole('button', { name: '링크 복사' }))
-  expect(
-    await within(sheet).findByText('초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.'),
-  ).toBeTruthy()
+  expect(await within(sheet).findByText('복사했어요')).toBeTruthy()
   expect(writeText).toHaveBeenLastCalledWith(`${window.location.origin}/join/ABCD2345`)
 })
 

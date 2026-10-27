@@ -7,9 +7,8 @@ import { whenLabel } from '@/events/event-view'
 import CopyButton from './CopyButton'
 import { won } from './registration-text'
 
-// 출석 QR 또는 '출석 확인됨'. 취소한 신청은 이 화면에 오지 않으므로 QR은 늘 살아 있는 신청의 것이다.
+// 출석 뒤에도 행사명과 개인 링크를 남겨 내 신청을 다시 열 수 있게 한다.
 export function AttendanceBlock({ mine }: { mine: MyRegistration }) {
-  if (mine.attended) return <Alert tone="success">출석 확인됨</Alert>
   return (
     <section
       aria-label="출석 QR 보관"
@@ -18,13 +17,24 @@ export function AttendanceBlock({ mine }: { mine: MyRegistration }) {
       <h2 className="w-full text-center font-semibold break-keep wrap-anywhere">
         {mine.event.name}
       </h2>
-      {/* 내부 2모듈에 흰 여백 16px를 더해 224px QR 사방 4모듈 이상을 비운다(DENSO). */}
-      <div className="max-w-full bg-white p-4">
-        <QrCode text={mine.qrText} label="출석 확인 QR" />
-      </div>
-      <p className="text-center text-sm break-keep text-muted-foreground">
-        이 화면을 캡처해 보관하고, 행사 당일 운영진에게 보여 주세요.
-      </p>
+      {mine.attended ? (
+        <Alert tone="success">출석 확인됨</Alert>
+      ) : (
+        <>
+          {/* 내부 2모듈에 흰 여백 16px를 더해 QR 사방 4모듈 이상을 비운다(DENSO). */}
+          <div className="max-w-full bg-white p-4">
+            <QrCode text={mine.qrText} label="출석 확인 QR" />
+          </div>
+          <p className="text-center text-sm break-keep text-muted-foreground">
+            행사 당일 이 QR을 보여 주세요.
+          </p>
+        </>
+      )}
+      <CopyButton
+        value={window.location.href}
+        label="주소 복사"
+        failedHint="복사하지 못했어요. 길게 눌러 복사해 주세요."
+      />
     </section>
   )
 }
@@ -61,7 +71,6 @@ export function FeeBlock({ mine }: { mine: MyRegistration }) {
 export function MineFacts({ mine }: { mine: MyRegistration }) {
   return (
     <dl className="flex flex-col gap-3">
-      <Fact label="행사">{mine.event.name}</Fact>
       <Fact label="일시">{whenLabel(mine.event)}</Fact>
       {mine.event.place && <Fact label="장소">{mine.event.place}</Fact>}
       <Fact label="이름">{mine.mine.name}</Fact>

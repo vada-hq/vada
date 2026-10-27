@@ -25,7 +25,7 @@ export function ExpensesPanel({
       </div>
     )
   const { expenses, truncated } = state.data
-  if (expenses.length === 0) return <StateMessage kind="empty">적힌 지출이 없어요.</StateMessage>
+  if (expenses.length === 0) return <StateMessage kind="empty">지출 없음</StateMessage>
   return (
     <>
       <ul className="flex flex-col gap-2">

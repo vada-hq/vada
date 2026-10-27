@@ -12,15 +12,14 @@ const LOADING = '불러오는 중이에요'
 const FAILED = '읽지 못했어요'
 
 function TasksNumber({ tasks, link }: { tasks: EventDetail['tasks']; link: ReactNode }) {
-  if (tasks.total === 0)
-    return <NumberCard label="업무" link={link} value={null} sub="아직 업무가 없어요" />
+  if (tasks.total === 0) return <NumberCard label="업무" link={link} value={null} sub="업무 없음" />
   const done = tasks.total - tasks.open
   return (
     <NumberCard
       label="업무"
       link={link}
       value={`${done}/${tasks.total}`}
-      sub={tasks.open === 0 ? '모두 끝났어요' : `끝난 업무 · 남은 것 ${tasks.open}개`}
+      sub={`남은 것 ${tasks.open}개`}
     >
       <Meter className="mt-1" value={done} max={tasks.total} label="끝난 업무" />
     </NumberCard>

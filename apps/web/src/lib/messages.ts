@@ -79,7 +79,7 @@ export const INVITE_LOAD_ERRORS = {
 }
 // 초대 링크·코드 칸 아래 알림. 조직 화면의 구성원 초대 창과 학생회 만들기의 초대 링크 단계가 같이 쓴다.
 export const INVITE_NOTICES = {
-  copied: { kind: 'notice', text: '초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.' },
+  copied: { kind: 'notice', text: '복사했어요' },
   'code-copied': { kind: 'notice', text: '초대 코드를 복사했어요.' },
   'copy-failed': { kind: 'error', text: '복사하지 못했어요. 칸을 직접 선택해 복사해 주세요.' },
   rotated: { kind: 'notice', text: '코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.' },
@@ -144,7 +144,6 @@ export const COMPLETION_BLOCKED: Record<string, string> = {
   NO_FISCAL_PERIOD: '참가비를 넣을 회계 기간 없음',
   PERIOD_CLOSED: '결산 공개한 기간',
 }
-export const EVENT_COMPLETED_NOTICE = '완료한 행사라 바꿀 수 없어요.'
 
 // 업무와 지출을 만들거나 고칠 때 고른 행사가 이 학생회의 것이 아닐 때
 const EVENT_INVALID = '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.'

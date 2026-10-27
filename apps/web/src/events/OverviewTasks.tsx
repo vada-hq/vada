@@ -14,7 +14,6 @@ type Props = {
   tasks: TaskSummary[] | null
   failed: boolean
   onOpenTask: (taskId: string) => void
-  onOpenAll: () => void
 }
 
 function TaskLine({ task, onOpen }: { task: TaskSummary; onOpen: () => void }) {
@@ -43,7 +42,7 @@ function TaskLine({ task, onOpen }: { task: TaskSummary; onOpen: () => void }) {
 }
 
 // 다음 업무: 지난 것과 마감이 가까운 것 몇 개. 누르면 업무 탭에서 그 업무가 열린다(와이어프레임 Event Overview '주요 업무').
-export function OverviewTasks({ tasks, failed, onOpenTask, onOpenAll }: Props) {
+export function OverviewTasks({ tasks, failed, onOpenTask }: Props) {
   const empty = tasks === null ? (failed ? '읽지 못했어요' : '불러오는 중이에요') : null
   return (
     <section aria-labelledby="overview-tasks" className={cn(cardClass, 'flex flex-col px-4 py-3')}>
@@ -51,7 +50,6 @@ export function OverviewTasks({ tasks, failed, onOpenTask, onOpenAll }: Props) {
         <h3 id="overview-tasks" className="text-sm font-semibold text-gray-900">
           다음 업무
         </h3>
-        <OverviewLink onClick={onOpenAll}>업무 보기</OverviewLink>
       </div>
       {tasks === null || tasks.length === 0 ? (
         <p className="py-2.5 text-sm text-gray-500">{empty ?? '끝나지 않은 업무가 없어요'}</p>

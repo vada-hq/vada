@@ -111,7 +111,10 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
         <DialogTitle>QR로 출석 확인</DialogTitle>
         <DialogDescription
           id="check-in-description"
-          className={cn('break-keep', flow.outcome && 'sr-only')}
+          className={cn(
+            'break-keep',
+            (flow.outcome || (camera === 'ready' && !flow.checking)) && 'sr-only',
+          )}
         >
           {description}
         </DialogDescription>

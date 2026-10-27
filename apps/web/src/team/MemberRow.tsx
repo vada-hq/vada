@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import type { rowActions } from './people-access'
-import { dayTimeLabel } from '@/lib/korean-date-text'
 import { councilRankLabel, departmentRankLabel, placementsText } from './team-view'
 
 type Actions = ReturnType<typeof rowActions>
@@ -41,8 +40,7 @@ function RankBadge({
   )
 }
 
-// 운영진 한 줄: 이름, 직급, 부서, 들어온 때(DEC-47: 회장단은 들어온 순서와 시각을 본다), 그리고 권한에 맞는 항목이 있을 때만 ⋯ 메뉴.
-// 둘째 줄의 소속은 그 줄이 든 부서 묶음을 빼고 적고, 남는 소속이 없으면 들어온 때만 둔다.
+// 부서 묶음의 줄은 이미 보이는 그 부서를 소속에서 뺀다(DEC-91).
 export function MemberRow(props: Props) {
   const { member, departments, titles, actions, inDepartment } = props
   const others = {
@@ -57,11 +55,7 @@ export function MemberRow(props: Props) {
           {member.name}
           <RankBadge member={member} titles={titles} inDepartment={inDepartment} />
         </p>
-        <p className="text-xs wrap-anywhere text-gray-500">
-          {placements && `${placements} · `}
-          {/* 들어온 때는 낱말 가운데서 끊기지 않게 통째로 줄을 바꾼다. */}
-          <span className="whitespace-nowrap">{dayTimeLabel(member.joinedAt)} 들어옴</span>
-        </p>
+        {placements && <p className="text-xs wrap-anywhere text-gray-500">{placements}</p>}
       </div>
       {(actions.assign || actions.rank || actions.transfer) && <MemberMenu {...props} />}
     </li>

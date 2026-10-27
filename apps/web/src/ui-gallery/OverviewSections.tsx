@@ -1,9 +1,11 @@
 import type { FinanceOverview } from '@vada/contracts'
 import { OverviewView, type OverviewOpeners } from '@/finance/OverviewTab'
+import { NoPeriod } from '@/finance/NoPeriod'
 import { useSplit } from '@/lib/use-split'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
+const COUNCIL_ID = '00000000-0000-4000-8000-0000000000c1'
 const noop = () => {}
 const openers: OverviewOpeners = {
   onBudget: noop,
@@ -142,6 +144,8 @@ export function OverviewSection() {
           openers={{ ...openers, onBudget: null }}
         />
         <OverviewView overview={empty} wide={wide} openers={openers} />
+        <NoPeriod councilId={COUNCIL_ID} canManage />
+        <NoPeriod councilId={COUNCIL_ID} canManage={false} />
       </div>
     </Section>
   )

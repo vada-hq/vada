@@ -29,12 +29,7 @@ export function RequestEstimateFields({
           }
         />
       </Field>
-      <Field
-        label="예상 배송비(원)"
-        optional
-        error={errors.estimatedShippingFee}
-        hint="모르면 비워 두세요. 무료배송이 확인되면 0원을 적어요."
-      >
+      <Field label="예상 배송비(원)" optional error={errors.estimatedShippingFee}>
         <Input
           aria-label={`${item} 예상 배송비`}
           inputMode="numeric"

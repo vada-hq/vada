@@ -39,13 +39,12 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-// 불러온 상품(022 정한 것 20): '불러온 정보' 표시, 상품명, 판매 단위 목록, 배송, 도착 예정, 로켓. 값은 초안이라 사람이 요청에서 고친다(PRIN-2).
+// 불러온 상품(022 정한 것 20): '불러온 정보' 표시, 상품명, 판매 단위 목록, 배송, 도착 예정. 값은 초안이라 사람이 요청에서 고친다(PRIN-2).
 function Loaded({ product }: { product: ProductInfo }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="info">불러온 정보</Badge>
-        {product.rocket && <Badge tone="info">로켓배송</Badge>}
       </div>
       <p className="text-base font-semibold break-keep wrap-anywhere text-gray-900">
         {product.name}

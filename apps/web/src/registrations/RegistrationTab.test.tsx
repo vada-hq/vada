@@ -147,6 +147,7 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.queryByText('신청 양식 없음')).toBeNull()
   expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '참가 신청')
+  expect(within(form).queryByRole('button', { name: '닫기' })).toBeNull()
   expect(within(form).getByLabelText('신청 마감').getAttribute('aria-required')).toBe('true')
   expect(within(form).getByLabelText('없음')).toHaveProperty('checked', true)
   expect(within(form).queryByLabelText('학생회비 납부자 별도 금액')).toBeNull()
@@ -384,7 +385,7 @@ test('만들기·고치기 화면은 열기만 하면 떠날 때 묻지 않는�
   await screen.findByRole('form', { name: '신청 양식 만들기' })
   await settle()
   expect(hasUnsavedInput()).toBe(false)
-  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  fireEvent.click(screen.getByRole('button', { name: '신청 양식 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
   await screen.findByRole('form', { name: '신청 양식 고치기' })
   await settle()
@@ -419,19 +420,19 @@ test('마감 지난 양식은 [멈추기]가 없다. 누르던 사이 마감되�
   expect(screen.getByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
 })
 
-test('링크와 신청자: 공개 링크 복사와 QR, 지울 날이 보인다', async () => {
+test('링크와 신청자: 공개 링크 복사와 QR만 보인다', async () => {
   setup({ forms: [staffForm({ actions: [] })] })
   fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
   expect(screen.getByText(`${window.location.origin}/apply/ABCD2345`)).toBeTruthy()
   expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
-  expect(screen.getByText('2027년 10월 24일')).toBeTruthy()
+  expect(screen.queryByText('2027년 10월 24일')).toBeNull()
   expect(screen.getByRole('button', { name: '링크 복사' })).toBeTruthy()
 })
 
 test('열람 권한이 없으면 신청 수만 보이고 신청자 목록을 읽지 않는다', async () => {
   const { api } = setup({ forms: [staffForm({ actions: [] })] })
   fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
-  expect(screen.getByText(/신청은 3명이에요/)).toBeTruthy()
+  expect(screen.queryByText(/신청은 3명이에요/)).toBeNull()
   expect(screen.queryByRole('button', { name: '신청자 보기' })).toBeNull()
   await settle()
   expect(api.calls.some(call => call.path === APPLICANTS_PATH)).toBe(false)
@@ -473,7 +474,7 @@ test('신청자 목록: 이름·학번, 납부자 칩, 같은 학번, 출석이 
   expect(screen.queryByText('김새내')).toBeNull()
   expect(screen.getByText('이미납')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('이름이나 학번으로 찾기'), { target: { value: '없는' } })
-  expect(screen.getByText('찾는 신청자가 없어요.')).toBeTruthy()
+  expect(screen.getByText('신청자 없음')).toBeTruthy()
 })
 
 test('이름으로 [출석]을 누르면 출석이 되고 [출석 취소]로 되돌린다. 보내는 동안 다시 보내지 않는다', async () => {

@@ -13,14 +13,12 @@ type Props = {
 // 준비 시작하기: 새 행사에서 할 일을 순서대로 보이고, 단계마다 그 일을 바로 하는 길을 둔다.
 // 빈 화면은 무엇이 올지와 첫 할 일로 가는 길을 보여 준다(NN/g, 빈 화면). 단계 목록은 Shopify 설정 안내와 같은 모양이다.
 export function OverviewSetup({ steps, actions }: Props) {
-  const done = steps.filter(step => step.done).length
   return (
     <section aria-labelledby="overview-setup" className={cn(cardClass, 'px-4 py-3')}>
       <div className="flex items-baseline justify-between gap-2 pb-1">
         <h3 id="overview-setup" className="text-sm font-semibold text-gray-900">
           준비 시작하기
         </h3>
-        <span className="text-xs text-gray-500">{`${steps.length}단계 중 ${done}단계 끝남`}</span>
       </div>
       <ol className="divide-y">
         {steps.map(step => {
@@ -45,7 +43,6 @@ export function OverviewSetup({ steps, actions }: Props) {
                   )}
                   {step.done && <span className="sr-only"> (끝남)</span>}
                 </span>
-                {!step.done && <span className="text-xs text-gray-500">{step.detail}</span>}
               </div>
               {action && (
                 <OverviewLink className="shrink-0" onClick={action.run}>

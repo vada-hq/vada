@@ -92,7 +92,7 @@ export function ExpenseActions({ councilId, expense, detail, onForbidden }: Prop
         busy={detail.saving}
         error={detail.problem ?? ''}
         title="환급했다고 표시할까요?"
-        description="먼저 낸 사람에게 돈을 돌려준 뒤에 표시하세요. 표시한 뒤에는 되돌릴 수 없어요."
+        description="표시한 뒤에는 되돌릴 수 없어요."
         confirmLabel="환급함"
         onClose={close}
         onConfirm={() => finish(() => detail.reimburse())}

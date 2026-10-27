@@ -53,7 +53,7 @@ function settlementAttention(event: EventDetail, settlement: EventSettlement): A
       key: 'complete',
       title: '정산이 끝났어요',
       value: null,
-      detail: '행사 머리의 [완료]로 완료할 수 있어요.',
+      detail: '',
       tone: 'info',
     }
   if (event.status !== 'ended') return null
@@ -110,7 +110,6 @@ export type SetupKey = 'when' | 'tasks' | 'budget' | 'registration'
 export interface SetupStep {
   key: SetupKey
   title: string
-  detail: string
   done: boolean
   // 행사마다 필요하지 않을 수 있는 단계(예산, 참가 신청). 이것만 남으면 준비 단계를 숨긴다.
   optional: boolean
@@ -129,28 +128,24 @@ export function setupSteps(
     {
       key: 'when',
       title: '일시와 장소 정하기',
-      detail: '정하면 다가오는 행사에 날짜순으로 보여요.',
       done: event.startsAt !== null && event.place !== null,
       optional: false,
     },
     {
       key: 'tasks',
       title: '업무 나누기',
-      detail: '맡은 사람의 휴대폰에 알림이 가요.',
       done: event.tasks.total > 0,
       optional: false,
     },
     {
       key: 'budget',
       title: '예산 잡기',
-      detail: '재정부가 예산 항목을 더하면 지출과 견줘 볼 수 있어요.',
       done: settlement.budget.items.length > 0,
       optional: true,
     },
     {
       key: 'registration',
       title: '참가 신청 받기',
-      detail: '신청 링크와 QR을 만들어 줘요.',
       done: forms.length > 0,
       optional: true,
     },

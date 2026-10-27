@@ -1,4 +1,4 @@
-import type { PurchaseLineItem, PurchaseShipment } from '@vada/contracts'
+import type { PurchaseLineItem } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { wonLabel } from './purchase-view'
 import { ItemCancelButton } from './ItemCancel'
@@ -37,17 +37,12 @@ function ItemFacts({ item }: { item: PurchaseLineItem }) {
 export function RequestItems({
   items,
   cancel,
-  shipments = [],
   councilId,
 }: {
   items: PurchaseLineItem[]
   cancel: ItemCancel
-  shipments?: PurchaseShipment[]
   councilId?: string
 }) {
-  const covered = new Set(
-    shipments.filter(shipment => !shipment.cancelledAt).flatMap(shipment => shipment.lineItemIds),
-  )
   if (items.length === 0) return null
   return (
     <section aria-label="품목" className="flex flex-col gap-2">
@@ -61,7 +56,6 @@ export function RequestItems({
               </span>
               <ItemStatusBadge status={item.status} />
               {item.paid && <Badge tone="success">결제함</Badge>}
-              {covered.has(item.id) && <Badge>송장 등록됨</Badge>}
             </div>
             <ItemFacts item={item} />
             <ItemEstimate item={item} />

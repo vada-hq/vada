@@ -23,7 +23,7 @@ export const won = (amount: number) =>
 // 신청 전에는 참가비 두 값만 보인다(어느 쪽인지는 학번을 낸 뒤 정해진다).
 export function feeText(form: Pick<PublicRegistrationForm, 'payerFee' | 'nonPayerFee'>) {
   const { payerFee, nonPayerFee } = form
-  if (payerFee === null || nonPayerFee === null) return '참가비 없음'
+  if (payerFee === null || nonPayerFee === null) return '무료'
   if (payerFee === nonPayerFee) return won(payerFee)
   return `학생회비 납부자 ${won(payerFee)} · 미납자 ${won(nonPayerFee)}`
 }

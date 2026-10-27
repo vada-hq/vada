@@ -68,7 +68,7 @@ export function ClosingChecks({
   return (
     <Card className="flex flex-col gap-3 p-4">
       <h3 className="text-sm font-semibold text-gray-900">점검</h3>
-      {empty && <p className="text-sm text-gray-500">점검할 것이 없어요.</p>}
+      {empty && <p className="text-sm text-gray-500">점검할 것 없음</p>}
       <ul className="flex flex-col gap-2">
         {blocking.length > 0 && (
           <li className="text-xs font-medium text-gray-700">완료하지 않은 행사의 입금</li>

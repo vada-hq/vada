@@ -181,7 +181,7 @@ test('[완료]는 확인을 거치고 끝나지 않은 업무 수를 알리며, 
   pending.resolve(json({ event: done }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(await screen.findByRole('button', { name: '완료 취소' })).toBeTruthy()
-  expect(screen.getByText('완료한 행사라 바꿀 수 없어요.')).toBeTruthy()
+  expect(screen.queryByText('완료한 행사라 바꿀 수 없어요.')).toBeNull()
   // 완료한 행사는 상태 배지가 '완료'다.
   expect(screen.getAllByText('완료').length).toBeGreaterThan(0)
 })

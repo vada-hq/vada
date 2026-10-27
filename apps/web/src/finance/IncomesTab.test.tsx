@@ -3,7 +3,8 @@ import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { showFinance } from '@/test-support/expense-harness'
+import { BASE, showFinance } from '@/test-support/expense-harness'
+import { budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import {
   CURRENT_PERIOD,
   incomeSummary,
@@ -100,7 +101,7 @@ test('빈 목록, 읽기 실패와 다시 시도, 넘침', async () => {
   openIncomesTab()
   expect((await screen.findByRole('alert')).textContent).toContain('수입을 불러오지 못했어요')
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  await screen.findByText('적힌 수입이 없어요.')
+  await screen.findByText('수입 없음')
 })
 
 test('회계 기간이 없으면 만들라고 알리고, 기간 읽기 실패도 알린다', async () => {
@@ -108,7 +109,7 @@ test('회계 기간이 없으면 만들라고 알리고, 기간 읽기 실패도
   api.on('GET', PERIODS, () => json({ periods: [] }))
   showFinance()
   openIncomesTab()
-  await screen.findByText('회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.')
+  await screen.findByText('회계 기간 없음')
   cleanup()
   api.on('GET', PERIODS, () => json({}, 500))
   showFinance()
@@ -147,3 +148,22 @@ test('수입 탭을 열기 전에는 수입을 읽지 않는다', () => {
   expect(api.calls.some(call => call.path.startsWith(INCOMES))).toBe(false)
   expect(api.calls.some(call => call.path === PERIODS)).toBe(false)
 })
+
+test.each([true, false])(
+  '회계 기간이 없을 때 만들기 경로는 재정부에게만 보인다: %s',
+  async canManage => {
+    const api = serveIncomes()
+    api.on('GET', PERIODS, () => json({ periods: [] }))
+    api.on('GET', `${BASE}/budget`, () => json(budgetWithoutPeriod()))
+    if (canManage) showFinance()
+    else showFinance(MEMBER_PERMISSIONS)
+    openIncomesTab()
+    await screen.findByText('회계 기간 없음')
+    const create = screen.queryByRole('button', { name: '예산 탭에서 만들기' })
+    expect(create !== null).toBe(canManage)
+    if (create) {
+      fireEvent.click(create)
+      expect(await screen.findByRole('button', { name: '회계 기간 만들기' })).toBeTruthy()
+    }
+  },
+)

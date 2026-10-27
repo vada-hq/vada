@@ -136,7 +136,7 @@ test('붙이기를 두 번 눌러도 한 번만 나가고 붙이는 동안 닫�
 test('비었으면 한 줄, 잘렸으면 알림이 뜬다', async () => {
   serve({ photos: [], truncated: false })
   await openList()
-  expect((await screen.findByText(/고를 수 있는 사진이 아직 없어요/)).textContent).toBeTruthy()
+  expect((await screen.findByText('고를 수 있는 대화 사진 없음')).textContent).toBeTruthy()
   cleanup()
   await resetAddress()
   serve({ photos: [choice(P1)], truncated: true })

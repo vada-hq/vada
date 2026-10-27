@@ -2,13 +2,12 @@ import { useState, type ReactNode } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { menuPath, type CouncilView, type EventDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
-import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { CountBadge } from '@/components/ui/count-badge'
 import { TabButton } from '@/components/ui/tab-button'
 import { leave } from '@/lib/app-location'
 import { openEventTasks, openRecord } from '@/lib/go-to'
-import { EVENT_COMPLETED_NOTICE, EVENT_LOAD_FAILED } from '@/lib/messages'
+import { EVENT_LOAD_FAILED } from '@/lib/messages'
 import { withTaskLayout } from '@/lib/task-layout'
 import type { RoomPage } from '../chat/ChatPage'
 import RoomSwitch from '../chat/RoomSwitch'
@@ -167,7 +166,6 @@ export default function EventDetailView({ view, eventId, tab, onTab, from, ...pr
           ) : undefined
         }
       />
-      {event?.status === 'completed' && <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>}
       <EventPanel
         tab={tab}
         view={view}

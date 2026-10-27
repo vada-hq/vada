@@ -317,7 +317,7 @@ test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고, �
   openIncomesTab()
   await screen.findByRole('button', { name: '수입 적기' })
   fireEvent.change(screen.getByLabelText('회계 기간'), { target: { value: OLD_PERIOD } })
-  await screen.findByText('적힌 수입이 없어요.')
+  await screen.findByText('수입 없음')
   fireEvent.click(screen.getByRole('button', { name: '수입 적기' }))
   await screen.findByRole('form', { name: '수입 적기' })
   const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)

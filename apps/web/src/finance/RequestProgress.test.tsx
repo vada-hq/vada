@@ -23,10 +23,10 @@ test('승인만 받은 품목은 결제 완료가 아니며, 일부 결제 뒤�
 })
 
 test.each(['rejected', 'cancelled'] as const)(
-  '반려·취소는 진행 막대 대신 결과 한 줄이다: %s',
+  '반려·취소는 상태 배지만 남기고 진행 막대와 중복 문장은 없다: %s',
   status => {
     render(<RequestProgress request={{ ...purchaseDetail(), status }} />)
     expect(screen.queryByRole('list', { name: '구매 요청 진행' })).toBeNull()
-    expect(screen.getByRole('status')).toBeTruthy()
+    expect(screen.queryByRole('status')).toBeNull()
   },
 )

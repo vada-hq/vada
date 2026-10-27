@@ -56,7 +56,9 @@ export function OverviewAttention({
                   </span>
                 )}
               </span>
-              <span className="text-xs text-gray-500 wrap-anywhere">{item.detail}</span>
+              {item.detail && (
+                <span className="text-xs text-gray-500 wrap-anywhere">{item.detail}</span>
+              )}
             </div>
             <OverviewLink
               className="shrink-0"

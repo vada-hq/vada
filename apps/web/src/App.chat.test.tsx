@@ -184,7 +184,7 @@ test('메시지가 없어 목록에 없는 내 1:1 방 주소는 서버가 그 �
   api.on('GET', `${at}/messages`, () => json(messagePage([])))
   window.history.replaceState(null, '', `/chat/${C1}/${fresh}`)
   await renderApp()
-  expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
+  expect(await screen.findByText('메시지 없음')).toBeTruthy()
   expect(await field()).toBeTruthy()
   expect(screen.queryByText(ADDRESS_LOST)).toBeNull()
 })

@@ -42,18 +42,10 @@ export default function MemberDepartmentsDialog(props: Props) {
       <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle className="wrap-anywhere">{member.name}의 부서</DialogTitle>
-          <DialogDescription>부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</DialogDescription>
+          <DialogDescription>바꾸면 바로 저장돼요.</DialogDescription>
         </DialogHeader>
         <MemberDepartmentList {...props} />
-        {others.length > 0 ? (
-          <MemberDepartmentAdd {...props} others={others} add={add} />
-        ) : (
-          departments.length === 0 && (
-            <p className="text-sm text-gray-500">
-              부서가 없어요. 운영진 &gt; 부서에서 먼저 만들어 주세요.
-            </p>
-          )
-        )}
+        {others.length > 0 && <MemberDepartmentAdd {...props} others={others} add={add} />}
         {error && <StateMessage kind="error">{error}</StateMessage>}
       </DialogContent>
     </Dialog>

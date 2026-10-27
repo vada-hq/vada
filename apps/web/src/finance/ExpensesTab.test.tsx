@@ -73,7 +73,7 @@ test('빈 목록과 읽기 실패와 넘침', async () => {
   openExpensesTab()
   expect((await screen.findByRole('alert')).textContent).toContain('지출을 불러오지 못했어요')
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  await screen.findByText('적힌 지출이 없어요.')
+  await screen.findByText('지출 없음')
 })
 
 test('[지출 적기]는 재정부에게만, 지출 탭에서만 보인다', async () => {
@@ -86,7 +86,7 @@ test('[지출 적기]는 재정부에게만, 지출 탭에서만 보인다', asy
   cleanup()
   showFinance(MEMBER_PERMISSIONS)
   openExpensesTab()
-  await screen.findByText('적힌 지출이 없어요.')
+  await screen.findByText('지출 없음')
   expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()
 })
 

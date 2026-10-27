@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { koreanDateOf, type Closing, type FiscalPeriodSummary } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { NoPeriod } from './NoPeriod'
 import { Button } from '@/components/ui/button'
 import { monthDayTime } from '@/lib/korean-date-text'
 import {
@@ -124,10 +125,7 @@ export function ClosingTab(props: Props) {
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
   if (periods.state.kind === 'loading')
     return <StateMessage kind="loading">불러오는 중…</StateMessage>
-  if (period === null)
-    return (
-      <StateMessage kind="empty">회계 기간이 없어요. 예산 탭에서 먼저 만들어 주세요.</StateMessage>
-    )
+  if (period === null) return <NoPeriod councilId={props.councilId} canManage={props.canManage} />
   return (
     <div className="flex flex-col gap-3">
       <PeriodSelect periods={list} value={period.id} onChange={setChosenId} />

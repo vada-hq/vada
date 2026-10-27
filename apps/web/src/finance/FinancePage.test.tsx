@@ -41,7 +41,7 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
   expect(card.textContent).toContain('10월 25일까지 필요')
   expect(card.textContent).toContain('품목 2개')
   const second = screen.getByRole('heading', { name: '요청 b' }).closest('div')!.parentElement!
-  expect(second.textContent).toContain('필요한 때 없음')
+  expect(second.textContent).not.toContain('필요한 때 없음')
   expect(within(second).getByText('취소')).toBeTruthy()
   // 긴 제목이 칸을 밀어내지 않는다.
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
@@ -51,7 +51,7 @@ test('탭은 개요, 구매 요청, 지출, 수입, 예산, 행사 정산, 계�
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show()
-  await screen.findByText('내가 낸 구매 요청이 없어요.')
+  await screen.findByText('내 구매 요청 없음')
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '개요',
     '구매 요청',
@@ -77,7 +77,7 @@ test('거르기 셋이 있고 바꾸면 그 보기를 읽는다', async () => {
       .map(button => button.textContent),
   ).toEqual(['내 요청', '결재 대기', '전체'])
   fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-  expect(await screen.findByText('결재를 기다리는 요청이 없어요.')).toBeTruthy()
+  expect(await screen.findByText('결재 대기 요청 없음')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '전체' }))
   expect(await screen.findByRole('heading', { name: '요청 z' })).toBeTruthy()
 })
@@ -97,7 +97,7 @@ test('넘침과 불러오기 실패 문구가 있고 다시 시도로 다시 읽
     await screen.findByText('구매 요청을 불러오지 못했어요. 연결을 확인해 주세요.'),
   ).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByText('결재를 기다리는 요청이 없어요.')).toBeTruthy()
+  expect(await screen.findByText('결재 대기 요청 없음')).toBeTruthy()
 })
 
 test('결재 대기가 넘치면 300개라고 알린다', async () => {
@@ -165,7 +165,7 @@ test('권한 목록에 purchase.request가 없으면 [구매 요청 내기]가 �
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show(councilView(COUNCIL_ID, { permissions: ['council.view'] }))
-  await screen.findByText('내가 낸 구매 요청이 없어요.')
+  await screen.findByText('내 구매 요청 없음')
   expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
 })
 

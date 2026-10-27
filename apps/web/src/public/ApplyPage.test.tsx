@@ -40,6 +40,7 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText('학생회비 납부자 5,000원 · 미납자 10,000원')).toBeTruthy()
   expect(screen.getByText('10월 24일 (토) 14:00 ~ 18:00')).toBeTruthy()
   expect(screen.getByText('남은 자리 12')).toBeTruthy()
+  expect(screen.queryByText('신청 받는 중')).toBeNull()
   expect(screen.getByLabelText('이름')).toBeTruthy()
   expect(screen.getByLabelText('학번')).toBeTruthy()
   expect(screen.queryByLabelText('휴대폰 번호')).toBeNull()
@@ -325,4 +326,14 @@ test('번호를 정하는 해시는 보내는 중 표시가 그려진 뒤에 돈
   await fillAll()
   await press()
   expect(busyAtHash).toBe(true)
+})
+
+test('기본 양식 이름은 숨기고 별도 이름은 보인다', async () => {
+  const form = publicForm()
+  setup({ ...form, form: { ...form.form, name: '참가 신청' } })
+  await screen.findByRole('heading', { name: form.event.name })
+  expect(screen.queryByText('참가 신청')).toBeNull()
+  cleanup()
+  setup(form)
+  expect(await screen.findByText(form.form.name)).toBeTruthy()
 })

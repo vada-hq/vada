@@ -1,14 +1,8 @@
 import type { PurchaseLineItem, PurchaseRequestDetail } from '@vada/contracts'
-import { STATUS_LABEL } from './purchase-view'
 
 // 금액을 다시 계산하지 않는다. 결제는 API의 paid, 배송은 실제 취소되지 않은 송장으로만 표시한다.
 export function RequestProgress({ request }: { request: PurchaseRequestDetail }) {
-  if (request.status === 'rejected' || request.status === 'cancelled')
-    return (
-      <p role="status" className="text-sm text-gray-700">
-        {STATUS_LABEL[request.status]}된 요청이에요.
-      </p>
-    )
+  if (request.status === 'rejected' || request.status === 'cancelled') return null
   const approved = request.items.filter(item => item.status === 'approved')
   const decided = request.items.length > 0 && request.items.every(item => item.status !== 'pending')
   const shipments = request.shipments.filter(shipment => !shipment.cancelledAt)

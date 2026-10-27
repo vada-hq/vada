@@ -174,7 +174,7 @@ function ItemPicker({
   return loadingOr(detail.state, ({ request }) => {
     const items = request.items.filter(item => item.payable)
     if (items.length === 0)
-      return <StateMessage kind="empty">결제할 수 있는 승인된 품목이 없어요.</StateMessage>
+      return <StateMessage kind="empty">결제할 수 있는 승인 품목 없음</StateMessage>
     return (
       <ExpensePaymentItems
         items={items}

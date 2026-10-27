@@ -43,7 +43,6 @@ export function ProductPreview({ product }: { product: ProductInfo }) {
         <span>{stockLabel(product.inStock)}</span>
         {product.shipping && <span className="wrap-anywhere">{product.shipping}</span>}
         {product.deliveryEta && <span className="wrap-anywhere">{product.deliveryEta}</span>}
-        {product.rocket && <span>로켓배송</span>}
         <span>{queryTimeLabel(product.fetchedAt)}</span>
       </div>
     </div>

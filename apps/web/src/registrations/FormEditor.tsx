@@ -156,9 +156,6 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
       </FormSection>
       {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="outline" busy={saving} onClick={editor.close}>
-          닫기
-        </Button>
         <Button type="submit" busy={saving}>
           {mode.submit}
         </Button>

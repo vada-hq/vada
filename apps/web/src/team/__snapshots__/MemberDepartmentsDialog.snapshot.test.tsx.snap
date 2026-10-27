@@ -11,12 +11,11 @@ exports[`만들어 둔 부서가 없음 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
-<p class="text-sm text-gray-500">아직 어느 부서에도 없어요.</p>
+<p class="text-sm text-gray-500">부서 없음</p>
 </section>
-<p class="text-sm text-gray-500">부서가 없어요. 운영진 &gt; 부서에서 먼저 만들어 주세요.</p>
 <button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x size-4" aria-hidden="true">
 <path d="M18 6 6 18">
@@ -42,7 +41,7 @@ exports[`모든 부서에 들어 있음 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -103,10 +102,10 @@ exports[`부서가 없는 사람 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
-<p class="text-sm text-gray-500">아직 어느 부서에도 없어요.</p>
+<p class="text-sm text-gray-500">부서 없음</p>
 </section>
 <section aria-label="부서 더하기" class="flex flex-col gap-2 border-t pt-4">
 <div class="grid grid-cols-2 gap-2">
@@ -149,7 +148,7 @@ exports[`부서가 있는 사람 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -209,7 +208,7 @@ exports[`오류 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -270,7 +269,7 @@ exports[`저장 중 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">
@@ -330,7 +329,7 @@ exports[`직급 권한 없음 1`] = `
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정의 부서</h2>
-<p id="radix-_id3_" class="text-sm text-gray-500">부서와 부서 직급을 정해요. 바꾸면 바로 저장돼요.</p>
+<p id="radix-_id3_" class="text-sm text-gray-500">바꾸면 바로 저장돼요.</p>
 </div>
 <section aria-label="지금 부서" class="flex flex-col gap-2">
 <div class="flex items-center gap-2">

@@ -2,13 +2,7 @@ import { useEffect, useState } from 'react'
 import { statusOf, type TeamMember } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { postJson } from '@/lib/api'
 import { DIRECT_ERRORS, DIRECT_FAILED, DIRECT_PEOPLE_FAILED } from '@/lib/messages'
 import type { Team } from '../team/useTeam'
@@ -35,8 +29,7 @@ function People({
   busy: boolean
   onPick: (member: TeamMember) => void
 }) {
-  if (members.length === 0)
-    return <StateMessage kind="empty">1:1 대화를 할 운영진이 없어요.</StateMessage>
+  if (members.length === 0) return <StateMessage kind="empty">운영진 없음</StateMessage>
   return (
     <ul className="flex max-h-80 flex-col gap-1 overflow-y-auto">
       {members.map(member => (
@@ -88,10 +81,9 @@ export default function DirectDialog({
   }
   return (
     <Dialog open={open} onOpenChange={next => !next && !busy && onClose()}>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>1:1 대화</DialogTitle>
-          <DialogDescription>대화할 운영진을 골라 주세요.</DialogDescription>
         </DialogHeader>
         {team.data ? (
           <People members={members} busy={busy} onPick={member => void pick(member)} />

@@ -5,9 +5,7 @@ import { EventSettlementTable } from '@/finance/EventSettlementTable'
 import { useSplit } from '@/lib/use-split'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
 import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
-import { Alert } from '@/components/ui/alert'
 import StateMessage from '@/components/StateMessage'
-import { EVENT_COMPLETED_NOTICE } from '@/lib/messages'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
@@ -75,7 +73,6 @@ export function SettlementSection() {
           }}
           onOpen={noop}
         />
-        <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>
         <SettlementNumbers settlement={settlement} />
         <SettlementItems items={settlement.budget.items} />
         <SettlementRemaining settlement={settlement} onOpenRequest={noop} onOpenExpense={noop} />

@@ -347,5 +347,5 @@ test('신청이 많아 잘렸으면 거른 뒤에도 일부 안에서만 찾았�
   expect(screen.getByText('신청이 많아 앞의 일부만 보여요.')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '환불 대기' }))
   expect(screen.getByText(/앞의 일부 안에서만 찾았어요/)).toBeTruthy()
-  expect(screen.getByText('찾는 신청자가 없어요.')).toBeTruthy()
+  expect(screen.getByText('신청자 없음')).toBeTruthy()
 })

@@ -5,9 +5,7 @@ import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { REGISTRATION_LOAD_FAILED, REGISTRATION_LOST } from '@/lib/registration-messages'
-import CopyButton from './CopyButton'
 import { AttendanceBlock, FeeBlock, MineFacts } from './MineDetails'
-import { dateText } from './registration-text'
 import { useMyRegistration } from './useMyRegistration'
 
 type Cancel = { busy: boolean; problem: string; run: () => Promise<void> }
@@ -35,22 +33,6 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
   )
 }
 
-// 이 주소(#뒤 토큰)가 곧 열쇠다. 잃으면 내 신청을 다시 볼 수 없으므로 저장을 권한다.
-function SaveAddress() {
-  return (
-    <Alert tone="info" className="flex flex-col gap-2">
-      <span className="break-keep">
-        이 주소를 저장해 두세요. 행사장에서 이 주소로 QR을 다시 열어요. 다른 사람에게 보내지 마세요.
-      </span>
-      <CopyButton
-        value={window.location.href}
-        label="주소 복사"
-        failedHint="복사하지 못했어요. 길게 눌러 복사해 주세요."
-      />
-    </Alert>
-  )
-}
-
 function Ready({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
   return (
     <div className="flex flex-col gap-6">
@@ -61,11 +43,9 @@ function Ready({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
       <AttendanceBlock mine={mine} />
       <MineFacts mine={mine} />
       <FeeBlock mine={mine} />
-      <SaveAddress />
       {mine.cancellable && <CancelBlock cancel={cancel} />}
       {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
       {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
-      <p className="text-xs text-gray-500">신청 정보는 {dateText(mine.purgeOn)}에 지워져요.</p>
     </div>
   )
 }

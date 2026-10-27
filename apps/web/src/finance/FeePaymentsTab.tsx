@@ -25,12 +25,7 @@ type Props = {
 }
 
 function Periods({ periods }: { periods: FeePaymentPeriod[] }) {
-  if (periods.length === 0)
-    return (
-      <StateMessage kind="empty">
-        아직 올린 명단이 없어요. 재정부가 올리면 여기에 보여요.
-      </StateMessage>
-    )
+  if (periods.length === 0) return <StateMessage kind="empty">납부자 명단 없음</StateMessage>
   return (
     <ul aria-label="납부 기간" className="flex flex-col gap-2">
       {periods.map(period => (

@@ -4,11 +4,9 @@ import type { EventDetail } from '@vada/contracts'
 import PageActions, { PageActionsProvider } from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
-import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EventHeader } from '@/events/EventHeader'
-import { EVENT_COMPLETED_NOTICE } from '@/lib/messages'
 import { eventTrail, trailOf, type Page } from '../workspace/pages'
 import WorkspaceHeader from '../workspace/WorkspaceHeader'
 import { detail, headerHandlers, tabs } from './EventSections'
@@ -60,7 +58,7 @@ function SampleHeader({ sample }: { sample: Sample }) {
 }
 
 // 실제 행사 화면(EventDetailView)의 머리: 뒤로 버튼, 행사 공통 머리(EventHeader)가 머리글로 넘기는 행사명·탭·'⋯',
-// 탭 줄과 요약 줄, 완료 행사의 안내. 개요 본문은 자리만 둔다.
+// 탭 줄과 요약 줄. 개요 본문은 자리만 둔다.
 function EventPageBody({ event }: { event: EventDetail }) {
   return (
     <>
@@ -69,7 +67,6 @@ function EventPageBody({ event }: { event: EventDetail }) {
         행사 목록
       </Button>
       <EventHeader event={event} tabs={tabs} tabLabel="개요" {...headerHandlers} />
-      {event.status === 'completed' && <Alert tone="info">{EVENT_COMPLETED_NOTICE}</Alert>}
       <Card className="p-4 text-sm">개요 본문</Card>
     </>
   )

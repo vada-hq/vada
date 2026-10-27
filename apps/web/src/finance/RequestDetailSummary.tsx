@@ -27,7 +27,6 @@ export function RequestDetailSummary({
           상품 합계 {wonLabel(estimate.subtotal)} · 배송비 미확인
         </p>
       )}
-      <p className="text-xs text-gray-500">예상 금액은 요청 당시의 값이에요.</p>
       {request.event && (
         <Button
           variant="link"

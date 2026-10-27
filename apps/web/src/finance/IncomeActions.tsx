@@ -36,7 +36,7 @@ export function IncomeActions({ income, detail }: Props) {
       {asking && canCancel && (
         <CancelReasonDialog
           title="이 수입을 취소할까요?"
-          description="취소한 수입은 목록에 ‘취소됨’으로 남고 되살릴 수 없어요. 잘못 적었다면 취소하고 다시 적어 주세요. 사유는 이력에 남아요."
+          description="취소한 수입은 목록에 ‘취소됨’으로 남고 되살릴 수 없어요. 사유는 이력에 남아요."
           busy={detail.saving}
           error={detail.problem}
           reasonLabel="취소 사유"

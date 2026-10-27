@@ -89,7 +89,7 @@ test('계좌가 없으면 빈 문구가 보인다', async () => {
   api.on('GET', ACCOUNTS, () => json(accountsResponse()))
   showFinance()
   fireEvent.click(screen.getByRole('tab', { name: '계좌' }))
-  expect(await screen.findByText(/아직 계좌가 없어요/)).toBeTruthy()
+  expect(await screen.findByText('계좌 없음')).toBeTruthy()
 })
 
 test('계좌 더하기: 빈 칸이나 숫자와 - 아닌 계좌번호는 보내지 않고 칸 아래에 알리며, 두 번 눌러도 한 번만 간다', async () => {

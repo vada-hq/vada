@@ -67,9 +67,6 @@ export function ShipmentCard({
       {!shipment.cancelledAt && (
         <Tracking shipment={shipment} tracking={tracking} loading={loading} />
       )}
-      {shipment.createdBy && (
-        <span className="text-xs wrap-anywhere text-gray-500">등록: {shipment.createdBy.name}</span>
-      )}
       {shipment.editable && !shipment.cancelledAt && (
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" busy={busy} onClick={onEdit}>

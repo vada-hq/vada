@@ -27,7 +27,7 @@ type ItemsProps = {
 
 // 항목마다 '⋯' 메뉴(고치기·지우기·이력 보기)를 둔다.
 function Items({ items, councilId, canManage, handlers }: ItemsProps) {
-  if (items.length === 0) return <StateMessage kind="empty">예산 항목이 아직 없어요.</StateMessage>
+  if (items.length === 0) return <StateMessage kind="empty">예산 항목 없음</StateMessage>
   return (
     <BudgetItemList
       items={items}
@@ -57,11 +57,7 @@ function Loaded({
   if (!data.period)
     return (
       <div className="flex flex-col items-start gap-3">
-        <StateMessage kind="empty">
-          {canManage
-            ? '아직 회계 기간이 없어요. 만들면 구매 요청을 결재할 수 있어요.'
-            : '아직 회계 기간이 없어요. 재정부가 만들면 여기에 보여요.'}
-        </StateMessage>
+        <StateMessage kind="empty">회계 기간 없음</StateMessage>
         {canManage && <Button onClick={() => onOpen('period')}>회계 기간 만들기</Button>}
       </div>
     )

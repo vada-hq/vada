@@ -71,7 +71,6 @@ function Progress({
         tasks={data.tasks.kind === 'ready' ? data.tasks.tasks : null}
         failed={data.tasks.kind === 'failed'}
         onOpenTask={onOpenTask}
-        onOpenAll={() => onTab('tasks')}
       />
     </>
   )

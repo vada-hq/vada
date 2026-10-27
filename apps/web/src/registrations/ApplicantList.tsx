@@ -150,9 +150,7 @@ function ApplicantItems({ data, onReload, changes, onChange, onCancelled, ...res
       <ViewFilter view={view} onChange={setView} />
       <ListNotices notice={notice} truncated={data.truncated} filtered={filtered} />
       {shown.length === 0 ? (
-        <StateMessage kind="empty">
-          {!filtered ? '아직 신청한 사람이 없어요.' : '찾는 신청자가 없어요.'}
-        </StateMessage>
+        <StateMessage kind="empty">신청자 없음</StateMessage>
       ) : (
         <ul className="flex flex-col gap-2">
           {shown.map(item => (

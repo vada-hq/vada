@@ -77,7 +77,7 @@ test('무료 QR: 해시(소문자)로 출석을 보내 판정과 이름·학번�
   expect(within(card).getByText('입장 가능')).toBeTruthy()
   expect(within(card).getByText('김새내').className).toContain('text-lg')
   expect(within(card).getByText('학번 20260001')).toBeTruthy()
-  expect(within(card).getByText('참가비 없음')).toBeTruthy()
+  expect(within(card).getByText('무료')).toBeTruthy()
   expect(api.calls.at(-1)).toMatchObject({
     method: 'POST',
     path: CHECK_IN_PATH,
@@ -258,7 +258,7 @@ test('입금 확인 권한이 없으면 참가비 미납 판정과 재정부 확
   queue.push(qrTextOf(HASH))
   const card = await cardOf(dialog)
   expect(within(card).getByText('참가비 미납 · 5,000원')).toBeTruthy()
-  expect(within(card).getByText('재정부 확인 필요')).toBeTruthy()
+  expect(within(card).queryByText('재정부 확인 필요')).toBeNull()
   expect(within(card).queryByRole('button', { name: /받고 입장/ })).toBeNull()
   expect(within(card).queryByRole('button', { name: '입장 안 함' })).toBeNull()
   api.on('POST', CHECK_IN_PATH, () => json(result(false)))

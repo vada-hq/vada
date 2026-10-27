@@ -95,7 +95,7 @@ const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call
 const noDialog = () => waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
 // 조직 화면의 사람 쪽(DEC-91): 사람 화면의 줄과 동작이 묶음 안에서 그대로다.
-test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 이름(부서 묶음에서는 그 부서 직급), 다른 소속, 들어온 날짜와 시각을 보이고 이메일은 없다', async () => {
+test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 이름(부서 묶음에서는 그 부서 직급), 다른 소속을 보이고 들어온 날짜와 이메일은 없다', async () => {
   // 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
@@ -106,9 +106,9 @@ test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 �
     within(screen.getByRole('list', { name: `${group} 구성원` }))
       .getAllByRole('listitem')
       .map(item => item.textContent)
-  expect(rows('회장단')).toEqual(['김회장위원장10월 1일 (목) 10:00 들어옴'])
-  expect(rows('재정부')).toEqual(['이재정국장10월 2일 (금) 10:00 들어옴'])
-  expect(rows('미배정 구성원')).toEqual(['박새내10월 19일 (월) 00:30 들어옴'])
+  expect(rows('회장단')).toEqual(['김회장위원장'])
+  expect(rows('재정부')).toEqual(['이재정국장'])
+  expect(rows('미배정 구성원')).toEqual(['박새내'])
   // 회장은 노랑, 부서 직급은 회색 배지다.
   expect(
     within(screen.getByRole('list', { name: '회장단 구성원' })).getByText('위원장').className,
@@ -366,7 +366,7 @@ test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부
     screen.getByRole('list', { name: '기획부 구성원', hidden: true }).contains(row('박새내')),
   ).toBe(true)
   fireEvent.click(within(dialog).getByRole('button', { name: '기획부에서 빼기' }))
-  await waitFor(() => expect(within(dialog).getByText('아직 어느 부서에도 없어요.')).toBeTruthy())
+  await waitFor(() => expect(within(dialog).getByText('부서 없음')).toBeTruthy())
 })
 
 // 부서 직급(부장·부부장)을 바꾸는 일은 member.manage에 더해 rank.manage도 본다(P19).
@@ -420,7 +420,7 @@ test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () =>
   }) as HTMLButtonElement
   expect(remove.disabled).toBe(false)
   fireEvent.click(remove)
-  await waitFor(() => expect(within(dialog).getByText('아직 어느 부서에도 없어요.')).toBeTruthy())
+  await waitFor(() => expect(within(dialog).getByText('부서 없음')).toBeTruthy())
   expect(posts(api)).toHaveLength(1)
 })
 

@@ -30,7 +30,7 @@ function PublishAsk({ change, available, onClose, onDone, onGone }: AskProps) {
     <ConfirmDialog
       open
       title="결산을 공개할까요?"
-      description="공개하면 이 기간은 잠겨서 지출과 수입을 더하거나 취소할 수 없고, 남은 돈이 다음 기간의 이월금 수입이 돼요. 모든 운영진이 결산서를 볼 수 있어요. 공개한 뒤에도 사유를 적고 다시 열 수 있어요."
+      description="공개하면 이 기간은 잠겨서 지출과 수입을 더하거나 취소할 수 없고, 남은 돈이 다음 기간의 이월금 수입이 돼요."
       confirmLabel="공개"
       busy={change.saving}
       {...(change.problem ? { error: change.problem } : {})}

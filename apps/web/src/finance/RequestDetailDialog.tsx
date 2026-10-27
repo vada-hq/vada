@@ -127,7 +127,7 @@ function Facts({ request }: { request: PurchaseRequestDetail }) {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
         <StatusBadge status={request.status} />
         <span className="wrap-anywhere">{request.requestedBy.name}</span>
-        <span>{neededByLabel(request.neededBy)}</span>
+        {request.neededBy && <span>{neededByLabel(request.neededBy)}</span>}
       </div>
       {request.body && (
         <p className="text-sm wrap-anywhere whitespace-pre-wrap text-gray-800">{request.body}</p>
@@ -151,7 +151,7 @@ function CancelButton({ detail }: { detail: ReturnType<typeof useRequestDetail> 
         busy={detail.saving}
         error={detail.problem ?? ''}
         title="이 요청을 취소할까요?"
-        description="결재가 시작되기 전에만 취소할 수 있어요. 취소한 요청은 되살릴 수 없어요."
+        description="취소한 요청은 되살릴 수 없어요."
         confirmLabel="요청 취소"
         onClose={() => {
           detail.clearProblem()
@@ -230,7 +230,6 @@ function Loaded({
         councilId={councilId}
         items={listedItems(request, deciding)}
         cancel={detail.itemCancel}
-        shipments={request.shipments}
       />
       {deciding && (
         <DecisionPanel

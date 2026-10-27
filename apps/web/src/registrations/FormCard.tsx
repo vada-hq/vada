@@ -122,16 +122,10 @@ type ApplicantsProps = EventDialogHandlers &
 // 신청자 정보(이름, 학번, 휴대폰)는 열람 권한자에게만 보이고, 아니면 신청 수만 보인다. 열람은 기록이 남아 눌러야 읽는다.
 function Applicants({ form, ...rest }: ApplicantsProps) {
   const [shown, setShown] = useState(false)
-  if (!form.actions.includes('form.view_applicants'))
-    return (
-      <StateMessage kind="notice">
-        신청자 정보는 볼 수 있는 운영진에게만 보여요. 신청은 {form.applicantCount}명이에요.
-      </StateMessage>
-    )
+  if (!form.actions.includes('form.view_applicants')) return null
   if (!shown)
     return (
       <div className="flex flex-col items-start gap-2">
-        <p className="text-xs text-gray-500">신청자 정보를 열면 연 기록이 남아요.</p>
         <Button variant="outline" size="sm" touch onClick={() => setShown(true)}>
           신청자 보기
         </Button>

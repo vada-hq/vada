@@ -13,6 +13,7 @@ import { chosenPeriod, PeriodSelect } from './PeriodSelect'
 import { useFinanceOverview } from './useFinanceOverview'
 import { usePeriodChoice } from './useFinanceQuery'
 import { usePeriods } from './useIncomes'
+import { NoPeriod } from './NoPeriod'
 
 type Props = {
   councilId: string
@@ -110,17 +111,7 @@ export function OverviewTab({ councilId, canManage, onForbidden }: Props) {
     return <StateMessage kind="loading">불러오는 중…</StateMessage>
   const list = periods.state.data.periods
   const period = chosenPeriod(list, choice.chosenId)
-  if (period === null)
-    return (
-      <div className="flex flex-col items-start gap-3">
-        <StateMessage kind="empty">회계 기간 없음</StateMessage>
-        {canManage && (
-          <Button onClick={() => openMenu('finance', councilId, { tab: 'budget' })}>
-            예산 탭에서 만들기
-          </Button>
-        )}
-      </div>
-    )
+  if (period === null) return <NoPeriod councilId={councilId} canManage={canManage} />
   return (
     <div className="flex flex-col gap-3">
       <PeriodSelect periods={list} value={period.id} onChange={choice.choose} />

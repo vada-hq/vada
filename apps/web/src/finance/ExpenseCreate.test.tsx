@@ -233,7 +233,7 @@ test.each(['선택 전', '선택 후'])(
     await screen.findByRole('checkbox', { name: /A2 포스터/ })
     if (when === '선택 후') fill('사유', '직접 쓴 사유')
     choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
-    await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+    await screen.findByText('결제할 수 있는 승인 품목 없음')
     expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('직접 쓴 사유')
     choose('결제할 요청', '')
     expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('직접 쓴 사유')
@@ -287,7 +287,7 @@ test.each([null, ''])(
       purchaseDetail().body,
     )
     choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
-    await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+    await screen.findByText('결제할 수 있는 승인 품목 없음')
     expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe('')
   },
 )
@@ -304,7 +304,7 @@ test('상세를 기다리는 동안 직접 쓴 사유는 늦은 본문이 덮어
   await waitFor(() => expect(api.calls.some(call => call.path === path)).toBe(true))
   fill('사유', '기다리며 직접 쓴 사유')
   pending.resolve(json({ request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001') }))
-  await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+  await screen.findByText('결제할 수 있는 승인 품목 없음')
   expect(asElement(screen.getByLabelText('사유'), HTMLTextAreaElement).value).toBe(
     '기다리며 직접 쓴 사유',
   )
@@ -529,7 +529,7 @@ test('품목 하나만 승인되고 다른 품목이 대기인 요청도 고를 
   )
   choose('결제할 요청', '')
   choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
-  await screen.findByText('결제할 수 있는 승인된 품목이 없어요.')
+  await screen.findByText('결제할 수 있는 승인 품목 없음')
 })
 
 test('고른 예산 항목이 다시 읽은 목록에서 사라지면 값을 비운다', async () => {

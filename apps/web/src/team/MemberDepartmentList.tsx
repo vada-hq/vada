@@ -27,9 +27,7 @@ export function MemberDepartmentList({
 }: Props) {
   return (
     <section aria-label="지금 부서" className="flex flex-col gap-2">
-      {member.departments.length === 0 && (
-        <p className="text-sm text-gray-500">아직 어느 부서에도 없어요.</p>
-      )}
+      {member.departments.length === 0 && <p className="text-sm text-gray-500">부서 없음</p>}
       {member.departments.map(item => {
         const name = departments.find(department => department.id === item.id)?.name ?? ''
         return (

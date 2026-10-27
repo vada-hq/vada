@@ -112,7 +112,7 @@ function PhotoList({ councilId, chat }: { councilId: string; chat: Chat }) {
       </div>
     )
   if (list.data.photos.length === 0)
-    return <StateMessage kind="empty">대화에 고를 수 있는 사진이 아직 없어요.</StateMessage>
+    return <StateMessage kind="empty">고를 수 있는 대화 사진 없음</StateMessage>
   return (
     <>
       <ul aria-label="대화 사진 목록" className="flex max-h-80 flex-col gap-1 overflow-y-auto">

@@ -42,6 +42,7 @@ test('토큰은 본문으로만 보내고 내가 넣은 것과 참가비, 계좌
 test('참가비가 없으면 계좌가 없고, 출석했으면 QR 대신 출석 확인됨이 보인다', async () => {
   setup(myRegistration({ appliedFee: 0, account: null, attended: true, cancellable: false }))
   expect(await screen.findByText('출석 확인됨')).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
   expect(screen.queryByRole('img', { name: '출석 확인 QR' })).toBeNull()
   expect(screen.queryByText(/은행/)).toBeNull()
   expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
@@ -54,9 +55,7 @@ test('QR 캡처 묶음에는 행사명과 안내만 더하고 개인 정보와 �
   const qr = await screen.findByRole('img', { name: '출석 확인 QR' })
   const card = qr.closest('section')!
   expect(within(card).getByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
-  expect(
-    within(card).getByText('이 화면을 캡처해 보관하고, 행사 당일 운영진에게 보여 주세요.'),
-  ).toBeTruthy()
+  expect(within(card).getByText('행사 당일 이 QR을 보여 주세요.')).toBeTruthy()
   for (const text of ['김새내', '20260001', '입금 확인 전'])
     expect(within(card).queryByText(text)).toBeNull()
   expect(qr.parentElement?.className).toContain('p-4')

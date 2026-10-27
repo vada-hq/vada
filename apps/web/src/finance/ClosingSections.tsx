@@ -100,7 +100,7 @@ export function ClosingExpenseSection({ closing }: { closing: Closing }) {
 // 계좌마다 이 기간의 수입·지출·차이. 이월금은 넣지 않는다.
 export function ClosingAccountsSection({ closing }: { closing: Closing }) {
   return (
-    <Section title="계좌별 금액">
+    <Section title="계좌별 금액(이월금 제외)">
       <ul className="flex flex-col gap-3">
         {closing.accounts.map(line => (
           <li key={line.account?.id ?? 'none'} className="flex flex-col gap-0.5 text-sm">
@@ -116,7 +116,6 @@ export function ClosingAccountsSection({ closing }: { closing: Closing }) {
           </li>
         ))}
       </ul>
-      <p className="text-xs text-gray-500">전기 이월금은 계좌별 금액에 넣지 않아요.</p>
     </Section>
   )
 }

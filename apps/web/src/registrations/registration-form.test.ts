@@ -13,7 +13,7 @@ import { ACCOUNT_ID, staffForm } from '@/test-support/staff-registration-fixture
 
 const filled = { ...emptyFormValues, closesAt: '2026-10-23T18:00' }
 
-test('처음 값: 이름은 참가 신청, 참가비 없음, 학번은 받는다. 비운 칸은 null이고 계좌는 보내지 않는다', () => {
+test('처음 값: 이름은 참가 신청, 무료, 학번은 받는다. 비운 칸은 null이고 계좌는 보내지 않는다', () => {
   expect(formRequest(filled, ACCOUNT_ID)).toEqual({
     name: '참가 신청',
     opensAt: null,

@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import { CalendarDays } from 'lucide-react'
 import { EVENT_LIST_LIMIT, menuPath, type CouncilView } from '@vada/contracts'
 import type { RoomPage } from '../chat/ChatPage'
-import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -30,19 +28,18 @@ type Props = {
   rooms: RoomPage['rooms']
 }
 
-// 빈 목록: 무엇이 여기에 오는지와 첫 행사를 어떻게 만드는지 말한다(NN/g, 빈 화면).
-function NoEvents({ canCreate }: { canCreate: boolean }) {
+// 빈 화면에서 첫 행사를 시작할 수 있어야 한다(DEC-96).
+function NoEvents({ canCreate, onCreate }: { canCreate: boolean; onCreate: () => void }) {
   return (
-    <Card>
-      <EmptyState
-        icon={CalendarDays}
-        title="아직 행사가 없어요"
-        description={
-          canCreate
-            ? "오른쪽 위 '새 행사'로 첫 행사를 만들어 보세요. 이름만 넣으면 돼요."
-            : '회장단과 부서장이 행사를 만들면 여기에 보여요.'
-        }
-      />
+    <Card className="flex flex-col items-center gap-3 p-6 text-center">
+      <StateMessage kind="empty">행사 없음</StateMessage>
+      {canCreate ? (
+        <Button touch onClick={onCreate}>
+          새 행사
+        </Button>
+      ) : (
+        <p className="text-sm break-keep text-muted-foreground">회장단과 부서장이 만들어요</p>
+      )}
     </Card>
   )
 }
@@ -51,10 +48,12 @@ function Cards({
   list,
   view,
   onOpen,
+  onCreate,
 }: {
   list: EventList
   view: CouncilView
   onOpen: (eventId: string) => void
+  onCreate: () => void
 }) {
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">행사 불러오는 중…</StateMessage>
@@ -68,7 +67,7 @@ function Cards({
       </div>
     )
   const { events, truncated } = state.data
-  if (events.length === 0) return <NoEvents canCreate={canCreateEvent(view)} />
+  if (events.length === 0) return <NoEvents canCreate={canCreateEvent(view)} onCreate={onCreate} />
   return (
     <>
       {eventGroups(events).map(group => (
@@ -174,11 +173,12 @@ export default function EventsPage({ view, onForbidden, onTasksChanged, team, ro
     )
   return (
     <PageColumn>
-      {canCreateEvent(view) && (
-        <PageActions>
-          <Button onClick={dialogs.startCreate}>새 행사</Button>
-        </PageActions>
-      )}
+      {canCreateEvent(view) &&
+        !(list.state.kind === 'ready' && list.state.data.events.length === 0) && (
+          <PageActions>
+            <Button onClick={dialogs.startCreate}>새 행사</Button>
+          </PageActions>
+        )}
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       {dialogs.creating && (
         <NewEventDialog
@@ -188,7 +188,12 @@ export default function EventsPage({ view, onForbidden, onTasksChanged, team, ro
           {...lost}
         />
       )}
-      <Cards list={list} view={view} onOpen={id => openRecord('events', councilId, id)} />
+      <Cards
+        list={list}
+        view={view}
+        onCreate={dialogs.startCreate}
+        onOpen={id => openRecord('events', councilId, id)}
+      />
     </PageColumn>
   )
 }

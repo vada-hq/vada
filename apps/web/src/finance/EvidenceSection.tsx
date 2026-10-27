@@ -49,9 +49,7 @@ export function EvidenceSection({ councilId, expense, upload, chat, message }: P
       {attachable && <MessageEvidence councilId={councilId} message={message} />}
       {photos.length > 0 && <PhotoThumbs label="증빙 사진 목록" photos={photos} />}
       {photos.length === 0 && !expense.cancelled && (
-        <StateMessage kind="empty">
-          {attachable ? '영수증이나 이체 확인 사진을 붙여 주세요.' : '아직 붙은 사진이 없어요.'}
-        </StateMessage>
+        <StateMessage kind="empty">증빙 사진 없음</StateMessage>
       )}
       {attachable && <EvidenceAdder councilId={councilId} upload={upload} chat={chat} />}
       <Problems {...{ attachable, upload, chat, message }} />

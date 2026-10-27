@@ -208,7 +208,7 @@ function Messages({
     >
       {state.hasOlder && <Older onLoad={room.loadOlder} />}
       {state.messages.length === 0 ? (
-        <StateMessage kind="empty">아직 메시지가 없어요.</StateMessage>
+        <StateMessage kind="empty">메시지 없음</StateMessage>
       ) : (
         <Flow
           items={flowOf(state.messages, now, unreadFrom)}

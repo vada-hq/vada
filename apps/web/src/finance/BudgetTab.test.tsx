@@ -44,7 +44,7 @@ const button = (name: string) => asElement(screen.getByRole('button', { name }),
 
 test('재정부의 탭은 개요, 구매 요청, 지출, 수입, 예산, 계좌, 납부자 명단, 결산이다', async () => {
   show()
-  await screen.findByText(/아직 회계 기간이 없어요/)
+  await screen.findByText('회계 기간 없음')
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '개요',
     '구매 요청',
@@ -138,7 +138,7 @@ test('재정부가 아니면 보기만 하고 만들기와 편성 버튼이 없�
   expect(screen.queryByRole('button', { name: '예산 편성' })).toBeNull()
   cleanup()
   show(MEMBER_PERMISSIONS)
-  await screen.findByText(/재정부가 만들면/)
+  await screen.findByText('회계 기간 없음')
   expect(screen.queryByRole('button', { name: '회계 기간 만들기' })).toBeNull()
 })
 

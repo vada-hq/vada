@@ -60,10 +60,7 @@ function Cards({
   truncated: boolean
   onOpen: (open: Open) => void
 }) {
-  if (accounts.length === 0)
-    return (
-      <StateMessage kind="empty">아직 계좌가 없어요. 재정부가 더하면 여기에 보여요.</StateMessage>
-    )
+  if (accounts.length === 0) return <StateMessage kind="empty">계좌 없음</StateMessage>
   return (
     <>
       <ul aria-label="계좌" className="flex flex-col gap-2">

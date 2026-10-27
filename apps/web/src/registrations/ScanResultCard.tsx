@@ -62,9 +62,8 @@ function detailsOf(outcome: ScanOutcome, verdict: Verdict): (string | null)[] {
   if (outcome.kind === 'missing') return ['명단에서 이름으로 찾아 주세요.']
   if (outcome.kind === 'failed') return [outcome.message]
   if (outcome.kind === 'already') return alreadyDetails(outcome)
-  if (verdict.kind === 'unpaid') return ['재정부 확인 필요']
   if (verdict.kind !== 'enter') return []
-  return [outcome.appliedFee === 0 ? '참가비 없음' : paidLine(outcome)]
+  return [outcome.appliedFee === 0 ? '무료' : paidLine(outcome)]
 }
 
 // 찍은 결과: 판정을 맨 위에 색으로, 그 아래 누구인지(이름·학번)를 크게 보인다. 버튼은 children이 정한다.

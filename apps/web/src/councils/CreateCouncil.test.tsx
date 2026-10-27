@@ -271,7 +271,7 @@ test('[학생회 만들기]는 보내는 동안 busy이고 두 번 가지 않으
   ).toBe('ABCD2345')
   expect(screen.queryByRole('button', { name: '이전' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '링크 복사' }))
-  expect(await screen.findByText('초대 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.')).toBeTruthy()
+  expect(await screen.findByText('복사했어요')).toBeTruthy()
   expect(writeText).toHaveBeenCalledWith(link.value)
   expect(onCreated).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: '홈으로' }))

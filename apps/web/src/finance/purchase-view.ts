@@ -44,10 +44,10 @@ export const VIEW_LABEL: Record<PurchaseView, string> = {
   department: '부서 구매',
 }
 export const VIEW_EMPTY: Record<PurchaseView, string> = {
-  mine: '내가 낸 구매 요청이 없어요.',
-  pending: '결재를 기다리는 요청이 없어요.',
-  all: '구매 요청이 없어요.',
-  department: '부서 구매 요청이 없어요.',
+  mine: '내 구매 요청 없음',
+  pending: '결재 대기 요청 없음',
+  all: '구매 요청 없음',
+  department: '부서 구매 요청 없음',
 }
 
 export const neededByLabel = (neededBy: string | null) =>
