@@ -170,7 +170,7 @@ function ItemPicker({
       const lines = next.lines.filter(line => payableIds.has(line.lineItemId))
       return lines.length === next.lines.length ? next : { ...next, lines }
     })
-  }, [request, values.lines, values.requestReason, onAuto])
+  }, [request, values.lines, values.auto.reason, onAuto])
   return loadingOr(detail.state, ({ request }) => {
     const items = request.items.filter(item => item.payable)
     if (items.length === 0)

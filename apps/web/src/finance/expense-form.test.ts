@@ -7,6 +7,7 @@ import {
   linkedRequestOf,
   needsAmountConfirm,
   toggleLine,
+  withMode,
   withRequest,
   withRequestReason,
 } from './expense-form'
@@ -80,4 +81,33 @@ test('연결된 요청 중 결제할 수 있는 것이 꼭 하나일 때만 그 
   expect(linkedRequestOf(payable, [])).toBeNull()
   expect(linkedRequestOf(payable, ['r1', 'r2'])).toBeNull()
   expect(linkedRequestOf(payable, ['r9'])).toBeNull()
+})
+
+test('요청을 고르거나 바꾸거나 비워도 사람이 쓴 사용처와 내역은 그대로다', () => {
+  const typed = { ...emptyExpense(TODAY), vendor: '쿠팡', description: '간식 구입' }
+  const picked = withRequest(typed, purchaseDetail('r1'))
+  expect(picked).toMatchObject({ requestId: 'r1', vendor: '쿠팡', description: '간식 구입' })
+  const changed = withRequest(toggleLine(picked, item()), purchaseDetail('r2'))
+  expect(changed).toMatchObject({ vendor: '쿠팡', description: '간식 구입' })
+  expect(withRequest(changed, null)).toMatchObject({ vendor: '쿠팡', description: '간식 구입' })
+})
+
+test('손대지 않은 내역은 고른 요청의 제목을 따라가고, 메시지에서 채운 내역도 요청 제목으로 바뀐다', () => {
+  const first = purchaseDetail('r1', { title: '첫 요청' })
+  const second = purchaseDetail('r2', { title: '다른 요청' })
+  const values = withRequest(emptyExpense(TODAY), first)
+  expect(values.description).toBe('첫 요청')
+  expect(withRequest(values, second).description).toBe('다른 요청')
+  const seeded = emptyExpense(TODAY, null, { description: '간식 샀어요' })
+  expect(withRequest(seeded, first).description).toBe('첫 요청')
+  // 자동으로 채운 내역을 사람이 고치면 그 뒤로는 요청을 바꿔도 고친 값이 남는다.
+  expect(withRequest({ ...values, description: '고친 내역' }, second).description).toBe('고친 내역')
+})
+
+test('요청 없이로 바꿔도 사람이 쓴 사용처와 내역은 그대로다', () => {
+  const typed = { ...emptyExpense(TODAY), vendor: '쿠팡', description: '간식 구입' }
+  const values = withMode(toggleLine(withRequest(typed, purchaseDetail()), item()), 'direct')
+  expect(values).toMatchObject({ mode: 'direct', vendor: '쿠팡', description: '간식 구입' })
+  expect(values.requestId).toBeNull()
+  expect(values.lines).toEqual([])
 })

@@ -9,6 +9,7 @@ import { requiredText } from '@/lib/use-form-check'
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
 // 요청한 품목 결제(request)는 승인된 품목을 골라 결제 금액을 적고, 요청 없이(direct)는 금액과 예산 항목을 직접 적는다.
 export type ExpenseMode = 'request' | 'direct'
+type AutoField = 'vendor' | 'description' | 'reason'
 export type PayLine = { lineItemId: string; amount: string; approvedAmount: number }
 export type ExpenseValues = {
   mode: ExpenseMode
@@ -20,8 +21,8 @@ export type ExpenseValues = {
   // 비면 학생회 돈이다.
   paidBy: string | null
   reason: string
-  // 마지막 자동값과 비교해 사람이 고친 사유를 보존한다. 서버에는 보내지 않는다.
-  requestReason: string
+  // 화면이 마지막으로 채운 값. 지금 값이 이것과 다르면 사람이 고친 것이라 자동으로 바꾸지 않는다. 서버에는 보내지 않는다.
+  auto: Record<AutoField, string>
   budgetItemId: string | null
   requestedBy: string | null
   // 돈이 나간 계좌. undefined는 사람이 아직 고르지 않은 것이라 화면이 대표 계좌로 보고, null은 '없음'을 고른 것이다(account-form.ts의 pickAccount).
@@ -53,7 +54,8 @@ export const emptyExpense = (
   method: '',
   paidBy: start.paidBy ?? null,
   reason: '',
-  requestReason: '',
+  // 메시지에서 채운 내역도 화면이 채운 것이라, 요청을 골라 두면 요청 제목으로 바뀐다.
+  auto: { vendor: '', description: start.description ?? '', reason: '' },
   budgetItemId: null,
   requestedBy: null,
   accountId: undefined,
@@ -75,7 +77,7 @@ export const linesTotal = (lines: PayLine[]) =>
 
 // 방식을 바꾸면 그 방식에만 있는 값은 비운다(보이지 않는 값이 몰래 나가지 않게).
 export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValues => ({
-  ...withReasonDefault(values, ''),
+  ...withDefault(values, 'reason', ''),
   mode,
   requestId: null,
   lines: [],
@@ -86,15 +88,12 @@ export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValue
   eventLocked: false,
 })
 
-// 품목을 고르면 결제 금액이 승인 금액으로 채워진다. 다시 누르면 뺀다.
+// 품목을 고르면 결제 금액이 승인 금액으로 채워진다. 다시 누르면 뺀다. 첫 품목의 판매처를 사용처로 채운다.
 export function toggleLine(values: ExpenseValues, item: PurchaseLineItem): ExpenseValues {
   const has = values.lines.some(line => line.lineItemId === item.id)
+  const first = !has && values.lines.length === 0
   return {
-    ...values,
-    vendor:
-      !has && values.lines.length === 0 && values.vendor === ''
-        ? sellerDomain(item.link)
-        : values.vendor,
+    ...(first ? withDefault(values, 'vendor', sellerDomain(item.link)) : values),
     lines: has
       ? values.lines.filter(line => line.lineItemId !== item.id)
       : [
@@ -184,11 +183,14 @@ export function withRequest(
   request: PurchaseRequestSummary | null,
 ): ExpenseValues {
   const event = request?.event ?? null
+  const defaults = withDefault(
+    withDefault(withDefault(values, 'reason', ''), 'vendor', ''),
+    'description',
+    request?.title ?? '',
+  )
   return {
-    ...withReasonDefault(values, ''),
+    ...defaults,
     requestId: request?.id ?? null,
-    description: request?.title ?? '',
-    vendor: '',
     lines: [],
     eventId: event ? event.id : values.eventLocked ? null : values.eventId,
     eventLocked: event !== null,
@@ -206,13 +208,10 @@ export function linkedRequestOf<T extends { id: string }>(
   return only !== undefined && rest.length === 0 ? only : null
 }
 
-function withReasonDefault(values: ExpenseValues, reason: string): ExpenseValues {
-  if (values.reason !== values.requestReason || values.requestReason === reason) return values
-  return {
-    ...values,
-    reason,
-    requestReason: reason,
-  }
+// 화면이 채우는 값은 사람이 손대지 않은 칸(지금 값이 마지막 자동값과 같음)에만 넣는다. 사람이 쓴 값을 몰래 지우지 않는다.
+function withDefault(values: ExpenseValues, field: AutoField, value: string): ExpenseValues {
+  if (values[field] !== values.auto[field] || values.auto[field] === value) return values
+  return { ...values, [field]: value, auto: { ...values.auto, [field]: value } }
 }
 
 export function withRequestReason(
@@ -220,7 +219,7 @@ export function withRequestReason(
   request: Pick<PurchaseRequestDetail, 'id' | 'body'>,
 ): ExpenseValues {
   if (values.mode !== 'request' || values.requestId !== request.id) return values
-  return withReasonDefault(values, request.body ?? '')
+  return withDefault(values, 'reason', request.body ?? '')
 }
 
 // 승인액 대비 20% 초과는 자릿수 실수를 한 번 더 확인한다(DEC-92). 합계로 비교하면 다른 품목의 적은 결제가 초과를 숨긴다.

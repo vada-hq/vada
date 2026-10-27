@@ -864,6 +864,24 @@ test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 비우거나 닫�
   await waitFor(() => expect(hasUnsavedInput()).toBe(false))
 })
 
+test('먼저 쓴 사용처와 내역은 요청을 고르거나 바꿔도 그대로이고 떠날 때 묻는다', async () => {
+  serve()
+  showFinance()
+  await openForm()
+  fill('사용처', '쿠팡')
+  fill('내역', '간식 구입')
+  await screen.findByRole('option', { name: '행사 포스터' })
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a001')
+  fireEvent.click(await screen.findByRole('checkbox', { name: /A2 포스터/ }))
+  expect(screen.getByLabelText('사용처')).toHaveProperty('value', '쿠팡')
+  expect(screen.getByLabelText('내역')).toHaveProperty('value', '간식 구입')
+  choose('결제할 요청', '0199d1a0-0000-7000-8000-00000000a002')
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  expect(screen.getByLabelText('사용처')).toHaveProperty('value', '쿠팡')
+  expect(screen.getByLabelText('내역')).toHaveProperty('value', '간식 구입')
+  expect(hasUnsavedInput()).toBe(true)
+})
+
 test('결제 수단은 빈칸이고 누르면 해당 칸에 필수 오류와 포커스가 간다', async () => {
   const api = serve()
   showFinance()

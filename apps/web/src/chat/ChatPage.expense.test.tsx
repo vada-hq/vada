@@ -414,3 +414,24 @@ test('저절로 골라 채운 것만 있으면 떠날 때 묻지 않고, 사람�
   fill('사용처', '편의점')
   expect(hasUnsavedInput()).toBe(true)
 })
+
+test('요청 목록을 읽기 전에 쓴 사용처와 내역은 연결된 요청을 골라 둬도 그대로다', async () => {
+  const api = serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  const list = deferredResponse()
+  api.on('GET', `${chatBase}/purchase-requests?view=all`, () => list.promise)
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openForm()
+  fill('사용처', '쿠팡')
+  fill('내역', '간식 구입')
+  list.resolve(
+    json({
+      requests: [purchaseSummary(LINKED, { title: '간식행사 즉석식품 구입', payable: true })],
+      truncated: false,
+    }),
+  )
+  await waitFor(() => expect(value('결제할 요청')).toBe(LINKED))
+  await settle()
+  expect(value('사용처')).toBe('쿠팡')
+  expect(value('내역')).toBe('간식 구입')
+  expect(hasUnsavedInput()).toBe(true)
+})
