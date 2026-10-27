@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { BudgetResponse } from '@vada/contracts'
+import { errorOf, twoPeriods, writesOf } from '../test-support/closing.js'
 import { withSettlement } from '../test-support/settlement.js'
 
 test(
@@ -54,5 +55,27 @@ test(
       403,
     )
     assert.equal((await t.api.post(`${base}/budget-items?period=${period.id}`, body)).status, 401)
+  }),
+)
+
+test(
+  '공개한 기간에는 ?period=로 단일·여러 행을 더해도 409 PERIOD_CLOSED이고 아무것도 쓰지 않는다',
+  withSettlement(async t => {
+    const { first, firstBudget } = await twoPeriods(t)
+    const closing = await t.make(t.council, 'account_closing', { fiscalPeriodId: first })
+    await t.pg.query('UPDATE account_closing SET published_at = now() WHERE id = $1', [closing])
+    const base = `/api/organizations/${t.council.councilId}`
+    for (const [path, body] of [
+      ['/budget-items', { purpose: '비품', amount: 1000 }],
+      ['/budget-items/batch', { items: [{ purpose: '식비', amount: 2000 }] }],
+    ] as const) {
+      const before = await writesOf(t)
+      const response = await t.api.post(`${base}${path}?period=${first}`, body, 's-financeMember')
+      assert.equal(response.status, 409, path)
+      assert.equal(await errorOf(response), 'PERIOD_CLOSED', path)
+      assert.equal(await writesOf(t), before, `${path}: 기록이 남았다`)
+    }
+    const items = await t.pg.query('SELECT 1 FROM budget_item WHERE budget_id = $1', [firstBudget])
+    assert.equal(items.rowCount, 0)
   }),
 )
