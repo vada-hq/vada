@@ -52,6 +52,48 @@ async function openFromMenu() {
   return screen.findByRole('form', { name: '구매 요청 내기' })
 }
 
+test.each([
+  {
+    body: `간식은 이걸로 사면 어때요? ${LINK}`,
+    product: PRODUCT,
+    title: '간식은 이걸로 사면 어때요?',
+  },
+  { body: LINK, product: PRODUCT, title: '네임펜 12색 1세트' },
+  { body: LINK, product: null, title: '' },
+])(
+  '메시지 메뉴의 제목은 링크를 제외하고 내용은 원문이다: $title',
+  async ({ body, product, title }) => {
+    const api = serve(product)
+    api.on('GET', `${chatBase}/rooms/r1/messages`, () => json(messagePage([message(MSG, body)])))
+    const form = within(await openFromMenu())
+    await waitFor(() => expect(form.getByLabelText<HTMLInputElement>('제목').value).toBe(title))
+    expect(form.getByLabelText<HTMLTextAreaElement>('내용').value).toBe(body)
+  },
+)
+
+test('링크만 있는 제목은 둘째 품목이 먼저 와도 비워 두고 첫 품목으로 채운다', async () => {
+  const api = serve()
+  const second = 'https://www.coupang.com/vp/products/7772240113'
+  const pending = deferredResponse()
+  api.on('GET', `${chatBase}/rooms/r1/messages`, () =>
+    json(messagePage([message(MSG, `${LINK}\n${second}`)])),
+  )
+  api.on('POST', `${chatBase}/product-info`, call =>
+    (call.body as { url: string }).url === LINK
+      ? pending.promise
+      : json({ product: { ...PRODUCT, name: '둘째 상품' }, reason: null }),
+  )
+  const form = within(await openFromMenu())
+  await waitFor(() =>
+    expect(form.getByLabelText<HTMLInputElement>('품목 2 이름').value).not.toBe(''),
+  )
+  expect(form.getByLabelText<HTMLInputElement>('제목').value).toBe('')
+  pending.resolve(json({ product: PRODUCT, reason: null }))
+  await waitFor(() =>
+    expect(form.getByLabelText<HTMLInputElement>('제목').value).toBe('네임펜 12색 1세트'),
+  )
+})
+
 test('메시지로 연 요청은 링크를 보존하고 조회 실패 때도 직접 적어 원문에 연결해 제출한다', async () => {
   const api = serve(null)
   const form = within(await openFromMenu())

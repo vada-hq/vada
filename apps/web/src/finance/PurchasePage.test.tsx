@@ -72,7 +72,7 @@ test('작성은 별도 주소에서 열리고 새로고침 후 입력·원문·�
   await screen.findByText('품절')
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(window.location.pathname).toBe(`/finance/${C}/requests/new`)
-  expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe(PRODUCT.name)
+  expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe(PRODUCT.items[0]?.name)
   fill('제목', '준비물 구매 요청')
   fill('품목 1 수량', '2')
   fill('품목 1 예상 단가', '13000')

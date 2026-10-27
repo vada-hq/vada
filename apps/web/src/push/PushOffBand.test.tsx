@@ -62,6 +62,23 @@ test('알림을 켜지 않았으면 띠가 보이고, 누르면 알림 대화상
   expect(await screen.findByRole('dialog', { name: '휴대폰 알림' })).toBeTruthy()
 })
 
+test.each([false, true])(
+  '알림 띠는 옆 메뉴가 없는 휴대폰 폭에서만 보인다(홈 자리: %s)',
+  async portal => {
+    server()
+    const slot = document.createElement('div')
+    document.body.append(slot)
+    try {
+      render(<PushOffBand visible environment={environment()} slot={portal ? slot : null} />)
+      const text = await screen.findByText(/휴대폰 알림이 꺼져 있어요/)
+      expect(text.closest('[data-slot="alert"]')?.classList.contains('md:hidden')).toBe(true)
+      expect(slot.contains(text)).toBe(portal)
+    } finally {
+      slot.remove()
+    }
+  },
+)
+
 test('알림이 꺼져 있다고 알린다(허락을 거절한 기기와 아이폰 사파리도)', async () => {
   server()
   const denied = render(<PushOffBand visible environment={environment({ permission: 'denied' })} />)

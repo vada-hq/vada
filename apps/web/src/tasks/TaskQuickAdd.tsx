@@ -66,12 +66,13 @@ function useQuickAdd(props: Props) {
     onCreated: (task: TaskResponse['task']) => {
       settle()
       setTitle('')
+      reset()
       setHidden(visibleInView(task, context) ? null : task.id)
       props.onCreated()
       setCreated(count => count + 1)
     },
   })
-  const { formRef, errors, attempt } = useFormCheck(() =>
+  const { formRef, errors, attempt, reset } = useFormCheck(() =>
     withContract(taskErrors({ ...emptyFields, title }), create.parsed, TASK_CONTRACT_MESSAGES),
   )
 

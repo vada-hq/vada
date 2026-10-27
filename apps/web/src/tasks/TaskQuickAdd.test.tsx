@@ -64,30 +64,38 @@ function setup(options: TaskCreateOptionsResponse | null = memberOptions, view =
   return { api, handlers, posts }
 }
 
-async function add(title: string) {
+async function add(title: string, enter = false) {
   const input = await screen.findByRole('textbox', { name: '새 업무' })
   await settle() // 선택지를 다 받은 뒤
   fireEvent.change(input, { target: { value: title } })
-  fireEvent.click(screen.getByRole('button', { name: '추가' }))
+  if (enter) fireEvent.submit(screen.getByRole('form', { name: '업무 빠른 추가' }))
+  else fireEvent.click(screen.getByRole('button', { name: '추가' }))
   return input
 }
 
-test('내 업무에서 제목만 쳐 추가하면 내 부서·담당자 나로 만들어지고 칸이 비며 초점이 남는다', async () => {
-  const { handlers, posts } = setup()
-  const input = await add('청소')
-  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalled())
-  expect(posts()[0]?.body).toEqual({
-    title: '청소',
-    body: null,
-    dueDate: null,
-    departmentId: D1,
-    assigneeId: M2,
-    eventId: null,
-  })
-  await waitFor(() => expect((input as HTMLInputElement).value).toBe(''))
-  await waitFor(() => expect(document.activeElement).toBe(input))
-  expect(screen.queryByText('추가한 업무는 이 보기에 없음')).toBeNull()
-})
+test.each([false, true])(
+  '내 업무 추가 성공 뒤 칸이 비고 오류 없이 초점이 남는다(Enter: %s)',
+  async enter => {
+    const { handlers, posts } = setup()
+    const input = await add('청소', enter)
+    await waitFor(() => expect(handlers.onChanged).toHaveBeenCalled())
+    expect(posts()[0]?.body).toEqual({
+      title: '청소',
+      body: null,
+      dueDate: null,
+      departmentId: D1,
+      assigneeId: M2,
+      eventId: null,
+    })
+    await waitFor(() => expect((input as HTMLInputElement).value).toBe(''))
+    await waitFor(() => expect(document.activeElement).toBe(input))
+    expect(screen.queryByText('제목을 입력해 주세요')).toBeNull()
+    expect(screen.queryByText('추가한 업무는 이 보기에 없음')).toBeNull()
+    await add('')
+    expect(await screen.findByText('제목을 입력해 주세요')).toBeTruthy()
+    expect(posts()).toHaveLength(1)
+  },
+)
 
 test('부원이 담당자 없음 탭에서 만들면 나로 만들어져 이 보기에 없음과 [열기]가 보인다', async () => {
   setup()
@@ -170,6 +178,8 @@ test('행사의 업무 탭은 그 행사의 선택지를 읽고 그 행사로 �
       eventId: EVENT_ID,
     }),
   )
+  await waitFor(() => expect((input as HTMLInputElement).value).toBe(''))
+  expect(screen.queryByText('제목을 입력해 주세요')).toBeNull()
   expect(screen.queryByText('추가한 업무는 이 보기에 없음')).toBeNull()
 })
 

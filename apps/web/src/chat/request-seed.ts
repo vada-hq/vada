@@ -103,16 +103,17 @@ export function requestSeedOf(
   context: Context,
   picked?: LoadedPick,
 ): RequestSeed {
-  const firstLine = firstLineOf(message)
+  const body = bodyParts(message.body ?? '')
+    .filter(part => part.kind === 'text')
+    .map(part => part.text)
+    .join('')
+  const firstLine = firstLineOf({ ...message, body }).trim()
   const items = messageLinksOf(message).map(link => {
     const seed = { name: '', link, loadedPrice: null }
     return picked?.link === link ? withLoaded(seed, picked.product, picked.itemId) : seed
   })
   return {
-    title: clipText(
-      picked && firstLine.trim() === picked.link ? picked.product.name : firstLine,
-      PURCHASE_TITLE_MAX,
-    ),
+    title: clipText(firstLine || items[0]?.name || '', PURCHASE_TITLE_MAX),
     body: clipText(message.body ?? '', PURCHASE_BODY_MAX),
     requestedBy: requesterOf(message, context),
     sourceMessageId: message.id,

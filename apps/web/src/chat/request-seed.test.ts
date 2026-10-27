@@ -3,6 +3,7 @@ import {
   CreatePurchaseRequestSchema,
   PURCHASE_ITEM_NAME_MAX,
   PURCHASE_ITEMS_MAX,
+  PURCHASE_TITLE_MAX,
   type ProductInfo,
   type TeamMember,
 } from '@vada/contracts'
@@ -75,6 +76,43 @@ const product = (name: string): ProductInfo => ({
   shipping: '무료배송',
   deliveryEta: '내일 도착',
   rocket: true,
+})
+
+test('제목은 URL을 뺀 첫 글 줄이고 내용과 품목 링크는 보존한다', () => {
+  const body = `  ${COUPANG}\n 간식은 ${OTHER} 이걸로 사면 어때요? ${COUPANG}  \n20명 나눠 줄 거예요`
+  const seed = requestSeedOf(message('a1', body), plain)
+  expect(seed.title).toBe('간식은  이걸로 사면 어때요?')
+  expect(seed.body).toBe(body.trim())
+  expect(seed.items.map(item => item.link)).toEqual([COUPANG, OTHER])
+})
+
+test('링크만 있으면 제목은 첫 품목 이름이고 불러온 이름이 없으면 빈 칸이다', () => {
+  const body = `${COUPANG}\n${OTHER}`
+  expect(requestSeedOf(message('a1', body), plain).title).toBe('')
+  expect(
+    requestSeedOf(message('a1', body), plain, {
+      link: COUPANG,
+      product: product('네임펜 12색 1세트'),
+    }).title,
+  ).toBe('네임펜 12색 1세트')
+  expect(
+    requestSeedOf(message('a1', body), plain, {
+      link: OTHER,
+      product: product('둘째 품목'),
+    }).title,
+  ).toBe('')
+})
+
+test('URL을 제거한 제목과 첫 품목 대체 제목은 계약 상한에서 이모지를 보존한다', () => {
+  const long = '😀'.repeat(PURCHASE_TITLE_MAX + 1)
+  const expected = '😀'.repeat(PURCHASE_TITLE_MAX)
+  expect(requestSeedOf(message('a1', `${COUPANG} ${long}`), plain).title).toBe(expected)
+  expect(
+    requestSeedOf(message('a1', COUPANG), plain, {
+      link: COUPANG,
+      product: product(long),
+    }).title,
+  ).toBe(expected)
 })
 
 // 022 정한 것 21: 링크마다 품목 하나, 같은 주소는 하나, 링크가 없으면 품목 없음(양식은 빈 품목 하나).

@@ -22,7 +22,7 @@ export function PushOffAlert({
   onTurnOn: () => void
 }) {
   return (
-    <Alert tone="warning" className={cn('flex items-center gap-2', className)}>
+    <Alert tone="warning" className={cn('flex items-center gap-2 md:hidden', className)}>
       <BellOff aria-hidden className="size-4 shrink-0" />
       <p className="min-w-0 flex-1 text-sm">{message}</p>
       <Button variant="link" size="sm" onClick={onTurnOn}>

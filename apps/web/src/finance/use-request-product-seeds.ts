@@ -20,21 +20,23 @@ export function useRequestProductSeeds(
         setValues(current => {
           if (!current.items.some(row => row.key === item.key && row.link === item.link))
             return current
+          const items = current.items.map(row =>
+            row.key === item.key && row.link === item.link
+              ? {
+                  ...row,
+                  ...withLoaded({ ...row, loadedPrice: row.loadedPrice ?? null }, state.product),
+                }
+              : row,
+          )
           return {
             ...current,
             title:
+              item.key === initial.items[0]?.key &&
               !current.titleEdited &&
               (current.title.trim() === '' || current.title.trim() === item.link)
-                ? clipText(state.product.name, PURCHASE_TITLE_MAX)
+                ? clipText(items.find(row => row.key === item.key)?.name ?? '', PURCHASE_TITLE_MAX)
                 : current.title,
-            items: current.items.map(row =>
-              row.key === item.key && row.link === item.link
-                ? {
-                    ...row,
-                    ...withLoaded({ ...row, loadedPrice: row.loadedPrice ?? null }, state.product),
-                  }
-                : row,
-            ),
+            items,
           }
         })
       })
