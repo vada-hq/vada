@@ -257,6 +257,7 @@ export {
   type ExpensePaymentLine,
   type ExpenseResponse,
   type ExpenseSummary,
+  type ExpenseAllocation,
   type ExpenseVersion,
   type ExpensesResponse,
 } from './expenses.js'

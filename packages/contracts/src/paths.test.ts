@@ -370,3 +370,9 @@ test('새 메뉴 주소: 구매 요청 쓰기와 업무 칩·재정 구분은 �
   })
   assert.deepEqual(parseAppPath(`/settings/${C}?section=nope`)?.query, {})
 })
+
+test('개요의 지출 예정 내역 주소는 기간과 보기 조건을 보존한다', () => {
+  const path = menuPath('finance', C, { tab: 'expenses', period: P, spending: 'committed' })
+  assert.equal(path, `/finance/${C}?tab=expenses&period=${P}&spending=committed`)
+  assert.equal(parseAppPath(path)?.query['spending'], 'committed')
+})

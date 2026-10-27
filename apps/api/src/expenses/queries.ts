@@ -31,6 +31,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { expenseHistoryOf } from './history.js'
 import { actionsOf, factsOf } from './policy.js'
+import { expenseAllocations, expensePeriods } from './list-budget.js'
 import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
@@ -115,6 +116,12 @@ export async function expenseListOf(
   return {
     expenses: rows.slice(0, EXPENSE_LIST_LIMIT).map(summaryOf),
     truncated: rows.length > EXPENSE_LIST_LIMIT,
+    allocations: await expenseAllocations(
+      db,
+      actor.councilId,
+      rows.slice(0, EXPENSE_LIST_LIMIT).map(row => row.id),
+    ),
+    periods: await expensePeriods(db, actor.councilId),
   }
 }
 

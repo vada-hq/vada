@@ -57,3 +57,17 @@ export interface FinanceOverviewResponse {
 
 // 최근 지출은 3건(와이어프레임 FIN-00).
 export const FINANCE_RECENT_EXPENSES = 3
+
+// 약정 셈과 같은 조건의 품목별 남은 결제 금액. 일부 결제한 품목도 남은 금액만 보인다.
+export interface FinanceCommitment {
+  id: string
+  name: string
+  requestId: string
+  requestTitle: string
+  event: EventRef | null
+  budgetItem: { id: string; purpose: string }
+  amount: number
+}
+export interface FinanceCommitmentsResponse {
+  items: FinanceCommitment[]
+}

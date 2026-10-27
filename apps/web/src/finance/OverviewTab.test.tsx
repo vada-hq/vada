@@ -141,7 +141,7 @@ test('최근 지출과 예산 항목별 현황(항목 없는 지출 포함)을 �
   expect(window.location.pathname).toBe(`/expenses/${COUNCIL_ID}/${OVERVIEW_EXPENSE}`)
 })
 
-test('카드의 내역은 지출 탭(그 기간)과 구매 요청 전체로, 재정부의 편성은 예산 탭으로 간다', async () => {
+test('카드의 내역은 같은 기간의 실제·예정 지출로, 재정부의 편성은 예산 탭으로 간다', async () => {
   serve()
   atFinanceHome()
   showFinance()
@@ -151,8 +151,7 @@ test('카드의 내역은 지출 탭(그 기간)과 구매 요청 전체로, 재
   window.history.back()
   await screen.findByRole('region', { name: '지출 예정' })
   fireEvent.click(within(region('지출 예정')).getByRole('button', { name: '내역' }))
-  expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}`)
-  expect(window.location.search).toBe('?view=all')
+  expect(window.location.search).toBe(`?tab=expenses&period=${CURRENT_PERIOD}&spending=committed`)
   window.history.back()
   await screen.findByRole('region', { name: '총예산' })
   fireEvent.click(within(region('총예산')).getByRole('button', { name: '편성' }))
