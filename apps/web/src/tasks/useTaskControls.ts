@@ -29,8 +29,13 @@ export function useTaskControls(
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),
     layout: pick<TaskLayout>(TASK_LAYOUTS, query['layout'], 'board'),
     dept: query['dept'] ?? null,
+    assignee: query['assignee'] ?? null,
+    heads: query['heads'] === 'true',
+    attention: query['attention'] === 'true',
+    week: query['due'] === 'week',
     // 보기를 바꾸면 그 보기에서 고른 부서 거르기는 풀린다.
-    setView: (view: TaskView) => url.set({ view, dept: null }),
+    setView: (view: TaskView) =>
+      url.set({ view, dept: null, assignee: null, heads: null, attention: null, due: null }),
     setFilter: (filter: TaskFilter) => url.set({ filter }),
     setLayout: (layout: TaskLayout) => {
       rememberTaskLayout(memberId, layout)
@@ -39,5 +44,7 @@ export function useTaskControls(
     // 끝남 열이 넘칠 때 표의 '끝남'으로 간다. 고른 배치가 아니라 길이라 기억하지 않는다.
     showDoneTable: () => url.set({ layout: 'list', filter: 'done' }),
     clearDept: () => url.set({ dept: null }),
+    clearNarrow: () =>
+      url.set({ dept: null, assignee: null, heads: null, attention: null, due: null }),
   }
 }

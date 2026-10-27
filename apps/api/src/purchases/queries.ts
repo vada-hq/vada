@@ -1,11 +1,10 @@
-import { and, asc, desc, eq, isNull, sql, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm'
 import {
   PURCHASE_PENDING_LIMIT,
   PURCHASE_RECENT_LIMIT,
   type PurchaseDecision,
   type PurchaseRequestDetail,
   type PurchaseRequestListQuery,
-  type PurchaseRequestSummary,
   type PurchaseRequestsResponse,
 } from '@vada/contracts'
 import { shipmentChangeCode } from '../shipments/policy.js'
@@ -14,7 +13,6 @@ import type { Actor } from '../access/actor.js'
 import {
   approval,
   budgetItem,
-  event,
   expense,
   lineItem,
   member,
@@ -27,7 +25,7 @@ import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
 import { payableRequestIds } from './payable-requests.js'
-import { itemCountColumns, lastOutcomeOf } from './last-outcome.js'
+import { lastOutcomeOf } from './last-outcome.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
 import {
   actionsOf,
@@ -35,71 +33,14 @@ import {
   lineItemActionsOf,
   lineItemFactsOf,
   lineItemPayable,
-  requestStatusOf,
 } from './policy.js'
-import { displayNameOf, joinedDisplayNameOf, recordCouncilSql } from '../team/display-name.js'
-import { estimateColumns } from './estimate.js'
+import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 import { purchaseSourceMessage } from './source-message.js'
+import { departmentRequestsOf } from '../home/department-purchases.js'
+import { isPaid, summaryRows, summaryOf, type PurchaseSummaryRow as Row } from './summary.js'
+export { isPaid } from './summary.js'
 
 type Reader = Pick<Db, 'select'>
-const BODY_PREVIEW_MAX = 100
-
-// 요청 줄과 품목·결재 수. 학생회 경계는 기록의 학생회 번호로 건다. 기본 키로 묶어 다른 표의 칸은 그 기본 키에 딸린 값이다.
-function summaryRows(
-  db: Reader,
-  actor: Actor,
-  options: { where?: SQL | undefined; having?: SQL | undefined; order: SQL[]; limit: number },
-) {
-  return db
-    .select({
-      id: request.id,
-      title: request.title,
-      body: request.body,
-      neededBy: request.neededBy,
-      cancelledAt: request.cancelledAt,
-      eventId: request.eventId,
-      eventName: event.name,
-      requestedBy: request.requestedBy,
-      requesterName: joinedDisplayNameOf(member, record.councilId),
-      createdAt: record.createdAt,
-      ...itemCountColumns(),
-      ...estimateColumns(),
-    })
-    .from(request)
-    .innerJoin(record, eq(record.id, request.id))
-    .innerJoin(member, eq(member.id, request.requestedBy))
-    .innerJoin(lineItem, eq(lineItem.requestId, request.id))
-    .leftJoin(event, eq(event.id, request.eventId))
-    .where(and(eq(record.councilId, actor.councilId), options.where))
-    .groupBy(request.id, record.id, member.id, event.id)
-    .having(options.having)
-    .orderBy(...options.order)
-    .limit(options.limit)
-}
-type Row = Awaited<ReturnType<typeof summaryRows>>[number]
-
-const statusOfRow = (row: Row) => requestStatusOf(row.cancelledAt !== null, row)
-
-function summaryOf(row: Row, payable: boolean): PurchaseRequestSummary {
-  const firstLine = row.body
-    ?.split(/\r?\n/u)
-    .map(line => line.trim())
-    .find(Boolean)
-  return {
-    id: row.id,
-    title: row.title,
-    status: statusOfRow(row),
-    requestedBy: { id: row.requestedBy, name: row.requesterName },
-    neededBy: row.neededBy,
-    itemCount: row.items,
-    createdAt: row.createdAt.toISOString(),
-    event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
-    payable,
-    estimate: { subtotal: row.estimatedSubtotal, total: row.estimatedTotal },
-    bodyPreview: firstLine ? Array.from(firstLine).slice(0, BODY_PREVIEW_MAX).join('') : null,
-  }
-}
-
 // 결재 대기는 필요한 때가 가까운 순, 필요한 때가 없으면 끝이고 그 안은 오래된 순이다(DEC-92, 024 정한 것 9). 취소된 요청은 뺀다.
 // 홈 '받은 것'이 이 목록을 그대로 잘라 쓰므로 차례는 서버가 정한다(화면에서 고치면 잘린 뒤의 급한 요청이 올라오지 못한다).
 // 내 요청과 전체는 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
@@ -124,6 +65,16 @@ export async function requestListOf(
   actor: Actor,
   query: PurchaseRequestListQuery,
 ): Promise<PurchaseRequestsResponse> {
+  if (query.view === 'department') {
+    if (query.event) await eventRowOf(db, actor, query.event)
+    const requests = (await departmentRequestsOf(db, actor)).filter(
+      row => !query.event || row.event?.id === query.event,
+    )
+    return {
+      requests: requests.slice(0, PURCHASE_RECENT_LIMIT),
+      truncated: requests.length > PURCHASE_RECENT_LIMIT,
+    }
+  }
   const options = listOptions(actor, query.view)
   // 다른 학생회 행사는 없는 것과 같아 404다.
   if (query.event) await eventRowOf(db, actor, query.event)
@@ -147,9 +98,6 @@ export async function requestRowOf(db: Reader, actor: Actor, requestId: string) 
   if (!row) throw new ApiError('NOT_FOUND')
   return row
 }
-
-// 취소되지 않은 결제 내역이 있는 품목은 '결제함'이다(DEC-24).
-export const isPaid = sql<boolean>`exists (select 1 from ${paymentLine} inner join ${expense} on ${expense.id} = ${paymentLine.expenseId} where ${paymentLine.lineItemId} = ${lineItem.id} and ${expense.cancelledAt} is null)`
 
 const itemRows = (db: Reader, requestId: string) =>
   db

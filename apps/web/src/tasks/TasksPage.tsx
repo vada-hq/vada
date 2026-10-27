@@ -1,5 +1,11 @@
-import { useMemo, useState } from 'react'
-import type { CouncilView, EventSummary, TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
+import { useState } from 'react'
+import {
+  type CouncilView,
+  type EventSummary,
+  type TaskFilter,
+  type TaskLayout,
+  type TaskView,
+} from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { useEvents, type EventList } from '@/events/useEvents'
@@ -24,6 +30,8 @@ import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTaskOptions } from './useTaskOptions'
 import { useTasks, type TaskList } from './useTasks'
+import { homeScopeActive, homeScopeLabel } from './home-task-scope'
+import { useNarrowed } from './useNarrowedTasks'
 
 type Props = {
   view: CouncilView
@@ -74,17 +82,6 @@ function useTaskLists(
   return { list, done, events, linkable, both }
 }
 
-// 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
-// 새 배열이 렌더마다 만들어지면 표가 목록이 바뀐 줄로 알고 고른 값을 지우므로, 읽은 목록이 바뀔 때만 다시 만든다.
-function useNarrowed(list: TaskList, department: string | null): TaskList {
-  const { state, reload } = list
-  return useMemo(() => {
-    if (department === null || state.kind !== 'ready') return { state, reload }
-    const tasks = state.tasks.filter(task => task.department?.id === department)
-    return { reload, state: { ...state, tasks } }
-  }, [state, reload, department])
-}
-
 // 연 업무와 행사는 주소로 연다(닫으면 들어온 곳으로 돌아간다). 행사의 업무 탭에서 연 업무도 업무 주소라 닫으면 그 행사의 탭이다.
 // 행사의 업무 탭은 이미 그 행사 안이라 행사 이름으로 가는 길이 없다.
 function useOpeners(councilId: string, inEvent: boolean) {
@@ -122,8 +119,8 @@ function useTasksPage(props: Props) {
   const opened = useOpeners(councilId, inEvent)
   const wide = useSplit()
   const lists = useTaskLists(props, { view, filter, layout, wide })
-  const list = useNarrowed(lists.list, dept)
-  const done = useNarrowed(lists.done, dept)
+  const list = useNarrowed(lists.list, dept, controls, props.view)
+  const done = useNarrowed(lists.done, dept, controls, props.view)
   const events = onlyEvent(lists.events, props.eventId)
   const board = layout === 'board' && wide
   const councilEmpty = useBoardEmpty({
@@ -202,6 +199,10 @@ function departmentName(id: string, council: CouncilView, all: TaskList) {
 // 목록을 좁힌 조건을 풀 수 있게 알리는 칩: 업무 화면의 부서 거르기, 행사의 업무 탭에서 '담당자 없음'으로 연 보기.
 function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
   const { controls } = page
+  if (homeScopeActive(controls)) {
+    const tasks = page.all.state.kind === 'ready' ? page.all.state.tasks : []
+    return { label: homeScopeLabel(controls, tasks), onClear: controls.clearNarrow }
+  }
   if (controls.dept !== null) {
     const name = departmentName(controls.dept, council, page.all)
     return { label: name, onClear: controls.clearDept }

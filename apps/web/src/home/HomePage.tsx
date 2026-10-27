@@ -56,6 +56,7 @@ export default function HomePage({ view, rooms, onForbidden, ...openers }: Props
         home={state.home}
         councilId={view.council.id}
         name={view.me.name}
+        memberId={view.me.memberId}
         awaitingDepartment={awaitingDepartment(view.me)}
         rooms={rooms}
         onForbidden={onForbidden}

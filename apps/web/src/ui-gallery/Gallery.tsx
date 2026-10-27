@@ -56,6 +56,7 @@ import {
 import { HomeFrameSection } from './HomeFrameSections'
 import { CouncilHomeSection } from './CouncilHomeSections'
 import { MemberHomeSection } from './MemberHomeSections'
+import { DepartmentHomeSection } from './DepartmentHomeSections'
 import { FinanceHomeSection, HomeFinanceSummarySection } from './FinanceHomeSections'
 import { HomeEventStatusSection } from './HomeEventStatusSections'
 import { ApplyNoticeSection, PublicSection } from './PublicSections'
@@ -114,6 +115,7 @@ export const gallerySections = [
   HomeFrameSection,
   CouncilHomeSection,
   MemberHomeSection,
+  DepartmentHomeSection,
   FinanceHomeSection,
   HomeFinanceSummarySection,
   OrgSection,

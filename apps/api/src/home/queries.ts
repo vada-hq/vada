@@ -19,6 +19,7 @@ import { requestListOf } from '../purchases/queries.js'
 import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
 import { councilBoardOf } from './council-board.js'
 import { departmentsOf } from './departments.js'
+import { departmentBoardOf } from './department-board.js'
 import { financeOf } from './finance.js'
 import { financeBudgetOf } from './finance-budget.js'
 import { financeBoardOf } from './finance-board.js'
@@ -101,5 +102,7 @@ export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeR
   if (level.council) home.councilBoard = await councilBoardOf(db, actor, now, open)
   else if (level.departmentIds.length)
     home.departments = await departmentsOf(db, actor, level.departmentIds, open)
+  if (home.kind === 'department')
+    home.departmentBoard = await departmentBoardOf(db, actor, now, open)
   return home
 }

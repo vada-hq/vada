@@ -68,6 +68,10 @@ const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): Query
   filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
   layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
   dept: { values: 'uuid', fallback: null, onlyWith },
+  assignee: { values: 'uuid', fallback: null, onlyWith },
+  heads: { values: ['true'], fallback: null, onlyWith },
+  attention: { values: ['true'], fallback: null, onlyWith },
+  due: { values: ['week'], fallback: null, onlyWith },
 })
 
 // 쿼리에는 기본값이 아닌 값만 둔다. fallback이 null이면 값이 없는 것이 기본이다. 검색어 같은 자유 입력은 넣지 않는다.
