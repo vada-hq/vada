@@ -12,6 +12,7 @@ import {
 import type { Db } from '../db/types.js'
 
 // 상세를 지출 수만큼 읽지 않도록 목록의 300개에 붙은 배분만 한꺼번에 읽는다.
+// 결제 내역은 품목에 예산 항목이 없어도 준다(개요 countedExpense의 noLines와 같은 기준을 화면이 쓴다).
 export async function expenseAllocations(
   db: Pick<Db, 'select'>,
   councilId: string,
@@ -35,8 +36,8 @@ export async function expenseAllocations(
     .from(paymentLine)
     .innerJoin(lineItem, eq(lineItem.id, paymentLine.lineItemId))
     .innerJoin(record, eq(record.id, lineItem.id))
-    .innerJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
-    .innerJoin(budget, eq(budget.id, budgetItem.budgetId))
+    .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
+    .leftJoin(budget, eq(budget.id, budgetItem.budgetId))
     .where(and(eq(record.councilId, councilId), inArray(paymentLine.expenseId, ids)))
   return [...direct, ...lines].map(row => ({ ...row, amount: Number(row.amount) }))
 }

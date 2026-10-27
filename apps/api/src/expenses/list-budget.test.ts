@@ -35,3 +35,21 @@ test(
     )
   }),
 )
+
+test(
+  '예산 항목이 없는 품목의 결제 내역도 항목·기간 없이 배분으로 준다(개요가 결제일로 세지 않는 지출)',
+  withSettlement(async t => {
+    const { line } = await t.requestWithItem(null)
+    const paid = await t.expense({ amount: '7000' })
+    await t.pay(paid, line, '7000')
+    const response = await t.api.get(
+      `/api/organizations/${t.council.councilId}/expenses`,
+      's-plain',
+    )
+    const data = (await response.json()) as ExpensesResponse
+    assert.deepEqual(
+      data.allocations?.map(row => [row.expenseId, row.budgetItemId, row.periodId, row.amount]),
+      [[paid, null, null, 7000]],
+    )
+  }),
+)
