@@ -135,9 +135,9 @@ export function MessageMenuSection() {
   )
 }
 
-// 공지방의 보낸 사람 없는 끼룩이 글(025 조각 4). 사람의 글 사이에서 휴대폰 폭(390px)과 넓은 대화 칸 폭으로 본다.
+// 공지방의 보낸 사람 없는 시스템 글(025 조각 4, MSG-03 03). 사람의 글 사이에서 휴대폰 폭(390px)과 넓은 대화 칸 폭으로 본다.
 // 일시·장소를 함께 바꾼 두 줄 글, 만들기 글, 줄바꿈 없는 긴 장소다.
-export function KkirukMessageSection() {
+export function SystemMessageSection() {
   const sample = (id: string, body: string, sender: string | null) => ({
     id,
     senderId: sender && `sender-${id}`,
@@ -179,7 +179,7 @@ export function KkirukMessageSection() {
     </ul>
   )
   return (
-    <Section title="끼룩이 글">
+    <Section title="시스템 글">
       {list('w-96 max-w-full')}
       {list('w-full max-w-3xl')}
     </Section>

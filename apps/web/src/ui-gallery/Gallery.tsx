@@ -12,7 +12,7 @@ import {
   ActionMenuSection,
   EmptyAvatarSection,
   MenuTabsSection,
-  KkirukMessageSection,
+  SystemMessageSection,
   MessageMenuSection,
 } from './MenuSections'
 import { SpaceListSection } from './SpaceSections'
@@ -87,7 +87,7 @@ export const gallerySections = [
   CouncilSpaceSection,
   ActionMenuSection,
   MessageMenuSection,
-  KkirukMessageSection,
+  SystemMessageSection,
   RoomRowSection,
   MessageBubbleSection,
   MessageMadeSection,

@@ -86,7 +86,7 @@ const deletedMessage = (id: string, senderName: string): ChatMessage => ({
   deletedAt: '2026-10-23T02:00:00Z',
 })
 
-// 끼룩이 글, 남의 첫 메시지와 이어 쓴 것, 탈퇴한 사람(사람 아이콘), 지운 메시지(남의 것, 내 것), 내 메시지(링크·긴 주소)와 이어 쓴 것.
+// 시스템 글, 남의 첫 메시지와 이어 쓴 것, 탈퇴한 사람(사람 아이콘), 지운 메시지(남의 것, 내 것), 내 메시지(링크·긴 주소)와 이어 쓴 것.
 const FLOW: { message: ChatMessage; mine: boolean; continued: boolean }[] = [
   { message: chatMessage('k', null, '가을 축제가 생겼어요'), mine: false, continued: false },
   {

@@ -5,7 +5,6 @@ import {
   type ChatMessage,
 } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
-import { KkirukLine } from '@/components/KkirukLine'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -109,15 +108,16 @@ function Face({ message, mine, continued }: Pick<Props, 'message' | 'mine' | 'co
   )
 }
 
-// 보낸 사람 없는 끼룩이 글(행사 변경·만들기 알림, DEC-90·DEC-93). 와이어프레임의 시스템 글처럼 흐름 가운데의 한 덩어리이고
-// 이름·말풍선·메뉴가 없다. 모양은 끼룩이 한 줄(DEC-87)이라 VADA가 저절로 알린 글로 읽힌다. 시각은 와이어프레임처럼 보이지 않고 화면 낭독기에만 읽힌다.
+// 보낸 사람 없는 글(행사 알림, DEC-90·DEC-93). 와이어프레임 MSG-03 03의 시스템 글처럼 가운데 정렬한 작은 회색 글이고
+// 끼룩이 그림·이름·말풍선·메뉴가 없다. 알림은 VADA가 해 준 일이 아니라 끼룩이가 말하지 않는다(Slack·카카오톡의 시스템 줄).
+// 시각은 와이어프레임처럼 보이지 않고 화면 낭독기에만 읽힌다.
 // relative: 숨긴 낭독용 글(sr-only)이 스크롤 칸 밖으로 나가 바깥 스크롤바를 만들지 않게 한다.
-function KkirukItem({ message }: Pick<Props, 'message'>) {
+function SystemItem({ message }: Pick<Props, 'message'>) {
   return (
-    <li className="relative mt-2 flex justify-center px-2 py-1">
-      <KkirukLine>
-        <span className="wrap-anywhere whitespace-pre-wrap">{message.body}</span>
-      </KkirukLine>
+    <li className="relative mt-2 px-2 py-1">
+      <p className="text-center text-xs/5 wrap-anywhere whitespace-pre-wrap text-gray-500">
+        {message.body}
+      </p>
       <time dateTime={message.sentAt} className="sr-only">
         {clockLabel(message.sentAt)}
       </time>
@@ -125,10 +125,10 @@ function KkirukItem({ message }: Pick<Props, 'message'>) {
   )
 }
 
-// 메시지 하나: 보낸 사람이 있으면 사람의 글, 없으면 끼룩이 글이다.
+// 메시지 하나: 보낸 사람이 있으면 사람의 글, 없으면 시스템 글이다.
 export default function MessageItem(props: Props) {
   return props.message.senderId === null ? (
-    <KkirukItem message={props.message} />
+    <SystemItem message={props.message} />
   ) : (
     <PersonItem {...props} />
   )

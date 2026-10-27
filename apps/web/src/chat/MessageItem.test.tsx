@@ -29,18 +29,20 @@ const draw = (item: ChatMessage = KKIRUK, mine = false) =>
     </ul>,
   )
 
-// 025 조각 4: 보낸 사람 없는 끼룩이 글은 와이어프레임의 시스템 글처럼 가운데 한 덩어리이고, 사람 이름·말풍선·메뉴가 없다.
-test('보낸 사람 없는 글은 끼룩이 글로 그리고 이름과 메시지 동작이 없다', () => {
+// 보낸 사람 없는 글(행사 알림)은 와이어프레임 MSG-03 03의 시스템 글: 가운데 정렬한 작은 회색 글이고,
+// 끼룩이 그림·사람 이름·말풍선·메뉴가 없다(notes/chat-redesign 4c).
+test('보낸 사람 없는 글은 가운데 회색 글이고 끼룩이 그림과 이름, 메시지 동작이 없다', () => {
   draw()
   const item = screen.getByRole('listitem')
   expect(item.textContent).toContain('가을 축제 장소가 바뀌었어요 · 대운동장 → 체육관')
   expect(screen.queryByText('시스템')).toBeNull()
   expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull()
-  // 끼룩이 그림은 꾸밈이라 글만 읽힌다.
-  expect(item.querySelector('img')?.getAttribute('alt')).toBe('')
-  expect(item.className).toContain('justify-center')
+  expect(item.querySelector('img')).toBeNull()
+  const text = screen.getByText(/일시가 바뀌었어요/)
+  expect(text.className).toContain('text-center')
+  expect(text.className).toContain('text-gray-500')
   // 두 줄은 줄바꿈 그대로다.
-  expect(screen.getByText(/일시가 바뀌었어요/).className).toContain('whitespace-pre-wrap')
+  expect(text.className).toContain('whitespace-pre-wrap')
 })
 
 test('사람이 보낸 글은 그대로 이름과 메시지 동작이 있다', () => {
