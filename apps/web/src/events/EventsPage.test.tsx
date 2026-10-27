@@ -149,7 +149,7 @@ test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자
   expect(within(form).queryByText(/책임자/)).toBeNull()
 })
 
-test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에 알리며, 보내는 동안 다시 보내지 않고 이름만 보내고 만든 행사를 연다', async () => {
+test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에 알리며, 보내는 동안 다시 보내지 않고 이름만 보내고 만든 행사의 개요를 연다', async () => {
   const { api } = setup()
   const created = eventDetail({ id: EVENT9, name: '봄 축제' })
   let posts = 0
@@ -158,6 +158,14 @@ test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에
     return json({ event: created }, 201)
   })
   api.on('GET', `${BASE}/${EVENT9}`, () => json({ event: created }))
+  serveEventRooms(api, COUNCIL_ID, EVENT9)
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/tasks?view=all&status=open&event=${EVENT9}`, () =>
+    json({ tasks: [], truncated: false }),
+  )
+  api.on('GET', `${BASE}/${EVENT9}/registration-forms`, () =>
+    json({ forms: [], truncated: false, actions: [] }),
+  )
+  api.on('GET', `${BASE}/${EVENT9}/settlement`, () => json(settlementOf()))
   const form = await openCreate()
   const submit = within(form).getByRole('button', { name: '만들기' })
   const name = await within(form).findByLabelText('행사명')
@@ -170,6 +178,8 @@ test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에
   fireEvent.click(submit)
   fireEvent.click(submit)
   await screen.findByRole('heading', { name: '봄 축제' })
+  expect(pathNow()).toBe(`${LIST_AT}/${EVENT9}?tab=overview`)
+  expect(screen.getByRole('tab', { name: '개요', selected: true })).toBeTruthy()
   expect(posts).toBe(1)
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
     name: '봄 축제',

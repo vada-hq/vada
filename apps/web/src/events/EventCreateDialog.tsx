@@ -50,7 +50,7 @@ export function NewEventDialog({
       onClose={onClose}
       onDone={event => {
         onClose()
-        openRecord('events', view.council.id, event.id)
+        openRecord('events', view.council.id, event.id, { tab: 'overview' })
         onMade?.()
       }}
       {...handlers}

@@ -6,6 +6,7 @@ import { councilView, MEMBER_PERMISSIONS, teamResponse } from '@/test-support/co
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { settlementOf } from '@/test-support/settlement-fixtures'
 import type { Page } from './pages'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
@@ -52,6 +53,13 @@ function open({ page = 'home', events = [THREE], permissions }: Setup = {}) {
   // 행사 화면은 메시지 탭 배지를 위해 그 행사의 방을 읽는다(022 조각 9).
   for (const id of [EVENT_ID, NEW_ID])
     api.on('GET', `${base}/events/${id}/rooms`, () => json({ rooms: [], archived: false }))
+  api.on('GET', `${base}/tasks?view=all&status=open&event=${NEW_ID}`, () =>
+    json({ tasks: [], truncated: false }),
+  )
+  api.on('GET', `${base}/events/${NEW_ID}/registration-forms`, () =>
+    json({ forms: [], truncated: false, actions: [] }),
+  )
+  api.on('GET', `${base}/events/${NEW_ID}/settlement`, () => json(settlementOf()))
   render(<WorkspaceAt startPage={page} />)
   return { api, reads: () => reads }
 }
@@ -94,6 +102,8 @@ test('행사 줄을 누르면 그 행사가 열리고 그 줄이 켜진다', asy
   fireEvent.click(await within(group).findByRole('button', { name: /2026 체육대회/ }))
   expect(await screen.findByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
   expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}`)
+  expect(window.location.search).toBe('')
+  expect(screen.getByRole('tab', { name: '메시지', selected: true })).toBeTruthy()
   expect(current()).toEqual(['체2026 체육대회진행 중'])
   // 켜진 줄의 파란 바탕에서도 상태 글이 4.5:1을 넘게 한 단계 진하다.
   expect(within(aside()).getByText('진행 중').className).toContain('text-gray-600')
@@ -130,7 +140,7 @@ test('행사가 없으면 우리 학생회와 두 링크만 있고 안내 문구
   expect(group.textContent).toBe('공간우리 학생회행사 모두 보기새 행사')
 })
 
-test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 메시지 탭이 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
+test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 개요 탭이 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
   const made = row(NEW_ID, '가을 축제', 'upcoming')
   const { api } = open({ events: [THREE, [made, ...THREE]] })
   api.on('POST', `${base}/events`, () =>
@@ -144,8 +154,9 @@ test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 메시
   const dialog = await screen.findByRole('dialog', { name: '새 행사' })
   fireEvent.change(within(dialog).getByLabelText(/행사명/), { target: { value: '가을 축제' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '만들기' }))
-  expect(await screen.findByRole('tab', { name: '메시지', selected: true })).toBeTruthy()
+  expect(await screen.findByRole('tab', { name: '개요', selected: true })).toBeTruthy()
   expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/${NEW_ID}`)
+  expect(window.location.search).toBe('?tab=overview')
   await within(group).findByText('가을 축제')
   expect(current()).toEqual(['가가을 축제기획 중'])
 })
@@ -171,6 +182,10 @@ test('행사 목록 머리의 [새 행사]로 만들어도 옆 메뉴가 바로 
   fireEvent.click(within(dialog).getByRole('button', { name: '만들기' }))
   await within(group).findByText('가을 축제')
   expect(reads()).toBe(before + 1)
+  expect(await screen.findByRole('tab', { name: '개요', selected: true })).toBeTruthy()
+  expect(window.location.pathname + window.location.search).toBe(
+    `/events/${COUNCIL_ID}/${NEW_ID}?tab=overview`,
+  )
 })
 
 test('행사 기본정보를 고치면 옆 메뉴가 바로 다시 읽어 새 이름을 보인다', async () => {

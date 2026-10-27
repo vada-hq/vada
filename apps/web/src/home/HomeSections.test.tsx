@@ -360,7 +360,7 @@ test('행사가 없는 학생회의 회장 홈 행사 부분에 진행할 행사
   )
   fireEvent.change(within(form).getByLabelText('행사명'), { target: { value: '봄 축제' } })
   fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
-  await waitFor(() => expect(pathNow()).toBe('/events/c1/e7'))
+  await waitFor(() => expect(pathNow()).toBe('/events/c1/e7?tab=overview'))
   expect(screen.queryByRole('form', { name: '새 행사' })).toBeNull()
 })
 
