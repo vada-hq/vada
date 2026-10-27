@@ -36,24 +36,31 @@ type Props = {
   seeAllTotal?: number | undefined
   // 머리 바에 더할 모양(같은 줄 카드의 머리 높이 맞추기)
   headClassName?: string | undefined
+  // 부서장 책임 행사는 업무 세 줄 상한 밖에 모두 둔다(DEC-95).
+  leadingRows?: ReactNode[] | undefined
+  seeAllLabel?: string | undefined
 }
 
 // 머리 오른쪽: 3건 이하면 회색 '{n}건'(0도 '0건'), 넘으면 파란 '전체 {n}건 보기'. 읽지 못했으면 '집계 전'만이다.
 // aside(회장단 행사 머리의 상태별 수, '바로가기')는 수 자리에 두고 전체 보기와 함께 나온다.
+const showSeeAll = (total: number, open: Props['onSeeAll'], label: Props['seeAllLabel']) =>
+  (total > HOME_CARD_ROWS || label !== undefined) && open !== undefined
+
 function CardCount({
   read,
   unit,
   onSeeAll,
   aside,
   seeAllTotal,
-}: Pick<Props, 'read' | 'onSeeAll' | 'aside' | 'seeAllTotal'> & { unit: string }) {
+  seeAllLabel,
+}: Pick<Props, 'read' | 'onSeeAll' | 'aside' | 'seeAllTotal' | 'seeAllLabel'> & { unit: string }) {
   if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-gray-500">집계 전</span>
   const total = seeAllTotal ?? read.total
-  const seeAll = total > HOME_CARD_ROWS && onSeeAll !== undefined
+  const seeAll = showSeeAll(total, onSeeAll, seeAllLabel)
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
       {aside !== undefined && <span className="text-xs break-keep text-gray-500">{aside}</span>}
-      {aside === undefined && !seeAll && (
+      {aside === undefined && (!seeAll || seeAllLabel !== undefined) && (
         <span className="shrink-0 text-xs text-gray-500">{`${read.total}${unit}`}</span>
       )}
       {seeAll && (
@@ -64,7 +71,7 @@ function CardCount({
           className="h-auto shrink-0 gap-0.5 p-0 text-xs max-sm:-my-3 max-sm:min-h-11"
           onClick={onSeeAll}
         >
-          {`전체 ${total}${unit} 보기`}
+          {seeAllLabel ?? `전체 ${total}${unit} 보기`}
           <ChevronRight aria-hidden />
         </Button>
       )}
@@ -79,7 +86,8 @@ function CardBody({
   empty,
   emptyAction,
   tiles,
-}: Pick<Props, 'read' | 'empty' | 'emptyAction' | 'tiles'>) {
+  leadingRows,
+}: Pick<Props, 'read' | 'empty' | 'emptyAction' | 'tiles' | 'leadingRows'>) {
   // 읽는 동안은 머리의 '집계 전'만 두고 자리를 지킨다(줄이 들어와도 카드 높이가 크게 뛰지 않게).
   if (read.kind === 'loading') return <div className={centerClass} aria-hidden />
   if (read.kind === 'failed')
@@ -98,7 +106,12 @@ function CardBody({
       </div>
     )
   const listClass = tiles ? 'grid gap-3 p-4 @2xl:grid-cols-3' : 'divide-y divide-gray-100'
-  return <ul className={listClass}>{read.rows.slice(0, HOME_CARD_ROWS)}</ul>
+  return (
+    <ul className={listClass}>
+      {leadingRows}
+      {read.rows.slice(0, HOME_CARD_ROWS)}
+    </ul>
+  )
 }
 
 // 와이어프레임 HomePrototypeFootnote: 카드 아래 옅은 회색 줄. 어디를 눌러도 그 화면으로 간다.
@@ -133,6 +146,8 @@ export default function HomeCard({
   tiles,
   seeAllTotal,
   headClassName,
+  leadingRows,
+  seeAllLabel,
 }: Props) {
   const titleId = useId()
   return (
@@ -162,10 +177,17 @@ export default function HomeCard({
           onSeeAll={onSeeAll}
           aside={aside}
           seeAllTotal={seeAllTotal}
+          seeAllLabel={seeAllLabel}
         />
       </div>
       <div className="flex-1">
-        <CardBody read={read} empty={empty} emptyAction={emptyAction} tiles={tiles} />
+        <CardBody
+          read={read}
+          empty={empty}
+          emptyAction={emptyAction}
+          tiles={tiles}
+          leadingRows={leadingRows}
+        />
       </div>
       {/* 조건부 줄의 수도 같은 응답에서 오므로 읽지 못했으면 함께 두지 않는다. */}
       {footnote && read.kind === 'ready' && <Footnote {...footnote} />}

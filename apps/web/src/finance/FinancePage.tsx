@@ -135,7 +135,11 @@ function FinanceTabPanel({
     <div role="tabpanel" className="flex flex-col gap-3">
       {tab === 'requests' ? (
         <>
-          <RequestFilter view={filter} onView={onFilter} />
+          <RequestFilter
+            view={filter}
+            onView={onFilter}
+            hasHeads={view.me.departments.some(dept => dept.rank !== null)}
+          />
           <Body list={list} view={filter} onOpen={openers.onOpenRequest} />
         </>
       ) : tab === 'expenses' ? (

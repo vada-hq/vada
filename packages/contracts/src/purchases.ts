@@ -23,7 +23,7 @@ export const PURCHASE_QUANTITY_MAX = 999
 export const PURCHASE_PENDING_LIMIT = 300
 export const PURCHASE_RECENT_LIMIT = 100
 
-export const PURCHASE_VIEWS = ['mine', 'pending', 'all'] as const
+export const PURCHASE_VIEWS = ['mine', 'pending', 'all', 'department'] as const
 export type PurchaseView = (typeof PURCHASE_VIEWS)[number]
 // 행사를 주면 그 행사에 이은 요청만 준다.
 export const PurchaseRequestListQuerySchema = z.strictObject({

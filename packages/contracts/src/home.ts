@@ -1,5 +1,11 @@
 import type { EventRef } from './budget.js'
 import type { HomeFinanceBoard, HomeFinanceSummary } from './home-finance.js'
+import type { HomeDepartmentBoard } from './home-department.js'
+export {
+  HOME_CONGESTION_TASKS,
+  type HomeCongestion,
+  type HomeDepartmentBoard,
+} from './home-department.js'
 import type { EventNext, EventSummary } from './events.js'
 import { DAY_MS, koreanDateOf } from './korean-time.js'
 import type { PurchaseRequestSummary } from './purchases.js'
@@ -225,6 +231,7 @@ export interface HomeResponse {
   myRequests: HomeMyRequests
   // 회장단 홈 종류에만 온다.
   councilBoard?: HomeCouncilBoard
+  departmentBoard?: HomeDepartmentBoard
   // 회장단(재정 역할 없이도 읽음)의 한 줄과 재정부 카드. 겸직이면 둘 다 온다.
   financeSummary?: HomeFinanceSummary
   financeBoard?: HomeFinanceBoard
