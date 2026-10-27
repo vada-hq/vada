@@ -202,17 +202,29 @@ const LIST: RoomListResponse = {
   mentionTotal: 0,
 }
 
+// 1:1이 아직 없는 학생회: '1:1 대화' 묶음은 머리의 [+]와 빈 줄로 남는다(notes/chat-redesign 4a).
+const NO_DIRECT: RoomListResponse = {
+  ...LIST,
+  rooms: LIST.rooms.filter(item => item.type !== 'direct'),
+}
+
 // 대화 목록의 '행사' 묶음(022 정한 것 27, 와이어프레임 MSG-01): 메시지가 생긴 행사 방이 행사 이름과 함께 학생회 방과 1:1 사이에 있다.
+// '1:1 대화' 묶음 머리의 [+]가 1:1을 시작한다. 1:1이 없어도 묶음이 있다.
 export function EventRoomListSection() {
+  const samples = [
+    { key: 'PC 목록 폭', width: 'w-64', data: LIST },
+    { key: '휴대폰 폭', width: 'w-97.5', data: LIST },
+    { key: '1:1 없음', width: 'w-64', data: NO_DIRECT },
+  ]
   return (
-    <Section title="대화 목록의 행사 묶음">
-      {['w-64', 'w-97.5'].map(width => (
-        <div key={width} className={width}>
+    <Section title="대화 목록의 행사·1:1 묶음">
+      {samples.map(sample => (
+        <div key={sample.key} className={sample.width}>
           <RoomList
-            data={LIST}
+            data={sample.data}
             note={null}
             activeRoomId={null}
-            canDirect={false}
+            canDirect
             onOpenRoom={noop}
             onDirect={noop}
           />

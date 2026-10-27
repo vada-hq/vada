@@ -1,8 +1,7 @@
 import { useNow } from '@/lib/use-now'
 import type { ReactNode } from 'react'
 import type { RoomListResponse, RoomSummary } from '@vada/contracts'
-import { MessageSquarePlus } from 'lucide-react'
-import PageActions from '@/components/PageActions'
+import { Plus } from 'lucide-react'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -24,28 +23,41 @@ type Props = {
 const isDirect = (room: RoomSummary) => room.type === 'direct'
 const isEventRoom = (room: RoomSummary) => Boolean(room.eventId)
 
-// 묶음 하나: 작은 제목과 방 줄 카드. 방이 없으면 두지 않는다.
+// 묶음 하나: 작은 제목과 방 줄 카드. 방이 없으면 두지 않는다. 다만 머리에 하는 버튼(action)이 있으면
+// 그 버튼에 닿도록 묶음을 두고 빈 줄('○○ 없음')을 보인다.
 function Group({
   title,
   rooms,
   row,
+  action,
 }: {
   title: string
   rooms: RoomSummary[]
   row: (room: RoomSummary) => ReactNode
+  action?: ReactNode
 }) {
-  if (rooms.length === 0) return null
+  if (rooms.length === 0 && !action) return null
   return (
     <section aria-label={title} className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-      <ul className={cn(cardClass, 'divide-y')}>{rooms.map(row)}</ul>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        {action}
+      </div>
+      {rooms.length > 0 ? (
+        <ul className={cn(cardClass, 'divide-y')}>{rooms.map(row)}</ul>
+      ) : (
+        <StateMessage kind="empty" className="text-xs">
+          {title} 없음
+        </StateMessage>
+      )}
     </section>
   )
 }
 
 // 대화 첫 화면: 학생회 방 줄 목록(공지방이 맨 앞), 그 아래 '행사' 묶음과 '1:1 대화' 묶음. 방 순서는 서버가 정했다.
 // 행사 방은 메시지가 생긴 방만 서버가 싣고, 이름에 행사 이름이 붙는다(022 정한 것 27, DEC-90).
-// 1:1 열기는 머리글 오른쪽에 둔다(Teams 목록 위 New message, 카카오톡 오른쪽 위).
+// 1:1은 '1:1 대화' 묶음 머리의 [+]에서 시작한다(Slack 'Direct messages' [+], notes/chat-redesign 4a).
+// 페이지 머리글 버튼만 둔 곳은 없고, 1:1이 묶음 안에 있어야 어디서 시작하는지 보인다.
 export default function RoomList(props: Props) {
   const { data, note, activeRoomId, canDirect, onOpenRoom, onDirect } = props
   const now = useNow()
@@ -61,22 +73,26 @@ export default function RoomList(props: Props) {
       onOpen={() => onOpenRoom(room.id)}
     />
   )
+  const startDirect = canDirect && (
+    // -my-1.5: 버튼이 묶음 머리 줄을 높이지 않아 '행사' 묶음과 머리 높이가 같다.
+    <Button
+      variant="ghost"
+      size="icon"
+      className="-my-1.5"
+      aria-label="1:1 대화 시작"
+      onClick={onDirect}
+    >
+      <Plus aria-hidden />
+    </Button>
+  )
   return (
     <PageColumn className="gap-5">
-      {canDirect && (
-        <PageActions>
-          <Button variant="outline" onClick={onDirect}>
-            <MessageSquarePlus aria-hidden />
-            1:1 대화
-          </Button>
-        </PageActions>
-      )}
       {note && <StateMessage kind="notice">{note}</StateMessage>}
       <ul aria-label="대화방" className={cn(cardClass, 'divide-y')}>
         {rooms.map(row)}
       </ul>
       <Group title="행사" rooms={events} row={row} />
-      <Group title="1:1 대화" rooms={directs} row={row} />
+      <Group title="1:1 대화" rooms={directs} row={row} action={startDirect || undefined} />
     </PageColumn>
   )
 }

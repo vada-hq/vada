@@ -232,10 +232,24 @@ test('1:1 창을 열면 운영진을 다시 읽어 방금 들어온 사람이 �
     ],
   }
   api.on('GET', `${base}/members`, () => json(joined))
-  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   const dialog = await screen.findByRole('dialog')
   expect(await within(dialog).findByRole('button', { name: '신입' })).toBeTruthy()
   expect(api.calls.filter(call => call.path === `${base}/members`).length).toBeGreaterThan(before)
+})
+
+// 1:1은 목록의 '1:1 대화' 묶음 머리 [+]에서 시작한다(Slack 'Direct messages' [+], notes/chat-redesign 4a).
+// 1:1이 아직 없어도 묶음은 보여 [+]에 닿을 수 있다.
+test('1:1이 없어도 1:1 대화 묶음과 그 머리의 시작 버튼이 있고, 묶음 밖에는 1:1 버튼이 없다', async () => {
+  const api = serve()
+  const [notice, lead, dept] = roomList().rooms
+  api.on('GET', `${base}/rooms`, () => json(roomList({ rooms: [notice!, lead!, dept!] })))
+  render(<Harness />)
+  const directs = await screen.findByRole('region', { name: '1:1 대화' })
+  expect(within(directs).getByText('1:1 대화 없음')).toBeTruthy()
+  expect(screen.getAllByRole('button', { name: /^1:1 대화/ })).toHaveLength(1)
+  fireEvent.click(within(directs).getByRole('button', { name: '1:1 대화 시작' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
 })
 
 test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열린다', async () => {
@@ -255,7 +269,7 @@ test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열�
   )
   api.on('GET', `${base}/rooms/r9/messages`, () => json(messagePage([])))
   render(<Harness />)
-  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   const dialog = await screen.findByRole('dialog')
   expect(await within(dialog).findByRole('button', { name: '이재정' })).toBeTruthy()
   expect(within(dialog).queryByRole('button', { name: '김회장' })).toBeNull()
@@ -272,7 +286,7 @@ test('방금 만든 1:1은 목록에 없어도(메시지가 없는 1:1은 목록
   )
   api.on('GET', `${base}/rooms/r9/messages`, () => json(messagePage([])))
   render(<Harness />)
-  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   const dialog = await screen.findByRole('dialog')
   fireEvent.click(await within(dialog).findByRole('button', { name: '박새내' }))
   expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
@@ -294,7 +308,7 @@ test('1:1 방을 연 뒤 목록을 다시 읽지 못해도 찾을 수 없음 대
   api.on('GET', `${base}/rooms/r9/messages`, () => json(messagePage([message('x1', '안녕')])))
   api.on('POST', `${base}/rooms/r9/read`, () => new Response(null, { status: 204 }))
   render(<Harness />)
-  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   const dialog = await screen.findByRole('dialog')
   fireEvent.click(await within(dialog).findByRole('button', { name: '박새내' }))
   expect(await screen.findByText('안녕')).toBeTruthy()
@@ -308,7 +322,7 @@ test('1:1 열기가 409면 대화상자 안에 까닭을 보이고, 403이면 �
     json({ error: status === 409 ? 'CANNOT_DIRECT_SELF' : 'FORBIDDEN' }, status),
   )
   render(<Harness />)
-  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화 시작' }))
   fireEvent.click(await screen.findByRole('button', { name: '이재정' }))
   expect(await screen.findByText('나와는 1:1 대화를 열 수 없어요.')).toBeTruthy()
   status = 403
