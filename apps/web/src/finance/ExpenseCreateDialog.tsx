@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { koreanDateOf, type ExpenseDetail, type TeamResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -60,6 +60,7 @@ type ModeProps = Omit<FieldsProps, 'today'> & {
   team: TeamResponse
   onForbidden: () => void
   linkedRequestIds: readonly string[] | undefined
+  onLinkedUsed: () => void
   onAuto: FieldsProps['onChange']
 }
 
@@ -102,6 +103,9 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
     emptyExpense(today, eventId ?? null, start),
   )
   const [confirming, setConfirming] = useState(false)
+  // 연결된 요청은 창을 열 때 한 번만 골라 둔다. 방식을 오가며 요청 칸이 다시 그려져도 사람이 푼 것을 되돌리지 않게 여기 둔다.
+  const [linkedRequestIds, setLinkedRequestIds] = useState(start?.linkedRequestIds)
+  const onLinkedUsed = useCallback(() => setLinkedRequestIds(undefined), [])
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   const settle = useUnsavedInput(dirty)
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
@@ -137,7 +141,11 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
         <ModeToggle
           mode={values.mode}
           disabled={saving}
-          onMode={mode => setValues(withMode(values, mode))}
+          onMode={mode => {
+            // 목록을 읽기 전에 방식을 바꿨으면 사람이 고른 것이라 돌아와도 골라 두지 않는다.
+            onLinkedUsed()
+            setValues(withMode(values, mode))
+          }}
         />
         <NameFields {...shared} />
         <ModeFields
@@ -145,7 +153,8 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
           team={team}
           councilId={props.councilId}
           onForbidden={props.onForbidden}
-          linkedRequestIds={start?.linkedRequestIds}
+          linkedRequestIds={linkedRequestIds}
+          onLinkedUsed={onLinkedUsed}
           onAuto={autoChange}
         />
         <PaymentFields {...shared} today={today} />

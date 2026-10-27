@@ -435,3 +435,66 @@ test('요청 목록을 읽기 전에 쓴 사용처와 내역은 연결된 요청
   expect(value('내역')).toBe('간식 구입')
   expect(hasUnsavedInput()).toBe(true)
 })
+
+test('골라 둔 요청을 풀고 방식을 오가도 다시 골라 두지 않는다', async () => {
+  serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openForm()
+  await waitFor(() => expect(value('결제할 요청')).toBe(LINKED))
+  fill('결제할 요청', '')
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  fill('사용처', '편의점')
+  fireEvent.click(screen.getByRole('button', { name: '요청한 품목 결제' }))
+  await screen.findByRole('option', { name: '다른 요청' })
+  await settle()
+  expect(value('결제할 요청')).toBe('')
+  expect(value('사용처')).toBe('편의점')
+  expect(hasUnsavedInput()).toBe(true)
+})
+
+test('요청 목록을 읽기 전에 방식을 바꿨으면 돌아와도 요청을 골라 두지 않는다', async () => {
+  const api = serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  const list = deferredResponse()
+  const listed = () =>
+    json({
+      requests: [purchaseSummary(LINKED, { title: '간식행사 즉석식품 구입', payable: true })],
+      truncated: false,
+    })
+  let first = true
+  api.on('GET', `${chatBase}/purchase-requests?view=all`, () => {
+    if (!first) return listed()
+    first = false
+    return list.promise
+  })
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await openForm()
+  fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
+  list.resolve(listed())
+  await settle()
+  fireEvent.click(screen.getByRole('button', { name: '요청한 품목 결제' }))
+  await screen.findByRole('option', { name: '간식행사 즉석식품 구입' })
+  await settle()
+  expect(value('결제할 요청')).toBe('')
+})
+
+test('골라 둔 요청의 품목을 골랐다 풀고 사용처를 비우면 떠날 때 묻지 않는다', async () => {
+  const api = serveRequests(linkedTo(LINKED), [LINKED, OTHER])
+  const item = { ...purchaseDetail().items[0]!, amount: 1000, status: 'approved' as const }
+  api.on('GET', `${chatBase}/purchase-requests/${LINKED}`, () =>
+    json({
+      request: purchaseDetail(LINKED, { body: '본문', items: [{ ...item, payable: true }] }),
+    }),
+  )
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  // 결제 수단을 고르면 사람이 쓴 것이라, 폼만 연다.
+  await openAllRoom()
+  fireEvent.click(await menuOf('지출 적기'))
+  const checkbox = await screen.findByRole('checkbox', { name: /A2 포스터/ })
+  await settle()
+  expect(hasUnsavedInput()).toBe(false)
+  fireEvent.click(checkbox)
+  expect(value('사용처')).toBe('example.com')
+  fireEvent.click(checkbox)
+  fill('사용처', '')
+  expect(hasUnsavedInput()).toBe(false)
+})

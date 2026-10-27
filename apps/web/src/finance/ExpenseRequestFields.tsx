@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import {
   statusOf,
   type PurchaseLineItem,
@@ -188,27 +188,33 @@ function ItemPicker({
 }
 
 // 메시지에서 열었으면 그 메시지에 연결된 요청을 사람이 고른 것처럼 골라 둔다(이미 아는 것을 다시 묻지 않는다).
-// 목록을 처음 읽었을 때 한 번만 해서, 사람이 바꾸거나 푼 것을 되돌리지 않는다.
+// 목록을 처음 읽었을 때 한 번만 하고 onLinkedUsed로 알려, 창이 다시 주지 않게 한다(사람이 바꾸거나 푼 것을 되돌리지 않게).
 function usePreselect(
   requests: PurchaseRequestsResponse['requests'] | null,
   linkedRequestIds: readonly string[] | undefined,
-  onAuto: Common['onAuto'],
+  { onAuto, onLinkedUsed }: Pick<LinkedProps, 'onAuto' | 'onLinkedUsed'>,
 ) {
-  const tried = useRef(false)
   useEffect(() => {
-    if (tried.current || requests === null) return
-    tried.current = true
-    const linked = linkedRequestOf(payable(requests), linkedRequestIds ?? [])
+    if (requests === null || linkedRequestIds === undefined) return
+    onLinkedUsed()
+    const linked = linkedRequestOf(payable(requests), linkedRequestIds)
     if (linked) onAuto(before => (before.requestId === null ? withRequest(before, linked) : before))
-  }, [requests, linkedRequestIds, onAuto])
+  }, [requests, linkedRequestIds, onAuto, onLinkedUsed])
+}
+
+type LinkedProps = Common & {
+  // 메시지에 연결된 요청들. 아직 골라 두지 않았을 때만 있다.
+  linkedRequestIds?: readonly string[] | undefined
+  onLinkedUsed: () => void
 }
 
 // 요청한 품목 결제: 요청을 고르고, 그 요청의 승인된 품목을 고른다. 요청을 바꾸면 고른 품목은 비운다.
 export function ExpenseRequestFields({
   errors,
   linkedRequestIds,
+  onLinkedUsed,
   ...props
-}: Common & { errors: FieldErrors; linkedRequestIds?: readonly string[] | undefined }) {
+}: LinkedProps & { errors: FieldErrors }) {
   const { councilId, values, disabled, onChange, onAuto, onForbidden } = props
   const list = usePolledRead<PurchaseRequestsResponse>(purchasesPath(councilId, 'all'), status => {
     if (status === statusOf('FORBIDDEN')) onForbidden()
@@ -222,7 +228,7 @@ export function ExpenseRequestFields({
   useEffect(() => {
     if (gone) onAuto(withRequest(values, null))
   }, [gone, values, requests, onAuto])
-  usePreselect(requests, linkedRequestIds, onAuto)
+  usePreselect(requests, linkedRequestIds, { onAuto, onLinkedUsed })
   return loadingOr(list.state, ({ requests }) => (
     <>
       <ChoiceSelect
