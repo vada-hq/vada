@@ -28,6 +28,8 @@ test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
 
 test('아이콘 파일은 PNG이고 적힌 크기와 같다', () => {
   for (const [path, size] of [
+    ['icons/icon-16.png', 16],
+    ['icons/icon-32.png', 32],
     ['icons/icon-192.png', 192],
     ['icons/icon-512.png', 512],
     ['icons/maskable-512.png', 512],
@@ -36,6 +38,17 @@ test('아이콘 파일은 PNG이고 적힌 크기와 같다', () => {
     const bytes = readFileSync(publicFile(path))
     expect(bytes.subarray(0, 8)).toEqual(PNG)
     expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([size, size])
+  }
+})
+
+test.each(['index.html', 'ui.html'])('%s: 탭과 Apple 아이콘을 잇는다', file => {
+  const html = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
+  for (const tag of [
+    '<link rel="icon" href="/icons/icon-16.png" sizes="16x16" type="image/png" />',
+    '<link rel="icon" href="/icons/icon-32.png" sizes="32x32" type="image/png" />',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+  ]) {
+    expect(html).toContain(tag)
   }
 })
 

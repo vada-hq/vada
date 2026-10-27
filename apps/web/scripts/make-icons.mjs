@@ -81,6 +81,8 @@ function icon(size, scale) {
 const publicDir = new URL('../public/', import.meta.url)
 mkdirSync(new URL('icons/', publicDir), { recursive: true })
 for (const [path, size, scale] of [
+  ['icons/icon-16.png', 16, 1],
+  ['icons/icon-32.png', 32, 1],
   ['icons/icon-192.png', 192, 1],
   ['icons/icon-512.png', 512, 1],
   ['icons/maskable-512.png', 512, 0.8],
