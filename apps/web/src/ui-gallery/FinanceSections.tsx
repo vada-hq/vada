@@ -118,7 +118,12 @@ export function DecisionSection() {
   // 누르고 난 뒤의 모양: 비운 칸 아래에 이유가 보인다.
   const tried = { amount: '금액을 입력해 주세요', budgetItemId: '예산 항목을 골라 주세요' }
   const rows = [
-    { item: lineItem('A2 포스터'), values: filled, chosen: B1, errors: {} },
+    {
+      item: { ...lineItem('A2 포스터'), estimatedShippingFee: 2500 },
+      values: filled,
+      chosen: B1,
+      errors: {},
+    },
     {
       item: lineItem('테이프'),
       values: { ...emptyRow(), choice: 'approve' },
