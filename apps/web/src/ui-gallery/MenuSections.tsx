@@ -115,6 +115,7 @@ export function MessageMenuSection() {
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
     photos: [],
+    made: [],
   }
   return (
     <Section title="메시지 메뉴">
@@ -145,6 +146,7 @@ export function KkirukMessageSection() {
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
     photos: [],
+    made: [],
   })
   const flow = [
     sample('k1', '가을 축제가 생겼어요', null),

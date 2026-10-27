@@ -164,7 +164,7 @@ test('저장하면 상세가 열리고, 메시지 사진이 있으면 공개 안
   expect(within(section).queryByRole('button', { name: /붙이기/ })).toBeNull()
 })
 
-test('사진이 없는 메시지는 사진 붙이기 칸이 없다', async () => {
+test('사진이 없는 메시지는 사진 붙이기 칸이 없고 메시지 아래에 지출이 바로 연결된다', async () => {
   const api = serve()
   api.on('POST', EXPENSES, () => json({ expense: expenseDetail('e7') }, 201))
   render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
@@ -172,6 +172,10 @@ test('사진이 없는 메시지는 사진 붙이기 칸이 없다', async () =>
   fireEvent.click(submit())
   await screen.findByRole('button', { name: '사진 올리기' })
   expect(screen.queryByRole('region', { name: '이 메시지의 사진' })).toBeNull()
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '닫기' }))
+  expect(
+    screen.getByRole('button', { name: `지출 · ${expenseDetail('e7').description}` }),
+  ).toBeTruthy()
 })
 
 const twoPhotos = () =>
@@ -313,4 +317,18 @@ test('404면 닫고 이유를 보인다', async () => {
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByText(/볼 수 없어요/)).toBeTruthy()
+})
+
+test('다른 운영진이 먼저 적어 중복이면 양식을 보존하고 제출 옆에 이유를 보인다', async () => {
+  const api = serve()
+  api.on('POST', EXPENSES, () => json({ error: 'SOURCE_MESSAGE_USED' }, 409))
+  render(<ChatHarness memberId={ME} permissions={FINANCE_PERMISSIONS} />)
+  await writeDirect(api)
+  fireEvent.click(submit())
+  expect(
+    await screen.findByText(
+      '이 메시지로 만든 지출이 이미 있어요. 대화에서 기존 지출을 확인해 주세요.',
+    ),
+  ).toBeTruthy()
+  expect(value('사용처')).toBe('인쇄소')
 })

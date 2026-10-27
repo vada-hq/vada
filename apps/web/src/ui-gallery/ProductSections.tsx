@@ -42,6 +42,7 @@ const sample = (id: string, body: string, options: Partial<ChatMessage> = {}): C
   sentAt: '2026-10-23T00:30:00Z',
   deletedAt: null,
   photos: [],
+  made: [],
   ...options,
 })
 const MESSAGES: ChatMessage[] = [

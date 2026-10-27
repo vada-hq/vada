@@ -131,3 +131,36 @@ test('메시지 메뉴로 연 요청은 불러온 품목명을 자동으로 채�
     api.calls.filter(call => call.path === `${chatBase}/product-info`).map(call => call.body),
   ).toEqual([{ url: LINK }])
 })
+
+test('이미 만든 구매 요청이 있으면 상품 패널에서도 만들기 대신 보기만 제공한다', async () => {
+  const api = serve()
+  api.on('GET', `${chatBase}/rooms/r1/messages`, () =>
+    json(
+      messagePage([
+        message(MSG, LINK, {
+          made: [{ kind: 'purchase_request', id: 'r7', title: '네임펜', blocking: true }],
+        }),
+      ]),
+    ),
+  )
+  render(<ChatHarness />)
+  await openAllRoom()
+  fireEvent.click(await screen.findByRole('link', { name: LINK }))
+  const panel = within(await screen.findByRole('complementary', { name: '상품 정보' }))
+  expect(await panel.findByRole('button', { name: '구매 요청 보기' })).toBeTruthy()
+  expect(panel.queryByRole('button', { name: '구매 요청 만들기' })).toBeNull()
+})
+
+test('경합으로 이미 만든 요청이 있으면 오류를 제출 옆에 보이고 입력은 보존한다', async () => {
+  const api = serve(null)
+  api.on('POST', PURCHASE, () => json({ error: 'SOURCE_MESSAGE_USED' }, 409))
+  const form = within(await openFromMenu())
+  fireEvent.change(form.getByLabelText('품목 1 이름'), { target: { value: '직접 적은 품목' } })
+  fireEvent.click(form.getByRole('button', { name: '내기' }))
+  expect(
+    await form.findByText(
+      '이 메시지로 만든 기록이 이미 있어요. 대화에서 기존 기록을 확인해 주세요.',
+    ),
+  ).toBeTruthy()
+  expect(form.getByLabelText<HTMLInputElement>('품목 1 이름').value).toBe('직접 적은 품목')
+})

@@ -1,5 +1,6 @@
 import type {
   ChatMessage,
+  MadeRecord,
   MessagePageResponse,
   RoomDetailResponse,
   RoomParticipant,
@@ -89,4 +90,17 @@ export function prepended(state: RoomState, older: MessagePageResponse): RoomSta
 
 export function withSync(state: RoomState, syncFailed: boolean): RoomState {
   return state.kind === 'ready' ? { ...state, syncFailed } : state
+}
+
+// 같은 방에서 적은 지출을 즉시 잇는다. 재조회와 중복 알림이 와도 같은 기록은 한 번만 둔다.
+export function withMade(state: RoomState, messageId: string, made: MadeRecord): RoomState {
+  if (state.kind !== 'ready') return state
+  return {
+    ...state,
+    messages: state.messages.map(item =>
+      item.id === messageId
+        ? { ...item, made: [...(item.made ?? []).filter(known => known.id !== made.id), made] }
+        : item,
+    ),
+  }
 }
