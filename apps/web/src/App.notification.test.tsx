@@ -206,10 +206,9 @@ function taskApi(id = '0199d1a0-0000-7000-8000-0000000000c1', taskId = T1) {
 }
 // 상세가 열리고 업무를 읽어 제목이 보일 때까지 기다린다.
 const taskDialog = async () => {
-  await waitFor(
-    () => expect(within(screen.getByRole('dialog')).getByText('현수막 주문')).toBeTruthy(),
-    { timeout: 5000 },
-  )
+  await waitFor(() => expect(screen.getByRole('dialog', { name: '현수막 주문' })).toBeTruthy(), {
+    timeout: 5000,
+  })
   return '현수막 주문'
 }
 

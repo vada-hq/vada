@@ -31,6 +31,8 @@ const messageTitle = (actor: Actor) =>
     then left(split_part(${message.body}, chr(10), 1), ${TITLE_MAX}) end`
 const erasedNotice = (actor: Actor) =>
   sql`${message.deletedAt} is not null and ${visibleMessage(actor)}`
+// 공지를 열 방은 볼 수 있고 지우지 않은 공지일 때만 싣는다.
+const shownNotice = (actor: Actor) => sql`${message.deletedAt} is null and ${visibleMessage(actor)}`
 export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promise<TaskResult[]> {
   const rows = await db
     .select({
@@ -39,6 +41,10 @@ export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promi
       title: sql<
         string | null
       >`case when ${erasedNotice(actor)} then null else coalesce(${request.title}, ${registrationForm.name}, ${event.name}, ${messageTitle(actor)}, '') end`,
+      eventId: sql<
+        string | null
+      >`coalesce(${registrationForm.eventId}, case when ${shownNotice(actor)} then ${chatRoom.eventId} end)`,
+      roomId: sql<string | null>`case when ${shownNotice(actor)} then ${message.roomId} end`,
     })
     .from(taskResult)
     .innerJoin(record, eq(record.id, taskResult.resultId))
@@ -56,6 +62,8 @@ export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promi
     id: row.id,
     title: row.title,
     stage: stages.get(row.id) ?? 'none',
+    eventId: row.eventId,
+    roomId: row.roomId,
   }))
 }
 

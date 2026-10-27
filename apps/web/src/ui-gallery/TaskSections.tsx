@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import { departmentColorOf } from '@/tasks/department-color'
 import { TaskBoard } from '@/tasks/TaskBoard'
 import { TaskCard } from '@/tasks/TaskCard'
-import { TaskResults } from '@/tasks/TaskResults'
 import { QuickAddView } from '@/tasks/TaskQuickAdd'
 import { TaskRow } from '@/tasks/TaskRow'
 import { TaskTable } from '@/tasks/TaskTable'
@@ -155,31 +154,6 @@ export function TaskUndoBarSection() {
         {bars.map((bar, index) => (
           <TaskUndoBar key={index} bar={bar} dismiss={noop} undo={noop} />
         ))}
-      </div>
-    </Section>
-  )
-}
-
-export function TaskResultsSection() {
-  return (
-    <Section title="업무 상세 결과물">
-      <div className="flex w-96 flex-col gap-6">
-        <TaskResults
-          task={{
-            results: [
-              { kind: 'request', id: 'r1', title: '현수막 구매', stage: 'in_progress' },
-              { kind: 'message', id: 'm1', title: `${unbroken} ${longName}`, stage: 'finished' },
-              { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
-              { kind: 'message', id: 'm2', title: null, stage: 'excluded' },
-              { kind: 'event', id: 'e1', title: '신입생 환영회', stage: 'none' },
-            ],
-            canMake: ['request', 'registration_form', 'message', 'event'],
-          }}
-          saving={false}
-          onMake={noop}
-        />
-        <TaskResults task={{ results: [], canMake: ['request'] }} saving onMake={noop} />
-        <TaskResults task={{ results: [], canMake: [] }} saving={false} onMake={noop} />
       </div>
     </Section>
   )

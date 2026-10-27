@@ -49,7 +49,14 @@ test(
     assert.equal(await statusOf(s, taskId), 'in_progress')
     const detail = await detailOf(s, taskId, PLANNER)
     assert.deepEqual(detail.results, [
-      { kind: 'request', id: made.id, title: '현수막', stage: 'in_progress' },
+      {
+        kind: 'request',
+        id: made.id,
+        title: '현수막',
+        stage: 'in_progress',
+        eventId: null,
+        roomId: null,
+      },
     ])
     // 공지방에는 모든 운영진이 보내므로 부원도 공지 만들기('message')가 있다(DEC-90).
     assert.deepEqual(detail.canMake, ['request', 'message'])

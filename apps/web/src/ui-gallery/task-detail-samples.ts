@@ -92,8 +92,22 @@ export const sampleTasks: TaskDetail[] = [
     assignee: { id: 'm6', name: '강예린', current: true },
     body: '1등~3등 상품과 참가 기념품. 예산 안에서 쿠팡으로 사요.',
     results: [
-      { kind: 'request', id: 'r1', title: '체육대회 상품 구매 요청', stage: 'in_progress' },
-      { kind: 'message', id: 'n1', title: '상품 수령 안내 공지', stage: 'finished' },
+      {
+        kind: 'request',
+        id: 'r1',
+        title: '체육대회 상품 구매 요청',
+        stage: 'in_progress',
+        eventId: null,
+        roomId: null,
+      },
+      {
+        kind: 'message',
+        id: 'n1',
+        title: '상품 수령 안내 공지',
+        stage: 'finished',
+        eventId: null,
+        roomId: null,
+      },
     ],
     canMake: ['request', 'message'],
   },
@@ -116,7 +130,16 @@ export const sampleTasks: TaskDetail[] = [
     assignee: { id: 'm3', name: '박서연', current: true },
     actions: [],
     body: '쓰지 않는 의자 4개는 학생지원팀에 반납했어요.',
-    results: [{ kind: 'message', id: 'n2', title: '비품 정리 완료 공지', stage: 'finished' }],
+    results: [
+      {
+        kind: 'message',
+        id: 'n2',
+        title: '비품 정리 완료 공지',
+        stage: 'finished',
+        eventId: null,
+        roomId: null,
+      },
+    ],
   },
 ]
 

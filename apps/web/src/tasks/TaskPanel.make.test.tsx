@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { TaskDetail } from '@vada/contracts'
+import { appPath, eventRoomPath, recordPath, type TaskDetail } from '@vada/contracts'
 import { asElement } from '@/test-support/elements'
 import { councilView } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
@@ -14,7 +14,7 @@ import { confirmLeave } from '@/lib/leave-guard'
 import { ROOM_LOST, TASK_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
-import { TaskDetailDialog } from './TaskDetailDialog'
+import { TaskPanel } from './TaskPanel'
 
 afterEach(async () => {
   cleanup()
@@ -49,11 +49,7 @@ function setup(task: TaskDetail) {
       view={councilView('c1', { memberId: MEMBER_ID })}
       onForbidden={handlers.onForbidden}
     >
-      <TaskDetailDialog
-        view={councilView('c1', { memberId: MEMBER_ID })}
-        taskId={TASK_ID}
-        {...handlers}
-      />
+      <TaskPanel view={councilView('c1', { memberId: MEMBER_ID })} taskId={TASK_ID} {...handlers} />
     </PurchaseRoute>,
   )
   return { api, handlers, change: (next: TaskDetail) => (current = next) }
@@ -61,6 +57,11 @@ function setup(task: TaskDetail) {
 
 const detail = (extra: Partial<TaskDetail> = {}) =>
   taskDetail({ id: TASK_ID, title: '현수막 사기', ...extra })
+// 결과물 [만들기] 메뉴에서 그 종류를 고른다. 항목 이름 뒤에 만들면 업무가 어떻게 되는지가 붙는다.
+async function make(label: string) {
+  fireEvent.keyDown(await screen.findByRole('button', { name: '만들기' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: new RegExp(`^${label}`) }))
+}
 const submitIn = (name: string) =>
   fireEvent.submit(within(screen.getByRole('dialog', { name })).getByRole('form'))
 
@@ -71,15 +72,36 @@ test('결과물이 없고 만들 수 있는 것도 없으면 결과물 없음만
   expect(within(region).queryByRole('button')).toBeNull()
 })
 
-test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있는 버튼만 보인다', async () => {
+test('결과물 줄은 종류와 제목과 단계를 보이고, [만들기] 메뉴에는 canMake에 있는 것만 있다', async () => {
   setup(
     detail({
       results: [
-        { kind: 'request', id: 'r1', title: '현수막 요청', stage: 'in_progress' },
-        { kind: 'message', id: 'm1', title: '내일 총회', stage: 'finished' },
-        { kind: 'request', id: 'r2', title: '옛 요청', stage: 'excluded' },
-        { kind: 'event', id: 'e1', title: '봄 행사', stage: 'none' },
-        { kind: 'message', id: 'm2', title: null, stage: 'excluded' },
+        {
+          kind: 'request',
+          id: 'r1',
+          title: '현수막 요청',
+          stage: 'in_progress',
+          eventId: null,
+          roomId: null,
+        },
+        {
+          kind: 'message',
+          id: 'm1',
+          title: '내일 총회',
+          stage: 'finished',
+          eventId: null,
+          roomId: ROOM_ID,
+        },
+        {
+          kind: 'request',
+          id: 'r2',
+          title: '옛 요청',
+          stage: 'excluded',
+          eventId: null,
+          roomId: null,
+        },
+        { kind: 'event', id: 'e1', title: '봄 행사', stage: 'none', eventId: null, roomId: null },
+        { kind: 'message', id: 'm2', title: null, stage: 'excluded', eventId: null, roomId: null },
       ],
       canMake: ['request', 'message'],
     }),
@@ -89,21 +111,53 @@ test('결과물 줄은 종류와 제목과 단계를 보이고, canMake에 있�
     .getAllByRole('listitem')
     .map(item => item.textContent)
   expect(lines).toEqual([
-    '구매 요청 · 현수막 요청진행 중',
-    '공지 · 내일 총회끝남',
-    '구매 요청 · 옛 요청취소',
-    '행사 · 봄 행사',
-    '공지 · 삭제된 메시지취소',
+    '구매 요청현수막 요청진행 중',
+    '공지내일 총회끝남',
+    '구매 요청옛 요청취소',
+    '행사봄 행사',
+    '공지삭제된 메시지취소',
   ])
-  expect(within(region).getByRole('button', { name: '구매 요청 만들기' })).toBeTruthy()
-  expect(within(region).getByRole('button', { name: '공지 만들기' })).toBeTruthy()
-  expect(within(region).queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
-  expect(within(region).queryByRole('button', { name: '행사 만들기' })).toBeNull()
+  // 지운 공지는 열 곳이 없어 누를 수 없다.
+  expect(within(region).queryByRole('button', { name: /삭제된 메시지/ })).toBeNull()
+  fireEvent.keyDown(within(region).getByRole('button', { name: '만들기' }), { key: 'Enter' })
+  const items = await screen.findAllByRole('menuitem')
+  expect(items.map(item => item.textContent)).toEqual([
+    '구매 요청내면 진행 중, 모두 결제되면 끝남',
+    '공지공지방에 올리면 끝남',
+  ])
 })
+
+test.each([
+  ['request', 'r1', null, null, '/purchases/c1/r1'],
+  ['event', EVENT_ID, null, null, recordPath('events', 'c1', EVENT_ID)],
+  [
+    'registration_form',
+    'f1',
+    EVENT_ID,
+    null,
+    appPath({
+      type: 'record',
+      record: 'events',
+      councilId: 'c1',
+      recordId: EVENT_ID,
+      query: { tab: 'registrations' },
+    }),
+  ],
+  ['message', 'm1', null, ROOM_ID, recordPath('chat', 'c1', ROOM_ID)],
+  ['message', 'm1', EVENT_ID, ROOM_ID, eventRoomPath('c1', EVENT_ID, ROOM_ID)],
+] as const)(
+  '결과물 줄(%s)을 누르면 그 기록으로 간다',
+  async (...[kind, id, eventId, roomId, target]) => {
+    setup(detail({ results: [{ kind, id, title: '결과물', stage: 'none', eventId, roomId }] }))
+    const region = await screen.findByRole('region', { name: '결과물' })
+    fireEvent.click(within(region).getByRole('button', { name: /결과물$/ }))
+    await waitFor(() => expect(window.location.pathname + window.location.search).toBe(target))
+  },
+)
 
 test('구매 요청 만들기는 제목이 채워진 전용 페이지를 열고 taskId를 보존해 보낸다', async () => {
   const { api, change } = setup(detail({ canMake: ['request'], event: null }))
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  await make('구매 요청')
   const form = await screen.findByRole('form', { name: '구매 요청 내기' })
   expect(asElement(within(form).getByLabelText(/제목/), HTMLInputElement).value).toBe('현수막 사기')
   fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
@@ -111,7 +165,16 @@ test('구매 요청 만들기는 제목이 채워진 전용 페이지를 열고 
   change(
     detail({
       status: 'in_progress',
-      results: [{ kind: 'request', id: 'r1', title: '현수막 사기', stage: 'in_progress' }],
+      results: [
+        {
+          kind: 'request',
+          id: 'r1',
+          title: '현수막 사기',
+          stage: 'in_progress',
+          eventId: null,
+          roomId: null,
+        },
+      ],
     }),
   )
   fireEvent.submit(form)
@@ -123,7 +186,7 @@ test('구매 요청 만들기는 제목이 채워진 전용 페이지를 열고 
 
 test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그대로다', async () => {
   const { api } = setup(detail({ canMake: ['request'] }))
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  await make('구매 요청')
   const form = await screen.findByRole('form', { name: '구매 요청 내기' })
   fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
   api.on('POST', `${BASE}/purchase-requests`, () => json({ error: 'TASK_INVALID' }, 409))
@@ -140,7 +203,7 @@ test('이을 수 없는 업무면 409 문구를 창 안에 보이고 창은 그�
 
 test('403이면 창을 닫고 이유를 부모에게 넘긴다', async () => {
   const { api, handlers } = setup(detail({ canMake: ['request'] }))
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 만들기' }))
+  await make('구매 요청')
   const form = await screen.findByRole('form', { name: '구매 요청 내기' })
   fireEvent.change(within(form).getByLabelText(/이름/), { target: { value: '현수막' } })
   api.on('POST', `${BASE}/purchase-requests`, () => json({ error: 'FORBIDDEN' }, 403))
@@ -161,7 +224,7 @@ test('공지 만들기는 공지방에 보통 메시지로 taskId를 보낸다. 
       mentionTotal: 0,
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  await make('공지')
   const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
   await waitFor(() => expect(api.calls.some(call => call.path === `${BASE}/rooms`)).toBe(true))
   fireEvent.submit(within(dialog).getByRole('form'))
@@ -191,7 +254,7 @@ test('학생회 업무의 공지는 행사 방이 아닌 학생회 공지방에 
       mentionTotal: 0,
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  await make('공지')
   const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
   fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 총회' } })
   api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ id: 'm1' }, 201))
@@ -212,7 +275,7 @@ test('행사에 이은 업무의 공지는 그 행사의 공지방에 보낸다'
       archived: false,
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  await make('공지')
   const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
   fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 리허설' } })
   api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ id: 'm1' }, 201))
@@ -225,7 +288,7 @@ test('행사에 이은 업무의 공지는 그 행사의 공지방에 보낸다'
 
 test('행사 만들기는 이름과 taskId를 보낸다', async () => {
   const { api } = setup(detail({ canMake: ['event'] }))
-  fireEvent.click(await screen.findByRole('button', { name: '행사 만들기' }))
+  await make('행사')
   const dialog = await screen.findByRole('dialog', { name: '새 행사' })
   fireEvent.change(within(dialog).getByLabelText(/행사명/), { target: { value: '봄 축제' } })
   api.on('POST', `${BASE}/events`, () => json({ event: { id: EVENT_ID } }, 201))
@@ -241,7 +304,7 @@ test('신청 양식 만들기는 업무의 행사로 양식 화면을 대화상�
   const { api } = setup(
     detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  await make('신청 양식')
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.change(within(form).getByLabelText(/신청 마감/), {
     target: { value: '2026-11-01T18:00' },
@@ -263,7 +326,7 @@ test('공지 보내기가 404이면 업무가 아니라 방을 잃었다고 알�
       mentionTotal: 0,
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '공지 만들기' }))
+  await make('공지')
   const dialog = await screen.findByRole('dialog', { name: '공지 만들기' })
   fireEvent.change(within(dialog).getByLabelText(/내용/), { target: { value: '내일 총회' } })
   api.on('POST', `${BASE}/rooms/${ROOM_ID}/messages`, () => json({ error: 'NOT_FOUND' }, 404))
@@ -280,7 +343,7 @@ test('신청 양식 창은 행사의 일시·장소 미정을 알리고, 만든 
   api.on('GET', `${BASE}/events/${EVENT_ID}`, () =>
     json({ event: eventDetail({ id: EVENT_ID, startsAt: null, place: null }) }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  await make('신청 양식')
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   expect((await within(form).findAllByText('미정')).length).toBe(2)
   fireEvent.change(within(form).getByLabelText(/신청 마감/), {

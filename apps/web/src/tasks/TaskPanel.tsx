@@ -6,7 +6,6 @@ import {
   type TaskDetail,
   type TaskResultKind,
 } from '@vada/contracts'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { HistoryMenu, type MenuAction } from '@/components/HistoryMenu'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -17,13 +16,14 @@ import { useTeam } from '@/team/useTeam'
 import { editRequest, type TaskEdit } from './task-edits'
 import { assigneeOptions, departmentOptions, eventOptions } from './task-pick-options'
 import type { TaskDialogHandlers } from './task-requests'
+import { resultOpener } from './task-result-open'
 import { versionLine } from './task-text'
-import { TaskDetailFrame, type TaskFrame } from './TaskDetailFrame'
+import { TaskDeleteConfirm } from './TaskDeleteConfirm'
+import { TaskDetailFrame } from './TaskDetailFrame'
 import { TaskDetailView } from './TaskDetailView'
 import type { TaskPickOptions } from './TaskFactGrid'
 import { TaskInlineText } from './TaskInlineText'
 import { TaskMake } from './TaskMake'
-import type { ResultsLayout } from './TaskResultList'
 import { TaskUndoBar } from './TaskUndoBar'
 import { useAssigneeUndo } from './useAssigneeUndo'
 import { useLinkableEvents } from './useLinkableEvents'
@@ -35,12 +35,10 @@ type Props = TaskDialogHandlers & {
   taskId: string | null
   onClose: () => void
   onOpenEvent?: ((eventId: string) => void) | undefined
-  // 틀과 결과물 배치. 사람이 고르기 전까지 시안 비교용으로 둘 다 둔다(notes/task-detail-redesign.md).
-  frame?: TaskFrame
-  results?: ResultsLayout
 }
 
-// 업무 상세 패널. 열려 있을 때만 읽고, 업무가 바뀌면 처음부터 다시 읽는다.
+// 업무 상세 오른쪽 패널. 업무 메뉴의 보드·표·달력, 행사의 업무 탭, 홈과 알림이 여는 업무 주소(/tasks/<학생회>/<업무>)가 모두 이것을 연다.
+// 열려 있을 때만 읽고, 업무가 바뀌면 처음부터 다시 읽는다.
 export function TaskPanel({ taskId, ...props }: Props) {
   if (taskId === null) return null
   return <OpenTaskPanel key={taskId} taskId={taskId} {...props} />
@@ -111,6 +109,7 @@ function pickOptions(team: Team, task: TaskDetail | null, events: TaskPickOption
     departments: team.data ? departmentOptions(team.data) : null,
     assignees: team.data && task ? assigneeOptions(team.data, task) : null,
     events,
+    teamFailed: team.loadFailed,
   }
 }
 
@@ -138,14 +137,10 @@ function DeleteConfirm({
   onDeleted: () => void
 }) {
   return (
-    <ConfirmDialog
+    <TaskDeleteConfirm
       open={open}
-      destructive
       busy={detail.saving}
       error={detail.problem?.where === 'delete' ? detail.problem.text : ''}
-      title="이 업무를 지울까요?"
-      description="지운 업무는 목록에서 사라지고 되살릴 수 없어요."
-      confirmLabel="지우기"
       onClose={() => {
         detail.clearProblem()
         onCancel()
@@ -231,9 +226,9 @@ function PanelBody({ parts, props }: { parts: Parts; props: OpenProps }) {
       busy={detail.saving}
       problem={detail.problem}
       options={pickOptions(parts.team, detail.task, parts.events)}
-      results={props.results ?? 'menu'}
       onEdit={edit.onEdit}
       onMake={parts.setMaking}
+      openerOf={resultOpener(parts.councilId)}
       onNeedEvents={() => parts.setWantEvents(true)}
       onOpenEvent={props.onOpenEvent}
     />
@@ -278,7 +273,6 @@ function OpenTaskPanel(props: OpenProps) {
   const { detail, edit, menu } = parts
   return (
     <TaskDetailFrame
-      frame={props.frame ?? 'panel'}
       title={detail.task?.title ?? '업무'}
       busy={detail.saving}
       onClose={props.onClose}
