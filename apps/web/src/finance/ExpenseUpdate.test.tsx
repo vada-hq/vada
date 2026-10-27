@@ -19,7 +19,13 @@ import {
   standardAccounts,
 } from '@/test-support/account-fixtures'
 import { deferredResponse, json } from '@/test-support/mock-api'
-import { ACTION_GONE, EXPENSE_OPTIONS_FAILED, EXPENSE_ERRORS, EXPENSE_LOST } from '@/lib/messages'
+import {
+  ACTION_GONE,
+  EXPENSE_ACCOUNT_CLOSED,
+  EXPENSE_OPTIONS_FAILED,
+  EXPENSE_ERRORS,
+  EXPENSE_LOST,
+} from '@/lib/messages'
 
 afterEach(async () => {
   cleanup()
@@ -224,28 +230,64 @@ test('행사 목록을 읽지 못하면 이유를 보이고 사유는 고칠 수
   expect(screen.getByLabelText('사유')).toHaveProperty('disabled', false)
 })
 
-test('계좌 선택 칸은 닫지 않은 계좌만 보이고 계좌 없는 지출은 대표 계좌로 채워 저장한다', async () => {
+test('계좌 없는 지출은 없음으로 시작하고 사유만 고쳐도 계좌는 null 그대로 둔다', async () => {
   const api = serve()
   api.on('GET', `${BASE}/accounts`, () => json(standardAccounts()))
   api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
     json({
-      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
-        account: { id: MAIN_ACCOUNT_ID, name: '학생회비 통장' },
-      }),
+      expense: expenseDetail('0199d1a0-0000-7000-8000-00000000b101', { reason: '보충' }),
     }),
   )
   showFinance()
   const dialog = await openUpdate()
   const account = within(dialog).getByLabelText('계좌')
   expect(account.parentElement?.textContent).toContain('(선택)')
-  await waitFor(() => expect(account).toHaveProperty('value', MAIN_ACCOUNT_ID))
+  await within(account).findByRole('option', { name: '학생회비 통장 (국민은행)' })
+  expect(account).toHaveProperty('value', '')
   expect(
     within(account)
       .getAllByRole('option')
       .map(option => option.textContent),
   ).toEqual(['없음', '학생회비 통장 (국민은행)', '행사 통장 (신한은행)'])
+  fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '보충' } })
   fireEvent.click(save(dialog))
-  await waitFor(() => expect(posts(api)[0]?.body).toEqual({ accountId: MAIN_ACCOUNT_ID }))
+  await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: '보충' }))
+})
+
+test('기존 A에서 고른 B가 폴링으로 닫히면 저장을 막고 계좌 칸 오류를 보이며 다시 고르게 한다', async () => {
+  const api = serve(
+    expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+      account: { id: MAIN_ACCOUNT_ID, name: '학생회비 통장' },
+    }),
+  )
+  api.on('GET', `${BASE}/accounts`, () => json(standardAccounts()))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail() }),
+  )
+  showFinance()
+  const dialog = await openUpdate()
+  const account = within(dialog).getByLabelText('계좌')
+  await within(account).findByRole('option', { name: '행사 통장 (신한은행)' })
+  fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '보충' } })
+  fireEvent.change(account, { target: { value: BUSINESS_ACCOUNT_ID } })
+  const updated = standardAccounts()
+  updated.accounts.find(item => item.id === BUSINESS_ACCOUNT_ID)!.closedOn = '2026-10-28'
+  api.on('GET', `${BASE}/accounts`, () => json(updated))
+  fireEvent(document, new Event('visibilitychange'))
+  await waitFor(() =>
+    expect(within(account).queryByRole('option', { name: '행사 통장 (신한은행)' })).toBeNull(),
+  )
+  expect(save(dialog)).toHaveProperty('disabled', false)
+  fireEvent.click(save(dialog))
+  expect(posts(api)).toHaveLength(0)
+  expect(within(dialog).getByText(EXPENSE_ACCOUNT_CLOSED)).toBeTruthy()
+  expect(account.getAttribute('aria-invalid')).toBe('true')
+  expect(account.parentElement?.textContent).toContain(EXPENSE_ACCOUNT_CLOSED)
+  await waitFor(() => expect(document.activeElement).toBe(account))
+  fireEvent.change(account, { target: { value: MAIN_ACCOUNT_ID } })
+  expect(within(dialog).queryByText(EXPENSE_ACCOUNT_CLOSED)).toBeNull()
+  fireEvent.click(save(dialog))
+  await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: '보충' }))
 })
 
 test.each([BUSINESS_ACCOUNT_ID, ''])(
@@ -315,10 +357,32 @@ test('기존 닫은 계좌는 사유만 고칠 때 지우지 않는다', async (
   )
   showFinance()
   const dialog = await openUpdate()
-  expect(await within(dialog).findByText(/고른 계좌를 닫았어요/)).toBeTruthy()
+  const account = within(dialog).getByLabelText('계좌')
+  await within(account).findByRole('option', { name: /지난 통장.*\(닫힘\)/ })
+  expect(account).toHaveProperty('value', CLOSED_ACCOUNT_ID)
   fireEvent.change(within(dialog).getByLabelText('사유'), { target: { value: '보충' } })
   fireEvent.click(save(dialog))
   await waitFor(() => expect(posts(api)[0]?.body).toEqual({ reason: '보충' }))
+})
+
+test('닫힌 기존 계좌를 그대로 표시하고 없음을 고르면 계좌를 실제로 비운다', async () => {
+  const api = serve(
+    expenseDetail('0199d1a0-0000-7000-8000-00000000b101', {
+      account: { id: CLOSED_ACCOUNT_ID, name: '지난 통장' },
+    }),
+  )
+  api.on('GET', `${BASE}/accounts`, () => json(standardAccounts()))
+  api.on('POST', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
+    json({ expense: expenseDetail() }),
+  )
+  showFinance()
+  const dialog = await openUpdate()
+  const account = within(dialog).getByLabelText('계좌')
+  await within(account).findByRole('option', { name: /지난 통장.*\(닫힘\)/ })
+  expect(account).toHaveProperty('value', CLOSED_ACCOUNT_ID)
+  fireEvent.change(account, { target: { value: '' } })
+  fireEvent.click(save(dialog))
+  await waitFor(() => expect(posts(api)[0]?.body).toEqual({ accountId: null }))
 })
 
 test('계좌 목록이 늦거나 실패해도 기존 계좌를 비우지 않고 사유를 고친다', async () => {

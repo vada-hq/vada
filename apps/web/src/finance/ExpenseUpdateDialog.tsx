@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { UpdateExpenseSchema, type ExpenseDetail, type UpdateExpense } from '@vada/contracts'
+import {
+  UpdateExpenseSchema,
+  type AccountItem,
+  type ExpenseDetail,
+  type UpdateExpense,
+} from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,11 +17,15 @@ import {
 import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
-import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
+import {
+  EXPENSE_ACCOUNT_CLOSED,
+  EXPENSE_ACCOUNTS_FAILED,
+  EXPENSE_OPTIONS_FAILED,
+} from '@/lib/messages'
 import { useEvents } from '../events/useEvents'
 import { ChoiceSelect } from '../tasks/ChoiceSelect'
 import { eventChoices } from '../tasks/task-form-options'
-import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
+import { useExpenseAccount } from './ExpenseAccountSelect'
 
 type Props = {
   councilId: string
@@ -95,6 +104,47 @@ function UpdateFields({
   )
 }
 
+function updateAccountChoices(
+  accounts: AccountItem[] | null,
+  current: ExpenseDetail['account'],
+  selected: string | null,
+) {
+  const choices = (accounts ?? [])
+    .filter(item => item.closedOn === null || item.id === current?.id || item.id === selected)
+    .map(item => ({
+      id: item.id,
+      label: `${item.name} (${item.bank})${item.closedOn === null ? '' : ' (닫힘)'}`,
+    }))
+  // 목록이 늦거나 일부만 와도 기존 계좌를 '없음'으로 보이지 않게 한다.
+  if (current && !choices.some(item => item.id === current.id)) {
+    choices.push({ id: current.id, label: current.name })
+  }
+  return [{ id: null, label: '없음' }, ...choices]
+}
+
+function UpdateAccountField({
+  account,
+  current,
+  ...props
+}: {
+  account: ReturnType<typeof useExpenseAccount>
+  current: ExpenseDetail['account']
+  value: string | null
+  disabled: boolean
+  error: string | undefined
+  onChange: (id: string | null) => void
+}) {
+  if (account.failed) return <StateMessage kind="error">{EXPENSE_ACCOUNTS_FAILED}</StateMessage>
+  return (
+    <ChoiceSelect
+      label="계좌"
+      optional
+      choices={updateAccountChoices(account.accounts, current, props.value)}
+      {...props}
+    />
+  )
+}
+
 // 지출 고치기(재정부): 사유·행사·계좌. 행사는 완료 전, 새로 잇는 계좌는 닫기 전이어야 한다.
 // [저장]은 끄지 않는다. 바꾼 것이 없으면 그냥 닫는다.
 export function ExpenseUpdateDialog({
@@ -108,15 +158,8 @@ export function ExpenseUpdateDialog({
 }: Props) {
   const [reason, setReason] = useState(expense.reason ?? '')
   const [eventId, setEventId] = useState(linkedId(expense.event))
-  const [chosenAccountId, setAccountId] = useState<string | null>()
-  const account = useExpenseAccount(
-    councilId,
-    onForbidden,
-    chosenAccountId === undefined ? expense.account?.id : chosenAccountId,
-  )
-  // 기존 닫은 계좌는 사람이 다른 계좌나 없음을 고르기 전까지 유지한다.
-  const accountId =
-    chosenAccountId === undefined && expense.account ? expense.account.id : account.pick.id
+  const [accountId, setAccountId] = useState(linkedId(expense.account))
+  const account = useExpenseAccount(councilId, onForbidden, accountId)
   const body = changesOf(expense, reason, eventId, accountId)
   // 계약이 받지 않는 사유(너무 긴 글)는 사유 칸 아래에 보인다.
   const {
@@ -124,7 +167,15 @@ export function ExpenseUpdateDialog({
     errors: fieldErrors,
     attempt,
   } = useFormCheck<HTMLDivElement>(() =>
-    withContract({}, body === null ? { success: true } : UpdateExpenseSchema.safeParse(body)),
+    withContract(
+      {
+        accountId:
+          accountId !== linkedId(expense.account) && account.pick.closed
+            ? EXPENSE_ACCOUNT_CLOSED
+            : undefined,
+      },
+      body === null ? { success: true } : UpdateExpenseSchema.safeParse(body),
+    ),
   )
   const save = () => {
     if (body === null) return onClose()
@@ -153,7 +204,14 @@ export function ExpenseUpdateDialog({
             onForbidden={onForbidden}
           />
           <div className="max-sm:[&_select]:min-h-11">
-            <ExpenseAccountSelect account={account} disabled={busy} onPick={setAccountId} />
+            <UpdateAccountField
+              account={account}
+              current={expense.account}
+              value={accountId}
+              disabled={busy}
+              error={fieldErrors.accountId}
+              onChange={setAccountId}
+            />
           </div>
         </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
