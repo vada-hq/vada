@@ -19,6 +19,7 @@ export const message = (
   sentAt: '2020-03-02T01:30:00Z',
   deletedAt: null,
   photos: [],
+  made: [],
   ...options,
 })
 

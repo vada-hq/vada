@@ -1,3 +1,4 @@
+import type { MadeRecord } from '@vada/contracts'
 import ExpenseFlowView from './ExpenseFlowView'
 import RequestFlowView, { type RequestAccess } from './RequestFlowView'
 import { useExpenseFlow } from './useExpenseFlow'
@@ -11,6 +12,7 @@ type Props = {
   // 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
   canWriteExpense: boolean
   eventId: string | null
+  onMade: (messageId: string, made: MadeRecord) => void
   onForbidden: () => void
 }
 

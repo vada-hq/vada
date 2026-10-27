@@ -77,6 +77,7 @@ const chatMessage = (id: string, senderName: string | null, body: string): ChatM
   sentAt: '2026-10-23T01:30:00Z',
   deletedAt: null,
   photos: [],
+  made: [],
 })
 // 지운 메시지(DEC-54): 본문 없이 지운 시각만 있다.
 const deletedMessage = (id: string, senderName: string): ChatMessage => ({
@@ -140,6 +141,36 @@ export function MessageBubbleSection() {
               onWriteExpense={noop}
             />
           ))}
+        </ul>
+      ))}
+    </Section>
+  )
+}
+
+// 같은 원문에 구매 요청과 지출이 함께 연결된 경우, 반려·취소 이력과 긴 제목을 함께 확인한다.
+export function MessageMadeSection() {
+  const message = {
+    ...chatMessage('made', '정하늘', '행사 물품 부탁해요'),
+    made: [
+      { kind: 'purchase_request' as const, id: 'p1', title: longName, blocking: false },
+      { kind: 'purchase_request' as const, id: 'p2', title: '진행 요원 조끼', blocking: true },
+      { kind: 'expense' as const, id: 'e1', title: '조끼 구입비', blocking: true },
+    ],
+  }
+  return (
+    <Section title="메시지에서 만든 기록">
+      {['w-97.5', 'w-176'].map(width => (
+        <ul key={width} className={cn('rounded-lg border bg-white py-2', width)}>
+          <MessageItem
+            councilId="sample"
+            message={message}
+            continued={false}
+            mine={false}
+            canRequest
+            onRequest={noop}
+            canWriteExpense
+            onWriteExpense={noop}
+          />
         </ul>
       ))}
     </Section>

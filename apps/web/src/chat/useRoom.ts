@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { MadeRecord } from '@vada/contracts'
 import { useActive } from '@/lib/use-active'
 import { useVisiblePoll } from '@/lib/use-visible-poll'
 import { CHAT_POLL_MS, isRoomLost } from './chat-api'
@@ -9,6 +10,7 @@ import {
   readMessages,
   readNewer,
   withSync,
+  withMade,
   type RoomState,
 } from './room-state'
 
@@ -62,6 +64,9 @@ export function useRoom(councilId: string, roomId: string) {
     setState(now => prepended(now, result.data))
     return true
   }, [where, firstId, lose, isActive])
-  return { state, retry: first, lose, loadOlder, sync: catchUp }
+  const addMade = useCallback((messageId: string, made: MadeRecord) => {
+    setState(before => withMade(before, messageId, made))
+  }, [])
+  return { state, retry: first, lose, loadOlder, sync: catchUp, addMade }
 }
 export type Room = ReturnType<typeof useRoom>

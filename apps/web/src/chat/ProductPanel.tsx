@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { openRecord } from '@/lib/go-to'
+import { blockingOf } from './useMessageActions'
 import { useWindowHistory } from '@/lib/use-window-history'
 import type { RoomPage } from './ChatPage'
 import { useProductInfo } from './product-info'
@@ -76,12 +78,21 @@ export function ProductPanelFrame({
 function RequestButton({
   target,
   flow,
+  councilId,
 }: {
+  councilId: string
   target: ProductTarget
   flow: ReturnType<typeof useRequestFlow>
 }) {
   // 여기서 막 낸 요청은 아래 안내의 [재정에서 보기]가 연다(같은 버튼을 두 번 두지 않는다).
   if (flow.madeId) return null
+  const made = blockingOf(target.message, 'purchase_request')
+  if (made)
+    return (
+      <Button touch onClick={() => openRecord('purchases', councilId, made.id)}>
+        구매 요청 보기
+      </Button>
+    )
   return (
     <Button touch onClick={() => flow.start(target.message)}>
       구매 요청 만들기
@@ -103,7 +114,9 @@ function ProductContent({ page, target }: Props) {
       <ProductDetails
         state={state}
         url={target.url}
-        request={canRequest && <RequestButton target={target} flow={flow} />}
+        request={
+          canRequest && <RequestButton councilId={page.councilId} target={target} flow={flow} />
+        }
       />
       <RequestFlowView
         councilId={page.councilId}
