@@ -237,7 +237,7 @@ test('업무의 행사는 다른 학생회 것이면 만들 때와 바꿀 때 �
   }
 })
 
-test('지출의 계좌는 다른 학생회 것이면 만들 때 막고 만든 뒤 바꾸지 못하며, 지출의 행사는 같은 학생회 것으로 바꿀 수 있다', async () => {
+test('지출의 계좌와 행사는 만들거나 바꿀 때 다른 학생회 것을 막고 같은 학생회 것으로 바꾸거나 비울 수 있다', async () => {
   const { db, pg, close } = await createTestDb()
   try {
     const s = await db.transaction(seed)
@@ -256,8 +256,10 @@ test('지출의 계좌는 다른 학생회 것이면 만들 때 막고 만든 �
     )
     for (const key of ['accountId', 'account_id'])
       await assert.rejects(
-        db.transaction(tx => updateRecords(tx, [change(s, 'expense', expense, { [key]: null })])),
-        /주인 칸/,
+        db.transaction(tx =>
+          updateRecords(tx, [change(s, 'expense', expense, { [key]: theirAccount })]),
+        ),
+        /학생회/,
         key,
       )
     for (const key of ['eventId', 'event_id'])
@@ -275,6 +277,15 @@ test('지출의 계좌는 다른 학생회 것이면 만들 때 막고 만든 �
     )
     assert.equal((await rowOf(pg, 'expense', expense)).event_id, other)
     assert.equal(await versionCount(pg, expense), 2)
+    await db.transaction(tx =>
+      updateRecords(tx, [change(s, 'expense', expense, { accountId: null })]),
+    )
+    assert.equal((await rowOf(pg, 'expense', expense)).account_id, null)
+    await db.transaction(tx =>
+      updateRecords(tx, [change(s, 'expense', expense, { accountId: mineAccount })]),
+    )
+    assert.equal((await rowOf(pg, 'expense', expense)).account_id, mineAccount)
+    assert.equal(await versionCount(pg, expense), 4)
   } finally {
     await close()
   }

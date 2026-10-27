@@ -16,6 +16,7 @@ import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { useEvents } from '../events/useEvents'
 import { ChoiceSelect } from '../tasks/ChoiceSelect'
 import { eventChoices } from '../tasks/task-form-options'
+import { ExpenseAccountSelect, useExpenseAccount } from './ExpenseAccountSelect'
 
 type Props = {
   councilId: string
@@ -27,12 +28,20 @@ type Props = {
   onConfirm: (body: UpdateExpense) => void
 }
 
+const linkedId = (item: { id: string } | null) => item?.id ?? null
+
 // 바뀐 칸만 보낸다. 비운 사유는 null이다. 아무것도 바뀌지 않았으면 null이다.
-function changesOf(expense: ExpenseDetail, reason: string, eventId: string | null) {
+function changesOf(
+  expense: ExpenseDetail,
+  reason: string,
+  eventId: string | null,
+  accountId: string | null,
+) {
   const before = expense.reason ?? ''
   const body: UpdateExpense = {}
   if (reason !== before) body.reason = reason.trim() === '' ? null : reason
-  if (eventId !== (expense.event?.id ?? null)) body.eventId = eventId
+  if (eventId !== linkedId(expense.event)) body.eventId = eventId
+  if (accountId !== linkedId(expense.account)) body.accountId = accountId
   return Object.keys(body).length === 0 ? null : body
 }
 
@@ -86,7 +95,7 @@ function UpdateFields({
   )
 }
 
-// 지출 고치기(재정부, 정산 전): 사유와 행사. 행사는 완료하지 않은 행사만 고른다.
+// 지출 고치기(재정부): 사유·행사·계좌. 행사는 완료 전, 새로 잇는 계좌는 닫기 전이어야 한다.
 // [저장]은 끄지 않는다. 바꾼 것이 없으면 그냥 닫는다.
 export function ExpenseUpdateDialog({
   councilId,
@@ -98,8 +107,17 @@ export function ExpenseUpdateDialog({
   onConfirm,
 }: Props) {
   const [reason, setReason] = useState(expense.reason ?? '')
-  const [eventId, setEventId] = useState(expense.event?.id ?? null)
-  const body = changesOf(expense, reason, eventId)
+  const [eventId, setEventId] = useState(linkedId(expense.event))
+  const [chosenAccountId, setAccountId] = useState<string | null>()
+  const account = useExpenseAccount(
+    councilId,
+    onForbidden,
+    chosenAccountId === undefined ? expense.account?.id : chosenAccountId,
+  )
+  // 기존 닫은 계좌는 사람이 다른 계좌나 없음을 고르기 전까지 유지한다.
+  const accountId =
+    chosenAccountId === undefined && expense.account ? expense.account.id : account.pick.id
+  const body = changesOf(expense, reason, eventId, accountId)
   // 계약이 받지 않는 사유(너무 긴 글)는 사유 칸 아래에 보인다.
   const {
     formRef,
@@ -134,6 +152,9 @@ export function ExpenseUpdateDialog({
             onEvent={setEventId}
             onForbidden={onForbidden}
           />
+          <div className="max-sm:[&_select]:min-h-11">
+            <ExpenseAccountSelect account={account} disabled={busy} onPick={setAccountId} />
+          </div>
         </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>

@@ -405,7 +405,6 @@ test('가리키는 칸은 바꾸지 못한다', async () => {
         ['councilId', 'council_id', 'previousPeriodId', 'previous_period_id'],
       ],
       ['budget_item', own.item, ['eventId', 'event_id']],
-      ['expense', own.expense, ['accountId', 'account_id']],
       // 요청의 행사는 낼 때 고르고 바꾸지 않는다(DEC-68).
       ['request', own.request, ['eventId', 'event_id']],
     ]
@@ -490,16 +489,18 @@ test('이전 기간, 행사, 계좌도 다른 학생회의 것이면 만들 때�
         key === 'previousPeriodId' ? own.period : key === 'eventId' ? mineEvent : mineAccount
       await db.transaction(tx => make(tx, s.owner, kind, { ...values, [key]: good }))
     }
-    // 바꿀 때: 가리키는 칸 자체가 주인 칸이라 어디로도 못 바꾼다. 지출의 행사만 바꿀 수 있어(DEC-68) 같은 학생회 행사로는 바뀌고 다른 학생회 행사로는 막힌다.
+    // 지출의 행사·계좌는 같은 학생회 것으로 바꿀 수 있고 다른 학생회 것은 막는다. 나머지 주인 칸은 바꾸지 않는다.
     for (const [name, kind, id, , key, foreign] of attempts) {
-      if (kind === 'expense' && key === 'eventId') {
-        for (const field of ['eventId', 'event_id'])
+      if (kind === 'expense') {
+        const fields = key === 'eventId' ? ['eventId', 'event_id'] : ['accountId', 'account_id']
+        for (const field of fields)
           await assert.rejects(
             db.transaction(tx => updateRecords(tx, [change(s, kind, id, { [field]: foreign })])),
             /학생회/,
             `${name} 바꾸기 ${field}`,
           )
-        await db.transaction(tx => updateRecords(tx, [change(s, kind, id, { eventId: mineEvent })]))
+        const value = key === 'eventId' ? mineEvent : mineAccount
+        await db.transaction(tx => updateRecords(tx, [change(s, kind, id, { [key]: value })]))
         continue
       }
       await assert.rejects(

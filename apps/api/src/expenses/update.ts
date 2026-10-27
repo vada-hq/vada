@@ -1,6 +1,7 @@
 import type { ExpenseDetail, UpdateExpense } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
+import { assertUsableAccount } from '../accounts/queries.js'
 import type { Tx } from '../db/types.js'
 import { budgetItemEventsOf } from '../budget/queries.js'
 import { assertCouncilEvent } from '../events/council-event.js'
@@ -18,13 +19,15 @@ import { expenseDetailOf } from './queries.js'
 
 // 바뀌는 칸만 모은다: 칸을 빼거나 지금과 같은 값이면 넣지 않는다.
 function changesOf(
-  row: { reason: string | null },
+  row: { reason: string | null; accountId: string | null },
   input: UpdateExpense,
   target: { moving: boolean; eventId: string | null },
 ) {
   const reason = input.reason !== undefined && input.reason !== row.reason
+  const account = input.accountId !== undefined && input.accountId !== row.accountId
   return {
     ...(reason ? { reason: input.reason } : {}),
+    ...(account ? { accountId: input.accountId } : {}),
     ...(target.moving ? { eventId: target.eventId } : {}),
   }
 }
@@ -39,7 +42,7 @@ async function assertMoveAllowed(
   assertEventMatchesItem(move.itemEvents, move.eventId)
 }
 
-// 정산 전에 재정부가 사유와 행사를 고친다. 학생회 행 잠금과 운영진 확인 뒤에 부르고, 지출 행을 잠근다. 403이 409보다 먼저다.
+// 재정부가 사유·행사·계좌를 고친다. 학생회 행 잠금과 운영진 확인 뒤에 부르고, 지출 행을 잠근다. 403이 409보다 먼저다.
 // 칸을 빼거나 지금과 같은 값이면 바뀐 게 없어 판이 늘지 않는다.
 export async function updateExpense(
   tx: Tx,
@@ -66,6 +69,8 @@ export async function updateExpense(
   })
   if (moving) await assertMoveAllowed(tx, actor, { expenseId, itemEvents, eventId })
   const changes = changesOf(row, input, { moving, eventId })
+  // 기존 계좌가 닫혀도 그대로 두는 수정은 허용한다. 새로 잇는 계좌만 지출 적기와 같이 검사한다.
+  if (changes.accountId) await assertUsableAccount(tx, actor, changes.accountId)
   if (Object.keys(changes).length)
     await updateRecord(tx, {
       kind: 'expense',

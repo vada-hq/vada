@@ -41,6 +41,28 @@ function modulesOf(session: () => Promise<null>) {
 const appOf = (modules: Partial<ReturnType<typeof modulesOf>>) =>
   createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
 
+test('지출 계좌 고치기: 잘못된 계좌는 인증 전에 400, 유효한 계좌만 있는 본문은 인증까지 간다', async () => {
+  let authCalls = 0
+  const app = appOf(
+    modulesOf(async () => {
+      authCalls++
+      return null
+    }),
+  )
+  const send = (body: unknown) =>
+    app.request('/api/organizations/probe/expenses/probe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin },
+      body: JSON.stringify(body),
+    })
+  for (const accountId of ['', ' ', 'x', 'a\u0000', 'a\uD800'])
+    assert.equal((await send({ accountId })).status, 400)
+  assert.equal(authCalls, 0)
+  for (const accountId of [null, '66666666-6666-4666-8666-666666666661'])
+    assert.equal((await send({ accountId })).status, 401)
+  assert.equal(authCalls, 2)
+})
+
 // 미들웨어 등록(/*)은 빼고 실제 변경 라우트만 센다.
 const pathOf = (key: string) => key.slice(key.indexOf(' ') + 1)
 const writesOf = (app: ReturnType<typeof appOf>) => [

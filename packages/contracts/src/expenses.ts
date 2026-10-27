@@ -76,13 +76,17 @@ export type CreateExpense = z.infer<typeof CreateExpenseSchema>
 export const CancelExpenseSchema = z.strictObject({ reason: text(PURCHASE_REASON_MAX) })
 export const ReimburseExpenseSchema = EmptyRequestSchema
 
-// 사유와 행사 고치기(재정부, 정산 전). 칸을 빼면 그대로이고 null은 비운다. 하나는 꼭 있어야 한다.
+// 사유·행사·계좌 고치기(재정부). 칸을 빼면 그대로이고 null은 비운다. 하나는 꼭 있어야 한다.
 export const UpdateExpenseSchema = z
   .strictObject({
     reason: text(EXPENSE_REASON_MAX).nullable().optional(),
     eventId: recordIdInput.nullable().optional(),
+    accountId: recordIdInput.nullable().optional(),
   })
-  .refine(input => input.reason !== undefined || input.eventId !== undefined)
+  .refine(
+    input =>
+      input.reason !== undefined || input.eventId !== undefined || input.accountId !== undefined,
+  )
 export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>
 
 // 행사를 주면 그 행사의 지출만 준다.
@@ -157,6 +161,7 @@ export type ExpenseChange =
   | { field: 'reimbursed' }
   | { field: 'reason' }
   | { field: 'event' }
+  | { field: 'account' }
 
 export interface ExpenseVersion {
   versionNo: number
