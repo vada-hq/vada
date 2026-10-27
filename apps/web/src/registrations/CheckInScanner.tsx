@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode, type RefObject } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import type { ApplicantChange } from '@vada/contracts'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -6,22 +6,20 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { cn } from '@/lib/utils'
-import type { ScanOutcome } from './check-in'
+import { ScanActions } from './ScanActions'
 import { ScanResultCard } from './ScanResultCard'
-import { ScanPayment } from './ScanPayment'
 import { useCameraScan, type CameraState } from './useCameraScan'
 import { useScanFlow } from './useScanFlow'
 
 type Props = EventDialogHandlers & {
   councilId: string
   eventId: string
-  // 출석이 확인됐거나 이미 출석이다(목록의 출석 표시와 양식의 출석 수를 맞춘다).
+  // 출석이 확인됐거나 이미 출석이거나 찍은 줄이 바뀌었다(목록의 출석 표시와 양식의 출석 수를 맞춘다).
   onChecked: (applicant: ApplicantChange) => void
   onClose: () => void
 }
@@ -39,8 +37,9 @@ const PROBLEM_TEXT: Partial<Record<CameraState, string>> = {
   reader: 'QR 판독기를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 열어 주세요.',
 }
 
-// 신청자마다의 QR을 운영진이 휴대폰 카메라로 찍는다(대리 출석 막기). 찍히면 바로 출석으로 남기고,
-// 결과를 보이는 동안에는 읽지 않는다. [다음]을 누르면 다시 읽는다. 카메라를 못 쓰면 목록에서 이름으로 출석한다.
+// 신청자마다의 QR을 운영진이 휴대폰 카메라로 찍는다(대리 출석 막기). 찍히면 바로 출석으로 남기고(미납도, DEC-93),
+// 판정 카드를 보이는 동안에는 읽지 않는다. [다음 사람]을 누르면 다시 읽는다. 카메라를 못 쓰면 목록에서 이름으로 출석한다.
+// 닫는 길은 창의 X 하나다(보내는 중에는 막는다).
 export function CheckInScanner({ onClose, ...props }: Props) {
   const [saving, setSaving] = useState(false)
   const close = () => {
@@ -60,18 +59,15 @@ export function CheckInScanner({ onClose, ...props }: Props) {
   )
 }
 
-type ViewProps = {
+// 카메라 화면(정사각형)과 읽을 네모. 결과를 보이는 동안과 카메라를 못 쓸 때는 숨긴다.
+// 켜 둔 채 숨겨 [다음 사람]과 [다시 시도]가 같은 요소를 쓴다. 결과를 카메라 위에 겹치면 작은 휴대폰에서 버튼이 잘린다.
+function CameraView({
+  video,
+  hidden,
+}: {
   video: RefObject<HTMLVideoElement | null>
-  // 카메라를 못 쓰면 화면 대신 이유를 보이므로 숨긴다(켜 둔 채 숨겨 다시 시도가 같은 요소를 쓴다).
   hidden: boolean
-  outcome: ScanOutcome | null
-  onNext: () => void
-  saving: boolean
-  children: ReactNode
-}
-
-// 카메라 화면(정사각형)과 읽을 네모. 결과는 그 위에 겹친다.
-function ScanView({ video, hidden, outcome, onNext, saving, children }: ViewProps) {
+}) {
   return (
     <div
       className={cn(
@@ -88,14 +84,6 @@ function ScanView({ video, hidden, outcome, onNext, saving, children }: ViewProp
         className="size-full object-cover"
       />
       <div aria-hidden className="absolute inset-1/5 rounded-md border-2 border-white/80" />
-      {/* 결과는 카메라 화면 위에 겹친다. 판독을 멈춘 동안이라 가려도 되고, 작은 휴대폰에서도 [다음]이 화면 아래로 밀리지 않는다. */}
-      {outcome && (
-        <div className="absolute inset-3 flex flex-col justify-end">
-          <ScanResultCard outcome={outcome} onNext={onNext} busy={saving}>
-            {children}
-          </ScanResultCard>
-        </div>
-      )}
     </div>
   )
 }
@@ -112,23 +100,28 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
     : flow.checking
       ? '확인하는 중…'
       : STATUS_TEXT[camera]
+  const next = () => {
+    flow.next()
+    // 숨긴 동안 멈춘 화면(iOS)을 다시 재생한다. 멈춘 프레임을 읽으면 앞 사람의 QR을 또 읽는다.
+    void video.current?.play().catch(() => undefined)
+  }
   return (
     <>
       <DialogHeader>
         <DialogTitle>QR로 출석 확인</DialogTitle>
-        <DialogDescription id="check-in-description">{description}</DialogDescription>
+        <DialogDescription id="check-in-description" className={cn(flow.outcome && 'sr-only')}>
+          {description}
+        </DialogDescription>
       </DialogHeader>
-      <ScanView
-        video={video}
-        hidden={problem !== undefined}
-        outcome={flow.outcome}
-        onNext={flow.next}
-        saving={saving}
-      >
-        {flow.outcome && 'applicant' in flow.outcome && (
-          <ScanPayment
+      <CameraView video={video} hidden={problem !== undefined || flow.outcome !== null} />
+      {flow.outcome && (
+        <ScanResultCard outcome={flow.outcome}>
+          <ScanActions
+            key={flow.scan}
             councilId={options.councilId}
             outcome={flow.outcome}
+            busy={saving}
+            onNext={next}
             onChange={flow.changed}
             onGone={onClose}
             onSaving={onSaving}
@@ -139,8 +132,8 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
               options.onLost(message)
             }}
           />
-        )}
-      </ScanView>
+        </ScanResultCard>
+      )}
       {problem && (
         <div className="flex flex-col items-start gap-2">
           <Alert tone="warning">{problem}</Alert>
@@ -150,11 +143,6 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
         </div>
       )}
       {flow.hint && <p className="text-sm text-yellow-700">참가 신청 QR이 아니에요.</p>}
-      <DialogFooter>
-        <Button variant="outline" touch busy={saving} onClick={onClose}>
-          닫기
-        </Button>
-      </DialogFooter>
     </>
   )
 }

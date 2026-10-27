@@ -1,85 +1,109 @@
-import { CheckCircle2, Info, XCircle, type LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useEffect, useRef, type ReactNode } from 'react'
+import {
+  CheckCircle2,
+  CircleAlert,
+  CircleMinus,
+  Wallet,
+  XCircle,
+  type LucideIcon,
+} from 'lucide-react'
+import type { ReactNode } from 'react'
+import { dayTimeLabel } from '@/lib/korean-date-text'
+import { Alert } from '@/components/ui/alert'
+import { won } from '@/public/registration-text'
 import type { ScanOutcome } from './check-in'
+import { latePaymentOf, verdictOf, type Verdict } from './scan-verdict'
 
-type Look = { icon: LucideIcon; color: string; title: string; description?: string }
+type Tone = 'success' | 'warning' | 'danger' | 'info'
+type Look = { tone: Tone; icon: LucideIcon; title: string }
 
-function lookOf(outcome: ScanOutcome): Look {
-  switch (outcome.kind) {
-    case 'checked':
-      return { icon: CheckCircle2, color: 'text-green-600', title: '출석을 확인했어요' }
+// 빨강은 들이면 안 될 때(입장 불가, 확인 실패)만, 노랑은 돈을 받아야 할 때만 쓴다.
+function lookOf(verdict: Verdict): Look {
+  switch (verdict.kind) {
+    case 'enter':
+      return { tone: 'success', icon: CheckCircle2, title: '입장 가능' }
+    case 'collect':
+      return { tone: 'warning', icon: Wallet, title: `참가비 받기 · ${won(verdict.fee)}` }
+    case 'unpaid':
+      return {
+        tone: 'warning',
+        icon: CircleAlert,
+        title: verdict.fee === undefined ? '참가비 확인 필요' : `참가비 미납 · ${won(verdict.fee)}`,
+      }
+    case 'turned-away':
+      return { tone: 'info', icon: CircleMinus, title: '입장 안 함 · 출석 취소' }
     case 'already':
-      return { icon: Info, color: 'text-blue-600', title: '이미 출석했어요' }
+      return { tone: 'danger', icon: XCircle, title: '입장 불가 · 이미 출석' }
     case 'missing':
-      return {
-        icon: XCircle,
-        color: 'text-red-600',
-        title: '이 행사 신청에서 찾을 수 없어요',
-        description: '다른 행사의 QR이거나 취소한 신청일 수 있어요. 목록에서 이름으로 찾아 주세요.',
-      }
+      return { tone: 'danger', icon: XCircle, title: '입장 불가 · 신청 없음' }
     case 'failed':
-      return {
-        icon: XCircle,
-        color: 'text-red-600',
-        title: '출석을 확인하지 못했어요',
-        description: outcome.message,
-      }
+      return { tone: 'danger', icon: CircleAlert, title: '확인 실패' }
   }
 }
 
-// 찍은 결과: 누구인지(이름·학번)를 크게 보인다. 보이는 동안 판독이 멈추고, [다음]을 누르면 다시 읽는다.
+type Person = Extract<ScanOutcome, { applicant: unknown }>
+
+// 이미 출석한 사람: 처음 출석한 시각과 참가비 상태(받기 버튼은 ScanActions가 둔다).
+function alreadyDetails(outcome: Extract<ScanOutcome, { kind: 'already' }>) {
+  const late = latePaymentOf(outcome)
+  return [
+    outcome.checkedInAt ? `처음 출석 ${dayTimeLabel(outcome.checkedInAt)}` : null,
+    late?.kind === 'unpaid' ? '참가비 미납 · 재정부 확인 필요' : null,
+    outcome.appliedFee ? paidLine(outcome) : null,
+  ]
+}
+
+const paidLine = ({ applicant }: Person) =>
+  applicant.deposit.status === 'confirmed' && applicant.deposit.amount !== null
+    ? `입금 확인 ${won(applicant.deposit.amount)}`
+    : null
+
+// 판정 아래 줄: 왜 그 판정인지, 다음에 무엇을 하는지.
+function detailsOf(outcome: ScanOutcome, verdict: Verdict): (string | null)[] {
+  if (outcome.kind === 'missing') return ['명단에서 이름으로 찾아 주세요.']
+  if (outcome.kind === 'failed') return [outcome.message]
+  if (outcome.kind === 'already') return alreadyDetails(outcome)
+  if (verdict.kind === 'unpaid') return ['재정부 확인 필요']
+  if (verdict.kind !== 'enter') return []
+  return [outcome.appliedFee === 0 ? '참가비 없음' : paidLine(outcome)]
+}
+
+// 찍은 결과: 판정을 맨 위에 색으로, 그 아래 누구인지(이름·학번)를 크게 보인다. 버튼은 children이 정한다.
+// 카메라 화면을 숨긴 자리에 놓여 작은 휴대폰에서도 잘리지 않는다(창이 스크롤된다).
 export function ScanResultCard({
   outcome,
-  onNext,
-  busy = false,
   children,
 }: {
   outcome: ScanOutcome
-  onNext: () => void
-  busy?: boolean
   children?: ReactNode
 }) {
-  const look = lookOf(outcome)
+  const verdict = verdictOf(outcome)
+  const look = lookOf(verdict)
   const Icon = look.icon
-  const who = outcome.kind === 'checked' || outcome.kind === 'already' ? outcome : null
-  const next = useRef<HTMLButtonElement>(null)
-  const payment = who
-    ? `${who.applicant.id}:${who.applicant.deposit.status}:${who.applicant.deposit.amount}`
-    : null
-  const previous = useRef(payment)
-  useEffect(() => {
-    // 성공하면 누른 입금 버튼이 사라진다. 초점을 논리적인 다음 동작에 남긴다.
-    if (previous.current !== payment && previous.current !== null) next.current?.focus()
-    previous.current = payment
-  }, [payment])
-  // 결과가 바뀌면 보조기술이 읽는다(status). 카드가 카메라 화면보다 크면 카드 안에서 스크롤한다.
+  const details = detailsOf(outcome, verdict).filter(line => line !== null)
+  const who = 'applicant' in outcome ? outcome : null
+  // 결과가 바뀌면 보조기술이 읽는다(status).
   return (
-    <section
-      role="status"
-      aria-label="찍은 결과"
-      className="flex max-h-full flex-col gap-3 overflow-y-auto rounded-md border bg-white p-4 shadow-lg"
-    >
-      <div className="flex items-center gap-2">
-        <Icon aria-hidden className={cn('size-5 shrink-0', look.color)} />
-        <p className="text-sm font-semibold text-gray-900">{look.title}</p>
-      </div>
-      {look.description && (
-        <p className="text-sm text-gray-600 wrap-anywhere">{look.description}</p>
-      )}
-      {who && (
+    <section role="status" aria-label="찍은 결과" className="flex flex-col gap-4">
+      <Alert tone={look.tone} className="flex items-center gap-2 p-4 text-lg font-bold">
+        <Icon aria-hidden className="size-6 shrink-0" />
+        <p>{look.title}</p>
+      </Alert>
+      {(who || details.length > 0) && (
         <div className="flex flex-col gap-1">
-          <p className="text-lg font-semibold text-gray-900 wrap-anywhere">{who.name}</p>
-          {who.studentId && <p className="text-sm text-gray-600">학번 {who.studentId}</p>}
+          {who && (
+            <>
+              <p className="text-lg font-semibold text-gray-900 wrap-anywhere">{who.name}</p>
+              {who.studentId && <p className="text-sm text-gray-600">학번 {who.studentId}</p>}
+            </>
+          )}
+          {details.map(line => (
+            <p key={line} className="text-sm text-gray-600 wrap-anywhere">
+              {line}
+            </p>
+          ))}
         </div>
       )}
       {children}
-      <div className="flex justify-end">
-        <Button ref={next} className="min-h-11" busy={busy} onClick={onNext}>
-          다음
-        </Button>
-      </div>
     </section>
   )
 }

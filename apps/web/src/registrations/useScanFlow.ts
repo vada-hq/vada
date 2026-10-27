@@ -9,7 +9,7 @@ const HINT_MS = 2000
 type Options = EventDialogHandlers & {
   councilId: string
   eventId: string
-  // 출석이 확인됐거나 이미 출석이다.
+  // 출석이 확인됐거나 이미 출석이거나, 찍은 줄이 바뀌었다(입금, 출석 취소).
   onChecked: (applicant: ApplicantChange) => void
 }
 
@@ -18,37 +18,52 @@ const withApplicant = (current: ScanOutcome | null, applicant: ApplicantChange) 
     ? { ...current, applicant }
     : current
 
-// 찍은 글자 하나의 흐름: 우리 QR이 아니면 안내만, 맞으면 판독을 멈추고 출석을 보내 결과를 보인다. [다음]이 판독을 다시 연다.
+// [새로 읽기]는 같은 QR로 출석을 다시 보내 already가 온다. 그 출석은 이번 찍기가 남긴 것이라 이미 출석(입장 불가)으로 부르지 않는다.
+function keepChecked(before: ScanOutcome | null, after: ScanOutcome): ScanOutcome {
+  if (before?.kind !== 'checked' || after.kind !== 'already') return after
+  if (after.applicant.id !== before.applicant.id) return after
+  const { checkedInAt: _first, ...person } = after
+  return { ...person, kind: 'checked' }
+}
+
+// 우리 QR이 아닌 것을 읽었다는 안내. 마지막으로 읽은 때부터 HINT_MS 동안 보인다.
+function useHint() {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [hint, setHint] = useState(false)
+  useEffect(() => () => clearTimeout(timer.current), [])
+  function show() {
+    setHint(true)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setHint(false), HINT_MS)
+  }
+  return { hint, show, hide: () => setHint(false) }
+}
+
+// 찍은 글자 하나의 흐름: 우리 QR이 아니면 안내만, 맞으면 판독을 멈추고 출석을 보내 결과를 보인다. [다음 사람]이 판독을 다시 연다.
 export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Options) {
   // 결과를 보이는 동안과 요청 중에는 판독을 멈춘다.
   const paused = useRef(false)
   const lastText = useRef<string | null>(null)
   // 닫힌 뒤에 온 응답은 그리지 않는다.
   const alive = useRef(true)
-  const hintTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [checking, setChecking] = useState(false)
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null)
-  const [hint, setHint] = useState(false)
+  // 찍을 때마다 늘어난다. 결과 카드가 앞 사람의 상태(방금 받은 입금)를 이어받지 않게 key로 쓴다.
+  const [scan, setScan] = useState(0)
+  const hint = useHint()
   useEffect(() => {
     alive.current = true
     return () => {
       alive.current = false
-      clearTimeout(hintTimer.current)
     }
   }, [])
 
-  function showHint() {
-    setHint(true)
-    clearTimeout(hintTimer.current)
-    hintTimer.current = setTimeout(() => setHint(false), HINT_MS)
-  }
-
-  async function onText(text: string) {
+  async function onText(text: string, before: ScanOutcome | null = null) {
     const tokenHash = tokenHashOfQr(text)
-    if (tokenHash === null) return showHint()
+    if (tokenHash === null) return hint.show()
     lastText.current = text
     paused.current = true
-    setHint(false)
+    hint.hide()
     setChecking(true)
     const result = await checkInByHash(councilId, eventId, tokenHash, handlers)
     if (result === 'lost') return
@@ -56,7 +71,8 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
     if (result.kind === 'checked' || result.kind === 'already') onChecked(result.applicant)
     if (!alive.current) return
     setChecking(false)
-    setOutcome(result)
+    setOutcome(keepChecked(before, result))
+    setScan(value => value + 1)
   }
 
   function next() {
@@ -69,8 +85,9 @@ export function useScanFlow({ councilId, eventId, onChecked, ...handlers }: Opti
   }
   function reload() {
     if (!lastText.current) return
+    const before = outcome
     setOutcome(null)
-    void onText(lastText.current)
+    void onText(lastText.current, before)
   }
-  return { paused, onText, checking, outcome, hint, next, changed, reload }
+  return { paused, onText, checking, outcome, scan, hint: hint.hint, next, changed, reload }
 }

@@ -19,12 +19,12 @@ type Target = {
   appliedFee: number | string
 }
 
-async function activeAttendanceId(tx: Tx, registrationId: string) {
+async function activeAttendance(tx: Tx, registrationId: string) {
   const [row] = await tx
-    .select({ id: attendance.id })
+    .select({ id: attendance.id, confirmedAt: attendance.confirmedAt })
     .from(attendance)
     .where(and(eq(attendance.registrationId, registrationId), isNull(attendance.cancelledAt)))
-  return row?.id ?? null
+  return row ?? null
 }
 
 // 출석을 남기고 스캔한 사람에게 보일 이름과 학번을 돌려준다. 이미 출석이면 새로 만들지 않고 already다(오류가 아니다).
@@ -36,7 +36,8 @@ async function confirm(
   target: Target,
   how: { method: Method; ip: string },
 ): Promise<CheckInResult> {
-  const already = (await activeAttendanceId(tx, target.registrationId)) !== null
+  const existing = await activeAttendance(tx, target.registrationId)
+  const already = existing !== null
   if (!already)
     await createRecord(tx, {
       kind: 'attendance',
@@ -57,6 +58,7 @@ async function confirm(
     studentId: target.studentId,
     appliedFee: Number(target.appliedFee),
     already,
+    ...(existing ? { checkedInAt: existing.confirmedAt.toISOString() } : {}),
     applicant: await applicantChangeOf(tx, actor, target.registrationId),
   }
 }
@@ -141,7 +143,7 @@ export async function cancelAttendance(tx: Tx, actor: Actor, registrationId: str
     'registration.cancel_check_in',
   )
   // 출석이 있음은 정책이 보장했다.
-  const id = (await activeAttendanceId(tx, row.id))!
+  const { id } = (await activeAttendance(tx, row.id))!
   await updateRecord(tx, {
     kind: 'attendance',
     id,

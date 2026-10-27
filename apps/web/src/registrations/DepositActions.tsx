@@ -14,15 +14,14 @@ import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { CancelDepositDialog, ConfirmDepositDialog, RefundDialog } from './DepositDialogs'
 import { registrationPath } from './registration-api'
 import { useStaffPost } from './useStaffPost'
-import { won } from '@/public/registration-text'
 
 type DepositApplicant = Pick<Applicant, 'id' | 'name' | 'appliedFee' | 'deposit' | 'actions'>
 
 type Props = EventDialogHandlers & {
   councilId: string
   applicant: DepositApplicant
-  // 스캐너에서는 이미 이름/정액을 보고 있어 별도 금액 창은 다른 금액일 때만 연다.
-  quickConfirm?: boolean
+  // 스캐너 카드처럼 휴대폰에서 손가락으로 누르는 곳이면 버튼을 44px로 키운다.
+  touch?: boolean
   onSaving?: (saving: boolean) => void
   onReload?: () => void
   // 서버가 돌려준 줄의 새 모습. 환불함이면 이름이 비어 줄이 빠진다(부모가 정한다).
@@ -70,47 +69,32 @@ function allowedOf({ applicant }: Pick<Props, 'applicant'>): Allowed {
 
 // 열린 확인 창의 동작이 줄에서 사라졌는가.
 const STEP_ACTION = { confirm: 'confirm', cancel: 'undo', refund: 'refund' } as const
-const quickAmountOf = ({ quickConfirm, applicant }: Props) =>
-  quickConfirm ? applicant.appliedFee : undefined
 
 type Open = (next: Step) => void
 
 function DepositButtons({
   allowed,
   busy,
+  touch,
   open,
-  quickAmount,
-  onQuick,
 }: {
   allowed: Allowed
   busy: boolean
+  touch: boolean
   open: Open
-  quickAmount: number | undefined
-  onQuick: () => void
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {allowed.confirm && quickAmount !== undefined && (
-        <Button className="min-h-11" busy={busy} onClick={onQuick}>
-          {won(quickAmount)} 입금 확인
-        </Button>
-      )}
       {allowed.confirm && (
-        <Button
-          size="sm"
-          className={quickAmount !== undefined ? 'min-h-11' : undefined}
-          variant={quickAmount !== undefined ? 'outline' : 'default'}
-          busy={busy}
-          onClick={() => open('confirm')}
-        >
-          {quickAmount !== undefined ? '다른 금액' : '입금 확인'}
+        <Button size="sm" touch={touch} busy={busy} onClick={() => open('confirm')}>
+          입금 확인
         </Button>
       )}
       {allowed.undo && (
         <Button
           variant="outline"
           size="sm"
-          touch={quickAmount !== undefined}
+          touch={touch}
           busy={busy}
           onClick={() => open('cancel')}
         >
@@ -118,7 +102,13 @@ function DepositButtons({
         </Button>
       )}
       {allowed.refund && (
-        <Button variant="outline" size="sm" busy={busy} onClick={() => open('refund')}>
+        <Button
+          variant="outline"
+          size="sm"
+          touch={touch}
+          busy={busy}
+          onClick={() => open('refund')}
+        >
           환불함
         </Button>
       )}
@@ -214,12 +204,8 @@ export function DepositActions(props: Props) {
       <DepositButtons
         allowed={allowed}
         busy={post.busy}
+        touch={props.touch ?? false}
         open={openStep}
-        quickAmount={quickAmountOf(props)}
-        onQuick={() => {
-          post.clear()
-          void run('deposit', { amount: props.applicant.appliedFee })
-        }}
       />
       <DepositProblem post={post} step={step} onReload={props.onReload} />
       <DepositSteps

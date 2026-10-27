@@ -59,40 +59,61 @@ const result = (already: boolean) => ({
   studentId: '20260001',
   already,
 })
+const FIRST_AT = '2026-10-27T05:03:00.000Z'
+const DEPOSIT_PATH = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit`
+const free = applicantChange({ actions: ['registration.cancel_check_in'] })
+const cardOf = (dialog: HTMLElement) => within(dialog).findByRole('status', { name: '찍은 결과' })
+const posts = (api: ReturnType<typeof mockApi>, path: string) =>
+  api.calls.filter(call => call.method === 'POST' && call.path === path)
 
-test('QR을 찍으면 해시(소문자)로 출석을 보내 이름·학번을 크게 보이고, [다음] 전에는 다시 읽지 않는다', async () => {
+test('무료 QR: 해시(소문자)로 출석을 보내 판정과 이름·학번을 보이고, 카메라 대신 결과를 보이며 [다음 사람] 전에는 읽지 않는다', async () => {
   const { api, dialog, handlers } = await open()
-  api.on('POST', CHECK_IN_PATH, () => json(result(false)))
+  api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 0, applicant: free }))
   queue.push(qrTextOf(HASH))
-  expect(await within(dialog).findByText('출석을 확인했어요')).toBeTruthy()
-  expect(within(dialog).getByText('김새내').className).toContain('text-lg')
-  expect(within(dialog).getByText('학번 20260001')).toBeTruthy()
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('입장 가능')).toBeTruthy()
+  expect(within(card).getByText('김새내').className).toContain('text-lg')
+  expect(within(card).getByText('학번 20260001')).toBeTruthy()
+  expect(within(card).getByText('참가비 없음')).toBeTruthy()
   expect(api.calls.at(-1)).toMatchObject({
     method: 'POST',
     path: CHECK_IN_PATH,
     body: { tokenHash: HASH },
   })
-  expect(handlers.onChecked).toHaveBeenCalledWith(applicantChange())
-  // 결과는 카메라 화면 위에 겹친다
+  expect(handlers.onChecked).toHaveBeenCalledWith(free)
+  // 결과는 카메라 화면 안에 겹치지 않고, 카메라 화면을 숨긴 자리에 놓여 잘리지 않는다.
   const view = within(dialog).getByLabelText('카메라 화면').parentElement as HTMLElement
-  expect(view.contains(within(dialog).getByRole('status', { name: '찍은 결과' }))).toBe(true)
+  expect(view.contains(card)).toBe(false)
+  expect(view.classList.contains('hidden')).toBe(true)
+  // 주 버튼은 하나이고, 닫는 길은 창의 X 하나다.
+  expect(within(card).getAllByRole('button')).toHaveLength(1)
+  expect(within(dialog).getAllByRole('button', { name: '닫기' })).toHaveLength(1)
   const reads = reader.read.mock.calls.length
   await new Promise(resolve => setTimeout(resolve, 700))
   expect(reader.read.mock.calls.length).toBe(reads)
-  // 같은 QR을 다시 찍으면 이미 출석이다(오류가 아니다)
-  api.on('POST', CHECK_IN_PATH, () => json(result(true)))
+  // 같은 QR을 다시 찍으면 입장 불가다(QR 다시 쓰기일 수 있다). 누구인지와 처음 출석한 시각을 보인다.
+  api.on('POST', CHECK_IN_PATH, () =>
+    json({ ...result(true), appliedFee: 0, applicant: free, checkedInAt: FIRST_AT }),
+  )
   queue.push(qrTextOf(HASH))
-  fireEvent.click(within(dialog).getByRole('button', { name: '다음' }))
-  expect(await within(dialog).findByText('이미 출석했어요')).toBeTruthy()
-  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2)
+  fireEvent.click(within(card).getByRole('button', { name: '다음 사람' }))
+  expect(view.classList.contains('hidden')).toBe(false)
+  const again = await cardOf(dialog)
+  expect(within(again).getByText('입장 불가 · 이미 출석')).toBeTruthy()
+  expect(within(again).getByText('김새내')).toBeTruthy()
+  expect(within(again).getByText('학번 20260001')).toBeTruthy()
+  expect(within(again).getByText(/^처음 출석 (2026년 )?10월 27일 \(화\) 14:03$/)).toBeTruthy()
+  expect(posts(api, CHECK_IN_PATH)).toHaveLength(2)
 })
 
-test('그 행사 신청이 아니면(404) 찾을 수 없다고 알리고 이름으로 찾으라 한다', async () => {
+test('그 행사 신청이 아니면(404) 입장 불가 · 신청 없음이고 명단에서 이름으로 찾으라 한다', async () => {
   const { api, dialog, handlers } = await open()
   api.on('POST', CHECK_IN_PATH, () => json({ error: 'NOT_FOUND' }, 404))
   queue.push(qrTextOf(HASH))
-  expect(await within(dialog).findByText('이 행사 신청에서 찾을 수 없어요')).toBeTruthy()
-  expect(dialog.textContent).toContain('이름으로 찾아')
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('입장 불가 · 신청 없음')).toBeTruthy()
+  expect(within(card).getByText('명단에서 이름으로 찾아 주세요.')).toBeTruthy()
+  expect(within(card).getByRole('button', { name: '다음 사람' })).toBeTruthy()
   expect(handlers.onChecked).not.toHaveBeenCalled()
   expect(handlers.onLost).not.toHaveBeenCalled()
 })
@@ -105,14 +126,16 @@ test('우리 QR이 아니면 안내만 보이고 서버로 보내지 않는다',
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
 })
 
-test('429는 문구를, 403은 학생회를 다시 읽게 하고 부모가 닫게 한다', async () => {
+test('429는 확인 실패와 문구에 [다시 찍기]를, 403은 학생회를 다시 읽게 하고 부모가 닫게 한다', async () => {
   const { api, dialog, handlers } = await open()
   api.on('POST', CHECK_IN_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
   queue.push(qrTextOf(HASH))
-  expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('확인 실패')).toBeTruthy()
+  expect(within(card).getByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
   api.on('POST', CHECK_IN_PATH, () => json({ error: 'FORBIDDEN' }, 403))
   queue.push(qrTextOf(HASH))
-  fireEvent.click(within(dialog).getByRole('button', { name: '다음' }))
+  fireEvent.click(within(card).getByRole('button', { name: '다시 찍기' }))
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   expect(handlers.onLost).toHaveBeenCalledWith(PERMISSION_CHANGED)
 })
@@ -138,148 +161,204 @@ test('카메라를 못 쓰면 이유와 이름으로 출석하라는 안내를 �
 
 test('닫으면 카메라를 끈다', async () => {
   const { dialog, handlers } = await open()
-  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }))
   expect(handlers.onClose).toHaveBeenCalled()
   cleanup()
   expect(track.stop).toHaveBeenCalled()
 })
 
-test('미납 QR: 참가비를 보이고 정액을 한 번만 기록한 뒤 카드와 명단을 갱신한다', async () => {
+test('미납 QR: 참가비 받기 판정에서 [받고 입장]은 정액을 한 번만 기록하고 입장 가능으로 바뀐다. [다른 금액]은 없다', async () => {
   const { api, dialog, handlers } = await open()
   api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000 }))
   const pending = deferredResponse()
-  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit`
-  api.on('POST', path, () => pending.promise)
+  api.on('POST', DEPOSIT_PATH, () => pending.promise)
   queue.push(qrTextOf(HASH))
-  const card = await within(dialog).findByRole('status', { name: '찍은 결과' })
-  expect(await within(card).findByText('입금 확인 전')).toBeTruthy()
-  const confirm = within(card).getByRole('button', { name: '5,000원 입금 확인' })
-  fireEvent.click(confirm)
-  fireEvent.click(confirm)
-  expect(api.calls.filter(call => call.path === path)).toHaveLength(1)
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('참가비 받기 · 5,000원')).toBeTruthy()
+  expect(within(card).getByText('김새내')).toBeTruthy()
+  expect(within(card).queryByRole('button', { name: '다른 금액' })).toBeNull()
+  expect(within(card).queryByRole('button', { name: '다음 사람' })).toBeNull()
+  expect(within(card).getByRole('button', { name: '입장 안 함' })).toBeTruthy()
+  const receive = within(card).getByRole('button', { name: '5,000원 받고 입장' })
+  fireEvent.click(receive)
+  fireEvent.click(receive)
+  expect(posts(api, DEPOSIT_PATH)).toHaveLength(1)
   expect(api.calls.at(-1)?.body).toEqual({ amount: 5000 })
-  expect(within(card).getByRole('button', { name: '다음' }).hasAttribute('disabled')).toBe(true)
-  expect(
-    within(dialog)
-      .getAllByRole('button', { name: '닫기' })
-      .every(b => b.hasAttribute('disabled')),
-  ).toBe(true)
+  // 보내는 동안 다른 동작과 닫기를 막는다.
+  expect(within(card).getByRole('button', { name: '입장 안 함' }).hasAttribute('disabled')).toBe(
+    true,
+  )
+  expect(within(dialog).getByRole('button', { name: '닫기' }).hasAttribute('disabled')).toBe(true)
   const updated = applicantChange({
     deposit: { status: 'confirmed', amount: 5000 },
     actions: ['registration.cancel_check_in', 'deposit.cancel'],
   })
   pending.resolve(json({ deposit: updated.deposit, applicant: updated }, 201))
-  expect(await within(card).findByText('입금 확인 5,000원')).toBeTruthy()
+  expect(await within(card).findByText('입장 가능')).toBeTruthy()
+  expect(within(card).getByText('입금 확인 5,000원')).toBeTruthy()
   expect(handlers.onChecked).toHaveBeenLastCalledWith(updated)
-  expect(document.activeElement).toBe(within(card).getByRole('button', { name: '다음' }))
-  expect(within(card).queryByRole('button', { name: '5,000원 입금 확인' })).toBeNull()
+  await waitFor(() =>
+    expect(document.activeElement).toBe(within(card).getByRole('button', { name: '다음 사람' })),
+  )
+  expect(within(card).queryByRole('button', { name: '5,000원 받고 입장' })).toBeNull()
+  // 방금 잘못 누른 기록은 그 자리에서 사유와 함께 되돌린다.
   expect(within(card).getByRole('button', { name: '확인 취소' })).toBeTruthy()
 })
 
-test('이미 출석한 미납 QR도 다른 금액을 기록하고, 권한 없는 사람은 상태만 본다', async () => {
-  const { api, dialog } = await open()
-  api.on('POST', CHECK_IN_PATH, () => json({ ...result(true), appliedFee: 5000 }))
-  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit`
-  const updated = applicantChange({
-    deposit: { status: 'confirmed', amount: 4000 },
-    actions: ['deposit.cancel'],
-  })
-  api.on('POST', path, () => json({ deposit: updated.deposit, applicant: updated }, 201))
-  queue.push(qrTextOf(HASH))
-  const card = await within(dialog).findByRole('status', { name: '찍은 결과' })
-  fireEvent.click(await within(card).findByRole('button', { name: '다른 금액' }))
-  const amountDialog = await screen.findByRole('dialog', { name: '김새내님의 입금을 확인할까요?' })
-  const input = within(amountDialog).getByLabelText('입금 금액(원)', { exact: false })
-  fireEvent.change(input, { target: { value: '4000' } })
-  fireEvent.click(within(amountDialog).getByRole('button', { name: '입금 확인' }))
-  expect(await within(card).findByText('입금 확인 4,000원')).toBeTruthy()
-  expect(api.calls.at(-1)?.body).toEqual({ amount: 4000 })
-  fireEvent.click(within(card).getByRole('button', { name: '다음' }))
-  api.on('POST', CHECK_IN_PATH, () =>
-    json({
-      ...result(false),
-      appliedFee: 5000,
-      applicant: applicantChange({ actions: ['registration.cancel_check_in'] }),
-    }),
-  )
-  queue.push(qrTextOf(HASH))
-  const readonly = await within(dialog).findByText('입금 확인 전')
-  expect(readonly).toBeTruthy()
-  expect(within(dialog).queryByRole('button', { name: '5,000원 입금 확인' })).toBeNull()
-})
-
-test('무료와 참가비 미확인은 다르고, 무료/미확인 응답으로 금액을 추정해 확인하지 않는다', async () => {
-  const { api, dialog } = await open()
-  api.on('POST', CHECK_IN_PATH, () =>
-    json({
-      ...result(false),
-      appliedFee: 0,
-      applicant: applicantChange({ actions: ['registration.cancel_check_in'] }),
-    }),
-  )
-  queue.push(qrTextOf(HASH))
-  expect(await within(dialog).findByText('참가비 없음')).toBeTruthy()
-  fireEvent.click(within(dialog).getByRole('button', { name: '다음' }))
-  api.on('POST', CHECK_IN_PATH, () => json(result(false)))
-  queue.push(qrTextOf(HASH))
-  expect(await within(dialog).findByText('참가비 확인 필요')).toBeTruthy()
-  expect(within(dialog).queryByRole('button', { name: /원 입금 확인/ })).toBeNull()
-})
-
-test('현장 확인 실패는 카드에 남고 재시도할 수 있으며, 권한 상실은 부모에게 알린다', async () => {
+test('[입장 안 함]은 방금 남은 출석을 취소해 명단에 반영하고 [다음 사람]으로 넘어간다', async () => {
   const { api, dialog, handlers } = await open()
   api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000 }))
-  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit`
-  api.on('POST', path, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/attendance/cancel`
+  const cancelled = applicantChange({ attended: false, actions: ['registration.check_in'] })
+  api.on('POST', path, () => json({ cancelled: true, applicant: cancelled }))
   queue.push(qrTextOf(HASH))
-  const confirm = await within(dialog).findByRole('button', { name: '5,000원 입금 확인' })
-  fireEvent.click(confirm)
-  expect(await within(dialog).findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
-  expect(within(dialog).getByText('입금 확인 전')).toBeTruthy()
-  api.on('POST', path, () => json({ error: 'FORBIDDEN' }, 403))
-  fireEvent.click(confirm)
+  const card = await cardOf(dialog)
+  fireEvent.click(within(card).getByRole('button', { name: '입장 안 함' }))
+  expect(await within(card).findByText('입장 안 함 · 출석 취소')).toBeTruthy()
+  expect(posts(api, path)).toHaveLength(1)
+  expect(posts(api, DEPOSIT_PATH)).toHaveLength(0)
+  expect(handlers.onChecked).toHaveBeenLastCalledWith(cancelled)
+  expect(within(card).getByText('김새내')).toBeTruthy()
+  await waitFor(() =>
+    expect(document.activeElement).toBe(within(card).getByRole('button', { name: '다음 사람' })),
+  )
+  expect(within(card).getAllByRole('button')).toHaveLength(1)
+})
+
+test('입금 확인 권한이 없으면 참가비 미납 판정과 재정부 확인만 보이고, 참가비를 모르면 금액을 추정해 받지 않는다', async () => {
+  const { api, dialog } = await open()
+  api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000, applicant: free }))
+  queue.push(qrTextOf(HASH))
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('참가비 미납 · 5,000원')).toBeTruthy()
+  expect(within(card).getByText('재정부 확인 필요')).toBeTruthy()
+  expect(within(card).queryByRole('button', { name: /받고 입장/ })).toBeNull()
+  expect(within(card).queryByRole('button', { name: '입장 안 함' })).toBeNull()
+  api.on('POST', CHECK_IN_PATH, () => json(result(false)))
+  queue.push(qrTextOf(HASH))
+  fireEvent.click(within(card).getByRole('button', { name: '다음 사람' }))
+  expect(await within(dialog).findByText('참가비 확인 필요')).toBeTruthy()
+  expect(within(dialog).queryByRole('button', { name: /받고 입장/ })).toBeNull()
+})
+
+test('이미 출석한 미납 QR: 입장 불가는 그대로 두고 [받기]로 참가비를 받을 수 있다. [입장 안 함]은 없다', async () => {
+  const { api, dialog, handlers } = await open()
+  api.on('POST', CHECK_IN_PATH, () =>
+    json({ ...result(true), appliedFee: 5000, checkedInAt: FIRST_AT }),
+  )
+  const updated = applicantChange({
+    deposit: { status: 'confirmed', amount: 5000 },
+    actions: ['registration.cancel_check_in', 'deposit.cancel'],
+  })
+  api.on('POST', DEPOSIT_PATH, () => json({ deposit: updated.deposit, applicant: updated }, 201))
+  queue.push(qrTextOf(HASH))
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('입장 불가 · 이미 출석')).toBeTruthy()
+  expect(within(card).getByText('김새내')).toBeTruthy()
+  expect(within(card).getByText('학번 20260001')).toBeTruthy()
+  expect(within(card).getByText(/^처음 출석 /)).toBeTruthy()
+  expect(
+    within(card)
+      .getAllByRole('button')
+      .map(button => button.textContent),
+  ).toEqual(['5,000원 받기', '다음 사람'])
+  // 주 버튼은 [받기] 하나다.
+  expect(within(card).getByRole('button', { name: '다음 사람' }).className).toContain(
+    'border-input',
+  )
+  const receive = within(card).getByRole('button', { name: '5,000원 받기' })
+  fireEvent.click(receive)
+  fireEvent.click(receive)
+  expect(await within(card).findByText('입금 확인 5,000원')).toBeTruthy()
+  expect(posts(api, DEPOSIT_PATH)).toHaveLength(1)
+  expect(api.calls.at(-1)?.body).toEqual({ amount: 5000 })
+  expect(handlers.onChecked).toHaveBeenLastCalledWith(updated)
+  expect(within(card).getByText('입장 불가 · 이미 출석')).toBeTruthy()
+  expect(within(card).queryByRole('button', { name: '5,000원 받기' })).toBeNull()
+  expect(within(card).queryByRole('button', { name: '입장 안 함' })).toBeNull()
+  await waitFor(() =>
+    expect(document.activeElement).toBe(within(card).getByRole('button', { name: '다음 사람' })),
+  )
+})
+
+test('이미 출석한 미납 QR을 입금 확인 권한 없이 찍으면 미납 한 줄과 [다음 사람]만 보인다', async () => {
+  const { api, dialog } = await open()
+  api.on('POST', CHECK_IN_PATH, () =>
+    json({ ...result(true), appliedFee: 5000, applicant: free, checkedInAt: FIRST_AT }),
+  )
+  queue.push(qrTextOf(HASH))
+  const card = await cardOf(dialog)
+  expect(within(card).getByText('입장 불가 · 이미 출석')).toBeTruthy()
+  expect(within(card).getByText('참가비 미납 · 재정부 확인 필요')).toBeTruthy()
+  expect(
+    within(card)
+      .getAllByRole('button')
+      .map(button => button.textContent),
+  ).toEqual(['다음 사람'])
+})
+
+test('현장 받기 실패는 카드에 남고 다시 누를 수 있으며, 권한 상실은 부모에게 알린다', async () => {
+  const { api, dialog, handlers } = await open()
+  api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000 }))
+  api.on('POST', DEPOSIT_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  queue.push(qrTextOf(HASH))
+  const card = await cardOf(dialog)
+  const receive = within(card).getByRole('button', { name: '5,000원 받고 입장' })
+  fireEvent.click(receive)
+  expect(await within(card).findByText(REGISTRATION_STAFF_ERRORS.TOO_MANY_REQUESTS!)).toBeTruthy()
+  expect(within(card).getByText('참가비 받기 · 5,000원')).toBeTruthy()
+  api.on('POST', DEPOSIT_PATH, () => json({ error: 'FORBIDDEN' }, 403))
+  fireEvent.click(receive)
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   expect(handlers.onLost).toHaveBeenCalledWith(PERMISSION_CHANGED)
 })
 
-test('스캔 결과의 잘못된 입금 확인을 사유와 함께 되돌리고 다시 확인할 수 있다', async () => {
+test('방금 받은 입금을 사유와 함께 되돌리면 다시 참가비 받기 판정이다', async () => {
   const { api, dialog, handlers } = await open()
+  api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000 }))
   const paid = applicantChange({
     deposit: { status: 'confirmed', amount: 5000 },
     actions: ['registration.cancel_check_in', 'deposit.cancel'],
   })
-  api.on('POST', CHECK_IN_PATH, () => json({ ...result(true), appliedFee: 5000, applicant: paid }))
-  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit/cancel`
+  api.on('POST', DEPOSIT_PATH, () => json({ deposit: paid.deposit, applicant: paid }, 201))
+  const path = `${DEPOSIT_PATH}/cancel`
   const updated = applicantChange()
   api.on('POST', path, () => json({ deposit: updated.deposit, applicant: updated }))
   queue.push(qrTextOf(HASH))
-  fireEvent.click(await within(dialog).findByRole('button', { name: '확인 취소' }))
+  const card = await cardOf(dialog)
+  fireEvent.click(within(card).getByRole('button', { name: '5,000원 받고 입장' }))
+  fireEvent.click(await within(card).findByRole('button', { name: '확인 취소' }))
   const undo = await screen.findByRole('dialog', { name: '김새내님의 입금 확인을 취소할까요?' })
   fireEvent.change(within(undo).getByLabelText('취소 사유'), {
     target: { value: '다른 사람의 입금을 잘못 확인' },
   })
   fireEvent.click(within(undo).getByRole('button', { name: '입금 확인 취소' }))
-  expect(await within(dialog).findByText('입금 확인 전')).toBeTruthy()
+  expect(await within(card).findByText('참가비 받기 · 5,000원')).toBeTruthy()
   expect(api.calls.at(-1)?.body).toEqual({ reason: '다른 사람의 입금을 잘못 확인' })
   expect(handlers.onChecked).toHaveBeenLastCalledWith(updated)
-  expect(within(dialog).getByRole('button', { name: '5,000원 입금 확인' })).toBeTruthy()
+  expect(within(card).getByRole('button', { name: '5,000원 받고 입장' })).toBeTruthy()
 })
 
-test('다른 운영진이 먼저 입금을 확인했으면 새로 읽어 기록액을 표시하고 중복 기록하지 않는다', async () => {
+test('다른 운영진이 먼저 입금을 확인했으면 새로 읽어 입장 가능과 기록액을 보이고 중복 기록하지 않는다', async () => {
   const { api, dialog } = await open()
   api.on('POST', CHECK_IN_PATH, () => json({ ...result(false), appliedFee: 5000 }))
-  const path = `/api/organizations/c1/registrations/${REGISTRATION_ID}/deposit`
-  api.on('POST', path, () => json({ error: 'DEPOSIT_EXISTS' }, 409))
+  api.on('POST', DEPOSIT_PATH, () => json({ error: 'DEPOSIT_EXISTS' }, 409))
   queue.push(qrTextOf(HASH))
-  fireEvent.click(await within(dialog).findByRole('button', { name: '5,000원 입금 확인' }))
-  const reread = await within(dialog).findByRole('button', { name: '새로 읽기' })
+  const card = await cardOf(dialog)
+  fireEvent.click(within(card).getByRole('button', { name: '5,000원 받고 입장' }))
+  const reread = await within(card).findByRole('button', { name: '새로 읽기' })
   const paid = applicantChange({
     deposit: { status: 'confirmed', amount: 4000 },
     actions: ['deposit.cancel'],
   })
-  api.on('POST', CHECK_IN_PATH, () => json({ ...result(true), appliedFee: 5000, applicant: paid }))
+  // 새로 읽기는 출석을 다시 보내 already가 오지만, 이번 찍기가 남긴 출석이라 이미 출석으로 부르지 않는다.
+  api.on('POST', CHECK_IN_PATH, () =>
+    json({ ...result(true), appliedFee: 5000, applicant: paid, checkedInAt: FIRST_AT }),
+  )
   fireEvent.click(reread)
-  expect(await within(dialog).findByText('입금 확인 4,000원')).toBeTruthy()
-  expect(within(dialog).queryByRole('button', { name: '5,000원 입금 확인' })).toBeNull()
-  expect(api.calls.filter(call => call.path === path)).toHaveLength(1)
+  expect(await within(dialog).findByText('입장 가능')).toBeTruthy()
+  expect(within(dialog).getByText('입금 확인 4,000원')).toBeTruthy()
+  expect(within(dialog).queryByText('입장 불가 · 이미 출석')).toBeNull()
+  expect(within(dialog).queryByRole('button', { name: '5,000원 받고 입장' })).toBeNull()
+  expect(posts(api, DEPOSIT_PATH)).toHaveLength(1)
 })

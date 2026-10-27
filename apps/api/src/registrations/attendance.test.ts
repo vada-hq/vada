@@ -62,6 +62,11 @@ test(
     )
     const again = (await (await checkIn(t, event, hash)).json()) as CheckInResult
     assert.equal(again.already, true)
+    // 이미 출석이면 처음 출석한 시각을 함께 준다(문 앞에서 QR을 다시 쓴 것인지 가린다).
+    const { rows: firstAt } = await t.pg.query<{ confirmed_at: Date }>(
+      'SELECT confirmed_at FROM attendance',
+    )
+    assert.equal(again.checkedInAt, firstAt[0]!.confirmed_at.toISOString())
     assert.equal(await attendances(t, false), 1)
     const log = await t.pg.query(
       'SELECT member_id, form_id, registration_id, action FROM applicant_access_log ORDER BY accessed_at',

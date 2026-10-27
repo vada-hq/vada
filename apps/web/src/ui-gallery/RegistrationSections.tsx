@@ -6,7 +6,6 @@ import {
 } from '@vada/contracts'
 import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
-import { ScanResultCard } from '@/registrations/ScanResultCard'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -107,10 +106,10 @@ export function ApplicantRowSection() {
   )
 }
 
-// 신청 양식 카드(상태 배지 다섯, 권한 없음, 긴 이름)와 QR 스캐너의 결과 카드. 390px 폭에서 본다.
+// 신청 양식 카드(상태 배지 다섯, 권한 없음, 긴 이름). 390px 폭에서 본다. QR 스캐너의 결과 카드는 ScanVerdictSection에 있다.
 export function RegistrationSection() {
   return (
-    <Section title="신청 양식 카드·상태 배지·스캔 결과">
+    <Section title="신청 양식 카드·상태 배지">
       <div className="flex w-96 max-w-full flex-col gap-2">
         {REGISTRATION_STATUSES.map(status => (
           <Card
@@ -130,23 +129,6 @@ export function RegistrationSection() {
         ))}
         <Card data={form('view', { actions: [], capacity: null, opensAt: '2026-10-22T09:00' })} />
         <Card data={form('long', { name: `${unbroken} ${longName}` })} />
-        <ScanResultCard
-          outcome={{
-            kind: 'checked',
-            applicant: {
-              id: 'r1',
-              attended: true,
-              cancelled: false,
-              deposit: { status: 'none', amount: null },
-              listed: true,
-              actions: [],
-            },
-            name: '김새내',
-            studentId: '20260001',
-          }}
-          onNext={noop}
-        />
-        <ScanResultCard outcome={{ kind: 'missing' }} onNext={noop} />
       </div>
     </Section>
   )
