@@ -32,7 +32,7 @@ test('재정 탭 줄은 지출 옆에 수입이 있고 줄을 바꿔 가로 스�
   serveIncomes()
   showFinance()
   const tabs = screen.getAllByRole('tab').map(tab => tab.textContent)
-  expect(tabs).toEqual(['개요', '지출', '수입', '예산', '행사 정산', '계좌', '납부자 명단', '결산'])
+  expect(tabs).toEqual(['개요', '지출', '수입', '예산', '행사 정산', '납부자 명단', '결산'])
   const list = screen.getByRole('tablist', { name: '재정 보기' })
   // 탭 부품은 부모에 overflow를 줄 수 없다(tab-button.tsx). 넘치면 줄을 바꾼다.
   expect(list.className).toContain('flex-wrap')

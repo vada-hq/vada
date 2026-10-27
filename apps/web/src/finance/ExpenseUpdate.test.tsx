@@ -226,8 +226,10 @@ test('행사 목록을 읽지 못하면 이유를 보이고 사유는 고칠 수
   const detail = await screen.findByRole('dialog')
   fireEvent.click(await within(detail).findByRole('button', { name: '고치기' }))
   expect((await screen.findByText(EXPENSE_OPTIONS_FAILED)).textContent).toBe(EXPENSE_OPTIONS_FAILED)
-  expect(screen.getByLabelText('행사')).toHaveProperty('disabled', true)
-  expect(screen.getByLabelText('사유')).toHaveProperty('disabled', false)
+  // 지출 탭의 거르기 줄에도 '행사'가 있어 창 안에서 찾는다.
+  const form = within(screen.getByRole('dialog'))
+  expect(form.getByLabelText('행사')).toHaveProperty('disabled', true)
+  expect(form.getByLabelText('사유')).toHaveProperty('disabled', false)
 })
 
 test('계좌 없는 지출은 없음으로 시작하고 사유만 고쳐도 계좌는 null 그대로 둔다', async () => {
