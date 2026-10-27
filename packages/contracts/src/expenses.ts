@@ -194,11 +194,12 @@ export interface ExpensesResponse {
   periods?: FiscalPeriodView[]
 }
 // 목록에 받은 지출의 예산 배분. 결제일과 다른 기간의 항목도 그대로 준다(DEC-92).
+// 예산 항목이 없는 품목의 결제 내역은 항목·기간이 null이다. 개요처럼 그 지출을 결제일로 기간에 넣지 않으려고 준다.
 export interface ExpenseAllocation {
   expenseId: string
-  budgetItemId: string
-  purpose: string
-  periodId: string
+  budgetItemId: string | null
+  purpose: string | null
+  periodId: string | null
   amount: number
 }
 export interface ExpenseResponse {

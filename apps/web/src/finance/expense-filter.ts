@@ -61,8 +61,14 @@ function hasEvidence(expense: ExpenseSummary, filter: string) {
   return filter !== 'present' || expense.evidenceCount > 0
 }
 
-// 학교 과목 원문을 저장하지 않으므로 이름만으로 같은 과목이라고 추정하지 않는다(DEC-70).
-// 셀 경계와 수식 시작 문자를 정리해 학교 엑셀 양식에 글로 붙는다.
-const cell = (value: string) => value.replace(/[\t\r\n]+/g, ' ').replace(/^([\s]*[=+@-])/, "'$1")
+// 계정과목은 두지 않으므로(DEC-70) 칸을 만들지 않고 행사·내역만 복사한다.
+// 셀 경계와 수식 시작 문자를 정리해 학교 엑셀 양식에 글로 붙는다. 붙여넣기는 따옴표로 감싼 칸을 풀므로
+// 앞 따옴표 뒤의 수식도 막고, 따옴표가 있는 칸은 감싸고 겹친다(OWASP CSV Injection).
+const FORMULA_START = /^[\s"']*[=+@-]/
+const cell = (value: string) => {
+  const flat = value.replace(/[\t\r\n]+/g, ' ')
+  const text = FORMULA_START.test(flat) ? `'${flat}` : flat
+  return text.includes('"') ? `"${text.replaceAll('"', '""')}"` : text
+}
 export const copyExpenseRow = (expense: ExpenseSummary) =>
-  ['확인 필요', expense.event?.name ?? '', expense.description].map(cell).join('\t')
+  [expense.event?.name ?? '', expense.description].map(cell).join('\t')

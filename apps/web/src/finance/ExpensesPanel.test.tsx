@@ -55,7 +55,7 @@ test('기간 쿼리의 범위·합계와 필터·검색·0건을 보이고 받�
   expect(screen.getByText('지출이 많아서 300개만 보여요.')).toBeTruthy()
 })
 
-test('행 복사는 탭으로 나눈 세 칸을 쓰며 실패 뒤 다시 누를 수 있다', async () => {
+test('행 복사는 탭으로 나눈 두 칸(행사, 내역)을 쓰며 실패 뒤 다시 누를 수 있다', async () => {
   const writeText = vi.fn().mockRejectedValueOnce(new Error('denied')).mockResolvedValue(undefined)
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
   render(<Sample />)
@@ -64,7 +64,7 @@ test('행 복사는 탭으로 나눈 세 칸을 쓰며 실패 뒤 다시 누를 
   await screen.findByText('복사하지 못했어요. 다시 눌러 주세요.')
   fireEvent.click(within(card).getByRole('button', { name: '행 복사' }))
   await screen.findByText('행 복사 완료')
-  expect(writeText).toHaveBeenLastCalledWith('확인 필요\t축제\t포스터 인쇄')
+  expect(writeText).toHaveBeenLastCalledWith('축제\t포스터 인쇄')
 })
 
 test('모르는 기간의 주소는 전체 지출이나 0원으로 바꾸지 않는다', () => {

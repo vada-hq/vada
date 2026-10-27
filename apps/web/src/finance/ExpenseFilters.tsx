@@ -17,9 +17,11 @@ export function ExpenseFilters({ expenses, allocations, periods, filters, onChan
     expenses.flatMap(row => (row.event ? [[row.event.id, row.event.name]] : [])),
   )
   const items = new Map(
-    allocations
-      .filter(row => !filters.period || row.periodId === filters.period.id)
-      .map(row => [row.budgetItemId, row.purpose]),
+    allocations.flatMap(row =>
+      row.budgetItemId && row.purpose && (!filters.period || row.periodId === filters.period.id)
+        ? [[row.budgetItemId, row.purpose]]
+        : [],
+    ),
   )
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

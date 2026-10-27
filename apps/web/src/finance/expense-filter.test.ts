@@ -39,10 +39,25 @@ test('행사·항목·증빙·사용처와 내역을 함께 거르며 0건을 �
   expect(filterExpenses([row], allocations, { ...filters, eventId: 'e2' })).toEqual([])
 })
 
-test('행 복사는 학교 과목을 추측하지 않으며 탭과 줄바꿈을 한 칸으로 정리한다', () => {
+test('행 복사는 계정과목 칸 없이 행사·내역 두 칸이고 탭과 줄바꿈을 한 칸으로 정리한다', () => {
   const row = expenseSummary('x', {
     description: '=SUM(A1)\t인쇄\n내역',
     event: { id: 'e', name: '축제\t행사' },
   })
-  expect(copyExpenseRow(row)).toBe("확인 필요\t축제 행사\t'=SUM(A1) 인쇄 내역")
+  expect(copyExpenseRow(row)).toBe("축제 행사\t'=SUM(A1) 인쇄 내역")
+})
+
+test('결제 내역은 있지만 예산 항목이 없는 지출은 개요처럼 기간을 고르면 결제일로도 넣지 않는다', () => {
+  const lined = expenseSummary('lined', { paidOn: '2026-06-30', amount: 90 })
+  const lines = [
+    { expenseId: 'lined', budgetItemId: null, purpose: null, periodId: null, amount: 90 },
+  ]
+  expect(filterExpenses([lined], lines, filters)).toEqual([])
+  expect(filterExpenses([lined], lines, { ...filters, period: null })).toEqual([lined])
+  expect(expenseAmount(lined, lines, { ...filters, period: null })).toBe(90)
+})
+
+test('행 복사는 따옴표로 감싼 수식도 글로 붙게 칸을 감싸고 따옴표를 겹친다', () => {
+  const row = expenseSummary('q', { description: '"=1+1"', event: null })
+  expect(copyExpenseRow(row)).toBe(`\t"'""=1+1"""`)
 })
