@@ -42,6 +42,29 @@ function ManyDepartmentsStructure() {
   )
 }
 
+// 복합 이름의 줄기는 더하기에서 빠지고, 재정 이름 후보도 국 끝말을 따르는 견본.
+function BureauDepartmentsStructure() {
+  const draft = useCouncilDraft('김구글', OPENED)
+  const renamed = useRef(false)
+  useEffect(() => {
+    if (renamed.current) return
+    renamed.current = true
+    draft.renameDepartment(0, '기획국')
+    draft.renameDepartment(1, '인권복지국')
+  }, [draft])
+  return (
+    <CreateStructureStep
+      draft={draft}
+      linkedName="김회장"
+      saving={false}
+      error=""
+      onBack={() => {}}
+      onSubmit={() => {}}
+      onYearReset={() => {}}
+    />
+  )
+}
+
 // 학생회 만들기 세 단계(기본 정보, 조직 구조, 초대 링크)와 코드 바꾸기 확인 창. 서버를 부르지 않는다.
 export function CreateCouncilSection() {
   const draft = useCouncilDraft('김구글', OPENED)
@@ -65,6 +88,9 @@ export function CreateCouncilSection() {
       </RealFrame>
       <RealFrame>
         <ManyDepartmentsStructure />
+      </RealFrame>
+      <RealFrame>
+        <BureauDepartmentsStructure />
       </RealFrame>
       <RealFrame>
         <CreateInviteStep

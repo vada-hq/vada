@@ -26,7 +26,10 @@ export type DraftTextKey = 'unit' | 'schoolName' | 'name' | 'year' | 'financeNam
 
 // 미리 둔 부서와 더하기 단추(기능 020 정한 것 6, 학생회 26곳 집계).
 const PRESET_DEPARTMENTS = ['기획부', '홍보부']
-const SUGGESTED_DEPARTMENTS = ['복지부', '문화부', '체육부', '학술부']
+const SUGGESTED_DEPARTMENT_STEMS = ['복지', '문화', '체육', '학술']
+const FINANCE_DEPARTMENT_STEMS = ['총무', '사무', DEFAULT_FINANCE_DEPARTMENT_NAME.slice(0, -1)]
+const DEFAULT_DEPARTMENT_SUFFIX = '부'
+const DEPARTMENT_SUFFIXES = [DEFAULT_DEPARTMENT_SUFFIX, '국', '팀']
 
 // 기본 유형은 가장 흔한 학부·학과, 운영 연도는 올해(한국 날짜)다. 내 이름은 Google 이름을 미리 채운다.
 export function initialDraft(memberName: string, now = new Date()): CreateCouncilDraft {
@@ -52,14 +55,36 @@ export const createRequestOf = (draft: CreateCouncilDraft, askName: boolean) => 
   ...(askName && { memberName: draft.memberName }),
 })
 
-// 목록에 없는 더하기 단추만 보인다. 재정 부서를 더해 20개가 차면 더하지 못한다.
+// 재정 부서를 더해 20개가 차면 더하지 못한다.
 export const canAddDepartment = (draft: CreateCouncilDraft) =>
   draft.departments.length < INITIAL_DEPARTMENTS_MAX - 1
-export const suggestionsOf = (draft: CreateCouncilDraft) => {
-  const taken = new Set([draft.financeName, ...draft.departments.map(row => row.name)].map(trim))
-  return SUGGESTED_DEPARTMENTS.filter(name => !taken.has(name))
-}
 const trim = (value: string) => value.trim()
+// 다듬은 부서 이름들. 0은 재정 부서, 그 뒤는 departments 차례다.
+const departmentNamesOf = (draft: CreateCouncilDraft) =>
+  [draft.financeName, ...draft.departments.map(row => row.name)].map(trim)
+
+// 이미 쓰는 이름의 관례를 따라 칩을 누른 뒤 다시 이름을 고치는 수고를 줄인다(O1).
+function departmentSuffixOf(draft: CreateCouncilDraft) {
+  const names = departmentNamesOf(draft)
+  const counts = DEPARTMENT_SUFFIXES.map(
+    suffix => names.filter(name => name.endsWith(suffix)).length,
+  )
+  const most = Math.max(...counts)
+  const winners = DEPARTMENT_SUFFIXES.filter((_, index) => counts[index] === most)
+  return winners.length === 1 ? winners[0]! : DEFAULT_DEPARTMENT_SUFFIX
+}
+
+export const suggestionsOf = (draft: CreateCouncilDraft) => {
+  const names = departmentNamesOf(draft)
+  const suffix = departmentSuffixOf(draft)
+  return SUGGESTED_DEPARTMENT_STEMS.filter(stem => !names.some(name => name.includes(stem))).map(
+    stem => stem + suffix,
+  )
+}
+export const financeSuggestionsOf = (draft: CreateCouncilDraft) => {
+  const suffix = departmentSuffixOf(draft)
+  return FINANCE_DEPARTMENT_STEMS.map(stem => stem + suffix)
+}
 
 // 칸 이름은 계약의 경로와 같다. 그래야 계약이 잡은 문제(너무 긴 이름)도 같은 칸 아래에 보인다.
 const BASIC_KEYS = new Set(['unit', 'schoolName', 'name', 'year'])
@@ -80,14 +105,11 @@ export function basicErrors(draft: CreateCouncilDraft, parsed: Parsed): FieldErr
 }
 
 const DUPLICATE_NAME = '같은 이름의 부서가 있어요'
-// 다듬은 부서 이름들. 0은 재정 부서, 그 뒤는 departments 차례다.
-const departmentNamesOf = (draft: CreateCouncilDraft) =>
-  [draft.financeName, ...draft.departments.map(row => row.name)].map(trim)
 
 // 카드 안에서 이름을 바꿔 저장할 때의 문제(차례는 departmentNamesOf와 같다). 같은 이름은 저장하려는 카드에 알린다.
-export function departmentNameProblem(draft: CreateCouncilDraft, index: number) {
+export function departmentNameProblem(draft: CreateCouncilDraft, index: number, nextName?: string) {
   const names = departmentNamesOf(draft)
-  const name = names[index] ?? ''
+  const name = (nextName ?? names[index] ?? '').trim()
   return (
     requiredText(name, '부서 이름을') ??
     (names.some((other, at) => at !== index && other === name) ? DUPLICATE_NAME : undefined)

@@ -188,6 +188,67 @@ test('부서 이름을 눌러도 그 카드의 이름 칸이 열린다', async (
   expect(cardNames()).toEqual(['재정부', '기획국', '홍보부'])
 })
 
+test('추천 칩은 카드 끝말을 따르고 복합 이름에 같은 줄기가 있으면 숨기며, 누르면 그 이름으로 더한다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await rename('기획부', '부서 이름 1', '인권복지국')
+  await rename('홍보부', '부서 이름 2', '문화체육국')
+  for (const name of ['복지국', '복지부', '문화국', '체육국'])
+    expect(within(form()).queryByRole('button', { name })).toBeNull()
+  fireEvent.click(button('학술국'))
+  expect(cardNames()).toEqual(['재정부', '인권복지국', '문화체육국', '학술국'])
+  await choose('인권복지국', '빼기')
+  expect(button('복지국')).toBeTruthy()
+})
+
+test('재정 이름을 고칠 때만 후보를 보이고, 칸에서 후보로 초점을 옮겨 골라도 바로 저장한다', async () => {
+  serve()
+  open()
+  await toStructure()
+  expect(within(form()).queryByRole('group', { name: '재정 부서 이름 후보' })).toBeNull()
+  fireEvent.click(button('재정부 이름 바꾸기'))
+  const candidates = screen.getByRole('group', { name: '재정 부서 이름 후보' })
+  expect(
+    within(candidates)
+      .getAllByRole('button')
+      .map(node => node.textContent),
+  ).toEqual(['총무부', '사무부', '재정부'])
+  const choice = within(candidates).getByRole('button', { name: '총무부' })
+  fireEvent.blur(nameInput('재정 부서 이름'), { relatedTarget: choice })
+  fireEvent.focus(choice)
+  fireEvent.click(choice)
+  expect(cardNames()).toEqual(['총무부', '기획부', '홍보부'])
+  expect(screen.queryByLabelText('재정 부서 이름')).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(trigger('총무부')))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('재정 이름 후보도 국·팀을 따르고, 중복된 후보는 칸 아래 오류를 보이며 다른 후보로 고칠 수 있다', async () => {
+  serve()
+  open()
+  await toStructure()
+  await rename('기획부', '부서 이름 1', '기획국')
+  await rename('홍보부', '부서 이름 2', '사무국')
+  fireEvent.click(button('재정부 이름 바꾸기'))
+  const candidates = () => screen.getByRole('group', { name: '재정 부서 이름 후보' })
+  expect(
+    within(candidates())
+      .getAllByRole('button')
+      .map(node => node.textContent),
+  ).toEqual(['총무국', '사무국', '재정국'])
+  fireEvent.click(within(candidates()).getByRole('button', { name: '사무국' }))
+  expect(screen.getByText('같은 이름의 부서가 있어요')).toBeTruthy()
+  expect(nameInput('재정 부서 이름').getAttribute('aria-invalid')).toBe('true')
+  fireEvent.click(within(candidates()).getByRole('button', { name: '총무국' }))
+  expect(cardNames()).toEqual(['총무국', '기획국', '사무국'])
+  await rename('기획국', '부서 이름 1', '기획팀')
+  await rename('사무국', '부서 이름 2', '홍보팀')
+  fireEvent.click(button('총무국 이름 바꾸기'))
+  fireEvent.click(within(candidates()).getByRole('button', { name: '사무팀' }))
+  expect(cardNames()).toEqual(['사무팀', '기획팀', '홍보팀'])
+})
+
 test('2단계는 같은 이름과 빈 이름을 그 줄 아래에 알리고 보내지 않는다', async () => {
   serve()
   open()

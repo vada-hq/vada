@@ -19,6 +19,8 @@ type Props = {
   onStart: () => void
   onEnter: () => void
   onRename: (name: string) => void
+  nameSuggestions?: string[] | undefined
+  onChooseName: (name: string) => void
   onCommit: (refocus: boolean) => void
   onCancel: () => void
   // 재정 부서는 뺄 수 없어 없다.
@@ -27,7 +29,15 @@ type Props = {
 
 // 조직도의 부서 카드(와이어프레임 ORG-02): 이름과 오른쪽 위 ⋯ 메뉴(이름 바꾸기·빼기), 재정 역할 부서는 '재정' 표시.
 // 이름 바꾸기는 카드 안 제자리 편집이다. 이름을 누르거나 ⋯ 메뉴의 '이름 바꾸기'로 열고, Enter 저장, Esc 취소(Atlassian inline edit).
-export default function DepartmentCard({ row, label, name, editing, error, ...on }: Props) {
+export default function DepartmentCard({
+  row,
+  label,
+  name,
+  editing,
+  error,
+  nameSuggestions,
+  ...on
+}: Props) {
   const errorId = useId()
   const showInput = editing || error !== undefined
   const financeBadge = row === 'finance' && (
@@ -36,7 +46,13 @@ export default function DepartmentCard({ row, label, name, editing, error, ...on
     </Badge>
   )
   return (
-    <div className={cn(cardClass, 'flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3')}>
+    <div
+      className={cn(cardClass, 'flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3')}
+      onBlur={event => {
+        // 이름 후보로 초점을 옮길 때 칸을 닫으면 누르기 전에 후보가 사라진다.
+        if (!event.currentTarget.contains(event.relatedTarget)) on.onCommit(false)
+      }}
+    >
       {showInput ? (
         <>
           <Input
@@ -49,7 +65,6 @@ export default function DepartmentCard({ row, label, name, editing, error, ...on
             aria-describedby={error ? errorId : undefined}
             onChange={event => on.onRename(event.target.value)}
             onFocus={on.onEnter}
-            onBlur={() => on.onCommit(false)}
             onKeyDown={event => {
               // 한글 조합을 끝내는 Enter는 저장이 아니다.
               if (isComposingKey(event)) return
@@ -66,6 +81,23 @@ export default function DepartmentCard({ row, label, name, editing, error, ...on
             <p id={errorId} className="text-xs text-red-600">
               {error}
             </p>
+          )}
+          {nameSuggestions && (
+            <div role="group" aria-label="재정 부서 이름 후보" className="flex flex-wrap gap-1.5">
+              {nameSuggestions.map(candidate => (
+                <Button
+                  key={candidate}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  touch
+                  className="break-keep px-2"
+                  onClick={() => on.onChooseName(candidate)}
+                >
+                  {candidate}
+                </Button>
+              ))}
+            </div>
           )}
           {financeBadge}
         </>

@@ -64,6 +64,14 @@ test('만들기: 조직 구조', async () => {
   expect(html()).toMatchSnapshot()
 })
 
+test('만들기: 재정 부서 이름 후보', async () => {
+  createForm(mockApi())
+  await toStructure()
+  fireEvent.click(screen.getByRole('button', { name: '재정부 이름 바꾸기' }))
+  expect(screen.getByRole('group', { name: '재정 부서 이름 후보' })).toBeTruthy()
+  expect(html()).toMatchSnapshot()
+})
+
 test('만들기: 진행 중', async () => {
   const api = mockApi()
   api.on('POST', '/api/organizations/create', () => deferredResponse().promise)

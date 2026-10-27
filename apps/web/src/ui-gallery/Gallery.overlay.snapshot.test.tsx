@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { ComponentType } from 'react'
 import { afterEach, expect, test } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { MyNameSection } from './JoinSections'
@@ -38,6 +38,21 @@ test.each(openers)('%s', (name, Section) => {
   render(<Section />)
   fireEvent.click(screen.getByRole('button', { name }))
   expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('학생회 만들기: 재정 이름 후보(국)', () => {
+  render(<CreateCouncilSection />)
+  const structure = screen.getAllByRole('form', { name: '학생회 만들기' })[3]!
+  fireEvent.click(within(structure).getByRole('button', { name: '재정부 이름 바꾸기' }))
+  expect(
+    within(screen.getByRole('group', { name: '재정 부서 이름 후보' }))
+      .getAllByRole('button')
+      .map(button => button.textContent),
+  ).toEqual(['총무국', '사무국', '재정국'])
+  expect(snapshotHtml()).toMatchSnapshot()
+  fireEvent.click(within(structure).getByRole('button', { name: '총무국' }))
+  expect(within(structure).getByRole('button', { name: '총무국 동작' })).toBeTruthy()
+  expect(screen.queryByRole('group', { name: '재정 부서 이름 후보' })).toBeNull()
 })
 
 // 신청자 줄의 [입금 확인]이 여는 창: 적용 참가비로 채운 금액 칸(DEC-68). 줄 여럿에 같은 버튼이 있어 첫 줄 것을 연다.

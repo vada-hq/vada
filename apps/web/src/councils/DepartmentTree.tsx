@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { FieldErrors } from '@/lib/use-form-check'
 import { cn } from '@/lib/utils'
-import { canAddDepartment, suggestionsOf } from './council-draft'
+import { canAddDepartment, financeSuggestionsOf, suggestionsOf } from './council-draft'
 import DepartmentCard from './DepartmentCard'
 import { busClass, carriesTrunk, chartCell, type ChartCell } from './org-chart-rows'
 import { useDepartmentEditing, useRowFocus, type DepartmentEditing } from './useDepartmentEditing'
@@ -70,6 +70,8 @@ function cardsOf({ draft, errors }: Props, tree: DepartmentEditing) {
       onStart={() => tree.start(row)}
       onEnter={() => tree.enter(row)}
       onRename={next => tree.rename(row, next)}
+      nameSuggestions={row === 'finance' ? financeSuggestionsOf(draft) : undefined}
+      onChooseName={next => tree.commit(row, true, next)}
       onCommit={refocus => tree.commit(row, refocus)}
       onCancel={() => tree.cancel(row)}
       onRemove={row === 'finance' ? undefined : () => tree.remove(row)}

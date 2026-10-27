@@ -91,7 +91,7 @@ function useEditingRow() {
 
 type Finishing = Pick<ReturnType<typeof useEditingRow>, 'current' | 'close'> &
   Pick<ReturnType<typeof rowAccess>, 'nameOf' | 'rename'> & {
-    problemOf: (row: DepartmentRow) => string | undefined
+    problemOf: (row: DepartmentRow, nextName?: string) => string | undefined
     mark: (row: DepartmentRow, value: boolean) => void
     remove: (row: number) => void
     focusOn: (target: FocusTarget) => void
@@ -111,11 +111,15 @@ function finishing({
   return {
     // refocus는 Enter로 저장했을 때다. 칸이 닫히면 그 카드의 ⋯ 버튼으로 초점을 돌린다.
     // 저장하면 확인 대상에서 뺀다. 그러지 않으면 다른 카드의 이름 때문에 손대지 않은 이 카드가 다시 열린다.
-    commit: (row: DepartmentRow, refocus: boolean) => {
+    commit: (row: DepartmentRow, refocus: boolean, nextName?: string) => {
       if (current() !== row) return
-      const failed = problemOf(row) !== undefined
+      if (nextName !== undefined) rename(row, nextName)
+      const failed = problemOf(row, nextName) !== undefined
       mark(row, failed)
-      if (failed) return
+      if (failed) {
+        if (refocus) focusOn(row)
+        return
+      }
       close(row)
       if (refocus) focusOn(row)
     },
@@ -144,7 +148,8 @@ export function useDepartmentEditing(state: Draft, focusOn: (target: FocusTarget
   const { checked, mark } = useCheckedRows()
   const { indexOf, nameOf, rename } = rowAccess(state)
   const { editing, current, open, close } = useEditingRow()
-  const problemOf = (row: DepartmentRow) => departmentNameProblem(state.draft, indexOf(row))
+  const problemOf = (row: DepartmentRow, nextName?: string) =>
+    departmentNameProblem(state.draft, indexOf(row), nextName)
   // 고치는 칸에 문제가 있으면 그 칸으로 초점을 돌리고 true.
   function heldByProblem() {
     const open = current()
