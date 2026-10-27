@@ -144,7 +144,12 @@ function Split({
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         {roomId && (
-          <RoomGate rooms={page.rooms} roomId={roomId} onList={() => onScreen({ kind: 'list' })}>
+          <RoomGate
+            rooms={page.rooms}
+            councilId={page.councilId}
+            roomId={roomId}
+            onList={() => onScreen({ kind: 'list' })}
+          >
             <Room key={roomId} page={page} roomId={roomId} />
           </RoomGate>
         )}
@@ -177,6 +182,7 @@ function ChatBody({
     return (
       <RoomGate
         rooms={props.rooms}
+        councilId={councilId}
         roomId={screen.roomId}
         onList={() => onScreen({ kind: 'list' })}
       >

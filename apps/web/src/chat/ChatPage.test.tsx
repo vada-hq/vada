@@ -264,6 +264,22 @@ test('1:1 대화는 나를 뺀 운영진 목록에서 고르면 그 방이 열�
   expect(posts(api)[0]?.body).toEqual({ memberId: 'm3' })
 })
 
+test('방금 만든 1:1은 목록에 없어도(메시지가 없는 1:1은 목록에 두지 않는다) 서버가 방을 주면 열려 첫 메시지를 쓸 수 있다', async () => {
+  const api = serve()
+  api.on('POST', `${base}/direct`, () => json({ roomId: 'r9' }, 201))
+  api.on('GET', `${base}/rooms/r9`, () =>
+    json(roomDetail(room('r9', { type: 'direct', name: '박새내', lastMessageAt: null }))),
+  )
+  api.on('GET', `${base}/rooms/r9/messages`, () => json(messagePage([])))
+  render(<Harness />)
+  fireEvent.click(await screen.findByRole('button', { name: '1:1 대화' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(await within(dialog).findByRole('button', { name: '박새내' }))
+  expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
+  expect(screen.getByRole('textbox', { name: '메시지' })).toBeTruthy()
+  expect(screen.queryByText('찾을 수 없음')).toBeNull()
+})
+
 test('1:1 방을 연 뒤 목록을 다시 읽지 못해도 찾을 수 없음 대신 방을 열어 서버가 정한다', async () => {
   const api = serve()
   let opened = false

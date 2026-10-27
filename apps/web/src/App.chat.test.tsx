@@ -148,11 +148,13 @@ test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => 
   expect(((await field()) as HTMLTextAreaElement).value).toBe('쓰던 글')
 })
 
-test('들어가지 않은 방 주소는 찾을 수 없음이고 그 방을 읽지 않는다', async () => {
+test('들어가지 않은 방 주소는 찾을 수 없음이고 그 방의 메시지를 읽지 않는다', async () => {
+  // 목록에 없는 방은 서버에 그 방을 물어 정한다. 참여자가 아니면 서버가 403이다(PRIN-5).
+  api.on('GET', `/api/organizations/${C1}/rooms/${THEIRS}`, () => json({ error: 'FORBIDDEN' }, 403))
   window.history.replaceState(null, '', `/chat/${C1}/${THEIRS}`)
   await renderApp()
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
-  expect(api.calls.some(call => call.path.includes(THEIRS))).toBe(false)
+  expect(api.calls.some(call => call.path.includes(`${THEIRS}/messages`))).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
   expect(await roomButton(/공지방/)).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
@@ -163,6 +165,8 @@ test('다른 학생회의 방 주소는 찾을 수 없음이다', async () => {
   api.on('GET', `/api/organizations/${C2}/rooms`, () =>
     json(roomList({ rooms: [room(LEAD, { type: 'leadership' })] })),
   )
+  // 다른 학생회의 방은 서버가 없는 방과 같은 404로 답한다.
+  api.on('GET', `/api/organizations/${C2}/rooms/${ALL}`, () => json({ error: 'NOT_FOUND' }, 404))
   window.history.replaceState(null, '', `/chat/${C2}/${ALL}`)
   await renderApp()
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
@@ -172,18 +176,17 @@ test('다른 학생회의 방 주소는 찾을 수 없음이다', async () => {
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
 })
 
-test('목록에 아직 없는 방의 주소는 목록을 한 번 다시 읽어 열린다', async () => {
+test('메시지가 없어 목록에 없는 내 1:1 방 주소는 서버가 그 방을 주면 열린다', async () => {
   const fresh = '0199d1a0-0000-7000-8000-0000000000a3'
-  let reads = 0
-  api.on('GET', `/api/organizations/${C1}/rooms`, () => {
-    reads += 1
-    const added = reads > 1 ? [room(fresh, { type: 'leadership' })] : []
-    return json(roomList({ rooms: [room(ALL), ...added] }))
-  })
-  serveRoom(fresh, room(fresh, { type: 'leadership' }), '새 방 글')
+  const direct = room(fresh, { type: 'direct', name: '박새내', lastMessageAt: null })
+  const at = `/api/organizations/${C1}/rooms/${fresh}`
+  api.on('GET', at, () => json(roomDetail(direct)))
+  api.on('GET', `${at}/messages`, () => json(messagePage([])))
   window.history.replaceState(null, '', `/chat/${C1}/${fresh}`)
   await renderApp()
-  await waitFor(() => expect(screen.getByText('새 방 글')).toBeTruthy())
+  expect(await screen.findByText('아직 메시지가 없어요.')).toBeTruthy()
+  expect(await field()).toBeTruthy()
+  expect(screen.queryByText(ADDRESS_LOST)).toBeNull()
 })
 
 // 목록과 방을 나란히 둘 만큼 넓은 화면(PC)
