@@ -1,4 +1,4 @@
-import type { EventAction, EventDetail, EventSummary, TeamResponse } from '@vada/contracts'
+import type { EventAction, EventCard, EventDetail, TeamResponse } from '@vada/contracts'
 import { teamResponse } from './council-fixtures'
 
 // 계약은 본문의 사람 번호를 uuid로 받으므로 행사 시험의 운영진은 uuid 번호를 쓴다.
@@ -20,7 +20,7 @@ export function uuidTeam(): TeamResponse {
 }
 
 // 화면 시험이 같이 쓰는 행사 응답. 값은 서버 응답과 같은 모양이다.
-export function eventSummary(overrides: Partial<EventSummary> = {}): EventSummary {
+export function eventSummary(overrides: Partial<EventCard> = {}): EventCard {
   return {
     id: EVENT_ID,
     name: '신입생 환영회',
@@ -29,6 +29,11 @@ export function eventSummary(overrides: Partial<EventSummary> = {}): EventSummar
     place: '대강당',
     owner: { id: MEMBER.m2, name: '이재정', current: true },
     status: 'upcoming',
+    departments: ['기획부'],
+    tasks: { open: 2, total: 3 },
+    applicantCount: 4,
+    remaining: 1,
+    updatedAt: '2026-10-20T05:03:00.000Z',
     ...overrides,
   }
 }

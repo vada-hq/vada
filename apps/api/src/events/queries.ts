@@ -4,7 +4,6 @@ import {
   SIDEBAR_EVENT_LIMIT,
   koreanOf,
   type EventSummary,
-  type EventsResponse,
   type SidebarEventsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -103,15 +102,27 @@ const listOrder = (now: Date) => {
 }
 
 // 한 개 더 읽어 넘쳤는지 안다.
-export async function eventListOf(db: Reader, actor: Actor, now: Date): Promise<EventsResponse> {
+export async function eventListOf(db: Reader, actor: Actor, now: Date) {
   const rows = await eventSelect(db)
     .where(eq(record.councilId, actor.councilId))
-    .orderBy(...listOrder(now))
+    .orderBy(...cardListOrder(now))
     .limit(EVENT_LIST_LIMIT + 1)
   return {
     events: await summariesOf(db, actor, rows.slice(0, EVENT_LIST_LIMIT), now),
     truncated: rows.length > EVENT_LIST_LIMIT,
   }
+}
+
+// 카드 목록만의 차례(DEC-93). 옆 메뉴·홈·재정이 쓰는 listOrder는 그대로 둔다.
+function cardListOrder(now: Date) {
+  const group = groupSql(now)
+  return [
+    sql`case when ${group} = 2 then 2 when ${group} = 3 then 1 else 0 end`,
+    sql`case when ${group} < 2 then ${event.startsAt} end asc`,
+    sql`case when ${group} = 3 then ${endsAtSql} end desc`,
+    sql`case when ${group} = 2 then ${record.createdAt} end asc`,
+    event.id,
+  ]
 }
 
 // 끝났고 완료하지 않은 행사(정산이 남은 것). 끝난 지 오래된 것부터 limit개까지 주고 전체 수를 따로 준다.
@@ -125,7 +136,7 @@ async function endedOpenRows(db: Reader, actor: Actor, now: Date, limit: number)
 const openScope = (actor: Actor) =>
   and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
 
-// 옆 메뉴 '공간'의 행사 줄(DEC-85, DEC-96): 완료하지 않은 행사를 행사 목록과 같은 차례로 따로 읽는다.
+// 옆 메뉴 '공간'의 행사 줄(DEC-85, DEC-96): 완료하지 않은 행사를 기존 listOrder 차례로 따로 읽는다.
 // 행사 목록은 완료 행사를 섞어 EVENT_LIST_LIMIT개에서 자르므로 화면이 그것을 거르면 오래된 미완료 행사가 빠진다.
 // 칸은 id, 이름, 상태만이다(PRIN-5). 한 개 더 읽어 더 있는지 안다.
 export async function sidebarEventsOf(
@@ -160,7 +171,7 @@ export async function endedOpenEventsOf(db: Reader, actor: Actor, now: Date, lim
 const endDaySql = sql`coalesce(${event.endsAt}, ${event.startsAt})`
 const instant = (value: Date) => sql`${value.toISOString()}::timestamptz`
 
-// 재정 '행사 정산' 탭의 끝났고 완료하지 않은 것 밖의 행사(끝나지 않은 것과 완료한 것), 목록과 같은 차례.
+// 재정 '행사 정산' 탭의 끝났고 완료하지 않은 것 밖의 행사(끝나지 않은 것과 완료한 것), 기존 listOrder 차례.
 // 기간이 있으면 결산 점검(closing/pending.ts)과 같은 기준으로 거른다: 완료하지 않은 행사는 끝 날짜가 기간 끝일 이하이거나 날짜 미정,
 // 완료한 행사는 끝 날짜가 기간 안이다. 기간이 없으면 거르지 않는다. 한 개 더 읽어 넘쳤는지 안다.
 export async function periodEventsOf(
@@ -197,7 +208,7 @@ export async function openEventsOf(
   actor: Actor,
   now: Date,
   limits: { limit: number; endedLimit: number },
-): Promise<EventsResponse & { endedTotal: number }> {
+): Promise<{ events: EventSummary[]; truncated: boolean; endedTotal: number }> {
   const group = groupSql(now)
   const scope = openScope(actor)
   // 끝난 행사를 받지 않으면(홈 주요 행사) 읽지 않는다. 그때 endedTotal은 0이다.
@@ -239,7 +250,7 @@ export async function openEventCountsOf(db: Reader, actor: Actor, now: Date) {
   }
 }
 
-// 행사 몇 개 가운데 완료하지 않은 것을 행사 목록과 같은 차례로. 홈의 참여 행사가 쓴다. 학생회로 거른다.
+// 행사 몇 개 가운데 완료하지 않은 것을 기존 listOrder 차례로. 홈의 참여 행사가 쓴다. 학생회로 거른다.
 export async function openEventsAmong(
   db: Reader,
   actor: Actor,

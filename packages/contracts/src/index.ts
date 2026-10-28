@@ -171,6 +171,7 @@ export {
   type CreateEventRequest,
   type EventAction,
   type EventBlockers,
+  type EventCard,
   type EventChange,
   type EventDetail,
   type EventResponse,

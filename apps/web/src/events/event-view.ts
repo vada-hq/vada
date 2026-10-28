@@ -1,4 +1,5 @@
-import type { CouncilView, EventStatus, EventSummary, EventTab } from '@vada/contracts'
+import type { CouncilView, EventCard, EventStatus, EventSummary, EventTab } from '@vada/contracts'
+import { EVENT_STATUS_LABEL } from '@vada/contracts'
 import { dayTime } from '@/lib/korean-date-text'
 
 // 상태 칩의 색(와이어프레임 LIFECYCLE_STYLE): 기획 중 파랑, 진행 중 초록, 후속 정리 중 노랑, 완료 회색. 이름은 contracts EVENT_STATUS_LABEL이다.
@@ -36,42 +37,27 @@ export function whenLabel(event: Pick<EventSummary, 'startsAt' | 'endsAt'>) {
   return `${start.text} ~ ${end.date === start.date ? end.time : end.text}`
 }
 
-// 목록 왼쪽 날짜 칸: '11월' / '1'. 시작이 없으면 칸을 비운다(칸이 '날짜 미정'을 말한다).
-export function dateBlock(startsAt: string | null) {
-  if (startsAt === null) return null
-  const [, month = '', day = ''] = startsAt.split('T')[0]?.split('-') ?? []
-  return { month: `${Number(month)}월`, day: String(Number(day)) }
+export const EVENT_FILTERS = ['전체', '기획 중', '진행 중', '후속 정리 중', '완료'] as const
+export type EventFilter = (typeof EVENT_FILTERS)[number]
+export type EventOrder = 'date' | 'activity'
+
+// 일시순은 서버의 카드 정렬을 지킨다. 최근 활동순에서 같은 시각이면 그 차례를 지킨다.
+export function visibleEvents(
+  events: EventCard[],
+  query: string,
+  filter: EventFilter,
+  order: EventOrder,
+) {
+  const needle = query.trim().toLocaleLowerCase('ko')
+  const found = events.filter(
+    event =>
+      event.name.toLocaleLowerCase('ko').includes(needle) &&
+      (filter === '전체' || EVENT_STATUS_LABEL[event.status] === filter),
+  )
+  return order === 'activity'
+    ? found.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+    : found
 }
 
-// 목록에서 날짜 칸 옆에 쓰는 시각: '일요일 18:00 ~ 20:00'. 날짜는 날짜 칸이 말하므로 끝이 다른 날일 때만 쓴다.
-export function spanLabel(event: Pick<EventSummary, 'startsAt' | 'endsAt'>) {
-  if (event.startsAt === null) return null
-  const start = dayTime(event.startsAt)
-  const head = `${start.weekday}요일 ${start.time}`
-  if (event.endsAt === null) return head
-  const end = dayTime(event.endsAt)
-  return `${head} ~ ${end.date === start.date ? end.time : end.text}`
-}
-
-type EventGroup = { key: 'coming' | 'tbd' | 'past'; title: string; events: EventSummary[] }
-const GROUP_OF: Record<EventStatus, EventGroup['key']> = {
-  ongoing: 'coming',
-  upcoming: 'coming',
-  tbd: 'tbd',
-  ended: 'past',
-  completed: 'past',
-}
-const GROUP_TITLES: [EventGroup['key'], string][] = [
-  ['coming', '다가오는 행사'],
-  ['tbd', '날짜 미정'],
-  ['past', '지난 행사'],
-]
-
-// 목록의 묶음. 서버가 준 순서(진행 중 → 예정 → 날짜 미정 → 끝남)를 묶음 안에서도 지킨다. 빈 묶음은 뺀다.
-export function eventGroups(events: EventSummary[]): EventGroup[] {
-  return GROUP_TITLES.map(([key, title]) => ({
-    key,
-    title,
-    events: events.filter(event => GROUP_OF[event.status] === key),
-  })).filter(group => group.events.length > 0)
-}
+export const eventCountLabel = (label: string, count: number, unit: string) =>
+  `${label} ${count}${count === 0 ? '건' : unit}`

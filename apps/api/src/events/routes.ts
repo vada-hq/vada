@@ -15,7 +15,8 @@ import { ApiError } from '../http/errors.js'
 import { createRateLimiter, type RateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import { eventDetailOf } from './detail.js'
-import { eventListOf, sidebarEventsOf } from './queries.js'
+import { eventCardsOf } from './cards.js'
+import { sidebarEventsOf } from './queries.js'
 import { createEvent, updateEvent, type EventWrite } from './service.js'
 
 const root = '/organizations/:councilId/events'
@@ -100,7 +101,7 @@ export function createEventRoutes(
     const request = asked(c)
     return db.transaction(async tx => body(tx, await authorize(tx, request), request.now), snapshot)
   }
-  routes.get(root, auth, async c => c.json((await read(c, eventListOf)) satisfies EventsResponse))
+  routes.get(root, auth, async c => c.json((await read(c, eventCardsOf)) satisfies EventsResponse))
   // 옆 메뉴의 완료하지 않은 행사. 행사 번호 경로보다 먼저 둔다('open'은 행사 번호가 아니다).
   routes.get(`${root}/open`, auth, async c =>
     c.json((await read(c, sidebarEventsOf)) satisfies SidebarEventsResponse),

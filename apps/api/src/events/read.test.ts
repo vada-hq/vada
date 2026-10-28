@@ -3,12 +3,89 @@ import { test } from 'node:test'
 import { EVENT_LIST_LIMIT } from '@vada/contracts'
 import { clockNow, createRecord } from '../records/records.js'
 import { MISSING, withEvents } from '../test-support/events.js'
+import { remainingOf } from '../settlement/remaining.js'
 
 // 'YYYY-MM-DDTHH:mm' 또는 초까지 쓴 한국 시각
 const korean = (value: string) => new Date(`${value.length === 16 ? `${value}:00` : value}+09:00`)
 
 test(
-  '목록은 진행 중, 예정(가까운 순), 날짜 미정(만든 순), 끝남(최근에 끝난 순)이고 상태가 붙는다',
+  '목록 카드의 담당·상태·업무 수는 머리와 같고 신청·정산·마지막 수정은 같은 행사의 값이다',
+  withEvents(async t => {
+    const owner = t.council.people.planningMember.memberId
+    const id = await t.make({ name: '축제', ownerId: owner })
+    const other = await t.make({}, t.other)
+    const councilId = t.council.councilId
+    await t.db.transaction(async tx => {
+      for (const values of [
+        { departmentId: t.council.departments.planning },
+        { departmentId: t.council.departments.finance, status: 'done' },
+        { departmentId: t.council.departments.finance, cancelledAt: clockNow },
+      ])
+        await createRecord(tx, {
+          kind: 'task',
+          councilId,
+          actor: owner,
+          values: { title: '업무', eventId: id, ...values },
+        })
+      const formId = await createRecord(tx, {
+        kind: 'registration_form',
+        councilId,
+        actor: owner,
+        values: {
+          eventId: id,
+          name: '신청',
+          publicCode: 'ABCDEFGH',
+          closesAt: korean('2026-11-01T18:00'),
+        },
+      })
+      for (const cancelledAt of [null, null, clockNow])
+        await createRecord(tx, {
+          kind: 'registration',
+          councilId,
+          actor: null,
+          values: { formId, name: cancelledAt ? null : '신청자', appliedFee: '0', cancelledAt },
+        })
+      await createRecord(tx, {
+        kind: 'expense',
+        councilId,
+        actor: owner,
+        values: {
+          eventId: id,
+          amount: '1000',
+          paidAt: korean('2026-10-24T14:00'),
+          description: '현수막',
+          vendor: '인쇄소',
+          method: 'transfer',
+        },
+      })
+    })
+    await t.change(id, { place: '강당' })
+    const rows = (await t.list('s-plain')).events
+    assert.equal(
+      rows.some(row => row.id === other),
+      false,
+    )
+    const card = rows.find(row => row.id === id)!
+    const header = await t.detail(id, 's-plain')
+    assert.deepEqual(card.owner, header.owner)
+    assert.equal(card.status, header.status)
+    assert.deepEqual(card.departments, header.departments)
+    assert.deepEqual(card.departments, ['기획부'])
+    assert.deepEqual(card.tasks, header.tasks)
+    assert.deepEqual(card.tasks, { open: 1, total: 2 })
+    assert.equal(card.applicantCount, 2)
+    const remaining = await remainingOf(t.db, { councilId, eventId: id })
+    assert.equal(
+      card.remaining,
+      remaining.reduce((sum, item) => sum + item.count, 0),
+    )
+    assert.equal(card.remaining, 2)
+    assert.equal(card.updatedAt, header.history.at(-1)!.at)
+  }),
+)
+
+test(
+  '목록은 다가옴(가까운 순), 지남(최근에 끝난 순), 날짜 미정 순이고 다른 학생회는 섞이지 않는다',
   withEvents(async t => {
     // 지금은 한국 2026-10-25 12:00이다.
     await t.make({
@@ -34,9 +111,9 @@ test(
         ['진행 중', 'ongoing'],
         ['예정 가까운 것', 'upcoming'],
         ['예정 먼 것', 'upcoming'],
-        ['미정 둘째', 'tbd'],
         ['끝남 최근', 'ended'],
         ['끝남 오래전', 'ended'],
+        ['미정 둘째', 'tbd'],
       ],
     )
   }),
@@ -187,8 +264,8 @@ test(
       (await t.list()).events.map(item => [item.name, item.status]),
       [
         ['끝 있는 행사', 'ongoing'],
-        ['미정', 'tbd'],
         ['끝 없는 행사', 'ended'],
+        ['미정', 'tbd'],
       ],
     )
     t.setNow(new Date(korean('2026-10-24T23:59:59').getTime() + 500))

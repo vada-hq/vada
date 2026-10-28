@@ -1,7 +1,15 @@
-import type { EventAction, EventDetail, EventSummary } from '@vada/contracts'
+import {
+  DEPARTMENT_NAME_MAX,
+  EVENT_NAME_MAX,
+  MEMBER_NAME_MAX,
+  type EventAction,
+  type EventCard,
+  type EventDetail,
+  type EventSummary,
+} from '@vada/contracts'
 import { TabButton } from '@/components/ui/tab-button'
 import { EventHeader } from '@/events/EventHeader'
-import EventRow from '@/events/EventRow'
+import { EventCardList } from '@/events/EventCardList'
 import { NoEvents } from '@/events/EventsPage'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -24,37 +32,50 @@ const EMPTY_WIDTHS = [
   { label: '420px', className: 'w-105 shrink-0' },
 ]
 
+const card = (id: string, extra: Partial<EventCard> = {}): EventCard => ({
+  ...event(`00000000-0000-4000-8000-00000000000${id}`, {}),
+  owner: { id: '00000000-0000-4000-8000-000000000001', name: '김새내', current: true },
+  departments: ['기획부'],
+  tasks: { open: 2, total: 5 },
+  applicantCount: 24,
+  remaining: 1,
+  updatedAt: '2026-10-25T05:00:00.000Z',
+  ...extra,
+})
+
+const CARDS = [
+  card('1'),
+  card('2', { status: 'ongoing' }),
+  card('3', { status: 'ended', applicantCount: 0, tasks: { open: 0, total: 0 }, remaining: 0 }),
+  card('4', { status: 'completed' }),
+  card('5', {
+    status: 'tbd',
+    startsAt: null,
+    endsAt: null,
+    place: null,
+    owner: null,
+    departments: [],
+  }),
+  card('6', {
+    name: unbroken.slice(0, EVENT_NAME_MAX),
+    departments: [longName.slice(0, DEPARTMENT_NAME_MAX), '재정부'],
+    owner: {
+      id: '00000000-0000-4000-8000-000000000001',
+      name: longName.slice(0, MEMBER_NAME_MAX),
+      current: true,
+    },
+  }),
+]
+
 export function EventSection() {
   return (
-    <Section title="행사 목록 줄·상태 배지">
-      <div className="flex w-160 flex-col divide-y rounded-lg border bg-white">
-        <EventRow event={event('1', {})} onOpen={noop} />
-        <EventRow event={event('2', { status: 'ongoing' })} onOpen={noop} />
-        <EventRow
-          event={event('3', {
-            status: 'tbd',
-            startsAt: null,
-            endsAt: null,
-            owner: null,
-          })}
-          onOpen={noop}
-        />
-        <EventRow
-          event={event('4', {
-            status: 'ended',
-            endsAt: '2026-10-25T02:00',
-            owner: { id: 'p2', name: '이떠남', current: false },
-          })}
-          onOpen={noop}
-        />
-        <EventRow
-          event={event('5', {
-            name: `${unbroken} ${longName}`,
-            owner: { id: 'p3', name: longName, current: true },
-          })}
-          onOpen={noop}
-        />
-      </div>
+    <Section title="행사 목록 카드">
+      {EMPTY_WIDTHS.map(width => (
+        <div key={width.label} className={`${width.className} max-w-full`}>
+          <p className="mb-3 text-xs text-gray-500">{width.label}</p>
+          <EventCardList events={CARDS} onOpen={noop} />
+        </div>
+      ))}
       <div className="flex max-w-full flex-col gap-4 overflow-x-auto">
         {EMPTY_WIDTHS.map(width => (
           <div key={width.label} className={width.className}>

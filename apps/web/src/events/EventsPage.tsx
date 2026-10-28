@@ -7,15 +7,14 @@ import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { navigate } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { ADDRESS_LOST, EVENT_LOST, EVENTS_LOAD_FAILED } from '@/lib/messages'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import EventRow from './EventRow'
+import { EventCardList } from './EventCardList'
 import { NewEventDialog } from './EventCreateDialog'
 import EventDetailView from './EventDetailView'
-import { canCreateEvent, eventGroups } from './event-view'
+import { canCreateEvent } from './event-view'
 import { useEventAddress } from './useEventAddress'
 import { useEvents, type EventList } from './useEvents'
 
@@ -75,26 +74,7 @@ function Cards({
   if (events.length === 0) return <NoEvents canCreate={canCreateEvent(view)} onCreate={onCreate} />
   return (
     <>
-      {eventGroups(events).map(group => (
-        <section
-          key={group.key}
-          aria-labelledby={`events-${group.key}`}
-          className="flex flex-col gap-2"
-        >
-          <h2 id={`events-${group.key}`} className="text-sm font-semibold text-gray-600">
-            {group.title} <span className="font-normal text-gray-500">{group.events.length}</span>
-          </h2>
-          <Card className="overflow-hidden">
-            <ul className="divide-y">
-              {group.events.map(event => (
-                <li key={event.id}>
-                  <EventRow event={event} onOpen={() => onOpen(event.id)} />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-      ))}
+      <EventCardList events={events} onOpen={onOpen} />
       {truncated && (
         <StateMessage kind="notice">{`행사가 많아서 ${EVENT_LIST_LIMIT}개만 보여요.`}</StateMessage>
       )}
@@ -155,7 +135,7 @@ function OpenEvent({
   )
 }
 
-// 옆 메뉴 '행사': 다가오는 행사, 날짜 미정, 지난 행사로 묶은 목록(순서는 서버가 정한다). 행사를 누르면 그 행사의 주소로 열린다.
+// 행사 카드에서 찾고 거른다. 행사를 누르면 그 행사의 주소로 열린다.
 export default function EventsPage({ view, onForbidden, onTasksChanged, team, rooms }: Props) {
   const councilId = view.council.id
   const open = useEventAddress(councilId, view.me.memberId)
@@ -181,7 +161,9 @@ export default function EventsPage({ view, onForbidden, onTasksChanged, team, ro
       {canCreateEvent(view) &&
         !(list.state.kind === 'ready' && list.state.data.events.length === 0) && (
           <PageActions>
-            <Button onClick={dialogs.startCreate}>새 행사</Button>
+            <Button touch onClick={dialogs.startCreate}>
+              새 행사
+            </Button>
           </PageActions>
         )}
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}

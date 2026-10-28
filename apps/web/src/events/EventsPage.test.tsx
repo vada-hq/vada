@@ -108,17 +108,98 @@ test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목�
   expect(pathNow()).toBe(`${LIST_AT}/${EVENT2}`)
 })
 
-test('목록 줄에 이름, 일시가 보이고 책임자는 보이지 않으며, 예정과 날짜 미정은 묶음으로 나뉜다', async () => {
+test('카드에 상태, 일시, 장소, 담당, 신청·업무·남은 정리 수와 마지막 수정이 보인다', async () => {
   setup()
   const row = (await screen.findByRole('button', { name: '신입생 환영회' })).closest('li')
   expect(row?.textContent).toMatch(/10월 24일 \(토\) 14:00 ~ 18:00/)
-  expect(row?.textContent).not.toMatch(/이재정/)
-  const coming = screen.getByRole('region', { name: /다가오는 행사/ })
-  expect(within(coming).getByRole('button', { name: '신입생 환영회' })).toBeTruthy()
-  const tbd = screen.getByRole('region', { name: /날짜 미정/ })
-  expect(
-    within(tbd).getByRole('button', { name: '날짜 미정 행사' }).closest('li')?.textContent,
-  ).not.toMatch(/책임자/)
+  expect(row?.textContent).toContain('담당 기획부 · 이재정')
+  expect(row?.textContent).toContain('신청 4명')
+  expect(row?.textContent).toContain('업무 3개')
+  expect(row?.textContent).toContain('끝나지 않은 업무 2건')
+  expect(row?.textContent).toContain('정산에 남은 것 1건')
+  expect(row?.textContent).toContain('마지막 수정')
+  const tbd = screen.getByRole('button', { name: '날짜 미정 행사' }).closest('li')!
+  expect(tbd.textContent).toContain('장소 미정')
+  expect(tbd.textContent).toContain('미정')
+})
+
+test('행사명 찾기와 상태 칩은 함께 거르고 결과 없음은 행사 없음과 다르다', async () => {
+  setup()
+  await screen.findByRole('button', { name: '신입생 환영회' })
+  fireEvent.change(screen.getByRole('searchbox', { name: '행사명 찾기' }), {
+    target: { value: '  미정  ' },
+  })
+  expect(screen.queryByRole('button', { name: '신입생 환영회' })).toBeNull()
+  expect(screen.getByRole('button', { name: '날짜 미정 행사' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '진행 중' }))
+  expect(screen.getByText('결과 없음')).toBeTruthy()
+  expect(screen.queryByText('행사 없음')).toBeNull()
+  expect(screen.getAllByRole('button', { name: '새 행사' })).toHaveLength(1)
+  fireEvent.click(screen.getByRole('button', { name: '기획 중' }))
+  expect(screen.getByRole('button', { name: '날짜 미정 행사' })).toBeTruthy()
+  fireEvent.change(screen.getByRole('searchbox', { name: '행사명 찾기' }), {
+    target: { value: '' },
+  })
+  expect(screen.getByRole('button', { name: '신입생 환영회' })).toBeTruthy()
+})
+
+test('긴 행사명은 카드를 떠나지 않고 전체 이름을 펼치고 접는다', async () => {
+  const { api } = setup()
+  await screen.findByText('날짜 미정 행사')
+  const name = '소프트웨어융합대학 체육대회 준비와 참가자 명단 확인을 위한 긴 행사 이름'
+  api.on('GET', BASE, () => json({ events: [eventSummary({ name })], truncated: false }))
+  document.dispatchEvent(new Event('visibilitychange'))
+  await screen.findByRole('button', { name })
+  const expand = screen.getByRole('button', { name: '전체 이름 보기' })
+  expect(expand.getAttribute('aria-expanded')).toBe('false')
+  fireEvent.click(expand)
+  expect(screen.getByRole('button', { name: '이름 접기' }).getAttribute('aria-expanded')).toBe(
+    'true',
+  )
+  expect(pathNow()).toBe(LIST_AT)
+  fireEvent.click(screen.getByRole('button', { name: '이름 접기' }))
+  expect(screen.getByRole('button', { name: '전체 이름 보기' })).toBeTruthy()
+})
+
+test('정렬 기본값은 행사 일시순이고 최근 활동순은 마지막 수정이 최신인 카드부터 보인다', async () => {
+  const { api } = setup()
+  await screen.findByText('날짜 미정 행사')
+  api.on('GET', BASE, () =>
+    json({
+      events: [
+        {
+          ...eventSummary(),
+          departments: [],
+          tasks: { open: 0, total: 0 },
+          applicantCount: 0,
+          remaining: 0,
+          updatedAt: '2026-10-20T10:00:00Z',
+        },
+        {
+          ...eventSummary({ id: EVENT2, name: '완료 행사', status: 'completed' }),
+          departments: [],
+          tasks: { open: 0, total: 0 },
+          applicantCount: 0,
+          remaining: 0,
+          updatedAt: '2026-10-25T10:00:00Z',
+        },
+      ],
+      truncated: false,
+    }),
+  )
+  document.dispatchEvent(new Event('visibilitychange'))
+  await screen.findByRole('button', { name: '완료 행사' })
+  const names = () =>
+    screen.getAllByRole('listitem').map(item => within(item).getByRole('button').textContent)
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '정렬' }).value).toBe('date')
+  expect(names()).toEqual(['신입생 환영회', '완료 행사'])
+  fireEvent.change(screen.getByRole('combobox', { name: '정렬' }), {
+    target: { value: 'activity' },
+  })
+  expect(names()).toEqual(['완료 행사', '신입생 환영회'])
+  fireEvent.click(screen.getByRole('button', { name: '완료' }))
+  expect(names()).toEqual(['완료 행사'])
+  expect(screen.getByText('신청 0건').className).toContain('text-gray-500')
 })
 
 test('[새 행사]는 event.create가 있을 때만 보인다', async () => {

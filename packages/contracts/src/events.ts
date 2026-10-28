@@ -112,8 +112,19 @@ export interface EventDetail extends EventSummary {
   blockers: EventBlockers
 }
 
+export interface EventCard extends EventSummary {
+  departments: EventDetail['departments']
+  tasks: EventDetail['tasks']
+  // 취소하지 않은 신청 수. 신청자 개인정보는 싣지 않는다.
+  applicantCount: number
+  // 정산 탭의 남은 항목 수 합계.
+  remaining: number
+  // 행사 기록의 마지막 판이 열린 시각(ISO).
+  updatedAt: string
+}
+
 export interface EventsResponse {
-  events: EventSummary[]
+  events: EventCard[]
   truncated: boolean
 }
 
@@ -127,7 +138,7 @@ export interface SidebarEvent {
   name: string
   status: OpenEventStatus
 }
-// 완료하지 않은 행사를 행사 목록과 같은 차례로 SIDEBAR_EVENT_LIMIT개까지. more는 그보다 더 있다는 뜻이다.
+// 완료하지 않은 행사를 진행 중 → 예정 → 날짜 미정 → 끝남 차례로 SIDEBAR_EVENT_LIMIT개까지. more는 그보다 더 있다는 뜻이다.
 export interface SidebarEventsResponse {
   events: SidebarEvent[]
   more: boolean

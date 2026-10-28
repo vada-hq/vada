@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import type { EventSummary } from '@vada/contracts'
-import { dateBlock, eventGroups, spanLabel, whenLabel } from './event-view'
+import { eventSummary } from '@/test-support/event-fixtures'
+import { visibleEvents, whenLabel } from './event-view'
 
 test('일시는 요일과 함께 한 줄로 보인다', () => {
   expect(whenLabel({ startsAt: '2026-10-25T14:00', endsAt: '2026-10-25T18:00' })).toBe(
@@ -16,34 +16,31 @@ test('끝이 다른 날이면 끝에도 날짜를 쓰고, 시작이 없으면 �
   expect(whenLabel({ startsAt: null, endsAt: null })).toBe('일시 미정')
 })
 
-test('목록의 날짜 칸은 시작한 달과 날이고, 시작이 없으면 비운다', () => {
-  expect(dateBlock('2026-11-01T18:00')).toEqual({ month: '11월', day: '1' })
-  expect(dateBlock('2026-10-15T09:30')).toEqual({ month: '10월', day: '15' })
-  expect(dateBlock(null)).toBeNull()
+test('기획 중은 예정과 날짜 미정을 함께 거르고 찾기는 공백과 영문 대소문자를 무시한다', () => {
+  const events = [
+    eventSummary({ id: 'a', name: 'MT', status: 'upcoming' }),
+    eventSummary({ id: 'b', name: 'mt 미정', status: 'tbd', startsAt: null }),
+    eventSummary({ id: 'c', name: 'MT 종료', status: 'ended' }),
+  ]
+  expect(visibleEvents(events, ' mt ', '기획 중', 'date').map(event => event.id)).toEqual([
+    'a',
+    'b',
+  ])
+  expect(visibleEvents(events, '', '후속 정리 중', 'date').map(event => event.id)).toEqual(['c'])
+  expect(visibleEvents(events, '', '진행 중', 'date')).toEqual([])
+  expect(visibleEvents(events, '', '전체', 'date')).toEqual(events)
 })
 
-test('날짜 칸 옆의 시각은 날짜를 되풀이하지 않고, 다른 날에 끝나면 끝의 날짜를 쓴다', () => {
-  expect(spanLabel({ startsAt: '2026-11-01T18:00', endsAt: '2026-11-01T20:00' })).toBe(
-    '일요일 18:00 ~ 20:00',
-  )
-  expect(spanLabel({ startsAt: '2026-11-01T18:00', endsAt: null })).toBe('일요일 18:00')
-  expect(spanLabel({ startsAt: '2026-10-24T20:00', endsAt: '2026-10-25T02:00' })).toBe(
-    '토요일 20:00 ~ 10월 25일 (일) 02:00',
-  )
-  expect(spanLabel({ startsAt: null, endsAt: null })).toBeNull()
-})
-
-test('목록은 다가오는 행사, 날짜 미정, 지난 행사로 묶고 빈 묶음은 뺀다', () => {
-  const of = (id: string, status: EventSummary['status']) => ({ id, status }) as EventSummary
-  const groups = eventGroups([
-    of('a', 'ongoing'),
-    of('b', 'upcoming'),
-    of('c', 'ended'),
-    of('d', 'completed'),
+test('최근 활동순은 수정 시각의 내림차순이고 원본과 동률 차례를 보존한다', () => {
+  const events = [
+    eventSummary({ id: 'a' }),
+    eventSummary({ id: 'b', updatedAt: '2026-10-25T00:00:00Z' }),
+    eventSummary({ id: 'c' }),
+  ]
+  expect(visibleEvents(events, '', '전체', 'activity').map(event => event.id)).toEqual([
+    'b',
+    'a',
+    'c',
   ])
-  expect(groups.map(group => [group.title, group.events.map(event => event.id)])).toEqual([
-    ['다가오는 행사', ['a', 'b']],
-    ['지난 행사', ['c', 'd']],
-  ])
-  expect(eventGroups([of('e', 'tbd')]).map(group => group.title)).toEqual(['날짜 미정'])
+  expect(events.map(event => event.id)).toEqual(['a', 'b', 'c'])
 })

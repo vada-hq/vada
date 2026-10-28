@@ -10,7 +10,7 @@ type Header = Pick<EventDetail, 'departments' | 'health' | 'next' | 'endedDays'>
 // 업무 마감은 그날이 끝날 때라, 행사 시작(한국 시각)과 견줄 때 그날의 마지막 분으로 둔다.
 const DUE_END_OF_DAY = 'T23:59'
 
-const departmentsOf = (tasks: OpenTask[]) =>
+export const departmentsOf = (tasks: OpenTask[]) =>
   [...new Set(tasks.flatMap(item => item.summary.department?.name ?? []))].sort((a, b) =>
     a.localeCompare(b, 'ko'),
   )

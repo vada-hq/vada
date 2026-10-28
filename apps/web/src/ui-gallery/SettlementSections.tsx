@@ -70,6 +70,11 @@ export function SettlementSection() {
             place: '대강당',
             owner: { id: 'p1', name: '김새내', current: true },
             status: 'completed',
+            departments: ['기획부'],
+            tasks: { open: 0, total: 5 },
+            applicantCount: 24,
+            remaining: 0,
+            updatedAt: '2026-10-25T05:00:00.000Z',
           }}
           onOpen={noop}
         />
