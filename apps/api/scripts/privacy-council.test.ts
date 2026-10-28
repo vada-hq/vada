@@ -338,6 +338,18 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
     'INSERT INTO shipment_item (shipment_id, line_item_id, council_id) VALUES ($1, $2, $3)',
     [shipmentId, await ofKind('line_item'), councilId],
   )
+  // 캘린더(DEC-102): 캘린더에서 만든 일정 하나와 회장의 구독 주소 하나.
+  await raw('schedule_item', {
+    council_id: councilId,
+    type: 'other',
+    title: '답사',
+    starts_on: '2026-10-28',
+  })
+  await pg.query(
+    'INSERT INTO calendar_feed (member_id, council_id, token_hash) VALUES ($1, $2, $3)',
+    // 학생회마다 다른 해시(token_hash는 UNIQUE): 학생회 번호의 16진 32자를 두 번.
+    [president, councilId, councilId.replaceAll('-', '').repeat(2)],
+  )
   await raw('audit_body', { council_id: councilId, name: '감사위원회' })
   await raw('voting_body', { council_id: councilId, name: '대의원회' })
   const meeting = await raw('meeting', { title: '회의', held_at: new Date(), event_id: eventId })
