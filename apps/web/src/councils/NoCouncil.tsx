@@ -48,13 +48,11 @@ export default function NoCouncil({ onEnterCode, onCreate, additional = false }:
             className="px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl"
           />
         </Field>
-        <Button touch={additional} type="submit">
-          초대 코드로 들어가기
-        </Button>
+        <Button type="submit">초대 코드로 들어가기</Button>
       </form>
       <div className="flex flex-col items-center gap-2 border-t pt-4 text-center">
         <p className="text-sm text-gray-500">학생회를 처음 시작하나요?</p>
-        <Button touch={additional} type="button" variant="outline" onClick={onCreate}>
+        <Button type="button" variant="outline" onClick={onCreate}>
           학생회 만들기
         </Button>
       </div>
