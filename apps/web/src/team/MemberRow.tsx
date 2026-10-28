@@ -1,6 +1,5 @@
 import { Ellipsis } from 'lucide-react'
 import type { CouncilTitles, TeamDepartment, TeamMember } from '@vada/contracts'
-import { Avatar } from '@/components/Avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
@@ -48,16 +47,18 @@ export function MemberRow(props: Props) {
   }
   const placements = placementsText(others, departments, titles)
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
-      <Avatar />
-      <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-gray-900">
-          {member.name}
-          <RankBadge member={member} titles={titles} inDepartment={inDepartment} />
-        </p>
-        {placements && <p className="text-xs wrap-anywhere text-gray-500">{placements}</p>}
-      </div>
-      {(actions.assign || actions.rank || actions.transfer) && <MemberMenu {...props} />}
+    <li className="group flex min-h-11 items-center gap-2 px-4 py-1">
+      <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm wrap-anywhere text-gray-900">
+        {member.name}
+        <RankBadge member={member} titles={titles} inDepartment={inDepartment} />
+        {placements && <span className="text-xs text-gray-500">{placements}</span>}
+      </p>
+      {(actions.assign || actions.rank || actions.transfer) && (
+        // 마우스가 있는 화면에서는 줄에 올리거나 초점이 들어올 때만 ⋯를 보여 줄마다 같은 버튼이 늘어서지 않는다(대화 메시지 메뉴와 같다).
+        <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+          <MemberMenu {...props} />
+        </div>
+      )}
     </li>
   )
 }

@@ -106,14 +106,14 @@ async function openRename(name: string) {
   return screen.findByRole('form', { name: '부서 이름 바꾸기' })
 }
 
-test('위에서부터 회장단, 부서마다 이름·재정 배지·부장·인원과 그 부서 사람이 있고, 직급 없는 운영진에게는 미배정이 맨 아래이며 부서 동작이 없다', async () => {
+test('위에서부터 회장단, 부서마다 이름·재정 배지·인원(부장이 없으면 부장 없음)과 그 부서 사람이 있고, 직급 없는 운영진에게는 미배정이 맨 아래이며 부서 동작이 없다', async () => {
   serve()
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await loaded()
   expect(groups()).toEqual(['회장단', '재정부', '기획부', '미배정 구성원'])
   expect(group('회장단').textContent).toContain('1명')
   expect(within(group('재정부')).getByText('재정')).toBeTruthy()
-  expect(within(group('재정부')).getByText('부장 이재정 · 1명')).toBeTruthy()
+  expect(within(group('재정부')).getByText('1명')).toBeTruthy()
   expect(within(group('기획부')).getByText('부장 없음 · 0명')).toBeTruthy()
   expect(within(group('기획부')).getByText('구성원 없음')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '부서 추가' })).toBeNull()
@@ -132,7 +132,7 @@ test('회장단에게는 미배정 구성원이 맨 위이고 부서 목록 끝�
   expect(screen.getByRole('button', { name: '재정부 동작' })).toBeTruthy()
 })
 
-test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 두 묶음에, 부장이 둘이면 머리에 둘 다 나온다', async () => {
+test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 두 묶음에, 부장이 둘이면 둘 다 부장 배지가 붙는다', async () => {
   const team = teamResponse()
   team.members.push(
     {
@@ -171,7 +171,7 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
   expect(names('회장단')).toEqual(['김회장', '최부회', '정부회'])
   expect(names('재정부')).toEqual(['이재정', '한겸직'])
   expect(names('기획부')).toEqual(['최부회', '한겸직'])
-  expect(within(group('재정부')).getByText('부장 이재정, 한겸직 · 2명')).toBeTruthy()
+  expect(within(group('재정부')).getByText('2명')).toBeTruthy()
   // 부서 묶음의 줄은 그 부서를 빼고 다른 소속만 적는다.
   const rowText = (name: string) =>
     within(screen.getByRole('list', { name: `${name} 구성원` }))

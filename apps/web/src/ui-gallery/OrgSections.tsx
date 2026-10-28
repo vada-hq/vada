@@ -139,7 +139,7 @@ function MemberOrg() {
   )
 }
 
-// 실제 화면의 본문 폭: 1280px 창은 옆 메뉴(240px)와 여백을 빼 약 992px, 1024px 창은 약 736px, 휴대폰 390px 창은 약 358px다.
+// 실제 화면의 본문 폭: 1600px 창은 약 1280px(조직 화면의 최대 폭), 1280px 창은 옆 메뉴(240px)와 여백을 빼 약 992px, 1024px 창은 약 736px, 휴대폰 390px 창은 약 358px다.
 function Width({
   label,
   className,
@@ -192,6 +192,9 @@ export function OrgInviteSection() {
 export function OrgSection() {
   return (
     <Section title="조직 화면">
+      <Width label="1600px 창(회장단, 부서 넷이 한 줄)" className="w-320 shrink-0">
+        <LeadOrg />
+      </Width>
       <Width label="1280px 창(회장단, 미배정이 맨 위)" className="w-248 shrink-0">
         <LeadOrg />
       </Width>
