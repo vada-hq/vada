@@ -29,6 +29,8 @@ export function MinutesDecisions({ agendaId, decisions, writable, submit, onRemo
         <MinutesEntryForm
           key={editing === 'new' ? 'new' : editing.id}
           kind="decision"
+          formKey={editing === 'new' ? `decision:new:${agendaId}` : `decision:${editing.id}`}
+          agendaId={agendaId}
           initial={
             editing === 'new'
               ? undefined

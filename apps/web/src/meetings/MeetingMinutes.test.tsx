@@ -6,9 +6,11 @@ import { meetingSample, MEETING_COUNCIL, MEETING_ID } from './test-support/meeti
 import { MeetingMinutes } from './MeetingMinutes'
 import { MeetingList } from './MeetingList'
 import { hasDirtyEntry } from './minutes-entry'
+import { resetKeptMinutes } from './minutes-drafts'
 import { resetLeaveGuard } from '@/lib/leave-guard'
 
 const base = `/api/organizations/${MEETING_COUNCIL}/meetings/${MEETING_ID}`
+const ME = '0199d1a0-0000-7000-8000-00000000aaa1'
 const sample = () => {
   const meeting = meetingSample({ status: 'in_progress', actions: ['meeting.minutes'] })
   const first = meeting.agenda[0]!
@@ -32,6 +34,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetLeaveGuard()
+  resetKeptMinutes()
   vi.useRealTimers()
   api.assertNoUnexpectedRequests()
   vi.unstubAllGlobals()
@@ -42,6 +45,7 @@ const draw = (meeting = sample()) =>
     <MeetingMinutes
       meeting={meeting}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -132,6 +136,7 @@ test('쓰는 중 동작이 빠져도 내 초안은 글로 남고 입력칸과 �
     <MeetingMinutes
       meeting={readonly}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -182,6 +187,7 @@ test('주기적 다시 읽기는 저장 안 된 글을 덮지 않고, 저장 중
     <MeetingMinutes
       meeting={{ ...meeting, agenda: meeting.agenda.map(a => ({ ...a, notes: '서버 글' })) }}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -270,6 +276,7 @@ test('안건 제목을 고치는 중 다시 읽기는 기준 판을 올리지 �
     <MeetingMinutes
       meeting={fresh}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -309,7 +316,7 @@ test.each([
   expect(screen.getByRole('button', { name: label })).toBeTruthy()
 })
 
-test('저장 실패한 초안은 화면을 다시 열면 남지 않는다(다른 계정에 새지 않음)', async () => {
+test('저장 실패한 초안은 같은 사람이 다시 열면 되살아나고 다른 계정에는 보이지 않는다', async () => {
   const meeting = sample()
   api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'FAILED' }, 500))
   const first = draw(meeting)
@@ -317,10 +324,25 @@ test('저장 실패한 초안은 화면을 다시 열면 남지 않는다(다른
   await act(() => vi.advanceTimersByTimeAsync(1500))
   first.unmount()
   await act(async () => {})
-  draw(meeting)
+  const other = render(
+    <MeetingMinutes
+      meeting={meeting}
+      base={base}
+      memberId="0199d1a0-0000-7000-8000-00000000bbb1"
+      selectedId={null}
+      onSelect={select}
+      onSaved={changed}
+    />,
+  )
   expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe(
     meeting.agenda[0]!.notes ?? '',
   )
+  other.unmount()
+  await act(async () => {})
+  draw(meeting)
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe('앞사람 초안')
+  cleanup()
+  await act(async () => {})
 })
 
 test('다른 사람이 뺀 안건에 쓰던 글은 옮겨 쓸 수 있게 남는다', async () => {
@@ -332,6 +354,7 @@ test('다른 사람이 뺀 안건에 쓰던 글은 옮겨 쓸 수 있게 남는�
     <MeetingMinutes
       meeting={{ ...meeting, agenda: [meeting.agenda[1]!] }}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -356,6 +379,7 @@ test('결정 폼은 저장 중 잠기고, 쓰는 동안 떠날 때 확인을 걸
     <MeetingMinutes
       meeting={{ ...meeting, actions: [] }}
       base={base}
+      memberId={ME}
       selectedId={null}
       onSelect={select}
       onSaved={changed}
@@ -388,4 +412,23 @@ test('결정 폼은 한 번에 하나라 쓰는 동안 다른 결정의 고치�
   fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
   expect(screen.queryByRole('button', { name: '결정 추가' })).toBeNull()
   expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+})
+
+test('결정을 쓰는 중 다른 사람이 안건을 빼면 쓰던 결정도 옮겨 쓸 글로 남는다', async () => {
+  const meeting = sample()
+  const { rerender } = draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  fireEvent.change(screen.getByLabelText(/결정 내용/), { target: { value: '쓰던 결정' } })
+  rerender(
+    <MeetingMinutes
+      meeting={{ ...meeting, agenda: [meeting.agenda[1]!] }}
+      base={base}
+      memberId={ME}
+      selectedId={null}
+      onSelect={select}
+      onSaved={changed}
+    />,
+  )
+  expect(screen.getByText('빠진 안건에 쓰던 글')).toBeTruthy()
+  expect(screen.getByText(/쓰던 결정/)).toBeTruthy()
 })

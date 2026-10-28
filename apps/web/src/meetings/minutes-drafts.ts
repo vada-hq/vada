@@ -30,10 +30,41 @@ const draftOf = (server: MeetingAgendaItem): MinutesDraft => ({
 })
 export const isMinutesDirty = (draft: MinutesDraft) => draft.text !== draft.savedText
 
-// 저장소는 화면 하나(한 사람·한 회의)에만 산다. 모듈에 두면 같은 탭에서 계정을 바꾼 사람에게 앞사람의 초안이 보이고
-// 그 세션으로 보내졌다(mtg-4 검토). 실패·충돌한 초안은 떠날 때 확인(useUnsavedInput)이 지킨다.
-export const minutesDrafts = (base: string, meeting: MeetingDetail) =>
-  new MinutesDrafts(base, meeting)
+// 저장하지 못한 글은 메모리에 남겨 같은 사람이 회의를 다시 열면 되살린다(새로 고침 전까지, DEC-78 이동 10).
+// 대화 입력칸(chat/composer-drafts.ts)과 같이 기기 저장소에는 쓰지 않고, 열쇠에 내 멤버 id를 넣어 같은 브라우저의 다른 사람에게 보이지 않게 한다.
+type Kept = { text: string; version: number }
+const kept = new Map<string, Kept>()
+const keyOf = (memberId: string, base: string, id: string) => `${memberId}|${base}|${id}`
+// 결정·안건 폼에 쓰던 글도 같이 남긴다. 다시 읽기로 그 안건이 빠지면 폼이 사라지므로 옮겨 쓸 글로 보인다.
+type KeptEntry = { agendaId: string | null; text: string; main: string; extra: string }
+const entries = new Map<string, KeptEntry>()
+export type MinutesScope = { memberId: string; base: string }
+export const keptEntry = (scope: MinutesScope, formKey: string) =>
+  entries.get(keyOf(scope.memberId, scope.base, formKey))
+export function keepEntry(scope: MinutesScope, formKey: string, value: KeptEntry | null) {
+  const key = keyOf(scope.memberId, scope.base, formKey)
+  if (value) entries.set(key, value)
+  else entries.delete(key)
+}
+export const lostEntries = (scope: MinutesScope, agendaIds: readonly string[]) =>
+  [...entries]
+    .filter(
+      ([key, value]) =>
+        key.startsWith(keyOf(scope.memberId, scope.base, '')) &&
+        value.agendaId !== null &&
+        !agendaIds.includes(value.agendaId),
+    )
+    .map(([, value]) => value.text)
+// 시험용: 앞 시험이 남긴 글을 비운다.
+export function resetKeptMinutes() {
+  kept.clear()
+  entries.clear()
+}
+
+// 저장소 하나는 화면 하나(한 사람·한 회의)의 것이다. 화면을 떠난 뒤에는 새 요청을 보내지 않는다:
+// 늦은 응답 뒤 이어 보내기가 다른 계정의 세션으로 나갈 수 있다(mtg-4 검토). 남은 글은 위 메모리가 지킨다.
+export const minutesDrafts = (base: string, meeting: MeetingDetail, memberId: string) =>
+  new MinutesDrafts(base, meeting, memberId)
 
 class MinutesDrafts {
   private drafts: ReadonlyMap<string, MinutesDraft>
@@ -41,12 +72,27 @@ class MinutesDrafts {
   private timers = new Map<string, ReturnType<typeof setTimeout>>()
   private flights = new Map<string, Promise<void>>()
   private onSaved: ((meeting: MeetingDetail) => void) | null = null
+  private closed = false
+  private lost: string[]
   constructor(
     private base: string,
     meeting: MeetingDetail,
+    private memberId: string,
   ) {
-    this.drafts = new Map(meeting.agenda.map(item => [item.id, draftOf(item)]))
+    this.drafts = new Map(meeting.agenda.map(item => [item.id, this.restored(item)]))
+    const prefix = keyOf(memberId, base, '')
+    const ids = new Set(meeting.agenda.map(item => item.id))
+    this.lost = [...kept]
+      .filter(([key]) => key.startsWith(prefix) && !ids.has(key.slice(prefix.length)))
+      .map(([, value]) => value.text)
   }
+  private restored(item: MeetingAgendaItem): MinutesDraft {
+    const draft = draftOf(item)
+    const left = kept.get(keyOf(this.memberId, this.base, item.id))
+    return left ? { ...draft, text: left.text, version: left.version } : draft
+  }
+  // 빠진 안건에 남은 글: 저장할 곳이 없으므로 옮겨 쓸 수 있게 보인다.
+  lostTexts = () => this.lost
   subscribe = (listener: () => void) => {
     this.listeners.add(listener)
     return () => {
@@ -55,15 +101,25 @@ class MinutesDrafts {
   }
   snapshot = () => this.drafts
   private put(id: string, value: MinutesDraft) {
+    const key = keyOf(this.memberId, this.base, id)
+    if (isMinutesDirty(value)) kept.set(key, { text: value.text, version: value.version })
+    else kept.delete(key)
     this.drafts = new Map(this.drafts).set(id, value)
     for (const listener of this.listeners) listener()
   }
   attach(onSaved: (meeting: MeetingDetail) => void) {
     this.onSaved = onSaved
+    this.closed = false
+    // 되살린 글은 다시 연 뒤 한 번 저장해 본다(판이 바뀌었으면 충돌로 보인다).
+    for (const [id, draft] of this.drafts)
+      if (isMinutesDirty(draft) && !this.timers.has(id) && !this.flights.has(id))
+        this.change(id, draft.text)
   }
+  // 떠나는 순간의 글은 지금 세션으로 한 번 보내고, 그 뒤로는 아무것도 보내지 않는다.
   detach() {
     this.onSaved = null
     this.flush()
+    this.closed = true
   }
   sync(meeting: MeetingDetail) {
     for (const item of meeting.agenda) {
@@ -103,6 +159,7 @@ class MinutesDrafts {
   }
   save(id: string): Promise<void> {
     this.clearTimer(id)
+    if (this.closed) return Promise.resolve()
     const flight = this.flights.get(id)
     if (flight) return flight
     const draft = this.drafts.get(id)
@@ -142,7 +199,7 @@ class MinutesDrafts {
         error: meetingError(result.code),
         refreshing: result.code === 'VERSION_CONFLICT',
       })
-      if (result.code === 'VERSION_CONFLICT') await this.refreshConflict(id)
+      if (result.code === 'VERSION_CONFLICT' && !this.closed) await this.refreshConflict(id)
       return
     }
     const server = result.data.meeting.agenda.find(a => a.id === id)
@@ -189,12 +246,14 @@ class MinutesDrafts {
   }
   forget(id: string) {
     this.clearTimer(id)
-    const kept = new Map(this.drafts)
-    kept.delete(id)
-    this.drafts = kept
+    kept.delete(keyOf(this.memberId, this.base, id))
+    const rest = new Map(this.drafts)
+    rest.delete(id)
+    this.drafts = rest
     for (const listener of this.listeners) listener()
   }
   keepalive() {
+    if (this.closed) return
     for (const [id, draft] of this.drafts) {
       this.clearTimer(id)
       if (!isMinutesDirty(draft) || draft.conflict || draft.refreshing) continue

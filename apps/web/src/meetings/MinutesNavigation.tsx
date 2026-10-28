@@ -17,6 +17,8 @@ export function MinutesAgendaAdd({ submit }: Pick<Props, 'submit'>) {
   return adding ? (
     <MinutesEntryForm
       kind="agenda"
+      formKey="agenda:new"
+      agendaId={null}
       onSave={value => submit('/agenda', value)}
       onClose={() => setAdding(false)}
     />

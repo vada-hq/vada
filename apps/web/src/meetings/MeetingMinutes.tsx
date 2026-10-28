@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { MeetingAgendaItem, MeetingDetail } from '@vada/contracts'
 import PageHeading from '@/components/PageHeading'
 import { Alert } from '@/components/ui/alert'
@@ -21,11 +21,13 @@ import {
 import { useMinutesAutosave } from './use-minutes-autosave'
 import { useMinutesMutation } from './use-minutes-mutation'
 import { MINUTES_TEXT as T, agendaNumber, participantCount } from './minutes-text'
-import { isMinutesDirty, type MinutesDraft } from './minutes-drafts'
+import { isMinutesDirty, lostEntries, type MinutesDraft } from './minutes-drafts'
+import { MinutesScopeContext } from './minutes-scope'
 
 type Props = {
   meeting: MeetingDetail
   base: string
+  memberId: string
   selectedId: string | null
   onSelect: (id: string) => void
   onSaved: (meeting: MeetingDetail) => void
@@ -94,6 +96,8 @@ function MinutesAgendaHeading({
       {editing && (
         <MinutesEntryForm
           kind="agenda"
+          formKey={`agenda:${item.id}`}
+          agendaId={item.id}
           initial={{ title: item.title, body: item.body, baseVersionNo: item.versionNo }}
           onSave={value => submit(`/agenda/${item.id}`, value)}
           onClose={() => setEditing(false)}
@@ -208,6 +212,7 @@ export function MeetingMinutesView({
 export function MeetingMinutes({
   meeting,
   base,
+  memberId,
   selectedId,
   onSelect,
   onSaved,
@@ -216,7 +221,8 @@ export function MeetingMinutes({
 }: Props) {
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
   const id = item?.id ?? null
-  const { drafts, store } = useMinutesAutosave(base, meeting, onSaved)
+  const scope = useMemo(() => ({ base, memberId }), [base, memberId])
+  const { drafts, store } = useMinutesAutosave(scope, meeting, onSaved)
   const mutate = useMinutesMutation(base, onSaved)
   const submit = async (suffix: string, body: object) => {
     const problem = await mutate(suffix, body)
@@ -230,33 +236,41 @@ export function MeetingMinutes({
     },
     [id, store],
   )
+  const agendaIds = meeting.agenda.map(a => a.id)
+  const orphans = [
+    ...store.lostTexts(),
+    ...[...drafts]
+      .filter(([key, d]) => isMinutesDirty(d) && !agendaIds.includes(key))
+      .map(([, d]) => d.text),
+    ...lostEntries(scope, agendaIds),
+  ]
   return (
-    <MeetingMinutesView
-      meeting={meeting}
-      selectedId={id}
-      draft={id ? drafts.get(id) : undefined}
-      orphans={[...drafts]
-        .filter(([key, d]) => isMinutesDirty(d) && !meeting.agenda.some(a => a.id === key))
-        .map(([, d]) => d.text)}
-      onEdit={onEdit}
-      onCancel={onCancel}
-      submit={submit}
-      onSelect={next => {
-        if (id) store.flush(id)
-        onSelect(next)
-      }}
-      onChange={text => {
-        if (id) store.change(id, text)
-      }}
-      onRetry={() => {
-        if (id) void store.save(id)
-      }}
-      onOverwrite={() => {
-        if (id) store.overwrite(id)
-      }}
-      onAdopt={() => {
-        if (id) store.adopt(id)
-      }}
-    />
+    <MinutesScopeContext value={scope}>
+      <MeetingMinutesView
+        meeting={meeting}
+        selectedId={id}
+        draft={id ? drafts.get(id) : undefined}
+        orphans={orphans}
+        onEdit={onEdit}
+        onCancel={onCancel}
+        submit={submit}
+        onSelect={next => {
+          if (id) store.flush(id)
+          onSelect(next)
+        }}
+        onChange={text => {
+          if (id) store.change(id, text)
+        }}
+        onRetry={() => {
+          if (id) void store.save(id)
+        }}
+        onOverwrite={() => {
+          if (id) store.overwrite(id)
+        }}
+        onAdopt={() => {
+          if (id) store.adopt(id)
+        }}
+      />
+    </MinutesScopeContext>
   )
 }

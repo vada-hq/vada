@@ -4,11 +4,11 @@ import { useUnsavedInput } from '@/lib/leave-guard'
 import { isMinutesDirty, minutesDrafts } from './minutes-drafts'
 
 export function useMinutesAutosave(
-  base: string,
+  scope: { base: string; memberId: string },
   meeting: MeetingDetail,
   onSaved: (meeting: MeetingDetail) => void,
 ) {
-  const [store] = useState(() => minutesDrafts(base, meeting))
+  const [store] = useState(() => minutesDrafts(scope.base, meeting, scope.memberId))
   const drafts = useSyncExternalStore(store.subscribe, store.snapshot)
   useEffect(() => {
     store.sync(meeting)

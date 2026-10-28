@@ -134,8 +134,11 @@ function MeetingRecord({
   const onEdit = () => navigate(editPath(councilId, id))
   const body = minutesVisible(meeting, minutes) ? (
     <MeetingMinutes
+      // 계정이 바뀌면 앞사람의 초안 저장소를 버리고 새로 연다.
+      key={view.me.memberId}
       meeting={meeting}
       base={path}
+      memberId={view.me.memberId}
       selectedId={agenda}
       onSaved={saved}
       onSelect={agendaId =>
