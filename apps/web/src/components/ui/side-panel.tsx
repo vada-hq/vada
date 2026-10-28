@@ -70,7 +70,7 @@ export function SidePanelContent({
           {actions}
           <DialogPrimitive.Close
             aria-label="닫기"
-            className="cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none max-sm:-m-2.5 max-sm:flex max-sm:size-11 max-sm:shrink-0 max-sm:items-center max-sm:justify-center"
           >
             <X className="size-4" />
           </DialogPrimitive.Close>
