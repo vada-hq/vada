@@ -39,7 +39,7 @@ export function BottomTabs({
           >
             <span className="relative">
               <Icon aria-hidden className="size-5" />
-              {badge && <span className="absolute -top-1 left-3">{badge}</span>}
+              {badge && <span className="absolute -top-1 left-full">{badge}</span>}
             </span>
             <span>{label}</span>
           </button>
