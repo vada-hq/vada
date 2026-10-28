@@ -10,11 +10,13 @@ import { cn } from '@/lib/utils'
 import { departmentColorOf } from './department-color'
 import { STATUS_LABEL } from './task-view'
 import { TaskCard } from './TaskCard'
+import type { TaskDirect } from './TaskAssigneeName'
 import type { useStatusChange } from './useStatusChange'
 import { useTaskDrag } from './useTaskDrag'
 import type { TaskList } from './useTasks'
 
 type Props = {
+  direct?: TaskDirect | undefined
   // 끝나지 않은 업무(할 일·진행 중 열)와 끝난 업무(끝남 열, 마지막으로 바뀐 순 50개)
   open: TaskList
   done: TaskList
@@ -132,6 +134,7 @@ export function TaskBoard(props: Props) {
     <TaskCard
       key={task.id}
       task={task}
+      direct={props.direct}
       color={departmentColorOf(task.department?.id ?? null, props.departments)}
       busy={change.busy.has(task.id)}
       error={change.errors[task.id]}

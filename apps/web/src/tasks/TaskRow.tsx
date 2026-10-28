@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
 import { choiceValue, detailAssigneeChoices } from './task-form-options'
-import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel, nextLabel } from './task-view'
+import { COUNCIL_TASK_LABEL, dueLabel, nextLabel } from './task-view'
+import { TaskAssigneeName, type TaskDirect } from './TaskAssigneeName'
 import { TaskEventLink } from './TaskEventLink'
 
 type RowShow = {
@@ -19,6 +20,7 @@ type RowShow = {
 
 type Props = {
   task: TaskSummary
+  direct?: TaskDirect | undefined
   show: RowShow
   busy: boolean
   error?: string | undefined
@@ -30,7 +32,12 @@ type Props = {
 }
 
 // 제목 아래 한 줄: 부서, 행사, 담당자. 없는 것은 빼고 가운뎃점으로 잇는다.
-function Meta({ task, show, onOpenEvent }: Pick<Props, 'task' | 'show' | 'onOpenEvent'>) {
+function Meta({
+  task,
+  show,
+  onOpenEvent,
+  direct,
+}: Pick<Props, 'task' | 'show' | 'onOpenEvent' | 'direct'>) {
   const parts = [
     show.department && <span key="department">{task.department?.name ?? COUNCIL_TASK_LABEL}</span>,
     show.event && task.event && (
@@ -46,7 +53,7 @@ function Meta({ task, show, onOpenEvent }: Pick<Props, 'task' | 'show' | 'onOpen
         key="assignee"
         className={cn('wrap-anywhere', task.assignee === null && 'text-yellow-700')}
       >
-        {assigneeLabel(task.assignee)}
+        <TaskAssigneeName assignee={task.assignee} direct={direct} />
       </span>
     ),
   ].filter(Boolean)
@@ -120,7 +127,12 @@ export function TaskRow(props: Props) {
             {task.status === 'in_progress' && <Badge tone="info">진행 중</Badge>}
             {props.show.due === false && task.overdue && <Badge tone="danger">지남</Badge>}
           </div>
-          <Meta task={task} show={props.show} onOpenEvent={props.onOpenEvent} />
+          <Meta
+            task={task}
+            show={props.show}
+            onOpenEvent={props.onOpenEvent}
+            direct={props.direct}
+          />
         </div>
         {props.show.due !== false && <DueText task={task} />}
         <AssignSelect task={task} assign={props.assign} busy={busy} />

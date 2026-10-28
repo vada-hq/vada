@@ -7,6 +7,7 @@ import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
 import { TaskBoard } from './TaskBoard'
+import { taskDirectOf } from './TaskAssigneeName'
 import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskListBody, type TableSetup } from './TaskListBody'
@@ -118,6 +119,7 @@ function useTasksPage(props: Props) {
   const lookups = { team: team.data, events: eventList, linkable: lists.linkable }
   const table: TableSetup = { wide, lookups, cells }
   const rows = {
+    direct: taskDirectOf(props.view),
     view,
     change,
     assign,
@@ -175,6 +177,7 @@ function TasksBody({
   if (page.board)
     return (
       <TaskBoard
+        direct={rows.direct}
         open={list}
         done={page.done}
         departments={page.departments}

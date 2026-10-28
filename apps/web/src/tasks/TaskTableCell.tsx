@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
 import type { TaskSummary } from '@vada/contracts'
 import { NativeSelect } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
@@ -14,13 +15,15 @@ import {
   type Column,
   type Lookups,
 } from './task-table-cells'
-import { assigneeLabel, COUNCIL_TASK_LABEL, NO_EVENT_LABEL, STATUS_LABEL } from './task-view'
+import { COUNCIL_TASK_LABEL, NO_EVENT_LABEL, STATUS_LABEL } from './task-view'
+import { TaskAssigneeName, type TaskDirect } from './TaskAssigneeName'
 import { TaskEventLink } from './TaskEventLink'
 import { DueCell, TitleCell } from './TaskTextCells'
 import type { SaveField } from './useTaskCells'
 
 export type CellProps = {
   task: TaskSummary
+  direct?: TaskDirect | undefined
   column: Column
   index: number
   lookups: Lookups
@@ -42,12 +45,13 @@ function Plain({
   task,
   field,
   onOpenEvent,
-}: Pick<CellProps, 'task' | 'onOpenEvent'> & { field: CellField }) {
+  direct,
+}: Pick<CellProps, 'task' | 'onOpenEvent' | 'direct'> & { field: CellField }) {
   if (field === 'status') return <span className={muted}>{STATUS_LABEL[task.status]}</span>
   if (field === 'assignee')
     return (
       <span className={cn(muted, task.assignee === null && 'text-yellow-700')}>
-        {assigneeLabel(task.assignee)}
+        <TaskAssigneeName assignee={task.assignee} direct={direct} tabIndex={-1} />
       </span>
     )
   if (field === 'department')
@@ -59,13 +63,20 @@ function Plain({
 function Pick({ props, field }: { props: CellProps; field: CellField }) {
   const { task, lookups, busy } = props
   const choices = cellChoices(task, field, lookups)
-  if (!choices) return <Plain task={task} field={field} onOpenEvent={props.onOpenEvent} />
-  return (
+  if (!choices)
+    return <Plain task={task} field={field} onOpenEvent={props.onOpenEvent} direct={props.direct} />
+  const separate = field === 'assignee' && props.direct !== undefined
+  const select = (
     <NativeSelect
       aria-label={`${task.title} ${COLUMN_LABEL[props.column]}`}
       aria-busy={busy || undefined}
       tabIndex={-1}
-      className={cn(selectClass, field === 'event' && eventSelectClass, busy && 'opacity-45')}
+      className={cn(
+        selectClass,
+        field === 'event' && eventSelectClass,
+        busy && 'opacity-45',
+        separate && 'absolute inset-0 h-full w-full cursor-pointer opacity-0',
+      )}
       value={cellValue(task, field)}
       onChange={event => {
         // 보내는 동안은 값을 바꾸지 않는다(제어되는 값이라 다시 원래대로 돌아간다).
@@ -79,6 +90,16 @@ function Pick({ props, field }: { props: CellProps; field: CellField }) {
         </option>
       ))}
     </NativeSelect>
+  )
+  if (!separate) return select
+  return (
+    <div className="flex min-w-0 items-center gap-1">
+      <Plain task={task} field={field} direct={props.direct} />
+      <span className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-md border focus-within:ring-2 focus-within:ring-ring/50 max-sm:size-11">
+        <ChevronDown aria-hidden className="size-4 text-muted-foreground" />
+        {select}
+      </span>
+    </div>
   )
 }
 

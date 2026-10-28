@@ -98,6 +98,25 @@ test('넓은 화면의 기본은 열 셋(할 일·진행 중·끝남) 보드이�
   expect(screen.queryByRole('grid')).toBeNull()
 })
 
+test.each([true, false])(
+  '서버의 chat.direct %s를 보드 이름에 넘기고 업무 읽기는 유지한다',
+  async canDirect => {
+    serve([task('a')])
+    render(
+      <TasksPage
+        view={councilView(COUNCIL_ID, { permissions: canDirect ? ['chat.direct'] : [] })}
+        onForbidden={() => {}}
+        onChanged={() => {}}
+      />,
+    )
+    const card = (await screen.findByRole('button', { name: '업무 a' })).closest('li')!
+    expect(within(card).getByText('이재정')).toBeTruthy()
+    expect(within(card).queryByRole('button', { name: '이재정님과 1:1 대화' }) !== null).toBe(
+      canDirect,
+    )
+  },
+)
+
 test('카드에 업무명, 부서 칩, 지남 칩, 담당자, 마감이 있고 행사 이름은 없다', async () => {
   serve([
     task('a', { event: { id: EVENT_ID, name: '신입생 환영회' } }),

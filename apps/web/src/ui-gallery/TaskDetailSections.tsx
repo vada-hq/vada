@@ -18,6 +18,20 @@ import {
 } from './task-detail-samples'
 
 const noop = () => {}
+const direct = {
+  councilId: '00000000-0000-4000-8000-0000000000c1',
+  meId: '00000000-0000-4000-8000-0000000000a1',
+  canDirect: true,
+}
+const previewMemberId = (id: string) => id.replace(/^m/, '00000000-0000-4000-8000-00000000000')
+const previewTeam = {
+  ...sampleTeam,
+  members: sampleTeam.members.map(member => ({ ...member, id: previewMemberId(member.id) })),
+}
+const previewTasks = sampleTasks.map(task => ({
+  ...task,
+  assignee: task.assignee ? { ...task.assignee, id: previewMemberId(task.assignee.id) } : null,
+}))
 
 function SampleDetail({
   task,
@@ -60,13 +74,14 @@ function SampleDetail({
       }
     >
       <TaskDetailView
+        direct={direct}
         task={task}
         today={sampleToday}
         busy={false}
         problem={null}
         options={{
           departments: departmentOptions(sampleTeam),
-          assignees: assigneeOptions(sampleTeam, task),
+          assignees: assigneeOptions(previewTeam, task),
           events: eventOptions(sampleEvents, task.event),
         }}
         onEdit={onEdit}
@@ -80,7 +95,7 @@ function SampleDetail({
 
 // 업무 상세 오른쪽 패널. 카드를 누르면 상세가 열리고, 값을 누르면 고르기 창이 열려 바로 바뀐다(서버 없음).
 export function TaskDetailSection() {
-  const [tasks, setTasks] = useState(sampleTasks)
+  const [tasks, setTasks] = useState(previewTasks)
   const [openId, setOpenId] = useState<string | null>(null)
   const open = tasks.find(task => task.id === openId)
   return (
@@ -88,6 +103,7 @@ export function TaskDetailSection() {
       <ul className="grid w-full grid-cols-1 gap-3 rounded-xl bg-gray-100/50 p-3 sm:grid-cols-2 lg:grid-cols-4">
         {tasks.map(task => (
           <TaskCard
+            direct={direct}
             key={task.id}
             task={task}
             color={departmentColorOf(task.department?.id ?? null, sampleTeam.departments)}

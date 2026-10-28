@@ -13,10 +13,12 @@ import {
 } from './task-table-cells'
 import type { TaskSection } from './task-groups'
 import { TaskTableCell } from './TaskTableCell'
+import type { TaskDirect } from './TaskAssigneeName'
 import type { TaskCells } from './useTaskCells'
 import { useGridNav } from './useGridNav'
 
 type Props = {
+  direct?: TaskDirect | undefined
   sections: TaskSection[]
   // 부서 묶음이면 머리에 진행 중·지남·담당자 없음 수를 적는다.
   summary: boolean
@@ -89,6 +91,7 @@ function TaskRows({ task, columns, tabIndexOf, ...props }: RowProps) {
           <TaskTableCell
             key={column}
             task={task}
+            direct={props.direct}
             column={column}
             index={index}
             lookups={props.lookups}

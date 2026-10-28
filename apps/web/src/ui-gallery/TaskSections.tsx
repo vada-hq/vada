@@ -25,13 +25,19 @@ const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
   overdue: false,
   department: { id: 'd1', name: '기획부' },
   event: null,
-  assignee: { id: 'p1', name: '김새내', current: true },
+  assignee: { id: '00000000-0000-4000-8000-000000000001', name: '김새내', current: true },
   actions: ['task.change_status'],
   ...extra,
 })
 
 const noop = () => {}
+const direct = {
+  councilId: '00000000-0000-4000-8000-0000000000c1',
+  meId: '00000000-0000-4000-8000-0000000000a1',
+  canDirect: true,
+}
 const rowProps = {
+  direct,
   show: { assignee: true, department: true, event: true },
   busy: false,
   onChangeStatus: noop,
@@ -94,7 +100,7 @@ const tableLookups = {
   team: {
     members: [
       {
-        id: 'p1',
+        id: '00000000-0000-4000-8000-000000000001',
         name: '김새내',
         councilRank: null,
         departments: [],
@@ -131,6 +137,7 @@ export function TaskTableSection() {
     <Section title="업무 표">
       <div className="w-full max-w-5xl">
         <TaskTable
+          direct={direct}
           sections={groupByDepartment(tasks)}
           summary
           inEvent={false}
@@ -236,6 +243,7 @@ const boardOpen = [
 ]
 const boardDone = [task('b6', { status: 'done', next: null, assignee: null })]
 const boardProps = {
+  direct,
   departments: boardDepartments,
   change: boardChange,
   onOpenTask: noop,
@@ -279,6 +287,7 @@ export function TaskBoardSection() {
       </div>
       <ul className="w-72">
         <TaskCard
+          direct={direct}
           task={task('b7', { title: '결과물이 이어진 업무' })}
           color={departmentColorOf('d1', boardDepartments)}
           busy={false}

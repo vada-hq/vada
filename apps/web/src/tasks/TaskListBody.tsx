@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { TASKS_LOAD_FAILED } from '@/lib/messages'
 import { byDue, groupByDepartment, groupByDue, type TaskSection } from './task-groups'
 import { TaskRow } from './TaskRow'
+import type { TaskDirect } from './TaskAssigneeName'
 import { TaskSectionList } from './TaskSectionList'
 import { TaskTable } from './TaskTable'
 import type { Lookups } from './task-table-cells'
@@ -32,6 +33,7 @@ const overflow = (filter: TaskFilter) =>
 export type TableSetup = { wide: boolean; lookups: Lookups; cells: TaskCells }
 
 type Props = {
+  direct?: TaskDirect | undefined
   list: TaskList
   table: TableSetup
   view: TaskView
@@ -56,9 +58,12 @@ function sectionsOf(tasks: TaskSummary[], view: TaskView, filter: TaskFilter, to
 
 type RowProps = Pick<
   Props,
-  'view' | 'change' | 'assign' | 'team' | 'onOpenTask' | 'onOpenEvent' | 'inEvent'
+  'view' | 'change' | 'assign' | 'team' | 'onOpenTask' | 'onOpenEvent' | 'inEvent' | 'direct'
 >
-type ReadOnlyRowProps = Pick<RowProps, 'view' | 'onOpenTask' | 'onOpenEvent' | 'inEvent'> & {
+type ReadOnlyRowProps = Pick<
+  RowProps,
+  'view' | 'onOpenTask' | 'onOpenEvent' | 'inEvent' | 'direct'
+> & {
   readOnly: true
 }
 
@@ -103,6 +108,7 @@ export function taskRowOf(props: RowProps | ReadOnlyRowProps, calendar = false) 
     <TaskRow
       key={task.id}
       task={task}
+      direct={props.direct}
       show={show}
       {...rowActions(task, editing)}
       onOpen={() => props.onOpenTask(task.id)}
@@ -128,6 +134,7 @@ function Ready({
     <>
       {table.wide ? (
         <TaskTable
+          direct={props.direct}
           sections={sections}
           summary={summary}
           inEvent={props.inEvent}
