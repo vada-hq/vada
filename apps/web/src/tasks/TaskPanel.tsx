@@ -193,6 +193,9 @@ function usePanelParts({ view, taskId, onForbidden, onChanged, onLost }: OpenPro
   const team = useTeam(councilId, onForbidden, canPickTeam(detail.task))
   const [wantEvents, setWantEvents] = useState(false)
   const [events, setEvents] = useState<TaskPickOptions['events']>(null)
+  useEffect(() => {
+    setEvents(null)
+  }, [detail.task?.department?.id])
   const [making, setMaking] = useState<TaskResultKind | null>(null)
   const [deleting, setDeleting] = useState(false)
   const edit = usePanelEdit(councilId, detail, team, onForbidden)
@@ -247,6 +250,7 @@ function PanelExtras({ parts, props }: { parts: Parts; props: OpenProps }) {
     <>
       {parts.wantEvents && parts.events === null && (
         <EventsLoader
+          key={task.department?.id ?? 'council'}
           councilId={parts.councilId}
           task={task}
           onForbidden={props.onForbidden}

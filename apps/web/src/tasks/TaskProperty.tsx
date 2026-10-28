@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,14 @@ export function TaskProperty({
   children,
 }: Props) {
   const [open, setOpen] = useState(false)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const [returnFocus, setReturnFocus] = useState(false)
+  // 저장 중인 트리거는 꺼져 있어 고르기 창을 닫는 순간에는 초점을 돌릴 수 없다.
+  useEffect(() => {
+    if (open || busy || !returnFocus) return
+    setReturnFocus(false)
+    trigger.current?.focus()
+  }, [open, busy, returnFocus])
   const labelId = useId()
   const valueId = useId()
   const shown = (
@@ -65,6 +73,7 @@ export function TaskProperty({
           >
             <PopoverTrigger asChild>
               <Button
+                ref={trigger}
                 variant="ghost"
                 busy={busy}
                 aria-labelledby={`${labelId} ${valueId}`}
@@ -75,7 +84,10 @@ export function TaskProperty({
               </Button>
             </PopoverTrigger>
             <PopoverContent className={popoverClassName}>
-              {children(() => setOpen(false))}
+              {children(() => {
+                setReturnFocus(true)
+                setOpen(false)
+              })}
             </PopoverContent>
           </Popover>
         ) : (
