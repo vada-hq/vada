@@ -18,6 +18,28 @@ const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
 
+test('회의 목록·만들기·기록 주소를 왕복하고 새로고침 진입 경로를 둔다', () => {
+  for (const path of [`/meetings/${C}`, `/meetings/${C}/new`, `/meetings/${C}/${R}`]) {
+    assert.equal(appPath(parseAppPath(path)!), path)
+  }
+  assert.equal(menuPath('meetings', C, { compose: 'new' }), `/meetings/${C}/new`)
+  assert.equal(appPath(parseAppPath(`/meetings/${C}?compose=new`)!), `/meetings/${C}/new`)
+  assert.deepEqual(parseAppPath(`/meetings/${C}?status=cancelled&tab=mine&q=총회`)?.query, {
+    status: 'cancelled',
+  })
+  assert.deepEqual(parseAppPath(`/meetings/${C}?status=unknown`)?.query, {})
+  const detail = parseAppPath(`/meetings/${C}/${R}?agenda=${P}&mode=edit`)!
+  assert.deepEqual(detail.query, { agenda: P, mode: 'edit' })
+  assert.equal(appPath(parentOf(detail)), `/meetings/${C}`)
+  assert.deepEqual(parseAppPath(`/meetings/${C}/${R}?agenda=invalid&mode=unknown`)?.query, {})
+  assert.ok(
+    ENTRY_PATHS.some(path => path.startsWith('/meetings/:council') && path.endsWith('/new')),
+  )
+  assert.ok(
+    ENTRY_PATHS.some(path => path.startsWith('/meetings/:council') && path.includes('/:record')),
+  )
+})
+
 test('업무 마감 칩과 부서 없음 주소를 남기고 내 카드 토글은 학생회 업무에서만 남긴다', () => {
   for (const due of ['week', 'overdue', 'none']) {
     const path = `/tasks/${C}?due=${due}`
@@ -82,9 +104,9 @@ test('캘린더의 고른 월·목록 보기와 종류만 주소에 남고 자�
   assert.deepEqual(parseAppPath(`/calendar/${C}?view=auto&kind=all&month=2026-10`)?.query, {})
 })
 
-test('메뉴 열하나와 기록 종류 일곱마다 만들고 다시 읽으면 같은 값이다', () => {
-  assert.equal(APP_MENUS.length, 11)
-  assert.equal(RECORD_KINDS.length, 7)
+test('메뉴와 기록 종류마다 만들고 다시 읽으면 같은 값이다', () => {
+  assert.equal(APP_MENUS.length, 12)
+  assert.equal(RECORD_KINDS.length, 8)
   for (const menu of APP_MENUS) {
     const path = menuPath(menu, C)
     assert.equal(path, `/${menu}/${C}`)
@@ -335,7 +357,7 @@ test('서버 진입 목록은 목록의 모든 꼴과 끝 슬래시를 담는다
       p => p.startsWith(`/${menu}/:council{`) && !p.includes(':record'),
     )
     // 구매 요청 쓰기: 새 꼴(/purchases/<c>/new)과 옛 꼴(/finance/<c>/requests/new)을 다 받는다.
-    assert.equal(own.length, menu === 'finance' || menu === 'purchases' ? 4 : 2, menu)
+    assert.equal(own.length, ['finance', 'purchases', 'meetings'].includes(menu) ? 4 : 2, menu)
     assert.ok(own.some(p => p.endsWith('}/')))
   }
   for (const kind of RECORD_KINDS) {

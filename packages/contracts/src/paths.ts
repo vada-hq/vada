@@ -1,5 +1,6 @@
 import { HOME_VIEWS } from './home.js'
 import { CALENDAR_KINDS } from './calendar.js'
+import { MEETING_STATUSES } from './meetings.js'
 import { isUuid } from './input.js'
 import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
 import { TASK_FILTERS, TASK_VIEWS, type TaskStatus, type TaskView } from './tasks.js'
@@ -12,6 +13,7 @@ export const APP_MENUS = [
   'events',
   'council',
   'tasks',
+  'meetings',
   // 메뉴 v7(설계 2.2): 구매·캘린더는 주소만 먼저 둔다. 화면이 그리기 전까지는 지금 그 일을 그리는 곳으로 바꿔 쓴다(web live-moves).
   'calendar',
   'purchases',
@@ -65,6 +67,7 @@ const RECORD_PARENTS = {
   chat: { menu: 'chat' },
   events: { menu: 'events' },
   tasks: { menu: 'tasks' },
+  meetings: { menu: 'meetings' },
   schedule: { menu: 'calendar' },
   purchases: { menu: 'purchases' },
   expenses: { menu: 'finance', query: { tab: 'ledger' } },
@@ -128,6 +131,10 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     // 내 업무의 할 일·진행 중 거르기를 유지한다. 완료된 업무 탭은 기존 filter를 쓴다.
     state: { values: MY_TASK_STATES, fallback: null, onlyWith: { key: 'tab', value: 'mine' } },
   },
+  meetings: {
+    status: { values: MEETING_STATUSES, fallback: null },
+    compose: { values: ['new'], fallback: null },
+  },
   calendar: {
     view: { values: ['month', 'list'], fallback: null },
     kind: { values: CALENDAR_KINDS, fallback: null },
@@ -166,6 +173,10 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   settings: { section: { values: ['accounts', 'fees'], fallback: null } },
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
+  meetings: {
+    agenda: { values: 'uuid', fallback: null },
+    mode: { values: ['edit'], fallback: null },
+  },
   schedule: {},
   chat: {},
   // 업무 탭의 보기와 거르기는 업무 탭일 때만 남는다. 다른 탭으로 가면 빠진다.
@@ -221,10 +232,9 @@ function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
 const isMenu = (value: string | undefined): value is AppMenu =>
   APP_MENUS.some(menu => menu === value)
 // 구매 요청 쓰기는 메뉴의 하위 주소다(새로고침해도 쓰던 화면). 옛 꼴(재정 아래)도 계속 읽는다.
-const COMPOSE_MENUS = ['purchases', 'finance'] as const
-type ComposeMenu = (typeof COMPOSE_MENUS)[number]
-const isComposeMenu = (menu: AppMenu): menu is ComposeMenu =>
-  COMPOSE_MENUS.some(item => item === menu)
+const COMPOSE_MENUS = { purchases: 'new', finance: 'requests/new', meetings: 'new' } as const
+type ComposeMenu = keyof typeof COMPOSE_MENUS
+const isComposeMenu = (menu: AppMenu): menu is ComposeMenu => menu in COMPOSE_MENUS
 const isRecordKind = (value: string | undefined): value is RecordKind =>
   RECORD_KINDS.some(kind => kind === value)
 
@@ -251,12 +261,7 @@ function splitTarget(input: string) {
 
 // 경로(와 쿼리)를 읽는다. 끝 슬래시 하나는 같은 화면이다. 모르는 꼴은 null이다.
 // '//'나 역슬래시로 시작하는 주소, 바깥 주소는 메뉴·종류가 아니라 읽지 않는다(로그인 돌아올 곳이 이것만 통과시킨다).
-function menuLocationOf(
-  head: string | undefined,
-  councilId: string,
-  params: URLSearchParams,
-): AppLocation | null {
-  if (!isMenu(head)) return null
+function menuLocationOf(head: AppMenu, councilId: string, params: URLSearchParams): AppLocation {
   const query = cleanQuery(MENU_QUERY[head], params)
   return {
     type: 'menu',
@@ -267,10 +272,9 @@ function menuLocationOf(
 }
 
 function composeMenuOf(head: string | undefined, record: string | undefined, rest: string[]) {
-  if (head === 'purchases' && record === 'new' && rest.length === 0) return head
-  if (head === 'finance' && record === 'requests' && rest.length === 1 && rest[0] === 'new')
-    return head
-  return null
+  return isMenu(head) && isComposeMenu(head) && [record, ...rest].join('/') === COMPOSE_MENUS[head]
+    ? head
+    : null
 }
 
 export function parseAppPath(input: string): AppLocation | null {
@@ -282,7 +286,7 @@ export function parseAppPath(input: string): AppLocation | null {
   const compose = composeMenuOf(head, record, rest)
   if (compose) return { type: 'menu', menu: compose, councilId, query: { compose: 'new' } }
   if (rest.length > 0) return null
-  if (record === undefined) return menuLocationOf(head, councilId, params)
+  if (record === undefined) return isMenu(head) ? menuLocationOf(head, councilId, params) : null
   const recordId = decodeId(record)
   if (!recordId || !isRecordKind(head)) return null
   const query = cleanQuery(RECORD_QUERY[head], params)
@@ -298,9 +302,7 @@ export function appPath(location: AppLocation) {
     isComposeMenu(location.menu) &&
     location.query['compose'] === 'new'
   )
-    return location.menu === 'finance'
-      ? `/finance/${council}/requests/new`
-      : `/purchases/${council}/new`
+    return `/${location.menu}/${council}/${COMPOSE_MENUS[location.menu]}`
   const base =
     location.type === 'menu'
       ? `/${location.menu}/${council}`
@@ -331,12 +333,7 @@ export function parentOf(location: AppLocation): AppLocation {
   if (location.type === 'menu') return location
   const parent: { menu: AppMenu; query?: AppQuery } = RECORD_PARENTS[location.record]
   const params = new URLSearchParams(Object.entries(parent.query ?? {}))
-  return {
-    type: 'menu',
-    menu: parent.menu,
-    councilId: location.councilId.toLowerCase(),
-    query: cleanQuery(MENU_QUERY[parent.menu], params),
-  }
+  return menuLocationOf(parent.menu, location.councilId.toLowerCase(), params)
 }
 
 // 서버 진입 목록(Hono 경로). 학생회와 기록 칸은 uuid만 받아, 모르는 꼴은 서버가 404로 돌린다.
@@ -354,6 +351,7 @@ export const ENTRY_PATHS = [
     '/auth-done',
     `/finance/:council{${UUID_SEGMENT}}/requests/new`,
     `/purchases/:council{${UUID_SEGMENT}}/new`,
+    `/meetings/:council{${UUID_SEGMENT}}/new`,
     ...APP_MENUS.map(menu => `/${menu}/:council{${UUID_SEGMENT}}`),
     ...RECORD_KINDS.map(kind => `/${kind}/:council{${UUID_SEGMENT}}/:record{${UUID_SEGMENT}}`),
   ]),

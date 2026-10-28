@@ -20,8 +20,6 @@ function sources(dir: string): string[] {
 
 // 화면이 안 쓰는 것을 아직 고치지 않고 이유와 함께 허용하는 목록. 이유 없이 더하지 않는다.
 const ALLOWED_UNUSED: Record<string, string> = {
-  'MEETING_ACTIONS meeting.edit': '서버(029 조각 2)가 먼저 나간다. 회의 화면(조각 3)이 쓴다',
-  'MEETING_ACTIONS meeting.cancel': '서버(029 조각 2)가 먼저 나간다. 회의 화면(조각 3)이 쓴다',
   'MEETING_ACTIONS meeting.minutes': '서버(029 조각 2)가 먼저 나간다. 회의록 화면(조각 4)이 쓴다',
 }
 

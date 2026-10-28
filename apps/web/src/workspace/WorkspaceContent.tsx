@@ -2,6 +2,7 @@ import type { CouncilView } from '@vada/contracts'
 import type { ComponentType, Ref } from 'react'
 import ChatRoute from '../chat/ChatRoute'
 import CalendarPage from '../calendar/CalendarPage'
+import MeetingsPage from '../meetings/MeetingsPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
 import PurchasesPage from '../purchases/PurchasesPage'
@@ -88,7 +89,7 @@ function LeadPage({
 // 학생회 화면과 권한 재읽기만 받는 메뉴(메뉴 v7의 구매, 캘린더).
 const SINGLE_PAGES: Partial<
   Record<Page, ComponentType<{ view: CouncilView; onForbidden: () => void }>>
-> = { purchases: PurchasesPage, calendar: CalendarPage }
+> = { purchases: PurchasesPage, calendar: CalendarPage, meetings: MeetingsPage }
 
 function PageOf({
   data,
