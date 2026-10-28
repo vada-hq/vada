@@ -1,5 +1,6 @@
 import type { MeetingAgendaItem } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
@@ -31,6 +32,7 @@ type Props = {
 function statusText(draft: MinutesDraft | undefined, server: MeetingAgendaItem) {
   if (draft) {
     if (draft.saving) return T.saving
+    if (draft.conflict) return T.unsaved
     if (draft.error || draft.refreshing) return T.failed
     if (!draft.conflict && draft.text !== draft.savedText) return T.pending
   }
@@ -120,7 +122,9 @@ export function MinutesDiscussion({
   return (
     <section className="flex min-w-0 flex-col gap-3 border-t pt-5">
       {conflict && (
-        <StateMessage kind="notice">{minutesConflict(conflict.updatedBy?.name)}</StateMessage>
+        <Alert tone="warning" role="status" className="text-sm">
+          {minutesConflict(conflict.updatedBy?.name)}
+        </Alert>
       )}
       {writable && !conflict ? (
         <DiscussionInput item={item} draft={draft} onChange={onChange} />

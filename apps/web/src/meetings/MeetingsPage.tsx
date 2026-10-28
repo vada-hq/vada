@@ -25,6 +25,7 @@ import { MeetingDetail } from './MeetingDetail'
 import { MeetingCancelDialog } from './MeetingCancelDialog'
 import { MeetingEditor } from './MeetingEditor'
 import { MeetingMinutes } from './MeetingMinutes'
+import { hasDirtyEntry } from './minutes-entry'
 import { meetingMinutesPath } from './minutes-path'
 import { MEETING_LOAD_FAILED, MEETING_LOST, meetingError } from './meeting-text'
 
@@ -66,6 +67,23 @@ function MeetingsListPage({ view, onForbidden }: Props) {
     />
   )
 }
+function LostMeeting({ councilId }: { councilId: string }) {
+  return (
+    <>
+      <StateMessage kind="notice">{MEETING_LOST}</StateMessage>
+      <Button
+        variant="outline"
+        touch
+        className="self-start"
+        onClick={() => navigate(menuPath('meetings', councilId))}
+      >
+        회의 목록
+      </Button>
+    </>
+  )
+}
+const editPath = (councilId: string, recordId: string) =>
+  appPath({ type: 'record', record: 'meetings', councilId, recordId, query: { mode: 'edit' } })
 function MeetingRecord({
   view,
   onForbidden,
@@ -104,20 +122,7 @@ function MeetingRecord({
     setAsking(false)
     return null
   }
-  if (lost)
-    return (
-      <>
-        <StateMessage kind="notice">{MEETING_LOST}</StateMessage>
-        <Button
-          variant="outline"
-          touch
-          className="self-start"
-          onClick={() => navigate(menuPath('meetings', councilId))}
-        >
-          회의 목록
-        </Button>
-      </>
-    )
+  if (lost) return <LostMeeting councilId={councilId} />
   if (!meeting)
     return read.state.kind === 'failed' ? (
       <ReadFailure message={MEETING_LOAD_FAILED} onRetry={() => void read.reload()} />
@@ -126,48 +131,45 @@ function MeetingRecord({
     )
   if (editing)
     return <MeetingEditor view={view} item={meeting} onForbidden={onForbidden} onClose={close} />
-  if (minutesVisible(meeting, minutes))
-    return (
-      <MeetingMinutes
-        meeting={meeting}
-        base={path}
-        selectedId={agenda}
-        onSaved={saved}
-        onSelect={agendaId =>
-          // 같은 회의의 안건 이동은 초안을 보존하므로 실패한 초안의 나가기 확인을 건너뛴다.
-          navigate(meetingMinutesPath(councilId, id, agendaId), {
-            replace: true,
-            force: true,
-          })
-        }
-      />
-    )
+  const onEdit = () => navigate(editPath(councilId, id))
+  const body = minutesVisible(meeting, minutes) ? (
+    <MeetingMinutes
+      meeting={meeting}
+      base={path}
+      selectedId={agenda}
+      onSaved={saved}
+      onSelect={agendaId =>
+        // 같은 회의의 안건 이동은 논의 초안을 보존하므로 실패한 초안의 나가기 확인을 건너뛴다.
+        // 쓰던 결정·안건 폼은 안건마다 다시 그려지므로 그때만 확인한다.
+        navigate(meetingMinutesPath(councilId, id, agendaId), {
+          replace: true,
+          force: !hasDirtyEntry(),
+        })
+      }
+      onEdit={onEdit}
+      onCancel={() => setAsking(true)}
+    />
+  ) : (
+    <MeetingDetail
+      meeting={meeting}
+      onMinutes={() => navigate(meetingMinutesPath(councilId, id))}
+      onEdit={onEdit}
+      onCancel={() => setAsking(true)}
+      onEvent={eventId => openRecord('events', councilId, eventId, { tab: 'overview' })}
+    />
+  )
   return (
     <>
       {notice && <StateMessage kind="notice">{notice}</StateMessage>}
-      <MeetingDetail
-        meeting={meeting}
-        onMinutes={() => navigate(meetingMinutesPath(councilId, id))}
-        onEdit={() =>
-          navigate(
-            appPath({
-              type: 'record',
-              record: 'meetings',
-              councilId,
-              recordId: id,
-              query: { mode: 'edit' },
-            }),
-          )
-        }
-        onCancel={() => setAsking(true)}
-        onEvent={eventId => openRecord('events', councilId, eventId, { tab: 'overview' })}
-      />
+      {body}
       {asking && <MeetingCancelDialog onClose={() => setAsking(false)} onCancel={cancel} />}
     </>
   )
 }
+// 취소한 회의도 적힌 회의록은 주소로 읽는다(읽기는 가리지 않는다). 쓰기 동작은 서버가 주지 않는다.
 function minutesVisible(meeting: Detail, minutes: boolean) {
-  return meeting.status !== 'cancelled' && (minutes || meeting.status !== 'scheduled')
+  if (minutes) return true
+  return meeting.status !== 'cancelled' && meeting.status !== 'scheduled'
 }
 // 폼을 연 뒤 다시 읽기에서 권한이 빠져도 쓴 글을 지우지 않는다. 저장은 서버가 막고 문구를 보인다.
 function useLatched(wanted: boolean, allowed: boolean) {

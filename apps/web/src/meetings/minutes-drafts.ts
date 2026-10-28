@@ -30,19 +30,10 @@ const draftOf = (server: MeetingAgendaItem): MinutesDraft => ({
 })
 export const isMinutesDirty = (draft: MinutesDraft) => draft.text !== draft.savedText
 
-// 이동 중 실패한 저장·충돌도 같은 회의를 다시 열 때 남긴다. 성공한 초안은 정리한다.
-const pending = new Map<string, MinutesDrafts>()
-// 시험마다 남은 초안을 비운다(같은 회의 주소를 여러 시험이 쓴다).
-export function resetMinutesDrafts() {
-  pending.clear()
-}
-export function minutesDrafts(base: string, meeting: MeetingDetail) {
-  const existing = pending.get(base)
-  if (existing) return existing
-  const store = new MinutesDrafts(base, meeting)
-  pending.set(base, store)
-  return store
-}
+// 저장소는 화면 하나(한 사람·한 회의)에만 산다. 모듈에 두면 같은 탭에서 계정을 바꾼 사람에게 앞사람의 초안이 보이고
+// 그 세션으로 보내졌다(mtg-4 검토). 실패·충돌한 초안은 떠날 때 확인(useUnsavedInput)이 지킨다.
+export const minutesDrafts = (base: string, meeting: MeetingDetail) =>
+  new MinutesDrafts(base, meeting)
 
 class MinutesDrafts {
   private drafts: ReadonlyMap<string, MinutesDraft>
@@ -69,12 +60,10 @@ class MinutesDrafts {
   }
   attach(onSaved: (meeting: MeetingDetail) => void) {
     this.onSaved = onSaved
-    pending.set(this.base, this)
   }
   detach() {
     this.onSaved = null
     this.flush()
-    this.prune()
   }
   sync(meeting: MeetingDetail) {
     for (const item of meeting.agenda) {
@@ -135,7 +124,6 @@ class MinutesDrafts {
       const next = this.drafts.get(id)
       if (next && isMinutesDirty(next) && !next.error && !next.conflict && !next.refreshing)
         void this.save(id)
-      this.prune()
     })
     this.flights.set(id, saving)
     return saving
@@ -198,7 +186,6 @@ class MinutesDrafts {
   adopt(id: string) {
     const draft = this.drafts.get(id)
     if (draft?.conflict) this.put(id, draftOf(draft.conflict))
-    this.prune()
   }
   forget(id: string) {
     this.clearTimer(id)
@@ -206,7 +193,6 @@ class MinutesDrafts {
     kept.delete(id)
     this.drafts = kept
     for (const listener of this.listeners) listener()
-    this.prune()
   }
   keepalive() {
     for (const [id, draft] of this.drafts) {
@@ -227,8 +213,5 @@ class MinutesDrafts {
   }
   hasUnsaved() {
     return [...this.drafts.values()].some(isMinutesDirty)
-  }
-  private prune() {
-    if (!this.onSaved && !this.hasUnsaved() && !this.flights.size) pending.delete(this.base)
   }
 }
