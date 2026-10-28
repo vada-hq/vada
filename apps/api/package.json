@@ -16,17 +16,17 @@
     "pg-smoke": "tsx scripts/pg-smoke.ts"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "1.7.6",
+    "@better-auth/drizzle-adapter": "1.7.14",
     "@hono/node-server": "2.1.1",
     "@hono/standard-validator": "0.4.0",
     "@sentry/node": "11.4.0",
     "@standard-schema/spec": "1.1.0",
     "@vada/contracts": "workspace:*",
     "aws4fetch": "1.0.20",
-    "better-auth": "1.7.6",
+    "better-auth": "1.7.14",
     "drizzle-orm": "0.45.3",
     "fflate": "0.8.3",
-    "hono": "4.13.9",
+    "hono": "4.13.14",
     "postgres": "3.4.9",
     "tsx": "4.23.15",
     "web-push": "3.6.7",
@@ -36,6 +36,6 @@
     "@electric-sql/pglite": "0.5.8",
     "@types/web-push": "3.6.4",
     "drizzle-kit": "0.31.11",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   }
 }
