@@ -152,4 +152,23 @@ test('재정 보기 홈에서 연 업무도 같은 보기를 뒤에 두고, 잃�
     expect(window.location.pathname + window.location.search).toBe(homePath + '?view=finance'),
   )
   expect(screen.getByRole('region', { name: '행사별 예산' })).toBeTruthy()
+  // 잃은 뒤 남은 홈 칸에서도 보기를 바꿀 수 있다(뒤 화면 표시가 남아도 지금 주소를 읽는다).
+  fireEvent.click(screen.getByRole('button', { name: '운영 보기' }))
+  await waitFor(() => expect(window.location.pathname + window.location.search).toBe(homePath))
+  expect(screen.getByRole('button', { name: '운영 보기' }).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
+})
+
+test('없는 업무로 홈에 남은 뒤 다른 업무를 열어도 같은 홈 스크롤 자리를 쓴다', async () => {
+  const api = setup()
+  api.on('GET', `${base}/tasks/${T}`, () => json({ error: 'NOT_FOUND' }, 404))
+  fireEvent.click(await screen.findByRole('button', { name: /패널에서 끝낼 업무/ }))
+  await screen.findByRole('alert')
+  await waitFor(() => expect(window.location.pathname).toBe(homePath))
+  const spot = (window.history.state as { vadaBehind?: { spot: string } }).vadaBehind?.spot
+  expect(spot).toBeTruthy()
+  api.on('GET', `${base}/tasks/${T}`, () => json({ task: taskDetail({ id: T }) }))
+  await openPanel()
+  expect((window.history.state as { vadaBehind?: { spot: string } }).vadaBehind?.spot).toBe(spot)
 })

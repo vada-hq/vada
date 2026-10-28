@@ -163,7 +163,8 @@ function go(target: string, options: GoOptions) {
   const here = current()
   const behind =
     options.behind === 'home'
-      ? { page: 'home' as const, spot: here.key || `path:${here.path}` }
+      ? // 잃고 홈에 남은 칸은 이미 홈 스크롤 자리를 쓰고 있으니 그 자리를 이어 쓴다.
+        { page: 'home' as const, spot: here.behind?.spot ?? (here.key || `path:${here.path}`) }
       : undefined
   const state = { pageState: options.pageState, behind }
   if (options.replace) {
