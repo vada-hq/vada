@@ -43,7 +43,13 @@ export default function HomeSection({
         <div className="flex flex-wrap items-baseline gap-x-3">
           {aside}
           {onSeeAll && (
-            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={onSeeAll}>
+            // 휴대폰에서 누르는 자리를 44px로 키우되 머리 높이는 그대로 둔다(HomeCard [전체 보기]와 같다, WCAG 2.5.8).
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto p-0 text-xs max-sm:-my-3 max-sm:min-h-11"
+              onClick={onSeeAll}
+            >
               모두 보기
             </Button>
           )}
