@@ -297,7 +297,7 @@ test(
     const response = await h.read(url)
     const body = await response.text()
     for (const [key, value] of Object.entries({
-      'Content-Type': 'text/calendar; charset=utf-8',
+      'Content-Type': 'text/calendar; charset=utf-8; method=PUBLISH',
       'Content-Disposition': 'inline; filename="vada.ics"',
       'Cache-Control': 'private, max-age=300',
       'X-Robots-Tag': 'noindex, nofollow',

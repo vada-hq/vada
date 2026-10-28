@@ -104,3 +104,12 @@ test('75옥텟 접기는 한글·이모지를 가르지 않고 이어지는 공�
   }
   assert.ok(unfolded(body).includes(`SUMMARY:[시험·학사] ${title}\r\n`))
 })
+
+test('일정이 없어도 구성요소가 하나 있다(RFC 5545 3.6): 서울 시간대를 둔다', () => {
+  const body = unfolded(render([]))
+  assert.match(
+    body,
+    /BEGIN:VTIMEZONE\r\nTZID:Asia\/Seoul\r\nBEGIN:STANDARD\r\nDTSTART:19700101T000000\r\nTZOFFSETFROM:\+0900\r\nTZOFFSETTO:\+0900\r\nTZNAME:KST\r\nEND:STANDARD\r\nEND:VTIMEZONE\r\n/,
+  )
+  assert.equal(body.includes('BEGIN:VEVENT'), false)
+})

@@ -85,6 +85,18 @@ function eventLines(item: IcsItem, calendar: IcsCalendar) {
   ]
 }
 
+const SEOUL_TIMEZONE = [
+  'BEGIN:VTIMEZONE',
+  'TZID:Asia/Seoul',
+  'BEGIN:STANDARD',
+  'DTSTART:19700101T000000',
+  'TZOFFSETFROM:+0900',
+  'TZOFFSETTO:+0900',
+  'TZNAME:KST',
+  'END:STANDARD',
+  'END:VTIMEZONE',
+]
+
 export function calendarIcs(calendar: IcsCalendar): string {
   return [
     'BEGIN:VCALENDAR',
@@ -96,6 +108,9 @@ export function calendarIcs(calendar: IcsCalendar): string {
     'X-WR-TIMEZONE:Asia/Seoul',
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
     'X-PUBLISHED-TTL:PT1H',
+    // 달력에는 구성요소가 하나 이상 있어야 한다(RFC 5545 3.6). 일정이 없는 사람도 있어 시간대를 늘 둔다.
+    // 시각은 모두 UTC로 쓰므로 이 시간대를 가리키는 줄은 없다. 한국은 일광절약시간이 없다.
+    ...SEOUL_TIMEZONE,
     ...calendar.items.flatMap(item => eventLines(item, calendar)),
     'END:VCALENDAR',
     '',

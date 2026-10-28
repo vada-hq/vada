@@ -18,7 +18,8 @@ const FUTURE_DAYS = 365
 const READ_LIMIT = 30
 const READ_WINDOW_MS = 600_000
 const HEADERS = {
-  'Content-Type': 'text/calendar; charset=utf-8',
+  // 본문의 METHOD:PUBLISH와 같은 값을 머리에도 둔다(RFC 5545 8.1).
+  'Content-Type': 'text/calendar; charset=utf-8; method=PUBLISH',
   'Content-Disposition': 'inline; filename="vada.ics"',
   'Cache-Control': 'private, max-age=300',
   'X-Robots-Tag': 'noindex, nofollow',
