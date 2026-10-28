@@ -1,5 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { rowLinkBox, rowLinkTarget } from '@/components/ui/row-link'
+import { cn } from '@/lib/utils'
 
 export type FeaturedTile = {
   id: string
@@ -24,11 +26,19 @@ const countOf = (read: TilesRead) => (read.kind === 'ready' ? `${read.tiles.leng
 function Tile({ tile }: { tile: FeaturedTile }) {
   return (
     // 같은 줄 타일은 높이가 같아서 날짜를 맨 아래에 붙여 세 타일의 날짜 선을 맞춘다.
-    <li className="relative flex flex-col rounded-lg border px-3 py-2 transition-colors hover:border-blue-300 hover:bg-blue-50">
+    <li
+      className={cn(
+        rowLinkBox,
+        'flex flex-col rounded-lg border px-3 py-2 transition-colors hover:border-blue-300 hover:bg-blue-50',
+      )}
+    >
       <div className="flex flex-col items-start gap-1">
         <Button
           variant="link"
-          className="h-auto w-full min-w-0 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
+          className={cn(
+            'h-auto w-full min-w-0 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-gray-900 wrap-anywhere',
+            rowLinkTarget,
+          )}
           onClick={tile.onOpen}
         >
           {tile.name}

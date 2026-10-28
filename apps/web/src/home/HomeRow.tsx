@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { rowLinkBox, rowLinkTarget } from '@/components/ui/row-link'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -50,7 +51,8 @@ function RowTitle({
     <Button
       variant="link"
       className={cn(
-        'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0',
+        'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere',
+        rowLinkTarget,
         card && 'break-keep',
         // Button은 shrink-0이라 칩 옆에서는 줄어들게 해야 긴 제목이 칸 안에서 접힌다.
         chip !== undefined && 'min-w-0 shrink',
@@ -69,7 +71,7 @@ function RowTitle({
   )
 }
 
-// 홈의 한 줄. 줄 어디를 눌러도 원래 화면이 열린다(홈은 읽기만 한다, DEC-69).
+// 홈의 한 줄. 줄 어디를 눌러도 원래 화면이 열린다(홈은 읽기만 한다, DEC-69). 줄 안에 따로 누르는 것은 없다.
 export default function HomeRow({
   title,
   meta = [],
@@ -84,7 +86,8 @@ export default function HomeRow({
   return (
     <li
       className={cn(
-        'relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50',
+        rowLinkBox,
+        'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50',
         card && 'px-5 py-2.5',
       )}
     >
