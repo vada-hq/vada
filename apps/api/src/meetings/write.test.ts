@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { MeetingResponse } from '@vada/contracts'
+import { bodyLimitOf } from '../http/guard.js'
 import { withSettlement } from '../test-support/settlement.js'
 import { INPUT, NOW, errorOf, open } from './test-support/http.js'
 
@@ -113,10 +114,26 @@ test(
       (await h.post(path, { attendeeIds: [t.council.people.plain.memberId] })).status,
       200,
     )
-    assert.deepEqual(
-      (await h.detail(made.id)).attendees.map(person => person.id),
-      [t.council.people.plain.memberId],
+    const { plain, president, ended } = t.council.people
+    const idsOf = async () => (await h.detail(made.id)).attendees.map(person => person.id).sort()
+    // 만든 사람은 보낸 명단에 없어도 남는다.
+    assert.deepEqual(await idsOf(), [plain.memberId, president.memberId].sort())
+    assert.equal((await h.post(path, { attendeeIds: [] })).status, 200)
+    assert.deepEqual(await idsOf(), [president.memberId])
+    // 더한 뒤 떠난 참가자는 남겨 둔 채 다른 사람을 더할 수 있고, 뺄 수도 있다.
+    await t.pg.query('INSERT INTO meeting_attendee (meeting_id, member_id) VALUES ($1, $2)', [
+      made.id,
+      ended.memberId,
+    ])
+    assert.equal(
+      (await h.post(path, { attendeeIds: [ended.memberId, plain.memberId] })).status,
+      200,
     )
+    assert.deepEqual(await idsOf(), [ended.memberId, plain.memberId, president.memberId].sort())
+    assert.equal((await h.post(path, { attendeeIds: [plain.memberId] })).status, 200)
+    assert.deepEqual(await idsOf(), [plain.memberId, president.memberId].sort())
+    // 한 번 뺀 떠난 운영진은 다시 더하지 못한다.
+    assert.equal((await h.post(path, { attendeeIds: [ended.memberId] })).status, 404)
     await t.pg.query(
       'UPDATE record SET confirmed_at = $2, confirmed_by = created_by WHERE id = $1',
       [made.id, NOW.toISOString()],
@@ -131,7 +148,7 @@ test(
       assert.equal(await errorOf(response), 'RECORD_CONFIRMED')
     }
     assert.equal((await h.detail(made.id)).status, 'done')
-    assert.deepEqual((await h.detail(made.id)).actions, ['meeting.write'])
+    assert.deepEqual((await h.detail(made.id)).actions, ['meeting.minutes'])
   }),
 )
 
@@ -249,5 +266,24 @@ test(
       (await h.options()).events.some(item => item.id === eventId),
       false,
     )
+  }),
+)
+
+test(
+  '스키마가 받는 가장 큰 만들기 요청(제어 문자로 채운 안건 30개)도 413 없이 201이다',
+  withSettlement(async t => {
+    const h = open(t)
+    const fill = (length: number) => ''.repeat(length)
+    const body = {
+      ...INPUT,
+      title: fill(100),
+      place: fill(100),
+      purpose: fill(500),
+      agenda: Array.from({ length: 30 }, () => ({ title: fill(100), body: fill(500) })),
+    }
+    const bytes = new TextEncoder().encode(JSON.stringify(body)).length
+    // 참가자 200명(uuid와 따옴표·쉼표 39바이트)을 더해도 상한 안이다.
+    assert.ok(bytes + 200 * 39 < bodyLimitOf(h.base), `${bytes}`)
+    assert.equal((await h.create(body)).agenda.length, 30)
   }),
 )

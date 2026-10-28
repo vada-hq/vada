@@ -25,6 +25,7 @@ import type { createHomeRoutes } from './home/routes.js'
 import type { createCalendarRoutes } from './calendar/routes.js'
 import type { createCalendarFeedRoutes, createPublicCalendarRoutes } from './calendar/feed.js'
 import type { createScheduleRoutes } from './schedule/routes.js'
+import type { createMeetingRoutes } from './meetings/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
 import type { createProductInfoRoutes } from './product-info/routes.js'
@@ -59,6 +60,8 @@ export type AppOptions = {
   calendar?: ReturnType<typeof createCalendarRoutes>
   calendarFeeds?: ReturnType<typeof createCalendarFeedRoutes>
   schedule?: ReturnType<typeof createScheduleRoutes>
+  // 회의: 목록, 하나 읽기, 선택지, 만들기, 고치기, 참가자, 취소
+  meetings?: ReturnType<typeof createMeetingRoutes>
   // 구매 요청: 목록, 하나 읽기, 내기, 취소, 결재
   purchases?: ReturnType<typeof createPurchaseRoutes>
   shipments?: ReturnType<typeof createShipmentRoutes>

@@ -22,10 +22,10 @@ const contextOf = (facts: MeetingFacts): Context => ({
 })
 
 export function decide(actor: Actor, facts: MeetingFacts, action: MeetingAction): ErrorCode | null {
-  const permission = action === 'meeting.write' ? 'meeting.write' : 'meeting.manage'
+  const permission = action === 'meeting.minutes' ? 'meeting.write' : 'meeting.manage'
   if (!can(actor, permission, contextOf(facts))) return 'FORBIDDEN'
   if (facts.cancelledAt) return 'MEETING_CANCELLED'
-  if (action === 'meeting.write') return null
+  if (action === 'meeting.minutes') return null
   if (facts.confirmedAt) return 'RECORD_CONFIRMED'
   return action === 'meeting.cancel' && facts.hasTasks ? 'MEETING_HAS_TASKS' : null
 }

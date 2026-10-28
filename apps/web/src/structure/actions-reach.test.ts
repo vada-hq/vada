@@ -19,7 +19,11 @@ function sources(dir: string): string[] {
 }
 
 // 화면이 안 쓰는 것을 아직 고치지 않고 이유와 함께 허용하는 목록. 이유 없이 더하지 않는다.
-const ALLOWED_UNUSED: Record<string, string> = {}
+const ALLOWED_UNUSED: Record<string, string> = {
+  'MEETING_ACTIONS meeting.edit': '서버(029 조각 2)가 먼저 나간다. 회의 화면(조각 3)이 쓴다',
+  'MEETING_ACTIONS meeting.cancel': '서버(029 조각 2)가 먼저 나간다. 회의 화면(조각 3)이 쓴다',
+  'MEETING_ACTIONS meeting.minutes': '서버(029 조각 2)가 먼저 나간다. 회의록 화면(조각 4)이 쓴다',
+}
 
 // 동작 이름은 권한 키(Action)와 떼어 둔다(기능 012 원칙, 012 조각 6 검토 I1): 같은 글자면 `view.permissions.includes('이름')`이
 // 그 동작을 읽은 것으로 세어져, 동작을 안 읽는 화면도 위 검사를 통과한다. 지금 겹치는 동작을 이유와 함께 허용한다.

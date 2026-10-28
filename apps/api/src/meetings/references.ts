@@ -17,12 +17,19 @@ export const assertReferences = (
     departmentId: values.hostDepartmentId,
   })
 
-export async function attendeeIdsOf(tx: Tx, actor: Actor, ids: string[], now: Date) {
+// 지금 운영진인지는 새로 더하는 사람만 본다(RULE-50). 이미 참가자인 사람은 그 뒤 떠났어도 명단에 남는다.
+export async function attendeeIdsOf(
+  tx: Tx,
+  actor: Actor,
+  ids: string[],
+  { now, kept = [] }: { now: Date; kept?: readonly string[] },
+) {
   const wanted = [...new Set(ids)]
   if (wanted.length > MEETING_ATTENDEE_LIMIT) throw new ApiError('INVALID_INPUT')
-  if (!wanted.length) return wanted
-  const current = await lockCurrentMembers(tx, actor.councilId, wanted, now)
-  if (wanted.some(id => !current.has(id))) throw new ApiError('NOT_FOUND')
+  const added = wanted.filter(id => !kept.includes(id))
+  if (!added.length) return wanted
+  const current = await lockCurrentMembers(tx, actor.councilId, added, now)
+  if (added.some(id => !current.has(id))) throw new ApiError('NOT_FOUND')
   return wanted
 }
 

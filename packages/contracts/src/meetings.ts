@@ -21,7 +21,8 @@ export const MEETING_STATUSES = [
   'cancelled',
 ] as const
 export type MeetingStatus = (typeof MEETING_STATUSES)[number]
-export const MEETING_ACTIONS = ['meeting.edit', 'meeting.cancel', 'meeting.write'] as const
+// 회의가 주는 동작. 이름은 권한 키(meeting.write 등)와 떼어 둔다(web structure/actions-reach.test.ts).
+export const MEETING_ACTIONS = ['meeting.edit', 'meeting.cancel', 'meeting.minutes'] as const
 export type MeetingAction = (typeof MEETING_ACTIONS)[number]
 export type MeetingRelation = 'manager' | 'attendee' | 'none'
 export type MeetingMinutesStatus = 'none' | 'draft' | 'confirmed'
