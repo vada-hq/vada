@@ -36,13 +36,15 @@ type Kept = {
 // 쓰던 글을 회의록 화면의 자리에 남긴다. 저장하거나 닫으면 지운다.
 function useKeptEntry({ formKey, agendaId, main, extra, baseVersionNo }: Kept, dirty: boolean) {
   const scope = useMinutesScope()
+  const [owner] = useState(() => Symbol(formKey))
   useEffect(() => {
     if (!scope) return
     const text = extra.trim() ? `${main}\n${extra}` : main
-    keepEntry(scope, formKey, dirty ? { agendaId, text, main, extra, baseVersionNo } : null)
-  }, [scope, formKey, agendaId, main, extra, baseVersionNo, dirty])
+    const value = { agendaId, text, main, extra, baseVersionNo }
+    keepEntry(scope, formKey, dirty ? value : null, owner)
+  }, [scope, formKey, agendaId, main, extra, baseVersionNo, dirty, owner])
   return () => {
-    if (scope) keepEntry(scope, formKey, null)
+    if (scope) keepEntry(scope, formKey, null, owner)
   }
 }
 function useStartValues(kind: MinutesEntryKind, formKey: string, initial?: MinutesEntryValue) {

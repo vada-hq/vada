@@ -45,15 +45,22 @@ type KeptEntry = {
   main: string
   extra: string
   baseVersionNo?: number | undefined
+  owner?: symbol
 }
 const entries = new Map<string, KeptEntry>()
 export type MinutesScope = { memberId: string; base: string }
 export const keptEntry = (scope: MinutesScope, formKey: string) =>
   entries.get(keyOf(scope.memberId, scope.base, formKey))
-export function keepEntry(scope: MinutesScope, formKey: string, value: KeptEntry | null) {
+// owner는 폼 하나다. 앞 폼의 늦은 저장 성공이 다시 연 폼이 남긴 글을 지우지 않게, 지우기는 자기 것만 한다(mtg-4 검토).
+export function keepEntry(
+  scope: MinutesScope,
+  formKey: string,
+  value: KeptEntry | null,
+  owner: symbol,
+) {
   const key = keyOf(scope.memberId, scope.base, formKey)
-  if (value) entries.set(key, value)
-  else entries.delete(key)
+  if (value) entries.set(key, { ...value, owner })
+  else if (entries.get(key)?.owner === owner) entries.delete(key)
 }
 export const lostEntries = (scope: MinutesScope, agendaIds: readonly string[]) =>
   [...entries]
@@ -90,7 +97,6 @@ class MinutesDrafts {
     private memberId: string,
   ) {
     const prefix = keyOf(memberId, base, '')
-    latest.set(prefix, this)
     this.drafts = new Map(meeting.agenda.map(item => [item.id, this.restored(item)]))
     const ids = new Set(meeting.agenda.map(item => item.id))
     this.lost = [...kept]
@@ -126,6 +132,8 @@ class MinutesDrafts {
   attach(onSaved: (meeting: MeetingDetail) => void) {
     this.onSaved = onSaved
     this.closed = false
+    // 화면에 붙은 저장소만 남길 글을 맡는다. StrictMode는 처음 만들기를 두 번 불러 하나를 버린다.
+    latest.set(keyOf(this.memberId, this.base, ''), this)
     // 되살린 글은 다시 연 뒤 한 번 저장해 본다(판이 바뀌었으면 충돌로 보인다).
     for (const [id, draft] of this.drafts)
       if (isMinutesDirty(draft) && !this.timers.has(id) && !this.flights.has(id))

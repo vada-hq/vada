@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -459,4 +460,52 @@ test('남겨 둔 안건 고치기 글은 처음 본 판으로 보내 상대가 �
   expect(sent.at(-1)!.body).toMatchObject({ title: '내가 고친 제목', baseVersionNo: 1 })
   cleanup()
   await act(async () => {})
+})
+
+test('개발용 StrictMode에서도 저장 실패한 논의 초안을 다시 열면 되살린다', async () => {
+  const meeting = sample()
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'FAILED' }, 500))
+  const strict = () => (
+    <StrictMode>
+      <MeetingMinutes
+        meeting={meeting}
+        base={base}
+        memberId={ME}
+        selectedId={null}
+        onSelect={select}
+        onSaved={changed}
+      />
+    </StrictMode>
+  )
+  const first = render(strict())
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '엄격 모드 초안' } })
+  await act(() => vi.advanceTimersByTimeAsync(1500))
+  first.unmount()
+  await act(async () => {})
+  render(strict())
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe('엄격 모드 초안')
+  cleanup()
+  await act(async () => {})
+})
+
+test('앞 폼의 늦은 저장 성공은 다시 연 폼이 남긴 새 글을 지우지 않는다', async () => {
+  const meeting = sample()
+  const path = `${base}/agenda/${meeting.agenda[0]!.id}/decisions`
+  const late = deferredResponse()
+  api.on('POST', path, () => late.promise)
+  const first = draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  fireEvent.change(screen.getByLabelText(/결정 내용/), { target: { value: '앞 결정' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await act(async () => {})
+  first.unmount()
+  const second = draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  fireEvent.change(screen.getByLabelText(/결정 내용/), { target: { value: '새 결정' } })
+  late.resolve(json({ meeting }))
+  await act(async () => {})
+  second.unmount()
+  draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  expect(screen.getByLabelText<HTMLTextAreaElement>(/결정 내용/).value).toBe('새 결정')
 })
