@@ -1,8 +1,9 @@
 import type { EventSettlementRow } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
+import { rowLinkBox } from '@/components/ui/row-link'
 import { remainingLabel, settlementLabel } from '../events/event-view'
 import EventStatusChip from '../events/EventStatusChip'
-import { rowLinkClass, settlementDate, settlementMark } from './event-settlement-view'
+import { rowNameLinkClass, settlementDate, settlementMark } from './event-settlement-view'
 
 type Props = {
   rows: EventSettlementRow[]
@@ -30,12 +31,12 @@ export function EventSettlementList({ rows, onOpen }: Props) {
         return (
           <li
             key={row.event.id}
-            className="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50"
+            className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50`}
           >
             <div className="flex items-start gap-3">
               <Button
                 variant="link"
-                className={`min-w-0 flex-1 ${rowLinkClass}`}
+                className={`min-w-0 flex-1 ${rowNameLinkClass}`}
                 title={row.event.name}
                 onClick={() => onOpen(row.event.id)}
               >

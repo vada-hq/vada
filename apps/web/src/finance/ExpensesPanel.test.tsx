@@ -45,6 +45,7 @@ afterEach(() => {
 
 test('기간 쿼리의 범위·합계와 필터·검색·0건을 보이고 받은 300개 제한을 알린다', () => {
   render(<Sample />)
+  fireEvent.click(screen.getByRole('button', { name: /^필터/ }))
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '회계 기간' }).value).toBe('p')
   expect(screen.getByText('36,000원', { selector: 'dd' })).toBeTruthy()
   expect(screen.getByText('1건')).toBeTruthy()
@@ -145,27 +146,26 @@ test('390px에서는 카드만 보이고 1024px부터 표로 바뀐다', () => {
   expect(screen.queryByRole('heading', { name: '사용처 a' })).toBeNull()
 })
 
-test.each([390, 1280])(
-  '%ipx에서 상한 안내는 요약 바로 다음·목록 앞이고 행 복사 글이 같다',
-  async width => {
-    navigationWidth(width)
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
-    render(<ExpensesPanel list={list} onOpen={() => {}} />)
-    const status = summaryCell('지출 합계').closest('[role="status"]')!
-    const notice = screen.getByText('지출이 많아서 300개만 보여요.')
-    expect(status.nextElementSibling).toBe(notice)
-    const next = notice.nextElementSibling!
-    expect(width === 390 ? next.tagName : next.firstElementChild?.tagName).toBe(
-      width === 390 ? 'UL' : 'TABLE',
-    )
-    const button = screen.getByRole('button', { name: '문구점' })
-    const row = button.closest(width === 390 ? 'li' : 'tr')!
-    fireEvent.click(within(row).getByRole('button', { name: '행 복사' }))
-    await screen.findByText('행 복사 완료')
-    expect(writeText).toHaveBeenCalledExactlyOnceWith('축제\t포스터 인쇄')
-  },
-)
+test.each([390, 1280])('%ipx에서 상한 안내는 요약 바로 다음이고 행 복사 글이 같다', async width => {
+  navigationWidth(width)
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+  render(<ExpensesPanel list={list} onOpen={() => {}} />)
+  const status = summaryCell('지출 합계').closest('[role="status"]')!
+  const notice = screen.getByText('지출이 많아서 300개만 보여요.')
+  expect(status.nextElementSibling).toBe(notice)
+  // 390은 상한 안내와 목록 사이에 접힌 [필터]가 있다.
+  const next =
+    width === 390 ? notice.nextElementSibling!.nextElementSibling! : notice.nextElementSibling!
+  expect(width === 390 ? next.tagName : next.firstElementChild?.tagName).toBe(
+    width === 390 ? 'UL' : 'TABLE',
+  )
+  const button = screen.getByRole('button', { name: '문구점' })
+  const row = button.closest(width === 390 ? 'li' : 'tr')!
+  fireEvent.click(within(row).getByRole('button', { name: '행 복사' }))
+  await screen.findByText('행 복사 완료')
+  expect(writeText).toHaveBeenCalledExactlyOnceWith('축제\t포스터 인쇄')
+})
 
 test('행 복사는 탭으로 나눈 두 칸(행사, 내역)을 쓰며 실패 뒤 다시 누를 수 있다', async () => {
   const writeText = vi.fn().mockRejectedValueOnce(new Error('denied')).mockResolvedValue(undefined)
@@ -184,4 +184,31 @@ test('모르는 기간의 주소는 전체 지출이나 0원으로 바꾸지 않
   expect(screen.queryByRole('heading', { name: '문구점' })).toBeNull()
   expect(screen.getByRole('alert').textContent).toBe('회계 기간을 찾을 수 없어요.')
   expect(screen.queryByText('합계 0원')).toBeNull()
+})
+
+// FIN-LEDGER-01 차례(요약 → 찾기 → 목록). 390에서 칸 다섯이 요약을 첫 화면 밖으로 밀지 않게 [필터] 하나로 접는다.
+test('1024 아래에서는 요약이 맨 위이고 필터 칸은 [필터]로 접히며 고른 수를 보인다', () => {
+  navigationWidth(390)
+  render(<Sample />)
+  const status = summaryCell('지출 합계').closest('[role="status"]')!
+  const toggle = screen.getByRole('button', { name: '필터 1' })
+  expect(status.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(toggle.getAttribute('aria-expanded')).toBe('false')
+  expect(screen.queryByRole('combobox', { name: '회계 기간' })).toBeNull()
+  fireEvent.click(toggle)
+  expect(toggle.getAttribute('aria-expanded')).toBe('true')
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '회계 기간' }).value).toBe('p')
+  fireEvent.change(screen.getByLabelText('증빙'), { target: { value: 'present' } })
+  expect(screen.getByRole('button', { name: '필터 2' })).toBe(toggle)
+  fireEvent.click(toggle)
+  expect(screen.queryByRole('combobox', { name: '증빙' })).toBeNull()
+})
+
+test('1024 이상은 필터 칸이 요약 위에 늘 펼쳐져 있고 [필터]가 없다', () => {
+  navigationWidth(1280)
+  render(<Sample />)
+  expect(screen.queryByRole('button', { name: /^필터/ })).toBeNull()
+  const period = screen.getByRole('combobox', { name: '회계 기간' })
+  const status = summaryCell('지출 합계').closest('[role="status"]')!
+  expect(period.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })

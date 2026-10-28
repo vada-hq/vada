@@ -2,12 +2,14 @@ import type { ExpenseSummary } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { rowLinkBox, rowLinkTarget } from '@/components/ui/row-link'
+import { cn } from '@/lib/utils'
 import { dayLabel } from '@/lib/korean-date-text'
 import { ExpenseCopyButton } from './ExpenseCopyButton'
 import { chipsOf, departmentsLabel, METHOD_LABEL } from './expense-view'
 import { wonLabel } from './purchase-view'
 
-// 지출 카드: 사용처(눌러 상세), 내역, 금액, 결제일과 결제 수단, 상태 칩(환급 전, 증빙 없음, 취소됨), 행사와 부서. 목록의 제목은 화면 제목(h1) 바로 아래라 h2다.
+// 지출 카드: 사용처(카드 어디를 눌러도 상세, [행 복사]만 따로 누른다), 내역, 금액, 결제일과 결제 수단, 상태 칩(환급 전, 증빙 없음, 취소됨), 행사와 부서. 목록의 제목은 화면 제목(h1) 바로 아래라 h2다.
 export default function ExpenseCard({
   expense,
   onOpen,
@@ -18,13 +20,15 @@ export default function ExpenseCard({
   const chips = chipsOf(expense)
   const context = [expense.event?.name, departmentsLabel(expense)].filter(Boolean).join(' · ')
   return (
-    <Card className="flex flex-col gap-2 p-4">
+    <Card className={cn(rowLinkBox, 'flex flex-col gap-2 p-4')}>
       <div className="flex items-start gap-2">
         <h2 className="min-w-0 flex-1">
           <Button
             variant="link"
-            touch
-            className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-gray-900 wrap-anywhere"
+            className={cn(
+              'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-gray-900 wrap-anywhere',
+              rowLinkTarget,
+            )}
             onClick={onOpen}
           >
             {expense.vendor}

@@ -3,6 +3,7 @@ import { ChartColumn, CircleCheck, Clock, Info } from 'lucide-react'
 import type { FinanceOverview } from '@vada/contracts'
 import { NumberCard } from '@/components/NumberCard'
 import { Button } from '@/components/ui/button'
+import { headLinkTouch } from '@/components/ui/row-link'
 import { cn } from '@/lib/utils'
 import { signedWon } from './closing-view'
 import { sourcesLabel } from './overview-view'
@@ -31,9 +32,15 @@ function IconTile({ tone, children }: { tone: string; children: ReactNode }) {
 // 390px의 두 칸과 1024px에서 옆 메뉴를 뺀 네 칸 카드에 금액이 한 줄에 들도록 글자를 줄인다.
 const valueSize = 'text-lg sm:text-2xl lg:text-xl xl:text-2xl'
 
+// 두 글자 링크라 폭도 키운다. 옆 여백도 음수로 되돌려 글자 자리는 그대로다.
 function CardLink({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button variant="link" size="sm" className="h-auto p-0 text-xs text-gray-500" onClick={onClick}>
+    <Button
+      variant="link"
+      size="sm"
+      className={cn('h-auto p-0 text-xs text-gray-500 max-sm:-mx-3 max-sm:px-3', headLinkTouch)}
+      onClick={onClick}
+    >
       {label}
     </Button>
   )
