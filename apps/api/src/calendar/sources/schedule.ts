@@ -25,7 +25,11 @@ export async function scheduleItems(
       ),
       and(
         lt(scheduleItem.startsAt, range.until),
-        gte(sql`coalesce(${scheduleItem.endsAt}, ${scheduleItem.startsAt})`, range.from),
+        // 왼쪽이 칸이 아니라 drizzle이 Date를 인코딩하지 않는다. 운영 드라이버는 Date를 받지 못해 글자로 넘긴다.
+        gte(
+          sql`coalesce(${scheduleItem.endsAt}, ${scheduleItem.startsAt})`,
+          sql`${range.from.toISOString()}::timestamptz`,
+        ),
       ),
     ),
   )
