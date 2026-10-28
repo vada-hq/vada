@@ -181,6 +181,10 @@ export const SEND_ERRORS = changeErrors({
   PHOTO_ALREADY_SENT: '이미 보낸 사진이에요. 그 사진을 빼고 보내 주세요.',
 })
 export const SEND_FAILED = '보내지 못했어요. 글과 사진은 그대로 있어요. 다시 보내 주세요.'
+export const DELETE_MESSAGE_ERRORS = changeErrors({
+  NOT_FOUND: '이 메시지를 삭제할 수 없어요.',
+})
+export const DELETE_MESSAGE_FAILED = '메시지를 삭제하지 못했어요. 다시 시도해 주세요.'
 export const PHOTO_TOO_BIG = '사진이 너무 커요. 다른 사진을 골라 주세요.'
 export const PHOTO_CANNOT_OPEN = '이 사진을 열 수 없어요. 다른 사진을 골라 주세요.'
 export const PHOTO_UPLOAD_FAILED = '사진을 올리지 못했어요. 연결을 확인하고 빼고 다시 올려 주세요.'

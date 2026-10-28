@@ -105,11 +105,11 @@ export function EmptyAvatarSection() {
   )
 }
 
-// 대화방 메시지의 ... 메뉴. 구매 요청 만들기와 지출 적기가 같은 메뉴에 있다.
+// 내 메시지 메뉴: 구매 요청·지출과 메시지 삭제 확인 창을 확인한다.
 export function MessageMenuSection() {
   const message = {
-    id: 'sample-message',
-    senderId: 'sample-sender',
+    id: '11111111-1111-4111-8111-111111111111',
+    senderId: '22222222-2222-4222-8222-222222222222',
     senderName: '박해랑',
     body: '현수막 2개 사 주세요\n색은 파랑이면 좋겠어요',
     sentAt: '2026-10-23T01:30:00Z',
@@ -121,10 +121,10 @@ export function MessageMenuSection() {
     <Section title="메시지 메뉴">
       <ul className="w-96 rounded-lg border bg-white p-2">
         <MessageItem
-          councilId="sample"
+          councilId="33333333-3333-4333-8333-333333333333"
           message={message}
           continued={false}
-          mine={false}
+          mine
           canRequest
           onRequest={() => {}}
           canWriteExpense

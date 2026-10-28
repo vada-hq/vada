@@ -76,11 +76,15 @@ export async function readNewer(
   return 'done'
 }
 
-// 이미 있는 메시지는 다시 붙이지 않는다(겹쳐 읽어도 한 번만 보인다).
+// 기존 줄은 최신 응답으로 바꾸고 새 줄만 붙인다. 비운 본문은 늦은 응답으로 되살리지 않는다.
 export function appended(state: RoomState, more: ChatMessage[]): RoomState {
   if (state.kind !== 'ready') return state
   const known = new Set(state.messages.map(item => item.id))
-  return { ...state, messages: [...state.messages, ...more.filter(item => !known.has(item.id))] }
+  const latest = new Map(more.map(item => [item.id, item]))
+  const refreshed = state.messages.map(item =>
+    item.body === null ? item : (latest.get(item.id) ?? item),
+  )
+  return { ...state, messages: [...refreshed, ...more.filter(item => !known.has(item.id))] }
 }
 
 export function prepended(state: RoomState, older: MessagePageResponse): RoomState {

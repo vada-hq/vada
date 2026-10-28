@@ -3,12 +3,12 @@ import type { MadeRecord } from '@vada/contracts'
 import { useActive } from '@/lib/use-active'
 import { useVisiblePoll } from '@/lib/use-visible-poll'
 import { CHAT_POLL_MS, isRoomLost } from './chat-api'
+import { readRoomUpdates } from './message-refresh'
 import {
   appended,
   loadRoom,
   prepended,
   readMessages,
-  readNewer,
   withSync,
   withMade,
   type RoomState,
@@ -16,7 +16,7 @@ import {
 
 export type { RoomState }
 
-// 방 하나의 정보와 메시지 흐름. 처음엔 가장 최근 쪽을 읽고, 화면이 보이는 동안 3초마다 마지막 메시지 뒤를 이어 읽는다.
+// 방 하나의 정보와 메시지 흐름. 처음엔 최근 쪽을 읽고, 화면이 보이는 동안 3초마다 새 글과 읽어 둔 메시지의 삭제를 확인한다.
 // 방을 바꾸면 화면이 새로 그려진다(key). 그래서 이전 방의 늦은 응답이 덮을 일이 없다.
 export function useRoom(councilId: string, roomId: string) {
   const where = useMemo(() => ({ councilId, roomId }), [councilId, roomId])
@@ -37,11 +37,11 @@ export function useRoom(councilId: string, roomId: string) {
     void first()
   }, [first])
 
-  // 마지막 메시지 뒤를 읽어 붙인다.
+  // 새 글을 붙이고, 읽어 둔 메시지의 삭제도 확인한다.
   const catchUp = useCallback(async () => {
     if (busy.current || !ready) return
     busy.current = true
-    const outcome = await readNewer(where, lastId, more => {
+    const outcome = await readRoomUpdates(where, { firstId, lastId }, more => {
       if (isActive()) setState(before => appended(before, more))
       return isActive()
     })
@@ -49,7 +49,7 @@ export function useRoom(councilId: string, roomId: string) {
     if (!isActive()) return
     if (outcome === 'lost') lose()
     else setState(before => withSync(before, outcome === 'failed'))
-  }, [where, ready, lastId, lose, isActive])
+  }, [where, ready, firstId, lastId, lose, isActive])
   useVisiblePoll(() => void catchUp(), CHAT_POLL_MS)
 
   // 이전 쪽을 읽어 앞에 붙인다. 못 읽으면 false를 돌려준다.

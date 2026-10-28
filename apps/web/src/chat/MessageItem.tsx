@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   coupangProductOf,
   DELETED_MESSAGE,
@@ -137,7 +138,9 @@ export default function MessageItem(props: Props) {
 // 사람의 글(와이어프레임 메시지 화면): 내 메시지는 오른쪽 파란 말풍선, 남의 메시지는 왼쪽에 얼굴과 이름, 흰 말풍선.
 // 말풍선 묶음은 줄의 60%까지다(와이어프레임). 휴대폰은 칸이 좁아 80%다(사이드챗의 85%와 비슷하게). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
-function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Props) {
+function PersonItem({ councilId, message: original, continued, mine, ...actionArgs }: Props) {
+  const [deleted, setDeleted] = useState(false)
+  const message = deleted ? { ...original, body: null, photos: [] } : original
   const photos = message.photos
   const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
@@ -167,7 +170,13 @@ function PersonItem({ councilId, message, continued, mine, ...actionArgs }: Prop
         <Time message={message} continued={continued} />
       </div>
       <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-        <MessageMenu actions={actions} />
+        <MessageMenu
+          actions={actions}
+          councilId={councilId}
+          message={message}
+          mine={mine}
+          onDeleted={() => setDeleted(true)}
+        />
       </div>
     </li>
   )
