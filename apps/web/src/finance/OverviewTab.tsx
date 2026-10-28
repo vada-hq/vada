@@ -1,19 +1,22 @@
+import { useState } from 'react'
 import type { FinanceOverview } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { openMenu, openRecord } from '@/lib/go-to'
 import { CLOSING_LOST, OVERVIEW_LOAD_FAILED, PERIODS_LOAD_FAILED } from '@/lib/messages'
 import { useSplit } from '@/lib/use-split'
+import { useMenuQuery } from '@/lib/use-menu-query'
 import { OverviewCards, type OverviewCardLinks } from './OverviewCards'
 import { OverviewEvents } from './OverviewEvents'
 import { OverviewItems } from './OverviewItems'
 import { OverviewRate } from './OverviewRate'
 import { OverviewRecent } from './OverviewRecent'
+import { BudgetTab } from './BudgetTab'
 import { chosenPeriod, PeriodSelect } from './PeriodSelect'
 import { useFinanceOverview } from './useFinanceOverview'
 import { usePeriodChoice } from './useFinanceQuery'
 import { usePeriods } from './useIncomes'
-import { NoPeriod } from './NoPeriod'
 
 type Props = {
   councilId: string
@@ -23,6 +26,7 @@ type Props = {
 }
 
 export type OverviewOpeners = OverviewCardLinks & {
+  onItems?: (() => void) | undefined
   onEvent: (eventId: string) => void
   onExpense: (expenseId: string) => void
 }
@@ -33,10 +37,12 @@ export function OverviewView({
   overview,
   wide,
   openers,
+  revealItems = false,
 }: {
   overview: FinanceOverview
   wide: boolean
   openers: OverviewOpeners
+  revealItems?: boolean | undefined
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -49,20 +55,22 @@ export function OverviewView({
         onOpen={openers.onExpense}
         onAll={openers.onSpent}
       />
-      <OverviewItems overview={overview} />
+      <OverviewItems overview={overview} onOpen={openers.onItems} reveal={revealItems} />
     </div>
   )
 }
 
-// 카드와 줄이 가는 곳. 탭을 옮기면 기록을 쌓아 뒤로 가기가 개요로 돌아온다(지출 탭과 예산 탭은 같은 기간이다).
-function openersOf(councilId: string, periodId: string, canManage: boolean): OverviewOpeners {
+// 사용 내역과 구매로 나간 뒤 뒤로 가기로 같은 예산 현황에 돌아오게 기록을 쌓는다.
+function openersOf(
+  councilId: string,
+  periodId: string,
+  budget: Pick<OverviewOpeners, 'onBudget' | 'budgetLabel' | 'onItems'>,
+): OverviewOpeners {
   return {
-    // 예산 본문은 모든 운영진이 읽는다(GET /budget는 council.view). 고치기 버튼만 예산 탭 안에서 finance.manage로 가린다.
-    onBudget: () => openMenu('finance', councilId, { tab: 'budget', period: periodId }),
-    budgetLabel: canManage ? '편성' : '내역',
-    onSpent: () => openMenu('finance', councilId, { tab: 'expenses', period: periodId }),
+    ...budget,
+    onSpent: () => openMenu('finance', councilId, { tab: 'ledger', period: periodId }),
     onCommitted: () =>
-      openMenu('finance', councilId, { tab: 'expenses', period: periodId, spending: 'committed' }),
+      openMenu('finance', councilId, { tab: 'ledger', period: periodId, spending: 'committed' }),
     onEvent: eventId => openRecord('events', councilId, eventId, { tab: 'money' }),
     onExpense: expenseId => openRecord('expenses', councilId, expenseId),
   }
@@ -71,9 +79,17 @@ function openersOf(councilId: string, periodId: string, canManage: boolean): Ove
 function PeriodOverview({
   councilId,
   periodId,
+  onBudget,
+  onItems,
+  revealItems,
   canManage,
   onForbidden,
-}: Props & { periodId: string }) {
+}: Props & {
+  periodId: string
+  onBudget: () => void
+  onItems: () => void
+  revealItems: boolean
+}) {
   const read = useFinanceOverview(councilId, periodId, onForbidden)
   const wide = useSplit()
   const { state } = read
@@ -95,7 +111,12 @@ function PeriodOverview({
     <OverviewView
       overview={overview}
       wide={wide}
-      openers={openersOf(councilId, periodId, canManage)}
+      openers={openersOf(councilId, periodId, {
+        onBudget,
+        budgetLabel: canManage ? '편성' : '내역',
+        onItems,
+      })}
+      revealItems={revealItems}
     />
   )
 }
@@ -103,25 +124,39 @@ function PeriodOverview({
 // 개요 탭(DEC-92): 모든 운영진의 재정 첫 탭. 기간을 고르고(기본은 지금 기간) 예산과 쓴 돈을 한눈에 본다.
 // 숫자는 예산 셈(약정과 사용 가능)이고 결산서를 읽지 않는다. 처리 버튼은 없다.
 export function OverviewTab({ councilId, canManage, onForbidden }: Props) {
+  const [editing, setEditing] = useState(false)
   const periods = usePeriods(councilId, onForbidden)
   const choice = usePeriodChoice(councilId)
+  const query = useMenuQuery('finance', councilId)
   if (periods.state.kind === 'failed')
     return <StateMessage kind="error">{PERIODS_LOAD_FAILED}</StateMessage>
   if (periods.state.kind === 'loading')
     return <StateMessage kind="loading">불러오는 중…</StateMessage>
   const list = periods.state.data.periods
   const period = chosenPeriod(list, choice.chosenId)
-  if (period === null) return <NoPeriod councilId={councilId} canManage={canManage} />
+  if (period === null)
+    return <BudgetTab councilId={councilId} canManage={canManage} onForbidden={onForbidden} />
   return (
     <div className="flex flex-col gap-3">
       <PeriodSelect periods={list} value={period.id} onChange={choice.choose} />
       <PeriodOverview
-        key={period.id}
+        key={`${period.id}-${editing}`}
         councilId={councilId}
         periodId={period.id}
+        onBudget={() => setEditing(true)}
+        onItems={() => setEditing(true)}
         canManage={canManage}
+        revealItems={query.query['section'] === 'items'}
         onForbidden={onForbidden}
       />
+      <Dialog open={editing} onOpenChange={setEditing}>
+        <DialogContent aria-describedby={undefined} className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{canManage ? '예산 편성' : '예산 항목'}</DialogTitle>
+          </DialogHeader>
+          <BudgetTab councilId={councilId} canManage={canManage} onForbidden={onForbidden} />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

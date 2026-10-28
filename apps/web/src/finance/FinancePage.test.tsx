@@ -10,7 +10,8 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
-import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
+import { COUNCIL_ID, FinanceAt, PurchasesAt } from '@/test-support/finance-at'
+import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 
 afterEach(async () => {
   cleanup()
@@ -59,6 +60,30 @@ test('구매 목록에는 재정 탭이 없다', async () => {
   await screen.findByText('구매 요청 없음')
   expect(screen.queryAllByRole('tab')).toEqual([])
   expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}`)
+})
+
+test('사용 내역의 지출·수입 구분은 주소에 남고 해당 목록만 읽는다', async () => {
+  const api = mockApi()
+  const root = `/api/organizations/${COUNCIL_ID}`
+  api.on('GET', `${root}/expenses`, () => json({ expenses: [], truncated: false }))
+  api.on('GET', `${root}/fiscal-periods`, () => json(standardPeriods()))
+  api.on('GET', `${root}/incomes?period=${CURRENT_PERIOD}`, () =>
+    json({ incomes: [], truncated: false }),
+  )
+  window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=ledger`)
+  render(<FinanceAt view={councilView(COUNCIL_ID)} onForbidden={vi.fn()} />)
+  await screen.findByText('지출 없음')
+  expect(api.calls.some(call => call.path.includes('/incomes'))).toBe(false)
+  const push = vi.spyOn(window.history, 'pushState')
+  fireEvent.click(screen.getByRole('button', { name: '수입' }))
+  await screen.findByText('수입 없음')
+  expect(window.location.search).toBe('?tab=ledger&kind=income')
+  fireEvent.click(screen.getByRole('tab', { name: '사용 내역' }))
+  expect(window.location.search).toBe('?tab=ledger&kind=income')
+  fireEvent.click(screen.getByRole('button', { name: '지출' }))
+  await screen.findByText('지출 없음')
+  expect(window.location.search).toBe('?tab=ledger')
+  expect(push).not.toHaveBeenCalled()
 })
 
 test('거르기 셋이 있고 바꾸면 그 보기를 읽는다', async () => {

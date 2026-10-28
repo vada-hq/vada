@@ -210,6 +210,23 @@ test('모르는 꼴은 읽지 않는다', () => {
   for (const path of bad) assert.equal(parseAppPath(path), null, path)
 })
 
+test('재정 사용 내역의 행사 거르기와 예산 항목 위치를 주소에 남긴다', () => {
+  for (const event of ['none', R]) {
+    const query = { tab: 'ledger', event }
+    const path = `/finance/${C}?tab=ledger&event=${event}`
+    assert.equal(menuPath('finance', C, query), path)
+    assert.deepEqual(parseAppPath(path)?.query, query)
+  }
+  assert.deepEqual(parseAppPath(`/finance/${C}?tab=ledger&event=unknown`)?.query, {
+    tab: 'ledger',
+  })
+  assert.deepEqual(parseAppPath(`/finance/${C}?event=none`)?.query, {})
+  assert.deepEqual(parseAppPath(`/finance/${C}?section=items&period=${P}`)?.query, {
+    section: 'items',
+    period: P,
+  })
+})
+
 test('옛 알림 주소 셋은 지금과 같은 값으로 읽힌다(영구히 열린다)', () => {
   assert.deepEqual(parseAppPath(`/chat/${C}/${R}`), {
     type: 'record',
@@ -229,8 +246,8 @@ test('기록 주소의 상위 목록은 종류마다 여는 메뉴와 탭이다'
   assert.equal(up('events'), `/events/${C}`)
   assert.equal(up('tasks'), `/tasks/${C}`)
   assert.equal(up('purchases'), `/purchases/${C}`)
-  assert.equal(up('expenses'), `/finance/${C}?tab=expenses`)
-  assert.equal(up('incomes'), `/finance/${C}?tab=incomes`)
+  assert.equal(up('expenses'), `/finance/${C}?tab=ledger`)
+  assert.equal(up('incomes'), `/finance/${C}?tab=ledger&kind=income`)
   const menu = parseAppPath(`/tasks/${C}`)!
   assert.equal(parentOf(menu), menu)
 })
@@ -311,7 +328,7 @@ const MOVES: [old: string, now: string][] = [
   [`/finance/${C}/requests/new`, `/purchases/${C}/new`],
   [`/finance/${C}?compose=new`, `/purchases/${C}/new`],
   [`/finance/${C}?tab=overview`, `/finance/${C}`],
-  [`/finance/${C}?tab=budget`, `/finance/${C}`],
+  [`/finance/${C}?tab=budget`, `/finance/${C}?section=items`],
   [`/finance/${C}?tab=expenses`, `/finance/${C}?tab=ledger`],
   [`/finance/${C}?tab=incomes&period=${P}`, `/finance/${C}?tab=ledger&kind=income&period=${P}`],
   [`/finance/${C}?tab=settlements`, `/finance/${C}?tab=closing`],
@@ -375,4 +392,10 @@ test('개요의 지출 예정 내역 주소는 기간과 보기 조건을 보존
   const path = menuPath('finance', C, { tab: 'expenses', period: P, spending: 'committed' })
   assert.equal(path, `/finance/${C}?tab=expenses&period=${P}&spending=committed`)
   assert.equal(parseAppPath(path)?.query['spending'], 'committed')
+  const moved = movedLocationOf(parseAppPath(path)!, { moves: ['ledger'] })!
+  assert.equal(appPath(moved), `/finance/${C}?tab=ledger&period=${P}&spending=committed`)
+  assert.equal(
+    menuPath('finance', C, { tab: 'overview', spending: 'committed' }),
+    `/finance/${C}?tab=overview`,
+  )
 })

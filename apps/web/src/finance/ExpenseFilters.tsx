@@ -54,6 +54,7 @@ export function ExpenseFilters({ expenses, allocations, periods, filters, onChan
           onChange={event => onChange({ ...filters, eventId: event.target.value })}
         >
           <option value="">전체 행사</option>
+          <option value="none">상시</option>
           {[...events].map(([id, name]) => (
             <option key={id} value={id}>
               {name}

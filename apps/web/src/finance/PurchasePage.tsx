@@ -84,7 +84,7 @@ export function PurchasePage({ view, requestId, onForbidden }: Props) {
           onChanged={() => {}}
           onLost={setLost}
           onForbidden={onForbidden}
-          onOpenBudget={() => openMenu('finance', councilId, { tab: 'budget' })}
+          onOpenBudget={() => openMenu('finance', councilId)}
           onOpenExpense={id => openRecord('expenses', councilId, id, { overRecord: true })}
         />
       ) : (

@@ -39,6 +39,29 @@ test('행사·항목·증빙·사용처와 내역을 함께 거르며 0건을 �
   expect(filterExpenses([row], allocations, { ...filters, eventId: 'e2' })).toEqual([])
 })
 
+test('상시는 행사 없는 지출만 기존 기간·항목·증빙·검색 조건과 함께 거른다', () => {
+  const rows = [
+    expenseSummary('linked', { event: null, evidenceCount: 0 }),
+    expenseSummary('cash', {
+      paidOn: '2026-06-30',
+      event: { id: 'e1', name: '축제' },
+      evidenceCount: 0,
+    }),
+  ]
+  const selected = {
+    ...filters,
+    eventId: 'none',
+    budgetItemId: 'b1',
+    evidence: 'missing',
+    search: '포스터',
+  }
+  expect(filterExpenses(rows, allocations, selected)).toEqual([rows[0]])
+  expect(filterExpenses(rows, allocations, { ...selected, evidence: 'present' })).toEqual([])
+  expect(filterExpenses(rows, allocations, { ...selected, search: '없는 내역' })).toEqual([])
+  expect(filterExpenses(rows, allocations, { ...filters, eventId: 'e1' })).toEqual([rows[1]])
+  expect(filterExpenses(rows, allocations, { ...filters, eventId: '' })).toEqual(rows)
+})
+
 test('행 복사는 계정과목 칸 없이 행사·내역 두 칸이고 탭과 줄바꿈을 한 칸으로 정리한다', () => {
   const row = expenseSummary('x', {
     description: '=SUM(A1)\t인쇄\n내역',

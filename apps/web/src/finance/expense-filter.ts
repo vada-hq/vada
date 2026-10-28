@@ -49,11 +49,16 @@ export function filterExpenses(
   return expenses.filter(
     expense =>
       (!filters.period || !expense.cancelled) &&
-      (!filters.eventId || expense.event?.id === filters.eventId) &&
+      matchesEvent(expense, filters.eventId) &&
       hasEvidence(expense, filters.evidence) &&
       `${expense.vendor} ${expense.description}`.toLocaleLowerCase('ko').includes(search) &&
       inBudget(expense, allocations, filters),
   )
+}
+
+function matchesEvent(expense: ExpenseSummary, eventId: string) {
+  if (eventId === 'none') return expense.event === null
+  return !eventId || expense.event?.id === eventId
 }
 
 function hasEvidence(expense: ExpenseSummary, filter: string) {

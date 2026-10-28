@@ -31,6 +31,36 @@ const list = (
 ) => json({ expenses, truncated })
 const card = (name: string) => screen.getByRole('heading', { name }).closest('div')!.parentElement!
 
+test('상시를 고르면 행사 없는 지출만 보이고 전체 행사로 되돌릴 수 있다', async () => {
+  const api = serveFinance()
+  api.on('GET', EXPENSES, () =>
+    list([
+      expenseSummary('0199d1a0-0000-7000-8000-00000000b101', {
+        vendor: '상시 소모품',
+        event: null,
+      }),
+      expenseSummary('0199d1a0-0000-7000-8000-00000000b102', {
+        vendor: '행사 인쇄소',
+        event: { id: '0199d1a0-0000-7000-8000-00000000e001', name: '봄 행사' },
+      }),
+    ]),
+  )
+  showFinance(MEMBER_PERMISSIONS)
+  openExpensesTab()
+  await screen.findByRole('heading', { name: '행사 인쇄소' })
+  fireEvent.change(screen.getByLabelText('행사'), { target: { value: 'none' } })
+  expect(window.location.search).toBe('?tab=ledger&event=none')
+  expect(screen.getByRole('heading', { name: '상시 소모품' })).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: '행사 인쇄소' })).toBeNull()
+  fireEvent.change(screen.getByLabelText('행사'), { target: { value: '' } })
+  expect(screen.getByRole('heading', { name: '행사 인쇄소' })).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('행사'), {
+    target: { value: '0199d1a0-0000-7000-8000-00000000e001' },
+  })
+  expect(screen.queryByRole('heading', { name: '상시 소모품' })).toBeNull()
+  expect(screen.getByRole('heading', { name: '행사 인쇄소' })).toBeTruthy()
+})
+
 test('지출 탭의 카드에 사용처, 내역, 금액, 결제일, 상태 칩이 보인다', async () => {
   const api = serveFinance()
   api.on('GET', EXPENSES, () =>

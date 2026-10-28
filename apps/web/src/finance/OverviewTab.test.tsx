@@ -6,6 +6,7 @@ import type { FinanceOverview } from '@vada/contracts'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
 import { COUNCIL_ID } from '@/test-support/finance-at'
+import { budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import { CURRENT_PERIOD, OLD_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { PERIODS } from '@/test-support/income-harness'
 import { json } from '@/test-support/mock-api'
@@ -21,6 +22,9 @@ const overviewPath = (period: string) => `${BASE}/finance-overview?period=${peri
 
 function serve(overview: FinanceOverview | null = overviewFixture(), periods = standardPeriods()) {
   const api = serveFinance()
+  api.on('GET', `${BASE}/budget`, () =>
+    json(periods.periods.length ? budgetWithPeriod() : budgetWithoutPeriod()),
+  )
   api.on('GET', PERIODS, () => json(periods))
   api.on('GET', overviewPath(CURRENT_PERIOD), () => json({ overview }))
   return api
@@ -33,8 +37,8 @@ test('재정부가 아닌 운영진도 재정을 열면 개요가 첫 탭이고,
   const api = serve()
   atFinanceHome()
   showFinance(MEMBER_PERMISSIONS)
-  expect(screen.getAllByRole('tab')[0]?.textContent).toBe('개요')
-  expect(screen.getByRole('tab', { name: '개요' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getAllByRole('tab')[0]?.textContent).toBe('예산 현황')
+  expect(screen.getByRole('tab', { name: '예산 현황' }).getAttribute('aria-selected')).toBe('true')
   const total = await screen.findByRole('region', { name: '총예산' })
   expect(total.textContent).toContain('1,000,000원')
   expect(total.textContent).toContain('지원금 외 1건')
@@ -59,6 +63,25 @@ test('사용 가능이 음수면 빨갛다', async () => {
     '-20,000원',
   )
   expect(value.className).toContain('text-red-600')
+})
+
+test('일반 부원도 예산 항목과 이력을 열람하고 고치기 동작은 보이지 않는다', async () => {
+  serve()
+  atFinanceHome()
+  showFinance(MEMBER_PERMISSIONS)
+  fireEvent.click(await screen.findByRole('button', { name: '항목 보기' }))
+  const dialog = await screen.findByRole('dialog', { name: '예산 항목' })
+  expect(await within(dialog).findByText('행사 홍보')).toBeTruthy()
+  expect(within(dialog).queryByRole('button', { name: '예산 편성' })).toBeNull()
+  fireEvent.keyDown(within(dialog).getByRole('button', { name: '행사 홍보 더 보기' }), {
+    key: 'Enter',
+  })
+  expect(screen.queryByRole('menuitem', { name: '고치기' })).toBeNull()
+  expect(screen.queryByRole('menuitem', { name: '항목 지우기' })).toBeNull()
+  fireEvent.click(await screen.findByRole('menuitem', { name: '이력 보기' }))
+  const history = await screen.findByRole('dialog', { name: '이력' })
+  expect(history.textContent).toContain('김재정')
+  expect(history.textContent).toContain('300,000원')
 })
 
 test('집행률 막대 둘(실제 지출, 지출 예정 포함)과 그 비율을 보인다', async () => {
@@ -141,21 +164,24 @@ test('최근 지출과 예산 항목별 현황(항목 없는 지출 포함)을 �
   expect(window.location.pathname).toBe(`/expenses/${COUNCIL_ID}/${OVERVIEW_EXPENSE}`)
 })
 
-test('카드의 내역은 같은 기간의 실제·예정 지출로, 재정부의 편성은 예산 탭으로 간다', async () => {
+test('카드의 내역은 같은 기간의 실제·예정 지출로, 편성은 예산 현황 안에서 열린다', async () => {
   serve()
   atFinanceHome()
   showFinance()
   await screen.findByRole('region', { name: '실제 지출' })
   fireEvent.click(within(region('실제 지출')).getByRole('button', { name: '내역' }))
-  expect(window.location.search).toBe(`?tab=expenses&period=${CURRENT_PERIOD}`)
+  expect(window.location.search).toBe(`?tab=ledger&period=${CURRENT_PERIOD}`)
   window.history.back()
   await screen.findByRole('region', { name: '지출 예정' })
   fireEvent.click(within(region('지출 예정')).getByRole('button', { name: '내역' }))
-  expect(window.location.search).toBe(`?tab=expenses&period=${CURRENT_PERIOD}&spending=committed`)
+  expect(window.location.search).toBe(`?tab=ledger&period=${CURRENT_PERIOD}&spending=committed`)
   window.history.back()
   await screen.findByRole('region', { name: '총예산' })
   fireEvent.click(within(region('총예산')).getByRole('button', { name: '편성' }))
-  expect(window.location.search).toBe(`?tab=budget&period=${CURRENT_PERIOD}`)
+  expect(await screen.findByRole('dialog', { name: '예산 편성' })).toBeTruthy()
+  expect(window.location.pathname).toBe(`/finance/${COUNCIL_ID}`)
+  expect(window.location.search).toBe('')
+  expect(await screen.findByText('행사 홍보')).toBeTruthy()
 })
 
 test('기간을 바꾸면 그 기간의 개요를 읽는다', async () => {
@@ -171,26 +197,30 @@ test('기간을 바꾸면 그 기간의 개요를 읽는다', async () => {
   expect(window.location.search).toBe(`?period=${OLD_PERIOD}`)
 })
 
-test('회계 기간이 없으면 없음을 보이고, 재정부에게만 예산 탭으로 가는 버튼이 있다', async () => {
+test('기간이 없으면 예산 현황에서 바로 만들고, 재정 권한이 없는 사람에게는 버튼이 없다', async () => {
   serve(null, { periods: [] })
   atFinanceHome()
   showFinance(MEMBER_PERMISSIONS)
   await screen.findByText('회계 기간 없음')
-  expect(screen.queryByRole('button', { name: '예산 탭에서 만들기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '회계 기간 만들기' })).toBeNull()
   cleanup()
   serve(null, { periods: [] })
   atFinanceHome()
   showFinance()
-  fireEvent.click(await screen.findByRole('button', { name: '예산 탭에서 만들기' }))
-  expect(window.location.search).toBe('?tab=budget')
+  fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
+  expect(await screen.findByRole('form', { name: '회계 기간 만들기' })).toBeTruthy()
+  expect(window.location.search).toBe('')
 })
 
-test('재정부가 아닌 운영진도 총예산 카드의 내역으로 예산 탭을 읽는다. 편성 버튼만 없다', async () => {
+test('재정부가 아닌 운영진도 총예산 카드의 내역으로 예산 본문을 읽는다. 편성 버튼만 없다', async () => {
   serve()
   atFinanceHome()
   showFinance(MEMBER_PERMISSIONS)
   const total = await screen.findByRole('region', { name: '총예산' })
   expect(within(total).queryByRole('button', { name: '편성' })).toBeNull()
   fireEvent.click(within(total).getByRole('button', { name: '내역' }))
-  expect(window.location.search).toBe(`?tab=budget&period=${CURRENT_PERIOD}`)
+  const dialog = await screen.findByRole('dialog', { name: '예산 항목' })
+  expect(await within(dialog).findByText('행사 홍보')).toBeTruthy()
+  expect(within(dialog).queryByRole('button', { name: '예산 편성' })).toBeNull()
+  expect(window.location.search).toBe('')
 })

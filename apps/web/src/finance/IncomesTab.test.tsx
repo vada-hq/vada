@@ -28,11 +28,11 @@ afterEach(async () => {
 
 const card = (name: string) => screen.getByRole('heading', { name }).closest('div')!.parentElement!
 
-test('재정 탭 줄은 지출 옆에 수입이 있고 줄을 바꿔 가로 스크롤 없이 다 보인다', () => {
+test('재정 탭 다섯은 줄을 바꿔 가로 스크롤 없이 다 보인다', () => {
   serveIncomes()
   showFinance()
   const tabs = screen.getAllByRole('tab').map(tab => tab.textContent)
-  expect(tabs).toEqual(['개요', '지출', '수입', '예산', '행사 정산', '납부자 명단', '결산'])
+  expect(tabs).toEqual(['예산 현황', '사용 내역', '행사 정산', '납부자 명단', '결산'])
   const list = screen.getByRole('tablist', { name: '재정 보기' })
   // 탭 부품은 부모에 overflow를 줄 수 없다(tab-button.tsx). 넘치면 줄을 바꾼다.
   expect(list.className).toContain('flex-wrap')
@@ -150,7 +150,7 @@ test.each([true, false])(
     else showFinance(MEMBER_PERMISSIONS)
     openIncomesTab()
     await screen.findByText('회계 기간 없음')
-    const create = screen.queryByRole('button', { name: '예산 탭에서 만들기' })
+    const create = screen.queryByRole('button', { name: '예산 현황에서 만들기' })
     expect(create !== null).toBe(canManage)
     if (create) {
       fireEvent.click(create)

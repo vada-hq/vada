@@ -3,17 +3,14 @@ import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { BudgetResponse } from '@vada/contracts'
-import {
-  councilView,
-  FINANCE_PERMISSIONS,
-  MEMBER_PERMISSIONS,
-} from '@/test-support/council-fixtures'
+import { FINANCE_PERMISSIONS, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { BUDGET_A, budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import { asElement } from '@/test-support/elements'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { BUDGET_ERRORS } from '@/lib/budget-messages'
-import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID } from '@/test-support/finance-at'
+import { BudgetTab } from './BudgetTab'
 
 // 예산 편성(024 조각 6): 학기 기본값, 여러 행 넣기, 항목 고치기·지우기·이력.
 
@@ -38,9 +35,14 @@ function show(permissions = FINANCE_PERMISSIONS, budget: BudgetResponse = budget
     json({ events: [eventSummary({ id: SPRING, name: '봄 축제' })] }),
   )
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
-  render(<FinanceAt view={councilView(COUNCIL_ID, { permissions })} {...handlers} />)
-  fireEvent.click(screen.getByRole('tab', { name: '예산' }))
-  return { api, handlers }
+  const rendered = render(
+    <BudgetTab
+      councilId={COUNCIL_ID}
+      canManage={permissions.includes('finance.manage')}
+      onForbidden={handlers.onForbidden}
+    />,
+  )
+  return { api, handlers, rendered }
 }
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })

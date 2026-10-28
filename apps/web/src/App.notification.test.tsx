@@ -11,6 +11,8 @@ import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
 import { budgetWithoutPeriod } from './test-support/budget-fixtures'
+import { CURRENT_PERIOD, incomeDetail, standardPeriods } from './test-support/income-fixtures'
+import { expenseDetail } from './test-support/expense-fixtures'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
 import { EVENT_ID, eventDetail } from './test-support/event-fixtures'
 
@@ -387,6 +389,37 @@ const requestPage = () =>
   )
 const financeHeading = () => screen.findByRole('heading', { level: 1, name: '재정', hidden: true })
 
+test.each([
+  ['expenses', '지출', '?tab=ledger'],
+  ['incomes', '수입', '?tab=ledger&kind=income'],
+])(
+  '바로 연 %s 알림은 기록 주소를 유지하고 닫으면 사용 내역의 해당 구분으로 돌아간다',
+  async (kind, label, query) => {
+    const id = '0199d1a0-0000-7000-8000-00000000b101'
+    const root = `/api/organizations/${C1}`
+    api.on('GET', `${root}/fiscal-periods`, () => json(standardPeriods()))
+    api.on('GET', `${root}/expenses`, () => json({ expenses: [], truncated: false }))
+    api.on('GET', `${root}/incomes?period=${CURRENT_PERIOD}`, () =>
+      json({ incomes: [], truncated: false }),
+    )
+    api.on('GET', `${root}/expenses/${id}`, () => json({ expense: expenseDetail(id) }))
+    api.on('GET', `${root}/incomes/${id}`, () => json({ income: incomeDetail(id) }))
+    window.history.replaceState(null, '', `/${kind}/${C1}/${id}`)
+    await renderApp()
+    const dialog = await screen.findByRole('dialog')
+    expect(window.location.pathname).toBe(`/${kind}/${C1}/${id}`)
+    expect(
+      screen.getByRole('tab', { name: '사용 내역', hidden: true }).getAttribute('aria-selected'),
+    ).toBe('true')
+    expect(
+      screen.getByRole('button', { name: label, hidden: true }).getAttribute('aria-pressed'),
+    ).toBe('true')
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await lostSettled(`/finance/${C1}${query}`)
+  },
+)
+
 test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 구매 화면과 그 요청 상세가 열린다', async () => {
   requestApi('0199d1a0-0000-7000-8000-0000000000c2')
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c2/${R1}`)
@@ -503,23 +536,24 @@ test('홈에서 지운 요청의 알림을 누르면 요청 페이지에 이유�
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
 })
 
-test('홈에서 연 요청의 예산 탭으로 가기는 재정의 예산 탭을 연다', async () => {
+test('홈에서 연 요청의 예산 현황으로 가기는 재정 첫 탭을 연다', async () => {
   requestApi()
   const detail = purchaseDetail(R1, { title: '테이프 구매', actions: ['purchase_request.decide'] })
   api.on('GET', `/api/organizations/${C1}/purchase-requests/${R1}`, () => json({ request: detail }))
   api.on('GET', `/api/organizations/${C1}/budget`, () => json(budgetWithoutPeriod()))
+  api.on('GET', `/api/organizations/${C1}/fiscal-periods`, () => json({ periods: [] }))
   await renderApp()
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/purchases/${C1}/${R1}` } }))
   await requestPage()
-  fireEvent.click(await screen.findByRole('button', { name: '예산 탭으로 가기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '예산 현황으로 가기' }))
   await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
-  expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tab', { name: '예산 현황' }).getAttribute('aria-selected')).toBe('true')
   // 예산 페이지에서 뒤로 가면 요청 상세, 다시 뒤로 가면 들어온 홈이다.
   await waitFor(() =>
-    expect(window.location.pathname + window.location.search).toBe(`/finance/${C1}?tab=budget`),
+    expect(window.location.pathname + window.location.search).toBe(`/finance/${C1}`),
   )
-  expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tab', { name: '예산 현황' }).getAttribute('aria-selected')).toBe('true')
   act(() => window.history.back())
   await requestPage()
   fireEvent.click(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' }))

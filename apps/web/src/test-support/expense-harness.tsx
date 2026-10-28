@@ -30,4 +30,4 @@ export function showFinance(permissions: Action[] = FINANCE_PERMISSIONS) {
   return handlers
 }
 
-export const openExpensesTab = () => fireEvent.click(screen.getByRole('tab', { name: '지출' }))
+export const openExpensesTab = () => fireEvent.click(screen.getByRole('tab', { name: '사용 내역' }))

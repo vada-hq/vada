@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, describe, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Action, ClosingAction, CouncilView } from '@vada/contracts'
 import { budgetWithPeriod } from '@/test-support/budget-fixtures'
 import { closingFixture } from '@/test-support/closing-fixtures'
@@ -143,6 +143,17 @@ async function financeTab(role: Role, tab: string, ready: string) {
   return readOf(screen.getByRole('tabpanel'))
 }
 
+async function budget(role: Role) {
+  await financeTab(role, '예산 현황', '예산 항목별 현황')
+  fireEvent.click(screen.getByRole('button', { name: '항목 보기' }))
+  const dialog = await screen.findByRole('dialog')
+  await within(dialog).findByText('행사 홍보')
+  const body = dialog.cloneNode(true) as Element
+  // 창 제목은 재정부에게 '예산 편성', 다른 운영진에게 '예산 항목'이다. 그 아래 읽기 본문은 같다.
+  body.querySelector('h2')?.remove()
+  return readOf(body)
+}
+
 function OrganizationAt({ role }: { role: Role }) {
   const team = useTeam(COUNCIL_ID, () => {})
   return (
@@ -174,11 +185,11 @@ const published = () => {
 const SCREENS: { name: string; read: (role: Role) => Promise<ReturnType<typeof readOf>> }[] = [
   {
     name: '재정 개요',
-    read: role => (serveFinance(role), financeTab(role, '개요', '예산 항목별 현황')),
+    read: role => (serveFinance(role), financeTab(role, '예산 현황', '예산 항목별 현황')),
   },
   {
     name: '예산',
-    read: role => (serveFinance(role), financeTab(role, '예산', '행사 홍보')),
+    read: role => (serveFinance(role), budget(role)),
   },
   {
     name: '공개된 결산',

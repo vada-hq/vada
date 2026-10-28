@@ -12,6 +12,7 @@ import { asElement } from '@/test-support/elements'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 import { periodSummary } from '@/test-support/income-fixtures'
+import { BudgetTab } from './BudgetTab'
 
 // 회계 기간 만들기는 오늘이 든 학기로 채운다. 시험의 오늘은 2026-10-26(2학기)이다.
 beforeEach(() => {
@@ -40,22 +41,32 @@ function show(
   api.on('GET', BUDGET, () => json(budget))
   api.on('GET', `${ORG}/fiscal-periods`, () => json({ periods }))
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
-  render(<FinanceAt view={councilView(COUNCIL_ID, { permissions })} {...handlers} />)
-  fireEvent.click(screen.getByRole('tab', { name: '예산' }))
-  return { api, handlers }
+  const rendered = render(
+    <BudgetTab
+      councilId={COUNCIL_ID}
+      canManage={permissions.includes('finance.manage')}
+      onForbidden={handlers.onForbidden}
+    />,
+  )
+  return { api, handlers, rendered }
 }
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const button = (name: string) => asElement(screen.getByRole('button', { name }), HTMLButtonElement)
 
 test('재정 탭에는 계좌가 없다', async () => {
-  show()
+  const { rendered } = show()
+  rendered.unmount()
+  render(
+    <FinanceAt
+      view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
+      onForbidden={vi.fn()}
+    />,
+  )
   await screen.findByText('회계 기간 없음')
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
-    '개요',
-    '지출',
-    '수입',
-    '예산',
+    '예산 현황',
+    '사용 내역',
     '행사 정산',
     '납부자 명단',
     '결산',
@@ -250,14 +261,15 @@ test('저장하다 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
 })
 
 test('예산을 못 읽으면 다시 시도를 보인다', async () => {
-  const { api } = show()
+  const { api, handlers, rendered } = show()
   let reads = 0
   api.on('GET', BUDGET, () => {
     reads += 1
     return reads === 1 ? json({ error: 'INTERNAL' }, 500) : json(budgetWithPeriod())
   })
-  fireEvent.click(screen.getByRole('tab', { name: '개요' }))
-  fireEvent.click(screen.getByRole('tab', { name: '예산' }))
+  rendered.rerender(
+    <BudgetTab key="retry" councilId={COUNCIL_ID} canManage onForbidden={handlers.onForbidden} />,
+  )
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()
 })

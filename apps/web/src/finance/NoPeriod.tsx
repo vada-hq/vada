@@ -7,8 +7,8 @@ export function NoPeriod({ councilId, canManage }: { councilId: string; canManag
     <div className="flex flex-col items-start gap-3">
       <StateMessage kind="empty">회계 기간 없음</StateMessage>
       {canManage && (
-        <Button touch onClick={() => openMenu('finance', councilId, { tab: 'budget' })}>
-          예산 탭에서 만들기
+        <Button touch onClick={() => openMenu('finance', councilId)}>
+          예산 현황에서 만들기
         </Button>
       )}
     </div>

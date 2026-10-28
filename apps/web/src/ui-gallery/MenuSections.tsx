@@ -18,12 +18,14 @@ import { NavItem } from '@/components/ui/nav-item'
 import { useState } from 'react'
 import type { FinanceTab } from '@vada/contracts'
 import { FinanceTabs } from '@/finance/FinanceTabs'
+import { LedgerKind } from '@/finance/LedgerKind'
 import MessageItem from '@/chat/MessageItem'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
 export function MenuTabsSection() {
-  const [tab, setTab] = useState<Exclude<FinanceTab, 'requests'>>('overview')
+  const [income, setIncome] = useState(false)
+  const [tab, setTab] = useState<FinanceTab>('overview')
   return (
     <Section title="메뉴·탭">
       <div className="flex w-60 flex-col gap-0.5 rounded-lg border bg-white p-2">
@@ -32,6 +34,7 @@ export function MenuTabsSection() {
         <NavItem disabled>비활성 행사</NavItem>
       </div>
       <FinanceTabs tab={tab} onTab={setTab} showFees />
+      {tab === 'ledger' && <LedgerKind income={income} onChange={setIncome} />}
     </Section>
   )
 }

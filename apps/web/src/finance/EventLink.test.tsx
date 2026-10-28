@@ -12,6 +12,7 @@ import { BUDGET_ERRORS } from '@/lib/budget-messages'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { forgetRememberedItems } from './decision-form'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { BudgetTab } from './BudgetTab'
 
 beforeEach(forgetRememberedItems)
 afterEach(async () => {
@@ -70,12 +71,15 @@ function setup(tab: string, budget = budgetWithPeriod()) {
   )
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(
-    <FinanceAt
-      view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
-      {...handlers}
-    />,
+    tab === 'requests' ? (
+      <FinanceAt
+        view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
+        {...handlers}
+      />
+    ) : (
+      <BudgetTab councilId={COUNCIL_ID} canManage onForbidden={handlers.onForbidden} />
+    ),
   )
-  if (tab !== 'requests') fireEvent.click(screen.getByRole('tab', { name: tab }))
   return api
 }
 

@@ -124,19 +124,24 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
+test('재정 탭 다섯이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
-    ['지출', '?tab=expenses'],
-    ['수입', '?tab=incomes'],
-    ['예산', '?tab=budget'],
+    ['사용 내역', '?tab=ledger'],
     ['행사 정산', '?tab=settlements'],
     ['납부자 명단', '?tab=fees'],
     ['결산', '?tab=closing'],
-    ['개요', '?tab=overview'],
+    ['예산 현황', ''],
   ]
-  expect(await isSelected('개요')).toBe(true)
+  expect(await isSelected('예산 현황')).toBe(true)
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+    '예산 현황',
+    '사용 내역',
+    '행사 정산',
+    '납부자 명단',
+    '결산',
+  ])
   for (const [name, search] of tabs) {
     fireEvent.click(await screen.findByRole('tab', { name }))
     await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}${search}`))
@@ -154,14 +159,57 @@ test('옛 계좌 탭 주소는 설정의 계좌로 옮기고 기록을 쌓지 �
 })
 
 test('새로 고침하면 주소의 탭이 그대로 열리고, 모르는 탭은 기본 탭으로 읽어 주소를 고쳐 쓴다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=budget`)
-  expect(await isSelected('예산')).toBe(true)
+  startAt(`/finance/${COUNCIL_ID}`)
+  expect(await isSelected('예산 현황')).toBe(true)
   cleanup()
   const push = vi.spyOn(window.history, 'pushState')
   startAt(`/finance/${COUNCIL_ID}?tab=nope`)
-  expect(await isSelected('개요')).toBe(true)
+  expect(await isSelected('예산 현황')).toBe(true)
   await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
   expect(push).not.toHaveBeenCalled()
+})
+
+test.each([
+  ['overview', '', '예산 현황'],
+  ['budget', 'section=items&', '예산 현황'],
+  ['expenses', 'tab=ledger&', '사용 내역'],
+  ['incomes', 'tab=ledger&kind=income&', '사용 내역'],
+])(
+  '옛 %s 주소는 기간을 보존해 새 탭으로 바꿔 쓰고 기록을 쌓지 않는다',
+  async (old, query, name) => {
+    const push = vi.spyOn(window.history, 'pushState')
+    startAt(`/finance/${COUNCIL_ID}?tab=${old}&period=${CURRENT_PERIOD}`)
+    api.on('GET', `${base}/incomes?period=${CURRENT_PERIOD}`, () =>
+      json({ incomes: [], truncated: false }),
+    )
+    await waitFor(() =>
+      expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?${query}period=${CURRENT_PERIOD}`),
+    )
+    expect(await isSelected(name)).toBe(true)
+    if (old === 'incomes')
+      expect(screen.getByRole('button', { name: '수입' }).getAttribute('aria-pressed')).toBe('true')
+    expect(push).not.toHaveBeenCalled()
+  },
+)
+
+test('옛 예산 탭 주소는 항목 부분을 그린 뒤 그곳으로 스크롤한다', async () => {
+  const scroll = vi.fn()
+  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollIntoView')
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    configurable: true,
+    value: scroll,
+  })
+  try {
+    startAt(`/finance/${COUNCIL_ID}?tab=budget&period=${CURRENT_PERIOD}`)
+    const items = await screen.findByRole('region', { name: '예산 항목별 현황' })
+    await waitFor(() => expect(scroll.mock.contexts).toContain(items))
+    expect(window.location.search).toBe(`?section=items&period=${CURRENT_PERIOD}`)
+    fireEvent.click(screen.getByRole('tab', { name: '사용 내역' }))
+    expect(window.location.search).not.toContain('section=items')
+  } finally {
+    if (original) Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', original)
+    else Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
+  }
 })
 
 test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 재정 탭이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
@@ -204,7 +252,7 @@ test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열
   expect(await select()).toHaveProperty('value', CURRENT_PERIOD)
   fireEvent.change(await select(), { target: { value: OLD_PERIOD } })
   await waitFor(() =>
-    expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=incomes&period=${OLD_PERIOD}`),
+    expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=ledger&kind=income&period=${OLD_PERIOD}`),
   )
   cleanup()
   startAt(pathNow())
@@ -216,7 +264,7 @@ test('납부자 명단 권한이 없으면 그 탭 주소는 첫 화면(개요)�
   const push =
     (startAt(`/finance/${COUNCIL_ID}?tab=fees`, 'finance', MEMBER_PERMISSIONS),
     vi.spyOn(window.history, 'pushState'))
-  expect(await isSelected('개요')).toBe(true)
+  expect(await isSelected('예산 현황')).toBe(true)
   await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
   expect(screen.queryByRole('tab', { name: '납부자 명단' })).toBeNull()
   expect(push).not.toHaveBeenCalled()
@@ -256,7 +304,7 @@ test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 �
 })
 
 test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 가면 그 지출이다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=expenses`)
+  startAt(`/finance/${COUNCIL_ID}?tab=ledger`)
   fireEvent.click(await screen.findByRole('button', { name: /인쇄소/ }))
   const dialog = await screen.findByRole('dialog', { name: '인쇄소' })
   fireEvent.click(await within(dialog).findByRole('button', { name: '신입생 환영회' }))
@@ -311,7 +359,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
   const dialog = await requestPage()
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${R1}`)
-  await within(dialog).findByRole('button', { name: '예산 탭으로 가기' })
+  await within(dialog).findByRole('button', { name: '예산 현황으로 가기' })
   await backFromRequest()
   expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`)
   // 요청을 바꿨을 수 있으므로 돌아온 돈 탭은 정산을 다시 읽는다.
@@ -327,11 +375,11 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   fireEvent.click(await screen.findByRole('button', { name: /포스터 인쇄/ }))
   fireEvent.click(
     await within(await requestPage()).findByRole('button', {
-      name: '예산 탭으로 가기',
+      name: '예산 현황으로 가기',
     }),
   )
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=budget`))
-  expect(await isSelected('예산')).toBe(true)
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
+  expect(await isSelected('예산 현황')).toBe(true)
 })
 
 test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 보던 목록으로 돌아갈 수 있다', async () => {
@@ -353,18 +401,18 @@ test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404)
 })
 
 test('열려던 지출이 없으면 지출 목록에 남아 안내한다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=expenses`)
+  startAt(`/finance/${COUNCIL_ID}?tab=ledger`)
   api.on('GET', `${base}/expenses`, () =>
     json({ expenses: [expenseSummary(GONE, { vendor: '없는 곳' })], truncated: false }),
   )
   api.on('GET', `${base}/expenses/${GONE}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: '없는 곳' }))
   expect((await screen.findByRole('alert')).textContent).toMatch(/지출/)
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=expenses`))
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=ledger`))
 })
 
 test('지출 적기에 쓰던 입력이 남았으면 새로 고침 때 브라우저 확인을 걸고, 닫으면 푼다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=expenses`)
+  startAt(`/finance/${COUNCIL_ID}?tab=ledger`)
   fireEvent.click(await screen.findByRole('button', { name: '지출 적기' }))
   const dialog = await screen.findByRole('dialog')
   const unloadBlocked = () => {

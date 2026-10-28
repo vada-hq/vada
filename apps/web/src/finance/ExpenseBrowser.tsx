@@ -35,6 +35,8 @@ export function ExpenseBrowser({
       onOpen={onOpen}
       periodId={periodId}
       onPeriod={period => url.set({ period })}
+      eventId={url.query['event'] ?? ''}
+      onEvent={event => url.set({ event: event || null })}
     />
   )
 }

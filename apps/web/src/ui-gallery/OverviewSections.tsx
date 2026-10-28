@@ -10,6 +10,7 @@ const noop = () => {}
 const openers: OverviewOpeners = {
   onBudget: noop,
   budgetLabel: '편성',
+  onItems: noop,
   onSpent: noop,
   onCommitted: noop,
   onEvent: noop,

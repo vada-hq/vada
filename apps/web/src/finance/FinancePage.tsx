@@ -4,13 +4,13 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { useAddressRecord } from '@/lib/use-address-record'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
-import { BudgetTab } from './BudgetTab'
 import type { ClosingOpeners } from './ClosingChecks'
 import { ClosingTab } from './ClosingTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpenseBrowser } from './ExpenseBrowser'
 import { FeePaymentsTab } from './FeePaymentsTab'
 import { IncomesTab } from './IncomesTab'
+import { LedgerKind } from './LedgerKind'
 import { OverviewTab } from './OverviewTab'
 import { financeOpeners } from './finance-openers'
 import { FinanceTabs, type FinanceTab } from './FinanceTabs'
@@ -30,7 +30,7 @@ function ManagedTab({
   onForbidden,
   openers,
 }: {
-  tab: 'overview' | 'fees' | 'accounts' | 'budget' | 'incomes' | 'closing'
+  tab: 'overview' | 'fees' | 'accounts' | 'closing'
   view: CouncilView
   onForbidden: () => void
   openers: ClosingOpeners
@@ -42,7 +42,6 @@ function ManagedTab({
     return (
       <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
     )
-  if (tab === 'incomes') return <IncomesTab {...shared} canManage={canManage} />
   if (tab === 'closing')
     return (
       <ClosingTab
@@ -52,7 +51,7 @@ function ManagedTab({
         openers={openers}
       />
     )
-  return tab === 'accounts' ? null : <BudgetTab {...shared} canManage={canManage} />
+  return null
 }
 
 function FinanceTabPanel({
@@ -61,8 +60,10 @@ function FinanceTabPanel({
   view,
   openers,
   onForbidden,
+  income,
 }: {
-  tab: Exclude<FinanceTab, 'requests'>
+  tab: FinanceTab
+  income: boolean
   expenses: ExpenseList
   view: CouncilView
   openers: ClosingOpeners
@@ -70,13 +71,21 @@ function FinanceTabPanel({
 }) {
   return (
     <div role="tabpanel" className="flex flex-col gap-3">
-      {tab === 'expenses' ? (
-        <ExpenseBrowser
-          councilId={view.council.id}
-          list={expenses}
-          onOpen={openers.onOpenExpense}
-          onForbidden={onForbidden}
-        />
+      {tab === 'ledger' ? (
+        income ? (
+          <IncomesTab
+            councilId={view.council.id}
+            canManage={view.permissions.includes('finance.manage')}
+            onForbidden={onForbidden}
+          />
+        ) : (
+          <ExpenseBrowser
+            councilId={view.council.id}
+            list={expenses}
+            onOpen={openers.onOpenExpense}
+            onForbidden={onForbidden}
+          />
+        )
       ) : tab === 'settlements' ? (
         <SettlementsTab councilId={view.council.id} onForbidden={onForbidden} />
       ) : (
@@ -113,18 +122,12 @@ export default function FinancePage(props: Props) {
   const councilId = props.view.council.id
   const can = (action: Action) => props.view.permissions.includes(action)
   const access = { fees: can('fee_payment.view') }
-  const { tab, setTab } = useFinanceControls(councilId, access)
+  const { tab, setTab, income, setKind } = useFinanceControls(councilId, access)
   const expenseDialogs = useRecordDialogs(useAddressRecord('expenses', councilId))
   // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
-  const expenses = useExpenses(councilId, props.onForbidden, tab === 'expenses')
+  const expenses = useExpenses(councilId, props.onForbidden, tab === 'ledger' && !income)
   return (
     <PageColumn>
-      <CreateRow
-        lost={expenseDialogs.lost}
-        onCreateExpense={
-          tab === 'expenses' && can('finance.manage') ? expenseDialogs.startCreate : null
-        }
-      />
       <ExpenseDialogs
         view={props.view}
         dialogs={expenseDialogs}
@@ -132,8 +135,16 @@ export default function FinancePage(props: Props) {
         onForbidden={props.onForbidden}
       />
       <FinanceTabs tab={tab} onTab={setTab} showFees={access.fees} />
+      {tab === 'ledger' && <LedgerKind income={income} onChange={setKind} />}
+      <CreateRow
+        lost={expenseDialogs.lost}
+        onCreateExpense={
+          tab === 'ledger' && !income && can('finance.manage') ? expenseDialogs.startCreate : null
+        }
+      />
       <FinanceTabPanel
         tab={tab}
+        income={income}
         expenses={expenses}
         view={props.view}
         openers={financeOpeners(councilId)}

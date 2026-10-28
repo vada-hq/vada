@@ -34,18 +34,15 @@ export type TaskLayout = (typeof TASK_LAYOUTS)[number]
 
 export const FINANCE_TABS = [
   'overview',
-  'requests',
-  'expenses',
-  'incomes',
-  'budget',
+  'ledger',
   'settlements',
   'accounts', // 옛 재정 주소는 설정의 계좌로 옮긴다(DEC-92).
   'fees',
   'closing',
 ] as const
 export type FinanceTab = (typeof FINANCE_TABS)[number]
-// 메뉴 v7 재정의 사용 내역(설계 3.3). 화면이 그리기 전에는 주소에만 있다.
-const FINANCE_TAB_VALUES = [...FINANCE_TABS, 'ledger'] as const
+// 북마크와 이미 보낸 주소는 계속 읽어 새 자리로 바꿔 쓴다.
+const FINANCE_TAB_VALUES = [...FINANCE_TABS, 'requests', 'expenses', 'incomes', 'budget'] as const
 
 // 기록 종류마다 여는 메뉴와 탭. 구매 요청의 상위 목록은 구매 메뉴다.
 const RECORD_PARENTS = {
@@ -53,8 +50,8 @@ const RECORD_PARENTS = {
   events: { menu: 'events' },
   tasks: { menu: 'tasks' },
   purchases: { menu: 'purchases' },
-  expenses: { menu: 'finance', query: { tab: 'expenses' } },
-  incomes: { menu: 'finance', query: { tab: 'incomes' } },
+  expenses: { menu: 'finance', query: { tab: 'ledger' } },
+  incomes: { menu: 'finance', query: { tab: 'ledger', kind: 'income' } },
 } as const satisfies Record<string, { menu: AppMenu; query?: Record<string, string> }>
 export type RecordKind = keyof typeof RECORD_PARENTS
 export const RECORD_KINDS = Object.keys(RECORD_PARENTS) as RecordKind[]
@@ -65,7 +62,7 @@ type QueryRule = {
   values: readonly string[] | 'uuid'
   also?: readonly string[]
   fallback: string | null
-  onlyWith?: { key: string; value: string } | undefined
+  onlyWith?: { key: string; value: string | readonly string[] } | undefined
 }
 type QuerySpec = Record<string, QueryRule>
 
@@ -113,12 +110,19 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     tab: { values: FINANCE_TAB_VALUES, fallback: null },
     // 사용 내역의 수입 구분(설계 3.3).
     kind: { values: ['income'], fallback: null, onlyWith: { key: 'tab', value: 'ledger' } },
+    event: {
+      values: 'uuid',
+      also: ['none'],
+      fallback: null,
+      onlyWith: { key: 'tab', value: 'ledger' },
+    },
+    section: { values: ['items'], fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: 'mine' },
     period: { values: 'uuid', fallback: null },
     spending: {
       values: ['committed'],
       fallback: null,
-      onlyWith: { key: 'tab', value: 'expenses' },
+      onlyWith: { key: 'tab', value: ['expenses', 'ledger'] },
     },
   },
   people: {},
@@ -151,13 +155,18 @@ function allowed(rule: QueryRule, value: string) {
   return rule.values === 'uuid' ? isUuid(value) : rule.values.includes(value)
 }
 
+function matchesQueryRequirement(spec: QuerySpec, query: AppQuery, needs: QueryRule['onlyWith']) {
+  if (!needs) return true
+  const accepted = typeof needs.value === 'string' ? [needs.value] : needs.value
+  return accepted.includes(query[needs.key] ?? spec[needs.key]?.fallback ?? '')
+}
+
 // 모르는 키와 값, 기본값은 버린다. 순서는 규칙의 순서다.
 function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
   const query: Record<string, string> = {}
   for (const [key, rule] of Object.entries(spec)) {
     const value = params.get(key)
-    const needs = rule.onlyWith
-    if (needs && (query[needs.key] ?? spec[needs.key]?.fallback) !== needs.value) continue
+    if (!matchesQueryRequirement(spec, query, rule.onlyWith)) continue
     if (value !== null && value !== rule.fallback && allowed(rule, value))
       query[key] = value.toLowerCase()
   }

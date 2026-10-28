@@ -41,7 +41,7 @@ export function NeedsBudget({
       </Alert>
       {onOpenBudget && (
         <Button variant="outline" size="sm" onClick={onOpenBudget}>
-          예산 탭으로 가기
+          예산 현황으로 가기
         </Button>
       )}
     </div>

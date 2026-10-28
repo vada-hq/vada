@@ -15,4 +15,7 @@ export function serveIncomes(incomes = [incomeSummary('i1')]) {
   return api
 }
 
-export const openIncomesTab = () => fireEvent.click(screen.getByRole('tab', { name: '수입' }))
+export const openIncomesTab = () => {
+  fireEvent.click(screen.getByRole('tab', { name: '사용 내역' }))
+  fireEvent.click(screen.getByRole('button', { name: '수입' }))
+}

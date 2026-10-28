@@ -60,6 +60,7 @@ function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod(
   )
   api.on('GET', `${BASE}/${REQUEST}`, () => json({ request: detail }))
   api.on('GET', `${ORG}/budget`, () => json(budget))
+  api.on('GET', `${ORG}/fiscal-periods`, () => json({ periods: [] }))
   const handlers = { onForbidden: vi.fn() }
   render(
     <PurchasesAt
@@ -477,9 +478,9 @@ test('회계 기간이 없으면 결재 대신 안내와 예산 탭으로 가는
   const dialog = await screen.findByRole('region', { name: '구매 요청 상세' })
   expect(await within(dialog).findByText('회계 기간을 먼저 만들어 주세요.')).toBeTruthy()
   expect(within(dialog).queryByLabelText('포스터 금액')).toBeNull()
-  fireEvent.click(within(dialog).getByRole('button', { name: '예산 탭으로 가기' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '예산 현황으로 가기' }))
   await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
-  expect(screen.getByRole('tab', { name: '예산' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tab', { name: '예산 현황' }).getAttribute('aria-selected')).toBe('true')
   expect(await screen.findByRole('button', { name: '회계 기간 만들기' })).toBeTruthy()
 })
 

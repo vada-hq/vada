@@ -57,7 +57,7 @@ test('재정부에게도 옆 메뉴 재정에 배지가 없고 옆 메뉴가 결
 test('옆 메뉴 재정을 누르면 재정 화면이 열린다', async () => {
   open()
   fireEvent.click((await screen.findAllByRole('button', { name: '재정' }))[0]!)
-  expect(await screen.findByRole('tab', { name: '개요' })).toBeTruthy()
+  expect(await screen.findByRole('tab', { name: '예산 현황' })).toBeTruthy()
   expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
   expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
   expect(screen.getAllByText('재정').length).toBeGreaterThan(0)

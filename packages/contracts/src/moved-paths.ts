@@ -80,7 +80,7 @@ const purchasesMove: Step = location => {
 // 재정 탭 → 예산 현황(기본)·사용 내역(설계 3.3). 회계 기간은 그대로 싣는다.
 const LEDGER_TABS: Record<string, AppQuery> = {
   overview: {},
-  budget: {},
+  budget: { section: 'items' },
   expenses: { tab: 'ledger' },
   incomes: { tab: 'ledger', kind: 'income' },
 }

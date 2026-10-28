@@ -15,6 +15,8 @@ type Props = {
   onOpen: (expenseId: string) => void
   periodId?: string | null
   onPeriod?: (periodId: string | null) => void
+  eventId?: string
+  onEvent?: (eventId: string) => void
 }
 
 export function ExpensesPanel({ list, ...props }: Props) {
@@ -36,7 +38,9 @@ function ReadyExpenses({
   data,
   onOpen,
   periodId = null,
-  onPeriod = () => {},
+  onPeriod,
+  eventId,
+  onEvent,
 }: Omit<Props, 'list'> & { data: ExpensesResponse }) {
   const [filters, setFilters] = useState({
     eventId: '',
@@ -48,7 +52,7 @@ function ReadyExpenses({
   const period = periods.find(row => row.id === periodId) ?? null
   if (periodId && !period)
     return <StateMessage kind="error">회계 기간을 찾을 수 없어요.</StateMessage>
-  const selected = { ...filters, period }
+  const selected = { ...filters, period, eventId: eventId ?? filters.eventId }
   const found = filterExpenses(expenses, allocations, selected)
   const total = found
     .filter(row => !row.cancelled)
@@ -62,7 +66,8 @@ function ReadyExpenses({
         filters={selected}
         onChange={next => {
           setFilters(next)
-          onPeriod(next.period?.id ?? null)
+          if (next.period?.id !== period?.id) onPeriod?.(next.period?.id ?? null)
+          if (next.eventId !== selected.eventId) onEvent?.(next.eventId)
         }}
       />
       <div className="flex justify-between gap-3 text-sm text-gray-500 tabular-nums" role="status">
