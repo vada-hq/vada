@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { room, roomList } from '@/test-support/chat-fixtures'
-import { roomToShow } from './last-room'
+import { roomToShow, saveSideRoom, savedSideRoom } from './last-room'
 
 const notice = room('all')
 const leadership = room('lead', { type: 'leadership' })
@@ -35,4 +35,14 @@ test('기억한 행사 방은 메시지 메뉴에서 다시 열지 않고 학생
   const event = room('event', { eventId: 'e1' })
   expect(roomToShow(listOf(event, notice, leadership), 'event')).toBe('lead')
   expect(roomToShow(listOf(event), 'event')).toBeNull()
+})
+
+// 저장소를 쓰는 동작은 jsdom 시험(ChatPage.home)이 확인한다. 열린 1:1은 사람·학생회별 메모리다.
+test('열린 1:1은 다른 학생회나 사람에게 이어지지 않고 닫으면 비워진다', () => {
+  saveSideRoom('c1', 'm1', 'direct-a')
+  expect(savedSideRoom('c1', 'm1')).toBe('direct-a')
+  expect(savedSideRoom('c2', 'm1')).toBeNull()
+  expect(savedSideRoom('c1', 'm2')).toBeNull()
+  saveSideRoom('c1', 'm1', null)
+  expect(savedSideRoom('c1', 'm1')).toBeNull()
 })

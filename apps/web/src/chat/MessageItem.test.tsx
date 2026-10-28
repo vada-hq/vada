@@ -1,11 +1,75 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, expect, test, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ChatMessage } from '@vada/contracts'
 import { message } from '@/test-support/chat-fixtures'
 import MessageItem from './MessageItem'
+import PersonName from './PersonName'
+import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
+
+test.each([
+  { memberId: 'm1', name: '나', canDirect: true },
+  { memberId: 'm2', name: '떠난 운영진 2', canDirect: true },
+  { memberId: 'm2', name: '이재정', canDirect: false },
+])('이름 $name: 나·떠난 사람·chat.direct 없음은 단추가 아닌 글이다', props => {
+  render(<PersonName councilId="c1" meId="m1" {...props} />)
+  expect(screen.getByText(props.name)).toBeTruthy()
+  expect(screen.queryByRole('button')).toBeNull()
+})
+
+test('이름을 두 번 눌러도 1:1 열기는 한 번이며 열린 방을 받는다', async () => {
+  const api = mockApi()
+  const pending = deferredResponse()
+  const onOpen = vi.fn()
+  api.on('POST', '/api/organizations/c1/direct', () => pending.promise)
+  render(
+    <PersonName councilId="c1" meId="m1" memberId="m2" name="이재정" canDirect onOpen={onOpen} />,
+  )
+  const name = screen.getByRole('button', { name: '이재정님과 1:1 대화' })
+  fireEvent.click(name)
+  fireEvent.click(name)
+  expect(api.calls).toHaveLength(1)
+  expect(api.calls[0]?.body).toEqual({ memberId: 'm2' })
+  pending.resolve(json({ roomId: 'direct' }))
+  await waitFor(() => expect(onOpen).toHaveBeenCalledWith('direct'))
+})
+
+test.each([
+  { status: 401, code: 'UNAUTHENTICATED', text: '1:1 대화를 열지 못했어요' },
+  { status: 403, code: 'FORBIDDEN', text: '권한이 바뀌었어요' },
+  { status: 404, code: 'NOT_FOUND', text: '이 운영진을 찾지 못했어요' },
+])(
+  '이름 열기가 $status면 이유를 보이고 권한·운영진 재읽기를 알린다',
+  async ({ status, code, text }) => {
+    const api = mockApi()
+    const onForbidden = vi.fn()
+    const onMissing = vi.fn()
+    const onOpen = vi.fn()
+    api.on('POST', '/api/organizations/c1/direct', () => json({ error: code }, status))
+    render(
+      <PersonName
+        councilId="c1"
+        meId="m1"
+        memberId="m2"
+        name="이재정"
+        canDirect
+        onOpen={onOpen}
+        onForbidden={onForbidden}
+        onMissing={onMissing}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button'))
+    expect(await screen.findByText(new RegExp(text))).toBeTruthy()
+    expect(onForbidden).toHaveBeenCalledTimes(status === 403 ? 1 : 0)
+    expect(onMissing).toHaveBeenCalledTimes(status === 404 ? 1 : 0)
+    expect(onOpen).not.toHaveBeenCalled()
+  },
+)
 
 const KKIRUK = message(
   'k1',

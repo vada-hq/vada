@@ -16,6 +16,7 @@ import { CURRENT_PERIOD, incomeDetail, standardPeriods } from './test-support/in
 import { expenseDetail } from './test-support/expense-fixtures'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
 import { EVENT_ID, eventDetail } from './test-support/event-fixtures'
+import { saveSideRoom } from './chat/last-room'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -578,6 +579,30 @@ test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재�
 })
 
 const ROOM = '0199d1a0-0000-7000-8000-0000000000a1'
+test.each([390, 1280])('%i 폭에서 1:1 알림 주소는 같은 방을 올바른 칸에 연다', async width => {
+  navigationWidth(width)
+  const directId = '0199d1a0-0000-7000-8000-0000000000d9'
+  const direct = room(directId, { type: 'direct', name: '박새내' })
+  const base = `/api/organizations/${C1}/rooms`
+  api.on('GET', base, () => json(roomList({ rooms: [room(ROOM), direct] })))
+  api.on('GET', `${base}/${directId}`, () => json(roomDetail(direct)))
+  api.on('GET', `${base}/${directId}/messages`, () => json(messagePage([])))
+  await renderApp()
+  await screen.findByRole('heading', { level: 1, name: '홈' })
+  act(() => listeners[0]!({ data: { type: 'vada:open', url: `/chat/${C1}/${directId}` } }))
+  expect(await screen.findByRole('button', { name: '박새내님에게 보내기' })).toBeTruthy()
+  if (width === 390) {
+    expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
+    expect(screen.queryByRole('complementary', { name: '1:1' })).toBeNull()
+  } else {
+    expect(screen.getByRole('complementary', { name: '1:1' })).toBeTruthy()
+    // 왼쪽은 학생회 방 흐름 그대로다(방이 하나라 탭 줄은 없다).
+    expect(await screen.findByRole('button', { name: '공지방에 보내기' })).toBeTruthy()
+  }
+  act(() => window.history.back())
+  await screen.findByRole('heading', { level: 1, name: '홈' })
+  saveSideRoom(C1, 'm1', null)
+})
 const openRoomFromHome = async () => {
   await renderApp()
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()

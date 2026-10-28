@@ -16,9 +16,15 @@ import RoomView from './RoomView'
 import type { RoomList as RoomListHook, RoomSource } from './useRoomList'
 import ProductPanel from './ProductPanel'
 import { ProductOpenContext, useProductPanel } from './product-open'
+import { useSplit } from '@/lib/use-split'
+import SideChat from './SideChat'
+import { SideChatAccess } from './SideChatContext'
+import { useSideChatPanel } from './SideChatState'
 
 export type Screen =
-  { kind: 'home'; roomId?: string } | { kind: 'list' } | { kind: 'room'; roomId: string }
+  | { kind: 'home'; roomId?: string; sideRoomId?: string }
+  | { kind: 'list' }
+  | { kind: 'room'; roomId: string }
 
 type Props = {
   councilId: string
@@ -46,7 +52,7 @@ function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
 }
 
 // 1:1을 열 권한을 잃으면 대화상자를 닫고 이유를 목록 위에 보인다.
-function ListScreen(props: Props) {
+function ListScreen(props: Props & { onDirect: (roomId: string) => void }) {
   const { councilId, view, team, rooms, onForbidden, onScreen } = props
   const [directOpen, setDirectOpen] = useState(false)
   const [note, setNote] = useState<string | null>(null)
@@ -60,7 +66,11 @@ function ListScreen(props: Props) {
         note={note}
         activeRoomId={null}
         canDirect={canDirect}
-        onOpenRoom={roomId => onScreen({ kind: 'room', roomId })}
+        onOpenRoom={roomId => {
+          if (state.data.rooms.some(room => room.id === roomId && room.type === 'direct'))
+            props.onDirect(roomId)
+          else onScreen({ kind: 'room', roomId })
+        }}
         onDirect={() => {
           setNote(null)
           setDirectOpen(true)
@@ -75,7 +85,7 @@ function ListScreen(props: Props) {
         onOpened={roomId => {
           setDirectOpen(false)
           void rooms.reload()
-          onScreen({ kind: 'room', roomId })
+          props.onDirect(roomId)
         }}
         onForbidden={() => {
           setDirectOpen(false)
@@ -94,43 +104,56 @@ export function Room({
   onBack,
   space,
   home = false,
+  side = false,
+  onDirect,
 }: {
   page: RoomPage
   roomId: string
   onBack?: () => void
   space?: RoomSource
   home?: boolean
+  side?: boolean
+  onDirect?: (roomId: string) => void
 }) {
   const { view } = page
   return (
-    <RoomView
-      councilId={page.councilId}
-      roomId={roomId}
-      meId={view.me.memberId}
-      rooms={space ?? page.rooms}
-      bare={home || space !== undefined}
-      // 행사 탭은 본문 여백 안에 놓여 테두리로 칸을 가른다. 메시지 메뉴는 칸 끝까지 채운다.
-      className={space && 'overflow-hidden rounded-lg border'}
-      request={{
-        canRequest: view.permissions.includes('purchase.request'),
-        canAssign: view.permissions.includes('finance.manage'),
-        team: page.team.data,
-        onOpenRequest: page.onOpenRequest,
-      }}
-      canWriteExpense={view.permissions.includes('finance.manage')}
-      onBack={onBack}
-      onForbidden={page.onForbidden}
-    />
+    <SideChatAccess page={page} onOpen={onDirect}>
+      <RoomView
+        councilId={page.councilId}
+        roomId={roomId}
+        meId={view.me.memberId}
+        rooms={space ?? page.rooms}
+        bare={home || space !== undefined}
+        side={side}
+        // 행사 탭은 본문 여백 안에 놓여 테두리로 칸을 가른다. 메시지 메뉴는 칸 끝까지 채운다.
+        className={space && 'overflow-hidden rounded-lg border'}
+        request={{
+          canRequest: view.permissions.includes('purchase.request'),
+          canAssign: view.permissions.includes('finance.manage'),
+          team: page.team.data,
+          onOpenRequest: page.onOpenRequest,
+        }}
+        canWriteExpense={view.permissions.includes('finance.manage')}
+        onBack={onBack}
+        onForbidden={page.onForbidden}
+      />
+    </SideChatAccess>
   )
 }
 
-// 학생회 방은 탭과 흐름, 전체 목록은 한 칸, 1:1·부서 간 방은 전체 폭으로 연다.
+// 휴대폰의 1:1과 부서 간 방은 들어온 곳으로 돌아가기 전까지 아래 메뉴를 숨긴다(MSG-04).
 function ChatBody({
   screen,
   onScreen,
   onBack,
+  onDirect,
   ...props
-}: RoomPage & { screen: Screen; onScreen: (screen: Screen) => void; onBack: () => void }) {
+}: RoomPage & {
+  screen: Screen
+  onScreen: (screen: Screen) => void
+  onBack: () => void
+  onDirect: (roomId: string) => void
+}) {
   useHideBottomNavigation(screen.kind === 'room')
   if (screen.kind === 'room')
     return (
@@ -140,7 +163,13 @@ function ChatBody({
         roomId={screen.roomId}
         onList={() => onScreen({ kind: 'home' })}
       >
-        <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={onBack} />
+        <Room
+          key={screen.roomId}
+          page={props}
+          roomId={screen.roomId}
+          onBack={onBack}
+          onDirect={onDirect}
+        />
       </RoomGate>
     )
   if (props.rooms.state.kind !== 'ready') return <RoomsNotReady rooms={props.rooms} />
@@ -151,6 +180,8 @@ function ChatBody({
         wanted={screen.roomId}
         onPick={roomId => onScreen({ kind: 'home', roomId })}
         onAll={() => onScreen({ kind: 'list' })}
+        onDirect={onDirect}
+        onDirectTab={() => onScreen({ kind: 'home' })}
       />
     )
   return (
@@ -163,19 +194,24 @@ function ChatBody({
           <h1 className="text-xl font-semibold">메시지</h1>
         </PageHeading>
       </header>
-      <ListScreen {...props} onScreen={onScreen} />
+      <ListScreen {...props} onScreen={onScreen} onDirect={onDirect} />
     </div>
   )
 }
 
-export default function ChatPage(props: ComponentProps<typeof ChatBody>) {
+export default function ChatPage(props: Omit<ComponentProps<typeof ChatBody>, 'onDirect'>) {
   const product = useProductPanel()
+  const split = useSplit()
+  const side = useSideChatPanel({ ...props, meId: props.view.me.memberId, split })
   return (
     <ProductOpenContext value={product.open}>
       <div className="flex h-full min-h-0 min-w-0">
         <div className="min-w-0 flex-1">
-          <ChatBody {...props} />
+          <ChatBody {...props} onDirect={side.open} />
         </div>
+        {split && props.screen.kind === 'home' && !product.target && (
+          <SideChat page={props} roomId={side.roomId} onOpen={side.open} onClose={side.close} />
+        )}
         {product.target && (
           <ProductPanel page={props} target={product.target} onClose={product.close} />
         )}

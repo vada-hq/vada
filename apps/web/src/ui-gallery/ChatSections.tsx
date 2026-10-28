@@ -9,10 +9,15 @@ import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
+import SideChatListView from '@/chat/SideChatListView'
+import SideChatRoomTitle from '@/chat/SideChatRoomTitle'
+import { SideChatContext } from '@/chat/SideChatContext'
+import { useSplit } from '@/lib/use-split'
 
 const noop = () => {}
 const now = new Date('2026-10-23T05:00:00.000Z')
 const HOME_PREVIEW_COUNT = 2
+const DIRECT_ID = '0199d1a0-0000-7000-8000-0000000000a9'
 
 const chatRoom = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   id,
@@ -61,12 +66,19 @@ const ROOMS = [
 
 // 학생회 방 탭과 흐름(US-MSG-01). 방과 입력 띠는 행사 메시지 탭과 같은 부품이다.
 function MessageHomeSample() {
+  const split = useSplit()
   const rooms = ROOMS.filter(room => room.type !== 'direct')
   const [activeId, setActiveId] = useState('plan')
   const active = rooms.find(room => room.id === activeId)
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-lg border">
-      <MessageHomeHeader rooms={rooms} active={active} onPick={setActiveId} onAll={noop} />
+      <MessageHomeHeader
+        rooms={rooms}
+        active={active}
+        onPick={setActiveId}
+        onAll={noop}
+        direct={!split ? { active: false, unread: 2, onPick: noop } : undefined}
+      />
       <div className="flex h-96 flex-col bg-gray-50">
         <ul className="mt-auto flex flex-col overflow-y-auto px-2 py-3 sm:px-4">
           {FLOW.slice(1, 1 + HOME_PREVIEW_COUNT).map(item => (
@@ -99,11 +111,84 @@ function MessageHomeSample() {
   )
 }
 
+// MSG-04 목록과 열린 칸. 새 이름·머리·보내기 글은 실제 부품으로 확인한다.
+function SideChatSample() {
+  const [opened, setOpened] = useState(false)
+  const direct = chatRoom(DIRECT_ID, { type: 'direct', name: '정하늘', unread: 2 })
+  const access = {
+    meId: 'sample',
+    canDirect: true,
+    busy: false,
+    members: [],
+    open: () => {
+      setOpened(true)
+      return Promise.resolve(true)
+    },
+  }
+  return (
+    <SideChatContext value={access}>
+      <div className="h-128 w-96 max-w-full border-l-2 border-amber-300 bg-amber-50/60">
+        {opened ? (
+          <div className="flex h-full flex-col">
+            <SideChatRoomTitle
+              name="정하늘"
+              readOnly={false}
+              side
+              onBack={() => setOpened(false)}
+            />
+            <ul className="mt-auto overflow-y-auto px-2 py-3">
+              <MessageItem
+                councilId="sample"
+                message={FLOW[1]!.message}
+                mine={false}
+                continued={false}
+                canRequest={false}
+                onRequest={noop}
+                canWriteExpense={false}
+                onWriteExpense={noop}
+              />
+            </ul>
+            <div className="border-t bg-white p-4">
+              <Composer
+                councilId="sample"
+                roomId={DIRECT_ID}
+                roomName="정하늘"
+                direct
+                participants={[]}
+                meId="sample"
+                onSent={noop}
+                onLost={noop}
+              />
+            </div>
+          </div>
+        ) : (
+          <SideChatListView
+            canDirect
+            state={{
+              kind: 'ready',
+              data: {
+                rooms: [direct, ...ROOMS.filter(room => room.type === 'direct')],
+                unreadTotal: 2,
+                mentionTotal: 0,
+              },
+            }}
+            now={now}
+            note={null}
+            onStart={() => setOpened(true)}
+            onOpen={() => setOpened(true)}
+          />
+        )}
+      </div>
+    </SideChatContext>
+  )
+}
+
 // 전체 목록 줄(MSG-01)은 한 칸 본문과 휴대폰 폭으로 그린다.
 export function RoomRowSection() {
   return (
     <Section title="대화 목록 줄">
       <MessageHomeSample />
+      <SideChatSample />
       {['w-full', 'w-97.5'].map(width => (
         <ul key={width} aria-label={`대화방 ${width}`} className={cn(cardClass, 'divide-y', width)}>
           {ROOMS.map((room, index) => (

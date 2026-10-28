@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   OLDER_LOAD_FAILED,
@@ -24,6 +22,7 @@ import type { MessageActionSet } from './useMessageActions'
 import { useReadMarker } from './useReadMarker'
 import { useRoom, type Room, type RoomState } from './useRoom'
 import { useStickToBottom } from './useStickToBottom'
+import SideChatRoomTitle from './SideChatRoomTitle'
 
 type Props = {
   councilId: string
@@ -31,6 +30,7 @@ type Props = {
   meId: string
   rooms: RoomSource
   bare?: boolean | undefined
+  side?: boolean
   // 메시지에서 구매 요청 만들기: 권한(`purchase.request`, 대신 내기 `finance.manage`)은 받은 값 그대로다.
   request: RequestAccess
   // 메시지에서 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
@@ -41,28 +41,6 @@ type Props = {
   onForbidden: () => void
   // 둘레 모양. 본문 여백 안에 놓이는 공간 탭은 테두리를 준다. 대화 화면은 칸 끝까지 채워 주지 않는다.
   className?: string | undefined
-}
-
-function Title({
-  name,
-  readOnly,
-  onBack,
-}: {
-  name: string
-  readOnly: boolean
-  onBack: Props['onBack']
-}) {
-  return (
-    <div className="flex min-h-14 shrink-0 items-center gap-2 border-b bg-white px-4 py-2 sm:px-6">
-      {onBack && (
-        <Button variant="ghost" size="icon" touch aria-label="대화방 목록" onClick={onBack}>
-          <ArrowLeft />
-        </Button>
-      )}
-      <h2 className="min-w-0 flex-1 text-base font-semibold wrap-anywhere text-gray-900">{name}</h2>
-      {readOnly && <Badge>보기만</Badge>}
-    </div>
-  )
 }
 
 function Older({ onLoad }: { onLoad: () => Promise<boolean> }) {
@@ -231,10 +209,12 @@ function Bottom({
   room,
   rooms,
   readOnly,
+  side,
 }: Pick<Props, 'councilId' | 'roomId' | 'meId' | 'rooms'> & {
   state: Ready
   room: Room
   readOnly: boolean
+  side: boolean
 }) {
   return (
     // 아래에 붙은 흰 입력 띠(와이어프레임 US-MSG-01·MSG-03). 흐름의 회색 바탕과 위쪽 테두리로 가른다.
@@ -248,6 +228,8 @@ function Bottom({
           councilId={councilId}
           roomId={roomId}
           roomName={switchName(state.room)}
+          direct={state.room.type === 'direct'}
+          autoFocus={side}
           participants={state.participants}
           meId={meId}
           onSent={() => {
@@ -267,6 +249,11 @@ const unreadOf = (rooms: RoomSource, roomId: string) =>
     ? (rooms.state.data.rooms.find(item => item.id === roomId)?.unread ?? 0)
     : 0
 
+const readOnlyOf = (state: Ready, rooms: RoomSource) =>
+  state.room.readOnly ||
+  (rooms.state.kind === 'ready' &&
+    rooms.state.data.rooms.some(item => item.id === state.room.id && item.readOnly))
+
 // 방 하나: 이름과 내가 볼 수 있는 메시지 흐름(공지방은 같은 기수의 들어오기 전 것도, DEC-90).
 export default function RoomView({
   councilId,
@@ -279,6 +266,7 @@ export default function RoomView({
   onBack,
   onForbidden,
   className,
+  side = false,
 }: Props) {
   const room = useRoom(councilId, roomId)
   const { state } = room
@@ -301,13 +289,24 @@ export default function RoomView({
 
   if (state.kind !== 'ready')
     return <Unavailable state={state} onBack={onBack} onRetry={() => void room.retry()} />
-  const listedRoom =
-    rooms.state.kind === 'ready' ? rooms.state.data.rooms.find(item => item.id === roomId) : null
-  const readOnly = state.room.readOnly || !!listedRoom?.readOnly
+  const readOnly = readOnlyOf(state, rooms)
   return (
     // 흐름은 옅은 회색 바탕에 흰 말풍선이다(와이어프레임 MSG-03, 카카오톡·iMessage처럼 바탕과 말풍선 색을 나눈다).
-    <div className={cn('flex h-full min-h-0 flex-col bg-gray-50', className)}>
-      {!bare && <Title name={roomName(state.room)} readOnly={readOnly} onBack={onBack} />}
+    <div
+      className={cn(
+        'flex h-full min-h-0 flex-col',
+        side ? 'bg-amber-50/60' : 'bg-gray-50',
+        className,
+      )}
+    >
+      {!bare && (
+        <SideChatRoomTitle
+          name={roomName(state.room)}
+          readOnly={readOnly}
+          onBack={onBack}
+          side={side}
+        />
+      )}
       {flows.views}
       <ProductOpenContext value={openProduct}>
         <Messages
@@ -319,7 +318,7 @@ export default function RoomView({
           menu={flows.menu}
         />
       </ProductOpenContext>
-      <Bottom {...{ state, councilId, roomId, meId, room, rooms, readOnly }} />
+      <Bottom {...{ state, councilId, roomId, meId, room, rooms, readOnly, side }} />
     </div>
   )
 }

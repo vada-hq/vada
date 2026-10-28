@@ -1,5 +1,6 @@
 import { OpenDirectSchema, statusOf, type OpenDirectResponse } from '@vada/contracts'
 import { SEND_ERRORS } from '@/lib/messages'
+import { postJson } from '@/lib/api'
 
 // 새 메시지가 보이기까지의 최대 시간(기능 003: 3초 안에).
 export const CHAT_POLL_MS = 3000
@@ -15,9 +16,13 @@ export const isRoomLost = (status: number) =>
   status === statusOf('NOT_FOUND')
 
 // 1:1 열기(`POST direct`)의 본문과 응답은 계약의 것이다.
-export const directPath = (councilId: string) => `${chatBase(councilId)}/direct`
-export type DirectBody = ReturnType<typeof OpenDirectSchema.parse>
-export type DirectResponse = OpenDirectResponse
+const directPath = (councilId: string) => `${chatBase(councilId)}/direct`
+type DirectBody = ReturnType<typeof OpenDirectSchema.parse>
+type DirectResponse = OpenDirectResponse
+
+// 목록의 [+], 사람 이름, /이름은 같은 기존 API를 쓴다.
+export const openDirect = (councilId: string, memberId: string) =>
+  postJson<DirectResponse>(directPath(councilId), { memberId } satisfies DirectBody)
 
 export const messagesPath = (councilId: string, roomId: string) =>
   `${roomPath(councilId, roomId)}/messages`

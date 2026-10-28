@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest'
-import { insertMention, mentionIds, mentionQuery, suggestions } from './mention'
+import { directQuery, insertMention, mentionIds, mentionQuery, suggestions } from './mention'
+
+test('/로 시작하는 글 하나만 1:1 상대 찾기이고 공백·줄바꿈이 있으면 보통 글이다', () => {
+  expect(directQuery('/')).toBe('')
+  expect(directQuery('/김')).toBe('김')
+  for (const text of ['안녕 /김', '/김 안녕', '/김\n', '/로 나누기', ''])
+    expect(directQuery(text)).toBeNull()
+})
 
 test('@ 뒤 글자를 찾는다. 단어 가운데의 @는 부르기가 아니다', () => {
   expect(mentionQuery('안녕 @이', 5)).toEqual({ start: 3, query: '이' })

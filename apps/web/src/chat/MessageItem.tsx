@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useContext, useId, useState } from 'react'
 import {
   coupangProductOf,
   DELETED_MESSAGE,
@@ -17,6 +17,8 @@ import MessagePhotos from './MessagePhotos'
 import { useProductOpener } from './product-open'
 import { useMessageActions, type MessageActionArgs } from './useMessageActions'
 import { useMessageEdit } from './useMessageEdit'
+import PersonName from './PersonName'
+import { SideChatContext } from './SideChatContext'
 
 type Props = MessageActionArgs & {
   councilId: string
@@ -80,10 +82,26 @@ function Deleted() {
 
 // 말풍선 위의 보낸 사람. 남의 첫 메시지에만 보이고, 내 메시지는 이름 없이 '나'로 읽힌다(카카오톡).
 // 같은 사람이 바로 이어 쓴 메시지는 이름을 다시 보이지 않는다.
-function Sender({ message, mine, continued }: Pick<Props, 'message' | 'mine' | 'continued'>) {
+function Sender({
+  councilId,
+  message,
+  mine,
+  continued,
+}: Pick<Props, 'councilId' | 'message' | 'mine' | 'continued'>) {
+  const access = useContext(SideChatContext)
   if (mine) return <span className="sr-only">나</span>
   if (continued) return null
-  return <span className="text-xs wrap-anywhere text-gray-500">{message.senderName}</span>
+  return (
+    <span className="text-xs wrap-anywhere text-gray-500">
+      <PersonName
+        councilId={councilId}
+        memberId={message.senderId ?? ''}
+        name={message.senderName ?? ''}
+        meId={access?.meId ?? ''}
+        canDirect={access?.canDirect ?? false}
+      />
+    </span>
+  )
 }
 
 // 말풍선 아래의 시각(와이어프레임). 이어 쓴 메시지는 화면 낭독기에만 읽힌다.
@@ -241,7 +259,7 @@ function PersonItem({ councilId, message: original, continued, mine, ...actionAr
           mine ? 'items-end' : 'items-start',
         )}
       >
-        <Sender message={message} mine={mine} continued={continued} />
+        <Sender councilId={councilId} message={message} mine={mine} continued={continued} />
         <Bubble message={message} mine={mine} editor={editor} />
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         <MessageMade councilId={councilId} records={message.made ?? []} />

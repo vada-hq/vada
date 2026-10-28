@@ -55,3 +55,21 @@ test('방 탭은 화살표와 Home·End로 선택과 초점을 함께 옮긴다'
   fireEvent.keyDown(other, { key: 'End' })
   expect(document.activeElement).toBe(active)
 })
+
+test('선택 인자가 있을 때만 끝에 1:1 탭과 합계 배지가 있고 화살표로 선택한다', () => {
+  const onDirect = vi.fn()
+  render(
+    <RoomSwitch
+      rooms={[notice]}
+      activeId={notice.id}
+      onPick={vi.fn()}
+      direct={{ active: false, unread: 4, onPick: onDirect }}
+    />,
+  )
+  const direct = screen.getByRole('tab', { name: /1:1/ })
+  expect(screen.getAllByRole('tab').at(-1)).toBe(direct)
+  expect(within(direct).getByLabelText('안 읽은 메시지 4개').textContent).toBe('4')
+  fireEvent.keyDown(screen.getByRole('tab', { name: /공지방/ }), { key: 'ArrowRight' })
+  expect(onDirect).toHaveBeenCalledOnce()
+  expect(document.activeElement).toBe(direct)
+})

@@ -29,3 +29,13 @@ export const shownRoomOf = (rooms: RoomSummary[], wanted: string | null) =>
 
 // 탭 배지: 그 공간 방들의 안 읽은 수 합(DEC-90 '탭 배지는 공지방과 내 부서방의 안 읽은 수').
 export const unreadSum = (rooms: RoomSummary[]) => rooms.reduce((sum, room) => sum + room.unread, 0)
+
+// 읽기는 서버 목록 그대로다. 안 읽은 방끼리도 마지막 메시지가 최근인 방부터 둔다.
+export const directRooms = (rooms: RoomSummary[]) =>
+  rooms
+    .filter(room => room.type === 'direct')
+    .sort(
+      (a, b) =>
+        Number(b.unread > 0) - Number(a.unread > 0) ||
+        (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? ''),
+    )

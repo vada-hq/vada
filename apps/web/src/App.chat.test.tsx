@@ -9,6 +9,7 @@ import { councilView, myCouncil, teamResponse } from './test-support/council-fix
 import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { ADDRESS_LOST } from './lib/messages'
+import { saveSideRoom } from './chat/last-room'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -65,6 +66,7 @@ beforeEach(() => {
 })
 afterEach(async () => {
   cleanup()
+  saveSideRoom(C1, 'm1', null)
   await windowHistoryIdle()
   resetWindowHistory()
   Reflect.deleteProperty(navigator, 'serviceWorker')
@@ -158,7 +160,7 @@ test('들어가지 않은 방 주소는 찾을 수 없음이고 그 방의 메�
 })
 
 test.each([390, 1280])(
-  '%i 폭에서 전체 목록의 1:1은 방 하나로 열리고 돌아오면 목록이다',
+  '%i 폭에서 1:1을 열면 PC는 오른쪽 칸, 휴대폰은 전체 화면이다',
   async width => {
     navigationWidth(width)
     const direct = room(THEIRS, { type: 'direct', name: '박새내' })
@@ -174,12 +176,21 @@ test.each([390, 1280])(
     fireEvent.click(await screen.findByRole('button', { name: /박새내/ }))
     expect(await screen.findByText('1:1 글')).toBeTruthy()
     expect(pathNow()).toBe(`/chat/${C1}/${THEIRS}`)
-    expect(screen.queryByRole('tablist', { name: '대화방' })).toBeNull()
     expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
-    expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
-    await screen.findByRole('list', { name: '대화방' })
-    expect(pathNow()).toBe(`/chat/${C1}?rooms=all`)
+    if (width === 390) {
+      expect(screen.queryByRole('tablist', { name: '대화방' })).toBeNull()
+      expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+      await screen.findByRole('list', { name: '대화방' })
+      expect(pathNow()).toBe(`/chat/${C1}?rooms=all`)
+    } else {
+      expect(await screen.findByText('회장단 글')).toBeTruthy()
+      expect(screen.getByRole('tablist', { name: '대화방' })).toBeTruthy()
+      const panel = screen.getByRole('complementary', { name: '1:1' })
+      fireEvent.click(within(panel).getByRole('button', { name: '1:1' }))
+      expect(within(panel).getByRole('list', { name: '1:1 대화방' })).toBeTruthy()
+      expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
+    }
   },
 )
 
@@ -199,18 +210,26 @@ test('다른 학생회의 방 주소는 찾을 수 없음이다', async () => {
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
 })
 
-test('메시지가 없어 목록에 없는 내 1:1 방 주소는 서버가 그 방을 주면 열린다', async () => {
-  const fresh = '0199d1a0-0000-7000-8000-0000000000a3'
-  const direct = room(fresh, { type: 'direct', name: '박새내', lastMessageAt: null })
-  const at = `/api/organizations/${C1}/rooms/${fresh}`
-  api.on('GET', at, () => json(roomDetail(direct)))
-  api.on('GET', `${at}/messages`, () => json(messagePage([])))
-  window.history.replaceState(null, '', `/chat/${C1}/${fresh}`)
-  await renderApp()
-  expect(await screen.findByText('메시지 없음')).toBeTruthy()
-  expect(await field()).toBeTruthy()
-  expect(screen.queryByText(ADDRESS_LOST)).toBeNull()
-})
+test.each([390, 1280])(
+  '%i 폭에서 목록에 없는 빈 1:1 주소도 서버가 준 방 종류로 열린다',
+  async width => {
+    navigationWidth(width)
+    const fresh = '0199d1a0-0000-7000-8000-0000000000a3'
+    const direct = room(fresh, { type: 'direct', name: '박새내', lastMessageAt: null })
+    const at = `/api/organizations/${C1}/rooms/${fresh}`
+    api.on('GET', at, () => json(roomDetail(direct)))
+    api.on('GET', `${at}/messages`, () => json(messagePage([])))
+    window.history.replaceState(null, '', `/chat/${C1}/${fresh}`)
+    await renderApp()
+    expect(await screen.findByText('메시지 없음')).toBeTruthy()
+    if (width === 1280) {
+      const panel = await screen.findByRole('complementary', { name: '1:1' })
+      expect(within(panel).getByRole('textbox', { name: '메시지' })).toBeTruthy()
+      expect(await screen.findByText('회장단 글')).toBeTruthy()
+    } else expect(await field()).toBeTruthy()
+    expect(screen.queryByText(ADDRESS_LOST)).toBeNull()
+  },
+)
 
 // 목록과 방을 나란히 둘 만큼 넓은 화면(PC)
 const wide = () =>

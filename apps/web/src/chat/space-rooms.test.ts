@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest'
 import type { RoomSummary } from '@vada/contracts'
-import { councilRooms, firstRoomOf, shownRoomOf, switchRooms, unreadSum } from './space-rooms'
+import {
+  councilRooms,
+  directRooms,
+  firstRoomOf,
+  shownRoomOf,
+  switchRooms,
+  unreadSum,
+} from './space-rooms'
 
 const room = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   id,
@@ -55,4 +62,17 @@ test('학생회 탭에는 서버가 준 학생회 공지·회장단·부서 방�
     ownDepartment,
     leadership,
   ])
+})
+test('1:1은 전부 보이고 안 읽은 방 먼저, 같은 묶음에서는 최근 순이며 날짜가 없으면 뒤다', () => {
+  const direct = (id: string, unread: number, lastMessageAt: string | null) =>
+    room(id, { type: 'direct', unread, lastMessageAt })
+  const rooms = [
+    direct('read', 0, '2026-10-29T01:00:00Z'),
+    direct('old', 3, '2026-10-27T01:00:00Z'),
+    direct('empty', 0, null),
+    room('notice', {}),
+    direct('new', 1, '2026-10-28T01:00:00Z'),
+  ]
+  expect(directRooms(rooms).map(item => item.id)).toEqual(['new', 'old', 'read', 'empty'])
+  expect(rooms[0]?.id).toBe('read')
 })

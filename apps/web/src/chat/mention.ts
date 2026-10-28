@@ -1,5 +1,8 @@
 import { MENTION_MAX, type RoomParticipant } from '@vada/contracts'
 
+// /이름 뒤에 공백을 쓰면 보통 글이다. 문장 속의 /도 보내기를 가로막지 않는다.
+export const directQuery = (body: string) => (/^\/\S*$/.test(body) ? body.slice(1) : null)
+
 // 커서 앞에서 이어지는 "@글자"를 찾는다. 앞이 글자이면(메일 주소처럼) 부르기가 아니다.
 export function mentionQuery(text: string, caret: number): { start: number; query: string } | null {
   const before = text.slice(0, caret)

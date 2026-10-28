@@ -6,11 +6,13 @@ import { resetAddress } from '@/test-support/address-reset'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { room, roomList } from '@/test-support/chat-fixtures'
 import ChatRoute from './ChatRoute'
+import { navigationWidth } from '@/test-support/navigation-width'
+import { saveSideRoom } from './last-room'
 
 // 대화 화면 안은 다른 시험이 다룬다. 여기서는 주소 층과 닿는 곳(화면 고르기, '재정에서 보기', 뒤로)만 본다.
 vi.mock('./ChatPage', () => ({
   default: (props: {
-    screen: { kind: string; roomId?: string }
+    screen: { kind: string; roomId?: string; sideRoomId?: string }
     onScreen: (screen: { kind: 'room' | 'home'; roomId: string } | { kind: 'list' }) => void
     onOpenRequest: (requestId: string) => void
   }) => (
@@ -22,7 +24,7 @@ vi.mock('./ChatPage', () => ({
       >
         행사 방 열기
       </button>
-      <span>{`${props.screen.kind} ${props.screen.roomId ?? ''}`}</span>
+      <span>{`${props.screen.kind} ${props.screen.roomId ?? props.screen.sideRoomId ?? ''}${props.screen.sideRoomId ? ' side' : ''}`}</span>
       <button onClick={() => props.onScreen({ kind: 'list' })}>전체 보기</button>
       <button onClick={() => props.onScreen({ kind: 'home', roomId: ROOM })}>학생회 방 탭</button>
       <button onClick={() => props.onOpenRequest('0199d1a0-0000-7000-8000-00000000b001')}>
@@ -34,6 +36,8 @@ vi.mock('./ChatPage', () => ({
 
 afterEach(async () => {
   cleanup()
+  vi.unstubAllGlobals()
+  saveSideRoom(COUNCIL_ID, 'm1', null)
   await resetAddress()
 })
 
@@ -179,3 +183,40 @@ test('1:1 알림은 학생회 탭 대신 전체 폭 방 화면을 연다', () =>
   )
   expect(screen.getByText(`room ${ROOM}`)).toBeTruthy()
 })
+
+test.each([1024, 1280])('%i 폭의 1:1 알림은 첫 화면과 오른쪽 칸을 연다', width => {
+  navigationWidth(width)
+  window.history.replaceState(null, '', `/chat/${COUNCIL_ID}/${ROOM}`)
+  render(
+    <ChatRoute
+      councilId={COUNCIL_ID}
+      view={councilView(COUNCIL_ID)}
+      team={{} as never}
+      rooms={{
+        state: { kind: 'ready', data: roomList({ rooms: [room(ROOM, { type: 'direct' })] }) },
+        reload: async () => true,
+      }}
+      onForbidden={() => {}}
+    />,
+  )
+  expect(screen.getByText(`home ${ROOM} side`)).toBeTruthy()
+})
+
+test.each(['loading', 'failed'] as const)(
+  '방금 연 1:1은 목록이 %s여도 오른쪽 칸을 유지한다',
+  kind => {
+    navigationWidth(1280)
+    saveSideRoom(COUNCIL_ID, 'm1', ROOM)
+    window.history.replaceState(null, '', `/chat/${COUNCIL_ID}/${ROOM}`)
+    render(
+      <ChatRoute
+        councilId={COUNCIL_ID}
+        view={councilView(COUNCIL_ID)}
+        team={{} as never}
+        rooms={{ state: { kind }, reload: async () => true }}
+        onForbidden={() => {}}
+      />,
+    )
+    expect(screen.getByText(`home ${ROOM} side`)).toBeTruthy()
+  },
+)

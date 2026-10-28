@@ -85,7 +85,7 @@ test('빈 글과 공백만이면 보내기가 꺼지고, 글이 있으면 켜진
 test('입력 자리 글과 보내기 이름이 지금 방을 가리킨다', async () => {
   serve()
   await open()
-  expect(field().placeholder).toBe('메시지 입력 · @ 부르기')
+  expect(field().placeholder).toBe('메시지 입력 · @ 부르기 · / 1:1 대화')
   expect(screen.getByRole('button', { name: '공지방에 보내기' })).toBeTruthy()
 })
 

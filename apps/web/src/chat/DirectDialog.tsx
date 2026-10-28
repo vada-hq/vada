@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import { statusOf, type TeamMember } from '@vada/contracts'
+import { useEffect } from 'react'
+import type { TeamMember } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { postJson } from '@/lib/api'
-import { DIRECT_ERRORS, DIRECT_FAILED, DIRECT_PEOPLE_FAILED } from '@/lib/messages'
+import { DIRECT_PEOPLE_FAILED } from '@/lib/messages'
 import type { Team } from '../team/useTeam'
-import { directPath, type DirectBody, type DirectResponse } from './chat-api'
+import { useDirectOpener } from './SideChatContext'
+import { DIRECT_PEOPLE_EMPTY } from './message-text'
 
 type Props = {
   councilId: string
@@ -29,13 +29,14 @@ function People({
   busy: boolean
   onPick: (member: TeamMember) => void
 }) {
-  if (members.length === 0) return <StateMessage kind="empty">운영진 없음</StateMessage>
+  if (members.length === 0) return <StateMessage kind="empty">{DIRECT_PEOPLE_EMPTY}</StateMessage>
   return (
     <ul className="flex max-h-80 flex-col gap-1 overflow-y-auto">
       {members.map(member => (
         <li key={member.id}>
           <Button
             variant="ghost"
+            touch
             className="w-full justify-start font-normal wrap-anywhere whitespace-normal text-gray-800"
             busy={busy}
             onClick={() => onPick(member)}
@@ -58,27 +59,21 @@ export default function DirectDialog({
   onOpened,
   onForbidden,
 }: Props) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    busy,
+    error,
+    open: pick,
+  } = useDirectOpener(councilId, {
+    onOpen: onOpened,
+    onForbidden,
+    onMissing: team.reload,
+  })
   // 창을 열 때 운영진을 바로 다시 읽는다(방금 들어온 사람이 보이게).
   const reloadTeam = team.reload
   useEffect(() => {
     if (open) reloadTeam()
   }, [open, reloadTeam])
   const members = (team.data?.members ?? []).filter(member => member.id !== meId)
-  const pick = async (member: TeamMember) => {
-    setBusy(true)
-    setError(null)
-    const result = await postJson<DirectResponse>(directPath(councilId), {
-      memberId: member.id,
-    } satisfies DirectBody)
-    setBusy(false)
-    if (result.ok) return onOpened(result.data.roomId)
-    // 권한을 잃었으면 대화상자는 닫히고, 이유는 목록 위에 보인다.
-    if (result.status === statusOf('FORBIDDEN')) return onForbidden()
-    if (result.status === statusOf('NOT_FOUND')) team.reload()
-    setError(DIRECT_ERRORS[result.code] ?? DIRECT_FAILED)
-  }
   return (
     <Dialog open={open} onOpenChange={next => !next && !busy && onClose()}>
       <DialogContent aria-describedby={undefined}>
@@ -86,7 +81,7 @@ export default function DirectDialog({
           <DialogTitle>1:1 대화</DialogTitle>
         </DialogHeader>
         {team.data ? (
-          <People members={members} busy={busy} onPick={member => void pick(member)} />
+          <People members={members} busy={busy} onPick={member => void pick(member.id)} />
         ) : (
           <StateMessage kind={team.loadFailed ? 'error' : 'loading'}>
             {team.loadFailed ? DIRECT_PEOPLE_FAILED : '운영진 불러오는 중…'}
