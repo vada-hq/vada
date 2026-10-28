@@ -15,7 +15,7 @@ export const MINUTES_STATUS = { none: '작성 전', draft: '작성 중', confirm
 export const MEETING_LOAD_FAILED = '회의를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const MEETING_OPTIONS_FAILED = '선택지를 불러오지 못했어요. 다시 시도해 주세요.'
 export const MEETING_LOST = '이 회의를 볼 수 없어요.'
-export const MEETING_ERRORS = changeErrors({
+const MEETING_ERRORS = changeErrors({
   MEETING_CANCELLED: '이미 취소된 회의예요. 새로 불러와 주세요.',
   MEETING_HAS_TASKS: '후속 업무가 있는 회의는 취소할 수 없어요.',
   EVENT_COMPLETED: '완료한 행사에는 새로 연결할 수 없어요. 다른 행사를 골라 주세요.',

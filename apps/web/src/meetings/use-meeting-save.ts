@@ -38,20 +38,22 @@ async function saveMeeting(
   const { state, fail } = context
   const parsed = meetingUpdate(value, state.previous!, state.version)
   if (!parsed.success) return meetingError('INVALID_INPUT')
+  // 참가자를 먼저 바꾼다. 주관 부서를 옮기면 그 요청 뒤에 고칠 권한을 잃을 수 있다.
+  // 참가자 바꾸기는 판을 올리지 않아 이어지는 고치기의 baseVersionNo가 그대로 맞는다.
+  const previousPeople = state.people.filter(id => id !== item.createdBy?.id)
+  if (!sameAttendees(value.attendeeIds, previousPeople)) {
+    const attendees = await postJson<MeetingResponse>(`${base}/${item.id}/attendees`, {
+      attendeeIds: value.attendeeIds,
+    })
+    if (!attendees.ok) return fail(attendees)
+    state.saved = attendees.data.meeting
+    state.people = value.attendeeIds
+  }
   const result = await postJson<MeetingResponse>(`${base}/${item.id}`, parsed.data)
   if (!result.ok) return fail(result)
   state.saved = result.data.meeting
   state.previous = value
   state.version = result.data.meeting.versionNo
-  const previousPeople = state.people.filter(id => id !== item.createdBy?.id)
-  if (sameAttendees(value.attendeeIds, previousPeople)) return null
-  const attendees = await postJson<MeetingResponse>(`${base}/${item.id}/attendees`, {
-    attendeeIds: value.attendeeIds,
-  })
-  if (!attendees.ok) return fail(attendees)
-  state.saved = attendees.data.meeting
-  state.version = attendees.data.meeting.versionNo
-  state.people = value.attendeeIds
   return null
 }
 export function useMeetingSave(

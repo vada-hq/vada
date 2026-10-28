@@ -1,6 +1,7 @@
 import {
   CreateMeetingSchema,
   KOREAN_DATE_LENGTH,
+  MEETING_ATTENDEE_LIMIT,
   UpdateMeetingSchema,
   type CreateMeetingRequest,
   type MeetingDetail,
@@ -22,6 +23,8 @@ export type MeetingFormValue = {
   hostDepartmentId: string
   attendeeIds: string[]
   agenda: AgendaDraft[]
+  // 고치는 회의가 다음 날 끝나면 끝 날짜를 날짜 칸에서 며칠 뒤로 지킨다(폼은 날짜 칸 하나다).
+  endDayOffset: number
 }
 const TIME_START = KOREAN_DATE_LENGTH + 1
 function blankMeetingForm(memberId: string): MeetingFormValue {
@@ -37,6 +40,7 @@ function blankMeetingForm(memberId: string): MeetingFormValue {
     hostDepartmentId: '',
     attendeeIds: [memberId],
     agenda: [],
+    endDayOffset: 0,
   }
 }
 function meetingLinks(
@@ -58,16 +62,27 @@ export function initialMeetingForm(memberId: string, item?: MeetingDetail): Meet
     date: item.heldAt.slice(0, KOREAN_DATE_LENGTH),
     start: item.heldAt.slice(TIME_START),
     end: item.endsAt?.slice(TIME_START) ?? '',
+    endDayOffset: item.endsAt ? dayOffset(item.heldAt, item.endsAt) : 0,
     place: item.place ?? '',
     attendeeIds: item.attendees.map(person => person.id),
   }
+}
+const DAY_MS = 86_400_000
+const dayOf = (time: string) => Date.parse(`${time.slice(0, KOREAN_DATE_LENGTH)}T00:00Z`)
+function dayOffset(heldAt: string, endsAt: string) {
+  return Math.round((dayOf(endsAt) - dayOf(heldAt)) / DAY_MS)
+}
+function endDateOf(value: MeetingFormValue) {
+  const start = dayOf(value.date)
+  if (!value.endDayOffset || Number.isNaN(start)) return value.date
+  return new Date(start + value.endDayOffset * DAY_MS).toISOString().slice(0, KOREAN_DATE_LENGTH)
 }
 export function parseMeetingForm(value: MeetingFormValue, creatorId?: string | null) {
   return CreateMeetingSchema.safeParse({
     title: value.title,
     purpose: value.purpose.trim() || null,
     heldAt: `${value.date}T${value.start}`,
-    endsAt: `${value.date}T${value.end}`,
+    endsAt: `${endDateOf(value)}T${value.end}`,
     place: value.place,
     eventId: value.type === 'event' ? value.eventId || null : null,
     hostDepartmentId: value.hostDepartmentId || null,
@@ -97,13 +112,22 @@ function requiredMeetingFields(value: MeetingFormValue): FieldErrors {
   ] as const) {
     if (!value[key].trim()) errors[key] = `${label} 입력해 주세요`
   }
-  if (value.start && value.end && value.end <= value.start)
+  if (!value.endDayOffset && value.start && value.end && value.end <= value.start)
     errors.end = '끝은 시작보다 늦어야 해요.'
   if (value.type === 'event' && !value.eventId) errors.eventId = '연결 행사를 골라 주세요'
   return errors
 }
+// 서버는 만든 사람까지 세어 상한을 본다.
+function attendeeLimitErrors(value: MeetingFormValue, creatorId?: string | null): FieldErrors {
+  const people = new Set([...value.attendeeIds, ...(creatorId ? [creatorId] : [])])
+  return people.size > MEETING_ATTENDEE_LIMIT ? { attendeeIds: '참가자가 너무 많아요' } : {}
+}
 export function meetingFormErrors(value: MeetingFormValue, creatorId?: string | null): FieldErrors {
-  return { ...contractErrors(value, creatorId), ...requiredMeetingFields(value) }
+  return {
+    ...contractErrors(value, creatorId),
+    ...attendeeLimitErrors(value, creatorId),
+    ...requiredMeetingFields(value),
+  }
 }
 const EDIT_FIELDS = [
   'title',

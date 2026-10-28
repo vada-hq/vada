@@ -74,6 +74,7 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
     if (status === statusOf('FORBIDDEN') || status === statusOf('NOT_FOUND')) setLost(true)
   })
   const meeting = read.state.kind === 'ready' ? read.state.data.meeting : null
+  const editing = useLatched(edit, meeting?.actions.includes('meeting.edit') ?? false)
   const guarded = useAskingGuard(asking, cancelProblem(meeting), message => {
     setAsking(false)
     setNotice(message)
@@ -112,7 +113,7 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
     ) : (
       <StateMessage kind="loading">회의 불러오는 중…</StateMessage>
     )
-  if (edit && meeting.actions.includes('meeting.edit'))
+  if (editing)
     return <MeetingEditor view={view} item={meeting} onForbidden={onForbidden} onClose={close} />
   return (
     <>
@@ -137,6 +138,13 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
     </>
   )
 }
+// 폼을 연 뒤 다시 읽기에서 권한이 빠져도 쓴 글을 지우지 않는다. 저장은 서버가 막고 문구를 보인다.
+function useLatched(wanted: boolean, allowed: boolean) {
+  const [latched, setLatched] = useState(false)
+  if (wanted && allowed && !latched) setLatched(true)
+  if (!wanted && latched) setLatched(false)
+  return wanted && (allowed || latched)
+}
 function cancelProblem(meeting: Detail | null) {
   return meeting?.actions.includes('meeting.cancel') ? null : meetingError('FORBIDDEN')
 }
@@ -159,11 +167,14 @@ export default function MeetingsPage(props: Props) {
   const councilId = props.view.council.id
   const close = () => navigate(menuPath('meetings', councilId))
   const route = routeOf(location, councilId)
+  const composing = useLatched(
+    route.kind === 'new',
+    props.view.permissions.includes('meeting.create'),
+  )
   let content
   if (route.kind === 'record')
     content = <MeetingRecord key={route.id} {...props} id={route.id} edit={route.edit} />
-  else if (route.kind === 'new' && props.view.permissions.includes('meeting.create'))
-    content = <MeetingEditor {...props} onClose={close} />
+  else if (composing) content = <MeetingEditor {...props} onClose={close} />
   else content = <MeetingsListPage {...props} />
   return <PageColumn className="min-w-0 break-keep">{content}</PageColumn>
 }

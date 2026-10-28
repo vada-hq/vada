@@ -32,7 +32,7 @@ test('계약이 회의명 상한·끝 순서·빈 안건·행사 필수를 칸 �
     }).success,
   ).toBe(false)
 })
-test('만든 사람은 서버가 넣으므로 계약 상한만큼 다른 참가자를 보낼 수 있다', () => {
+test('만든 사람은 보내지 않지만 상한은 만든 사람까지 센다', () => {
   const otherIds = Array.from(
     { length: MEETING_ATTENDEE_LIMIT },
     (_, index) => `0199d1a0-0000-7000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -44,6 +44,17 @@ test('만든 사람은 서버가 넣으므로 계약 상한만큼 다른 참가�
   expect(parsed.success).toBe(true)
   expect(parsed.data?.attendeeIds).toHaveLength(MEETING_ATTENDEE_LIMIT)
   expect(parsed.data?.attendeeIds).not.toContain(MEETING_MEMBER)
+  const tooMany = { ...valid(), attendeeIds: [MEETING_MEMBER, ...otherIds] }
+  expect(meetingFormErrors(tooMany, MEETING_MEMBER).attendeeIds).toBeTruthy()
+  const fits = { ...valid(), attendeeIds: [MEETING_MEMBER, ...otherIds.slice(1)] }
+  expect(meetingFormErrors(fits, MEETING_MEMBER).attendeeIds).toBeUndefined()
+})
+test('다음 날 끝나는 회의를 고치면 끝 날짜를 날짜 칸에서 그만큼 뒤로 지킨다', () => {
+  const overnight = meetingSample({ heldAt: '2026-11-03T22:00', endsAt: '2026-11-04T01:00' })
+  const value = initialMeetingForm(MEETING_MEMBER, overnight)
+  expect(meetingFormErrors(value).end).toBeUndefined()
+  expect(parseMeetingForm(value).data?.endsAt).toBe('2026-11-04T01:00')
+  expect(parseMeetingForm({ ...value, date: '2026-11-30' }).data?.endsAt).toBe('2026-12-01T01:00')
 })
 test('고치기는 바뀐 칸만 보내고 참가자 순서와 안건은 본문에 넣지 않는다', () => {
   const original = meetingSample()

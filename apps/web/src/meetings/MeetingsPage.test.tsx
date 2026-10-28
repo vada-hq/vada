@@ -71,7 +71,7 @@ test('상태를 주소에 유지하고 취소 회의만 보인다', async () => 
   expect(screen.queryByText('학생회 정기 총회')).toBeNull()
   expect(screen.getByText('취소 총회')).toBeTruthy()
   expect(window.location.search).toBe('?status=cancelled')
-  expect(screen.getByText('최근 300건만 보여요')).toBeTruthy()
+  expect(screen.getByText('오래된 회의부터 300건만 보여요')).toBeTruthy()
 })
 
 test('만들기 빈 칸은 요청 없이 오류와 첫 칸 초점을 보인다', async () => {
@@ -93,7 +93,8 @@ test('부서를 바꾸면 서버 기본 참가자로 채우고 직접 고친 뒤
   api.on('POST', base, () => json({ meeting: meetingSample() }))
   render(page(['meeting.create']))
   const other = await screen.findByRole('checkbox', { name: '이기획' })
-  expect((other as HTMLInputElement).checked).toBe(true)
+  // 선택지가 그려진 뒤 기본 참가자를 채운다.
+  await waitFor(() => expect((other as HTMLInputElement).checked).toBe(true))
   fireEvent.change(screen.getByLabelText('주관 부서'), { target: { value: MEETING_DEPARTMENT } })
   await waitFor(() => expect((other as HTMLInputElement).checked).toBe(false))
   fireEvent.click(other)
@@ -162,7 +163,7 @@ test.each([403, 404])('기록 %i는 볼 수 없음과 목록 길을 보인다', 
   await waitFor(() => expect(window.location.pathname).toBe(`/meetings/${MEETING_COUNCIL}`))
 })
 
-test('고치기는 바뀐 칸과 판 번호만 보내고 참가자를 이어서 저장한다', async () => {
+test('고치기는 참가자를 먼저 저장하고 바뀐 칸과 판 번호만 보낸다', async () => {
   window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}?mode=edit`)
   api.on('POST', `${base}/${MEETING_ID}`, () =>
     json({ meeting: meetingSample({ title: '고친 총회', versionNo: 2 }) }),
@@ -182,8 +183,40 @@ test('고치기는 바뀐 칸과 판 번호만 보내고 참가자를 이어서 
   fireEvent.click(screen.getByRole('checkbox', { name: '이기획' }))
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(posts()).toHaveLength(2))
-  expect(posts()[0]!.body).toEqual({ title: '고친 총회', baseVersionNo: 1 })
-  expect(posts()[1]!.body).toEqual({ attendeeIds: [] })
+  expect(posts()[0]!.path).toBe(`${base}/${MEETING_ID}/attendees`)
+  expect(posts()[0]!.body).toEqual({ attendeeIds: [] })
+  expect(posts()[1]!.body).toEqual({ title: '고친 총회', baseVersionNo: 1 })
+})
+
+test('취소된 회의도 서버가 준 동작 버튼은 그대로 보인다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  api.on('GET', `${base}/${MEETING_ID}`, () =>
+    json({
+      meeting: meetingSample({
+        status: 'cancelled',
+        actions: ['meeting.edit'],
+        cancelReason: '일정 변경',
+        cancelledAt: '2026-10-29T02:20:00Z',
+      }),
+    }),
+  )
+  render(page())
+  expect(await screen.findByText('취소 기록')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '고치기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '회의 취소' })).toBeNull()
+})
+
+test('고치는 중 다시 읽기에서 고칠 동작이 빠져도 쓰던 글을 남긴다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}?mode=edit`)
+  render(page())
+  fireEvent.change(await screen.findByLabelText('회의명'), { target: { value: '내가 쓰던 총회' } })
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting: meetingSample({ actions: [] }) }))
+  const reads = () => api.calls.filter(call => call.path === `${base}/${MEETING_ID}`).length
+  const before = reads()
+  document.dispatchEvent(new Event('visibilitychange'))
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+  await new Promise(resolve => setTimeout(resolve, 0))
+  expect(screen.getByLabelText<HTMLInputElement>('회의명').value).toBe('내가 쓰던 총회')
 })
 
 test('판 충돌은 다시 읽어도 쓰던 글을 남긴다', async () => {

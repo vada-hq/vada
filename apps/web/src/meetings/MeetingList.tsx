@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronRight, MapPin, Plus, Users } from 'lucide-react'
 import {
   koreanOf,
   MEETING_LIST_LIMIT,
@@ -29,30 +29,41 @@ function MeetingCard({
 }) {
   const status = MEETING_STATUS[meeting.status]
   return (
-    <Card className="flex min-w-0 flex-col gap-3 p-5">
-      <div className="flex min-w-0 items-start gap-2">
-        <Badge tone={status.tone}>{status.label}</Badge>
-        <h3 className="min-w-0 wrap-anywhere text-base font-semibold">{meeting.title}</h3>
-      </div>
-      <p className="text-sm tabular-nums">{meetingTime(meeting.heldAt, meeting.endsAt)}</p>
-      <p className="wrap-anywhere text-sm text-muted-foreground">{meeting.place ?? '장소 미정'}</p>
-      {meeting.hostDepartment && (
-        <p className="wrap-anywhere text-sm text-muted-foreground">
-          주관 {meeting.hostDepartment.name}
+    <Card className="flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex min-w-0 items-start gap-2">
+          <Badge tone={status.tone}>{status.label}</Badge>
+          <h3 className="min-w-0 wrap-anywhere text-base font-semibold">{meeting.title}</h3>
+        </div>
+        <p className="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <CalendarDays aria-hidden className="size-4 shrink-0" />
+            {meetingTime(meeting.heldAt, meeting.endsAt)}
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+            <MapPin aria-hidden className="size-4 shrink-0" />
+            {meeting.place ?? '장소 미정'}
+          </span>
+          {meeting.hostDepartment && (
+            <span className="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+              <Users aria-hidden className="size-4 shrink-0" />
+              주관 {meeting.hostDepartment.name}
+            </span>
+          )}
         </p>
-      )}
-      <dl className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+      </div>
+      <dl className="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
         <div>
-          <dt>참가자</dt>
-          <dd className="mt-1 text-right tabular-nums">{meeting.attendeeCount}명</dd>
+          <dt className="text-xs text-muted-foreground">참가자</dt>
+          <dd className="mt-1 text-sm font-medium tabular-nums">{meeting.attendeeCount}명</dd>
         </div>
         <div>
-          <dt>안건</dt>
-          <dd className="mt-1 text-right tabular-nums">{meeting.agendaCount}건</dd>
+          <dt className="text-xs text-muted-foreground">안건</dt>
+          <dd className="mt-1 text-sm font-medium tabular-nums">{meeting.agendaCount}건</dd>
         </div>
         <div>
-          <dt>회의록</dt>
-          <dd className="mt-1 text-right">
+          <dt className="text-xs text-muted-foreground">회의록</dt>
+          <dd className="mt-1 text-sm font-medium">
             {meeting.status === 'cancelled' ? '취소' : MINUTES_STATUS[meeting.minutesStatus]}
           </dd>
         </div>
@@ -60,7 +71,7 @@ function MeetingCard({
       <Button
         variant="outline"
         touch
-        className="mt-auto self-end"
+        className="shrink-0 self-end md:w-32 md:self-center"
         onClick={() => onOpen(meeting.id)}
       >
         {meeting.status === 'cancelled' ? '취소 내용 보기' : '상세 보기'}
@@ -84,18 +95,23 @@ function Group({ group, onOpen }: { group: MeetingGroup; onOpen: (id: string) =>
         <span className="min-w-0 wrap-anywhere text-left text-base font-semibold whitespace-normal">
           {group.name}
         </span>
-        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs font-normal text-muted-foreground tabular-nums">
           총 {group.meetings.length}건
         </span>
+        {group.nearest && (
+          <span className="ml-auto text-xs font-normal text-muted-foreground tabular-nums max-sm:hidden">
+            가장 가까운 회의: {meetingTime(group.nearest.heldAt, null)}
+          </span>
+        )}
       </Button>
       {open && (
         <>
           {group.nearest && (
-            <p className="mb-3 text-xs text-muted-foreground tabular-nums">
+            <p className="mb-3 text-xs text-muted-foreground tabular-nums sm:hidden">
               가장 가까운 회의: {meetingTime(group.nearest.heldAt, null)}
             </p>
           )}
-          <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-3">
             {group.meetings.map(meeting => (
               <MeetingCard key={meeting.id} meeting={meeting} onOpen={onOpen} />
             ))}
@@ -170,7 +186,9 @@ export function MeetingList({ data, status, onStatus, onOpen, onCreate, referenc
         </Card>
       )}
       {data.truncated && (
-        <p className="text-sm text-muted-foreground">최근 {MEETING_LIST_LIMIT}건만 보여요</p>
+        <p className="text-sm text-muted-foreground">
+          오래된 회의부터 {MEETING_LIST_LIMIT}건만 보여요
+        </p>
       )}
     </>
   )

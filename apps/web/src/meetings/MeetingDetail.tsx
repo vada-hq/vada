@@ -58,7 +58,7 @@ function Summary({ meeting, onEvent }: { meeting: Detail; onEvent: (id: string) 
         </div>
         <div>
           <dt className="text-xs text-muted-foreground">참가자</dt>
-          <dd className="mt-2 text-right text-sm tabular-nums">{meeting.attendeeCount}명</dd>
+          <dd className="mt-2 text-sm tabular-nums">{meeting.attendeeCount}명</dd>
         </div>
       </dl>
     </Card>
@@ -123,7 +123,7 @@ export function MeetingDetail({ meeting, onEdit, onCancel, onEvent }: Props) {
       <PageHeading trail={{ title: '회의', crumbs: [{ label: meeting.title, truncate: true }] }}>
         <h1 className="text-xl font-semibold">회의</h1>
       </PageHeading>
-      {!cancelled && (
+      {(meeting.actions.includes('meeting.edit') || meeting.actions.includes('meeting.cancel')) && (
         <PageActions>
           {meeting.actions.includes('meeting.edit') && (
             <Button variant="outline" touch onClick={onEdit}>
