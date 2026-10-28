@@ -28,6 +28,34 @@ const planningViceHead = actor('viceHead', null, [
 const planningMember = actor('member', null, [{ departmentId: 'planning', role: null, rank: null }])
 const plain = actor('plain', null)
 
+test('회의 만들기·다루기·쓰기는 RULE-51의 기준과 회장단 상속을 따른다', () => {
+  for (const who of [president, vicePresident, planningHead, planningViceHead])
+    assert.equal(can(who, 'meeting.create'), true)
+  for (const who of [plain, planningMember, financeMember])
+    assert.equal(can(who, 'meeting.create'), false)
+  for (const who of [
+    president,
+    vicePresident,
+    planningHead,
+    planningViceHead,
+    planningMember,
+    plain,
+  ]) {
+    const leadership = who.councilRank !== null
+    assert.equal(can(who, 'meeting.manage'), leadership)
+    assert.equal(can(who, 'meeting.manage', { createdBy: who.memberId }), true)
+    assert.equal(
+      can(who, 'meeting.manage', { departmentId: 'planning' }),
+      leadership || who === planningHead || who === planningViceHead,
+    )
+    assert.equal(can(who, 'meeting.manage', { departmentId: 'finance' }), leadership)
+    assert.equal(can(who, 'meeting.write', { isMeetingAttendee: true }), true)
+    assert.equal(can(who, 'meeting.manage', { isMeetingAttendee: true }), leadership)
+    assert.equal(allows(who, { who: ['meeting_attendee'] }), false)
+    assert.equal(allows(who, { who: ['meeting_attendee'] }, { isMeetingAttendee: false }), false)
+  }
+})
+
 test('권한표는 계약의 동작을 빠짐없이 한 칸씩 가진다', () => {
   assert.deepEqual(Object.keys(PERMISSIONS).sort(), [...ACTIONS].sort())
 })
@@ -186,6 +214,7 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
     'council.view',
     'chat.direct',
     'event.create',
+    'meeting.create',
     'schedule.create',
     'purchase.request',
     'purchase.view_department',

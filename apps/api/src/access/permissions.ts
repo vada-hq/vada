@@ -18,6 +18,7 @@ export type Criterion =
   | 'event_owner'
   | 'event_department'
   | 'record_creator'
+  | 'meeting_attendee'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
@@ -35,6 +36,7 @@ export type Context = {
   createdBy?: string
   eventOwnerId?: string
   eventDepartmentIds?: readonly string[]
+  isMeetingAttendee?: boolean
 }
 
 export const PERMISSIONS: { readonly [A in Action]: Rule } = {
@@ -65,6 +67,9 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'event.update': { who: ['leadership', 'event_owner'] },
   // 행사 완료와 완료 취소는 회장단이다(DEC-39). 책임자도 물려받지 않는다.
   'event.complete': { who: ['leadership'] },
+  'meeting.create': { who: ['leadership', 'any_department_head'] },
+  'meeting.manage': { who: ['department_head', 'record_creator'] },
+  'meeting.write': { who: ['meeting_attendee', 'department_head', 'record_creator'] },
   // 일정의 부서가 없으면 부장 기준은 회장단만 맞는다(DEC-102).
   'schedule.create': { who: ['member'] },
   'schedule.update': { who: ['department_head', 'record_creator'] },
@@ -144,6 +149,8 @@ function meetsContext(actor: Actor, criterion: Criterion, context: Context) {
   switch (criterion) {
     case 'room_member':
       return context.inRoom === true
+    case 'meeting_attendee':
+      return context.isMeetingAttendee === true
     case 'assignee':
       return sameMember(actor, context.assigneeId)
     case 'requester':

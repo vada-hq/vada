@@ -16,6 +16,7 @@ import { createHomeRoutes } from './home/routes.js'
 import { createCalendarRoutes } from './calendar/routes.js'
 import { createCalendarFeedRoutes, createPublicCalendarRoutes } from './calendar/feed.js'
 import { createScheduleRoutes } from './schedule/routes.js'
+import { createMeetingRoutes } from './meetings/routes.js'
 import { createIncomeRoutes } from './incomes/routes.js'
 import { createInviteRoutes } from './invites/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
@@ -108,6 +109,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
       trustedOrigin: deps.trustedOrigin,
     }),
     schedule: createScheduleRoutes(db, session, { clock }),
+    meetings: createMeetingRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),
     shipments: createShipmentRoutes(db, session, { clock, lookup: deps.deliveryLookup }),
     budget: createBudgetRoutes(db, session, { clock }),

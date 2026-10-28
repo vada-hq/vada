@@ -1,0 +1,121 @@
+import { and, eq } from 'drizzle-orm'
+import {
+  dateFromKorean,
+  type CreateMeetingRequest,
+  type UpdateMeetingRequest,
+  type ReplaceMeetingAttendeesRequest,
+  type CancelMeetingRequest,
+  type MeetingAction,
+} from '@vada/contracts'
+import type { Actor } from '../access/actor.js'
+import { can } from '../access/permissions.js'
+import { meeting, meetingAttendee, record } from '../db/schema.js'
+import type { Tx } from '../db/types.js'
+import { ApiError } from '../http/errors.js'
+import { createRecord, updateRecord } from '../records/records.js'
+import { factsOf, meetingDetailOf, meetingRowOf, versionOf } from './queries.js'
+import { decide } from './policy.js'
+import { assertNewEventOpen, assertReferences, attendeeIdsOf } from './references.js'
+
+type Target = { id: string; now: Date }
+
+async function lockedMeeting(tx: Tx, actor: Actor, id: string, action: MeetingAction) {
+  await tx
+    .select({ id: meeting.id })
+    .from(meeting)
+    .innerJoin(record, eq(record.id, meeting.id))
+    .where(and(eq(meeting.id, id), eq(record.councilId, actor.councilId)))
+    .for('no key update', { of: meeting })
+  const row = await meetingRowOf(tx, actor, id)
+  const denied = decide(actor, factsOf(row), action)
+  if (denied) throw new ApiError(denied)
+  return row
+}
+
+export async function createMeeting(tx: Tx, actor: Actor, input: CreateMeetingRequest, now: Date) {
+  if (!can(actor, 'meeting.create')) throw new ApiError('FORBIDDEN')
+  await assertReferences(tx, actor, input)
+  await assertNewEventOpen(tx, input.eventId, null)
+  const attendees = await attendeeIdsOf(tx, actor, [...input.attendeeIds, actor.memberId], now)
+  const { attendeeIds: _ids, agenda, heldAt, endsAt, ...values } = input
+  const id = await createRecord(tx, {
+    kind: 'meeting',
+    councilId: actor.councilId,
+    actor: actor.memberId,
+    values: { ...values, heldAt: dateFromKorean(heldAt), endsAt: dateFromKorean(endsAt) },
+  })
+  await tx
+    .insert(meetingAttendee)
+    .values(attendees.map(memberId => ({ meetingId: id, memberId, addedAt: now })))
+  for (const [index, item] of agenda.entries())
+    await createRecord(tx, {
+      kind: 'agenda_item',
+      councilId: actor.councilId,
+      actor: actor.memberId,
+      values: { meetingId: id, position: index + 1, ...item },
+    })
+  return meetingDetailOf(tx, actor, id, now)
+}
+
+export async function updateMeeting(
+  tx: Tx,
+  actor: Actor,
+  target: Target,
+  input: UpdateMeetingRequest,
+) {
+  const row = await lockedMeeting(tx, actor, target.id, 'meeting.edit')
+  if ((await versionOf(tx, target.id)) !== input.baseVersionNo)
+    throw new ApiError('VERSION_CONFLICT')
+  const { baseVersionNo: _version, heldAt, endsAt, ...patch } = input
+  const changes = {
+    ...patch,
+    ...(heldAt !== undefined ? { heldAt: dateFromKorean(heldAt) } : {}),
+    ...(endsAt !== undefined ? { endsAt: dateFromKorean(endsAt) } : {}),
+  }
+  const merged = { ...row.meeting, ...changes }
+  if (merged.endsAt && merged.endsAt <= merged.heldAt) throw new ApiError('INVALID_INPUT')
+  await assertReferences(tx, actor, merged)
+  await assertNewEventOpen(tx, merged.eventId, row.meeting.eventId)
+  if (Object.keys(changes).length)
+    await updateRecord(tx, {
+      kind: 'meeting',
+      id: target.id,
+      actor: actor.memberId,
+      reason: null,
+      changes,
+    })
+  return meetingDetailOf(tx, actor, target.id, target.now)
+}
+
+export async function replaceMeetingAttendees(
+  tx: Tx,
+  actor: Actor,
+  target: Target,
+  input: ReplaceMeetingAttendeesRequest,
+) {
+  await lockedMeeting(tx, actor, target.id, 'meeting.edit')
+  const ids = await attendeeIdsOf(tx, actor, input.attendeeIds, target.now)
+  await tx.delete(meetingAttendee).where(eq(meetingAttendee.meetingId, target.id))
+  if (ids.length)
+    await tx
+      .insert(meetingAttendee)
+      .values(ids.map(memberId => ({ meetingId: target.id, memberId, addedAt: target.now })))
+  return meetingDetailOf(tx, actor, target.id, target.now)
+}
+
+export async function cancelMeeting(
+  tx: Tx,
+  actor: Actor,
+  target: Target,
+  input: CancelMeetingRequest,
+) {
+  await lockedMeeting(tx, actor, target.id, 'meeting.cancel')
+  await updateRecord(tx, {
+    kind: 'meeting',
+    id: target.id,
+    actor: actor.memberId,
+    reason: input.reason,
+    changes: { cancelledAt: target.now, cancelReason: input.reason },
+  })
+  return meetingDetailOf(tx, actor, target.id, target.now)
+}

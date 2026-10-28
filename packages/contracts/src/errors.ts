@@ -1,6 +1,8 @@
 // 오류 코드와 HTTP 상태의 목록. 서버는 코드만 던지고 상태는 여기서 찾는다. 화면은 코드나 이 목록의 상태로 가른다.
 // 코드는 응답의 error 값이라 이름을 바꾸면 화면과 외부가 깨진다. 새 오류는 여기에 더한다.
 export const ERROR_STATUS = {
+  MEETING_CANCELLED: 409,
+  MEETING_HAS_TASKS: 409,
   INVALID_CURSOR: 400,
   INVALID_INPUT: 400,
   // 같은 예산, 같은 행사(둘 다 없음 포함) 안에 같은 이름의 예산 항목이 있다(DEC-92)

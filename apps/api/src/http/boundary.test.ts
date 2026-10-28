@@ -21,7 +21,7 @@ const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const origin = 'http://127.0.0.1:5180'
 // 경계 검사가 보는 변경 라우트 수. 라우트를 더하거나 빼면 이 수를 맞춘다. 모듈 하나가 앱에서 빠지면 수가 줄어 아래 시험이 실패한다.
-const MUTATING_ROUTES = 88
+const MUTATING_ROUTES = 92
 
 // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
 // 모듈 목록은 운영 서버와 같은 appModulesOf 한 곳에 있다. AppOptions에 모듈이 추가되면 거기서 타입 오류가 난다.
