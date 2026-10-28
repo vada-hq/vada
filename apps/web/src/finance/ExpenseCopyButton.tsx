@@ -14,7 +14,14 @@ export function ExpenseCopyButton({ expense }: { expense: ExpenseSummary }) {
     )
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="outline" size="sm" touch onClick={() => void copy()}>
+      {/* 지출 카드는 제목 단추의 덮개가 카드 전체를 덮으므로 이 단추를 덮개 위로 올린다. */}
+      <Button
+        variant="outline"
+        size="sm"
+        touch
+        className="relative z-10"
+        onClick={() => void copy()}
+      >
         행 복사
       </Button>
       {copied && (

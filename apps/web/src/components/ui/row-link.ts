@@ -9,3 +9,7 @@ export const rowLinkBox =
 
 // 제목 단추: 줄 전체를 덮고, 링은 줄 상자가 그리므로 단추 자신은 그리지 않는다.
 export const rowLinkTarget = 'after:absolute after:inset-0 focus-visible:ring-0'
+
+// 카드 머리의 작은 글 링크([모두 보기]·[내역]): 휴대폰에서 누르는 자리만 44px로 키우고, 키운 만큼 음수 바깥 여백으로
+// 되돌려 머리 높이와 글자 자리는 그대로 둔다.
+export const headLinkTouch = 'max-sm:-my-3 max-sm:min-h-11'

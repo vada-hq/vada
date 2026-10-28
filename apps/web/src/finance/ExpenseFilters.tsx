@@ -5,6 +5,9 @@ import { NativeSelect } from '@/components/ui/native-select'
 import type { ExpenseFilters as Filters } from './expense-filter'
 
 type Props = {
+  // 1024 아래에서 [필터]가 접고 펼친다(ExpenseFilterToggle).
+  id?: string
+  hidden?: boolean
   expenses: ExpenseSummary[]
   allocations: ExpenseAllocation[]
   periods: FiscalPeriodView[]
@@ -12,7 +15,15 @@ type Props = {
   onChange: (filters: Filters) => void
 }
 
-export function ExpenseFilters({ expenses, allocations, periods, filters, onChange }: Props) {
+export function ExpenseFilters({
+  id,
+  hidden,
+  expenses,
+  allocations,
+  periods,
+  filters,
+  onChange,
+}: Props) {
   const events = new Map(
     expenses.flatMap(row => (row.event ? [[row.event.id, row.event.name]] : [])),
   )
@@ -24,7 +35,7 @@ export function ExpenseFilters({ expenses, allocations, periods, filters, onChan
     ),
   )
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div id={id} hidden={hidden} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       <Label className="flex min-w-0 flex-col gap-2">
         회계 기간
         <NativeSelect

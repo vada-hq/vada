@@ -2,6 +2,8 @@ import type { Closing, ClosingCheck, ClosingPendingEvent, SettlementTarget } fro
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { rowLinkBox, rowLinkTarget } from '@/components/ui/row-link'
+import { cn } from '@/lib/utils'
 import { targetLabel } from '@/events/settlement-view'
 import { CHECK_LABEL, signedWon } from './closing-view'
 
@@ -18,7 +20,8 @@ function Target({ target, openers }: { target: SettlementTarget; openers: Closin
   const open = () =>
     target.type === 'request' ? openers.onOpenRequest(target.id) : openers.onOpenExpense(target.id)
   return (
-    <Button variant="link" className={linkClass} onClick={open}>
+    // 한 칸에 대상이 여럿이라 줄 덮개 대신 링크마다 휴대폰에서 44px로 키운다.
+    <Button variant="link" touch className={linkClass} onClick={open}>
       {targetLabel(target)}
     </Button>
   )
@@ -42,8 +45,12 @@ function CheckRow({ check, openers }: { check: ClosingCheck; openers: ClosingOpe
 
 function PendingRow({ row, onOpen }: { row: ClosingPendingEvent; onOpen: (id: string) => void }) {
   return (
-    <li className="flex flex-col gap-1 rounded-sm border p-3">
-      <Button variant="link" className={linkClass} onClick={() => onOpen(row.event.id)}>
+    <li className={cn(rowLinkBox, 'flex flex-col gap-1 rounded-sm border p-3')}>
+      <Button
+        variant="link"
+        className={cn(linkClass, rowLinkTarget)}
+        onClick={() => onOpen(row.event.id)}
+      >
         {row.event.name}
       </Button>
       <span className="text-xs text-gray-500">

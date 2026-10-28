@@ -2,10 +2,11 @@ import type { FinanceOverviewEvent } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { TwoPartMeter } from '@/components/TwoPartMeter'
 import { Button } from '@/components/ui/button'
+import { rowLinkBox } from '@/components/ui/row-link'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { signedWon } from './closing-view'
-import { nameLinkClass, rowLinkClass } from './event-settlement-view'
+import { nameLinkClass, rowNameLinkClass } from './event-settlement-view'
 import { wholeRateOf } from './overview-view'
 import { wonLabel } from './purchase-view'
 
@@ -92,12 +93,12 @@ function EventList({ rows, onOpen }: Omit<Props, 'wide'>) {
       {rows.map(row => (
         <li
           key={row.event.id}
-          className="relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50"
+          className={`${rowLinkBox} flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50`}
         >
           <div className="flex items-start gap-3">
             <Button
               variant="link"
-              className={`min-w-0 flex-1 ${rowLinkClass}`}
+              className={`min-w-0 flex-1 ${rowNameLinkClass}`}
               title={row.event.name}
               onClick={() => onOpen(row.event.id)}
             >

@@ -1,10 +1,11 @@
 import type { FinanceOverviewExpense } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { headLinkTouch, rowLinkBox } from '@/components/ui/row-link'
 import { cardClass } from '@/components/ui/card'
 import { dayLabel } from '@/lib/korean-date-text'
 import { cn } from '@/lib/utils'
-import { nameLinkClass, rowLinkClass } from './event-settlement-view'
+import { nameLinkClass, rowNameLinkClass } from './event-settlement-view'
 import { placeOf } from './overview-view'
 import { wonLabel } from './purchase-view'
 
@@ -70,12 +71,12 @@ function RecentList({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
       {rows.map(row => (
         <li
           key={row.id}
-          className="relative flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50"
+          className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50`}
         >
           <div className="flex items-start gap-3">
             <Button
               variant="link"
-              className={`min-w-0 flex-1 ${rowLinkClass}`}
+              className={`min-w-0 flex-1 ${rowNameLinkClass}`}
               onClick={() => onOpen(row.id)}
             >
               <span className="line-clamp-2">{row.description}</span>
@@ -102,7 +103,7 @@ export function OverviewRecent({ rows, wide, onOpen, onAll }: Props) {
         <Button
           variant="link"
           size="sm"
-          className="h-auto p-0 text-xs text-gray-500"
+          className={cn('h-auto p-0 text-xs text-gray-500', headLinkTouch)}
           onClick={onAll}
         >
           지출 전체 보기

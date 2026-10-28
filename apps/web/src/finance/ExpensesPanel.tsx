@@ -7,6 +7,7 @@ import { useSplit } from '@/lib/use-split'
 import ExpenseCard from './ExpenseCard'
 import type { ExpenseList } from './useExpenses'
 import { ExpenseFilters } from './ExpenseFilters'
+import { ExpenseFilterToggle } from './ExpenseFilterToggle'
 import { ExpenseTable } from './ExpenseTable'
 import { ExpenseSummaryCells } from './ExpenseSummaryCells'
 import { summarizeExpenses } from './expense-summary'
@@ -59,25 +60,45 @@ function ReadyExpenses({
   const selected = { ...filters, period, eventId: eventId ?? filters.eventId }
   const found = filterExpenses(expenses, allocations, selected)
   const summary = summarizeExpenses(found, allocations, selected)
+  const filterProps = {
+    expenses,
+    allocations,
+    periods,
+    filters: selected,
+    onChange: (next: typeof selected) => {
+      setFilters(next)
+      if (next.period?.id !== period?.id) onPeriod?.(next.period?.id ?? null)
+      if (next.eventId !== selected.eventId) onEvent?.(next.eventId)
+    },
+  }
   return (
     <>
-      <ExpenseFilters
-        expenses={expenses}
-        allocations={allocations}
-        periods={periods}
-        filters={selected}
-        onChange={next => {
-          setFilters(next)
-          if (next.period?.id !== period?.id) onPeriod?.(next.period?.id ?? null)
-          if (next.eventId !== selected.eventId) onEvent?.(next.eventId)
-        }}
-      />
+      <ExpenseHead filterProps={filterProps} summary={summary} truncated={truncated} />
+      {found.length === 0 && <StateMessage kind="empty">지출 없음</StateMessage>}
+      <ExpenseRows expenses={found} allocations={allocations} filters={selected} onOpen={onOpen} />
+    </>
+  )
+}
+
+// 필터 칸, 요약, 상한 안내. 넓은 화면은 필터 칸이 요약 위에 늘 펼쳐져 있고, 좁으면 요약이 먼저이고 칸은 [필터]로 접힌다.
+function ExpenseHead({
+  filterProps,
+  summary,
+  truncated,
+}: {
+  filterProps: ComponentProps<typeof ExpenseFilters>
+  summary: ReturnType<typeof summarizeExpenses>
+  truncated: boolean
+}) {
+  const wide = useSplit()
+  return (
+    <>
+      {wide && <ExpenseFilters {...filterProps} />}
       <ExpenseSummaryCells summary={summary} />
       {truncated && (
         <StateMessage kind="notice">지출이 많아서 {EXPENSE_LIST_LIMIT}개만 보여요.</StateMessage>
       )}
-      {found.length === 0 && <StateMessage kind="empty">지출 없음</StateMessage>}
-      <ExpenseRows expenses={found} allocations={allocations} filters={selected} onOpen={onOpen} />
+      {!wide && <ExpenseFilterToggle {...filterProps} />}
     </>
   )
 }
