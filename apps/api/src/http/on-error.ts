@@ -53,10 +53,24 @@ function logFailure(c: Context, error: Error, fields: Record<string, unknown>) {
 const errorNameOf = (error: Error) =>
   /^[A-Za-z][A-Za-z0-9]{0,59}$/.test(error.name) ? error.name : 'Error'
 
-// 예상하지 못한 오류는 클래스 이름과 SQLSTATE만 남긴다. 이름도 임의로 바뀔 수 있어 형식이 맞을 때만 쓴다.
+// drizzle은 드라이버 오류를 이름이 'Error'인 오류로 감싸고 메시지에 매개변수 값을 넣는다.
+// 그래서 메시지 대신 바로 아래 원인의 이름과 Node 오류 코드(ERR_…)만 남긴다. SQLSTATE는 sqlState가 따로 남긴다.
+const NODE_ERROR_CODE = /^ERR_[A-Z0-9_]{1,60}$/
+function causeOf(error: Error) {
+  const cause: unknown = error.cause
+  if (!(cause instanceof Error)) return {}
+  const code = (cause as { code?: unknown }).code
+  return {
+    cause: errorNameOf(cause),
+    causeCode: typeof code === 'string' && NODE_ERROR_CODE.test(code) ? code : undefined,
+  }
+}
+
+// 예상하지 못한 오류는 클래스 이름, 원인의 이름·Node 오류 코드, SQLSTATE만 남긴다. 이름도 임의로 바뀔 수 있어 형식이 맞을 때만 쓴다.
 export function logUnexpectedError(c: Context, error: Error) {
   logFailure(c, error, {
     error: errorNameOf(error),
+    ...causeOf(error),
     sqlState: sqlState(error),
   })
 }

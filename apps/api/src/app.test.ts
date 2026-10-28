@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { DrizzleQueryError } from 'drizzle-orm'
 import { HTTPException } from 'hono/http-exception'
 import { createApp } from './app.js'
 import { ApiError } from './http/errors.js'
@@ -58,6 +59,7 @@ test('예상하지 못한 오류는 원문 없이 분류만 로그에 남긴다'
     method: 'GET',
     route: '/api/organizations/:organizationId/boom',
     error: 'Error',
+    cause: 'Error',
     sqlState: '23514',
   })
   assert.ok(!logged[0]!.includes('secret-token'))
@@ -255,6 +257,35 @@ test('로그의 SQLSTATE와 오류 이름은 형식에 맞는 값만 남긴다',
       { event: 'request_failed', method: 'GET', route: '/api/named', error: 'Error' },
     ],
   )
+})
+
+test('drizzle이 감싼 드라이버 오류는 원인의 이름과 Node 오류 코드를 남기고 메시지·매개변수는 남기지 않는다', async t => {
+  const logged: string[] = []
+  t.mock.method(console, 'error', (line: string) => {
+    logged.push(line)
+  })
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  app.get('/api/organizations/:organizationId/driver', () => {
+    const cause = Object.assign(new TypeError('Received secret-token'), {
+      code: 'ERR_INVALID_ARG_TYPE',
+    })
+    throw new DrizzleQueryError('select $1', ['secret-token'], cause)
+  })
+  await app.request('/api/organizations/org-1/driver')
+  assert.deepEqual(
+    logged.map((line): unknown => JSON.parse(line)),
+    [
+      {
+        event: 'request_failed',
+        method: 'GET',
+        route: '/api/organizations/:organizationId/driver',
+        error: 'Error',
+        cause: 'TypeError',
+        causeCode: 'ERR_INVALID_ARG_TYPE',
+      },
+    ],
+  )
+  assert.ok(!logged.join('').includes('secret-token'))
 })
 
 test('서버 쪽 실패만 오류 수집기로 보내고, 로그와 같은 정제된 필드를 함께 넘긴다', async t => {
