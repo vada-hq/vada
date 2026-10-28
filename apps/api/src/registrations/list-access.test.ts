@@ -14,7 +14,7 @@ const actor: Actor = {
 }
 const base = { actor, eventId: 'event', session: 'session', now: new Date('2026-10-25T00:00:00Z') }
 const invalid = (error: unknown) => error instanceof ApiError && error.code === 'INVALID_INPUT'
-test('명단 열람 토큰: 같은 열람은 기록을 생략하고 새 열람은 새 토큰이다', () => {
+test('명단 열람 토큰: 같은 열람은 토큰을 유지하고 새 열람은 새 토큰이다', () => {
   const access = createListAccess()
   const first = access(base)
   assert.equal(first.first, true)

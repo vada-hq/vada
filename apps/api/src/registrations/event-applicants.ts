@@ -51,11 +51,11 @@ async function visibleApplicants(tx: Tx, actor: Actor, target: Target, facts: Ev
   const rows = await eventApplicantRows(tx, scope)
     .limit(EVENT_APPLICANT_PAGE_SIZE)
     .offset((target.query.page - 1) * EVENT_APPLICANT_PAGE_SIZE)
-  // 기존 기록 표는 양식을 가리킨다. 첫 양식으로 행사 명단 열람 한 번을 대표한다.
-  if (access.first && forms[0])
+  // 같은 토큰으로 쪽·검색을 바꾸면 다른 양식이 드러날 수 있어 응답마다 포함된 양식을 기록한다(DEC-65).
+  for (const formId of new Set(rows.map(row => row.formId)))
     await recordApplicantAccess(tx, {
       actor,
-      formId: forms[0].id,
+      formId,
       registrationId: null,
       action: 'list',
       ip: target.ip,
