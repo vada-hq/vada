@@ -146,7 +146,9 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
         'purchase.shipment',
         'purchase.approve',
         'finance.manage',
+        'closing.view_draft',
         'fee_payment.manage',
+        'purchase.view_department',
       ].includes(action),
   )
   assert.deepEqual(permissionsOf(president), listed)
@@ -159,8 +161,23 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
     'chat.direct',
     'event.create',
     'purchase.request',
+    'purchase.view_department',
   ])
   assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct', 'purchase.request'])
+})
+
+// 이름 붙은 읽기 예외(DEC-28 '보기의 예외'). 화면은 이 이름으로만 읽기를 가르고 동작 권한을 빌리지 않는다.
+test('읽기 칸: 공개 전 결산 읽기는 재정부만이고 회장단과 부장도 물려받지 않는다', () => {
+  assert.equal(can(financeMember, 'closing.view_draft'), true)
+  for (const denied of [president, vicePresident, planningHead, planningMember, plain])
+    assert.equal(can(denied, 'closing.view_draft'), false, denied.memberId)
+})
+
+test('읽기 칸: 구매 요청 부서 보기는 부서 직급자(부부장 포함)만이고 직급 부서가 없는 회장단은 아니다', () => {
+  for (const allowed of [planningHead, planningViceHead])
+    assert.equal(can(allowed, 'purchase.view_department'), true, allowed.memberId)
+  for (const denied of [president, vicePresident, planningMember, financeMember, plain])
+    assert.equal(can(denied, 'purchase.view_department'), false, denied.memberId)
 })
 
 // 구매와 재정 칸(DEC-27 기준 3·5, DEC-28, DEC-41). 재정은 직급으로 물려받지 않고, 결재에는 직무 분리가 없다.
@@ -205,8 +222,10 @@ test('내 권한 목록: 재정부원은 구매 요청, 결재, 재정 관리를
     'purchase.approve',
     'finance.manage',
   ])
-  for (const who of [president, vicePresident, planningHead, planningViceHead])
+  for (const who of [president, vicePresident])
     assert.deepEqual(purchases(who), ['purchase.request'])
+  for (const who of [planningHead, planningViceHead])
+    assert.deepEqual(purchases(who), ['purchase.request', 'purchase.view_department'])
 })
 
 // 업무 칸(DEC-28). 맥락은 업무의 부서(departmentId)와 담당자(assigneeId)다. 담당자 기준은 회장단도 물려받지 않는다.

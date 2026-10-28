@@ -43,7 +43,15 @@ function ManagedTab({
       <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
     )
   if (tab === 'incomes') return <IncomesTab {...shared} canManage={canManage} />
-  if (tab === 'closing') return <ClosingTab {...shared} canManage={canManage} openers={openers} />
+  if (tab === 'closing')
+    return (
+      <ClosingTab
+        {...shared}
+        canManage={canManage}
+        canReadDraft={view.permissions.includes('closing.view_draft')}
+        openers={openers}
+      />
+    )
   return tab === 'accounts' ? null : <BudgetTab {...shared} canManage={canManage} />
 }
 

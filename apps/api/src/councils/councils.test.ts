@@ -218,13 +218,16 @@ test('내 학생회 목록과 학생회 하나 보기: 만든 사람은 회장�
       { ...view.me, memberId: undefined },
       { memberId: undefined, name: '김회장', councilRank: 'president', departments: [] },
     )
-    // chat.use는 방 참여자만, purchase.cancel은 요청한 사람만, 결재와 재정 관리와 납부자 명단 올리기는 재정부만이라 회장의 목록에 없다.
+    // chat.use는 방 참여자만, purchase.cancel은 요청한 사람만, 결재와 재정 관리와 공개 전 결산 읽기와 납부자 명단 올리기는 재정부만,
+    // 부서 구매 보기는 부서 직급자만이라 회장의 목록에 없다.
     const notListed = [
       'chat.use',
       'purchase.cancel',
       'purchase.shipment',
       'purchase.approve',
+      'purchase.view_department',
       'finance.manage',
+      'closing.view_draft',
       'fee_payment.manage',
     ]
     assert.deepEqual(

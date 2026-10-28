@@ -93,7 +93,7 @@ export async function closingOf(
   const period = await closingPeriodOf(db, actor, periodId)
   const publishedAt = (await publishedAtOf(db, actor)).get(period.id) ?? null
   const status = statusOf(publishedAt)
-  if (status === 'draft' && !can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+  if (status === 'draft' && !can(actor, 'closing.view_draft')) throw new ApiError('FORBIDDEN')
   const { incomes, numbers } = await closingFiguresOf(db, actor, period)
   return {
     period: { id: period.id, name: period.name, startsOn: period.startsOn, endsOn: period.endsOn },

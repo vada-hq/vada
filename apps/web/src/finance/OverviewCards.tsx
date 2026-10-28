@@ -8,9 +8,10 @@ import { signedWon } from './closing-view'
 import { sourcesLabel } from './overview-view'
 import { wonLabel } from './purchase-view'
 
-// 카드를 누르면 가는 곳. 편성은 예산을 고칠 수 있는 재정부에게만 있다(와이어프레임 FIN-00 '편성').
+// 카드를 누르면 가는 곳. 예산 탭은 모든 운영진이 읽는다. 링크 이름만 예산을 고칠 수 있는 재정부에게 '편성'(와이어프레임 FIN-00)이고 다른 운영진에게 '내역'이다.
 export type OverviewCardLinks = {
-  onBudget: (() => void) | null
+  onBudget: () => void
+  budgetLabel: '편성' | '내역'
   onSpent: () => void
   onCommitted: () => void
 }
@@ -56,7 +57,7 @@ export function OverviewCards({
             <ChartColumn />
           </IconTile>
         }
-        link={links.onBudget && <CardLink label="편성" onClick={links.onBudget} />}
+        link={<CardLink label={links.budgetLabel} onClick={links.onBudget} />}
         value={sources === null ? null : wonLabel(overview.total)}
         valueClassName={`${valueSize} text-blue-600`}
         sub={sources ?? '수입 예산 없음'}

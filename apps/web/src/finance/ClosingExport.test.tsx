@@ -32,7 +32,13 @@ function show(closing = closingFixture(), canManage = true) {
   api.on('GET', CLOSING, () => json({ closing }))
   const openers = { onOpenExpense: vi.fn(), onOpenRequest: vi.fn(), onOpenEvent: vi.fn() }
   render(
-    <ClosingTab councilId="c1" canManage={canManage} onForbidden={vi.fn()} openers={openers} />,
+    <ClosingTab
+      councilId="c1"
+      canManage={canManage}
+      canReadDraft={canManage}
+      onForbidden={vi.fn()}
+      openers={openers}
+    />,
   )
 }
 
@@ -151,6 +157,7 @@ test('확인을 연 동안 감사용 동작이 서버 동작에서 빠지면 확
     <ClosingTab
       councilId="c1"
       canManage
+      canReadDraft
       onForbidden={vi.fn()}
       openers={{ onOpenExpense: vi.fn(), onOpenRequest: vi.fn(), onOpenEvent: vi.fn() }}
     />,

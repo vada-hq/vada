@@ -184,3 +184,13 @@ test('회계 기간이 없으면 없음을 보이고, 재정부에게만 예산 
   fireEvent.click(await screen.findByRole('button', { name: '예산 탭에서 만들기' }))
   expect(window.location.search).toBe('?tab=budget')
 })
+
+test('재정부가 아닌 운영진도 총예산 카드의 내역으로 예산 탭을 읽는다. 편성 버튼만 없다', async () => {
+  serve()
+  atFinanceHome()
+  showFinance(MEMBER_PERMISSIONS)
+  const total = await screen.findByRole('region', { name: '총예산' })
+  expect(within(total).queryByRole('button', { name: '편성' })).toBeNull()
+  fireEvent.click(within(total).getByRole('button', { name: '내역' }))
+  expect(window.location.search).toBe(`?tab=budget&period=${CURRENT_PERIOD}`)
+})

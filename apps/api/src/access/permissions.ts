@@ -69,7 +69,12 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'purchase.cancel': { who: ['requester'] },
   'purchase.shipment': { who: ['finance', 'requester'] },
   'purchase.approve': { who: ['finance'] },
+  // 이름 붙은 읽기 예외(DEC-28 '보기의 예외'). 화면은 읽기를 동작 권한으로 가리지 않고 이 이름만 본다(AGENTS.md '화면의 권한').
+  // 부서 구매 보기는 직급이 있는 부서의 사람들 요청이다(home/department-purchases.ts). 직급 부서가 없으면 고를 것이 없다.
+  'purchase.view_department': { who: ['any_department_head'] },
   'finance.manage': { who: ['finance'] },
+  // 공개 전 결산서는 재정부만 읽는다(DEC-70). 공개 뒤에는 council.view다.
+  'closing.view_draft': { who: ['finance'] },
   // 참가 신청 칸(DEC-28 '행사', DEC-25). 관리는 그 행사의 책임자와 담당 부서, 회장단(기준 3 상속)이고 신청자 정보 보기는 거기에 재정부를 더한다.
   // 납부자 명단은 재정부가 올리고, 재정부와 회장단이 본다. 재정은 직급으로 물려받지 않는다(기준 3).
   'registration.manage': { who: ['event_owner', 'event_department', 'leadership'] },

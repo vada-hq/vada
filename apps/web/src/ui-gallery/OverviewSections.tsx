@@ -9,6 +9,7 @@ const COUNCIL_ID = '00000000-0000-4000-8000-0000000000c1'
 const noop = () => {}
 const openers: OverviewOpeners = {
   onBudget: noop,
+  budgetLabel: '편성',
   onSpent: noop,
   onCommitted: noop,
   onEvent: noop,
@@ -141,7 +142,7 @@ export function OverviewSection() {
             paidCount: 1,
           }}
           wide={wide}
-          openers={{ ...openers, onBudget: null }}
+          openers={{ ...openers, budgetLabel: '내역' }}
         />
         <OverviewView overview={empty} wide={wide} openers={openers} />
         <NoPeriod councilId={COUNCIL_ID} canManage />

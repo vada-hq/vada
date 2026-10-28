@@ -29,8 +29,10 @@ import { usePeriods } from './useIncomes'
 
 type Props = {
   councilId: string
-  // 공개·다시 열기와 감사용 내보내기는 재정부(`finance.manage`)만이다. 공개 전 결산서도 재정부만 본다.
+  // 기간 만들기 버튼과 공개 막힘 안내는 재정부(`finance.manage`)만이다. 공개·다시 열기·내보내기는 결산의 actions다.
   canManage: boolean
+  // 공개 전 결산서 읽기(서버 권한 closing.view_draft). 읽기를 동작 권한으로 가리지 않는다.
+  canReadDraft: boolean
   onForbidden: () => void
   openers: ClosingOpeners
 }
@@ -87,7 +89,7 @@ function ClosingView({
 }
 
 // 기간 하나의 결산. 기간을 바꾸면 처음부터 다시 만든다(이전 기간의 거절 문구가 남지 않게).
-// 공개 전에는 재정부가 아니면 서버가 403이므로 읽지 않고 안내만 보인다.
+// 공개 전에는 closing.view_draft가 없으면 서버가 403이므로 읽지 않고 안내만 보인다.
 function PeriodClosing({
   period,
   onChanged,
@@ -97,7 +99,7 @@ function PeriodClosing({
   period: FiscalPeriodSummary
   onChanged: () => void
 }) {
-  const hidden = period.status === 'draft' && !rest.canManage
+  const hidden = period.status === 'draft' && !rest.canReadDraft
   const read = useClosing(rest.councilId, period.id, !hidden, onForbidden)
   const change = useClosingChange(rest.councilId, period.id, read, { onChanged, onForbidden })
   if (hidden) return <StateMessage kind="notice">{CLOSING_HIDDEN}</StateMessage>

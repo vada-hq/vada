@@ -32,7 +32,9 @@ export const ACTIONS = [
   'purchase.cancel', // 구매 요청 취소(요청한 사람만)
   'purchase.shipment', // 송장 넣기·고치기·취소(재정 역할 부서와 요청한 사람, DEC-92)
   'purchase.approve', // 구매 품목 결재(재정부, 자기 요청 포함)
+  'purchase.view_department', // 구매 요청의 '부서 구매' 보기 선택지(부서 직급자, 그 부서 사람의 요청)
   'finance.manage', // 회계 기간, 예산 항목, 지출, 증빙, 취소, 환급(재정부)
+  'closing.view_draft', // 공개 전 결산서 읽기(재정부). 공개 뒤에는 모든 운영진이 읽는다
   'registration.manage', // 신청 양식 만들기·고치기·멈추기, 신청 취소, 출석(그 행사의 책임자와 담당 부서, 회장단)
   'deposit.confirm', // 참가비 입금 확인과 확인 취소(그 행사의 책임자와 담당 부서, 회장단)
   'registration.view_applicants', // 신청자 이름·학번·휴대폰 보기(위에 재정부)

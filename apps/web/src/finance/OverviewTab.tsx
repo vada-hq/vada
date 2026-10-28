@@ -17,7 +17,7 @@ import { NoPeriod } from './NoPeriod'
 
 type Props = {
   councilId: string
-  // 예산을 고칠 수 있는 재정부(finance.manage). 총예산 '편성'과 기간 만들기 버튼이 이 사람에게만 있다.
+  // 예산을 고칠 수 있는 재정부(finance.manage). 총예산 링크 이름('편성')과 기간 만들기 버튼만 가른다. 읽기는 가리지 않는다.
   canManage: boolean
   onForbidden: () => void
 }
@@ -57,9 +57,9 @@ export function OverviewView({
 // 카드와 줄이 가는 곳. 탭을 옮기면 기록을 쌓아 뒤로 가기가 개요로 돌아온다(지출 탭과 예산 탭은 같은 기간이다).
 function openersOf(councilId: string, periodId: string, canManage: boolean): OverviewOpeners {
   return {
-    onBudget: canManage
-      ? () => openMenu('finance', councilId, { tab: 'budget', period: periodId })
-      : null,
+    // 예산 본문은 모든 운영진이 읽는다(GET /budget는 council.view). 고치기 버튼만 예산 탭 안에서 finance.manage로 가린다.
+    onBudget: () => openMenu('finance', councilId, { tab: 'budget', period: periodId }),
+    budgetLabel: canManage ? '편성' : '내역',
     onSpent: () => openMenu('finance', councilId, { tab: 'expenses', period: periodId }),
     onCommitted: () =>
       openMenu('finance', councilId, { tab: 'expenses', period: periodId, spending: 'committed' }),

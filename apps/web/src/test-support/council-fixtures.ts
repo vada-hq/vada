@@ -17,8 +17,14 @@ const defaultTitles = {
 // 서버의 내 권한 목록(permissionsOf)과 같다. 방 칸(chat.use)과 요청한 사람 칸(purchase.cancel)은 맥락이 있어야 맞아서 목록에 없고,
 // 재정 칸은 직급으로 물려받지 않아 재정부만 가진다.
 export const MEMBER_PERMISSIONS: Action[] = ['council.view', 'chat.direct', 'purchase.request']
-const FINANCE_ONLY: Action[] = ['purchase.approve', 'finance.manage', 'fee_payment.manage']
-const NEEDS_CONTEXT: Action[] = ['chat.use', 'purchase.cancel']
+const FINANCE_ONLY: Action[] = [
+  'purchase.approve',
+  'finance.manage',
+  'closing.view_draft',
+  'fee_payment.manage',
+]
+// 부서 직급이 있어야 맞아서 직급 부서가 없는 회장단은 없다.
+const NEEDS_CONTEXT: Action[] = ['chat.use', 'purchase.cancel', 'purchase.view_department']
 // 재정부는 납부자 명단 보기와 신청자 정보 보기도 가진다(서버표의 finance 기준).
 export const FINANCE_PERMISSIONS: Action[] = [
   ...MEMBER_PERMISSIONS,

@@ -117,6 +117,14 @@ test('공개 전에 재정부가 아니면 결산서를 읽지 않고 안내만 
   expect(api.calls.some(call => call.path === CLOSING)).toBe(false)
 })
 
+test('공개 전 결산 읽기는 읽기 권한 closing.view_draft로 가르고 동작 권한 finance.manage를 빌리지 않는다', async () => {
+  serve()
+  await show([...MEMBER_PERMISSIONS, 'closing.view_draft'])
+  expect(await screen.findByText('작성 중')).toBeTruthy()
+  expect(screen.queryByText(CLOSING_HIDDEN)).toBeNull()
+  expect(screen.queryByRole('button', { name: '공개' })).toBeNull()
+})
+
 test('공개 뒤에는 운영진도 결산서를 보고 공개·다시 열기 버튼은 없다', async () => {
   const periods = standardPeriods()
   periods.periods[0] = { ...periods.periods[0]!, status: 'published' }
