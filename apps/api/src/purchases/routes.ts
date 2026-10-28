@@ -19,7 +19,8 @@ import { json } from '../http/validate.js'
 import { cancelLineItem } from './cancel-item.js'
 import { decideLineItems } from './decide.js'
 import type { PurchasePush } from './notify.js'
-import { requestDetailOf, requestListOf } from './queries.js'
+import { requestDetailOf } from './queries.js'
+import { requestListOf } from './list.js'
 import { cancelPurchaseRequest, createPurchaseRequest } from './service.js'
 import { createPurchaseWriteLimiter } from './write-limit.js'
 
@@ -108,7 +109,7 @@ function addCancelItemRoute({ routes, auth, clock, push, db }: WriteKit) {
   )
 }
 
-// 구매 요청: 부원은 본인 요청만 읽는다(메뉴 v7 S2 사용자 지시). 내기는 모든 운영진, 취소는 요청한 사람만이다.
+// 구매 요청: 모든 운영진이 읽고 낸다. 취소는 요청한 사람만이다(DEC-27, DEC-28).
 export function createPurchaseRoutes(
   db: Db,
   getSession: SessionReader,

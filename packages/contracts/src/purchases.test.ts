@@ -19,6 +19,17 @@ test('요청 본문 스키마는 모두 z.strictObject이다', () => {
     assert.equal(isStrictObject(schema), true)
 })
 
+test('구매 목록 단계는 네 값만 받고 보기·행사와 함께 고를 수 있다', () => {
+  for (const stage of ['pending', 'unpaid', 'paid', 'closed'])
+    assert.deepEqual(PurchaseRequestListQuerySchema.parse({ view: 'all', event: 'none', stage }), {
+      view: 'all',
+      event: 'none',
+      stage,
+    })
+  for (const stage of ['', 'unknown', 'PAID', ['paid', 'unpaid']])
+    assert.equal(PurchaseRequestListQuerySchema.safeParse({ view: 'all', stage }).success, false)
+})
+
 test('CreatePurchaseRequestSchema: 비운 칸은 null이고 링크는 http와 https만 받는다', () => {
   const parsed = CreatePurchaseRequestSchema.parse({ title: ' a ', items: [item] })
   assert.deepEqual(parsed, {

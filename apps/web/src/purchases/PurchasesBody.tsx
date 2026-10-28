@@ -1,10 +1,4 @@
-import {
-  PURCHASE_PENDING_LIMIT,
-  PURCHASE_RECENT_LIMIT,
-  purchaseStageOf,
-  type PurchaseStage,
-  type PurchaseView,
-} from '@vada/contracts'
+import { PURCHASE_PENDING_LIMIT, PURCHASE_RECENT_LIMIT, type PurchaseView } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { neededMarkOf } from '@/finance/purchase-view'
@@ -16,12 +10,10 @@ import { useNow } from '@/lib/use-now'
 export function PurchasesBody({
   list,
   view,
-  stage,
   onOpen,
 }: {
   list: PurchaseList
   view: PurchaseView
-  stage: PurchaseStage | undefined
   onOpen: (requestId: string) => void
 }) {
   const { state } = list
@@ -38,14 +30,13 @@ export function PurchasesBody({
         </Button>
       </div>
     )
-  const shown = state.requests.filter(request => !stage || purchaseStageOf(request) === stage)
   return (
     <>
-      {shown.length === 0 ? (
+      {state.requests.length === 0 ? (
         <StateMessage kind="empty">구매 요청 없음</StateMessage>
       ) : (
         <ul className="flex flex-col gap-2">
-          {shown.map(request => (
+          {state.requests.map(request => (
             <li key={request.id}>
               <RequestCard
                 request={request}

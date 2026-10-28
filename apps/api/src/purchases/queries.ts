@@ -1,12 +1,5 @@
-import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm'
-import {
-  PURCHASE_PENDING_LIMIT,
-  PURCHASE_RECENT_LIMIT,
-  type PurchaseDecision,
-  type PurchaseRequestDetail,
-  type PurchaseRequestListQuery,
-  type PurchaseRequestsResponse,
-} from '@vada/contracts'
+import { and, asc, eq } from 'drizzle-orm'
+import { type PurchaseDecision, type PurchaseRequestDetail } from '@vada/contracts'
 import { shipmentChangeCode } from '../shipments/policy.js'
 import { shipmentsOf } from '../shipments/queries.js'
 import type { Actor } from '../access/actor.js'
@@ -21,10 +14,8 @@ import {
   request,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { requestHistoryOf } from './history.js'
-import { payableRequestIds } from './payable-requests.js'
 import { lastOutcomeOf } from './last-outcome.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
 import {
@@ -36,64 +27,11 @@ import {
 } from './policy.js'
 import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 import { purchaseSourceMessage } from './source-message.js'
-import { departmentRequestsOf } from '../home/department-purchases.js'
 import { isPaid, summaryRows, summaryOf, type PurchaseSummaryRow as Row } from './summary.js'
 export { isPaid } from './summary.js'
+export { requestListOf } from './list.js'
 
 type Reader = Pick<Db, 'select'>
-// 결재 대기는 필요한 때가 가까운 순, 필요한 때가 없으면 끝이고 그 안은 오래된 순이다(DEC-92, 024 정한 것 9). 취소된 요청은 뺀다.
-// 홈 '받은 것'이 이 목록을 그대로 잘라 쓰므로 차례는 서버가 정한다(화면에서 고치면 잘린 뒤의 급한 요청이 올라오지 못한다).
-// 내 요청과 전체는 최근 순이다. 한 개 더 읽어 넘쳤는지 안다.
-function listOptions(actor: Actor, view: PurchaseRequestListQuery['view']) {
-  if (view === 'pending')
-    return {
-      where: isNull(request.cancelledAt),
-      having: sql`count(*) filter (where ${lastOutcomeOf(lineItem.id)} is null) > 0`,
-      order: [sql`${request.neededBy} asc nulls last`, asc(record.createdAt), asc(request.id)],
-      limit: PURCHASE_PENDING_LIMIT,
-    }
-  return {
-    where: view === 'mine' ? eq(request.requestedBy, actor.memberId) : undefined,
-    having: undefined,
-    order: [desc(record.createdAt), desc(request.id)],
-    limit: PURCHASE_RECENT_LIMIT,
-  }
-}
-
-export async function requestListOf(
-  db: Reader,
-  actor: Actor,
-  query: PurchaseRequestListQuery,
-): Promise<PurchaseRequestsResponse> {
-  if (query.event && query.event !== 'none') await eventRowOf(db, actor, query.event)
-  if (query.view === 'department') {
-    const requests = (await departmentRequestsOf(db, actor)).filter(
-      row =>
-        !query.event ||
-        (query.event === 'none' ? row.event === null : row.event?.id === query.event),
-    )
-    return {
-      requests: requests.slice(0, PURCHASE_RECENT_LIMIT),
-      truncated: requests.length > PURCHASE_RECENT_LIMIT,
-    }
-  }
-  const options = listOptions(actor, query.view)
-  const eventWhere =
-    query.event === 'none'
-      ? isNull(request.eventId)
-      : query.event
-        ? eq(request.eventId, query.event)
-        : undefined
-  const where = and(options.where, eventWhere)
-  const rows = await summaryRows(db, actor, { ...options, where, limit: options.limit + 1 })
-  const shown = rows.slice(0, options.limit)
-  const payable = await payableRequestIds(db, shown)
-  return {
-    requests: shown.map(row => summaryOf(row, payable.has(row.id))),
-    truncated: rows.length > options.limit,
-  }
-}
-
 // 이 학생회의 요청 하나. 다른 학생회의 요청은 없는 것과 같아 404다. 취소한 요청도 읽을 수 있다.
 export async function requestRowOf(db: Reader, actor: Actor, requestId: string) {
   const [row] = await summaryRows(db, actor, {

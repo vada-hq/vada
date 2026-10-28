@@ -63,9 +63,15 @@ export function PurchasesSection() {
         <Button touch variant="link" className="self-start">
           예산 현황
         </Button>
-        <RequestFilter view={view} onView={setView} hasDepartments canDecide />
+        <RequestFilter view={view} onView={setView} canViewDepartment />
         <PurchaseStages
-          requests={requests}
+          counts={
+            scope === 'none'
+              ? { pending: 0, unpaid: 1, paid: 0, closed: 0 }
+              : scope === EVENT
+                ? { pending: 1, unpaid: 0, paid: 0, closed: 0 }
+                : { pending: 1, unpaid: 1, paid: 0, closed: 0 }
+          }
           stage={stage}
           onStage={value => setStage(value ?? undefined)}
         />

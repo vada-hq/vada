@@ -1,9 +1,4 @@
-import {
-  PURCHASE_STAGES,
-  purchaseStageOf,
-  type PurchaseRequestSummary,
-  type PurchaseStage,
-} from '@vada/contracts'
+import { PURCHASE_STAGES, type PurchaseStage } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { STATUS_LABEL } from '@/finance/purchase-view'
 
@@ -15,18 +10,18 @@ const STAGE_LABEL: Record<PurchaseStage, string> = {
 }
 
 export function PurchaseStages({
-  requests,
+  counts,
   stage,
   onStage,
 }: {
-  requests: PurchaseRequestSummary[] | null
+  counts: Record<PurchaseStage, number> | undefined
   stage: PurchaseStage | undefined
   onStage: (stage: PurchaseStage | null) => void
 }) {
   return (
     <div role="group" aria-label="구매 단계 거르기" className="flex flex-wrap gap-2">
       {PURCHASE_STAGES.map(value => {
-        const count = requests?.filter(request => purchaseStageOf(request) === value).length
+        const count = counts?.[value]
         return (
           <Button
             key={value}

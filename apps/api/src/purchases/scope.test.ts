@@ -38,7 +38,16 @@ test(
     )
     assert.deepEqual(await titles(s, 'view=all&event=none'), ['상시'])
     assert.equal((await list(s, 'view=all&event=none')).truncated, false)
+    assert.deepEqual((await list(s, 'view=all&event=none')).stageCounts, {
+      pending: 1,
+      unpaid: 0,
+      paid: 0,
+      closed: 0,
+    })
     assert.equal((await list(s, `view=all&event=${id}`)).requests.length, 100)
+    const scoped = await list(s, `view=all&event=${id}&stage=pending`)
+    assert.equal(scoped.truncated, true)
+    assert.deepEqual(scoped.stageCounts, { pending: 101, unpaid: 0, paid: 0, closed: 0 })
     assert.deepEqual(await titles(s, 'view=department&event=none', 's-planningHead'), ['상시'])
     assert.deepEqual(await titles(s, 'view=mine&event=none', 's-planningMember'), ['상시'])
     assert.deepEqual(await titles(s, 'view=all&event=none', 's-planningMember'), ['상시'])
@@ -112,6 +121,12 @@ test(
         )
     assert.equal((await s.api.get(`${s.base}?view=all&event=none`, 'o-president')).status, 403)
     assert.deepEqual(await titles(s, 'view=all&event=none', 's-plain'), ['우리 상시'])
+    assert.deepEqual((await list(s, 'view=all&stage=pending')).stageCounts, {
+      pending: 1,
+      unpaid: 0,
+      paid: 0,
+      closed: 0,
+    })
     assert.equal((await s.api.get(`${s.base}?view=all&event=none`)).status, 401)
     for (const query of ['event=', 'event=NONE', 'event=none&event=none', 'event=not-a-uuid'])
       assert.equal(

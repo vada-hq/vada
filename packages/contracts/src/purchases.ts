@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { PurchaseShipment } from './shipments.js'
-import type { PurchaseProgress } from './purchase-progress.js'
+import { PURCHASE_STAGES, type PurchaseProgress, type PurchaseStage } from './purchase-progress.js'
 export {
   PURCHASE_STAGES,
   purchaseProgressOf,
@@ -37,6 +37,7 @@ export type PurchaseView = (typeof PURCHASE_VIEWS)[number]
 export const PurchaseRequestListQuerySchema = z.strictObject({
   view: z.enum(PURCHASE_VIEWS),
   event: z.union([z.literal('none'), recordIdInput]).optional(),
+  stage: z.enum(PURCHASE_STAGES).optional(),
 })
 export type PurchaseRequestListQuery = z.infer<typeof PurchaseRequestListQuerySchema>
 
@@ -218,6 +219,8 @@ export interface PurchaseRequestDetail extends PurchaseRequestSummary {
 export interface PurchaseRequestsResponse {
   requests: PurchaseRequestSummary[]
   truncated: boolean
+  // 보기·행사 범위 전체의 수. stage와 목록 상한을 적용하기 전에 센다. 옛 서버 응답에는 없을 수 있다.
+  stageCounts?: Record<PurchaseStage, number>
 }
 export interface PurchaseRequestResponse {
   request: PurchaseRequestDetail

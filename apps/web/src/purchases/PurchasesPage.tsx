@@ -38,7 +38,7 @@ function PurchasesList({ view, onForbidden }: Props) {
   const filter = pickQuery<PurchaseView>(PURCHASE_VIEWS, url.query['view'], defaultView)
   const scope = url.query['scope']
   const stage = PURCHASE_STAGES.find(value => value === url.query['stage'])
-  const list = usePurchases(councilId, filter, onForbidden, { event: scope })
+  const list = usePurchases(councilId, filter, onForbidden, { event: scope, stage })
   const create = () =>
     navigate(menuPath('purchases', councilId, { compose: 'new' }), {
       pageState: {
@@ -65,18 +65,16 @@ function PurchasesList({ view, onForbidden }: Props) {
       <RequestFilter
         view={filter}
         onView={next => url.set({ view: next, stage: null })}
-        hasDepartments={view.me.departments.length > 0}
-        canDecide={canDecide}
+        canViewDepartment={view.permissions.includes('purchase.view_department')}
       />
       <PurchaseStages
-        requests={list.state.kind === 'ready' ? list.state.requests : null}
+        counts={list.state.kind === 'ready' ? list.state.stageCounts : undefined}
         stage={stage}
         onStage={next => url.set({ stage: next })}
       />
       <PurchasesBody
         list={list}
         view={filter}
-        stage={stage}
         onOpen={id => openRecord('purchases', councilId, id)}
       />
     </PageColumn>

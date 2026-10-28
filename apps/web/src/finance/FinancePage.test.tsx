@@ -2,7 +2,11 @@
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { councilView, FINANCE_PERMISSIONS } from '@/test-support/council-fixtures'
+import {
+  councilView,
+  FINANCE_PERMISSIONS,
+  MEMBER_PERMISSIONS,
+} from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
@@ -42,7 +46,7 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
   expect(card.textContent).toContain('10월 25일까지 필요')
   expect(card.textContent).toContain('품목 2개')
   const second = screen.getByRole('heading', { name: '요청 b' }).closest('div')!.parentElement!
-  expect(second.textContent).toContain('필요한 때 없음')
+  expect(second.textContent).not.toContain('필요한 때 없음')
   expect(within(second).getByText('취소')).toBeTruthy()
   // 긴 제목이 칸을 밀어내지 않는다.
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
@@ -160,6 +164,28 @@ test('권한 목록에 purchase.request가 없으면 [구매 요청 내기]가 �
   show(councilView(COUNCIL_ID, { permissions: ['council.view'] }))
   await screen.findByText('구매 요청 없음')
   expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
+})
+
+test('내 부서 거르기는 서버 권한만 보고 직급으로 다시 가르지 않는다', async () => {
+  mockApi().on('GET', listPath('mine'), () => list([]))
+  show(
+    councilView(COUNCIL_ID, {
+      permissions: [...MEMBER_PERMISSIONS, 'purchase.view_department'],
+      councilRank: null,
+    }),
+  )
+  await screen.findByText('구매 요청 없음')
+  expect(screen.getByRole('button', { name: '내 부서' })).toBeTruthy()
+  cleanup()
+  show(
+    councilView(COUNCIL_ID, {
+      permissions: MEMBER_PERMISSIONS,
+      councilRank: null,
+      departments: [{ id: 'd1', name: '기획부', role: null, rank: 'head' }],
+    }),
+  )
+  await screen.findByText('구매 요청 없음')
+  expect(screen.queryByRole('button', { name: '내 부서' })).toBeNull()
 })
 
 test('목록을 읽다 403이면 학생회를 다시 읽게 한다', async () => {
