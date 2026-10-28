@@ -7,7 +7,7 @@ import { CountBadge } from './count-badge'
 
 afterEach(cleanup)
 
-test('큰 수 배지는 아이콘 오른쪽 모서리부터 놓아 아이콘을 덮지 않는다', () => {
+test('큰 수 배지는 아이콘 오른쪽 위에 조금만 걸치고 360 폭의 다섯 칸 안에 든다', () => {
   render(
     <BottomTabs
       items={[
@@ -23,6 +23,8 @@ test('큰 수 배지는 아이콘 오른쪽 모서리부터 놓아 아이콘을 
     />,
   )
   const badge = screen.getByLabelText('안 읽은 메시지 120개')
-  expect(badge.parentElement?.classList.contains('left-full')).toBe(true)
-  expect(badge.parentElement?.classList.contains('left-3')).toBe(false)
+  // 360/5칸 = 72px, 아이콘 20px 가운데면 오른쪽 여유 26px다. 좁힌 '99+'(약 31px)가 6px 걸치면 칸 안에 든다(Chrome 실측).
+  const anchor = badge.parentElement!
+  for (const name of ['left-full', '-ml-1.5', '*:px-1']) expect(anchor.classList).toContain(name)
+  expect(anchor.classList.contains('left-3')).toBe(false)
 })

@@ -1081,7 +1081,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
-<span class="absolute -top-1 left-full">
+<span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
 <span aria-label="안 읽은 메시지 3개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">3</span>
 </span>
 </span>
@@ -1095,7 +1095,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2">
 </path>
 </svg>
-<span class="absolute -top-1 left-full">
+<span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
 </span>
 </span>
 <span>업무</span>
