@@ -31,6 +31,7 @@ test('탈퇴한 뒤 같은 Google 계정으로 다시 로그인하면 학생회 
     // 세션을 만든 시각은 better-auth가 실제 시계로 적는다. 탈퇴의 24시간 검사가 같은 시계를 쓰게 앱의 시계도 실제 시계다.
     const clock = () => new Date()
     const modules = appModulesOf(db, headers => auth.api.getSession({ headers }), {
+      trustedOrigin: baseURL,
       clock,
       writeLimiter: createPurchaseWriteLimiter(),
       receiptKey: 'test-receipt-key',

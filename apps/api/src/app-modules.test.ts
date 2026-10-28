@@ -4,7 +4,7 @@ import { appModulesOf } from './app-modules.js'
 import { createApp } from './app.js'
 import { createTestDb, type TestDb } from './db/test-db.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
-import { caller, testSession } from './test-support/http.js'
+import { caller, ORIGIN, testSession } from './test-support/http.js'
 import { seedCouncil } from './test-support/council.js'
 
 // 앱의 시계를 하루 미뤄 두고 모든 모듈이 그 시각을 쓰는지 본다.
@@ -84,6 +84,7 @@ function probesOf(app: ReturnType<typeof createApp>): Probe[] {
     const path = route.path
       .replace(':councilId', councilId)
       .replace(':code', INVITE_CODE)
+      .replace(':file', `${'a'.repeat(43)}.ics`)
       .replaceAll(PARAMS, MISSING)
     probes.set(route.path, { method: 'GET', route: route.path, path })
   }
@@ -114,6 +115,7 @@ const NO_CLOCK = new Set(['agreement', 'pushDevices', 'profile'])
 test('모든 라우트 모듈이 앱의 시계를 쓰고 자기 시계를 만들지 않는다', async () => {
   let calls = 0
   const modules = appModulesOf(testDb.db, testSession, {
+    trustedOrigin: ORIGIN,
     clock: () => {
       calls++
       return SHIFTED

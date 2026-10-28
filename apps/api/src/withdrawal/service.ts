@@ -5,6 +5,7 @@ import { markAgreementsWithdrawn } from '../agreement/service.js'
 import { syncRooms } from '../chat/rooms.js'
 import {
   accounts,
+  calendarFeed,
   cohort,
   councilMembership,
   department,
@@ -185,6 +186,7 @@ export async function withdrawAccount(
     throw new ApiError('PRESIDENT_CANNOT_WITHDRAW')
   const counts = await withdrawalCountsOf(tx, userId, memberId)
   if (memberId) {
+    await tx.delete(calendarFeed).where(eq(calendarFeed.memberId, memberId))
     await endMemberships(tx, memberId, councilIds, now)
     await clearMember(tx, memberId)
   }

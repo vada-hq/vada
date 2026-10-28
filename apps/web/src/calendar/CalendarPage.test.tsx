@@ -46,6 +46,7 @@ test('권한으로 읽기를 가리지 않고 모은 일정 경로 한 번만 �
   render(page())
   await screen.findByRole('button', { name: '10월 28일 (수) 일정 4건' })
   expect(screen.getByRole('heading', { name: '2026년 10월' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '구독' })).toBeTruthy()
   for (const item of calendarItems.filter(item => item.start.startsWith('2026-10-28')))
     expect(within(selectedDay()).getByRole('button', { name: calendarTitleOf(item) })).toBeTruthy()
   expect(api.calls.map(({ method, path }) => [method, path])).toEqual([['GET', october]])

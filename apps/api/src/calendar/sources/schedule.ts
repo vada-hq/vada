@@ -10,7 +10,8 @@ export async function scheduleItems(
   db: Pick<Db, 'select'>,
   actor: Actor,
   range: CalendarRange,
-): Promise<CalendarItem[]> {
+  options: { memo?: boolean } = {},
+): Promise<(CalendarItem & { memo?: string | null })[]> {
   const rows = await scheduleRowsOf(
     db,
     actor,
@@ -40,5 +41,6 @@ export async function scheduleItems(
     mine: row.createdBy === actor.memberId,
     overdue: false,
     target: { record: 'schedule', id: row.item.id },
+    ...(options.memo ? { memo: row.item.memo } : {}),
   }))
 }

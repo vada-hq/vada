@@ -12,6 +12,7 @@ import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { ApplicantRowSection, EventApplicantsSection } from './RegistrationSections'
 import { WithdrawSection } from './WithdrawSections'
 import { CalendarSection } from './CalendarSections'
+import { CalendarFeedSection } from './CalendarFeedSections'
 
 // 부품 확인 화면에서 대화상자를 연 모양. 시험마다 그 버튼이 있는 묶음만 그린다(전체 화면은 Gallery.snapshot.test.tsx).
 afterEach(() => {
@@ -24,6 +25,9 @@ const openers: [string, ComponentType][] = [
   ['일정 오류 창 열기', CalendarSection],
   ['일정 상세 열기', CalendarSection],
   ['읽기 전용 일정 상세 열기', CalendarSection],
+  ['주소 없음 구독 창 열기', CalendarFeedSection],
+  ['주소 생성 직후 구독 창 열기', CalendarFeedSection],
+  ['사용 중 구독 창 열기', CalendarFeedSection],
   ['대화상자 열기', DialogSheetSection],
   ['옆 메뉴 열기', DialogSheetSection],
   ['오른쪽 패널 열기', DialogSheetSection],

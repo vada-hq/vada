@@ -14,6 +14,7 @@ import { useMenuQuery } from '@/lib/use-menu-query'
 import { weeksOf } from '@/tasks/calendar-month'
 import { CalendarView } from './CalendarView'
 import { CalendarSchedule, useCalendarSchedule } from './CalendarSchedule'
+import { CalendarSubscription } from './CalendarSubscription'
 import { useCalendar } from './useCalendar'
 import { useCalendarNavigation, useDefaultCalendarView } from './use-calendar-navigation'
 
@@ -44,6 +45,9 @@ export default function CalendarPage({ view, onForbidden }: Props) {
   return (
     <PageColumn className="break-keep">
       <CalendarView
+        actions={
+          <CalendarSubscription key={councilId} councilId={councilId} onForbidden={onForbidden} />
+        }
         {...navigation}
         onSelect={navigation.setSelected}
         onMonth={navigation.go}

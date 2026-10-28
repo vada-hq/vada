@@ -23,6 +23,7 @@ import type { createClosingExportRoutes } from './closing/export-routes.js'
 import type { createPurchaseRoutes } from './purchases/routes.js'
 import type { createHomeRoutes } from './home/routes.js'
 import type { createCalendarRoutes } from './calendar/routes.js'
+import type { createCalendarFeedRoutes, createPublicCalendarRoutes } from './calendar/feed.js'
 import type { createScheduleRoutes } from './schedule/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
@@ -56,6 +57,7 @@ export type AppOptions = {
   // 홈: 그 사람의 부분을 한 번에 읽기
   home?: ReturnType<typeof createHomeRoutes>
   calendar?: ReturnType<typeof createCalendarRoutes>
+  calendarFeeds?: ReturnType<typeof createCalendarFeedRoutes>
   schedule?: ReturnType<typeof createScheduleRoutes>
   // 구매 요청: 목록, 하나 읽기, 내기, 취소, 결재
   purchases?: ReturnType<typeof createPurchaseRoutes>
@@ -88,6 +90,7 @@ export type AppOptions = {
   productInfo?: ReturnType<typeof createProductInfoRoutes>
   // 로그인 없이 쓰는 공개 경로(/api/public/): 양식 읽기
   publicRegistrations?: ReturnType<typeof createPublicRegistrationRoutes>
+  publicCalendar?: ReturnType<typeof createPublicCalendarRoutes>
 }
 
 export function createApp({
@@ -95,6 +98,7 @@ export function createApp({
   trustedOrigin,
   agreement,
   publicRegistrations,
+  publicCalendar,
   ...modules
 }: AppOptions) {
   const app = new Hono()
@@ -114,6 +118,7 @@ export function createApp({
     if (routes) app.route('/api', routes)
   // 공개 경로는 로그인 세션을 쓰지 않아 환경 타입이 다르다.
   if (publicRegistrations) app.route('/api', publicRegistrations)
+  if (publicCalendar) app.route('/api', publicCalendar)
   app.onError(handleError)
   return app
 }

@@ -33,6 +33,7 @@ test('머리 x-flow-user를 단 요청은 운영 연결의 앱(진짜 세션)에
       googleClientSecret: 'test-secret',
     })
     const modules = appModulesOf(db, headers => auth.api.getSession({ headers }), {
+      trustedOrigin: ORIGIN,
       clock: () => new Date(),
       writeLimiter: createPurchaseWriteLimiter(),
       receiptKey: 'test-receipt-key',

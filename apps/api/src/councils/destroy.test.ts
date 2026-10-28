@@ -11,6 +11,28 @@ import {
 import { withSettlement } from '../test-support/settlement.js'
 
 test(
+  '학생회 파기는 그 학생회의 구독만 지우고 다른 학생회의 구독은 남긴다',
+  withSettlement(async t => {
+    const member = t.council.people.planningMember.memberId
+    for (const [council, hash] of [
+      [t.council.councilId, 'a'],
+      [t.other.councilId, 'b'],
+    ] as const)
+      await t.pg.query(
+        'INSERT INTO calendar_feed (member_id, council_id, token_hash) VALUES ($1, $2, $3)',
+        [member, council, hash.repeat(64)],
+      )
+    await t.db.transaction(async tx =>
+      destroyCouncilRows(tx, await destroyPlanOf(tx, t.council.councilId)),
+    )
+    assert.deepEqual(
+      (await t.pg.query<{ council_id: string }>('SELECT council_id FROM calendar_feed')).rows,
+      [{ council_id: t.other.councilId }],
+    )
+  }),
+)
+
+test(
   '일정은 부서·행사보다 먼저 파기하고 다른 학생회의 일정은 남긴다',
   withSettlement(async t => {
     const id = await t.make(t.council, 'schedule_item', {

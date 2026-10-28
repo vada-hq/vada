@@ -30,6 +30,7 @@ before(async () => {
   testDb = await createTestDb()
   council = await seedCouncil(testDb.db, testDb.pg)
   const modules = appModulesOf(testDb.db, testSession, {
+    trustedOrigin: ORIGIN,
     clock: () => now,
     writeLimiter: limiter,
     receiptKey: 'test-receipt-key',

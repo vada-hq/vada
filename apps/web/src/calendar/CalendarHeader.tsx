@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { CALENDAR_KIND_LABELS, type CalendarKind } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { monthLabel } from '@/tasks/calendar-month'
@@ -19,6 +20,7 @@ const KINDS = [
 ] as const
 
 type Props = {
+  actions?: ReactNode
   month: string
   layout: CalendarLayout
   kind: CalendarKind | null
@@ -38,6 +40,7 @@ export function CalendarHeader({
   onShift,
   onToday,
   onCreate,
+  actions,
 }: Props) {
   return (
     <>
@@ -70,6 +73,7 @@ export function CalendarHeader({
               {item.label}
             </Button>
           ))}
+          {actions}
           {onCreate && (
             <Button size="sm" touch className="ml-2" onClick={onCreate}>
               일정 추가

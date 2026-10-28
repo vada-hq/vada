@@ -60,6 +60,7 @@ async function seed(testDb: TestDb, { readRooms = true } = {}) {
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       ...appModulesOf(db, testSession, {
+        trustedOrigin: ORIGIN,
         clock: () => NOON,
         writeLimiter: createPurchaseWriteLimiter(),
         receiptKey: 'test-receipt-key',

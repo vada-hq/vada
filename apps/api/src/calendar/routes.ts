@@ -26,7 +26,7 @@ export function createCalendarRoutes(
     const result = await db.transaction(async tx => {
       const actor = await authorize(tx, request)
       const range = calendarRangeOf(parseQuery(CalendarQuerySchema, c.req.queries()))
-      return calendarOf(tx, actor, range, request.now)
+      return calendarOf(tx, actor, range, { now: request.now })
     }, snapshot)
     return c.json(result satisfies CalendarResponse)
   })

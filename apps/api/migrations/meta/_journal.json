@@ -169,6 +169,13 @@
       "when": 1793180836476,
       "tag": "0023_schedule_item",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793185110222,
+      "tag": "0024_calendar_feed",
+      "breakpoints": true
     }
   ]
 }

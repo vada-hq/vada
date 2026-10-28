@@ -4,6 +4,10 @@ import { changeErrors } from './change-errors'
 
 // 저장 요청이 실패했는데 표에 없는 이유일 때 쓰는 일반 문구.
 export const SAVE_FAILED = '저장하지 못했어요. 다시 시도해 주세요.'
+export const CALENDAR_FEED_LOAD_FAILED = '구독 상태를 불러오지 못했어요.'
+export const CALENDAR_FEED_CREATE_FAILED = '구독 주소를 만들지 못했어요.'
+export const CALENDAR_FEED_DELETE_FAILED = '구독을 끊지 못했어요.'
+export const CALENDAR_FEED_ERRORS = changeErrors({})
 
 // 서버가 403으로 답했다: 화면을 연 뒤에 내 권한이나 소속이 바뀌었다.
 export const PERMISSION_CHANGED = '권한이 바뀌었어요. 화면을 새로 불러왔어요.'

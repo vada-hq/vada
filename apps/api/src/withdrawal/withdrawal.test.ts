@@ -78,6 +78,7 @@ async function worldOf(testDb: TestDb) {
     )
   }
   const modules = appModulesOf(testDb.db, sessionFrom(testDb), {
+    trustedOrigin: ORIGIN,
     clock: () => NOW,
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: 'test-receipt-key',
@@ -126,6 +127,26 @@ const GONE = {
   seats: 0,
   departed: 1,
 }
+
+test('탈퇴하면 그 운영진의 모든 학생회 구독을 지우고 다른 운영진의 구독은 남긴다', () =>
+  withWorld(async kit => {
+    const leaving = kit.ours.people.planningMember
+    const staying = kit.ours.people.financeMember
+    for (const [member, council, hash] of [
+      [leaving.memberId, kit.ours.councilId, 'a'],
+      [leaving.memberId, kit.other.councilId, 'b'],
+      [staying.memberId, kit.ours.councilId, 'c'],
+    ] as const)
+      await kit.pg.query(
+        'INSERT INTO calendar_feed (member_id, council_id, token_hash) VALUES ($1, $2, $3)',
+        [member, council, hash.repeat(64)],
+      )
+    assert.equal((await kit.withdraw(leaving.userId)).status, 200)
+    assert.deepEqual(
+      (await kit.pg.query<{ member_id: string }>('SELECT member_id FROM calendar_feed')).rows,
+      [{ member_id: staying.memberId }],
+    )
+  }))
 
 test('미인증 탈퇴는 401이고 아무것도 바뀌지 않는다', () =>
   withWorld(async kit => {

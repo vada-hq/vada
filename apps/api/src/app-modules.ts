@@ -14,6 +14,7 @@ import { createExpenseRoutes } from './expenses/routes.js'
 import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { createHomeRoutes } from './home/routes.js'
 import { createCalendarRoutes } from './calendar/routes.js'
+import { createCalendarFeedRoutes, createPublicCalendarRoutes } from './calendar/feed.js'
 import { createScheduleRoutes } from './schedule/routes.js'
 import { createIncomeRoutes } from './incomes/routes.js'
 import { createInviteRoutes } from './invites/routes.js'
@@ -41,6 +42,7 @@ import type { PushSender } from './push/sender.js'
 import type { FileStorage } from './storage/storage.js'
 
 export type AppDeps = {
+  trustedOrigin: string
   // 모든 라우트 모듈이 이 시계 하나를 쓴다. 모듈이 자기 시계를 만들면 시계를 미뤄도 그 모듈만 지금 시각으로 판단한다.
   clock: () => Date
   // 요청 내기, 지출 적기, 수입 적기가 한도 하나를 같이 쓰도록 같은 인스턴스를 셋에 준다.
@@ -101,6 +103,10 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     tasks: createTaskRoutes(db, session, { clock, push: push.task }),
     home: createHomeRoutes(db, session, { clock }),
     calendar: createCalendarRoutes(db, session, { clock }),
+    calendarFeeds: createCalendarFeedRoutes(db, session, {
+      clock,
+      trustedOrigin: deps.trustedOrigin,
+    }),
     schedule: createScheduleRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),
     shipments: createShipmentRoutes(db, session, { clock, lookup: deps.deliveryLookup }),
@@ -118,5 +124,6 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     feePayments: createFeePaymentRoutes(db, session, { clock }),
     productInfo: createProductInfoRoutes(db, session, { clock, productInfo }),
     publicRegistrations: createPublicRegistrationRoutes(db, { clock, receiptKey }),
+    publicCalendar: createPublicCalendarRoutes(db, { clock, trustedOrigin: deps.trustedOrigin }),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
 }

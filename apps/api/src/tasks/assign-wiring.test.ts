@@ -19,6 +19,7 @@ test('앱 모듈에 넣은 타이머가 배정 알림을 10초 모으는 데 쓰
       return () => {}
     }
     const modules = appModulesOf(db, testSession, {
+      trustedOrigin: ORIGIN,
       clock: () => new Date('2026-10-25T03:00:00Z'),
       writeLimiter: createPurchaseWriteLimiter(),
       receiptKey: 'test-receipt-key',

@@ -20,6 +20,7 @@ export async function startFlow(
   const flowSession = createFlowSession()
   const clock = await createScenarioClock(db, start, scope, () => new Date())
   const modules = appModulesOf(db, flowSession.session, {
+    trustedOrigin: FLOW_ORIGIN,
     clock: clock.now,
     writeLimiter: createPurchaseWriteLimiter(),
     // 실행마다 새로 만든다. 시연은 운영 DB에도 쓰므로 알려진 키로 신청 본문 해시를 남기지 않는다.

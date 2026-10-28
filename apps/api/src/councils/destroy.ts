@@ -11,6 +11,7 @@ import { idList } from '../records/clear-versions.js'
 // 가리키는 행을 가리켜지는 행보다 먼저 지운다. 기록의 학생회·만든 사람과 판의 바꾼 사람은 거래 끝에 보는 외래 키라 순서가 없다.
 // 새 표가 생기면 destroy.test.ts가 이 목록이나 아래 두 목록에 넣을 때까지 실패한다.
 export const DESTROY_STEPS = [
+  { table: 'calendar_feed', column: 'council_id' },
   { table: 'command_receipt', column: 'result_id' },
   { table: 'registration_link', column: 'registration_id' },
   { table: 'task_result', column: 'task_id' },

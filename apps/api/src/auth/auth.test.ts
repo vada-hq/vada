@@ -173,6 +173,7 @@ test('Google 로그인은 프로필 사진과 토큰을 DB에 남기지 않는�
       googleClientSecret: 'test-secret',
     })
     const modules = appModulesOf(db, headers => auth.api.getSession({ headers }), {
+      trustedOrigin: baseURL,
       // 학생회 만들기는 운영 연도를 오늘로 가린다. 해가 바뀌어도 같은 결과가 나오게 날을 정한다.
       clock: () => new Date('2026-06-01T03:00:00Z'),
       writeLimiter: createPurchaseWriteLimiter(),

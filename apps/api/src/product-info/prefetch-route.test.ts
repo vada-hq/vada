@@ -24,6 +24,7 @@ async function setup(testDb: TestDb, lookup: ProductLookup) {
   const council = await seedCouncil(testDb.db, testDb.pg)
   await seedCouncil(testDb.db, testDb.pg, 'o')
   const modules = appModulesOf(testDb.db, testSession, {
+    trustedOrigin: ORIGIN,
     clock: () => NOW,
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: 'test-receipt-key',

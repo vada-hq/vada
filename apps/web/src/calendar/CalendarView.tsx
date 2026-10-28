@@ -20,6 +20,7 @@ type Props = {
   onOpen: (target: CalendarTarget) => void
   children?: ReactNode
   onCreate?: ((date: string) => void) | undefined
+  actions?: ReactNode
 }
 
 export function CalendarView({
@@ -36,11 +37,13 @@ export function CalendarView({
   onOpen,
   children,
   onCreate,
+  actions,
 }: Props) {
   const filtered = kind ? items.filter(item => item.kind === kind) : items
   return (
     <div className="flex min-w-0 flex-col gap-4 break-keep">
       <CalendarHeader
+        actions={actions}
         month={month}
         layout={layout}
         kind={kind}

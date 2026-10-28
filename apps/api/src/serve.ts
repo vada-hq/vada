@@ -67,6 +67,7 @@ function appOf(env: Env, db: Db, storage: ReturnType<typeof storageOf>) {
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
   const modules = appModulesOf(db, session, {
+    trustedOrigin: env.BETTER_AUTH_URL!,
     clock: () => new Date(),
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: env.BETTER_AUTH_SECRET!,
