@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { councilView } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { resetLeaveGuard } from '@/lib/leave-guard'
+import { resetMinutesDrafts } from './minutes-drafts'
 import { navigate } from '@/lib/app-location'
 import {
   meetingSample,
@@ -38,6 +39,7 @@ afterEach(() => {
   cleanup()
   api.assertNoUnexpectedRequests()
   resetLeaveGuard()
+  resetMinutesDrafts()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
@@ -54,6 +56,35 @@ test('같은 목록은 권한과 관계없이 같고 새 회의 버튼만 달라
   expect(screen.getByText('맞는 회의 없음')).toBeTruthy()
   expect(window.location.search).toBe('')
 })
+
+test('예정 회의의 회의록 쓰기는 동작이 있을 때 열고 안건을 주소에 남긴다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  render(page())
+  fireEvent.click(await screen.findByRole('button', { name: '회의록 쓰기' }))
+  expect(window.location.search).toBe('?mode=minutes')
+  expect(await screen.findByLabelText('논의 내용')).toBeTruthy()
+})
+
+test('예정 회의에 회의록 쓰기 동작이 없으면 본문은 보이고 버튼만 없다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting: meetingSample({ actions: [] }) }))
+  render(page())
+  expect(await screen.findByText('부서별 준비 상황')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '회의록 쓰기' })).toBeNull()
+})
+
+test.each(['in_progress', 'wrapping_up', 'done'] as const)(
+  '%s 회의는 쓰기 권한 없이도 회의록을 읽는다',
+  async status => {
+    window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+    const meeting = meetingSample({ status, actions: [] })
+    meeting.agenda[0]!.notes = '모두 읽는 회의록'
+    api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+    render(page())
+    expect(await screen.findByText('• 모두 읽는 회의록')).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
+  },
+)
 
 test('상태를 주소에 유지하고 취소 회의만 보인다', async () => {
   api.on('GET', `${base}?view=council`, () =>

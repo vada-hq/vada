@@ -1,5 +1,6 @@
-import type { MeetingStatus } from '@vada/contracts'
+import type { MeetingStatus, MeetingSummary } from '@vada/contracts'
 import { changeErrors } from '@/lib/change-errors'
+import { MINUTES_TEXT } from './minutes-text'
 
 export const MEETING_STATUS: Record<
   MeetingStatus,
@@ -18,6 +19,8 @@ export const MEETING_LOST = '이 회의를 볼 수 없어요.'
 const MEETING_ERRORS = changeErrors({
   MEETING_CANCELLED: '이미 취소된 회의예요. 새로 불러와 주세요.',
   MEETING_HAS_TASKS: '후속 업무가 있는 회의는 취소할 수 없어요.',
+  AGENDA_IN_USE: '결정이나 후속 업무가 있는 안건은 뺄 수 없어요.',
+  RECORD_CONFIRMED: '확정된 회의록이에요. 새로 불러와 주세요.',
   EVENT_COMPLETED: '완료한 행사에는 새로 연결할 수 없어요. 다른 행사를 골라 주세요.',
   VERSION_CONFLICT: '다른 사람이 먼저 고쳤어요. 새로 불러온 내용을 확인하고 다시 저장해 주세요.',
   FORBIDDEN: '지금은 이 회의를 바꿀 수 없어요.',
@@ -29,3 +32,10 @@ export const meetingError = (code: string) =>
   MEETING_ERRORS[code] ?? '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
 export const ATTENDEES_SAVED_BUT = (problem: string) => `참가자는 저장했어요. ${problem}`
 export const MEETING_FIELD_ERROR = '길이나 입력한 글자를 확인해 주세요.'
+export function minutesButton(meeting: MeetingSummary) {
+  if (meeting.status === 'cancelled') return '취소 내용 보기'
+  if (meeting.status === 'scheduled') return '상세 보기'
+  if (!meeting.actions.includes('meeting.minutes') || meeting.status === 'done')
+    return MINUTES_TEXT.view
+  return meeting.status === 'in_progress' ? MINUTES_TEXT.write : MINUTES_TEXT.arrange
+}

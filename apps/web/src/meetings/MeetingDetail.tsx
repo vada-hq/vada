@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MEETING_STATUS } from './meeting-text'
 import { meetingDuration, meetingTime } from './meeting-view'
+import { MINUTES_TEXT } from './minutes-text'
 
 function Summary({ meeting, onEvent }: { meeting: Detail; onEvent: (id: string) => void }) {
   const status = MEETING_STATUS[meeting.status]
@@ -115,16 +116,24 @@ type Props = {
   onEdit: () => void
   onCancel: () => void
   onEvent: (id: string) => void
+  onMinutes?: (() => void) | undefined
 }
-export function MeetingDetail({ meeting, onEdit, onCancel, onEvent }: Props) {
+export function MeetingDetail({ meeting, onEdit, onCancel, onEvent, onMinutes }: Props) {
   const cancelled = meeting.status === 'cancelled'
   return (
     <>
       <PageHeading trail={{ title: '회의', crumbs: [{ label: meeting.title, truncate: true }] }}>
         <h1 className="text-xl font-semibold">회의</h1>
       </PageHeading>
-      {(meeting.actions.includes('meeting.edit') || meeting.actions.includes('meeting.cancel')) && (
+      {(meeting.actions.includes('meeting.edit') ||
+        meeting.actions.includes('meeting.cancel') ||
+        meeting.actions.includes('meeting.minutes')) && (
         <PageActions>
+          {meeting.actions.includes('meeting.minutes') && (
+            <Button touch onClick={onMinutes}>
+              {MINUTES_TEXT.write}
+            </Button>
+          )}
           {meeting.actions.includes('meeting.edit') && (
             <Button variant="outline" touch onClick={onEdit}>
               고치기

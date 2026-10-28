@@ -1,10 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { meeting, record } from '../db/schema.js'
-
-export const currentVersionOf = (id: typeof record.id | typeof meeting.id) =>
-  sql<number>`(select v.version_no from record_version v where v.record_id = ${id} and upper_inf(v.valid))`.mapWith(
-    Number,
-  )
+import { meeting } from '../db/schema.js'
 
 // 목록 SELECT 안에서 세어 회의마다 추가 조회하거나 참가자·안건 결합으로 수가 곱해지지 않게 한다.
 export function aggregatesOf(memberId: string) {

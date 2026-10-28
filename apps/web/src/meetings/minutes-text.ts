@@ -1,0 +1,51 @@
+export const MINUTES_TEXT = {
+  write: '회의록 쓰기',
+  view: '회의록 보기',
+  arrange: '회의록 정리',
+  discussion: '논의 내용',
+  mine: '내가 쓴 글',
+  other: '상대 글',
+  emptyDiscussion: '논의 내용 없음',
+  saving: '저장 중…',
+  pending: '저장 대기',
+  saved: '자동 저장됨',
+  failed: '저장하지 못했어요',
+  retry: '다시 저장',
+  overwrite: '내 글로 덮기',
+  adopt: '상대 글 쓰기',
+  agendas: '전체 안건',
+  addAgenda: '안건 더하기',
+  editAgenda: '안건 고치기',
+  removeAgenda: '안건 빼기',
+  emptyAgenda: '안건 없음',
+  agendaTitle: '안건 제목',
+  agendaBody: '설명',
+  decisions: '결정사항',
+  addDecision: '결정 추가',
+  emptyDecision: '결정 없음',
+  decisionContent: '결정 내용',
+  rationale: '근거',
+  edit: '고치기',
+  remove: '빼기',
+  participants: '참가 현황',
+  emptyParticipants: '참가자 없음',
+  save: '저장',
+  close: '닫기',
+  removeAgendaQuestion: '이 안건을 뺄까요?',
+  removeDecisionQuestion: '이 결정을 뺄까요?',
+} as const
+export const minutesConflict = (name?: string) =>
+  name ? `${name}님이 먼저 고쳤어요` : '다른 사람이 먼저 고쳤어요'
+export const agendaNumber = (position: number) => `안건 ${position}`
+export const decisionCount = (count: number) => `결정 ${count}`
+export const agendaProgress = (index: number, count: number) => `${index + 1} / ${count}번째 안건`
+export const participantCount = (count: number) => `참가자 ${count}명`
+export const minutesUpdated = (time: string, name?: string) => {
+  const label = new Date(time).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Seoul',
+  })
+  return `${label}${name ? ` ${name}` : ''} 수정 · ${MINUTES_TEXT.saved}`
+}

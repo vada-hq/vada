@@ -9,6 +9,7 @@ import {
 } from '../../test-support/http.js'
 import type { SettlementKit } from '../../test-support/settlement.js'
 import { createMeetingRoutes } from '../routes.js'
+import type { RateLimiter } from '../../http/rate-limit.js'
 
 export const NOW = new Date('2026-10-29T03:00:00Z')
 export const INPUT = {
@@ -20,7 +21,10 @@ export const INPUT = {
   agenda: [{ title: '행사 준비', body: '일정 정하기' }],
 }
 
-export function open(t: SettlementKit) {
+export function open(
+  t: SettlementKit,
+  limits: { writeLimiter?: RateLimiter; notesLimiter?: RateLimiter } = {},
+) {
   let now = NOW
   const api = caller(
     createApp({
@@ -28,6 +32,7 @@ export function open(t: SettlementKit) {
       trustedOrigin: ORIGIN,
       meetings: createMeetingRoutes(withoutReadsOutsideTransaction(t.db), testSession, {
         clock: () => now,
+        ...limits,
       }),
     }),
   )
