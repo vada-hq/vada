@@ -21,6 +21,7 @@ import { versionLine } from './task-text'
 import { TaskDeleteConfirm } from './TaskDeleteConfirm'
 import { TaskDetailFrame } from './TaskDetailFrame'
 import { TaskDetailView } from './TaskDetailView'
+import { taskDirectOf } from './TaskAssigneeName'
 import type { TaskPickOptions } from './TaskFactGrid'
 import { TaskInlineText } from './TaskInlineText'
 import { TaskMake } from './TaskMake'
@@ -237,6 +238,7 @@ function PanelBody({ parts, props }: { parts: Parts; props: OpenProps }) {
   if (!detail.task) return <Unloaded detail={detail} />
   return (
     <TaskDetailView
+      direct={taskDirectOf(props.view)}
       task={detail.task}
       today={parts.today}
       busy={detail.saving}

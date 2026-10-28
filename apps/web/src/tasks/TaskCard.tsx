@@ -11,11 +11,13 @@ import type { DepartmentColor } from './department-color'
 import { assigneeLabel, COUNCIL_TASK_LABEL, dueLabel } from './task-view'
 import { resultSummaryLine } from './task-results'
 import type { TaskCardDrag } from './useTaskDrag'
+import { TaskAssigneeName, type TaskDirect } from './TaskAssigneeName'
 
 const NO_DRAG: TaskCardDrag = { enabled: false, active: false, start: () => false, end: () => {} }
 
 type Props = {
   task: TaskSummary
+  direct?: TaskDirect | undefined
   color: DepartmentColor
   busy: boolean
   error?: string | undefined
@@ -71,11 +73,11 @@ function CardMenu({
   )
 }
 
-function AssigneeText({ task }: Pick<Props, 'task'>) {
+function AssigneeText({ task, direct }: Pick<Props, 'task' | 'direct'>) {
   const label = assigneeLabel(task.assignee)
   return (
     <span className="max-w-full min-w-0 truncate text-xs text-gray-500" title={label}>
-      {label}
+      <TaskAssigneeName assignee={task.assignee} direct={direct} />
     </span>
   )
 }
@@ -170,6 +172,7 @@ export function TaskCard(props: Props) {
 
 function BoardTaskCard({
   task,
+  direct,
   color,
   busy,
   error,
@@ -205,7 +208,7 @@ function BoardTaskCard({
           <span className="truncate">{department}</span>
         </Badge>
         {overdue && <Badge tone="danger">지남</Badge>}
-        <AssigneeText task={task} />
+        <AssigneeText task={task} direct={direct} />
       </div>
       <div className="flex items-center justify-between border-t border-gray-50 pt-3">
         <span

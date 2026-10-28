@@ -8,8 +8,10 @@ import { TaskInlineText } from './TaskInlineText'
 import { TaskResultList } from './TaskResultList'
 import { TaskStatusSwitch } from './TaskStatusSwitch'
 import type { TaskProblem } from './useTaskDetail'
+import type { TaskDirect } from './TaskAssigneeName'
 
 export type TaskDetailViewProps = {
+  direct?: TaskDirect | undefined
   task: TaskDetail
   // 오늘(한국 날짜). 마감 빠른 날과 달력의 오늘 표시에 쓴다.
   today: string
@@ -45,6 +47,7 @@ export function TaskDetailView(props: TaskDetailViewProps) {
         )}
       </div>
       <TaskFactGrid
+        direct={props.direct}
         task={task}
         today={today}
         busy={busy}
