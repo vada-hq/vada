@@ -155,7 +155,12 @@ function writeRoutes(kit: Kit) {
     const { body, mentions, photos: keys, taskId } = c.req.valid('json')
     // 사진은 거래 밖에서 저장소를 확인한다(저장소를 기다리는 동안 참여 줄 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
     const photos = keys.length
-      ? await verifyPhotos(db, requireStorage(storage), await authorize(db, request), keys)
+      ? await verifyPhotos(
+          db,
+          requireStorage(storage),
+          { actor: await authorize(db, request), now: request.now },
+          keys,
+        )
       : []
     const sent = await postMessage(db, request, {
       roomId,

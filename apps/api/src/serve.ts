@@ -14,19 +14,25 @@ import { realTimer } from './tasks/notify.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { startPurge } from './purge/run.js'
+import { createObjectPurgeLock } from './storage/orphan-lock.js'
 import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
 import type { Db } from './db/types.js'
 
 type Env = NodeJS.ProcessEnv
 
 // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
-function connectDb(env: Env) {
-  const client = postgres(env.DATABASE_URL!, {
+function connectClient(env: Env, options: postgres.Options<Record<string, never>> = {}) {
+  return postgres(env.DATABASE_URL!, {
     max: 5,
     ssl: { rejectUnauthorized: true },
     connect_timeout: 15,
     onnotice: () => {},
+    ...options,
   })
+}
+
+function connectDb(env: Env) {
+  const client = connectClient(env)
   return { client, db: drizzle(client) }
 }
 
@@ -52,7 +58,7 @@ function productLookupOf(env: Env) {
   return apiKey ? createReefLookup({ apiKey }) : undefined
 }
 
-function appOf(env: Env, db: Db) {
+function appOf(env: Env, db: Db, storage: ReturnType<typeof storageOf>) {
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET!,
     baseURL: env.BETTER_AUTH_URL!,
@@ -64,7 +70,7 @@ function appOf(env: Env, db: Db) {
     clock: () => new Date(),
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: env.BETTER_AUTH_SECRET!,
-    storage: storageOf(env),
+    storage,
     push: pushOf(env),
     productLookup: productLookupOf(env),
     deliveryLookup: env.DELIVERY_TRACKER_API_KEY?.trim()
@@ -109,10 +115,26 @@ function main() {
   if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development'))
     console.log('오류 알림 켜짐 (Sentry)')
   const { client, db } = connectDb(env)
-  const app = appOf(env, db)
+  const storage = storageOf(env)
+  const app = appOf(env, db, storage)
   if (production) attachWeb(app)
   // 기한이 지난 개인정보와 열람 기록을 시작 때와 1시간마다 지운다.
-  listen(app, client, { hostname, port, production }, startPurge(db))
+  listen(
+    app,
+    client,
+    { hostname, port, production },
+    startPurge(
+      db,
+      storage
+        ? {
+            objects: {
+              storage,
+              lock: createObjectPurgeLock(options => connectClient(env, options)),
+            },
+          }
+        : {},
+    ),
+  )
 }
 
 try {

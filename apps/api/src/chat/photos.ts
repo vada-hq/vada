@@ -20,8 +20,12 @@ const fileRecord = alias(record, 'file_record')
 export const issuePhotoUpload = (storage: FileStorage, actor: Actor) =>
   issueUpload(storage, CHAT_AREA, actor)
 
-export const verifyPhotos = (db: Reader, storage: FileStorage, actor: Actor, keys: string[]) =>
-  verifyUploads(db, storage, { area: CHAT_AREA, actor }, keys)
+export const verifyPhotos = (
+  db: Reader,
+  storage: FileStorage,
+  owner: { actor: Actor; now: Date },
+  keys: string[],
+) => verifyUploads(db, storage, { area: CHAT_AREA, ...owner }, keys)
 
 // 사진 기록은 메시지에 붙고 판 1을 남긴다. 보낸 차례가 만든 시각 차례다.
 export async function attachPhotos(

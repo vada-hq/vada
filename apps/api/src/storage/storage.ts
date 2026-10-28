@@ -1,9 +1,11 @@
 import { AwsClient } from 'aws4fetch'
 import { NOT_FOUND } from '../http/status.js'
+import { listObjects, type ObjectPage } from './list-objects.js'
 
 interface StoredObject {
   size: number
   contentType: string | null
+  lastModified: Date | null
 }
 // 파일 저장소(영수증, 대화의 사진). 파일은 브라우저가 서명 주소로 바로 올리고 받는다.
 export interface FileStorage {
@@ -13,6 +15,7 @@ export interface FileStorage {
   ): Promise<{ url: string; headers: Record<string, string>; expiresAt: Date }>
   downloadUrl(key: string, fileName: string, contentType: string): Promise<string>
   head(key: string): Promise<StoredObject | null>
+  list(prefix: string, continuationToken?: string): Promise<ObjectPage>
   // 객체 바이트를 한 번에 읽는다(증빙 묶음이 한 장씩). 없으면 null이고, 읽지 못하면 던진다.
   read(key: string): Promise<Uint8Array | null>
   // 저장소 안에서 객체를 새 키로 복사한다(서버가 바이트를 받지 않는다). 새 키는 새로 만든 것이어야 한다(조건부 쓰기 헤더는 복사에서 보장되지 않아 쓰지 않는다). 원본은 건드리지 않는다.
@@ -85,20 +88,37 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
   }
   async function call(
     method: 'HEAD' | 'DELETE' | 'GET' | 'PUT',
-    key: string,
+    key: string | URL,
     extra: { signal?: AbortSignal; headers?: Record<string, string> } = {},
   ) {
     return fetcher(
-      await client.sign(objectUrl(key).toString(), {
+      await client.sign((key instanceof URL ? key : objectUrl(key)).toString(), {
         method,
-        ...(extra.signal ? { signal: extra.signal } : {}),
+        signal: extra.signal ?? AbortSignal.timeout(READ_TIMEOUT_MS),
         ...(extra.headers ? { headers: extra.headers } : {}),
         aws: { datetime: stamp() },
       }),
     )
   }
   const copy = (fromKey: string, toKey: string) => copyObject(call, pathOf(fromKey).slice(1), toKey)
-  return { objectUrl, presign, call, copy }
+  const list = (prefix: string, token?: string) =>
+    listObjects(url => call('GET', url), objectUrl(''), prefix, token)
+  return { objectUrl, presign, call, copy, list }
+}
+
+function downloadOf(url: URL, fileName: string, contentType: string) {
+  url.searchParams.set('response-content-type', contentType)
+  // 공백이 +로 나가면 저장소가 서명할 때와 다른 값으로 읽을 수 있다.
+  url.searchParams.set(
+    'response-content-disposition',
+    `inline;filename*=UTF-8''${encodeURIComponent(fileName)}`,
+  )
+  return url
+}
+
+function modifiedAt(value: string | null) {
+  const date = value === null ? null : new Date(value)
+  return date !== null && Number.isFinite(date.getTime()) ? date : null
 }
 
 export function createR2Storage(
@@ -106,7 +126,7 @@ export function createR2Storage(
   fetcher: typeof fetch = fetch,
   now: () => Date = () => new Date(),
 ): FileStorage {
-  const { objectUrl, presign, call, copy } = r2Access(config, fetcher, now)
+  const { objectUrl, presign, call, copy, list } = r2Access(config, fetcher, now)
   return {
     async uploadUrl(key, contentType) {
       // If-None-Match: *를 서명해 이미 있는 키에는 올리지 못하게 한다(덮어쓰기 금지).
@@ -117,16 +137,8 @@ export function createR2Storage(
         expiresAt: new Date(now().getTime() + UPLOAD_SECONDS * MS_PER_SECOND),
       }
     },
-    async downloadUrl(key, fileName, contentType) {
-      const url = objectUrl(key)
-      url.searchParams.set('response-content-type', contentType)
-      // 공백을 넣지 않는다. 주소에서 +로 나가면 저장소가 서명할 때와 다른 값으로 읽을 수 있다.
-      url.searchParams.set(
-        'response-content-disposition',
-        `inline;filename*=UTF-8''${encodeURIComponent(fileName)}`,
-      )
-      return presign('GET', url, DOWNLOAD_SECONDS)
-    },
+    downloadUrl: (key, fileName, contentType) =>
+      presign('GET', downloadOf(objectUrl(key), fileName, contentType), DOWNLOAD_SECONDS),
     async head(key) {
       const response = await call('HEAD', key)
       if (response.status === NOT_FOUND) return null
@@ -134,6 +146,7 @@ export function createR2Storage(
       return {
         size: Number(response.headers.get('content-length') ?? '-1'),
         contentType: response.headers.get('content-type'),
+        lastModified: modifiedAt(response.headers.get('last-modified')),
       }
     },
     async read(key) {
@@ -144,6 +157,7 @@ export function createR2Storage(
       return new Uint8Array(await response.arrayBuffer())
     },
     copy,
+    list,
     async remove(key) {
       const response = await call('DELETE', key)
       if (!response.ok && response.status !== NOT_FOUND) throw new Error('STORAGE_DELETE_FAILED')

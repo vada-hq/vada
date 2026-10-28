@@ -44,7 +44,11 @@ test('HEAD는 크기·형식을 읽고 404는 없음으로 본다. DELETE의 404
   const responses = [
     new Response(null, {
       status: 200,
-      headers: { 'Content-Length': '1234', 'Content-Type': 'image/jpeg' },
+      headers: {
+        'Content-Length': '1234',
+        'Content-Type': 'image/jpeg',
+        'Last-Modified': 'Fri, 09 Oct 2026 05:00:00 GMT',
+      },
     }),
     new Response(null, { status: 404 }),
     new Response(null, { status: 500 }),
@@ -60,6 +64,7 @@ test('HEAD는 크기·형식을 읽고 404는 없음으로 본다. DELETE의 404
   assert.deepEqual(await storage.head('receipts/a/e1/r1'), {
     size: 1234,
     contentType: 'image/jpeg',
+    lastModified: fixed(),
   })
   assert.equal(await storage.head('receipts/a/e1/r1'), null)
   await assert.rejects(storage.head('receipts/a/e1/r1'), /STORAGE_HEAD_FAILED/)
@@ -129,4 +134,79 @@ test('복사는 새 키에 PUT하고 복사 원본을 버킷과 키로 건네며
   assert.equal(new URL(first!.url).pathname, '/vada-receipts/evidence/a/b/c')
   assert.equal(first!.headers.get('x-amz-copy-source'), 'vada-receipts/chat/a/b/c%20d')
   assert.ok(first!.headers.get('Authorization')?.includes('x-amz-copy-source'))
+})
+
+test('ListObjectsV2는 접두어와 쪽 토큰을 서명하고 키·올린 시각·다음 토큰을 읽는다', async () => {
+  const seen: Request[] = []
+  const responses = [
+    `<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+      <EncodingType>url</EncodingType><IsTruncated>true</IsTruncated>
+      <Contents><Key>chat%2Fa%2F%ED%95%9C%20%26%2B.jpg</Key>
+      <LastModified>2026-10-09T05:00:00.000Z</LastModified></Contents>
+      <NextContinuationToken>next&amp;+&#47;=</NextContinuationToken></ListBucketResult>`,
+    '<ListBucketResult><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated></ListBucketResult>',
+  ]
+  const fetcher = (async (request: RequestInfo | URL) => {
+    seen.push(request as Request)
+    return new Response(responses.shift())
+  }) as typeof fetch
+  const storage = createR2Storage(config, fetcher, fixed)
+  assert.deepEqual(await storage.list('chat/'), {
+    objects: [{ key: 'chat/a/한 &+.jpg', lastModified: fixed() }],
+    continuationToken: 'next&+/=',
+  })
+  assert.deepEqual(await storage.list('chat/', 'next&+/='), { objects: [] })
+  for (const request of seen) {
+    const url = new URL(request.url)
+    assert.equal(request.method, 'GET')
+    assert.equal(url.pathname, '/vada-receipts/')
+    assert.equal(url.searchParams.get('list-type'), '2')
+    assert.equal(url.searchParams.get('prefix'), 'chat/')
+    assert.equal(url.searchParams.get('encoding-type'), 'url')
+    assert.equal(url.searchParams.get('max-keys'), '1000')
+    assert.ok(request.headers.has('Authorization'))
+    assert.ok(request.signal)
+  }
+  assert.equal(new URL(seen[1]!.url).searchParams.get('continuation-token'), 'next&+/=')
+})
+
+test('목록 실패·깨진 응답·시각 누락과 잘못된 쪽 토큰은 객체를 돌려주지 않는다', async () => {
+  const invalid = [
+    '<Error><Message>secret-key</Message></Error>',
+    '<ListBucketResult><IsTruncated>true</IsTruncated></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>maybe</IsTruncated></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key><LastModified>bad</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key><LastModified>0</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key><LastModified>2026-02-30T00:00:00Z</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/%ZZ</Key><LastModified>2026-10-09T05:00:00Z</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key><Key>chat/b</Key><LastModified>2026-10-09T05:00:00Z</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a&#x110000;</Key><LastModified>2026-10-09T05:00:00Z</LastModified></Contents></ListBucketResult>',
+    '<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>chat/a</Key><LastModified>2026-10-09T05:00:00Z</LastModified></Contents></ListBucketResult><Error/>',
+  ]
+  for (const body of invalid) {
+    const storage = createR2Storage(
+      config,
+      () =>
+        Promise.resolve(
+          new Response(
+            body.replace(
+              '<ListBucketResult>',
+              '<ListBucketResult><EncodingType>url</EncodingType>',
+            ),
+          ),
+        ),
+      fixed,
+    )
+    await assert.rejects(storage.list('chat/'), /STORAGE_LIST_FAILED/)
+  }
+  const failed = createR2Storage(
+    config,
+    () => Promise.resolve(new Response(null, { status: 503 })),
+    fixed,
+  )
+  await assert.rejects(failed.list('chat/'), /STORAGE_LIST_FAILED/)
+  const missingDate = createR2Storage(config, () => Promise.resolve(new Response(null)), fixed)
+  assert.equal((await missingDate.head('chat/a'))?.lastModified, null)
 })

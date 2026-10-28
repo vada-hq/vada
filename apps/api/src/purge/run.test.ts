@@ -8,6 +8,7 @@ import { setErrorReporter } from '../http/on-error.js'
 import { startFeePayments } from '../test-support/fee-payments.js'
 import { korean, withRegistrations, type RegistrationKit } from '../test-support/registrations.js'
 import { runPurge, startPurge } from './run.js'
+import { fakeStorage } from '../test-support/storage.js'
 
 const PERSON = { name: '김학생', studentId: '20260001', phone: '01012345678' }
 // 신청마다 다른 해시(형식: 소문자 16진 64자)
@@ -343,4 +344,45 @@ test('지우기가 실패하면 서버는 멈추지 않고 뒤 작업 보고로 
     console.error = original
     setErrorReporter(undefined)
   }
+})
+
+test('정기 작업은 DB 거래가 끝난 뒤 별도 잠금으로 객체를 지우고 저장소가 없으면 건너뛴다', async () => {
+  const events: string[] = []
+  const db = {
+    transaction: async () => {
+      events.push('transaction-ended')
+      return false
+    },
+  } as never
+  const store = fakeStorage()
+  let finish!: () => void
+  const listed = new Promise<void>(resolve => {
+    finish = resolve
+  })
+  store.storage.list = async prefix => {
+    events.push(prefix)
+    if (prefix === 'evidence/') finish()
+    return { objects: [] }
+  }
+  const stop = startPurge(db, {
+    objects: {
+      storage: store.storage,
+      lock: async work => {
+        events.push('object-lock')
+        await work()
+        return true
+      },
+    },
+  })
+  try {
+    await listed
+    assert.deepEqual(events, ['transaction-ended', 'object-lock', 'chat/', 'evidence/'])
+  } finally {
+    stop()
+  }
+  events.length = 0
+  const stopWithoutStorage = startPurge(db)
+  await new Promise(resolve => setImmediate(resolve))
+  stopWithoutStorage()
+  assert.deepEqual(events, ['transaction-ended'])
 })

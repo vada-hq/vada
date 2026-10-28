@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm'
+import { runObjectPurge, type ObjectPurgeOptions } from '../storage/orphan-purge.js'
 import type { Db, Tx } from '../db/types.js'
 import { purgeAgreements } from '../agreement/service.js'
 import { purgeSessions } from '../auth/session-purge.js'
@@ -43,7 +44,12 @@ export async function runPurge(db: Db, now: Date, lock: Lock = tryPurgeLock) {
 // 서버 시작 때 한 번, 그 뒤 1시간마다 돈다. 실패는 요청 밖이라 보고만 하고 서버는 멈추지 않는다. 돌려주는 함수로 멈춘다.
 export function startPurge(
   db: Db,
-  options: { clock?: () => Date; intervalMs?: number; lock?: Lock } = {},
+  options: {
+    clock?: () => Date
+    intervalMs?: number
+    lock?: Lock
+    objects?: ObjectPurgeOptions
+  } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const once = async () => {
@@ -52,6 +58,7 @@ export function startPurge(
     } catch (error) {
       reportBackgroundFailure('purge', error)
     }
+    await runObjectPurge(db, clock(), options.objects)
   }
   void once()
   const timer = setInterval(() => void once(), options.intervalMs ?? PURGE_INTERVAL_MS)

@@ -341,3 +341,24 @@ test('올리기 주소는 대화 사진과 같은 한도로 센다: 넘으면 42
     await s.close()
   }
 })
+
+test(
+  '24시간을 넘긴 증빙 업로드 키는 증빙·파일·판을 남기지 않는다(±1ms)',
+  runPurchases(async s => {
+    const made = await make(s)
+    const now = new Date('2026-10-25T03:00:00Z')
+    const versions = () => s.count('SELECT count(*) AS n FROM record_version')
+    const before = await versions()
+    for (const age of [86_400_001, 86_400_000, 86_399_999]) {
+      const key = await uploaded(s, made.id)
+      s.store.put(key, 1000, 'image/jpeg', new Date(now.getTime() - age))
+      const response = await attach(s, made.id, { key })
+      if (age > 86_400_000) {
+        assert.equal(response.status, 400)
+        assert.equal(await errorOf(response), 'UPLOAD_MISMATCH')
+        assert.deepEqual(await counts(s), [0, 0])
+        assert.equal(await versions(), before)
+      } else assert.equal(response.status, 201)
+    }
+  }),
+)

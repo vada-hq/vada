@@ -13,6 +13,8 @@ import { uniqueViolationOf } from '../db/error-code.js'
 import { ApiError } from '../http/errors.js'
 import type { FileStorage } from './storage.js'
 
+const UPLOAD_MAX_AGE_MS = 86_400_000
+
 type Reader = Pick<Db, 'select'>
 
 // 대화 사진과 증빙 사진이 같이 쓰는 올리기 검사. 쓰는 곳마다 키의 맨 앞(chat, evidence)만 다르다.
@@ -63,7 +65,7 @@ async function assertNotSent(db: Reader, keys: string[]) {
 export async function verifyUploads(
   db: Reader,
   storage: FileStorage,
-  owner: { area: string; actor: Actor },
+  owner: { area: string; actor: Actor; now: Date },
   keys: string[],
 ): Promise<VerifiedPhoto[]> {
   const { area, actor } = owner
@@ -72,14 +74,17 @@ export async function verifyUploads(
   const verified: VerifiedPhoto[] = []
   for (const key of keys) {
     const stored = await storage.head(key)
+    // 경계 직전 검사를 마친 다른 요청이 이미 붙였을 수 있다. 만료 객체는 여기서 지우지 않고 72시간 정리에 맡긴다.
+    if (
+      !stored?.lastModified ||
+      !(owner.now.getTime() - stored.lastModified.getTime() <= UPLOAD_MAX_AGE_MS)
+    )
+      throw new ApiError('UPLOAD_MISMATCH')
     const fits =
-      stored !== null &&
-      stored.contentType === PHOTO_MEDIA_TYPE &&
-      stored.size >= 1 &&
-      stored.size <= PHOTO_MAX_BYTES
+      stored.contentType === PHOTO_MEDIA_TYPE && stored.size >= 1 && stored.size <= PHOTO_MAX_BYTES
     if (!fits) {
       // 지우기가 실패해도 보내기는 어긋남으로 답한다. 남은 객체는 비공개 키라 보이지 않는다.
-      if (stored !== null) await storage.remove(key).catch(() => undefined)
+      await storage.remove(key).catch(() => undefined)
       throw new ApiError('UPLOAD_MISMATCH')
     }
     verified.push({ key, size: stored.size })

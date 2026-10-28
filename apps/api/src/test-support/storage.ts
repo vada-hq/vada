@@ -1,8 +1,8 @@
 import type { FileStorage } from '../storage/storage.js'
 
 // 실제 R2에 닿지 않는 파일 저장소. put으로 올린 것처럼 객체를 두고, 지운 키를 기록한다.
-export function fakeStorage() {
-  const objects = new Map<string, { size: number; contentType: string }>()
+export function fakeStorage(clock: () => Date = () => new Date()) {
+  const objects = new Map<string, { size: number; contentType: string; lastModified: Date }>()
   const bodies = new Map<string, Uint8Array>()
   // 읽기에 실패하게 할 키
   const unreadable = new Set<string>()
@@ -25,6 +25,17 @@ export function fakeStorage() {
         `https://r2.test/down/${key}?n=${encodeURIComponent(fileName)}&t=${encodeURIComponent(contentType)}`,
       ),
     head: key => Promise.resolve(objects.get(key) ?? null),
+    list(prefix, continuationToken) {
+      const pageSize = 100
+      const keys = [...objects.keys()]
+        .filter(key => key.startsWith(prefix) && (!continuationToken || key > continuationToken))
+        .sort()
+      const page = keys.slice(0, pageSize)
+      return Promise.resolve({
+        objects: page.map(key => ({ key, lastModified: objects.get(key)!.lastModified })),
+        ...(keys.length > pageSize ? { continuationToken: page.at(-1)! } : {}),
+      })
+    },
     read(key) {
       if (unreadable.has(key)) return Promise.reject(new Error('STORAGE_READ_FAILED'))
       return Promise.resolve(bodies.get(key) ?? null)
@@ -34,7 +45,11 @@ export function fakeStorage() {
       if (flags.failCopy || !source || objects.has(toKey))
         return Promise.reject(new Error('STORAGE_COPY_FAILED'))
       copied.push([fromKey, toKey])
-      objects.set(toKey, flags.corruptCopy ? { ...source, size: source.size + 1 } : source)
+      objects.set(toKey, {
+        ...source,
+        size: source.size + (flags.corruptCopy ? 1 : 0),
+        lastModified: clock(),
+      })
       const body = bodies.get(fromKey)
       if (body) bodies.set(toKey, body)
       return Promise.resolve()
@@ -51,11 +66,11 @@ export function fakeStorage() {
     copied,
     flags,
     issued,
-    put: (key: string, size = 1000, contentType = 'image/jpeg') =>
-      void objects.set(key, { size, contentType }),
+    put: (key: string, size = 1000, contentType = 'image/jpeg', lastModified = clock()) =>
+      void objects.set(key, { size, contentType, lastModified }),
     // 읽을 수 있는 바이트를 둔다(증빙 묶음 시험)
     putBody(key: string, body: Uint8Array) {
-      objects.set(key, { size: body.length, contentType: 'image/jpeg' })
+      objects.set(key, { size: body.length, contentType: 'image/jpeg', lastModified: clock() })
       bodies.set(key, body)
     },
     unreadable,

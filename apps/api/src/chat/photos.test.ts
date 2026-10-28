@@ -450,3 +450,25 @@ test('같은 키 충돌은 두 드라이버의 오류 모양 모두에서 이미
   const other = Object.assign(new Error('x'), { code: '23505', constraint_name: 'record_pkey' })
   assert.equal(isStorageKeyConflict(other), false)
 })
+
+test(
+  '올린 지 24시간을 넘긴 사진은 메시지·파일·판을 만들지 않는다(±1ms)',
+  run(async s => {
+    const all = await s.roomId(s.council.councilId, 'all')
+    const versions = () =>
+      s.pg.query<{ n: number }>('SELECT count(*)::int AS n FROM record_version')
+    const before = (await versions()).rows[0]!.n
+    for (const age of [86_400_001, 86_400_000, 86_399_999]) {
+      const key = await s.uploaded(all, 's-president')
+      s.store.put(key, 1000, 'image/jpeg', new Date(now.getTime() - age))
+      const response = await s.send(all, 's-president', { body: '사진', photos: [key] })
+      if (age > 86_400_000) {
+        assert.equal(response.status, 400)
+        assert.equal(await errorOf(response), 'UPLOAD_MISMATCH')
+        assert.equal(await s.messages(), 0)
+        assert.equal(await s.files(), 0)
+        assert.equal((await versions()).rows[0]!.n, before)
+      } else assert.equal(response.status, 201)
+    }
+  }),
+)

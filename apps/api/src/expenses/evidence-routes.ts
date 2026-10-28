@@ -118,7 +118,7 @@ export function addEvidenceRoutes(kit: Kit) {
     const expenseId = recordIdOf(c.req.param('expenseId'))
     const actor = await financeOf(kit, c)
     // 저장소는 거래 밖에서 확인한다(저장소를 기다리는 동안 잠금을 쥐지 않는다). 확인이 끝나기 전에는 아무것도 만들지 않는다.
-    const owner = { area: EVIDENCE_AREA, actor }
+    const owner = { area: EVIDENCE_AREA, actor, now: clock() }
     const [photo] = await verifyUploads(db, requireStorage(storage), owner, [key])
     if (!photo) throw new ApiError('UPLOAD_MISMATCH')
     const asked = requestOf(c, 'council.view', clock)
