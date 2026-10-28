@@ -19,6 +19,7 @@ type Props = {
   onSelect: (day: string) => void
   onOpen: (target: CalendarTarget) => void
   children?: ReactNode
+  onCreate?: ((date: string) => void) | undefined
 }
 
 export function CalendarView({
@@ -34,6 +35,7 @@ export function CalendarView({
   onSelect,
   onOpen,
   children,
+  onCreate,
 }: Props) {
   const filtered = kind ? items.filter(item => item.kind === kind) : items
   return (
@@ -49,6 +51,7 @@ export function CalendarView({
           onMonth(monthOf(today))
           onSelect(today)
         }}
+        onCreate={onCreate && (() => onCreate(today))}
       />
       {children ??
         (layout === 'month' ? (
@@ -66,10 +69,17 @@ export function CalendarView({
               today={today}
               items={itemsOn(filtered, selected)}
               onOpen={onOpen}
+              onCreate={onCreate && (() => onCreate(selected))}
             />
           </>
         ) : (
-          <CalendarList items={filtered} month={month} today={today} onOpen={onOpen} />
+          <CalendarList
+            items={filtered}
+            month={month}
+            today={today}
+            onOpen={onOpen}
+            onCreate={onCreate}
+          />
         ))}
     </div>
   )

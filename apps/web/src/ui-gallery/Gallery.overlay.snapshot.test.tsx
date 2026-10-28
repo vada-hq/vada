@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import type { ComponentType } from 'react'
-import { afterEach, expect, test } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, expect, test, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { windowHistoryIdle } from '@/lib/use-window-history'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { MyNameSection } from './JoinSections'
@@ -10,11 +11,19 @@ import { CreateCouncilSection } from './OnboardingSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
 import { ApplicantRowSection, EventApplicantsSection } from './RegistrationSections'
 import { WithdrawSection } from './WithdrawSections'
+import { CalendarSection } from './CalendarSections'
 
 // 부품 확인 화면에서 대화상자를 연 모양. 시험마다 그 버튼이 있는 묶음만 그린다(전체 화면은 Gallery.snapshot.test.tsx).
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 const openers: [string, ComponentType][] = [
+  ['빈 일정 창 열기', CalendarSection],
+  ['일정 오류 창 열기', CalendarSection],
+  ['일정 상세 열기', CalendarSection],
+  ['읽기 전용 일정 상세 열기', CalendarSection],
   ['대화상자 열기', DialogSheetSection],
   ['옆 메뉴 열기', DialogSheetSection],
   ['오른쪽 패널 열기', DialogSheetSection],
@@ -35,9 +44,26 @@ const openers: [string, ComponentType][] = [
 ]
 
 test.each(openers)('%s', (name, Section) => {
+  if (Section === CalendarSection) {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-28T03:00:00Z'))
+  }
   render(<Section />)
   fireEvent.click(screen.getByRole('button', { name }))
   expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('캘린더 견본은 수정 칸 검사와 취소 확인 창을 통과한다', async () => {
+  render(<CalendarSection />)
+  fireEvent.click(screen.getByRole('button', { name: '일정 상세 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '수정' }))
+  expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('학교 답사')
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await windowHistoryIdle()
+  fireEvent.click(screen.getByRole('button', { name: '일정 상세 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '일정 취소' }))
+  expect(screen.getByRole('dialog', { name: '이 일정을 취소할까요?' })).toBeTruthy()
 })
 
 test('학생회 만들기: 재정 이름 후보(국)', () => {

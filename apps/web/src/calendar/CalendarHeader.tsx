@@ -11,8 +11,11 @@ const VIEWS = [
 ] as const
 const KINDS = [
   { value: null, label: '전체' },
-  { value: 'event', label: '행사' },
-  { value: 'deadline', label: '마감' },
+  { value: 'event', label: CALENDAR_KIND_LABELS.event },
+  { value: 'deadline', label: CALENDAR_KIND_LABELS.deadline },
+  { value: 'academic', label: CALENDAR_KIND_LABELS.academic },
+  { value: 'external', label: CALENDAR_KIND_LABELS.external },
+  { value: 'other', label: CALENDAR_KIND_LABELS.other },
 ] as const
 
 type Props = {
@@ -23,9 +26,19 @@ type Props = {
   onKind: (kind: CalendarKind | null) => void
   onShift: (by: number) => void
   onToday: () => void
+  onCreate?: (() => void) | undefined
 }
 
-export function CalendarHeader({ month, layout, kind, onLayout, onKind, onShift, onToday }: Props) {
+export function CalendarHeader({
+  month,
+  layout,
+  kind,
+  onLayout,
+  onKind,
+  onShift,
+  onToday,
+  onCreate,
+}: Props) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -57,6 +70,11 @@ export function CalendarHeader({ month, layout, kind, onLayout, onKind, onShift,
               {item.label}
             </Button>
           ))}
+          {onCreate && (
+            <Button size="sm" touch className="ml-2" onClick={onCreate}>
+              일정 추가
+            </Button>
+          )}
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">

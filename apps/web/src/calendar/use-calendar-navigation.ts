@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 import { koreanDateOf } from '@vada/contracts'
 import { monthOf } from '@/tasks/calendar-month'
 
@@ -16,9 +16,13 @@ export function useCalendarNavigation(referenceDay?: string) {
   const [today] = useState(() => referenceDay ?? koreanDateOf(new Date()))
   const [month, setMonth] = useState(() => monthOf(today))
   const [selected, setSelected] = useState(today)
+  const selectDay = useCallback((day: string) => {
+    setMonth(monthOf(day))
+    setSelected(day)
+  }, [])
   const go = (next: string) => {
     setMonth(next)
     setSelected(next === monthOf(today) ? today : `${next}-01`)
   }
-  return { today, month, selected, setSelected, go }
+  return { today, month, selected, setSelected, selectDay, go }
 }

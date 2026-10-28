@@ -12,6 +12,7 @@ import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
+import { scheduleDetail } from './test-support/schedule-fixtures'
 import { startPathOf } from './workspace/useLastAddress'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
@@ -101,11 +102,25 @@ test('주소가 없는 시작은 첫 학생회 홈 주소가 된다', async () =
 
 test('일정 기록 주소는 캘린더 메뉴를 열고 주소를 보존한다', async () => {
   live.moves = ['purchases', 'calendar']
+  for (const month of [monthOf(koreanDateOf(new Date())), '2026-10']) {
+    const days = weeksOf(month).flat()
+    api.on(
+      'GET',
+      `/api/organizations/${C1}/calendar?from=${days[0]}&to=${days[days.length - 1]}`,
+      () => json({ items: [], truncated: false }),
+    )
+  }
+  api.on('GET', `/api/organizations/${C1}/schedule/${T1}`, () =>
+    json({ item: scheduleDetail({ id: T1 }) }),
+  )
   window.history.replaceState(null, '', `/schedule/${C1}/${T1}`)
   await renderApp()
   expect(await heading('캘린더')).toBeTruthy()
   expect(pathNow()).toBe(`/schedule/${C1}/${T1}`)
   expect(menu('캘린더').getAttribute('aria-current')).toBe('page')
+  expect(await screen.findByRole('dialog', { name: '학교 답사' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  await waitFor(() => expect(pathNow()).toBe(`/calendar/${C1}`))
 })
 
 const LAST = 'vada.last.address.u1'

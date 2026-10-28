@@ -13,6 +13,7 @@ import { CALENDAR_LOAD_FAILED } from '@/lib/messages'
 import { useMenuQuery } from '@/lib/use-menu-query'
 import { weeksOf } from '@/tasks/calendar-month'
 import { CalendarView } from './CalendarView'
+import { CalendarSchedule, useCalendarSchedule } from './CalendarSchedule'
 import { useCalendar } from './useCalendar'
 import { useCalendarNavigation, useDefaultCalendarView } from './use-calendar-navigation'
 
@@ -35,6 +36,10 @@ export default function CalendarPage({ view, onForbidden }: Props) {
   const kind = (query.kind as CalendarKind | undefined) ?? null
   const days = weeksOf(navigation.month).flat()
   const calendar = useCalendar(councilId, days[0]!, days[days.length - 1]!, onForbidden)
+  const schedule = useCalendarSchedule(councilId, navigation.selectDay, onForbidden)
+  const onCreate = view.permissions.includes('schedule.create')
+    ? (date: string) => schedule.setEditor({ date })
+    : undefined
   const { state } = calendar
   return (
     <PageColumn className="break-keep">
@@ -48,6 +53,7 @@ export default function CalendarPage({ view, onForbidden }: Props) {
         onLayout={value => set({ view: value })}
         onKind={value => set({ kind: value })}
         onOpen={target => openTarget(councilId, target)}
+        onCreate={onCreate}
       >
         {state.kind === 'loading' ? (
           <StateMessage kind="loading">일정 불러오는 중…</StateMessage>
@@ -68,6 +74,12 @@ export default function CalendarPage({ view, onForbidden }: Props) {
       {state.kind === 'ready' && state.data.truncated && (
         <StateMessage kind="notice">일정이 많아 {CALENDAR_ITEM_LIMIT}개만 보여요.</StateMessage>
       )}
+      <CalendarSchedule
+        flow={schedule}
+        view={view}
+        onForbidden={onForbidden}
+        onChanged={calendar.reload}
+      />
     </PageColumn>
   )
 }
