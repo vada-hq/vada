@@ -221,10 +221,10 @@ test('행사 업무 달력은 끝나지 않은 업무와 끝난 업무, 행사�
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
   window.history.replaceState(null, '', `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks`)
   const api = mockApi()
-  api.on('GET', `${listPath('all')}&event=${EVENT_ID}`, () =>
+  api.on('GET', `${base}?view=all&status=open&event=${EVENT_ID}`, () =>
     list([task('a'), task('c', { dueDate: null })]),
   )
-  api.on('GET', `${listPath('all', 'done')}&event=${EVENT_ID}`, () =>
+  api.on('GET', `${base}?view=all&status=done&event=${EVENT_ID}`, () =>
     list([task('b', { status: 'done', actions: [] })]),
   )
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>

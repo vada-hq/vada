@@ -111,6 +111,12 @@ test('바꾸는 중 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
 })
 
+// 목록의 줄(상세 패널 머리의 같은 이름 단추는 뺀다).
+const listRows = (dialog: HTMLElement) =>
+  screen
+    .queryAllByRole('button', { name: '현수막 주문', hidden: true })
+    .filter(button => !dialog.contains(button))
+
 test('행사 없는 업무를 행사로 옮기면 상세를 유지하며 이동 안내와 행사 보기·되돌리기를 보인다', async () => {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
   const { api } = setup()
@@ -135,21 +141,17 @@ test('행사 없는 업무를 행사로 옮기면 상세를 유지하며 이동 
   })
   fireEvent.click(await screen.findByRole('button', { name: '현수막 주문' }))
   const dialog = await screen.findByRole('dialog')
-  fireEvent.click(await within(dialog).findByRole('button', { name: '고치기' }))
-  const form = within(dialog).getByRole('form', { name: '업무 고치기' })
-  const select = within(form).getByLabelText('행사')
-  await waitFor(() => expect(select).toHaveProperty('disabled', false))
-  fireEvent.change(select, { target: { value: EVENT_ID } })
-  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  fireEvent.click(await within(dialog).findByRole('button', { name: '행사 행사 없음' }))
+  fireEvent.click(await screen.findByRole('option', { name: '신입생 환영회' }))
   expect(await screen.findByText('신입생 환영회 행사로 옮겼어요')).toBeTruthy()
   expect(dialog.isConnected).toBe(true)
   expect(screen.getByRole('button', { name: '행사에서 보기', hidden: true })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '현수막 주문', hidden: true })).toBeNull()
+  await waitFor(() => expect(listRows(dialog)).toHaveLength(0))
   fireEvent.click(screen.getByRole('button', { name: '되돌리기' }))
   await waitFor(() => expect(screen.queryByText('신입생 환영회 행사로 옮겼어요')).toBeNull())
   expect(dialog.isConnected).toBe(true)
-  expect(within(dialog).getByText('행사 없음')).toBeTruthy()
-  expect(screen.getByRole('button', { name: '현수막 주문', hidden: true })).toBeTruthy()
+  expect(await within(dialog).findByRole('button', { name: '행사 행사 없음' })).toBeTruthy()
+  await waitFor(() => expect(listRows(dialog)).toHaveLength(1))
   expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([
     expect.objectContaining({ eventId: EVENT_ID }),
     { eventId: null },

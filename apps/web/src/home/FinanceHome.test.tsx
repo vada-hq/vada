@@ -87,7 +87,7 @@ test('안 읽은 방은 메시지함에만 보이고 내 업무 바로가기는 
   fireEvent.click(within(inbox).getByRole('button', { name: '전체 보기' }))
   expect(path()).toBe('/chat/01900000-0000-7000-8000-000000000001')
   fireEvent.click(within(greeting).getByRole('button', { name: '내 업무 0' }))
-  expect(path()).toBe('/tasks/01900000-0000-7000-8000-000000000001')
+  expect(path()).toBe('/tasks/01900000-0000-7000-8000-000000000001?tab=mine')
 })
 
 test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 노랑이고 전체 보기는 결재 대기다', async () => {

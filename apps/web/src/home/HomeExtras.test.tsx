@@ -60,7 +60,7 @@ test('내 요청: 반려를 먼저, 결재 대기는 오래된 순. 끝난 요�
   fireEvent.click(within(section).getByRole('button', { name: '요청 no' }))
   expect(window.location.pathname).toBe('/purchases/c1/no')
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(window.location.pathname).toBe('/finance/c1')
+  expect(window.location.pathname).toBe('/purchases/c1')
 })
 
 test('볼 요청, 이번 주 행사가 없으면 그 부분을 두지 않는다. 공지 부분은 없다(DEC-90)', async () => {
