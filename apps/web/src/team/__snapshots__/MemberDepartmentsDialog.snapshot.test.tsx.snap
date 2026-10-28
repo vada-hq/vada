@@ -6,7 +6,7 @@ exports[`만들어 둔 부서가 없음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -36,7 +36,7 @@ exports[`모든 부서에 들어 있음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -97,7 +97,7 @@ exports[`부서가 없는 사람 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -143,7 +143,7 @@ exports[`부서가 있는 사람 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -203,7 +203,7 @@ exports[`오류 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -264,7 +264,7 @@ exports[`저장 중 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -324,7 +324,7 @@ exports[`직급 권한 없음 1`] = `
 <div data-aria-hidden="true" aria-hidden="true">
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
