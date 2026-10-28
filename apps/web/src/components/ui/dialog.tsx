@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import type { RecordKind } from '@vada/contracts'
 import { adoptTag, useWindowHistory } from '@/lib/use-window-history'
 import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
+import { useKeyboardInset } from '@/lib/use-keyboard-inset'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
@@ -54,9 +55,10 @@ const InDialog = createContext(false)
 
 // 640px 아래에서는 가운데 작은 창 대신 아래에 붙은 전체 폭 시트로 연다(M3 bottom sheet·full-screen dialog for compact, Apple HIG Sheets).
 // 짧은 확인 창은 내용만큼 낮은 시트, 긴 폼은 화면 높이까지 차고 창 안이 스크롤된다. 넓은 화면은 바꾸지 않는다.
-// scroll-pb-20은 초점이 바닥 고정 버튼 줄 밑의 칸으로 갈 때 그 줄 높이만큼 더 올려 보이게 한다.
+// 아래 끝과 최대 높이는 키보드가 가리지 않는 영역을 따른다(use-keyboard-inset). 키보드가 없으면 화면 바닥과 100dvh다.
+// scroll-pb-28은 초점이 바닥 고정 버튼 줄(두 줄로 접힌 예산 합계 줄 약 101px 포함) 밑의 칸으로 갈 때 그만큼 더 올려 보이게 한다.
 const SHEET_BELOW_SM =
-  'max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom'
+  'max-sm:fixed max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:max-h-(--visual-viewport-height) max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-28 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom'
 
 // 통일 규칙: 오버레이 검정 45%, 반경 큰 값, 큰 그림자, 안쪽 여백 21px, 폭 약 440px.
 // 내용을 오버레이 안에 둔다(Radix 문서의 scrollable overlay). 좁거나 낮은 화면에서는 오버레이가 스크롤되어 내용이 잘리지 않는다.
@@ -70,6 +72,7 @@ export function DialogContent({
   ...props
 }: ContentProps) {
   const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
+  useKeyboardInset()
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0">

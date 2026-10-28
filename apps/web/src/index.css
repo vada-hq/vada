@@ -16,6 +16,9 @@
 
 /* 와이어프레임(Figma)의 색은 Tailwind v4 기본 팔레트와 같다. shadcn 부품이 쓰는 이름으로 묶는다. */
 :root {
+  /* 휴대폰 창 시트가 키보드 위에 서는 값. 창이 열린 동안 lib/use-keyboard-inset.ts가 바꾼다. */
+  --keyboard-inset: 0px;
+  --visual-viewport-height: 100dvh;
   --background: #f9fafb;
   --foreground: #101828;
   --card: #ffffff;
