@@ -27,12 +27,13 @@ export function useTasks(
   const issued = useRef(0)
   const isActive = useActive()
   const load = useCallback(async () => {
-    if (!enabled) return
+    // 꺼질 때도 차례를 올려, 꺼지기 전에 보낸 읽기의 늦은 응답을 버린다.
     const seq = ++issued.current
-    const result = await getJson<TasksResponse>(tasksPath(councilId, view, filter, eventId))
-    // 더 나중에 보낸 읽기가 있거나(탭을 바꿈 포함) 화면이 사라졌으면 이 응답은 버린다.
-    if (seq !== issued.current || !isActive()) return
+    if (!enabled) return
     const mine = latestKey.current
+    const result = await getJson<TasksResponse>(tasksPath(councilId, view, filter, eventId))
+    // 더 나중에 보낸 읽기가 있거나(탭을 바꿈 포함) 화면이 사라졌거나 보낸 뒤 거르기가 바뀌었으면 이 응답은 버린다.
+    if (seq !== issued.current || !isActive() || mine !== latestKey.current) return
     if (result.ok) {
       const { tasks, truncated } = result.data
       return setLoaded({ key: mine, state: { kind: 'ready', tasks, truncated } })

@@ -246,3 +246,20 @@ test('이미 읽은 목록이 있어도 다시 읽기가 404면 범위를 푼다
   fireEvent.click(within(card('간식 구매')).getByRole('button', { name: '끝내기' }))
   await waitFor(() => expect(new URLSearchParams(window.location.search).get('scope')).toBeNull())
 })
+
+test('앞 범위의 늦은 404는 새로 고른 범위를 풀지 않는다', async () => {
+  const gone = '00000000-0000-4000-8000-0000000000fc'
+  const late = deferredResponse()
+  setup(rows, `?tab=mine&filter=done&scope=${gone}`, [], api => {
+    api.on('GET', path('open', gone), () => json({ tasks: rows, truncated: false }))
+    api.on('GET', path('done', gone), () => late.promise)
+  })
+  fireEvent.click(await screen.findByRole('tab', { name: '해야 할 업무' }))
+  fireEvent.change(await screen.findByRole('combobox', { name: '범위' }), {
+    target: { value: EVENT_ID },
+  })
+  await screen.findByText('간식 구매')
+  late.resolve(json({ error: 'NOT_FOUND' }, 404))
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(new URLSearchParams(window.location.search).get('scope')).toBe(EVENT_ID)
+})
