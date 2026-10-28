@@ -12,7 +12,7 @@ import type { RoomList } from '../chat/useRoomList'
 import CouncilSettings from '../settings/CouncilSettings'
 import TasksPage from '../tasks/TasksPage'
 import type { TaskList } from '../tasks/useTasks'
-import Organization from '../team/Organization'
+import OrganizationPage from '../team/OrganizationPage'
 import StateMessage from '@/components/StateMessage'
 import { useBottomNavigationHidden } from '@/components/BottomNavigationVisibility'
 import { pageFrameClass, type PageWidth } from '@/components/page-width'
@@ -122,7 +122,7 @@ function PageOf({
   // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91).
   if (page === 'people' || page === 'departments')
     return (
-      <Organization
+      <OrganizationPage
         view={view}
         reading={reading}
         team={data.team}

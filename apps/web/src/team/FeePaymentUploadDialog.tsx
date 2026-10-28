@@ -14,10 +14,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
-import { BudgetFormDialog } from './BudgetFormDialog'
+import { BudgetFormDialog } from '../finance/BudgetFormDialog'
 import { FeePaymentUploadFields, type FeePaymentValues } from './FeePaymentUploadFields'
 import { FeePaymentReplaceConfirm } from './FeePaymentReplaceConfirm'
-import { feePaymentsPath } from './finance-api'
+import { feePaymentsPath } from './fee-payment-api'
 import { useFeePaymentPeriod } from './useFeePaymentPeriod'
 import { useFeePaymentPost, type FeePaymentHandlers } from './useFeePaymentPost'
 

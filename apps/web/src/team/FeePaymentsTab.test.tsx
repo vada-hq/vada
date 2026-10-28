@@ -9,7 +9,11 @@ import {
   MEMBER_PERMISSIONS,
 } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
-import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
+import {
+  BASE,
+  serveFees as serveFinance,
+  showOrganization as showFinance,
+} from '@/test-support/fee-payment-harness'
 import { FEE_PAYMENT_SEARCH_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { deferredResponse, json } from '@/test-support/mock-api'
 

@@ -21,7 +21,7 @@ import { HeaderSection } from './HeaderSections'
 import { BottomNavigationSection } from './BottomNavigationSections'
 import { AccountSection } from './AccountSections'
 import { FinancePeriodsSection } from './FinancePeriodsSections'
-import { FeePaymentUploadSection } from './FeePaymentSections'
+import { FeePaymentUploadSection, OrganizationTabsSection } from './FeePaymentSections'
 import { MessageBubbleSection, MessageMadeSection, RoomRowSection } from './ChatSections'
 import { ExpenseCreateSection } from './ExpenseCreateSections'
 import { ExpenseSection } from './ExpenseSections'
@@ -133,6 +133,7 @@ export const gallerySections = [
   FinanceHomeSection,
   HomeFinanceSummarySection,
   OrgSection,
+  OrganizationTabsSection,
   DepartmentColorSection,
   OrgInviteSection,
   PublicSection,

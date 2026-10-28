@@ -32,7 +32,7 @@ test('재정 탭 다섯은 줄을 바꿔 가로 스크롤 없이 다 보인다',
   serveIncomes()
   showFinance()
   const tabs = screen.getAllByRole('tab').map(tab => tab.textContent)
-  expect(tabs).toEqual(['예산 현황', '사용 내역', '행사 정산', '납부자 명단', '결산'])
+  expect(tabs).toEqual(['예산 현황', '사용 내역', '행사 정산', '결산'])
   const list = screen.getByRole('tablist', { name: '재정 보기' })
   // 탭 부품은 부모에 overflow를 줄 수 없다(tab-button.tsx). 넘치면 줄을 바꾼다.
   expect(list.className).toContain('flex-wrap')

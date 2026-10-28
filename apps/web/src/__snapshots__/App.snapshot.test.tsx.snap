@@ -845,7 +845,14 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <path d="m9 18 6-6-6-6">
 </path>
 </svg>
-<span class="text-gray-700">조직</span>
+<span class="">조직</span>
+</li>
+<li class="flex items-center gap-1 shrink-0">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
+<path d="m9 18 6-6-6-6">
+</path>
+</svg>
+<span class="text-gray-700">부서 및 구성원</span>
 </li>
 </ol>
 <h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="조직">조직</h1>
@@ -867,6 +874,12 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
 <div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
+<div role="tablist" aria-label="조직 보기" class="flex flex-wrap border-b break-keep [&amp;>button]:max-sm:min-h-11">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="true">부서 및 구성원</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="false">납부자 명단</button>
+</div>
+<div role="tabpanel" class="flex flex-col gap-3">
 <div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
@@ -984,6 +997,8 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1419,7 +1434,14 @@ exports[`작업 공간: 조직 1`] = `
 <path d="m9 18 6-6-6-6">
 </path>
 </svg>
-<span class="text-gray-700">조직</span>
+<span class="">조직</span>
+</li>
+<li class="flex items-center gap-1 shrink-0">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
+<path d="m9 18 6-6-6-6">
+</path>
+</svg>
+<span class="text-gray-700">부서 및 구성원</span>
 </li>
 </ol>
 <h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="조직">조직</h1>
@@ -1441,6 +1463,12 @@ exports[`작업 공간: 조직 1`] = `
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6 max-md:bottom-navigation-space">
 <div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
+<div role="tablist" aria-label="조직 보기" class="flex flex-wrap border-b break-keep [&amp;>button]:max-sm:min-h-11">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="true">부서 및 구성원</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="false">납부자 명단</button>
+</div>
+<div role="tabpanel" class="flex flex-col gap-3">
 <div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
@@ -1558,6 +1586,8 @@ exports[`작업 공간: 조직 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1744,7 +1774,14 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 <path d="m9 18 6-6-6-6">
 </path>
 </svg>
-<span class="text-gray-700">조직</span>
+<span class="">조직</span>
+</li>
+<li class="flex items-center gap-1 shrink-0">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right size-3 shrink-0" aria-hidden="true">
+<path d="m9 18 6-6-6-6">
+</path>
+</svg>
+<span class="text-gray-700">부서 및 구성원</span>
 </li>
 </ol>
 <h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="조직">조직</h1>
@@ -1766,6 +1803,12 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 </header>
 <main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
 <div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
+<div role="tablist" aria-label="조직 보기" class="flex flex-wrap border-b break-keep [&amp;>button]:max-sm:min-h-11">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="true">부서 및 구성원</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground" aria-selected="false">납부자 명단</button>
+</div>
+<div role="tabpanel" class="flex flex-col gap-3">
 <div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
@@ -1883,6 +1926,8 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
+</div>
 </div>
 </div>
 </div>

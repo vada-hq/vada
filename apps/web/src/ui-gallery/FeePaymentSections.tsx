@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { AddFeePaymentsSchema, type FiscalPeriodSummary } from '@vada/contracts'
+import { AddFeePaymentsSchema, type FiscalPeriodSummary, type PeopleTab } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
-import { FeePaymentReplaceConfirm } from '@/finance/FeePaymentReplaceConfirm'
-import { FeePaymentUploadFields } from '@/finance/FeePaymentUploadFields'
+import { FeePaymentReplaceConfirm } from '@/team/FeePaymentReplaceConfirm'
+import { FeePaymentUploadFields } from '@/team/FeePaymentUploadFields'
+import { OrganizationTabs } from '@/team/OrganizationTabs'
 import { Section } from './GallerySection'
 
 const period: FiscalPeriodSummary = {
@@ -74,6 +75,18 @@ export function FeePaymentUploadSection() {
       <div className="flex max-w-full flex-col gap-2">
         <p className="text-xs text-muted-foreground">390px 창</p>
         <UploadSample width="w-89.5" manual />
+      </div>
+    </Section>
+  )
+}
+
+export function OrganizationTabsSection() {
+  const [tab, setTab] = useState<PeopleTab>('fees')
+  return (
+    <Section title="조직 탭 · 부서 및 구성원·납부자 명단">
+      <div className="flex w-full min-w-0 flex-col gap-4">
+        <OrganizationTabs tab={tab} onTab={setTab} />
+        {tab === 'fees' && <UploadSample width="w-128" manual={false} />}
       </div>
     </Section>
   )

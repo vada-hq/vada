@@ -6,12 +6,10 @@ export type { FinanceTab }
 type TabsProps = {
   tab: FinanceTab
   onTab: (tab: FinanceTab) => void
-  // 납부자 명단 탭은 `fee_payment.view`가 있는 재정부와 회장단에게만 보인다.
-  showFees: boolean
 }
 
 // 예산 현황은 모든 운영진의 첫 탭이다(메뉴 v7 S6a).
-export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
+export function FinanceTabs({ tab, onTab }: TabsProps) {
   return (
     <div
       role="tablist"
@@ -27,11 +25,6 @@ export function FinanceTabs({ tab, onTab, showFees }: TabsProps) {
       <TabButton aria-selected={tab === 'settlements'} onClick={() => onTab('settlements')}>
         행사 정산
       </TabButton>
-      {showFees && (
-        <TabButton aria-selected={tab === 'fees'} onClick={() => onTab('fees')}>
-          납부자 명단
-        </TabButton>
-      )}
       <TabButton aria-selected={tab === 'closing'} onClick={() => onTab('closing')}>
         결산
       </TabButton>

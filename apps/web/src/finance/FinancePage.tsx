@@ -8,7 +8,6 @@ import type { ClosingOpeners } from './ClosingChecks'
 import { ClosingTab } from './ClosingTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpenseBrowser } from './ExpenseBrowser'
-import { FeePaymentsTab } from './FeePaymentsTab'
 import { IncomesTab } from './IncomesTab'
 import { LedgerKind } from './LedgerKind'
 import { OverviewTab } from './OverviewTab'
@@ -30,7 +29,7 @@ function ManagedTab({
   onForbidden,
   openers,
 }: {
-  tab: 'overview' | 'fees' | 'accounts' | 'closing'
+  tab: 'overview' | 'accounts' | 'closing'
   view: CouncilView
   onForbidden: () => void
   openers: ClosingOpeners
@@ -38,10 +37,6 @@ function ManagedTab({
   const shared = { councilId: view.council.id, onForbidden }
   const canManage = view.permissions.includes('finance.manage')
   if (tab === 'overview') return <OverviewTab {...shared} canManage={canManage} />
-  if (tab === 'fees')
-    return (
-      <FeePaymentsTab {...shared} canManage={view.permissions.includes('fee_payment.manage')} />
-    )
   if (tab === 'closing')
     return (
       <ClosingTab
@@ -121,8 +116,7 @@ function CreateRow({
 export default function FinancePage(props: Props) {
   const councilId = props.view.council.id
   const can = (action: Action) => props.view.permissions.includes(action)
-  const access = { fees: can('fee_payment.view') }
-  const { tab, setTab, income, setKind } = useFinanceControls(councilId, access)
+  const { tab, setTab, income, setKind } = useFinanceControls(councilId)
   const expenseDialogs = useRecordDialogs(useAddressRecord('expenses', councilId))
   // 지출 목록은 지출 탭이 열려 있을 때만 읽는다.
   const expenses = useExpenses(councilId, props.onForbidden, tab === 'ledger' && !income)
@@ -134,7 +128,7 @@ export default function FinancePage(props: Props) {
         onChanged={() => void expenses.reload()}
         onForbidden={props.onForbidden}
       />
-      <FinanceTabs tab={tab} onTab={setTab} showFees={access.fees} />
+      <FinanceTabs tab={tab} onTab={setTab} />
       {tab === 'ledger' && <LedgerKind income={income} onChange={setKind} />}
       <CreateRow
         lost={expenseDialogs.lost}

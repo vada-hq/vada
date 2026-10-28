@@ -17,8 +17,6 @@ function detailTab(here: ReturnType<typeof useHere>) {
   return location?.type === 'record' ? (parentOf(location).query['tab'] ?? 'overview') : undefined
 }
 
-type TabAccess = { fees: boolean }
-
 // 바로 연 기록을 닫으면 앞서 보던 다른 구분이 아니라 그 기록의 구분으로 돌아간다.
 function rememberRecordKind(councilId: string, record: RecordKind | null, query: AppQuery) {
   if (record !== 'expenses' && record !== 'incomes') return
@@ -30,21 +28,18 @@ function rememberRecordKind(councilId: string, record: RecordKind | null, query:
 }
 
 // 재정 화면의 탭. 재정 메뉴에서는 주소의 쿼리가 원문이라 새로고침해도 같고 바꿔도 기록을 쌓지 않는다.
-// 탭을 고르지 않았으면 모든 운영진에게 개요다(DEC-92). 볼 권한이 없는 탭(납부자 명단)의 주소는 첫 화면(개요)으로 바꿔 쓴다.
-export function useFinanceControls(councilId: string, access: TabAccess) {
+// 탭을 고르지 않았으면 모든 운영진에게 개요다(DEC-92).
+export function useFinanceControls(councilId: string) {
   const url = useMenuQuery('finance', councilId)
   const here = useHere()
   const pinned = detailTab(here)
-  const asked = pickQuery(FINANCE_TABS, pinned ?? url.query['tab'], 'overview')
-  const tab = asked === 'fees' && !access.fees ? 'overview' : asked
+  const tab = pickQuery(FINANCE_TABS, pinned ?? url.query['tab'], 'overview')
   const record = here.location?.type === 'record' ? here.location.record : null
   const income = record === 'incomes' || (record === null && url.query['kind'] === 'income')
   rememberRecordKind(councilId, record, url.query)
-  // 권한은 화면이 열린 뒤에도 바뀌므로 매번 본다. 주소가 이 메뉴 첫 화면일 때만 바꿔 쓴다.
   useEffect(() => {
-    if (url.active && asked === 'accounts')
+    if (url.active && tab === 'accounts')
       openMenu('settings', councilId, { section: 'accounts' }, { replace: true })
-    if (url.active && asked !== tab) url.set({ tab: null })
   })
   return {
     tab,

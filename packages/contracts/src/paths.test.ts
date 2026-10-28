@@ -359,7 +359,7 @@ const MOVES: [old: string, now: string][] = [
   [`/finance/${C}?tab=incomes&period=${P}`, `/finance/${C}?tab=ledger&kind=income&period=${P}`],
   [`/finance/${C}?tab=settlements`, `/finance/${C}?tab=closing`],
   [`/finance/${C}?tab=accounts`, `/settings/${C}?section=accounts`],
-  [`/finance/${C}?tab=fees&view=pending`, `/settings/${C}?section=fees`],
+  [`/finance/${C}?tab=fees&view=pending`, `/people/${C}?tab=fees`],
 ]
 
 test('옛 주소는 메뉴 v7의 새 주소로 옮기고, 새 주소는 다시 읽어도 같고 더 옮기지 않는다', () => {
@@ -384,6 +384,9 @@ test('그대로인 주소: 기록 주소(알림), 업무 첫 화면, 결산, 행
 })
 
 test('옮기기는 켠 것만 하고, 내 부서를 모르면 부서 칩 없이 학생회 업무다', () => {
+  assert.equal(movedTo(`/finance/${C}?tab=fees`, ['settings']), null)
+  assert.equal(movedTo(`/finance/${C}?tab=fees`, ['people']), `/people/${C}?tab=fees`)
+  assert.equal(movedTo(`/finance/${C}?tab=accounts`, ['people']), null)
   assert.equal(movedTo(`/council/${C}`, []), null)
   assert.equal(movedTo(`/council/${C}`, ['tasks']), null)
   assert.equal(
@@ -396,6 +399,14 @@ test('옮기기는 켠 것만 하고, 내 부서를 모르면 부서 칩 없이 
   assert.equal(appPath(movedLocationOf(location)!), `/tasks/${C}`)
   const picked = parseAppPath(`/tasks/${C}?view=department&dept=${P}`)!
   assert.equal(appPath(movedLocationOf(picked)!), `/tasks/${C}?dept=${P}`)
+})
+
+test('조직 탭은 납부자 명단만 주소에 남기고 기본·모르는 값은 뺀다', () => {
+  assert.equal(menuPath('people', C, { tab: 'people' }), `/people/${C}`)
+  assert.equal(menuPath('people', C, { tab: 'fees' }), `/people/${C}?tab=fees`)
+  assert.deepEqual(parseAppPath(`/people/${C}?tab=fees`)?.query, { tab: 'fees' })
+  assert.deepEqual(parseAppPath(`/people/${C}?tab=nope`)?.query, {})
+  sameAfterRoundTrip(parseAppPath(`/people/${C}?tab=fees`)!)
 })
 
 test('새 메뉴 주소: 구매 요청 쓰기와 업무 칩·재정 구분은 그 자리에서만 남는다', () => {

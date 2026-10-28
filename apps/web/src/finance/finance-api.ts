@@ -48,8 +48,3 @@ export const accountPath = (councilId: string, accountId: string) =>
   `${accountsPath(councilId)}/${encodeURIComponent(accountId)}`
 export const accountClosePath = (councilId: string, accountId: string) =>
   `${accountPath(councilId, accountId)}/close`
-
-export const feePaymentsPath = (councilId: string, studentId?: string) =>
-  `${councilPath(councilId)}/fee-payments${studentId ? `?studentId=${encodeURIComponent(studentId)}` : ''}`
-export const feePaymentRemovePath = (councilId: string, paymentId: string) =>
-  `${councilPath(councilId)}/fee-payments/${encodeURIComponent(paymentId)}/remove`

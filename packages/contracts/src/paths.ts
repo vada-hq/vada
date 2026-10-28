@@ -37,17 +37,26 @@ export type TaskTab = (typeof TASK_TABS)[number]
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
 
+export const PEOPLE_TABS = ['people', 'fees'] as const
+export type PeopleTab = (typeof PEOPLE_TABS)[number]
+
 export const FINANCE_TABS = [
   'overview',
   'ledger',
   'settlements',
   'accounts', // 옛 재정 주소는 설정의 계좌로 옮긴다(DEC-92).
-  'fees',
   'closing',
 ] as const
 export type FinanceTab = (typeof FINANCE_TABS)[number]
 // 북마크와 이미 보낸 주소는 계속 읽어 새 자리로 바꿔 쓴다.
-const FINANCE_TAB_VALUES = [...FINANCE_TABS, 'requests', 'expenses', 'incomes', 'budget'] as const
+const FINANCE_TAB_VALUES = [
+  ...FINANCE_TABS,
+  'requests',
+  'expenses',
+  'incomes',
+  'budget',
+  'fees',
+] as const
 
 // 기록 종류마다 여는 메뉴와 탭. 구매 요청의 상위 목록은 구매 메뉴다.
 const RECORD_PARENTS = {
@@ -133,7 +142,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
       onlyWith: { key: 'tab', value: ['expenses', 'ledger'] },
     },
   },
-  people: {},
+  people: { tab: { values: PEOPLE_TABS, fallback: 'people' } },
   departments: {},
   // 계좌·납부자 명단이 옮겨 올 칸(설계 3.3).
   settings: { section: { values: ['accounts', 'fees'], fallback: null } },

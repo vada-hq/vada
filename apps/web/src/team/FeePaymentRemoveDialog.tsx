@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { RemoveFeePaymentSchema, type FeePaymentMatch } from '@vada/contracts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { feePaymentRemovePath } from './finance-api'
+import { feePaymentRemovePath } from './fee-payment-api'
 import { useFeePaymentPost, type FeePaymentHandlers } from './useFeePaymentPost'
 
 type Props = FeePaymentHandlers & {

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { PageTrail } from '@/components/PageHeading'
-import { eventTrail, pageTitles, pageWidthOf, trailOf, type Page } from './pages'
+import { eventTrail, pageTitles, pageWidthOf, peopleTrail, trailOf, type Page } from './pages'
 
 const COUNCIL = '컴퓨터학부 학생회'
 const labels = (page: Page, deeper: PageTrail | null = null) =>
@@ -54,6 +54,16 @@ test('설정의 제목은 학생회 정보이고, 다른 메뉴의 제목은 경
 
 test('사람과 옛 부서 주소는 같은 조직 화면이라 제목이 조직이다', () => {
   expect([pageTitles.people.title, pageTitles.departments.title]).toEqual(['조직', '조직'])
+})
+
+test('조직 경로는 보이는 탭이 둘일 때만 탭 이름을 붙인다', () => {
+  expect(labels('people', peopleTrail('부서 및 구성원'))).toEqual([
+    COUNCIL,
+    '조직',
+    '부서 및 구성원',
+  ])
+  expect(labels('people', peopleTrail('납부자 명단'))).toEqual([COUNCIL, '조직', '납부자 명단'])
+  expect(labels('people', peopleTrail(null))).toEqual([COUNCIL, '조직'])
 })
 
 test('행사 업무 탭은 학생회 > 행사 > 행사명 > 업무이고 제목은 행사명이다', () => {

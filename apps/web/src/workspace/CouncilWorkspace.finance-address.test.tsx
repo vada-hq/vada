@@ -131,13 +131,12 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('구매 탭 다섯이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
+test('재정 탭 넷이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
     ['사용 내역', '?tab=ledger'],
     ['행사 정산', '?tab=settlements'],
-    ['납부자 명단', '?tab=fees'],
     ['결산', '?tab=closing'],
     ['예산 현황', ''],
   ]
@@ -146,7 +145,6 @@ test('구매 탭 다섯이 주소에 남고 기록을 쌓지 않으며 기본은
     '예산 현황',
     '사용 내역',
     '행사 정산',
-    '납부자 명단',
     '결산',
   ])
   for (const [name, search] of tabs) {
@@ -267,12 +265,12 @@ test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열
   expect(await select()).toHaveProperty('value', OLD_PERIOD)
 })
 
-test('납부자 명단 권한이 없으면 그 탭 주소는 첫 화면(개요)으로 바꿔 쓴다', async () => {
+test('납부자 명단 권한이 없으면 옛 재정 탭 주소는 조직 첫 화면으로 바꿔 쓴다', async () => {
   const push =
     (startAt(`/finance/${COUNCIL_ID}?tab=fees`, 'finance', MEMBER_PERMISSIONS),
     vi.spyOn(window.history, 'pushState'))
-  expect(await isSelected('예산 현황')).toBe(true)
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}`))
+  await screen.findByRole('heading', { name: '회장단' })
+  await waitFor(() => expect(pathNow()).toBe(`/people/${COUNCIL_ID}`))
   expect(screen.queryByRole('tab', { name: '납부자 명단' })).toBeNull()
   expect(push).not.toHaveBeenCalled()
 })

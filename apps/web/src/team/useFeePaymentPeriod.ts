@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { usePeriods } from './useIncomes'
+import { usePeriods } from '../finance/useIncomes'
 
 export function useFeePaymentPeriod(councilId: string, onForbidden: () => void) {
   const [chosen, select] = useState<string | null>(null)

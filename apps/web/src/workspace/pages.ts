@@ -65,6 +65,11 @@ export const eventTrail = (name: string, tab: string): PageTrail => ({
   ],
 })
 
+export const peopleTrail = (tab: string | null): PageTrail => ({
+  title: '조직',
+  crumbs: tab === null ? [] : [{ label: tab, truncate: false }],
+})
+
 export type WorkspaceProps = {
   onAddCouncil?: ((entry: CouncilEntry) => void) | undefined
   councils: MyCouncil[]

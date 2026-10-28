@@ -33,7 +33,7 @@ export function MenuTabsSection() {
         <NavItem>축제</NavItem>
         <NavItem disabled>비활성 행사</NavItem>
       </div>
-      <FinanceTabs tab={tab} onTab={setTab} showFees />
+      <FinanceTabs tab={tab} onTab={setTab} />
       {tab === 'ledger' && <LedgerKind income={income} onChange={setIncome} />}
     </Section>
   )

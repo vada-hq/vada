@@ -20,6 +20,7 @@ import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { overviewFixture } from '@/test-support/overview-fixtures'
 import Organization from '@/team/Organization'
+import OrganizationPage from '@/team/OrganizationPage'
 import { useTeam } from '@/team/useTeam'
 
 // 역할 × 화면 읽기 행렬(권한 점검 2026-10-28, AGENTS.md '화면의 권한'): 같은 서버 응답을 다섯 역할의 권한으로 그려,
@@ -154,10 +155,11 @@ async function budget(role: Role) {
   return readOf(body)
 }
 
-function OrganizationAt({ role }: { role: Role }) {
+function OrganizationAt({ role, tabs = false }: { role: Role; tabs?: boolean }) {
   const team = useTeam(COUNCIL_ID, () => {})
+  const Page = tabs ? OrganizationPage : Organization
   return (
-    <Organization
+    <Page
       view={viewOf(role)}
       reading={{ own: false }}
       team={team}
@@ -240,9 +242,10 @@ describe('역할 × 화면 읽기 행렬: 읽기 본문은 역할마다 같고 �
   test('납부자 명단 탭은 읽기 예외 fee_payment.view를 가진 역할에게만 있다', async () => {
     expect(READ_EXCEPTIONS['fee_payment.view']).toBe('납부자 명단 탭')
     for (const role of ROLES) {
-      serveFinance(role)
-      window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=requests`)
-      render(<FinanceAt view={viewOf(role)} onForbidden={vi.fn()} />)
+      const api = mockApi()
+      api.on('GET', `${ORG}/members`, () => json(teamResponse(role.teamAs)))
+      window.history.replaceState(null, '', `/people/${COUNCIL_ID}`)
+      render(<OrganizationAt role={role} tabs />)
       expect(!!screen.queryByRole('tab', { name: '납부자 명단' }), role.name).toBe(
         role.permissions.includes('fee_payment.view'),
       )

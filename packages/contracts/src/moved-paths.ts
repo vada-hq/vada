@@ -5,7 +5,15 @@ import { appPath, parseAppPath, type AppLocation, type AppMenu, type AppQuery } 
 // 옮기기는 새 자리를 그리는 조각이 켠다(chat S5, tasks S4, calendar S7, purchases S1, ledger S6a, settings S6b).
 // 기록 주소(/chat|tasks|purchases|expenses|incomes|events/<c>/<id>)는 옮기지 않는다. 이미 보낸 알림이 그 꼴이다.
 // 행사 방의 대화 기록 주소 → 행사 메시지 탭은 방 요약(eventId)이 있어야 가려 대화 화면이 맡는다(S5).
-const ADDRESS_MOVES = ['chat', 'tasks', 'calendar', 'purchases', 'ledger', 'settings'] as const
+const ADDRESS_MOVES = [
+  'chat',
+  'tasks',
+  'calendar',
+  'purchases',
+  'ledger',
+  'people',
+  'settings',
+] as const
 export type AddressMove = (typeof ADDRESS_MOVES)[number]
 
 type MenuLocation = Extract<AppLocation, { type: 'menu' }>
@@ -90,11 +98,17 @@ const ledgerMove: Step = location => {
   return at(location, 'finance', { ...without(location.query, ['tab', 'view']), ...next })
 }
 
-// 계좌·납부자 명단 → 설정, 행사 정산 → 결산 탭(설계 3.3 안 B, 권장. 안 A가 되면 이 줄만 바꾼다).
+// 학기마다 올리는 납부자 명단은 조직 탭에 둔다(조직 v7 대조 O3, ORG-07A·07C).
+const peopleMove: Step = location =>
+  location.menu === 'finance' && location.query['tab'] === 'fees'
+    ? at(location, 'people', { tab: 'fees' })
+    : null
+
+// 계좌 → 설정, 행사 정산 → 결산 탭(설계 3.3 안 B, 권장. 안 A가 되면 이 줄만 바꾼다).
 const settingsMove: Step = location => {
   const tab = location.query['tab']
   if (location.menu !== 'finance') return null
-  if (tab === 'accounts' || tab === 'fees') return at(location, 'settings', { section: tab })
+  if (tab === 'accounts') return at(location, 'settings', { section: tab })
   if (tab !== 'settlements') return null
   return at(location, 'finance', { ...without(location.query, ['tab', 'view']), tab: 'closing' })
 }
@@ -106,6 +120,7 @@ const STEPS: Record<AddressMove, Step> = {
   calendar: calendarMove,
   purchases: purchasesMove,
   ledger: ledgerMove,
+  people: peopleMove,
   settings: settingsMove,
 }
 
