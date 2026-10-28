@@ -123,7 +123,9 @@ function minutesLabel(meeting: Detail) {
   if (meeting.actions.includes('meeting.minutes')) return MINUTES_TEXT.write
   // 취소 상세(09)는 안건·참가자를 그리지 않으므로 늘 회의록 화면으로 읽게 한다.
   if (meeting.status === 'cancelled') return MINUTES_TEXT.view
-  const written = meeting.agenda.some(item => item.notes || item.decisions.length)
+  const written = meeting.agenda.some(
+    item => item.notes || item.decisions.length || item.followUps.length,
+  )
   return written ? MINUTES_TEXT.view : null
 }
 export function MeetingDetail({ meeting, onEdit, onCancel, onEvent, onMinutes }: Props) {

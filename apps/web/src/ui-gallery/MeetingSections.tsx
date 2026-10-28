@@ -16,6 +16,8 @@ import {
   meetingOptions,
   meetingSample,
 } from '@/meetings/test-support/meeting-samples'
+import { Button } from '@/components/ui/button'
+import { MINUTES_TEXT } from '@/meetings/minutes-text'
 import { Section } from './GallerySection'
 
 const noop = () => {}
@@ -169,12 +171,14 @@ function MinutesExample({
         id: '0199d1a0-0000-7000-8000-000000000071',
         title: '비상 연락망 정리',
         status: 'todo',
+        dueDate: '2026-10-31',
         assignee: { id: MEETING_MEMBER, name: '김회장' },
       },
       {
         id: '0199d1a0-0000-7000-8000-000000000072',
         title: '현장 담당자 연락처 확인',
         status: 'done',
+        dueDate: null,
         assignee: null,
       },
     ]
@@ -188,6 +192,13 @@ function MinutesExample({
       <div className="flex w-full min-w-0 flex-col gap-5 break-keep">
         <MeetingMinutesView
           councilId={MEETING_COUNCIL}
+          followUpCreate={
+            readonly ? null : (
+              <Button touch size="sm" variant="outline">
+                {MINUTES_TEXT.createTask}
+              </Button>
+            )
+          }
           meeting={meeting}
           selectedId={item?.id ?? null}
           draft={item ? draft : undefined}

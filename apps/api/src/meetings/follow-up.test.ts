@@ -76,6 +76,7 @@ test(
         id: task.id,
         title: task.title,
         status: 'todo',
+        dueDate: null,
         assignee: { id: t.council.people.planningMember.memberId, name: 's planningMember' },
       },
     ])

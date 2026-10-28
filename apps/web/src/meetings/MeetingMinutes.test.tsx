@@ -240,6 +240,7 @@ test('회의 쓰기 동작이나 업무 선택지가 없으면 만들기만 숨�
       id: FOLLOW_UP_ID,
       title: '읽는 후속 업무',
       status: 'in_progress',
+      dueDate: null,
       assignee: { id: ME, name: '김운영' },
     },
   ]

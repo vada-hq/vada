@@ -155,6 +155,8 @@ export interface MeetingFollowUp {
   id: string
   title: string
   status: TaskStatus
+  // 한국 날짜(YYYY-MM-DD). 마감 없는 업무는 null이다.
+  dueDate: string | null
   assignee: { id: string; name: string } | null
 }
 export interface MeetingDecision {

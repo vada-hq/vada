@@ -104,6 +104,8 @@ function MeetingRecord({
   const saved = useCallback((item: Detail) => replace({ meeting: item }), [replace])
   const meeting = read.state.kind === 'ready' ? read.state.data.meeting : null
   const editing = useLatched(edit, Boolean(meeting && meeting.actions.includes('meeting.edit')))
+  // 쓰던 회의록·업무 창이 다른 사람의 취소·시각 바꾸기로 내려가 글을 잃지 않게, 한 번 연 회의록은 이 회의 안에서 그대로 둔다.
+  const showMinutes = useLatched(true, minutesVisible(meeting, minutes))
   const guarded = useAskingGuard(asking, cancelProblem(meeting), message => {
     setAsking(false)
     setNotice(message)
@@ -132,7 +134,7 @@ function MeetingRecord({
   if (editing)
     return <MeetingEditor view={view} item={meeting} onForbidden={onForbidden} onClose={close} />
   const onEdit = () => navigate(editPath(councilId, id))
-  const body = minutesVisible(meeting, minutes) ? (
+  const body = showMinutes ? (
     <MeetingMinutes
       view={view}
       onForbidden={onForbidden}
@@ -172,7 +174,8 @@ function MeetingRecord({
   )
 }
 // 취소한 회의도 적힌 회의록은 주소로 읽는다(읽기는 가리지 않는다). 쓰기 동작은 서버가 주지 않는다.
-function minutesVisible(meeting: Detail, minutes: boolean) {
+function minutesVisible(meeting: Detail | null, minutes: boolean) {
+  if (!meeting) return false
   if (minutes) return true
   return meeting.status !== 'cancelled' && meeting.status !== 'scheduled'
 }

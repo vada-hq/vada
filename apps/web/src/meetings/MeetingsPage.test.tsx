@@ -362,3 +362,52 @@ test.each(['MEETING_HAS_TASKS', 'MEETING_CANCELLED'])(
     expect(screen.getByRole('dialog').contains(screen.getByText(problem))).toBe(true)
   },
 )
+
+test('예정 회의에 후속 업무만 있어도 읽는 사람이 회의록 보기로 그 업무를 찾는다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  const meeting = meetingSample({ status: 'scheduled', actions: [] })
+  meeting.agenda[0]!.followUps = [
+    {
+      id: '0199d1a0-0000-7000-8000-0000000000d1',
+      title: '미리 만든 후속 업무',
+      status: 'todo',
+      dueDate: null,
+      assignee: null,
+    },
+  ]
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+  render(page())
+  fireEvent.click(await screen.findByRole('button', { name: '회의록 보기' }))
+  expect(await screen.findByText('미리 만든 후속 업무')).toBeTruthy()
+})
+
+test('회의록을 연 뒤 회의가 취소·예정으로 바뀌어 다시 읽혀도 쓰던 업무 창을 내리지 않는다', async () => {
+  for (const status of ['cancelled', 'scheduled'] as const) {
+    window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+    let current = meetingSample({ status: 'in_progress', actions: ['meeting.minutes'] })
+    api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting: current }))
+    api.on('GET', `/api/organizations/${MEETING_COUNCIL}/tasks/options`, () =>
+      json({
+        departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }],
+        linkableEvents: [],
+      }),
+    )
+    api.on('GET', `/api/organizations/${MEETING_COUNCIL}/events`, () =>
+      json({ events: [], truncated: false }),
+    )
+    render(page())
+    fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
+    const title = await screen.findByLabelText(/업무 이름|제목/)
+    fireEvent.change(title, { target: { value: '쓰던 후속 업무' } })
+    current = meetingSample({ status, actions: [] })
+    window.dispatchEvent(new Event('vada:push-arrived'))
+    await waitFor(() =>
+      expect(api.calls.filter(call => call.path === `${base}/${MEETING_ID}`).length).toBe(2),
+    )
+    await waitFor(() => expect(screen.queryByRole('button', { name: '업무 만들기' })).toBeNull())
+    expect(screen.getByDisplayValue('쓰던 후속 업무')).toBeTruthy()
+    cleanup()
+    api.calls.length = 0
+    resetLeaveGuard()
+  }
+})

@@ -4,6 +4,7 @@ import type { Actor } from '../access/actor.js'
 import { agendaItem, meeting, record, task } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { dueDateOf } from '../tasks/due.js'
 import { memberNamesOf } from '../team/display-name.js'
 import { lockedAgenda } from './minutes-locks.js'
 import { lockedMeeting } from './service.js'
@@ -52,6 +53,7 @@ export async function followUpsOf(tx: Tx, actor: Actor, meetingId: string) {
       id: task.id,
       title: task.title,
       status: task.status,
+      dueAt: task.dueAt,
       agendaId: agendaItem.id,
       assigneeId: task.assigneeId,
     })
@@ -72,11 +74,12 @@ export async function followUpsOf(tx: Tx, actor: Actor, meetingId: string) {
   const ids = [...new Set(rows.flatMap(row => (row.assigneeId ? [row.assigneeId] : [])))]
   const names = await memberNamesOf(tx, actor.councilId, ids)
   const byAgenda = new Map<string, MeetingAgendaItem['followUps']>()
-  for (const { agendaId, assigneeId, status, ...row } of rows) {
+  for (const { agendaId, assigneeId, status, dueAt, ...row } of rows) {
     const list = byAgenda.get(agendaId) ?? []
     list.push({
       ...row,
       status: status as TaskStatus,
+      dueDate: dueDateOf(dueAt),
       assignee: assigneeId ? { id: assigneeId, name: names.get(assigneeId)! } : null,
     })
     byAgenda.set(agendaId, list)
