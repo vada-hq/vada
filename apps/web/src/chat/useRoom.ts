@@ -59,8 +59,29 @@ export function useRoom(councilId: string, roomId: string) {
   }, [where, ready, firstId, lastId, lose, isActive])
   useVisiblePoll(() => void catchUp(), CHAT_POLL_MS)
 
-  // 이전 쪽을 읽어 앞에 붙인다. 못 읽으면 false를 돌려준다.
-  const loadOlder = useCallback(async () => {
+  const loadOlder = useLoadOlder(where, firstId, { lose, isActive, setState })
+  const addMade = useCallback((messageId: string, made: MadeRecord) => {
+    setState(before => withMade(before, messageId, made))
+  }, [])
+  return { state, retry: first, lose, loadOlder, sync: catchUp, addMade }
+}
+export type Room = ReturnType<typeof useRoom>
+
+// 이전 쪽을 읽어 앞에 붙인다. 못 읽으면 false를 돌려준다.
+function useLoadOlder(
+  where: { councilId: string; roomId: string },
+  firstId: string | undefined,
+  {
+    lose,
+    isActive,
+    setState,
+  }: {
+    lose: () => void
+    isActive: () => boolean
+    setState: (update: (now: RoomState) => RoomState) => void
+  },
+) {
+  return useCallback(async () => {
     if (!firstId) return false
     const result = await readMessages(where, { before: firstId })
     if (!isActive()) return true
@@ -70,10 +91,5 @@ export function useRoom(councilId: string, roomId: string) {
     }
     setState(now => prepended(now, result.data))
     return true
-  }, [where, firstId, lose, isActive])
-  const addMade = useCallback((messageId: string, made: MadeRecord) => {
-    setState(before => withMade(before, messageId, made))
-  }, [])
-  return { state, retry: first, lose, loadOlder, sync: catchUp, addMade }
+  }, [where, firstId, lose, isActive, setState])
 }
-export type Room = ReturnType<typeof useRoom>
