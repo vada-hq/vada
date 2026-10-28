@@ -3,7 +3,6 @@ import type { TeamMember } from '@vada/contracts'
 import {
   councilRankLabel,
   departmentRankLabel,
-  holdsRank,
   orgGroups,
   placementsText,
   sidebarRoleLine,
@@ -45,25 +44,18 @@ test('부서 글은 부서 이름과 부서 직급을 잇는다', () => {
   expect(placementsText({ departments: [] }, departments, titles)).toBe('')
 })
 
-test('학생회 직급이나 부서 직급이 하나라도 있으면 직급이 붙은 사람이다', () => {
-  expect(holdsRank({ councilRank: null, departments: [{ id: 'f', rank: null }] })).toBe(false)
-  expect(holdsRank({ councilRank: 'vice_president', departments: [] })).toBe(true)
-  expect(
-    holdsRank({
-      councilRank: null,
-      departments: [
-        { id: 'f', rank: null },
-        { id: 'p', rank: 'vice_head' },
-      ],
-    }),
-  ).toBe(true)
-})
-
 const person = (
   id: string,
   councilRank: TeamMember['councilRank'],
-  departments: TeamMember['departments'] = [],
-): TeamMember => ({ id, name: id, councilRank, departments, joinedAt: '2026-10-01T01:00:00.000Z' })
+  departments: Omit<TeamMember['departments'][number], 'actions'>[] = [],
+): TeamMember => ({
+  id,
+  name: id,
+  councilRank,
+  departments: departments.map(item => ({ ...item, actions: [] })),
+  joinedAt: '2026-10-01T01:00:00.000Z',
+  actions: [],
+})
 
 test('조직 묶음: 회장단은 회장과 부회장 모두, 부서마다 그 부서 사람, 겸직자는 든 묶음마다, 차례는 받은 차례다', () => {
   const departments = [

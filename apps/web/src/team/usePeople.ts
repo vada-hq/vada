@@ -18,7 +18,7 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
   const menuFocus = useMenuFocus()
   const me = view.me.memberId
   const can = (action: Action) => view.permissions.includes(action)
-  const dialogs = usePeopleDialogs(team.data, me, { can, reading }, setMessage)
+  const dialogs = usePeopleDialogs(team.data, { can, reading }, setMessage)
   // 초대 링크 카드는 초대 권한과 함께 사라진다.
   useLost(can('invite.manage'), () => setMessage(PERMISSION_CHANGED), reading)
   const requests = usePeopleRequests(team, me, onOwnChange, setMessage)

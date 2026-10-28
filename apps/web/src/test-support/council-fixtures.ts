@@ -3,7 +3,9 @@ import {
   type Action,
   type CouncilRank,
   type CouncilView,
+  type MemberAction,
   type MyCouncil,
+  type PlacementAction,
   type TeamResponse,
 } from '@vada/contracts'
 
@@ -91,8 +93,30 @@ export function councilView(
   }
 }
 
+// 운영진 줄의 동작은 서버 team/policy.ts가 읽는 사람마다 낸다. 여기 값은 김회장(m1)으로 읽은 견본이다:
+// 회장(넘기기까지), 회장단(회장 넘기기 없음), 직급 없는 운영진(없음). 회장 줄과 내 줄에는 내보내기·직급이 없다.
+export type TeamViewer = 'president' | 'leader' | 'member'
+const OTHERS: Record<TeamViewer, MemberAction[]> = {
+  president: [
+    'member.assign_department',
+    'member.change_rank',
+    'member.hand_over_president',
+    'member.remove',
+  ],
+  leader: ['member.assign_department', 'member.change_rank', 'member.remove'],
+  member: [],
+}
+const placement = (viewer: TeamViewer): PlacementAction[] =>
+  viewer === 'member' ? [] : ['placement.remove']
+export const teamMemberActions = (viewer: TeamViewer) => ({
+  self: viewer === 'member' ? [] : (['member.assign_department'] as MemberAction[]),
+  others: OTHERS[viewer],
+  placement: placement(viewer),
+})
+
 // 회장 김회장(m1), 재정부 부장 이재정(m2), 부서 없는 박새내(m3). 재정부(d1)와 기획부(d2)가 있다.
-export function teamResponse(): TeamResponse {
+export function teamResponse(viewer: TeamViewer = 'president'): TeamResponse {
+  const actions = teamMemberActions(viewer)
   return {
     members: [
       {
@@ -101,13 +125,15 @@ export function teamResponse(): TeamResponse {
         councilRank: 'president',
         departments: [],
         joinedAt: '2026-10-01T01:00:00.000Z',
+        actions: actions.self,
       },
       {
         id: 'm2',
         name: '이재정',
         councilRank: null,
-        departments: [{ id: 'd1', rank: 'head' }],
+        departments: [{ id: 'd1', rank: 'head', actions: actions.placement }],
         joinedAt: '2026-10-02T01:00:00.000Z',
+        actions: actions.others,
       },
       {
         id: 'm3',
@@ -115,6 +141,7 @@ export function teamResponse(): TeamResponse {
         councilRank: null,
         departments: [],
         joinedAt: '2026-10-18T15:30:00.000Z',
+        actions: actions.others,
       },
     ],
     departments: [

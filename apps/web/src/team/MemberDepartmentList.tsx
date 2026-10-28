@@ -15,7 +15,7 @@ type Props = {
 }
 
 // 부서 배정 대화상자의 "지금 부서": 부서마다 부서 직급을 바꾸거나 뺀다.
-// 직급이 붙은 소속을 빼는 일은 그 직급을 거두는 일이기도 해서 직급 권한이 없으면 막는다.
+// 빼기 버튼은 서버가 소속마다 준 동작(placement.remove)으로 보인다. 직급이 붙은 소속의 규칙은 서버가 정한다(DEC-38).
 export function MemberDepartmentList({
   member,
   departments,
@@ -42,7 +42,7 @@ export function MemberDepartmentList({
             >
               <RankOptions titles={titles} />
             </NativeSelect>
-            {(item.rank === null || canRank) && (
+            {item.actions.includes('placement.remove') && (
               <Button
                 variant="ghost"
                 size="icon"

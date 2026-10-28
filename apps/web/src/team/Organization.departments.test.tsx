@@ -139,8 +139,9 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
       id: 'm4',
       name: '최부회',
       councilRank: 'vice_president',
-      departments: [{ id: 'd2', rank: 'head' }],
+      departments: [{ id: 'd2', rank: 'head', actions: [] }],
       joinedAt: '2026-10-03T01:00:00.000Z',
+      actions: [],
     },
     {
       id: 'm5',
@@ -148,16 +149,18 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
       councilRank: 'vice_president',
       departments: [],
       joinedAt: '2026-10-04T01:00:00.000Z',
+      actions: [],
     },
     {
       id: 'm6',
       name: '한겸직',
       councilRank: null,
       departments: [
-        { id: 'd1', rank: 'head' },
-        { id: 'd2', rank: null },
+        { id: 'd1', rank: 'head', actions: [] },
+        { id: 'd2', rank: null, actions: [] },
       ],
       joinedAt: '2026-10-05T01:00:00.000Z',
+      actions: [],
     },
   )
   serve(team)

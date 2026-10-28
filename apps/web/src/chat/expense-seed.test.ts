@@ -9,6 +9,7 @@ const member = (id: string): TeamMember => ({
   councilRank: null,
   departments: [],
   joinedAt: '2026-10-01T01:00:00.000Z',
+  actions: [],
 })
 const context = { meId: 'm1', members: [member('m1'), member('m2')] }
 

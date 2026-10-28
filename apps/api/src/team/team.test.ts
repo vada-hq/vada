@@ -150,6 +150,21 @@ test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직�
       ],
     )
     assert.ok(team.members.every(item => !Number.isNaN(Date.parse(item.joinedAt))))
+    // 직급 없는 운영진(u3)이 읽으면 줄 동작이 없다. 회장(u1)이 읽으면 회장 줄은 부서 배정만, 남의 줄은 넷 다다(team/policy.ts).
+    assert.ok(team.members.every(item => item.actions.length === 0))
+    const byPresident = (await (await api.get(`${base}/members`, 'u1')).json()) as TeamResponse
+    assert.deepEqual(
+      byPresident.members.map(item => item.actions),
+      [
+        ['member.assign_department'],
+        ...[member.u2, member.u3, member.u4].map(() => [
+          'member.assign_department',
+          'member.change_rank',
+          'member.hand_over_president',
+          'member.remove',
+        ]),
+      ],
+    )
     assert.deepEqual(team.departments, [
       {
         id: finance,
@@ -161,6 +176,7 @@ test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직�
     ])
     assert.ok(!JSON.stringify(team).includes('@'))
     assert.deepEqual(Object.keys(team.members[0]!).sort(), [
+      'actions',
       'councilRank',
       'departments',
       'id',
@@ -182,7 +198,7 @@ test('부서 배정과 부서 직급: 처음이면 만들고, 직급만 바꾸�
       api.post(`${base}/members/${member.u2}/departments`, { departmentId: finance, rank }, 'u1')
     let team = (await (await assign('head')).json()) as TeamResponse
     assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
-      { id: finance, rank: 'head' },
+      { id: finance, rank: 'head', actions: ['placement.remove'] },
     ])
     assert.equal(team.departments[0]!.memberCount, 1)
     const [{ id: placement }] = (
@@ -190,7 +206,7 @@ test('부서 배정과 부서 직급: 처음이면 만들고, 직급만 바꾸�
     ).rows as [{ id: string }]
     team = (await (await assign('vice_head')).json()) as TeamResponse
     assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
-      { id: finance, rank: 'vice_head' },
+      { id: finance, rank: 'vice_head', actions: ['placement.remove'] },
     ])
     assert.equal((await assign('vice_head')).status, 200)
     assert.equal(await versionsOf(testDb, placement), 2)
@@ -206,7 +222,7 @@ test('부서 배정과 부서 직급: 처음이면 만들고, 직급만 바꾸�
     )
     team = (await (await assign(null)).json()) as TeamResponse
     assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
-      { id: finance, rank: null },
+      { id: finance, rank: null, actions: ['placement.remove'] },
     ])
     assert.equal((await testDb.pg.query('SELECT id FROM department_membership')).rows.length, 1)
     assert.equal(await versionsOf(testDb, placement), 4)
@@ -433,11 +449,19 @@ test('두 학생회에 든 사람: A에서 내보내도 B의 부서 소속과 �
         name: '이름 x',
         councilRank: null,
         joinedAt: undefined,
-        departments: [{ id: a.finance, rank: 'head' }],
+        departments: [{ id: a.finance, rank: 'head', actions: ['placement.remove'] }],
+        actions: [
+          'member.assign_department',
+          'member.change_rank',
+          'member.hand_over_president',
+          'member.remove',
+        ],
       },
     )
     const inB = await xIn(b)
-    assert.deepEqual(inB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.deepEqual(inB.departments, [
+      { id: b.finance, rank: 'head', actions: ['placement.remove'] },
+    ])
     assert.equal(inB.councilRank, 'vice_president')
     // A에서 내보낸다. B의 소속은 그대로다.
     assert.equal((await api.post(`${a.base}/members/${a.xId}/remove`, {}, 'a')).status, 200)
@@ -451,7 +475,9 @@ test('두 학생회에 든 사람: A에서 내보내도 B의 부서 소속과 �
     assert.equal(placements.find(row => row.department_id === a.finance)?.ended, true)
     assert.equal(placements.find(row => row.department_id === b.finance)?.ended, false)
     const afterB = await xIn(b)
-    assert.deepEqual(afterB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.deepEqual(afterB.departments, [
+      { id: b.finance, rank: 'head', actions: ['placement.remove'] },
+    ])
     assert.equal(afterB.councilRank, 'vice_president')
     assert.equal((await api.get(b.base, 'x')).status, 200)
     assert.equal((await api.get(a.base, 'x')).status, 403)
@@ -796,7 +822,7 @@ test('옮기기: 옛 소속을 끝내고(판) 새 부서 소속을 보낸 직급
     assert.equal(response.status, 200)
     const team = (await response.json()) as TeamResponse
     assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
-      { id: planning, rank: null },
+      { id: planning, rank: null, actions: ['placement.remove'] },
     ])
     assert.equal(team.departments.find(item => item.id === finance)!.memberCount, 1)
     assert.equal(team.departments.find(item => item.id === planning)!.memberCount, 2)

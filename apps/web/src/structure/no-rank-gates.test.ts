@@ -36,8 +36,6 @@ const ALLOWED: Record<string, string> = {
   'team/useDepartmentSubmits.ts': '재정 역할 토글이 보낼 값',
   'team/usePeopleRequests.ts': '부회장 토글이 보낼 값',
   'workspace/SidebarFooter.tsx': '옆 메뉴 발의 직급 라벨',
-  'team/people-access.ts': '옮길 것(권한 점검 A1~A3): 운영진 줄의 동작을 서버 actions로 바꾼다',
-  'team/MemberDepartmentList.tsx': '옮길 것(권한 점검 A4): 부서에서 빼기를 서버 actions로 바꾼다',
 }
 
 const code = sources(SRC).map(

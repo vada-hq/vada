@@ -43,8 +43,12 @@ test('부서가 없는 사람', () => {
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
+// 직급 칸이 없으면 서버는 직급이 붙은 소속에 빼기(placement.remove)를 주지 않는다.
 test('직급 권한 없음', () => {
-  show(placed, { canRank: false })
+  show(
+    { ...placed, departments: placed.departments.map(item => ({ ...item, actions: [] })) },
+    { canRank: false },
+  )
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
@@ -67,8 +71,8 @@ test('모든 부서에 들어 있음', () => {
   show({
     ...placed,
     departments: [
-      { id: 'd1', rank: null },
-      { id: 'd2', rank: 'vice_head' },
+      { id: 'd1', rank: null, actions: ['placement.remove'] },
+      { id: 'd2', rank: 'vice_head', actions: ['placement.remove'] },
     ],
   })
   expect(snapshotHtml()).toMatchSnapshot()

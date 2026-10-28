@@ -9,14 +9,13 @@ import { closedReason, findConfirming, findEditing, type Can, type Confirm } fro
 // 권한을 가져온 읽기(reading)가 내 변경 뒤의 다시 읽기여서 닫혔으면 알리지 않는다.
 export function usePeopleDialogs(
   data: TeamResponse | null,
-  me: string,
   { can, reading }: { can: Can; reading: Reading },
   onClosed: (reason: string) => void,
 ) {
   const [editing, setEditing] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const editingMember = findEditing(data?.members, editing, can)
-  const confirming = findConfirming(data?.members, confirm, me, can)
+  const confirming = findConfirming(data?.members, confirm, can)
   const editingGone = isGone(data, editing, editingMember)
   const confirmGone = isGone(data, confirm, confirming)
   // 닫힌 대화상자의 대상을 지운다. 나중에 같은 운영진이 다시 목록에 나타나도 대화상자가 저절로 열리지 않게 한다.

@@ -86,6 +86,7 @@ const tableLookups = {
         councilRank: null,
         departments: [],
         joinedAt: '2026-10-01T01:00:00.000Z',
+        actions: [],
       },
     ],
     departments: [{ id: 'd1', name: '기획부', role: null, memberCount: 1 }],

@@ -143,7 +143,7 @@ function PersonRow({ member, group, people, team, view }: RowProps) {
       departments={team.data?.departments ?? []}
       titles={view.council.titles}
       inDepartment={team.data?.departments.some(item => item.id === group) ? group : null}
-      actions={rowActions(member, people.me, people.can)}
+      actions={rowActions(member, people.can)}
       saving={team.saving}
       triggerRef={people.menuFocus.triggerRef(key)}
       onAssign={() => people.openAssign(member, key)}

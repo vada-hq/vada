@@ -1,9 +1,33 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
-import { defaultDepartmentColor, type TeamResponse } from '@vada/contracts'
+import {
+  defaultDepartmentColor,
+  type CouncilRank,
+  type DepartmentRank,
+  type TeamMember,
+  type TeamResponse,
+} from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { councilMembership, department, departmentMembership, member } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { joinedDisplayNameOf } from './display-name.js'
+import { actionsOf, factsOf, placementActionsOf } from './policy.js'
+
+type MemberRow = { id: string; name: string; councilRank: CouncilRank | null; joinedAt: Date }
+type PlacementRow = { departmentId: string; rank: DepartmentRank | null }
+
+// 운영진 한 줄과 읽는 사람이 그 줄에 할 수 있는 동작. 쓰기와 같은 판정(policy.ts)이다.
+const memberOf = (actor: Actor, row: MemberRow, own: PlacementRow[]): TeamMember => ({
+  id: row.id,
+  name: row.name,
+  councilRank: row.councilRank,
+  joinedAt: row.joinedAt.toISOString(),
+  departments: own.map(item => ({
+    id: item.departmentId,
+    rank: item.rank,
+    actions: placementActionsOf(actor, item.rank),
+  })),
+  actions: actionsOf(actor, factsOf(row.id, row, own)),
+})
 
 // 운영진과 부서 목록. 지금 기수의 끝나지 않은 소속만 보인다. 들어온 순서대로 놓고, 이메일은 넣지 않는다(바탕 spec G12).
 export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<TeamResponse> {
@@ -40,15 +64,13 @@ export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<Team
     .where(eq(department.councilId, actor.councilId))
     .orderBy(asc(department.id))
   return {
-    members: members.map(row => ({
-      id: row.id,
-      name: row.name,
-      councilRank: row.councilRank,
-      joinedAt: row.joinedAt.toISOString(),
-      departments: placements
-        .filter(item => item.memberId === row.id)
-        .map(item => ({ id: item.departmentId, rank: item.rank })),
-    })),
+    members: members.map(row =>
+      memberOf(
+        actor,
+        row,
+        placements.filter(item => item.memberId === row.id),
+      ),
+    ),
     departments: departments.map(row => ({
       ...row,
       color: row.color ?? defaultDepartmentColor(row.id),

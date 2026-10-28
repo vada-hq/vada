@@ -18,12 +18,27 @@ export const recordIdInput = token(UUID_LENGTH)
 export const LEFT_MEMBER_NAME_PREFIX = '떠난 운영진 '
 export const isLeftMemberName = (name: string) => name.startsWith(LEFT_MEMBER_NAME_PREFIX)
 
+// 운영진 줄마다 서버가 주는 할 수 있는 동작. 이름은 권한 키와 떼어 둔다(기능 012 원칙). 서버 team/policy.ts가 권한표와 대상의
+// 직급·본인 여부로 정하고 쓰기도 같은 판정으로 거절한다. 화면은 이것으로 메뉴를 보이거나 숨기고 다시 계산하지 않는다(DEC-38).
+export const MEMBER_ACTIONS = [
+  'member.assign_department',
+  'member.change_rank',
+  'member.hand_over_president',
+  'member.remove',
+] as const
+export type MemberAction = (typeof MEMBER_ACTIONS)[number]
+// 부서 소속 하나의 동작: 그 부서에서 빼기(직급이 붙었으면 직급 칸도 본다).
+export const PLACEMENT_ACTIONS = ['placement.remove'] as const
+export type PlacementAction = (typeof PLACEMENT_ACTIONS)[number]
+
 // 운영진 목록의 한 줄. 들어온 순서와 시각을 보인다(DEC-47). 이메일은 보이지 않는다(바탕 spec G12).
 export interface TeamMember {
   id: string
   name: string
   councilRank: CouncilRank | null
-  departments: { id: string; rank: DepartmentRank | null }[]
+  departments: { id: string; rank: DepartmentRank | null; actions: PlacementAction[] }[]
+  // 읽는 사람이 이 줄에 할 수 있는 동작(서버가 정한다).
+  actions: MemberAction[]
   // 지금 소속을 연 시각(ISO). 다시 들어오면 다시 들어온 시각이다.
   joinedAt: string
 }

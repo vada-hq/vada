@@ -20,6 +20,7 @@ import {
   type AnyRecordChange,
 } from '../records/records.js'
 import type { Db, Tx } from '../db/types.js'
+import { decide, decidePlacement, factsOf } from './policy.js'
 
 // 회장단이 하는 운영진 편성(DEC-28, DEC-47). 모두 학생회 행을 잠근 거래 안에서 부른다(authorizeChange).
 // 대상은 요청한 사람과 같은 기수의 지금 소속이어야 한다. 다른 학생회의 운영진이나 내보낸 운영진은 404다.
@@ -129,7 +130,8 @@ export async function removeFromDepartment(
   await currentMembership(tx, actor, memberId)
   const [placement] = await placementOf(tx, actor, memberId, departmentId)
   if (!placement || placement.endsAt !== null) throw new ApiError('NOT_FOUND')
-  if (placement.rank !== null && !can(actor, 'rank.manage')) throw new ApiError('FORBIDDEN')
+  const refused = decidePlacement(actor, placement.rank, 'placement.remove')
+  if (refused) throw new ApiError(refused)
   await updateRecord(tx, {
     kind: 'department_membership',
     id: placement.id,
@@ -147,6 +149,8 @@ export async function changeRank(
   rank: 'vice_president' | null,
 ) {
   const target = await currentMembership(tx, actor, memberId)
+  const refused = decide(actor, factsOf(memberId, target, []), 'member.change_rank')
+  if (refused) throw new ApiError(refused)
   if (target.councilRank === rank) return
   await updateRecord(tx, {
     kind: 'council_membership',
@@ -200,8 +204,9 @@ export async function handOverPresident(
 
 // 회장 넘기기: 회장이 지금 기수의 다른 운영진에게 넘긴다.
 export async function transferPresident(tx: Tx, actor: Actor, memberId: string) {
-  if (memberId === actor.memberId) throw new ApiError('ALREADY_PRESIDENT')
   const target = await currentMembership(tx, actor, memberId)
+  const refused = decide(actor, factsOf(memberId, target, []), 'member.hand_over_president')
+  if (refused) throw new ApiError(refused)
   await handOverPresident(tx, {
     from: actor.membershipId,
     to: target.id,
@@ -214,8 +219,6 @@ export async function transferPresident(tx: Tx, actor: Actor, memberId: string) 
 // 학생회 직급이나 부서 직급이 붙은 소속이 있으면 그 직급을 거두는 일이기도 해서 직급 칸도 본다.
 export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
   const target = await currentMembership(tx, actor, memberId)
-  if (target.councilRank === 'president') throw new ApiError('PRESIDENT_CANNOT_LEAVE')
-  if (memberId === actor.memberId) throw new ApiError('CANNOT_REMOVE_SELF')
   const placements = await tx
     .select({ id: departmentMembership.id, rank: departmentMembership.departmentRank })
     .from(departmentMembership)
@@ -226,11 +229,8 @@ export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
         isNull(departmentMembership.endsAt),
       ),
     )
-  if (
-    (target.councilRank !== null || placements.some(item => item.rank !== null)) &&
-    !can(actor, 'rank.manage')
-  )
-    throw new ApiError('FORBIDDEN')
+  const refused = decide(actor, factsOf(memberId, target, placements), 'member.remove')
+  if (refused) throw new ApiError(refused)
   const changes: AnyRecordChange[] = [
     ...placements.map(item => ({
       kind: 'department_membership' as const,

@@ -16,6 +16,7 @@ const member = (id: string): TeamMember => ({
   councilRank: null,
   departments: [],
   joinedAt: '2026-10-01T01:00:00.000Z',
+  actions: [],
 })
 const members = [member('m1'), member('m2')]
 const finance = { meId: 'm1', members, canAssign: true }

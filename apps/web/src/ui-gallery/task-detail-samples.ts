@@ -22,8 +22,9 @@ export const sampleTeam: TeamResponse = {
     id,
     name,
     councilRank: null,
-    departments: [{ id: department, rank: null }],
+    departments: [{ id: department, rank: null, actions: [] }],
     joinedAt: '2026-03-02T01:00:00.000Z',
+    actions: [],
   })),
 }
 

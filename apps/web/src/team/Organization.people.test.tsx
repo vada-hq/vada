@@ -150,11 +150,15 @@ test('직급 없는 운영진은 [구성원 초대]와 ⋯ 메뉴를 보지 않�
 test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () => {
   const cases: { permissions: Action[]; invite: boolean; menus: Record<string, string[]> }[] = [
     { permissions: ['council.view', 'invite.manage'], invite: true, menus: {} },
-    // 이재정은 부서 직급이 있어 내보내기에는 rank.manage도 필요하다.
+    // 줄 동작은 회장이 읽은 서버 견본이다. 학생회 권한 하나가 그 권한에 기대는 동작만 남긴다.
     {
       permissions: ['council.view', 'member.manage'],
       invite: false,
-      menus: { 김회장: ['부서 배정'], 이재정: ['부서 배정'], 박새내: ['부서 배정', '내보내기'] },
+      menus: {
+        김회장: ['부서 배정'],
+        이재정: ['부서 배정', '내보내기'],
+        박새내: ['부서 배정', '내보내기'],
+      },
     },
     {
       permissions: ['council.view', 'member.manage', 'rank.manage'],
@@ -284,67 +288,47 @@ test('회장단의 ⋯ 메뉴: 회장 줄에는 직급과 내보내기가 없고
   ).toEqual(['부서 배정', '부위원장 직급 주기', '위원장 넘기기', '내보내기'])
 })
 
-// 서버는 학생회 직급이나 부서 직급이 붙은 사람을 내보낼 때 member.manage에 더해 rank.manage도 본다.
-test('직급이 붙은 사람은 member.manage와 rank.manage가 둘 다 있어야 내보내기가 보인다', async () => {
+// 직급이 붙은 사람을 내보낼 때 rank.manage도 보는 규칙은 서버 team/policy.ts가 정한다(policy.test.ts). 화면은 줄 동작만 따른다(DEC-38).
+test('직급이 붙은 사람의 내보내기는 서버가 그 줄에 member.remove를 줄 때만 보이고, 화면이 직급으로 다시 가르지 않는다', async () => {
   const team = teamResponse()
-  team.members.push(
-    {
-      id: 'm4',
-      name: '최부회장',
-      councilRank: 'vice_president',
-      departments: [],
-      joinedAt: '2026-10-19T01:00:00.000Z',
-    },
-    {
-      id: 'm5',
-      name: '정부원',
-      councilRank: null,
-      departments: [{ id: 'd2', rank: null }],
-      joinedAt: '2026-10-19T02:00:00.000Z',
-    },
-  )
-  const cases: { permissions: Action[]; menus: Record<string, string[]> }[] = [
-    {
-      permissions: ['council.view', 'member.manage'],
-      menus: {
-        이재정: ['부서 배정'],
-        최부회장: ['부서 배정'],
-        박새내: ['부서 배정', '내보내기'],
-        정부원: ['부서 배정', '내보내기'],
-      },
-    },
-    {
-      permissions: ['council.view', 'member.manage', 'rank.manage'],
-      menus: {
-        이재정: ['부서 배정', '부위원장 직급 주기', '내보내기'],
-        최부회장: ['부서 배정', '부위원장 직급 거두기', '내보내기'],
-        박새내: ['부서 배정', '부위원장 직급 주기', '내보내기'],
-        정부원: ['부서 배정', '부위원장 직급 주기', '내보내기'],
-      },
-    },
-  ]
-  for (const { permissions, menus } of cases) {
-    serve(team)
-    render(<Harness permissions={permissions} />)
-    for (const [name, items] of Object.entries(menus)) {
-      const menu = await openMenu(name)
-      expect(
-        within(menu)
-          .getAllByRole('menuitem')
-          .map(item => item.textContent),
-        `${name} ${permissions.join(',')}`,
-      ).toEqual(items)
-      fireEvent.keyDown(menu, { key: 'Escape' })
-      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
-    }
-    cleanup()
+  const others = (id: string) => team.members.find(member => member.id === id)!
+  // member.manage만 있는 사람이 읽은 견본: 직급이 붙은 이재정에게는 내보내기가 없다.
+  others('m2').actions = ['member.assign_department']
+  others('m3').actions = ['member.assign_department', 'member.remove']
+  team.members.push({
+    id: 'm4',
+    name: '최부회장',
+    councilRank: 'vice_president',
+    departments: [],
+    joinedAt: '2026-10-19T01:00:00.000Z',
+    // 서버가 직급자에게도 내보내기를 주면 화면은 그대로 보인다.
+    actions: ['member.assign_department', 'member.remove'],
+  })
+  serve(team)
+  render(<Harness permissions={['council.view', 'member.manage']} />)
+  for (const [name, items] of Object.entries({
+    이재정: ['부서 배정'],
+    박새내: ['부서 배정', '내보내기'],
+    최부회장: ['부서 배정', '내보내기'],
+  })) {
+    const menu = await openMenu(name)
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map(item => item.textContent),
+      name,
+    ).toEqual(items)
+    fireEvent.keyDown(menu, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
   }
 })
 
 test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부서에서 뺀다', async () => {
   const api = serve()
   const assigned = teamResponse()
-  assigned.members[2]!.departments = [{ id: 'd2', rank: 'vice_head' }]
+  assigned.members[2]!.departments = [
+    { id: 'd2', rank: 'vice_head', actions: ['placement.remove'] },
+  ]
   api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(assigned))
   api.on('POST', '/api/organizations/c1/members/m3/departments/d2/remove', () =>
     json(teamResponse()),
@@ -371,7 +355,7 @@ test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부
 
 // 부서 직급(부장·부부장)을 바꾸는 일은 member.manage에 더해 rank.manage도 본다(P19).
 // 직급이 붙은 소속을 끝내는 것은 그 직급을 거두는 일이기도 해서 서버는 빼기에도 rank.manage를 본다.
-test('부서 직급 선택칸과 직급이 붙은 소속 빼기는 rank.manage가 있을 때만 켜진다', async () => {
+test('부서 직급 선택칸은 rank.manage가 있을 때만 켜지고, 직급이 붙은 소속 빼기는 서버의 소속 동작을 따른다', async () => {
   const withHead = teamResponse()
   serve(withHead)
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
@@ -397,17 +381,25 @@ test('부서 직급 선택칸과 직급이 붙은 소속 빼기는 rank.manage�
   expect(asElement(within(dialog).getByLabelText('부서 직급'), HTMLSelectElement).disabled).toBe(
     true,
   )
-  // 부서에 직급 없이 넣는 일은 member.manage만으로 된다. 직급이 붙은 소속은 빼지 못한다.
+  // 부서에 직급 없이 넣는 일은 member.manage만으로 된다.
   expect(
     asElement(within(dialog).getByRole('button', { name: '부서에 넣기' }), HTMLButtonElement)
       .disabled,
   ).toBe(false)
+  cleanup()
+  // 직급이 붙은 소속 빼기는 서버가 그 소속에 placement.remove를 줄 때만 있다(rank.manage가 없으면 주지 않는다).
+  const withoutRank = teamResponse()
+  withoutRank.members[1]!.departments = [{ id: 'd1', rank: 'head', actions: [] }]
+  serve(withoutRank)
+  render(<Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />)
+  fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
+  dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
   expect(within(dialog).queryByRole('button', { name: '재정부에서 빼기' })).toBeNull()
 })
 
 test('직급 없는 부서 소속은 member.manage만으로 뺀다', async () => {
   const placed = teamResponse()
-  placed.members[2]!.departments = [{ id: 'd2', rank: null }]
+  placed.members[2]!.departments = [{ id: 'd2', rank: null, actions: ['placement.remove'] }]
   const api = serve(placed)
   api.on('POST', '/api/organizations/c1/members/m3/departments/d2/remove', () =>
     json(teamResponse()),
@@ -654,14 +646,6 @@ test('확인 대화상자가 열린 채 권한을 잃으면 닫히고, 다시 �
       title: '이재정님에게 위원장 직급을 넘길까요?',
       item: '위원장 넘기기',
     },
-    // 부서 직급이 있는 사람을 내보내는 확인은 rank.manage를 잃어도 닫힌다.
-    {
-      permissions: LEADER_PERMISSIONS,
-      lost: ['council.view', 'member.manage'] as Action[],
-      name: '이재정',
-      title: '이재정님을 내보낼까요?',
-      item: '내보내기',
-    },
   ]) {
     const api = serve()
     const view = render(<Harness permissions={permissions} />)
@@ -745,8 +729,8 @@ test('두 묶음에 든 사람의 ⋯ 메뉴로 연 대화상자를 닫으면 �
   team.members[1] = {
     ...team.members[1]!,
     departments: [
-      { id: 'd1', rank: 'head' },
-      { id: 'd2', rank: null },
+      { id: 'd1', rank: 'head', actions: ['placement.remove'] },
+      { id: 'd2', rank: null, actions: ['placement.remove'] },
     ],
   }
   serve(team)

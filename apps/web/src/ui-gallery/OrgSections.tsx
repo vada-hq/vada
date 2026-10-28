@@ -33,8 +33,15 @@ const person = (
   id: string,
   name: string,
   councilRank: TeamMember['councilRank'],
-  departments: TeamMember['departments'] = [],
-): TeamMember => ({ id, name, councilRank, departments, joinedAt: joined(Number(id.slice(1))) })
+  departments: Omit<TeamMember['departments'][number], 'actions'>[] = [],
+): TeamMember => ({
+  id,
+  name,
+  councilRank,
+  departments: departments.map(item => ({ ...item, actions: [] })),
+  joinedAt: joined(Number(id.slice(1))),
+  actions: [],
+})
 
 // 부회장 둘, 두 부서에 든 사람(재정부 부장이면서 기획부원), 부장 둘인 부서, 사람 없는 부서, 미배정 둘, 상한 길이의 줄바꿈 없는 이름.
 const members: TeamMember[] = [
