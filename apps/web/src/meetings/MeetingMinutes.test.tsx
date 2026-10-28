@@ -432,3 +432,31 @@ test('결정을 쓰는 중 다른 사람이 안건을 빼면 쓰던 결정도 �
   expect(screen.getByText('빠진 안건에 쓰던 글')).toBeTruthy()
   expect(screen.getByText(/쓰던 결정/)).toBeTruthy()
 })
+
+test('남겨 둔 안건 고치기 글은 처음 본 판으로 보내 상대가 그사이 고친 것을 덮지 않는다', async () => {
+  const meeting = sample()
+  const first = draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '안건 고치기' }))
+  fireEvent.change(screen.getByLabelText(/안건 제목/), { target: { value: '내가 고친 제목' } })
+  first.unmount()
+  await act(async () => {})
+  const newer = {
+    ...meeting,
+    agenda: [
+      { ...meeting.agenda[0]!, title: '상대가 고친 제목', versionNo: 2 },
+      meeting.agenda[1]!,
+    ],
+  }
+  const path = `${base}/agenda/${meeting.agenda[0]!.id}`
+  api.on('POST', path, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  api.on('GET', base, () => json({ meeting: newer }))
+  draw(newer)
+  fireEvent.click(screen.getByRole('button', { name: '안건 고치기' }))
+  expect(screen.getByLabelText<HTMLTextAreaElement>(/안건 제목/).value).toBe('내가 고친 제목')
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await act(async () => {})
+  const sent = posts().filter(c => c.path === path)
+  expect(sent.at(-1)!.body).toMatchObject({ title: '내가 고친 제목', baseVersionNo: 1 })
+  cleanup()
+  await act(async () => {})
+})

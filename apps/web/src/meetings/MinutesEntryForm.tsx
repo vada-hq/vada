@@ -26,23 +26,34 @@ type Props = {
   formKey: string
   agendaId: string | null
 }
-type Kept = { formKey: string; agendaId: string | null; main: string; extra: string }
+type Kept = {
+  formKey: string
+  agendaId: string | null
+  main: string
+  extra: string
+  baseVersionNo: number | undefined
+}
 // 쓰던 글을 회의록 화면의 자리에 남긴다. 저장하거나 닫으면 지운다.
-function useKeptEntry({ formKey, agendaId, main, extra }: Kept, dirty: boolean) {
+function useKeptEntry({ formKey, agendaId, main, extra, baseVersionNo }: Kept, dirty: boolean) {
   const scope = useMinutesScope()
   useEffect(() => {
     if (!scope) return
     const text = extra.trim() ? `${main}\n${extra}` : main
-    keepEntry(scope, formKey, dirty ? { agendaId, text, main, extra } : null)
-  }, [scope, formKey, agendaId, main, extra, dirty])
+    keepEntry(scope, formKey, dirty ? { agendaId, text, main, extra, baseVersionNo } : null)
+  }, [scope, formKey, agendaId, main, extra, baseVersionNo, dirty])
   return () => {
     if (scope) keepEntry(scope, formKey, null)
   }
 }
 function useStartValues(kind: MinutesEntryKind, formKey: string, initial?: MinutesEntryValue) {
   const scope = useMinutesScope()
-  const [started] = useState(initial)
   const [kept] = useState(() => (scope ? keptEntry(scope, formKey) : undefined))
+  // 되살린 글은 처음 본 판으로 보낸다. 그사이 누가 고쳤으면 서버가 충돌로 알린다.
+  const [started] = useState(() =>
+    initial && kept?.baseVersionNo !== undefined
+      ? { ...initial, baseVersionNo: kept.baseVersionNo }
+      : initial,
+  )
   return { started, first: entryInitial(kind, started), kept }
 }
 export function MinutesEntryForm({ kind, initial, onSave, onClose, formKey, agendaId }: Props) {
@@ -53,7 +64,10 @@ export function MinutesEntryForm({ kind, initial, onSave, onClose, formKey, agen
   const [busy, setBusy] = useState(false)
   const dirty = main !== first.main || extra !== first.extra
   useDirtyEntry(dirty)
-  const forget = useKeptEntry({ formKey, agendaId, main, extra }, dirty)
+  const forget = useKeptEntry(
+    { formKey, agendaId, main, extra, baseVersionNo: started?.baseVersionNo },
+    dirty,
+  )
   const close = () => {
     forget()
     onClose()

@@ -34,9 +34,18 @@ export const isMinutesDirty = (draft: MinutesDraft) => draft.text !== draft.save
 // 대화 입력칸(chat/composer-drafts.ts)과 같이 기기 저장소에는 쓰지 않고, 열쇠에 내 멤버 id를 넣어 같은 브라우저의 다른 사람에게 보이지 않게 한다.
 type Kept = { text: string; version: number }
 const kept = new Map<string, Kept>()
+// 사람·회의마다 가장 나중에 연 저장소. 앞 화면의 늦은 응답이 다시 연 화면의 남긴 글을 지우거나 덮지 않게 한다(mtg-4 검토).
+const latest = new Map<string, object>()
 const keyOf = (memberId: string, base: string, id: string) => `${memberId}|${base}|${id}`
 // 결정·안건 폼에 쓰던 글도 같이 남긴다. 다시 읽기로 그 안건이 빠지면 폼이 사라지므로 옮겨 쓸 글로 보인다.
-type KeptEntry = { agendaId: string | null; text: string; main: string; extra: string }
+// baseVersionNo는 폼을 처음 연 때의 판이다. 되살린 글은 그 판으로 보내 그사이 바뀐 것을 충돌로 알린다.
+type KeptEntry = {
+  agendaId: string | null
+  text: string
+  main: string
+  extra: string
+  baseVersionNo?: number | undefined
+}
 const entries = new Map<string, KeptEntry>()
 export type MinutesScope = { memberId: string; base: string }
 export const keptEntry = (scope: MinutesScope, formKey: string) =>
@@ -58,6 +67,7 @@ export const lostEntries = (scope: MinutesScope, agendaIds: readonly string[]) =
 // 시험용: 앞 시험이 남긴 글을 비운다.
 export function resetKeptMinutes() {
   kept.clear()
+  latest.clear()
   entries.clear()
 }
 
@@ -79,8 +89,9 @@ class MinutesDrafts {
     meeting: MeetingDetail,
     private memberId: string,
   ) {
-    this.drafts = new Map(meeting.agenda.map(item => [item.id, this.restored(item)]))
     const prefix = keyOf(memberId, base, '')
+    latest.set(prefix, this)
+    this.drafts = new Map(meeting.agenda.map(item => [item.id, this.restored(item)]))
     const ids = new Set(meeting.agenda.map(item => item.id))
     this.lost = [...kept]
       .filter(([key]) => key.startsWith(prefix) && !ids.has(key.slice(prefix.length)))
@@ -100,10 +111,15 @@ class MinutesDrafts {
     }
   }
   snapshot = () => this.drafts
-  private put(id: string, value: MinutesDraft) {
+  private keep(id: string, value: MinutesDraft) {
+    // 더 나중에 연 화면이 있으면 남길 글은 그 화면의 것이다.
+    if (latest.get(keyOf(this.memberId, this.base, '')) !== this) return
     const key = keyOf(this.memberId, this.base, id)
     if (isMinutesDirty(value)) kept.set(key, { text: value.text, version: value.version })
     else kept.delete(key)
+  }
+  private put(id: string, value: MinutesDraft) {
+    this.keep(id, value)
     this.drafts = new Map(this.drafts).set(id, value)
     for (const listener of this.listeners) listener()
   }
@@ -246,7 +262,8 @@ class MinutesDrafts {
   }
   forget(id: string) {
     this.clearTimer(id)
-    kept.delete(keyOf(this.memberId, this.base, id))
+    if (latest.get(keyOf(this.memberId, this.base, '')) === this)
+      kept.delete(keyOf(this.memberId, this.base, id))
     const rest = new Map(this.drafts)
     rest.delete(id)
     this.drafts = rest

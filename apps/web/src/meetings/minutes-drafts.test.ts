@@ -75,3 +75,32 @@ test('빠진 안건에 남긴 초안은 다시 열 때 옮겨 쓸 글로 보인�
   expect(minutesDrafts(base, removed, A).lostTexts()).toEqual(['빠진 곳의 글'])
   expect(minutesDrafts(base, removed, B).lostTexts()).toEqual([])
 })
+
+test('늦게 끝난 앞 화면의 저장은 다시 연 화면이 남긴 새 초안을 지우지 않는다', async () => {
+  const meeting = meetingSample({ status: 'in_progress', actions: ['meeting.minutes'] })
+  const id = meeting.agenda[0]!.id
+  const late = deferredResponse()
+  let calls = 0
+  api.on('POST', `${base}/agenda/${id}`, () => {
+    calls += 1
+    return calls === 1 ? late.promise : json({ error: 'FAILED' }, 500)
+  })
+  const first = minutesDrafts(base, meeting, A)
+  first.attach(() => {})
+  first.change(id, '앞 화면 글')
+  first.detach()
+  const second = minutesDrafts(base, meeting, A)
+  second.attach(() => {})
+  second.change(id, '다시 연 화면의 새 글')
+  second.detach()
+  await settle()
+  await settle()
+  const saved = {
+    ...meeting,
+    agenda: [{ ...meeting.agenda[0]!, notes: '앞 화면 글', versionNo: 2 }],
+  }
+  late.resolve(json({ meeting: saved }))
+  await settle()
+  await settle()
+  expect(minutesDrafts(base, saved, A).snapshot().get(id)!.text).toBe('다시 연 화면의 새 글')
+})
