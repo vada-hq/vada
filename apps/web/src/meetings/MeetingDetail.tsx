@@ -1,5 +1,4 @@
 import { dayTimeLabel, type MeetingDetail as Detail } from '@vada/contracts'
-import PageActions from '@/components/PageActions'
 import PageHeading from '@/components/PageHeading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { MEETING_STATUS } from './meeting-text'
 import { meetingDuration, meetingTime } from './meeting-view'
 import { MINUTES_TEXT } from './minutes-text'
+import { MeetingActions } from './MeetingActions'
 
 function Summary({ meeting, onEvent }: { meeting: Detail; onEvent: (id: string) => void }) {
   const status = MEETING_STATUS[meeting.status]
@@ -118,34 +118,28 @@ type Props = {
   onEvent: (id: string) => void
   onMinutes?: (() => void) | undefined
 }
+// 쓰는 사람은 늘 회의록으로 가고, 읽는 사람은 적힌 회의록이 있을 때 간다(읽기는 가리지 않는다, mtg-4 검토).
+function minutesLabel(meeting: Detail) {
+  if (meeting.actions.includes('meeting.minutes')) return MINUTES_TEXT.write
+  const written = meeting.agenda.some(item => item.notes || item.decisions.length)
+  return written ? MINUTES_TEXT.view : null
+}
 export function MeetingDetail({ meeting, onEdit, onCancel, onEvent, onMinutes }: Props) {
   const cancelled = meeting.status === 'cancelled'
+  const minutes = onMinutes ? minutesLabel(meeting) : null
   return (
     <>
       <PageHeading trail={{ title: '회의', crumbs: [{ label: meeting.title, truncate: true }] }}>
         <h1 className="text-xl font-semibold">회의</h1>
       </PageHeading>
-      {(meeting.actions.includes('meeting.edit') ||
-        meeting.actions.includes('meeting.cancel') ||
-        meeting.actions.includes('meeting.minutes')) && (
-        <PageActions>
-          {meeting.actions.includes('meeting.minutes') && (
-            <Button touch onClick={onMinutes}>
-              {MINUTES_TEXT.write}
-            </Button>
-          )}
-          {meeting.actions.includes('meeting.edit') && (
-            <Button variant="outline" touch onClick={onEdit}>
-              고치기
-            </Button>
-          )}
-          {meeting.actions.includes('meeting.cancel') && (
-            <Button variant="outline" touch onClick={onCancel}>
-              회의 취소
-            </Button>
-          )}
-        </PageActions>
-      )}
+      <MeetingActions
+        meeting={meeting}
+        onEdit={onEdit}
+        onCancel={onCancel}
+        minutes={
+          minutes && onMinutes ? { label: minutes, primary: !cancelled, onClick: onMinutes } : null
+        }
+      />
       {cancelled && (
         <div className="flex min-w-0 gap-3 rounded-sm border border-gray-200 bg-gray-50 p-4">
           <Badge>취소</Badge>

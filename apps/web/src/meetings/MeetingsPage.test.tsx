@@ -4,7 +4,6 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { councilView } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { resetLeaveGuard } from '@/lib/leave-guard'
-import { resetMinutesDrafts } from './minutes-drafts'
 import { navigate } from '@/lib/app-location'
 import {
   meetingSample,
@@ -39,7 +38,6 @@ afterEach(() => {
   cleanup()
   api.assertNoUnexpectedRequests()
   resetLeaveGuard()
-  resetMinutesDrafts()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
@@ -85,6 +83,21 @@ test.each(['in_progress', 'wrapping_up', 'done'] as const)(
     expect(screen.queryByRole('textbox')).toBeNull()
   },
 )
+
+test('예정·취소 회의도 적힌 회의록은 읽는 사람이 회의록 보기로 연다', async () => {
+  for (const status of ['scheduled', 'cancelled'] as const) {
+    window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+    const meeting = meetingSample({ status, actions: [] })
+    meeting.agenda[0]!.notes = '미리 적은 회의록'
+    api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+    render(page())
+    fireEvent.click(await screen.findByRole('button', { name: '회의록 보기' }))
+    expect(window.location.search).toBe('?mode=minutes')
+    expect(await screen.findByText('• 미리 적은 회의록')).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    cleanup()
+  }
+})
 
 test('상태를 주소에 유지하고 취소 회의만 보인다', async () => {
   api.on('GET', `${base}?view=council`, () =>
@@ -290,6 +303,24 @@ test('읽기 전과 실패에는 0건을 지어내지 않고 다시 시도할 �
   api.on('GET', `${base}?view=council`, () => json({ meetings: [], truncated: false }))
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('회의 없음')).toBeTruthy()
+})
+
+test('진행 중 회의록 화면에서도 다루는 사람은 고치기와 회의 취소를 연다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  const meeting = meetingSample({
+    status: 'in_progress',
+    actions: ['meeting.edit', 'meeting.cancel', 'meeting.minutes'],
+  })
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+  render(page())
+  expect(await screen.findByLabelText('논의 내용')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '고치기' }))
+  expect(window.location.search).toBe('?mode=edit')
+  cleanup()
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  render(page())
+  fireEvent.click(await screen.findByRole('button', { name: '회의 취소' }))
+  expect(await screen.findByRole('dialog')).toBeTruthy()
 })
 
 test.each(['MEETING_HAS_TASKS', 'MEETING_CANCELLED'])(

@@ -112,6 +112,7 @@ export function MeetingScheduledSection() {
           onEdit={noop}
           onCancel={() => setCancel(true)}
           onEvent={noop}
+          onMinutes={noop}
         />
         {cancel && (
           <MeetingCancelDialog
@@ -171,6 +172,7 @@ function MinutesExample({
           meeting={meeting}
           selectedId={item?.id ?? null}
           draft={item ? draft : undefined}
+          orphans={[]}
           onSelect={id => {
             setSelectedId(id)
             setDraft(minutesDraftSample(meeting.agenda.find(a => a.id === id)!))

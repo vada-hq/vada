@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { MeetingAgendaItem, MeetingDetail } from '@vada/contracts'
 import PageHeading from '@/components/PageHeading'
+import { Alert } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MEETING_STATUS } from './meeting-text'
+import { MeetingActions } from './MeetingActions'
 import { meetingTime } from './meeting-view'
 import { MinutesEntryForm } from './MinutesEntryForm'
 import { MinutesDiscussion } from './MinutesDiscussion'
@@ -19,7 +21,7 @@ import {
 import { useMinutesAutosave } from './use-minutes-autosave'
 import { useMinutesMutation } from './use-minutes-mutation'
 import { MINUTES_TEXT as T, agendaNumber, participantCount } from './minutes-text'
-import type { MinutesDraft } from './minutes-drafts'
+import { isMinutesDirty, type MinutesDraft } from './minutes-drafts'
 
 type Props = {
   meeting: MeetingDetail
@@ -27,14 +29,31 @@ type Props = {
   selectedId: string | null
   onSelect: (id: string) => void
   onSaved: (meeting: MeetingDetail) => void
+  onEdit?: (() => void) | undefined
+  onCancel?: (() => void) | undefined
 }
-function MinutesHeader({ meeting }: Pick<Props, 'meeting'>) {
+// 다른 사람이 뺀 안건에 쓰던 글은 저장할 곳이 없으므로 옮겨 쓸 수 있게 보인다(mtg-4 검토).
+function OrphanDrafts({ texts }: { texts: string[] }) {
+  return texts.map((text, index) => (
+    <Alert key={index} tone="warning" role="status" className="flex flex-col gap-2 text-sm">
+      <p className="font-medium">{T.orphan}</p>
+      <p className="whitespace-pre-wrap text-gray-800">{text}</p>
+    </Alert>
+  ))
+}
+function MinutesHeader({
+  meeting,
+  onEdit,
+  onCancel,
+}: Pick<Props, 'meeting' | 'onEdit' | 'onCancel'>) {
   const status = MEETING_STATUS[meeting.status]
   return (
     <>
       <PageHeading trail={{ title: '회의', crumbs: [{ label: meeting.title, truncate: true }] }}>
         <h1 className="wrap-anywhere text-xl font-semibold">{meeting.title}</h1>
       </PageHeading>
+      {/* 진행 중·정리 중에는 이 화면만 열리므로 다루는 사람의 고치기·취소도 여기 둔다(mtg-4 검토). */}
+      <MeetingActions meeting={meeting} onEdit={onEdit} onCancel={onCancel} />
       <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 border-b pb-4 text-sm text-muted-foreground">
         <Badge tone={status.tone}>{status.label}</Badge>
         <span className="tabular-nums">{meetingTime(meeting.heldAt, meeting.endsAt)}</span>
@@ -72,7 +91,7 @@ function MinutesAgendaHeading({
           {item.body}
         </p>
       )}
-      {editing && writable && (
+      {editing && (
         <MinutesEntryForm
           kind="agenda"
           initial={{ title: item.title, body: item.body, baseVersionNo: item.versionNo }}
@@ -83,8 +102,9 @@ function MinutesAgendaHeading({
     </div>
   )
 }
-type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect'> & {
+type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 'onCancel'> & {
   draft: MinutesDraft | undefined
+  orphans: string[]
   submit: ReturnType<typeof useMinutesMutation>
   onChange: (text: string) => void
   onRetry: () => void
@@ -97,6 +117,9 @@ export function MeetingMinutesView({
   onSelect,
   draft,
   submit,
+  onEdit,
+  onCancel,
+  orphans,
   ...discussion
 }: ViewProps) {
   const writable = meeting.actions.includes('meeting.minutes')
@@ -123,7 +146,8 @@ export function MeetingMinutesView({
   const nav = { meeting, selectedId: id, writable, onSelect, submit }
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
-      <MinutesHeader meeting={meeting} />
+      <MinutesHeader meeting={meeting} onEdit={onEdit} onCancel={onCancel} />
+      <OrphanDrafts texts={orphans} />
       <MinutesMobileAgenda {...nav} />
       <div className="grid min-w-0 gap-5 sm:grid-cols-3">
         <Card className="flex min-w-0 flex-col gap-5 p-5 sm:col-span-2 sm:p-6">
@@ -181,7 +205,15 @@ export function MeetingMinutesView({
     </div>
   )
 }
-export function MeetingMinutes({ meeting, base, selectedId, onSelect, onSaved }: Props) {
+export function MeetingMinutes({
+  meeting,
+  base,
+  selectedId,
+  onSelect,
+  onSaved,
+  onEdit,
+  onCancel,
+}: Props) {
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
   const id = item?.id ?? null
   const { drafts, store } = useMinutesAutosave(base, meeting, onSaved)
@@ -203,6 +235,11 @@ export function MeetingMinutes({ meeting, base, selectedId, onSelect, onSaved }:
       meeting={meeting}
       selectedId={id}
       draft={id ? drafts.get(id) : undefined}
+      orphans={[...drafts]
+        .filter(([key, d]) => isMinutesDirty(d) && !meeting.agenda.some(a => a.id === key))
+        .map(([, d]) => d.text)}
+      onEdit={onEdit}
+      onCancel={onCancel}
       submit={submit}
       onSelect={next => {
         if (id) store.flush(id)

@@ -9,6 +9,7 @@ import { MINUTES_TEXT as T } from './minutes-text'
 import {
   entryFields,
   entryInitial,
+  useDirtyEntry,
   parseMinutesEntry,
   type MinutesEntryKind,
   type MinutesEntryValue,
@@ -26,6 +27,8 @@ export function MinutesEntryForm({ kind, initial, onSave, onClose }: Props) {
   const [main, setMain] = useState(() => entryInitial(kind, started).main)
   const [extra, setExtra] = useState(() => entryInitial(kind, started).extra)
   const [busy, setBusy] = useState(false)
+  const first = entryInitial(kind, started)
+  useDirtyEntry(main !== first.main || extra !== first.extra)
   const [error, setError] = useState<string | null>(null)
   const parsed = () => parseMinutesEntry(kind, started, main, extra)
   const { formRef, errors, attempt } = useFormCheck(() =>
@@ -55,6 +58,7 @@ export function MinutesEntryForm({ kind, initial, onSave, onClose }: Props) {
           rows={fields.rows}
           className="wrap-anywhere"
           value={main}
+          readOnly={busy}
           onChange={e => setMain(e.target.value)}
         />
       </Field>
@@ -63,10 +67,11 @@ export function MinutesEntryForm({ kind, initial, onSave, onClose }: Props) {
           <Input
             className="max-sm:min-h-11"
             value={extra}
+            readOnly={busy}
             onChange={e => setExtra(e.target.value)}
           />
         ) : (
-          <Textarea value={extra} onChange={e => setExtra(e.target.value)} />
+          <Textarea value={extra} readOnly={busy} onChange={e => setExtra(e.target.value)} />
         )}
       </Field>
       {error && <StateMessage kind="error">{error}</StateMessage>}

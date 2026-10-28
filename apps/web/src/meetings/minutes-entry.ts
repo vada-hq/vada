@@ -4,7 +4,26 @@ import {
   AddDecisionSchema,
   UpdateDecisionSchema,
 } from '@vada/contracts'
+import { useLayoutEffect, useRef } from 'react'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import { MINUTES_TEXT as T } from './minutes-text'
+
+// 안건 칩 이동은 논의 초안을 보존하므로 떠날 때 확인을 건너뛴다. 결정·안건 폼은 안건마다 다시 그려져
+// 입력이 사라지므로, 쓰던 폼이 있으면 그때만 확인을 거친다(mtg-4 검토).
+const dirtyEntries = new Set<symbol>()
+export const hasDirtyEntry = () => dirtyEntries.size > 0
+export function useDirtyEntry(dirty: boolean) {
+  const holder = useRef(Symbol('minutes-entry'))
+  useUnsavedInput(dirty)
+  useLayoutEffect(() => {
+    if (!dirty) return
+    const mine = holder.current
+    dirtyEntries.add(mine)
+    return () => {
+      dirtyEntries.delete(mine)
+    }
+  }, [dirty])
+}
 
 export type MinutesEntryValue = {
   title?: string | undefined

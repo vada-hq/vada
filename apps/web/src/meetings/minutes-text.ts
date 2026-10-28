@@ -8,6 +8,8 @@ export const MINUTES_TEXT = {
   emptyDiscussion: '논의 내용 없음',
   saving: '저장 중…',
   pending: '저장 대기',
+  unsaved: '내 글 저장 안 됨',
+  orphan: '빠진 안건에 쓰던 글',
   saved: '자동 저장됨',
   failed: '저장하지 못했어요',
   retry: '다시 저장',

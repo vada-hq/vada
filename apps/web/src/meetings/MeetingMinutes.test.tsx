@@ -5,8 +5,8 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { meetingSample, MEETING_COUNCIL, MEETING_ID } from './test-support/meeting-samples'
 import { MeetingMinutes } from './MeetingMinutes'
 import { MeetingList } from './MeetingList'
+import { hasDirtyEntry } from './minutes-entry'
 import { resetLeaveGuard } from '@/lib/leave-guard'
-import { resetMinutesDrafts } from './minutes-drafts'
 
 const base = `/api/organizations/${MEETING_COUNCIL}/meetings/${MEETING_ID}`
 const sample = () => {
@@ -32,7 +32,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetLeaveGuard()
-  resetMinutesDrafts()
   vi.useRealTimers()
   api.assertNoUnexpectedRequests()
   vi.unstubAllGlobals()
@@ -308,4 +307,67 @@ test.each([
     />,
   )
   expect(screen.getByRole('button', { name: label })).toBeTruthy()
+})
+
+test('저장 실패한 초안은 화면을 다시 열면 남지 않는다(다른 계정에 새지 않음)', async () => {
+  const meeting = sample()
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'FAILED' }, 500))
+  const first = draw(meeting)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '앞사람 초안' } })
+  await act(() => vi.advanceTimersByTimeAsync(1500))
+  first.unmount()
+  await act(async () => {})
+  draw(meeting)
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe(
+    meeting.agenda[0]!.notes ?? '',
+  )
+})
+
+test('다른 사람이 뺀 안건에 쓰던 글은 옮겨 쓸 수 있게 남는다', async () => {
+  const meeting = sample()
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'NOT_FOUND' }, 404))
+  const { rerender } = draw(meeting)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '빠진 곳의 글' } })
+  rerender(
+    <MeetingMinutes
+      meeting={{ ...meeting, agenda: [meeting.agenda[1]!] }}
+      base={base}
+      selectedId={null}
+      onSelect={select}
+      onSaved={changed}
+    />,
+  )
+  expect(screen.getByText('빠진 안건에 쓰던 글')).toBeTruthy()
+  expect(screen.getByText('빠진 곳의 글')).toBeTruthy()
+  cleanup()
+  await act(async () => {})
+})
+
+test('결정 폼은 저장 중 잠기고, 쓰는 동안 떠날 때 확인을 걸며, 쓰기 동작이 빠져도 남는다', async () => {
+  const meeting = sample()
+  const pending = deferredResponse()
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}/decisions`, () => pending.promise)
+  const { rerender } = draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  expect(hasDirtyEntry()).toBe(false)
+  fireEvent.change(screen.getByLabelText(/결정 내용/), { target: { value: '함께 진행' } })
+  expect(hasDirtyEntry()).toBe(true)
+  rerender(
+    <MeetingMinutes
+      meeting={{ ...meeting, actions: [] }}
+      base={base}
+      selectedId={null}
+      onSelect={select}
+      onSaved={changed}
+    />,
+  )
+  const field = screen.getByLabelText<HTMLTextAreaElement>(/결정 내용/)
+  expect(field.value).toBe('함께 진행')
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await act(async () => {})
+  expect(field.readOnly).toBe(true)
+  pending.resolve(json({ error: 'FORBIDDEN' }, 403))
+  await act(async () => {})
+  expect(field.readOnly).toBe(false)
+  expect(field.value).toBe('함께 진행')
 })

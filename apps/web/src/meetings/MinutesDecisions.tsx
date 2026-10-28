@@ -24,7 +24,8 @@ export function MinutesDecisions({ agendaId, decisions, writable, submit, onRemo
           </Button>
         )}
       </div>
-      {writable && editing && (
+      {/* 연 폼은 다시 읽기에서 쓰기 동작이 빠져도 남긴다. 저장은 서버가 막고 문구를 보인다. */}
+      {editing && (
         <MinutesEntryForm
           key={editing === 'new' ? 'new' : editing.id}
           kind="decision"
