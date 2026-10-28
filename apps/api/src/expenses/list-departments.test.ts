@@ -22,9 +22,16 @@ test(
   withSettlement(async t => {
     const { planning, finance } = t.council.departments
     const people = t.council.people
-    const { line } = await t.requestWithItem(null)
-    const viaRequest = await t.expense()
+    const { request, line } = await t.requestWithItem(null)
+    const viaRequest = await t.expense({ amount: '15000' })
     await t.pay(viaRequest, line)
+    // 같은 요청의 품목 둘을 한 지출로 냈어도 부서와 지출 줄은 하나다.
+    const second = await t.make(t.council, 'line_item', {
+      requestId: request,
+      name: '풀',
+      quantity: 1,
+    })
+    await t.pay(viaRequest, second, '5000')
     const asked = await t.expense({ requestedBy: people.financeMember.memberId })
     // 먼저 낸 사람은 부서를 정하지 않는다.
     const nobody = await t.expense({ paidBy: people.planningMember.memberId })
@@ -41,6 +48,12 @@ test(
       [both]: ['기획부', '재정부'],
     })
     const list = await listOf(t)
+    assert.equal(list.expenses.length, 4)
+    assert.equal(list.expenses.find(row => row.id === viaRequest)?.amount, 15000)
+    assert.deepEqual(
+      list.allocations?.filter(row => row.expenseId === viaRequest).map(row => row.amount),
+      [10000, 5000],
+    )
     assert.deepEqual(list.expenses.find(row => row.id === both)?.departments, [
       { id: planning, name: '기획부' },
       { id: finance, name: '재정부' },
@@ -105,6 +118,35 @@ test(
       'o-president',
     )
     assert.deepEqual(((await otherList.json()) as ExpensesResponse).expenses, [])
+  }),
+)
+
+test(
+  '같은 학생회의 다른 기수에 끝나지 않은 소속은 지금 부서가 아니다',
+  withSettlement(async t => {
+    const person = t.council.people.planningMember.memberId
+    const { line } = await t.requestWithItem(null)
+    const paid = await t.expense()
+    await t.pay(paid, line)
+    const past = await t.make(t.council, 'cohort', {
+      name: '2025',
+      startsOn: '2025-01-01',
+      endsOn: '2025-12-31',
+    })
+    await t.make(t.council, 'council_membership', {
+      memberId: person,
+      cohortId: past,
+      councilRank: null,
+      startsAt: clockNow,
+    })
+    await t.make(t.council, 'department_membership', {
+      memberId: person,
+      departmentId: t.council.departments.finance,
+      cohortId: past,
+      departmentRank: null,
+      startsAt: clockNow,
+    })
+    assert.deepEqual(await departmentsOf(t), { [paid]: ['기획부'] })
   }),
 )
 
