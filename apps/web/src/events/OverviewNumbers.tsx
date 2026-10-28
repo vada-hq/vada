@@ -82,7 +82,7 @@ export function OverviewNumbers({ tasks, forms, settlement, onTab }: Props) {
     <div className="grid gap-3 sm:grid-cols-3">
       <TasksNumber tasks={tasks} link={link('tasks', '업무 보기')} />
       <RegistrationNumber state={forms} link={link('registrations', '신청 보기')} />
-      <MoneyNumber state={settlement} link={link('money', '재정 보기')} />
+      <MoneyNumber state={settlement} link={link('money', '구매 보기')} />
     </div>
   )
 }

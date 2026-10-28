@@ -12,7 +12,7 @@ import { useEventOverview } from './useEventOverview'
 type Props = EventDialogHandlers & {
   councilId: string
   event: EventDetail
-  // 다른 탭으로 옮긴다(카드의 '업무 보기', '재정 보기').
+  // 다른 탭으로 옮긴다(카드의 '업무 보기', '구매 보기').
   onTab: (tab: EventTab) => void
   // 업무 하나를 눌렀다. 업무 탭에서 그 업무를 연다.
   onOpenTask: (taskId: string) => void
@@ -37,7 +37,7 @@ function setupActions(event: EventDetail, data: Data, props: Props) {
       },
     }),
     tasks: { label: '업무 만들기', run: props.onCreateTask },
-    budget: { label: '재정 보기', run: () => props.onTab('money') },
+    budget: { label: '구매 보기', run: () => props.onTab('money') },
     ...(manageForms && {
       registration: { label: '신청 양식 만들기', run: () => props.onTab('registrations') },
     }),

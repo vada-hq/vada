@@ -53,6 +53,16 @@ const openTask = (id: string, extra: Record<string, unknown> = {}) => ({
 
 function setup(options: { permissions?: string[]; at?: string } = {}) {
   const api = mockApi()
+  api.on(
+    'GET',
+    `/api/organizations/${COUNCIL_ID}/purchase-requests?view=all&event=${EVENT_ID}`,
+    () =>
+      json({
+        requests: [],
+        truncated: false,
+        stageCounts: { pending: 0, unpaid: 0, paid: 0, closed: 0 },
+      }),
+  )
   api.on('GET', BASE, () =>
     json({
       events: [
@@ -99,7 +109,7 @@ function setup(options: { permissions?: string[]; at?: string } = {}) {
 
 test('홈에서 정한 탭으로 연 행사는 그 탭으로 시작하고, 목록에서 다시 연 행사는 메시지로 시작한다', async () => {
   setup({ at: `${LIST_AT}/${EVENT_ID}?tab=money` })
-  const money = await screen.findByRole('tab', { name: '재정' })
+  const money = await screen.findByRole('tab', { name: '구매' })
   expect(money.getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '행사 목록' }))
   fireEvent.click(await screen.findByRole('button', { name: '날짜 미정 행사' }))
@@ -325,14 +335,38 @@ test('행사를 열면 머리에 일시·장소가, 개요에 세 탭의 수가 
   expect(within(history).getByText('김회장 · 10월 20일 14:03 · 만듦')).toBeTruthy()
 })
 
-test('개요의 지출 카드에서 [재정 보기]를 누르면 재정 탭이 열린다', async () => {
+test('개요의 지출 카드에서 [구매 보기]를 누르면 구매 탭이 열린다', async () => {
   const { api } = setup()
   api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: eventDetail() }))
   await openOverview()
   const money = await screen.findByRole('region', { name: '지출' })
-  fireEvent.click(within(money).getByRole('button', { name: '재정 보기' }))
-  expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(within(money).getByRole('button', { name: '구매 보기' }))
+  expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
 })
+
+test.each([
+  ['정산에 남은 것', false],
+  ['정산이 끝났어요', true],
+] as const)(
+  '개요의 %s에서 [구매 보기]를 누르면 같은 money 주소로 간다',
+  async (title, completed) => {
+    const { api } = setup()
+    api.on('GET', `${BASE}/${EVENT_ID}`, () =>
+      json({
+        event: eventDetail({ status: 'ended' }, completed ? ['event.complete'] : []),
+      }),
+    )
+    api.on('GET', `${BASE}/${EVENT_ID}/settlement`, () =>
+      json(completed ? settlementOf({ remaining: [], settled: true }) : settlementOf()),
+    )
+    await openOverview()
+    const attention = await screen.findByRole('region', { name: '챙길 것' })
+    expect(within(attention).getByText(title)).toBeTruthy()
+    fireEvent.click(within(attention).getByRole('button', { name: '구매 보기' }))
+    expect(pathNow()).toBe(`${LIST_AT}/${EVENT_ID}?tab=money`)
+    expect(screen.getByRole('tab', { name: '구매', selected: true })).toBeTruthy()
+  },
+)
 
 test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록을 다시 읽는다', async () => {
   const { api } = setup()
@@ -454,7 +488,11 @@ test('업무도 신청도 돈도 없는 새 행사는 수 카드 대신 준비 �
   expect(screen.queryByRole('region', { name: '업무' })).toBeNull()
   expect(screen.queryByRole('region', { name: '다음 업무' })).toBeNull()
   expect(within(steps).queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
-  fireEvent.click(within(steps).getByRole('button', { name: '업무 만들기' }))
+  fireEvent.click(within(steps).getByRole('button', { name: '구매 보기' }))
+  expect(pathNow()).toBe(`${LIST_AT}/${EVENT_ID}?tab=money`)
+  fireEvent.click(screen.getByRole('tab', { name: '개요' }))
+  const restoredSteps = await screen.findByRole('region', { name: '준비 시작하기' })
+  fireEvent.click(within(restoredSteps).getByRole('button', { name: '업무 만들기' }))
   const quickAdd = await screen.findByRole('textbox', { name: '새 업무' })
   expect(document.activeElement).toBe(quickAdd)
   await settle()

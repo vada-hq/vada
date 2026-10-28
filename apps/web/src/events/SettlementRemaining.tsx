@@ -17,6 +17,7 @@ function TargetButton({
     target.type === 'request' ? onOpenRequest(target.id) : onOpenExpense(target.id)
   return (
     <Button
+      touch
       variant="link"
       className="h-auto max-w-full justify-start p-0 text-left text-sm whitespace-normal wrap-anywhere"
       onClick={open}

@@ -1,7 +1,7 @@
 import { statusOf, type SettlementResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { SettlementItems, SettlementNumbers } from '@/events/SettlementSummary'
+import { SettlementBudget } from '@/events/SettlementSummary'
 import { eventPath } from '@/events/event-api'
 import { openMenu } from '@/lib/go-to'
 import { usePolledRead } from '@/lib/use-polled-read'
@@ -56,13 +56,5 @@ function EventBudget({
       </div>
     )
   const { settlement } = read.state.data
-  return (
-    <section
-      aria-label="행사 예산"
-      className="flex flex-col gap-4 break-keep [&_dd]:text-right [&_dd]:tabular-nums"
-    >
-      <SettlementNumbers settlement={settlement} />
-      <SettlementItems items={settlement.budget.items} />
-    </section>
-  )
+  return <SettlementBudget settlement={settlement} />
 }

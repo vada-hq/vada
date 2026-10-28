@@ -63,7 +63,7 @@ const FLOW = [
 function Tabs({ unread }: { unread: number }) {
   return (
     <div role="tablist" aria-label="행사 보기" className="flex border-b">
-      {['메시지', '개요', '업무', '재정', '인원 관리'].map((label, index) => (
+      {['메시지', '개요', '업무', '구매', '인원 관리'].map((label, index) => (
         <TabButton key={label} aria-selected={index === 0} className="gap-1.5 max-sm:px-2.5">
           {label}
           {index === 0 && <CountBadge count={unread} label={`안 읽은 메시지 ${unread}개`} />}

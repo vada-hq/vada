@@ -27,13 +27,13 @@ import type { EventDialogHandlers } from './useEventSubmit'
 import { useEventDetail } from './useEventDetail'
 
 type Tab = EventTab
-// 탭 이름과 차례는 와이어프레임 EVT-02(DEC-93): 재정이 인원 관리 앞이다. 주소 값(money, registrations)은 그대로다.
+// 탭 이름과 차례는 와이어프레임 EVT-02(DEC-93): 구매가 인원 관리 앞이다. 주소 값(money, registrations)은 그대로다.
 // 메시지가 맨 앞이고 기본 탭이다(DEC-90, 와이어프레임 EVT-MSG-01, 022 정한 것 28).
 const TABS: { tab: Tab; label: string }[] = [
   { tab: 'messages', label: '메시지' },
   { tab: 'overview', label: '개요' },
   { tab: 'tasks', label: '업무' },
-  { tab: 'money', label: '재정' },
+  { tab: 'money', label: '구매' },
   { tab: 'registrations', label: '인원 관리' },
 ]
 
@@ -90,7 +90,7 @@ function EventTabs({
 
 // 업무 탭으로 넘겨 여는 것(개요의 업무 만들기)과 머리의 고치기. 넘긴 것은 탭을 직접 바꾸면 버린다.
 // 개요의 담당자 없음 보기는 거르기라 주소로 연다(openEventTasks).
-// moneyRefresh는 머리의 완료·완료 취소(와 그 거절)가 바꾼 정산을 재정 탭이 다시 읽게 하는 번호다.
+// moneyRefresh는 머리의 완료·완료 취소(와 그 거절)가 바꾼 정산을 구매 탭이 다시 읽게 하는 번호다.
 type TaskLink = { create?: boolean }
 function useDetailState(onTab: (tab: Tab) => void) {
   const [taskLink, setTaskLink] = useState<TaskLink>({})
@@ -113,7 +113,7 @@ function useDetailState(onTab: (tab: Tab) => void) {
   }
 }
 
-// 행사 하나: 머리(이름 줄, 탭, 요약 줄)와 탭 넷(개요, 업무, 재정, 인원 관리)의 내용. 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
+// 행사 하나: 머리(이름 줄, 탭, 요약 줄)와 탭 넷(개요, 업무, 구매, 인원 관리)의 내용. 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
 // 행사를 읽기 전에는 머리에 탭만 보인다.
 export default function EventDetailView({ view, eventId, tab, onTab, from, ...props }: Props) {
   const state = useDetailState(onTab)
@@ -196,7 +196,7 @@ type PanelProps = Omit<Props, 'from' | 'onTab' | 'room' | 'onRoom'> & {
   onEdit: (focus: EventFieldFocus) => void
 }
 
-// 탭 하나의 내용. 메시지, 개요, 업무, 재정, 인원 관리.
+// 탭 하나의 내용. 메시지, 개요, 업무, 구매, 인원 관리.
 function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
   const handlers = { onLost: props.onLost, onForbidden: props.onForbidden }
   const councilId = view.council.id

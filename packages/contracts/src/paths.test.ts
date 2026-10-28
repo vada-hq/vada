@@ -17,6 +17,32 @@ const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
 
+test('행사 구매 보기와 단계는 money 탭에서만 왕복하고 전체 요청은 주소에서 빠진다', () => {
+  const base = `/events/${C}/${R}`
+  for (const suffix of [
+    '?tab=money&view=mine',
+    '?tab=money&stage=paid',
+    '?tab=money&view=mine&stage=unpaid',
+  ]) {
+    const parsed = parseAppPath(base + suffix)!
+    assert.equal(appPath(parsed), base + suffix)
+  }
+  assert.deepEqual(parseAppPath(`${base}?tab=money&view=all&stage=closed`)?.query, {
+    tab: 'money',
+    stage: 'closed',
+  })
+  for (const view of ['pending', 'department', 'unassigned']) {
+    assert.deepEqual(parseAppPath(`${base}?tab=money&view=${view}`)?.query, { tab: 'money' })
+  }
+  assert.deepEqual(parseAppPath(`${base}?tab=overview&view=mine&stage=paid`)?.query, {
+    tab: 'overview',
+  })
+  assert.deepEqual(parseAppPath(`${base}?tab=tasks&view=unassigned&stage=paid`)?.query, {
+    tab: 'tasks',
+    view: 'unassigned',
+  })
+})
+
 test('메뉴 열하나와 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
   assert.equal(APP_MENUS.length, 11)
   assert.equal(RECORD_KINDS.length, 6)

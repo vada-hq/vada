@@ -43,6 +43,13 @@ const eventTask: TaskSummary = {
 let api: ReturnType<typeof mockApi>
 function setup(path: string, detail: () => Response = () => json({ event: eventDetail({}, []) })) {
   api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all&event=${EVENT_ID}`, () =>
+    json({
+      requests: [],
+      truncated: false,
+      stageCounts: { pending: 0, unpaid: 0, paid: 0, closed: 0 },
+    }),
+  )
   onHomeExtras(api, {}, COUNCIL_ID)
   api.on('GET', base, () => json(councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
@@ -106,10 +113,10 @@ const selected = (name: string) =>
 
 test('행사 주소의 탭이 열리고, 새로 고침해도 같다', async () => {
   const view = setup(`${EVENT_AT}?tab=money`)
-  expect(await selected('재정')).toBe('true')
+  expect(await selected('구매')).toBe('true')
   view.unmount()
   setup(`${EVENT_AT}?tab=money`)
-  expect(await selected('재정')).toBe('true')
+  expect(await selected('구매')).toBe('true')
   expect(pathNow()).toBe(`${EVENT_AT}?tab=money`)
 })
 
@@ -128,7 +135,7 @@ test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으�
 test('행사 기록은 모든 탭에서 머리글과 본문이 같은 끝까지 폭이다', async () => {
   setup(EVENT_AT)
   onEventTasks()
-  for (const tab of ['메시지', '개요', '업무', '인원 관리', '재정']) {
+  for (const tab of ['메시지', '개요', '업무', '인원 관리', '구매']) {
     fireEvent.click(await screen.findByRole('tab', { name: tab }))
     expect(await selected(tab)).toBe('true')
     for (const region of [screen.getByRole('banner'), screen.getByRole('main')]) {
@@ -383,9 +390,9 @@ test('행사 업무 탭의 경로 줄은 학생회 > 행사 > 행사명 > 업무
   expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사', '신입생 환영회', '업무'])
   // 행사명은 머리글 제목 하나에만 있다.
   expect(screen.getAllByRole('heading', { name: '신입생 환영회' })).toHaveLength(1)
-  fireEvent.click(screen.getByRole('tab', { name: '재정' }))
+  fireEvent.click(screen.getByRole('tab', { name: '구매' }))
   await waitFor(() =>
-    expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사', '신입생 환영회', '재정']),
+    expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사', '신입생 환영회', '구매']),
   )
 })
 

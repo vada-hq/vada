@@ -4,6 +4,19 @@ import { BudgetItemList } from '../finance/BudgetItemList'
 import { wonLabel } from '../finance/purchase-view'
 import { differenceLabel } from './settlement-view'
 
+// 구매 메뉴의 행사 범위와 행사 구매 탭이 같은 예산 요약을 쓴다.
+export function SettlementBudget({ settlement }: { settlement: EventSettlement }) {
+  return (
+    <section
+      aria-label="행사 예산"
+      className="flex flex-col gap-4 break-keep [&_dd]:text-right [&_dd]:tabular-nums"
+    >
+      <SettlementNumbers settlement={settlement} />
+      <SettlementItems items={settlement.budget.items} />
+    </section>
+  )
+}
+
 // 예산 대비 실제: 지출 예산, 실제 지출, 차이, 참가비(입금 수와 환불 대기 수). 사람마다의 금액은 없다(PRIN-5).
 export function SettlementNumbers({ settlement }: { settlement: EventSettlement }) {
   const { budget, actual } = settlement

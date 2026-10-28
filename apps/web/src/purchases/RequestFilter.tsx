@@ -13,15 +13,18 @@ export function RequestFilter({
   view,
   onView,
   canViewDepartment = false,
+  views = VIEWS,
 }: {
   view: PurchaseView
   onView: (view: PurchaseView) => void
   canViewDepartment?: boolean
+  views?: readonly PurchaseView[]
 }) {
   return (
     <div role="group" aria-label="구매 요청 거르기" className="flex flex-wrap gap-2">
-      {VIEWS.filter(item => item !== 'department' || canViewDepartment || view === item).map(
-        item => (
+      {views
+        .filter(item => item !== 'department' || canViewDepartment || view === item)
+        .map(item => (
           <Button
             key={item}
             size="sm"
@@ -33,8 +36,7 @@ export function RequestFilter({
           >
             {LABEL[item]}
           </Button>
-        ),
-      )}
+        ))}
     </div>
   )
 }

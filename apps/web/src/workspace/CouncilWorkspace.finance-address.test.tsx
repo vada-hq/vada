@@ -35,6 +35,13 @@ let api: ReturnType<typeof mockApi>
 
 function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, home?: HomeResponse) {
   api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all&event=${EVENT_ID}`, () =>
+    json({
+      requests: [],
+      truncated: false,
+      stageCounts: { pending: 0, unpaid: 0, paid: 0, closed: 0 },
+    }),
+  )
   onHomeExtras(api, {}, COUNCIL_ID)
   api.on('GET', base, () => json(councilView(COUNCIL_ID, { permissions })))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
@@ -124,7 +131,7 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 다섯이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
+test('구매 탭 다섯이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
@@ -212,13 +219,13 @@ test('옛 예산 탭 주소는 항목 부분을 그린 뒤 그곳으로 스크�
   }
 })
 
-test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 재정 탭이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
+test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 구매 탭이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
   startAt(`/finance/${COUNCIL_ID}?tab=settlements`, 'finance', MEMBER_PERMISSIONS)
   expect(await isSelected('행사 정산')).toBe(true)
   api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () => json(settlementOf()))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`))
-  expect((await screen.findByRole('tab', { name: '재정' })).getAttribute('aria-selected')).toBe(
+  expect((await screen.findByRole('tab', { name: '구매' })).getAttribute('aria-selected')).toBe(
     'true',
   )
   act(() => window.history.back())
@@ -350,7 +357,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
   )
   // 행사의 탭은 주소에 있으므로 요청을 닫고 돌아오면 같은 돈 탭이다.
   fireEvent.click(await screen.findByRole('button', { name: /신입생 환영회/ }))
-  fireEvent.click(await screen.findByRole('tab', { name: '재정' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '구매' }))
   // 회계 기간이 없으면 결재할 수 없어 요청 상세가 예산 탭으로 가는 길을 보인다.
   api.on('GET', `${base}/budget`, () => json(budgetWithoutPeriod()))
   api.on('GET', `${base}/purchase-requests/${R1}`, () =>
@@ -368,7 +375,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
       api.calls.filter(call => call.path === `${base}/events/${EVENT_ID}/settlement`).length,
     ).toBeGreaterThan(1),
   )
-  expect((await screen.findByRole('tab', { name: '재정' })).getAttribute('aria-selected')).toBe(
+  expect((await screen.findByRole('tab', { name: '구매' })).getAttribute('aria-selected')).toBe(
     'true',
   )
   // 예산 탭 길은 요청 상세를 닫고 재정 예산 탭을 쌓는다.

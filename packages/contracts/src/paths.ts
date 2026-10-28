@@ -25,6 +25,11 @@ export type AppMenu = (typeof APP_MENUS)[number]
 // 메시지가 행사의 첫 탭이자 기본 탭이다(DEC-90 "행사 화면의 첫 탭은 메시지다", 022 정한 것 28).
 export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
+// 행사 안에서는 그 행사의 전체 요청과 내 요청만 본다(메뉴 v7 S3).
+export const EVENT_PURCHASE_VIEWS = [
+  'all',
+  'mine',
+] as const satisfies readonly (typeof PURCHASE_VIEWS)[number][]
 // 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
 export const TASK_TABS = ['council', 'mine'] as const
 export type TaskTab = (typeof TASK_TABS)[number]
@@ -64,20 +69,23 @@ type QueryRule = {
   fallback: string | null
   onlyWith?: { key: string; value: string | readonly string[] } | undefined
 }
-type QuerySpec = Record<string, QueryRule>
+type QuerySpec = Record<string, QueryRule | QueryRule[]>
 
 // 업무 화면의 쿼리. 업무 메뉴와 행사의 업무 탭이 같은 정의를 쓴다(DEC-94). 기본 보기만 다르다(행사 안은 그 행사의 모든 업무).
-const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']): QuerySpec => ({
-  view: { values: TASK_VIEWS, fallback: startView, onlyWith },
-  filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
-  layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
-  dept: { values: 'uuid', fallback: null, onlyWith },
-  // none은 메뉴 v7의 '담당자 없음' 칩이다(옛 보기 unassigned를 옮긴 곳, 설계 2.2).
-  assignee: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
-  heads: { values: ['true'], fallback: null, onlyWith },
-  attention: { values: ['true'], fallback: null, onlyWith },
-  due: { values: ['week'], fallback: null, onlyWith },
-})
+const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']) =>
+  ({
+    view: { values: TASK_VIEWS, fallback: startView, onlyWith },
+    filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
+    layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
+    dept: { values: 'uuid', fallback: null, onlyWith },
+    // none은 메뉴 v7의 '담당자 없음' 칩이다(옛 보기 unassigned를 옮긴 곳, 설계 2.2).
+    assignee: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
+    heads: { values: ['true'], fallback: null, onlyWith },
+    attention: { values: ['true'], fallback: null, onlyWith },
+    due: { values: ['week'], fallback: null, onlyWith },
+  }) satisfies QuerySpec
+
+const eventTaskQuery = taskQuery('all', { key: 'tab', value: 'tasks' })
 
 // 쿼리에는 기본값이 아닌 값만 둔다. fallback이 null이면 값이 없는 것이 기본이다. 검색어 같은 자유 입력은 넣지 않는다.
 const MENU_QUERY: Record<AppMenu, QuerySpec> = {
@@ -137,7 +145,12 @@ const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   events: {
     tab: { values: EVENT_TABS, fallback: 'messages' },
     room: { values: 'uuid', fallback: null, onlyWith: { key: 'tab', value: 'messages' } },
-    ...taskQuery('all', { key: 'tab', value: 'tasks' }),
+    ...eventTaskQuery,
+    view: [
+      eventTaskQuery.view,
+      { values: EVENT_PURCHASE_VIEWS, fallback: 'all', onlyWith: { key: 'tab', value: 'money' } },
+    ],
+    stage: { values: PURCHASE_STAGES, fallback: null, onlyWith: { key: 'tab', value: 'money' } },
   },
   tasks: {},
   purchases: {},
@@ -158,15 +171,19 @@ function allowed(rule: QueryRule, value: string) {
 function matchesQueryRequirement(spec: QuerySpec, query: AppQuery, needs: QueryRule['onlyWith']) {
   if (!needs) return true
   const accepted = typeof needs.value === 'string' ? [needs.value] : needs.value
-  return accepted.includes(query[needs.key] ?? spec[needs.key]?.fallback ?? '')
+  const dependency = spec[needs.key]
+  const fallback = Array.isArray(dependency) ? dependency[0]?.fallback : dependency?.fallback
+  return accepted.includes(query[needs.key] ?? fallback ?? '')
 }
 
 // 모르는 키와 값, 기본값은 버린다. 순서는 규칙의 순서다.
 function cleanQuery(spec: QuerySpec, params: URLSearchParams) {
   const query: Record<string, string> = {}
-  for (const [key, rule] of Object.entries(spec)) {
+  for (const [key, candidates] of Object.entries(spec)) {
+    const rules = Array.isArray(candidates) ? candidates : [candidates]
+    const rule = rules.find(candidate => matchesQueryRequirement(spec, query, candidate.onlyWith))
+    if (!rule) continue
     const value = params.get(key)
-    if (!matchesQueryRequirement(spec, query, rule.onlyWith)) continue
     if (value !== null && value !== rule.fallback && allowed(rule, value))
       query[key] = value.toLowerCase()
   }

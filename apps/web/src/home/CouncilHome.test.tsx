@@ -217,7 +217,7 @@ test('재정 담당이 있으면 안내 줄과 조직에서 정하기가 없다'
   expect(screen.queryByRole('button', { name: '조직에서 정하기' })).toBeNull()
 })
 
-test('후속 정리 중인 행사: 종료 날짜, 7일째부터 끝난 지 N일, 남은 정리, 다 0이면 완료 가능. 정산이 남으면 재정 탭으로 연다', async () => {
+test('후속 정리 중인 행사: 종료 날짜, 7일째부터 끝난 지 N일, 남은 정리, 다 0이면 완료 가능. 정산이 남으면 구매 탭으로 연다', async () => {
   const { onOpenEvent } = open(
     councilHome({
       followUp: {

@@ -1,7 +1,16 @@
 import { useEffect } from 'react'
-import { appPath, EVENT_TABS, eventRoomPath, type EventTab } from '@vada/contracts'
+import {
+  appPath,
+  EVENT_PURCHASE_VIEWS,
+  EVENT_TABS,
+  eventRoomPath,
+  PURCHASE_STAGES,
+  type AppQuery,
+  type EventTab,
+} from '@vada/contracts'
 import { navigate, rewriteAddress, useHere } from '@/lib/app-location'
 import { withTaskLayout } from '@/lib/task-layout'
+import { patchQuery, pickQuery } from '@/lib/use-menu-query'
 
 const tabOf = (value: string | undefined): EventTab =>
   EVENT_TABS.find(tab => tab === value) ?? 'messages'
@@ -38,5 +47,32 @@ export function useEventAddress(councilId: string, memberId: string) {
     // 방 전환도 탭처럼 기록을 쌓지 않는다.
     setRoom: (roomId: string) =>
       navigate(eventRoomPath(councilId, open.recordId, roomId), { replace: true }),
+  }
+}
+
+// 행사 안 구매의 거르기도 행사 기록 주소에 남긴다(DEC-78). 보기 변경은 단계 선택을 비운다.
+export function useEventPurchaseAddress(councilId: string, eventId: string) {
+  const { location } = useHere()
+  const query: AppQuery =
+    location?.type === 'record' &&
+    location.record === 'events' &&
+    location.councilId === councilId.toLowerCase() &&
+    location.recordId === eventId.toLowerCase()
+      ? location.query
+      : { tab: 'money' }
+  return {
+    view: pickQuery(EVENT_PURCHASE_VIEWS, query['view'], 'all'),
+    stage: PURCHASE_STAGES.find(stage => stage === query['stage']),
+    set: (patch: Record<string, string | null>) =>
+      navigate(
+        appPath({
+          type: 'record',
+          record: 'events',
+          councilId,
+          recordId: eventId,
+          query: patchQuery(query, patch),
+        }),
+        { replace: true },
+      ),
   }
 }
