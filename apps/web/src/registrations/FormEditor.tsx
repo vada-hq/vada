@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CreateFormSchema,
   UpdateFormSchema,
@@ -47,6 +47,7 @@ type Props = EventDialogHandlers & {
   onClose: () => void
   // 만들었거나 고친 양식. 만들었으면 부모가 링크와 QR을 바로 보인다.
   onDone: (form: RegistrationForm) => void
+  focus?: 'closesAt' | 'account'
 }
 
 // 만들기와 고치기가 다른 것: 처음 값, 처음 고른 계좌(undefined면 대표 계좌), 계약, 보낼 곳, 이름.
@@ -78,6 +79,15 @@ const FORM_CONTRACT_MESSAGES = {
   closesAt: '시각을 확인해 주세요',
 }
 
+function accountError(
+  form: RegistrationForm | undefined,
+  values: Parameters<typeof hasFee>[0],
+  accountId: string | null,
+) {
+  if (form?.paused !== false) return undefined
+  return hasFee(values) && accountId === null ? '참가비 받을 계좌를 골라 주세요' : undefined
+}
+
 function useFormEditor(props: Props) {
   const { councilId, eventId, form, taskId, onDone, ...rest } = props
   const handlers = { onForbidden: rest.onForbidden, onLost: rest.onLost }
@@ -98,8 +108,7 @@ function useFormEditor(props: Props) {
     withContract(
       {
         ...formErrors(values),
-        account:
-          hasFee(values) && account.pick.id === null ? '참가비 받을 계좌를 골라 주세요' : undefined,
+        account: accountError(form, values, account.pick.id),
       },
       parsed,
       FORM_CONTRACT_MESSAGES,
@@ -136,10 +145,8 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
   return (
     <div className="flex flex-col gap-4 lg:col-span-3">
       {props.event && <FormEventFacts event={props.event} onEdit={props.onEditEvent} />}
-      <FormSection title="신청 받기">
+      <FormSection title="모집 설정">
         <BasicFields {...fields} />
-      </FormSection>
-      <FormSection title="참가비">
         <FeeFields {...fields}>
           {hasFee(values) && (
             <FeeAccountSelect
@@ -171,6 +178,15 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
 export function FormEditor(props: Props) {
   const editor = useFormEditor(props)
   const { mode, saving, formRef } = editor
+  useEffect(() => {
+    const label = props.focus === 'account' ? '참가비 받을 계좌' : '신청 마감'
+    if (!props.focus) return
+    const fieldLabel = [...(formRef.current?.querySelectorAll('label') ?? [])].find(
+      item => item.textContent === label,
+    )
+    const field = fieldLabel?.htmlFor ? document.getElementById(fieldLabel.htmlFor) : null
+    field?.focus()
+  }, [props.focus, formRef])
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-start gap-1">

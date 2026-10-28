@@ -1,4 +1,10 @@
-import { NO_CONTENT, SERVER_ERROR_FROM, statusOf } from '@vada/contracts'
+import {
+  FormActivationFailureSchema,
+  NO_CONTENT,
+  SERVER_ERROR_FROM,
+  statusOf,
+  type FormActivationCondition,
+} from '@vada/contracts'
 
 // 서버 API를 같은 출처로 부른다. 성공하면 본문을, 실패하면 오류 코드를 돌려준다. 화면은 오류 코드로 문구를 고른다.
 // 4xx는 서버가 준 코드(FORBIDDEN, DEPARTMENT_IN_USE 등)이고, 연결 실패와 5xx는 'FAILED'다. 본문 없는 성공도 있다.
@@ -10,7 +16,14 @@ const trusted = (status: number, code: unknown): code is string =>
 
 // lines는 형식이 틀린 입력의 줄 번호를 알려 주는 응답(명단 붙여 넣기)에만 있다.
 export type ApiResult<T> =
-  { ok: true; data: T } | { ok: false; status: number; code: string; lines?: number[] }
+  | { ok: true; data: T }
+  | {
+      ok: false
+      status: number
+      code: string
+      lines?: number[]
+      missingConditions?: FormActivationCondition[]
+    }
 
 // 로그인이 풀리면(쿠키 만료) 어느 API든 UNAUTHENTICATED를 준다. 화면이 "서버 연결을 확인해 주세요"로 보이지 않도록, 앱이 등록한 처리기가 세션을 다시 읽어 로그인 화면으로 돌려보낸다.
 let onUnauthorized: (() => void) | null = null
@@ -37,7 +50,16 @@ function failure(status: number, body: { error?: unknown; lines?: unknown } | nu
   const lines = body?.lines
   noteTermsRequired(status, error)
   const code = trusted(status, error) ? error : 'FAILED'
-  return { ok: false as const, status, code, ...(isLines(lines) ? { lines } : {}) }
+  const activation = FormActivationFailureSchema.safeParse(body)
+  return {
+    ok: false as const,
+    status,
+    code,
+    ...(isLines(lines) ? { lines } : {}),
+    ...(status === statusOf('FORM_NOT_READY') && activation.success
+      ? { missingConditions: activation.data.missingConditions }
+      : {}),
+  }
 }
 
 async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {

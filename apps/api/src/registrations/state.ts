@@ -15,7 +15,7 @@ type StateInput = {
 export const isFormClosed = (closesAt: Date, now: Date) => now.getTime() >= closesAt.getTime()
 
 // 상태는 저장하지 않고 센다. 운영진 응답, 공개 응답, 신청이 이 함수 하나를 쓴다. 앞에서 맞는 것이 상태다: 마감(완료한 행사, 지금 ≥ 마감) → 멈춤 → 시작 전 → 정원 참 → 받는 중.
-// 정원을 지금 신청 수보다 줄여도 되므로, 정원 참은 '같거나 많음'으로 본다.
+// 초안도 paused로 막아 공개 읽기와 신청이 같은 판정을 쓴다. 정원을 지금 신청 수보다 줄여도 되므로 정원 참은 '같거나 많음'이다.
 export function registrationStatusOf(form: StateInput, now: Date): RegistrationStatus {
   if (form.eventCompleted || isFormClosed(form.closesAt, now)) return 'closed'
   if (form.paused) return 'paused'

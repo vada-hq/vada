@@ -17,6 +17,86 @@ import {
 } from '../test-support/registrations.js'
 
 test(
+  '새 양식은 초안이고 활성화는 행사 일시와 참가비 계좌를 다시 검사해 409와 모자란 조건을 준다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const { form } = await t.created(event, { payerFee: 5000, nonPayerFee: 5000 })
+    assert.ok(form)
+    assert.deepEqual([form.paused, form.status, form.applicantCount], [true, 'paused', 0])
+    for (const action of ['activate', 'resume']) {
+      const response = await t.post(`/registration-forms/${form.id}/${action}`, {})
+      assert.equal(response.status, 409)
+      assert.deepEqual(await response.json(), {
+        error: 'FORM_NOT_READY',
+        missingConditions: ['event_starts_at', 'fee_account'],
+      })
+    }
+    assert.equal(await t.versions(form.id), 1)
+    assert.equal((await t.detail(form.id)).paused, true)
+  }),
+)
+
+test(
+  '조건을 갖춘 활성화는 판을 남기고 같은 요청은 판을 늘리지 않는다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ startsAt: new Date('2026-11-02T03:00:00Z') })
+    const { form } = await t.created(event)
+    const activate = () => t.post(`/registration-forms/${form.id}/activate`, {})
+    assert.equal((await activate()).status, 200)
+    assert.deepEqual(
+      [(await t.detail(form.id)).paused, (await t.detail(form.id)).status],
+      [false, 'open'],
+    )
+    assert.equal(await t.versions(form.id), 2)
+    assert.equal((await activate()).status, 200)
+    assert.equal(await t.versions(form.id), 2)
+    const versions = await t.pg.query<{ data: { paused_at: unknown }; changed_by: string }>(
+      'SELECT data, changed_by FROM record_version WHERE record_id = $1 ORDER BY version_no',
+      [form.id],
+    )
+    assert.ok(versions.rows[0]!.data.paused_at)
+    assert.equal(versions.rows[1]!.data.paused_at, null)
+    assert.equal(versions.rows[1]!.changed_by, t.council.people.president.memberId)
+  }),
+)
+
+test(
+  '활성화는 고치기 권한과 같고 다른 학생회 양식은 404, 미인증 401, 모르는 본문은 400이다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ ownerId: t.council.people.planningMember.memberId })
+    const { form } = await t.created(event)
+    const theirs = await t.makeForm(await t.makeEvent({}, t.other), {}, t.other)
+    const path = `/registration-forms/${form.id}/activate`
+    for (const user of ['s-plain', 's-financeMember', 's-planningHead'])
+      assert.equal((await t.post(path, {}, user)).status, 403, user)
+    assert.equal((await t.api.post(`${t.orgBase}${path}`, {})).status, 401)
+    assert.equal((await t.post(`/registration-forms/${theirs}/activate`, {})).status, 404)
+    assert.equal((await t.post(path, { extra: 1 })).status, 400)
+    // 권한이 있으면 조건 검사까지 도달한다.
+    assert.equal((await t.post(path, {}, 's-planningMember')).status, 409)
+    assert.equal(await t.versions(form.id), 1)
+  }),
+)
+
+test(
+  '활성화는 닫은 계좌를 다시 검사해 계좌 부족 409를 주고 초안을 유지한다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ startsAt: new Date('2026-11-02T03:00:00Z') })
+    const feeAccountId = await t.makeAccount()
+    const { form } = await t.created(event, { payerFee: 1000, nonPayerFee: 1000, feeAccountId })
+    await t.change('account', feeAccountId, { closedOn: '2026-10-25' })
+    const response = await t.post(`/registration-forms/${form.id}/activate`, {})
+    assert.equal(response.status, 409)
+    assert.deepEqual(await response.json(), {
+      error: 'FORM_NOT_READY',
+      missingConditions: ['fee_account'],
+    })
+    assert.equal((await t.detail(form.id)).paused, true)
+    assert.equal(await t.versions(form.id), 1)
+  }),
+)
+
+test(
   '회장이 양식을 만들면 201과 판 1이 열리고 공개 코드가 정해진다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
@@ -36,15 +116,16 @@ test(
     assert.equal(form.remaining, 30)
     assert.equal(form.notice, '문의는 카톡 @학생회')
     assert.equal(form.collectsPhone, true)
-    assert.equal(form.paused, false)
-    assert.equal(form.status, 'before_open')
+    assert.equal(form.paused, true)
+    assert.equal(form.status, 'paused')
     assert.deepEqual([form.applicantCount, form.attendedCount], [0, 0])
     assert.deepEqual([form.payerFee, form.nonPayerFee, form.feeAccount], [null, null, null])
     // 행사 끝도 시작도 없으면 양식 마감 날짜 + 1년이다.
     assert.equal(form.purgeOn, '2027-11-01')
     assert.deepEqual(form.actions, [
       'form.update',
-      'form.pause',
+      'form.resume',
+      'form.activate',
       'form.check_in',
       'form.view_applicants',
     ])
@@ -171,8 +252,7 @@ test(
     // 둘 다 0이면 계좌가 없어도 된다. 상한은 받는다.
     assert.equal((await t.created(event, { payerFee: 0, nonPayerFee: 0 })).status, 201)
     const noAccount = await t.create(event, { ...FORM, payerFee: 0, nonPayerFee: 5000 })
-    assert.equal(noAccount.status, 409)
-    assert.deepEqual(await noAccount.json(), { error: 'FEE_ACCOUNT_REQUIRED' })
+    assert.equal(noAccount.status, 201)
     const max = await t.created(event, {
       payerFee: REGISTRATION_FEE_MAX,
       nonPayerFee: REGISTRATION_FEE_MAX,
@@ -401,8 +481,8 @@ test(
 test(
   '멈추면 새 신청을 받지 않는 상태가 되고 다시 받으면 돌아온다. 같은 상태로 다시 보내도 판은 늘지 않는다',
   withRegistrations(async t => {
-    const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const event = await t.makeEvent({ startsAt: new Date('2026-11-02T03:00:00Z') })
+    const { form } = await t.activeForm(event)
     const send = async (path: string) =>
       (
         (await (await t.post(`/registration-forms/${form.id}/${path}`, {})).json()) as {
@@ -492,7 +572,7 @@ test(
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const account = await t.makeAccount()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     const theirs = await t.makeAccount({}, t.other)
     const closed = await t.makeAccount({
       name: '옛 계좌',

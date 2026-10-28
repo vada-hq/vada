@@ -17,7 +17,7 @@ const tokenOf = async (response: Response) => ((await response.json()) as { toke
 
 async function openForm(t: RegistrationKit, values: Record<string, unknown> = {}) {
   const event = await t.makeEvent()
-  const { form } = await t.created(event, { collectsStudentId: false, ...values })
+  const { form } = await t.activeForm(event, { collectsStudentId: false, ...values })
   return form
 }
 const registrations = (t: RegistrationKit) =>

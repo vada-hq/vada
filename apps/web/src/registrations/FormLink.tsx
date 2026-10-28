@@ -6,6 +6,7 @@ import { applyUrl } from './registration-view'
 
 // 양식 하나의 공개 링크 복사, 포스터에 붙일 QR. 링크는 만들 때 정해져 바뀌지 않는다.
 export function FormLink({ form }: { form: RegistrationForm }) {
+  if (form.paused && form.applicantCount === 0) return null
   const url = applyUrl(form.publicCode)
   return (
     <div className="flex flex-col gap-3">

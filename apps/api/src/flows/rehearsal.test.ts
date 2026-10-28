@@ -54,7 +54,9 @@ const remainingOf = (settlement: EventSettlement) =>
 test('리허설 시나리오가 모든 모듈로 끝까지 돌아 행사 A가 완료된다', async () => {
   const { close, flow, chief, options } = await setup()
   try {
-    const { state } = await runRehearsal(flow, options)
+    const { state, ran } = await runRehearsal(flow, options)
+    assert.ok(ran.indexOf('form') < ran.indexOf('activate'))
+    assert.ok(ran.indexOf('activate') < ran.indexOf('apply'))
     const { cast, w } = state
     const org = `/api/organizations/${w.councilId}`
     // 정산이 끝나 완료했다: 남은 것 0, 완료 결재 하나(사유 포함)

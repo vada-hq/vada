@@ -20,6 +20,7 @@ import { korean, type RegistrationKit, startRegistrations } from '../test-suppor
 
 // 읽기에 없는데 쓰기가 조용히 성공하는 칸. 칸이 표와 같아지면 이 목록도 실패한다(낡은 예외를 남기지 않는다).
 const EXCEPTIONS: Record<string, string> = {
+  '양식 받는 중 회장 form.activate': '이미 활성 양식은 판을 늘리지 않는다',
   '양식 받는 중 회장 form.resume': '이미 그 상태인 다시 받기는 조용히 200이다(012-3 M3)',
   '양식 멈춤 회장 form.pause': '이미 그 상태인 멈추기는 조용히 200이다(012-3 M3)',
   '신청자 attended 회장 registration.check_in':
@@ -140,7 +141,7 @@ async function build(t: RegistrationKit, state: State, name: string) {
   const [existing] = (await t.pg.query('SELECT id FROM account LIMIT 1')).rows as { id: string }[]
   const feeAccountId = existing?.id ?? (await t.makeAccount())
   const fee = state === 'free' ? 0 : FEE
-  const made = await t.created(event, {
+  const made = await t.activeForm(event, {
     payerFee: fee,
     nonPayerFee: fee,
     ...(fee ? { feeAccountId } : {}),
@@ -226,6 +227,7 @@ const WRITE_FORM: Record<FormWrite, (form: RegistrationForm) => [string, unknown
     { ...EDIT, name: form.name, closesAt: form.closesAt },
   ],
   'form.pause': form => [`/registration-forms/${form.id}/pause`, {}],
+  'form.activate': form => [`/registration-forms/${form.id}/activate`, {}],
   'form.resume': form => [`/registration-forms/${form.id}/resume`, {}],
   'form.check_in': form => [`/events/${form.eventId}/check-in`, { tokenHash: HASH }],
   'form.view_applicants': form => `/registration-forms/${form.id}/applicants`,
@@ -255,12 +257,16 @@ function formCode(state: FormState, user: string, action: FormWrite) {
   if (action === 'form.view_applicants') return null
   if (user === FINANCE) return 'FORBIDDEN'
   if (state === '완료') return 'EVENT_COMPLETED'
-  const stateChange = action === 'form.pause' || action === 'form.resume'
+  const stateChange =
+    action === 'form.pause' || action === 'form.resume' || action === 'form.activate'
   return state === '마감' && stateChange ? 'FORM_CLOSED' : null
 }
 
 async function buildForm(t: RegistrationKit, state: FormState) {
-  const event = await t.makeEvent({ ownerId: t.council.people.planningMember.memberId })
+  const event = await t.makeEvent({
+    ownerId: t.council.people.planningMember.memberId,
+    startsAt: korean('2026-11-02T12:00'),
+  })
   const closesAt = state === '마감' ? korean('2026-10-24T12:00') : korean('2026-11-01T18:00')
   const id = await t.makeForm(event, { closesAt })
   if (state === '멈춤') assert.ok((await t.post(`/registration-forms/${id}/pause`, {})).ok)

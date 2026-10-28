@@ -4,7 +4,10 @@ import { CheckInScanner } from './CheckInScanner'
 
 // 탭이 여는 것. 양식 만들기·고치기는 탭 안의 화면(FormEditor)이고, QR 스캐너만 대화상자다. 열린 것은 하나뿐이다.
 export type TabDialog =
-  { kind: 'create' } | { kind: 'edit'; formId: string } | { kind: 'scan' } | null
+  | { kind: 'create' }
+  | { kind: 'edit'; formId: string; focus?: 'closesAt' | 'account' }
+  | { kind: 'scan' }
+  | null
 
 type Props = EventDialogHandlers & {
   councilId: string

@@ -5,6 +5,7 @@ import type { Db } from '../db/types.js'
 
 // 신청 양식이 업무 결과물로서 어느 단계인가(RULE-41, DEC-82). 읽기만 하고 저장하지 않는다.
 // 양식은 있으면 끝남이다. 양식을 지우는 길은 없다(멈추거나 마감할 뿐이라 단계가 내려가지 않는다).
+// 초안과 링크 활성화는 공개 신청의 상태다. 이미 남긴 업무 결과물을 되돌리지 않는다(RULE-41).
 export async function formStagesOf(
   db: Pick<Db, 'select'>,
   formIds: readonly string[],

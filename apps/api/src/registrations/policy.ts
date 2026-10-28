@@ -26,7 +26,7 @@ type Reader = Pick<Db, 'select'>
 // 신청자 명단은 완료 뒤에도 본다), RULE-27, '참가 신청의 환불 대기'(DEC-55, 환불함은 재정부만, DEC-66·67)다.
 
 type EventAction = 'form.create' | 'form.update' | 'form.check_in' | 'form.view_applicants'
-type FormStateAction = 'form.pause' | 'form.resume'
+type FormStateAction = 'form.pause' | 'form.resume' | 'form.activate'
 type FormPolicyAction = FormAction | FormListAction
 
 // 행사 단위 사실. 양식이 없는 동작(만들기, QR 출석)과 양식 상태를 보지 않는 동작은 이것만으로 판정한다.
@@ -60,6 +60,7 @@ const PERMISSION: Record<FormPolicyAction, Action> = {
   'form.update': 'registration.manage',
   'form.pause': 'registration.manage',
   'form.resume': 'registration.manage',
+  'form.activate': 'registration.manage',
   // QR 출석은 신청자 한 줄의 출석과 같은 권한이다(규칙이 한 곳에만 있게).
   'form.check_in': APPLICANT_PERMISSION['registration.check_in'],
   'form.view_applicants': 'registration.view_applicants',
@@ -81,7 +82,8 @@ export function decideOnEvent(
 function decide(actor: Actor, facts: FormFacts, action: FormPolicyAction): ErrorCode | null {
   const code = decideOnEvent(actor, facts, action)
   if (code) return code
-  return (action === 'form.pause' || action === 'form.resume') && facts.closed
+  return (action === 'form.pause' || action === 'form.resume' || action === 'form.activate') &&
+    facts.closed
     ? 'FORM_CLOSED'
     : null
 }
@@ -121,6 +123,7 @@ export const actionsOf = (actor: Actor, facts: FormFacts): FormAction[] =>
   FORM_ACTIONS.filter(action => {
     if (action === 'form.pause' && facts.paused) return false
     if (action === 'form.resume' && !facts.paused) return false
+    if (action === 'form.activate' && !facts.paused) return false
     return decide(actor, facts, action) === null
   })
 

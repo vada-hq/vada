@@ -16,7 +16,7 @@ async function split(t: RegistrationKit) {
     place: '대운동장',
   })
   const account = await t.makeAccount()
-  const { form } = await t.created(event, {
+  const { form } = await t.activeForm(event, {
     payerFee: 0,
     nonPayerFee: 5000,
     feeAccountId: account,
@@ -265,8 +265,8 @@ test(
 test(
   '취소하면 자리가 돌아온다. 멈춘 양식에서도 취소된다',
   withRegistrations(async t => {
-    const event = await t.makeEvent()
-    const { form } = await t.created(event, { capacity: 1, collectsStudentId: false })
+    const event = await t.makeEvent({ startsAt: korean('2026-11-02T12:00') })
+    const { form } = await t.activeForm(event, { capacity: 1, collectsStudentId: false })
     const token = await t.applied(form.publicCode, { name: '가' })
     assert.equal((await t.apply(form.publicCode, { name: '나' })).status, 409)
     await t.post(`/registration-forms/${form.id}/pause`, {})

@@ -7,7 +7,40 @@ import {
   qrTextOf,
   tokenHashOfQr,
   UpdateFormSchema,
+  ActivateFormSchema,
+  missingFormConditions,
+  registrationStatusLabel,
 } from './registrations.js'
+
+test('활성화는 빈 본문만 받고, 모자란 조건은 순서대로 중복 없이 센다', () => {
+  assert.equal(ActivateFormSchema.safeParse({}).success, true)
+  assert.equal(ActivateFormSchema.safeParse({ extra: true }).success, false)
+  const ready = {
+    eventStartsAt: '2026-11-02T10:00',
+    opensAt: null,
+    closesAt: '2026-11-01T18:00',
+    payerFee: null,
+    nonPayerFee: null,
+    feeAccountId: null,
+  }
+  assert.deepEqual(missingFormConditions(ready), [])
+  assert.deepEqual(
+    missingFormConditions({ ...ready, eventStartsAt: null, closesAt: '', payerFee: 1000 }),
+    ['event_starts_at', 'closes_at', 'fee_account'],
+  )
+  for (const opensAt of ['2026-11-01T18:00', '2026-11-01T18:01'])
+    assert.deepEqual(missingFormConditions({ ...ready, opensAt }), ['registration_period'])
+  assert.deepEqual(missingFormConditions({ ...ready, payerFee: 0, nonPayerFee: 0 }), [])
+  assert.deepEqual(missingFormConditions({ ...ready, nonPayerFee: 1 }), ['fee_account'])
+  assert.deepEqual(missingFormConditions({ ...ready, payerFee: 1, feeAccountId: COMMAND_ID }), [])
+})
+
+test('상태 값은 그대로 두고 멈춘 양식의 신청 수로 초안과 잠시 멈춤을 가른다', () => {
+  assert.equal(registrationStatusLabel('paused', 0), '초안')
+  assert.equal(registrationStatusLabel('paused', 1), '잠시 멈춤')
+  assert.equal(registrationStatusLabel('open', 0), '활성')
+  assert.equal(registrationStatusLabel('closed', 0), '종료')
+})
 
 const HASH = 'ab12'.repeat(16)
 

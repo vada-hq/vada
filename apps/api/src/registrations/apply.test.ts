@@ -10,7 +10,7 @@ const body = (response: Response) => response.json() as Promise<Record<string, u
 async function splitForm(t: RegistrationKit, extra: Record<string, unknown> = {}) {
   const event = await t.makeEvent()
   const account = await t.makeAccount()
-  const { form } = await t.created(event, {
+  const { form } = await t.activeForm(event, {
     payerFee: 0,
     nonPayerFee: 5000,
     feeAccountId: account,
@@ -60,9 +60,14 @@ test(
     const event = await t.makeEvent()
     const account = await t.makeAccount()
     const off = { collectsStudentId: false }
-    const none = (await t.created(event, off)).form
+    const none = (await t.activeForm(event, off)).form
     const same = (
-      await t.created(event, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account, ...off })
+      await t.activeForm(event, {
+        payerFee: 3000,
+        nonPayerFee: 3000,
+        feeAccountId: account,
+        ...off,
+      })
     ).form
     const lastFee = async () =>
       Number(
@@ -134,7 +139,7 @@ test(
       assert.deepEqual(await body(response), { error: 'FORM_CHANGED' })
     }
     // 학번도 휴대폰도 받지 않는 양식에 보내면 같다.
-    const plain = (await t.created(await t.makeEvent(), { collectsStudentId: false })).form
+    const plain = (await t.activeForm(await t.makeEvent(), { collectsStudentId: false })).form
     for (const input of [
       { name: '가', phone: '01012345678' },
       { name: '가', studentId: '202612345' },
@@ -144,7 +149,7 @@ test(
     // splitForm이 대표 계좌를 이미 만들었다.
     const account = await t.makeAccount({ name: '행사', type: 'business' })
     for (const fees of [{}, { payerFee: 3000, nonPayerFee: 3000, feeAccountId: account }]) {
-      const collecting = (await t.created(await t.makeEvent(), fees)).form
+      const collecting = (await t.activeForm(await t.makeEvent(), fees)).form
       assert.equal(collecting.collectsStudentId, true)
       const response = await t.apply(collecting.publicCode, { name: '가' })
       assert.equal(response.status, 409, JSON.stringify(fees))
@@ -172,6 +177,10 @@ test(
     assert.equal((await t.cancelMine(token)).status, 200)
     await t.post(`/registration-forms/${form.id}/pause`, {})
     assert.deepEqual(await codeOf('2026-10-26T10:00:00'), [409, 'REGISTRATION_NOT_OPEN'])
+    await t.pg.query('UPDATE event SET starts_at = $1 WHERE id = $2', [
+      korean('2026-11-02T12:00'),
+      form.eventId,
+    ])
     await t.post(`/registration-forms/${form.id}/resume`, {})
     assert.deepEqual(await codeOf('2026-11-01T17:59:59'), [201, undefined])
     t.setNow(korean('2026-11-01T18:00:00'))
@@ -272,7 +281,7 @@ test(
   '학번 받기를 바꾸면 그 뒤의 신청부터 따르고, 이미 받은 학번은 그대로다(DEC-75)',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     assert.equal(form.collectsStudentId, true)
     await t.applied(form.publicCode, { name: '가', studentId: '202612345' })
     const edit = {

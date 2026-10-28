@@ -3,6 +3,21 @@ import { test } from 'node:test'
 import { korean, withRegistrations } from '../test-support/registrations.js'
 
 test(
+  '초안의 공개 링크는 읽어도 새 신청을 받지 않고 신청·개인 링크·영수증이 남지 않는다',
+  withRegistrations(async t => {
+    const { form } = await t.created(await t.makeEvent())
+    assert.equal((await t.publicForm(form.publicCode)).status, 'paused')
+    const response = await t.apply(form.publicCode, { name: '김학생', studentId: '202612345' })
+    assert.equal(response.status, 409)
+    assert.deepEqual(await response.json(), { error: 'REGISTRATION_NOT_OPEN' })
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 0)
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_link'), 0)
+    assert.equal(await t.count('SELECT count(*) AS n FROM command_receipt'), 0)
+    assert.equal(await t.versions(form.id), 1)
+  }),
+)
+
+test(
   '로그인 없이 공개 코드로 읽고, 응답은 정해진 칸만 담으며 no-store이다',
   withRegistrations(async t => {
     const event = await t.makeEvent({
@@ -12,7 +27,7 @@ test(
       endsAt: korean('2026-11-05T18:00'),
     })
     const account = await t.makeAccount()
-    const { form } = await t.created(event, {
+    const { form } = await t.activeForm(event, {
       opensAt: '2026-10-26T09:00',
       capacity: 10,
       notice: '문의는 카톡 @학생회',
@@ -77,7 +92,7 @@ test(
   '모르는 코드와 형식이 틀린 코드는 가르지 않고 404이며 이것도 no-store이다. 소문자로 옮겨 적어도 읽힌다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     for (const code of [
       'AAAAAAAA',
       'short',
@@ -99,7 +114,7 @@ test(
   '상태와 남은 자리는 읽을 때마다 센다: 멈춤, 마감, 정원 참, 취소한 신청은 세지 않는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event, { capacity: 2 })
+    const { form } = await t.activeForm(event, { capacity: 2 })
     const read = () => t.publicForm(form.publicCode)
     assert.deepEqual([(await read()).status, (await read()).remaining], ['open', 2])
     const first = await t.makeRegistration(form.id)
@@ -120,7 +135,7 @@ test(
     const event = await t.makeEvent()
     const account = await t.makeAccount()
     const read = async (body: Record<string, unknown>) =>
-      t.publicForm((await t.created(event, body)).form.publicCode)
+      t.publicForm((await t.activeForm(event, body)).form.publicCode)
     const none = await read({})
     assert.deepEqual(
       [none.collectsStudentId, none.payerFee, none.nonPayerFee, none.collectsPhone],
@@ -146,7 +161,7 @@ test(
   '공개 경로는 읽기만 한다: 같은 주소로 쓰려 하면 거절되고 양식은 그대로다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     const response = await t.api.post(`/api/public/registration-forms/${form.publicCode}`, {})
     assert.notEqual(response.status, 200)
     assert.equal(await t.versions(form.id), 1)

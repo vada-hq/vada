@@ -8,6 +8,8 @@ import {
 } from '@vada/contracts'
 import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
+import { FormReception } from '@/registrations/FormReception'
+import { eventDetail } from '@/test-support/event-fixtures'
 import { EventApplicantsView } from '@/registrations/EventApplicantsView'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
@@ -39,6 +41,45 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
 const noop = () => {}
 const handlers = { onForbidden: noop, onLost: noop }
 const changes = new Map<string, ApplicantChange>()
+
+// 초안과 활성 양식을 같은 화면 구성으로 비교한다. 미리보기까지 열 수 있는 UUID 견본이다.
+export function RegistrationReceptionSection() {
+  const event = eventDetail({ id: '00000000-0000-4000-8000-000000000401' }, ['event.update'])
+  const active = form('00000000-0000-4000-8000-000000000402', {
+    eventId: event.id,
+    feeAccount: { id: '00000000-0000-4000-8000-000000000403', name: '행사 참가비 통장' },
+    closesAt: '2026-11-01T18:00',
+  })
+  const draft = {
+    ...active,
+    id: '00000000-0000-4000-8000-000000000404',
+    paused: true,
+    status: 'paused' as const,
+    feeAccount: null,
+    applicantCount: 0,
+    remaining: active.capacity,
+    actions: ['form.update', 'form.activate'] as RegistrationForm['actions'],
+  }
+  return (
+    <Section title="신청 받기 · 초안·활성">
+      <div className="flex w-full min-w-0 flex-col gap-8">
+        {[draft, active].map(data => (
+          <FormReception
+            key={data.id}
+            councilId="00000000-0000-4000-8000-000000000405"
+            councilName="한양대학교 학생회"
+            event={event}
+            form={data}
+            onEdit={noop}
+            onEditEvent={noop}
+            onChanged={noop}
+            {...handlers}
+          />
+        ))}
+      </div>
+    </Section>
+  )
+}
 
 function Card({ data }: { data: RegistrationForm }) {
   return (

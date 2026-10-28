@@ -4,6 +4,7 @@ import type {
   RegistrationForm,
   RegistrationFormsResponse,
 } from '@vada/contracts'
+import { CreateFormSchema, dateFromKorean } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import type { RateLimiter } from '../http/rate-limit.js'
@@ -186,6 +187,18 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
         form: RegistrationForm
       }
     ).form
+  // 생성 API 시험과 기존 활성 양식을 읽는 시험을 가른다. 옛 활성 양식은 일시가 미정이어도 그대로 받는다.
+  const activeForm = async (eventId: string, body: Values = {}) => {
+    const { taskId: _task, ...input } = CreateFormSchema.parse({ ...FORM, ...body })
+    const id = await makeForm(eventId, {
+      ...input,
+      opensAt: input.opensAt ? dateFromKorean(input.opensAt) : null,
+      closesAt: dateFromKorean(input.closesAt),
+      payerFee: input.payerFee === null ? null : String(input.payerFee),
+      nonPayerFee: input.nonPayerFee === null ? null : String(input.nonPayerFee),
+    })
+    return { status: 201, form: await detail(id) }
+  }
   const list = async (eventId: string, user = 's-president') =>
     (await (
       await api.get(`${orgBase}/events/${eventId}/registration-forms`, user)
@@ -232,6 +245,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     post,
     create,
     created,
+    activeForm,
     detail,
     list,
     publicRead,

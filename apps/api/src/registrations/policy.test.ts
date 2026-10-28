@@ -12,7 +12,7 @@ const PLAIN = 's-plain'
 test(
   '마감 경계는 ±1초: 마감 1초 전에는 멈출 수 있고 마감 시각부터 FORM_CLOSED이며 판이 생기지 않는다',
   withRegistrations(async t => {
-    const { form } = await t.created(await t.makeEvent())
+    const { form } = await t.activeForm(await t.makeEvent())
     t.setNow(korean('2026-11-01T17:59:59'))
     assert.ok((await t.detail(form.id)).actions.includes('form.pause'))
     t.setNow(korean('2026-11-01T18:00:00'))
@@ -32,7 +32,7 @@ test(
   '목록의 form.create는 관리 권한자에게 완료 전만, 신청자 목록은 완료 뒤에도 열람 권한자에게 열리고 열람 기록이 남는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     await t.applied(form.publicCode, { name: '김신청', studentId: '202612345' })
     const create = async (user: string) => (await t.list(event, user)).actions
     assert.deepEqual(await create(PRESIDENT), ['form.create'])

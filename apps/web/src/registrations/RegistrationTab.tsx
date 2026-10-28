@@ -8,6 +8,7 @@ import type {
 } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -130,6 +131,7 @@ function EditorScreen({
       onEditEvent={props.onEditEvent}
       onClose={tab.close}
       onDone={tab.saved}
+      {...(tab.dialog?.kind === 'edit' && tab.dialog.focus ? { focus: tab.dialog.focus } : {})}
       {...tab.handlers}
     />
   )
@@ -151,24 +153,19 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
   return (
     <div className="flex flex-col gap-3">
       <TabToolbar
-        actions={ready?.actions ?? []}
+        actions={ready?.forms.length ? ready.actions : []}
         scannable={canScan(ready?.forms ?? [])}
         onCreate={() => setDialog({ kind: 'create' })}
         onScan={() => setDialog({ kind: 'scan' })}
       />
       {tab.notice && <StateMessage kind="error">{tab.notice}</StateMessage>}
-      {ready && (
-        <EventApplicants
-          key={`${councilId}/${props.eventId}`}
-          councilId={councilId}
-          eventId={props.eventId}
-          changes={rows.changes}
-          onChange={rows.apply}
-          onLoaded={rows.forget}
-          {...handlers}
-        />
-      )}
-      <FormList state={read.state} onRetry={reload}>
+      <FormList
+        state={read.state}
+        onRetry={reload}
+        onCreate={
+          ready?.actions.includes('form.create') ? () => setDialog({ kind: 'create' }) : undefined
+        }
+      >
         {form => (
           <FormCard
             key={form.id}
@@ -180,10 +177,28 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
             onLoaded={rows.forget}
             onEdit={() => setDialog({ kind: 'edit', formId: form.id })}
             onChanged={reload}
+            reception={{
+              councilName: props.view.council.name,
+              event: props.event,
+              onEditEvent: props.onEditEvent,
+              onEdit: focus =>
+                setDialog({ kind: 'edit', formId: form.id, ...(focus ? { focus } : {}) }),
+            }}
             {...handlers}
           />
         )}
       </FormList>
+      {ready && ready.forms.length > 0 && (
+        <EventApplicants
+          key={`${councilId}/${props.eventId}`}
+          councilId={councilId}
+          eventId={props.eventId}
+          changes={rows.changes}
+          onChange={rows.apply}
+          onLoaded={rows.forget}
+          {...handlers}
+        />
+      )}
       <TabDialogs
         councilId={councilId}
         eventId={props.eventId}
@@ -224,7 +239,7 @@ function TabToolbar({ actions, scannable, onCreate, onScan }: ToolbarProps) {
     <div className="flex flex-wrap gap-2">
       {actions.includes('form.create') && (
         <Button touch onClick={onCreate}>
-          신청 양식 만들기
+          참여 설문 만들기
         </Button>
       )}
       {scannable && (
@@ -240,9 +255,11 @@ type ListProps = {
   state: ReturnType<typeof useRegistrationForms>['state']
   onRetry: () => void
   children: (form: RegistrationForm) => ReactNode
+  onCreate?: (() => void) | undefined
 }
 
-function FormList({ state, onRetry, children }: ListProps) {
+function FormList({ state, onRetry, children, onCreate }: ListProps) {
+  const [selected, setSelected] = useState<string | null>(null)
   if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중이에요</StateMessage>
   if (state.kind === 'failed')
     return (
@@ -254,10 +271,39 @@ function FormList({ state, onRetry, children }: ListProps) {
       </div>
     )
   const { forms, truncated } = state.data
+  const selectedForm = forms.find(form => form.id === selected) ?? forms[0]
   return (
     <>
-      {forms.length === 0 && <StateMessage kind="empty">신청 양식 없음</StateMessage>}
-      {forms.map(children)}
+      {forms.length === 0 && (
+        <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-6">
+          <h3 className="text-base font-semibold">참여 설문 없음</h3>
+          {onCreate && (
+            <Button touch onClick={onCreate}>
+              참여 설문 만들기
+            </Button>
+          )}
+        </Card>
+      )}
+      {selectedForm && children(selectedForm)}
+      {forms.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">다른 양식</span>
+          {forms
+            .filter(form => form.id !== selectedForm?.id)
+            .map(form => (
+              <Button
+                key={form.id}
+                variant="link"
+                size="sm"
+                touch
+                className="max-w-full whitespace-normal break-keep wrap-anywhere"
+                onClick={() => setSelected(form.id)}
+              >
+                {form.name}
+              </Button>
+            ))}
+        </div>
+      )}
       {truncated && <StateMessage kind="notice">양식이 많아 앞의 일부만 보여요.</StateMessage>}
     </>
   )

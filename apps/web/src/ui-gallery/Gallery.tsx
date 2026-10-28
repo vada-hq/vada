@@ -66,6 +66,7 @@ import {
   ApplicantRowSection,
   EventApplicantsSection,
   RegistrationSection,
+  RegistrationReceptionSection,
 } from './RegistrationSections'
 import { ScanVerdictSection } from './ScanVerdictSection'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
@@ -135,6 +136,7 @@ export const gallerySections = [
   PublicSection,
   ApplyNoticeSection,
   RegistrationSection,
+  RegistrationReceptionSection,
   ScanVerdictSection,
   ApplicantRowSection,
   EventApplicantsSection,

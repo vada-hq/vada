@@ -19,6 +19,53 @@ export const PUBLIC_CODE_PATTERN = /^[2-9A-HJ-NP-Z]{8}$/
 export const REGISTRATION_STATUSES = ['closed', 'paused', 'before_open', 'full', 'open'] as const
 export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number]
 
+const REGISTRATION_STATUS_LABELS: Record<RegistrationStatus, string> = {
+  closed: '종료',
+  paused: '잠시 멈춤',
+  before_open: '시작 전',
+  full: '정원 마감',
+  open: '활성',
+}
+export const registrationStatusLabel = (status: RegistrationStatus, applicantCount: number) =>
+  status === 'paused' && applicantCount === 0 ? '초안' : REGISTRATION_STATUS_LABELS[status]
+
+export const FORM_ACTIVATION_CONDITIONS = [
+  'event_starts_at',
+  'closes_at',
+  'registration_period',
+  'fee_account',
+] as const
+export type FormActivationCondition = (typeof FORM_ACTIVATION_CONDITIONS)[number]
+type ActivationFacts = {
+  eventStartsAt: string | null
+  opensAt: string | null
+  closesAt: string | null
+  payerFee: number | null
+  nonPayerFee: number | null
+  feeAccountId: string | null
+}
+// 마감은 신청 시작보다 뒤여야 한다. 신청 시작이 비면 즉시 받는다(DEC-44).
+export function missingFormConditions(facts: ActivationFacts): FormActivationCondition[] {
+  const missing: FormActivationCondition[] = []
+  if (!facts.eventStartsAt) missing.push('event_starts_at')
+  if (!facts.closesAt) missing.push('closes_at')
+  if (facts.opensAt && facts.closesAt && facts.closesAt <= facts.opensAt)
+    missing.push('registration_period')
+  if (Math.max(facts.payerFee ?? 0, facts.nonPayerFee ?? 0) > 0 && !facts.feeAccountId)
+    missing.push('fee_account')
+  return missing
+}
+export const ActivateFormSchema = EmptyRequestSchema
+export type ActivateFormRequest = z.infer<typeof ActivateFormSchema>
+export type ActivateFormResponse = RegistrationFormResponse
+export const FormActivationFailureSchema = z.strictObject({
+  error: z.literal('FORM_NOT_READY'),
+  missingConditions: z
+    .array(z.enum(FORM_ACTIVATION_CONDITIONS))
+    .max(FORM_ACTIVATION_CONDITIONS.length),
+})
+export type FormActivationFailure = z.infer<typeof FormActivationFailureSchema>
+
 const fee = z.number().int().min(0).max(REGISTRATION_FEE_MAX)
 const capacity = z.number().int().min(1).max(REGISTRATION_CAPACITY_MAX)
 
@@ -77,6 +124,7 @@ export const FORM_ACTIONS = [
   'form.update',
   'form.pause',
   'form.resume',
+  'form.activate',
   'form.check_in',
   'form.view_applicants',
 ] as const

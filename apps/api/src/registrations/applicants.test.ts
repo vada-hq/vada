@@ -15,7 +15,11 @@ async function split(t: RegistrationKit) {
     paidFrom: '2026-10-01',
     paidUntil: '2026-10-31',
   })
-  const { form } = await t.created(event, { payerFee: 0, nonPayerFee: 5000, feeAccountId: account })
+  const { form } = await t.activeForm(event, {
+    payerFee: 0,
+    nonPayerFee: 5000,
+    feeAccountId: account,
+  })
   await t.applied(form.publicCode, kim)
   await t.applied(form.publicCode, lee)
   return { event, form }
@@ -64,13 +68,13 @@ test(
   '참가비가 같은 양식은 납부자 여부가 null이고, 취소한 신청은 없으며, 같은 행사의 같은 학번은 양식이 달라도 표시된다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const first = (await t.created(event, { name: '하나', collectsStudentId: false })).form
+    const first = (await t.activeForm(event, { name: '하나', collectsStudentId: false })).form
     const gone = await t.applied(first.publicCode, { name: '취소함', studentId: null, phone: null })
     await t.applied(first.publicCode, { name: '가', studentId: null, phone: null })
     assert.equal((await t.cancelMine(gone)).status, 200)
     // 같은 학번은 학번을 받는 양식(참가비가 갈리는 양식) 둘에서 만든다.
     const split = (
-      await t.created(event, {
+      await t.activeForm(event, {
         name: '셋',
         payerFee: 0,
         nonPayerFee: 1000,
@@ -78,7 +82,7 @@ test(
       })
     ).form
     const other = (
-      await t.created(event, {
+      await t.activeForm(event, {
         name: '넷',
         payerFee: 0,
         nonPayerFee: 2000,
@@ -110,7 +114,7 @@ test(
     const { people, departments } = t.council
     const event = await t.makeEvent({ ownerId: people.plain.memberId })
     await t.makeTask(event, departments.planning)
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     const viewers = [
       's-president',
       's-vicePresident',
@@ -123,7 +127,7 @@ test(
     assert.equal(await logs(t), viewers.length)
     // 담당이 아닌 행사의 양식
     const bare = await t.makeEvent()
-    const bareForm = (await t.created(bare)).form
+    const bareForm = (await t.activeForm(bare)).form
     const before = await logs(t)
     for (const user of [
       's-planningMember',
@@ -146,7 +150,7 @@ test(
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const task = await t.makeTask(event, t.council.departments.planning)
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     assert.equal((await listOf(t, form.id, 's-planningMember')).status, 200)
     await t.change('task', task, { cancelledAt: new Date() })
     assert.equal((await listOf(t, form.id, 's-planningMember')).status, 403)
@@ -157,7 +161,7 @@ test(
   '로그인하지 않으면 401, 없는 양식과 다른 학생회 양식은 404이고 둘 다 기록이 없다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    const { form } = await t.created(event)
+    const { form } = await t.activeForm(event)
     assert.equal(
       (await t.api.get(`${t.orgBase}/registration-forms/${form.id}/applicants`)).status,
       401,

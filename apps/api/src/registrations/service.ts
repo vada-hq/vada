@@ -1,6 +1,8 @@
 import {
   dateFromKorean,
   koreanOf,
+  missingFormConditions,
+  type FormActivationFailure,
   type CreateFormRequest,
   type RegistrationForm,
   type UpdateFormRequest,
@@ -23,10 +25,10 @@ import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
 type FeeInput = Pick<CreateFormRequest, 'payerFee' | 'nonPayerFee' | 'feeAccountId'>
 
-// 참가비가 0보다 크면 닫지 않은 같은 학생회 계좌가 꼭 있어야 한다. 계좌를 골랐으면 참가비가 없어도 쓸 수 있는 계좌여야 한다.
-async function assertFeeAccount(tx: Tx, actor: Actor, input: FeeInput) {
+// 초안은 계좌를 나중에 고를 수 있다. 활성화·활성 양식 고치기는 참가비 계좌가 필수이며, 고른 계좌는 늘 같은 학생회의 열린 계좌여야 한다.
+async function assertFeeAccount(tx: Tx, actor: Actor, input: FeeInput, draft = false) {
   if (input.feeAccountId) return assertUsableAccount(tx, actor, input.feeAccountId)
-  if (Math.max(input.payerFee ?? 0, input.nonPayerFee ?? 0) > 0)
+  if (!draft && Math.max(input.payerFee ?? 0, input.nonPayerFee ?? 0) > 0)
     throw new ApiError('FEE_ACCOUNT_REQUIRED')
 }
 
@@ -46,7 +48,7 @@ export async function createForm(
     eventId: eventRow.id,
     eventOwnerId: eventRow.ownerId,
   })
-  await assertFeeAccount(tx, actor, input)
+  await assertFeeAccount(tx, actor, input, true)
   // 업무를 이으면 양식과 연결 한 줄이 한 거래에서 생기고 업무가 끝남이 된다. 거절이면 아무것도 생기지 않는다.
   if (input.taskId) await assertLinkableTask(tx, actor, input.taskId, target.now)
   const id = await createRecord(tx, {
@@ -64,6 +66,7 @@ export async function createForm(
       collectsPhone: input.collectsPhone,
       collectsStudentId: input.collectsStudentId,
       publicCode: await freshPublicCode(tx),
+      pausedAt: clockNow,
       payerFee: feeText(input.payerFee),
       nonPayerFee: feeText(input.nonPayerFee),
       feeAccountId: input.feeAccountId,
@@ -111,7 +114,7 @@ export async function updateForm(
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
   await assertEventAction(tx, actor, 'form.update', row)
-  await assertFeeAccount(tx, actor, input)
+  await assertFeeAccount(tx, actor, input, row.pausedAt !== null)
   const changes = changesOf(row, input)
   if (Object.keys(changes).length)
     await updateRecord(tx, {
@@ -130,9 +133,10 @@ export async function setPaused(
   tx: Tx,
   actor: Actor,
   target: { formId: string; now: Date; paused: boolean },
-): Promise<RegistrationForm> {
+): Promise<RegistrationForm | FormActivationFailure> {
+  if (!target.paused) return activateForm(tx, actor, target)
   const row = await formRowOf(tx, actor, target.formId)
-  await assertFormAction(tx, actor, target.paused ? 'form.pause' : 'form.resume', {
+  await assertFormAction(tx, actor, 'form.pause', {
     ...row,
     now: target.now,
   })
@@ -143,6 +147,43 @@ export async function setPaused(
       actor: actor.memberId,
       reason: null,
       changes: { pausedAt: target.paused ? clockNow : null },
+    })
+  return formDetailOf(tx, actor, row.id, target.now)
+}
+
+async function activateForm(
+  tx: Tx,
+  actor: Actor,
+  target: { formId: string; now: Date },
+): Promise<RegistrationForm | FormActivationFailure> {
+  const row = await formRowOf(tx, actor, target.formId)
+  await assertFormAction(tx, actor, 'form.activate', { ...row, now: target.now })
+  const fees = {
+    payerFee: feeOf(row.payerFee),
+    nonPayerFee: feeOf(row.nonPayerFee),
+    feeAccountId: row.feeAccountId,
+  }
+  const missingConditions = missingFormConditions({
+    ...fees,
+    eventStartsAt: koreanOrNull(row.eventStartsAt),
+    opensAt: koreanOrNull(row.opensAt),
+    closesAt: koreanOf(row.closesAt),
+  })
+  if (missingConditions.length) return { error: 'FORM_NOT_READY', missingConditions }
+  try {
+    await assertFeeAccount(tx, actor, fees)
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'ACCOUNT_INVALID')
+      return { error: 'FORM_NOT_READY', missingConditions: ['fee_account'] }
+    throw error
+  }
+  if (row.pausedAt !== null)
+    await updateRecord(tx, {
+      kind: 'registration_form',
+      id: row.id,
+      actor: actor.memberId,
+      reason: '링크 활성화',
+      changes: { pausedAt: null },
     })
   return formDetailOf(tx, actor, row.id, target.now)
 }

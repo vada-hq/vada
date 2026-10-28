@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import type { ApplicantChange, RegistrationForm, RegistrationFormResponse } from '@vada/contracts'
+import {
+  registrationStatusLabel,
+  type ApplicantChange,
+  type RegistrationForm,
+  type RegistrationFormResponse,
+} from '@vada/contracts'
+import { FormReception } from './FormReception'
+import type { ComponentProps } from 'react'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
-import { STATUS_LABEL, STATUS_TONE } from '@/public/registration-text'
+import { STATUS_TONE } from '@/public/registration-text'
 import { ApplicantList } from './ApplicantList'
 import { FormLink } from './FormLink'
 import { formPath } from './registration-api'
@@ -22,11 +29,15 @@ type Props = EventDialogHandlers & {
   // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
   onChanged: () => void
   hideApplicants?: boolean
+  reception?: Pick<
+    ComponentProps<typeof FormReception>,
+    'councilName' | 'event' | 'onEditEvent' | 'onEdit'
+  >
 }
 
 // 신청 양식 카드: 이름, 기간, 신청 수/정원, 상태. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit, ...rest }: Props) {
-  const { onChanged, hideApplicants, ...handlers } = rest
+  const { onChanged, hideApplicants, reception, ...handlers } = rest
   const [open, setOpen] = useState(false)
   const post = useStaffPost(handlers, undefined, form.actions)
 
@@ -37,6 +48,16 @@ export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit,
     onChanged()
   }
 
+  if (reception)
+    return (
+      <FormReception
+        councilId={councilId}
+        form={form}
+        onChanged={onChanged}
+        {...handlers}
+        {...reception}
+      />
+    )
   return (
     <Card className="flex flex-col gap-3 p-4">
       <FormSummary form={form} />
@@ -78,7 +99,9 @@ function FormSummary({ form }: { form: RegistrationForm }) {
         <h3 className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
           {form.name}
         </h3>
-        <Badge tone={STATUS_TONE[form.status]}>{STATUS_LABEL[form.status]}</Badge>
+        <Badge tone={STATUS_TONE[form.status]}>
+          {registrationStatusLabel(form.status, form.applicantCount)}
+        </Badge>
       </div>
       <p className="text-xs text-gray-500">{periodLabel(form)}</p>
       <p className="text-xs text-gray-700">{countLabel(form)}</p>

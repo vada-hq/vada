@@ -2,6 +2,7 @@ import { DAY_MS } from '@vada/contracts'
 import { createPerson, type Person } from './people.js'
 import {
   applyStep,
+  activateFormStep,
   assignTaskStep,
   confirmDepositStep,
   createEventStep,
@@ -54,6 +55,7 @@ const STEPS = [
     run: createEventStep,
   },
   { name: 'form', who: '기획부장', ago: { days: 12, hours: 0 }, run: openFormStep },
+  { name: 'activate', who: '기획부장', ago: { days: 11, hours: 23 }, run: activateFormStep },
   { name: 'apply', who: '신청자 셋', ago: { days: 11, hours: 0 }, run: applyStep },
   { name: 'deposit', who: '기획부장', ago: { days: 10, hours: 0 }, run: confirmDepositStep },
   { name: 'task', who: '기획부장, 기획부원', ago: { days: 9, hours: 0 }, run: assignTaskStep },

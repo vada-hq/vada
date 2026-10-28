@@ -103,14 +103,87 @@ function setup(options: Options = {}) {
 
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('양식 카드에 이름(긴 글은 줄바꿈), 기간, 신청 수/정원, 출석 수, 상태가 보인다', async () => {
+test('초안은 링크 없이 조건 목록을 보이고 행사 일시의 이동은 행사 고치기를 연다', async () => {
+  const { api, onEditEvent } = setup({
+    forms: [
+      staffForm({
+        paused: true,
+        status: 'paused',
+        applicantCount: 0,
+        actions: ['form.update', 'form.activate'],
+      }),
+    ],
+    event: eventDetail({ startsAt: null }, ['event.update']),
+  })
+  expect(await screen.findByText('초안')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '링크 복사' })).toBeNull()
+  const conditions = screen.getByRole('region', { name: '링크 활성화 조건' })
+  fireEvent.click(within(conditions).getByRole('button', { name: '행사 시작 일시 이동' }))
+  expect(onEditEvent).toHaveBeenCalledWith('startsAt')
+  fireEvent.click(screen.getByRole('button', { name: '설문 링크 활성화' }))
+  expect(posts(api)).toHaveLength(0)
+})
+
+test('조건이 찬 초안의 활성화는 서버 응답 뒤 링크와 포스터용 QR을 보인다', async () => {
+  const forms = [
+    staffForm({
+      paused: true,
+      status: 'paused',
+      applicantCount: 0,
+      actions: ['form.update', 'form.activate'],
+    }),
+  ]
+  const { api } = setup({ forms })
+  api.on('POST', `${FORM_PATH}/activate`, () => {
+    forms[0] = staffForm({ applicantCount: 0 })
+    return json({ form: forms[0] })
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '설문 링크 활성화' }))
+  expect(await screen.findByRole('button', { name: '링크 복사' })).toBeTruthy()
+  expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
+  expect(posts(api).map(call => call.path)).toEqual([`${FORM_PATH}/activate`])
+})
+
+test('여러 양식은 첫 양식과 다른 양식 한 줄로 열고 미리보기에서 신청하지 않는다', async () => {
+  const { api } = setup({ forms: [staffForm(), staffForm({ id: 'f2', name: '둘째 양식' })] })
+  await screen.findByRole('heading', { name: '환영회 참가 신청' })
+  expect(screen.queryByRole('heading', { name: '둘째 양식' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '둘째 양식' }))
+  expect(screen.getByRole('heading', { name: '둘째 양식' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '미리보기' }))
+  const dialog = screen.getByRole('dialog', { name: '미리보기' })
+  expect(dialog.querySelector('[inert]')).toBeTruthy()
+  expect(posts(api)).toHaveLength(0)
+})
+
+test('서버가 계좌 부족으로 거절하면 그 조건의 이동을 보이고 계좌 칸으로 옮긴다', async () => {
+  const { api } = setup({
+    forms: [
+      staffForm({
+        paused: true,
+        status: 'paused',
+        applicantCount: 0,
+        actions: ['form.update', 'form.activate'],
+      }),
+    ],
+  })
+  api.on('POST', `${FORM_PATH}/activate`, () =>
+    json({ error: 'FORM_NOT_READY', missingConditions: ['fee_account'] }, 409),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '설문 링크 활성화' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참가비 받을 계좌 이동' }))
+  const select = await screen.findByRole('combobox', { name: '참가비 받을 계좌' })
+  await waitFor(() => expect(document.activeElement).toBe(select))
+})
+
+test('신청 받기에 이름(긴 글은 줄바꿈), 기간, 정원, 상태가 보인다', async () => {
   setup({ forms: [staffForm({ name: '가'.repeat(60) })] })
   const heading = await screen.findByRole('heading', { name: '가'.repeat(60) })
   expect(heading.className).toContain('wrap-anywhere')
   const card = heading.closest('div')?.parentElement as HTMLElement
   expect(card.textContent).toContain('10월 23일 (금) 18:00까지')
-  expect(card.textContent).toContain('신청 3/50명 · 출석 1명')
-  expect(card.textContent).toContain('신청 받는 중')
+  expect(card.textContent).toContain('50명')
+  expect(card.textContent).toContain('활성')
 })
 
 test('고치기·멈추기·다시 받기는 actions가 있을 때만, 멈춘 양식은 [다시 받기]가 보인다', async () => {
@@ -122,29 +195,29 @@ test('고치기·멈추기·다시 받기는 actions가 있을 때만, 멈춘 �
   })
   await screen.findByRole('heading', { name: '환영회 참가 신청' })
   expect(screen.getAllByRole('button', { name: '고치기' })).toHaveLength(1)
-  expect(screen.getAllByRole('button', { name: '다시 받기' })).toHaveLength(1)
+  expect(screen.getAllByRole('button', { name: '설문 링크 활성화' })).toHaveLength(1)
   expect(screen.queryByRole('button', { name: '멈추기' })).toBeNull()
 })
 
 test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한이 있을 때만 보이고(양식이 없어도), [QR로 출석 확인]도 같다', async () => {
   setup({ forms: [staffForm({ actions: [] })], actions: [] })
   await screen.findByRole('heading', { name: '환영회 참가 신청' })
-  expect(screen.queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '참여 설문 만들기' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
   cleanup()
   setup({ forms: [], actions: ['form.create'] })
-  expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
-  expect(screen.getByText('신청 양식 없음')).toBeTruthy()
+  expect(await screen.findByRole('button', { name: '참여 설문 만들기' })).toBeTruthy()
+  expect(screen.getByText('참여 설문 없음')).toBeTruthy()
   // QR 출석은 목록이 아니라 양식의 form.check_in으로 가른다.
   expect(screen.queryByRole('button', { name: 'QR로 출석 확인' })).toBeNull()
   cleanup()
   setup({ forms: [staffForm({ actions: ['form.check_in'] })], actions: [] })
   expect(await screen.findByRole('button', { name: 'QR로 출석 확인' })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '신청 양식 만들기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '참여 설문 만들기' })).toBeNull()
 })
 
 async function openCreate(api: ReturnType<typeof mockApi>) {
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '환영회 신청' } })
   fireEvent.change(within(form).getByLabelText('신청 마감'), {
@@ -156,10 +229,10 @@ const submit = (form: HTMLElement) => within(form).getByRole('button', { name: '
 
 test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름은 참가 신청, 참가비는 없음, 학번은 받는 것으로 시작하며 [신청 양식 목록]으로 돌아간다', async () => {
   setup({ forms: [], actions: ['form.create'] })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(screen.queryByText('신청 양식 없음')).toBeNull()
+  expect(screen.queryByText('참여 설문 없음')).toBeNull()
   expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '참가 신청')
   expect(within(form).queryByRole('button', { name: '닫기' })).toBeNull()
   expect(within(form).getByLabelText('신청 마감').getAttribute('aria-required')).toBe('true')
@@ -173,7 +246,7 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   )
   fireEvent.click(screen.getByRole('button', { name: '신청 양식 목록' }))
   expect(screen.queryByRole('form', { name: '신청 양식 만들기' })).toBeNull()
-  expect(screen.getByText('신청 양식 없음')).toBeTruthy()
+  expect(screen.getByText('참여 설문 없음')).toBeTruthy()
 })
 
 test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의 [입력]은 행사 고치기를 그 칸으로 연다', async () => {
@@ -182,9 +255,10 @@ test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의
     actions: ['form.create'],
     event: eventDetail({ place: null }, ['event.update']),
   })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
-  expect(within(form).getByText('행사 정보')).toBeTruthy()
+  expect(within(form).getByText('행사 기본정보')).toBeTruthy()
+  fireEvent.click(within(form).getByRole('button', { name: '펼치기' }))
   expect(within(form).getByText('미정')).toBeTruthy()
   fireEvent.click(within(form).getByRole('button', { name: '입력' }))
   expect(onEditEvent).toHaveBeenCalledWith('place')
@@ -194,9 +268,9 @@ test('만들기 화면에 행사 정보와 미리보기가 있고, 빈 장소의
 
 test('행사를 읽기 전이면 만들기 화면에 행사 정보와 미리보기가 없다', async () => {
   setup({ forms: [], actions: ['form.create'], event: null })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
-  expect(within(form).queryByText('행사 정보')).toBeNull()
+  expect(within(form).queryByText('행사 기본정보')).toBeNull()
   expect(within(form).queryByRole('region', { name: '미리보기' })).toBeNull()
 })
 
@@ -262,12 +336,18 @@ test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은
     api.calls.filter(call => call.path === FORMS_PATH && call.method === 'GET').length,
   ).toBeGreaterThan(1)
   fireEvent.click(screen.getByRole('button', { name: '목록으로' }))
-  expect(await screen.findByRole('button', { name: '신청 양식 만들기' })).toBeTruthy()
+  expect(await screen.findByRole('button', { name: '참여 설문 만들기' })).toBeTruthy()
   expect(screen.queryByRole('heading', { name: '신청 양식 생성 완료' })).toBeNull()
 })
 
-test('만들기: 참가비가 있는데 계좌를 고르지 않으면 보내지 않고 계좌 칸 아래에 알린다', async () => {
+test('초안은 계좌 없이 참가비를 저장하고 링크는 공개하지 않는다', async () => {
   const { api } = setup({ forms: [], actions: ['form.create'] })
+  api.on('POST', FORMS_PATH, () =>
+    json(
+      { form: staffForm({ paused: true, status: 'paused', applicantCount: 0, feeAccount: null }) },
+      201,
+    ),
+  )
   const { form } = await openCreate(api)
   fireEvent.click(within(form).getByLabelText('있음'))
   fireEvent.change(within(form).getByLabelText('참가비(원)'), { target: { value: '5000' } })
@@ -277,9 +357,13 @@ test('만들기: 참가비가 있는데 계좌를 고르지 않으면 보내지 
   await waitFor(() => expect(select).toHaveProperty('value', ACCOUNT_ID))
   fireEvent.change(select, { target: { value: select.options[0]?.value } })
   fireEvent.click(submit(form))
-  expect(within(form).getByText('참가비 받을 계좌를 골라 주세요')).toBeTruthy()
-  expect(select.getAttribute('aria-invalid')).toBe('true')
-  expect(posts(api)).toHaveLength(0)
+  expect(await screen.findByText('초안')).toBeTruthy()
+  expect(posts(api)[0]?.body).toMatchObject({
+    payerFee: 5000,
+    nonPayerFee: 5000,
+    feeAccountId: null,
+  })
+  expect(screen.queryByRole('button', { name: '링크 복사' })).toBeNull()
 })
 
 test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 눌러도 보내지 않고 마감 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
@@ -395,7 +479,7 @@ test('고치기: 대표 계좌 없이 계좌가 둘이면 고르기 전에는 �
 
 test('만들기·고치기 화면은 열기만 하면 떠날 때 묻지 않는다', async () => {
   setup({ forms: [noFeeForm()], actions: ['form.create'] })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   await screen.findByRole('form', { name: '신청 양식 만들기' })
   await settle()
   expect(hasUnsavedInput()).toBe(false)
@@ -430,13 +514,13 @@ test('마감 지난 양식은 [멈추기]가 없다. 누르던 사이 마감되�
   fireEvent.click(await screen.findByRole('button', { name: '멈추기' }))
   expect(await screen.findByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
   await waitFor(() => expect(screen.queryByRole('button', { name: '멈추기' })).toBeNull())
-  expect(screen.queryByRole('button', { name: '다시 받기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '설문 링크 활성화' })).toBeNull()
   expect(screen.getByText(REGISTRATION_STAFF_ERRORS.FORM_CLOSED!)).toBeTruthy()
 })
 
 test('링크와 신청자: 공개 링크 복사와 QR만 보인다', async () => {
   setup({ forms: [staffForm({ actions: [] })] })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 링크' }))
+  await screen.findByRole('button', { name: '링크 복사' })
   expect(screen.getByText(`${window.location.origin}/apply/ABCD2345`)).toBeTruthy()
   expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
   expect(screen.queryByText('2027년 10월 24일')).toBeNull()
@@ -445,7 +529,7 @@ test('링크와 신청자: 공개 링크 복사와 QR만 보인다', async () =>
 
 test('열람 권한이 없으면 신청 수만 보이고 신청자 목록을 읽지 않는다', async () => {
   const { api } = setup({ forms: [staffForm({ actions: [] })] })
-  fireEvent.click(await screen.findByRole('button', { name: '신청 링크' }))
+  await screen.findByRole('button', { name: '링크 복사' })
   expect(screen.queryByText(/신청은 3명이에요/)).toBeNull()
   expect(screen.queryByRole('button', { name: '신청자 보기' })).toBeNull()
   await settle()

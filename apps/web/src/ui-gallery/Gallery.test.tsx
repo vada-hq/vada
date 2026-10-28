@@ -70,6 +70,21 @@ test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   }
 })
 
+test('신청 받기의 초안·활성 견본에서 실제 미리보기를 열 수 있다', () => {
+  history.replaceState(
+    null,
+    '',
+    `/ui.html?${new URLSearchParams({ section: '신청 받기 · 초안·활성' })}`,
+  )
+  render(<Gallery />)
+  const previews = screen.getAllByRole('button', { name: '미리보기' })
+  expect(previews).toHaveLength(2)
+  fireEvent.click(previews[0]!)
+  const dialog = screen.getByRole('dialog', { name: '미리보기' })
+  expect(within(dialog).getByText('신입생 환영회')).toBeTruthy()
+  expect(dialog.querySelector('[inert]')).toBeTruthy()
+})
+
 test('주소에서 고른 구역만 보이고 전체 구역 목록에서 다시 이동할 수 있다', () => {
   history.replaceState(null, '', '/ui.html?section=메뉴·탭&frame=dialog')
   render(<Gallery />)

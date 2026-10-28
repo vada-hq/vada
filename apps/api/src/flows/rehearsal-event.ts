@@ -103,6 +103,18 @@ export async function openFormStep(ctx: Ctx) {
   w.publicCode = created.form.publicCode
 }
 
+// 양식 만들기와 공개 신청 사이에 운영진이 조건을 확인하고 링크를 연다(DEC-93).
+export async function activateFormStep(ctx: Ctx) {
+  const path = `${org(ctx)}/registration-forms/${ctx.w.formId}`
+  await sees<RegistrationFormResponse>(
+    ctx.cast.planHead,
+    path,
+    body => body.form.actions,
+    'form.activate',
+  )
+  await write<RegistrationFormResponse>(ctx.cast.planHead, `${path}/activate`, {}, '링크 활성화')
+}
+
 // 3 공개 신청: 신청자 셋이 공개 경로로 신청한다. 첫째는 같은 명령을 한 번 더 보내 새 신청이 생기지 않고 새 링크를 받는다.
 export async function applyStep(ctx: Ctx) {
   const visitor = ctx.flow.driver.as('visitor')

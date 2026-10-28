@@ -1,6 +1,8 @@
 import { Hono, type Context } from 'hono'
 import {
   CreateFormSchema,
+  ActivateFormSchema,
+  statusOf,
   PauseFormSchema,
   ResumeFormSchema,
   UpdateFormSchema,
@@ -59,6 +61,7 @@ function addWriteRoutes(kit: RouteKit) {
   for (const [path, schema, paused] of [
     ['pause', PauseFormSchema, true],
     ['resume', ResumeFormSchema, false],
+    ['activate', ActivateFormSchema, false],
   ] as const)
     routes.post(`${root}/registration-forms/:formId/${path}`, json(schema), auth, async c => {
       limited(c)
@@ -66,6 +69,7 @@ function addWriteRoutes(kit: RouteKit) {
       const form = await inCouncilChange(db, asked, (tx, actor) =>
         setPaused(tx, actor, { formId: formIdOf(c), now: asked.now, paused }),
       )
+      if ('error' in form) return c.json(form, statusOf(form.error))
       return c.json({ form } satisfies RegistrationFormResponse)
     })
 }

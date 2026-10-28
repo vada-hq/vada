@@ -4,6 +4,27 @@ import { getJson, postJson, setUnauthorizedHandler } from './api'
 
 afterEach(() => vi.unstubAllGlobals())
 
+test('활성화 409의 모자란 조건은 계약 값만 전달한다', async () => {
+  const api = mockApi()
+  api.on('POST', '/api/activate', () =>
+    json({ error: 'FORM_NOT_READY', missingConditions: ['fee_account'] }, 409),
+  )
+  expect(await postJson('/api/activate', {})).toEqual({
+    ok: false,
+    status: 409,
+    code: 'FORM_NOT_READY',
+    missingConditions: ['fee_account'],
+  })
+  api.on('POST', '/api/activate', () =>
+    json({ error: 'FORM_NOT_READY', missingConditions: ['secret'] }, 409),
+  )
+  expect(await postJson('/api/activate', {})).toEqual({
+    ok: false,
+    status: 409,
+    code: 'FORM_NOT_READY',
+  })
+})
+
 test('성공하면 본문을, 204면 빈 성공을 돌려준다', async () => {
   const api = mockApi()
   api.on('GET', '/api/me/councils', () => json({ councils: [] }))

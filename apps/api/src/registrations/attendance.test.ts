@@ -17,7 +17,11 @@ const errorOf = async (response: Response) => ((await response.json()) as { erro
 async function started(t: RegistrationKit) {
   const event = await t.makeEvent()
   const account = await t.makeAccount()
-  const { form } = await t.created(event, { payerFee: 0, nonPayerFee: 5000, feeAccountId: account })
+  const { form } = await t.activeForm(event, {
+    payerFee: 0,
+    nonPayerFee: 5000,
+    feeAccountId: account,
+  })
   const token = await t.applied(form.publicCode, kim)
   const id = ((await t.pg.query('SELECT id FROM registration')).rows[0] as { id: string }).id
   return { event, form, token, id, hash: sha256(token) }
