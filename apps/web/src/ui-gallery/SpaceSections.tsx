@@ -40,7 +40,7 @@ const SAMPLES: { key: string; events: SidebarEvent[]; active: ActiveItem; canCre
   },
 ]
 
-// 옆 메뉴 '공간' 묶음(028 조각 1, 와이어프레임 사이드바 v6.2 EVT-02 옆 메뉴). 넓은 화면의 옆 메뉴 폭(1280에서 240px)과
+// 옆 메뉴 '행사' 묶음(028 조각 1, 와이어프레임 사이드바 v6.2 EVT-02 옆 메뉴). 넓은 화면의 옆 메뉴 폭(1280에서 240px)과
 // 휴대폰 서랍 폭(420에서 288px)으로 본다. 셋째 줄은 긴 이름의 말줄임이다.
 export function SpaceListSection() {
   const column = (width: string) => (
@@ -49,12 +49,11 @@ export function SpaceListSection() {
         <div key={sample.key} className="flex flex-col gap-1">
           <p className="text-xs text-gray-400">{sample.key}</p>
           <nav
-            aria-label={`공간 예시 ${sample.key}`}
+            aria-label={`행사 예시 ${sample.key}`}
             className="rounded-lg border bg-white px-2 py-3"
           >
             <SpaceList
               events={sample.events}
-              onOpenCouncil={noop}
               active={sample.active}
               onOpenEvent={noop}
               onSeeAll={noop}
@@ -67,7 +66,7 @@ export function SpaceListSection() {
     </div>
   )
   return (
-    <Section title="옆 메뉴 · 공간 묶음">
+    <Section title="옆 메뉴 · 행사 묶음">
       {column('w-60')}
       {column('w-72')}
     </Section>

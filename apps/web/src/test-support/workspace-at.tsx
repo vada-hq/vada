@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { menuPath } from '@vada/contracts'
-import { useHere } from '@/lib/app-location'
+import { rewriteAddress, useHere } from '@/lib/app-location'
 import CouncilWorkspace from '../workspace/CouncilWorkspace'
 import { targetOf } from '../workspace/address'
 import type { Page } from '../workspace/pages'
@@ -14,6 +15,10 @@ export function WorkspaceAt({ startPage }: { startPage: Page }) {
     window.history.replaceState(null, '', menuPath(startPage, COUNCIL_ID))
   const council = myCouncil(COUNCIL_ID)
   const target = targetOf(useHere(), [council])
+  const moved = target.kind === 'moved' ? target.to : null
+  useEffect(() => {
+    if (moved) rewriteAddress(moved)
+  }, [moved])
   if (target.kind !== 'ready') return null
   return (
     <CouncilWorkspace

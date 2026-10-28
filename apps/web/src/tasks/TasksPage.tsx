@@ -46,8 +46,6 @@ type Props = {
   eventId?: string | undefined
   // 행사 상세가 이미 읽은 일시. 목록 상한이나 재조회 지연 때문에 달력이 오늘 월로 돌아가지 않게 한다.
   calendarEvent?: Pick<EventSummary, 'id' | 'startsAt' | 'endsAt'> | undefined
-  // 우리 학생회 공간은 같은 전체 업무 보드를 메뉴 대신 공간의 주소로 연다.
-  councilSpace?: boolean | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다. 운영진이 아니게 되었으면 학생회를 닫는다.
   onForbidden: () => void
   // 목록이 바뀌었을 때(옆 메뉴의 수를 다시 읽는다).
@@ -97,12 +95,7 @@ function onlyEvent(events: EventList, eventId: string | undefined): EventList {
 function useTasksPage(props: Props) {
   const councilId = props.view.council.id
   const inEvent = props.eventId !== undefined
-  const controls = useTaskControls(
-    councilId,
-    props.eventId,
-    props.view.me.memberId,
-    props.councilSpace,
-  )
+  const controls = useTaskControls(councilId, props.eventId, props.view.me.memberId)
   const { view, filter, layout, dept } = controls
   const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useTaskOpeners(councilId, inEvent)

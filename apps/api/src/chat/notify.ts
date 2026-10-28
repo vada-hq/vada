@@ -106,7 +106,7 @@ export function createChatPush(db: Db, send: PushSender) {
       id => !presence.isViewing(sent.roomId, id, now),
     )
     const called = await calledOf(db, messageId)
-    const url = chatRoomUrl(sent.councilId, sent.roomId)
+    const url = chatRoomUrl(sent.councilId, sent.roomId, sent.eventId)
     const tag = chatRoomTag(sent.roomId)
     const excerpt = excerptOf(sent.body)
     const normal: PushMessage = { title: titleOf(sent), body: excerpt, url, tag }

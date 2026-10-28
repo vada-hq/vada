@@ -1,6 +1,6 @@
-import { menuPath, recordPath } from '@vada/contracts'
+import { menuPath } from '@vada/contracts'
 import { leave, navigate, useHere } from '@/lib/app-location'
-import { openRecord } from '@/lib/go-to'
+import { openMessageRoom, openRecord } from '@/lib/go-to'
 import ChatPage, { type Screen } from './ChatPage'
 
 type Props = Omit<
@@ -24,7 +24,13 @@ export default function ChatRoute(props: Props) {
   const screen = screenOf(useHere(), councilId)
   const first = menuPath('chat', councilId)
   const open = (next: Screen) => {
-    if (next.kind === 'room') navigate(recordPath('chat', councilId, next.roomId))
+    if (next.kind === 'room') {
+      const eventId =
+        props.rooms.state.kind === 'ready'
+          ? props.rooms.state.data.rooms.find(room => room.id === next.roomId)?.eventId
+          : null
+      openMessageRoom(councilId, next.roomId, eventId)
+    }
     // 목록은 '찾을 수 없음'에서 상위 목록으로 가는 길이다. 못 보는 주소를 기록에 남기지 않는다.
     else navigate(first, { replace: true })
   }

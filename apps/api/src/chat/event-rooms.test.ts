@@ -391,6 +391,11 @@ test(
       '체육대회 공지방',
       '체육대회 기획부',
     ])
+    for (const [, payload] of t.calls) {
+      assert.ok(payload.tag)
+      const roomId = payload.tag.slice('room:'.length)
+      assert.equal(payload.url, `/events/${t.council.councilId}/${eventId}?room=${roomId}`)
+    }
   }),
 )
 

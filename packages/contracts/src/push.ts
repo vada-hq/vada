@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { token } from './input.js'
-import { parseAppPath, recordPath, type RecordKind } from './paths.js'
+import { eventRoomPath, parseAppPath, recordPath, type RecordKind } from './paths.js'
 
 // 휴대폰 알림(웹 푸시). 브라우저 PushSubscription.toJSON()의 모양이다.
 // 구독 주소는 기기를 가리키는 비밀 주소라 로그와 응답에 넣지 않는다.
@@ -38,17 +38,21 @@ export type RemovePushDeviceRequest = z.infer<typeof RemovePushDeviceSchema>
 export const PUSH_BODY_MAX = 100
 export const PUSH_PHOTO_BODY = '사진'
 // 알림을 누르면 열 주소. 주소 꼴의 원문은 paths.ts이고 알림 주소는 그 기록 주소 그대로다(이미 보낸 알림도 열린다).
+// 새 행사 방 알림은 행사 메시지 탭이다. 옛 /chat 주소도 계속 읽고 화면이 방의 eventId로 옮긴다.
 // 화면은 …FromPath로 읽는다. 학생회와 기록 칸은 uuid만 읽는다.
 function recordFromPath(kind: RecordKind, pathname: string) {
   const location = parseAppPath(pathname)
   return location?.type === 'record' && location.record === kind ? location : null
 }
 
-export const chatRoomUrl = (councilId: string, roomId: string) =>
-  recordPath('chat', councilId, roomId)
+export const chatRoomUrl = (councilId: string, roomId: string, eventId: string | null = null) =>
+  eventId ? eventRoomPath(councilId, eventId, roomId) : recordPath('chat', councilId, roomId)
 export function chatRoomFromPath(pathname: string) {
   const found = recordFromPath('chat', pathname)
-  return found && { councilId: found.councilId, roomId: found.recordId }
+  if (found) return { councilId: found.councilId, roomId: found.recordId }
+  const event = recordFromPath('events', pathname)
+  const roomId = event?.query['room']
+  return event && roomId ? { councilId: event.councilId, roomId } : null
 }
 export const chatRoomTag = (roomId: string) => `room:${roomId}`
 

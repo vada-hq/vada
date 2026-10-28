@@ -15,7 +15,7 @@ test('행사 줄의 첫 글자는 앞의 연도 글을 지운 뒤의 첫 글자�
 
 const shown = [{ id: 'e1' }, { id: 'e2' }]
 
-test('켤 칸은 메뉴, 묶음의 행사 줄, [행사 모두 보기] 가운데 하나이고 설정은 없다', () => {
+test('켤 칸은 메뉴, 묶음의 행사 줄, [전체 행사 보기] 가운데 하나이고 설정은 없다', () => {
   expect(activeItemOf('home', null, shown)).toEqual({ kind: 'menu', menu: 'home' })
   expect(activeItemOf('tasks', null, shown)).toEqual({ kind: 'menu', menu: 'tasks' })
   expect(activeItemOf('events', 'e2', shown)).toEqual({ kind: 'event', id: 'e2' })

@@ -373,7 +373,7 @@ test('행사 업무 탭의 경로 줄은 학생회 > 행사 > 행사명 > 업무
 test('행사에서 행사 목록으로 나오면 경로 줄과 제목이 행사 목록의 것이다', async () => {
   setup(EVENT_AT)
   await within(screen.getByRole('banner')).findByRole('heading', { name: '신입생 환영회' })
-  fireEvent.click(screen.getAllByRole('button', { name: '행사 모두 보기' })[0]!)
+  fireEvent.click(screen.getAllByRole('button', { name: '전체 행사 보기' })[0]!)
   await waitFor(() => expect(pathLine()).toEqual(['컴퓨터학부 학생회', '행사']))
   expect(within(screen.getByRole('banner')).getByRole('heading', { level: 1 }).textContent).toBe(
     '행사',

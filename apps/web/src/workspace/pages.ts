@@ -11,9 +11,9 @@ export type CouncilEntry = 'join' | 'create'
 // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91, DEC-96).
 export const pageTitles: Record<Page, { crumbs: string[]; title: string }> = {
   home: { crumbs: [], title: '홈' },
-  chat: { crumbs: ['대화'], title: '대화' },
+  chat: { crumbs: ['메시지'], title: '메시지' },
   events: { crumbs: ['행사'], title: '행사' },
-  council: { crumbs: ['우리 학생회'], title: '우리 학생회' },
+  council: { crumbs: ['메시지'], title: '메시지' },
   tasks: { crumbs: ['업무'], title: '업무' },
   calendar: { crumbs: ['캘린더'], title: '캘린더' },
   purchases: { crumbs: ['구매'], title: '구매' },

@@ -13,7 +13,7 @@ test('홈은 학생회 이름 한 칸과 제목 홈이다', () => {
 })
 
 test.each<[Page, string]>([
-  ['chat', '대화'],
+  ['chat', '메시지'],
   ['events', '행사'],
   ['tasks', '업무'],
   ['finance', '재정'],
@@ -26,7 +26,7 @@ test.each<[Page, string]>([
 
 test('설정의 제목은 학생회 정보이고, 다른 메뉴의 제목은 경로 끝 칸과 같다', () => {
   expect(trailOf('settings', COUNCIL, null).title).toBe('학생회 정보')
-  expect(trailOf('chat', COUNCIL, null).title).toBe('대화')
+  expect(trailOf('chat', COUNCIL, null).title).toBe('메시지')
 })
 
 test('사람과 옛 부서 주소는 같은 조직 화면이라 제목이 조직이다', () => {

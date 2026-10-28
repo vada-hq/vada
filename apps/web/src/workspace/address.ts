@@ -36,8 +36,24 @@ const isUndrawn = (menu: AppMenu): menu is keyof typeof UNTIL_DRAWN =>
   menu in UNTIL_DRAWN && !LIVE_MOVES.some(move => move === menu)
 export const drawnMenu = (menu: AppMenu): AppMenu => (isUndrawn(menu) ? UNTIL_DRAWN[menu] : menu)
 
+// S4를 합치기 전에도 걷어 낸 학생회 공간의 업무 북마크는 같은 목록으로 연다.
+function councilTasksUntilDrawn(location: AppLocation): AppLocation | null {
+  if (
+    location.type === 'menu' &&
+    location.menu === 'council' &&
+    location.query['tab'] === 'tasks' &&
+    !LIVE_MOVES.includes('tasks')
+  ) {
+    const { tab: _, ...query } = location.query
+    return { ...location, menu: 'tasks', query: { ...query, view: query['view'] ?? 'all' } }
+  }
+  return null
+}
+
 // 그리지 않은 새 메뉴의 주소 → 지금 그 일을 그리는 곳(구매 → 재정 구매 요청 탭, 캘린더 → 업무 달력).
 function untilDrawn(location: AppLocation): AppLocation | null {
+  const councilTasks = councilTasksUntilDrawn(location)
+  if (councilTasks) return councilTasks
   if (location.type !== 'menu' || !isUndrawn(location.menu)) return null
   const { compose, view } = location.query
   const query =

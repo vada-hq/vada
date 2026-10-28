@@ -12,6 +12,7 @@ import { taskDetail } from './test-support/task-detail-fixtures'
 import { purchaseDetail } from './test-support/purchase-fixtures'
 import { budgetWithoutPeriod } from './test-support/budget-fixtures'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
+import { EVENT_ID, eventDetail } from './test-support/event-fixtures'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -185,12 +186,41 @@ test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대�
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
   expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
-  fireEvent.click(within(aside).getByRole('button', { name: /^대화/ }))
+  fireEvent.click(within(aside).getByRole('button', { name: /^메시지/ }))
   expect(await screen.findByRole('button', { name: /공지방/ })).toBeTruthy()
   expect(screen.queryByText('모레 회의 있어요')).toBeNull()
 })
 
 const C1 = '0199d1a0-0000-7000-8000-0000000000c1'
+test.each([
+  ['옛 주소', false],
+  ['새 주소', false],
+  ['옛 주소', true],
+  ['새 주소', true],
+])('%s의 행사 방 알림은 행사 메시지 탭을 연다(앱 열림: %s)', async (kind, opened) => {
+  const roomId = '0199d1a0-0000-7000-8000-0000000000a1'
+  const base = `/api/organizations/${C1}`
+  const summary = room(roomId, { eventId: EVENT_ID })
+  api.on('GET', `${base}/rooms`, () => json(roomList({ rooms: [summary] })))
+  api.on('GET', `${base}/rooms/${roomId}`, () => json(roomDetail(summary)))
+  api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
+  api.on('GET', `${base}/events/${EVENT_ID}/rooms`, () =>
+    json({ rooms: [summary], archived: false }),
+  )
+  const target = `/events/${C1}/${EVENT_ID}?room=${roomId}`
+  const url = kind === '옛 주소' ? `/chat/${C1}/${roomId}` : target
+  if (opened) {
+    await renderApp()
+    await screen.findByRole('heading', { level: 1, name: '홈' })
+    act(() => listeners[0]!({ data: { type: 'vada:open', url } }))
+  } else {
+    window.history.replaceState(null, '', url)
+    await renderApp()
+  }
+  await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })
+  await waitFor(() => expect(window.location.pathname + window.location.search).toBe(target))
+  expect(screen.getByRole('tab', { name: '메시지' }).getAttribute('aria-selected')).toBe('true')
+})
 // 끝난 일을 기다린다: 이유를 남기려고 칸을 상위 목록 주소로 바꿔 썼고, 창이 거두는 기록 이동이 모두 끝났다.
 const lostSettled = async (path: string) => {
   await waitFor(() => expect(window.location.pathname + window.location.search).toBe(path))

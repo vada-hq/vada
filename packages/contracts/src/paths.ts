@@ -25,8 +25,6 @@ export type AppMenu = (typeof APP_MENUS)[number]
 // 메시지가 행사의 첫 탭이자 기본 탭이다(DEC-90 "행사 화면의 첫 탭은 메시지다", 022 정한 것 28).
 export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
-export const COUNCIL_TABS = ['messages', 'tasks'] as const
-export type CouncilTab = (typeof COUNCIL_TABS)[number]
 // 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
 const TASK_TABS = ['council', 'mine'] as const
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
@@ -90,7 +88,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   chat: {},
   events: {},
   council: {
-    tab: { values: COUNCIL_TABS, fallback: 'messages' },
+    tab: { values: ['messages', 'tasks'], fallback: 'messages' },
     ...taskQuery('all', { key: 'tab', value: 'tasks' }),
   },
   // tab·events는 메뉴 v7의 탭과 '행사 업무 포함' 칩이다. 화면이 탭을 그리기 전(S4)에는 옛 보기(view)가 화면의 원문이다.

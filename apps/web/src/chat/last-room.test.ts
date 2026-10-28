@@ -30,3 +30,9 @@ test('1:1만 있으면 그 1:1, 방이 없으면 없다', () => {
   expect(roomToShow(listOf(direct), null)).toBe('d1')
   expect(roomToShow(listOf(), null)).toBeNull()
 })
+
+test('기억한 행사 방은 메시지 메뉴에서 다시 열지 않고 학생회 방으로 돌아간다', () => {
+  const event = room('event', { eventId: 'e1' })
+  expect(roomToShow(listOf(event, notice, leadership), 'event')).toBe('lead')
+  expect(roomToShow(listOf(event), 'event')).toBeNull()
+})

@@ -27,7 +27,8 @@ const FIRST_ROOMS: RoomType[] = ['leadership', 'department', 'all_members']
 
 // 열어 둘 방: 기억한 방이 아직 목록에 있으면 그 방, 아니면 위 차례의 첫 방(같은 종류는 서버 순서), 그것도 없으면 첫 방.
 export function roomToShow(data: RoomListResponse, saved: string | null): string | null {
-  const rooms = data.rooms
+  // 행사 방은 제 행사 메시지 탭에서 연다. 옛 기억으로 메뉴를 다시 떠나지 않게 한다(메뉴 v7 S5).
+  const rooms = data.rooms.filter(room => !room.eventId)
   if (saved !== null && rooms.some(room => room.id === saved)) return saved
   for (const type of FIRST_ROOMS) {
     const found = rooms.find(room => room.type === type)

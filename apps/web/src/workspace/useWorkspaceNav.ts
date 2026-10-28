@@ -40,7 +40,7 @@ export function useWorkspaceNav(
     // 메뉴를 누르면 그 메뉴 첫 화면으로 간다. 업무는 그 사람이 마지막에 고른 배치를 싣는다.
     openPage: (next: Page) =>
       go(menuPath(next, councilId, next === 'tasks' ? withTaskLayout(memberId, {}, false) : {})),
-    // '공간'의 행사 줄을 누르면 그 행사의 첫 탭으로 간다.
+    // '행사' 묶음의 줄을 누르면 그 행사의 첫 탭으로 간다.
     openEvent: (eventId: string) => go(recordPath('events', councilId, eventId)),
   }
 }

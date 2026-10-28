@@ -149,7 +149,7 @@ function openWorkspace() {
 }
 // 홈이 첫 화면이다. 대화나 조직 화면을 찍는 시험은 옆 메뉴로 연다.
 async function openChat() {
-  fireEvent.click(await screen.findByRole('button', { name: /^대화/ }))
+  fireEvent.click(await screen.findByRole('button', { name: /^메시지/ }))
 }
 // 조직 화면의 들어온 때는 올해가 아니면 연도가 붙으므로 오늘을 고정한다.
 function pinToday() {

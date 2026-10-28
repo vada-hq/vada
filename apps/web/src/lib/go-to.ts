@@ -1,6 +1,6 @@
 import {
   appPath,
-  eventRoomPath,
+  chatRoomUrl,
   menuPath,
   recordPath,
   type AppMenu,
@@ -33,11 +33,7 @@ export const openMessageRoom = (
   roomId: string,
   eventId?: string | null,
   options: { overRecord?: boolean } = {},
-) =>
-  navigate(
-    eventId ? eventRoomPath(councilId, eventId, roomId) : recordPath('chat', councilId, roomId),
-    options,
-  )
+) => navigate(chatRoomUrl(councilId, roomId, eventId), options)
 
 // 열려 있는 행사 안에서 탭을 바꾼다(창 안의 링크). 탭은 기록을 쌓지 않아(useEventAddress) 지금 칸을 바꿔 쓰는데,
 // 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 바꿔 쓴다. 먼저 바꿔 쓰면 창이 닫히며 되돌린 칸이 탭을 옛 주소로 되돌린다.

@@ -36,12 +36,12 @@ const topItems = async () =>
     .getAllByRole('button')
     .slice(0, 6)
 
-test('최상위 차례가 홈 · 대화 · 업무 · 캘린더 · 재정 · 조직이며 아이콘도 같은 차례다', async () => {
+test('최상위 차례가 홈 · 메시지 · 업무 · 캘린더 · 재정 · 조직이며 아이콘도 같은 차례다', async () => {
   open()
   const items = await topItems()
   expect(items.map(item => item.textContent)).toEqual([
     '홈',
-    '대화',
+    '메시지',
     '업무',
     '캘린더',
     '재정',
@@ -73,7 +73,7 @@ test("'운영진' 머리가 없다", async () => {
   expect(screen.queryByText('운영진')).toBeNull()
 })
 
-test('안 읽은 메시지가 120개면 대화 옆 빨간 99+, 0이면 배지가 없다', async () => {
+test('안 읽은 메시지가 120개면 메시지 옆 빨간 99+, 0이면 배지가 없다', async () => {
   open({ unread: 120 })
   const badge = await within(await nav()).findByLabelText('안 읽은 메시지 120개')
   expect(badge.textContent).toBe('99+')
@@ -149,7 +149,7 @@ test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리
     .slice(0, 6)
   expect(items.map(item => item.textContent)).toEqual([
     '홈',
-    '대화99+',
+    '메시지99+',
     '업무',
     '캘린더',
     '재정',

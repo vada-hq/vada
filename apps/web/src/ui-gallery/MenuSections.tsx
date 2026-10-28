@@ -28,7 +28,7 @@ export function MenuTabsSection() {
         <NavItem disabled>비활성 행사</NavItem>
       </div>
       <div role="tablist" aria-label="예시 탭" className="flex gap-0.5 border-b bg-white px-6">
-        <TabButton aria-selected>대화</TabButton>
+        <TabButton aria-selected>메시지</TabButton>
         <TabButton aria-selected={false}>구매요청</TabButton>
       </div>
     </Section>

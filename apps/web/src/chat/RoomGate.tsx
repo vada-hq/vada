@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { RoomDetailResponse } from '@vada/contracts'
+import { eventRoomPath, type RoomDetailResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { getJson } from '@/lib/api'
+import { rewriteAddress } from '@/lib/app-location'
 import { ADDRESS_LOST } from '@/lib/messages'
 import { isRoomLost, roomPath } from './chat-api'
 import type { RoomList } from './useRoomList'
@@ -14,22 +15,32 @@ import type { RoomList } from './useRoomList'
 function useRoomCheck(rooms: RoomList, councilId: string, roomId: string) {
   const { state } = rooms
   // 서버에 물은 방과 그 답이 잃은 답인지
-  const [checked, setChecked] = useState<{ id: string; lost: boolean } | null>(null)
-  const missing = state.kind === 'ready' && !state.data.rooms.some(item => item.id === roomId)
+  const [checked, setChecked] = useState<{
+    id: string
+    lost: boolean
+    eventId: string | null
+  } | null>(null)
+  const room = state.kind === 'ready' ? state.data.rooms.find(item => item.id === roomId) : null
+  const missing = state.kind !== 'loading' && !room
   useEffect(() => {
     if (!missing || checked?.id === roomId) return
     let live = true
     void getJson<RoomDetailResponse>(roomPath(councilId, roomId)).then(result => {
-      if (live) setChecked({ id: roomId, lost: !result.ok && isRoomLost(result.status) })
+      if (live)
+        setChecked({
+          id: roomId,
+          lost: !result.ok && isRoomLost(result.status),
+          eventId: result.ok ? (result.data.room.eventId ?? null) : null,
+        })
     })
     return () => {
       live = false
     }
   }, [missing, checked?.id, councilId, roomId])
-  if (state.kind === 'loading') return 'checking'
-  if (!missing) return 'known'
-  if (checked?.id !== roomId) return 'checking'
-  return checked.lost ? 'missing' : 'known'
+  if (state.kind === 'loading') return { kind: 'checking', eventId: null }
+  if (room) return { kind: 'known', eventId: room.eventId ?? null }
+  if (checked?.id !== roomId) return { kind: 'checking', eventId: null }
+  return { kind: checked.lost ? 'missing' : 'known', eventId: checked.eventId }
 }
 
 export default function RoomGate({
@@ -47,9 +58,14 @@ export default function RoomGate({
   children: ReactNode
 }) {
   const check = useRoomCheck(rooms, councilId, roomId)
-  if (check === 'known') return children
+  // 옛 알림·북마크와 목록 밖의 보관된 행사 방도 서버가 준 행사로만 옮긴다.
+  const moved = check.eventId ? eventRoomPath(councilId, check.eventId, roomId) : null
+  useEffect(() => {
+    if (moved) rewriteAddress(moved)
+  }, [moved])
+  if (check.kind === 'known' && !moved) return children
   // 대화 화면은 본문 여백 없이 칸 끝까지 쓰므로 안내에는 여백을 준다.
-  if (check === 'checking')
+  if (check.kind === 'checking' || moved)
     return (
       <StateMessage kind="loading" className="p-4 sm:p-6">
         방 불러오는 중…

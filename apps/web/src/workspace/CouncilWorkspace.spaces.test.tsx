@@ -10,7 +10,7 @@ import { settlementOf } from '@/test-support/settlement-fixtures'
 import type { Page } from './pages'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
-// 옆 메뉴 '공간' 묶음(028 조각 1, DEC-85·DEC-96): 완료하지 않은 행사 줄, [행사 모두 보기], [+ 새 행사].
+// 옆 메뉴 '공간' 묶음(028 조각 1, DEC-85·DEC-96): 완료하지 않은 행사 줄, [전체 행사 보기], [+ 새 행사].
 afterEach(() => {
   cleanup()
   window.history.replaceState(null, '', '/')
@@ -65,7 +65,7 @@ function open({ page = 'home', events = [THREE], permissions }: Setup = {}) {
 }
 
 const aside = () => screen.getByRole('complementary', { name: '학생회 작업 공간' })
-const spaces = async () => within(aside()).findByRole('group', { name: '공간' })
+const spaces = async () => within(aside()).findByRole('group', { name: '행사' })
 const current = () =>
   within(aside())
     .queryAllByRole('button')
@@ -81,11 +81,10 @@ test('최상위 행사 칸이 없고, 공간 묶음에 행사 줄(첫 글자, �
     .getAllByRole('button')
     .map(button => button.textContent)
   expect(lines).toEqual([
-    '우리 학생회',
     '체2026 체육대회진행 중',
     '새2026학년도 새내기 배움터기획 중',
     '축축제후속 정리 중',
-    '행사 모두 보기',
+    '전체 행사 보기',
     '새 행사',
   ])
   // 긴 이름은 한 줄 말줄임이고 올리면 전체 이름이 보인다.
@@ -110,34 +109,34 @@ test('행사 줄을 누르면 그 행사가 열리고 그 줄이 켜진다', asy
   expect(within(aside()).getByText('기획 중').className).toContain('text-gray-500')
 })
 
-test('묶음에 없는 행사(6번째, 완료)를 열거나 행사 목록이면 [행사 모두 보기]가 켜진다', async () => {
+test('묶음에 없는 행사(6번째, 완료)를 열거나 행사 목록이면 [전체 행사 보기]가 켜진다', async () => {
   open({ events: [THREE.slice(1)] })
   const group = await spaces()
   await within(group).findByText('축제')
   window.history.pushState(null, '', `/events/${COUNCIL_ID}/${EVENT_ID}`)
   window.dispatchEvent(new PopStateEvent('popstate'))
   await screen.findByRole('heading', { name: '신입생 환영회' })
-  expect(current()).toEqual(['행사 모두 보기'])
-  fireEvent.click(within(group).getByRole('button', { name: '행사 모두 보기' }))
+  expect(current()).toEqual(['전체 행사 보기'])
+  fireEvent.click(within(group).getByRole('button', { name: '전체 행사 보기' }))
   expect(await screen.findByRole('heading', { level: 1, name: '행사' })).toBeTruthy()
   expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}`)
-  expect(current()).toEqual(['행사 모두 보기'])
+  expect(current()).toEqual(['전체 행사 보기'])
 })
 
 test('부원에게는 [+ 새 행사]가 없다', async () => {
   open({ permissions: MEMBER_PERMISSIONS })
   const group = await spaces()
   await within(group).findByText('축제')
-  expect(within(group).getByRole('button', { name: '행사 모두 보기' })).toBeTruthy()
+  expect(within(group).getByRole('button', { name: '전체 행사 보기' })).toBeTruthy()
   expect(within(group).queryByRole('button', { name: '새 행사' })).toBeNull()
 })
 
-test('행사가 없으면 우리 학생회와 두 링크만 있고 안내 문구가 없다', async () => {
+test('행사가 없으면 두 링크만 있고 안내 문구가 없다', async () => {
   const { reads } = open({ events: [[]] })
   const group = await spaces()
   await waitFor(() => expect(reads()).toBeGreaterThan(0))
   await within(group).findByRole('button', { name: '새 행사' })
-  expect(group.textContent).toBe('공간우리 학생회행사 모두 보기새 행사')
+  expect(group.textContent).toBe('행사전체 행사 보기새 행사')
 })
 
 test('[+ 새 행사]는 새 행사 창을 열고, 만들면 그 행사의 개요 탭이 열리며 옆 메뉴에 그 줄이 켜져 생긴다', async () => {
@@ -215,9 +214,9 @@ test('휴대폰 서랍에도 같은 공간 묶음이 있다', async () => {
   await spaces()
   fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
-  const group = within(sheet).getByRole('group', { name: '공간' })
+  const group = within(sheet).getByRole('group', { name: '행사' })
   expect(within(group).getByText('2026 체육대회')).toBeTruthy()
-  expect(within(group).getByRole('button', { name: '행사 모두 보기' })).toBeTruthy()
+  expect(within(group).getByRole('button', { name: '전체 행사 보기' })).toBeTruthy()
 })
 
 test('서랍의 [+ 새 행사]는 서랍을 닫고 새 행사 창을 열며, 창을 닫으면 초점이 메뉴 열기 단추로 돌아온다', async () => {

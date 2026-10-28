@@ -11,8 +11,8 @@ const firstOf = (text: string): string | undefined =>
 export const eventInitial = (name: string) =>
   firstOf(name.replace(YEAR_PREFIX, '')) ?? firstOf(name) ?? ''
 
-// 옆 메뉴에서 켤 칸 하나(DEC-78 규칙 1). 행사 기록은 공간 묶음에 그 줄이 있으면 그 줄, 없으면(6번째, 완료) [행사 모두 보기]이고,
-// 행사 목록도 [행사 모두 보기]다. 설정은 옆 메뉴에 칸이 없어 켜지 않는다.
+// 옆 메뉴에서 켤 칸 하나(DEC-78 규칙 1). 행사 기록은 행사 묶음에 그 줄이 있으면 그 줄, 없으면(6번째, 완료) [전체 행사 보기]이고,
+// 행사 목록도 [전체 행사 보기]다. 설정은 옆 메뉴에 칸이 없어 켜지 않는다.
 export type ActiveItem =
   | { kind: 'menu'; menu: Exclude<Page, 'events' | 'settings'> }
   | { kind: 'event'; id: string }

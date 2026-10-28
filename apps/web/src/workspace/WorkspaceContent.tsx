@@ -18,7 +18,6 @@ import { Card } from '@/components/ui/card'
 import type { Reading } from '@/lib/use-lost'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
-import CouncilSpacePage from './CouncilSpacePage'
 
 type Props = {
   data: CouncilData
@@ -65,7 +64,7 @@ function LeadPage({
   ...openers
 }: Pick<Props, 'data' | 'rooms'> &
   HomeOpeners & {
-    page: 'home' | 'chat'
+    page: 'home' | 'chat' | 'council'
     view: CouncilView
   }) {
   if (page === 'home')
@@ -92,18 +91,8 @@ function PageOf({
   view,
   reading,
 }: Props & { view: CouncilView; reading: Reading }) {
-  if (page === 'home' || page === 'chat')
+  if (page === 'home' || page === 'chat' || page === 'council')
     return <LeadPage {...{ data, rooms, page, onOpenEvent, onOpenPage, view }} />
-  if (page === 'council')
-    return (
-      <CouncilSpacePage
-        view={view}
-        rooms={rooms}
-        team={data.team}
-        onForbidden={data.reload}
-        onTasksChanged={() => void tasks.reload()}
-      />
-    )
   if (page === 'events')
     return (
       <EventsPage
@@ -155,7 +144,7 @@ function Body({ data, ...props }: Props) {
   )
 }
 
-// 본문 여백 없이 칸 끝까지 쓰는 화면. 탭 줄(우리 학생회)이나 목록·방 두 칸(대화)이 스스로 여백을 둔다.
+// 본문 여백 없이 칸 끝까지 쓰는 화면. 목록·방 두 칸(메시지)이 스스로 여백을 둔다.
 const EDGE_TO_EDGE = (page: Page) => page === 'council' || page === 'chat'
 
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.

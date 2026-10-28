@@ -14,6 +14,7 @@ import {
 } from './push.js'
 
 const C = '0199d1a0-0000-7000-8000-00000000000a'
+const E = '0199d1a0-0000-7000-8000-00000000000e'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 
 test('옛 알림 주소 셋은 영구히 같은 꼴이고 같은 값으로 읽힌다', () => {
@@ -27,6 +28,15 @@ test('옛 알림 주소 셋은 영구히 같은 꼴이고 같은 값으로 읽�
     requestId: R,
   })
   assert.equal(taskTag(R), `task:${R}`)
+})
+
+test('행사 방 새 알림은 행사 메시지 탭을 가리키고 옛 방 주소도 읽는다', () => {
+  const path = `/events/${C}/${E}?room=${R}`
+  assert.equal(chatRoomUrl(C, R, E), path)
+  assert.equal(chatRoomUrl(C, R, null), `/chat/${C}/${R}`)
+  assert.deepEqual(chatRoomFromPath(path), { councilId: C, roomId: R })
+  assert.equal(chatRoomFromPath(`/events/${C}/${E}?tab=tasks&room=${R}`), null)
+  assert.equal(chatRoomFromPath(`/events/${C}/${E}`), null)
 })
 
 test('알림 주소 읽기: 다른 종류, uuid가 아닌 칸, 다른 모양은 읽지 않는다', () => {
