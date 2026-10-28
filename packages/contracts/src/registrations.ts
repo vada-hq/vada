@@ -158,6 +158,8 @@ export interface RegistrationForm {
   remaining: number | null
   // 신청자 정보를 지우는 날(한국 날짜 YYYY-MM-DD)
   purgeOn: string
+  // 서버가 활성화 시 검사하는 부족 조건. 읽기 권한과 무관하게 모든 운영진에게 준다.
+  missingConditions: FormActivationCondition[]
   actions: FormAction[]
 }
 

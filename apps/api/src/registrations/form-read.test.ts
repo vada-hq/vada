@@ -7,6 +7,31 @@ import { korean, MISSING, withRegistrations } from '../test-support/registration
 const MANAGER = ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants']
 
 test(
+  '양식의 부족 조건은 서버가 모든 운영진에게 목록과 상세로 주고 닫힌 계좌도 반영한다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const feeAccountId = await t.makeAccount()
+    const { form } = await t.created(event, { payerFee: 1000, nonPayerFee: 1000, feeAccountId })
+    for (const user of ['s-president', 's-plain']) {
+      assert.deepEqual((await t.detail(form.id, user)).missingConditions, ['event_starts_at'])
+      assert.deepEqual((await t.list(event, user)).forms[0]!.missingConditions, ['event_starts_at'])
+    }
+    await t.pg.query('UPDATE event SET starts_at = $1 WHERE id = $2', [
+      korean('2026-11-02T12:00'),
+      event,
+    ])
+    assert.deepEqual((await t.detail(form.id)).missingConditions, [])
+    await t.change('account', feeAccountId, { closedOn: '2026-10-25' })
+    assert.deepEqual((await t.detail(form.id)).missingConditions, ['fee_account'])
+    const denied = await t.post(`/registration-forms/${form.id}/activate`, {})
+    assert.deepEqual(await denied.json(), {
+      error: 'FORM_NOT_READY',
+      missingConditions: (await t.detail(form.id)).missingConditions,
+    })
+  }),
+)
+
+test(
   '모든 운영진이 행사의 양식 목록과 양식 하나를 읽고, 동작은 사람마다 다르다',
   withRegistrations(async t => {
     const event = await t.makeEvent({ ownerId: t.council.people.planningMember.memberId })

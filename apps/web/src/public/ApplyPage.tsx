@@ -30,7 +30,7 @@ type Props = { code: string; onApplied: (token: string) => void }
 
 // 로그인 없이 여는 신청 화면(/apply/코드). 받는 중일 때만 칸이 있다.
 export default function ApplyPage({ code, onApplied }: Props) {
-  const { state, lost, reload } = usePublicForm(code)
+  const { state, lost, unavailable, reload } = usePublicForm(code)
   const [values, setValues] = useState<ApplyValues>(EMPTY_VALUES)
   const [gone, setGone] = useState(false)
   const apply = useApply({
@@ -48,6 +48,7 @@ export default function ApplyPage({ code, onApplied }: Props) {
     if (status !== null && status !== 'open') clearProblem()
   }, [status, clearProblem])
   if (lost || gone) return <StateMessage kind="error">{REGISTRATION_FORM_LOST}</StateMessage>
+  if (unavailable) return <Alert tone="warning">지금은 신청을 받지 않아요.</Alert>
   if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중…</StateMessage>
   if (state.kind === 'failed')
     return <StateMessage kind="error">{REGISTRATION_LOAD_FAILED}</StateMessage>

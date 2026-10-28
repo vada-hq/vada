@@ -69,6 +69,8 @@ export async function publicFormOf(
   if (!PUBLIC_CODE_PATTERN.test(code)) throw new ApiError('NOT_FOUND')
   const row = await publicRowOf(db, code)
   const applicantCount = await applicantCountOf(db, row.id)
+  // DEC-93의 초안은 멈춘 채 신청이 0명인 양식이다. 미리보기 자료는 운영진 경로에서만 읽는다.
+  if (row.pausedAt !== null && applicantCount === 0) throw new ApiError('REGISTRATION_NOT_OPEN')
   const completed = await completedEventIdsAmong(db, [row.eventId])
   const payerFee = feeOf(row.payerFee)
   const nonPayerFee = feeOf(row.nonPayerFee)

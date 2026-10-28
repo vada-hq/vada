@@ -3,10 +3,21 @@ import { test } from 'node:test'
 import { korean, withRegistrations } from '../test-support/registrations.js'
 
 test(
-  '초안의 공개 링크는 읽어도 새 신청을 받지 않고 신청·개인 링크·영수증이 남지 않는다',
+  '초안의 공개 링크는 사유만 주고 행사·안내·참가비를 공개하지 않으며 새 신청도 받지 않는다',
   withRegistrations(async t => {
-    const { form } = await t.created(await t.makeEvent())
-    assert.equal((await t.publicForm(form.publicCode)).status, 'paused')
+    const { form } = await t.created(await t.makeEvent({ name: '비공개 행사' }), {
+      notice: '아직 공개하지 않은 안내',
+      payerFee: 5000,
+      nonPayerFee: 10000,
+    })
+    const { response: read, text } = await t.publicRead(form.publicCode)
+    assert.equal(read.status, 409)
+    assert.equal(read.headers.get('cache-control'), 'no-store')
+    assert.deepEqual(JSON.parse(text), { error: 'REGISTRATION_NOT_OPEN' })
+    // 공개 읽기를 막아도 운영진의 읽기와 미리보기 자료는 남는다.
+    const staff = await t.detail(form.id, 's-plain')
+    assert.equal(staff.notice, '아직 공개하지 않은 안내')
+    assert.equal(staff.payerFee, 5000)
     const response = await t.apply(form.publicCode, { name: '김학생', studentId: '202612345' })
     assert.equal(response.status, 409)
     assert.deepEqual(await response.json(), { error: 'REGISTRATION_NOT_OPEN' })

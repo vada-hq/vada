@@ -110,6 +110,7 @@ test('초안은 링크 없이 조건 목록을 보이고 행사 일시의 이동
         paused: true,
         status: 'paused',
         applicantCount: 0,
+        missingConditions: ['event_starts_at'],
         actions: ['form.update', 'form.activate'],
       }),
     ],
@@ -142,6 +143,65 @@ test('조건이 찬 초안의 활성화는 서버 응답 뒤 링크와 포스터
   expect(await screen.findByRole('button', { name: '링크 복사' })).toBeTruthy()
   expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
   expect(posts(api).map(call => call.path)).toEqual([`${FORM_PATH}/activate`])
+})
+
+test.each([eventDetail({ startsAt: null }), null])(
+  '웹의 행사·계좌 값과 관계없이 서버 조건이 차 있으면 활성화를 요청한다: %s',
+  async event => {
+    const { api } = setup({
+      event,
+      forms: [staffForm({ paused: true, feeAccount: null, missingConditions: [] })],
+    })
+    api.on('POST', `${FORM_PATH}/activate`, () => json({ form: staffForm() }))
+    fireEvent.click(await screen.findByRole('button', { name: '설문 링크 활성화' }))
+    await waitFor(() =>
+      expect(posts(api).map(call => call.path)).toEqual([`${FORM_PATH}/activate`]),
+    )
+  },
+)
+
+test('웹의 값이 차 있어도 서버가 준 부족 조건을 보이고 활성화 요청을 멈춘다', async () => {
+  const { api } = setup({
+    forms: [staffForm({ paused: true, missingConditions: ['fee_account'] })],
+  })
+  expect(await screen.findByRole('button', { name: '참가비 받을 계좌 이동' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '설문 링크 활성화' }))
+  expect(posts(api)).toHaveLength(0)
+})
+
+test.each([
+  {
+    formActions: ['form.update'] as const,
+    eventActions: [] as const,
+    eventMove: false,
+    formMove: true,
+  },
+  {
+    formActions: [] as const,
+    eventActions: ['event.update'] as const,
+    eventMove: true,
+    formMove: false,
+  },
+])('조건 이동은 그 기록의 수정 동작만 따른다: %s', async options => {
+  setup({
+    forms: [
+      staffForm({
+        actions: [...options.formActions],
+        missingConditions: ['event_starts_at', 'fee_account'],
+      }),
+    ],
+    event: eventDetail({ startsAt: null }, [...options.eventActions]),
+  })
+  await screen.findByRole('heading', { name: '환영회 참가 신청' })
+  expect(!!screen.queryByRole('button', { name: '행사 시작 일시 이동' })).toBe(options.eventMove)
+  expect(!!screen.queryByRole('button', { name: '참가비 받을 계좌 이동' })).toBe(options.formMove)
+  expect(screen.getByRole('region', { name: '링크 활성화 조건' })).toBeTruthy()
+})
+
+test('수정·명단 열람 동작이 없어도 양식별 신청·출석 수는 읽을 수 있다', async () => {
+  setup({ forms: [staffForm({ actions: [], applicantCount: 7, attendedCount: 2 })], actions: [] })
+  expect(await screen.findByText('신청 7/50명 · 출석 2명')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '설문 링크 활성화' })).toBeNull()
 })
 
 test('여러 양식은 첫 양식과 다른 양식 한 줄로 열고 미리보기에서 신청하지 않는다', async () => {

@@ -1,6 +1,7 @@
 import { and, count, eq, inArray, isNull } from 'drizzle-orm'
 import {
   koreanOf,
+  missingFormConditions,
   REGISTRATION_FORM_LIST_LIMIT,
   type RegistrationForm,
   type RegistrationFormsResponse,
@@ -38,6 +39,7 @@ function formSelect(db: Reader) {
       nonPayerFee: registrationForm.nonPayerFee,
       feeAccountId: registrationForm.feeAccountId,
       feeAccountName: account.name,
+      feeAccountClosedOn: account.closedOn,
       eventOwnerId: event.ownerId,
       eventStartsAt: event.startsAt,
       eventEndsAt: event.endsAt,
@@ -84,6 +86,17 @@ const feeOf = (value: string | null) => (value === null ? null : Number(value))
 
 type Counts = { applicants: number; attended: number }
 
+function missingConditionsOf(row: FormRow) {
+  return missingFormConditions({
+    eventStartsAt: row.eventStartsAt ? koreanOf(row.eventStartsAt) : null,
+    opensAt: row.opensAt ? koreanOf(row.opensAt) : null,
+    closesAt: koreanOf(row.closesAt),
+    payerFee: feeOf(row.payerFee),
+    nonPayerFee: feeOf(row.nonPayerFee),
+    feeAccountId: row.feeAccountClosedOn === null ? row.feeAccountId : null,
+  })
+}
+
 // 양식 줄 하나. 신청 수와 참석 수, 그 행사의 맥락(책임자, 담당 부서)은 부르는 쪽이 읽어 준다.
 function formOf(
   row: FormRow,
@@ -124,6 +137,7 @@ function formOf(
     attendedCount: attended,
     remaining: remainingOf(row.capacity, applicants),
     purgeOn: purgeOnOf(row),
+    missingConditions: missingConditionsOf(row),
     // 쓰기 동작은 쓰기와 같은 판정에서 나온다(registrations/policy.ts). 완료한 행사는 신청자 보기만 남는다.
     actions: actionsOf(
       actor,

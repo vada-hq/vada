@@ -172,6 +172,27 @@ test('받는 중이 아니면 칸 없이 이유를 보인다', async () => {
   expect(screen.queryByRole('button', { name: '신청하기' })).toBeNull()
 })
 
+test('초안의 공개 읽기 거절은 사유만 보이고 활성화된 다음 읽기에는 신청을 연다', async () => {
+  const api = mockApi()
+  let active = false
+  api.on('GET', FORM_PATH, () =>
+    active ? json(publicForm()) : json({ error: 'REGISTRATION_NOT_OPEN' }, 409),
+  )
+  render(<ApplyPage code={FORM_CODE} onApplied={vi.fn()} />)
+  expect(await screen.findByText('지금은 신청을 받지 않아요.')).toBeTruthy()
+  expect(screen.queryByText('신입생 환영회')).toBeNull()
+  expect(screen.queryByText(/납부자|계좌|무료/)).toBeNull()
+  expect(screen.queryByRole('form')).toBeNull()
+  active = true
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByLabelText('이름')).toBeTruthy()
+  active = false
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByText('지금은 신청을 받지 않아요.')).toBeTruthy()
+  expect(screen.queryByText('신입생 환영회')).toBeNull()
+  expect(screen.queryByRole('form')).toBeNull()
+})
+
 test('같은 기기에 기억한 토큰이 있으면 내 신청 보기가 보이고 칸도 그대로 있다', async () => {
   window.localStorage.setItem(`vada.registration.${FORM_CODE}`, 'tok123')
   setup()

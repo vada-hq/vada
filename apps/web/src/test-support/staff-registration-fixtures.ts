@@ -41,6 +41,7 @@ export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationFo
   attendedCount: 1,
   remaining: 47,
   purgeOn: '2027-10-24',
+  missingConditions: [],
   actions: extra.paused ? MANAGE_PAUSED : MANAGE,
   ...extra,
 })

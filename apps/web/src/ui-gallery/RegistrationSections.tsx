@@ -34,6 +34,7 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
   attendedCount: 0,
   remaining: 38,
   purgeOn: '2027-10-24',
+  missingConditions: [],
   actions: ['form.update', 'form.pause', 'form.check_in', 'form.view_applicants'],
   ...extra,
 })
@@ -58,6 +59,7 @@ export function RegistrationReceptionSection() {
     feeAccount: null,
     applicantCount: 0,
     remaining: active.capacity,
+    missingConditions: ['fee_account'] as RegistrationForm['missingConditions'],
     actions: ['form.update', 'form.activate'] as RegistrationForm['actions'],
   }
   return (

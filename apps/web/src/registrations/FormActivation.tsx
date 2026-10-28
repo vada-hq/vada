@@ -9,13 +9,14 @@ export function FormActivation({
   onMove,
 }: {
   missing: readonly FormActivationCondition[]
-  onMove?: ((condition: FormActivationCondition) => void) | undefined
+  onMove?: Partial<Record<FormActivationCondition, () => void>>
 }) {
   return (
     <FormSection title="링크 활성화 조건">
       <ul className="flex flex-col divide-y text-sm">
         {FORM_ACTIVATION_CONDITIONS.map(condition => {
           const absent = missing.includes(condition)
+          const move = onMove?.[condition]
           const Icon = absent ? Circle : Check
           return (
             <li key={condition} className="flex min-h-11 items-center gap-2 py-1">
@@ -29,13 +30,13 @@ export function FormActivation({
               />
               <span className="min-w-0 flex-1 break-keep">{FORM_ACTIVATION_LABELS[condition]}</span>
               <span className="sr-only">{absent ? '미충족' : '충족'}</span>
-              {absent && onMove && (
+              {absent && move && (
                 <Button
                   variant="link"
                   size="sm"
                   touch
                   aria-label={`${FORM_ACTIVATION_LABELS[condition]} 이동`}
-                  onClick={() => onMove(condition)}
+                  onClick={move}
                 >
                   이동
                 </Button>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  missingFormConditions,
   registrationStatusLabel,
   type ActivateFormRequest,
   type ActivateFormResponse,
@@ -23,7 +22,7 @@ import { FormPreview } from './FormPreview'
 import { FormSection } from './FormSection'
 import { formPath } from './registration-api'
 import { previewOf, valuesOfForm } from './registration-form'
-import { periodLabel } from './registration-view'
+import { countLabel, periodLabel } from './registration-view'
 import { useStaffPost } from './useStaffPost'
 
 type Props = EventDialogHandlers & {
@@ -99,42 +98,41 @@ function useReception(props: Props) {
   const [preview, setPreview] = useState(false)
   const [attempted, setAttempted] = useState(false)
   const [serverMissing, setServerMissing] = useState<{
-    facts: string
+    formKey: string
     missing: FormActivationCondition[]
   } | null>(null)
   const post = useStaffPost(props, undefined, form.actions)
-  const facts = {
-    eventStartsAt: event?.startsAt ?? null,
-    opensAt: form.opensAt,
-    closesAt: form.closesAt,
-    payerFee: form.payerFee,
-    nonPayerFee: form.nonPayerFee,
-    feeAccountId: form.feeAccount?.id ?? null,
-  }
-  const factsKey = JSON.stringify(facts)
+  const formKey = JSON.stringify(form)
+  if (serverMissing && serverMissing.formKey !== formKey) setServerMissing(null)
   const missing =
-    serverMissing?.facts === factsKey ? serverMissing.missing : missingFormConditions(facts)
-  const move = (condition: FormActivationCondition) => {
-    if (condition === 'event_starts_at') onEditEvent('startsAt')
-    else onEdit(condition === 'fee_account' ? 'account' : 'closesAt')
+    serverMissing?.formKey === formKey ? serverMissing.missing : form.missingConditions
+  const moves = {
+    ...(event?.actions.includes('event.update') && {
+      event_starts_at: () => onEditEvent('startsAt'),
+    }),
+    ...(form.actions.includes('form.update') && {
+      closes_at: () => onEdit('closesAt'),
+      registration_period: () => onEdit('closesAt'),
+      fee_account: () => onEdit('account'),
+    }),
   }
   async function activate() {
     setAttempted(true)
-    if (missing.length || !event) return
+    if (missing.length) return
     const input: ActivateFormRequest = {}
     const result = await post.send<ActivateFormResponse>(
       `${formPath(props.councilId, form.id)}/activate`,
       input,
     )
     if (!result.ok && result.missingConditions)
-      setServerMissing({ facts: factsKey, missing: result.missingConditions })
+      setServerMissing({ formKey, missing: result.missingConditions })
     onChanged()
   }
   async function pause() {
     await post.send<RegistrationFormResponse>(`${formPath(props.councilId, form.id)}/pause`)
     onChanged()
   }
-  return { preview, setPreview, attempted, post, missing, move, activate, pause }
+  return { preview, setPreview, attempted, post, missing, moves, activate, pause }
 }
 
 type Reception = ReturnType<typeof useReception>
@@ -155,12 +153,11 @@ function ReceptionHeader({
           미리보기
         </Button>
       )}
-      {form.paused &&
-        (form.actions.includes('form.activate') || form.actions.includes('form.resume')) && (
-          <Button touch busy={editor.post.busy} onClick={() => void editor.activate()}>
-            설문 링크 활성화
-          </Button>
-        )}
+      {(form.actions.includes('form.activate') || form.actions.includes('form.resume')) && (
+        <Button touch busy={editor.post.busy} onClick={() => void editor.activate()}>
+          설문 링크 활성화
+        </Button>
+      )}
       {form.actions.includes('form.pause') && (
         <Button variant="outline" touch busy={editor.post.busy} onClick={() => void editor.pause()}>
           멈추기
@@ -197,15 +194,15 @@ function ReceptionPreview({ props, editor }: { props: Props; editor: Reception }
 export function FormReception(props: Props) {
   const { form, event, onEdit, onEditEvent } = props
   const editor = useReception(props)
-  const canEdit = form.actions.includes('form.update')
   return (
     <section aria-label="신청 받기" className="flex min-w-0 flex-col gap-4 break-keep">
       <ReceptionHeader form={form} event={event} editor={editor} />
+      <p className="text-sm text-muted-foreground tabular-nums">{countLabel(form)}</p>
       {(!form.paused || form.applicantCount > 0) && <FormLink form={form} />}
       <ReceptionProblems editor={editor} />
       {event && <FormEventFacts event={event} onEdit={onEditEvent} />}
       <Recruitment form={form} onEdit={onEdit} />
-      <FormActivation missing={editor.missing} onMove={canEdit ? editor.move : undefined} />
+      <FormActivation missing={editor.missing} onMove={editor.moves} />
       <Collected form={form} />
       <ReceptionPreview props={props} editor={editor} />
     </section>

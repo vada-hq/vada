@@ -28,6 +28,7 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
   attendedCount: 0,
   remaining: null,
   purgeOn: '2027-10-24',
+  missingConditions: [],
   actions: [],
   ...extra,
 })
