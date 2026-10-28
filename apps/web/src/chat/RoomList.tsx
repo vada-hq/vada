@@ -13,7 +13,7 @@ type Props = {
   data: RoomListResponse
   // 권한이 바뀌어 1:1을 열지 못했다는 안내(목록 위에 보인다).
   note: string | null
-  // PC 두 칸에서 지금 열린 방. 휴대폰은 없다.
+  // 갤러리에서 고른 줄을 표시한다. 전체 목록에서는 없다.
   activeRoomId: string | null
   canDirect: boolean
   onOpenRoom: (roomId: string) => void
@@ -54,7 +54,7 @@ function Group({
   )
 }
 
-// 대화 첫 화면: 학생회 방 줄 목록(공지방이 맨 앞), 그 아래 '행사' 묶음과 '1:1 대화' 묶음. 방 순서는 서버가 정했다.
+// 전체 방 목록: 학생회 방 줄, '행사' 묶음, '1:1 대화' 묶음. 방 순서는 서버가 정했다.
 // v7 MSG-01 판정대로 전체 목록에는 행사 방을 남긴다. 서버는 첫 메시지 뒤에 싣고 이름에 행사를 붙인다(DEC-90).
 // 1:1은 '1:1 대화' 묶음 머리의 [+]에서 시작한다(Slack 'Direct messages' [+], notes/chat-redesign 4a).
 // 페이지 머리글 버튼만 둔 곳은 없고, 1:1이 묶음 안에 있어야 어디서 시작하는지 보인다.
@@ -78,6 +78,7 @@ export default function RoomList(props: Props) {
     <Button
       variant="ghost"
       size="icon"
+      touch
       className="-my-1.5"
       aria-label="1:1 대화 시작"
       onClick={onDirect}

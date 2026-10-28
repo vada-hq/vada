@@ -9,10 +9,12 @@ import PhotoStrip from './PhotoStrip'
 import { SEND_ERRORS } from '@/lib/messages'
 import { useComposer } from './useComposer'
 import { useMentionInput } from './useMentionInput'
+import { MESSAGE_INPUT_HINT, sendToRoom } from './message-text'
 
 type Props = {
   councilId: string
   roomId: string
+  roomName: string
   participants: RoomParticipant[]
   meId: string
   // 보낸 뒤 흐름과 방 목록을 다시 읽게 한다.
@@ -39,6 +41,7 @@ function MentionList({
           <Button
             type="button"
             variant="ghost"
+            touch
             className="w-full justify-start"
             // 눌러도 입력칸의 포커스가 풀리지 않게 한다.
             onMouseDown={event => event.preventDefault()}
@@ -75,6 +78,7 @@ function PhotoPicker({ onPick }: { onPick: (files: File[]) => void }) {
         type="button"
         variant="ghost"
         size="icon"
+        touch
         aria-label="사진 붙이기"
         onClick={() => files.current?.click()}
       >
@@ -91,23 +95,33 @@ function sendsOnEnter(event: KeyboardEvent<HTMLTextAreaElement>) {
   return window.matchMedia?.('(pointer: fine)').matches ?? false
 }
 
-function SendButton({ sending, disabled }: { sending: boolean; disabled: boolean }) {
+function SendButton({
+  sending,
+  disabled,
+  name,
+}: {
+  sending: boolean
+  disabled: boolean
+  name: string
+}) {
   return (
     <Button
       type="submit"
-      size="icon"
-      className="size-10"
-      aria-label={sending ? '보내는 중' : '보내기'}
+      busy={sending}
+      touch
+      className="min-h-11 shrink-0 max-sm:size-11 max-sm:px-0"
+      aria-label={sendToRoom(name)}
       // oxlint-disable-next-line react/forbid-component-props -- 대화 [보내기]는 빈 메시지일 때 꺼진다(채팅 앱의 관례, AGENTS.md '화면 문구와 폼'의 예외).
       disabled={disabled}
     >
-      <SendHorizontal />
+      <SendHorizontal aria-hidden />
+      <span className="hidden max-w-56 truncate sm:inline">{sendToRoom(name)}</span>
     </Button>
   )
 }
 
 // 입력칸: 글, '@' 부르기, 사진 붙이기, 보내기. 버튼은 계약의 검사로 켜고 끈다.
-export default function Composer({ participants, meId, ...args }: Props) {
+export default function Composer({ participants, meId, roomName, ...args }: Props) {
   const composer = useComposer({ ...args, meId })
   const { body, send, canSend, sending, error, readOnly, drafts } = composer
   const { field, people, onChange, onPick, onSelect } = useMentionInput(
@@ -133,7 +147,9 @@ export default function Composer({ participants, meId, ...args }: Props) {
           ref={field}
           rows={1}
           aria-label="메시지"
-          className="min-h-10 flex-1"
+          className="min-h-11 min-w-0 flex-1"
+          // oxlint-disable-next-line react/forbid-component-props -- v7 입력 띠 명세가 채팅의 @ 부르기 안내를 자리 글로 요구한다.
+          placeholder={MESSAGE_INPUT_HINT}
           value={body}
           onChange={onChange}
           onKeyDown={event => {
@@ -143,7 +159,7 @@ export default function Composer({ participants, meId, ...args }: Props) {
           }}
           onSelect={event => onSelect(event.currentTarget.selectionStart)}
         />
-        <SendButton sending={sending} disabled={!canSend} />
+        <SendButton sending={sending} disabled={!canSend} name={roomName} />
       </div>
       {error && <StateMessage kind="error">{error}</StateMessage>}
     </form>

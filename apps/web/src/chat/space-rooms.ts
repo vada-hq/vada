@@ -1,8 +1,12 @@
 import type { RoomSummary, RoomType } from '@vada/contracts'
 
 // 공간(행사, 우리 학생회)의 메시지 탭이 쓰는 방 고르기(DEC-96: 공간에 무관하게 방 목록과 첫 방을 받는 부품).
-// 방 전환 차례: 공지방 → 회장단방 → 부서방(부서 차례는 서버가 정했다, DEC-90 '공지방 · ○○부 방').
+// 방 탭의 배치는 공지방 → 회장단방 → 부서방이다. 처음 여는 방의 차례와는 다르다(US-MSG-01·DEC-90).
 const SWITCH_ORDER: RoomType[] = ['all_members', 'leadership', 'department']
+
+// 역할을 다시 판단하지 않고 서버가 준 방의 자리만 나눈다. 1:1·부서 간 방은 전체 목록에서 연다.
+export const councilRooms = (rooms: RoomSummary[]) =>
+  rooms.filter(room => !room.eventId && SWITCH_ORDER.includes(room.type))
 
 export const switchRooms = (rooms: RoomSummary[]) =>
   SWITCH_ORDER.flatMap(type => rooms.filter(room => room.type === type))

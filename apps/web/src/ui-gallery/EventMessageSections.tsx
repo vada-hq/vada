@@ -1,5 +1,5 @@
 import type { ChatMessage, RoomListResponse, RoomSummary } from '@vada/contracts'
-import { ARCHIVED_LABEL } from '@/chat/chat-view'
+import { ARCHIVED_LABEL, switchName } from '@/chat/chat-view'
 import Composer from '@/chat/Composer'
 import MessageItem from '@/chat/MessageItem'
 import RoomList from '@/chat/RoomList'
@@ -152,6 +152,7 @@ function EventMessages({ sample: item }: { sample: Sample }) {
             <Composer
               councilId="sample"
               roomId={item.active}
+              roomName={switchName(item.rooms.find(room => room.id === item.active)!)}
               participants={[]}
               meId={ME}
               onSent={noop}
@@ -216,9 +217,9 @@ const NO_DIRECT: RoomListResponse = {
 // '1:1 대화' 묶음 머리의 [+]가 1:1을 시작한다. 1:1이 없어도 묶음이 있다.
 export function EventRoomListSection() {
   const samples = [
-    { key: 'PC 목록 폭', width: 'w-64', data: LIST },
+    { key: 'PC 한 칸 목록', width: 'w-full', data: LIST },
     { key: '휴대폰 폭', width: 'w-97.5', data: LIST },
-    { key: '1:1 없음', width: 'w-64', data: NO_DIRECT },
+    { key: '1:1 없음', width: 'w-full', data: NO_DIRECT },
   ]
   return (
     <Section title="대화 목록의 행사·1:1 묶음">

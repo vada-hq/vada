@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { renderApp } from './test-support/render-app'
+import { navigationWidth } from './test-support/navigation-width'
 import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
 import { message, messagePage, room, roomDetail, roomList } from './test-support/chat-fixtures'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
@@ -72,28 +73,26 @@ afterEach(async () => {
 })
 
 const pathNow = () => window.location.pathname + window.location.search
-const roomButton = (name: RegExp) => screen.findByRole('button', { name })
-const toList = () => fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+const roomTab = (name: RegExp) => screen.findByRole('tab', { name })
 const field = () => screen.findByRole('textbox', { name: '메시지' })
 
-test('방 주소로 바로 들어오면 그 방이 열리고 뒤로가 방 목록이다. 방을 누르면 방 주소가 된다', async () => {
+test('학생회 공지 주소는 메시지 첫 화면의 그 탭이고 탭을 바꿔도 전체 목록은 곁에 없다', async () => {
   window.history.replaceState(null, '', `/chat/${C1}/${ALL}`)
   await renderApp()
   expect(await screen.findByText('전체방 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
-  toList()
-  fireEvent.click(await roomButton(/회장단방/))
+  expect(screen.getByRole('tab', { name: /공지방/ }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(await roomTab(/회장단방/))
   expect(await screen.findByText('회장단 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
-  toList()
-  expect(await roomButton(/공지방/)).toBeTruthy()
-  expect(pathNow()).toBe(`/chat/${C1}`)
+  expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
+  expect(screen.getByText('학생회 · 회장단만 보는 방')).toBeTruthy()
 })
 
 test('옛 공지 모아 보기 주소(?tab=notices)는 대화 첫 화면이고 공지 칸이 없다(DEC-90)', async () => {
   window.history.replaceState(null, '', `/chat/${C1}?tab=notices`)
   await renderApp()
-  expect(await roomButton(/공지방/)).toBeTruthy()
+  expect(await roomTab(/공지방/)).toBeTruthy()
   expect(screen.queryByRole('heading', { name: '공지 모아 보기' })).toBeNull()
   expect(screen.queryByRole('button', { name: /^공지 / })).toBeNull()
 })
@@ -128,7 +127,7 @@ test('홈 메시지함은 옆 메뉴 배지와 같은 대화 목록을 쓰고, �
   expect(pathNow()).toBe(`/chat/${C1}/${LEAD}`)
   // 읽음 표시 뒤 목록을 다시 읽는다. 뒤로는 들어온 곳(홈)이다.
   await waitFor(() => expect(api.calls.filter(call => call.path === roomsPath)).toHaveLength(2))
-  toList()
+  act(() => window.history.back())
   expect(await screen.findByRole('heading', { level: 1, name: '홈', hidden: true })).toBeTruthy()
   await screen.findByRole('region', { name: '지금 볼 것' })
   expect(screen.queryByRole('region', { name: '메시지함' })).toBeNull()
@@ -138,12 +137,10 @@ test('방을 바꿨다 돌아와도 쓰던 입력이 그대로다', async () => 
   window.history.replaceState(null, '', `/chat/${C1}/${ALL}`)
   await renderApp()
   fireEvent.change(await field(), { target: { value: '쓰던 글' } })
-  toList()
-  fireEvent.click(await roomButton(/회장단방/))
+  fireEvent.click(await roomTab(/회장단방/))
   await screen.findByText('회장단 글')
   expect((await field()).textContent).toBe('')
-  toList()
-  fireEvent.click(await roomButton(/공지방/))
+  fireEvent.click(await roomTab(/공지방/))
   await screen.findByText('전체방 글')
   expect(((await field()) as HTMLTextAreaElement).value).toBe('쓰던 글')
 })
@@ -156,9 +153,35 @@ test('들어가지 않은 방 주소는 찾을 수 없음이고 그 방의 메�
   expect(await screen.findByText(ADDRESS_LOST)).toBeTruthy()
   expect(api.calls.some(call => call.path.includes(`${THEIRS}/messages`))).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
-  expect(await roomButton(/공지방/)).toBeTruthy()
+  expect(await roomTab(/공지방/)).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
 })
+
+test.each([390, 1280])(
+  '%i 폭에서 전체 목록의 1:1은 방 하나로 열리고 돌아오면 목록이다',
+  async width => {
+    navigationWidth(width)
+    const direct = room(THEIRS, { type: 'direct', name: '박새내' })
+    api.on('GET', `/api/organizations/${C1}/rooms`, () =>
+      json(roomList({ rooms: [room(ALL), room(LEAD, { type: 'leadership' }), direct] })),
+    )
+    serveRoom(THEIRS, direct, '1:1 글')
+    window.history.replaceState(null, '', `/chat/${C1}`)
+    await renderApp()
+    await screen.findByText('회장단 글')
+    if (width === 390) expect(screen.getByRole('navigation', { name: '휴대폰 메뉴' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '전체 보기' }))
+    fireEvent.click(await screen.findByRole('button', { name: /박새내/ }))
+    expect(await screen.findByText('1:1 글')).toBeTruthy()
+    expect(pathNow()).toBe(`/chat/${C1}/${THEIRS}`)
+    expect(screen.queryByRole('tablist', { name: '대화방' })).toBeNull()
+    expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+    await screen.findByRole('list', { name: '대화방' })
+    expect(pathNow()).toBe(`/chat/${C1}?rooms=all`)
+  },
+)
 
 test('다른 학생회의 방 주소는 찾을 수 없음이다', async () => {
   // C2의 방 목록에는 ALL이 없다.
@@ -198,14 +221,32 @@ const wide = () =>
     removeEventListener: () => {},
   }))
 
-test('PC에서 대화 메뉴 첫 화면은 기억한 방이고 주소는 그대로다. 다른 방을 누르면 방 주소가 된다', async () => {
+test('PC에서 메시지 첫 화면은 기억한 학생회 방이고 다른 탭에서도 흐름은 전체 폭이다', async () => {
   wide()
   window.localStorage.setItem(`vada.chat.room.${C1}`, LEAD)
   window.history.replaceState(null, '', `/chat/${C1}`)
   await renderApp()
   expect(await screen.findByText('회장단 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}`)
-  fireEvent.click(await roomButton(/공지방/))
+  fireEvent.click(await roomTab(/공지방/))
   expect(await screen.findByText('전체방 글')).toBeTruthy()
   expect(pathNow()).toBe(`/chat/${C1}/${ALL}`)
+  expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
+})
+
+test('전체 보기는 한 칸 방 목록이고 학생회 방을 누르면 해당 탭, 뒤로는 목록·첫 화면이다', async () => {
+  window.history.replaceState(null, '', `/chat/${C1}`)
+  await renderApp()
+  await screen.findByText('회장단 글')
+  fireEvent.click(screen.getByRole('button', { name: '전체 보기' }))
+  expect(pathNow()).toBe(`/chat/${C1}?rooms=all`)
+  const list = await screen.findByRole('list', { name: '대화방' })
+  fireEvent.click(within(list).getByRole('button', { name: /공지방/ }))
+  expect(await screen.findByText('전체방 글')).toBeTruthy()
+  expect(screen.getByRole('tab', { name: /공지방/ }).getAttribute('aria-selected')).toBe('true')
+  act(() => window.history.back())
+  await screen.findByRole('list', { name: '대화방' })
+  act(() => window.history.back())
+  await screen.findByRole('tablist', { name: '대화방' })
+  expect(pathNow()).toBe(`/chat/${C1}`)
 })

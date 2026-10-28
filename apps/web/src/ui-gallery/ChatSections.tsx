@@ -1,4 +1,8 @@
 import type { ChatMessage, RoomSummary } from '@vada/contracts'
+import { useState } from 'react'
+import { switchName } from '@/chat/chat-view'
+import Composer from '@/chat/Composer'
+import { MessageHomeHeader } from '@/chat/MessageHome'
 import MessageItem from '@/chat/MessageItem'
 import RoomRow from '@/chat/RoomRow'
 import { cardClass } from '@/components/ui/card'
@@ -8,6 +12,7 @@ import { longName, unbroken } from './sample-text'
 
 const noop = () => {}
 const now = new Date('2026-10-23T05:00:00.000Z')
+const HOME_PREVIEW_COUNT = 2
 
 const chatRoom = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
   id,
@@ -54,11 +59,52 @@ const ROOMS = [
   }),
 ]
 
-// 대화 목록 줄(와이어프레임 MSG-01). PC 두 칸의 목록 폭(256px)과 휴대폰 폭(390px)으로 그린다.
+// 학생회 방 탭과 흐름(US-MSG-01). 방과 입력 띠는 행사 메시지 탭과 같은 부품이다.
+function MessageHomeSample() {
+  const rooms = ROOMS.filter(room => room.type !== 'direct')
+  const [activeId, setActiveId] = useState('plan')
+  const active = rooms.find(room => room.id === activeId)
+  return (
+    <div className="flex w-full flex-col overflow-hidden rounded-lg border">
+      <MessageHomeHeader rooms={rooms} active={active} onPick={setActiveId} onAll={noop} />
+      <div className="flex h-96 flex-col bg-gray-50">
+        <ul className="mt-auto flex flex-col overflow-y-auto px-2 py-3 sm:px-4">
+          {FLOW.slice(1, 1 + HOME_PREVIEW_COUNT).map(item => (
+            <MessageItem
+              key={item.message.id}
+              councilId="sample"
+              message={item.message}
+              continued={item.continued}
+              mine={item.mine}
+              canRequest
+              onRequest={noop}
+              canWriteExpense={false}
+              onWriteExpense={noop}
+            />
+          ))}
+        </ul>
+        <div className="shrink-0 border-t bg-white px-4 py-3 sm:px-6">
+          <Composer
+            councilId="sample"
+            roomId={activeId}
+            roomName={active ? switchName(active) : '공지방'}
+            participants={[]}
+            meId="sample"
+            onSent={noop}
+            onLost={noop}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 전체 목록 줄(MSG-01)은 한 칸 본문과 휴대폰 폭으로 그린다.
 export function RoomRowSection() {
   return (
     <Section title="대화 목록 줄">
-      {['w-64', 'w-97.5'].map(width => (
+      <MessageHomeSample />
+      {['w-full', 'w-97.5'].map(width => (
         <ul key={width} aria-label={`대화방 ${width}`} className={cn(cardClass, 'divide-y', width)}>
           {ROOMS.map((room, index) => (
             <RoomRow key={room.id} room={room} now={now} active={index === 0} onOpen={noop} />

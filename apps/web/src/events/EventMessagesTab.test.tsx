@@ -80,7 +80,7 @@ function setup(body: EventRoomsResponse, options: { completed?: boolean } = {}) 
 }
 
 const switchButton = (name: RegExp) =>
-  within(screen.getByRole('group', { name: '대화방' })).getByRole('button', { name })
+  within(screen.getByRole('tablist', { name: '대화방' })).getByRole('tab', { name })
 
 test('메시지가 첫 탭이자 기본 탭이고, 요약 줄 대신 방 전환과 방마다 배지, 탭 배지는 그 합이다', async () => {
   setup({ rooms: [notice(), plan()], archived: false })
@@ -88,16 +88,16 @@ test('메시지가 첫 탭이자 기본 탭이고, 요약 줄 대신 방 전환�
   expect(screen.getAllByRole('tab')[0]).toBe(tab)
   expect(tab.getAttribute('aria-selected')).toBe('true')
   await waitFor(() => expect(within(tab).getByLabelText('안 읽은 메시지 5개')).toBeTruthy())
-  const group = screen.getByRole('group', { name: '대화방' })
+  const group = screen.getByRole('tablist', { name: '대화방' })
   expect(
     within(group)
-      .getAllByRole('button')
+      .getAllByRole('tab')
       .map(button => button.textContent),
   ).toEqual(['공지방2', '기획부 방3'])
   expect(screen.queryByRole('group', { name: '행사 요약' })).toBeNull()
   // 처음 여는 방은 내 부서방이고, 방 이름은 방 전환이 보여 제목 줄이 없다.
   expect(await screen.findByText('부서방 글')).toBeTruthy()
-  expect(switchButton(/기획부 방/).getAttribute('aria-pressed')).toBe('true')
+  expect(switchButton(/기획부 방/).getAttribute('aria-selected')).toBe('true')
   expect(screen.queryByRole('heading', { name: /기획부/ })).toBeNull()
   expect(pathNow()).toBe(EVENT_AT)
 })

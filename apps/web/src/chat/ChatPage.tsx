@@ -1,39 +1,37 @@
-import { useEffect, useState, type ComponentProps } from 'react'
+import { useState, type ComponentProps } from 'react'
 import type { CouncilView } from '@vada/contracts'
+import { ArrowLeft } from 'lucide-react'
 import PageColumn from '@/components/PageColumn'
+import PageHeading from '@/components/PageHeading'
 import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED, ROOMS_LOAD_FAILED } from '@/lib/messages'
 import type { Team } from '../team/useTeam'
 import DirectDialog from './DirectDialog'
-import { roomToShow, saveRoom, savedRoom } from './last-room'
+import MessageHome from './MessageHome'
 import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
 import type { RoomList as RoomListHook, RoomSource } from './useRoomList'
-import { useSplit } from '@/lib/use-split'
 import ProductPanel from './ProductPanel'
 import { ProductOpenContext, useProductPanel } from './product-open'
 
-export type Screen = { kind: 'list' } | { kind: 'room'; roomId: string }
+export type Screen =
+  { kind: 'home'; roomId?: string } | { kind: 'list' } | { kind: 'room'; roomId: string }
 
 type Props = {
   councilId: string
   view: CouncilView
   team: Team
   rooms: RoomListHook
-  // 권한이 바뀌었을 때 학생회를 다시 읽게 한다.
   onForbidden: () => void
-  // 메시지에서 낸 요청을 재정 화면에서 연다.
   onOpenRequest: (requestId: string) => void
   onScreen: (screen: Screen) => void
 }
 
 export type RoomPage = Omit<Props, 'onScreen'>
-type PageProps = RoomPage
 
-// 방 목록을 아직 못 보일 때: 불러오는 중, 못 불러왔으면 다시 시도.
 function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
   if (rooms.state.kind === 'loading')
     return <StateMessage kind="loading">대화방 불러오는 중…</StateMessage>
@@ -47,8 +45,8 @@ function RoomsNotReady({ rooms }: { rooms: RoomListHook }) {
   )
 }
 
-// 방 목록과 1:1 열기. 권한을 잃으면 대화상자를 닫고 이유를 목록 위에 보인다.
-function ListScreen(props: Props & { activeRoomId: string | null }) {
+// 1:1을 열 권한을 잃으면 대화상자를 닫고 이유를 목록 위에 보인다.
+function ListScreen(props: Props) {
   const { councilId, view, team, rooms, onForbidden, onScreen } = props
   const [directOpen, setDirectOpen] = useState(false)
   const [note, setNote] = useState<string | null>(null)
@@ -60,7 +58,7 @@ function ListScreen(props: Props & { activeRoomId: string | null }) {
       <RoomList
         data={state.data}
         note={note}
-        activeRoomId={props.activeRoomId}
+        activeRoomId={null}
         canDirect={canDirect}
         onOpenRoom={roomId => onScreen({ kind: 'room', roomId })}
         onDirect={() => {
@@ -89,17 +87,19 @@ function ListScreen(props: Props & { activeRoomId: string | null }) {
   )
 }
 
-// 방 하나. 뒤로 가기가 없으면(PC 두 칸) 목록이 옆에 늘 보인다.
+// 방 흐름은 메시지 첫 화면과 행사 탭에서도 같은 부품을 쓴다.
 export function Room({
   page,
   roomId,
   onBack,
   space,
+  home = false,
 }: {
-  page: PageProps
+  page: RoomPage
   roomId: string
   onBack?: () => void
   space?: RoomSource
+  home?: boolean
 }) {
   const { view } = page
   return (
@@ -108,8 +108,8 @@ export function Room({
       roomId={roomId}
       meId={view.me.memberId}
       rooms={space ?? page.rooms}
-      bare={space !== undefined}
-      // 공간 탭의 방은 본문 여백 안에 놓여 테두리로 칸을 가른다. 대화 화면의 방은 칸 끝까지 채운다.
+      bare={home || space !== undefined}
+      // 행사 탭은 본문 여백 안에 놓여 테두리로 칸을 가른다. 메시지 메뉴는 칸 끝까지 채운다.
       className={space && 'overflow-hidden rounded-lg border'}
       request={{
         canRequest: view.permissions.includes('purchase.request'),
@@ -124,78 +124,46 @@ export function Room({
   )
 }
 
-// PC 두 칸: 왼쪽 방 목록은 늘 보이고 오른쪽에 방을 연다(Slack·Teams·NAVER WORKS PC).
-// 고른 방이 없으면 마지막에 연 방을 연다. 대화를 누른 목적은 방 고르기가 아니라 대화를 이어 가기다.
-// 두 칸은 본문 폭 끝까지 쓴다(와이어프레임 MSG-03·US-MSG-01). 1024px 칸에 가두면 넓은 화면에서 흐름이 좁다.
-function Split({
-  page,
-  screen,
-  saved,
-  onScreen,
-}: {
-  page: PageProps
-  screen: Screen
-  saved: string | null
-  onScreen: (screen: Screen) => void
-}) {
-  const ready = page.rooms.state.kind === 'ready' ? page.rooms.state.data : null
-  const roomId = screen.kind === 'room' ? screen.roomId : ready ? roomToShow(ready, saved) : null
-  return (
-    <div className="flex h-full">
-      <div className="w-72 shrink-0 overflow-y-auto border-r bg-white p-4">
-        <ListScreen {...page} activeRoomId={roomId} onScreen={onScreen} />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col bg-gray-50">
-        {roomId && (
-          <RoomGate
-            rooms={page.rooms}
-            councilId={page.councilId}
-            roomId={roomId}
-            onList={() => onScreen({ kind: 'list' })}
-          >
-            <Room key={roomId} page={page} roomId={roomId} />
-          </RoomGate>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// 대화: 휴대폰은 방 목록 → 방, PC는 목록과 방을 나란히.
-// 어느 화면인지는 부르는 쪽(주소)이 정하고, 뒤로는 들어온 곳으로 가는 동작을 받는다.
+// 학생회 방은 탭과 흐름, 전체 목록은 한 칸, 1:1·부서 간 방은 전체 폭으로 연다.
 function ChatBody({
   screen,
   onScreen,
   onBack,
   ...props
-}: PageProps & { screen: Screen; onScreen: (screen: Screen) => void; onBack: () => void }) {
-  const split = useSplit()
-  useHideBottomNavigation(!split && screen.kind === 'room')
-  const { councilId } = props
-  const [saved, setSaved] = useState(() => savedRoom(councilId))
-  const openedRoom = screen.kind === 'room' ? screen.roomId : null
-  // 어떻게 열었든(눌러서, 주소로, 뒤로 가서) 연 방을 기억한다.
-  useEffect(() => {
-    if (!openedRoom) return
-    saveRoom(councilId, openedRoom)
-    setSaved(openedRoom)
-  }, [councilId, openedRoom])
-  const page = { ...props, onScreen }
-  if (split) return <Split page={props} screen={screen} saved={saved} onScreen={onScreen} />
+}: RoomPage & { screen: Screen; onScreen: (screen: Screen) => void; onBack: () => void }) {
+  useHideBottomNavigation(screen.kind === 'room')
   if (screen.kind === 'room')
     return (
       <RoomGate
         rooms={props.rooms}
-        councilId={councilId}
+        councilId={props.councilId}
         roomId={screen.roomId}
-        onList={() => onScreen({ kind: 'list' })}
+        onList={() => onScreen({ kind: 'home' })}
       >
         <Room key={screen.roomId} page={props} roomId={screen.roomId} onBack={onBack} />
       </RoomGate>
     )
+  if (props.rooms.state.kind !== 'ready') return <RoomsNotReady rooms={props.rooms} />
+  if (screen.kind === 'home')
+    return (
+      <MessageHome
+        page={props}
+        wanted={screen.roomId}
+        onPick={roomId => onScreen({ kind: 'home', roomId })}
+        onAll={() => onScreen({ kind: 'list' })}
+      />
+    )
   return (
-    <div className="p-4 sm:p-6">
-      <ListScreen {...page} activeRoomId={null} />
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 sm:p-6">
+      <header className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" touch aria-label="메시지 첫 화면" onClick={onBack}>
+          <ArrowLeft aria-hidden />
+        </Button>
+        <PageHeading trail={{ title: '메시지', crumbs: [] }}>
+          <h1 className="text-xl font-semibold">메시지</h1>
+        </PageHeading>
+      </header>
+      <ListScreen {...props} onScreen={onScreen} />
     </div>
   )
 }

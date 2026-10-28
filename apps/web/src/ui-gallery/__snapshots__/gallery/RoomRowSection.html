@@ -5,7 +5,105 @@
 <a href="/ui.html?section=%EB%8C%80%ED%99%94+%EB%AA%A9%EB%A1%9D+%EC%A4%84" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
 </div>
 <div class="flex flex-wrap items-start gap-3">
-<ul aria-label="대화방 w-64" class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y w-64">
+<div class="flex w-full flex-col overflow-hidden rounded-lg border">
+<header class="shrink-0 bg-white px-4 sm:px-6">
+<div class="flex flex-wrap items-center justify-between gap-2 empty:hidden">
+<h1 class="py-3 text-xl font-semibold break-keep">메시지</h1>
+<div class="flex flex-wrap items-center gap-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">전체 보기</button>
+</div>
+</div>
+<div class="flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-b">
+<div role="tablist" aria-label="대화방" class="flex min-w-0 flex-wrap items-stretch bg-white border-b-0">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground min-h-11 min-w-0 max-w-full gap-1.5 text-left break-keep whitespace-normal wrap-anywhere" aria-selected="false" tabindex="-1">공지방<span aria-label="안 읽은 메시지 12개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">12</span>
+</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground min-h-11 min-w-0 max-w-full gap-1.5 text-left break-keep whitespace-normal wrap-anywhere" aria-selected="false" tabindex="-1">회장단방</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground min-h-11 min-w-0 max-w-full gap-1.5 text-left break-keep whitespace-normal wrap-anywhere" aria-selected="true" tabindex="0">기획부 방<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground min-h-11 min-w-0 max-w-full gap-1.5 text-left break-keep whitespace-normal wrap-anywhere" aria-selected="false" tabindex="-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 방</button>
+</div>
+<p class="ml-auto py-3 text-right text-xs break-keep wrap-anywhere text-muted-foreground">학생회 · 기획부만 보는 방</p>
+</div>
+</header>
+<div class="flex h-96 flex-col bg-gray-50">
+<ul class="mt-auto flex flex-col overflow-y-auto px-2 py-3 sm:px-4">
+<li class="group relative flex items-end gap-2 rounded-sm px-2 mt-2 pt-1.5 pb-0.5">
+<span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500">정</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<span class="text-xs wrap-anywhere text-gray-500">정하늘</span>
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">진행 요원 6명이 입을 조끼가 필요해요</p>
+<time datetime="2026-10-23T01:30:00Z" class="text-xs text-gray-500">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="메시지 동작" type="button" id="radix-_id1_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
+<circle cx="12" cy="12" r="1">
+</circle>
+<circle cx="19" cy="12" r="1">
+</circle>
+<circle cx="5" cy="12" r="1">
+</circle>
+</svg>
+</button>
+</div>
+</li>
+<li class="group relative flex items-end gap-2 rounded-sm px-2 py-0.5">
+<span aria-hidden="true" class="w-8 shrink-0">
+</span>
+<div class="flex max-w-3/5 min-w-0 flex-col gap-1 max-sm:max-w-4/5 items-start">
+<p class="rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap border border-gray-200 bg-white text-gray-800">이걸로 어때요? <a href="https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 text-blue-700">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890</a>
+</p>
+<time datetime="2026-10-23T01:30:00Z" class="sr-only">10:30</time>
+</div>
+<div class="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="메시지 동작" type="button" id="radix-_id2_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
+<circle cx="12" cy="12" r="1">
+</circle>
+<circle cx="19" cy="12" r="1">
+</circle>
+<circle cx="5" cy="12" r="1">
+</circle>
+</svg>
+</button>
+</div>
+</li>
+</ul>
+<div class="shrink-0 border-t bg-white px-4 py-3 sm:px-6">
+<form class="flex flex-col gap-2">
+<div class="flex items-end gap-2">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" accept="image/*" multiple="" hidden="" tabindex="-1" aria-label="사진 고르기" type="file">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" type="button" aria-label="사진 붙이기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus" aria-hidden="true">
+<path d="M16 5h6">
+</path>
+<path d="M19 2v6">
+</path>
+<path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5">
+</path>
+<path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21">
+</path>
+<circle cx="9" cy="9" r="2">
+</circle>
+</svg>
+</button>
+<textarea data-slot="textarea" class="w-full rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive resize-y read-only:border-border read-only:bg-gray-50 min-h-11 min-w-0 flex-1" rows="1" aria-label="메시지" placeholder="메시지 입력 · @ 부르기">
+</textarea>
+<button data-slot="button" disabled="" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-h-11 shrink-0 max-sm:size-11 max-sm:px-0" type="submit" aria-label="기획부 방에 보내기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal lucide-send-horizonal" aria-hidden="true">
+<path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z">
+</path>
+<path d="M6 12h16">
+</path>
+</svg>
+<span class="hidden max-w-56 truncate sm:inline">기획부 방에 보내기</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<ul aria-label="대화방 w-full" class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y w-full">
 <li>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent" aria-current="true">
 <span class="flex items-center gap-2">

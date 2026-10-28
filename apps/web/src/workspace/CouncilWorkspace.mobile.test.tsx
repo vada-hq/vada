@@ -19,13 +19,13 @@ afterEach(async () => {
 const base = `/api/organizations/${COUNCIL_ID}`
 const ROOM = '0199d1a0-0000-7000-8000-0000000000a1'
 const tabs = () => screen.getByRole('navigation', { name: '휴대폰 메뉴' })
-function open(count = 0) {
+function open(count = 0, rooms = [room(ROOM)]) {
   const resize = navigationWidth()
   const api = mockApi()
   api.on('GET', base, () => json(councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/home`, () => json(homeResponse()))
-  api.on('GET', `${base}/rooms`, () => json(roomList({ rooms: [room(ROOM)], unreadTotal: count })))
+  api.on('GET', `${base}/rooms`, () => json(roomList({ rooms, unreadTotal: count })))
   const tasks: TaskSummary[] = Array.from({ length: count }, (_, i) => ({
     id: `t${i}`,
     title: `업무 ${i}`,
@@ -43,7 +43,7 @@ function open(count = 0) {
     json({ tasks: [], truncated: false }),
   )
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
-  api.on('GET', `${base}/rooms/${ROOM}`, () => json(roomDetail(room(ROOM))))
+  api.on('GET', `${base}/rooms/${ROOM}`, () => json(roomDetail(rooms[0])))
   api.on('GET', `${base}/rooms/${ROOM}/messages`, () => json(messagePage()))
   api.on('POST', `${base}/rooms/${ROOM}/read`, () => json({}))
   onHomeExtras(api, {}, COUNCIL_ID)
@@ -97,10 +97,12 @@ test.each([0, 2, 120])('배지 %i는 옆 메뉴 데이터와 같고 새로 읽�
   }
   expect(api.calls.filter(call => call.path === `${base}/rooms`)).toHaveLength(1)
 })
-test('방에서는 탭과 아래 여백을 숨기고, 방의 뒤로로 나오면 되돌린다', async () => {
-  open()
+test('메시지 첫 화면은 탭을 두고, 전체 보기에서 연 1:1 방에서는 숨기고 뒤로 나오면 되돌린다', async () => {
+  open(0, [room(ROOM, { type: 'direct', name: '박새내' })])
   fireEvent.click(within(tabs()).getByRole('button', { name: '메시지' }))
-  fireEvent.click(await screen.findByRole('button', { name: /공지방/ }))
+  fireEvent.click(await screen.findByRole('button', { name: '전체 보기' }))
+  expect(tabs()).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: /박새내/ }))
   await screen.findByRole('button', { name: '대화방 목록' })
   expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
   expect(screen.getByRole('main').className).not.toContain('bottom-navigation-space')

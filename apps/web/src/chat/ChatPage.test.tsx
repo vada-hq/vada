@@ -174,7 +174,7 @@ const wide = () =>
     removeEventListener: () => {},
   }))
 
-test('PC 폭에서는 목록 옆에 첫 방(회장단은 회장단방)을 열고, 고른 방을 기억해 다음에 그 방부터 연다', async () => {
+test('PC에서도 전체 목록에서 방을 열면 왼쪽 목록 없이 흐름을 연다', async () => {
   wide()
   const api = serve()
   const finance = room('r3', { type: 'department', name: '재정부', departmentId: 'd1' })
@@ -189,16 +189,13 @@ test('PC 폭에서는 목록 옆에 첫 방(회장단은 회장단방)을 열고
     api.on('POST', `${path}/read`, () => new Response(null, { status: 204 }))
   }
   render(<Harness />)
+  fireEvent.click(await screen.findByRole('button', { name: /회장단방/ }))
   expect(await screen.findByText('회장단 회의 7시')).toBeTruthy()
-  const lead = screen.getByRole('button', { name: /회장단방/ })
-  expect(lead.getAttribute('aria-current')).toBe('true')
-  expect(screen.queryByRole('button', { name: '대화방 목록' })).toBeNull()
+  expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
   fireEvent.click(screen.getByRole('button', { name: /재정부/ }))
   expect(await screen.findByText('영수증 올려요')).toBeTruthy()
-  cleanup()
-  render(<Harness />)
-  expect(await screen.findByText('영수증 올려요')).toBeTruthy()
-  expect(screen.getByRole('button', { name: /재정부/ }).getAttribute('aria-current')).toBe('true')
+  expect(screen.queryByRole('list', { name: '대화방' })).toBeNull()
 })
 
 test('메시지 메뉴에 공지 표시 항목이 없다(회장단도, DEC-90)', async () => {

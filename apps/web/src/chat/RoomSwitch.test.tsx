@@ -20,7 +20,7 @@ test.each([{ rooms: [] }, { rooms: [notice] }])(
     const { container } = render(
       <RoomSwitch rooms={rooms} activeId={rooms[0]?.id ?? null} onPick={vi.fn()} />,
     )
-    expect(screen.queryByRole('group', { name: '대화방' })).toBeNull()
+    expect(screen.queryByRole('tablist', { name: '대화방' })).toBeNull()
     expect(container.firstChild).toBeNull()
   },
 )
@@ -28,13 +28,30 @@ test.each([{ rooms: [] }, { rooms: [notice] }])(
 test('방이 2개면 전환 줄에서 두 방을 보이고 다른 방을 고를 수 있다', () => {
   const onPick = vi.fn()
   render(<RoomSwitch rooms={[notice, department]} activeId={department.id} onPick={onPick} />)
-  const group = screen.getByRole('group', { name: '대화방' })
-  expect(within(group).getAllByRole('button')).toHaveLength(2)
+  const group = screen.getByRole('tablist', { name: '대화방' })
+  expect(within(group).getAllByRole('tab')).toHaveLength(2)
   expect(
     within(group)
-      .getByRole('button', { name: /기획부 방/ })
-      .getAttribute('aria-pressed'),
+      .getByRole('tab', { name: /기획부 방/ })
+      .getAttribute('aria-selected'),
   ).toBe('true')
-  fireEvent.click(within(group).getByRole('button', { name: /공지방/ }))
+  expect(within(group).getByLabelText('안 읽은 메시지 3개').textContent).toBe('3')
+  expect(within(group).getByLabelText('안 읽은 메시지 2개').textContent).toBe('2')
+  fireEvent.click(within(group).getByRole('tab', { name: /공지방/ }))
   expect(onPick).toHaveBeenCalledWith(notice.id)
+})
+
+test('방 탭은 화살표와 Home·End로 선택과 초점을 함께 옮긴다', () => {
+  const onPick = vi.fn()
+  render(<RoomSwitch rooms={[notice, department]} activeId={department.id} onPick={onPick} />)
+  const active = screen.getByRole('tab', { name: /기획부 방/ })
+  const other = screen.getByRole('tab', { name: /공지방/ })
+  active.focus()
+  fireEvent.keyDown(active, { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(other)
+  expect(onPick).toHaveBeenLastCalledWith(notice.id)
+  fireEvent.keyDown(other, { key: 'Home' })
+  expect(document.activeElement).toBe(other)
+  fireEvent.keyDown(other, { key: 'End' })
+  expect(document.activeElement).toBe(active)
 })

@@ -181,7 +181,7 @@ test('내 학생회가 아닌 방 알림을 눌러도 열려 있는 방과 화�
   expect(api.calls.length).toBe(before)
 })
 
-test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대화로 돌아오면 방 목록이 열린다', async () => {
+test('알림의 학생회 방은 탭으로 열리고 다른 메뉴에서 돌아오면 그 학생회 방을 기억한다', async () => {
   window.history.replaceState(
     null,
     '',
@@ -193,8 +193,8 @@ test('알림으로 연 방은 한 번만 쓴다. 운영진 화면에 갔다 대�
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
   expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
   fireEvent.click(within(aside).getByRole('button', { name: /^메시지/ }))
-  expect(await screen.findByRole('button', { name: /공지방/ })).toBeTruthy()
-  expect(screen.queryByText('모레 회의 있어요')).toBeNull()
+  expect(await screen.findByRole('tab', { name: /공지방/ })).toBeTruthy()
+  expect(await screen.findByText('모레 회의 있어요')).toBeTruthy()
 })
 
 const C1 = '0199d1a0-0000-7000-8000-0000000000c1'
@@ -585,11 +585,10 @@ const openRoomFromHome = async () => {
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
 }
 
-test('방 알림 화면은 아래 탭이 없고 홈으로 나온 뒤 메뉴를 열고 닫는다', async () => {
+test('학생회 방 알림은 아래 탭을 유지하고 메뉴 서랍을 열고 닫는다', async () => {
   navigationWidth()
   await openRoomFromHome()
-  expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+  expect(screen.getByRole('navigation', { name: '휴대폰 메뉴' })).toBeTruthy()
   fireEvent.click(
     within(await screen.findByRole('navigation', { name: '휴대폰 메뉴' })).getByRole('button', {
       name: '메뉴',
@@ -599,14 +598,15 @@ test('방 알림 화면은 아래 탭이 없고 홈으로 나온 뒤 메뉴를 �
   fireEvent.keyDown(sheet, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await windowHistoryIdle()
-  expect(window.location.pathname).toBe(`/home/${C1}`)
+  expect(window.location.pathname).toBe(`/chat/${C1}/${ROOM}`)
 })
 
 test('방에서 나온 홈의 메뉴 서랍은 기기 뒤로로 먼저 닫힌다', async () => {
   navigationWidth()
   await openRoomFromHome()
-  expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+  expect(screen.getByRole('navigation', { name: '휴대폰 메뉴' })).toBeTruthy()
+  act(() => window.history.back())
+  await screen.findByRole('heading', { level: 1, name: '홈' })
   fireEvent.click(
     within(await screen.findByRole('navigation', { name: '휴대폰 메뉴' })).getByRole('button', {
       name: '메뉴',

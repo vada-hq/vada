@@ -12,7 +12,7 @@ import {
 } from '@/lib/messages'
 import { useNow } from '@/lib/use-now'
 import { cn } from '@/lib/utils'
-import { ARCHIVED_LABEL, roomName } from './chat-view'
+import { ARCHIVED_LABEL, roomName, switchName } from './chat-view'
 import { ProductOpenContext, useEventProductOpener } from './product-open'
 import Composer from './Composer'
 import MessageItem from './MessageItem'
@@ -35,7 +35,7 @@ type Props = {
   request: RequestAccess
   // 메시지에서 지출 적기: `finance.manage`를 받은 값 그대로 쓴다.
   canWriteExpense: boolean
-  // 휴대폰에서 목록으로 돌아가기. PC 두 칸에서는 목록이 옆에 있어 없다.
+  // 1:1·부서 간 방에서 들어온 곳으로 돌아가기.
   onBack?: (() => void) | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
@@ -55,7 +55,7 @@ function Title({
   return (
     <div className="flex min-h-14 shrink-0 items-center gap-2 border-b bg-white px-4 py-2 sm:px-6">
       {onBack && (
-        <Button variant="ghost" size="icon" aria-label="대화방 목록" onClick={onBack}>
+        <Button variant="ghost" size="icon" touch aria-label="대화방 목록" onClick={onBack}>
           <ArrowLeft />
         </Button>
       )}
@@ -247,6 +247,7 @@ function Bottom({
         <Composer
           councilId={councilId}
           roomId={roomId}
+          roomName={switchName(state.room)}
           participants={state.participants}
           meId={meId}
           onSent={() => {

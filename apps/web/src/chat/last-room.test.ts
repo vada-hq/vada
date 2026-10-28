@@ -9,8 +9,8 @@ const finance = room('fin', { type: 'department', name: '재정부', departmentI
 const direct = room('d1', { type: 'direct', name: '박새내' })
 const listOf = (...rooms: ReturnType<typeof room>[]) => roomList({ rooms })
 
-test('기억한 방이 아직 목록에 있으면 그 방이다', () => {
-  expect(roomToShow(listOf(notice, leadership, planning, direct), 'd1')).toBe('d1')
+test('기억한 학생회 방이 아직 목록에 있으면 그 방이고, 기억한 1:1은 첫 학생회 방으로 돌아간다', () => {
+  expect(roomToShow(listOf(notice, leadership, planning, direct), 'd1')).toBe('lead')
   expect(roomToShow(listOf(notice, leadership, planning), 'all')).toBe('all')
 })
 
@@ -26,8 +26,8 @@ test('기억한 방에서 빠졌으면 같은 차례로 고른다', () => {
   expect(roomToShow(listOf(notice), 'plan')).toBe('all')
 })
 
-test('1:1만 있으면 그 1:1, 방이 없으면 없다', () => {
-  expect(roomToShow(listOf(direct), null)).toBe('d1')
+test('학생회 방이 없으면 1:1을 자동으로 열지 않는다', () => {
+  expect(roomToShow(listOf(direct), null)).toBeNull()
   expect(roomToShow(listOf(), null)).toBeNull()
 })
 
