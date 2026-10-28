@@ -188,13 +188,13 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
     'event.create',
     'schedule.create',
     'purchase.request',
+    'purchase.view_department',
   ])
   assert.deepEqual(permissionsOf(plain), [
     'council.view',
     'chat.direct',
     'schedule.create',
     'purchase.request',
-    'purchase.view_department',
   ])
 })
 
