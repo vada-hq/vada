@@ -28,6 +28,7 @@ import {
   registrationForm,
   request,
   shipment,
+  scheduleItem,
   task,
 } from '../db/schema.js'
 
@@ -51,6 +52,7 @@ export const recordTables = {
   budget_item: budgetItem,
   request,
   shipment,
+  schedule_item: scheduleItem,
   line_item: lineItem,
   expense,
   payment_line: paymentLine,
@@ -74,6 +76,7 @@ export const councilColumn: ReadonlySet<RecordKind> = new Set([
   'account',
   'fee_payment',
   'shipment',
+  'schedule_item',
 ])
 // 학생회를 넘어 이어지는 운영진과 학생회 자신만 학생회 번호를 비운다.
 export const withoutCouncil: ReadonlySet<RecordKind> = new Set(['council', 'member'])

@@ -11,6 +11,7 @@ import { DAY_MS, koreanDateOf } from './korean-time.js'
 import type { PurchaseRequestSummary } from './purchases.js'
 import type { EventSettlementRow } from './settlement.js'
 import type { TaskSummary } from './tasks.js'
+import type { ScheduleType } from './calendar.js'
 
 // 홈(010). 한 번 읽어 그 사람의 부분을 모두 받는다. 있는 부분만 오고, 화면은 직급을 다시 계산하지 않는다(DEC-38).
 // 목록마다 줄 수 상한이고 수는 전체를 센다.
@@ -144,7 +145,7 @@ export interface HomeParticipating {
   total: number
 }
 
-// 가까운 일정 한 줄. date는 한국 날짜, time은 한국 'HH:mm'이고 업무 마감은 종일이라 null이다.
+// 가까운 일정 한 줄. date는 한국 날짜, time은 한국 'HH:mm'이고 종일이면 null이다.
 export type HomeUpcomingItem =
   | { kind: 'event_start'; date: string; time: string; event: EventRef }
   | {
@@ -155,9 +156,15 @@ export type HomeUpcomingItem =
       form: { id: string; name: string }
     }
   | { kind: 'task_due'; date: string; time: null; task: TaskSummary }
+  | {
+      kind: 'schedule_item'
+      date: string
+      time: string | null
+      item: { id: string; title: string; type: ScheduleType }
+    }
 
-// 오늘부터 7일째(HOME_SOON_DAYS, 한국 날짜)까지의 행사 시작, 참가 신청 마감, 업무 마감. 날짜순이고 같은 날은 종일(업무 마감)이 먼저, 그다음 시각순이다.
-// 범위는 홈 종류마다 다르다(DEC-95): 회장단은 학생회 전체, 부서가 있으면 그 부서, 부서가 없으면 학생회 행사와 내 업무 마감.
+// 오늘부터 7일째(HOME_SOON_DAYS, 한국 날짜)까지의 행사 시작·신청 마감·업무 마감과 범위에 겹치는 일정. 날짜순, 같은 날은 종일 먼저·시각순이다.
+// 행사·업무 범위는 홈 종류를 따른다(DEC-95). 일정은 홈 종류와 관계없이 읽을 수 있는 것 모두이며, 이어지는 일정도 원래 시작 일시다(DEC-102).
 export interface HomeUpcoming {
   items: HomeUpcomingItem[]
   total: number

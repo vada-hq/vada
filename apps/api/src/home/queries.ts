@@ -8,7 +8,6 @@ import {
   type HomeMyRequests,
   type HomeParticipating,
   type HomeResponse,
-  type HomeUpcoming,
   type TaskSummary,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -42,16 +41,23 @@ const featuredEventsOf = async (db: Reader, actor: Actor, now: Date) =>
   (await openEventsOf(db, actor, now, { limit: HOME_FEATURED_LIMIT, endedLimit: 0 })).events
 
 const NO_PARTICIPATION: HomeParticipating = { events: [], total: 0 }
-const NO_UPCOMING: HomeUpcoming = { items: [], total: 0 }
 
-// 참여 행사와 가까운 일정. 재정부 홈은 두 카드가 없어 읽지 않고 빈 값이다(DEC-95).
+// 참여 행사와 가까운 일정. 재정부는 행사·업무를 읽지 않고 볼 수 있는 일정만 받는다(DEC-102).
 async function scheduleOf(
   db: Reader,
   actor: Actor,
   now: Date,
   input: { kind: HomeKind; open: OpenTask[]; mine: TaskSummary[] },
 ) {
-  if (input.kind === 'finance') return { participating: NO_PARTICIPATION, upcoming: NO_UPCOMING }
+  if (input.kind === 'finance')
+    return {
+      participating: NO_PARTICIPATION,
+      upcoming: await upcomingOf(db, actor, now, {
+        ...input,
+        staffed: [],
+        participating: NO_PARTICIPATION,
+      }),
+    }
   const staffed = await staffedEventIdsOf(db, actor)
   const participating = await participatingOf(db, actor, now, { staffed, open: input.open })
   const upcoming = await upcomingOf(db, actor, now, { ...input, staffed, participating })

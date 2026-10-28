@@ -1,5 +1,6 @@
 import {
   KOREAN_DATE_LENGTH,
+  CALENDAR_KIND_LABELS,
   type HomeAttention,
   type HomeBoardEvent,
   type HomeBoardEventRef,
@@ -72,6 +73,13 @@ export const myTasksLabel = ({ open, overdue }: HomeMyTasks) =>
 // 가까운 일정 한 줄: 제목, 메타, 오른쪽 종류 칩. 업무 마감과 참가 신청 마감은 '마감', 행사 시작은 '행사'다.
 export function upcomingParts(item: HomeUpcomingItem) {
   const date = dueText(item.date)
+  if (item.kind === 'schedule_item')
+    return {
+      date,
+      title: item.item.title,
+      meta: [item.time ?? '종일'],
+      chip: CALENDAR_KIND_LABELS[item.item.type],
+    }
   if (item.kind === 'task_due') {
     const where = item.task.event?.name ?? item.task.department?.name ?? COUNCIL_TASK_LABEL
     return { date, title: item.task.title, meta: [where, '업무 마감'], chip: '마감' as const }

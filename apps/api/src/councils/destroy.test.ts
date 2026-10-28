@@ -1,7 +1,44 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createTestDb } from '../db/test-db.js'
-import { ACCOUNT_TABLES, DESTROY_STEPS, KEPT_TABLES } from './destroy.js'
+import {
+  ACCOUNT_TABLES,
+  DESTROY_STEPS,
+  KEPT_TABLES,
+  destroyCouncilRows,
+  destroyPlanOf,
+} from './destroy.js'
+import { withSettlement } from '../test-support/settlement.js'
+
+test(
+  '일정은 부서·행사보다 먼저 파기하고 다른 학생회의 일정은 남긴다',
+  withSettlement(async t => {
+    const id = await t.make(t.council, 'schedule_item', {
+      type: 'other',
+      title: '답사',
+      startsOn: '2026-10-28',
+      departmentId: t.council.departments.planning,
+      eventId: await t.event(),
+    })
+    const other = await t.make(t.other, 'schedule_item', {
+      type: 'other',
+      title: '다른 학생회',
+      startsOn: '2026-10-28',
+    })
+    await t.db.transaction(async tx =>
+      destroyCouncilRows(tx, await destroyPlanOf(tx, t.council.councilId)),
+    )
+    const rows = await t.pg.query<{ id: string }>('SELECT id FROM schedule_item')
+    assert.deepEqual(
+      rows.rows.map(row => row.id),
+      [other],
+    )
+    assert.equal(
+      (await t.pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [id])).rows.length,
+      0,
+    )
+  }),
+)
 
 // 학생회 파기(기능 021 정한 것 15)가 표를 빠뜨리지 않는지 스키마로 본다. 새 표가 생기면 어느 쪽인지 정할 때까지 이 시험이 실패한다.
 // 파기하는 표의 행을 가리키는 외래 키는 모두 모아, 가리키는 표도 파기하고 먼저 지우는지 본다.

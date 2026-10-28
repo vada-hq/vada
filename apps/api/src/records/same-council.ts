@@ -16,6 +16,25 @@ export async function assertTaskInCouncil(tx: Tx, councilId: string | null, task
 
 type Values = Record<string, unknown>
 
+// 일정에 잇는 대상은 같은 학생회의 해당 종류여야 한다. 다른 종류의 UUID도 존재 여부를 드러내지 않는다.
+export async function assertScheduleReferences(
+  tx: Tx,
+  councilId: string,
+  values: { departmentId: string | null; eventId: string | null },
+) {
+  for (const [kind, id] of [
+    ['department', values.departmentId],
+    ['event', values.eventId],
+  ] as const) {
+    if (!id) continue
+    const [row] = await tx
+      .select({ id: record.id })
+      .from(record)
+      .where(and(eq(record.id, id), eq(record.councilId, councilId), eq(record.kind, kind)))
+    if (!row) throw new ApiError('NOT_FOUND')
+  }
+}
+
 async function councilOfRecord(tx: Tx, id: unknown) {
   const [owner] = await tx
     .select({ councilId: record.councilId })
@@ -68,6 +87,10 @@ const ownersOf: Partial<
   chat_room: async (tx, _, v) => [
     ...(await optional(tx, v.departmentId)),
     ...(await optional(tx, v.eventId)),
+  ],
+  schedule_item: async (tx, _, v) => [
+    ...(await optional(tx, field(v, 'departmentId', 'department_id'))),
+    ...(await optional(tx, field(v, 'eventId', 'event_id'))),
   ],
   message: async (tx, _, v) => [await councilOfRecord(tx, v.roomId)],
   file: (tx, _, v) => optional(tx, v.attachedToId),
@@ -159,6 +182,7 @@ export async function assertSameCouncil(
 
 // 바꿀 때 다시 보는 종류. 바꿀 수 있는 칸이 다른 학생회를 가리킬 수 있는 종류다.
 const changeChecked: ReadonlySet<RecordKind> = new Set([
+  'schedule_item',
   'task',
   'event',
   'request',

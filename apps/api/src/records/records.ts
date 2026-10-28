@@ -169,6 +169,7 @@ const ownershipKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
 }
 // 일반 주인 칸 가운데 그 종류만 바꿀 수 있는 것. 업무의 부서와 행사, 행사의 책임자는 정하고 바꾼다(바꿀 때도 같은 학생회를 다시 본다).
 const changeableKeysOf: Partial<Record<RecordKind, ReadonlySet<string>>> = {
+  schedule_item: new Set(['departmentId', 'department_id']),
   task: new Set(['departmentId', 'department_id', 'eventId', 'event_id']),
   event: new Set(['ownerId', 'owner_id']),
   registration_form: new Set(['feeAccountId', 'fee_account_id']),

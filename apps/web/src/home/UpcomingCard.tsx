@@ -1,6 +1,7 @@
 import { Calendar } from 'lucide-react'
 import type { HomeUpcoming, HomeUpcomingItem } from '@vada/contracts'
 import { cn } from '@/lib/utils'
+import { openRecord } from '@/lib/go-to'
 import { upcomingParts } from './council-view'
 import HomeCard from './HomeCard'
 import { ScheduleTag } from './HomeChip'
@@ -13,23 +14,26 @@ type UpcomingOpeners = {
 }
 
 const keyOf = (item: HomeUpcomingItem) =>
-  `${item.kind}-${item.kind === 'task_due' ? item.task.id : item.kind === 'registration_close' ? item.form.id : item.event.id}`
+  `${item.kind}-${item.kind === 'task_due' ? item.task.id : item.kind === 'registration_close' ? item.form.id : item.kind === 'schedule_item' ? item.item.id : item.event.id}`
 
-function open(item: HomeUpcomingItem, opens: UpcomingOpeners) {
+function open(item: HomeUpcomingItem, opens: UpcomingOpeners, councilId: string) {
+  if (item.kind === 'schedule_item') return openRecord('schedule', councilId, item.item.id)
   if (item.kind === 'task_due') return opens.onOpenTask(item.task.id)
   if (item.kind === 'registration_close') return opens.onOpenEvent(item.event.id, 'registrations')
   return opens.onOpenEvent(item.event.id)
 }
 
 // 가까운 일정 카드(와이어프레임 HOME-01C '가까운 주요 일정', 01D·01M '가까운 일정'): 왼쪽 날짜, 제목과 메타, 오른쪽 종류 칩.
-// 서버가 정한 차례(날짜순, 같은 날 종일 먼저) 그대로다. 업무·행사·신청 양식이 섞여 도착할 원래 화면 하나가 없어 전체 보기 없이 수만 둔다(DEC-95).
+// 서버가 정한 차례(날짜순, 같은 날 종일 먼저) 그대로 각 줄의 원본을 연다(DEC-95·102).
 export default function UpcomingCard({
+  councilId,
   title,
   upcoming,
   headClassName,
   wideDate = false,
   ...opens
 }: UpcomingOpeners & {
+  councilId: string
   title: string
   upcoming: HomeUpcoming
   headClassName?: string
@@ -56,7 +60,7 @@ export default function UpcomingCard({
         title={parts.title}
         meta={parts.meta}
         side={<ScheduleTag label={parts.chip} />}
-        onOpen={() => open(item, opens)}
+        onOpen={() => open(item, opens, councilId)}
       />
     )
   })

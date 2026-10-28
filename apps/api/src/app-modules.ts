@@ -14,6 +14,7 @@ import { createExpenseRoutes } from './expenses/routes.js'
 import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { createHomeRoutes } from './home/routes.js'
 import { createCalendarRoutes } from './calendar/routes.js'
+import { createScheduleRoutes } from './schedule/routes.js'
 import { createIncomeRoutes } from './incomes/routes.js'
 import { createInviteRoutes } from './invites/routes.js'
 import { createPurchasePush } from './purchases/notify.js'
@@ -100,6 +101,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     tasks: createTaskRoutes(db, session, { clock, push: push.task }),
     home: createHomeRoutes(db, session, { clock }),
     calendar: createCalendarRoutes(db, session, { clock }),
+    schedule: createScheduleRoutes(db, session, { clock }),
     purchases: createPurchaseRoutes(db, session, { clock, push: push.purchase, writeLimiter }),
     shipments: createShipmentRoutes(db, session, { clock, lookup: deps.deliveryLookup }),
     budget: createBudgetRoutes(db, session, { clock }),

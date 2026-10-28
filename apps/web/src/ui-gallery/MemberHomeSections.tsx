@@ -122,7 +122,16 @@ const home: HomeResponse = {
   },
   upcoming: {
     items: [
-      { kind: 'task_due', date: '2026-10-28', time: null, task: task('t2', '부스 배치안 확정') },
+      {
+        kind: 'schedule_item',
+        date: '2026-10-28',
+        time: null,
+        item: {
+          id: '019e0000-0000-7000-8000-000000000002',
+          title: '중간고사 기간',
+          type: 'academic',
+        },
+      },
       {
         kind: 'registration_close',
         date: '2026-10-29',
@@ -164,7 +173,7 @@ function Sample({ newcomer = false, band = false }: { newcomer?: boolean; band?:
   return (
     <MemberHome
       home={newcomer ? firstDay : home}
-      councilId="c1"
+      councilId="019e0000-0000-7000-8000-000000000001"
       name="정하늘"
       rooms={roomsOf(
         newcomer

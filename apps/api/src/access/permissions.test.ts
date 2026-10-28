@@ -32,6 +32,32 @@ test('권한표는 계약의 동작을 빠짐없이 한 칸씩 가진다', () =>
   assert.deepEqual(Object.keys(PERMISSIONS).sort(), [...ACTIONS].sort())
 })
 
+test('일정 만들기는 모든 운영진이고 고치기·취소는 만든 사람·회장단·그 부서장이다', () => {
+  assert.equal(can(plain, 'schedule.create'), true)
+  const financeHead = actor('financeHead', null, [
+    { departmentId: 'finance', role: 'finance', rank: 'head' },
+  ])
+  for (const action of ['schedule.update', 'schedule.delete'] as const) {
+    assert.equal(can(plain, action, { createdBy: plain.memberId }), true)
+    for (const allowed of [president, vicePresident, planningHead, planningViceHead])
+      assert.equal(can(allowed, action, { departmentId: 'planning', createdBy: 'other' }), true)
+    for (const denied of [financeHead, planningMember, financeMember, plain])
+      assert.equal(can(denied, action, { departmentId: 'planning', createdBy: 'other' }), false)
+    for (const person of [
+      president,
+      vicePresident,
+      planningHead,
+      planningViceHead,
+      planningMember,
+      plain,
+    ]) {
+      assert.equal(can(person, action, { createdBy: 'other' }), person.councilRank !== null)
+      assert.equal(can(person, action), person.councilRank !== null)
+      assert.equal(allows(person, { who: ['record_creator'] }), false)
+    }
+  }
+})
+
 // 조직 칸마다 허용 한 사람과 거부 한 사람(바탕 spec '테스트'). 보기의 거부(운영진이 아닌 사람)는 actor.test.ts의 authorize가 본다.
 const cells: [Action, Actor, Actor][] = [
   ['council.view', plain, plain],
@@ -160,10 +186,16 @@ test('내 권한 목록: 방에 달린 chat.use와 재정·요청한 사람 칸�
     'council.view',
     'chat.direct',
     'event.create',
+    'schedule.create',
+    'purchase.request',
+  ])
+  assert.deepEqual(permissionsOf(plain), [
+    'council.view',
+    'chat.direct',
+    'schedule.create',
     'purchase.request',
     'purchase.view_department',
   ])
-  assert.deepEqual(permissionsOf(plain), ['council.view', 'chat.direct', 'purchase.request'])
 })
 
 // 이름 붙은 읽기 예외(DEC-28 '보기의 예외'). 화면은 이 이름으로만 읽기를 가르고 동작 권한을 빌리지 않는다.

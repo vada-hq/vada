@@ -17,12 +17,13 @@ export type Criterion =
   | 'requester'
   | 'event_owner'
   | 'event_department'
+  | 'record_creator'
 // 칸 하나: 할 수 있는 사람의 기준들. 하나라도 맞으면 된다(합치기, 기준 7). notOwnRequest는 직무 분리(기준 5)다.
 export type Rule = { who: readonly Criterion[]; notOwnRequest?: boolean }
 // 칸이 보는 대상. 부서 단위 칸은 departmentId, 결재 칸은 요청한 사람(requestedBy)을 받는다.
 // inRoom은 대화 칸이 보는 대상이다: 요청한 사람이 그 방의 지금 참여자인가(방을 아는 라우트가 참여 줄을 읽어 넘긴다).
 // assigneeId는 업무 칸이 보는 대상이다: 업무의 담당자(운영진 번호). 담당자 기준은 이것이 나일 때만 맞다.
-// createdBy는 업무를 만든 사람이다: 담당자이면서 만든 사람 기준(assigned_creator)은 담당자와 만든 사람이 모두 나일 때만 맞다.
+// createdBy는 기록을 만든 사람이다. assigned_creator는 담당자와 만든 사람이 모두 나일 때, record_creator는 만든 사람이 나일 때만 맞다.
 // eventOwnerId는 행사 칸이 보는 대상이다: 행사(업무가 이어진 행사 포함)의 책임자. 행사 책임자 기준은 이것이 나일 때만 맞다.
 // eventDepartmentIds는 신청 칸이 보는 대상이다: 그 행사의 취소하지 않은 업무가 가리키는 부서들(eventDepartmentIdsOf). 행사 담당 부서 기준은 내 지금 소속 부서가 이 가운데 있을 때만 맞는다.
 // requestedBy는 구매 요청의 요청한 사람이기도 하다: 요청한 사람 기준(requester)은 이것이 나일 때만 맞다.
@@ -64,6 +65,10 @@ export const PERMISSIONS: { readonly [A in Action]: Rule } = {
   'event.update': { who: ['leadership', 'event_owner'] },
   // 행사 완료와 완료 취소는 회장단이다(DEC-39). 책임자도 물려받지 않는다.
   'event.complete': { who: ['leadership'] },
+  // 일정의 부서가 없으면 부장 기준은 회장단만 맞는다(DEC-102).
+  'schedule.create': { who: ['member'] },
+  'schedule.update': { who: ['department_head', 'record_creator'] },
+  'schedule.delete': { who: ['department_head', 'record_creator'] },
   // 구매 칸. 취소는 요청한 사람만이라 회장단도 물려받지 않는다. 결재에는 notOwnRequest를 두지 않는다(DEC-41, 재정부는 자기 요청도 결재한다).
   'purchase.request': { who: ['member'] },
   'purchase.cancel': { who: ['requester'] },
@@ -132,16 +137,21 @@ function meetsStanding(actor: Actor, criterion: Criterion, context: Context) {
 }
 
 // 맥락이 가리키는 사람이나 방이 나일 때만 맞는 기준. 맥락이 없으면 모두 거부다(호출하는 쪽이 빠뜨려도 열리지 않는다).
+const sameMember = (actor: Actor, memberId: string | undefined) =>
+  memberId !== undefined && memberId === actor.memberId
+
 function meetsContext(actor: Actor, criterion: Criterion, context: Context) {
   switch (criterion) {
     case 'room_member':
       return context.inRoom === true
     case 'assignee':
-      return context.assigneeId !== undefined && context.assigneeId === actor.memberId
+      return sameMember(actor, context.assigneeId)
     case 'requester':
-      return context.requestedBy !== undefined && context.requestedBy === actor.memberId
+      return sameMember(actor, context.requestedBy)
+    case 'record_creator':
+      return sameMember(actor, context.createdBy)
     case 'event_owner':
-      return context.eventOwnerId !== undefined && context.eventOwnerId === actor.memberId
+      return sameMember(actor, context.eventOwnerId)
     case 'event_department':
       return (
         context.eventDepartmentIds !== undefined &&

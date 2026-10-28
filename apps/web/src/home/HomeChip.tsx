@@ -18,8 +18,14 @@ export default function HomeChip({ label, count }: { label: HomeChipLabel; count
 }
 
 // 가까운 일정의 종류 태그(와이어프레임 HomePrototypeScheduleTag): 상태 칩과 갈라 테두리 없는 작은 태그다.
-// 다가오는 마감(업무 마감, 참가 신청 마감)은 빨강, 행사 시작은 파랑(와이어프레임 '참석'과 같은 색)이다.
-const SCHEDULE_TONE = { 마감: 'danger', 행사: 'info' } as const
+// 가까운 마감은 노랑이다. 빨강은 지남·막힘·음수에만 쓴다는 화면 공통 규칙을 따른다.
+const SCHEDULE_TONE = {
+  마감: 'warning',
+  행사: 'info',
+  '시험·학사': 'info',
+  외부: 'neutral',
+  기타: 'neutral',
+} as const
 
 export function ScheduleTag({ label }: { label: keyof typeof SCHEDULE_TONE }) {
   return (

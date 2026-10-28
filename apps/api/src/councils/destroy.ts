@@ -43,6 +43,7 @@ export const DESTROY_STEPS = [
   { table: 'registration', column: 'id' },
   { table: 'registration_form', column: 'id' },
   { table: 'task', column: 'id' },
+  { table: 'schedule_item', column: 'id' },
   { table: 'chat_room', column: 'id' },
   { table: 'budget_item', column: 'id' },
   { table: 'budget', column: 'id' },

@@ -43,9 +43,9 @@ test('행사 구매 보기와 단계는 money 탭에서만 왕복하고 전체 �
   })
 })
 
-test('메뉴 열하나와 기록 종류 여섯마다 만들고 다시 읽으면 같은 값이다', () => {
+test('메뉴 열하나와 기록 종류 일곱마다 만들고 다시 읽으면 같은 값이다', () => {
   assert.equal(APP_MENUS.length, 11)
-  assert.equal(RECORD_KINDS.length, 6)
+  assert.equal(RECORD_KINDS.length, 7)
   for (const menu of APP_MENUS) {
     const path = menuPath(menu, C)
     assert.equal(path, `/${menu}/${C}`)
@@ -62,6 +62,18 @@ test('메뉴 열하나와 기록 종류 여섯마다 만들고 다시 읽으면 
       query: {},
     })
   }
+})
+
+test('일정 기록 주소는 왕복하고 캘린더 메뉴를 연다', () => {
+  const location = parseAppPath(recordPath('schedule', C, R))!
+  assert.deepEqual(location, {
+    type: 'record',
+    record: 'schedule',
+    councilId: C,
+    recordId: R,
+    query: {},
+  })
+  assert.deepEqual(parentOf(location), { type: 'menu', menu: 'calendar', councilId: C, query: {} })
 })
 
 test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않는다', () => {

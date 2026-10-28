@@ -39,11 +39,84 @@ const label = (item: HomeUpcomingItem) => {
       ? item.task.title
       : item.kind === 'registration_close'
         ? item.form.name
-        : item.event.name
+        : item.kind === 'schedule_item'
+          ? item.item.title
+          : item.event.name
   return `${item.kind} ${name} ${item.date}${item.time ? ` ${item.time}` : ''}`
 }
 const labels = async (h: ReturnType<typeof open>, user: string) =>
   (await h.read(user)).items.map(label)
+
+test(
+  '가까운 일정은 모든 홈에서 읽기 범위를 따르고 종일은 업무 뒤·시각은 시각순이다',
+  withSettlement(async t => {
+    const h = open(t)
+    const make = (values: Record<string, unknown>, owner = t.council) =>
+      t.make(owner, 'schedule_item', {
+        type: 'other',
+        title: '종일',
+        startsOn: '2026-10-25',
+        ...values,
+      })
+    const day = await make({})
+    const spanning = await make({ title: '진행 중', startsOn: '2026-10-23', endsOn: '2026-10-26' })
+    const timed = await make({ title: '시각', startsOn: null, startsAt: at('2026-10-25T09:00:00') })
+    const timedOverlap = await make({
+      title: '이어지는 답사',
+      startsOn: null,
+      startsAt: at('2026-10-24T15:00:00'),
+      endsAt: at('2026-10-26T18:00:00'),
+    })
+    const privateId = await make({
+      title: '부서',
+      visibility: 'department',
+      departmentId: t.council.departments.planning,
+    })
+    await make({ title: '밖', startsOn: '2026-11-02' })
+    await make({ title: '끝남', startsOn: '2026-10-24' })
+    await make({ title: '취소', cancelledAt: now })
+    await make({ title: '다른 학생회' }, t.other)
+    await h.task({
+      title: '업무 마감',
+      dueAt: due('2026-10-25'),
+      assigneeId: t.council.people.plain.memberId,
+    })
+    for (const user of [
+      's-president',
+      's-planningHead',
+      's-planningMember',
+      's-financeMember',
+      's-plain',
+    ]) {
+      const response = await h.read(user)
+      const ids = response.items.flatMap(item =>
+        item.kind === 'schedule_item' ? item.item.id : [],
+      )
+      assert.deepEqual(
+        new Set(ids),
+        new Set(
+          ['s-president', 's-planningHead', 's-planningMember'].includes(user)
+            ? [day, spanning, timed, timedOverlap, privateId]
+            : [day, spanning, timed, timedOverlap],
+        ),
+      )
+    }
+    const response = await h.read('s-plain')
+    assert.equal(response.items[2]?.kind, 'task_due')
+    assert.equal(response.items[3]?.kind, 'schedule_item')
+    assert.equal(response.items[3]?.time, null)
+    assert.equal(response.items.at(-1)?.time, '09:00')
+    const overlap = response.items.find(
+      item => item.kind === 'schedule_item' && item.item.id === spanning,
+    )
+    assert.equal(overlap?.date, '2026-10-23')
+    const ongoing = response.items.find(
+      item => item.kind === 'schedule_item' && item.item.id === timedOverlap,
+    )
+    assert.equal(ongoing?.date, '2026-10-24')
+    assert.equal(ongoing?.time, '15:00')
+  }),
+)
 
 test('가까운 일정은 오늘 0시부터 7일째 23:59:59까지(한국)이고 8일째와 전날은 없다', async () => {
   await withSettlement(async t => {

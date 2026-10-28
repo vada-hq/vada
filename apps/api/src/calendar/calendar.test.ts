@@ -18,6 +18,77 @@ const now = new Date('2026-10-27T15:30:00Z')
 const at = (value: string) => new Date(`${value}:00+09:00`)
 const query = 'from=2026-10-27&to=2026-10-29'
 
+test(
+  '일정은 종일·시각 겹침과 부서 공개 범위를 지키고 취소·다른 학생회는 빠진다',
+  withSettlement(async t => {
+    const h = open(t)
+    const make = (values: Record<string, unknown>, owner = t.council) =>
+      t.make(owner, 'schedule_item', {
+        type: 'academic',
+        title: '일정',
+        startsOn: '2026-10-26',
+        endsOn: '2026-10-27',
+        ...values,
+      })
+    const shared = await make({})
+    const privateId = await make({
+      visibility: 'department',
+      departmentId: t.council.departments.planning,
+    })
+    const timed = await make({
+      startsOn: null,
+      endsOn: null,
+      startsAt: at('2026-10-26T23:00'),
+      endsAt: at('2026-10-27T00:00'),
+    })
+    const mine = await t.make(
+      t.council,
+      'schedule_item',
+      { type: 'other', title: '내 일정', startsOn: '2026-10-29' },
+      t.council.people.planningMember.memberId,
+    )
+    await make({ startsOn: '2026-10-30', endsOn: null })
+    await make({ startsOn: '2026-10-25', endsOn: '2026-10-26' })
+    await make({ startsOn: null, endsOn: null, startsAt: at('2026-10-26T23:59'), endsAt: null })
+    await make({ cancelledAt: now })
+    await make({}, t.other)
+    for (const user of ['s-president', 's-vicePresident', 's-planningMember']) {
+      const response = await h.read(query, user)
+      assert.deepEqual(
+        new Set(response.items.map(item => item.key)),
+        new Set([shared, privateId, timed, mine].map(id => `schedule_item:${id}`)),
+      )
+    }
+    for (const user of ['s-financeMember', 's-plain']) {
+      const response = await h.read(query, user)
+      assert.deepEqual(
+        new Set(response.items.map(item => item.key)),
+        new Set([shared, timed, mine].map(id => `schedule_item:${id}`)),
+      )
+    }
+    const response = await h.read(query, 's-planningMember')
+    assert.equal(response.items.find(item => item.key === `schedule_item:${mine}`)?.mine, true)
+    assert.deepEqual(
+      response.items.find(item => item.key === `schedule_item:${shared}`),
+      {
+        key: `schedule_item:${shared}`,
+        source: 'schedule_item',
+        kind: 'academic',
+        title: '일정',
+        allDay: true,
+        start: '2026-10-26',
+        end: '2026-10-27',
+        place: null,
+        event: null,
+        department: null,
+        mine: false,
+        overdue: false,
+        target: { record: 'schedule', id: shared },
+      },
+    )
+  }),
+)
+
 function open(t: SettlementKit) {
   const api = caller(
     createApp({

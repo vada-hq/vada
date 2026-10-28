@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import HomeChip from './HomeChip'
+import HomeChip, { ScheduleTag } from './HomeChip'
+
+test('가까운 마감은 지난 상태와 구별해 노란 일정 태그로 보인다', () => {
+  render(<ScheduleTag label="마감" />)
+  expect(screen.getByText('마감').className).toContain('text-yellow-700')
+  expect(screen.getByText('마감').className).toContain('border-transparent')
+})
 
 afterEach(cleanup)
 

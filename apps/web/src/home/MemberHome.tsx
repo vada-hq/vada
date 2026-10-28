@@ -85,6 +85,7 @@ export default function MemberHome({
             }
           />,
           <UpcomingCard
+            councilId={councilId}
             key="upcoming"
             title={UPCOMING}
             upcoming={home.upcoming}

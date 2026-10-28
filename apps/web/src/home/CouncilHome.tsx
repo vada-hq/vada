@@ -110,6 +110,7 @@ export default function CouncilHome({
             onSeeAll={() => openMenu('finance', councilId, { tab: 'settlements' })}
           />,
           <UpcomingCard
+            councilId={councilId}
             key="upcoming"
             title={HOME_PLANS.council.columns[2]}
             upcoming={home.upcoming}

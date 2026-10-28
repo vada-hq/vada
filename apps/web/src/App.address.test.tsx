@@ -97,6 +97,15 @@ test('주소가 없는 시작은 첫 학생회 홈 주소가 된다', async () =
   expect(pathNow()).toBe(`/home/${C1}`)
 })
 
+test('일정 기록 주소는 캘린더 메뉴를 열고 주소를 보존한다', async () => {
+  live.moves = ['purchases', 'calendar']
+  window.history.replaceState(null, '', `/schedule/${C1}/${T1}`)
+  await renderApp()
+  expect(await heading('캘린더')).toBeTruthy()
+  expect(pathNow()).toBe(`/schedule/${C1}/${T1}`)
+  expect(menu('캘린더').getAttribute('aria-current')).toBe('page')
+})
+
 const LAST = 'vada.last.address.u1'
 
 test('/로 열면 이 기기가 마지막에 본 학생회 안 주소로 바꿔 쓴다', async () => {

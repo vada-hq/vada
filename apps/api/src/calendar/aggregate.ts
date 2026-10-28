@@ -12,6 +12,7 @@ import { eventItems } from './sources/events.js'
 import { purchaseNeededItems } from './sources/purchases.js'
 import { registrationCloseItems } from './sources/registrations.js'
 import { taskDueItems } from './sources/tasks.js'
+import { scheduleItems } from './sources/schedule.js'
 
 const byWhen = (a: CalendarItem, b: CalendarItem) =>
   a.start.slice(0, KOREAN_DATE_LENGTH).localeCompare(b.start.slice(0, KOREAN_DATE_LENGTH)) ||
@@ -26,12 +27,13 @@ export async function calendarOf(
   range: CalendarRange,
   now: Date,
 ): Promise<CalendarResponse> {
-  // 같은 읽기 거래에서 차례로 읽어 네 원본의 시점이 어긋나지 않는다.
+  // 같은 읽기 거래에서 차례로 읽어 원본의 시점이 어긋나지 않는다.
   const items = [
     ...(await eventItems(db, actor, range)),
     ...(await taskDueItems(db, actor, range, now)),
     ...(await registrationCloseItems(db, actor, range)),
     ...(await purchaseNeededItems(db, actor, range, now)),
+    ...(await scheduleItems(db, actor, range)),
   ].sort(byWhen)
   return {
     items: items.slice(0, CALENDAR_ITEM_LIMIT),

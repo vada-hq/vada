@@ -13,11 +13,13 @@ import {
   type HomeUpcoming,
   type HomeUpcomingItem,
   type TaskSummary,
+  type ScheduleType,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { event, registrationForm } from '../db/schema.js'
 import { eventRowsOf } from '../calendar/sources/events.js'
 import { registrationCloseRowsOf } from '../calendar/sources/registrations.js'
+import { scheduleItems } from '../calendar/sources/schedule.js'
 import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { dueAtOf, dueGroupOf } from '../tasks/due.js'
@@ -112,8 +114,28 @@ function taskDuesOf(tasks: TaskSummary[], now: Date) {
 }
 
 type Entry = { at: Date | null; item: HomeUpcomingItem }
-const KIND_ORDER: HomeUpcomingItem['kind'][] = ['task_due', 'event_start', 'registration_close']
-// 날짜순, 같은 날은 종일(업무 마감)이 앞이고 그다음 시각순, 같은 시각이면 행사 시작 → 신청 마감이다(캘린더 앱의 종일 일정 자리).
+const KIND_ORDER: HomeUpcomingItem['kind'][] = [
+  'task_due',
+  'schedule_item',
+  'event_start',
+  'registration_close',
+]
+
+async function schedulesOf(db: Reader, actor: Actor, range: Range): Promise<Entry[]> {
+  return (await scheduleItems(db, actor, range)).map(row => {
+    // 범위 앞에서 시작해 이어지는 일정도 실제 시작 일시를 보인다(DEC-102 원본 하나).
+    const at = row.allDay ? null : dateFromKorean(row.start)
+    return {
+      at,
+      item: {
+        kind: 'schedule_item',
+        ...(at ? timed(at) : { date: row.start, time: null }),
+        item: { id: row.target.id, title: row.title, type: row.kind as ScheduleType },
+      },
+    }
+  })
+}
+// 날짜순, 같은 날은 종일(업무 마감 → 일정)이 앞이고 그다음 시각순, 같은 시각이면 일정 → 행사 시작 → 신청 마감이다.
 // 정렬은 안정이라 같은 자리의 업무는 마감 순으로 읽은 차례를 지킨다.
 const byWhen = (a: Entry, b: Entry) =>
   a.item.date.localeCompare(b.item.date) ||
@@ -125,6 +147,7 @@ function scopeOf(
   actor: Actor,
   input: { open: OpenTask[]; mine: TaskSummary[]; staffed: string[] },
 ): Scope {
+  if (kind === 'finance') return { eventIds: [], tasks: [] }
   if (kind === 'council') return { eventIds: null, tasks: input.open.map(item => item.summary) }
   const departments = myDepartmentIds(actor)
   if (!departments.length) return { eventIds: null, tasks: input.mine }
@@ -163,6 +186,7 @@ export async function upcomingOf(
     ),
     ...(await eventStartsOf(db, actor, range, scope)),
     ...(await formClosesOf(db, actor, range, scope)),
+    ...(await schedulesOf(db, actor, range)),
   ].sort(byWhen)
   return {
     items: entries.slice(0, HOME_LIST_LIMIT).map(entry => entry.item),

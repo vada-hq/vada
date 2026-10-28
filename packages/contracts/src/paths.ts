@@ -63,6 +63,7 @@ const RECORD_PARENTS = {
   chat: { menu: 'chat' },
   events: { menu: 'events' },
   tasks: { menu: 'tasks' },
+  schedule: { menu: 'calendar' },
   purchases: { menu: 'purchases' },
   expenses: { menu: 'finance', query: { tab: 'ledger' } },
   incomes: { menu: 'finance', query: { tab: 'ledger', kind: 'income' } },
@@ -148,6 +149,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   settings: { section: { values: ['accounts', 'fees'], fallback: null } },
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
+  schedule: {},
   chat: {},
   // 업무 탭의 보기와 거르기는 업무 탭일 때만 남는다. 다른 탭으로 가면 빠진다.
   // 메시지 탭의 방(DEC-96: 처음 여는 방이면 주소에 없다)은 메시지 탭일 때만 남는다.

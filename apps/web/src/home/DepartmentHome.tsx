@@ -69,6 +69,7 @@ export default function DepartmentHome({
             emptyAction={open.onNewEvent && <NewEventButton onNewEvent={open.onNewEvent} />}
           />,
           <UpcomingCard
+            councilId={councilId}
             key="upcoming"
             title={UPCOMING}
             upcoming={home.upcoming}

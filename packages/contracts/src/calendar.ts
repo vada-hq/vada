@@ -1,5 +1,13 @@
 import { z } from 'zod'
-import { DAY_MS, dateFromKorean, koreanDate } from './korean-time.js'
+import {
+  DAY_MS,
+  dateFromKorean,
+  koreanDate,
+  koreanDateTime,
+  KOREAN_DATE_LENGTH,
+} from './korean-time.js'
+import { EmptyRequestSchema, text } from './input.js'
+import { recordIdInput } from './team.js'
 
 export const SCHEDULE_TITLE_MAX = 100
 export const SCHEDULE_PLACE_MAX = 100
@@ -13,6 +21,82 @@ export const SCHEDULE_TYPES = ['deadline', 'academic', 'external', 'other'] as c
 export type ScheduleType = (typeof SCHEDULE_TYPES)[number]
 export const SCHEDULE_VISIBILITIES = ['council', 'department'] as const
 export type ScheduleVisibility = (typeof SCHEDULE_VISIBILITIES)[number]
+
+const ScheduleWhenSchema = z.discriminatedUnion('allDay', [
+  z.strictObject({ allDay: z.literal(true), startsOn: koreanDate, endsOn: koreanDate.nullable() }),
+  z.strictObject({
+    allDay: z.literal(false),
+    startsAt: koreanDateTime,
+    endsAt: koreanDateTime.nullable(),
+  }),
+])
+const scheduleFields = {
+  title: text(SCHEDULE_TITLE_MAX),
+  type: z.enum(SCHEDULE_TYPES),
+  when: ScheduleWhenSchema,
+  place: text(SCHEDULE_PLACE_MAX).nullable(),
+  departmentId: recordIdInput.nullable(),
+  visibility: z.enum(SCHEDULE_VISIBILITIES),
+  eventId: recordIdInput.nullable(),
+  memo: text(SCHEDULE_MEMO_MAX).nullable(),
+}
+
+function validSpan({ when }: { when: z.infer<typeof ScheduleWhenSchema> }) {
+  const start = when.allDay ? when.startsOn : when.startsAt
+  const end = when.allDay ? when.endsOn : when.endsAt
+  if (end === null) return true
+  const ordered = when.allDay ? end >= start : end > start
+  const day = (value: string) =>
+    dateFromKorean(`${value.slice(0, KOREAN_DATE_LENGTH)}T00:00`).getTime()
+  return ordered && (day(end) - day(start)) / DAY_MS <= SCHEDULE_SPAN_MAX_DAYS
+}
+
+const departmentWhenScoped = (input: {
+  visibility: ScheduleVisibility
+  departmentId: string | null
+}) => input.visibility !== 'department' || input.departmentId !== null
+
+export const CreateScheduleItemSchema = z
+  .strictObject({
+    ...scheduleFields,
+    type: scheduleFields.type.default('other'),
+    place: scheduleFields.place.default(null),
+    departmentId: scheduleFields.departmentId.default(null),
+    visibility: scheduleFields.visibility.default('council'),
+    eventId: scheduleFields.eventId.default(null),
+    memo: scheduleFields.memo.default(null),
+  })
+  .refine(validSpan, { path: ['when'] })
+  .refine(departmentWhenScoped, { path: ['departmentId'] })
+export const UpdateScheduleItemSchema = z
+  .strictObject(scheduleFields)
+  .refine(validSpan, { path: ['when'] })
+  .refine(departmentWhenScoped, { path: ['departmentId'] })
+export const DeleteScheduleItemSchema = EmptyRequestSchema
+export type CreateScheduleItemRequest = z.infer<typeof CreateScheduleItemSchema>
+export type UpdateScheduleItemRequest = z.infer<typeof UpdateScheduleItemSchema>
+
+export const SCHEDULE_ACTIONS = ['schedule.update', 'schedule.delete'] as const
+export type ScheduleAction = (typeof SCHEDULE_ACTIONS)[number]
+export interface ScheduleItemDetail {
+  id: string
+  title: string
+  type: ScheduleType
+  allDay: boolean
+  start: string
+  end: string | null
+  place: string | null
+  memo: string | null
+  visibility: ScheduleVisibility
+  department: { id: string; name: string } | null
+  event: { id: string; name: string } | null
+  createdBy: { id: string; name: string | null; current: boolean } | null
+  createdAt: string
+  actions: ScheduleAction[]
+}
+export interface ScheduleItemResponse {
+  item: ScheduleItemDetail
+}
 
 export const CALENDAR_KINDS = [
   'event',
@@ -33,14 +117,14 @@ export const CALENDAR_SOURCES = [
 ] as const
 export type CalendarSource = (typeof CALENDAR_SOURCES)[number]
 
-export const CALENDAR_KIND_LABELS: Record<CalendarKind, string> = {
+export const CALENDAR_KIND_LABELS = {
   event: '행사',
   meeting: '회의',
   deadline: '마감',
   academic: '시험·학사',
   external: '외부',
   other: '기타',
-}
+} as const satisfies Record<CalendarKind, string>
 
 export const CalendarQuerySchema = z
   .strictObject({ from: koreanDate, to: koreanDate })
