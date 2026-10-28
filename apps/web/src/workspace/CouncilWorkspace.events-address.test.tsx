@@ -203,7 +203,7 @@ test.each([404, 403])(
 )
 
 async function startEditing() {
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '봄 신청' } })
 }
@@ -258,7 +258,7 @@ test('신청 양식을 고치다 기기 뒤로를 누르면 한 칸 되돌려 �
 
 test('고친 것이 없으면 확인 없이 옮겨 간다', async () => {
   setup(`${EVENT_AT}?tab=registrations`)
-  fireEvent.click(await screen.findByRole('button', { name: '신청 양식 만들기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
