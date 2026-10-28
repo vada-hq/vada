@@ -102,13 +102,13 @@ export default function FinanceHome({ home, board, councilId, name, rooms, pushB
             pending={board.pending}
             asOf={home.asOf}
             onOpen={openRequest}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'requests', view: 'pending' })}
+            onSeeAll={() => openMenu('purchases', councilId, { view: 'pending' })}
           />,
           <NearbyCard
             key="nearby"
             nearby={board.nearby}
             onOpen={openRequest}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'requests', view: 'all' })}
+            onSeeAll={() => openMenu('purchases', councilId, { view: 'all' })}
           />,
           <ExceptionsCard
             key="exceptions"

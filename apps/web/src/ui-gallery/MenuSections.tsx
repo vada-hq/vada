@@ -14,12 +14,15 @@ import {
   MenuTrigger,
 } from '@/components/ui/menu'
 import { NavItem } from '@/components/ui/nav-item'
-import { TabButton } from '@/components/ui/tab-button'
+import { useState } from 'react'
+import type { FinanceTab } from '@vada/contracts'
+import { FinanceTabs } from '@/finance/FinanceTabs'
 import MessageItem from '@/chat/MessageItem'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
 export function MenuTabsSection() {
+  const [tab, setTab] = useState<Exclude<FinanceTab, 'requests'>>('overview')
   return (
     <Section title="메뉴·탭">
       <div className="flex w-60 flex-col gap-0.5 rounded-lg border bg-white p-2">
@@ -27,10 +30,7 @@ export function MenuTabsSection() {
         <NavItem>축제</NavItem>
         <NavItem disabled>비활성 행사</NavItem>
       </div>
-      <div role="tablist" aria-label="예시 탭" className="flex gap-0.5 border-b bg-white px-6">
-        <TabButton aria-selected>메시지</TabButton>
-        <TabButton aria-selected={false}>구매요청</TabButton>
-      </div>
+      <FinanceTabs tab={tab} onTab={setTab} showFees />
     </Section>
   )
 }

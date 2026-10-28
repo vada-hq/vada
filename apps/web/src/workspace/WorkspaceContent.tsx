@@ -1,9 +1,10 @@
 import type { CouncilView } from '@vada/contracts'
-import type { Ref } from 'react'
+import type { ComponentType, Ref } from 'react'
 import ChatRoute from '../chat/ChatRoute'
 import CalendarPage from '../calendar/CalendarPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
+import PurchasesPage from '../purchases/PurchasesPage'
 import type { HomeOpeners } from '../home/HomeBody'
 import HomePage from '../home/HomePage'
 import type { EventTab } from '@vada/contracts'
@@ -80,6 +81,11 @@ function LeadPage({
   )
 }
 
+// 학생회 화면과 권한 재읽기만 받는 메뉴(메뉴 v7의 구매, 캘린더).
+const SINGLE_PAGES: Partial<
+  Record<Page, ComponentType<{ view: CouncilView; onForbidden: () => void }>>
+> = { purchases: PurchasesPage, calendar: CalendarPage }
+
 function PageOf({
   data,
   rooms,
@@ -103,9 +109,10 @@ function PageOf({
         onTasksChanged={() => void tasks.reload()}
       />
     )
+  const Single = SINGLE_PAGES[page]
+  if (Single) return <Single view={view} onForbidden={data.reload} />
   if (page === 'tasks' || page === 'finance')
     return <RecordsPage {...{ data, tasks, page, taskId, view }} />
-  if (page === 'calendar') return <CalendarPage view={view} onForbidden={data.reload} />
   // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91).
   if (page === 'people' || page === 'departments')
     return (

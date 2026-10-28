@@ -286,8 +286,8 @@ test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 결재 �
   const section = await screen.findByRole('region', { name: '받은 것' })
   expect(within(section).getByText('50+')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  // 재정부의 재정 첫 화면은 개요라서 구매 요청 탭을 적어 연다.
-  expect(pathNow()).toBe('/finance/c1?tab=requests&view=pending')
+  // 받은 것 전체 보기는 구매 메뉴의 결재 대기를 연다.
+  expect(pathNow()).toBe('/purchases/c1?view=pending')
 })
 
 test('받은 것과 정산할 행사가 비면 한 줄로 말한다', async () => {

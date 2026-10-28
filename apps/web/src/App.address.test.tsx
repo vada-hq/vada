@@ -17,7 +17,7 @@ vi.mock('./auth/auth-client', () => ({
 }))
 
 // 메뉴 v7 옮기기는 새 자리를 그리는 조각이 켠다. 시험마다 켠 것을 바꾼다.
-const live = vi.hoisted(() => ({ moves: [] as string[] }))
+const live = vi.hoisted(() => ({ moves: ['purchases'] as string[] }))
 vi.mock('./workspace/live-moves', () => ({
   get LIVE_MOVES() {
     return live.moves
@@ -31,7 +31,7 @@ let api: ReturnType<typeof mockApi>
 const listeners: ((event: { data: unknown }) => void)[] = []
 
 beforeEach(() => {
-  live.moves = []
+  live.moves = ['purchases']
   listeners.length = 0
   window.localStorage.clear()
   window.history.replaceState(null, '', '/')
@@ -274,7 +274,7 @@ test('/로 열었는데 마지막 주소가 기록이면 바로 들어온 기록
   expect(window.localStorage.getItem(LAST)).toBe(`/tasks/${C1}`)
 })
 
-test('옮기기 전 마지막 구매 상세를 /에서 복원하면 뒤로가 재정 구매 요청 목록으로 바로 돌아간다', async () => {
+test('마지막 구매 상세를 /에서 복원하면 뒤로가 구매 목록으로 바로 돌아간다', async () => {
   window.localStorage.setItem(LAST, `/purchases/${C1}/${T1}`)
   api.on('GET', `/api/organizations/${C1}/purchase-requests/${T1}`, () =>
     json({ request: purchaseDetail(T1, { title: '테이프 구매' }) }),
@@ -288,13 +288,11 @@ test('옮기기 전 마지막 구매 상세를 /에서 복원하면 뒤로가 �
   const reads = council(C1).length
   replace.mockClear()
   act(() => window.history.back())
-  expect(await heading('재정')).toBeTruthy()
-  expect(pathNow()).toBe(`/finance/${C1}?tab=requests`)
-  expect(replace.mock.calls.some(([, , path]) => String(path).startsWith('/purchases/'))).toBe(
-    false,
-  )
+  expect(await heading('구매')).toBeTruthy()
+  expect(pathNow()).toBe(`/purchases/${C1}`)
+  expect(replace.mock.calls.some(([, , path]) => String(path).startsWith('/finance/'))).toBe(false)
   expect(council(C1).length).toBe(reads)
-  expect(window.localStorage.getItem(LAST)).toBe(`/finance/${C1}?tab=requests`)
+  expect(window.localStorage.getItem(LAST)).toBe(`/purchases/${C1}`)
 })
 
 test('새로 고침으로 되살린 창은 칸을 더 쌓지 않는다', async () => {
@@ -396,9 +394,30 @@ test.each([`/calendar/${C1}`, `/tasks/${C1}?layout=calendar`])(
   },
 )
 
-test('아직 그리지 않은 구매 주소는 재정의 구매 요청 탭으로, 마지막 주소도 같이 바꿔 쓴다', async () => {
+test('구매 주소는 구매 목록을 열고 마지막 주소도 구매로 남긴다', async () => {
   window.localStorage.setItem(LAST, `/purchases/${C2}?view=all`)
   await renderApp()
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${C2}?tab=requests&view=all`))
-  expect(await heading('재정')).toBeTruthy()
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${C2}?view=all`))
+  expect(await heading('구매')).toBeTruthy()
+})
+
+test.each([
+  ['?tab=requests&view=all', '?view=all'],
+  ['?tab=requests', '?view=mine'],
+])('옛 구매 목록 주소 %s는 새 구매 메뉴 %s로 바꿔 쓴다', async (oldQuery, newQuery) => {
+  window.history.replaceState(null, '', `/finance/${C1}${oldQuery}`)
+  const push = pushes()
+  await renderApp()
+  expect(await heading('구매')).toBeTruthy()
+  expect(pathNow()).toBe(`/purchases/${C1}${newQuery}`)
+  expect(push).not.toHaveBeenCalled()
+})
+
+test('옛 요청 작성 주소는 구매 작성으로 바꿔 쓴다', async () => {
+  window.history.replaceState(null, '', `/finance/${C1}/requests/new`)
+  const push = pushes()
+  await renderApp()
+  await screen.findByRole('form', { name: '구매 요청 내기' })
+  expect(pathNow()).toBe(`/purchases/${C1}/new`)
+  expect(push).not.toHaveBeenCalled()
 })

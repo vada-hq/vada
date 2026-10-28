@@ -14,7 +14,7 @@ export function PurchaseRoute({
   children: ReactNode
 }) {
   const here = useHere()
-  if (here.path === `/finance/${view.council.id}/requests/new`)
+  if (here.path === `/purchases/${view.council.id}/new`)
     return <PurchasePage view={view} onForbidden={onForbidden} />
   const prefix = `/purchases/${view.council.id}/`
   if (here.path.startsWith(prefix))

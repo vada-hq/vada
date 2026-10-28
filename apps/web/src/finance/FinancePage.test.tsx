@@ -6,7 +6,7 @@ import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
-import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
 
 afterEach(async () => {
   cleanup()
@@ -20,7 +20,7 @@ const list = (requests = [purchaseSummary('a')], truncated = false) => json({ re
 
 function show(view = councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })) {
   const handlers = { onForbidden: vi.fn() }
-  render(<FinanceAt view={view} {...handlers} />)
+  render(<PurchasesAt view={view} {...handlers} />)
   return handlers
 }
 
@@ -47,21 +47,13 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
 })
 
-test('탭은 개요, 구매 요청, 지출, 수입, 예산, 행사 정산, 계좌, 결산이다(개요는 모든 운영진)', async () => {
+test('구매 목록에는 재정 탭이 없다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show()
   await screen.findByText('내 구매 요청 없음')
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
-    '개요',
-    '구매 요청',
-    '지출',
-    '수입',
-    '예산',
-    '행사 정산',
-    '계좌',
-    '결산',
-  ])
+  expect(screen.queryAllByRole('tab')).toEqual([])
+  expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}`)
 })
 
 test('거르기 셋이 있고 바꾸면 그 보기를 읽는다', async () => {

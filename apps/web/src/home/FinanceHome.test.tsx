@@ -107,7 +107,7 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
   fireEvent.click(within(rows[0]!).getByRole('button', { name: '요청 r1' }))
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001/r1')
   fireEvent.click(within(pending).getByRole('button', { name: '전체 4건 보기' }))
-  expect(path()).toBe('/finance/01900000-0000-7000-8000-000000000001?tab=requests&view=pending')
+  expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001?view=pending')
 })
 
 test('품목은 요청으로, 예산 미입력·음수 사용 가능은 받은 값 그대로 행사 재정으로 간다', async () => {

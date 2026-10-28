@@ -9,7 +9,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { asElement } from '@/test-support/elements'
 import { PURCHASE_LOST } from '@/lib/messages'
-import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
 
 afterEach(async () => {
   cleanup()
@@ -34,7 +34,10 @@ function setup(detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')) 
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => json({ request: detail }))
   const handlers = { onForbidden: vi.fn() }
   render(
-    <FinanceAt view={councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })} {...handlers} />,
+    <PurchasesAt
+      view={councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })}
+      {...handlers}
+    />,
   )
   const reads = () => api.calls.filter(call => call.path === LIST).length
   return { api, handlers, reads }

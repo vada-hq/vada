@@ -109,7 +109,7 @@ const isSelected = async (name: string) =>
 const requestPage = () => screen.findByRole('region', { name: '구매 요청 상세' })
 const backFromRequest = async () => {
   fireEvent.click(screen.getByRole('button', { name: '들어온 곳으로 돌아가기' }))
-  await waitFor(() => expect(window.location.pathname).not.toContain('/purchases/'))
+  await waitFor(() => expect(window.location.pathname).not.toMatch(/\/purchases\/[^/]+\//))
   await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   await act(() => windowHistoryIdle())
 }
@@ -119,11 +119,10 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 아홉이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
+test('재정 탭 여덟이 주소에 남고 기록을 쌓지 않으며, 탭이 없는 주소는 재정부에게 개요다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
-    ['구매 요청', '?tab=requests'],
     ['지출', '?tab=expenses'],
     ['수입', '?tab=incomes'],
     ['예산', '?tab=budget'],
@@ -168,15 +167,15 @@ test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 �
 })
 
 test('요청 거르기가 주소에 남고 내 요청으로 돌아오면 주소에서 빠진다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
+  startAt(`/purchases/${COUNCIL_ID}?view=all`)
   const pressed = async (name: string) =>
     (await screen.findByRole('button', { name })).getAttribute('aria-pressed')
   expect(await pressed('전체')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=pending`))
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=pending`))
   expect(await pressed('결재 대기')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '내 요청' }))
-  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests`))
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}`))
 })
 
 test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열린다', async () => {
@@ -212,7 +211,7 @@ test('납부자 명단 권한이 없으면 그 탭 주소는 첫 화면(개요)�
 })
 
 test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 거르기의 목록으로 돌아간다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
+  startAt(`/purchases/${COUNCIL_ID}?view=all`)
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   await requestPage()
@@ -223,12 +222,12 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
   expect(screen.queryByRole('button', { name: '전체' })).toBeNull()
   await backFromRequest()
   expect(screen.getByRole('button', { name: '전체' }).getAttribute('aria-pressed')).toBe('true')
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
-  expect(await isSelected('구매 요청')).toBe(true)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
+  expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
 })
 
 test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 번 더 닫으면 목록이다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=requests`)
+  startAt(`/purchases/${COUNCIL_ID}`)
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   const request = await requestPage()
   fireEvent.click(await within(request).findByRole('button', { name: /인쇄소/ }))
@@ -239,7 +238,7 @@ test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 �
   await requestPage()
   await screen.findByRole('heading', { level: 1, name: '행사 포스터 인쇄' })
   await backFromRequest()
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}`)
 })
 
 test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 가면 그 지출이다', async () => {
@@ -255,7 +254,7 @@ test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 �
   expect(pathNow()).toBe(`/expenses/${COUNCIL_ID}/${X1}`)
 })
 
-test('홈의 받은 것 모두 보기는 결재 대기 거르기로 재정을 연다', async () => {
+test('홈의 받은 것 모두 보기는 결재 대기 거르기로 구매를 연다', async () => {
   window.history.replaceState(null, '', `/home/${COUNCIL_ID}`)
   setup(
     'home',
@@ -269,7 +268,7 @@ test('홈의 받은 것 모두 보기는 결재 대기 거르기로 재정을 �
   expect(
     (await screen.findByRole('button', { name: '결재 대기' })).getAttribute('aria-pressed'),
   ).toBe('true')
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=pending`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=pending`)
 })
 
 test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있고, 닫으면 그 행사의 돈 탭이다', async () => {
@@ -322,7 +321,7 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
 })
 
 test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 보던 목록으로 돌아갈 수 있다', async () => {
-  startAt(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
+  startAt(`/purchases/${COUNCIL_ID}?view=all`)
   api.on('GET', requestsOf('all'), () =>
     json({ requests: [purchaseSummary(GONE)], truncated: false }),
   )
@@ -332,7 +331,7 @@ test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404)
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${GONE}`)
   expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
   await backFromRequest()
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=requests&view=all`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
   expect((await screen.findByRole('button', { name: '전체' })).getAttribute('aria-pressed')).toBe(
     'true',
   )
@@ -365,4 +364,16 @@ test('지출 적기에 쓰던 입력이 남았으면 새로 고침 때 브라우
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(unloadBlocked()).toBe(false)
+})
+
+test('구매 메뉴는 모두에게 열리고 목록·상세·작성 경로에 구매가 남는다', async () => {
+  startAt(`/purchases/${COUNCIL_ID}`, 'purchases', MEMBER_PERMISSIONS)
+  await screen.findByRole('button', { name: `요청 ${R1}` })
+  const nav = within(screen.getByRole('navigation', { name: '학생회 메뉴' }))
+  expect(nav.getByRole('button', { name: '구매' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '구매 요청 내기' }))
+  await screen.findByRole('form', { name: '구매 요청 내기' })
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/new`)
+  expect(screen.getByLabelText('경로').textContent).toContain('구매')
 })

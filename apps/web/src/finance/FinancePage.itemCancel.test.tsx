@@ -7,7 +7,7 @@ import { councilView, FINANCE_PERMISSIONS } from '@/test-support/council-fixture
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PERMISSION_CHANGED, PURCHASE_ERRORS, PURCHASE_LOST } from '@/lib/messages'
-import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
 
 afterEach(async () => {
   cleanup()
@@ -56,7 +56,7 @@ function setup(first: PurchaseRequestDetail) {
   })
   const handlers = { onForbidden: vi.fn() }
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       {...handlers}
     />,

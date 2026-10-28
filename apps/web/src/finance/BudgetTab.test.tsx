@@ -42,12 +42,11 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const button = (name: string) => asElement(screen.getByRole('button', { name }), HTMLButtonElement)
 
-test('재정부의 탭은 개요, 구매 요청, 지출, 수입, 예산, 계좌, 납부자 명단, 결산이다', async () => {
+test('재정부의 탭은 개요, 지출, 수입, 예산, 계좌, 납부자 명단, 결산이다', async () => {
   show()
   await screen.findByText('회계 기간 없음')
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '개요',
-    '구매 요청',
     '지출',
     '수입',
     '예산',
@@ -198,7 +197,7 @@ test('예산을 못 읽으면 다시 시도를 보인다', async () => {
     reads += 1
     return reads === 1 ? json({ error: 'INTERNAL' }, 500) : json(budgetWithPeriod())
   })
-  fireEvent.click(screen.getByRole('tab', { name: '구매 요청' }))
+  fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   fireEvent.click(screen.getByRole('tab', { name: '예산' }))
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('2026년 2학기')).toBeTruthy()

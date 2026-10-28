@@ -32,17 +32,7 @@ test('재정 탭 줄은 지출 옆에 수입이 있고 줄을 바꿔 가로 스�
   serveIncomes()
   showFinance()
   const tabs = screen.getAllByRole('tab').map(tab => tab.textContent)
-  expect(tabs).toEqual([
-    '개요',
-    '구매 요청',
-    '지출',
-    '수입',
-    '예산',
-    '행사 정산',
-    '계좌',
-    '납부자 명단',
-    '결산',
-  ])
+  expect(tabs).toEqual(['개요', '지출', '수입', '예산', '행사 정산', '계좌', '납부자 명단', '결산'])
   const list = screen.getByRole('tablist', { name: '재정 보기' })
   // 탭 부품은 부모에 overflow를 줄 수 없다(tab-button.tsx). 넘치면 줄을 바꾼다.
   expect(list.className).toContain('flex-wrap')
@@ -146,7 +136,8 @@ test('수입 탭을 열기 전에는 수입을 읽지 않는다', () => {
   const api = serveIncomes()
   showFinance()
   expect(api.calls.some(call => call.path.startsWith(INCOMES))).toBe(false)
-  expect(api.calls.some(call => call.path === PERIODS)).toBe(false)
+  // 개요가 같은 회계 기간 목록을 쓴다.
+  expect(api.calls.some(call => call.path === PERIODS)).toBe(true)
 })
 
 test.each([true, false])(

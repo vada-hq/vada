@@ -17,6 +17,7 @@ test.each<[Page, string]>([
   ['events', '행사'],
   ['tasks', '업무'],
   ['finance', '재정'],
+  ['purchases', '구매'],
   ['people', '조직'],
   ['departments', '조직'],
   ['settings', '설정'],

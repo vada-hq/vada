@@ -6,6 +6,8 @@ import {
   type PurchaseRequestSummary,
 } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
+import { RequestFilter } from '@/purchases/RequestFilter'
+import type { PurchaseView } from '@vada/contracts'
 import { emptyRow, type RowValues } from '@/finance/decision-form'
 import { DecisionFrame, DecisionRows, NeedsBudget } from '@/finance/DecisionPanel'
 import { DecisionRow, PendingItemCard } from '@/finance/DecisionRow'
@@ -85,8 +87,10 @@ const budgetItems: BudgetItemView[] = [
 ]
 
 export function FinanceSection() {
+  const [view, setView] = useState<PurchaseView>('mine')
   return (
     <Section title="구매 요청 카드·상태 배지">
+      <RequestFilter view={view} onView={setView} hasHeads />
       <div className="flex w-full flex-wrap items-center gap-2">
         {PURCHASE_STATUSES.map(status => (
           <StatusBadge key={status} status={status} />

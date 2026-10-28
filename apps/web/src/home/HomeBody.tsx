@@ -70,12 +70,12 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
   }
 }
 
-// 요청 줄은 그 요청의 주소로 연다(닫으면 홈으로 돌아온다). '받은 것' 모두 보기는 결재 대기 거르기, '내 요청'은 구매 요청 탭(내 요청)이다.
-// 재정부의 재정 첫 화면은 개요라서 탭을 적어 보낸다.
+// 요청 줄은 그 요청의 주소로 연다(닫으면 홈으로 돌아온다). '받은 것' 모두 보기는 결재 대기 거르기, '내 요청'은 구매 메뉴(내 요청)이다.
+// 구매 보기는 역할별 기본값이 바뀌어도 보던 대상을 유지하도록 명시한다.
 const requestOpeners = (councilId: string) => ({
   openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
-  seeReceived: () => openMenu('finance', councilId, { tab: 'requests', view: 'pending' }),
-  seeMine: () => openMenu('finance', councilId, { tab: 'requests' }),
+  seeReceived: () => openMenu('purchases', councilId, { view: 'pending' }),
+  seeMine: () => openMenu('purchases', councilId, { view: 'mine' }),
   // 정산할 행사 모두 보기는 같은 셈의 재정 '행사 정산' 탭이다(DEC-92).
   seeSettling: () => openMenu('finance', councilId, { tab: 'settlements' }),
 })

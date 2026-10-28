@@ -23,5 +23,6 @@ test('다른 메뉴에서 들어왔으면 그 메뉴의 이름이다', () => {
   expect(backLabel(menuPath('home', C))).toBe('홈')
   expect(backLabel(menuPath('tasks', C, { view: 'all' }))).toBe('업무')
   expect(backLabel(recordPath('tasks', C, T))).toBe('업무')
-  expect(backLabel(recordPath('purchases', C, T))).toBe('재정')
+  expect(backLabel(menuPath('purchases', C))).toBe('구매')
+  expect(backLabel(recordPath('purchases', C, T))).toBe('구매')
 })

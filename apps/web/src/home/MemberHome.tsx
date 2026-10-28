@@ -96,7 +96,7 @@ export default function MemberHome({
             key="requests"
             myRequests={home.myRequests}
             onOpenRequest={requestId => openRecord('purchases', councilId, requestId)}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'requests' })}
+            onSeeAll={() => openMenu('purchases', councilId, { view: 'mine' })}
           />,
           <MyWorkCard
             key="work"

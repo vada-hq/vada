@@ -48,7 +48,7 @@ test('재정부가 아닌 운영진도 재정을 열면 개요가 첫 탭이고,
   expect(api.calls.some(call => call.path.includes('/closing'))).toBe(false)
   expect(document.body.textContent).not.toContain('열람용')
   expect(screen.queryByRole('button', { name: '편성' })).toBeNull()
-  expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
 })
 
 test('사용 가능이 음수면 빨갛다', async () => {
@@ -151,7 +151,8 @@ test('카드의 내역은 지출 탭(그 기간)과 구매 요청 전체로, 재
   window.history.back()
   await screen.findByRole('region', { name: '지출 예정' })
   fireEvent.click(within(region('지출 예정')).getByRole('button', { name: '내역' }))
-  expect(window.location.search).toBe('?tab=requests&view=all')
+  expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}`)
+  expect(window.location.search).toBe('?view=all')
   window.history.back()
   await screen.findByRole('region', { name: '총예산' })
   fireEvent.click(within(region('총예산')).getByRole('button', { name: '편성' }))

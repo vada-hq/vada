@@ -61,11 +61,11 @@ export function PurchasePage({ view, requestId, onForbidden }: Props) {
   const here = useHere()
   const [lost, setLost] = useState<string | null>(null)
   const councilId = view.council.id
-  const back = () => leave(menuPath('finance', councilId, { tab: 'requests' }))
+  const back = () => leave(menuPath('purchases', councilId))
   return (
     <div className="flex flex-col gap-5">
-      <Button variant="ghost" className="self-start" onClick={back}>
-        {here.from ? '들어온 곳으로 돌아가기' : '구매 요청 목록으로'}
+      <Button touch variant="ghost" className="self-start" onClick={back}>
+        {here.from ? '들어온 곳으로 돌아가기' : '구매'}
       </Button>
       {lost ? (
         <>

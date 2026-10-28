@@ -118,6 +118,6 @@ test('구매 전체 보기는 홈과 같은 부서 구매 보기로 간다', asy
   open(board({ purchases: { requests: [homeRequest('r1')], total: 4 } }))
   const card = within(await screen.findByRole('region', { name: '부서 구매 진행' }))
   fireEvent.click(card.getByRole('button', { name: '전체 4건 보기' }))
-  expect(window.location.pathname).toBe(`/finance/${C}`)
+  expect(window.location.pathname).toBe(`/purchases/${C}`)
   expect(new URLSearchParams(window.location.search).get('view')).toBe('department')
 })

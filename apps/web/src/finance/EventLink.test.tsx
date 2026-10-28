@@ -63,6 +63,11 @@ function setup(tab: string, budget = budgetWithPeriod()) {
       truncated: false,
     }),
   )
+  window.history.replaceState(
+    null,
+    '',
+    tab === 'requests' ? `/purchases/${COUNCIL_ID}` : `/finance/${COUNCIL_ID}`,
+  )
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   render(
     <FinanceAt

@@ -192,7 +192,7 @@ test('가까운 일정은 그 카드 이름으로 받은 차례 그대로다', a
   expect(within(upcoming).getByText('2건')).toBeTruthy()
 })
 
-test('내 요청: 받은 차례(반려 먼저) 그대로 상태 칩과 함께, 누르면 그 요청, 셋보다 많으면 재정 구매 요청 탭', async () => {
+test('내 요청: 받은 차례(반려 먼저) 그대로 상태 칩과 함께, 누르면 그 요청, 셋보다 많으면 구매 메뉴 내 요청', async () => {
   const rejected = { ...homeRequest('no'), title: '현수막', status: 'rejected' as const }
   const pending = { ...homeRequest('wait'), title: '간식', event: { id: 'e1', name: '가을 축제' } }
   open(
@@ -212,7 +212,7 @@ test('내 요청: 받은 차례(반려 먼저) 그대로 상태 칩과 함께, �
   fireEvent.click(within(rows[0]!).getByRole('button', { name: '현수막' }))
   expect(pathNow()).toBe('/purchases/c1/no')
   fireEvent.click(within(requests).getByRole('button', { name: '전체 4건 보기' }))
-  expect(pathNow()).toBe('/finance/c1?tab=requests')
+  expect(pathNow()).toBe('/purchases/c1?view=mine')
 })
 
 test('내 요청이 없으면 내 요청 없음이다', async () => {

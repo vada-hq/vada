@@ -81,7 +81,7 @@ export default function DepartmentHome({
             purchases={board.purchases}
             memberId={memberId}
             onOpen={id => openRecord('purchases', councilId, id)}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'requests', view: 'department' })}
+            onSeeAll={() => openMenu('purchases', councilId, { view: 'department' })}
           />,
           <DepartmentAttentionCard
             key="attention"

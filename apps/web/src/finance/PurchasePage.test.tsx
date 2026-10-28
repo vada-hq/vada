@@ -6,7 +6,7 @@ import { navigate, pageState } from '@/lib/app-location'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import { resetAddress } from '@/test-support/address-reset'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { COUNCIL_ID as C, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID as C, PurchasesAt } from '@/test-support/finance-at'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
@@ -45,7 +45,7 @@ function setup() {
   return api
 }
 function open(start: Record<string, unknown> = {}, memberId = view.me.memberId) {
-  navigate(`/finance/${C}/requests/new`, {
+  navigate(`/purchases/${C}/new`, {
     force: true,
     pageState: {
       kind: 'purchase',
@@ -54,7 +54,7 @@ function open(start: Record<string, unknown> = {}, memberId = view.me.memberId) 
       ...start,
     },
   })
-  return render(<FinanceAt view={view} onForbidden={() => {}} />)
+  return render(<PurchasesAt view={view} onForbidden={() => {}} />)
 }
 const fill = (name: string, value: string) =>
   fireEvent.change(screen.getByLabelText(name), { target: { value } })
@@ -73,13 +73,13 @@ test('작성은 별도 주소에서 열리고 새로고침 후 입력·원문·�
   })
   await screen.findByText('품절')
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(window.location.pathname).toBe(`/finance/${C}/requests/new`)
+  expect(window.location.pathname).toBe(`/purchases/${C}/new`)
   expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe(PRODUCT.items[0]?.name)
   fill('제목', '준비물 구매 요청')
   fill('품목 1 수량', '2')
   fill('품목 1 예상 단가', '13000')
   first.unmount()
-  render(<FinanceAt view={view} onForbidden={() => {}} />)
+  render(<PurchasesAt view={view} onForbidden={() => {}} />)
   expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('준비물 구매 요청')
   expect(screen.getByLabelText<HTMLInputElement>('품목 1 수량').value).toBe('2')
   expect(screen.getByLabelText<HTMLInputElement>('품목 1 예상 단가').value).toBe('13000')
@@ -122,7 +122,7 @@ test('메시지와 상품 조회가 저절로 채운 값만 있으면 [취소]�
   fill('품목 1 수량', '1')
   expect(hasUnsavedInput()).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
-  await waitFor(() => expect(window.location.pathname).not.toBe(`/finance/${C}/requests/new`))
+  await waitFor(() => expect(window.location.pathname).not.toBe(`/purchases/${C}/new`))
 })
 
 test('업무만 고른 뒤 늦게 온 상품 조회는 떠날 때 묻는 기준을 옮기지 않는다', async () => {

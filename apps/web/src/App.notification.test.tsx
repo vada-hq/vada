@@ -378,7 +378,7 @@ const requestPage = () =>
   )
 const financeHeading = () => screen.findByRole('heading', { level: 1, name: '재정', hidden: true })
 
-test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 재정 화면과 그 요청 상세가 열린다', async () => {
+test('앱이 닫혀 있다가 요청 주소로 열리면 그 학생회의 구매 화면과 그 요청 상세가 열린다', async () => {
   requestApi('0199d1a0-0000-7000-8000-0000000000c2')
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c2/${R1}`)
   await renderApp()
@@ -424,7 +424,7 @@ test('같은 요청 알림을 다시 누르면 닫았던 상세가 다시 열린
     )
   press()
   await requestPage()
-  fireEvent.click(screen.getByRole('button', { name: /돌아가기|구매 요청 목록으로/ }))
+  fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: /돌아가기|^구매$/ }))
   await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   press()
   await requestPage()
@@ -473,9 +473,9 @@ test('지운 요청의 알림을 누르면 상세 대신 이유와 목록으로 
   await lostSettled(`/purchases/${C1}/${R1}`)
   expect(screen.getByRole('alert').textContent).toBe(PURCHASE_LOST)
   expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '구매 요청 목록으로' }))
-  await lostSettled(`/finance/${C1}?tab=requests`)
-  expect(await financeHeading()).toBeTruthy()
+  fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: '구매' }))
+  await lostSettled(`/purchases/${C1}`)
+  expect(await screen.findByRole('heading', { level: 1, name: '구매' })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
@@ -522,7 +522,7 @@ test('알림으로 연 요청은 한 번만 쓴다. 다른 화면에 갔다 재�
   window.history.replaceState(null, '', `/purchases/0199d1a0-0000-7000-8000-0000000000c1/${R1}`)
   await renderApp()
   await requestPage()
-  fireEvent.click(screen.getByRole('button', { name: /돌아가기|구매 요청 목록으로/ }))
+  fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: /돌아가기|^구매$/ }))
   await waitFor(() => expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull())
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))

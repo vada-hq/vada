@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PURCHASE_TITLE_MAX, type PurchaseRequestDetail } from '@vada/contracts'
+import { menuPath, PURCHASE_TITLE_MAX, type PurchaseRequestDetail } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
@@ -58,7 +58,7 @@ function CreateEntry(props: Omit<Props, 'open'>) {
   useEffect(() => {
     if (started.current) return
     started.current = true
-    navigate(`/finance/${props.councilId}/requests/new`, {
+    navigate(menuPath('purchases', props.councilId, { compose: 'new' }), {
       overRecord: true,
       pageState: {
         kind: 'purchase',

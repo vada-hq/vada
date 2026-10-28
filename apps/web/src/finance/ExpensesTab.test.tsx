@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { PURCHASE_REASON_MAX } from '@vada/contracts'
+import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -323,6 +324,7 @@ test('요청 상세의 결제한 지출을 누르면 그 지출이 열린다', a
   api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
     json({ expense: expenseDetail() }),
   )
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}`)
   showFinance()
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),

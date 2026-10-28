@@ -18,7 +18,7 @@ import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixture
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { forgetRememberedItems } from './decision-form'
-import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
+import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
 
 beforeEach(forgetRememberedItems)
 afterEach(async () => {
@@ -62,7 +62,7 @@ function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod(
   api.on('GET', `${ORG}/budget`, () => json(budget))
   const handlers = { onForbidden: vi.fn() }
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       {...handlers}
     />,
@@ -358,7 +358,7 @@ test('마지막에 승인한 항목이 다음 요청의 기본이 되고, 목록
   // 새로고침처럼 주소를 처음으로 돌려 그 요청이 열린 채 시작하지 않게 한다.
   await resetAddress()
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
     />,
@@ -372,7 +372,7 @@ test('마지막에 승인한 항목이 다음 요청의 기본이 되고, 목록
   other.items = [{ ...other.items[1]!, id: BUDGET_B }]
   api.on('GET', `${ORG}/budget`, () => json(other))
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
     />,
@@ -632,7 +632,7 @@ test('기억한 항목이 이 요청의 행사와 맞지 않으면 비운다', a
   await resetAddress()
   api.on('GET', `${BASE}/${REQUEST}`, () => json({ request: twoPending({ event: null }) }))
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
     />,
@@ -645,7 +645,7 @@ test('기억한 항목이 이 요청의 행사와 맞지 않으면 비운다', a
   await resetAddress()
   api.on('GET', `${BASE}/${REQUEST}`, () => json({ request: twoPending({ event: SPRING }) }))
   render(
-    <FinanceAt
+    <PurchasesAt
       view={councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })}
       onForbidden={vi.fn()}
     />,
