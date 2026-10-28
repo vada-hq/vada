@@ -1,5 +1,7 @@
 import type { Closing } from '@vada/contracts'
+import StateMessage from '@/components/StateMessage'
 import { ClosingChecks } from '@/finance/ClosingChecks'
+import { ClosingSectionLinks, ClosingSectionPart } from '@/finance/ClosingSectionLinks'
 import { ClosingExpenseSection } from '@/finance/ClosingSections'
 import { ClosingStatusBadge } from '@/finance/ClosingStatusBadge'
 import { closingFixture } from '@/test-support/closing-fixtures'
@@ -41,16 +43,22 @@ const closing: Pick<Closing, 'checks' | 'feePending'> = {
 export function ClosingSection() {
   return (
     <Section title="결산 상태 배지와 점검">
-      <div className="flex w-80 flex-col gap-3">
-        <div className="flex gap-2">
-          <ClosingStatusBadge status="draft" />
-          <ClosingStatusBadge status="published" />
-        </div>
-        <ClosingExpenseSection closing={expenseClosing} />
-        <ClosingChecks
-          closing={closing}
-          openers={{ onOpenExpense: noop, onOpenRequest: noop, onOpenEvent: noop }}
-        />
+      <div className="flex w-80 max-w-full flex-col gap-6">
+        <ClosingSectionLinks />
+        <ClosingSectionPart part="events">
+          <StateMessage kind="empty">행사 없음</StateMessage>
+        </ClosingSectionPart>
+        <ClosingSectionPart part="period">
+          <div className="flex gap-2">
+            <ClosingStatusBadge status="draft" />
+            <ClosingStatusBadge status="published" />
+          </div>
+          <ClosingExpenseSection closing={expenseClosing} />
+          <ClosingChecks
+            closing={closing}
+            openers={{ onOpenExpense: noop, onOpenRequest: noop, onOpenEvent: noop }}
+          />
+        </ClosingSectionPart>
       </div>
     </Section>
   )

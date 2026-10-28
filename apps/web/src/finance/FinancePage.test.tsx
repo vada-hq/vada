@@ -17,6 +17,7 @@ import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { closingFixture } from '@/test-support/closing-fixtures'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { CLOSING_HIDDEN, PERIODS_LOAD_FAILED, SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
+import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 
 afterEach(async () => {
   cleanup()
@@ -36,6 +37,68 @@ const settlements = () => ({
   period: { id: CURRENT_PERIOD, name: '2026년 2학기' },
   events: [{ event: eventSummary(), settlement: { remaining: 2, settled: false } }],
   truncated: false,
+})
+
+test.each([
+  ['', '예산 현황'],
+  ['?tab=ledger', '사용 내역'],
+  ['?tab=closing', '결산'],
+])('재정 주소 %s는 읽는 중에도 현재 탭 경로 칸 하나를 넘긴다', (query, label) => {
+  const api = mockApi()
+  const pending = deferredResponse()
+  api.on('GET', periodsPath, () => pending.promise)
+  api.on('GET', `${financeRoot}/expenses`, () => pending.promise)
+  api.on('GET', settlementsPath, () => pending.promise)
+  window.history.replaceState(null, '', `/finance/${COUNCIL_ID}${query}`)
+  const send = vi.fn<(trail: PageTrail | null) => void>()
+  render(
+    <PageTrailProvider value={send}>
+      <FinanceAt view={councilView(COUNCIL_ID)} onForbidden={vi.fn()} />
+    </PageTrailProvider>,
+  )
+  expect(send).toHaveBeenLastCalledWith({
+    title: '재정',
+    crumbs: [{ label, truncate: false }],
+  })
+  expect(screen.queryByRole('navigation', { name: '결산 구역' }) !== null).toBe(
+    query === '?tab=closing',
+  )
+  for (const next of ['결산', '사용 내역', '예산 현황']) {
+    fireEvent.click(screen.getByRole('tab', { name: next }))
+    expect(send).toHaveBeenLastCalledWith({
+      title: '재정',
+      crumbs: [{ label: next, truncate: false }],
+    })
+  }
+  api.assertNoUnexpectedRequests()
+})
+
+test('결산 구역 길은 각 제목으로 스크롤과 초점을 옮기고 주소를 유지한다', () => {
+  const api = mockApi()
+  const pending = deferredResponse()
+  api.on('GET', settlementsPath, () => pending.promise)
+  api.on('GET', periodsPath, () => pending.promise)
+  window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=closing`)
+  render(<FinanceAt view={councilView(COUNCIL_ID)} onForbidden={vi.fn()} />)
+  const navigation = screen.getByRole('navigation', { name: '결산 구역' })
+  const headings = screen.getAllByRole('heading', { level: 2 })
+  expect(
+    navigation.compareDocumentPosition(headings[0]!) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy()
+  for (const label of ['행사 정산', '기간 결산']) {
+    const heading = screen.getByRole('heading', { level: 2, name: label })
+    const scroll = vi.fn()
+    heading.scrollIntoView = scroll
+    const link = within(navigation).getByRole('button', { name: label })
+    expect(link.className).toContain('max-sm:min-h-11')
+    fireEvent.click(link)
+    expect(scroll).toHaveBeenCalledWith({ block: 'start' })
+    expect(document.activeElement).toBe(heading)
+  }
+  expect(window.location.pathname + window.location.search + window.location.hash).toBe(
+    `/finance/${COUNCIL_ID}?tab=closing`,
+  )
+  api.assertNoUnexpectedRequests()
 })
 
 test.each([

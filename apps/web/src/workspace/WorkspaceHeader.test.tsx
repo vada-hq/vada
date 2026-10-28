@@ -3,6 +3,7 @@ import { afterEach, expect, test } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { eventTrail, trailOf } from './pages'
 import WorkspaceHeader from './WorkspaceHeader'
+import { financeTrail } from '@/finance/finance-text'
 
 afterEach(cleanup)
 
@@ -73,4 +74,26 @@ test('홈은 학생회 이름 한 칸이 마지막 칸이라 진하고 제목은
   expect(items.map(item => item.textContent)).toEqual([COUNCIL])
   expect(items[0]!.querySelector('span')!.className).toContain('text-gray-700')
   expect(within(banner).getByRole('heading', { level: 1 }).textContent).toBe('홈')
+})
+
+test.each(['overview', 'ledger', 'closing'] as const)(
+  '재정 %s 경로는 학생회 > 재정 > 탭이고 마지막 칸만 진하며 탭은 줄지 않는다',
+  tab => {
+    const labels = { overview: '예산 현황', ledger: '사용 내역', closing: '결산' }
+    const council = '한양대학교 ERICA 소프트웨어융합대학 제38대 함께하는 내일 학생회'
+    const { banner, items } = show(trailOf('finance', council, financeTrail(tab)))
+    expect(items.map(item => item.textContent)).toEqual([council, '재정', labels[tab]])
+    expect(
+      items.map(item => item.querySelector('span')!.className.includes('text-gray-700')),
+    ).toEqual([false, false, true])
+    expect(items[0]!.querySelector('span')!.className).toContain('truncate')
+    expect(items[0]!.className).toContain('min-w-0')
+    expect(items[2]!.querySelector('span')!.className).not.toContain('truncate')
+    expect(items[2]!.className).toContain('shrink-0')
+    expect(within(banner).getByRole('heading', { level: 1, name: '재정' })).toBeTruthy()
+  },
+)
+
+test('설정으로 옮긴 계좌 탭은 재정 경로 칸을 넘기지 않는다', () => {
+  expect(financeTrail('accounts')).toEqual({ title: '재정', crumbs: [] })
 })

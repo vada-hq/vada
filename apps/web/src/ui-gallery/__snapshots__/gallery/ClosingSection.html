@@ -5,7 +5,17 @@
 <a href="/ui.html?section=%EA%B2%B0%EC%82%B0+%EC%83%81%ED%83%9C+%EB%B0%B0%EC%A7%80%EC%99%80+%EC%A0%90%EA%B2%80" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
 </div>
 <div class="flex flex-wrap items-start gap-3">
-<div class="flex w-80 flex-col gap-3">
+<div class="flex w-80 max-w-full flex-col gap-6">
+<nav aria-label="결산 구역" class="flex gap-6 break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 px-0" type="button">행사 정산</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 px-0" type="button">기간 결산</button>
+</nav>
+<section aria-label="행사 정산" class="flex flex-col gap-3">
+<h2 id="finance-event-settlements" tabindex="-1" class="text-base font-semibold break-keep wrap-anywhere">행사 정산</h2>
+<p class="text-sm wrap-anywhere text-gray-500">행사 없음</p>
+</section>
+<section aria-label="기간 결산" class="flex flex-col gap-3">
+<h2 id="finance-period-closing" tabindex="-1" class="text-base font-semibold break-keep wrap-anywhere">기간 결산</h2>
 <div class="flex gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">작성 중</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">공개됨</span>
@@ -59,6 +69,7 @@
 </ul>
 <div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-blue-200 bg-blue-50 text-blue-700">다음 기간 행사에 받은 입금 2건 60,000원은 이 결산서의 수입에 없고 통장에는 있어요.</div>
 </div>
+</section>
 </div>
 </div>
 </section>

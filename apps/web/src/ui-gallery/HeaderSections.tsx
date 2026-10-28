@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { EventHeader } from '@/events/EventHeader'
+import { financeTrail } from '@/finance/finance-text'
 import { eventTrail, pageWidthOf, trailOf, type Page } from '../workspace/pages'
 import WorkspaceHeader from '../workspace/WorkspaceHeader'
 import { detail, headerHandlers, tabs } from './EventSections'
@@ -200,7 +201,13 @@ const SAMPLES: Sample[] = [
     deeper: eventTrail(SPORTS_DAY, '메시지'),
     action: history,
   },
-  { key: '재정', page: 'finance', council: COUNCIL },
+  { key: '재정 결산 탭', page: 'finance', council: COUNCIL, deeper: financeTrail('closing') },
+  {
+    key: '긴 학생회 이름과 재정 결산 탭',
+    page: 'finance',
+    council: LONG_COUNCIL,
+    deeper: financeTrail('closing'),
+  },
   { key: '조직', page: 'people', council: COUNCIL },
   { key: '업무 보드', page: 'tasks', council: COUNCIL },
   { key: '학생회 정보 설정', page: 'settings', council: COUNCIL },

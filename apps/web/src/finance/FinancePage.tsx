@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useAddressRecord } from '@/lib/use-address-record'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import type { ClosingOpeners } from './ClosingChecks'
+import { ClosingSectionLinks, ClosingSectionPart } from './ClosingSectionLinks'
 import { ClosingTab } from './ClosingTab'
 import { ExpenseDialogs } from './ExpenseDialogs'
 import { ExpenseBrowser } from './ExpenseBrowser'
@@ -40,19 +41,18 @@ function ManagedTab({
   if (tab === 'closing')
     return (
       <div className="flex flex-col gap-6">
-        <section aria-label="행사 정산" className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold break-keep wrap-anywhere">행사 정산</h2>
+        <ClosingSectionLinks />
+        <ClosingSectionPart part="events">
           <SettlementsTab {...shared} />
-        </section>
-        <section aria-label="기간 결산" className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold break-keep wrap-anywhere">기간 결산</h2>
+        </ClosingSectionPart>
+        <ClosingSectionPart part="period">
           <ClosingTab
             {...shared}
             canManage={canManage}
             canReadDraft={view.permissions.includes('closing.view_draft')}
             openers={openers}
           />
-        </section>
+        </ClosingSectionPart>
       </div>
     )
   return null
