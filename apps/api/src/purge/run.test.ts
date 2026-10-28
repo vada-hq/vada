@@ -369,7 +369,7 @@ test('정기 작업은 DB 거래가 끝난 뒤 별도 잠금으로 객체를 지
       storage: store.storage,
       lock: async work => {
         events.push('object-lock')
-        await work()
+        await work(new AbortController().signal)
         return true
       },
     },

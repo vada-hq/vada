@@ -6,16 +6,46 @@ import { createRecord } from '../records/records.js'
 import { seedCouncil } from '../test-support/council.js'
 import { fakeStorage } from '../test-support/storage.js'
 import { runObjectPurge } from './orphan-purge.js'
+import { invalidStorageKeys, storageKey } from '../test-support/storage-keys.js'
 
 const now = new Date('2026-10-28T03:00:00Z')
 const cutoff = now.getTime() - 72 * 3_600_000
-const unlocked = async (work: () => Promise<void>) => {
-  await work()
+const unlocked = async (work: (signal: AbortSignal) => Promise<void>) => {
+  await work(new AbortController().signal)
   return true
 }
 const emptyReferences = {
   select: () => ({ from: () => ({ where: async () => [] }) }),
 } as never
+
+test('목록의 잘못된 키는 참조 중인 객체로 정규화해 지우지 않고 개수만 보고한다', async () => {
+  const store = fakeStorage()
+  const safe = storageKey()
+  const listed = [...invalidStorageKeys, safe].map(key => ({
+    key,
+    lastModified: new Date(cutoff - 1),
+  }))
+  const reads: string[] = []
+  store.storage.list = async prefix => {
+    reads.push(prefix)
+    return { objects: prefix === 'chat/' ? listed : [] }
+  }
+  const logs: string[] = []
+  const original = console.error
+  console.error = (line: string) => logs.push(line)
+  try {
+    await runObjectPurge(emptyReferences, now, { storage: store.storage, lock: unlocked })
+    assert.deepEqual(store.removed, [safe])
+    assert.deepEqual(reads, ['chat/', 'evidence/'])
+    assert.equal(logs.length, 1)
+    const report = JSON.parse(logs[0]!) as Record<string, unknown>
+    assert.equal(report.skipped, invalidStorageKeys.length)
+    assert.equal(report.removed, 1)
+    assert.ok(!JSON.stringify(report).includes('chat/'))
+  } finally {
+    console.error = original
+  }
+})
 
 test('72시간을 넘긴 chat·evidence 중 어느 학생회의 파일 행도 가리키지 않는 객체만 지운다', async () => {
   const t = await createTestDb()
@@ -24,7 +54,7 @@ test('72시간을 넘긴 chat·evidence 중 어느 학생회의 파일 행도 �
     const councils = [await seedCouncil(t.db, t.pg), await seedCouncil(t.db, t.pg, 'o')]
     for (const council of councils) {
       for (const area of ['chat', 'evidence']) {
-        const key = `${area}/${council.councilId}/attached`
+        const key = `${area}/${council.councilId}/${council.people.president.memberId}/00000000-0000-4000-8000-000000000001`
         store.put(key, 1000, 'image/jpeg', new Date(cutoff - 1))
         await t.db.transaction(tx =>
           createRecord(tx, {
@@ -44,10 +74,10 @@ test('72시간을 넘긴 chat·evidence 중 어느 학생회의 파일 행도 �
     }
     for (const area of ['chat', 'evidence', 'receipts', 'chatty']) {
       for (const delta of [-1, 0, 1])
-        store.put(`${area}/${delta}`, 1000, 'image/jpeg', new Date(cutoff + delta))
+        store.put(storageKey(area, delta + 2), 1000, 'image/jpeg', new Date(cutoff + delta))
     }
     await runObjectPurge(t.db, now, { storage: store.storage, lock: unlocked })
-    assert.deepEqual(store.removed.sort(), ['chat/-1', 'evidence/-1'])
+    assert.deepEqual(store.removed.sort(), [storageKey('chat'), storageKey('evidence')])
     assert.equal(await runObjectPurge(t.db, now, { storage: store.storage, lock: unlocked }), true)
     assert.equal(store.removed.length, 2)
   } finally {
@@ -64,8 +94,8 @@ test('목록·지우기 실패는 키·본문·이름 없이 개수로 보고하
   console.error = (line: string) => logs.push(line)
   setErrorReporter((error, fields) => reports.push({ error: error.message, fields }))
   try {
-    store.put('chat/secret-key', 1000, 'image/jpeg', new Date(cutoff - 1))
-    store.put('evidence/secret-key', 1000, 'image/jpeg', new Date(cutoff - 1))
+    store.put(storageKey(), 1000, 'image/jpeg', new Date(cutoff - 1))
+    store.put(storageKey('evidence'), 1000, 'image/jpeg', new Date(cutoff - 1))
     const list = store.storage.list.bind(store.storage)
     const remove = store.storage.remove.bind(store.storage)
     store.storage.list = () => Promise.reject(new Error('secret-key body name'))
@@ -94,8 +124,8 @@ test('원본 파일의 저장소 위치를 비워도 증빙으로 복사한 객�
   const store = fakeStorage(() => new Date(cutoff - 1))
   try {
     const council = await seedCouncil(t.db, t.pg)
-    const originalKey = `chat/${council.councilId}/original`
-    const copyKey = `evidence/${council.councilId}/copy`
+    const originalKey = `chat/${council.councilId}/${council.people.president.memberId}/00000000-0000-4000-8000-000000000001`
+    const copyKey = `evidence/${council.councilId}/${council.people.president.memberId}/00000000-0000-4000-8000-000000000002`
     store.put(originalKey)
     await store.storage.copy(originalKey, copyKey)
     const ids: string[] = []
@@ -153,8 +183,8 @@ test('저장소가 없거나 잠금을 다른 서버가 쥐면 DB와 저장소�
 test('목록의 모든 쪽과 두 접두어를 끝까지 지운다', async () => {
   const store = fakeStorage()
   for (let n = 0; n < 1002; n++)
-    store.put(`chat/${String(n).padStart(4, '0')}`, 1000, 'image/jpeg', new Date(cutoff - 1))
-  store.put('evidence/orphan', 1000, 'image/jpeg', new Date(cutoff - 1))
+    store.put(storageKey('chat', n), 1000, 'image/jpeg', new Date(cutoff - 1))
+  store.put(storageKey('evidence'), 1000, 'image/jpeg', new Date(cutoff - 1))
   const pages: (string | undefined)[] = []
   const list = store.storage.list.bind(store.storage)
   store.storage.list = (prefix, token) => {
@@ -173,13 +203,14 @@ test('앞 접두어의 지우기가 계속 실패해도 뒤 접두어의 객체�
   const original = console.error
   console.error = () => {}
   try {
-    for (let n = 0; n < 1001; n++) store.put(`chat/${n}`, 1000, 'image/jpeg', new Date(cutoff - 1))
-    store.put('evidence/orphan', 1000, 'image/jpeg', new Date(cutoff - 1))
+    for (let n = 0; n < 1001; n++)
+      store.put(storageKey('chat', n), 1000, 'image/jpeg', new Date(cutoff - 1))
+    store.put(storageKey('evidence'), 1000, 'image/jpeg', new Date(cutoff - 1))
     const remove = store.storage.remove.bind(store.storage)
     store.storage.remove = key =>
       key.startsWith('chat/') ? Promise.reject(new Error('삭제 실패')) : remove(key)
     await runObjectPurge(emptyReferences, now, { storage: store.storage, lock: unlocked })
-    assert.deepEqual(store.removed, ['evidence/orphan'])
+    assert.deepEqual(store.removed, [storageKey('evidence')])
   } finally {
     console.error = original
   }
@@ -190,7 +221,7 @@ test('파일 참조 조회가 실패하면 해당 쪽의 객체를 지우지 않
   const original = console.error
   console.error = () => {}
   try {
-    store.put('chat/orphan', 1000, 'image/jpeg', new Date(cutoff - 1))
+    store.put(storageKey(), 1000, 'image/jpeg', new Date(cutoff - 1))
     const failed = {
       select: () => {
         throw new Error('조회 실패')
@@ -199,7 +230,7 @@ test('파일 참조 조회가 실패하면 해당 쪽의 객체를 지우지 않
     await runObjectPurge(failed, now, { storage: store.storage, lock: unlocked })
     assert.deepEqual(store.removed, [])
     await runObjectPurge(emptyReferences, now, { storage: store.storage, lock: unlocked })
-    assert.deepEqual(store.removed, ['chat/orphan'])
+    assert.deepEqual(store.removed, [storageKey()])
   } finally {
     console.error = original
   }

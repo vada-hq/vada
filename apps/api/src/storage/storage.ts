@@ -1,6 +1,7 @@
 import { AwsClient } from 'aws4fetch'
 import { NOT_FOUND } from '../http/status.js'
 import { listObjects, type ObjectPage } from './list-objects.js'
+import { isStorageKey } from './storage-key.js'
 
 interface StoredObject {
   size: number
@@ -55,6 +56,11 @@ async function copyObject(call: Call, source: string, toKey: string) {
   if (!response.ok) throw new Error('STORAGE_COPY_FAILED')
 }
 
+function assertStorageTarget(method: string, key: string | URL) {
+  if ((method === 'HEAD' || method === 'DELETE') && (typeof key !== 'string' || !isStorageKey(key)))
+    throw new Error('STORAGE_KEY_INVALID')
+}
+
 // Cloudflare R2의 S3 호환 주소에 SigV4로 서명한다. 버킷은 비공개다.
 function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
   const client = new AwsClient({
@@ -91,6 +97,7 @@ function r2Access(config: R2Config, fetcher: typeof fetch, now: () => Date) {
     key: string | URL,
     extra: { signal?: AbortSignal; headers?: Record<string, string> } = {},
   ) {
+    assertStorageTarget(method, key)
     return fetcher(
       await client.sign((key instanceof URL ? key : objectUrl(key)).toString(), {
         method,

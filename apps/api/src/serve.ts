@@ -14,15 +14,15 @@ import { realTimer } from './tasks/notify.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { startPurge } from './purge/run.js'
-import { createObjectPurgeLock } from './storage/orphan-lock.js'
+import { objectPurgeLockOf } from './storage/orphan-connection.js'
 import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
 import type { Db } from './db/types.js'
 
 type Env = NodeJS.ProcessEnv
 
 // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
-function connectClient(env: Env, options: postgres.Options<Record<string, never>> = {}) {
-  return postgres(env.DATABASE_URL!, {
+function connectClient(url: string, options: postgres.Options<Record<string, never>> = {}) {
+  return postgres(url, {
     max: 5,
     ssl: { rejectUnauthorized: true },
     connect_timeout: 15,
@@ -32,7 +32,7 @@ function connectClient(env: Env, options: postgres.Options<Record<string, never>
 }
 
 function connectDb(env: Env) {
-  const client = connectClient(env)
+  const client = connectClient(env.DATABASE_URL!)
   return { client, db: drizzle(client) }
 }
 
@@ -129,7 +129,7 @@ function main() {
         ? {
             objects: {
               storage,
-              lock: createObjectPurgeLock(options => connectClient(env, options)),
+              lock: objectPurgeLockOf(env.DATABASE_URL, connectClient),
             },
           }
         : {},

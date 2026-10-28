@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createR2Storage, r2ConfigFrom } from './storage.js'
+import { invalidStorageKeys, storageKey } from '../test-support/storage-keys.js'
 
 const config = {
   accountId: 'acc',
@@ -9,6 +10,29 @@ const config = {
   bucket: 'vada-receipts',
 }
 const fixed = () => new Date('2026-10-09T05:00:00.000Z')
+
+test('HEAD·DELETE는 업로드 형식 밖의 키를 서명하거나 요청하지 않는다', async () => {
+  const requests: Request[] = []
+  const storage = createR2Storage(config, async input => {
+    requests.push(input as Request)
+    return new Response(null, { status: 204 })
+  })
+  for (const key of invalidStorageKeys) {
+    for (const operation of [storage.head.bind(storage), storage.remove.bind(storage)]) {
+      await assert.rejects(
+        operation(key),
+        error => error instanceof Error && error.message === 'STORAGE_KEY_INVALID',
+      )
+    }
+  }
+  assert.equal(requests.length, 0)
+  for (const area of ['chat', 'evidence']) {
+    const key = storageKey(area)
+    await storage.head(key)
+    await storage.remove(key)
+    assert.equal(new URL(requests.at(-1)!.url).pathname, `/vada-receipts/${key}`)
+  }
+})
 
 test('올리기 주소는 버킷 경로·10분 만료·형식 서명을 담고, 보기 주소는 5분 만료와 파일 이름을 담는다', async () => {
   const storage = createR2Storage(config, fetch, fixed)
@@ -61,22 +85,22 @@ test('HEAD는 크기·형식을 읽고 404는 없음으로 본다. DELETE의 404
     return responses.shift()!
   }) as typeof fetch
   const storage = createR2Storage(config, fetcher, fixed)
-  assert.deepEqual(await storage.head('receipts/a/e1/r1'), {
+  assert.deepEqual(await storage.head(storageKey()), {
     size: 1234,
     contentType: 'image/jpeg',
     lastModified: fixed(),
   })
-  assert.equal(await storage.head('receipts/a/e1/r1'), null)
-  await assert.rejects(storage.head('receipts/a/e1/r1'), /STORAGE_HEAD_FAILED/)
-  await storage.remove('receipts/a/e1/r1')
-  await storage.remove('receipts/a/e1/r1')
-  await assert.rejects(storage.remove('receipts/a/e1/r1'), /STORAGE_DELETE_FAILED/)
+  assert.equal(await storage.head(storageKey()), null)
+  await assert.rejects(storage.head(storageKey()), /STORAGE_HEAD_FAILED/)
+  await storage.remove(storageKey())
+  await storage.remove(storageKey())
+  await assert.rejects(storage.remove(storageKey()), /STORAGE_DELETE_FAILED/)
   assert.deepEqual(
     seen.map(request => request.method),
     ['HEAD', 'HEAD', 'HEAD', 'DELETE', 'DELETE', 'DELETE'],
   )
   for (const request of seen) {
-    assert.equal(new URL(request.url).pathname, '/vada-receipts/receipts/a/e1/r1')
+    assert.equal(new URL(request.url).pathname, `/vada-receipts/${storageKey()}`)
     assert.ok(
       request.headers
         .get('Authorization')
@@ -208,5 +232,5 @@ test('목록 실패·깨진 응답·시각 누락과 잘못된 쪽 토큰은 객
   )
   await assert.rejects(failed.list('chat/'), /STORAGE_LIST_FAILED/)
   const missingDate = createR2Storage(config, () => Promise.resolve(new Response(null)), fixed)
-  assert.equal((await missingDate.head('chat/a'))?.lastModified, null)
+  assert.equal((await missingDate.head(storageKey()))?.lastModified, null)
 })
