@@ -8,6 +8,16 @@ export type ExpenseFilters = {
   search: string
 }
 
+// 기본값(전체)이 아닌 칸의 수. 접힌 [필터]가 거른 칸이 있다는 것을 숫자로 알린다.
+export const activeFilterCount = (filters: ExpenseFilters) =>
+  [
+    filters.period,
+    filters.eventId,
+    filters.budgetItemId,
+    filters.evidence,
+    filters.search.trim(),
+  ].filter(Boolean).length
+
 const allocationsFor = (rows: ExpenseAllocation[], filters: ExpenseFilters) =>
   rows.filter(
     row =>
