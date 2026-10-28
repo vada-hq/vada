@@ -93,8 +93,11 @@
   * {
     @apply border-border;
   }
+  /* 한글은 기본값이면 낱자마다 줄이 바뀔 수 있어 띄어쓰기에서만 바꾼다(break-keep). 띄어쓰기 없는 긴 주소·영문은
+     그대로 두면 가로로 넘치므로 들어가지 않을 때만 끊는다(wrap-break-word). wrap-anywhere는 최소 폭까지 줄여
+     좁은 줄의 금액이 '1,200,00|0원'처럼 끊겨 바탕에는 두지 않는다. 요소의 break-all·truncate·wrap-anywhere가 이긴다. */
   body {
-    @apply bg-background font-sans text-sm text-foreground antialiased;
+    @apply bg-background font-sans text-sm text-foreground antialiased break-keep wrap-break-word;
   }
   h1,
   h2,
