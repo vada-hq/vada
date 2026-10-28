@@ -3,6 +3,7 @@ import {
   type CouncilView,
   type ScheduleItemDetail,
   type ScheduleItemResponse,
+  type ScheduleOptionsResponse,
   type UpdateScheduleItemRequest,
 } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
@@ -11,7 +12,7 @@ import { useEvents, type EventList } from '@/events/useEvents'
 import { postJson } from '@/lib/api'
 import { SAVE_FAILED } from '@/lib/messages'
 import { SCHEDULE_DEPARTMENT_FORBIDDEN, SCHEDULE_NOT_FOUND } from '@/lib/calendar-messages'
-import { useTeam, type Team } from '@/team/useTeam'
+import { usePolledRead } from '@/lib/use-polled-read'
 import { useActive } from '@/lib/use-active'
 import { ScheduleDialog } from './ScheduleDialog'
 import type { ScheduleChoice, ScheduleSaveProblem } from './schedule-form'
@@ -37,17 +38,11 @@ const openEvents = (events: EventList) =>
     ? events.state.data.events.filter(event => event.status !== 'completed')
     : []
 
-function OptionsNotice({
-  team,
-  events,
-  allDepartments,
-}: {
-  team: Team
-  events: EventList
-  allDepartments: boolean
-}) {
-  const failed = team.loadFailed || events.state.kind === 'failed'
-  const loading = (allDepartments && !team.data) || events.state.kind === 'loading'
+type Options = ReturnType<typeof usePolledRead<ScheduleOptionsResponse>>
+
+function OptionsNotice({ departments, events }: { departments: Options; events: EventList }) {
+  const failed = departments.state.kind === 'failed' || events.state.kind === 'failed'
+  const loading = departments.state.kind === 'loading' || events.state.kind === 'loading'
   if (failed)
     return (
       <div className="flex flex-col gap-2">
@@ -58,7 +53,7 @@ function OptionsNotice({
           touch
           className="self-start"
           onClick={() => {
-            team.reload()
+            void departments.reload()
             void events.reload()
           }}
         >
@@ -69,19 +64,24 @@ function OptionsNotice({
   return loading ? <StateMessage kind="loading">선택지 불러오는 중…</StateMessage> : null
 }
 
+// 부서 선택지는 서버가 쓰기 거절과 같은 판정으로 고른다(화면은 직급을 보지 않는다).
 function useScheduleOptions(
-  view: CouncilView,
+  councilId: string,
   item: ScheduleItemDetail | undefined,
   onForbidden: () => void,
 ) {
-  const allDepartments = view.me.councilRank !== null
-  const team = useTeam(view.council.id, onForbidden, allDepartments)
-  const events = useEvents(view.council.id, onForbidden)
-  const own = allDepartments ? (team.data?.departments ?? []) : view.me.departments
+  const departments = usePolledRead<ScheduleOptionsResponse>(
+    `/api/organizations/${encodeURIComponent(councilId)}/schedule/options`,
+    status => {
+      if (status === statusOf('FORBIDDEN')) onForbidden()
+    },
+  )
+  const events = useEvents(councilId, onForbidden)
+  const choosable = departments.state.kind === 'ready' ? departments.state.data.departments : []
   return {
-    departments: withCurrent(own, item?.department),
+    departments: withCurrent(choosable, item?.department),
     events: withCurrent(openEvents(events), item?.event),
-    optionsNotice: <OptionsNotice team={team} events={events} allDepartments={allDepartments} />,
+    optionsNotice: <OptionsNotice departments={departments} events={events} />,
   }
 }
 
@@ -96,7 +96,7 @@ export function ScheduleEditor({
 }: Props) {
   const councilId = view.council.id
   const active = useActive()
-  const options = useScheduleOptions(view, item, onForbidden)
+  const options = useScheduleOptions(councilId, item, onForbidden)
   const save = async (body: UpdateScheduleItemRequest): Promise<ScheduleSaveProblem | null> => {
     const base = `/api/organizations/${councilId}/schedule`
     const result = await postJson<ScheduleItemResponse>(item ? `${base}/${item.id}` : base, body)

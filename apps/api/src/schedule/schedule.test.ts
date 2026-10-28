@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { ScheduleItemResponse } from '@vada/contracts'
+import type { ScheduleItemResponse, ScheduleOptionsResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import {
   caller,
@@ -209,5 +209,22 @@ test(
     for (let n = 0; n < 20; n++) assert.equal((await h.post('', input)).status, 201)
     assert.equal((await h.post('', input)).status, 429)
     assert.equal((await h.post('', input, 's-president')).status, 201)
+  }),
+)
+
+test(
+  '일정 선택지: 고를 수 있는 부서는 만들기와 같은 판정이다(회장단은 모든 부서, 그 밖은 내 부서, 다른 학생회 없음)',
+  withSettlement(async t => {
+    const h = open(t)
+    const options = async (user: string) => {
+      const response = await h.api.get(`${h.base}/options`, user)
+      assert.equal(response.status, 200)
+      return ((await response.json()) as ScheduleOptionsResponse).departments.map(item => item.id)
+    }
+    const { planning, finance } = t.council.departments
+    assert.deepEqual([...(await options('s-president'))].sort(), [finance, planning].sort())
+    assert.deepEqual(await options('s-planningMember'), [planning])
+    assert.deepEqual(await options('s-plain'), [])
+    assert.equal((await h.api.get(`${h.base}/options`, undefined)).status, 401)
   }),
 )

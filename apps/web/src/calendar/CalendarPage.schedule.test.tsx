@@ -39,7 +39,9 @@ beforeEach(() => {
   api.on('GET', october, () => json({ items, truncated: false }))
   api.on('GET', november, () => json({ items, truncated: false }))
   api.on('GET', `${base}/events`, () => json({ events: [], truncated: false }))
-  api.on('GET', `${base}/members`, () => json(teamResponse()))
+  api.on('GET', `${base}/schedule/options`, () =>
+    json({ departments: teamResponse().departments.map(({ id, name }) => ({ id, name })) }),
+  )
   api.on('GET', `${base}/schedule/${SCHEDULE_ID}`, () => json({ item: scheduleDetail() }))
 })
 
@@ -123,7 +125,7 @@ test('일정 주소는 시작한 달과 날을 고르고 읽기 권한을 동작
   expect(await screen.findByRole('dialog', { name: '학교 답사' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '수정' })).toBeNull()
   expect(screen.getByRole('heading', { name: '2026년 11월', hidden: true })).toBeTruthy()
-  expect(screen.getByRole('region', { name: '11월 15일 (일)', hidden: true })).toBeTruthy()
+  expect(await screen.findByRole('region', { name: '11월 15일 (일)', hidden: true })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '닫기' }))
   await waitFor(() => expect(window.location.pathname).toBe(`/calendar/${COUNCIL_ID}`))
 })
@@ -136,8 +138,11 @@ test('없는 일정 주소는 일정 없음 안내 후 캘린더로 돌아간다
   expect(await screen.findByRole('status')).toHaveProperty('textContent', '일정 없음')
 })
 
-test('부서원은 내 부서만 고르고 서버 403은 부서 칸 오류로 보인다', async () => {
+test('부서는 서버가 준 선택지만 보이고 서버 403은 부서 칸 오류로 보인다', async () => {
   api.on('POST', `${base}/schedule`, () => json({ error: 'FORBIDDEN' }, 403))
+  api.on('GET', `${base}/schedule/options`, () =>
+    json({ departments: [{ id: DEPARTMENT_ID, name: '기획부' }] }),
+  )
   const own = councilView(COUNCIL_ID, {
     councilRank: null,
     permissions: ['schedule.create'],
@@ -146,6 +151,7 @@ test('부서원은 내 부서만 고르고 서버 403은 부서 칸 오류로 �
   mount(own)
   await screen.findByText('일정 없음')
   fireEvent.click(screen.getAllByRole('button', { name: '일정 추가' })[0]!)
+  expect(await screen.findByRole('option', { name: '기획부' })).toBeTruthy()
   expect(
     within(screen.getByLabelText('부서'))
       .getAllByRole('option')
@@ -173,7 +179,7 @@ test('수정 저장 뒤 상세와 목록이 바뀐다', async () => {
   expect(await screen.findByRole('dialog', { name: '바뀐 답사' })).toBeTruthy()
 })
 
-test('회장단은 모든 부서와 완료하지 않은 행사만 고를 수 있다', async () => {
+test('서버가 준 모든 부서와 완료하지 않은 행사만 고를 수 있다', async () => {
   api.on('GET', `${base}/events`, () =>
     json({
       events: [

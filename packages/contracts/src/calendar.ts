@@ -95,6 +95,10 @@ export interface ScheduleItemDetail {
   createdAt: string
   actions: ScheduleAction[]
 }
+// 일정 창의 선택지. 부서는 만들기·고치기와 같은 판정으로 서버가 고른다(회장단은 모든 부서, 그 밖은 내 지금 소속 부서).
+export interface ScheduleOptionsResponse {
+  departments: { id: string; name: string }[]
+}
 export interface ScheduleItemResponse {
   item: ScheduleItemDetail
 }

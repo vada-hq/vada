@@ -6,22 +6,17 @@ import {
   type ScheduleAction,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { can, isLeadership } from '../access/permissions.js'
+import { can } from '../access/permissions.js'
 import { scheduleItem } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { assertScheduleReferences } from '../records/same-council.js'
-import { decide } from './policy.js'
+import { decide, departmentChoosable } from './policy.js'
 import { scheduleDetailOf, scheduleRowOf } from './queries.js'
 
 function assertDepartment(actor: Actor, departmentId: string | null) {
-  if (
-    departmentId &&
-    !isLeadership(actor) &&
-    !actor.departments.some(item => item.departmentId === departmentId)
-  )
-    throw new ApiError('FORBIDDEN')
+  if (departmentId && !departmentChoosable(actor, departmentId)) throw new ApiError('FORBIDDEN')
 }
 
 function valuesOf({ when, ...input }: CreateScheduleItemRequest) {
