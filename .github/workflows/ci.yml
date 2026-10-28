@@ -42,29 +42,10 @@ jobs:
   # 시험을 나눠 나란히 돌린다. 비공개였을 때는 작업마다 분 단위로 올림되어 청구돼 작업 수를 최소로 뒀다
   # (다섯으로 나눴을 때 한 번에 약 17~20분, 그날 무료 시간 2,000분을 넘겼다). 지금은 공개 저장소라 시간이 무료다.
   # 둘로 나눴을 때 6~9분으로 CI 전체를 붙잡아(2026-10-28) 넷으로 나눈다.
+  # 시험 DB는 운영과 같은 드라이버(postgres.js)와 진짜 Postgres다(TEST_DATABASE_URL, src/db/test-db.ts). 로컬 기본값은 PGlite다.
+  # PGlite는 raw SQL의 Date처럼 운영 드라이버가 받지 않는 값을 받아 줘, 시험이 통과한 쿼리가 운영에서 500을 냈다(fba9e77d, 2026-10-28).
+  # 주 버전은 운영 Neon과 같은 18(uuidv7()), 정렬은 C.UTF-8이다. 바꿔 본 날 샤드마다 4~5.5분에서 1.5~2.5분이 됐다(시험마다 PGlite를 불러오는 2초가 없어진다).
   test-api:
-    needs: already-tested
-    if: needs.already-tested.outputs.hit != 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # pnpm 버전은 package.json의 packageManager를 따른다.
-      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - working-directory: apps/api
-        run: pnpm exec tsx --test --test-shard=${{ matrix.shard }}/4 "src/**/*.test.ts" "scripts/**/*.test.ts"
-
-  # 같은 API 시험을 운영과 같은 드라이버(postgres.js)와 진짜 Postgres로 돈다(측정용).
-  test-api-pg:
     needs: already-tested
     if: needs.already-tested.outputs.hit != 'true'
     runs-on: ubuntu-latest
@@ -87,6 +68,7 @@ jobs:
     env:
       TEST_DATABASE_URL: postgres://vada:vada@localhost:5432/vada
     steps:
+      # 시험이 끝나면 버리는 DB라 디스크 동기화를 끈다(PostgreSQL 문서 '비내구성 설정').
       - name: Tune Postgres for throwaway test data
         run: >-
           docker exec ${{ job.services.postgres.id }} psql -U vada -d vada -v ON_ERROR_STOP=1

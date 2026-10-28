@@ -151,6 +151,7 @@
 - 린트: `pnpm lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
 - blame에서 형식 커밋 빼기(한 번): `git config blame.ignoreRevsFile .git-blame-ignore-revs`
 - API 테스트: `pnpm --filter @vada/api test` (개별 파일은 `apps/api`에서 `pnpm exec tsx --test <파일>`)
+- API 시험 DB는 로컬에서 PGlite, CI에서 운영과 같은 드라이버(postgres.js)와 진짜 Postgres 18이다. `TEST_DATABASE_URL`(관리 권한이 있는 Postgres 주소)을 주면 로컬에서도 진짜 Postgres로 돈다(`src/db/test-db.ts`). 시험은 SQL을 `pg.query`·`pg.exec`, logger를 단 drizzle은 `drizzle(config)`, `db.execute` 결과는 `rowsOf`로 다뤄 두 DB에서 같이 돌게 한다
 - 계약 테스트: `pnpm --filter @vada/contracts test`
 - 화면 테스트: `pnpm --filter @vada/web test` (개별 파일은 `apps/web`에서 `pnpm exec vitest run <파일>`)
 - 타입 검사: `pnpm typecheck`
