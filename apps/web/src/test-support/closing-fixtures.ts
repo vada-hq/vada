@@ -17,6 +17,7 @@ export const closingFixture = (extra: Partial<Closing> = {}): Closing => ({
       {
         id: 'b1',
         purpose: '지원금 예산',
+        eventName: null,
         budget: 500000,
         actual: 400000,
         difference: -100000,
@@ -35,6 +36,7 @@ export const closingFixture = (extra: Partial<Closing> = {}): Closing => ({
       {
         id: 'b2',
         purpose: '행사 홍보',
+        eventName: null,
         budget: 200000,
         actual: 150000,
         difference: 50000,

@@ -10,7 +10,7 @@ type Reader = Pick<Db, 'select'>
 export async function closingFiguresOf(db: Reader, actor: Actor, period: ClosingPeriod) {
   const incomes = await incomeRowsOf(db, actor, period)
   const numbers = closingNumbersOf({
-    items: await budgetItemsOf(db, period),
+    items: await budgetItemsOf(db, actor, period),
     incomes,
     expenses: await expenseRowsOf(db, actor, period),
     accounts: await accountRowsOf(db, actor),

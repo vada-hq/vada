@@ -10,7 +10,13 @@ import type {
 // 결산서의 숫자는 이 모듈 하나가 만든다(화면, 엑셀, 공개 검사가 같은 값을 본다). 돈은 정수 원이다.
 // 입력은 DB에서 취소하지 않은 줄만 묶어 가져온 합이다(totals.ts).
 
-export type BudgetItemRow = { id: string; type: string; purpose: string; amount: number }
+export type BudgetItemRow = {
+  id: string
+  type: string
+  purpose: string
+  eventName: string | null
+  amount: number
+}
 export type IncomeRow = {
   source: string
   itemId: string | null
@@ -30,6 +36,7 @@ function lineOf(item: BudgetItemRow, actual: number): ClosingLine {
   return {
     id: item.id,
     purpose: item.purpose,
+    eventName: item.eventName,
     budget: item.amount,
     actual,
     difference: item.type === 'income' ? actual - item.amount : item.amount - actual,

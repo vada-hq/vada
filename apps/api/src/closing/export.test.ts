@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { closingPath, errorOf, FINANCE, readClosing } from '../test-support/closing.js'
+import { closingPath, errorOf, FINANCE, readClosing, spend } from '../test-support/closing.js'
 import {
   ACCOUNT_NUMBER,
   exportPath,
@@ -25,6 +25,74 @@ const download = async (
 }
 const rowOf = (rows: (string | number | null)[][], label: string) =>
   rows.find(row => row[0] === label)
+
+test(
+  '공개용·감사용 요약의 같은 이름 지출 항목은 행사 이름으로 구별하고 학생회 항목은 그대로다',
+  withSettlement(async t => {
+    const { period, budget } = await t.budgetOf()
+    for (const name of ['봄 축제', '체육대회']) {
+      const eventId = await t.event({ name })
+      await t.budgetItem(budget, { purpose: '식비', eventId, amount: '10000' })
+    }
+    await t.budgetItem(budget, { purpose: '학생회 운영비', amount: '20000' })
+    for (const kind of ['public', 'audit']) {
+      const { file } = await download(t, period, kind)
+      const summary = file.sheets['요약']!
+      assert.deepEqual(rowOf(summary, '봄 축제 · 식비'), ['봄 축제 · 식비', 10000, 0, 10000, 0])
+      assert.deepEqual(rowOf(summary, '체육대회 · 식비'), ['체육대회 · 식비', 10000, 0, 10000, 0])
+      assert.deepEqual(rowOf(summary, '학생회 운영비'), ['학생회 운영비', 20000, 0, 20000, 0])
+      assert.equal(rowOf(summary, '식비'), undefined)
+    }
+  }),
+)
+
+test(
+  '엑셀 지출 내역도 예산 항목의 행사로 구별하며 서로 다른 행사의 같은 이름 항목을 합치지 않는다',
+  withSettlement(async t => {
+    const { period, budget } = await t.budgetOf()
+    const items: string[] = []
+    for (const name of ['봄 축제', '체육대회']) {
+      const eventId = await t.event({ name })
+      const item = await t.budgetItem(budget, { purpose: '식비', eventId })
+      items.push(item)
+      await spend(t, '2026-10-20T00:00:00Z', 1000, { budgetItemId: item, description: name })
+    }
+    const councilItem = await t.budgetItem(budget, { purpose: '식비' })
+    await spend(t, '2026-10-20T00:00:00Z', 1000, {
+      budgetItemId: councilItem,
+      description: '학생회 식비',
+    })
+    const otherEvent = await t.event({ name: '다른 학생회 비공개 행사' }, t.other)
+    const invalid = await t.budgetItem(budget, { purpose: '비품' })
+    await t.pg.query('UPDATE budget_item SET event_id = $1 WHERE id = $2', [otherEvent, invalid])
+    await spend(t, '2026-10-20T00:00:00Z', 1000, {
+      budgetItemId: invalid,
+      description: '잘못 연결된 항목',
+    })
+    const mixed = await spend(t, '2026-10-20T00:00:00Z', 2000, { description: '묶음 결제' })
+    for (const item of items) {
+      const { line } = await t.requestWithItem(null)
+      await t.pg.query('UPDATE line_item SET budget_item_id = $1 WHERE id = $2', [item, line])
+      await t.approve(line)
+      await t.pay(mixed, line, '1000')
+    }
+    for (const kind of ['public', 'audit']) {
+      const { file } = await download(t, period, kind)
+      const expenses = file.sheets['지출']!.slice(1)
+      for (const name of ['봄 축제', '체육대회'])
+        assert.equal(expenses.find(row => row[3] === name)?.[6], `${name} · 식비`)
+      assert.equal(expenses.find(row => row[3] === '학생회 식비')?.[6], '식비')
+      assert.equal(expenses.find(row => row[3] === '잘못 연결된 항목')?.[6], '비품')
+      assert.ok(!file.text.includes('다른 학생회 비공개 행사'))
+      assert.deepEqual(
+        String(expenses.find(row => row[3] === '묶음 결제')?.[6])
+          .split(', ')
+          .sort(),
+        ['봄 축제 · 식비', '체육대회 · 식비'].sort(),
+      )
+    }
+  }),
+)
 
 test(
   '감사용: 시트 다섯, 숫자는 결산서와 같고 취소한 줄은 없다. 증빙번호는 결제일 순이다',

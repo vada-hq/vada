@@ -1,6 +1,11 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
-import { koreanDateOf, type EvidenceType, type ExpenseMethod } from '@vada/contracts'
+import {
+  closingLineLabel,
+  koreanDateOf,
+  type EvidenceType,
+  type ExpenseMethod,
+} from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import {
   account,
@@ -103,12 +108,22 @@ export async function incomeRowsForExport(
 
 const evidenceCount = sql<number>`(select count(*) from ${evidence} where ${evidence.expenseId} = ${expense.id})`
 
+const eventNameForItem = (councilId: string) => sql<string | null>`(
+  select ${event.name} from ${event}
+  inner join ${record} on ${record.id} = ${event.id}
+  where ${event.id} = ${budgetItem.eventId} and ${record.councilId} = ${councilId}
+)`
+
 // 결제 내역이 있는 지출은 내역 품목의 예산 항목, 없으면 지출에 고른 예산 항목이다(결산서 계산과 같은 기준).
-async function lineItemsOf(db: Reader, ids: string[]) {
+async function lineItemsOf(db: Reader, actor: Actor, ids: string[]) {
   const byExpense = new Map<string, string[]>()
   if (ids.length === 0) return byExpense
   const rows = await db
-    .select({ expenseId: paymentLine.expenseId, purpose: budgetItem.purpose })
+    .select({
+      expenseId: paymentLine.expenseId,
+      purpose: budgetItem.purpose,
+      eventName: eventNameForItem(actor.councilId),
+    })
     .from(paymentLine)
     .innerJoin(lineItem, eq(lineItem.id, paymentLine.lineItemId))
     .leftJoin(budgetItem, eq(budgetItem.id, lineItem.budgetItemId))
@@ -116,7 +131,10 @@ async function lineItemsOf(db: Reader, ids: string[]) {
     .orderBy(asc(budgetItem.purpose))
   for (const row of rows) {
     const held = byExpense.get(row.expenseId) ?? []
-    if (row.purpose && !held.includes(row.purpose)) held.push(row.purpose)
+    const label = row.purpose
+      ? closingLineLabel({ purpose: row.purpose, eventName: row.eventName })
+      : null
+    if (label && !held.includes(label)) held.push(label)
     byExpense.set(row.expenseId, held)
   }
   return byExpense
@@ -146,7 +164,7 @@ export async function expenseRowsForExport(
   period: ClosingPeriod,
 ): Promise<ExportExpense[]> {
   const rows = await db
-    .select(expenseColumns)
+    .select({ ...expenseColumns, itemEventName: eventNameForItem(actor.councilId) })
     .from(expense)
     .innerJoin(expenseRecord, eq(expenseRecord.id, expense.id))
     .leftJoin(expenseRecorder, eq(expenseRecorder.id, expenseRecord.createdBy))
@@ -165,16 +183,19 @@ export async function expenseRowsForExport(
     .orderBy(asc(expense.paidAt), asc(expenseRecord.createdAt), asc(expense.id))
   const lines = await lineItemsOf(
     db,
+    actor,
     rows.map(row => row.id),
   )
-  return rows.map(({ paidAt, reimbursedAt, item, amount, ...row }, index) => ({
+  return rows.map(({ paidAt, reimbursedAt, item, itemEventName, amount, ...row }, index) => ({
     ...row,
     amount: Number(amount),
     method: row.method as ExpenseMethod,
     number: index + 1,
     paidOn: koreanDateOf(paidAt),
     reimbursedOn: reimbursedAt ? koreanDateOf(reimbursedAt) : null,
-    items: lines.get(row.id) ?? (item ? [item] : []),
+    items:
+      lines.get(row.id) ??
+      (item ? [closingLineLabel({ purpose: item, eventName: itemEventName })] : []),
   }))
 }
 

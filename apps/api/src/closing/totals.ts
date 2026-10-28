@@ -3,6 +3,7 @@ import type { Actor } from '../access/actor.js'
 import {
   account,
   budgetItem,
+  event,
   evidence,
   expense,
   file,
@@ -20,16 +21,28 @@ type Reader = Pick<Db, 'select'>
 
 // 결산서에 드는 줄을 DB가 묶어 준다. 모두 이 학생회의 기록이고 취소한 것은 뺀다.
 
-export async function budgetItemsOf(db: Reader, period: ClosingPeriod): Promise<BudgetItemRow[]> {
+export async function budgetItemsOf(
+  db: Reader,
+  actor: Actor,
+  period: ClosingPeriod,
+): Promise<BudgetItemRow[]> {
   if (!period.budgetId) return []
+  const events = db
+    .select({ id: event.id, name: event.name })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(eq(record.councilId, actor.councilId))
+    .as('closing_events')
   const rows = await db
     .select({
       id: budgetItem.id,
       type: budgetItem.type,
       purpose: budgetItem.purpose,
+      eventName: events.name,
       amount: budgetItem.amount,
     })
     .from(budgetItem)
+    .leftJoin(events, eq(events.id, budgetItem.eventId))
     .where(eq(budgetItem.budgetId, period.budgetId))
     .orderBy(asc(budgetItem.purpose), asc(budgetItem.id))
   return rows.map(row => ({ ...row, amount: Number(row.amount) }))

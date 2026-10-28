@@ -7,6 +7,54 @@ import { withSettlement } from '../test-support/settlement.js'
 // 결산서 숫자(기능 009 조각 3). 기간은 2026-09-01~2027-02-28이다.
 
 test(
+  '같은 이름의 지출 항목은 예산 항목의 행사 이름으로 구별하고 다른 학생회 항목은 제외한다',
+  withSettlement(async t => {
+    const { period, budget } = await t.budgetOf()
+    const spring = await t.event({ name: '봄 축제' })
+    const sports = await t.event({ name: '체육대회' })
+    const first = await t.budgetItem(budget, { purpose: '식비', eventId: spring })
+    const second = await t.budgetItem(budget, { purpose: '식비', eventId: sports })
+    const council = await t.budgetItem(budget, { purpose: '학생회 운영비' })
+    await spend(t, '2026-10-20T00:00:00Z', 3000, { budgetItemId: first })
+    await spend(t, '2026-10-20T00:00:00Z', 7000, { budgetItemId: second })
+    const theirs = await t.budgetOf(t.other)
+    const theirEvent = await t.event({ name: '다른 학생회 행사' }, t.other)
+    await t.budgetItem(theirs.budget, { purpose: '식비', eventId: theirEvent }, t.other)
+    const closing = await readClosing(t, period)
+    const lines = new Map(closing.expense.items.map(line => [line.id, line]))
+    assert.equal(lines.size, 3)
+    assert.deepEqual(
+      [first, second, council].map(id => {
+        const line = lines.get(id)!
+        return [line.purpose, line.eventName, line.actual]
+      }),
+      [
+        ['식비', '봄 축제', 3000],
+        ['식비', '체육대회', 7000],
+        ['학생회 운영비', null, 0],
+      ],
+    )
+    assert.equal(closing.expense.total, 10000)
+  }),
+)
+
+test(
+  '다른 학생회 행사에 잘못 연결된 예산 항목에서도 행사 이름은 노출하지 않는다',
+  withSettlement(async t => {
+    const { period, budget } = await t.budgetOf()
+    const eventId = await t.event({ name: '다른 학생회 비공개 행사' }, t.other)
+    const item = await t.budgetItem(budget, { purpose: '운영비' })
+    // 정상 쓰기는 학생회가 다른 연결을 막으므로, 손상된 연결의 읽기 검사는 직접 구성한다.
+    await t.pg.query('UPDATE budget_item SET event_id = $1 WHERE id = $2', [eventId, item])
+    const closing = await readClosing(t, period)
+    assert.deepEqual(
+      closing.expense.items.map(line => [line.id, line.purpose, line.eventName]),
+      [[item, '운영비', null]],
+    )
+  }),
+)
+
+test(
   '결제 시각의 한국 날짜가 기간 안인 지출만 든다: 시작 -1초와 끝 +1초는 빠지고 경계 안은 든다',
   withSettlement(async t => {
     const { period } = await t.budgetOf()

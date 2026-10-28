@@ -47,6 +47,27 @@ const PUBLISHED = closingFixture({
   actions: ['closing.reopen'],
 })
 
+test('두 행사의 같은 이름 지출 항목은 행사 이름으로 구별하고 학생회 항목은 그대로 보인다', async () => {
+  const closing = closingFixture()
+  const item = closing.expense.items[0]!
+  serve({
+    ...closing,
+    expense: {
+      ...closing.expense,
+      items: [
+        { ...item, id: 'spring', purpose: '식비', eventName: '봄 축제' },
+        { ...item, id: 'sports', purpose: '식비', eventName: '체육대회' },
+        { ...item, id: 'council', purpose: '학생회 운영비', eventName: null },
+      ],
+    },
+  })
+  await show()
+  expect(await screen.findByText('봄 축제 · 식비')).toBeTruthy()
+  expect(screen.getByText('체육대회 · 식비')).toBeTruthy()
+  expect(screen.getByText('학생회 운영비')).toBeTruthy()
+  expect(screen.queryByText('식비', { exact: true })).toBeNull()
+})
+
 test('결산 탭은 상태 배지, 요약, 수입·지출, 계좌별 금액, 점검을 보이고 점검 줄을 누르면 그 지출의 주소로 열린다', async () => {
   serve()
   await show()

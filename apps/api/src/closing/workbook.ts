@@ -1,6 +1,7 @@
 import writeXlsxFile from 'write-excel-file/node'
 import {
   CLOSING_CHECK_LABEL,
+  closingLineLabel,
   METHOD_LABEL,
   SOURCE_LABEL,
   type Closing,
@@ -70,7 +71,7 @@ function summarySheet({ closing, kind }: WorkbookInput): Row[] {
   rows.push([], head('지출 예산 항목', '예산', '결산', '차이', '집행률'))
   for (const line of expense.items)
     rows.push([
-      text(line.purpose),
+      text(closingLineLabel(line)),
       won(line.budget),
       won(line.actual),
       won(line.difference),

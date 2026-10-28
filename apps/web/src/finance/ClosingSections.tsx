@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Closing, ClosingLine } from '@vada/contracts'
+import { closingLineLabel, type Closing, type ClosingLine } from '@vada/contracts'
 import { Card } from '@/components/ui/card'
 import { Fact } from '@/components/Fact'
 import { SOURCE_LABEL } from './income-view'
@@ -24,12 +24,14 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 // 예산 항목 한 줄: 이름과 결산, 그 아래 예산과 차이(지출은 집행률도).
-function LineRow({ line }: { line: ClosingLine }) {
+function LineRow({ line, label = line.purpose }: { line: ClosingLine; label?: string }) {
   return (
     <li className="flex flex-col gap-0.5 text-sm">
       <div className="flex items-start justify-between gap-3">
-        <span className="min-w-0 text-gray-700 wrap-anywhere">{line.purpose}</span>
-        <span className="whitespace-nowrap text-gray-900">{signedWon(line.actual)}</span>
+        <span className="min-w-0 text-gray-700 break-keep wrap-anywhere">{label}</span>
+        <span className="text-right whitespace-nowrap text-gray-900 tabular-nums">
+          {signedWon(line.actual)}
+        </span>
       </div>
       <span className="text-xs text-gray-500">
         예산 {signedWon(line.budget)} · 차이 {signedWon(line.difference)}
@@ -88,7 +90,7 @@ export function ClosingExpenseSection({ closing }: { closing: Closing }) {
     <Section title="지출">
       <ul className="flex flex-col gap-2">
         {expense.items.map(line => (
-          <LineRow key={line.id} line={line} />
+          <LineRow key={line.id} line={line} label={closingLineLabel(line)} />
         ))}
         <ExtraRow label="예산 항목 없음" amount={expense.noItem} />
         <ExtraRow label="다른 기간 항목" amount={expense.otherPeriod} />

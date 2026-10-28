@@ -36,11 +36,15 @@ export interface FiscalPeriodsResponse {
 export interface ClosingLine {
   id: string
   purpose: string
+  eventName: string | null
   budget: number
   actual: number
   difference: number
   rate: number | null
 }
+
+export const closingLineLabel = (line: Pick<ClosingLine, 'purpose' | 'eventName'>): string =>
+  line.eventName ? `${line.eventName} · ${line.purpose}` : line.purpose
 
 export interface ClosingSourceTotal {
   source: IncomeSource
