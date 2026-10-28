@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { layerDirectRecord, leave, navigate, pageState, savePageState } from './app-location'
+import {
+  layerDirectRecord,
+  leave,
+  navigate,
+  pageState,
+  rewriteAddress,
+  savePageState,
+} from './app-location'
+import { openRecord } from './go-to'
 import { ADOPT_KEY } from './use-window-history'
 
 const C = '0199d1a0-0000-7000-8000-0000000000c1'
@@ -22,6 +30,35 @@ test('replace는 칸을 쌓지 않는다', () => {
   navigate(`/home/${C}`, { replace: true })
   expect(push).not.toHaveBeenCalled()
   expect(where()).toBe(`/home/${C}`)
+})
+
+test('홈에서 연 업무는 홈 칸의 스크롤 자리를 싣고 주소를 고쳐 써도 지킨다', () => {
+  window.history.replaceState({ vadaNav: 'home-entry' }, '', `/home/${C}`)
+  openRecord('tasks', C, R, { behind: 'home' })
+  expect(where()).toBe(`/tasks/${C}/${R}`)
+  expect(window.history.state as unknown).toHaveProperty('vadaBehind', {
+    page: 'home',
+    spot: 'home-entry',
+  })
+  rewriteAddress(`/tasks/${C}/${R}`)
+  expect(window.history.state as unknown).toHaveProperty('vadaBehind', {
+    page: 'home',
+    spot: 'home-entry',
+  })
+})
+
+test('첫 홈 칸은 주소로 스크롤 자리를 기억하고 새 메뉴·기록에는 뒤 화면을 물려주지 않는다', () => {
+  window.history.replaceState(null, '', `/home/${C}?view=finance`)
+  openRecord('tasks', C, R, { behind: 'home' })
+  expect(window.history.state as unknown).toHaveProperty('vadaBehind', {
+    page: 'home',
+    spot: `path:/home/${C}?view=finance`,
+  })
+  openRecord('events', C, R, { overRecord: true })
+  expect(window.history.state as unknown).not.toHaveProperty('vadaBehind')
+  window.history.replaceState({ vadaBehind: { page: 'home', spot: 'old' } }, '')
+  navigate(`/home/${C}`)
+  expect(window.history.state as unknown).not.toHaveProperty('vadaBehind')
 })
 
 test('구매 요청은 창 기록 없이 페이지로 열고 직접 열어도 뒤에 목록 칸을 새로 끼우지 않는다', () => {

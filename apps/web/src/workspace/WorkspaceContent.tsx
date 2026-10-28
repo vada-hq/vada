@@ -66,15 +66,24 @@ function LeadPage({
   data,
   rooms,
   page,
+  taskId,
   view,
   ...openers
-}: Pick<Props, 'data' | 'rooms'> &
+}: Pick<Props, 'data' | 'rooms' | 'taskId'> &
   HomeOpeners & {
     page: 'home' | 'chat' | 'council'
     view: CouncilView
   }) {
   if (page === 'home')
-    return <HomePage view={view} rooms={rooms.state} onForbidden={data.reload} {...openers} />
+    return (
+      <HomePage
+        view={view}
+        rooms={rooms.state}
+        taskId={taskId}
+        onForbidden={data.reload}
+        {...openers}
+      />
+    )
   return (
     <ChatRoute
       councilId={view.council.id}
@@ -104,7 +113,7 @@ function PageOf({
   sidebarEvents,
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat' || page === 'council')
-    return <LeadPage {...{ data, rooms, page, onOpenEvent, onOpenPage, view }} />
+    return <LeadPage {...{ data, rooms, page, taskId, onOpenEvent, onOpenPage, view }} />
   if (page === 'events')
     return (
       <EventsPage

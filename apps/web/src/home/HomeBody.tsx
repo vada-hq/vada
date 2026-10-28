@@ -60,7 +60,7 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
     ...(home.council?.blocked.flatMap(item => (item.department ? [item.department] : [])) ?? []),
   ]
   return {
-    openTask: (taskId: string) => openRecord('tasks', councilId, taskId),
+    openTask: (taskId: string) => openRecord('tasks', councilId, taskId, { behind: 'home' }),
     // 거르는 부서의 이름은 업무 화면의 칩이 쓴다(내 부서가 아닌 부서도 이름이 보이게).
     seeTasks: (query?: AppQuery) => {
       const department = departments.find(item => item.id === query?.['dept'])

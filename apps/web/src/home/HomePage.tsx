@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { HOME_LOAD_FAILED } from '@/lib/messages'
+import { useHere } from '@/lib/app-location'
+import { useLatest } from '@/lib/use-latest'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import type { RoomListState } from '../chat/useRoomList'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { canCreateEvent } from '../events/event-view'
 import HomeBody, { type HomeOpeners } from './HomeBody'
+import HomeTaskPanel from './HomeTaskPanel'
 import { awaitingDepartment } from './member-view'
 import { useHome } from './useHome'
 
@@ -17,14 +20,23 @@ type Props = Omit<HomeOpeners, 'onNewEvent'> & {
   view: CouncilView
   // 홈 메시지함이 쓰는 대화 목록(작업 공간이 읽는다)
   rooms: RoomListState
+  taskId?: string | undefined
   // 권한이 바뀌었을 때(403) 학생회를 다시 읽게 한다.
   onForbidden: () => void
 }
 
-// 옆 메뉴 '홈': 그 사람의 부분을 한 번 읽어 보인다. 읽기만 하고, 줄은 원래 기록의 화면으로 간다.
-export default function HomePage({ view, rooms, onForbidden, ...openers }: Props) {
+// 옆 메뉴 '홈': 업무는 홈 위 패널로 열고, 다시 홈이 보이면 수와 줄을 새로 읽는다.
+export default function HomePage({ view, rooms, taskId, onForbidden, ...openers }: Props) {
   const { state, reload } = useHome(view.council.id, onForbidden)
+  const here = useHere()
   const dialogs = useRecordDialogs()
+  const openTask = useLatest(dialogs.openRecord)
+  const previousTask = useRef(taskId)
+  useEffect(() => {
+    if (taskId !== undefined) openTask.current(taskId)
+    else if (previousTask.current !== undefined) void reload()
+    previousTask.current = taskId
+  }, [taskId, reload, openTask])
   const [retrying, setRetrying] = useState(false)
   const retry = async () => {
     setRetrying(true)
@@ -52,6 +64,14 @@ export default function HomePage({ view, rooms, onForbidden, ...openers }: Props
   return (
     <PageColumn>
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
+      <HomeTaskPanel
+        key={here.key}
+        view={view}
+        taskId={taskId}
+        onLost={dialogs.lose}
+        onForbidden={onForbidden}
+        onChanged={() => void reload()}
+      />
       <HomeBody
         home={state.home}
         councilId={view.council.id}

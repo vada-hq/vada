@@ -3,7 +3,7 @@ import type { EventTab, MyCouncil } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { PageActionsProvider } from '@/components/PageActions'
 import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
-import { useHere } from '@/lib/app-location'
+import { useHere, type Here } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { askLeave } from '@/lib/leave-guard'
 import { useScrollMemory } from '@/lib/use-scroll-memory'
@@ -42,8 +42,11 @@ function recordOf(target: Props['target']) {
 // 기록 주소의 칸이 바뀌면 페이지를 새로 열어 주소로 연 기록을 다시 연다. 대화의 방은 주소만 바꿔 그대로 둔다(방을 바꿔도 쓰던 입력이 남는다).
 // 행사는 화면이 주소를 읽어 그리므로 탭을 바꿔 쓸 때 새로 열지 않는다.
 const pageOpensAnew = (target: Props['target'], released: boolean) =>
-  (target.record !== null && target.record.kind !== 'chat' && target.record.kind !== 'events') ||
-  released
+  target.page !== 'home' &&
+  ((target.record !== null && target.record.kind !== 'chat' && target.record.kind !== 'events') ||
+    released)
+
+const scrollSpot = (here: Here) => here.behind?.spot ?? (here.key || `path:${here.path}`)
 
 // 화면이 누르는 이동은 주소를 쌓는 것이다. 기록은 그 종류의 주소로 연다.
 function useOpeners(councilId: string, nav: Nav) {
@@ -111,7 +114,7 @@ export default function CouncilWorkspace({
     data.view?.me.memberId ?? null,
   )
   // 본문 위치는 방문 기록 칸마다 기억한다. 직접 연 첫 칸은 표시가 없어 주소로 가른다.
-  useScrollMemory(nav.main, here.key || `path:${here.path}`)
+  useScrollMemory(nav.main, scrollSpot(here))
   const openers = useOpeners(council.id, nav)
   const { lists, counts, openEvents } = useWorkspaceLists(council.id, data)
   const { space, newEvent } = useSpace(data, nav, openEvents)

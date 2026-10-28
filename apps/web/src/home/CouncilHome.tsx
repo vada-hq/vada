@@ -49,7 +49,7 @@ export default function CouncilHome({
   pushBand,
   ...open
 }: Props) {
-  const openTask = (taskId: string) => openRecord('tasks', councilId, taskId)
+  const openTask = (taskId: string) => openRecord('tasks', councilId, taskId, { behind: 'home' })
   return (
     <HomeFrame
       pushBand={pushBand}

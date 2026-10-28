@@ -45,7 +45,7 @@ test.each([
   const [menu, ...rest] = address.split('/')
   const path = `/${menu}/${councilId}${rest.length ? `/${rest.join('/')}` : ''}`
   const target = targetOf(
-    { path, location: parseAppPath(path), key: '', released: false, from: null },
+    { path, location: parseAppPath(path), key: '', released: false, from: null, behind: null },
     [myCouncil(councilId)],
   )
   expect(target.kind).toBe('ready')
@@ -53,6 +53,29 @@ test.each([
   const active = activeItemOf(target.page, target.record?.kind === 'events' ? recordId : null, [])
   const items = ['home', 'chat', 'tasks', 'events', 'menu'] as const
   expect(items.filter(item => menuActive(active, item, 'mobile'))).toEqual([expected])
+})
+
+test('홈 뒤 화면은 업무 기록에만 적용하고 아래 탭도 홈만 켠다', () => {
+  for (const record of ['tasks', 'events'] as const) {
+    const path = `/${record}/${councilId}/${recordId}`
+    const target = targetOf(
+      {
+        path,
+        location: parseAppPath(path),
+        key: 'panel',
+        released: false,
+        from: `/home/${councilId}`,
+        behind: { page: 'home', spot: 'home-entry' },
+      },
+      [myCouncil(councilId)],
+    )
+    expect(target.kind).toBe('ready')
+    if (target.kind !== 'ready') return
+    expect(target.page).toBe(record === 'tasks' ? 'home' : 'events')
+    expect(target.record?.id).toBe(recordId)
+    const active = activeItemOf(target.page, null, [])
+    expect(menuActive(active, 'home', 'mobile')).toBe(record === 'tasks')
+  }
 })
 
 test('켤 칸은 메뉴, 묶음의 행사 줄, [전체 행사 보기] 가운데 하나이고 설정은 없다', () => {

@@ -18,6 +18,7 @@ const NAV_KEY = 'vadaNav'
 const FROM_KEY = 'vadaFrom'
 const RELEASED_KEY = 'vadaReleased'
 const PAGE_STATE_KEY = 'vadaPage'
+const BEHIND_KEY = 'vadaBehind'
 // 주소에 넣을 수 없는 현재 페이지의 초안. 새 history 칸으로 나가면 복사하지 않는다.
 export const pageState = (): unknown => stateObject()[PAGE_STATE_KEY]
 export function savePageState(value: unknown) {
@@ -35,6 +36,8 @@ export type Here = {
   released: boolean
   // 이 칸으로 들어온 곳의 주소(앱 안에서 쌓은 칸일 때). 링크로 바로 들어왔으면 null이다. 화면 안 뒤로 버튼이 들어온 곳의 이름을 말하는 데 쓴다.
   from: string | null
+  // 홈에서 연 업무의 뒤 화면과 스크롤 자리. 다른 주소 칸에는 물려주지 않는다.
+  behind: { page: 'home'; spot: string } | null
 }
 
 type Mode = 'push' | 'adopt' | 'replace'
@@ -44,6 +47,14 @@ function stateObject(): Record<string, unknown> {
   return typeof state === 'object' && state !== null && !Array.isArray(state)
     ? { ...(state as Record<string, unknown>) }
     : {}
+}
+
+function behindOf(value: unknown): Here['behind'] {
+  if (typeof value !== 'object' || value === null) return null
+  const behind = value as Record<string, unknown>
+  return behind['page'] === 'home' && typeof behind['spot'] === 'string'
+    ? { page: 'home', spot: behind['spot'] }
+    : null
 }
 
 function read(): Here {
@@ -56,11 +67,15 @@ function read(): Here {
     location: parseAppPath(path),
     released: stateObject()[RELEASED_KEY] === true,
     from: typeof from === 'string' ? from : null,
+    behind: behindOf(stateObject()[BEHIND_KEY]),
   }
 }
 
 let snapshot = read()
 const listeners = new Set<() => void>()
+
+const sameBehind = (left: Here['behind'], right: Here['behind']) =>
+  left?.page === right?.page && left?.spot === right?.spot
 
 // 같은 칸이면 같은 객체를 돌려준다(useSyncExternalStore가 다시 그리지 않게).
 function current() {
@@ -69,7 +84,8 @@ function current() {
     next.path !== snapshot.path ||
     next.key !== snapshot.key ||
     next.released !== snapshot.released ||
-    next.from !== snapshot.from
+    next.from !== snapshot.from ||
+    !sameBehind(next.behind, snapshot.behind)
   )
     snapshot = next
   return snapshot
@@ -102,6 +118,7 @@ function stateFor(mode: Mode, tag?: string) {
   state[INDEX_KEY] = indexOf(window.history.state) + (mode === 'replace' ? 0 : 1)
   if (mode !== 'replace') {
     delete state[ADOPT_KEY]
+    delete state[BEHIND_KEY]
     state[FROM_KEY] = window.location.pathname + window.location.search
   } else if (state[ADOPT_KEY] !== tag) delete state[ADOPT_KEY]
   if (mode === 'adopt') {
@@ -111,10 +128,16 @@ function stateFor(mode: Mode, tag?: string) {
   return state
 }
 
-function write(path: string, mode: Mode, tag?: string, page?: unknown) {
+function write(
+  path: string,
+  mode: Mode,
+  tag?: string,
+  options: { pageState?: unknown; behind?: Here['behind'] | undefined } = {},
+) {
   const state = stateFor(mode, tag)
   delete state[PAGE_STATE_KEY]
-  if (page !== undefined) state[PAGE_STATE_KEY] = page
+  if (options.pageState !== undefined) state[PAGE_STATE_KEY] = options.pageState
+  if (options.behind) state[BEHIND_KEY] = options.behind
   if (mode === 'replace') window.history.replaceState(state, '', path)
   else window.history.pushState(state, '', path)
   noteIndex(window.history.state)
@@ -126,20 +149,31 @@ const tagOf = (location: AppLocation | null) =>
     ? adoptTag(location.record, location.recordId)
     : undefined
 
-type GoOptions = { replace?: boolean; overRecord?: boolean | undefined; pageState?: unknown }
+type GoOptions = {
+  replace?: boolean
+  overRecord?: boolean | undefined
+  pageState?: unknown
+  behind?: 'home' | undefined
+}
 
 function go(target: string, options: GoOptions) {
   const parsed = parseAppPath(target)
   const path = parsed ? appPath(parsed) : target
   const tag = tagOf(parsed)
+  const here = current()
+  const behind =
+    options.behind === 'home'
+      ? { page: 'home' as const, spot: here.key || `path:${here.path}` }
+      : undefined
+  const state = { pageState: options.pageState, behind }
   if (options.replace) {
-    write(path, 'replace', tag, options.pageState)
+    write(path, 'replace', tag, state)
     return
   }
   // 기록 상세 위에 쌓는 이동은 그 칸을 창에서 떼어 두고 쌓아, 뒤로가 그 기록 상세로 돌아오게 한다.
   if (options.overRecord) releaseAdopted()
   const mode: Mode = tag ? 'adopt' : 'push'
-  afterWindowsClosed(() => write(path, mode, tag, options.pageState))
+  afterWindowsClosed(() => write(path, mode, tag, state))
 }
 
 // 앱 안에서 한 칸 쌓거나(기본) 현재 칸의 주소를 바꿔 쓴다(replace). 알려진 학생회 안 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다.
@@ -157,6 +191,14 @@ export function navigate(target: string, options: GoOptions & { force?: boolean 
 // 주소의 모양만 고쳐 쓴다(모르는 값을 기본값으로 읽은 주소). 사용자의 이동이 아니라서 떠날 때 확인을 거치지 않는다.
 export const rewriteAddress = (target: string) => go(target, { replace: true })
 
+function recordParent(location: Extract<AppLocation, { type: 'record' }>): AppLocation {
+  if (location.record !== 'tasks' || current().behind?.page !== 'home') return parentOf(location)
+  const from = parseAppPath(current().from ?? '')
+  return from?.type === 'menu' && from.menu === 'home' && from.councilId === location.councilId
+    ? from
+    : { type: 'menu', menu: 'home', councilId: location.councilId, query: {} }
+}
+
 // 기록 상세 창이 닫히면서 같은 페이지에 남으려 할 때(다른 탭으로 가기, 기록을 잃음) 부른다. 뒤로 가기는 주소를 떠나
 // 페이지가 새로 그려지므로, 이어받은 칸을 상위 목록 주소로 바꿔 쓰고 페이지는 그대로 둔다. 이어받은 창이 아니면 아무것도 하지 않는다.
 export function releaseRecord() {
@@ -165,7 +207,7 @@ export function releaseRecord() {
   const state = stateObject()
   delete state[ADOPT_KEY]
   state[RELEASED_KEY] = true
-  const parent = parentOf(location)
+  const parent = recordParent(location)
   // 상위 목록은 상세를 열기 전에 보던 보기로 돌아간다(탭이 정해진 종류는 그 탭이 먼저다).
   const seen = parent.type === 'menu' ? recalledQuery(parent.menu, parent.councilId) : undefined
   const query = seen ? { ...seen, ...parent.query } : parent.query

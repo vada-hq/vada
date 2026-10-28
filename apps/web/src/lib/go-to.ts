@@ -23,8 +23,12 @@ export const openRecord = (
   kind: RecordKind,
   councilId: string,
   id: string,
-  options: { tab?: EventTab | undefined; overRecord?: boolean } = {},
-) => navigate(recordTarget(kind, councilId, id, options.tab), { overRecord: options.overRecord })
+  options: { tab?: EventTab | undefined; overRecord?: boolean; behind?: 'home' } = {},
+) =>
+  navigate(recordTarget(kind, councilId, id, options.tab), {
+    overRecord: options.overRecord,
+    behind: options.behind,
+  })
 
 // 홈의 행사 방 칩은 행사 메시지 탭으로 가고, 학생회·1:1 방은 대화 메뉴로 간다.
 // overRecord는 openRecord와 같다(업무 상세의 결과물 공지처럼 기록 상세 위에서 간다).

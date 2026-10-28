@@ -82,6 +82,12 @@ const isEventTab = (value: string | undefined): value is EventTab =>
 const locationOf = (here: Here, start: string | null | undefined) =>
   here.location ?? (here.path === '/' && start ? parseAppPath(start) : null)
 
+function recordPage(location: Extract<AppLocation, { type: 'record' }>, here: Here): AppMenu {
+  if (location.record === 'tasks' && here.behind?.page === 'home') return 'home'
+  const up = parentOf(location)
+  return up.type === 'menu' ? drawnMenu(up.menu) : 'home'
+}
+
 // '/'로 열리면 start(마지막에 본 주소)가 있으면 그곳, 없으면 첫 학생회 홈이다. start가 내 학생회의 것인지는 부르는 쪽이 가린다.
 export function targetOf(here: Here, councils: MyCouncil[], start?: string | null): Target {
   const first = councils[0]
@@ -100,11 +106,10 @@ export function targetOf(here: Here, councils: MyCouncil[], start?: string | nul
   if (location.type === 'menu')
     return { kind: 'ready', councilId: location.councilId, page: location.menu, record: null }
   const tab = location.query['tab']
-  const up = parentOf(location)
   return {
     kind: 'ready',
     councilId: location.councilId,
-    page: up.type === 'menu' ? drawnMenu(up.menu) : 'home',
+    page: recordPage(location, here),
     record: {
       kind: location.record,
       id: location.recordId,

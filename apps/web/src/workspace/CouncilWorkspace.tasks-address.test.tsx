@@ -231,6 +231,95 @@ test('홈에서 연 업무를 닫으면 홈으로 돌아간다', async () => {
   expect(await screen.findByRole('heading', { level: 1, name: '홈' })).toBeTruthy()
 })
 
+// 홈 위 패널(027 조각 11, 정한 것 13): 주소는 업무 기록, 뒤 화면은 홈이다.
+const sidebarCurrent = () =>
+  within(screen.getByRole('complementary', { name: '학생회 작업 공간', hidden: true }))
+    .getAllByRole('button', { hidden: true })
+    .filter(item => item.getAttribute('aria-current') === 'page')
+    .map(item => item.textContent)
+const homeHeading = () => screen.findByRole('heading', { level: 1, name: '홈', hidden: true })
+const boardTab = () => screen.queryByRole('tab', { name: '학생회 업무', hidden: true })
+async function openFromHome() {
+  setup('home')
+  fireEvent.click(await screen.findByRole('button', { name: /업무 3f2b/ }))
+  return await screen.findByRole('dialog', { name: '현수막 주문' })
+}
+
+test('홈에서 연 업무는 홈을 뒤에 둔 채 패널로 열리고, 옆 메뉴는 홈이 켜져 있다', async () => {
+  await openFromHome()
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`)
+  expect(await homeHeading()).toBeTruthy()
+  expect(boardTab()).toBeNull()
+  expect(sidebarCurrent()).toEqual([expect.stringContaining('홈')])
+})
+
+test('홈 위 패널에서 뒤로 가면 홈 주소이고 업무 보드를 거치지 않는다', async () => {
+  await openFromHome()
+  act(() => window.history.back())
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await act(() => windowHistoryIdle())
+  expect(pathNow()).toBe(`/home/${COUNCIL_ID}`)
+  expect(await homeHeading()).toBeTruthy()
+  expect(boardTab()).toBeNull()
+})
+
+test('홈 위 패널을 새로 고침해도 홈 위 패널이다', async () => {
+  await openFromHome()
+  // 새로 고침: 문서가 새로 열려도 기록 칸과 그 상태는 그대로다(App.address 시험과 같은 흉내).
+  cleanup()
+  await windowHistoryIdle()
+  act(() => window.history.forward())
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`))
+  setup('home')
+  await screen.findByRole('dialog', { name: '현수막 주문' })
+  expect(await homeHeading()).toBeTruthy()
+  expect(boardTab()).toBeNull()
+})
+
+test('같은 업무 주소를 링크로 바로 열면 지금처럼 업무 보드 위 패널이다', async () => {
+  startAt(`/tasks/${COUNCIL_ID}/${T1}`)
+  await screen.findByRole('dialog', { name: '현수막 주문' })
+  expect(boardTab()).not.toBeNull()
+  expect(sidebarCurrent()).toEqual([expect.stringContaining('업무')])
+})
+
+test('홈에서 연 업무가 없으면(못 보는 업무 포함) 홈에 남아 같은 안내를 보이고 주소는 홈이다', async () => {
+  setup('home')
+  api.on('GET', `${base}/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
+  fireEvent.click(await screen.findByRole('button', { name: /업무 3f2b/ }))
+  expect((await screen.findByRole('alert')).textContent).toMatch(/업무/)
+  await waitFor(() => expect(pathNow()).toBe(`/home/${COUNCIL_ID}`))
+  expect(await homeHeading()).toBeTruthy()
+  expect(boardTab()).toBeNull()
+})
+
+test('홈 위 패널에서 누른 행사는 행사 주소로 열리고, 뒤로 가면 다시 홈 위 패널이다', async () => {
+  const dialog = await openFromHome()
+  fireEvent.click(await within(dialog).findByRole('button', { name: '신입생 환영회 열기' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '행사' })).toBeTruthy()
+  await act(() => windowHistoryIdle())
+  expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}`)
+  act(() => window.history.back())
+  await screen.findByRole('dialog', { name: '현수막 주문' })
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}/${T1}`)
+  expect(await homeHeading()).toBeTruthy()
+  expect(boardTab()).toBeNull()
+})
+
+test('홈 위 패널을 닫으면 홈을 새로 읽는다', async () => {
+  const dialog = await openFromHome()
+  const before = readsOf(`${base}/home`)
+  api.on('GET', `${base}/home`, () =>
+    json(homeWithTasks([homeTask(T1, 'overdue', { title: '현수막 주문 끝냄' })])),
+  )
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await act(() => windowHistoryIdle())
+  expect(pathNow()).toBe(`/home/${COUNCIL_ID}`)
+  await waitFor(() => expect(readsOf(`${base}/home`)).toBeGreaterThan(before))
+  expect(await screen.findByText('현수막 주문 끝냄')).toBeTruthy()
+})
+
 test('업무 상세에서 누른 행사는 행사 주소로 열리고, 뒤로 가면 그 업무 상세다', async () => {
   startAt(`/tasks/${COUNCIL_ID}?events=include`)
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))

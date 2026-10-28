@@ -90,7 +90,7 @@ export default function MemberHome({
             title={UPCOMING}
             upcoming={home.upcoming}
             wideDate
-            onOpenTask={taskId => openRecord('tasks', councilId, taskId)}
+            onOpenTask={taskId => openRecord('tasks', councilId, taskId, { behind: 'home' })}
             onOpenEvent={open.onOpenEvent}
           />,
           <MyRequestsCard

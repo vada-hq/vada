@@ -35,7 +35,7 @@ export default function DepartmentHome({
   pushBand,
   ...open
 }: Props) {
-  const openTask = (id: string) => openRecord('tasks', councilId, id)
+  const openTask = (id: string) => openRecord('tasks', councilId, id, { behind: 'home' })
   const seeTasks = () => {
     for (const department of board.departments) rememberDepartment(department.id, department.name)
     openMenu('tasks', councilId, {
