@@ -25,9 +25,11 @@ type Props = {
   onChanged: () => void
 }
 
-// 주소에 남은 행사가 지워졌으면 서버가 404를 준다. 빈 화면에 막히지 않게 범위를 풀어 전체를 다시 읽는다.
-function useLostScope(controls: Props['controls'], open: ReturnType<typeof useTasks>) {
-  const lost = open.state.kind === 'failed' && open.state.notFound && controls.listEvent !== 'none'
+// 주소에 남은 행사가 지워졌으면 서버가 404를 준다. 어느 탭의 읽기든 404면 범위를 풀어 전체를 다시 읽는다.
+function useLostScope(controls: Props['controls'], lists: ReturnType<typeof useTasks>[]) {
+  const lost =
+    controls.listEvent !== 'none' &&
+    lists.some(({ state }) => state.kind === 'failed' && state.notFound)
   const { setScope } = controls
   useEffect(() => {
     if (lost) setScope(null)
@@ -51,7 +53,7 @@ export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChan
     controls.filter === 'done',
   )
   const events = useEvents(councilId, onForbidden)
-  useLostScope(controls, open)
+  useLostScope(controls, [open, done])
   const reload = async () => {
     onChanged()
     await Promise.all([open.reload(), done.reload()])

@@ -38,13 +38,12 @@ export function useTasks(
       return setLoaded({ key: mine, state: { kind: 'ready', tasks, truncated } })
     }
     if (result.status === statusOf('FORBIDDEN')) forbidden.current()
+    // 404는 거르기로 준 행사가 없어졌다는 뜻이라 보이던 목록도 남기지 않는다.
+    const notFound = result.status === statusOf('NOT_FOUND')
     setLoaded(before =>
-      before?.key === mine && before.state.kind === 'ready'
+      !notFound && before?.key === mine && before.state.kind === 'ready'
         ? before
-        : {
-            key: mine,
-            state: { kind: 'failed', notFound: result.status === statusOf('NOT_FOUND') },
-          },
+        : { key: mine, state: { kind: 'failed', notFound } },
     )
   }, [councilId, view, filter, eventId, enabled, forbidden, isActive, latestKey])
   useEffect(() => {

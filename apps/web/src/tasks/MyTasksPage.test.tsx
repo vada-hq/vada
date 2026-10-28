@@ -222,3 +222,27 @@ test('주소의 행사가 지워져 404이면 범위를 풀고 전체 내 업무
   expect(new URLSearchParams(window.location.search).get('scope')).toBeNull()
   expect(api.calls.some(call => call.path === path('open', gone))).toBe(true)
 })
+
+test('완료 탭만 404여도 범위를 푼다', async () => {
+  const gone = '00000000-0000-4000-8000-0000000000fe'
+  setup(rows, `?tab=mine&filter=done&scope=${gone}`, [], api => {
+    api.on('GET', path('open', gone), () => json({ tasks: rows, truncated: false }))
+    api.on('GET', path('done', gone), () => json({ error: 'NOT_FOUND' }, 404))
+  })
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('scope')).toBeNull())
+})
+
+test('이미 읽은 목록이 있어도 다시 읽기가 404면 범위를 푼다', async () => {
+  const gone = '00000000-0000-4000-8000-0000000000fd'
+  let deleted = false
+  setup(rows, `?tab=mine&scope=${gone}`, [], api => {
+    api.on('GET', path('open', gone), () =>
+      deleted ? json({ error: 'NOT_FOUND' }, 404) : json({ tasks: rows, truncated: false }),
+    )
+    api.on('POST', `${base}/tasks/yesterday/status`, () => json({ task: {} }))
+  })
+  await screen.findByText('간식 구매')
+  deleted = true
+  fireEvent.click(within(card('간식 구매')).getByRole('button', { name: '끝내기' }))
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('scope')).toBeNull())
+})
