@@ -1,4 +1,4 @@
-import type { TaskCause, TaskChange, TaskVersion } from '@vada/contracts'
+import type { TaskCause, TaskChange, TaskVersion, TaskView } from '@vada/contracts'
 import { monthDay, monthDayTime } from '@/lib/korean-date-text'
 import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
@@ -6,6 +6,16 @@ const NONE = '없음'
 const UNKNOWN_PERSON = '알 수 없는 사람'
 const UNKNOWN_EVENT = '알 수 없는 행사'
 const REMOVED_DEPARTMENT = '없앤 부서'
+
+// 거르기 전에도 업무가 없으면 useBoardEmpty가 보드의 빈 상태 문구를 고른다.
+const VIEW_EMPTY: Record<TaskView, string> = {
+  mine: '내 업무 없음',
+  department: '내 부서 업무 없음',
+  all: '업무 없음',
+  unassigned: '담당자 없는 업무 없음',
+}
+export const viewEmptyText = (view: TaskView, dept: string | null) =>
+  dept === null ? VIEW_EMPTY[view] : '이 부서 업무 없음'
 
 const dueText = (value: string | null) => (value === null ? NONE : monthDay(value))
 type Side = { id: string; name: string | null } | null

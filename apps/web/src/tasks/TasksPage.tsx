@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { type CouncilView, type EventSummary, type TaskView } from '@vada/contracts'
+import { type CouncilView, type EventSummary } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import type { EventList } from '@/events/useEvents'
@@ -31,6 +31,8 @@ import type { TaskList } from './useTasks'
 import { homeScopeActive, homeScopeLabel } from './home-task-scope'
 import { useNarrowed } from './useNarrowedTasks'
 import { useTaskOpeners } from './useTaskOpeners'
+import { MyTasksPage } from './MyTasksPage'
+import { viewEmptyText } from './task-text'
 
 type Props = {
   view: CouncilView
@@ -177,16 +179,6 @@ function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
   return undefined
 }
 
-// 보기나 부서로 좁혀 빈 보드의 문구. 거르기 전에도 업무가 없으면 보드의 빈 상태다(useBoardEmpty).
-const VIEW_EMPTY: Record<TaskView, string> = {
-  mine: '내 업무 없음',
-  department: '내 부서 업무 없음',
-  all: '업무 없음',
-  unassigned: '담당자 없는 업무 없음',
-}
-const viewEmptyText = (view: TaskView, dept: string | null) =>
-  dept === null ? VIEW_EMPTY[view] : '이 부서 업무 없음'
-
 // 보드·표·달력 가운데 지금 배치의 몸통. 넓은 화면의 보드가 아니면 지금의 표(넓은 화면)와 줄(좁은 화면)이다.
 function TasksBody({
   page,
@@ -258,7 +250,7 @@ function undoNoticesOf(page: ReturnType<typeof useTasksPage>, councilId: string)
 }
 
 // 옆 메뉴는 학생회 업무·내 업무 두 탭이고, 행사 안에서는 같은 목록을 행사로 좁힌다.
-export default function TasksPage(props: Props) {
+function CouncilTasksPage(props: Props) {
   const page = useTasksPage(props)
   const first = useFirstAdd()
   const { controls, dialogs, changed, rows } = page
@@ -320,4 +312,11 @@ export default function TasksPage(props: Props) {
       {notices.inPage}
     </PageColumn>
   )
+}
+
+export default function TasksPage(props: Props) {
+  const controls = useTaskControls(props.view.council.id, props.eventId, props.view.me.memberId)
+  if (controls.inMenu && controls.tab === 'mine')
+    return <MyTasksPage {...props} controls={controls} />
+  return <CouncilTasksPage {...props} />
 }

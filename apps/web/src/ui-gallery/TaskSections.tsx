@@ -9,6 +9,7 @@ import { TaskRow } from '@/tasks/TaskRow'
 import { TaskTable } from '@/tasks/TaskTable'
 import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { groupByDepartment } from '@/tasks/task-groups'
+import { MyTasksPreview } from '@/tasks/MyTasksPreview'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -65,6 +66,15 @@ export function TaskSection() {
           error="상태를 바꾸지 못했어요. 다시 시도해 주세요."
         />
       </ul>
+      <div aria-label="내 업무 MY-01" className="w-full min-w-0 max-w-5xl">
+        <MyTasksPreview />
+      </div>
+      <div aria-label="내 업무 빈 상태" className="w-full min-w-0 max-w-96">
+        <MyTasksPreview empty />
+      </div>
+      <div aria-label="내 업무 필터 빈 상태" className="w-full min-w-0 max-w-96">
+        <MyTasksPreview filtered />
+      </div>
     </Section>
   )
 }

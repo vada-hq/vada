@@ -53,7 +53,7 @@ const made = taskDetail({
 const empty = () => json({ tasks: [] as TaskSummary[], truncated: false })
 
 function setup(options: TaskCreateOptionsResponse | null = memberOptions, view = member()) {
-  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=mine`)
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=council`)
   const api = mockApi()
   api.on('GET', `${BASE}?view=all&status=open&event=none`, empty)
   for (const tab of ['mine', 'department', 'all', 'unassigned'])
@@ -76,7 +76,7 @@ async function add(title: string, enter = false) {
 }
 
 test.each([false, true])(
-  '내 업무 추가 성공 뒤 칸이 비고 오류 없이 초점이 남는다(Enter: %s)',
+  '학생회 업무에서 추가 성공 뒤 칸이 비고 오류 없이 초점이 남는다(Enter: %s)',
   async enter => {
     const { handlers, posts } = setup()
     const input = await add('청소', enter)

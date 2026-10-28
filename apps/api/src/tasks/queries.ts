@@ -25,7 +25,7 @@ import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { nextOf } from './lifecycle.js'
 import { actionsOf, canLinkResult, factsOf } from './policy.js'
-import { canMakeOf, resultsOf } from './results.js'
+import { canMakeOf, EMPTY_RESULT_SUMMARY, resultSummariesOf, resultsOf } from './results.js'
 import { dueDateOf, isOverdue } from './due.js'
 import { eventRowOf } from '../events/queries.js'
 import { historyOf } from './history.js'
@@ -166,8 +166,17 @@ export async function taskListOf(
   if (query.event && query.event !== 'none') await eventRowOf(db, actor, query.event)
   const rows = await listRows(db, actor, query, now)
   const limit = query.status === 'open' ? TASK_OPEN_LIMIT : TASK_DONE_LIMIT
+  const shown = rows.slice(0, limit)
+  const results = await resultSummariesOf(
+    db,
+    actor,
+    shown.map(row => row.id),
+  )
   return {
-    tasks: rows.slice(0, limit).map(row => summaryOf(actor, row, now)),
+    tasks: shown.map(row => ({
+      ...summaryOf(actor, row, now),
+      ...(results.get(row.id) ?? EMPTY_RESULT_SUMMARY),
+    })),
     truncated: rows.length > limit,
   }
 }
@@ -188,8 +197,10 @@ export async function taskDetailOf(
   const row = await taskRowOf(db, actor, taskId, now)
   const history = await historyOf(db, taskId)
   const linkable = canLinkResult(actor, factsOf(row), row.status as TaskStatus)
+  const results = await resultSummariesOf(db, actor, [taskId])
   return {
     ...summaryOf(actor, row, now),
+    ...(results.get(taskId) ?? EMPTY_RESULT_SUMMARY),
     body: row.body,
     createdBy: history[0]?.by ?? null,
     createdAt: row.createdAt.toISOString(),

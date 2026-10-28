@@ -79,6 +79,10 @@ export interface TaskSummary {
   event: { id: string; name: string } | null
   assignee: TaskPerson | null
   actions: TaskAction[]
+  // 업무 목록·상세의 결과물 요약(DEC-94). 홈 등 별도 요약 응답과 이전 응답에는 없을 수 있다.
+  // 취소한 결과물은 세지 않고, 가장 최근에 바뀐 결과물 한 개만 싣는다.
+  latestResult?: { kind: TaskResultKind; stage: TaskResultStage; changedAt: string } | null
+  resultCount?: number
 }
 
 // 판 사이에 바뀐 칸 하나. 내용은 값 없이 '고침'만 알리고, 부서와 사람은 지금 이름이다(name이 null이면 없앤 부서이거나 없는 사람).

@@ -1,5 +1,5 @@
-import { asc, eq, sql } from 'drizzle-orm'
-import type { TaskResult, TaskResultKind } from '@vada/contracts'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import type { TaskResult, TaskResultKind, TaskSummary } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { isArchivedEvent } from '../chat/archive.js'
 import { visibleMessage } from '../chat/messages.js'
@@ -9,6 +9,7 @@ import {
   event,
   message,
   record,
+  recordVersion,
   registrationForm,
   request,
   taskResult,
@@ -21,6 +22,51 @@ type Reader = Pick<Db, 'select'>
 
 // 공지 결과물의 제목으로 보이는 첫 줄의 길이(글자)
 const TITLE_MAX = 60
+
+type ResultSummary = Required<Pick<TaskSummary, 'latestResult' | 'resultCount'>>
+export const EMPTY_RESULT_SUMMARY: ResultSummary = { latestResult: null, resultCount: 0 }
+
+// 목록 전체의 연결과 단계를 종류별로 모아 읽는다. 업무 수가 늘어도 쿼리는 연결 1개 + 종류별 단계 읽기뿐이다.
+// 결과물 기록의 학생회 경계를 먼저 걸어, 잘못 연결된 다른 학생회 기록을 단계 읽기에 넘기지 않는다.
+export async function resultSummariesOf(db: Reader, actor: Actor, taskIds: string[]) {
+  const summaries = new Map<string, ResultSummary>()
+  if (!taskIds.length) return summaries
+  const lastChange = sql`coalesce(lower(${recordVersion.valid}), ${record.createdAt})`
+  const changedAt = sql<string>`${lastChange}::text`
+  const rows = await db
+    .select({
+      taskId: taskResult.taskId,
+      id: taskResult.resultId,
+      kind: taskResult.resultKind,
+      changedAt,
+    })
+    .from(taskResult)
+    .innerJoin(record, eq(record.id, taskResult.resultId))
+    .leftJoin(
+      recordVersion,
+      and(eq(recordVersion.recordId, record.id), sql`upper_inf(${recordVersion.valid})`),
+    )
+    .where(and(inArray(taskResult.taskId, taskIds), eq(record.councilId, actor.councilId)))
+    .orderBy(desc(lastChange), asc(taskResult.resultId))
+  const stages = await stagesOf(
+    db,
+    rows.map(row => ({ id: row.id, kind: row.kind as TaskResultKind })),
+  )
+  for (const row of rows) {
+    const stage = stages.get(row.id) ?? 'none'
+    if (stage === 'excluded') continue
+    const previous = summaries.get(row.taskId) ?? EMPTY_RESULT_SUMMARY
+    summaries.set(row.taskId, {
+      latestResult: previous.latestResult ?? {
+        kind: row.kind as TaskResultKind,
+        stage,
+        changedAt: new Date(row.changedAt).toISOString(),
+      },
+      resultCount: previous.resultCount + 1,
+    })
+  }
+  return summaries
+}
 
 // 업무 상세의 결과물: 이 업무에서 만든 것을 만든 순으로, 제목은 지금 제목이고 단계는 그때그때 센다(저장하지 않는다).
 // 제목은 요청의 제목, 양식과 행사의 이름, 공지의 첫 줄이다.
@@ -53,7 +99,7 @@ export async function resultsOf(db: Reader, actor: Actor, taskId: string): Promi
     .leftJoin(event, eq(event.id, taskResult.resultId))
     .leftJoin(message, eq(message.id, taskResult.resultId))
     .leftJoin(chatRoom, eq(chatRoom.id, message.roomId))
-    .where(eq(taskResult.taskId, taskId))
+    .where(and(eq(taskResult.taskId, taskId), eq(record.councilId, actor.councilId)))
     .orderBy(asc(record.createdAt), asc(taskResult.resultId))
   const results = rows.map(row => ({ id: row.id, kind: row.kind as TaskResultKind }))
   const stages = await stagesOf(db, results)

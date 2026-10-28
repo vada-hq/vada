@@ -17,6 +17,7 @@ const CLEAR_NARROW = { dept: null, assignee: null, heads: null, attention: null,
 type QueryUrl = Pick<ReturnType<typeof useMenuQuery>, 'query' | 'set'>
 
 function listEventOf(eventId: string | undefined, inMenu: boolean, tab: TaskTab, query: AppQuery) {
+  if (inMenu && tab === 'mine') return query['scope'] === 'council' ? 'none' : query['scope']
   return (
     eventId ?? (inMenu && tab === 'council' && query['events'] !== 'include' ? 'none' : undefined)
   )
@@ -41,6 +42,9 @@ function changesOf(url: QueryUrl, memberId: string) {
     setView: (view: TaskView) =>
       url.set({ ...(query['view'] === 'unassigned' ? { assignee: 'none' } : {}), view }),
     setFilter: (filter: TaskFilter) => url.set({ filter }),
+    setScope: (scope: string | null) => url.set({ scope }),
+    setState: (state: string | null) => url.set({ state }),
+    clearMyFilters: () => url.set({ scope: null, state: null }),
     setLayout: (layout: TaskLayout) => {
       rememberTaskLayout(memberId, layout)
       url.set({ layout })
@@ -91,5 +95,7 @@ export function useTaskControls(councilId: string, eventId: string | undefined, 
     heads: query['heads'] === 'true',
     attention: query['attention'] === 'true',
     week: query['due'] === 'week',
+    scope: query['scope'] ?? null,
+    state: query['state'] ?? null,
   }
 }
