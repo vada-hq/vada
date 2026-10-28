@@ -3,7 +3,13 @@ import type { MeetingDetail } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MinutesEntryForm } from './MinutesEntryForm'
-import { MINUTES_TEXT as T, agendaNumber, agendaProgress, decisionCount } from './minutes-text'
+import {
+  MINUTES_TEXT as T,
+  agendaNumber,
+  agendaProgress,
+  decisionCount,
+  followUpCount,
+} from './minutes-text'
 
 type Props = {
   meeting: MeetingDetail
@@ -87,6 +93,11 @@ export function MinutesAgendaNavigation({
               className={`text-right text-xs tabular-nums ${a.decisions.length ? 'text-muted-foreground' : 'text-gray-400'}`}
             >
               {decisionCount(a.decisions.length)}
+              <span
+                className={`ml-2 ${a.followUps.length ? 'text-muted-foreground' : 'text-gray-400'}`}
+              >
+                {followUpCount(a.followUps.length)}
+              </span>
             </span>
           </Button>
         ))}

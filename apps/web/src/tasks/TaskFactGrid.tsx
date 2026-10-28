@@ -9,6 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TASK_TEAM_FAILED } from '@/lib/messages'
 import { dayLabel } from '@/lib/month-grid'
 import { cn } from '@/lib/utils'
+import { navigate } from '@/lib/app-location'
+import { meetingMinutesPath } from '@/meetings/minutes-path'
+import { TASK_ORIGIN_LABEL } from './task-text'
 import type { TaskEdit } from './task-edits'
 import { assigneeLabel, COUNCIL_TASK_LABEL, NO_EVENT_LABEL } from './task-view'
 import { TaskDuePicker } from './TaskDuePicker'
@@ -184,6 +187,37 @@ function AssigneeProperty({
   )
 }
 
+function TaskOrigin({ origin, direct }: { origin: TaskDetail['origin']; direct: Props['direct'] }) {
+  if (!origin) return null
+  const label = (
+    <span className="wrap-anywhere">
+      {origin.meetingTitle} · {origin.agendaTitle}
+    </span>
+  )
+  return (
+    <div className="flex min-w-0 flex-col gap-1 text-sm break-keep sm:flex-row sm:items-center sm:gap-3">
+      <span className="shrink-0 text-xs text-muted-foreground">{TASK_ORIGIN_LABEL}</span>
+      {direct ? (
+        <Button
+          variant="link"
+          touch
+          className="h-auto min-w-0 justify-start px-0 text-left whitespace-normal wrap-anywhere"
+          onClick={() =>
+            navigate(meetingMinutesPath(direct.councilId, origin.meetingId, origin.agendaId), {
+              overRecord: true,
+            })
+          }
+        >
+          {label}
+          <ArrowUpRight className="shrink-0" aria-hidden />
+        </Button>
+      ) : (
+        label
+      )}
+    </div>
+  )
+}
+
 // 사실 칸 넷(와이어프레임 OPS 패널의 2열 칸: 담당자·마감 / 담당 부서·행사). 값을 누르면 고르기 창이 열리고 고르면 바로 바뀐다.
 // 비어 있는 값은 흐리게 둔다. 빨강은 마감 지남에만 쓴다(DEC-97, 카드와 같다).
 export function TaskFactGrid({
@@ -203,68 +237,71 @@ export function TaskFactGrid({
     void onEdit(edit)
   }
   return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-gray-200">
-      <AssigneeProperty
-        task={task}
-        direct={direct}
-        busy={busy}
-        problem={problem}
-        options={options}
-        onEdit={onEdit}
-      />
-      <TaskProperty
-        label="마감"
-        value={<DueValue task={task} />}
-        empty={!task.dueDate}
-        editable={can('task.edit')}
-        busy={busy}
-        error={errorIn(problem, 'dueDate')}
-        popoverClassName="w-80"
-      >
-        {close => (
-          <TaskDuePicker
-            value={task.dueDate}
-            today={today}
-            onPick={dueDate => pick({ field: 'dueDate', dueDate }, close)}
-          />
-        )}
-      </TaskProperty>
-      <TaskProperty
-        label="담당 부서"
-        value={<DepartmentValue task={task} options={options.departments} />}
-        editable={can('task.change_department')}
-        busy={busy}
-        error={errorIn(problem, 'department')}
-      >
-        {close => (
-          <Picker
-            label="담당 부서"
-            options={options.departments}
-            failed={options.teamFailed}
-            value={task.department?.id ?? null}
-            onPick={departmentId => pick({ field: 'department', departmentId }, close)}
-          />
-        )}
-      </TaskProperty>
-      <TaskProperty
-        label="행사"
-        value={task.event?.name ?? NO_EVENT_LABEL}
-        empty={!task.event}
-        editable={can('task.edit')}
-        busy={busy}
-        error={errorIn(problem, 'event')}
-        onOpen={onNeedEvents}
-        extra={<EventOpen event={task.event} onOpen={onOpenEvent} />}
-      >
-        {close => (
-          <Picker
-            label="행사"
-            options={options.events}
-            value={task.event?.id ?? null}
-            onPick={eventId => pick({ field: 'event', eventId }, close)}
-          />
-        )}
-      </TaskProperty>
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-gray-200">
+        <AssigneeProperty
+          task={task}
+          direct={direct}
+          busy={busy}
+          problem={problem}
+          options={options}
+          onEdit={onEdit}
+        />
+        <TaskProperty
+          label="마감"
+          value={<DueValue task={task} />}
+          empty={!task.dueDate}
+          editable={can('task.edit')}
+          busy={busy}
+          error={errorIn(problem, 'dueDate')}
+          popoverClassName="w-80"
+        >
+          {close => (
+            <TaskDuePicker
+              value={task.dueDate}
+              today={today}
+              onPick={dueDate => pick({ field: 'dueDate', dueDate }, close)}
+            />
+          )}
+        </TaskProperty>
+        <TaskProperty
+          label="담당 부서"
+          value={<DepartmentValue task={task} options={options.departments} />}
+          editable={can('task.change_department')}
+          busy={busy}
+          error={errorIn(problem, 'department')}
+        >
+          {close => (
+            <Picker
+              label="담당 부서"
+              options={options.departments}
+              failed={options.teamFailed}
+              value={task.department?.id ?? null}
+              onPick={departmentId => pick({ field: 'department', departmentId }, close)}
+            />
+          )}
+        </TaskProperty>
+        <TaskProperty
+          label="행사"
+          value={task.event?.name ?? NO_EVENT_LABEL}
+          empty={!task.event}
+          editable={can('task.edit')}
+          busy={busy}
+          error={errorIn(problem, 'event')}
+          onOpen={onNeedEvents}
+          extra={<EventOpen event={task.event} onOpen={onOpenEvent} />}
+        >
+          {close => (
+            <Picker
+              label="행사"
+              options={options.events}
+              value={task.event?.id ?? null}
+              onPick={eventId => pick({ field: 'event', eventId }, close)}
+            />
+          )}
+        </TaskProperty>
+      </div>
+      <TaskOrigin origin={task.origin} direct={direct} />
+    </>
   )
 }

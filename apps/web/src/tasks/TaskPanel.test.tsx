@@ -32,6 +32,34 @@ function setup(task: TaskDetail = taskDetail()) {
 const posts = (api: ReturnType<typeof mockApi>) =>
   api.calls.filter(call => call.method === 'POST').map(({ path, body }) => ({ path, body }))
 
+test('나온 곳은 읽기 권한만으로 보이고 누르면 회의의 해당 안건으로 간다', async () => {
+  setup(
+    taskDetail({
+      actions: [],
+      origin: {
+        meetingId: '0199d1a0-0000-7000-8000-0000000000a1',
+        meetingTitle: '안전 회의',
+        agendaId: '0199d1a0-0000-7000-8000-0000000000b1',
+        agendaTitle: '안전 인력',
+      },
+    }),
+  )
+  expect(await screen.findByText('나온 곳')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '안전 회의 · 안전 인력' }))
+  await waitFor(() =>
+    expect(window.location.pathname).toBe('/meetings/c1/0199d1a0-0000-7000-8000-0000000000a1'),
+  )
+  expect(new URLSearchParams(window.location.search).get('agenda')).toBe(
+    '0199d1a0-0000-7000-8000-0000000000b1',
+  )
+})
+
+test('나온 곳이 없는 업무는 출처 줄을 보이지 않는다', async () => {
+  setup(taskDetail({ origin: null }))
+  await screen.findByRole('dialog', { name: '현수막 주문' })
+  expect(screen.queryByText('나온 곳')).toBeNull()
+})
+
 test('담당자 칸을 누르고 사람을 고르면 저장 버튼 없이 맡기기 API로 바로 보내고 되돌리기 띠를 단다', async () => {
   const { api, handlers } = setup()
   api.on('POST', `${URL_TASK}/assignee`, () =>

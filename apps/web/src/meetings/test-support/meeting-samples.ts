@@ -46,6 +46,7 @@ export const meetingSample = (patch: Partial<MeetingDetail> = {}): MeetingDetail
       updatedBy: meetingOptions.members[0]!,
       updatedAt: '2026-10-29T06:24:00Z',
       decisions: [],
+      followUps: [],
     },
   ],
   ...patch,

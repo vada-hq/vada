@@ -23,6 +23,11 @@ export const MINUTES_TEXT = {
   agendaTitle: '안건 제목',
   agendaBody: '설명',
   decisions: '결정사항',
+  followUps: '후속 업무',
+  createTask: '업무 만들기',
+  emptyFollowUps: '후속 업무 없음',
+  refreshFailed: '업무를 만들었지만 회의를 새로 읽지 못했어요.',
+  refresh: '다시 읽기',
   addDecision: '결정 추가',
   emptyDecision: '결정 없음',
   decisionContent: '결정 내용',
@@ -40,6 +45,7 @@ export const minutesConflict = (name?: string) =>
   name ? `${name}님이 먼저 고쳤어요` : '다른 사람이 먼저 고쳤어요'
 export const agendaNumber = (position: number) => `안건 ${position}`
 export const decisionCount = (count: number) => `결정 ${count}`
+export const followUpCount = (count: number) => `업무 ${count}`
 export const agendaProgress = (index: number, count: number) => `${index + 1} / ${count}번째 안건`
 export const participantCount = (count: number) => `참가자 ${count}명`
 export const minutesUpdated = (time: string, name?: string) => {

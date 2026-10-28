@@ -96,6 +96,7 @@ export function changeMinutesSample(
       body: value.body ?? null,
       notes: null,
       decisions: [],
+      followUps: [],
       position: Math.max(0, ...meeting.agenda.map(a => a.position)) + 1,
     }
     return { ...meeting, agenda: [...meeting.agenda, item], agendaCount: meeting.agenda.length + 1 }

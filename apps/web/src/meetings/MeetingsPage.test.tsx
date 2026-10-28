@@ -28,6 +28,9 @@ const posts = () => api.calls.filter(call => call.method === 'POST')
 beforeEach(() => {
   window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}`)
   api = mockApi()
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/tasks/options`, () =>
+    json({ departments: [], linkableEvents: [] }),
+  )
   api.on('GET', `${base}?view=council`, () =>
     json({ meetings: [meetingSample()], truncated: false }),
   )

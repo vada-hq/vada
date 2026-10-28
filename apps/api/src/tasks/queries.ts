@@ -23,6 +23,7 @@ import {
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { taskOriginOf } from '../meetings/follow-up.js'
 import { nextOf } from './lifecycle.js'
 import { actionsOf, canLinkResult, factsOf } from './policy.js'
 import { canMakeOf, EMPTY_RESULT_SUMMARY, resultSummariesOf, resultsOf } from './results.js'
@@ -202,6 +203,7 @@ export async function taskDetailOf(
     ...summaryOf(actor, row, now),
     ...(results.get(taskId) ?? EMPTY_RESULT_SUMMARY),
     body: row.body,
+    origin: await taskOriginOf(db, actor, taskId),
     createdBy: history[0]?.by ?? null,
     createdAt: row.createdAt.toISOString(),
     results: await resultsOf(db, actor, taskId),

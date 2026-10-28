@@ -12,6 +12,7 @@ import {
 } from '@/meetings/test-support/minutes-samples'
 import {
   MEETING_MEMBER,
+  MEETING_COUNCIL,
   meetingOptions,
   meetingSample,
 } from '@/meetings/test-support/meeting-samples'
@@ -161,7 +162,24 @@ function MinutesExample({
   readonly?: boolean
   conflict?: boolean
 }) {
-  const [meeting, setMeeting] = useState(() => minutesSample(!readonly))
+  const [meeting, setMeeting] = useState(() => {
+    const sample = minutesSample(!readonly)
+    sample.agenda[1]!.followUps = [
+      {
+        id: '0199d1a0-0000-7000-8000-000000000071',
+        title: '비상 연락망 정리',
+        status: 'todo',
+        assignee: { id: MEETING_MEMBER, name: '김회장' },
+      },
+      {
+        id: '0199d1a0-0000-7000-8000-000000000072',
+        title: '현장 담당자 연락처 확인',
+        status: 'done',
+        assignee: null,
+      },
+    ]
+    return sample
+  })
   const [selectedId, setSelectedId] = useState(meeting.agenda[1]!.id)
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]!
   const [draft, setDraft] = useState(() => minutesDraftSample(item, conflict))
@@ -169,6 +187,7 @@ function MinutesExample({
     <Section title={title}>
       <div className="flex w-full min-w-0 flex-col gap-5 break-keep">
         <MeetingMinutesView
+          councilId={MEETING_COUNCIL}
           meeting={meeting}
           selectedId={item?.id ?? null}
           draft={item ? draft : undefined}

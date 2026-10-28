@@ -25,6 +25,7 @@ export function taskDetail(overrides: Partial<TaskDetail> = {}): TaskDetail {
     createdBy: { id: 'm1', name: '김회장' },
     createdAt: '2026-10-20T05:03:00.000Z',
     results: [],
+    origin: null,
     canMake: [],
     history: [
       {

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { MeetingAgendaItem, MeetingDetail } from '@vada/contracts'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { CouncilView, MeetingAgendaItem, MeetingDetail } from '@vada/contracts'
 import PageHeading from '@/components/PageHeading'
 import { Alert } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -23,8 +23,11 @@ import { useMinutesMutation } from './use-minutes-mutation'
 import { MINUTES_TEXT as T, agendaNumber, participantCount } from './minutes-text'
 import { isMinutesDirty, lostEntries, type MinutesDraft } from './minutes-drafts'
 import { MinutesScopeContext } from './minutes-scope'
+import { MinutesFollowUps } from './MinutesFollowUps'
+import { MinutesFollowUpCreate } from './MinutesFollowUpCreate'
 
 type Props = {
+  view: CouncilView
   meeting: MeetingDetail
   base: string
   memberId: string
@@ -33,6 +36,7 @@ type Props = {
   onSaved: (meeting: MeetingDetail) => void
   onEdit?: (() => void) | undefined
   onCancel?: (() => void) | undefined
+  onForbidden?: (() => void) | undefined
 }
 // 다른 사람이 뺀 안건에 쓰던 글은 저장할 곳이 없으므로 옮겨 쓸 수 있게 보인다(mtg-4 검토).
 function OrphanDrafts({ texts }: { texts: string[] }) {
@@ -107,6 +111,8 @@ function MinutesAgendaHeading({
   )
 }
 type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 'onCancel'> & {
+  councilId: string
+  followUpCreate?: ReactNode
   draft: MinutesDraft | undefined
   orphans: string[]
   submit: ReturnType<typeof useMinutesMutation>
@@ -115,7 +121,11 @@ type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 
   onOverwrite: () => void
   onAdopt: () => void
 }
+const agendaHasNoLinks = (item: MeetingAgendaItem) =>
+  item.decisions.length === 0 && item.followUps.length === 0
 export function MeetingMinutesView({
+  councilId,
+  followUpCreate,
   meeting,
   selectedId,
   onSelect,
@@ -128,7 +138,6 @@ export function MeetingMinutesView({
 }: ViewProps) {
   const writable = meeting.actions.includes('meeting.minutes')
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
-  const id = item ? item.id : null
   const [removing, setRemoving] = useState<{ kind: 'agenda' | 'decision'; id: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -147,7 +156,7 @@ export function MeetingMinutesView({
     setError(null)
     setRemoving({ kind, id: target })
   }
-  const nav = { meeting, selectedId: id, writable, onSelect, submit }
+  const nav = { meeting, selectedId: item ? item.id : null, writable, onSelect, submit }
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
       <MinutesHeader meeting={meeting} onEdit={onEdit} onCancel={onCancel} />
@@ -172,7 +181,12 @@ export function MeetingMinutesView({
                 submit={submit}
                 onRemove={target => ask('decision', target)}
               />
-              {writable && item.decisions.length === 0 && (
+              <MinutesFollowUps
+                councilId={councilId}
+                items={item.followUps}
+                create={followUpCreate}
+              />
+              {writable && agendaHasNoLinks(item) && (
                 <Button
                   touch
                   variant="outline"
@@ -210,6 +224,7 @@ export function MeetingMinutesView({
   )
 }
 export function MeetingMinutes({
+  view,
   meeting,
   base,
   memberId,
@@ -218,6 +233,7 @@ export function MeetingMinutes({
   onSaved,
   onEdit,
   onCancel,
+  onForbidden = () => {},
 }: Props) {
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
   const id = item?.id ?? null
@@ -247,6 +263,17 @@ export function MeetingMinutes({
   return (
     <MinutesScopeContext value={scope}>
       <MeetingMinutesView
+        councilId={view.council.id}
+        followUpCreate={
+          <MinutesFollowUpCreate
+            key={id}
+            view={view}
+            meeting={meeting}
+            agendaItemId={id}
+            onSaved={onSaved}
+            onForbidden={onForbidden}
+          />
+        }
         meeting={meeting}
         selectedId={id}
         draft={id ? drafts.get(id) : undefined}

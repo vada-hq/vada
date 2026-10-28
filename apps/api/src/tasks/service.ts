@@ -14,6 +14,7 @@ import { lockCurrentMembers } from '../chat/current-members.js'
 import { department, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { assertFollowUpOrigin } from '../meetings/follow-up.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { dueAtOf, dueDateOf } from './due.js'
 import { assertDepartmentLink, eventChangeOf, eventLinkOf } from './event-link.js'
@@ -87,6 +88,12 @@ export async function createTask(
   input: CreateTaskRequest,
   now: Date,
 ): Promise<{ task: TaskDetail; notice: AssignmentNotice | null }> {
+  const origin = input.agendaItemId
+    ? {
+        originId: await assertFollowUpOrigin(tx, actor, input.agendaItemId),
+        originKind: 'agenda_item' as const,
+      }
+    : {}
   // 403이 409보다 먼저다. 행사 책임자는 그 행사의 업무를 어느 부서로든 만든다(새 부서 잇기 포함, decideEventLink).
   const link = await eventLinkOf(tx, actor, input.eventId)
   const denied = decideCreate(actor, input, link)
@@ -99,6 +106,7 @@ export async function createTask(
     councilId: actor.councilId,
     actor: actor.memberId,
     values: {
+      ...origin,
       title: input.title,
       body: input.body,
       dueAt: dueAtOf(input.dueDate),

@@ -3,6 +3,7 @@ import { monthDay, monthDayTime } from '@/lib/korean-date-text'
 import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
 const NONE = '없음'
+export const TASK_ORIGIN_LABEL = '나온 곳'
 const UNKNOWN_PERSON = '알 수 없는 사람'
 const UNKNOWN_EVENT = '알 수 없는 행사'
 const REMOVED_DEPARTMENT = '없앤 부서'

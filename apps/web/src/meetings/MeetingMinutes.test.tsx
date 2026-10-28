@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
-import { StrictMode } from 'react'
+import { StrictMode, useState } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { meetingSample, MEETING_COUNCIL, MEETING_ID } from './test-support/meeting-samples'
+import { councilView } from '@/test-support/council-fixtures'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { MeetingMinutes } from './MeetingMinutes'
 import { MeetingList } from './MeetingList'
 import { hasDirtyEntry } from './minutes-entry'
 import { resetKeptMinutes } from './minutes-drafts'
-import { resetLeaveGuard } from '@/lib/leave-guard'
+import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
+import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 
 const base = `/api/organizations/${MEETING_COUNCIL}/meetings/${MEETING_ID}`
 const ME = '0199d1a0-0000-7000-8000-00000000aaa1'
@@ -28,6 +31,9 @@ const changed = vi.fn()
 const select = vi.fn()
 beforeEach(() => {
   api = mockApi()
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/tasks/options`, () =>
+    json({ departments: [], linkableEvents: [] }),
+  )
   vi.useFakeTimers()
   changed.mockClear()
   select.mockClear()
@@ -44,6 +50,7 @@ const posts = () => api.calls.filter(c => c.method === 'POST')
 const draw = (meeting = sample()) =>
   render(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={meeting}
       base={base}
       memberId={ME}
@@ -52,6 +59,150 @@ const draw = (meeting = sample()) =>
       onSaved={changed}
     />,
   )
+
+test('업무 만들기는 행사·주관 부서를 미리 채우고 상세 갱신 뒤에도 쓰던 논의 글을 남긴다', async () => {
+  vi.useRealTimers()
+  const meeting = sample()
+  meeting.hostDepartment = { id: '0199d1a0-0000-7000-8000-0000000000d1', name: '기획부' }
+  meeting.event = { id: '0199d1a0-0000-7000-8000-0000000000e1', name: '가을 축제' }
+  const tasksBase = `/api/organizations/${MEETING_COUNCIL}/tasks`
+  api.on('GET', `${tasksBase}/options?event=${meeting.event.id}`, () =>
+    json({
+      departments: [{ ...meeting.hostDepartment, assignees: [{ id: ME, name: '나' }] }],
+      linkableEvents: [{ departmentId: meeting.hostDepartment!.id, eventIds: [meeting.event!.id] }],
+    }),
+  )
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
+  const task = taskDetail({ id: '0199d1a0-0000-7000-8000-000000000071', title: '연락망 정리' })
+  api.on('POST', tasksBase, () => json({ task }, 201))
+  const fresh = {
+    ...meeting,
+    agenda: meeting.agenda.map((a, index) =>
+      index
+        ? a
+        : {
+            ...a,
+            followUps: [{ id: task.id, title: task.title, status: task.status, assignee: null }],
+          },
+    ),
+  }
+  api.on('GET', base, () => json({ meeting: fresh }))
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ meeting: fresh }))
+  function Example() {
+    const [current, setCurrent] = useState(meeting)
+    return (
+      <MeetingMinutes
+        view={councilView(MEETING_COUNCIL, { memberId: ME })}
+        meeting={current}
+        base={base}
+        memberId={ME}
+        selectedId={null}
+        onSelect={select}
+        onSaved={setCurrent}
+      />
+    )
+  }
+  render(<Example />)
+  fireEvent.change(screen.getByLabelText('논의 내용'), {
+    target: { value: '업무 창을 열기 전에 쓴 논의' },
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: /^담당 부서/ }).value).toBe(
+    meeting.hostDepartment.id,
+  )
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: /^행사/ }).value).toBe(
+    meeting.event.id,
+  )
+  const title = screen.getByRole<HTMLInputElement>('textbox', { name: /^제목/ })
+  expect(title.value).toBe('')
+  fireEvent.change(title, { target: { value: task.title } })
+  fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+  expect(await screen.findByRole('button', { name: /연락망 정리/ })).toBeTruthy()
+  expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull()
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe(
+    '업무 창을 열기 전에 쓴 논의',
+  )
+  expect(posts().find(call => call.path === tasksBase)!.body).toMatchObject({
+    agendaItemId: meeting.agenda[0]!.id,
+    departmentId: meeting.hostDepartment.id,
+    eventId: meeting.event.id,
+  })
+  expect(screen.getByText('업무 1')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '안건 빼기' })).toBeNull()
+})
+
+const FOLLOW_UP_ID = '0199d1a0-0000-7000-8000-0000000000c1'
+test('회의 쓰기 동작이나 업무 선택지가 없으면 만들기만 숨기고 후속 업무는 업무 보드로 연다', async () => {
+  vi.useRealTimers()
+  const meeting = sample()
+  meeting.actions = []
+  meeting.agenda[0]!.followUps = [
+    {
+      id: FOLLOW_UP_ID,
+      title: '읽는 후속 업무',
+      status: 'in_progress',
+      assignee: { id: ME, name: '김운영' },
+    },
+  ]
+  const { rerender } = draw(meeting)
+  expect(screen.queryByRole('button', { name: '업무 만들기' })).toBeNull()
+  expect(screen.getByText('김운영')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: /읽는 후속 업무/ }))
+  await waitFor(() =>
+    expect(window.location.pathname).toBe(`/tasks/${MEETING_COUNCIL}/${FOLLOW_UP_ID}`),
+  )
+  rerender(
+    <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
+      meeting={{ ...meeting, actions: ['meeting.minutes'] }}
+      base={base}
+      memberId={ME}
+      selectedId={null}
+      onSelect={select}
+      onSaved={changed}
+    />,
+  )
+  await waitFor(() =>
+    expect(api.calls.some(call => call.path.endsWith('/tasks/options'))).toBe(true),
+  )
+  expect(screen.queryByRole('button', { name: '업무 만들기' })).toBeNull()
+  expect(screen.getByRole('button', { name: /읽는 후속 업무/ })).toBeTruthy()
+})
+
+test('실패한 논의를 남겨 둔 채 빈 업무 창을 닫거나 업무 입력만 버려도 회의록 나가기 지킴을 유지한다', async () => {
+  const meeting = sample()
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/tasks/options`, () =>
+    json({
+      departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }],
+      linkableEvents: [],
+    }),
+  )
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
+  api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'FAILED' }, 500))
+  draw(meeting)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '실패해도 남길 논의' } })
+  await act(() => vi.advanceTimersByTimeAsync(1500))
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '업무 만들기' }))
+  await act(async () => {})
+  fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[0]!)
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull()
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '업무 만들기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), {
+    target: { value: '버릴 업무' },
+  })
+  fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[0]!)
+  expect(screen.getByRole('dialog', { name: LEAVE_TITLE })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: LEAVE_CONFIRM }))
+  expect(hasUnsavedInput()).toBe(true)
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe('실패해도 남길 논의')
+})
 
 test('1.5초 뒤 한 번 자동 저장하고 안건을 바꾸면 즉시 저장한다', async () => {
   const meeting = sample()
@@ -135,6 +286,7 @@ test('쓰는 중 동작이 빠져도 내 초안은 글로 남고 입력칸과 �
   fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '보존할 초안' } })
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={readonly}
       base={base}
       memberId={ME}
@@ -186,6 +338,7 @@ test('주기적 다시 읽기는 저장 안 된 글을 덮지 않고, 저장 중
   fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '계속 입력' } })
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={{ ...meeting, agenda: meeting.agenda.map(a => ({ ...a, notes: '서버 글' })) }}
       base={base}
       memberId={ME}
@@ -275,6 +428,7 @@ test('안건 제목을 고치는 중 다시 읽기는 기준 판을 올리지 �
   fireEvent.change(screen.getByLabelText('안건 제목'), { target: { value: '내 제목' } })
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={fresh}
       base={base}
       memberId={ME}
@@ -327,6 +481,7 @@ test('저장 실패한 초안은 같은 사람이 다시 열면 되살아나고 
   await act(async () => {})
   const other = render(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={meeting}
       base={base}
       memberId="0199d1a0-0000-7000-8000-00000000bbb1"
@@ -353,6 +508,7 @@ test('다른 사람이 뺀 안건에 쓰던 글은 옮겨 쓸 수 있게 남는�
   fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '빠진 곳의 글' } })
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={{ ...meeting, agenda: [meeting.agenda[1]!] }}
       base={base}
       memberId={ME}
@@ -378,6 +534,7 @@ test('결정 폼은 저장 중 잠기고, 쓰는 동안 떠날 때 확인을 걸
   expect(hasDirtyEntry()).toBe(true)
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={{ ...meeting, actions: [] }}
       base={base}
       memberId={ME}
@@ -422,6 +579,7 @@ test('결정을 쓰는 중 다른 사람이 안건을 빼면 쓰던 결정도 �
   fireEvent.change(screen.getByLabelText(/결정 내용/), { target: { value: '쓰던 결정' } })
   rerender(
     <MeetingMinutes
+      view={councilView(MEETING_COUNCIL, { memberId: ME })}
       meeting={{ ...meeting, agenda: [meeting.agenda[1]!] }}
       base={base}
       memberId={ME}
@@ -468,6 +626,7 @@ test('개발용 StrictMode에서도 저장 실패한 논의 초안을 다시 열
   const strict = () => (
     <StrictMode>
       <MeetingMinutes
+        view={councilView(MEETING_COUNCIL, { memberId: ME })}
         meeting={meeting}
         base={base}
         memberId={ME}

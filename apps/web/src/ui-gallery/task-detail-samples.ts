@@ -56,6 +56,7 @@ const base: TaskDetail = {
   createdBy: { id: 'm1', name: '김하늘' },
   createdAt: '2026-10-20T05:03:00.000Z',
   results: [],
+  origin: null,
   canMake: [],
   history: [
     {
@@ -73,6 +74,12 @@ export const sampleTasks: TaskDetail[] = [
   {
     ...base,
     id: 's1',
+    origin: {
+      meetingId: '0199d1a0-0000-7000-8000-0000000000a1',
+      meetingTitle: '체육대회 준비 회의',
+      agendaId: '0199d1a0-0000-7000-8000-0000000000f1',
+      agendaTitle: '현수막 준비',
+    },
     title: '체육대회 현수막 시안 확정하고 인쇄소에 주문 넣기 (본관 정문·체육관 입구 두 곳)',
     dueDate: '2026-10-24',
     overdue: true,

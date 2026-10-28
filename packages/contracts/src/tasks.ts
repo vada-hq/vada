@@ -122,6 +122,7 @@ export interface TaskResult {
 
 export interface TaskDetail extends TaskSummary {
   body: string | null
+  origin: { meetingId: string; meetingTitle: string; agendaId: string; agendaTitle: string } | null
   createdBy: { id: string; name: string } | null
   createdAt: string
   // 이 업무에서 만든 결과물(만든 순)
@@ -171,6 +172,7 @@ export const CreateTaskSchema = z.strictObject({
   departmentId: recordIdInput.nullable().default(null),
   assigneeId: recordIdInput.nullable().default(null),
   eventId: recordIdInput.nullable().default(null),
+  agendaItemId: recordIdInput.nullable().optional(),
 })
 export type CreateTaskRequest = z.infer<typeof CreateTaskSchema>
 // 제목, 내용, 마감, 행사 고치기. 보낸 칸만 바꾸고 뺀 칸은 그대로다(JSON Merge Patch).

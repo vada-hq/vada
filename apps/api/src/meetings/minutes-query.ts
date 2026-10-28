@@ -5,6 +5,7 @@ import { currentMembersAmong } from '../chat/current-members.js'
 import { agendaItem, decision, record, recordVersion } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { memberNamesOf } from '../team/display-name.js'
+import { followUpsOf } from './follow-up.js'
 
 const openVersion = and(
   eq(recordVersion.recordId, record.id),
@@ -37,6 +38,7 @@ export async function minutesAgendaOf(
     .where(and(eq(agendaItem.meetingId, id), isNull(agendaItem.cancelledAt)))
     .orderBy(asc(agendaItem.position), asc(agendaItem.id))
   const decisions = await decisionsOf(tx, id)
+  const followUps = await followUpsOf(tx, actor, id)
   const ids = [
     ...new Set(
       [...agendas.map(a => a.changedBy), ...decisions.map(d => d.decidedBy)].filter(
@@ -58,6 +60,7 @@ export async function minutesAgendaOf(
     ...a,
     updatedBy: person(changedBy),
     decisions: byAgenda.get(a.id) ?? [],
+    followUps: followUps.get(a.id) ?? [],
   }))
 }
 function decisionsOf(tx: Tx, id: string) {

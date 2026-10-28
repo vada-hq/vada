@@ -89,6 +89,21 @@ const select = (name: string) =>
 const choose = (name: string, value: string) =>
   fireEvent.change(select(name), { target: { value } })
 const submit = () => fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+
+test('안건에서 연 창은 미리 채운 행사·부서와 안건 번호를 함께 보낸다', async () => {
+  const agendaItemId = '0199d1a0-0000-7000-8000-0000000000f1'
+  const { posts } = setup({
+    initial: { departmentId: D1, eventId: EVENT_ID },
+    origin: { agendaItemId },
+  })
+  expect(select('담당 부서').value).toBe(D1)
+  expect(select('행사').value).toBe(EVENT_ID)
+  expect(title().value).toBe('')
+  fireEvent.change(title(), { target: { value: '후속 업무' } })
+  submit()
+  await waitFor(() => expect(posts()).toHaveLength(1))
+  expect(posts()[0]!.body).toMatchObject({ agendaItemId, departmentId: D1, eventId: EVENT_ID })
+})
 const close = () =>
   fireEvent.click(
     within(screen.getByRole('dialog', { name: '업무 추가' })).getAllByRole('button', {

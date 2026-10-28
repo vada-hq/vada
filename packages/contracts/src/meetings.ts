@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { codePoints, nulOrLoneSurrogate, text } from './input.js'
 import { koreanDate, koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
+import type { TaskStatus } from './tasks.js'
 
 export const MEETING_TITLE_MAX = 100
 export const MEETING_PLACE_MAX = 100
@@ -148,6 +149,13 @@ export interface MeetingAgendaItem {
   updatedBy: MeetingPerson | null
   updatedAt: string
   decisions: MeetingDecision[]
+  followUps: MeetingFollowUp[]
+}
+export interface MeetingFollowUp {
+  id: string
+  title: string
+  status: TaskStatus
+  assignee: { id: string; name: string } | null
 }
 export interface MeetingDecision {
   id: string
