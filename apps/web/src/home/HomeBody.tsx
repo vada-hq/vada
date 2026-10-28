@@ -76,8 +76,8 @@ const requestOpeners = (councilId: string) => ({
   openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
   seeReceived: () => openMenu('purchases', councilId, { view: 'pending' }),
   seeMine: () => openMenu('purchases', councilId, { view: 'mine' }),
-  // 정산할 행사 모두 보기는 같은 셈의 재정 '행사 정산' 탭이다(DEC-92).
-  seeSettling: () => openMenu('finance', councilId, { tab: 'settlements' }),
+  // 정산할 행사 모두 보기는 같은 셈의 결산 탭 위쪽 '행사 정산' 구역이다(설계 안 B).
+  seeSettling: () => openMenu('finance', councilId, { tab: 'closing' }),
 })
 
 // 넓은 단: 남이 기다리는 것부터(DEC-69) 받은 것 → 학생회 행사 → 내 부서 → 정산할 행사 → 내 업무.

@@ -8,6 +8,8 @@ import {
   type EventSettlementsResponse,
 } from '@vada/contracts'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
+import { closingFixture } from '@/test-support/closing-fixtures'
+import { CURRENT_PERIOD } from '@/test-support/income-fixtures'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
 import { COUNCIL_ID } from '@/test-support/finance-at'
@@ -55,9 +57,12 @@ async function open(
   permissions?: typeof MEMBER_PERMISSIONS,
 ) {
   const api = serveFinance()
+  api.on('GET', `${BASE}/fiscal-periods/${CURRENT_PERIOD}/closing`, () =>
+    json({ closing: closingFixture() }),
+  )
   api.on('GET', SETTLEMENTS, () => (data ? json(data) : json({}, 500)))
   showFinance(permissions)
-  fireEvent.click(screen.getByRole('tab', { name: '행사 정산' }))
+  fireEvent.click(screen.getByRole('tab', { name: '결산' }))
   return api
 }
 
@@ -81,7 +86,7 @@ test('서버 차례대로 줄마다 행사 이름, 상태, 정산 남은 것 수
     expect.stringContaining('전시'),
     expect.stringContaining('개강 파티'),
   ])
-  expect(screen.getByText('2026년 2학기')).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 3, name: '2026년 2학기' })).toBeTruthy()
   expect(rowOf('봄 축제').getByText('후속 정리 중')).toBeTruthy()
   expect(rowOf('봄 축제').getByText('정산 남은 것 3')).toBeTruthy()
   // 끝났고 남은 것이 없는 행사는 홈 '정산할 행사'와 같은 말이다.
@@ -107,7 +112,7 @@ test('재정 역할이 아닌 운영진도 같은 목록을 보고 처리 버튼
       .getAllByRole('button')
       .map(button => button.textContent),
   ).toEqual(['봄 축제', '체육 대회', '전시', '개강 파티'])
-  expect(screen.getByRole('tab', { name: '행사 정산' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tab', { name: '결산' }).getAttribute('aria-selected')).toBe('true')
 })
 
 test('행사가 없으면 행사 없음이다', async () => {

@@ -5,13 +5,18 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import {
   councilView,
   FINANCE_PERMISSIONS,
+  HEAD_PERMISSIONS,
   MEMBER_PERMISSIONS,
+  PRESIDENT_PERMISSIONS,
 } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseSummary } from '@/test-support/purchase-fixtures'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { COUNCIL_ID, FinanceAt, PurchasesAt } from '@/test-support/finance-at'
 import { CURRENT_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
+import { closingFixture } from '@/test-support/closing-fixtures'
+import { eventSummary } from '@/test-support/event-fixtures'
+import { CLOSING_HIDDEN, PERIODS_LOAD_FAILED, SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
 
 afterEach(async () => {
   cleanup()
@@ -22,6 +27,88 @@ afterEach(async () => {
 const base = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 const listPath = (view: string) => `${base}?view=${view}`
 const list = (requests = [purchaseSummary('a')], truncated = false) => json({ requests, truncated })
+
+const financeRoot = `/api/organizations/${COUNCIL_ID}`
+const settlementsPath = `${financeRoot}/event-settlements`
+const periodsPath = `${financeRoot}/fiscal-periods`
+const closingPath = `${periodsPath}/${CURRENT_PERIOD}/closing`
+const settlements = () => ({
+  period: { id: CURRENT_PERIOD, name: '2026년 2학기' },
+  events: [{ event: eventSummary(), settlement: { remaining: 2, settled: false } }],
+  truncated: false,
+})
+
+test.each([
+  ['부원', councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS, councilRank: null })],
+  [
+    '부서장',
+    councilView(COUNCIL_ID, {
+      permissions: HEAD_PERMISSIONS,
+      councilRank: null,
+      departments: [{ id: 'd1', name: '기획부', role: null, rank: 'head' }],
+    }),
+  ],
+  ['회장단', councilView(COUNCIL_ID, { permissions: PRESIDENT_PERMISSIONS })],
+  [
+    '재정부',
+    councilView(COUNCIL_ID, {
+      permissions: FINANCE_PERMISSIONS,
+      councilRank: null,
+      departments: [{ id: 'd1', name: '재정부', role: 'finance', rank: 'head' }],
+    }),
+  ],
+] as const)(
+  '%s도 같은 세 탭과 행사 정산을 보고 기간 결산 초안만 읽기 권한으로 가른다',
+  async (_, view) => {
+    const api = mockApi()
+    api.on('GET', settlementsPath, () => json(settlements()))
+    api.on('GET', periodsPath, () => json(standardPeriods()))
+    api.on('GET', closingPath, () => json({ closing: closingFixture() }))
+    window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=closing`)
+    render(<FinanceAt view={view} onForbidden={vi.fn()} />)
+    expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+      '예산 현황',
+      '사용 내역',
+      '결산',
+    ])
+    const eventSection = screen.getByRole('region', { name: '행사 정산' })
+    expect(await within(eventSection).findByRole('button', { name: '신입생 환영회' })).toBeTruthy()
+    expect(
+      screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent),
+    ).toEqual(['행사 정산', '기간 결산'])
+    const periodSection = screen.getByRole('region', { name: '기간 결산' })
+    const canRead = view.permissions.includes('closing.view_draft')
+    expect(
+      await within(periodSection).findByText(canRead ? '작성 중' : CLOSING_HIDDEN),
+    ).toBeTruthy()
+    expect(api.calls.some(call => call.path === closingPath)).toBe(canRead)
+    api.assertNoUnexpectedRequests()
+  },
+)
+
+test.each(['기간 결산', '행사 정산'])('%s 불러오기가 실패해도 다른 구역은 보인다', async failed => {
+  const api = mockApi()
+  api.on('GET', settlementsPath, () =>
+    failed === '행사 정산' ? json({}, 500) : json(settlements()),
+  )
+  api.on('GET', periodsPath, () =>
+    failed === '기간 결산' ? json({}, 500) : json(standardPeriods()),
+  )
+  window.history.replaceState(null, '', `/finance/${COUNCIL_ID}?tab=closing`)
+  render(
+    <FinanceAt
+      view={councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS })}
+      onForbidden={vi.fn()}
+    />,
+  )
+  expect(
+    await screen.findByText(failed === '기간 결산' ? PERIODS_LOAD_FAILED : SETTLEMENT_LOAD_FAILED),
+  ).toBeTruthy()
+  expect(
+    await screen.findByText(failed === '기간 결산' ? '신입생 환영회' : CLOSING_HIDDEN),
+  ).toBeTruthy()
+  api.assertNoUnexpectedRequests()
+})
 
 function show(view = councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })) {
   window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)

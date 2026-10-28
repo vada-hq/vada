@@ -107,7 +107,7 @@ export default function CouncilHome({
             key="follow-up"
             followUp={board.followUp}
             onOpenEvent={open.onOpenEvent}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'settlements' })}
+            onSeeAll={() => openMenu('finance', councilId, { tab: 'closing' })}
           />,
           <UpcomingCard
             councilId={councilId}

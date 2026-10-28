@@ -45,7 +45,6 @@ export type PeopleTab = (typeof PEOPLE_TABS)[number]
 export const FINANCE_TABS = [
   'overview',
   'ledger',
-  'settlements',
   'accounts', // 옛 재정 주소는 설정의 계좌로 옮긴다(DEC-92).
   'closing',
 ] as const
@@ -53,6 +52,7 @@ export type FinanceTab = (typeof FINANCE_TABS)[number]
 // 북마크와 이미 보낸 주소는 계속 읽어 새 자리로 바꿔 쓴다.
 const FINANCE_TAB_VALUES = [
   ...FINANCE_TABS,
+  'settlements',
   'requests',
   'expenses',
   'incomes',

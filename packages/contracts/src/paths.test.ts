@@ -5,6 +5,7 @@ import {
   appPath,
   ENTRY_PATHS,
   eventRoomPath,
+  FINANCE_TABS,
   menuPath,
   parentOf,
   parseAppPath,
@@ -16,6 +17,17 @@ import { movedLocationOf, type AddressMove } from './moved-paths.js'
 const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
+
+test('행사 정산은 현재 재정 탭에서 빠지고 옛 주소는 기간을 보존해 결산으로 왕복한다', () => {
+  assert.equal(new Set<string>(FINANCE_TABS).has('settlements'), false)
+  const old = parseAppPath(`/finance/${C}?tab=settlements&period=${P}`)!
+  assert.equal(old.query['tab'], 'settlements')
+  const moved = movedLocationOf(old)!
+  const path = `/finance/${C}?tab=closing&period=${P}`
+  assert.equal(appPath(moved), path)
+  assert.deepEqual(parseAppPath(path), moved)
+  assert.equal(movedLocationOf(moved), null)
+})
 
 test('행사 구매 보기와 단계는 money 탭에서만 왕복하고 전체 요청은 주소에서 빠진다', () => {
   const base = `/events/${C}/${R}`

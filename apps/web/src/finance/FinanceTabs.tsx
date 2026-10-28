@@ -22,9 +22,6 @@ export function FinanceTabs({ tab, onTab }: TabsProps) {
       <TabButton aria-selected={tab === 'ledger'} onClick={() => onTab('ledger')}>
         사용 내역
       </TabButton>
-      <TabButton aria-selected={tab === 'settlements'} onClick={() => onTab('settlements')}>
-        행사 정산
-      </TabButton>
       <TabButton aria-selected={tab === 'closing'} onClick={() => onTab('closing')}>
         결산
       </TabButton>

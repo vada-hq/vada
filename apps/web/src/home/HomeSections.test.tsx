@@ -6,6 +6,7 @@ import type {
   EventSummary,
   HomeCouncil,
   HomeDepartment,
+  HomeFinanceBoard,
   HomeResponse,
 } from '@vada/contracts'
 import {
@@ -322,7 +323,7 @@ test('정산할 행사 줄을 누르면 그 행사의 예산·정산 탭이 열�
   expect(within(section).getByText('12')).toBeTruthy()
 })
 
-test('정산할 행사의 모두 보기는 그 학생회의 재정 행사 정산 탭을 연다', async () => {
+test('정산할 행사의 모두 보기는 그 학생회의 결산 탭을 연다', async () => {
   const settling = {
     events: [
       { event: homeEvent('e9', { status: 'ended' }), settlement: { remaining: 2, settled: false } },
@@ -333,9 +334,33 @@ test('정산할 행사의 모두 보기는 그 학생회의 재정 행사 정산
     open(homeResponse({ settling }), { view: councilView(councilId) })
     const section = await screen.findByRole('region', { name: '정산할 행사' })
     fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-    expect(pathNow()).toBe(`/finance/${councilId}?tab=settlements`)
+    expect(pathNow()).toBe(`/finance/${councilId}?tab=closing`)
     cleanup()
   }
+})
+
+test('재정부 홈의 예외·대기 전체 보기는 결산 탭을 연다', async () => {
+  const financeBoard: HomeFinanceBoard = {
+    pending: { requests: [], total: 0, truncated: false },
+    nearby: { items: [], total: 0 },
+    settling: {
+      events: [
+        {
+          event: homeEvent('e9', { status: 'ended' }),
+          settlement: { remaining: 2, settled: false },
+          endedDays: 7,
+        },
+      ],
+      total: 4,
+    },
+    budgets: { events: [], total: 0 },
+    departments: [],
+    ownedEnded: [],
+  }
+  open(homeResponse({ kind: 'finance', financeBoard }))
+  const section = await screen.findByRole('region', { name: '예외·대기' })
+  fireEvent.click(within(section).getByRole('button', { name: '전체 4건 보기' }))
+  expect(pathNow()).toBe('/finance/c1?tab=closing')
 })
 
 // 행사 빈 상태의 [새 행사](DEC-93 만드는 사람, DEC-78 이동 규칙 9). 학생회 읽기의 event.create로만 정한다.

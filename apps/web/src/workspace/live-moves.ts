@@ -9,4 +9,5 @@ export const LIVE_MOVES: readonly AddressMove[] = [
   'tasks',
   'ledger',
   'people',
+  'settings',
 ]
