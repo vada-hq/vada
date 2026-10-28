@@ -6,8 +6,10 @@ import { useLatest } from '@/lib/use-latest'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
 import { tasksPath } from './task-api'
 
+// notFound: 거르기로 준 행사가 없다(지워졌거나 다른 학생회). 화면이 거르기를 풀 수 있게 알린다.
 type Loaded =
-  { kind: 'failed' } | { kind: 'ready'; tasks: TasksResponse['tasks']; truncated: boolean }
+  | { kind: 'failed'; notFound: boolean }
+  | { kind: 'ready'; tasks: TasksResponse['tasks']; truncated: boolean }
 type TasksState = { kind: 'loading' } | Loaded
 
 // 업무 목록 하나(보기와 거르기). 화면이 보이는 동안 15초마다, 화면이 다시 보일 때, 알림이 올 때 다시 읽는다.
@@ -39,7 +41,10 @@ export function useTasks(
     setLoaded(before =>
       before?.key === mine && before.state.kind === 'ready'
         ? before
-        : { key: mine, state: { kind: 'failed' } },
+        : {
+            key: mine,
+            state: { kind: 'failed', notFound: result.status === statusOf('NOT_FOUND') },
+          },
     )
   }, [councilId, view, filter, eventId, enabled, forbidden, isActive, latestKey])
   useEffect(() => {

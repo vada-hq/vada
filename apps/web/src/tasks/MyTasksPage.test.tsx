@@ -43,7 +43,12 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function setup(tasks = rows, query = '?tab=mine', completed: ReturnType<typeof taskDetail>[] = []) {
+function setup(
+  tasks = rows,
+  query = '?tab=mine',
+  completed: ReturnType<typeof taskDetail>[] = [],
+  routes: (api: ReturnType<typeof mockApi>) => void = () => {},
+) {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}${query}`)
   const api = mockApi()
   for (const scope of ['', 'none', EVENT_ID]) {
@@ -51,6 +56,7 @@ function setup(tasks = rows, query = '?tab=mine', completed: ReturnType<typeof t
     api.on('GET', path('done', scope), () => json({ tasks: completed, truncated: false }))
   }
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
+  routes(api)
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
   return api
 }
@@ -205,4 +211,14 @@ test('완료 탭에서는 주소에 남은 state가 읽기를 줄이지 않고 s
   expect(await screen.findByText('완료된 학생회 업무')).toBeTruthy()
   expect(api.calls.some(call => call.path === path('done', 'none'))).toBe(true)
   expect(screen.queryByRole('combobox', { name: '상태' })).toBeNull()
+})
+
+test('주소의 행사가 지워져 404이면 범위를 풀고 전체 내 업무를 다시 읽는다', async () => {
+  const gone = '00000000-0000-4000-8000-0000000000ff'
+  const api = setup(rows, `?tab=mine&scope=${gone}`, [], api =>
+    api.on('GET', path('open', gone), () => json({ error: 'NOT_FOUND' }, 404)),
+  )
+  expect(await screen.findByText('간식 구매')).toBeTruthy()
+  expect(new URLSearchParams(window.location.search).get('scope')).toBeNull()
+  expect(api.calls.some(call => call.path === path('open', gone))).toBe(true)
 })
