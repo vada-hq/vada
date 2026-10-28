@@ -65,7 +65,14 @@ const summaryList: ExpenseList = {
     kind: 'ready',
     data: {
       expenses: [
-        expenseSummary('a', { amount: 100, event: { id: 'e', name: '축제' } }),
+        expenseSummary('a', {
+          amount: 100,
+          event: { id: 'e', name: '축제' },
+          departments: [
+            { id: 'd1', name: '기획부' },
+            { id: 'd2', name: '재정부' },
+          ],
+        }),
         expenseSummary('b', { amount: 200, evidenceCount: 0 }),
         expenseSummary('c', { amount: 900, evidenceCount: 0, cancelled: true }),
       ],
@@ -99,10 +106,13 @@ test.each([1280, 1024])(
       within(table)
         .getAllByRole('columnheader')
         .map(cell => cell.textContent),
-    ).toEqual(['결제일', '내역', '행사', '예산 항목', '금액', '증빙', '행 복사'])
+    ).toEqual(['결제일', '내역', '행사', '부서', '예산 항목', '금액', '증빙', '행 복사'])
+    const first = within(table).getByRole('button', { name: '사용처 a' }).closest('tr')!
+    expect(within(first).getByText('기획부, 재정부')).toBeTruthy()
     const row = within(table).getByRole('button', { name: '사용처 b' }).closest('tr')!
     expect(within(row).getByText('상시')).toBeTruthy()
-    expect(within(row).getByText('—')).toBeTruthy()
+    // 부서와 예산 항목이 모두 없다.
+    expect(within(row).getAllByText('—')).toHaveLength(2)
     expect(within(row).getByText('10월 20일 (화)')).toBeTruthy()
     expect(within(row).getByText('증빙 없음')).toBeTruthy()
     const cancelled = within(table).getByRole('button', { name: '사용처 c' }).closest('tr')!
@@ -128,7 +138,8 @@ test('390px에서는 카드만 보이고 1024px부터 표로 바뀐다', () => {
   const resize = navigationWidth(390)
   render(<ExpensesPanel list={summaryList} onOpen={() => {}} />)
   expect(screen.queryByRole('table')).toBeNull()
-  expect(screen.getByRole('heading', { name: '사용처 a' }).closest('li')).toBeTruthy()
+  const card = screen.getByRole('heading', { name: '사용처 a' }).closest('li')!
+  expect(within(card).getByText('축제 · 기획부, 재정부')).toBeTruthy()
   act(() => resize(1024))
   expect(screen.getByRole('table')).toBeTruthy()
   expect(screen.queryByRole('heading', { name: '사용처 a' })).toBeNull()

@@ -6,7 +6,7 @@ import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { ExpenseCopyButton } from './ExpenseCopyButton'
 import { expenseAmount, expensePurposes, type ExpenseFilters } from './expense-filter'
-import { chipsOf } from './expense-view'
+import { chipsOf, departmentsLabel } from './expense-view'
 import { wonLabel } from './purchase-view'
 
 type Props = {
@@ -27,6 +27,7 @@ function ExpenseRow({
 }: Omit<Props, 'expenses'> & { expense: ExpenseSummary }) {
   const amount = expenseAmount(expense, allocations, filters)
   const purposes = expensePurposes(expense, allocations, filters)
+  const departments = departmentsLabel(expense)
   return (
     <tr
       className={cn(
@@ -48,6 +49,9 @@ function ExpenseRow({
         <p className="mt-1 text-xs text-gray-500">{expense.description}</p>
       </td>
       <td className={cn(cell, 'text-gray-700')}>{expense.event?.name ?? '상시'}</td>
+      <td className={cn(cell, departments ? 'text-gray-700' : 'text-gray-500')}>
+        {departments || '—'}
+      </td>
       <td className={cn(cell, purposes ? 'text-gray-700' : 'text-gray-500')}>{purposes || '—'}</td>
       <td className={cn(cell, 'text-right tabular-nums')}>
         <span className="font-semibold whitespace-nowrap text-gray-900">
@@ -79,7 +83,7 @@ export function ExpenseTable({ expenses, ...props }: Props) {
     <div className={cn(cardClass, 'overflow-x-auto')}>
       <table
         aria-label="지출 목록"
-        className="w-full min-w-2xl table-fixed border-collapse text-left"
+        className="w-full min-w-3xl table-fixed border-collapse text-left"
       >
         <thead className="bg-gray-50">
           <tr>
@@ -91,6 +95,9 @@ export function ExpenseTable({ expenses, ...props }: Props) {
             </th>
             <th scope="col" className={head}>
               행사
+            </th>
+            <th scope="col" className={cn(head, 'w-28')}>
+              부서
             </th>
             <th scope="col" className={head}>
               예산 항목

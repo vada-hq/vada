@@ -129,6 +129,9 @@ export interface ExpenseSummary {
   evidenceCount: number
   cancelled: boolean
   event: EventRef | null
+  // 부탁한 사람(요청을 거친 지출은 그 요청들의 요청한 사람)의 지금 부서. 저장하지 않고 읽을 때 정한다.
+  // 겸직이나 여러 요청이면 모두, 부탁한 사람이 없거나 부서가 없으면 빈 배열이다.
+  departments: { id: string; name: string }[]
 }
 
 export interface ExpensePaymentLine {

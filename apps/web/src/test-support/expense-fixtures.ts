@@ -16,6 +16,7 @@ export const expenseSummary = (
   evidenceCount: 1,
   cancelled: false,
   event: null,
+  departments: [],
   ...extra,
 })
 

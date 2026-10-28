@@ -19,6 +19,7 @@ const expense = (id: string, extra: Partial<ExpenseSummary>): ExpenseSummary => 
   evidenceCount: 1,
   cancelled: false,
   event: null,
+  departments: [],
   ...extra,
 })
 
@@ -85,6 +86,16 @@ export function ExpenseSection() {
           <ExpenseCard expense={expense('4', { cancelled: true })} onOpen={noop} />
           <ExpenseCard
             expense={expense('5', { vendor: `${unbroken} ${longName}`, description: longName })}
+            onOpen={noop}
+          />
+          <ExpenseCard
+            expense={expense('6', {
+              event: { id: 'e1', name: longName },
+              departments: [
+                { id: 'd1', name: '기획부' },
+                { id: 'd2', name: unbroken },
+              ],
+            })}
             onOpen={noop}
           />
         </div>

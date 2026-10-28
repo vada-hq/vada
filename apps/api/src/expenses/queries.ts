@@ -32,6 +32,7 @@ import { ApiError } from '../http/errors.js'
 import { expenseHistoryOf } from './history.js'
 import { actionsOf, factsOf } from './policy.js'
 import { expenseAllocations, expensePeriods } from './list-budget.js'
+import { expenseDepartments } from './list-departments.js'
 import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 
 type Reader = Pick<Db, 'select'>
@@ -85,7 +86,7 @@ type Row = Awaited<ReturnType<typeof expenseRows>>[number]
 
 const person = (id: string | null, name: string | null) => (id && name ? { id, name } : null)
 
-function summaryOf(row: Row): ExpenseSummary {
+function summaryOf(row: Row, departments: ExpenseSummary['departments']): ExpenseSummary {
   return {
     id: row.id,
     vendor: row.vendor,
@@ -98,6 +99,7 @@ function summaryOf(row: Row): ExpenseSummary {
     evidenceCount: row.evidenceCount,
     cancelled: row.cancelledAt !== null,
     event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
+    departments,
   }
 }
 
@@ -113,14 +115,13 @@ export async function expenseListOf(
     where: query.event ? eq(expense.eventId, query.event) : undefined,
     limit: EXPENSE_LIST_LIMIT + 1,
   })
+  const shown = rows.slice(0, EXPENSE_LIST_LIMIT)
+  const ids = shown.map(row => row.id)
+  const departments = await expenseDepartments(db, actor, ids)
   return {
-    expenses: rows.slice(0, EXPENSE_LIST_LIMIT).map(summaryOf),
+    expenses: shown.map(row => summaryOf(row, departments.get(row.id) ?? [])),
     truncated: rows.length > EXPENSE_LIST_LIMIT,
-    allocations: await expenseAllocations(
-      db,
-      actor.councilId,
-      rows.slice(0, EXPENSE_LIST_LIMIT).map(row => row.id),
-    ),
+    allocations: await expenseAllocations(db, actor.councilId, ids),
     periods: await expensePeriods(db, actor.councilId),
   }
 }
@@ -224,7 +225,8 @@ export async function expenseDetailOf(
   expenseId: string,
 ): Promise<ExpenseDetail> {
   const row = await expenseRowOf(db, actor, expenseId)
-  const summary = summaryOf(row)
+  const departments = await expenseDepartments(db, actor, [expenseId])
+  const summary = summaryOf(row, departments.get(expenseId) ?? [])
   return {
     ...summary,
     reason: row.reason,

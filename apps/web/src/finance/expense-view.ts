@@ -21,5 +21,9 @@ export function chipsOf(expense: ExpenseSummary): ExpenseChip[] {
   return chips
 }
 
+// 표의 부서 칸과 카드가 같이 쓴다. 겸직이나 여러 요청이면 모두 잇는다.
+export const departmentsLabel = (expense: ExpenseSummary) =>
+  expense.departments.map(department => department.name).join(', ')
+
 export const paidByLabel = (expense: ExpenseSummary) =>
   expense.paidBy ? `먼저 낸 사람 ${expense.paidBy.name}` : '학생회 돈'
