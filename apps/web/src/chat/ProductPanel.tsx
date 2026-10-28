@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
 import { openRecord } from '@/lib/go-to'
 import { blockingOf } from './useMessageActions'
 import { useWindowHistory } from '@/lib/use-window-history'
@@ -35,6 +36,7 @@ export function ProductPanelFrame({
   onClose: () => void
   children: ReactNode
 }) {
+  useHideBottomNavigation()
   const heading = useRef<HTMLHeadingElement>(null)
   // 머리로 옮기기 전에 연 링크를 기억해야 하므로 먼저 부른다(effect는 적은 차례로 돈다).
   useReturnFocusOnClose()
