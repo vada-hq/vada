@@ -60,12 +60,23 @@ const changeOf =
   (db: Db, clock: () => Date): Change =>
   async (c, action, run, conflicts = {}) => {
     try {
-      const request = { userId: c.get('userId'), councilId: c.req.param('councilId'), action }
-      const team = await inCouncilChange(db, { ...request, now: clock() }, async (tx, actor) => {
+      const request = {
+        userId: c.get('userId'),
+        councilId: c.req.param('councilId'),
+        action,
+        now: clock(),
+      }
+      const team = await inCouncilChange(db, request, async (tx, actor) => {
         await run(tx, actor)
         // 편성이 바뀐 같은 거래에서 방 참여를 맞춘다(DEC-18). 실패하면 편성도 함께 되돌아간다.
         await syncRooms(tx, actor)
-        return teamOf(tx, actor)
+        // 자기 쓰기 권한을 잃어도 목록은 읽는다. 줄 동작에는 변경 뒤 소속·직급을 쓴다.
+        const reader = await authorize(tx, {
+          ...request,
+          councilId: actor.councilId,
+          action: 'council.view',
+        })
+        return teamOf(tx, reader)
       })
       return c.json(team satisfies TeamResponse)
     } catch (error) {

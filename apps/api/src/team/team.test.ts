@@ -339,8 +339,18 @@ test('부회장을 주면 회장단 권한이 생기고, 거두면 다음 요청
 test('회장 넘기기는 회장만 한다. 넘긴 사람은 직급 없음이 되고, 자기에게 넘기면 409다', async () => {
   const testDb = await createTestDb()
   try {
-    const { api, base, council, member } = await setup(testDb)
+    const { api, base, council, member, finance } = await setup(testDb)
     await api.post(`${base}/members/${member.u2}/rank`, { rank: 'vice_president' }, 'u1')
+    assert.equal(
+      (
+        await api.post(
+          `${base}/members/${member.u2}/departments`,
+          { departmentId: finance, rank: 'head' },
+          'u1',
+        )
+      ).status,
+      200,
+    )
     assert.equal(
       (await api.post(`${base}/president/transfer`, { memberId: member.u3 }, 'u2')).status,
       403,
@@ -348,19 +358,143 @@ test('회장 넘기기는 회장만 한다. 넘긴 사람은 직급 없음이 �
     const self = await api.post(`${base}/president/transfer`, { memberId: member.u1 }, 'u1')
     assert.equal(self.status, 409)
     assert.deepEqual(await self.json(), { error: 'ALREADY_PRESIDENT' })
-    const team = (await (
-      await api.post(`${base}/president/transfer`, { memberId: member.u3 }, 'u1')
-    ).json()) as TeamResponse
+    const response = await api.post(`${base}/president/transfer`, { memberId: member.u3 }, 'u1')
+    assert.equal(response.status, 200)
+    const team = (await response.json()) as TeamResponse
     assert.deepEqual(
       team.members.map(item => item.councilRank),
       [null, 'vice_president', 'president', null],
     )
+    const reread = await api.get(`${base}/members`, 'u1')
+    assert.equal(reread.status, 200)
+    assert.deepEqual(team, await reread.json())
+    assert.ok(team.members.every(item => item.actions.length === 0))
+    assert.deepEqual(team.members.find(item => item.id === member.u2)!.departments, [
+      { id: finance, rank: 'head', actions: [] },
+    ])
     assert.equal(
       (await api.post(`${base}/president/transfer`, { memberId: member.u1 }, 'u1')).status,
       403,
     )
     assert.deepEqual(await presidentsOf(testDb, council.id), [member.u3])
   } finally {
+    await testDb.close()
+  }
+})
+
+test('자기 부회장 직급을 거두면 쓰기 응답의 줄·소속 동작도 바로 뒤 GET과 같은 변경 뒤 권한이다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, member, finance } = await setup(testDb)
+    const created = await api.post(
+      '/api/organizations/create',
+      { ...body, name: '다른 학생회' },
+      'u2',
+    )
+    assert.equal(created.status, 201)
+    const { council: other } = (await created.json()) as CreateCouncilResponse
+    const otherTeam = (await (
+      await api.get(`/api/organizations/${other.id}/members`, 'u2')
+    ).json()) as TeamResponse
+    assert.equal(
+      (await api.post(`${base}/members/${member.u2}/rank`, { rank: 'vice_president' }, 'u1'))
+        .status,
+      200,
+    )
+    assert.equal(
+      (
+        await api.post(
+          `${base}/members/${member.u3}/departments`,
+          { departmentId: finance, rank: 'head' },
+          'u2',
+        )
+      ).status,
+      200,
+    )
+    const response = await api.post(`${base}/members/${member.u2}/rank`, { rank: null }, 'u2')
+    assert.equal(response.status, 200)
+    const team = (await response.json()) as TeamResponse
+    const reread = await api.get(`${base}/members`, 'u2')
+    assert.equal(reread.status, 200)
+    assert.deepEqual(team, await reread.json())
+    assert.equal(team.members.find(item => item.id === member.u2)!.councilRank, null)
+    assert.ok(team.members.every(item => item.actions.length === 0))
+    assert.deepEqual(team.members.find(item => item.id === member.u3)!.departments, [
+      { id: finance, rank: 'head', actions: [] },
+    ])
+    assert.deepEqual(
+      await (await api.get(`/api/organizations/${other.id}/members`, 'u2')).json(),
+      otherTeam,
+    )
+    assert.equal(
+      (await api.post(`${base}/members/${member.u3}/rank`, { rank: 'vice_president' }, 'u2'))
+        .status,
+      403,
+    )
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('자기 부서 배정·빼기·옮기기로 직급 권한만 잃으면 쓰기 응답도 남은 권한으로 동작을 내린다', async () => {
+  const testDb = await createTestDb()
+  const table = PERMISSIONS as { -readonly [A in keyof typeof PERMISSIONS]: Rule }
+  const original = table['rank.manage']
+  try {
+    const { api, base, member, finance } = await setup(testDb)
+    assert.equal(
+      (await api.post(`${base}/members/${member.u2}/rank`, { rank: 'vice_president' }, 'u1'))
+        .status,
+      200,
+    )
+    const created = await api.post(`${base}/departments`, { name: '기획부' }, 'u1')
+    assert.equal(created.status, 200)
+    const { departments } = (await created.json()) as TeamResponse
+    const planning = departments.find(item => item.name === '기획부')!.id
+    assert.equal(
+      (
+        await api.post(
+          `${base}/members/${member.u3}/departments`,
+          { departmentId: finance, rank: 'head' },
+          'u1',
+        )
+      ).status,
+      200,
+    )
+    // 현재 두 관리 칸의 권한자가 같아서, 부서 직급을 다시 읽는지도 보도록 시험에서만 직급 칸을 좁힌다.
+    table['rank.manage'] = { who: ['president', 'any_department_head'] }
+    const target = `${base}/members/${member.u2}`
+    const attempts = [
+      [`${target}/departments`, { departmentId: finance, rank: null }],
+      [`${target}/departments/${finance}/remove`, {}],
+      [
+        `${target}/departments/move`,
+        { fromDepartmentId: finance, toDepartmentId: planning, rank: null },
+      ],
+    ] as const
+    for (const [path, payload] of attempts) {
+      assert.equal(
+        (await api.post(`${target}/departments`, { departmentId: finance, rank: 'head' }, 'u1'))
+          .status,
+        200,
+      )
+      const response = await api.post(path, payload, 'u2')
+      assert.equal(response.status, 200, path)
+      const team = (await response.json()) as TeamResponse
+      const reread = await api.get(`${base}/members`, 'u2')
+      assert.equal(reread.status, 200, path)
+      assert.deepEqual(team, await reread.json(), path)
+      const ranked = team.members.find(item => item.id === member.u3)!
+      assert.deepEqual(ranked.actions, ['member.assign_department'], path)
+      assert.deepEqual(ranked.departments, [{ id: finance, rank: 'head', actions: [] }], path)
+      assert.deepEqual(
+        team.members.find(item => item.id === member.u4)!.actions,
+        ['member.assign_department', 'member.remove'],
+        path,
+      )
+    }
+  } finally {
+    table['rank.manage'] = original
     await testDb.close()
   }
 })
