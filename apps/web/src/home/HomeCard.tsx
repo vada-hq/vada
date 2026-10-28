@@ -28,6 +28,7 @@ type Props = {
   // 원래 화면의 그 거르기. 도착할 화면 하나가 없는 카드(가까운 일정)는 넘기지 않아 수만 둔다.
   onSeeAll?: (() => void) | undefined
   footnote?: CardFootnote | null | undefined
+  footer?: ReactNode
   // 읽었을 때 수 대신 둘 머리 글(회장단 행사 머리의 상태별 수, '바로가기')
   aside?: ReactNode
   // 줄 대신 칸 카드로 늘어놓는다(가로 전체 카드). 본문이 좁으면 한 단이고 머리도 제목 아래에 수를 둔다.
@@ -142,6 +143,7 @@ export default function HomeCard({
   unit = '건',
   onSeeAll,
   footnote,
+  footer,
   aside,
   tiles,
   seeAllTotal,
@@ -191,6 +193,7 @@ export default function HomeCard({
       </div>
       {/* 조건부 줄의 수도 같은 응답에서 오므로 읽지 못했으면 함께 두지 않는다. */}
       {footnote && read.kind === 'ready' && <Footnote {...footnote} />}
+      {read.kind === 'ready' && footer}
     </section>
   )
 }

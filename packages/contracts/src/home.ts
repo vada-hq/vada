@@ -201,6 +201,8 @@ export interface HomeAttention {
 
 // 회장단 홈(HOME-01C)의 칸. 회장단 홈 종류에만 온다.
 export interface HomeCouncilBoard {
+  // 이 학생회 지금 기수의 재정 역할 부서에 유효한 구성원이 있는가(구매 요청 알림 수신자와 같은 기준).
+  financeStaffed: boolean
   events: {
     // 완료하지 않았고 끝나지 않은 행사 가운데 진행 중 → 기획 중(시작 순, 날짜 미정은 끝), HOME_COUNCIL_EVENT_CARDS개
     cards: HomeBoardEvent[]

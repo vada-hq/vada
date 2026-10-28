@@ -13,6 +13,7 @@ type Props = {
   titles: CouncilTitles
   // 회장단(member.manage)에게는 미배정 묶음이 맨 위, 다른 운영진에게는 맨 아래다(DEC-91).
   unassignedFirst: boolean
+  focusFinance?: boolean
   // 사람 한 줄(key를 단 li). groupKey는 그 줄이 든 묶음이다.
   person: (member: TeamMember, groupKey: string) => ReactNode
   // 부서 머리 오른쪽의 ⋯ 메뉴. 고칠 수 없으면 null.
@@ -32,8 +33,16 @@ const departmentMeta = ({ members, heads }: DepartmentGroup, titles: CouncilTitl
 // 조직 화면의 배치(와이어프레임 ORG-03A): 맨 위 회장단 카드, 그 아래 부서 카드들, 끝에 [부서 추가].
 // 상자와 연결선의 조직도 대신 묶은 사람 목록이고(DEC-91, 조사 R3), 넓은 화면은 같은 묶음을 카드 격자로 늘어놓는다.
 // 격자는 창 폭이 아니라 본문 폭(@container)을 본다. 옆 메뉴가 있는 1024px 창의 본문은 약 736px다.
-export function OrgLayout({ members, departments, titles, unassignedFirst, ...slots }: Props) {
+export function OrgLayout({
+  members,
+  departments,
+  titles,
+  unassignedFirst,
+  focusFinance,
+  ...slots
+}: Props) {
   const groups = orgGroups(members, departments)
+  const financeId = focusFinance ? departments.find(item => item.role === 'finance')?.id : undefined
   const unassigned = groups.unassigned.length > 0 && (
     <OrgGroupCard
       title="미배정 구성원"
@@ -64,6 +73,7 @@ export function OrgLayout({ members, departments, titles, unassignedFirst, ...sl
             title={group.department.name}
             className={cn('border-l-4', departmentColorOf(group.department.id, departments).line)}
             groupKey={group.department.id}
+            reveal={group.department.id === financeId}
             badge={group.department.role === 'finance' && <Badge tone="info">재정</Badge>}
             meta={departmentMeta(group, titles)}
             action={slots.departmentAction(group.department)}

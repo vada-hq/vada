@@ -3,7 +3,7 @@ import CouncilHome from '@/home/CouncilHome'
 import { Section } from './GallerySection'
 import { noop, pushBand, today, Width } from './home-frame-samples'
 import { longName } from './sample-text'
-import { financeSummary } from './finance-home-samples'
+import { financeCouncilId, financeSummary } from './finance-home-samples'
 
 // 회장단 홈(기능 027 조각 6, HOME-01C)을 실제 부품으로 그린다. 폭은 실제 화면의 본문 폭이다(Width).
 
@@ -56,6 +56,7 @@ const ref = (
 
 // 총 행사 5개(진행 중 1, 기획 중 4)라 카드 셋과 '전체 5개 보기'다.
 const board: HomeCouncilBoard = {
+  financeStaffed: true,
   events: {
     cards: [
       {
@@ -143,6 +144,7 @@ const home: HomeResponse = {
 
 // 첫 사용: 행사도 확인할 일도 없는 학생회. 행사를 만들 수 있는 회장에게 [새 행사]가 있다.
 const emptyBoard: HomeCouncilBoard = {
+  financeStaffed: false,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
   attention: { items: [], total: 0 },
@@ -160,7 +162,7 @@ function Sample({ empty = false, band = false }: { empty?: boolean; band?: boole
         upcoming: empty ? { items: [], total: 0 } : home.upcoming,
       }}
       board={value}
-      councilId="c1"
+      councilId={financeCouncilId}
       name="김바다"
       inboxRooms={empty ? [] : rooms}
       pushBand={band ? pushBand : undefined}
@@ -184,6 +186,12 @@ export function CouncilHomeSection() {
         <Sample band />
       </Width>
       <Width label="1280px 창(첫 사용: 행사 없음, 새 행사)" className="w-248 shrink-0">
+        <Sample empty />
+      </Width>
+      <Width label="1024px 창(첫 사용: 재정 담당 없음)" className="w-184 shrink-0">
+        <Sample empty />
+      </Width>
+      <Width label="420px 창(첫 사용: 재정 담당 없음)" className="w-97 shrink-0">
         <Sample empty />
       </Width>
     </Section>

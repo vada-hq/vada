@@ -13,6 +13,7 @@ import {
 } from '@/test-support/home-fixtures'
 import { mockApi, json } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
+import { pageState } from '@/lib/app-location'
 import HomePage from './HomePage'
 
 afterEach(() => {
@@ -195,6 +196,25 @@ test('미배정이 0이면 조건부 줄이 없고, 확인할 것이 없으면 �
   const attention = await card('확인이 필요한 운영 상황')
   expect(within(attention).getByText('확인할 일 없음')).toBeTruthy()
   expect(within(attention).queryByText(/미배정 구성원/)).toBeNull()
+})
+
+test.each(['president', 'vice_president'] as const)(
+  '재정 담당이 없으면 %s 홈에 한 줄과 조직의 재정 부서로 가는 길이 있다',
+  async councilRank => {
+    open(councilHome({ financeStaffed: false }), councilView('c1', { councilRank }))
+    const attention = await card('확인이 필요한 운영 상황')
+    expect(within(attention).getByText('재정 담당 · 없음')).toBeTruthy()
+    fireEvent.click(within(attention).getByRole('button', { name: '조직에서 정하기' }))
+    expect(pathNow()).toBe('/people/c1')
+    expect(pageState()).toBe('finance')
+  },
+)
+
+test('재정 담당이 있으면 안내 줄과 조직에서 정하기가 없다', async () => {
+  open(councilHome({ financeStaffed: true }))
+  await card('확인이 필요한 운영 상황')
+  expect(screen.queryByText('재정 담당 · 없음')).toBeNull()
+  expect(screen.queryByRole('button', { name: '조직에서 정하기' })).toBeNull()
 })
 
 test('후속 정리 중인 행사: 종료 날짜, 7일째부터 끝난 지 N일, 남은 정리, 다 0이면 완료 가능. 정산이 남으면 재정 탭으로 연다', async () => {

@@ -3,6 +3,7 @@ import { UserPlus } from 'lucide-react'
 import type { CouncilView, TeamDepartment, TeamMember } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
+import { pageState } from '@/lib/app-location'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -62,6 +63,7 @@ export default function Organization({
         departments={team.data.departments}
         titles={titles}
         unassignedFirst={people.can('member.manage')}
+        focusFinance={pageState() === 'finance'}
         person={(member, group) => (
           <PersonRow key={member.id} member={member} group={group} {...{ people, team, view }} />
         )}

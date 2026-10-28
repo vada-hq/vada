@@ -104,6 +104,7 @@ export const followUpRow = (id: string, extra: Partial<HomeFollowUp> = {}): Home
 })
 
 const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard => ({
+  financeStaffed: true,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
   attention: { items: [], total: 0 },

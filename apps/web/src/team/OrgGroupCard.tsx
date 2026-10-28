@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import type { TeamMember } from '@vada/contracts'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ type Props = {
   editor?: ReactNode
   // 회장단 카드: 와이어프레임처럼 굵은 테두리와 회색 머리.
   lead?: boolean
+  reveal?: boolean
   className?: string
   people: TeamMember[]
   // 묶음 키. 겸직자의 줄이 묶음마다 있어 ⋯ 버튼을 묶음 키와 함께 가린다.
@@ -28,8 +29,16 @@ type Props = {
 // 사람은 상자 대신 줄로 늘어놓는다(DEC-91, 조사 R3 '묶은 사람 목록').
 export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, ...props }: Props) {
   const titleId = useId()
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!props.reveal) return
+    ref.current?.scrollIntoView?.({ block: 'start' })
+    ref.current?.focus({ preventScroll: true })
+  }, [props.reveal])
   return (
     <section
+      ref={ref}
+      tabIndex={props.reveal ? -1 : undefined}
       aria-labelledby={titleId}
       className={cn(
         cardClass,

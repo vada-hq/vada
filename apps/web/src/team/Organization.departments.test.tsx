@@ -14,9 +14,11 @@ import Organization from './Organization'
 import { useTeam } from './useTeam'
 import { asElement } from '@/test-support/elements'
 import { settle } from '@/test-support/settle'
+import { navigate } from '@/lib/app-location'
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
 
@@ -76,6 +78,25 @@ const gone = (name: string) =>
   waitFor(() => expect(screen.queryByRole('heading', { name })).toBeNull())
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 const noDialog = () => waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+test('홈에서 조직에서 정하기로 오면 재정 역할 부서가 로드된 뒤 그 부서로 스크롤하고 초점을 옮긴다', async () => {
+  serve()
+  navigate('/people/c1', { pageState: 'finance' })
+  const scrollIntoView = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    value: scrollIntoView,
+    configurable: true,
+  })
+  try {
+    render(<Harness permissions={LEADER_PERMISSIONS} />)
+    await loaded()
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1))
+    expect(scrollIntoView.mock.contexts[0]).toBe(group('재정부'))
+    expect(document.activeElement).toBe(group('재정부'))
+  } finally {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView
+  }
+})
 async function openAdd() {
   fireEvent.click(await screen.findByRole('button', { name: '부서 추가' }))
   return screen.findByRole('form', { name: '부서 추가' })

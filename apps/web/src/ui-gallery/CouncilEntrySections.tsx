@@ -76,10 +76,15 @@ export function CouncilEntrySection() {
           <UnassignedBand />
           {pushBand}
           <AttentionCard
-            board={{ attention: { items: [], total: 0 }, unassignedMembers: 2 }}
+            board={{
+              attention: { items: [], total: 0 },
+              unassignedMembers: 2,
+              financeStaffed: true,
+            }}
             onOpenTask={noop}
             onSeeAll={noop}
             onSeePeople={noop}
+            onSeeFinance={noop}
           />
         </Width>
       ))}

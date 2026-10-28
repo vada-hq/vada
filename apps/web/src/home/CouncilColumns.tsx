@@ -1,5 +1,6 @@
 import { Check, ChevronRight, CircleAlert } from 'lucide-react'
 import type { HomeCouncilBoard } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
 import EventStatusChip from '../events/EventStatusChip'
 import { ATTENTION_CHIP, attentionParts, followUpParts, remainingTidyLabel } from './council-view'
 import HomeCard from './HomeCard'
@@ -17,11 +18,13 @@ export function AttentionCard({
   onOpenTask,
   onSeeAll,
   onSeePeople,
+  onSeeFinance,
 }: {
-  board: Pick<HomeCouncilBoard, 'attention' | 'unassignedMembers'>
+  board: Pick<HomeCouncilBoard, 'attention' | 'unassignedMembers' | 'financeStaffed'>
   onOpenTask: (taskId: string) => void
   onSeeAll: () => void
   onSeePeople: () => void
+  onSeeFinance: () => void
 }) {
   const { attention, unassignedMembers } = board
   const rows = attention.items.map(item => (
@@ -46,6 +49,16 @@ export function AttentionCard({
         unassignedMembers > 0
           ? { label: '미배정 구성원', text: `${unassignedMembers}명`, onOpen: onSeePeople }
           : null
+      }
+      footer={
+        board.financeStaffed === false && (
+          <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-5 text-xs break-keep text-gray-500">
+            <span>재정 담당 · 없음</span>
+            <Button variant="link" className="min-h-11 px-0 text-xs" onClick={onSeeFinance}>
+              조직에서 정하기
+            </Button>
+          </div>
+        )
       }
     />
   )

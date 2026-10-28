@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react'
 import { ClipboardList } from 'lucide-react'
 import {
+  menuPath,
   type EventTab,
   type HomeCouncilBoard,
   type HomeResponse,
   type RoomSummary,
 } from '@vada/contracts'
 import { openEventTasks, openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
+import { navigate } from '@/lib/app-location'
 import type { Page } from '../workspace/pages'
 import { AttentionCard, FollowUpCard } from './CouncilColumns'
 import CouncilEventsCard from './CouncilEventsCard'
@@ -99,6 +101,7 @@ export default function CouncilHome({
             onOpenTask={openTask}
             onSeeAll={() => openMenu('tasks', councilId, { view: 'all' })}
             onSeePeople={() => openMenu('people', councilId)}
+            onSeeFinance={() => navigate(menuPath('people', councilId), { pageState: 'finance' })}
           />,
           <FollowUpCard
             key="follow-up"

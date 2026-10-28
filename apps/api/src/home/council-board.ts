@@ -12,6 +12,7 @@ import type { Db } from '../db/types.js'
 import { nextScheduleOf } from '../events/header.js'
 import { openEventCountsOf, openEventsOf, taskCountsByEvent } from '../events/queries.js'
 import { settlingOf } from '../settlement/settling.js'
+import { currentFinanceMembers } from '../purchases/finance-members.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
 import { unassignedMembersOf } from './council.js'
 import { followUpRowsOf } from './follow-up.js'
@@ -91,6 +92,7 @@ export async function councilBoardOf(
   open: OpenTask[],
 ): Promise<HomeCouncilBoard> {
   return {
+    financeStaffed: (await currentFinanceMembers(db, actor, now)).length > 0,
     events: await eventCardsOf(db, actor, now, open),
     followUp: await followUpOf(db, actor, now),
     attention: attentionOf(open),
