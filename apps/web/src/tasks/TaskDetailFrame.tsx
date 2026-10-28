@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { SidePanel, SidePanelBody, SidePanelContent } from '@/components/ui/side-panel'
+import { askLeave } from '@/lib/leave-guard'
 
 type Props = {
   // 창의 이름(화면 읽기). 보이는 제목은 heading이 그린다.
@@ -24,7 +25,7 @@ const keepWhileEditing = (event: KeyboardEvent) => {
 // 768px 아래(태블릿 세로·휴대폰)는 높이 전체의 시트로 화면을 다 덮는다. 512px 패널이 남기는 띠가 좁아 뒤 목록을 보며 고칠 수 없다.
 export function TaskDetailFrame({ title, heading, menu, busy, onClose, record, children }: Props) {
   const onOpenChange = (open: boolean) => {
-    if (!open && !busy) onClose()
+    if (!open && !busy) askLeave(onClose)
   }
   return (
     <SidePanel open onOpenChange={onOpenChange}>
