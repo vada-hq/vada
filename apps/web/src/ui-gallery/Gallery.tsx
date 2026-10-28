@@ -18,6 +18,7 @@ import {
 import { SpaceListSection } from './SpaceSections'
 import { SidebarSection } from './SidebarSections'
 import { HeaderSection } from './HeaderSections'
+import { BottomNavigationSection } from './BottomNavigationSections'
 import { AccountSection } from './AccountSections'
 import { FinancePeriodsSection } from './FinancePeriodsSections'
 import { FeePaymentUploadSection } from './FeePaymentSections'
@@ -94,6 +95,7 @@ export const gallerySections = [
   SidebarSection,
   SpaceListSection,
   HeaderSection,
+  BottomNavigationSection,
   ActionMenuSection,
   MessageMenuSection,
   SystemMessageSection,

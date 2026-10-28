@@ -2,6 +2,13 @@
 @import 'tw-animate-css';
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 
+/* h-14 탭 줄과 iPhone 바닥 안전 영역을 본문에서도 같은 높이로 비운다. */
+@utility bottom-navigation-space {
+  --bottom-navigation-space: calc(var(--spacing) * 14 + env(safe-area-inset-bottom));
+  padding-bottom: var(--bottom-navigation-space);
+  scroll-padding-bottom: var(--bottom-navigation-space);
+}
+
 /* 와이어프레임(Figma)의 색은 Tailwind v4 기본 팔레트와 같다. shadcn 부품이 쓰는 이름으로 묶는다. */
 :root {
   --background: #f9fafb;

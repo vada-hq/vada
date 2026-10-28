@@ -1,3 +1,4 @@
+import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
@@ -407,6 +408,7 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
   councilsInSequence([myCouncil('0199d1a0-0000-7000-8000-0000000000c1')])
   openCouncil()
   auth.signOut.mockResolvedValue({ error: null })
+  navigationWidth()
   await renderApp()
   const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
   expect(await within(aside).findByText('회장')).toBeTruthy()
@@ -414,7 +416,7 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
   expect(within(aside).getByRole('button', { name: '휴대폰 알림' })).toBeTruthy()
   fireEvent.click(within(aside).getByRole('button', { name: '로그아웃' }))
   await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   expect(within(sheet).getByRole('button', { name: '로그아웃' })).toBeTruthy()
 })
@@ -611,16 +613,17 @@ test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생�
   expect(document.activeElement).toBe(next)
 })
 
-test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스가 헤더의 메뉴 열기 버튼에 있다', async () => {
+test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스가 아래 메뉴 탭에 있다', async () => {
   councilsInSequence([
     myCouncil('0199d1a0-0000-7000-8000-0000000000c1'),
     myCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회', null),
   ])
   openCouncil()
   openCouncil('0199d1a0-0000-7000-8000-0000000000c2', '경영학부 학생회')
+  navigationWidth()
   await renderApp()
   await screen.findByRole('complementary', { name: '학생회 작업 공간' })
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   fireEvent.keyDown(
     within(sheet).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' }),
@@ -631,11 +634,11 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회 한양대학교 ERICA' }))
   await screen.findByRole('button', { name: 'Vada 경영학부 학생회 학생회 메뉴' })
   await waitFor(() =>
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' })),
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴' })),
   )
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
   await settle()
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴' }))
 })
 
 test('로그아웃에 실패해도 알림 줄은 화면 높이 안의 같은 열에 있고, 작업 공간은 남은 높이만 쓴다', async () => {

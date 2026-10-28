@@ -10,6 +10,7 @@ import { useScrollMemory } from '@/lib/use-scroll-memory'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
+import MobileNavigation from './MobileNavigation'
 import type { Opener, WorkspaceProps } from './pages'
 import { pageWidthOf, trailOf } from './pages'
 import { activeItemOf } from './space-view'
@@ -74,8 +75,6 @@ function CouncilMain({
         width={content.width}
         crumbs={trail.crumbs}
         title={trail.title}
-        menuRef={nav.headerMenu}
-        onMenu={() => nav.setNavOpen(true)}
         actionsRef={setActions}
       />
       <PagePushBand page={nav.page} homeSlot={homeBand} />
@@ -117,12 +116,13 @@ export default function CouncilWorkspace({
   const { lists, counts, openEvents } = useWorkspaceLists(council.id, data)
   const { space, newEvent } = useSpace(data, nav, openEvents)
   const openEventId = target.record?.kind === 'events' ? target.record.id : null
+  const active = activeItemOf(nav.page, openEventId, lists.sidebarEvents)
   const sidebar = (from: Opener) => (
     <WorkspaceSidebar
       council={council}
       councils={councils}
       view={data.view}
-      active={activeItemOf(nav.page, openEventId, openEvents ?? [])}
+      active={active}
       space={space}
       {...counts}
       user={user}
@@ -163,6 +163,13 @@ export default function CouncilWorkspace({
           linkKey: pageOpensAnew(target, here.released) ? here.key : '',
           mainRef: nav.main,
         }}
+      />
+      <MobileNavigation
+        active={active}
+        {...counts}
+        onPage={nav.openPage}
+        onMenu={() => nav.setNavOpen(true)}
+        menuRef={nav.mobileMenu}
       />
       {newEvent.open && data.view && (
         <NewEventDialog

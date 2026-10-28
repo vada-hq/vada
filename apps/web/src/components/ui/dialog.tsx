@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { RecordKind } from '@vada/contracts'
 import { adoptTag, useWindowHistory } from '@/lib/use-window-history'
+import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
@@ -43,6 +44,7 @@ export function WindowHistory({
   record?: { kind: RecordKind; id: string } | undefined
 }) {
   const close = useRef<HTMLButtonElement>(null)
+  useHideBottomNavigation()
   useWindowHistory(() => close.current?.click(), record && adoptTag(record.kind, record.id))
   return <DialogPrimitive.Close ref={close} hidden tabIndex={-1} aria-hidden="true" />
 }

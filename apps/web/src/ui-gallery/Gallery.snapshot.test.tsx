@@ -3,14 +3,18 @@ import { existsSync } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import { gallerySections } from './Gallery'
+import { navigationWidth } from '@/test-support/navigation-width'
 
 // 앞 묶음의 useId 변경이 뒤 스냅숏에 번지지 않게 각각 그린다(r01 조각 10).
 // 대화상자를 연 모양은 Gallery.overlay.snapshot.test.tsx가 맡는다.
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 const snapshotDirectory = join(dirname(fileURLToPath(import.meta.url)), '__snapshots__/gallery')
 const sections = gallerySections.map(Section => [Section.name, Section] as const)
@@ -31,6 +35,7 @@ test('섹션 이름과 스냅숏 파일 목록', async () => {
 })
 
 test.each(sections)('%s', async (name, Section) => {
+  if (name === 'BottomNavigationSection') navigationWidth()
   render(<Section />)
   await expect(snapshotHtml()).toMatchFileSnapshot(`__snapshots__/gallery/${name}.html`)
 })

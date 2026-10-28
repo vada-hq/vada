@@ -17,7 +17,6 @@ import { Section } from './GallerySection'
 import { Width } from './home-frame-samples'
 import { longName } from './sample-text'
 
-const noop = () => {}
 const COUNCIL = '소프트웨어융합대학 학생회'
 const LONG_COUNCIL = '한양대학교 ERICA 소프트웨어융합대학 제38대 함께하는 내일 학생회'
 const SPORTS_DAY = '2026 소프트웨어융합대학 체육대회'
@@ -46,7 +45,6 @@ function SampleHeader({ sample }: { sample: Sample }) {
         width={width}
         crumbs={trail.crumbs}
         title={trail.title}
-        onMenu={noop}
         actionsRef={setSlot}
       />
       <PageActionsProvider value={slot}>
@@ -210,7 +208,7 @@ const SAMPLES: Sample[] = [
 
 // 머리글과 본문은 같은 폭으로 가운데에 둔다(DEC-101). 높이·경로·제목·행동은 DEC-96 그대로다.
 // 1280·1920px 창은 옆 메뉴 240px을 뺀 1040·1680px, 휴대폰은 390px로 본다.
-// 휴대폰 모양(제목 두 줄, [≡])은 창 폭으로 갈리므로 좁은 창에서 열어 본다.
+// 휴대폰 모양(제목 두 줄)은 창 폭으로 갈리므로 좁은 창에서 열어 본다.
 export function HeaderSection() {
   return (
     <Section title="머리글 · 경로 줄과 본문 왼쪽 줄">

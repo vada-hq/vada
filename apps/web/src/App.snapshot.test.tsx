@@ -1,3 +1,4 @@
+import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
@@ -219,10 +220,11 @@ test('작업 공간: 학생회를 불러오지 못함', async () => {
 test('작업 공간: 옆 메뉴를 연 휴대폰 폭', async () => {
   pinToday()
   openWorkspace()
+  navigationWidth()
   await renderApp()
   await openPeople()
   await screen.findByRole('heading', { level: 2, name: '회장단' })
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   await screen.findByRole('dialog')
   expect(snapshotHtml()).toMatchSnapshot()
 })

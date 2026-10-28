@@ -32,7 +32,7 @@ export function useWorkspaceLists(councilId: string, data: CouncilData) {
   // 학생회를 잃었거나 다시 읽는 중이면 남은 줄을 그리지 않는다.
   const openEvents = ready && events.state.kind === 'ready' ? events.state.data.events : null
   return {
-    lists: { rooms, tasks },
+    lists: { rooms, tasks, sidebarEvents: openEvents ?? [] },
     counts: { unread, taskCount },
     openEvents,
   }

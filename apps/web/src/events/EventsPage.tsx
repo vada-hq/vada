@@ -27,6 +27,7 @@ type Props = {
   // 행사 메시지 탭의 방 화면이 쓰는 운영진과 대화 목록
   team: RoomPage['team']
   rooms: RoomPage['rooms']
+  sidebarEvents?: readonly { id: string }[] | undefined
 }
 
 // 빈 화면에서 첫 행사를 시작할 수 있어야 한다(DEC-96).
@@ -53,11 +54,13 @@ function Cards({
   view,
   onOpen,
   onCreate,
+  sidebarEvents,
 }: {
   list: EventList
   view: CouncilView
   onOpen: (eventId: string) => void
   onCreate: () => void
+  sidebarEvents: Props['sidebarEvents']
 }) {
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">행사 불러오는 중…</StateMessage>
@@ -74,7 +77,7 @@ function Cards({
   if (events.length === 0) return <NoEvents canCreate={canCreateEvent(view)} onCreate={onCreate} />
   return (
     <>
-      <EventCardList events={events} onOpen={onOpen} />
+      <EventCardList events={events} onOpen={onOpen} sidebarEvents={sidebarEvents} />
       {truncated && (
         <StateMessage kind="notice">{`행사가 많아서 ${EVENT_LIST_LIMIT}개만 보여요.`}</StateMessage>
       )}
@@ -136,7 +139,14 @@ function OpenEvent({
 }
 
 // 행사 카드에서 찾고 거른다. 행사를 누르면 그 행사의 주소로 열린다.
-export default function EventsPage({ view, onForbidden, onTasksChanged, team, rooms }: Props) {
+export default function EventsPage({
+  view,
+  onForbidden,
+  onTasksChanged,
+  team,
+  rooms,
+  sidebarEvents,
+}: Props) {
   const councilId = view.council.id
   const open = useEventAddress(councilId, view.me.memberId)
   const dialogs = useRecordDialogs()
@@ -176,6 +186,7 @@ export default function EventsPage({ view, onForbidden, onTasksChanged, team, ro
         />
       )}
       <Cards
+        sidebarEvents={sidebarEvents}
         list={list}
         view={view}
         onCreate={dialogs.startCreate}

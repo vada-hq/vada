@@ -3,6 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action, SidebarEvent } from '@vada/contracts'
 import { councilView, MEMBER_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
+import { navigationWidth } from '@/test-support/navigation-width'
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
@@ -215,19 +216,21 @@ test('행사 기본정보를 고치면 옆 메뉴가 바로 다시 읽어 새 �
 })
 
 test('휴대폰 서랍에도 같은 공간 묶음이 있다', async () => {
+  navigationWidth()
   open()
   await spaces()
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   const group = within(sheet).getByRole('group', { name: '행사' })
   expect(within(group).getByText('2026 체육대회')).toBeTruthy()
   expect(within(group).getByRole('button', { name: '전체 행사 보기' })).toBeTruthy()
 })
 
-test('서랍의 [+ 새 행사]는 서랍을 닫고 새 행사 창을 열며, 창을 닫으면 초점이 메뉴 열기 단추로 돌아온다', async () => {
+test('서랍의 [+ 새 행사]는 서랍을 닫고 새 행사 창을 열며, 창을 닫으면 초점이 아래 메뉴 탭으로 돌아온다', async () => {
+  navigationWidth()
   open()
   await spaces()
-  const opener = screen.getByRole('button', { name: '메뉴 열기' })
+  const opener = screen.getByRole('button', { name: '메뉴' })
   fireEvent.click(opener)
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   fireEvent.click(within(sheet).getByRole('button', { name: '새 행사' }))

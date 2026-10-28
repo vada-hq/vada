@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentProps } from 'react'
 import type { CouncilView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
+import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED, ROOMS_LOAD_FAILED } from '@/lib/messages'
@@ -169,6 +170,7 @@ function ChatBody({
   ...props
 }: PageProps & { screen: Screen; onScreen: (screen: Screen) => void; onBack: () => void }) {
   const split = useSplit()
+  useHideBottomNavigation(!split && screen.kind === 'room')
   const { councilId } = props
   const [saved, setSaved] = useState(() => savedRoom(councilId))
   const openedRoom = screen.kind === 'room' ? screen.roomId : null

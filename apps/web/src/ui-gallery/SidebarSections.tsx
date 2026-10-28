@@ -72,7 +72,7 @@ const SIDEBARS: { key: string; unread: number; active: ActiveItem; width: string
   { key: '420 서랍, 배지 0', unread: 0, active: { kind: 'menu', menu: 'finance' }, width: 'w-72' },
 ]
 
-function SampleSidebar({
+export function SampleSidebar({
   unread,
   active,
   inSheet,

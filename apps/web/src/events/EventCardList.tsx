@@ -4,17 +4,25 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import EventRow from './EventRow'
-import { EVENT_FILTERS, type EventOrder } from './event-view'
+import { EVENT_FILTERS, prioritizeEvents, type EventOrder } from './event-view'
+import { useWideNavigation } from '@/lib/use-wide-navigation'
 import { useEventFilters } from './useEvents'
 
 export function EventCardList({
   events,
   onOpen,
+  sidebarEvents = [],
 }: {
   events: EventCard[]
   onOpen: (id: string) => void
+  sidebarEvents?: readonly { id: string }[] | undefined
 }) {
   const filters = useEventFilters(events)
+  const wide = useWideNavigation()
+  const shown =
+    !wide && filters.order === 'date'
+      ? prioritizeEvents(filters.events, sidebarEvents)
+      : filters.events
   return (
     <div className="@container flex min-w-0 flex-col gap-4 break-keep">
       <div className="flex min-w-0 flex-wrap items-center gap-3">
@@ -62,7 +70,7 @@ export function EventCardList({
         <p className="py-8 text-center text-sm text-gray-500">결과 없음</p>
       ) : (
         <ul aria-label="행사 목록" className="grid w-full min-w-0 max-w-220 grid-cols-1 gap-3">
-          {filters.events.map(event => (
+          {shown.map(event => (
             <li key={event.id} className="min-w-0">
               <EventRow event={event} onOpen={() => onOpen(event.id)} />
             </li>

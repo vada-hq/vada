@@ -41,6 +41,13 @@ export const EVENT_FILTERS = ['전체', '기획 중', '진행 중', '후속 정�
 export type EventFilter = (typeof EVENT_FILTERS)[number]
 export type EventOrder = 'date' | 'activity'
 
+// 휴대폰 첫 목록은 옆 메뉴의 다섯 행사를 같은 차례로 먼저 둔다. 없는 행사는 만들지 않고 나머지 순서는 지킨다.
+export function prioritizeEvents(events: EventCard[], priority: readonly { id: string }[]) {
+  const positions = new Map(priority.map((event, index) => [event.id, index]))
+  const rest = priority.length
+  return [...events].sort((a, b) => (positions.get(a.id) ?? rest) - (positions.get(b.id) ?? rest))
+}
+
 // 일시순은 서버의 카드 정렬을 지킨다. 최근 활동순에서 같은 시각이면 그 차례를 지킨다.
 export function visibleEvents(
   events: EventCard[],

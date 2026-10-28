@@ -29,6 +29,9 @@ export interface TaskCount {
   more: boolean
 }
 
+export const overdueLabel = ({ count, more }: TaskCount) =>
+  `지난 업무 ${count}개${more ? ' 이상' : ''}`
+
 // 옆 메뉴 '업무'의 수 '지남 N': 내 업무 중 지난 것만 센다. 남은 수는 나에게 걸린 급한 일이 아니라 두지 않는다(DEC-96, DEC-94).
 export function overdueOf(mine: TaskSummary[], truncated: boolean): TaskCount {
   return { count: mine.filter(task => task.overdue).length, more: truncated }

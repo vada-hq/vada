@@ -1,3 +1,4 @@
+import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
@@ -238,10 +239,11 @@ test.each([
   '/council/0199d1a0-0000-7000-8000-0000000000ee',
 ])('다른 학생회 %s는 찾을 수 없음이고 홈으로 간 뒤 서랍을 닫아도 홈이다', async path => {
   window.history.replaceState(null, '', path)
+  navigationWidth()
   await renderApp()
   fireEvent.click(await screen.findByRole('button', { name: '홈으로' }))
   expect(await heading('홈')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   fireEvent.keyDown(sheet, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

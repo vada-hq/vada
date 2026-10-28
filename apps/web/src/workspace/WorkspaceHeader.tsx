@@ -1,8 +1,7 @@
 import type { Ref } from 'react'
-import { ChevronRight, Menu as MenuIcon } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import type { Crumb } from '@/components/PageHeading'
 import { pageFrameClass, type PageWidth } from '@/components/page-width'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -10,8 +9,6 @@ type Props = {
   // 경로 줄의 칸. 맨 앞은 학생회 이름이다(pages.ts trailOf).
   crumbs: Crumb[]
   title: string
-  onMenu: () => void
-  menuRef?: Ref<HTMLButtonElement>
   // 페이지 행동(PageActions)이 들어올 자리
   actionsRef?: Ref<HTMLDivElement>
 }
@@ -47,28 +44,11 @@ function Trail({ crumbs }: { crumbs: Crumb[] }) {
 // 경로 줄과 제목, 오른쪽에 페이지 행동. 좌우 여백은 본문(main)과 같아 제목과 본문의 왼쪽 줄이 맞는다.
 // 제목 크기는 vada 페이지 제목(text-xl, 앱 페이지 제목 범위 20~24px의 아래 끝, Polaris·Primer 20), 굵기는 와이어프레임대로 semibold다.
 // 행사명은 행사 화면에서 이 제목에만 있어, 휴대폰(768px 미만)에서는 두 줄까지 보이고 머리글이 그만큼 높아진다.
-// 넓은 화면은 한 줄 말줄임이고 올리면 전체 이름이다. 옆 메뉴가 숨는 폭(768px 미만)에서만 메뉴 버튼을 보여 준다.
-export default function WorkspaceHeader({
-  width,
-  crumbs,
-  title,
-  onMenu,
-  menuRef,
-  actionsRef,
-}: Props) {
+// 넓은 화면은 한 줄 말줄임이고 올리면 전체 이름이다. 휴대폰 메뉴는 아래 탭 줄이 연다.
+export default function WorkspaceHeader({ width, crumbs, title, actionsRef }: Props) {
   return (
     <header className="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
       <div className={cn(pageFrameClass(width), 'flex items-center gap-4')}>
-        <Button
-          ref={menuRef}
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          aria-label="메뉴 열기"
-          onClick={onMenu}
-        >
-          <MenuIcon />
-        </Button>
         <div className="min-w-0 flex-1">
           <Trail crumbs={crumbs} />
           <h1

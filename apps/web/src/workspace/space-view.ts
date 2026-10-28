@@ -31,5 +31,23 @@ export function activeItemOf(
   return { kind: 'allEvents' }
 }
 
-export const menuActive = (active: ActiveItem, menu: Page) =>
-  active?.kind === 'menu' && active.menu === menu
+type MobileItem = 'home' | 'chat' | 'tasks' | 'events' | 'menu'
+
+function mobileItemOf(active: ActiveItem): MobileItem {
+  if (active?.kind === 'event' || active?.kind === 'allEvents') return 'events'
+  if (active?.kind === 'menu') {
+    if (active.menu === 'home' || active.menu === 'chat' || active.menu === 'tasks')
+      return active.menu
+  }
+  return 'menu'
+}
+
+// 휴대폰도 옆 메뉴가 정한 현재 위치를 읽고, 나머지 메뉴는 마지막 칸에 모은다.
+export const menuActive = (
+  active: ActiveItem,
+  menu: Page | 'menu',
+  surface: 'sidebar' | 'mobile' = 'sidebar',
+) =>
+  surface === 'mobile'
+    ? mobileItemOf(active) === menu
+    : active?.kind === 'menu' && active.menu === menu

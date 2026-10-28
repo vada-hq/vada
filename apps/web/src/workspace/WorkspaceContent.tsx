@@ -14,6 +14,7 @@ import TasksPage from '../tasks/TasksPage'
 import type { TaskList } from '../tasks/useTasks'
 import Organization from '../team/Organization'
 import StateMessage from '@/components/StateMessage'
+import { useBottomNavigationHidden } from '@/components/BottomNavigationVisibility'
 import { pageFrameClass, type PageWidth } from '@/components/page-width'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -33,6 +34,7 @@ type Props = {
   // 업무 카드·상세에서 행사 이름을, 홈에서 행사 줄을 눌렀다.
   onOpenEvent: (eventId: string, tab?: EventTab) => void
   onOpenPage: (page: Page) => void
+  sidebarEvents?: readonly { id: string }[] | undefined
 }
 
 // 알림으로 열 업무를 받는 업무 화면과 재정 화면(재정은 주소를 스스로 읽는다).
@@ -98,12 +100,14 @@ function PageOf({
   onOpenPage,
   view,
   reading,
+  sidebarEvents,
 }: Props & { view: CouncilView; reading: Reading }) {
   if (page === 'home' || page === 'chat' || page === 'council')
     return <LeadPage {...{ data, rooms, page, onOpenEvent, onOpenPage, view }} />
   if (page === 'events')
     return (
       <EventsPage
+        sidebarEvents={sidebarEvents}
         view={view}
         team={data.team}
         rooms={rooms}
@@ -162,12 +166,14 @@ export default function WorkspaceContent({
   width,
   ...props
 }: Props & { mainRef: Ref<HTMLElement>; width: PageWidth }) {
+  const bottomHidden = useBottomNavigationHidden()
   return (
     <main
       ref={mainRef}
       className={cn(
         'min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable',
         !EDGE_TO_EDGE(props.page) && 'p-4 sm:p-6',
+        !bottomHidden && 'max-md:bottom-navigation-space',
       )}
     >
       <div className={cn(pageFrameClass(width), EDGE_TO_EDGE(props.page) && 'h-full min-h-0')}>

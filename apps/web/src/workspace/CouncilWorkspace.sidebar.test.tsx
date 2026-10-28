@@ -1,3 +1,4 @@
+import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -199,9 +200,10 @@ test('옆 메뉴의 작은 글은 gray-400이 아니고, 작은 회색 글이 �
 })
 
 test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리를 비운다', async () => {
+  navigationWidth()
   open({ unread: 120 })
   await nav()
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  fireEvent.click(screen.getByRole('button', { name: '메뉴' }))
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   const items = within(within(sheet).getByRole('navigation', { name: '학생회 메뉴' }))
     .getAllByRole('button')

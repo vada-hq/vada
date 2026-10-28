@@ -1,3 +1,4 @@
+import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
@@ -583,27 +584,39 @@ const openRoomFromHome = async () => {
   act(() => listeners[0]!({ data: { type: 'vada:open', url: `/chat/${C1}/${ROOM}` } }))
   expect(await screen.findByText('모레 회의 있어요', {}, { timeout: 5000 })).toBeTruthy()
 }
-const roomPath = `/chat/${C1}/${ROOM}`
 
-test('방 알림으로 연 방에서 휴대폰 옆 메뉴를 열었다 닫아도 방에 남는다', async () => {
+test('방 알림 화면은 아래 탭이 없고 홈으로 나온 뒤 메뉴를 열고 닫는다', async () => {
+  navigationWidth()
   await openRoomFromHome()
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+  fireEvent.click(
+    within(await screen.findByRole('navigation', { name: '휴대폰 메뉴' })).getByRole('button', {
+      name: '메뉴',
+    }),
+  )
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   fireEvent.keyDown(sheet, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await windowHistoryIdle()
-  expect(window.location.pathname).toBe(roomPath)
-  expect(screen.getByText('모레 회의 있어요')).toBeTruthy()
+  expect(window.location.pathname).toBe(`/home/${C1}`)
 })
 
-test('방에서 옆 메뉴를 연 채 기기 뒤로를 누르면 옆 메뉴만 닫히고 방에 남는다', async () => {
+test('방에서 나온 홈의 메뉴 서랍은 기기 뒤로로 먼저 닫힌다', async () => {
+  navigationWidth()
   await openRoomFromHome()
-  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '대화방 목록' }))
+  fireEvent.click(
+    within(await screen.findByRole('navigation', { name: '휴대폰 메뉴' })).getByRole('button', {
+      name: '메뉴',
+    }),
+  )
   await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   act(() => window.history.back())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await windowHistoryIdle()
-  expect(window.location.pathname).toBe(roomPath)
+  expect(window.location.pathname).toBe(`/home/${C1}`)
 })
 
 test('목록을 읽는 동안 받은 알림은 버리지 않고 준비되면 연다', async () => {

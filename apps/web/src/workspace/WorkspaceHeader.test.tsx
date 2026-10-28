@@ -9,9 +9,7 @@ afterEach(cleanup)
 const COUNCIL = '컴퓨터학부 학생회'
 
 function show(trail = trailOf('events', COUNCIL, eventTrail('신입생 환영회', '업무'))) {
-  render(
-    <WorkspaceHeader width="full" crumbs={trail.crumbs} title={trail.title} onMenu={() => {}} />,
-  )
+  render(<WorkspaceHeader width="full" crumbs={trail.crumbs} title={trail.title} />)
   const banner = screen.getByRole('banner')
   const path = within(banner).getByRole('list', { name: '경로' })
   return { banner, path, items: within(path).getAllByRole('listitem') }

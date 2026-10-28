@@ -11,7 +11,7 @@ import {
 import type { ReactNode } from 'react'
 import { CountBadge } from '@/components/ui/count-badge'
 import { NavItem } from '@/components/ui/nav-item'
-import type { TaskCount } from '../tasks/task-view'
+import { overdueLabel, type TaskCount } from '../tasks/task-view'
 import type { Page } from './pages'
 import SpaceList, { type SpaceProps } from './SpaceList'
 import { menuActive, type ActiveItem } from './space-view'
@@ -38,8 +38,6 @@ function TopItem({
     </NavItem>
   )
 }
-
-const overdueLabel = ({ count, more }: TaskCount) => `지난 업무 ${count}개${more ? ' 이상' : ''}`
 
 // 옆 메뉴 가운데(메뉴 v7 S7·S1): 홈 · 메시지(안 읽은 수 합계) · 업무('지남 N') · 캘린더 · 구매 · 재정 · 조직,
 // 그 아래 '행사'(완료하지 않은 행사, 전체 행사 보기, 새 행사). 수 배지는 나에게 걸린 것 둘뿐이다.

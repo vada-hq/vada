@@ -1,6 +1,23 @@
 import { expect, test } from 'vitest'
 import { eventSummary } from '@/test-support/event-fixtures'
-import { visibleEvents, whenLabel } from './event-view'
+import { prioritizeEvents, visibleEvents, whenLabel } from './event-view'
+
+test('휴대폰 목록은 옆 메뉴의 행사 다섯을 먼저 두고 나머지 차례를 보존한다', () => {
+  const events = ['ended', 'upcoming', 'tbd', 'ongoing', 'completed', 'other'].map(id =>
+    eventSummary({ id }),
+  )
+  const priority = ['ongoing', 'upcoming', 'tbd', 'missing', 'ended'].map(id => ({ id }))
+  expect(prioritizeEvents(events, priority).map(event => event.id)).toEqual([
+    'ongoing',
+    'upcoming',
+    'tbd',
+    'ended',
+    'completed',
+    'other',
+  ])
+  expect(prioritizeEvents(events, []).map(event => event.id)).toEqual(events.map(event => event.id))
+  expect(events[0]!.id).toBe('ended')
+})
 
 test('일시는 요일과 함께 한 줄로 보인다', () => {
   expect(whenLabel({ startsAt: '2026-10-25T14:00', endsAt: '2026-10-25T18:00' })).toBe(
