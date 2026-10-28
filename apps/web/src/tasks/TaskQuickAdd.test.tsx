@@ -102,7 +102,7 @@ test.each([false, true])(
 test('부원이 담당자 없음 탭에서 만들면 나로 만들어져 이 보기에 없음과 [열기]가 보인다', async () => {
   setup()
   fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  fireEvent.click(await screen.findByRole('button', { name: /^담당자 없음 \d/ }))
   await add('청소')
   await screen.findByText('추가한 업무는 이 보기에 없음')
   fireEvent.click(screen.getByRole('button', { name: '열기' }))

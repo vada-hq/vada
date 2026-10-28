@@ -15,7 +15,7 @@ import {
 } from './home-task-scope'
 import { useTasks, type TaskList } from './useTasks'
 import { chipCounts, matchesTaskChips, type TaskChipCounts, type TaskChipScope } from './task-chips'
-import { BOARD_SCOPE, CHIP_LABEL, NO_DEPARTMENT } from './task-chip-text'
+import { BOARD_SCOPE, CHIP_LABEL, MY_DEPARTMENT, NO_DEPARTMENT } from './task-chip-text'
 import type { useTaskControls } from './useTaskControls'
 
 // 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
@@ -73,6 +73,7 @@ function homeLabel(controls: Controls, data: ChipSource) {
 function narrowLabel(controls: Controls, council: CouncilView, data: ChipSource) {
   return [
     controls.view === 'mine' ? BOARD_SCOPE.mine : null,
+    controls.view === 'department' ? MY_DEPARTMENT : null,
     controls.due === 'overdue' ? CHIP_LABEL.overdue : null,
     controls.due === 'none' ? CHIP_LABEL.noDue : null,
     departmentLabel(controls.dept, council, data),
@@ -104,14 +105,14 @@ function chipSource(
   }
 }
 
-// 표의 끝남을 보더라도 칩 수는 열린 업무에서 센다. 기본 목록이 열림이면 같은 응답을 다시 쓴다.
+// 표의 끝남이나 서버가 거른 목록을 보더라도 칩 수는 전체 열린 업무에서 센다. 기본 목록이 전체·열림이면 같은 응답을 다시 쓴다.
 export function useTaskChipData(
   lists: { list: TaskList; both: boolean },
   controls: Controls,
   props: { view: CouncilView; onForbidden: () => void },
   team: TeamResponse | null,
 ) {
-  const extra = !lists.both && controls.filter === 'done'
+  const extra = controls.listView !== 'all' || (!lists.both && controls.filter === 'done')
   const open = useTasks(
     props.view.council.id,
     { view: 'all', filter: 'open', eventId: controls.listEvent },

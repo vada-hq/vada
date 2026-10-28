@@ -5,17 +5,20 @@ import { isUnassignedTask } from './task-unassigned'
 export type QuickAddContext = {
   view: CouncilView
   taskView: TaskView
-  // 부서 거르기. 없으면 null
+  // 부서 거르기. 없으면 null, '부서 없음' 칩이면 'none'
   dept: string | null
   // 행사의 업무 탭이면 그 행사
   eventId: string | undefined
 }
 
+// '부서 없음' 칩의 주소 값(contracts paths.ts의 dept also). 부서 없는 업무는 학생회 업무다.
+const NO_DEPT = 'none'
+
 export type Placement = { departmentId: string | null; assigneeId: string | null }
 
 // 보는 곳에서 바라는 부서: 부서 거르기, 회장단이면 학생회 업무, 그 밖은 내 부서 가운데 부장인 부서 먼저 첫 것.
 function wantedDepartment({ view, dept }: QuickAddContext): string | null {
-  if (dept !== null) return dept
+  if (dept !== null) return dept === NO_DEPT ? null : dept
   if (view.me.councilRank !== null) return null
   const mine = view.me.departments
   return (mine.find(item => item.rank !== null) ?? mine[0])?.id ?? null
@@ -71,6 +74,7 @@ export function visibleInView(
   { view, taskView, dept, eventId }: QuickAddContext,
 ): boolean {
   if (eventId !== undefined && task.event?.id !== eventId) return false
-  if (dept !== null && task.department?.id !== dept) return false
+  if (dept === NO_DEPT ? task.department !== null : dept !== null && task.department?.id !== dept)
+    return false
   return inTab(task, view, taskView)
 }

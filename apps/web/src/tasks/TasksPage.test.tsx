@@ -379,12 +379,14 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
   const onChanged = vi.fn()
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', listPath('mine'), () => list([]))
-  api.on('GET', listPath('all'), () =>
+  const unassigned = () =>
     list([
       task('a', { assignee: null, actions: ['task.change_status', 'task.change_assignee'] }),
       task('b', { assignee: null }),
-    ]),
-  )
+    ])
+  // 칩 수는 전체 열린 목록에서, 보이는 목록은 상한 전에 서버가 거른 담당자 없음에서 읽는다.
+  api.on('GET', listPath('all'), unassigned)
+  api.on('GET', listPath('unassigned'), unassigned)
   api.on('POST', `${base}/a/assignee`, () => json({ task: {} }))
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={onChanged} />)
   fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))
@@ -392,7 +394,7 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
   const select = await screen.findByRole('combobox', { name: '업무 a 담당자' })
   expect(within(select).getByText('담당자 지정')).toBeTruthy()
   expect(screen.queryByRole('combobox', { name: '업무 b 담당자' })).toBeNull()
-  const reads = () => api.calls.filter(call => call.path === listPath('all')).length
+  const reads = () => api.calls.filter(call => call.path === listPath('unassigned')).length
   const before = reads()
   fireEvent.change(select, { target: { value: 'm2' } })
   await waitFor(() =>

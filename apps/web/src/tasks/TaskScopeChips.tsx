@@ -1,3 +1,4 @@
+import { CircleAlert, User } from 'lucide-react'
 import type { TaskView } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -80,10 +81,12 @@ function CountChips({
           )}
           onClick={() => scope.toggleChip('overdue')}
         >
+          <CircleAlert aria-hidden />
           {CHIP_LABEL.overdue} <span className="tabular-nums">{count('overdue')}</span>
         </Button>
       )}
-      <span className="shrink-0 text-sm text-muted-foreground">
+      <span className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
+        <User aria-hidden className="size-4" />
         {CHIP_LABEL.mine} <span className="tabular-nums">{count('mine')}</span>
       </span>
       <Button
@@ -110,6 +113,25 @@ function CountChips({
   )
 }
 
+// 와이어프레임 OPS-TASK-01·EVT-TASK-01처럼 담당자 선택과 토글은 칩 줄 오른쪽에 둔다(휴대폰은 넘기는 줄의 맨 앞).
+function AssigneeSelect({ scope, members }: { scope: Scope; members: TaskChipData['members'] }) {
+  return (
+    <NativeSelect
+      aria-label={ASSIGNEE_FILTER}
+      value={scope.assignee === 'none' ? '' : (scope.assignee ?? '')}
+      className="h-8 w-36 shrink-0 text-sm max-sm:min-h-11"
+      onChange={event => scope.setAssignee(event.target.value || null)}
+    >
+      <option value="">{ALL_ASSIGNEES}</option>
+      {members.map(member => (
+        <option key={member.id} value={member.id}>
+          {member.name}
+        </option>
+      ))}
+    </NativeSelect>
+  )
+}
+
 // 작은 화면에서는 줄 전체를 가로로 넘기고, 넓은 화면에서는 부서가 많아도 본문 안에서 접어 놓는다.
 export function TaskScopeChips({ scope, data = EMPTY, view, onView, calendar }: Props) {
   const departments = scope.inMenu
@@ -121,7 +143,6 @@ export function TaskScopeChips({ scope, data = EMPTY, view, onView, calendar }: 
       aria-label="업무 범위"
       className="flex min-w-0 max-w-full flex-wrap items-center gap-2 break-keep pb-1 max-sm:flex-nowrap max-sm:overflow-x-auto"
     >
-      <BoardScope view={view} onView={onView} />
       <CountChips scope={scope} data={data} calendar={calendar} />
       {departments.map(dept => (
         <Button
@@ -135,19 +156,6 @@ export function TaskScopeChips({ scope, data = EMPTY, view, onView, calendar }: 
           {dept.name}
         </Button>
       ))}
-      <NativeSelect
-        aria-label={ASSIGNEE_FILTER}
-        value={scope.assignee === 'none' ? '' : (scope.assignee ?? '')}
-        className="w-36 shrink-0 max-sm:min-h-11"
-        onChange={event => scope.setAssignee(event.target.value || null)}
-      >
-        <option value="">{ALL_ASSIGNEES}</option>
-        {data.members.map(member => (
-          <option key={member.id} value={member.id}>
-            {member.name}
-          </option>
-        ))}
-      </NativeSelect>
       {scope.inMenu && (
         <Button
           size="sm"
@@ -159,6 +167,10 @@ export function TaskScopeChips({ scope, data = EMPTY, view, onView, calendar }: 
           {INCLUDE_EVENTS}
         </Button>
       )}
+      <div className="flex shrink-0 items-center gap-2 max-sm:order-first sm:ml-auto">
+        <AssigneeSelect scope={scope} members={data.members} />
+        <BoardScope view={view} onView={onView} />
+      </div>
     </div>
   )
 }

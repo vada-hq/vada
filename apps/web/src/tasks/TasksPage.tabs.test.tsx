@@ -28,7 +28,7 @@ function setup(
 ) {
   const api = mockApi()
   const base = `/api/organizations/${COUNCIL_ID}`
-  for (const view of ['all', 'mine', 'unassigned'])
+  for (const view of ['all', 'mine', 'unassigned', 'department'])
     for (const event of ['', '&event=none', `&event=${EVENT_ID}`])
       api.on('GET', `${base}/tasks?view=${view}&status=open${event}`, () =>
         json({ tasks, truncated }),
@@ -121,7 +121,7 @@ test('칩 수는 거르기 전 목록에서 세고 누르는 칩은 하나만 �
   await screen.findByRole('button', { name: '재정부' })
   const row = screen.getByRole('group', { name: '업무 범위' })
   expect(row.textContent).toMatch(
-    /전체 업무내 업무지남 1내 담당 1담당자 없음 2마감 없음 1재정부기획부부서 없음/,
+    /^지남 1내 담당 1담당자 없음 2마감 없음 1재정부기획부부서 없음행사 업무 포함담당자 전체.*전체 업무내 업무$/,
   )
   expect(within(row).queryByRole('button', { name: '내 담당 1' })).toBeNull()
   fireEvent.click(chip)
@@ -143,8 +143,9 @@ test('칩 수는 거르기 전 목록에서 세고 누르는 칩은 하나만 �
   expect(screen.getByRole('button', { name: '내 카드' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '지난 업무' })).toBeNull()
   expect(screen.getByRole('button', { name: '담당자 없음 2' })).toBeTruthy()
-  expect(api.calls.some(call => call.path.includes('view=unassigned'))).toBe(false)
-  expect(api.calls.some(call => call.path.includes('view=mine'))).toBe(false)
+  // 보이는 목록은 상한 전에 서버가 거르고, 칩 수는 따로 읽은 전체 열린 목록에서 센다.
+  expect(api.calls.some(call => call.path.includes('view=unassigned'))).toBe(true)
+  expect(api.calls.some(call => call.path.includes('view=mine'))).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
   expect(screen.getByRole('button', { name: '전체 업무' }).getAttribute('aria-pressed')).toBe(
     'true',
@@ -222,3 +223,18 @@ test.each([null, 'head'] as const)(
     expect(window.location.search).toBe('')
   },
 )
+
+test('행사의 옛 내 부서 주소는 서버가 거르고 띠로 알리며 필터 해제로 풀린다', async () => {
+  window.history.replaceState(
+    null,
+    '',
+    `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks&view=department`,
+  )
+  const api = setup(EVENT_ID)
+  expect(await screen.findByText('내 부서만 보고 있어요')).toBeTruthy()
+  expect(
+    api.calls.some(call => call.path.endsWith(`view=department&status=open&event=${EVENT_ID}`)),
+  ).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
+  await waitFor(() => expect(window.location.search).toBe('?tab=tasks'))
+})

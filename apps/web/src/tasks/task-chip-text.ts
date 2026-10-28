@@ -1,4 +1,5 @@
 export const NO_DEPARTMENT = '부서 없음'
+export const MY_DEPARTMENT = '내 부서'
 export const ALL_ASSIGNEES = '담당자 전체'
 export const ASSIGNEE_FILTER = '담당자별'
 export const CLEAR_FILTERS = '필터 해제'

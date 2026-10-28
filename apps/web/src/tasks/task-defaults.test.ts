@@ -143,3 +143,15 @@ test('만든 업무가 지금 보기에 있는지 본다', () => {
     ),
   ).toBe(true)
 })
+
+test("'부서 없음' 칩(dept=none)에서는 학생회 업무에 만들고, 부서 없는 업무를 보이는 것으로 본다", () => {
+  expect(defaultPlacement(leadership, context('all', { dept: 'none' }))?.departmentId).toBeNull()
+  const base = { assignee: null, event: null, status: 'todo' as const }
+  expect(visibleInView({ ...base, department: null }, context('all', { dept: 'none' }))).toBe(true)
+  expect(
+    visibleInView(
+      { ...base, department: { id: 'd1', name: '재정부' } },
+      context('all', { dept: 'none' }),
+    ),
+  ).toBe(false)
+})

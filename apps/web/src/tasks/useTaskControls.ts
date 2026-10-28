@@ -86,10 +86,11 @@ function viewsOf(
   const startView: TaskView =
     inMenu && (tab === 'mine' || query['only'] === 'mine') ? 'mine' : 'all'
   const view = inMenu ? startView : pick(TASK_VIEWS, query['view'], startView)
+  const shown = view === 'unassigned' ? 'all' : view
   return {
-    view: view === 'unassigned' ? 'all' : view,
-    // 보드 칩 수가 거르기에 따라 바뀌지 않게 학생회·행사 보드는 전체를 읽는다.
-    listView: inMenu && tab === 'mine' ? 'mine' : 'all',
+    view: shown,
+    // 보이는 목록은 상한 전에 서버가 거른다(담당자 없음, 내 업무, 옛 내 부서). 칩 수는 useTaskChipData가 전체 열린 목록에서 센다.
+    listView: shown === 'all' && assigneeOf(query) === 'none' ? 'unassigned' : shown,
   }
 }
 
