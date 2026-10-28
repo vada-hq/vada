@@ -29,7 +29,7 @@ afterEach(() => {
 
 const base = `/api/organizations/${COUNCIL_ID}/tasks`
 const listPath = (view: string, status = 'open') =>
-  `${base}?view=${view === 'unassigned' || view === 'department' ? 'all' : view}&status=${status}${view === 'mine' ? '' : '&event=none'}`
+  `${base}?view=${view === 'department' ? 'all' : view}&status=${status}${view === 'mine' ? '' : '&event=none'}`
 
 const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
   id,
@@ -366,6 +366,7 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
       task('b', { assignee: null }),
     ]),
   )
+  api.on('GET', listPath('all'), () => list([]))
   api.on('POST', `${base}/a/assignee`, () => json({ task: {} }))
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={onChanged} />)
   fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))

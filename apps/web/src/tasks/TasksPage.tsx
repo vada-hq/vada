@@ -1,14 +1,9 @@
 import { useState } from 'react'
-import {
-  type CouncilView,
-  type EventSummary,
-  type TaskFilter,
-  type TaskLayout,
-  type TaskView,
-} from '@vada/contracts'
+import { type CouncilView, type EventSummary, type TaskView } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
-import { useEvents, type EventList } from '@/events/useEvents'
+import type { EventList } from '@/events/useEvents'
+import { openRecord } from '@/lib/go-to'
 import { recalledDepartment } from '@/lib/menu-memory'
 import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
@@ -26,12 +21,13 @@ import { useStatusChange } from './useStatusChange'
 import { useTaskControls } from './useTaskControls'
 import { TaskUndoBar } from './TaskUndoBar'
 import { useAssigneeUndo } from './useAssigneeUndo'
+import { useTaskEventUndo } from './useTaskEventUndo'
 import { useBoardEmpty } from './useBoardEmpty'
 import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
-import { useTaskOptions } from './useTaskOptions'
+import { useTaskLists } from './useTaskLists'
 import { useTaskRemove } from './useTaskRemove'
-import { useTasks, type TaskList } from './useTasks'
+import type { TaskList } from './useTasks'
 import { homeScopeActive, homeScopeLabel } from './home-task-scope'
 import { useNarrowed } from './useNarrowedTasks'
 import { useTaskOpeners } from './useTaskOpeners'
@@ -52,44 +48,6 @@ type Props = {
   onChanged: () => void
 }
 
-// 옆 메뉴 '업무': 학생회 업무·내 업무 두 탭, 범위 칩과 보드·표·달력. 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
-// 넓은 화면의 기본은 상태 열 보드다(DEC-94). 좁은 화면과 표는 내 업무를 급한 순(지남·오늘·7일 안·나중·마감 없음), 전체와 담당자 없음을 부서 묶음에 진행 상황 수를 단다(요구 1, 14, 15, 20).
-// 행사 화면의 업무 탭은 같은 화면을 그 행사로 좁힌 것이다.
-// 달력과 넓은 화면의 보드는 끝난 업무도 함께 그린다. 그래서 그때만 끝난 업무를 더 읽는다. 행사와 이을 수 있는 행사는 달력과 표만 읽는다.
-function useTaskLists(
-  props: Props,
-  {
-    view,
-    filter,
-    layout,
-    wide,
-    listEvent,
-  }: {
-    view: TaskView
-    filter: TaskFilter
-    layout: TaskLayout
-    wide: boolean
-    listEvent: string | undefined
-  },
-) {
-  const councilId = props.view.council.id
-  const calendar = layout === 'calendar'
-  const both = calendar || (layout === 'board' && wide)
-  const table = wide && !props.eventId && layout === 'list'
-  const eventId = listEvent
-  const list = useTasks(
-    councilId,
-    { view, filter: both ? 'open' : filter, eventId },
-    props.onForbidden,
-  )
-  const done = useTasks(councilId, { view, filter: 'done', eventId }, props.onForbidden, both)
-  // 표의 행사 칸이 고를 행사와 그 가운데 이을 수 있는 것도 읽는다(행사의 업무 탭은 행사 열이 없다).
-  const events = useEvents(councilId, props.onForbidden, calendar || table)
-  const options = useTaskOptions(councilId, undefined, props.onForbidden, table)
-  const linkable = options.state.kind === 'ready' ? options.state.options.linkableEvents : null
-  return { list, done, events, linkable, both }
-}
-
 // 행사의 업무 탭 달력에는 그 행사만 그린다. 학생회의 다른 행사는 업무 메뉴의 달력에 있다.
 function onlyEvent(events: EventList, eventId: string | undefined): EventList {
   const { state } = events
@@ -107,7 +65,13 @@ function useTasksPage(props: Props) {
   const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useTaskOpeners(councilId, inEvent)
   const wide = useSplit()
-  const lists = useTaskLists(props, { view, filter, layout, wide, listEvent: controls.listEvent })
+  const lists = useTaskLists(props, {
+    view: controls.listView,
+    filter,
+    layout,
+    wide,
+    listEvent: controls.listEvent,
+  })
   const list = useNarrowed(lists.list, dept, controls, props.view)
   const done = useNarrowed(lists.done, dept, controls, props.view)
   const events = onlyEvent(lists.events, props.eventId)
@@ -115,7 +79,7 @@ function useTasksPage(props: Props) {
   const councilEmpty = useBoardEmpty({
     councilId,
     eventId: controls.listEvent,
-    view,
+    view: controls.listView,
     board,
     raw: [lists.list, lists.done],
     shown: [list, done],
@@ -137,6 +101,8 @@ function useTasksPage(props: Props) {
   const change = useStatusChange(councilId, reloaded, props.onForbidden)
   const remove = useTaskRemove(councilId, changed, { onLost: lost, onForbidden: props.onForbidden })
   const undo = useAssigneeUndo(councilId, changed, props.onForbidden)
+  const eventUndo = useTaskEventUndo(councilId, changed, props.onForbidden)
+  const onEventChanged = controls.listEvent === 'none' ? eventUndo.note : undefined
   const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
   const team = useTeam(councilId, props.onForbidden)
   const cells = useTaskCells(councilId, {
@@ -146,6 +112,7 @@ function useTasksPage(props: Props) {
       dialogs.lose(message)
     },
     onAssigned: undo.note,
+    onEventChanged,
   })
   const eventList = events.state.kind === 'ready' ? events.state.data.events : null
   const lookups = { team: team.data, events: eventList, linkable: lists.linkable }
@@ -178,6 +145,8 @@ function useTasksPage(props: Props) {
     rows,
     table,
     undo,
+    eventUndo,
+    onEventChanged,
   }
 }
 
@@ -269,11 +238,32 @@ function useFirstAdd() {
   }
 }
 
+function undoNoticesOf(page: ReturnType<typeof useTasksPage>, councilId: string) {
+  const { dialogs } = page
+  const eventNotice = page.eventUndo.bar ? (
+    <TaskUndoBar
+      {...page.eventUndo}
+      onOpenEvent={id =>
+        openRecord('events', councilId, id, {
+          tab: 'tasks',
+          overRecord: dialogs.openId !== null,
+        })
+      }
+    />
+  ) : undefined
+  return {
+    inDialog: eventNotice,
+    inPage: dialogs.openId === null && eventNotice ? eventNotice : <TaskUndoBar {...page.undo} />,
+  }
+}
+
+// 옆 메뉴는 학생회 업무·내 업무 두 탭이고, 행사 안에서는 같은 목록을 행사로 좁힌다.
 export default function TasksPage(props: Props) {
   const page = useTasksPage(props)
   const first = useFirstAdd()
   const { controls, dialogs, changed, rows } = page
   const { view, filter, layout } = controls
+  const notices = undoNoticesOf(page, props.view.council.id)
   // 빠른 추가는 보드나 표이고 끝나지 않은 업무를 볼 때만 있다. 넓은 화면의 보드는 거르기 없이 늘 끝나지 않은 업무를 담는다.
   const adding = layout !== 'calendar' && (page.board || filter === 'open')
   return (
@@ -285,6 +275,8 @@ export default function TasksPage(props: Props) {
         onOpenEvent={page.openEventFromTask}
         onClose={dialogs.closeDetail}
         onChanged={changed}
+        onEventChanged={page.onEventChanged}
+        notice={notices.inDialog}
         onForbidden={props.onForbidden}
         onLost={page.lost}
       />
@@ -325,7 +317,7 @@ export default function TasksPage(props: Props) {
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
         <TasksBody page={page} councilId={props.view.council.id} onAddFirst={first.onAddFirst} />
       </div>
-      <TaskUndoBar {...page.undo} />
+      {notices.inPage}
     </PageColumn>
   )
 }

@@ -53,6 +53,20 @@ function changesOf(url: QueryUrl, memberId: string) {
   }
 }
 
+function viewsOf(
+  inMenu: boolean,
+  tab: TaskTab,
+  query: AppQuery,
+): { view: TaskView; listView: TaskView } {
+  const startView: TaskView = inMenu && tab === 'mine' ? 'mine' : 'all'
+  const view = inMenu ? startView : pick(TASK_VIEWS, query['view'], startView)
+  return {
+    view,
+    // 전체에서 담당자 없음으로 좁힐 때는 상한 전에 서버가 거른다. 내 업무와의 교집합은 원래 빈 목록이다.
+    listView: query['assignee'] === 'none' && view === 'all' ? 'unassigned' : view,
+  }
+}
+
 // 업무 화면의 보기, 거르기, 배치, 부서 거르기. 주소의 쿼리가 원문이라 새로고침해도 같고 바꿔도 기록을 쌓지 않는다(DEC-78).
 // 업무 메뉴는 메뉴 주소의, 행사의 업무 탭은 그 행사 주소의 쿼리다. 키와 값은 둘이 같다(contracts paths.ts).
 // 행사 안의 기본 보기는 그 행사의 모든 업무다. 고른 배치는 이 기기에 그 사람(memberId)마다 기억해, 업무 화면으로 들어가는 링크가 싣는다(lib/task-layout.ts).
@@ -63,12 +77,11 @@ export function useTaskControls(councilId: string, eventId: string | undefined, 
   const { query } = url
   const inMenu = eventId === undefined
   const tab = pick(TASK_TABS, query['tab'], 'council')
-  const startView: TaskView = inMenu && tab === 'mine' ? 'mine' : 'all'
   return {
     ...changesOf(url, memberId),
     tab,
     inMenu,
-    view: inMenu ? startView : pick(TASK_VIEWS, query['view'], startView),
+    ...viewsOf(inMenu, tab, query),
     listEvent: listEventOf(eventId, inMenu, tab, query),
     includeEvents: query['events'] === 'include',
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),

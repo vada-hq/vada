@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   koreanDateOf,
   recordPath,
@@ -35,6 +35,7 @@ type Props = TaskDialogHandlers & {
   taskId: string | null
   onClose: () => void
   onOpenEvent?: ((eventId: string) => void) | undefined
+  notice?: ReactNode
 }
 
 // 업무 상세 오른쪽 패널. 업무 메뉴의 보드·표·달력, 행사의 업무 탭, 홈과 알림이 여는 업무 주소(/tasks/<학생회>/<업무>)가 모두 이것을 연다.
@@ -187,9 +188,21 @@ type OpenProps = Props & { taskId: string }
 type Parts = ReturnType<typeof usePanelParts>
 
 // 패널이 가진 상태: 업무, 사람·부서 목록, 행사 목록(필요할 때), 만들기 창, 지우기 확인, 되돌리기 띠.
-function usePanelParts({ view, taskId, onForbidden, onChanged, onLost }: OpenProps) {
+function usePanelParts({
+  view,
+  taskId,
+  onForbidden,
+  onChanged,
+  onEventChanged,
+  onLost,
+}: OpenProps) {
   const councilId = view.council.id
-  const detail = useTaskDetail(councilId, taskId, { onForbidden, onChanged, onLost })
+  const detail = useTaskDetail(councilId, taskId, {
+    onForbidden,
+    onChanged,
+    onEventChanged,
+    onLost,
+  })
   const team = useTeam(councilId, onForbidden, canPickTeam(detail.task))
   const [wantEvents, setWantEvents] = useState(false)
   const [events, setEvents] = useState<TaskPickOptions['events']>(null)
@@ -291,6 +304,7 @@ function OpenTaskPanel(props: OpenProps) {
       <CopyNotice copied={menu.copied} />
       <PanelBody parts={parts} props={props} />
       <PanelExtras parts={parts} props={props} />
+      {props.notice}
       <TaskUndoBar bar={edit.undo.bar} dismiss={edit.undo.dismiss} undo={edit.undo.undo} />
       <DeleteConfirm
         detail={detail}

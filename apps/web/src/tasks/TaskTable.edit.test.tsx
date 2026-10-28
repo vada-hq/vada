@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { TaskSummary } from '@vada/contracts'
 import { resetLeaveGuard, hasUnsavedInput } from '@/lib/leave-guard'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
-import { eventSummary } from '@/test-support/event-fixtures'
+import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
@@ -241,4 +241,45 @@ test('휴대폰 줄에서 담당자를 지정해도 띠가 뜬다', async () => 
     target: { value: 'm3' },
   })
   await waitFor(() => expect(status().textContent).toContain('담당자 변경: 박새내'))
+})
+
+test('표에서 행사로 옮기면 이동 안내에서 되돌리거나 행사의 업무 탭으로 간다', async () => {
+  wide()
+  let current = task('a')
+  const api = serve(() => (current.event ? [] : [current]))
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [eventSummary()], truncated: false }),
+  )
+  api.on('GET', `${base}/options`, () =>
+    json({ departments: [], linkableEvents: [{ departmentId: 'd1', eventIds: [EVENT_ID] }] }),
+  )
+  api.on('GET', `${base}?view=all&status=done&event=none`, () =>
+    json({ tasks: [], truncated: false }),
+  )
+  api.on('POST', `${base}/a`, ({ body }) => {
+    current = task('a', {
+      event: (body as { eventId: string | null }).eventId
+        ? { id: EVENT_ID, name: '신입생 환영회' }
+        : null,
+    })
+    return json({ task: current })
+  })
+  await showAll()
+  const move = async () => {
+    const select = await screen.findByRole('combobox', { name: '업무 a 행사' })
+    await waitFor(() => expect(select).toHaveProperty('disabled', false))
+    fireEvent.change(select, { target: { value: EVENT_ID } })
+    await screen.findByText('신입생 환영회 행사로 옮겼어요')
+  }
+  await move()
+  fireEvent.click(screen.getByRole('button', { name: '되돌리기' }))
+  await screen.findByRole('combobox', { name: '업무 a 행사' })
+  expect(posts(api)).toEqual([{ eventId: EVENT_ID }, { eventId: null }])
+  await move()
+  fireEvent.click(screen.getByRole('button', { name: '행사에서 보기' }))
+  await waitFor(() =>
+    expect(window.location.pathname + window.location.search).toBe(
+      `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks`,
+    ),
+  )
 })

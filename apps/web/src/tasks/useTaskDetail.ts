@@ -3,6 +3,7 @@ import type { TaskDetail, TaskResponse } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
 import { useLatest } from '@/lib/use-latest'
 import { problemText, reportLost, type TaskDialogHandlers } from './task-requests'
+import { eventChangeOf } from './useTaskEventUndo'
 
 // 오류가 보일 자리. 동작마다 그 동작 옆에 보인다.
 export type TaskWhere =
@@ -47,7 +48,11 @@ export function useTaskDetail(councilId: string, taskId: string, handlers: TaskD
       sending.current = false
       setSaving(false)
       if (result.ok) {
-        if (result.data) setTask(result.data.task)
+        if (result.data) {
+          setTask(result.data.task)
+          const change = task && eventChangeOf(task, result.data.task)
+          if (change) latest.current.onEventChanged?.({ ...change, onRestored: setTask })
+        }
         latest.current.onChanged()
         return true
       }
@@ -55,7 +60,7 @@ export function useTaskDetail(councilId: string, taskId: string, handlers: TaskD
         setProblem({ where, text: problemText(result.code) })
       return false
     },
-    [base, latest, setTask],
+    [base, latest, setTask, task],
   )
 
   return {

@@ -13,6 +13,7 @@ import { choiceId } from './task-form-options'
 import { tasksBase } from './task-api'
 import type { AssigneeChange } from './useAssigneeUndo'
 import type { CellField } from './task-table-cells'
+import { eventChangeOf, type TaskEventChange } from './useTaskEventUndo'
 
 export type CellHandlers = {
   // 바꾼 뒤 목록과 수를 다시 읽게 한다.
@@ -23,6 +24,7 @@ export type CellHandlers = {
   onLost: (message: string) => void
   // 담당자를 바꿨다(되돌리기 띠). 이전 담당자 번호와 바뀐 담당자를 알린다.
   onAssigned?: ((change: AssigneeChange) => void) | undefined
+  onEventChanged?: ((change: TaskEventChange) => void) | undefined
 }
 
 type Sent = { ok: true; task: TaskSummary } | { ok: false; status: number; code: string }
@@ -56,22 +58,33 @@ const problemOf = (field: SaveField, code: string) =>
 const without = <T>(before: Readonly<Record<string, T>>, id: string) =>
   Object.fromEntries(Object.entries(before).filter(([key]) => key !== id))
 
+function noteChanges(
+  before: TaskSummary,
+  after: TaskSummary,
+  field: SaveField,
+  handlers: Pick<CellHandlers, 'onAssigned' | 'onEventChanged'>,
+) {
+  const change = field === 'event' && eventChangeOf(before, after)
+  if (change) handlers.onEventChanged?.(change)
+  if (field === 'assignee')
+    handlers.onAssigned?.({
+      taskId: before.id,
+      previousId: before.assignee?.id ?? null,
+      assignee: after.assignee,
+    })
+}
+
 // 보낸 결과를 줄에 옮긴다. 성공은 응답의 업무로 줄을 바꾸고, 실패는 그 줄 아래 한 줄이다.
 function useCellFinish(
   setPatches: Dispatch<SetStateAction<Readonly<Record<string, TaskSummary>>>>,
   setErrors: Dispatch<SetStateAction<Readonly<Record<string, string>>>>,
-  { onDone, onForbidden, onLost, onAssigned }: CellHandlers,
+  { onDone, onForbidden, onLost, onAssigned, onEventChanged }: CellHandlers,
 ) {
   return useCallback(
     (task: TaskSummary, field: SaveField, result: Sent) => {
       if (result.ok) {
         setPatches(before => ({ ...before, [task.id]: result.task }))
-        if (field === 'assignee')
-          onAssigned?.({
-            taskId: task.id,
-            previousId: task.assignee?.id ?? null,
-            assignee: result.task.assignee,
-          })
+        noteChanges(task, result.task, field, { onAssigned, onEventChanged })
       } else if (result.status === statusOf('NOT_FOUND')) {
         onLost(TASK_LOST)
       } else {
@@ -80,7 +93,7 @@ function useCellFinish(
       }
       onDone()
     },
-    [setPatches, setErrors, onDone, onForbidden, onLost, onAssigned],
+    [setPatches, setErrors, onDone, onForbidden, onLost, onAssigned, onEventChanged],
   )
 }
 

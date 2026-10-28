@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
@@ -9,6 +9,7 @@ import { TASK_LOST } from '@/lib/messages'
 import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { useHere } from '@/lib/app-location'
+import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import TasksPage from './TasksPage'
 
 afterEach(() => {
@@ -108,4 +109,49 @@ test('바꾸는 중 권한을 잃으면(403) 학생회를 다시 읽게 하고 �
   await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect((await screen.findByRole('alert')).textContent).toMatch(/권한이 바뀌었어요/)
+})
+
+test('행사 없는 업무를 행사로 옮기면 상세를 유지하며 이동 안내와 행사 보기·되돌리기를 보인다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
+  const { api } = setup()
+  let current = taskDetail({ id: T1 })
+  api.on('GET', LIST, () => json({ tasks: current.event ? [] : [summary], truncated: false }))
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [eventSummary()], truncated: false }),
+  )
+  api.on('GET', `${BASE}/options`, () =>
+    json({
+      departments: [],
+      linkableEvents: [{ departmentId: 'd1', eventIds: [EVENT_ID] }],
+    }),
+  )
+  api.on('POST', `${BASE}/${T1}`, ({ body }) => {
+    const eventId = (body as { eventId: string | null }).eventId
+    current = taskDetail({
+      id: T1,
+      event: eventId ? { id: EVENT_ID, name: '신입생 환영회' } : null,
+    })
+    return json({ task: current })
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '현수막 주문' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(await within(dialog).findByRole('button', { name: '고치기' }))
+  const form = within(dialog).getByRole('form', { name: '업무 고치기' })
+  const select = within(form).getByLabelText('행사')
+  await waitFor(() => expect(select).toHaveProperty('disabled', false))
+  fireEvent.change(select, { target: { value: EVENT_ID } })
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  expect(await screen.findByText('신입생 환영회 행사로 옮겼어요')).toBeTruthy()
+  expect(dialog.isConnected).toBe(true)
+  expect(screen.getByRole('button', { name: '행사에서 보기', hidden: true })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '현수막 주문', hidden: true })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '되돌리기' }))
+  await waitFor(() => expect(screen.queryByText('신입생 환영회 행사로 옮겼어요')).toBeNull())
+  expect(dialog.isConnected).toBe(true)
+  expect(within(dialog).getByText('행사 없음')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '현수막 주문', hidden: true })).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([
+    expect.objectContaining({ eventId: EVENT_ID }),
+    { eventId: null },
+  ])
 })

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { menuPath } from '@vada/contracts'
+import { menuPath, type MyCouncil } from '@vada/contracts'
 import { rewriteAddress, useHere } from '@/lib/app-location'
 import CouncilWorkspace from '../workspace/CouncilWorkspace'
 import { targetOf } from '../workspace/address'
@@ -10,10 +10,15 @@ import { myCouncil } from './council-fixtures'
 export const COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c1'
 
 // 학생회 한 곳의 작업 공간을 startPage의 주소로 연다. 메뉴를 누르면 주소가 바뀌고 작업 공간이 따라온다.
-export function WorkspaceAt({ startPage }: { startPage: Page }) {
+export function WorkspaceAt({
+  startPage,
+  council = myCouncil(COUNCIL_ID),
+}: {
+  startPage: Page
+  council?: MyCouncil
+}) {
   if (window.location.pathname === '/')
     window.history.replaceState(null, '', menuPath(startPage, COUNCIL_ID))
-  const council = myCouncil(COUNCIL_ID)
   const target = targetOf(useHere(), [council])
   const moved = target.kind === 'moved' ? target.to : null
   useEffect(() => {

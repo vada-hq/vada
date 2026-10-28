@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { TaskTab, TaskView } from '@vada/contracts'
 import { TaskTabs } from '@/tasks/TaskTabs'
+import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { Section } from './GallerySection'
 
 const DEPARTMENT = '0199d1a0-0000-7000-8000-0000000000d1'
@@ -43,6 +44,20 @@ export function TaskMenuSection() {
       </Section>
       <Section title="행사 업무 · 범위 칩과 토글">
         <TaskScopeExample menu={false} />
+      </Section>
+      <Section title="업무 행사 이동 안내">
+        <TaskUndoBar
+          bar={{
+            taskId: '0199d1a0-0000-7000-8000-000000000001',
+            previousId: null,
+            event: { id: '0199d1a0-0000-7000-8000-000000000002', name: '신입생 환영회' },
+            busy: false,
+            error: null,
+          }}
+          dismiss={() => {}}
+          undo={() => {}}
+          onOpenEvent={() => {}}
+        />
       </Section>
     </>
   )

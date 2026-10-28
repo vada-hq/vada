@@ -217,6 +217,30 @@ test('끝남이 51개면 50개를 주고 truncated이다', async () => {
   }
 })
 
+test('담당자 없음은 300개 상한 전에 거르고 행사 없음과 학생회 경계도 지킨다', async () => {
+  const t = await start()
+  try {
+    await t.pg.exec(`INSERT INTO record (id, kind, council_id)
+      SELECT uuidv7(), 'task', '${t.council.councilId}' FROM generate_series(1, 301)`)
+    await t.pg.exec(`INSERT INTO task (id, title, assignee_id, due_at)
+      SELECT id, '담당 있음', '${t.council.people.planningMember.memberId}', '2026-10-20T00:00:00Z'
+      FROM record WHERE kind = 'task'`)
+    const free = await t.make({ title: '상한 뒤 담당자 없음' })
+    const left = await t.make({ title: '떠난 담당자', assigneeId: t.council.people.ended.memberId })
+    await t.make({ title: '다른 학생회' }, t.other)
+    assert.equal((await t.list('view=all&event=none')).truncated, true)
+    const result = await t.list('view=unassigned&event=none')
+    assert.deepEqual(result.tasks.map(row => row.id).sort(), [free, left].sort())
+    assert.equal(result.truncated, false)
+    assert.equal(
+      (await t.api.get(`${t.base}?view=unassigned&event=none`, 'o-president')).status,
+      403,
+    )
+  } finally {
+    await t.close()
+  }
+})
+
 test('모르는 키, 틀린 값, 빠진 view, 같은 키 두 번은 400 INVALID_INPUT이다', async () => {
   const t = await start()
   try {

@@ -6,6 +6,7 @@ import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { EVENT_ID } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { withTaskTab } from '@/lib/task-layout'
+import { taskDetail } from '@/test-support/task-detail-fixtures'
 import TasksPage from './TasksPage'
 
 afterEach(() => {
@@ -83,4 +84,22 @@ test('행사 개요의 옛 담당자 없음 주소도 칩이 켜져 있고 눌�
   fireEvent.click(chip)
   await waitFor(() => expect(window.location.search).toBe('?tab=tasks'))
   expect(chip.getAttribute('aria-pressed')).toBe('false')
+})
+
+test('담당자 없음 칩은 목록 상한 전에 서버에서 거르고 해제하면 전체를 다시 읽는다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
+  const api = setup()
+  const path = `/api/organizations/${COUNCIL_ID}/tasks?view=unassigned&status=open&event=none`
+  api.on('GET', path, () =>
+    json({
+      tasks: [taskDetail({ id: 'late', title: '301번째 담당자 없는 업무', assignee: null })],
+      truncated: false,
+    }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  await waitFor(() => expect(api.calls.some(call => call.path === path)).toBe(true))
+  expect(await screen.findByText('301번째 담당자 없는 업무')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  await waitFor(() => expect(window.location.search).toBe(''))
+  expect(screen.queryByText('301번째 담당자 없는 업무')).toBeNull()
 })

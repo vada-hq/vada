@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import type { HomeResponse, TaskSummary } from '@vada/contracts'
-import { councilView, teamResponse } from '@/test-support/council-fixtures'
+import type { HomeResponse, MyCouncil, TaskSummary } from '@vada/contracts'
+import { councilView, myCouncil, teamResponse } from '@/test-support/council-fixtures'
 import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { homeResponse, homeTask, homeWithTasks, onHomeExtras } from '@/test-support/home-fixtures'
@@ -37,7 +37,11 @@ const planning = { id: D1, name: '기획부' }
 const finance = { id: D2, name: '재정부' }
 
 let api: ReturnType<typeof mockApi>
-function setup(startPage: Page, home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
+function setup(
+  startPage: Page,
+  home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')]),
+  departments: MyCouncil['departments'] = [{ ...planning, rank: 'head' }],
+) {
   api = mockApi()
   onHomeExtras(api, {}, COUNCIL_ID)
   api.on('GET', base, () =>
@@ -74,6 +78,8 @@ function setup(startPage: Page, home: HomeResponse = homeWithTasks([homeTask(T1,
     }),
   )
   api.on('GET', list('all', 'done') + '&event=none', () => json({ tasks: [], truncated: false }))
+  for (const status of ['open', 'done'])
+    api.on('GET', list('unassigned', status), () => json({ tasks: [], truncated: false }))
 
   api.on('GET', list('department'), () =>
     json({
@@ -93,7 +99,9 @@ function setup(startPage: Page, home: HomeResponse = homeWithTasks([homeTask(T1,
       }),
     }),
   )
-  return render(<WorkspaceAt startPage={startPage} />)
+  return render(
+    <WorkspaceAt startPage={startPage} council={{ ...myCouncil(COUNCIL_ID), departments }} />,
+  )
 }
 const startAt = (path: string, page: Page = 'tasks') => {
   window.history.replaceState(null, '', path)
@@ -345,7 +353,7 @@ test('내 부서가 아닌 부서 거르기도 홈이 알려 준 부서 이름�
 
 test.each([
   ['view=mine', 'tab=mine', '내 업무'],
-  ['view=department', '', '학생회 업무'],
+  ['view=department', `dept=${D1}`, '학생회 업무'],
   ['view=all', 'events=include', '학생회 업무'],
   ['view=unassigned', 'assignee=none&events=include', '학생회 업무'],
 ])('옛 %s 주소를 새 탭·칩 주소로 바꿔 쓴다', async (old, query, tab) => {
@@ -358,6 +366,19 @@ test('우리 학생회 업무 주소는 행사 업무 포함인 학생회 업무
   startAt(`/council/${COUNCIL_ID}?tab=tasks`)
   expect(await selected('학생회 업무')).toBe('true')
   expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`)
+})
+
+test('옛 내 부서 주소는 부서가 없으면 칩 없이, 둘이면 첫 부서로 바꿔 쓴다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?view=department`)
+  const view = setup('tasks', undefined, [])
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
+  view.unmount()
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?view=department`)
+  setup('tasks', undefined, [
+    { ...finance, rank: 'head' },
+    { ...planning, rank: null },
+  ])
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D2}`))
 })
 
 test('마지막에 고른 내 업무 탭은 다른 메뉴를 거쳐 옆 메뉴로 돌아와도 기억한다', async () => {

@@ -1,10 +1,12 @@
 import { statusOf } from '@vada/contracts'
 import { PERMISSION_CHANGED, TASK_ERRORS, TASK_FAILED, TASK_LOST } from '@/lib/messages'
+import type { TaskEventChange } from './useTaskEventUndo'
 
 // 업무 대화상자가 부모에게 알리는 일. 부모가 대화상자를 닫고 message를 보인다.
 export type TaskDialogHandlers = {
   // 내가 바꾼 뒤 목록과 수를 다시 읽게 한다.
   onChanged: () => void
+  onEventChanged?: ((change: TaskEventChange) => void) | undefined
   // 대상이 사라졌거나(404) 권한을 잃었다(403). 부모가 대화상자를 닫고 이유를 보인다.
   onLost: (message: string) => void
   // 403이면 학생회를 다시 읽어 권한 목록을 새로 받는다.
