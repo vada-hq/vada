@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
+import { act, cleanup, render, renderHook, waitFor } from '@testing-library/react'
 import { roomList } from '@/test-support/chat-fixtures'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -13,15 +13,21 @@ afterEach(() => {
 })
 
 const COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c1'
-const base = `/api/organizations/${COUNCIL_ID}`
+const OTHER_COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c2'
 
-function open(readRooms: () => Response | Promise<Response>) {
-  const api = mockApi()
-  api.on('GET', base, () => json(councilView(COUNCIL_ID)))
+type ReadRooms = () => Response | Promise<Response>
+
+function serveCouncil(api: ReturnType<typeof mockApi>, councilId: string, readRooms: ReadRooms) {
+  const base = `/api/organizations/${councilId}`
+  api.on('GET', base, () => json(councilView(councilId)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, readRooms)
   api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
+}
+
+function open(readRooms: ReadRooms) {
+  serveCouncil(mockApi(), COUNCIL_ID, readRooms)
   const onLost = vi.fn()
   const onChanged = vi.fn()
   return renderHook(() => {
@@ -76,4 +82,29 @@ test('미지원 환경에서도 방 목록과 안 읽음 합계는 읽는다', a
   vi.stubGlobal('navigator', {})
   const { result } = open(() => json(roomList({ unreadTotal: 3 })))
   await waitFor(() => expect(result.current.counts.unread).toBe(3))
+})
+
+// 작업 공간은 학생회마다 key로 새로 그려진다(Workspace.tsx).
+function CouncilLists({ councilId }: { councilId: string }) {
+  const data = useCouncilData(councilId, vi.fn(), vi.fn())
+  useWorkspaceLists(councilId, data)
+  return null
+}
+
+test('학생회를 바꾸면 새 목록을 읽기 전에 이전 학생회의 배지를 지운다', async () => {
+  const setAppBadge = vi.fn(async () => {})
+  const clearAppBadge = vi.fn(async () => {})
+  vi.stubGlobal('navigator', { setAppBadge, clearAppBadge })
+  const api = mockApi()
+  serveCouncil(api, COUNCIL_ID, () => json(roomList({ unreadTotal: 5 })))
+  const pending = deferredResponse()
+  serveCouncil(api, OTHER_COUNCIL_ID, () => pending.promise)
+  const view = render(<CouncilLists key={COUNCIL_ID} councilId={COUNCIL_ID} />)
+  await waitFor(() => expect(setAppBadge).toHaveBeenCalledWith(5))
+  view.rerender(<CouncilLists key={OTHER_COUNCIL_ID} councilId={OTHER_COUNCIL_ID} />)
+  await waitFor(() => expect(clearAppBadge).toHaveBeenCalledOnce())
+  await act(async () => {
+    pending.resolve(json({ error: 'unavailable' }, 500))
+  })
+  expect(setAppBadge).toHaveBeenCalledOnce()
 })

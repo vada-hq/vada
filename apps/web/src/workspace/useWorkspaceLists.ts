@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { updateAppBadge } from '@/lib/app-badge'
 import { useRoomList } from '../chat/useRoomList'
 import { useSidebarEvents } from '../events/useSidebarEvents'
@@ -11,9 +11,22 @@ export function useWorkspaceLists(councilId: string, data: CouncilData) {
   const ready = data.state.kind === 'ready'
   const rooms = useRoomList(councilId, data.reload, ready)
   const unread = rooms.state.kind === 'ready' ? rooms.state.data.unreadTotal : 0
+  const badgeShown = useRef(false)
   useEffect(() => {
-    if (ready && rooms.state.kind === 'ready') void updateAppBadge(unread)
+    if (!ready || rooms.state.kind !== 'ready') return
+    badgeShown.current = true
+    void updateAppBadge(unread)
   }, [ready, rooms.state, unread])
+  // 학생회를 바꾸면(작업 공간이 새로 그려짐) 새 목록을 읽거나 못 읽는 동안 이전 학생회의 수가 남지 않게 지운다.
+  // 이 화면이 배지를 정한 적이 없으면(처음 열 때) 푸시가 남긴 배지는 그대로 둔다.
+  useEffect(
+    () => () => {
+      if (!badgeShown.current) return
+      badgeShown.current = false
+      void updateAppBadge(0)
+    },
+    [councilId],
+  )
   const { tasks, count: taskCount } = useTaskCount(councilId, data.reload, ready)
   const events = useSidebarEvents(councilId, data.reload, ready)
   // 학생회를 잃었거나 다시 읽는 중이면 남은 줄을 그리지 않는다.
