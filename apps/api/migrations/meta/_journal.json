@@ -183,6 +183,13 @@
       "when": 1793199558436,
       "tag": "0025_message_edited_at",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793204468067,
+      "tag": "0026_meeting_minutes",
+      "breakpoints": true
     }
   ]
 }

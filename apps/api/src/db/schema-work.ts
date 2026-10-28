@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { boolean, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core'
 
 import { at, day, won } from './schema-columns.js'
 
@@ -15,6 +15,8 @@ export const task = pgTable('task', {
   departmentId: uuid('department_id'),
   assigneeId: uuid('assignee_id'),
   cancelledAt: at('cancelled_at'),
+  originId: uuid('origin_id'),
+  originKind: text('origin_kind'),
 })
 
 export const request = pgTable('request', {
@@ -107,9 +109,24 @@ export const meeting = pgTable('meeting', {
   kind: text('kind').notNull().default('meeting'),
   title: text('title').notNull(),
   heldAt: at('held_at').notNull(),
+  endsAt: at('ends_at'),
+  place: text('place'),
+  purpose: text('purpose'),
   eventId: uuid('event_id'),
   hostDepartmentId: uuid('host_department_id'),
+  cancelledAt: at('cancelled_at'),
+  cancelReason: text('cancel_reason'),
 })
+
+export const meetingAttendee = pgTable(
+  'meeting_attendee',
+  {
+    meetingId: uuid('meeting_id').notNull(),
+    memberId: uuid('member_id').notNull(),
+    addedAt: at('added_at').notNull().defaultNow(),
+  },
+  table => [primaryKey({ columns: [table.meetingId, table.memberId] })],
+)
 
 export const agendaItem = pgTable('agenda_item', {
   id: uuid('id').primaryKey(),
@@ -118,6 +135,8 @@ export const agendaItem = pgTable('agenda_item', {
   position: integer('position').notNull(),
   title: text('title').notNull(),
   body: text('body'),
+  notes: text('notes'),
+  cancelledAt: at('cancelled_at'),
 })
 
 export const poll = pgTable('poll', {
