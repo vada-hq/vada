@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import type { RoomParticipant } from '@vada/contracts'
-import { keepDraft } from './composer-drafts'
+import { draftOf, keepDraft } from './composer-drafts'
 import { directQuery, suggestions } from './mention'
 import { SideChatContext } from './SideChatContext'
 import type { Composer } from './useComposer'
@@ -14,10 +14,13 @@ export function useDirectInput(
   const query = access?.canDirect ? directQuery(composer.body) : null
   const people = query !== null && access ? suggestions(access.members, query, ids.meId) : []
   const pick = async (person: RoomParticipant) => {
+    const command = composer.body
     await access?.open(person.memberId, () => {
+      // 여는 동안 새로 쓴 글은 남긴다. 명령문이 그대로일 때만 비운다.
+      if (draftOf(ids.meId, ids.councilId, ids.roomId).body !== command) return
       // 휴대폰에서 원래 방이 곧 사라져도 /이름이 초안으로 되살아나지 않게 먼저 비운다.
       keepDraft(ids.meId, ids.councilId, ids.roomId, { body: '', picks: [] })
-      composer.setBody('')
+      composer.setBody(now => (now === command ? '' : now))
     })
   }
   return {

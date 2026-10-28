@@ -167,7 +167,7 @@ function SendButton({
       type="submit"
       busy={sending}
       touch
-      className="min-h-11 shrink-0 max-sm:size-11 max-sm:px-0"
+      className="ml-auto min-h-11 shrink-0 max-sm:size-11 max-sm:px-0"
       aria-label={name}
       // oxlint-disable-next-line react/forbid-component-props -- 대화 [보내기]는 빈 메시지일 때 꺼진다(채팅 앱의 관례, AGENTS.md '화면 문구와 폼'의 예외).
       disabled={disabled}
@@ -211,14 +211,15 @@ export default function Composer({
       <ComposerSuggestions direct={directInput} people={people} onPick={onPick} />
       <PhotoStrip photos={drafts.photos} onRemove={drafts.remove} />
       {drafts.note && <StateMessage kind="error">{drafts.note}</StateMessage>}
-      <div className="flex items-end gap-2">
+      {/* 좁은 칸(오른쪽 1:1 칸, 1024px의 흐름)에서는 [보내기]가 다음 줄 오른쪽으로 내려가 입력칸 폭을 지킨다(MSG-04 사이드챗 입력 띠). */}
+      <div className="flex flex-wrap items-end gap-2">
         <PhotoPicker onPick={drafts.add} />
         <Textarea
           ref={field}
           autoFocus={autoFocus}
           rows={1}
           aria-label="메시지"
-          className="min-h-11 min-w-0 flex-1"
+          className="min-h-11 min-w-0 flex-1 basis-56"
           // oxlint-disable-next-line react/forbid-component-props -- v7 입력 띠 명세가 채팅의 @ 부르기 안내를 자리 글로 요구한다.
           placeholder={directInput.canDirect ? MESSAGE_INPUT_HINT : MENTION_INPUT_HINT}
           value={body}

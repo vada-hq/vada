@@ -7,7 +7,7 @@ import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures
 import { message, messagePage, room, roomDetail, roomList } from '@/test-support/chat-fixtures'
 import { navigationWidth } from '@/test-support/navigation-width'
 import { chatBase, serveChat } from '@/test-support/chat-harness'
-import { json } from '@/test-support/mock-api'
+import { deferredResponse, json } from '@/test-support/mock-api'
 import { useTeam } from '@/team/useTeam'
 import ChatPage, { type Screen } from './ChatPage'
 import { useRoomList } from './useRoomList'
@@ -186,4 +186,22 @@ test('chat.direct가 없으면 / 안내·이름 동작이 없고 /로 시작한 
       true,
     ),
   )
+})
+
+test('/이름으로 여는 동안 새로 쓴 글은 열린 뒤에도 지우지 않는다', async () => {
+  navigationWidth(1280)
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', `${chatBase}/direct`, () => pending.promise)
+  render(<Harness />)
+  await screen.findByText('모레 회의 있어요')
+  const input = screen.getByRole<HTMLTextAreaElement>('textbox', { name: '메시지' })
+  fireEvent.change(input, { target: { value: '/이' } })
+  await screen.findByRole('list', { name: '1:1 대화 상대' })
+  fireEvent.keyDown(input, { key: 'Enter' })
+  fireEvent.change(input, { target: { value: '여는 동안 쓴 글' } })
+  pending.resolve(json({ roomId: a.id }))
+  const panel = await screen.findByRole('complementary', { name: '1:1' })
+  await within(panel).findByText('이재정의 글')
+  expect(input.value).toBe('여는 동안 쓴 글')
 })

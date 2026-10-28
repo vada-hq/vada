@@ -8,6 +8,8 @@ import { room, roomList } from '@/test-support/chat-fixtures'
 import ChatRoute from './ChatRoute'
 import { navigationWidth } from '@/test-support/navigation-width'
 import { saveSideRoom } from './last-room'
+import { json, mockApi } from '@/test-support/mock-api'
+import { roomDetail } from '@/test-support/chat-fixtures'
 
 // 대화 화면 안은 다른 시험이 다룬다. 여기서는 주소 층과 닿는 곳(화면 고르기, '재정에서 보기', 뒤로)만 본다.
 vi.mock('./ChatPage', () => ({
@@ -220,3 +222,31 @@ test.each(['loading', 'failed'] as const)(
     expect(screen.getByText(`home ${ROOM} side`)).toBeTruthy()
   },
 )
+
+test('PC에서 목록에 없는 방의 종류를 못 읽으면 전체 폭으로 정하지 않고 다시 읽어 오른쪽 칸에 연다', async () => {
+  navigationWidth(1280)
+  const fresh = '0199d1a0-0000-7000-8000-0000000000f1'
+  const api = mockApi()
+  let tries = 0
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/rooms/${fresh}`, () =>
+    ++tries === 1
+      ? json({ error: 'INTERNAL' }, 500)
+      : json(roomDetail(room(fresh, { type: 'direct', name: '박새내' }))),
+  )
+  window.history.replaceState(null, '', `/chat/${COUNCIL_ID}/${fresh}`)
+  render(
+    <ChatRoute
+      councilId={COUNCIL_ID}
+      view={councilView(COUNCIL_ID)}
+      team={{} as never}
+      rooms={{
+        state: { kind: 'ready', data: roomList({ rooms: [room(ROOM)] }) },
+        reload: async () => true,
+      }}
+      onForbidden={() => {}}
+    />,
+  )
+  expect(await screen.findByText(`home ${fresh} side`, {}, { timeout: 8000 })).toBeTruthy()
+  expect(screen.queryByText(`room ${fresh}`)).toBeNull()
+  expect(tries).toBe(2)
+}, 15000)
