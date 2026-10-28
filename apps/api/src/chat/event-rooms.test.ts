@@ -226,6 +226,21 @@ test(
 )
 
 test(
+  '회장이 부서를 겸하면 새 행사의 메시지 탭에 공지방과 그 부서방이 있다',
+  run(async t => {
+    await t.assign(t.person.president.memberId, t.council.departments.finance)
+    const eventId = await t.createEvent()
+    assert.deepEqual(
+      (await t.eventRooms(eventId, 's-president')).rooms.map(room => [room.type, room.name]),
+      [
+        ['all_members', null],
+        ['department', '재정부'],
+      ],
+    )
+  }),
+)
+
+test(
   '이미 있는 행사는 방 목록이나 행사 방을 읽으면 방이 생기고, 두 번 읽어도 하나씩이다. 완료한 행사는 만들지 않는다',
   run(async t => {
     const make = (name: string) =>
