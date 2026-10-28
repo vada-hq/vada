@@ -91,7 +91,7 @@ jobs:
         run: >-
           docker exec ${{ job.services.postgres.id }} psql -U vada -d vada -v ON_ERROR_STOP=1
           -c "ALTER SYSTEM SET fsync = off" -c "ALTER SYSTEM SET synchronous_commit = off"
-          -c "ALTER SYSTEM SET full_page_writes = off" -c "SELECT pg_reload_conf()" -c "SHOW server_version" -c "SHOW lc_collate"
+          -c "ALTER SYSTEM SET full_page_writes = off" -c "SELECT pg_reload_conf()" -c "SHOW server_version" -c "SELECT datcollate FROM pg_database WHERE datname = current_database()"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # pnpm 버전은 package.json의 packageManager를 따른다.
       - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
