@@ -5,18 +5,19 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   title: string
-  // 제목 앞 표시(회장단의 별, 와이어프레임 ORG-03A HQCard).
+  // 제목 앞 표시(회장단의 별, 부서 색 점).
   icon?: ReactNode
   // 제목 옆 표시(재정 역할 배지).
   badge?: ReactNode
-  // 제목 아래 작은 글(부장 목록, 인원).
+  // 머리 오른쪽의 작은 글(인원, 부장이 없으면 '부장 없음').
   meta: string
   // 머리 오른쪽 끝(부서 ⋯ 메뉴).
   action?: ReactNode
   // 머리 자리를 대신하는 제자리 편집(이름 바꾸기). 있으면 제목은 화면 읽기 프로그램에만 남는다.
   editor?: ReactNode
-  // 회장단 카드: 와이어프레임처럼 굵은 테두리와 회색 머리.
-  lead?: boolean
+  // 격자 한 줄을 다 차지하는 묶음(회장단, 미배정). 사람 줄을 부서 칸과 같은 단으로 늘어놓아
+  // 회장단 사람이 아래 부서 칸과 같은 세로줄에 선다.
+  wide?: boolean
   reveal?: boolean
   className?: string
   people: TeamMember[]
@@ -25,9 +26,13 @@ type Props = {
   person: (member: TeamMember, groupKey: string) => ReactNode
 }
 
-// 조직 화면의 묶음 하나(와이어프레임 ORG-03A의 회장단 카드·부서 카드): 머리(제목, 배지, 작은 글, ⋯)와 그 묶음 사람 목록.
+// 넓은 묶음의 단 수는 OrgLayout의 부서 격자와 같다(같은 @container를 본다).
+const wideList =
+  'grid @2xl:grid-cols-2 @2xl:gap-x-4 @2xl:divide-y-0 @4xl:grid-cols-3 @6xl:grid-cols-4'
+
+// 조직 화면의 묶음 하나(와이어프레임 ORG-03A의 회장단 카드·부서 카드): 한 줄 머리(제목, 배지, 인원, ⋯)와 그 묶음 사람 목록.
 // 사람은 상자 대신 줄로 늘어놓는다(DEC-91, 조사 R3 '묶은 사람 목록').
-export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, ...props }: Props) {
+export function OrgGroupCard({ title, icon, badge, meta, action, editor, wide, ...props }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -40,19 +45,9 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, .
       ref={ref}
       tabIndex={props.reveal ? -1 : undefined}
       aria-labelledby={titleId}
-      className={cn(
-        cardClass,
-        'flex min-w-0 flex-col',
-        lead && 'border-2 border-gray-300',
-        props.className,
-      )}
+      className={cn(cardClass, 'flex min-w-0 flex-col', props.className)}
     >
-      <div
-        className={cn(
-          'flex items-start gap-2 border-b px-4 py-3',
-          lead && 'rounded-t-lg bg-gray-50',
-        )}
-      >
+      <div className="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
         {editor ? (
           <>
             <h2 id={titleId} className="sr-only">
@@ -62,19 +57,15 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, .
           </>
         ) : (
           <>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <h2
-                  id={titleId}
-                  className="flex min-w-0 items-center gap-1.5 text-sm font-semibold wrap-anywhere text-gray-900"
-                >
-                  {icon}
-                  {title}
-                </h2>
-                {badge}
-              </div>
-              <p className="mt-0.5 text-xs wrap-anywhere text-gray-500">{meta}</p>
-            </div>
+            <h2
+              id={titleId}
+              className="flex min-w-0 items-center gap-2 text-sm font-semibold wrap-anywhere text-gray-900"
+            >
+              {icon}
+              {title}
+            </h2>
+            {badge}
+            <p className="ml-auto shrink-0 text-xs text-gray-500">{meta}</p>
             {action}
           </>
         )}
@@ -82,7 +73,7 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, lead, .
       {props.people.length === 0 ? (
         <p className="px-4 py-3 text-sm text-gray-500">구성원 없음</p>
       ) : (
-        <ul aria-label={`${title} 구성원`} className="divide-y">
+        <ul aria-label={`${title} 구성원`} className={cn('divide-y', wide && wideList)}>
           {props.people.map(member => props.person(member, props.groupKey))}
         </ul>
       )}

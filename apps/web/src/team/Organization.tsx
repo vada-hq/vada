@@ -51,7 +51,8 @@ export default function Organization({
   // 권한을 잃으면 사람 쪽과 부서 쪽이 같은 까닭을 함께 알린다. 같은 글은 한 번만 보인다.
   const messages = [...new Set([people.pageMessage, departments.problemIn('list')])].filter(Boolean)
   return (
-    <PageColumn>
+    // 부서 카드 격자라 업무 보드처럼 넓게 쓴다. 1600px 창에서 부서 넷이 한 줄에 선다.
+    <PageColumn width="max-w-7xl">
       {people.can('invite.manage') && (
         <Invite councilId={view.council.id} onForbidden={onCouncilChanged} />
       )}

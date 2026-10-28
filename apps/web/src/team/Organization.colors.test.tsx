@@ -47,8 +47,8 @@ test('부서 색을 이름과 함께 표시하고 회장단은 중립색을 유�
   setup()
   render(<Harness manage={false} />)
   const planning = await screen.findByRole('region', { name: '기획부' })
-  expect(planning.className).toMatch(/border-l-category-/)
-  expect(screen.getByRole('region', { name: '회장단' }).className).not.toMatch(/category-/)
+  expect(planning.querySelector('h2')?.innerHTML).toMatch(/bg-category-/)
+  expect(screen.getByRole('region', { name: '회장단' }).innerHTML).not.toMatch(/category-/)
   expect(screen.queryByRole('button', { name: '기획부 동작' })).toBeNull()
 })
 
@@ -65,7 +65,9 @@ test('팔레트는 이름 있는 선택지 8개이고 저장한 서버 색을 �
   fireEvent.click(dialog.getByRole('radio', { name: '주황' }))
   fireEvent.click(dialog.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect(screen.getByRole('region', { name: '기획부' }).className).toContain('border-l-category-6')
+  expect(screen.getByRole('region', { name: '기획부' }).querySelector('h2')?.innerHTML).toContain(
+    'bg-category-6',
+  )
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ color: 'orange' })
 })
 
