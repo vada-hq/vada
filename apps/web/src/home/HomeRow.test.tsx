@@ -58,7 +58,7 @@ test('홈 줄은 제목 단추 하나가 줄 전체를 덮고 휴대폰에서 44
   expect(onOpen).toHaveBeenCalledOnce()
 })
 
-test('홈 부분 머리의 모두 보기는 휴대폰에서 44px 이상이다', () => {
+test('홈 부분 머리의 모두 보기는 휴대폰에서 44px 이상이고 첫 줄과 겹치지 않는다', () => {
   const onSeeAll = vi.fn()
   render(
     <HomeSection title="내 업무" onSeeAll={onSeeAll}>
@@ -67,6 +67,9 @@ test('홈 부분 머리의 모두 보기는 휴대폰에서 44px 이상이다', 
   )
   const seeAll = screen.getByRole('button', { name: '모두 보기' })
   expect(tokens(seeAll)).toContain('max-sm:min-h-11')
+  // 키운 단추가 머리 아래로 12px(-my-3) 나오므로 목록과의 틈도 12px라 첫 줄 덮개와 겹치지 않는다(390에서 잰 틈 0px).
+  expect(tokens(seeAll)).toContain('max-sm:-my-3')
+  expect(tokens(screen.getByRole('region', { name: '내 업무' }))).toContain('max-sm:gap-3')
   fireEvent.click(seeAll)
   expect(onSeeAll).toHaveBeenCalledOnce()
 })
