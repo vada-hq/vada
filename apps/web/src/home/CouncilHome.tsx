@@ -87,9 +87,7 @@ export default function CouncilHome({
             events={board.events}
             today={home.today}
             onOpenEvent={eventId => open.onOpenEvent(eventId)}
-            onOpenTasks={(eventId, unassigned) =>
-              openEventTasks(councilId, eventId, unassigned ? { view: 'unassigned' } : {})
-            }
+            onOpenTasks={(eventId, query) => openEventTasks(councilId, eventId, query)}
             onSeeAll={() => open.onOpenPage('events')}
             onNewEvent={open.onNewEvent}
           />
@@ -99,7 +97,13 @@ export default function CouncilHome({
             key="attention"
             board={board}
             onOpenTask={openTask}
-            onSeeAll={() => openMenu('tasks', councilId, { view: 'all' })}
+            onSeeAll={() =>
+              openMenu('tasks', councilId, {
+                tab: 'council',
+                events: 'include',
+                attention: 'true',
+              })
+            }
             onSeePeople={() => openMenu('people', councilId)}
             onSeeFinance={() => navigate(menuPath('people', councilId), { pageState: 'finance' })}
           />,

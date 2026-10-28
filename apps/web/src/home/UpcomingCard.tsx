@@ -1,7 +1,7 @@
 import { Calendar } from 'lucide-react'
 import type { HomeUpcoming, HomeUpcomingItem } from '@vada/contracts'
 import { cn } from '@/lib/utils'
-import { openRecord } from '@/lib/go-to'
+import { openMenu, openRecord } from '@/lib/go-to'
 import { upcomingParts } from './council-view'
 import HomeCard from './HomeCard'
 import { ScheduleTag } from './HomeChip'
@@ -70,6 +70,7 @@ export default function UpcomingCard({
       icon={Calendar}
       read={{ kind: 'ready', total: upcoming.total, rows }}
       empty="7일 안 일정 없음"
+      onSeeAll={() => openMenu('calendar', councilId)}
       headClassName={headClassName}
     />
   )

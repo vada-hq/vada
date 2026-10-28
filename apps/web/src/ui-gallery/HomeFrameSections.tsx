@@ -120,6 +120,7 @@ function MemberHome({ tiles = tilesRead, read, firstDay = false }: MemberProps) 
             icon={Calendar}
             read={readOr(read, schedule, MORE_THAN_SHOWN)}
             empty="7일 안 일정 없음"
+            onSeeAll={noop}
           />,
           <HomeCard
             key="c"

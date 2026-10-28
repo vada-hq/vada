@@ -39,7 +39,8 @@ export default function DepartmentHome({
   const seeTasks = () => {
     for (const department of board.departments) rememberDepartment(department.id, department.name)
     openMenu('tasks', councilId, {
-      view: 'department',
+      tab: 'council',
+      events: 'include',
       heads: 'true',
       attention: 'true',
       ...(board.departments.length === 1 ? { dept: board.departments[0]!.id } : {}),
@@ -93,7 +94,8 @@ export default function DepartmentHome({
             onCongestion={() =>
               board.congestion &&
               openMenu('tasks', councilId, {
-                view: 'department',
+                tab: 'council',
+                events: 'include',
                 heads: 'true',
                 assignee: board.congestion.member.id,
                 due: 'week',

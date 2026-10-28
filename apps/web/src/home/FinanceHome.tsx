@@ -34,7 +34,7 @@ function Conditions({ board, councilId }: Pick<Props, 'board' | 'councilId'>) {
       label: `${row.name} · 부서 업무 지남 ${row.overdue} · 담당자 없음 ${row.unassigned}`,
       onOpen: () => {
         rememberDepartment(row.id, row.name)
-        openMenu('tasks', councilId, { view: 'department', dept: row.id })
+        openMenu('tasks', councilId, { tab: 'council', events: 'include', dept: row.id })
       },
     })),
     ...board.ownedEnded

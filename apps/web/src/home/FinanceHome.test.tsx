@@ -214,7 +214,9 @@ test('재정부장 조건부 줄은 대상 있을 때만 보이며 부서와 책
   await card('예외·대기')
   const department = screen.getByRole('button', { name: /부서 업무 지남 2 · 담당자 없음 1/ })
   fireEvent.click(department)
-  expect(path()).toContain('dept=01900000-0000-7000-8000-000000000002')
+  expect(path()).toBe(
+    '/tasks/01900000-0000-7000-8000-000000000001?dept=01900000-0000-7000-8000-000000000002&events=include',
+  )
   fireEvent.click(screen.getByRole('button', { name: /내 끝난 행사 · 후속 정리 중/ }))
   expect(path()).toBe('/events/01900000-0000-7000-8000-000000000001/e1?tab=money')
 })
