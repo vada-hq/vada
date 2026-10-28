@@ -287,3 +287,58 @@ test('갤러리의 학생회·행사 견본은 실제 계약 검사를 통과해
     await windowHistoryIdle()
   }
 })
+
+test('다시 읽은 선택지에서 빠진 담당자·행사는 보내지 않고 보는 곳의 기본값으로 돌린다', async () => {
+  const api = mockApi()
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [eventSummary()], truncated: false }),
+  )
+  api.on('POST', BASE, () => json({ task: taskDetail() }, 201))
+  const props: Props = {
+    open: true,
+    context: { view, taskView: 'all', dept: null, eventId: undefined },
+    options,
+    onClose: vi.fn(),
+    onCreated: vi.fn(),
+    onOpenTask: vi.fn(),
+    onForbidden: vi.fn(),
+  }
+  const { rerender } = render(<TaskCreateDialog {...props} />)
+  await screen.findByRole('option', { name: '신입생 환영회' })
+  choose('담당 부서', D1)
+  choose('담당자', OTHER)
+  choose('행사', EVENT_ID)
+  const reread: TaskCreateOptionsResponse = {
+    departments: [{ id: D1, name: '기획부', assignees: [none, me] }],
+    linkableEvents: [],
+  }
+  rerender(<TaskCreateDialog {...props} options={reread} />)
+  expect(select('담당자').value).toBe('')
+  expect(select('행사').value).toBe('')
+  fireEvent.change(title(), { target: { value: '포스터' } })
+  submit()
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    departmentId: D1,
+    assigneeId: null,
+    eventId: null,
+  })
+})
+
+test('미리 채운 행사는 행사 목록을 읽기 전에도 선택칸에 있다', () => {
+  const api = mockApi()
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () => deferredResponse().promise)
+  render(
+    <TaskCreateDialog
+      open
+      context={{ view, taskView: 'all', dept: null, eventId: undefined }}
+      options={options}
+      initial={{ eventId: EVENT_ID }}
+      onClose={vi.fn()}
+      onCreated={vi.fn()}
+      onOpenTask={vi.fn()}
+      onForbidden={vi.fn()}
+    />,
+  )
+  expect(select('행사').value).toBe(EVENT_ID)
+})

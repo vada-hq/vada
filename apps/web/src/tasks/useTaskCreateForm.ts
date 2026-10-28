@@ -30,7 +30,9 @@ export function useTaskCreateForm(props: Setup) {
   const [initial] = useState(() => initialCreateValues(options, context, props.initial ?? {}))
   const [values, setValues] = useState(initial)
   const settle = useUnsavedInput(!sameJson(values, initial))
-  const request = createRequest(values, values.departmentId, values.assigneeId, values.eventId)
+  // 선택지는 15초마다 다시 읽는다. 빠진 부서·담당자·행사가 화면과 요청에 남지 않게 늘 지금 선택지로 맞춘 값을 쓴다.
+  const current = initialCreateValues(options, context, values)
+  const request = createRequest(current, current.departmentId, current.assigneeId, current.eventId)
   const create = useTaskCreate(context.view.council.id, request, {
     onForbidden: props.onForbidden,
     onCreated: task => {
@@ -41,7 +43,7 @@ export function useTaskCreateForm(props: Setup) {
     },
   })
   const check = useFormCheck(() =>
-    withContract(taskErrors(values), create.parsed, TASK_CONTRACT_MESSAGES),
+    withContract(taskErrors(current), create.parsed, TASK_CONTRACT_MESSAGES),
   )
   const onDepartment = (departmentId: string | null) => {
     const department = options.departments.find(item => item.id === departmentId)
@@ -54,7 +56,7 @@ export function useTaskCreateForm(props: Setup) {
     }))
   }
   return {
-    values,
+    values: current,
     setValues,
     onDepartment,
     ...check,

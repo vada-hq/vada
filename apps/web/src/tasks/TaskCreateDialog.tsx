@@ -85,14 +85,12 @@ function OpenCreateDialog(props: Props & { options: TaskCreateOptionsResponse })
   const form = useTaskCreateForm(props)
   const events = useEvents(props.context.view.council.id, props.onForbidden)
   const list = events.state.kind === 'ready' ? events.state.data.events : []
-  const contextEvent = props.context.eventId
+  // 고른 행사(행사 탭의 그 행사, 미리 채운 행사)는 행사 목록을 읽기 전이거나 목록에 없어도 선택칸에 남긴다. 값은 이미 서버 선택지로 맞췄다.
+  const chosen = form.values.eventId
   const current =
-    contextEvent === undefined
+    chosen === null
       ? null
-      : {
-          id: contextEvent,
-          name: list.find(event => event.id === contextEvent)?.name ?? text.currentEvent,
-        }
+      : { id: chosen, name: list.find(event => event.id === chosen)?.name ?? text.currentEvent }
   const linkable = linkableEventsOf(list, props.options.linkableEvents, form.values.departmentId)
   return (
     <TaskCreateDialogView

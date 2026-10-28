@@ -38,7 +38,8 @@ function initialPlacement(
     initial.departmentId === undefined ? placement?.departmentId : initial.departmentId
   const department =
     options.departments.find(item => item.id === departmentId) ??
-    options.departments.find(item => item.id === placement?.departmentId)
+    options.departments.find(item => item.id === placement?.departmentId) ??
+    options.departments[0]
   if (!department) return { departmentId: null, assigneeId: null }
   const wanted = context.taskView === 'mine' ? context.view.me.memberId : null
   const assignee = department.assignees.find(item => item.id === initial.assigneeId)
@@ -50,7 +51,7 @@ function initialPlacement(
   }
 }
 
-// 기본값과 미리 채운 값도 서버의 만들기 선택지 안에서만 고른다.
+// 기본값과 미리 채운 값도 서버의 만들기 선택지 안에서만 고른다. 선택지를 다시 읽으면 지금 값도 이것으로 다시 맞춘다.
 export function initialCreateValues(
   options: TaskCreateOptionsResponse,
   context: QuickAddContext,

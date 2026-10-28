@@ -272,8 +272,8 @@ function CouncilTasksPage(props: Props) {
           options={entry.options}
           title={entry.title}
           onTitle={entry.setTitle}
-          detailsOpen={entry.initial !== null}
-          onDetails={() => entry.open({ title: entry.title })}
+          detailsOpen={entry.detailsOpen}
+          onDetails={entry.openDetails}
           onCreated={changed}
           onForbidden={props.onForbidden}
           onOpenTask={rows.onOpenTask}

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { TaskCreateOptionsResponse, TaskSummary } from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
+import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
 import { LEAVE_TITLE, PERMISSION_CHANGED, TASK_ERRORS } from '@/lib/messages'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -17,6 +18,7 @@ afterEach(async () => {
   // 만든 뒤 여는 업무 주소가 닫힌 창의 기록 이동(history.go) 뒤에 쓰이므로, 그 이동이 끝난 뒤 다음 시험을 시작한다.
   await windowHistoryIdle()
   resetWindowHistory()
+  resetLeaveGuard()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
@@ -210,6 +212,49 @@ test('행사의 업무 탭에서 그 행사에 이을 부서가 없으면 빠른
   )
   await settle()
   expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull()
+})
+
+test('행사 탭에서 빠른 추가 자리가 없어도 서버 선택지가 있으면 머리 창에서 학생회 업무로 고를 수 있다', async () => {
+  const api = mockApi()
+  api.on('GET', `${BASE}?view=all&status=open&event=${EVENT_ID}`, empty)
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
+  const councilOnly: TaskCreateOptionsResponse = {
+    departments: [{ id: null, name: null, assignees: [ME] }],
+    linkableEvents: [],
+  }
+  api.on('GET', `${BASE}/options?event=${EVENT_ID}`, () => json(councilOnly))
+  render(
+    <TasksPage view={member()} eventId={EVENT_ID} onForbidden={() => {}} onChanged={() => {}} />,
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '업무 추가' }))
+  const dialog = await screen.findByRole('dialog', { name: '업무 추가' })
+  expect(
+    within(dialog).getByRole<HTMLSelectElement>('combobox', { name: /^담당 부서/ }).value,
+  ).toBe('')
+  expect(within(dialog).getByRole<HTMLSelectElement>('combobox', { name: /^담당자/ }).value).toBe(
+    M2,
+  )
+})
+
+test('머리 창으로 만들면 빠른 추가에 쓰던 글과 지킴은 그대로다', async () => {
+  const { handlers } = setup()
+  const input = await screen.findByRole<HTMLInputElement>('textbox', { name: '새 업무' })
+  await settle()
+  fireEvent.change(input, { target: { value: '쓰던 글' } })
+  fireEvent.click(screen.getAllByRole('button', { name: '업무 추가' })[0]!)
+  const dialog = await screen.findByRole('dialog', { name: '업무 추가' })
+  expect(within(dialog).getByRole<HTMLInputElement>('textbox', { name: /^제목/ }).value).toBe('')
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.change(within(dialog).getByRole('textbox', { name: /^제목/ }), {
+    target: { value: '다른 업무' },
+  })
+  fireEvent.click(within(dialog).getByRole('button', { name: '업무 추가' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledOnce())
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull())
+  expect(input.value).toBe('쓰던 글')
+  expect(hasUnsavedInput()).toBe(true)
 })
 
 test('선택지를 읽지 못했으면 누를 때 이유를 보인다', async () => {
