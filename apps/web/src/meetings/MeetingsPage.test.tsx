@@ -99,6 +99,15 @@ test('예정·취소 회의도 적힌 회의록은 읽는 사람이 회의록 �
   }
 })
 
+test('취소 회의는 회의록이 비어도 안건이 있으면 회의록 보기로 안건을 읽는다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+  const meeting = meetingSample({ status: 'cancelled', actions: [] })
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+  render(page())
+  fireEvent.click(await screen.findByRole('button', { name: '회의록 보기' }))
+  expect(await screen.findByText('논의 내용 없음')).toBeTruthy()
+})
+
 test('상태를 주소에 유지하고 취소 회의만 보인다', async () => {
   api.on('GET', `${base}?view=council`, () =>
     json({

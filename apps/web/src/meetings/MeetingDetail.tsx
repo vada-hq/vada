@@ -121,7 +121,11 @@ type Props = {
 // 쓰는 사람은 늘 회의록으로 가고, 읽는 사람은 적힌 회의록이 있을 때 간다(읽기는 가리지 않는다, mtg-4 검토).
 function minutesLabel(meeting: Detail) {
   if (meeting.actions.includes('meeting.minutes')) return MINUTES_TEXT.write
-  const written = meeting.agenda.some(item => item.notes || item.decisions.length)
+  // 취소 상세(09)는 안건을 그리지 않으므로 안건이 있으면 회의록 화면으로 읽게 한다.
+  const written =
+    meeting.status === 'cancelled'
+      ? meeting.agenda.length > 0
+      : meeting.agenda.some(item => item.notes || item.decisions.length)
   return written ? MINUTES_TEXT.view : null
 }
 export function MeetingDetail({ meeting, onEdit, onCancel, onEvent, onMinutes }: Props) {

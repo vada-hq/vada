@@ -18,7 +18,7 @@ export function MinutesDecisions({ agendaId, decisions, writable, submit, onRemo
     <section className="flex min-w-0 flex-col gap-4 border-t pt-5" aria-label={T.decisions}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{T.decisions}</h3>
-        {writable && (
+        {writable && !editing && (
           <Button touch variant="outline" size="sm" onClick={() => setEditing('new')}>
             {T.addDecision}
           </Button>
@@ -62,7 +62,8 @@ export function MinutesDecisions({ agendaId, decisions, writable, submit, onRemo
                 {d.decidedBy.name}
               </span>
             )}
-            {writable && (
+            {/* 폼은 한 번에 하나다. 쓰던 폼을 다른 결정의 고치기가 확인 없이 바꾸지 않게 한다. */}
+            {writable && !editing && (
               <>
                 <Button touch variant="ghost" size="sm" onClick={() => setEditing(d)}>
                   {T.edit}

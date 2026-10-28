@@ -371,3 +371,21 @@ test('결정 폼은 저장 중 잠기고, 쓰는 동안 떠날 때 확인을 걸
   expect(field.readOnly).toBe(false)
   expect(field.value).toBe('함께 진행')
 })
+
+test('결정 폼은 한 번에 하나라 쓰는 동안 다른 결정의 고치기와 결정 추가를 숨긴다', () => {
+  const meeting = sample()
+  meeting.agenda[0]!.decisions = [
+    {
+      id: '0199d1a0-0000-7000-8000-0000000000d9',
+      content: '함께 진행',
+      rationale: null,
+      decidedBy: null,
+      decidedAt: meeting.createdAt,
+      versionNo: 1,
+    },
+  ]
+  draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  expect(screen.queryByRole('button', { name: '결정 추가' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+})

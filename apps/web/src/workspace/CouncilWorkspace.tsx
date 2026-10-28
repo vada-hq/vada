@@ -40,11 +40,12 @@ function recordOf(target: Props['target']) {
 }
 
 // 기록 주소의 칸이 바뀌면 페이지를 새로 열어 주소로 연 기록을 다시 연다. 대화의 방은 주소만 바꿔 그대로 둔다(방을 바꿔도 쓰던 입력이 남는다).
-// 행사는 화면이 주소를 읽어 그리므로 탭을 바꿔 쓸 때 새로 열지 않는다.
+// 행사는 화면이 주소를 읽어 그리므로 탭을 바꿔 쓸 때 새로 열지 않는다. 회의도 안건(`agenda`)·회의록(`mode`)을 주소로 읽어 그리고,
+// 새로 열면 안건을 바꿀 때 저장 실패·충돌한 회의록 초안을 잃는다(mtg-4 검토).
+const KEPT_ON_ADDRESS = new Set(['chat', 'events', 'meetings'])
 const pageOpensAnew = (target: Props['target'], released: boolean) =>
   target.page !== 'home' &&
-  ((target.record !== null && target.record.kind !== 'chat' && target.record.kind !== 'events') ||
-    released)
+  ((target.record !== null && !KEPT_ON_ADDRESS.has(target.record.kind)) || released)
 
 const scrollSpot = (here: Here) => here.behind?.spot ?? (here.key || `path:${here.path}`)
 
