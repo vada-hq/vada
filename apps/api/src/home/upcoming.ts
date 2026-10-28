@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lt } from 'drizzle-orm'
+import { and, gte, inArray, lt } from 'drizzle-orm'
 import {
   DAY_MS,
   HOME_CARD_ROWS,
@@ -15,7 +15,9 @@ import {
   type TaskSummary,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { event, record, registrationForm } from '../db/schema.js'
+import { event, registrationForm } from '../db/schema.js'
+import { eventRowsOf } from '../calendar/sources/events.js'
+import { registrationCloseRowsOf } from '../calendar/sources/registrations.js'
 import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { dueAtOf, dueGroupOf } from '../tasks/due.js'
@@ -46,18 +48,15 @@ const timed = (value: Date) => {
 // 시작이 범위 안인 행사. 완료 행사는 뺀다(완료 판정은 행사 화면과 같은 completedEventIdsAmong).
 async function eventStartsOf(db: Reader, actor: Actor, range: Range, scope: Scope) {
   if (scope.eventIds?.length === 0) return []
-  const rows = await db
-    .select({ id: event.id, name: event.name, startsAt: event.startsAt })
-    .from(event)
-    .innerJoin(record, eq(record.id, event.id))
-    .where(
-      and(
-        eq(record.councilId, actor.councilId),
-        gte(event.startsAt, range.from),
-        lt(event.startsAt, range.until),
-        scope.eventIds ? inArray(event.id, scope.eventIds) : undefined,
-      ),
-    )
+  const rows = await eventRowsOf(
+    db,
+    actor.councilId,
+    and(
+      gte(event.startsAt, range.from),
+      lt(event.startsAt, range.until),
+      scope.eventIds ? inArray(event.id, scope.eventIds) : undefined,
+    ),
+  )
   const completed = await completedEventIdsAmong(
     db,
     rows.map(row => row.id),
@@ -77,25 +76,15 @@ async function eventStartsOf(db: Reader, actor: Actor, range: Range, scope: Scop
 // 마감이 범위 안인 참가 신청 양식. 칸은 양식과 행사의 이름뿐이다(신청자 정보 없음, DEC-59).
 async function formClosesOf(db: Reader, actor: Actor, range: Range, scope: Scope) {
   if (scope.eventIds?.length === 0) return []
-  const rows = await db
-    .select({
-      id: registrationForm.id,
-      name: registrationForm.name,
-      closesAt: registrationForm.closesAt,
-      eventId: event.id,
-      eventName: event.name,
-    })
-    .from(registrationForm)
-    .innerJoin(event, eq(event.id, registrationForm.eventId))
-    .innerJoin(record, eq(record.id, event.id))
-    .where(
-      and(
-        eq(record.councilId, actor.councilId),
-        gte(registrationForm.closesAt, range.from),
-        lt(registrationForm.closesAt, range.until),
-        scope.eventIds ? inArray(event.id, scope.eventIds) : undefined,
-      ),
-    )
+  const rows = await registrationCloseRowsOf(
+    db,
+    actor.councilId,
+    and(
+      gte(registrationForm.closesAt, range.from),
+      lt(registrationForm.closesAt, range.until),
+      scope.eventIds ? inArray(event.id, scope.eventIds) : undefined,
+    ),
+  )
   const completed = await completedEventIdsAmong(
     db,
     rows.map(row => row.eventId),
