@@ -113,15 +113,15 @@ test('방 전환으로 공지방을 열면 주소에 그 방이 남고, 다른 �
   expect(screen.queryByRole('group', { name: '대화방' })).toBeNull()
 })
 
-test('부서가 없는 회장단은 공지방만 있고 그 방이 열린다', async () => {
+test('방이 하나면 전환 줄 없이 그 방의 대화와 입력칸, 탭 배지가 보인다', async () => {
   setup({ rooms: [notice()], archived: false })
-  await screen.findByText('공지방 글')
-  const group = screen.getByRole('group', { name: '대화방' })
+  expect(await screen.findByText('공지방 글')).toBeTruthy()
+  expect(screen.queryByRole('group', { name: '대화방' })).toBeNull()
+  expect(screen.queryByRole('group', { name: '행사 요약' })).toBeNull()
+  expect(screen.getByRole('textbox', { name: '메시지' })).toBeTruthy()
   expect(
-    within(group)
-      .getAllByRole('button')
-      .map(button => button.textContent),
-  ).toEqual(['공지방2'])
+    within(screen.getByRole('tab', { name: /메시지/ })).getByLabelText('안 읽은 메시지 2개'),
+  ).toBeTruthy()
 })
 
 test('완료된 행사의 방은 읽기만이고 입력칸 자리에 완료된 행사가 있다', async () => {

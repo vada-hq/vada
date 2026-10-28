@@ -15,7 +15,7 @@ export default function RoomSwitch({
   activeId: string | null
   onPick: (roomId: string) => void
 }) {
-  if (rooms.length === 0) return null
+  if (rooms.length <= 1) return null
   return (
     <div
       role="group"
