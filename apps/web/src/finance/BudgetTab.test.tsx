@@ -67,7 +67,6 @@ test('재정 탭에는 계좌가 없다', async () => {
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '예산 현황',
     '사용 내역',
-    '행사 정산',
     '결산',
   ])
 })

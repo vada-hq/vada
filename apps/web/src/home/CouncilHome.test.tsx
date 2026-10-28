@@ -295,11 +295,11 @@ test('가까운 주요 일정: 날짜와 종류 칩이 있고 줄을 누르면 �
   expect(pathNow()).toBe('/tasks/c1/t1')
 })
 
-test('후속 정리 중인 행사가 셋보다 많으면 전체 n개 보기로 재정 행사 정산 탭에 간다', async () => {
+test('후속 정리 중인 행사가 셋보다 많으면 전체 n개 보기로 결산 탭에 간다', async () => {
   const events = ['e1', 'e2', 'e3', 'e4'].map(id => followUpRow(id))
   open(councilHome({ followUp: { events, total: 5 } }))
   const followUp = await card('후속 정리 중인 행사')
   expect(within(followUp).getAllByRole('listitem')).toHaveLength(3)
   fireEvent.click(within(followUp).getByRole('button', { name: '전체 5개 보기' }))
-  expect(pathNow()).toBe('/finance/c1?tab=settlements')
+  expect(pathNow()).toBe('/finance/c1?tab=closing')
 })

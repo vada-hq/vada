@@ -131,12 +131,11 @@ const closeDialog = async (dialog: HTMLElement) => {
   await act(() => windowHistoryIdle())
 }
 
-test('재정 탭 넷이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
+test('재정 탭 셋이 주소에 남고 기록을 쌓지 않으며 기본은 예산 현황이다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   const push = vi.spyOn(window.history, 'pushState')
   const tabs: [string, string][] = [
     ['사용 내역', '?tab=ledger'],
-    ['행사 정산', '?tab=settlements'],
     ['결산', '?tab=closing'],
     ['예산 현황', ''],
   ]
@@ -144,7 +143,6 @@ test('재정 탭 넷이 주소에 남고 기록을 쌓지 않으며 기본은 �
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '예산 현황',
     '사용 내역',
-    '행사 정산',
     '결산',
   ])
   for (const [name, search] of tabs) {
@@ -217,9 +215,15 @@ test('옛 예산 탭 주소는 항목 부분을 그린 뒤 그곳으로 스크�
   }
 })
 
-test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 구매 탭이 쌓이며 뒤로 가면 탭으로 돌아온다', async () => {
+test('옛 행사 정산 주소를 결산으로 바꿔 쓰고 행사에서 뒤로 가면 결산으로 돌아온다', async () => {
+  const push = vi.spyOn(window.history, 'pushState')
+  const replace = vi.spyOn(window.history, 'replaceState')
   startAt(`/finance/${COUNCIL_ID}?tab=settlements`, 'finance', MEMBER_PERMISSIONS)
-  expect(await isSelected('행사 정산')).toBe(true)
+  expect(await isSelected('결산')).toBe(true)
+  await waitFor(() => expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=closing`))
+  expect(screen.getByRole('heading', { level: 2, name: '행사 정산' })).toBeTruthy()
+  expect(replace.mock.calls.some(call => String(call[2]).endsWith('?tab=closing'))).toBe(true)
+  expect(push).not.toHaveBeenCalled()
   api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () => json(settlementOf()))
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}/${EVENT_ID}?tab=money`))
@@ -227,8 +231,8 @@ test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 �
     'true',
   )
   act(() => window.history.back())
-  expect(await isSelected('행사 정산')).toBe(true)
-  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=settlements`)
+  expect(await isSelected('결산')).toBe(true)
+  expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=closing`)
 })
 
 test('역할별 기본값과 관계없이 고른 요청 보기를 주소에 남긴다', async () => {

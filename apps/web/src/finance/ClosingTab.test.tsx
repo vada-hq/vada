@@ -12,7 +12,7 @@ import {
 import { settle } from '@/test-support/settle'
 import { closingFixture } from '@/test-support/closing-fixtures'
 import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { serveFinance, showFinance } from '@/test-support/expense-harness'
+import { BASE, serveFinance, showFinance } from '@/test-support/expense-harness'
 import { COUNCIL_ID } from '@/test-support/finance-at'
 import { CURRENT_PERIOD, periodSummary, standardPeriods } from '@/test-support/income-fixtures'
 import { PERIODS } from '@/test-support/income-harness'
@@ -30,6 +30,9 @@ const REOPEN = `${CLOSING}/reopen`
 
 function serve(closing = closingFixture(), periods = standardPeriods()) {
   const api = serveFinance()
+  api.on('GET', `${BASE}/event-settlements`, () =>
+    json({ period: null, events: [], truncated: false }),
+  )
   api.on('GET', PERIODS, () => json(periods))
   api.on('GET', CLOSING, () => json({ closing }))
   return api
@@ -112,6 +115,8 @@ test('기본 기간은 끝났고 공개하지 않은 가장 이른 기간이고,
 test('공개 전에 재정부가 아니면 결산서를 읽지 않고 안내만 보인다', async () => {
   const api = serve()
   await show(MEMBER_PERMISSIONS)
+  expect(screen.getByRole('heading', { level: 2, name: '행사 정산' })).toBeTruthy()
+  expect(await screen.findByText('행사 없음')).toBeTruthy()
   expect(await screen.findByText(CLOSING_HIDDEN)).toBeTruthy()
   expect(screen.queryByText('작성 중')).toBeNull()
   expect(api.calls.some(call => call.path === CLOSING)).toBe(false)
@@ -286,6 +291,9 @@ test('기본 기간은 처음 한 번만 정한다: 공개해서 목록이 바�
     periodSummary(id, { name, startsOn, endsOn, current: false })
   let published = false
   const api = serveFinance()
+  api.on('GET', `${BASE}/event-settlements`, () =>
+    json({ period: null, events: [], truncated: false }),
+  )
   api.on('GET', PERIODS, () =>
     json({
       periods: [

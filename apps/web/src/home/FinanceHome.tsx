@@ -115,7 +115,7 @@ export default function FinanceHome({ home, board, councilId, name, rooms, pushB
             settling={board.settling}
             ownedEnded={board.ownedEnded}
             onOpen={openEvent}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'settlements' })}
+            onSeeAll={() => openMenu('finance', councilId, { tab: 'closing' })}
           />,
           <FinanceBudgets
             key="budgets"

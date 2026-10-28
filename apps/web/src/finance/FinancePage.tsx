@@ -22,7 +22,7 @@ type Props = {
   onForbidden: () => void
 }
 
-// 재정부가 고치는 탭과 모두가 보는 개요. 보는 것은 탭마다 정한 권한이 가른다.
+// 행사 정산 읽기는 기간 결산의 초안 읽기 권한·불러오기 상태와 독립이다(메뉴 v7 설계 안 B).
 function ManagedTab({
   tab,
   view,
@@ -39,12 +39,21 @@ function ManagedTab({
   if (tab === 'overview') return <OverviewTab {...shared} canManage={canManage} />
   if (tab === 'closing')
     return (
-      <ClosingTab
-        {...shared}
-        canManage={canManage}
-        canReadDraft={view.permissions.includes('closing.view_draft')}
-        openers={openers}
-      />
+      <div className="flex flex-col gap-6">
+        <section aria-label="행사 정산" className="flex flex-col gap-3">
+          <h2 className="text-base font-semibold break-keep wrap-anywhere">행사 정산</h2>
+          <SettlementsTab {...shared} />
+        </section>
+        <section aria-label="기간 결산" className="flex flex-col gap-3">
+          <h2 className="text-base font-semibold break-keep wrap-anywhere">기간 결산</h2>
+          <ClosingTab
+            {...shared}
+            canManage={canManage}
+            canReadDraft={view.permissions.includes('closing.view_draft')}
+            openers={openers}
+          />
+        </section>
+      </div>
     )
   return null
 }
@@ -81,8 +90,6 @@ function FinanceTabPanel({
             onForbidden={onForbidden}
           />
         )
-      ) : tab === 'settlements' ? (
-        <SettlementsTab councilId={view.council.id} onForbidden={onForbidden} />
       ) : (
         <ManagedTab tab={tab} view={view} onForbidden={onForbidden} openers={openers} />
       )}
