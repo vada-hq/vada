@@ -460,3 +460,45 @@ test('개요의 지출 예정 내역 주소는 기간과 보기 조건을 보존
     `/finance/${C}?tab=overview`,
   )
 })
+
+test('내 업무의 범위·상태와 메시지 전체 방 목록은 주소로 왕복한다', () => {
+  const read = (path: string) => parseAppPath(path)?.query
+  for (const scope of ['council', R]) {
+    for (const state of ['todo', 'in_progress']) {
+      const query = { tab: 'mine', scope, state }
+      const path = `/tasks/${C}?tab=mine&scope=${scope}&state=${state}`
+      assert.deepEqual(read(path), query)
+      assert.equal(menuPath('tasks', C, query), path)
+      assert.deepEqual(read(menuPath('tasks', C, query)), query)
+    }
+  }
+  for (const tab of ['council', 'unknown', '']) {
+    const prefix = tab ? `tab=${tab}&` : ''
+    assert.deepEqual(read(`/tasks/${C}?${prefix}scope=council&state=todo`), {})
+    assert.equal(menuPath('tasks', C, { tab, scope: 'council', state: 'todo' }), `/tasks/${C}`)
+  }
+  assert.deepEqual(read(`/tasks/${C}?tab=mine`), { tab: 'mine' })
+  assert.deepEqual(read(`/tasks/${C}?tab=mine&scope=foo&state=todo`), {
+    tab: 'mine',
+    state: 'todo',
+  })
+  assert.deepEqual(read(`/tasks/${C}?tab=mine&scope=council&state=done`), {
+    tab: 'mine',
+    scope: 'council',
+  })
+  assert.equal(
+    menuPath('tasks', C, { tab: 'mine', filter: 'done', scope: 'council' }),
+    `/tasks/${C}?tab=mine&filter=done&scope=council`,
+  )
+  const query = { rooms: 'all' }
+  const path = `/chat/${C}?rooms=all`
+  assert.deepEqual(read(path), query)
+  assert.equal(menuPath('chat', C, query), path)
+  assert.deepEqual(read(menuPath('chat', C, query)), query)
+  assert.deepEqual(read(`/chat/${C}?rooms=x`), {})
+})
+
+test('옛 내 업무 주소를 옮길 때 새 범위가 끼지 않고 새 주소는 그대로 둔다', () => {
+  assert.equal(movedTo(`/tasks/${C}?view=mine&scope=council`), `/tasks/${C}?tab=mine`)
+  assert.equal(movedTo(`/tasks/${C}?tab=mine&scope=council&state=todo`), null)
+})

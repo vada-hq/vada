@@ -2,7 +2,7 @@ import { HOME_VIEWS } from './home.js'
 import { CALENDAR_KINDS } from './calendar.js'
 import { isUuid } from './input.js'
 import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
-import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
+import { TASK_FILTERS, TASK_VIEWS, type TaskStatus, type TaskView } from './tasks.js'
 
 // 화면 주소의 원문(기능 016). 서버 진입 목록(web.ts), 알림 주소(push.ts), 화면 해석기가 모두 이것만 쓴다.
 // 주소는 볼 권한을 주지 않는다. 학생회 격리는 서버의 읽기가 요청마다 지킨다.
@@ -34,6 +34,7 @@ export const EVENT_PURCHASE_VIEWS = [
 // 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
 export const TASK_TABS = ['council', 'mine'] as const
 export type TaskTab = (typeof TASK_TABS)[number]
+const MY_TASK_STATES = ['todo', 'in_progress'] as const satisfies readonly TaskStatus[]
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
@@ -102,7 +103,10 @@ const eventTaskQuery = taskQuery('all', { key: 'tab', value: 'tasks' })
 const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   // 회장단+재정의 재정 보기(DEC-95). 운영 보기가 기본이라 주소에 없다.
   home: { view: { values: HOME_VIEWS, fallback: null } },
-  chat: {},
+  chat: {
+    // 메시지 첫 화면의 [전체 보기]가 전체 방 목록(MSG-01)을 연다.
+    rooms: { values: ['all'], fallback: null },
+  },
   events: {},
   council: {
     tab: { values: ['messages', 'tasks'], fallback: 'messages' },
@@ -114,6 +118,15 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     ...taskQuery('mine'),
     view: { values: TASK_VIEWS, fallback: null },
     events: { values: ['include'], fallback: null },
+    // 내 업무에서 고른 학생회 업무·행사 범위를 새로고침해도 유지한다.
+    scope: {
+      values: 'uuid',
+      also: ['council'],
+      fallback: null,
+      onlyWith: { key: 'tab', value: 'mine' },
+    },
+    // 내 업무의 할 일·진행 중 거르기를 유지한다. 완료된 업무 탭은 기존 filter를 쓴다.
+    state: { values: MY_TASK_STATES, fallback: null, onlyWith: { key: 'tab', value: 'mine' } },
   },
   calendar: {
     view: { values: ['month', 'list'], fallback: null },
