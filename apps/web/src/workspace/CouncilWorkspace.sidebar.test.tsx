@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { CouncilView } from '@vada/contracts'
+import type { CouncilView, RoomListResponse } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
-import { roomList } from '@/test-support/chat-fixtures'
+import { room, roomList } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
@@ -16,12 +16,15 @@ afterEach(() => {
 
 const base = `/api/organizations/${COUNCIL_ID}`
 
-function open(options: { view?: CouncilView; unread?: number } = {}) {
+function open(options: { view?: CouncilView; unread?: number; rooms?: RoomListResponse } = {}) {
   const api = mockApi()
   api.on('GET', base, () => json(options.view ?? councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () =>
-    json(roomList(options.unread === undefined ? {} : { unreadTotal: options.unread })),
+    json(
+      options.rooms ??
+        roomList(options.unread === undefined ? {} : { unreadTotal: options.unread }),
+    ),
   )
   api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
@@ -84,6 +87,55 @@ test('안 읽은 메시지가 120개면 메시지 옆 빨간 99+, 0이면 배지
   await new Promise(resolve => setTimeout(resolve, 20))
   expect(within(await nav()).queryByLabelText(/안 읽은 메시지/)).toBeNull()
 })
+
+test.each([
+  [2, 5, 3],
+  [0, 5, 0],
+])(
+  '전체 목록에 행사 방을 남기고 메시지 배지는 학생회 %i·행사 %i·1:1 %i을 모두 센다(v7 MSG-01)',
+  async (councilUnread, eventUnread, directUnread) => {
+    const rooms = [
+      room('0199d1a0-0000-7000-8000-0000000000a1', { unread: councilUnread }),
+      room('0199d1a0-0000-7000-8000-0000000000a2', {
+        eventId: '0199d1a0-0000-7000-8000-0000000000e1',
+        eventName: '봄 축제',
+        unread: eventUnread,
+      }),
+      room('0199d1a0-0000-7000-8000-0000000000a3', {
+        type: 'direct',
+        name: '박새내',
+        unread: directUnread,
+      }),
+    ]
+    const unreadTotal = councilUnread + eventUnread + directUnread
+    open({ rooms: roomList({ rooms, unreadTotal, mentionTotal: 0 }) })
+    const menu = within(await nav())
+    const messages = menu.getByRole('button', { name: /^메시지/ })
+    expect(
+      (await within(messages).findByLabelText(`안 읽은 메시지 ${unreadTotal}개`)).textContent,
+    ).toBe(String(unreadTotal))
+    expect(
+      within(menu.getByRole('button', { name: '홈' })).queryByLabelText(/안 읽은 메시지/),
+    ).toBeNull()
+    fireEvent.click(messages)
+    const events = await screen.findByRole('region', { name: '행사' })
+    const eventRoom = within(events).getByRole('button', { name: /봄 축제 공지방/ })
+    expect(within(eventRoom).getByLabelText(`안 읽은 메시지 ${eventUnread}개`).textContent).toBe(
+      String(eventUnread),
+    )
+    const groups = [
+      screen.getByRole('list', { name: '대화방' }),
+      events,
+      screen.getByRole('region', { name: '1:1 대화' }),
+    ]
+    const listedUnread = groups.flatMap(group =>
+      within(group).queryAllByLabelText(/안 읽은 메시지/),
+    )
+    expect(listedUnread.reduce((sum, badge) => sum + Number(badge.textContent), 0)).toBe(
+      unreadTotal,
+    )
+  },
+)
 
 test('머리 칸 전체가 학생회 메뉴 단추이고 Vada와 학생회 이름 두 줄이며 키보드로 열린다', async () => {
   open()
