@@ -31,7 +31,7 @@ test('챙길 것: 지난 업무와 담당자 없는 업무를 수와 앞의 두 
   ])
 })
 
-test('챙길 것의 담당자 없음은 머리와 같이 담당자 없음, 떠난 담당자, 부서 없는 업무를 센다', () => {
+test('챙길 것의 담당자 없음은 머리와 같이 담당자가 없거나 떠난 업무만 센다', () => {
   const tasks = [
     task('1', { assignee: null }),
     task('2', { assignee: { id: 'm9', name: '떠난 운영진 1', current: false } }),
@@ -40,7 +40,23 @@ test('챙길 것의 담당자 없음은 머리와 같이 담당자 없음, 떠�
   ]
   const items = attentionOf(eventDetail(), tasks, null)
   expect(items.map(item => [item.key, item.value, item.detail])).toEqual([
-    ['unassigned', '3개', '업무1 · 업무2 외 1개'],
+    ['unassigned', '2개', '업무1 · 업무2'],
+  ])
+})
+
+test('챙길 것은 부서 없는 회장이 맡은 업무 셋을 빼고 담당자 없는 업무 둘만 센다', () => {
+  const president = { id: 'm1', name: '김회장', current: true }
+  const tasks = [
+    task('1', { department: null, assignee: president }),
+    task('2', { department: null, assignee: president }),
+    task('3', { department: null, assignee: president }),
+    task('4', { assignee: null }),
+    task('5', { department: null, assignee: null }),
+  ]
+  const event = eventDetail({ health: { overdue: 0, unassigned: 2 } })
+  const items = attentionOf(event, tasks, null)
+  expect(items.map(item => [item.key, item.value, item.detail])).toEqual([
+    ['unassigned', `${event.health.unassigned}개`, '업무4 · 업무5'],
   ])
 })
 

@@ -1,4 +1,5 @@
 import type { EventDetail, EventSettlement, RegistrationForm, TaskSummary } from '@vada/contracts'
+import { isUnassignedTask } from '../tasks/task-unassigned'
 import { REMAINING_LABEL } from './settlement-view'
 
 // 개요의 '챙길 것' 한 칸. 누르면 그 일을 하는 탭으로 간다.
@@ -23,8 +24,7 @@ function titlesOf(tasks: TaskSummary[]) {
 
 function taskAttention(tasks: TaskSummary[]): Attention[] {
   const overdue = tasks.filter(task => task.overdue)
-  // 담당자 없음은 업무 화면의 '담당자 없음'(서버 unassignedCondition)과 머리의 건강도와 같다: 담당자가 없거나 떠났거나 부서가 없다.
-  const unassigned = tasks.filter(task => !task.assignee?.current || task.department === null)
+  const unassigned = tasks.filter(isUnassignedTask)
   const items: Attention[] = []
   if (overdue.length > 0)
     items.push({
