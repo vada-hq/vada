@@ -11,7 +11,7 @@ import { NewEventDialog } from '../events/EventCreateDialog'
 import { PushBandSlot } from '../push/push-band-slot'
 import PagePushBand from './PagePushBand'
 import type { Opener, WorkspaceProps } from './pages'
-import { trailOf } from './pages'
+import { pageWidthOf, trailOf } from './pages'
 import { activeItemOf } from './space-view'
 import { useCouncilData } from './useCouncilData'
 import { useSpace } from './useSpace'
@@ -71,6 +71,7 @@ function CouncilMain({
   return (
     <>
       <WorkspaceHeader
+        width={content.width}
         crumbs={trail.crumbs}
         title={trail.title}
         menuRef={nav.headerMenu}
@@ -154,6 +155,7 @@ export default function CouncilWorkspace({
         council={council}
         nav={nav}
         content={{
+          width: pageWidthOf(nav.page, target.record?.kind),
           data,
           ...lists,
           ...openers,

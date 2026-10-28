@@ -1,10 +1,32 @@
 import { expect, test } from 'vitest'
 import type { PageTrail } from '@/components/PageHeading'
-import { eventTrail, pageTitles, trailOf, type Page } from './pages'
+import { eventTrail, pageTitles, pageWidthOf, trailOf, type Page } from './pages'
 
 const COUNCIL = '컴퓨터학부 학생회'
 const labels = (page: Page, deeper: PageTrail | null = null) =>
   trailOf(page, COUNCIL, deeper).crumbs.map(crumb => crumb.label)
+
+test.each([
+  ['home', 'default'],
+  ['chat', 'full'],
+  ['council', 'full'],
+  ['events', 'default'],
+  ['tasks', 'full'],
+  ['calendar', 'full'],
+  ['purchases', 'default'],
+  ['finance', 'default'],
+  ['people', 'default'],
+  ['departments', 'default'],
+  ['settings', 'narrow'],
+] as const)('%s의 폭은 %s이다(DEC-101)', (page, width) => {
+  expect(pageWidthOf(page)).toBe(width)
+})
+
+test('행사 목록은 기본 폭이고 행사 기록은 탭과 관계없이 끝까지다', () => {
+  expect(pageWidthOf('events')).toBe('default')
+  expect(pageWidthOf('events', 'events')).toBe('full')
+  expect(pageWidthOf('home', 'events')).toBe('default')
+})
 
 // 경로 줄 맨 앞은 학생회 이름이고, 칸은 DEC-96 그대로다.
 test('홈은 학생회 이름 한 칸과 제목 홈이다', () => {

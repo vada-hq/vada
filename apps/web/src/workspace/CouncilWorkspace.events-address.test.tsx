@@ -125,6 +125,20 @@ test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으�
   expect(push).not.toHaveBeenCalled()
 })
 
+test('행사 기록은 모든 탭에서 머리글과 본문이 같은 끝까지 폭이다', async () => {
+  setup(EVENT_AT)
+  onEventTasks()
+  for (const tab of ['메시지', '개요', '업무', '인원 관리', '재정']) {
+    fireEvent.click(await screen.findByRole('tab', { name: tab }))
+    expect(await selected(tab)).toBe('true')
+    for (const region of [screen.getByRole('banner'), screen.getByRole('main')]) {
+      expect(region.firstElementChild!.className.split(' ')).toEqual(
+        expect.arrayContaining(['mx-auto', 'w-full', 'max-w-none']),
+      )
+    }
+  }
+})
+
 test('모르는 탭은 메시지로 읽고 주소를 고쳐 쓴다', async () => {
   setup(`${EVENT_AT}?tab=nope`)
   expect(await selected('메시지')).toBe('true')

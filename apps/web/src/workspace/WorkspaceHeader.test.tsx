@@ -9,21 +9,21 @@ afterEach(cleanup)
 const COUNCIL = '컴퓨터학부 학생회'
 
 function show(trail = trailOf('events', COUNCIL, eventTrail('신입생 환영회', '업무'))) {
-  render(<WorkspaceHeader crumbs={trail.crumbs} title={trail.title} onMenu={() => {}} />)
+  render(
+    <WorkspaceHeader width="full" crumbs={trail.crumbs} title={trail.title} onMenu={() => {}} />,
+  )
   const banner = screen.getByRole('banner')
   const path = within(banner).getByRole('list', { name: '경로' })
   return { banner, path, items: within(path).getAllByRole('listitem') }
 }
 
-// 와이어프레임 사이드바 v6.2 머리글(OPS-TASK-01·EVT-02): 높이 h-16, 남은 폭을 다 쓰고 왼쪽에 붙는다.
+// 머리글 배경은 끝까지, 내용은 본문과 같은 가운데 틀에 둔다(DEC-101).
 // 제목이 두 줄이 되는 휴대폰에서는 그만큼 높아지므로 최소 높이다.
-test('머리글은 높이가 h-16부터이고 가운데로 모으지 않는다', () => {
+test('머리글은 높이가 h-16부터이고 안쪽 틀을 가운데 둔다', () => {
   const { banner } = show()
   expect(banner.className.split(' ')).toContain('min-h-16')
-  const all = [banner, ...banner.querySelectorAll('*')]
-  expect(all.some(node => /\bmx-auto\b|\bmax-w-/.test(node.getAttribute('class') ?? ''))).toBe(
-    false,
-  )
+  expect(banner.className).not.toContain('max-w-')
+  expect(banner.firstElementChild?.className).toContain('mx-auto')
 })
 
 test('경로 줄은 제목 위에 있고 칸을 > 아이콘으로 잇는다', () => {

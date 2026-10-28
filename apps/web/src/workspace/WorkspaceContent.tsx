@@ -14,9 +14,11 @@ import TasksPage from '../tasks/TasksPage'
 import type { TaskList } from '../tasks/useTasks'
 import Organization from '../team/Organization'
 import StateMessage from '@/components/StateMessage'
+import { pageFrameClass, type PageWidth } from '@/components/page-width'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { Reading } from '@/lib/use-lost'
+import { cn } from '@/lib/utils'
 import type { Page } from './pages'
 import type { CouncilData } from './useCouncilData'
 
@@ -157,14 +159,20 @@ const EDGE_TO_EDGE = (page: Page) => page === 'council' || page === 'chat'
 // 작업 공간 본문. 학생회를 불러오는 동안과 잃었을 때, 못 불러왔을 때를 보여 주고, 불러왔으면 고른 쪽을 보여 준다.
 export default function WorkspaceContent({
   mainRef,
+  width,
   ...props
-}: Props & { mainRef: Ref<HTMLElement> }) {
+}: Props & { mainRef: Ref<HTMLElement>; width: PageWidth }) {
   return (
     <main
       ref={mainRef}
-      className={`min-h-0 flex-1 overflow-y-auto ${EDGE_TO_EDGE(props.page) ? '' : 'p-4 sm:p-6'}`}
+      className={cn(
+        'min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable',
+        !EDGE_TO_EDGE(props.page) && 'p-4 sm:p-6',
+      )}
     >
-      <Body {...props} />
+      <div className={cn(pageFrameClass(width), EDGE_TO_EDGE(props.page) && 'h-full min-h-0')}>
+        <Body {...props} />
+      </div>
     </main>
   )
 }

@@ -4,7 +4,7 @@ exports[`권한 하나만 있는 사람의 메뉴 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id1_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -97,7 +97,7 @@ exports[`권한 하나만 있는 사람의 메뉴 1`] = `
 
 exports[`목록: 직급 없는 운영진 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id1_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -159,7 +159,7 @@ exports[`목록: 직급 없는 운영진 1`] = `
 
 exports[`목록: 회장 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -297,7 +297,7 @@ exports[`목록: 회장 1`] = `
 
 exports[`목록: 회장단 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -437,7 +437,7 @@ exports[`부서: 없애기 확인 창 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -599,7 +599,7 @@ exports[`부서: 없애기 확인 창 1`] = `
 
 exports[`부서: 제자리 이름 바꾸기 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -735,7 +735,7 @@ exports[`부서: 제자리 이름 바꾸기 1`] = `
 
 exports[`부서: 펼친 부서 추가 칸 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -897,7 +897,7 @@ exports[`불러오는 중 1`] = `
 
 exports[`빈 목록 1`] = `
 "<div>
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id1_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -922,7 +922,7 @@ exports[`확인 대화상자: 내보내기 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">
@@ -1086,7 +1086,7 @@ exports[`확인 대화상자: 회장 넘기기 1`] = `
 "<span data-radix-focus-guard="" tabindex="0" style="outline: none; opacity: 0; position: fixed; pointer-events: none;" data-aria-hidden="true" aria-hidden="true">
 </span>
 <div data-aria-hidden="true" aria-hidden="true">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-wrap items-center gap-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" aria-hidden="true">

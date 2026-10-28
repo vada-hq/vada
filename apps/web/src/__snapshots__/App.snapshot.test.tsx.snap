@@ -278,7 +278,8 @@ exports[`작업 공간: 대화 방 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-none flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -306,8 +307,10 @@ exports[`작업 공간: 대화 방 1`] = `
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto ">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-none h-full min-h-0">
 <div class="flex h-full min-h-0 min-w-0">
 <div class="min-w-0 flex-1">
 <div class="flex h-full min-h-0 flex-col bg-gray-50">
@@ -401,6 +404,7 @@ exports[`작업 공간: 대화 방 1`] = `
 </button>
 </div>
 </form>
+</div>
 </div>
 </div>
 </div>
@@ -573,7 +577,8 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-none flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -601,12 +606,14 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto ">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-none h-full min-h-0">
 <div class="flex h-full min-h-0 min-w-0">
 <div class="min-w-0 flex-1">
 <div class="p-4 sm:p-6">
-<div class="w-full max-w-5xl flex flex-col gap-5">
+<div class="w-full flex flex-col gap-5">
 <ul aria-label="대화방" class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y">
 <li>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer justify-center border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 h-auto w-full flex-col items-stretch gap-1 rounded-none px-4 py-3 text-left font-normal whitespace-normal aria-[current=true]:bg-accent">
@@ -671,6 +678,7 @@ exports[`작업 공간: 대화 방 목록 1`] = `
 </li>
 </ul>
 </section>
+</div>
 </div>
 </div>
 </div>
@@ -845,7 +853,8 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -884,9 +893,11 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 </line>
 </svg>구성원 초대</button>
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -1003,6 +1014,7 @@ exports[`작업 공간: 옆 메뉴를 연 휴대폰 폭 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
 </div>
 </div>
 </div>
@@ -1345,7 +1357,8 @@ exports[`작업 공간: 조직 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1384,9 +1397,11 @@ exports[`작업 공간: 조직 1`] = `
 </line>
 </svg>구성원 초대</button>
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -1503,6 +1518,7 @@ exports[`작업 공간: 조직 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
 </div>
 </div>
 </div>
@@ -1676,7 +1692,8 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -1715,9 +1732,11 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 </line>
 </svg>구성원 초대</button>
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="w-full max-w-7xl flex flex-col gap-4">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
 <div class="@container flex flex-col gap-4">
 <section aria-labelledby="_id3_" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col">
 <div class="flex min-h-11 items-center gap-2 border-b px-4 py-1.5">
@@ -1834,6 +1853,7 @@ exports[`작업 공간: 조직의 구성원 초대 창 1`] = `
 <path d="M12 5v14">
 </path>
 </svg>부서 추가</button>
+</div>
 </div>
 </div>
 </div>
@@ -2051,7 +2071,8 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -2072,9 +2093,12 @@ exports[`작업 공간: 학생회를 불러오는 중 1`] = `
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
 <p role="status" class="text-sm wrap-anywhere text-gray-500">학생회 불러오는 중…</p>
+</div>
 </main>
 </div>
 </div>
@@ -2232,7 +2256,8 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -2253,11 +2278,14 @@ exports[`작업 공간: 학생회를 불러오지 못함 1`] = `
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3 p-6">
 <p role="alert" class="text-sm wrap-anywhere text-destructive">학생회를 불러오지 못했어요. 연결을 확인해 주세요.</p>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 self-start">다시 시도</button>
+</div>
 </div>
 </main>
 </div>
@@ -2427,7 +2455,8 @@ exports[`작업 공간: 홈 1`] = `
 </div>
 </aside>
 <div class="flex min-w-0 flex-1 flex-col">
-<header class="flex min-h-16 shrink-0 items-center gap-4 border-b bg-white px-4 py-2 sm:px-6">
+<header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
+<div class="mx-auto w-full max-w-7xl flex items-center gap-4">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 md:hidden" aria-label="메뉴 열기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true">
 <path d="M4 5h16">
@@ -2448,9 +2477,11 @@ exports[`작업 공간: 홈 1`] = `
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
+</div>
 </header>
-<main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<main class="min-h-0 flex-1 overflow-y-auto md:scrollbar-gutter-stable p-4 sm:p-6">
+<div class="mx-auto w-full max-w-7xl">
+<div class="w-full flex flex-col gap-4">
 <div class="flex flex-col gap-6">
 <div class="empty:hidden">
 </div>
@@ -2517,6 +2548,7 @@ exports[`작업 공간: 홈 1`] = `
 </section>
 </div>
 <div class="flex min-w-0 flex-col gap-6">
+</div>
 </div>
 </div>
 </div>

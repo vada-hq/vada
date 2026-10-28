@@ -2,7 +2,7 @@
 
 exports[`권한 없음: 보기만 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -95,7 +95,7 @@ exports[`권한 없음: 보기만 1`] = `
 
 exports[`성공 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -200,7 +200,7 @@ exports[`성공 1`] = `
 
 exports[`오류: 권한을 잃음 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -305,7 +305,7 @@ exports[`오류: 권한을 잃음 1`] = `
 
 exports[`오류: 임기 시작 전 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -410,7 +410,7 @@ exports[`오류: 임기 시작 전 1`] = `
 
 exports[`임기 순서 오류 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -515,7 +515,7 @@ exports[`임기 순서 오류 1`] = `
 
 exports[`입력 전: 회장단 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>
@@ -619,7 +619,7 @@ exports[`입력 전: 회장단 1`] = `
 
 exports[`진행 중 1`] = `
 "<div>
-<div class="w-full max-w-5xl flex flex-col gap-4">
+<div class="w-full flex flex-col gap-4">
 <div role="tablist" aria-label="설정 보기" class="flex flex-wrap border-b">
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="true">학생회 정보</button>
 <button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground max-sm:min-h-11" aria-selected="false">계좌</button>

@@ -52,7 +52,7 @@ export default function Organization({
   const messages = [...new Set([people.pageMessage, departments.problemIn('list')])].filter(Boolean)
   return (
     // 부서 카드 격자라 업무 보드처럼 넓게 쓴다. 1600px 창에서 부서 넷이 한 줄에 선다.
-    <PageColumn width="max-w-7xl">
+    <PageColumn>
       {people.can('invite.manage') && (
         <Invite councilId={view.council.id} onForbidden={onCouncilChanged} />
       )}

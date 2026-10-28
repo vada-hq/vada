@@ -1,13 +1,16 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft, Ellipsis, Plus } from 'lucide-react'
-import type { EventDetail } from '@vada/contracts'
+import type { EventDetail, RecordKind } from '@vada/contracts'
 import PageActions, { PageActionsProvider } from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
+import { pageFrameClass } from '@/components/page-width'
 import { PageTrailProvider, type PageTrail } from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { EventHeader } from '@/events/EventHeader'
-import { eventTrail, trailOf, type Page } from '../workspace/pages'
+import { eventTrail, pageWidthOf, trailOf, type Page } from '../workspace/pages'
 import WorkspaceHeader from '../workspace/WorkspaceHeader'
 import { detail, headerHandlers, tabs } from './EventSections'
 import { Section } from './GallerySection'
@@ -23,6 +26,7 @@ type Sample = {
   key: string
   page: Page
   council: string
+  record?: RecordKind
   // 화면이 넘길 더 깊은 칸. 본문(body)이 PageHeading으로 넘기면 그것이 먼저다.
   deeper?: PageTrail
   action?: ReactNode
@@ -35,9 +39,11 @@ function SampleHeader({ sample }: { sample: Sample }) {
   const [slot, setSlot] = useState<HTMLDivElement | null>(null)
   const [sent, setSent] = useState<PageTrail | null>(null)
   const trail = trailOf(sample.page, sample.council, sent ?? sample.deeper ?? null)
+  const width = pageWidthOf(sample.page, sample.record)
   return (
     <div className="flex flex-col border bg-gray-50">
       <WorkspaceHeader
+        width={width}
         crumbs={trail.crumbs}
         title={trail.title}
         onMenu={noop}
@@ -46,13 +52,48 @@ function SampleHeader({ sample }: { sample: Sample }) {
       <PageActionsProvider value={slot}>
         {sample.action && <PageActions>{sample.action}</PageActions>}
         <PageTrailProvider value={setSent}>
-          <div className="p-4 sm:p-6">
-            <PageColumn>
-              {sample.body ?? <Card className="p-4 text-sm">본문 첫 줄</Card>}
-            </PageColumn>
+          <div className="overflow-y-auto p-4 sm:p-6 md:scrollbar-gutter-stable">
+            <div className={pageFrameClass(width)}>
+              <PageColumn>{sample.body ?? <SampleBody page={sample.page} />}</PageColumn>
+            </div>
           </div>
         </PageTrailProvider>
       </PageActionsProvider>
+    </div>
+  )
+}
+
+// 내용을 바꾸지 않고 화면별 폭과 첫 카드의 정렬을 살피는 자리 견본이다.
+function SampleBody({ page }: { page: Page }) {
+  if (page === 'settings')
+    return (
+      <Card className="flex flex-col gap-4 p-4">
+        <Field label="학생회 이름">
+          <Input defaultValue={COUNCIL} readOnly />
+        </Field>
+        <Field label="학교">
+          <Input defaultValue="한양대학교 ERICA" readOnly />
+        </Field>
+      </Card>
+    )
+  const labels =
+    page === 'tasks'
+      ? ['할 일', '진행 중', '끝남']
+      : page === 'finance'
+        ? ['예산', '지출', '잔액']
+        : page === 'people'
+          ? ['회장단', '기획부', '재정부']
+          : page === 'events'
+            ? ['행사 대화방', '메시지']
+            : ['내 업무', '다가오는 행사', '받은 요청']
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {labels.map(label => (
+        <Card key={label} className="flex min-h-32 flex-col gap-4 p-4">
+          <h3 className="text-sm break-keep">{label}</h3>
+          {page === 'tasks' && <Card className="p-3 text-sm">현수막 주문</Card>}
+        </Card>
+      ))}
     </div>
   )
 }
@@ -82,13 +123,16 @@ const SAMPLES: Sample[] = [
   {
     key: '행사 업무 탭',
     page: 'events',
+    record: 'events',
     council: COUNCIL,
     deeper: eventTrail(SPORTS_DAY, '업무'),
     action: history,
+    body: <SampleBody page="tasks" />,
   },
   {
     key: '긴 학생회 이름과 긴 행사명',
     page: 'events',
+    record: 'events',
     council: LONG_COUNCIL,
     deeper: eventTrail(longName, '인원 관리'),
     action: history,
@@ -97,6 +141,7 @@ const SAMPLES: Sample[] = [
     key: '행사 목록(행동 단추)',
     page: 'events',
     council: COUNCIL,
+    body: <Card className="p-4 text-sm">신입생 환영회</Card>,
     action: (
       <Button>
         <Plus aria-hidden />새 행사
@@ -106,6 +151,7 @@ const SAMPLES: Sample[] = [
   {
     key: '실제 행사 화면 · 후속 정리 중(완료 가능)',
     page: 'events',
+    record: 'events',
     council: COUNCIL,
     body: (
       <EventPageBody
@@ -124,6 +170,7 @@ const SAMPLES: Sample[] = [
   {
     key: '실제 행사 화면 · 완료(완료 사유)',
     page: 'events',
+    record: 'events',
     council: COUNCIL,
     body: (
       <EventPageBody
@@ -147,10 +194,22 @@ const SAMPLES: Sample[] = [
       />
     ),
   },
+  {
+    key: '행사 메시지 탭',
+    page: 'events',
+    record: 'events',
+    council: COUNCIL,
+    deeper: eventTrail(SPORTS_DAY, '메시지'),
+    action: history,
+  },
+  { key: '재정', page: 'finance', council: COUNCIL },
+  { key: '조직', page: 'people', council: COUNCIL },
+  { key: '업무 보드', page: 'tasks', council: COUNCIL },
+  { key: '학생회 정보 설정', page: 'settings', council: COUNCIL },
 ]
 
-// 머리글 경로 줄(028 조각 4, 와이어프레임 사이드바 v6.2 OPS-TASK-01·EVT-02 머리글): h-16부터, 왼쪽에 붙음,
-// 작은 회색 경로 줄(학생회 이름이 맨 앞, 마지막 칸만 진함), 제목, 오른쪽 행동 칸. 1280px 창의 머리글 폭(옆 메뉴 240px을 뺀 1040px)과 390px 창.
+// 머리글과 본문은 같은 폭으로 가운데에 둔다(DEC-101). 높이·경로·제목·행동은 DEC-96 그대로다.
+// 1280·1920px 창은 옆 메뉴 240px을 뺀 1040·1680px, 휴대폰은 390px로 본다.
 // 휴대폰 모양(제목 두 줄, [≡])은 창 폭으로 갈리므로 좁은 창에서 열어 본다.
 export function HeaderSection() {
   return (
@@ -158,6 +217,9 @@ export function HeaderSection() {
       {SAMPLES.map(sample => (
         <div key={sample.key} className="flex w-full flex-col gap-2">
           <Width label={`1280px 창 · ${sample.key}`} className="w-260 shrink-0">
+            <SampleHeader sample={sample} />
+          </Width>
+          <Width label={`1920px 창 · ${sample.key}`} className="w-420 shrink-0">
             <SampleHeader sample={sample} />
           </Width>
           <Width label={`390px 창 · ${sample.key}`} className="w-97.5 max-w-full shrink-0">
