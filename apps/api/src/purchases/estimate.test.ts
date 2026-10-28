@@ -18,7 +18,7 @@ test(
     const saved = await detailOf(await s.api.get(`${s.base}/${request.id}`, 's-financeMember'))
     assert.deepEqual(saved.estimate, request.estimate)
     const list = (await (
-      await s.api.get(`${s.base}?view=all`, 's-plain')
+      await s.api.get(`${s.base}?view=all`, 's-planningMember')
     ).json()) as PurchaseRequestsResponse
     assert.deepEqual(list.requests[0]!.estimate, request.estimate)
     assert.equal(list.requests[0]!.bodyPreview, '음료 준비 요청')

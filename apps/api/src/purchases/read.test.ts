@@ -6,6 +6,7 @@ import type {
   PurchaseStatus,
 } from '@vada/contracts'
 import { createRecord } from '../records/records.js'
+import { purchaseProgressOf } from '@vada/contracts'
 import {
   detailOf,
   errorOf,
@@ -54,6 +55,7 @@ test(
         payable: false,
         estimate: { subtotal: null, total: null },
         bodyPreview: null,
+        progress: { decided: false, paid: false, partlyPaid: false, hasShipment: false },
         createdAt: undefined,
       },
     )
@@ -209,9 +211,17 @@ test(
       })
       return expense
     })
-    const detail: PurchaseRequestDetail = await read(s, request.id, 's-plain')
+    const detail: PurchaseRequestDetail = await read(s, request.id, 's-president')
     assert.equal(detail.body, '회의용')
     assert.equal(detail.status, 'pending')
+    assert.deepEqual(detail.progress, purchaseProgressOf(detail))
+    assert.deepEqual(detail.progress, {
+      decided: false,
+      paid: false,
+      partlyPaid: true,
+      hasShipment: false,
+    })
+    assert.deepEqual((await list(s, 'view=all')).requests[0]!.progress, detail.progress)
     assert.deepEqual(
       detail.items.map(item => [item.name, item.status, item.amount, item.paid]),
       [
@@ -242,10 +252,16 @@ test(
       'purchase_request.decide',
     ])
     // 취소된 지출은 '결제함'이 아니다.
+    await s.decide(request.items[2]!.id, 'rejected')
+    const paid = await read(s, request.id)
+    assert.equal(paid.progress?.paid, true)
+    assert.deepEqual(paid.progress, purchaseProgressOf(paid))
     await s.pg.query('UPDATE expense SET cancelled_at = now() WHERE id = $1', [expenseId])
-    const after = await read(s, request.id, 's-plain')
+    const after = await read(s, request.id, 's-president')
     assert.equal(after.items[0]!.paid, false)
     assert.equal(after.expenses[0]!.cancelled, true)
+    assert.equal(after.progress?.paid, false)
+    assert.deepEqual(after.progress, purchaseProgressOf(after))
   }),
 )
 

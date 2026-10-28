@@ -1,10 +1,4 @@
-import {
-  DAY_MS,
-  koreanDateOf,
-  type LineItemStatus,
-  type PurchaseStatus,
-  type PurchaseView,
-} from '@vada/contracts'
+import { DAY_MS, koreanDateOf, type LineItemStatus, type PurchaseStatus } from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
@@ -35,19 +29,6 @@ export const ITEM_STATUS_TONE: Record<LineItemStatus, Tone> = {
   approved: 'success',
   rejected: 'danger',
   cancelled: 'neutral',
-}
-
-export const VIEW_LABEL: Record<PurchaseView, string> = {
-  mine: '내 요청',
-  pending: '결재 대기',
-  all: '전체',
-  department: '부서 구매',
-}
-export const VIEW_EMPTY: Record<PurchaseView, string> = {
-  mine: '내 구매 요청 없음',
-  pending: '결재 대기 요청 없음',
-  all: '구매 요청 없음',
-  department: '부서 구매 요청 없음',
 }
 
 export const neededByLabel = (neededBy: string | null) =>

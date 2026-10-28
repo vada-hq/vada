@@ -108,7 +108,7 @@ function addCancelItemRoute({ routes, auth, clock, push, db }: WriteKit) {
   )
 }
 
-// 구매 요청: 모든 운영진이 본다(DEC-27 기준 1, PRIN-5). 내는 것도 모든 운영진이고, 취소는 요청한 사람만이다.
+// 구매 요청: 부원은 본인 요청만 읽는다(메뉴 v7 S2 사용자 지시). 내기는 모든 운영진, 취소는 요청한 사람만이다.
 export function createPurchaseRoutes(
   db: Db,
   getSession: SessionReader,

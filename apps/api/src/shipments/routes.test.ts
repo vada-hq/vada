@@ -58,7 +58,7 @@ test('송장·품목은 다대다이며 고치기·취소는 이전 연결과 �
       true,
     )
     assert.equal(
-      (await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-plain'))).canAddShipment,
+      (await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-president'))).canAddShipment,
       false,
     )
     assert.equal(first.createdBy?.id, s.council.people.financeMember.memberId)
@@ -90,11 +90,11 @@ test('송장·품목은 다대다이며 고치기·취소는 이전 연결과 �
     assert.equal(versions.rows[1]?.changed_by, s.council.people.planningMember.memberId)
     assert.equal(versions.rows[2]?.reason, '주문 취소')
     assert.equal((await s.api.post(`${p.path}/${first.id}`, input(p.ids), FINANCE)).status, 409)
-    const detail = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-plain'))
+    const detail = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-president'))
     assert.equal(detail.shipments.length, 2)
     assert.ok(detail.shipments.find(v => v.id === first.id)?.cancelledAt)
     await markLeft(s.pg, s.council.people.financeMember.memberId, '2026-10-26T03:00:00Z')
-    const left = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-plain'))
+    const left = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-president'))
     assert.match(left.shipments.find(v => v.id === first.id)!.createdBy!.name, /떠난 운영진/)
   }))
 
@@ -111,7 +111,7 @@ test('변경은 재정·요청자만 가능하고 다른 학생회·요청의 �
     )
     const another = await s.made()
     for (const user of ['s-plain', 's-president', 's-planningHead', 'o-financeMember', undefined]) {
-      const status = user ? 403 : 401
+      const status = user === 's-plain' ? 404 : user ? 403 : 401
       assert.equal((await s.api.post(p.path, input(p.ids), user)).status, status)
       assert.equal((await s.api.post(`${p.path}/${own.id}`, input(p.ids), user)).status, status)
       assert.equal(
@@ -132,6 +132,7 @@ test('변경은 재정·요청자만 가능하고 다른 학생회·요청의 �
       404,
     )
     assert.equal((await s.api.get(`${p.path}/${own.id}/tracking`)).status, 401)
+    assert.equal((await s.api.get(`${p.path}/${own.id}/tracking`, 's-plain')).status, 404)
     assert.equal(
       (await s.api.get(`${root(s, elsewhere.id)}/${own.id}/tracking`, FINANCE)).status,
       404,
@@ -238,7 +239,7 @@ test('조회 실패도 200과 링크를 주고 업체 원문을 로그·Sentry�
   try {
     const p = await prepared(s)
     const shipment = await shipmentOf(await s.api.post(p.path, input(p.ids), REQUESTER))
-    const response = await s.api.get(`${p.path}/${shipment.id}/tracking`, 's-plain')
+    const response = await s.api.get(`${p.path}/${shipment.id}/tracking`, 's-president')
     assert.equal(response.status, 200)
     const data = (await response.json()) as ShipmentTrackingResponse
     assert.equal(data.reason, 'provider_failed')
@@ -256,14 +257,22 @@ test('조회 키가 없어도 상세는 배송 줄을 주고 조회는 200 not_c
   run(async s => {
     const p = await prepared(s)
     const shipment = await shipmentOf(await s.api.post(p.path, input(p.ids), REQUESTER))
-    const detail = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-plain'))
+    const detail = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-president'))
     assert.equal(detail.shipments[0]?.editable, false)
-    const response = await s.api.get(`${p.path}/${shipment.id}/tracking`, 's-plain')
+    assert.equal(detail.progress?.hasShipment, true)
+    const response = await s.api.get(`${p.path}/${shipment.id}/tracking`, 's-president')
     assert.equal(response.status, 200)
     const data = (await response.json()) as ShipmentTrackingResponse
     assert.equal(data.reason, 'not_configured')
     assert.equal(data.lastEvent, null)
     assert.match(data.trackingUrl, /^https:/)
+    assert.equal(
+      (await s.api.post(`${p.path}/${shipment.id}/cancel`, { reason: '주문 취소' }, REQUESTER))
+        .status,
+      200,
+    )
+    const cancelled = await detailOf(await s.api.get(`${s.base}/${p.request.id}`, 's-president'))
+    assert.equal(cancelled.progress?.hasShipment, false)
   }))
 
 test('상세는 업체를 부르지 않고 조회 성공만 송장별 10분 동안 공유한다', async () => {
@@ -283,10 +292,10 @@ test('상세는 업체를 부르지 않고 조회 성공만 송장별 10분 동�
     const p = await prepared(s)
     const first = await shipmentOf(await s.api.post(p.path, input(p.ids), REQUESTER))
     const second = await shipmentOf(await s.api.post(p.path, input([p.ids[0]!]), FINANCE))
-    await s.api.get(`${s.base}/${p.request.id}`, 's-plain')
+    await s.api.get(`${s.base}/${p.request.id}`, 's-president')
     assert.equal(calls.length, 0)
     for (const id of [first.id, second.id]) {
-      const response = await s.api.get(`${p.path}/${id}/tracking`, 's-plain')
+      const response = await s.api.get(`${p.path}/${id}/tracking`, 's-president')
       assert.equal(response.status, 200)
       const data = (await response.json()) as ShipmentTrackingResponse
       assert.deepEqual(data.lastEvent, lastEvent)
@@ -294,10 +303,10 @@ test('상세는 업체를 부르지 않고 조회 성공만 송장별 10분 동�
     }
     assert.deepEqual(calls, [{ carrierId: 'kr.coupangls', trackingNumber: '1234567890' }])
     s.setNow(new Date('2026-10-25T03:10:00Z'))
-    await s.api.get(`${p.path}/${first.id}/tracking`, 's-plain')
+    await s.api.get(`${p.path}/${first.id}/tracking`, 's-president')
     assert.equal(calls.length, 2)
     await s.api.post(`${p.path}/${first.id}/cancel`, { reason: '취소' }, REQUESTER)
-    const cancelled = await s.api.get(`${p.path}/${first.id}/tracking`, 's-plain')
+    const cancelled = await s.api.get(`${p.path}/${first.id}/tracking`, 's-president')
     assert.equal(((await cancelled.json()) as ShipmentTrackingResponse).reason, 'cancelled')
     assert.equal(calls.length, 2)
   } finally {

@@ -45,7 +45,7 @@ const detail = (items: PurchaseLineItem[], extra: Partial<PurchaseRequestDetail>
 
 function setup(first: PurchaseRequestDetail) {
   const api = mockApi()
-  api.on('GET', `${BASE}?view=mine`, () =>
+  api.on('GET', `${BASE}?view=pending`, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
   let reads = 0

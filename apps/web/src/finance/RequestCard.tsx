@@ -1,10 +1,11 @@
-import type { PurchaseRequestSummary } from '@vada/contracts'
+import { purchaseStageOf, type PurchaseRequestSummary } from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { neededByLabel, wonLabel, type NeededMark } from './purchase-view'
 import { StatusBadge } from './StatusBadge'
 import { dayLabel } from '@/lib/korean-date-text'
+import { RequestProgress } from './RequestProgress'
 
 function NeededBy({ date, mark }: { date: string | null; mark: NeededMark }) {
   if (!date) return null
@@ -29,15 +30,16 @@ export default function RequestCard({
   onOpen: () => void
 }) {
   return (
-    <Card className="flex flex-col gap-2 p-4">
+    <Card className="flex flex-col gap-2 p-4 break-keep">
       <div className="flex items-start gap-2">
         <h2 className="min-w-0 flex-1">
           <Button
+            touch
             variant="link"
-            className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere"
+            className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep"
             onClick={onOpen}
           >
-            {request.title}
+            <span className="line-clamp-2 sm:line-clamp-1">{request.title}</span>
           </Button>
         </h2>
         <StatusBadge status={request.status} />
@@ -59,6 +61,12 @@ export default function RequestCard({
       {request.bodyPreview && (
         <p className="text-xs wrap-anywhere text-gray-600">{request.bodyPreview}</p>
       )}
+      <CardProgress request={request} />
     </Card>
   )
+}
+
+function CardProgress({ request }: { request: PurchaseRequestSummary }) {
+  if (!request.progress || purchaseStageOf(request) === 'closed') return null
+  return <RequestProgress request={request} />
 }

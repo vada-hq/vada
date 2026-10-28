@@ -64,6 +64,7 @@ test('옆 메뉴 재정을 누르면 재정 화면이 열린다', async () => {
 })
 
 test('재정부가 요청을 내도 옆 메뉴는 결재 대기를 읽지 않는다', async () => {
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
   const api = open({ finance: true, pending: pending(2), startPage: 'purchases' })
   api.on('POST', `${base}/purchase-requests`, () => json({ request: purchaseDetail() }, 201))
   fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))

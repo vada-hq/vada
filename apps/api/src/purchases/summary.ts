@@ -1,7 +1,18 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm'
-import type { PurchaseRequestSummary } from '@vada/contracts'
+import { purchaseProgressOf, type PurchaseRequestSummary } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { event, expense, lineItem, member, paymentLine, record, request } from '../db/schema.js'
+import {
+  event,
+  expense,
+  lineItem,
+  member,
+  paymentLine,
+  record,
+  request,
+  shipment,
+} from '../db/schema.js'
+import { allows } from '../access/permissions.js'
+import { lastOutcomeOf } from './last-outcome.js'
 import type { Db } from '../db/types.js'
 import { joinedDisplayNameOf } from '../team/display-name.js'
 import { estimateColumns } from './estimate.js'
@@ -31,19 +42,33 @@ export function summaryRows(
       createdAt: record.createdAt,
       ...itemCountColumns(),
       ...estimateColumns(),
+      paidApproved:
+        sql<number>`count(*) filter (where ${lastOutcomeOf(lineItem.id)} = 'approved' and ${isPaid})`.mapWith(
+          Number,
+        ),
+      hasShipment:
+        sql<boolean>`exists (select 1 from ${shipment} where ${shipment.requestId} = ${request.id} and ${shipment.cancelledAt} is null)`.mapWith(
+          Boolean,
+        ),
     })
     .from(request)
     .innerJoin(record, eq(record.id, request.id))
     .innerJoin(member, eq(member.id, request.requestedBy))
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
     .leftJoin(event, eq(event.id, request.eventId))
-    .where(and(eq(record.councilId, actor.councilId), options.where))
+    .where(and(eq(record.councilId, actor.councilId), requestVisibility(actor), options.where))
     .groupBy(request.id, record.id, member.id, event.id)
     .having(options.having)
     .orderBy(...options.order)
     .limit(options.limit)
 }
 export type PurchaseSummaryRow = Awaited<ReturnType<typeof summaryRows>>[number]
+
+// 부원은 주소나 보기 값을 바꾸어도 남의 요청을 읽을 수 없다(메뉴 v7 S2 사용자 지시).
+const requestVisibility = (actor: Actor) =>
+  allows(actor, { who: ['finance', 'leadership', 'any_department_head'] })
+    ? undefined
+    : eq(request.requestedBy, actor.memberId)
 
 const statusOfRow = (row: PurchaseSummaryRow) => requestStatusOf(row.cancelledAt !== null, row)
 
@@ -64,6 +89,7 @@ export function summaryOf(row: PurchaseSummaryRow, payable: boolean): PurchaseRe
     payable,
     estimate: { subtotal: row.estimatedSubtotal, total: row.estimatedTotal },
     bodyPreview: firstLine ? Array.from(firstLine).slice(0, BODY_PREVIEW_MAX).join('') : null,
+    progress: purchaseProgressOf(row),
   }
 }
 

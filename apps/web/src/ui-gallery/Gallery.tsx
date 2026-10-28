@@ -74,6 +74,7 @@ import { CouncilEntrySection } from './CouncilEntrySections'
 import { JoinSection, MyNameSection } from './JoinSections'
 import { ProductPanelSection } from './ProductSections'
 import { PurchaseRequestSection } from './PurchaseRequestSections'
+import { PurchasesSection } from './PurchasesSections'
 import { WithdrawSection } from './WithdrawSections'
 import { OrgInviteSection, OrgSection } from './OrgSections'
 import { DepartmentColorSection } from './DepartmentColorSections'
@@ -138,6 +139,7 @@ export const gallerySections = [
   ApplicantRowSection,
   EventApplicantsSection,
   FinanceSection,
+  PurchasesSection,
   OverviewSection,
   DecisionSection,
   DecisionPanelSection,

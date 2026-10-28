@@ -8,7 +8,7 @@ import { COUNCIL_ID } from './workspace-at'
 export { COUNCIL_ID }
 
 // 작업 공간이 하는 일 하나: 주소가 기록이면 그 기록을 열고 시작하는 새 페이지로 그린다.
-// 재정은 개요, 구매는 내 요청을 기본으로 열고, 기록 주소에서도 실제 메뉴를 고른다.
+// 재정은 개요, 구매는 역할별 기본 보기를 열고, 기록 주소에서도 실제 메뉴를 고른다.
 export function FinanceAt(props: ComponentProps<typeof FinancePage>) {
   if (window.location.pathname === '/')
     window.history.replaceState(null, '', `/finance/${COUNCIL_ID}`)

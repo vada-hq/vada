@@ -178,16 +178,16 @@ test('행사 정산 탭은 주소로 열리고, 줄을 누르면 그 행사의 �
   expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=settlements`)
 })
 
-test('요청 거르기가 주소에 남고 내 요청으로 돌아오면 주소에서 빠진다', async () => {
+test('역할별 기본값과 관계없이 고른 요청 보기를 주소에 남긴다', async () => {
   startAt(`/purchases/${COUNCIL_ID}?view=all`)
   const pressed = async (name: string) =>
     (await screen.findByRole('button', { name })).getAttribute('aria-pressed')
-  expect(await pressed('전체')).toBe('true')
+  expect(await pressed('전체 요청')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
   await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=pending`))
   expect(await pressed('결재 대기')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '내 요청' }))
-  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}`))
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=mine`))
 })
 
 test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열린다', async () => {
@@ -231,9 +231,11 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${R1}`)
   expect(push).toHaveBeenCalledTimes(1)
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect(screen.queryByRole('button', { name: '전체' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '전체 요청' })).toBeNull()
   await backFromRequest()
-  expect(screen.getByRole('button', { name: '전체' }).getAttribute('aria-pressed')).toBe('true')
+  expect(screen.getByRole('button', { name: '전체 요청' }).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
   expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
 })
@@ -344,9 +346,9 @@ test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404)
   expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
   await backFromRequest()
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
-  expect((await screen.findByRole('button', { name: '전체' })).getAttribute('aria-pressed')).toBe(
-    'true',
-  )
+  expect(
+    (await screen.findByRole('button', { name: '전체 요청' })).getAttribute('aria-pressed'),
+  ).toBe('true')
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 

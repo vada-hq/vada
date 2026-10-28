@@ -1,5 +1,13 @@
 import { z } from 'zod'
 import type { PurchaseShipment } from './shipments.js'
+import type { PurchaseProgress } from './purchase-progress.js'
+export {
+  PURCHASE_STAGES,
+  purchaseProgressOf,
+  purchaseStageOf,
+  type PurchaseProgress,
+  type PurchaseStage,
+} from './purchase-progress.js'
 import { WON_MAX, type EventRef } from './budget.js'
 import { EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
@@ -25,10 +33,10 @@ export const PURCHASE_RECENT_LIMIT = 100
 
 export const PURCHASE_VIEWS = ['mine', 'pending', 'all', 'department'] as const
 export type PurchaseView = (typeof PURCHASE_VIEWS)[number]
-// 행사를 주면 그 행사에 이은 요청만 준다.
+// none은 행사 없는 요청, UUID는 그 행사에 이은 요청만 준다.
 export const PurchaseRequestListQuerySchema = z.strictObject({
   view: z.enum(PURCHASE_VIEWS),
-  event: recordIdInput.optional(),
+  event: z.union([z.literal('none'), recordIdInput]).optional(),
 })
 export type PurchaseRequestListQuery = z.infer<typeof PurchaseRequestListQuerySchema>
 
@@ -143,6 +151,8 @@ export interface PurchaseRequestSummary {
   // 예상 가격은 승인 금액·약정과 별개다. 옛 클라이언트/저장된 응답에는 없을 수 있다.
   estimate?: PurchaseEstimate
   bodyPreview?: string | null
+  // 목록과 상세 진행 막대가 같은 실제 품목·결제·송장 기록으로 센다.
+  progress?: PurchaseProgress
 }
 
 export interface PurchaseLineItem {

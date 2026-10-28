@@ -24,7 +24,7 @@ const confirmButton = async () => {
 }
 
 const BASE = `/api/organizations/${COUNCIL_ID}/purchase-requests`
-const LIST = `${BASE}?view=mine`
+const LIST = `${BASE}?view=all`
 
 function setup(detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')) {
   const api = mockApi()

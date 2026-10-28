@@ -1,6 +1,6 @@
 import { HOME_VIEWS } from './home.js'
 import { isUuid } from './input.js'
-import { PURCHASE_VIEWS } from './purchases.js'
+import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
 import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
 
 // 화면 주소의 원문(기능 016). 서버 진입 목록(web.ts), 알림 주소(push.ts), 화면 해석기가 모두 이것만 쓴다.
@@ -104,6 +104,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   purchases: {
     compose: { values: ['new'], fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: null },
+    scope: { values: 'uuid', also: ['none'], fallback: null },
+    stage: { values: PURCHASE_STAGES, fallback: null },
   },
   finance: {
     compose: { values: ['new'], fallback: null },

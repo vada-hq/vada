@@ -27,7 +27,7 @@ const DONE = '00000000-0000-4000-8000-0000000000e2'
 function setup(tab: string, budget = budgetWithPeriod()) {
   const api = mockApi()
   api.on('GET', `${ORG}/members`, () => json({ members: [], departments: [] }))
-  api.on('GET', `${ORG}/purchase-requests?view=mine`, () =>
+  api.on('GET', `${ORG}/purchase-requests?view=pending`, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
   api.on('GET', `${ORG}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001`, () =>

@@ -65,10 +65,12 @@ export async function requestListOf(
   actor: Actor,
   query: PurchaseRequestListQuery,
 ): Promise<PurchaseRequestsResponse> {
+  if (query.event && query.event !== 'none') await eventRowOf(db, actor, query.event)
   if (query.view === 'department') {
-    if (query.event) await eventRowOf(db, actor, query.event)
     const requests = (await departmentRequestsOf(db, actor)).filter(
-      row => !query.event || row.event?.id === query.event,
+      row =>
+        !query.event ||
+        (query.event === 'none' ? row.event === null : row.event?.id === query.event),
     )
     return {
       requests: requests.slice(0, PURCHASE_RECENT_LIMIT),
@@ -76,9 +78,13 @@ export async function requestListOf(
     }
   }
   const options = listOptions(actor, query.view)
-  // 다른 학생회 행사는 없는 것과 같아 404다.
-  if (query.event) await eventRowOf(db, actor, query.event)
-  const where = query.event ? and(options.where, eq(request.eventId, query.event)) : options.where
+  const eventWhere =
+    query.event === 'none'
+      ? isNull(request.eventId)
+      : query.event
+        ? eq(request.eventId, query.event)
+        : undefined
+  const where = and(options.where, eventWhere)
   const rows = await summaryRows(db, actor, { ...options, where, limit: options.limit + 1 })
   const shown = rows.slice(0, options.limit)
   const payable = await payableRequestIds(db, shown)
