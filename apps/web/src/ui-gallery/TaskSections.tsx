@@ -5,6 +5,7 @@ import { departmentColorOf } from '@/tasks/department-color'
 import { TaskBoard } from '@/tasks/TaskBoard'
 import { TaskCard } from '@/tasks/TaskCard'
 import { QuickAddView } from '@/tasks/TaskQuickAdd'
+import { TaskCreatePreview } from '@/tasks/TaskCreatePreview'
 import { TaskRow } from '@/tasks/TaskRow'
 import { TaskTable } from '@/tasks/TaskTable'
 import { TaskUndoBar } from '@/tasks/TaskUndoBar'
@@ -175,25 +176,37 @@ export function TaskUndoBarSection() {
 export function TaskQuickAddSection() {
   return (
     <Section title="업무 빠른 추가">
-      <div className="flex w-96 flex-col gap-6">
-        <QuickAddView title="" onTitle={noop} onSubmit={noop} onOpenTask={noop} />
-        <QuickAddView
-          title="청소"
-          onTitle={noop}
-          onSubmit={noop}
-          onOpenTask={noop}
-          busy
-          hiddenId="t1"
-        />
-        <QuickAddView
-          title=""
-          onTitle={noop}
-          onSubmit={noop}
-          onOpenTask={noop}
-          error="제목을 입력해 주세요"
-          problem="너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요."
-        />
-      </div>
+      <TaskCreatePreview>
+        {open => (
+          <div className="flex w-96 flex-col gap-6">
+            <QuickAddView
+              title=""
+              onTitle={noop}
+              onSubmit={noop}
+              onOpenTask={noop}
+              onDetails={() => open('')}
+            />
+            <QuickAddView
+              title="청소"
+              onTitle={noop}
+              onSubmit={noop}
+              onOpenTask={noop}
+              onDetails={() => open('청소')}
+              busy
+              hiddenId="t1"
+            />
+            <QuickAddView
+              title=""
+              onTitle={noop}
+              onSubmit={noop}
+              onOpenTask={noop}
+              onDetails={() => open('')}
+              error="제목을 입력해 주세요"
+              problem="너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요."
+            />
+          </div>
+        )}
+      </TaskCreatePreview>
     </Section>
   )
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { type CouncilView, type EventSummary } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -12,6 +11,8 @@ import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskListBody, type TableSetup } from './TaskListBody'
 import { TaskQuickAdd } from './TaskQuickAdd'
+import { TaskCreateEntry } from './TaskCreateDialog'
+import { useTaskCreateEntry } from './useTaskCreateEntry'
 import { TaskDeleteConfirm } from './TaskDeleteConfirm'
 import { TaskPanel } from './TaskPanel'
 import { TaskTabs } from './TaskTabs'
@@ -189,17 +190,6 @@ function TasksBody({
   return <TaskListBody list={list} table={table} filter={controls.filter} {...rows} />
 }
 
-// 빈 보드의 [첫 업무 추가]는 업무 추가 창(026 조각 9) 전까지 빠른 추가 칸에 초점을 둔다. 만들 수 있는 사람에게만 있다.
-function useFirstAdd() {
-  const [available, setAvailable] = useState(false)
-  const [request, setRequest] = useState(0)
-  return {
-    request,
-    onAvailable: setAvailable,
-    onAddFirst: available ? () => setRequest(count => count + 1) : undefined,
-  }
-}
-
 function undoNoticesOf(page: ReturnType<typeof useTasksPage>, councilId: string) {
   const { dialogs } = page
   const eventNotice = page.eventUndo.bar ? (
@@ -222,14 +212,24 @@ function undoNoticesOf(page: ReturnType<typeof useTasksPage>, councilId: string)
 // 옆 메뉴는 학생회 업무·내 업무 두 탭이고, 행사 안에서는 같은 목록을 행사로 좁힌다.
 function CouncilTasksPage(props: Props) {
   const page = useTasksPage(props)
-  const first = useFirstAdd()
   const { controls, dialogs, changed, rows } = page
   const { view, filter, layout } = controls
+  const taskView = controls.assignee === 'none' ? 'unassigned' : view
+  const entry = useTaskCreateEntry(
+    { view: props.view, taskView, dept: controls.dept, eventId: props.eventId },
+    props.onForbidden,
+  )
   const notices = undoNoticesOf(page, props.view.council.id)
   // 빠른 추가는 보드나 표이고 끝나지 않은 업무를 볼 때만 있다. 넓은 화면의 보드는 거르기 없이 늘 끝나지 않은 업무를 담는다.
   const adding = layout !== 'calendar' && (page.board || filter === 'open')
   return (
     <PageColumn>
+      <TaskCreateEntry
+        entry={entry}
+        onCreated={changed}
+        onOpenTask={rows.onOpenTask}
+        onForbidden={props.onForbidden}
+      />
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       <TaskPanel
         view={props.view}
@@ -265,19 +265,26 @@ function CouncilTasksPage(props: Props) {
       {adding && (
         <TaskQuickAdd
           view={props.view}
-          taskView={controls.assignee === 'none' ? 'unassigned' : view}
+          taskView={taskView}
           dept={controls.dept}
           eventId={props.eventId}
           autoFocus={props.initialCreate}
-          focusRequest={first.request}
-          onAvailable={first.onAvailable}
+          options={entry.options}
+          title={entry.title}
+          onTitle={entry.setTitle}
+          detailsOpen={entry.initial !== null}
+          onDetails={() => entry.open({ title: entry.title })}
           onCreated={changed}
           onForbidden={props.onForbidden}
           onOpenTask={rows.onOpenTask}
         />
       )}
       <div role={props.eventId ? undefined : 'tabpanel'} className="flex flex-col gap-3">
-        <TasksBody page={page} councilId={props.view.council.id} onAddFirst={first.onAddFirst} />
+        <TasksBody
+          page={page}
+          councilId={props.view.council.id}
+          onAddFirst={entry.available ? () => entry.open() : undefined}
+        />
       </div>
       {notices.inPage}
     </PageColumn>

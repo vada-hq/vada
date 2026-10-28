@@ -2,11 +2,12 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { councilView } from '@/test-support/council-fixtures'
-import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
+import { EVENT_ID, MEMBER, eventSummary } from '@/test-support/event-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
+import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 
 const base = `/api/organizations/${COUNCIL_ID}`
 const path = (filter = 'open', event = '') =>
@@ -36,8 +37,11 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=mine`)
 })
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // 만든 뒤 여는 업무 주소가 닫힌 창의 기록 이동(history.go) 뒤에 쓰이므로, 그 이동이 끝난 뒤 다음 시험을 시작한다.
+  await windowHistoryIdle()
+  resetWindowHistory()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
   vi.useRealTimers()
@@ -262,4 +266,54 @@ test('앞 범위의 늦은 404는 새로 고른 범위를 풀지 않는다', asy
   late.resolve(json({ error: 'NOT_FOUND' }, 404))
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(new URLSearchParams(window.location.search).get('scope')).toBe(EVENT_ID)
+})
+
+test('내 업무의 머리에서 만들면 담당자는 나이고 범위 거르기로 행사를 채우지 않는다', async () => {
+  const api = mockApi()
+  api.on('GET', path(), () => json({ tasks: [], truncated: false }))
+  api.on('GET', path('done'), () => json({ tasks: [], truncated: false }))
+  api.on('GET', `${base}/events`, () => json({ events: [], truncated: false }))
+  api.on('GET', `${base}/tasks/options`, () =>
+    json({
+      departments: [
+        {
+          id: null,
+          name: null,
+          assignees: [
+            { id: null, name: null },
+            { id: MEMBER.m1, name: '김회장' },
+          ],
+        },
+      ],
+      linkableEvents: [],
+    }),
+  )
+  const onChanged = vi.fn()
+  render(
+    <TasksPage
+      view={councilView(COUNCIL_ID, { memberId: MEMBER.m1 })}
+      onForbidden={() => {}}
+      onChanged={onChanged}
+    />,
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '업무 추가' }))
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: /^담당자/ }).value).toBe(MEMBER.m1)
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: /^행사/ }).value).toBe('')
+  api.on('POST', `${base}/tasks`, () => json({ task: taskDetail() }, 201))
+  fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), { target: { value: '내 업무' } })
+  fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+  await waitFor(() => expect(onChanged).toHaveBeenCalledOnce())
+  expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+    assigneeId: MEMBER.m1,
+    eventId: null,
+  })
+  expect(api.calls.filter(call => call.path === path()).length).toBeGreaterThan(1)
+})
+
+test('내 업무에서 서버 만들기 선택지가 비어도 목록은 보인다', async () => {
+  setup([rows[0]!], '?tab=mine', [], api => {
+    api.on('GET', `${base}/tasks/options`, () => json({ departments: [], linkableEvents: [] }))
+  })
+  expect(await screen.findByRole('button', { name: '간식 구매' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '업무 추가' })).toBeNull()
 })

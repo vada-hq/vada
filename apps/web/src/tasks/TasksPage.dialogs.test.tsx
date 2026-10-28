@@ -11,9 +11,13 @@ import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { useHere } from '@/lib/app-location'
 import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import TasksPage from './TasksPage'
+import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // 만든 뒤 여는 업무 주소가 닫힌 창의 기록 이동(history.go) 뒤에 쓰이므로, 그 이동이 끝난 뒤 다음 시험을 시작한다.
+  await windowHistoryIdle()
+  resetWindowHistory()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
@@ -53,7 +57,10 @@ function setup() {
   api.on('GET', `${BASE}/${T1}`, () => json({ task: taskDetail({ id: T1 }) }))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', `${BASE}/options`, () =>
-    json({ departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }] }),
+    json({
+      departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }],
+      linkableEvents: [],
+    }),
   )
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
     json({ events: [], truncated: false }),
@@ -90,6 +97,35 @@ test('빠른 추가로 만들면 목록과 수를 다시 읽는다', async () =>
   fireEvent.click(screen.getByRole('button', { name: '추가' }))
   await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledTimes(1))
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
+})
+
+test('머리에서 제목만으로 만들면 목록·수를 다시 읽고 추가 창 대신 새 업무 패널을 연다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
+  const { api, handlers, reads } = setup()
+  api.on('POST', BASE, () => json({ task: taskDetail({ id: T1 }) }, 201))
+  fireEvent.click(await screen.findByRole('button', { name: '업무 추가' }))
+  const dialog = await screen.findByRole('dialog', { name: '업무 추가' })
+  for (const name of ['업무 정의', '담당·일정', '연결 맥락'])
+    expect(within(dialog).getByRole('region', { name })).toBeTruthy()
+  expect(within(dialog).getByRole<HTMLSelectElement>('combobox', { name: /^행사/ }).value).toBe('')
+  fireEvent.change(within(dialog).getByRole('textbox', { name: /^제목/ }), {
+    target: { value: '현수막 주문' },
+  })
+  const before = reads()
+  fireEvent.click(within(dialog).getByRole('button', { name: '업무 추가' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledOnce())
+  await waitFor(() => expect(reads()).toBeGreaterThan(before))
+  await waitFor(() => expect(window.location.pathname).toBe(`/tasks/${COUNCIL_ID}/${T1}`))
+  await screen.findByText('크기는 3m로 해 주세요.')
+  expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull()
+  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    title: '현수막 주문',
+    body: null,
+    dueDate: null,
+    departmentId: null,
+    assigneeId: null,
+    eventId: null,
+  })
 })
 
 test('바꾸는 중 업무가 지워지면(404) 대화상자를 닫고 이유를 만들기 옆에 보인다', async () => {

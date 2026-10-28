@@ -10,7 +10,8 @@ import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { createRequest, emptyFields, TASK_CONTRACT_MESSAGES, taskErrors } from './task-fields'
 import { defaultPlacement, visibleInView, type QuickAddContext } from './task-defaults'
 import { useTaskCreate } from './useTaskCreate'
-import { useTaskOptions, type TaskOptionsState } from './useTaskOptions'
+import type { useTaskOptions, TaskOptionsState } from './useTaskOptions'
+import { TASK_CREATE_TEXT } from './task-text'
 
 type Props = {
   view: CouncilView
@@ -20,10 +21,11 @@ type Props = {
   eventId?: string | undefined
   // 행사 개요의 [업무 만들기]로 왔을 때 칸에 초점을 둔다.
   autoFocus?: boolean | undefined
-  // 늘 때마다 칸에 초점을 둔다(보드 빈 상태의 [첫 업무 추가]).
-  focusRequest?: number | undefined
-  // 이 사람이 여기서 만들 수 있는지(선택지를 읽은 뒤). 빈 상태가 [첫 업무 추가]를 보일지 정한다.
-  onAvailable?: ((available: boolean) => void) | undefined
+  options: ReturnType<typeof useTaskOptions>
+  title: string
+  onTitle: (title: string) => void
+  detailsOpen: boolean
+  onDetails: () => void
   // 만들었다. 부모가 목록과 수를 다시 읽는다.
   onCreated: () => void
   onForbidden: () => void
@@ -44,10 +46,8 @@ function Hidden({ taskId, onOpen }: { taskId: string; onOpen: (taskId: string) =
 
 // 칸의 글, 서버 선택지로 정한 자리, 만들기 요청, 만든 뒤 지금 보기에 없는 업무.
 function useQuickAdd(props: Props) {
-  const { view, taskView, dept, eventId, onForbidden } = props
+  const { view, taskView, dept, eventId, onForbidden, options, title, onTitle: setTitle } = props
   const councilId = view.council.id
-  const options = useTaskOptions(councilId, eventId, onForbidden)
-  const [title, setTitle] = useState('')
   const [hidden, setHidden] = useState<string | null>(null)
   const context: QuickAddContext = { view, taskView, dept, eventId }
   const placement =
@@ -58,7 +58,8 @@ function useQuickAdd(props: Props) {
     placement?.assigneeId ?? null,
     eventId ?? null,
   )
-  const settle = useUnsavedInput(title !== '')
+  // 창으로 넘긴 제목은 창의 초기값이다. 빠른 추가의 지킴까지 함께 걸면 고치지 않고 닫아도 묻게 된다.
+  const settle = useUnsavedInput(title !== '' && !props.detailsOpen)
   // 만들 때마다 늘어, 화면이 칸에 초점을 되돌린다.
   const [created, setCreated] = useState(0)
   const create = useTaskCreate(councilId, request, {
@@ -106,6 +107,7 @@ type ViewProps = {
   // 만든 업무가 지금 보기에 없을 때 그 업무
   hiddenId?: string | null
   onOpenTask: (taskId: string) => void
+  onDetails?: (() => void) | undefined
   formEl?: Ref<HTMLFormElement>
 }
 
@@ -120,6 +122,7 @@ export function QuickAddView({
   problem,
   hiddenId,
   onOpenTask,
+  onDetails,
 }: ViewProps) {
   return (
     <form
@@ -134,11 +137,27 @@ export function QuickAddView({
     >
       <div className="flex items-start gap-2">
         <Field label="새 업무" className="min-w-0 flex-1" error={error}>
-          <Input value={title} onChange={event => onTitle(event.target.value)} />
+          <Input
+            className="max-sm:min-h-11"
+            value={title}
+            onChange={event => onTitle(event.target.value)}
+          />
         </Field>
-        <Button type="submit" className="mt-6" busy={busy ?? false}>
+        <Button type="submit" touch className="mt-6" busy={busy ?? false}>
           추가
         </Button>
+        {onDetails && (
+          <Button
+            type="button"
+            variant="ghost"
+            touch
+            className="mt-6"
+            busy={busy ?? false}
+            onClick={onDetails}
+          >
+            {TASK_CREATE_TEXT.details}
+          </Button>
+        )}
       </div>
       {problem && <StateMessage kind="error">{problem}</StateMessage>}
       {hiddenId && <Hidden taskId={hiddenId} onOpen={onOpenTask} />}
@@ -150,15 +169,11 @@ export function QuickAddView({
 // 만든 뒤 칸은 비고 초점은 남아 이어서 만든다.
 export function TaskQuickAdd(props: Props) {
   const add = useQuickAdd(props)
-  const { formRef, created, ready, unavailable } = add
-  const { autoFocus, focusRequest = 0, onAvailable } = props
+  const { formRef, created } = add
+  const { autoFocus } = props
   useEffect(() => {
-    if (autoFocus || created > 0 || focusRequest > 0)
-      formRef.current?.querySelector('input')?.focus()
-  }, [autoFocus, created, focusRequest, formRef])
-  useEffect(() => {
-    onAvailable?.(ready && !unavailable)
-  }, [onAvailable, ready, unavailable])
+    if (autoFocus || created > 0) formRef.current?.querySelector('input')?.focus()
+  }, [autoFocus, created, formRef])
   if (add.unavailable) return null
   return (
     <QuickAddView
@@ -170,6 +185,7 @@ export function TaskQuickAdd(props: Props) {
       problem={add.create.problem}
       hiddenId={add.hidden}
       onOpenTask={props.onOpenTask}
+      onDetails={add.ready && !add.unavailable ? props.onDetails : undefined}
       formEl={formRef}
     />
   )

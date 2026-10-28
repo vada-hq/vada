@@ -7,6 +7,22 @@ const UNKNOWN_PERSON = '알 수 없는 사람'
 const UNKNOWN_EVENT = '알 수 없는 행사'
 const REMOVED_DEPARTMENT = '없앤 부서'
 
+export const TASK_CREATE_TEXT = {
+  title: '업무 추가',
+  definition: '업무 정의',
+  assignment: '담당·일정',
+  context: '연결 맥락',
+  taskTitle: '제목',
+  body: '설명',
+  department: '담당 부서',
+  assignee: '담당자',
+  dueDate: '마감',
+  event: '행사',
+  details: '자세히',
+  close: '닫기',
+  currentEvent: '현재 행사',
+} as const
+
 // 거르기 전에도 업무가 없으면 useBoardEmpty가 보드의 빈 상태 문구를 고른다.
 const VIEW_EMPTY: Record<TaskView, string> = {
   mine: '내 업무 없음',

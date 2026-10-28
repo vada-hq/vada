@@ -2,16 +2,21 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { TaskCreateOptionsResponse, TaskSummary } from '@vada/contracts'
-import { PERMISSION_CHANGED, TASK_ERRORS } from '@/lib/messages'
+import LeaveConfirm from '@/components/LeaveConfirm'
+import { LEAVE_TITLE, PERMISSION_CHANGED, TASK_ERRORS } from '@/lib/messages'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
+import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // 만든 뒤 여는 업무 주소가 닫힌 창의 기록 이동(history.go) 뒤에 쓰이므로, 그 이동이 끝난 뒤 다음 시험을 시작한다.
+  await windowHistoryIdle()
+  resetWindowHistory()
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
 })
@@ -55,6 +60,9 @@ const empty = () => json({ tasks: [] as TaskSummary[], truncated: false })
 function setup(options: TaskCreateOptionsResponse | null = memberOptions, view = member()) {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=council`)
   const api = mockApi()
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
   api.on('GET', `${BASE}?view=all&status=open&event=none`, empty)
   for (const tab of ['mine', 'department', 'all', 'unassigned'])
     api.on('GET', `${BASE}?view=${tab}&status=open`, empty)
@@ -210,4 +218,39 @@ test('선택지를 읽지 못했으면 누를 때 이유를 보인다', async ()
   await add('청소')
   expect((await screen.findByRole('alert')).textContent).toMatch(/불러오지 못했어요/)
   expect(posts()).toHaveLength(0)
+})
+
+test('[자세히]는 제목을 넘기며 고치지 않고 닫으면 묻지 않고 빠른 추가의 제목을 남긴다', async () => {
+  const { api } = setup()
+  render(<LeaveConfirm />)
+  const input = await screen.findByRole<HTMLInputElement>('textbox', { name: '새 업무' })
+  fireEvent.change(input, { target: { value: '포스터' } })
+  fireEvent.click(await screen.findByRole('button', { name: '자세히' }))
+  expect(screen.getByRole<HTMLInputElement>('textbox', { name: /^제목/ }).value).toBe('포스터')
+  fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull())
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(input.value).toBe('포스터')
+  expect(api.calls.filter(call => call.path === `${BASE}/options`)).toHaveLength(1)
+})
+
+test('[자세히]에서 만들면 빠른 추가의 글을 비우고 새 업무 주소를 연다', async () => {
+  const { posts, handlers } = setup()
+  const input = await screen.findByRole<HTMLInputElement>('textbox', { name: '새 업무' })
+  fireEvent.change(input, { target: { value: '포스터' } })
+  fireEvent.click(await screen.findByRole('button', { name: '자세히' }))
+  fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+  await waitFor(() => expect(handlers.onChanged).toHaveBeenCalledOnce())
+  await waitFor(() => expect(input.value).toBe(''))
+  await waitFor(() => expect(window.location.pathname).toBe(`/tasks/${COUNCIL_ID}/${made.id}`))
+  expect(posts()[0]?.body).toMatchObject({ title: '포스터', departmentId: D1, assigneeId: M2 })
+})
+
+test('서버 선택지가 비었으면 만들기 단추만 없고 목록 읽기는 남는다', async () => {
+  setup({ departments: [], linkableEvents: [] })
+  await settle()
+  expect(screen.queryByRole('button', { name: '업무 추가' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '자세히' })).toBeNull()
+  expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull()
+  expect(await screen.findByText('끝나지 않은 업무 없음')).toBeTruthy()
 })

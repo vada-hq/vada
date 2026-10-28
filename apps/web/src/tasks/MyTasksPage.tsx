@@ -10,6 +10,8 @@ import { MY_TASK_EVENTS_FAILED } from './my-tasks-text'
 import { MyTasksView } from './MyTasksView'
 import { TaskDeleteConfirm } from './TaskDeleteConfirm'
 import { TaskPanel } from './TaskPanel'
+import { TaskCreateEntry } from './TaskCreateDialog'
+import { useTaskCreateEntry } from './useTaskCreateEntry'
 import { TaskTabs } from './TaskTabs'
 import { useStatusChange } from './useStatusChange'
 import type { useTaskControls } from './useTaskControls'
@@ -38,6 +40,10 @@ function useLostScope(controls: Props['controls'], lists: ReturnType<typeof useT
 
 export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChanged }: Props) {
   const councilId = view.council.id
+  const entry = useTaskCreateEntry(
+    { view, taskView: 'mine', dept: null, eventId: undefined },
+    onForbidden,
+  )
   const [search, setSearch] = useState('')
   const dialogs = useRecordDialogs(initialTaskId)
   const opened = useTaskOpeners(councilId, false)
@@ -58,9 +64,7 @@ export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChan
     onChanged()
     await Promise.all([open.reload(), done.reload()])
   }
-  const changed = () => {
-    void reload()
-  }
+  const changed = () => void reload()
   const lost = (message: string) => {
     dialogs.lose(message)
     changed()
@@ -73,6 +77,12 @@ export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChan
   }
   return (
     <PageColumn className="min-w-0">
+      <TaskCreateEntry
+        entry={entry}
+        onCreated={changed}
+        onOpenTask={opened.openTask}
+        onForbidden={onForbidden}
+      />
       {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       <TaskPanel
         view={view}

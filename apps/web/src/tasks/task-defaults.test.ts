@@ -1,7 +1,12 @@
 import { expect, test } from 'vitest'
 import type { TaskCreateOptionsResponse, TaskView } from '@vada/contracts'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { defaultPlacement, visibleInView, type QuickAddContext } from './task-defaults'
+import {
+  defaultPlacement,
+  selectAssignee,
+  visibleInView,
+  type QuickAddContext,
+} from './task-defaults'
 
 const person = (id: string) => ({ id, name: id })
 const NONE = { id: null, name: null }
@@ -38,6 +43,14 @@ const context = (taskView: TaskView, extra: Partial<QuickAddContext> = {}): Quic
   dept: null,
   eventId: undefined,
   ...extra,
+})
+
+test('부서 담당자를 다시 고를 때 기존 값·나·첫 선택지 순서를 지킨다', () => {
+  const choices = [NONE, person('m1'), person('m2')]
+  expect(selectAssignee(choices, 'm2', 'm1')).toBe('m2')
+  expect(selectAssignee(choices, null, 'm1')).toBeNull()
+  expect(selectAssignee(choices, '떠난 사람', 'm1')).toBe('m1')
+  expect(selectAssignee([person('m2')], '떠난 사람', 'm1')).toBe('m2')
 })
 
 test('내 업무: 담당자는 나, 부서는 내 부서', () => {

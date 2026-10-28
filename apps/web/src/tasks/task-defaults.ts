@@ -16,6 +16,17 @@ const NO_DEPT = 'none'
 
 export type Placement = { departmentId: string | null; assigneeId: string | null }
 
+// 부서를 바꿔도 고른 사람이 있으면 남기고, 없으면 나, 없으면 서버의 첫 선택지다.
+export function selectAssignee(
+  assignees: TaskCreateOptionsResponse['departments'][number]['assignees'],
+  wanted: string | null,
+  me: string,
+): string | null {
+  if (assignees.some(item => item.id === wanted)) return wanted
+  if (assignees.some(item => item.id === me)) return me
+  return assignees[0]?.id ?? null
+}
+
 // 보는 곳에서 바라는 부서: 부서 거르기, 회장단이면 학생회 업무, 그 밖은 내 부서 가운데 부장인 부서 먼저 첫 것.
 function wantedDepartment({ view, dept }: QuickAddContext): string | null {
   if (dept !== null) return dept === NO_DEPT ? null : dept
@@ -47,12 +58,7 @@ export function defaultPlacement(
   if (!department) return null
   const me = context.view.me.memberId
   const wantedAssignee = context.taskView === 'mine' ? me : null
-  const has = (id: string | null) => department.assignees.some(item => item.id === id)
-  const assigneeId = has(wantedAssignee)
-    ? wantedAssignee
-    : has(me)
-      ? me
-      : (department.assignees[0]?.id ?? null)
+  const assigneeId = selectAssignee(department.assignees, wantedAssignee, me)
   return { departmentId: department.id, assigneeId }
 }
 

@@ -200,7 +200,7 @@ test('끝나지 않은 목록이 넘치면 그 열의 수 뒤에 +가 있다', a
 
 const allPath = (status: string) => `${base}?view=all&status=${status}`
 
-test('업무가 없으면 보드 위에 빈 상태와 빈 열이 있고, [첫 업무 추가]는 새 업무 칸에 초점을 둔다', async () => {
+test('업무가 없으면 보드 위에 빈 상태와 빈 열이 있고, [첫 업무 추가]는 창을 연다', async () => {
   serve([])
   api.on('GET', allPath('open'), () => list([]))
   api.on('GET', allPath('done'), () => list([]))
@@ -208,7 +208,8 @@ test('업무가 없으면 보드 위에 빈 상태와 빈 열이 있고, [첫 �
   expect(await screen.findByText('업무 없음')).toBeTruthy()
   for (const name of ['할 일', '진행 중', '끝남']) expect(cards(await column(name))).toHaveLength(0)
   fireEvent.click(await screen.findByRole('button', { name: '첫 업무 추가' }))
-  expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '새 업무' }))
+  const dialog = await screen.findByRole('dialog', { name: '업무 추가' })
+  expect(within(dialog).getByRole('textbox', { name: /^제목/ })).toBeTruthy()
 })
 
 test('학생회에 업무가 있는데 이 보기에서 비면 그 보기의 빈 문구이고 [첫 업무 추가]가 없다', async () => {
@@ -220,6 +221,43 @@ test('학생회에 업무가 있는데 이 보기에서 비면 그 보기의 빈
   expect(await screen.findByText('내 업무 없음')).toBeTruthy()
   expect(screen.queryByText('업무 없음')).toBeNull()
   expect(screen.queryByRole('button', { name: '첫 업무 추가' })).toBeNull()
+})
+
+test('만들기 선택지가 비어도 빈 보드와 세 열은 그대로 보인다', async () => {
+  serve([])
+  api.on('GET', `${base}/options`, () => json({ departments: [], linkableEvents: [] }))
+  render(page())
+  expect(await screen.findByText('업무 없음')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '업무 추가' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '첫 업무 추가' })).toBeNull()
+  for (const name of ['할 일', '진행 중', '끝남']) expect(await column(name)).toBeTruthy()
+})
+
+test('행사 달력에서도 머리 [업무 추가]로 그 행사의 업무를 만든다', async () => {
+  serve([], [], EVENT_ID)
+  api.on('GET', `${base}/options?event=${EVENT_ID}`, () =>
+    json({
+      departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }],
+      linkableEvents: [],
+    }),
+  )
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [eventSummary()], truncated: false }),
+  )
+  api.on('POST', base, () => json({ task: task(EVENT_ID) }, 201))
+  render(page(EVENT_ID))
+  fireEvent.click(await screen.findByRole('button', { name: '달력' }))
+  fireEvent.click(await screen.findByRole('button', { name: '업무 추가' }))
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: /^행사/ }).value).toBe(EVENT_ID)
+  fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), {
+    target: { value: '행사 포스터' },
+  })
+  fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+  await waitFor(() =>
+    expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({
+      eventId: EVENT_ID,
+    }),
+  )
 })
 
 test('업무 메뉴는 보드·표를 고르고, 표를 고르면 018 표이며 이 기기에 기억한다', async () => {
