@@ -13,6 +13,7 @@ export type BottomTab = {
 }
 
 // DEC-96: 아이콘 위·글 아래, 아이콘 오른쪽 위 수 배지. 바닥 안전 영역은 본문과 같은 유틸리티로 예약한다.
+// 배지는 아이콘에 6px만 걸치고 옆 여백을 좁혀, 360 폭 다섯 칸에서도 '99+'가 아이콘을 덮거나 옆 칸으로 넘지 않는다.
 export function BottomTabs({
   items,
   className,
@@ -39,7 +40,7 @@ export function BottomTabs({
           >
             <span className="relative">
               <Icon aria-hidden className="size-5" />
-              {badge && <span className="absolute -top-1 left-full">{badge}</span>}
+              {badge && <span className="absolute -top-1.5 left-full -ml-1.5 *:px-1">{badge}</span>}
             </span>
             <span>{label}</span>
           </button>
