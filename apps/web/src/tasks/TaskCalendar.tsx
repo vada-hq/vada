@@ -30,12 +30,14 @@ type Props = {
   onOpenTask: (taskId: string) => void
   onOpenEvent?: ((eventId: string) => void) | undefined
   initialDate?: string | undefined
+  schedule?: boolean
+  today?: string | undefined
 }
 
 // 행사 일시는 한국 시각 글이다. 늦게 읽혀도 첫 화면에 반영하되 사람이 고른 월·날짜는 재조회가 덮지 않는다.
 // 달을 옮기면 그 달에 오늘이 있으면 오늘, 없으면 1일을 고른다.
-function useCalendarState(initialDate: string | undefined) {
-  const [today] = useState(() => koreanDateOf(new Date()))
+function useCalendarState(initialDate: string | undefined, referenceDay: string | undefined) {
+  const [today] = useState(() => referenceDay ?? koreanDateOf(new Date()))
   const initialDay = initialDate?.slice(0, KOREAN_DATE_LENGTH) ?? today
   const [navigation, setNavigation] = useState<{ month: string; selected: string } | null>(null)
   const month = navigation?.month ?? monthOf(initialDay)
@@ -53,31 +55,33 @@ function MonthBar({
   onGo,
   onToday,
   onUndated,
+  schedule,
 }: {
   month: string
   undated: number
   onGo: (by: number) => void
   onToday: () => void
   onUndated: () => void
+  schedule: boolean
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div className="flex items-center gap-1">
-        <Button size="icon" variant="ghost" aria-label="이전 달" onClick={() => onGo(-1)}>
+        <Button size="icon" variant="ghost" touch aria-label="이전 달" onClick={() => onGo(-1)}>
           <ChevronLeft />
         </Button>
         <h2 className="min-w-28 text-center text-base font-semibold text-gray-900">
           {monthLabel(month)}
         </h2>
-        <Button size="icon" variant="ghost" aria-label="다음 달" onClick={() => onGo(1)}>
+        <Button size="icon" variant="ghost" touch aria-label="다음 달" onClick={() => onGo(1)}>
           <ChevronRight />
         </Button>
-        <Button size="sm" variant="outline" className="ml-1" onClick={onToday}>
+        <Button size="sm" variant="outline" touch className="ml-1" onClick={onToday}>
           오늘
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <CalendarLegend />
+        <CalendarLegend schedule={schedule} />
         {undated > 0 && (
           <Button size="sm" variant="ghost" onClick={onUndated}>
             마감 없음 {undated}
@@ -110,8 +114,17 @@ function WeekdayHeader() {
 
 // 업무 화면의 달력 보기: 월 달력(행사는 여러 날 막대, 업무는 마감날의 제목) 아래에 고른 날의 줄 목록을 둔다.
 // 달력은 한 달의 흐름을, 아래 목록은 그날의 자세한 내용과 동작을 맡는다(휴대폰은 칸에 점만 보인다).
-export function TaskCalendar({ tasks, events, row, onOpenTask, onOpenEvent, initialDate }: Props) {
-  const { today, month, selected, setSelected, go } = useCalendarState(initialDate)
+export function TaskCalendar({
+  tasks,
+  events,
+  row,
+  onOpenTask,
+  onOpenEvent,
+  initialDate,
+  schedule = false,
+  today: referenceDay,
+}: Props) {
+  const { today, month, selected, setSelected, go } = useCalendarState(initialDate, referenceDay)
   const listRef = useRef<HTMLDivElement>(null)
   const byDay = useMemo(() => tasksByDay(tasks), [tasks])
   const undated = tasks.filter(task => task.dueDate === null)
@@ -129,6 +142,7 @@ export function TaskCalendar({ tasks, events, row, onOpenTask, onOpenEvent, init
         onGo={by => go(shiftMonth(month, by))}
         onToday={() => go(monthOf(today))}
         onUndated={() => pick('none')}
+        schedule={schedule}
       />
       <div className={cn(cardClass, 'overflow-hidden')}>
         <WeekdayHeader />
@@ -145,6 +159,7 @@ export function TaskCalendar({ tasks, events, row, onOpenTask, onOpenEvent, init
             onSelect={pick}
             onOpenTask={onOpenTask}
             onOpenEvent={onOpenEvent}
+            schedule={schedule}
           />
         ))}
       </div>

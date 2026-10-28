@@ -34,16 +34,24 @@ const nav = () => screen.findByRole('navigation', { name: '학생회 메뉴' })
 const topItems = async () =>
   within(await nav())
     .getAllByRole('button')
-    .slice(0, 5)
+    .slice(0, 6)
 
-test('최상위 차례가 홈 · 대화 · 업무 · 재정 · 조직이고 아이콘이 집, 말풍선, 클립보드, 막대그래프, 사람들이다', async () => {
+test('최상위 차례가 홈 · 대화 · 업무 · 캘린더 · 재정 · 조직이며 아이콘도 같은 차례다', async () => {
   open()
   const items = await topItems()
-  expect(items.map(item => item.textContent)).toEqual(['홈', '대화', '업무', '재정', '조직'])
+  expect(items.map(item => item.textContent)).toEqual([
+    '홈',
+    '대화',
+    '업무',
+    '캘린더',
+    '재정',
+    '조직',
+  ])
   expect(items.map(item => item.querySelector('svg')?.getAttribute('class'))).toEqual([
     expect.stringContaining('lucide-house'),
     expect.stringContaining('lucide-message-square'),
     expect.stringContaining('lucide-clipboard'),
+    expect.stringContaining('lucide-calendar-days'),
     expect.stringContaining('lucide-chart-no-axes-column'),
     expect.stringContaining('lucide-users'),
   ])
@@ -138,8 +146,15 @@ test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   const items = within(within(sheet).getByRole('navigation', { name: '학생회 메뉴' }))
     .getAllByRole('button')
-    .slice(0, 5)
-  expect(items.map(item => item.textContent)).toEqual(['홈', '대화99+', '업무', '재정', '조직'])
+    .slice(0, 6)
+  expect(items.map(item => item.textContent)).toEqual([
+    '홈',
+    '대화99+',
+    '업무',
+    '캘린더',
+    '재정',
+    '조직',
+  ])
   const head = within(sheet).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   expect(head.className).toContain('pr-12')
   expect(within(sheet).getByRole('button', { name: /^내 이름: 김회장/ })).toBeTruthy()

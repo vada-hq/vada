@@ -377,6 +377,25 @@ test('아직 그리지 않은 캘린더 주소는 업무 달력으로 바꿔 쓴
   expect(push).not.toHaveBeenCalled()
 })
 
+test.each([`/calendar/${C1}`, `/tasks/${C1}?layout=calendar`])(
+  '캘린더를 켜면 %s는 캘린더 본문과 메뉴를 열고 옛 주소를 남기지 않는다',
+  async path => {
+    live.moves = ['calendar']
+    api.on('GET', `/api/organizations/${C1}/tasks?view=all&status=open`, () =>
+      json({ tasks: [], truncated: false }),
+    )
+    api.on('GET', `/api/organizations/${C1}/events`, () => json({ events: [], truncated: false }))
+    window.history.replaceState(null, '', path)
+    const push = pushes()
+    await renderApp()
+    expect(await heading('캘린더')).toBeTruthy()
+    expect(await screen.findByRole('group', { name: '일정 유형' })).toBeTruthy()
+    expect(menu('캘린더').getAttribute('aria-current')).toBe('page')
+    expect(pathNow()).toBe(`/calendar/${C1}`)
+    expect(push).not.toHaveBeenCalled()
+  },
+)
+
 test('아직 그리지 않은 구매 주소는 재정의 구매 요청 탭으로, 마지막 주소도 같이 바꿔 쓴다', async () => {
   window.localStorage.setItem(LAST, `/purchases/${C2}?view=all`)
   await renderApp()

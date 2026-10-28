@@ -22,7 +22,7 @@ type Props = {
   show: RowShow
   busy: boolean
   error?: string | undefined
-  onChangeStatus: (status: TaskStatus) => void
+  onChangeStatus?: ((status: TaskStatus) => void) | undefined
   onOpen: () => void
   onOpenEvent?: ((eventId: string) => void) | undefined
   // 담당자 없는 업무를 줄에서 바로 맡긴다(요구 15). 맡길 권한이 없거나 팀을 읽기 전이면 없다.
@@ -34,7 +34,12 @@ function Meta({ task, show, onOpenEvent }: Pick<Props, 'task' | 'show' | 'onOpen
   const parts = [
     show.department && <span key="department">{task.department?.name ?? COUNCIL_TASK_LABEL}</span>,
     show.event && task.event && (
-      <TaskEventLink key="event" event={task.event} onOpen={onOpenEvent} className="text-xs" />
+      <TaskEventLink
+        key="event"
+        event={task.event}
+        onOpen={onOpenEvent}
+        className="text-xs max-sm:min-h-11"
+      />
     ),
     show.assignee && (
       <span
@@ -97,7 +102,8 @@ function AssignSelect({ task, assign, busy }: Pick<Props, 'task' | 'assign' | 'b
 // 카드 대신 줄로 두어 한 화면에 더 많이 보인다(와이어프레임 MY-01). 할 일 상태는 따로 적지 않는다(버튼 '시작'이 말해 준다).
 export function TaskRow(props: Props) {
   const { task, busy, error } = props
-  const next = task.actions.includes('task.change_status') ? task.next : null
+  const next =
+    props.onChangeStatus && task.actions.includes('task.change_status') ? task.next : null
   return (
     <li className="flex flex-col gap-1 px-4 py-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -105,7 +111,8 @@ export function TaskRow(props: Props) {
           <div className="flex items-center gap-2">
             <Button
               variant="link"
-              className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere"
+              touch
+              className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
               onClick={props.onOpen}
             >
               {task.title}
@@ -123,7 +130,7 @@ export function TaskRow(props: Props) {
             variant="outline"
             className="shrink-0"
             busy={busy}
-            onClick={() => props.onChangeStatus(next)}
+            onClick={() => props.onChangeStatus?.(next)}
           >
             {nextLabel(next)}
           </Button>

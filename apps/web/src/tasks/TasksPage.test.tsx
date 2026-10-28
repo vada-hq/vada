@@ -5,7 +5,7 @@ import type { TaskSummary } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { PUSH_ARRIVED_EVENT } from '@/lib/service-worker'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
-import { eventSummary } from '@/test-support/event-fixtures'
+import { EVENT_ID, eventSummary } from '@/test-support/event-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
 
@@ -206,12 +206,19 @@ test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무�
   expect(rowOf('업무 1').textContent).toContain('김새내')
 })
 
-test('달력은 끝나지 않은 업무와 끝난 업무, 행사를 함께 그리고, 날을 고르면 그날의 행사와 업무를 아래에 보인다', async () => {
+test('행사 업무 달력은 끝나지 않은 업무와 끝난 업무, 행사를 함께 그리고 고른 날 목록을 보인다', async () => {
+  // jsdom에는 스크롤이 없어 날짜 선택과 목록만 확인한다.
+  vi.stubGlobal('requestAnimationFrame', () => 0)
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-25T03:00:00Z'))
+  window.history.replaceState(null, '', `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks`)
   const api = mockApi()
-  api.on('GET', listPath('mine'), () => list([task('a'), task('c', { dueDate: null })]))
-  api.on('GET', listPath('mine', 'done'), () => list([task('b', { status: 'done', actions: [] })]))
+  api.on('GET', `${listPath('all')}&event=${EVENT_ID}`, () =>
+    list([task('a'), task('c', { dueDate: null })]),
+  )
+  api.on('GET', `${listPath('all', 'done')}&event=${EVENT_ID}`, () =>
+    list([task('b', { status: 'done', actions: [] })]),
+  )
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
     json({
       events: [
@@ -220,12 +227,20 @@ test('달력은 끝나지 않은 업무와 끝난 업무, 행사를 함께 그�
       truncated: false,
     }),
   )
-  render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
+  render(
+    <TasksPage
+      view={councilView(COUNCIL_ID)}
+      eventId={EVENT_ID}
+      onForbidden={() => {}}
+      onChanged={() => {}}
+    />,
+  )
   await screen.findByRole('button', { name: '업무 a' })
   fireEvent.click(screen.getByRole('button', { name: '달력' }))
   expect(await screen.findByRole('heading', { name: '2026년 10월' })).toBeTruthy()
-  // 달력에는 거르기가 없다. 오늘이 골라져 있고 그날의 업무가 끝난 것까지 아래에 보인다.
+  // 행사 달력에는 거르기가 없다. 마감날을 고르면 끝난 업무까지 아래에 보인다.
   expect(screen.queryByRole('group', { name: '업무 거르기' })).toBeNull()
+  fireEvent.click(await screen.findByRole('button', { name: '10월 25일 (일) 업무 2개, 행사 0개' }))
   const today = await screen.findByRole('region', { name: '10월 25일 (일)' })
   await within(today).findByRole('button', { name: '업무 b' })
   expect(

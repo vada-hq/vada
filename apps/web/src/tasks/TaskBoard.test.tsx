@@ -221,7 +221,7 @@ test('학생회에 업무가 있는데 이 보기에서 비면 그 보기의 빈
   expect(screen.queryByRole('button', { name: '첫 업무 추가' })).toBeNull()
 })
 
-test('배치 고르기는 보드·표·달력이고, 표를 고르면 018 표이며 이 기기에 기억한다', async () => {
+test('업무 메뉴는 보드·표를 고르고, 표를 고르면 018 표이며 이 기기에 기억한다', async () => {
   serve([task('a')])
   render(page())
   const group = await screen.findByRole('group', { name: '보기 모양' })
@@ -229,7 +229,7 @@ test('배치 고르기는 보드·표·달력이고, 표를 고르면 018 표이
     within(group)
       .getAllByRole('button')
       .map(button => button.textContent),
-  ).toEqual(['보드', '표', '달력'])
+  ).toEqual(['보드', '표'])
   expect(within(group).getByRole('button', { name: '보드' }).getAttribute('aria-pressed')).toBe(
     'true',
   )
@@ -243,6 +243,7 @@ test('행사의 업무 탭도 같은 보드다', async () => {
   window.history.replaceState(null, '', `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks`)
   serve([task('a', { event: { id: EVENT_ID, name: '신입생 환영회' } })], [], EVENT_ID)
   render(page(EVENT_ID))
+  expect(screen.getByRole('button', { name: '달력' })).toBeTruthy()
   const todo = await column('할 일')
   await waitFor(() => expect(cards(todo)).toHaveLength(1))
   expect(todo.textContent).not.toContain('신입생 환영회')

@@ -1,0 +1,587 @@
+<div>
+<section class="flex flex-col gap-3 border-b py-6">
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">캘린더</h2>
+<a href="/ui.html?section=%EC%BA%98%EB%A6%B0%EB%8D%94" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
+<div class="flex flex-wrap items-start gap-3">
+<div class="w-full min-w-0">
+<div class="flex min-w-0 flex-col gap-4 break-keep">
+<div role="group" aria-label="일정 유형" class="flex flex-wrap gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="true">전체</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">행사</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">마감</button>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+<div class="flex items-center gap-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="이전 달">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left" aria-hidden="true">
+<path d="m15 18-6-6 6-6">
+</path>
+</svg>
+</button>
+<h2 class="min-w-28 text-center text-base font-semibold text-gray-900">2026년 10월</h2>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="다음 달">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right" aria-hidden="true">
+<path d="m9 18 6-6-6-6">
+</path>
+</svg>
+</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 ml-1">오늘</button>
+</div>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+<ul class="hidden flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 sm:flex">
+<li class="flex items-center gap-1">
+<span aria-hidden="true" class="h-2 w-4 rounded-sm bg-emerald-200">
+</span>행사</li>
+<li class="flex items-center gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle size-3.5 text-orange-600" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+</svg>마감</li>
+</ul>
+</div>
+</div>
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+<div class="grid grid-cols-7 bg-gray-50 text-center text-xs font-medium text-gray-500">
+<span class="py-2 text-red-600">일</span>
+<span class="py-2">월</span>
+<span class="py-2">화</span>
+<span class="py-2">수</span>
+<span class="py-2">목</span>
+<span class="py-2">금</span>
+<span class="py-2 text-blue-600">토</span>
+</div>
+<div class="relative min-h-16 border-t sm:min-h-24">
+<div class="absolute inset-0 grid grid-cols-7">
+<button type="button" aria-label="9월 27일 (일) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset bg-gray-50/60">
+</button>
+<button type="button" aria-label="9월 28일 (월) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset bg-gray-50/60">
+</button>
+<button type="button" aria-label="9월 29일 (화) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset bg-gray-50/60">
+</button>
+<button type="button" aria-label="9월 30일 (수) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset bg-gray-50/60">
+</button>
+<button type="button" aria-label="10월 1일 (목) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 2일 (금) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 3일 (토) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+</div>
+<div class="pointer-events-none relative grid grid-cols-7 gap-y-1 pt-1 pb-2">
+<div class="col-start-1 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-300">27</span>
+</div>
+<div class="col-start-2 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-300">28</span>
+</div>
+<div class="col-start-3 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-300">29</span>
+</div>
+<div class="col-start-4 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-300">30</span>
+</div>
+<div class="col-start-5 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">1</span>
+</div>
+<div class="col-start-6 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">2</span>
+</div>
+<div class="col-start-7 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-blue-600">3</span>
+</div>
+<div class="col-start-1 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-2 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-3 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-4 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-5 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-6 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-7 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative min-h-16 border-t sm:min-h-24">
+<div class="absolute inset-0 grid grid-cols-7">
+<button type="button" aria-label="10월 4일 (일) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 5일 (월) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 6일 (화) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 7일 (수) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 8일 (목) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 9일 (금) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 10일 (토) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+</div>
+<div class="pointer-events-none relative grid grid-cols-7 gap-y-1 pt-1 pb-2">
+<div class="col-start-1 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-red-600">4</span>
+</div>
+<div class="col-start-2 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">5</span>
+</div>
+<div class="col-start-3 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">6</span>
+</div>
+<div class="col-start-4 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">7</span>
+</div>
+<div class="col-start-5 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">8</span>
+</div>
+<div class="col-start-6 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">9</span>
+</div>
+<div class="col-start-7 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-blue-600">10</span>
+</div>
+<div class="col-start-1 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-2 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-3 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-4 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-5 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-6 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-7 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative min-h-16 border-t sm:min-h-24">
+<div class="absolute inset-0 grid grid-cols-7">
+<button type="button" aria-label="10월 11일 (일) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 12일 (월) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 13일 (화) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 14일 (수) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 15일 (목) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 16일 (금) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 17일 (토) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+</div>
+<div class="pointer-events-none relative grid grid-cols-7 gap-y-1 pt-1 pb-2">
+<div class="col-start-1 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-red-600">11</span>
+</div>
+<div class="col-start-2 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">12</span>
+</div>
+<div class="col-start-3 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">13</span>
+</div>
+<div class="col-start-4 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">14</span>
+</div>
+<div class="col-start-5 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">15</span>
+</div>
+<div class="col-start-6 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">16</span>
+</div>
+<div class="col-start-7 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-blue-600">17</span>
+</div>
+<div class="col-start-1 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-2 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-3 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-4 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-5 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-6 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-7 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative min-h-16 border-t sm:min-h-24">
+<div class="absolute inset-0 grid grid-cols-7">
+<button type="button" aria-label="10월 18일 (일) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 19일 (월) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 20일 (화) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 21일 (수) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 22일 (목) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 23일 (금) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 24일 (토) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+</div>
+<div class="pointer-events-none relative grid grid-cols-7 gap-y-1 pt-1 pb-2">
+<div class="col-start-1 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-red-600">18</span>
+</div>
+<div class="col-start-2 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">19</span>
+</div>
+<div class="col-start-3 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">20</span>
+</div>
+<div class="col-start-4 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">21</span>
+</div>
+<div class="col-start-5 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">22</span>
+</div>
+<div class="col-start-6 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">23</span>
+</div>
+<div class="col-start-7 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-blue-600">24</span>
+</div>
+<div class="col-start-1 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-2 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-3 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-4 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-5 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-6 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-7 row-start-2 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative min-h-16 border-t sm:min-h-24">
+<div class="absolute inset-0 grid grid-cols-7">
+<button type="button" aria-label="10월 25일 (일) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 26일 (월) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 27일 (화) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 28일 (수) 업무 1개, 행사 1개" aria-pressed="true" class="cursor-pointer border-l first:border-l-0 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset bg-blue-50 hover:bg-blue-50">
+</button>
+<button type="button" aria-label="10월 29일 (목) 업무 0개, 행사 1개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 30일 (금) 업무 0개, 행사 1개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+<button type="button" aria-label="10월 31일 (토) 업무 0개, 행사 0개" aria-pressed="false" class="cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
+</button>
+</div>
+<div class="pointer-events-none relative grid grid-cols-7 gap-y-1 pt-1 pb-2">
+<div class="col-start-1 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-red-600">25</span>
+</div>
+<div class="col-start-2 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">26</span>
+</div>
+<div class="col-start-3 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">27</span>
+</div>
+<div class="col-start-4 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs bg-primary font-semibold text-primary-foreground">28</span>
+</div>
+<div class="col-start-5 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">29</span>
+</div>
+<div class="col-start-6 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-gray-700">30</span>
+</div>
+<div class="col-start-7 row-start-1 flex justify-center sm:justify-start sm:px-1.5">
+<span class="inline-flex size-6 items-center justify-center rounded-full text-xs text-blue-600">31</span>
+</div>
+<span aria-hidden="true" class="col-start-4 col-span-3 row-start-2 mx-1 rounded-sm h-1 bg-emerald-200 sm:hidden">
+</span>
+<button data-slot="button" class="shrink-0 cursor-pointer items-center gap-1.5 border whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent hover:text-gray-700 [&amp;_svg]:size-3.5 col-start-4 col-span-3 row-start-2 mx-1 rounded-sm pointer-events-auto hidden h-5 min-w-0 justify-start truncate bg-emerald-100 px-1.5 py-0 text-left text-xs font-medium text-emerald-900 hover:bg-emerald-300 sm:flex" type="button" title="가을 축제">
+<span class="hidden sm:inline">가을 축제</span>
+</button>
+<div class="col-start-1 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-2 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-3 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-4 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+<button data-slot="button" class="shrink-0 justify-center border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:text-gray-700 [&amp;_svg]:size-3.5 pointer-events-auto flex min-w-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-left text-xs hover:bg-gray-100 text-gray-700" type="button" title="가을 축제 현수막 주문과 설치 위치 확인 · 담당자 없음 · 할 일">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle size-3.5 shrink-0 text-orange-600" aria-hidden="true">
+<circle cx="12" cy="12" r="10">
+</circle>
+</svg>
+<span class="truncate">가을 축제 현수막 주문과 설치 위치 확인</span>
+</button>
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+<span aria-hidden="true" class="size-1.5 rounded-full bg-orange-500">
+</span>
+</div>
+</div>
+</div>
+<div class="col-start-5 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-6 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+<div class="col-start-7 row-start-3 min-w-0">
+<div class="flex min-w-0 flex-col gap-px px-1">
+<div class="hidden min-w-0 flex-col gap-px sm:flex">
+</div>
+<div class="flex justify-center gap-0.5 sm:hidden">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<section aria-label="10월 28일 (수)" class="flex scroll-mt-4 flex-col gap-2">
+<h2 class="text-sm font-semibold text-gray-900">10월 28일 (수)<span class="ml-1.5 font-normal text-gray-500 tabular-nums">2건</span>
+</h2>
+<ul class="rounded-lg border bg-card text-card-foreground shadow-sm divide-y overflow-hidden">
+<li class="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-l-emerald-300 px-4 py-3">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere">가을 축제</button>
+<span class="text-xs text-gray-500">10월 28일 14:00 – 10월 30일 18:00 · 대강당</span>
+</li>
+<li class="flex flex-col gap-1 px-4 py-3">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+<div class="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
+<div class="flex items-center gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere">가을 축제 현수막 주문과 설치 위치 확인</button>
+</div>
+<div class="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+<span>기획부</span>
+<span aria-hidden="true">·</span>
+<span class="wrap-anywhere text-yellow-700">담당자 없음</span>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>

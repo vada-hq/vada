@@ -1,4 +1,5 @@
 import type { EventSummary, TaskSummary } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { dayLabel, monthOf, weekdayOf, type EventBar } from './calendar-month'
 import { markLabel, markTextClass, TaskDot, TaskMark } from './CalendarMarks'
@@ -43,6 +44,7 @@ type Props = {
   onSelect: (day: string) => void
   onOpenTask: (taskId: string) => void
   onOpenEvent?: ((eventId: string) => void) | undefined
+  schedule?: boolean
 }
 
 // 날짜 숫자. 일요일은 빨강, 토요일은 파랑(한국 달력), 오늘은 파란 동그라미, 다른 달은 흐리게.
@@ -68,9 +70,19 @@ function DayNumber({ day, month, today }: { day: string; month: string; today: s
   )
 }
 
-function Chip({ task, onOpen }: { task: TaskSummary; onOpen: () => void }) {
+function Chip({
+  task,
+  onOpen,
+  schedule,
+}: {
+  task: TaskSummary
+  onOpen: () => void
+  schedule: boolean | undefined
+}) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       type="button"
       title={`${task.title} · ${assigneeLabel(task.assignee)} · ${markLabel(task)}`}
       className={cn(
@@ -79,9 +91,9 @@ function Chip({ task, onOpen }: { task: TaskSummary; onOpen: () => void }) {
       )}
       onClick={onOpen}
     >
-      <TaskMark task={task} />
+      <TaskMark task={task} schedule={schedule} />
       <span className="truncate">{task.title}</span>
-    </button>
+    </Button>
   )
 }
 
@@ -90,17 +102,19 @@ function DayTasks({
   tasks,
   onMore,
   onOpenTask,
+  schedule,
 }: {
   tasks: TaskSummary[]
   onMore: () => void
   onOpenTask: (taskId: string) => void
+  schedule: boolean | undefined
 }) {
   const hidden = tasks.length - MAX_CHIPS
   return (
     <div className="flex min-w-0 flex-col gap-px px-1">
       <div className="hidden min-w-0 flex-col gap-px sm:flex">
         {tasks.slice(0, MAX_CHIPS).map(task => (
-          <Chip key={task.id} task={task} onOpen={() => onOpenTask(task.id)} />
+          <Chip key={task.id} task={task} onOpen={() => onOpenTask(task.id)} schedule={schedule} />
         ))}
         {hidden > 0 && (
           <button
@@ -114,7 +128,7 @@ function DayTasks({
       </div>
       <div className="flex justify-center gap-0.5 sm:hidden">
         {tasks.slice(0, MAX_DOTS).map(task => (
-          <TaskDot key={task.id} task={task} />
+          <TaskDot key={task.id} task={task} schedule={schedule} />
         ))}
       </div>
     </div>
@@ -122,23 +136,42 @@ function DayTasks({
 }
 
 function Bar({ bar, onOpenEvent }: { bar: EventBar; onOpenEvent: Props['onOpenEvent'] }) {
+  const position = cn(
+    COL_START[bar.start],
+    COL_SPAN[bar.span - 1],
+    ROW_START[bar.lane + 1],
+    'mx-1 rounded-sm',
+    bar.before && 'ml-0 rounded-l-none',
+    bar.after && 'mr-0 rounded-r-none',
+  )
+  if (!onOpenEvent)
+    return (
+      <span
+        className={cn(
+          position,
+          'h-1 truncate bg-emerald-200 text-xs font-medium text-emerald-900 sm:h-5 sm:bg-emerald-100 sm:px-1.5',
+        )}
+      >
+        <span className="hidden sm:inline">{bar.event.name}</span>
+      </span>
+    )
   return (
-    <button
-      type="button"
-      title={bar.event.name}
-      disabled={!onOpenEvent}
-      className={cn(
-        COL_START[bar.start],
-        COL_SPAN[bar.span - 1],
-        ROW_START[bar.lane + 1],
-        'pointer-events-auto mx-1 h-1 cursor-pointer truncate rounded-sm bg-emerald-200 px-1.5 text-left text-xs font-medium text-emerald-900 hover:bg-emerald-300 disabled:cursor-default sm:h-5 sm:bg-emerald-100',
-        bar.before && 'ml-0 rounded-l-none',
-        bar.after && 'mr-0 rounded-r-none',
-      )}
-      onClick={() => onOpenEvent?.(bar.event.id)}
-    >
-      <span className="hidden sm:inline">{bar.event.name}</span>
-    </button>
+    <>
+      <span aria-hidden className={cn(position, 'h-1 bg-emerald-200 sm:hidden')} />
+      <Button
+        variant="ghost"
+        size="sm"
+        type="button"
+        title={bar.event.name}
+        className={cn(
+          position,
+          'pointer-events-auto hidden h-5 min-w-0 justify-start truncate bg-emerald-100 px-1.5 py-0 text-left text-xs font-medium text-emerald-900 hover:bg-emerald-300 sm:flex',
+        )}
+        onClick={() => onOpenEvent(bar.event.id)}
+      >
+        <span className="hidden sm:inline">{bar.event.name}</span>
+      </Button>
+    </>
   )
 }
 
@@ -195,6 +228,7 @@ export function CalendarWeek(props: Props) {
               tasks={props.tasksOf(day)}
               onMore={() => props.onSelect(day)}
               onOpenTask={props.onOpenTask}
+              schedule={props.schedule}
             />
           </div>
         ))}

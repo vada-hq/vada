@@ -58,12 +58,41 @@ type RowProps = Pick<
   Props,
   'view' | 'change' | 'assign' | 'team' | 'onOpenTask' | 'onOpenEvent' | 'inEvent'
 >
+type ReadOnlyRowProps = Pick<RowProps, 'view' | 'onOpenTask' | 'onOpenEvent' | 'inEvent'> & {
+  readOnly: true
+}
+
+function rowAssignment(task: TaskSummary, editing: RowProps) {
+  const { team, assign } = editing
+  if (!team || task.assignee !== null || !task.actions.includes('task.change_assignee'))
+    return undefined
+  return {
+    team,
+    onPick: (id: string) => {
+      const name = team.members.find(member => member.id === id)?.name ?? ''
+      void assign.assign(task, id, name)
+    },
+  }
+}
+
+function rowActions(task: TaskSummary, editing: RowProps | null) {
+  if (!editing) return { busy: false }
+  const { change, assign } = editing
+  return {
+    busy: change.busy.has(task.id) || assign.busy.has(task.id),
+    error: change.errors[task.id] ?? assign.errors[task.id],
+    onChangeStatus: (status: Parameters<typeof change.change>[1]) =>
+      void change.change(task.id, status),
+    assign: rowAssignment(task, editing),
+  }
+}
 
 // 업무 한 줄을 그리는 함수. 목록과 달력 아래 목록이 같이 쓴다.
 // 목록은 전체·내 부서·담당자 없음을 부서로 묶어 줄에 부서를 적지 않는다. 달력 아래 목록은 묶음이 없어 '내 부서' 밖에서는 적는다.
 // 달력 아래 목록은 머리가 그날이라 마감도 적지 않는다.
-export function taskRowOf(props: RowProps, calendar = false) {
-  const { view, change, assign, team } = props
+export function taskRowOf(props: RowProps | ReadOnlyRowProps, calendar = false) {
+  const { view } = props
+  const editing = 'readOnly' in props ? null : props
   const show = {
     assignee: view !== 'mine',
     department: view === 'mine' || (calendar && view !== 'department'),
@@ -75,22 +104,9 @@ export function taskRowOf(props: RowProps, calendar = false) {
       key={task.id}
       task={task}
       show={show}
-      busy={change.busy.has(task.id) || assign.busy.has(task.id)}
-      error={change.errors[task.id] ?? assign.errors[task.id]}
-      onChangeStatus={status => void change.change(task.id, status)}
+      {...rowActions(task, editing)}
       onOpen={() => props.onOpenTask(task.id)}
       onOpenEvent={props.onOpenEvent}
-      assign={
-        team && task.assignee === null && task.actions.includes('task.change_assignee')
-          ? {
-              team,
-              onPick: id => {
-                const name = team.members.find(member => member.id === id)?.name ?? ''
-                void assign.assign(task, id, name)
-              },
-            }
-          : undefined
-      }
     />
   )
 }

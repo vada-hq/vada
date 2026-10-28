@@ -40,7 +40,8 @@ function EventRow({ event, onOpen }: { event: EventSummary; onOpen: Props['onOpe
       {onOpen ? (
         <Button
           variant="link"
-          className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere"
+          touch
+          className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
           onClick={() => onOpen(event.id)}
         >
           {event.name}
@@ -63,7 +64,7 @@ export function CalendarDayList({ selected, tasks, events, row, onOpenEvent }: P
     <section aria-label={title} className="flex scroll-mt-4 flex-col gap-2">
       <h2 className="text-sm font-semibold text-gray-900">
         {title}
-        <span className="ml-1.5 font-normal text-gray-500">{count}</span>
+        <span className="ml-1.5 font-normal text-gray-500 tabular-nums">{count}건</span>
       </h2>
       {count === 0 ? (
         <StateMessage kind="empty">일정 없음</StateMessage>

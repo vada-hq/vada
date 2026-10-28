@@ -1,5 +1,12 @@
 import type { LucideIcon } from 'lucide-react'
-import { ChartNoAxesColumn, Clipboard, House, MessageSquare, Users } from 'lucide-react'
+import {
+  CalendarDays,
+  ChartNoAxesColumn,
+  Clipboard,
+  House,
+  MessageSquare,
+  Users,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import { CountBadge } from '@/components/ui/count-badge'
 import { NavItem } from '@/components/ui/nav-item'
@@ -33,7 +40,7 @@ function TopItem({
 
 const overdueLabel = ({ count, more }: TaskCount) => `지난 업무 ${count}개${more ? ' 이상' : ''}`
 
-// 옆 메뉴 가운데(와이어프레임 사이드바 v6.2, DEC-96): 최상위 홈(배지 없음) · 대화(안 읽은 수 합계) · 업무('지남 N') · 재정(배지 없음) · 조직,
+// 옆 메뉴 가운데(메뉴 v7 S7): 홈 · 대화(안 읽은 수 합계) · 업무('지남 N') · 캘린더 · 재정 · 조직,
 // 그 아래 '공간'(완료하지 않은 행사, 행사 모두 보기, 새 행사). 수 배지는 나에게 걸린 것 둘뿐이다.
 // 아이콘은 와이어프레임 그대로(홈 House, 업무 Clipboard, 재정 막대그래프 BarChart2 = ChartNoAxesColumn, 조직 Users). 대화 말풍선은 와이어프레임에 없어 지금 것이다.
 // 조직은 사람과 부서를 한 화면에서(DEC-91) 보고 옛 부서 주소도 이 칸이 켜진다. '운영진' 머리는 없다.
@@ -80,6 +87,12 @@ export default function SidebarNav({
           )
         }
         onClick={() => onPage('tasks')}
+      />
+      <TopItem
+        icon={CalendarDays}
+        label="캘린더"
+        active={menuActive(active, 'calendar')}
+        onClick={() => onPage('calendar')}
       />
       <TopItem
         icon={ChartNoAxesColumn}

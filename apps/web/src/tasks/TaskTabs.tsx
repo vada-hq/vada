@@ -34,25 +34,32 @@ type Props = {
   showFilter?: boolean
   // 목록을 좁힌 조건(부서, 담당자 없음)과 그것을 푸는 동작
   narrow?: { label: string; onClear: () => void } | undefined
+  allowCalendar?: boolean | undefined
 }
 
 // 보드·표·달력 전환. 같은 업무를 다른 모양으로 보는 것이라 탭이 아니라 눌린 단추 묶음이다. 휴대폰은 탭과 한 줄에 두려고 그림만 보인다.
-function LayoutSwitch({ value, onChange }: NonNullable<Props['layout']>) {
+function LayoutSwitch({
+  value,
+  onChange,
+  allowCalendar,
+}: NonNullable<Props['layout']> & Pick<Props, 'allowCalendar'>) {
   return (
     <div role="group" aria-label="보기 모양" className="flex rounded-md border p-0.5">
-      {LAYOUTS.map(({ layout, label, Icon }) => (
-        <Button
-          key={layout}
-          size="sm"
-          variant={value === layout ? 'secondary' : 'ghost'}
-          aria-pressed={value === layout}
-          className="py-1"
-          onClick={() => onChange(layout)}
-        >
-          <Icon aria-hidden />
-          <span className="sr-only sm:not-sr-only">{label}</span>
-        </Button>
-      ))}
+      {LAYOUTS.filter(item => item.layout !== 'calendar' || allowCalendar).map(
+        ({ layout, label, Icon }) => (
+          <Button
+            key={layout}
+            size="sm"
+            variant={value === layout ? 'secondary' : 'ghost'}
+            aria-pressed={value === layout}
+            className="py-1"
+            onClick={() => onChange(layout)}
+          >
+            <Icon aria-hidden />
+            <span className="sr-only sm:not-sr-only">{label}</span>
+          </Button>
+        ),
+      )}
     </div>
   )
 }
@@ -106,7 +113,7 @@ export function TaskTabs(props: Props) {
             ))}
           </div>
         )}
-        {layout && <LayoutSwitch {...layout} />}
+        {layout && <LayoutSwitch {...layout} allowCalendar={props.allowCalendar} />}
       </div>
     </div>
   )

@@ -2,6 +2,12 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { rememberTaskLayout, withTaskLayout } from './task-layout'
 
+test('캘린더 메뉴 분리 뒤 업무 링크에는 기억한 달력을 싣지 않고 행사에는 남긴다', () => {
+  rememberTaskLayout('m1', 'calendar')
+  expect(withTaskLayout('m1', {}, false)).toEqual({})
+  expect(withTaskLayout('m1', { tab: 'tasks' })).toEqual({ tab: 'tasks', layout: 'calendar' })
+})
+
 beforeEach(() => {
   window.localStorage.clear()
   vi.restoreAllMocks()

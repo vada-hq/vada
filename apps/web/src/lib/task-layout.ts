@@ -24,8 +24,12 @@ function recalled(memberId: string): TaskLayout | null {
 }
 
 // 업무 화면으로 가는 링크의 쿼리에 기억한 배치를 싣는다. 사람을 아직 모르면(학생회를 읽는 중) 그대로다.
-export function withTaskLayout(memberId: string | null, query: AppQuery): AppQuery {
+export function withTaskLayout(
+  memberId: string | null,
+  query: AppQuery,
+  allowCalendar = true,
+): AppQuery {
   if (memberId === null || query['layout'] !== undefined) return query
   const layout = recalled(memberId)
-  return layout === null ? query : { ...query, layout }
+  return layout === null || (layout === 'calendar' && !allowCalendar) ? query : { ...query, layout }
 }

@@ -1,6 +1,7 @@
 import type { CouncilView } from '@vada/contracts'
 import type { Ref } from 'react'
 import ChatRoute from '../chat/ChatRoute'
+import CalendarPage from '../calendar/CalendarPage'
 import EventsPage from '../events/EventsPage'
 import FinancePage from '../finance/FinancePage'
 import type { HomeOpeners } from '../home/HomeBody'
@@ -115,6 +116,7 @@ function PageOf({
     )
   if (page === 'tasks' || page === 'finance')
     return <RecordsPage {...{ data, tasks, page, taskId, view }} />
+  if (page === 'calendar') return <CalendarPage view={view} onForbidden={data.reload} />
   // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91).
   if (page === 'people' || page === 'departments')
     return (

@@ -296,6 +296,7 @@ export default function TasksPage(props: Props) {
         onConfirm={page.remove.confirm}
       />
       <TaskTabs
+        allowCalendar={props.eventId !== undefined}
         showViews={!props.eventId}
         showFilter={layout !== 'calendar' && !page.board}
         hasDepartment={props.view.me.departments.length > 0}
