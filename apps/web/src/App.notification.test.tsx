@@ -63,9 +63,12 @@ beforeEach(() => {
     )
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
     onHomeExtras(api, {}, id)
-    api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
-      json({ tasks: [], truncated: false }),
-    )
+    for (const taskScope of ['mine', 'all'])
+      api.on(
+        'GET',
+        `/api/organizations/${id}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+        () => json({ tasks: [], truncated: false }),
+      )
     api.on('GET', `/api/organizations/${id}/rooms/0199d1a0-0000-7000-8000-0000000000a1`, () =>
       json(roomDetail()),
     )
@@ -247,7 +250,9 @@ test('앱이 닫혀 있다가 업무 주소로 열리면 그 학생회의 업무
   window.history.replaceState(null, '', `/tasks/0199d1a0-0000-7000-8000-0000000000c2/${T1}`)
   await renderApp()
   expect(await taskDialog()).toContain('현수막 주문')
-  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  expect(
+    await screen.findByRole('heading', { level: 1, name: '학생회 업무', hidden: true }),
+  ).toBeTruthy()
   expect(
     api.calls.some(
       call => call.path === `/api/organizations/0199d1a0-0000-7000-8000-0000000000c2/tasks/${T1}`,
@@ -271,7 +276,9 @@ test('열려 있는 동안 서비스 워커가 업무 주소를 알리면 보던
     }),
   )
   expect(await taskDialog()).toContain('현수막 주문')
-  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  expect(
+    await screen.findByRole('heading', { level: 1, name: '학생회 업무', hidden: true }),
+  ).toBeTruthy()
 })
 
 test('같은 업무 알림을 다시 누르면 닫았던 상세가 다시 열린다', async () => {
@@ -339,7 +346,7 @@ test('홈에서 지운 업무의 알림을 누르면 업무 목록에서 이유�
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
   await lostSettled(`/tasks/${C1}`)
   expect(screen.getByRole('alert').textContent).toBe(TASK_LOST)
-  expect(screen.getByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '학생회 업무', hidden: true })).toBeTruthy()
 })
 
 test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업무로 돌아오면 상세가 닫혀 있다', async () => {
@@ -353,7 +360,9 @@ test('알림으로 연 업무는 한 번만 쓴다. 다른 화면에 갔다 업�
   fireEvent.click(within(aside).getByRole('button', { name: '조직' }))
   expect(await screen.findByRole('heading', { level: 1, name: '조직' })).toBeTruthy()
   fireEvent.click(within(aside).getByRole('button', { name: /^업무/ }))
-  expect(await screen.findByRole('heading', { level: 1, name: '업무', hidden: true })).toBeTruthy()
+  expect(
+    await screen.findByRole('heading', { level: 1, name: '학생회 업무', hidden: true }),
+  ).toBeTruthy()
   await new Promise(resolve => setTimeout(resolve, 50))
   expect(screen.queryByRole('dialog')).toBeNull()
 })

@@ -65,7 +65,7 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
     seeTasks: (query?: AppQuery) => {
       const department = departments.find(item => item.id === query?.['dept'])
       if (department) rememberDepartment(department.id, department.name)
-      openMenu('tasks', councilId, query)
+      openMenu('tasks', councilId, query ?? { tab: 'mine' })
     },
   }
 }

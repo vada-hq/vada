@@ -41,7 +41,12 @@ function open({ page = 'home', events = [THREE], permissions }: Setup = {}) {
   api.on('GET', base, () => json(councilView(COUNCIL_ID, permissions ? { permissions } : {})))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${base}/home`, () => json({}, 500))
   api.on('GET', `${base}/events/open`, () => {
     const answer = events[Math.min(reads, events.length - 1)]!

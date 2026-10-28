@@ -42,6 +42,12 @@ function open(data = board()) {
   )
   return { api }
 }
+test('부서장 홈의 내 업무 바로가기는 내 업무 탭을 명시한다', async () => {
+  open()
+  fireEvent.click(await screen.findByRole('button', { name: '내 업무 0' }))
+  expect(window.location.pathname + window.location.search).toBe(`/tasks/${C}?tab=mine`)
+})
+
 test('부서장 홈은 인사와 네 카드만 보이고 별도 읽기가 없으며 빈 참여 행사에서 만들 수 있다', async () => {
   const { api } = open()
   await screen.findByRole('region', { name: '확인이 필요한 일' })

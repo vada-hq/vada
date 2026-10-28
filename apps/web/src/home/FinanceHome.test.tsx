@@ -49,6 +49,12 @@ function open(home: HomeResponse, rooms: RoomListState = noRooms) {
 const card = (name: string) => screen.findByRole('region', { name })
 const path = () => window.location.pathname + window.location.search
 
+test('재정부 홈의 내 업무 바로가기는 내 업무 탭을 명시한다', async () => {
+  open(finance())
+  fireEvent.click(await screen.findByRole('button', { name: '내 업무 0' }))
+  expect(path()).toBe('/tasks/01900000-0000-7000-8000-000000000001?tab=mine')
+})
+
 test('재정부 홈은 인사와 바로가기 → 2×2 카드, 빈 카드와 0건을 두고 별도 읽기·주기 읽기가 없다', async () => {
   const api = open(finance())
   await card('행사별 예산')

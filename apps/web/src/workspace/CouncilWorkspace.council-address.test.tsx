@@ -33,28 +33,29 @@ function setup(path = councilPath) {
   api.on('GET', `${base}/home`, () => json(homeResponse()))
   for (const view of ['mine', 'all']) {
     for (const status of ['open', 'done'])
-      api.on('GET', `${base}/tasks?view=${view}&status=${status}`, () =>
-        json({
-          tasks:
-            view === 'all' && status === 'open'
-              ? [
-                  {
-                    id: '0199d1a0-0000-7000-8000-0000000000b1',
-                    title: '학생회 공통 업무',
-                    status: 'todo',
-                    next: 'in_progress',
-                    dueDate: null,
-                    overdue: false,
-                    department: null,
-                    event: null,
-                    assignee: null,
-                    actions: [],
-                  },
-                ]
-              : [],
-          truncated: false,
-        }),
-      )
+      for (const event of view === 'all' ? ['', '&event=none'] : [''])
+        api.on('GET', `${base}/tasks?view=${view}&status=${status}${event}`, () =>
+          json({
+            tasks:
+              view === 'all' && status === 'open'
+                ? [
+                    {
+                      id: '0199d1a0-0000-7000-8000-0000000000b1',
+                      title: '학생회 공통 업무',
+                      status: 'todo',
+                      next: 'in_progress',
+                      dueDate: null,
+                      overdue: false,
+                      department: null,
+                      event: null,
+                      assignee: null,
+                      actions: [],
+                    },
+                  ]
+                : [],
+            truncated: false,
+          }),
+        )
   }
   return { api, rendered: render(<WorkspaceAt startPage="home" />) }
 }
@@ -83,19 +84,50 @@ test.each(['', '?tab=messages', '?tab=unknown&layout=list'])(
   },
 )
 
-test('옛 학생회 업무 주소는 기존 업무의 같은 보기·거르기·배치로 열리고 뒤로에도 새 주소다', async () => {
+test('옛 학생회 업무 주소는 학생회 업무 탭의 같은 거르기·배치로 열리고 뒤로에도 새 주소다', async () => {
   const { api, rendered } = setup(`${councilPath}?tab=tasks&layout=list&filter=done`)
-  const target = `/tasks/${COUNCIL_ID}?view=all&filter=done&layout=list`
+  const target = `/tasks/${COUNCIL_ID}?filter=done&layout=list&events=include`
   await waitFor(() => expect(pathNow()).toBe(target))
+  expect(
+    (await screen.findByRole('tab', { name: '학생회 업무' })).getAttribute('aria-selected'),
+  ).toBe('true')
   await waitFor(() =>
     expect(api.calls.some(call => call.path === `${base}/tasks?view=all&status=done`)).toBe(true),
   )
   expect(screen.getByRole('button', { name: '표' }).getAttribute('aria-pressed')).toBe('true')
+  expect(screen.getByRole('list', { name: '경로' }).textContent).toBe(
+    '컴퓨터학부 학생회업무학생회 업무',
+  )
   rendered.unmount()
   setup(pathNow())
-  await screen.findByRole('heading', { level: 1, name: '업무' })
+  expect(
+    (await screen.findByRole('tab', { name: '학생회 업무' })).getAttribute('aria-selected'),
+  ).toBe('true')
   fireEvent.click(sidebar().getByRole('button', { name: '홈' }))
   await screen.findByRole('heading', { level: 1, name: '홈' })
   act(() => window.history.back())
   await waitFor(() => expect(pathNow()).toBe(target))
+  expect((await screen.findByRole('button', { name: '표' })).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
+})
+
+test('옛 학생회 업무 주소는 학생회 업무의 행사 포함 범위와 같은 목록이다', async () => {
+  setup(`${councilPath}?tab=tasks`)
+  expect(await screen.findByRole('button', { name: '학생회 공통 업무' })).toBeTruthy()
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
+  expect(current().map(item => item.textContent)).toEqual(['업무'])
+})
+
+test('넓은 화면의 옛 학생회 업무 주소는 할 일·진행 중·끝남 보드다', async () => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: true,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
+  setup(`${councilPath}?tab=tasks`)
+  await screen.findByRole('button', { name: '학생회 공통 업무' })
+  for (const name of ['할 일1', '진행 중0', '끝남0'])
+    expect(screen.getByRole('heading', { name })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '보드' }).getAttribute('aria-pressed')).toBe('true')
 })

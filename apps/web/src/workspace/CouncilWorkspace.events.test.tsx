@@ -35,7 +35,12 @@ function open(startPage: Page = 'chat', tasks: TaskSummary[] = []) {
   api.on('GET', base, () => json(councilView(COUNCIL_ID)))
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks, truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks, truncated: false }),
+    )
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))

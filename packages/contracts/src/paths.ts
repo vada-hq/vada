@@ -26,7 +26,8 @@ export type AppMenu = (typeof APP_MENUS)[number]
 export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'money'] as const
 export type EventTab = (typeof EVENT_TABS)[number]
 // 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
-const TASK_TABS = ['council', 'mine'] as const
+export const TASK_TABS = ['council', 'mine'] as const
+export type TaskTab = (typeof TASK_TABS)[number]
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
 export type TaskLayout = (typeof TASK_LAYOUTS)[number]
@@ -91,10 +92,11 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     tab: { values: ['messages', 'tasks'], fallback: 'messages' },
     ...taskQuery('all', { key: 'tab', value: 'tasks' }),
   },
-  // tab·events는 메뉴 v7의 탭과 '행사 업무 포함' 칩이다. 화면이 탭을 그리기 전(S4)에는 옛 보기(view)가 화면의 원문이다.
+  // 옛 view는 기본값까지 남겨 v7 탭·칩 주소로 바꿔 쓴다. 쿼리 없는 주소는 학생회 업무다.
   tasks: {
     tab: { values: TASK_TABS, fallback: 'council' },
     ...taskQuery('mine'),
+    view: { values: TASK_VIEWS, fallback: null },
     events: { values: ['include'], fallback: null },
   },
   calendar: {},

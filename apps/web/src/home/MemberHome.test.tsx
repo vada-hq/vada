@@ -247,7 +247,7 @@ test('내 업무 카드에는 업무 수와 가장 가까운 마감만 보이고
   expect(tasks!.textContent).toContain('가장 가까운 마감 10월 21일 (수) · 부스 배치안 확정')
   expect(within(tasks!).getByText('지남')).toBeTruthy()
   fireEvent.click(within(tasks!).getByRole('button', { name: '내 업무 3' }))
-  expect(pathNow()).toBe('/tasks/c1')
+  expect(pathNow()).toBe('/tasks/c1?tab=mine')
   const inbox = screen.getByRole('region', { name: '메시지함' })
   fireEvent.click(within(inbox).getByRole('button', { name: '전체 보기' }))
   expect(pathNow()).toBe('/chat/c1')

@@ -53,7 +53,9 @@ const made = taskDetail({
 const empty = () => json({ tasks: [] as TaskSummary[], truncated: false })
 
 function setup(options: TaskCreateOptionsResponse | null = memberOptions, view = member()) {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=mine`)
   const api = mockApi()
+  api.on('GET', `${BASE}?view=all&status=open&event=none`, empty)
   for (const tab of ['mine', 'department', 'all', 'unassigned'])
     api.on('GET', `${BASE}?view=${tab}&status=open`, empty)
   api.on('GET', `${BASE}/options`, () => (options ? json(options) : json({ error: 'X' }, 500)))
@@ -99,7 +101,8 @@ test.each([false, true])(
 
 test('부원이 담당자 없음 탭에서 만들면 나로 만들어져 이 보기에 없음과 [열기]가 보인다', async () => {
   setup()
-  fireEvent.click(await screen.findByRole('tab', { name: '담당자 없음' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
+  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
   await add('청소')
   await screen.findByText('추가한 업무는 이 보기에 없음')
   fireEvent.click(screen.getByRole('button', { name: '열기' }))
@@ -108,7 +111,7 @@ test('부원이 담당자 없음 탭에서 만들면 나로 만들어져 이 보
 
 test('회장단이 전체 탭에서 만들면 학생회 업무·담당자 없음이다', async () => {
   const { posts } = setup(leaderOptions, councilView(COUNCIL_ID))
-  fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
   await add('청소')
   await waitFor(() => expect(posts()).toHaveLength(1))
   expect(posts()[0]?.body).toMatchObject({ departmentId: null, assigneeId: null })

@@ -8,6 +8,22 @@ const ordinary = { id: 'd2', name: '홍보부', rank: null, role: null }
 const council = councilView('c1', { councilRank: null, departments: [planning, ordinary] })
 const defaults: HomeTaskScope = { heads: true, attention: false, week: false, assignee: null }
 const task = homeTask('t1', 'soon', { department: planning, dueDate: '2026-11-01' })
+test('담당자 없음 칩은 빈 담당자와 떠난 담당자의 열린 업무만 남긴다', () => {
+  const scope = { ...defaults, heads: false, assignee: 'none' }
+  expect(inHomeTaskScope(task, scope, council, '2026-10-25')).toBe(false)
+  expect(inHomeTaskScope({ ...task, assignee: null }, scope, council, '2026-10-25')).toBe(true)
+  expect(
+    inHomeTaskScope(
+      { ...task, assignee: { id: 'left', name: '떠난 사람', current: false } },
+      scope,
+      council,
+      '2026-10-25',
+    ),
+  ).toBe(true)
+  expect(
+    inHomeTaskScope({ ...task, assignee: null, status: 'done' }, scope, council, '2026-10-25'),
+  ).toBe(false)
+})
 test('홈 직급 부서 도착은 일반 소속 부서 업무를 섞지 않는다', () => {
   expect(inHomeTaskScope(task, defaults, council, '2026-10-25')).toBe(true)
   expect(inHomeTaskScope({ ...task, department: ordinary }, defaults, council, '2026-10-25')).toBe(

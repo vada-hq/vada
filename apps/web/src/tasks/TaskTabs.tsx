@@ -1,13 +1,14 @@
 import { CalendarDays, SquareKanban, Table2, X } from 'lucide-react'
-import type { TaskFilter, TaskLayout, TaskView } from '@vada/contracts'
+import type { ComponentProps } from 'react'
+import type { TaskFilter, TaskLayout, TaskTab, TaskView } from '@vada/contracts'
+import PageHeading from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
+import { TaskScopeChips } from './TaskScopeChips'
 
-const TABS: { view: TaskView; label: string }[] = [
-  { view: 'mine', label: '내 업무' },
-  { view: 'department', label: '내 부서' },
-  { view: 'all', label: '전체' },
-  { view: 'unassigned', label: '담당자 없음' },
+const TABS: { tab: TaskTab; label: string }[] = [
+  { tab: 'council', label: '학생회 업무' },
+  { tab: 'mine', label: '내 업무' },
 ]
 // 배치 고르기 '보드 · 표 · 달력'(DEC-94). 표의 주소 값은 018의 list 그대로다.
 const LAYOUTS = [
@@ -21,10 +22,9 @@ const FILTERS: { filter: TaskFilter; label: string }[] = [
 ]
 
 type Props = {
-  // 행사의 업무 탭은 그 행사의 업무 전체만 보이므로 보기 탭이 없다.
-  showViews?: boolean
-  // 부서에 속하지 않은 사람(부서 없는 회장단 등)에게는 '내 부서' 탭이 없다.
-  hasDepartment?: boolean
+  tab?: { value: TaskTab; onChange: (tab: TaskTab) => void } | undefined
+  scope: ComponentProps<typeof TaskScopeChips>['scope']
+  myDepartment?: string | undefined
   view: TaskView
   filter: TaskFilter
   onView: (view: TaskView) => void
@@ -52,7 +52,7 @@ function LayoutSwitch({
             size="sm"
             variant={value === layout ? 'secondary' : 'ghost'}
             aria-pressed={value === layout}
-            className="py-1"
+            className="py-1 max-sm:min-h-11"
             onClick={() => onChange(layout)}
           >
             <Icon aria-hidden />
@@ -64,33 +64,50 @@ function LayoutSwitch({
   )
 }
 
-// 탭 넷(내 업무, 내 부서, 전체, 담당자 없음)과 거르기 둘(끝나지 않은 것, 끝남), 보드·표·달력 전환. 거르기와 전환은 탭 줄 오른쪽에 두어 버튼 줄을 하나 줄인다.
+function menuTitle(tab: Props['tab']) {
+  return TABS.find(item => item.tab === tab?.value)?.label ?? '학생회 업무'
+}
+
+// 메뉴 탭 둘과 보드의 거르기는 다른 줄이다. 행사 안에서는 메뉴 탭 없이 같은 보드 거르기만 쓴다.
 export function TaskTabs(props: Props) {
-  const { showViews = true, showFilter = true, view, filter, onView, onFilter, layout } = props
+  const { tab, showFilter = true, view, filter, onView, onFilter, layout } = props
   const { narrow } = props
-  const tabs = TABS.filter(tab => tab.view !== 'department' || props.hasDepartment)
+  const title = menuTitle(tab)
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b">
-      {showViews && (
-        <div role="tablist" aria-label="업무 보기" className="flex">
-          {tabs.map(tab => (
+    <div className="flex min-w-0 flex-col gap-3 break-keep">
+      {tab && (
+        <PageHeading trail={{ title, crumbs: [{ label: title, truncate: false }] }}>
+          <span className="sr-only">{title}</span>
+        </PageHeading>
+      )}
+      {tab && (
+        <div role="tablist" aria-label="업무 보기" className="flex border-b">
+          {TABS.map(item => (
             <TabButton
-              key={tab.view}
-              className="px-3 sm:px-4"
-              aria-selected={view === tab.view}
-              onClick={() => onView(tab.view)}
+              key={item.tab}
+              className="px-3 max-sm:min-h-11 sm:px-4"
+              aria-selected={tab.value === item.tab}
+              onClick={() => tab.onChange(item.tab)}
             >
-              {tab.label}
+              {item.label}
             </TabButton>
           ))}
         </div>
+      )}
+      {(tab === undefined || tab.value === 'council') && (
+        <TaskScopeChips
+          scope={props.scope}
+          myDepartment={props.myDepartment}
+          view={view}
+          onView={onView}
+        />
       )}
       <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
         {narrow && (
           <Button
             size="sm"
             variant="outline"
-            className="h-auto max-w-full text-left wrap-anywhere whitespace-normal"
+            className="h-auto max-w-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11"
             aria-label={`${narrow.label} 거르기 풀기`}
             onClick={narrow.onClear}
           >
@@ -106,6 +123,7 @@ export function TaskTabs(props: Props) {
                 size="sm"
                 variant={filter === item.filter ? 'secondary' : 'outline'}
                 aria-pressed={filter === item.filter}
+                className="max-sm:min-h-11"
                 onClick={() => onFilter(item.filter)}
               >
                 {item.label}

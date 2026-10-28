@@ -102,7 +102,7 @@ export default function MemberHome({
             key="work"
             myTasks={home.myTasks}
             // 업무 '내 업무' 탭(업무 메뉴의 기본 보기라 주소에 view가 없다, DEC-94)
-            onOpenTasks={() => openMenu('tasks', councilId)}
+            onOpenTasks={() => openMenu('tasks', councilId, { tab: 'mine' })}
           />,
         ]}
       />

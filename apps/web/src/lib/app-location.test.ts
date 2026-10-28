@@ -14,7 +14,7 @@ test('알려진 주소는 읽기가 돌려주는 한 가지 꼴로 쓴다', () =
   navigate(`/TASKS/${C}`)
   expect(where()).toBe(`/TASKS/${C}`)
   navigate(`/tasks/${C.toUpperCase()}?view=mine&x=1#top`)
-  expect(where()).toBe(`/tasks/${C}`)
+  expect(where()).toBe(`/tasks/${C}?view=mine`)
 })
 
 test('replace는 칸을 쌓지 않는다', () => {

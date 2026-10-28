@@ -53,6 +53,7 @@ import {
   HomeSection,
 } from './HomeSections'
 import { HomeFrameSection } from './HomeFrameSections'
+import { TaskMenuSection } from './TaskMenuSection'
 import { CouncilHomeSection } from './CouncilHomeSections'
 import { MemberHomeSection } from './MemberHomeSections'
 import { DepartmentHomeSection } from './DepartmentHomeSections'
@@ -103,6 +104,7 @@ export const gallerySections = [
   EventEditSection,
   SettlementSection,
   TaskSection,
+  TaskMenuSection,
   TaskTableSection,
   TaskBoardSection,
   TaskQuickAddSection,

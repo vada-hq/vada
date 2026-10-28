@@ -39,7 +39,12 @@ function open({ demotedAfterRename = false } = {}) {
   api.on('GET', `${base}/members`, () => json(team()))
   api.on('GET', `${base}/invite`, () => json({ code: 'ABCD2345' }))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${base}/purchase-requests?view=pending`, () =>
     json({ requests: [], truncated: false }),
   )
@@ -146,7 +151,12 @@ test('학생회를 읽기 전에는 사용자 줄이 로그인 이름 글이고 
   api.on('GET', base, () => deferredResponse().promise)
   api.on('GET', `${base}/members`, () => deferredResponse().promise)
   api.on('GET', `${base}/rooms`, () => json(roomList()))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${base}/purchase-requests?view=pending`, () =>
     json({ requests: [], truncated: false }),
   )

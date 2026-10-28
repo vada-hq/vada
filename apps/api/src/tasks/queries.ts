@@ -134,7 +134,11 @@ function listRows(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
     inCouncil(actor),
     viewCondition(db, actor, query.view, now),
     query.status === 'done' ? eq(task.status, 'done') : ne(task.status, 'done'),
-    query.event ? eq(task.eventId, query.event) : undefined,
+    query.event === 'none'
+      ? isNull(task.eventId)
+      : query.event
+        ? eq(task.eventId, query.event)
+        : undefined,
   )
   const base = taskSelect(db, actor, now)
   if (query.status === 'open')
@@ -159,7 +163,7 @@ export async function taskListOf(
   now: Date,
 ): Promise<TasksResponse> {
   // 다른 학생회 행사와 없는 행사는 404다. 빈 목록으로 답하면 행사가 있는지 드러난다.
-  if (query.event) await eventRowOf(db, actor, query.event)
+  if (query.event && query.event !== 'none') await eventRowOf(db, actor, query.event)
   const rows = await listRows(db, actor, query, now)
   const limit = query.status === 'open' ? TASK_OPEN_LIMIT : TASK_DONE_LIMIT
   return {

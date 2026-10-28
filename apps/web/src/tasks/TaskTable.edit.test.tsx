@@ -10,7 +10,8 @@ import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
 
 const base = `/api/organizations/${COUNCIL_ID}/tasks`
-const listPath = (view: string) => `${base}?view=${view}&status=open`
+const listPath = (view: string) =>
+  `${base}?view=${view}&status=open${view === 'all' ? '&event=none' : ''}`
 const ALL = ['task.change_status', 'task.change_assignee', 'task.change_department', 'task.edit']
 
 const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
@@ -51,7 +52,7 @@ function serve(tasks: () => TaskSummary[]) {
 async function showAll() {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?layout=list`)
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
-  fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
 }
 
 afterEach(() => {

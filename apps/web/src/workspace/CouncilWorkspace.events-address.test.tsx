@@ -66,7 +66,12 @@ function setup(path: string, detail: () => Response = () => json({ event: eventD
   )
   const open = () => json({ tasks: [eventTask], truncated: false })
   api.on('GET', `${base}/tasks?view=all&status=open&event=${EVENT_ID}`, open)
-  api.on('GET', `${base}/tasks?view=mine&status=open`, open)
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      open,
+    )
   api.on('GET', `${base}/tasks?view=mine&status=done`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/tasks/${T1}`, () =>
     json({

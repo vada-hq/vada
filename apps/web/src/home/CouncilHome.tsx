@@ -69,7 +69,7 @@ export default function CouncilHome({
             <HomeShortcut
               icon={ClipboardList}
               label={myTasksLabel(home.myTasks)}
-              onOpen={() => openMenu('tasks', councilId)}
+              onOpen={() => openMenu('tasks', councilId, { tab: 'mine' })}
             />
           }
         />

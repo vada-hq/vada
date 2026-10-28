@@ -60,7 +60,7 @@ test('기준 시각 안내 없이 인사 카드 아래 내 업무 바로가기�
   const shortcut = await screen.findByRole('button', { name: '내 업무 4 · 지남 1' })
   expect(screen.queryByText(/끼룩이가/)).toBeNull()
   fireEvent.click(shortcut)
-  expect(pathNow()).toBe('/tasks/c1')
+  expect(pathNow()).toBe('/tasks/c1?tab=mine')
 })
 
 test('메시지함은 인사 카드 안에 있다', async () => {

@@ -68,9 +68,12 @@ function emptyRooms(id: string) {
   api.on('GET', `/api/organizations/${id}/rooms`, () =>
     json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
   )
-  api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
-    json({ tasks: [], truncated: false }),
-  )
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `/api/organizations/${id}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `/api/organizations/${id}/events/open`, () => json({ events: [], more: false }))
 }
 // 학생회를 열면 홈이 첫 화면이다. 옆 메뉴로 조직을 연다.

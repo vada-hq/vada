@@ -59,9 +59,12 @@ beforeEach(() => {
     api.on('GET', `/api/organizations/${id}/rooms`, () => json(roomList()))
     api.on('GET', `/api/organizations/${id}/home`, () => json(homeResponse()))
     onHomeExtras(api, {}, id)
-    api.on('GET', `/api/organizations/${id}/tasks?view=mine&status=open`, () =>
-      json({ tasks: [], truncated: false }),
-    )
+    for (const taskScope of ['mine', 'all'])
+      api.on(
+        'GET',
+        `/api/organizations/${id}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+        () => json({ tasks: [], truncated: false }),
+      )
     api.on('GET', `/api/organizations/${id}/tasks/${T1}`, () =>
       json({ task: taskDetail({ title: '현수막 주문' }) }),
     )
@@ -99,7 +102,7 @@ test('/로 열면 이 기기가 마지막에 본 학생회 안 주소로 바꿔 
   window.localStorage.setItem(LAST, `/tasks/${C2}?view=all`)
   const push = pushes()
   await renderApp()
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
   expect(pathNow()).toBe(`/tasks/${C2}?view=all`)
   expect(push).not.toHaveBeenCalled()
   expect(council(C1)).toEqual([])
@@ -188,7 +191,7 @@ test('열린 메뉴를 다시 누르면 칸이 늘지 않고, 다른 메뉴를 �
 test('첫 화면이 아닌 메뉴 주소에서 그 메뉴를 다시 누르면 첫 화면으로 한 칸 쌓는다', async () => {
   window.history.replaceState(null, '', `/tasks/${C1}?view=all`)
   await renderApp()
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
   const push = pushes()
   fireEvent.click(menu(/^업무/))
   expect(push).toHaveBeenCalledTimes(1)
@@ -257,7 +260,7 @@ test('기록 주소로 바로 들어오면 상위 목록 칸이 깔려 뒤로가
   act(() => window.history.back())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(pathNow()).toBe(`/tasks/${C1}`)
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
 })
 
 test('/로 열었는데 마지막 주소가 기록이면 바로 들어온 기록처럼 목록 칸이 깔려 뒤로가 목록으로 간다', async () => {
@@ -270,7 +273,7 @@ test('/로 열었는데 마지막 주소가 기록이면 바로 들어온 기록
   act(() => window.history.back())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(pathNow()).toBe(`/tasks/${C1}`)
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
   expect(window.localStorage.getItem(LAST)).toBe(`/tasks/${C1}`)
 })
 
@@ -346,7 +349,7 @@ test('옮기기를 켜면 옛 주소는 칸을 쌓지 않고 새 주소로 바�
 test('옮기기를 켜기 전에는 옛 주소가 지금 화면을 그대로 연다', async () => {
   window.history.replaceState(null, '', `/tasks/${C1}?view=all`)
   await renderApp()
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
   expect(pathNow()).toBe(`/tasks/${C1}?view=all`)
 })
 
@@ -355,7 +358,7 @@ test('마지막 주소가 옛 꼴이면 /로 열 때 새 주소로 연다', asyn
   window.localStorage.setItem(LAST, `/council/${C2}?tab=tasks&view=mine`)
   const push = pushes()
   await renderApp()
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('내 업무')).toBeTruthy()
   expect(pathNow()).toBe(`/tasks/${C2}?tab=mine`)
   expect(push).not.toHaveBeenCalled()
 })
@@ -371,7 +374,7 @@ test('아직 그리지 않은 캘린더 주소는 업무 달력으로 바꿔 쓴
   const push = pushes()
   await renderApp()
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${C1}?layout=calendar`))
-  expect(await heading('업무')).toBeTruthy()
+  expect(await heading('학생회 업무')).toBeTruthy()
   expect(push).not.toHaveBeenCalled()
 })
 

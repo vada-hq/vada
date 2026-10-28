@@ -83,9 +83,12 @@ function openCouncil() {
   api.on('GET', `/api/organizations/${COUNCIL}/rooms`, () =>
     json({ rooms: [], notices: [], unreadTotal: 0, mentionTotal: 0 }),
   )
-  api.on('GET', `/api/organizations/${COUNCIL}/tasks?view=mine&status=open`, () =>
-    json({ tasks: [], truncated: false }),
-  )
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `/api/organizations/${COUNCIL}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `/api/organizations/${COUNCIL}/purchase-requests?view=pending`, () =>
     json({ requests: [], truncated: false }),
   )

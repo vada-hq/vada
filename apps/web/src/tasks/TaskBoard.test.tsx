@@ -11,7 +11,7 @@ import { withTaskLayout } from '@/lib/task-layout'
 import TasksPage from './TasksPage'
 
 const base = `/api/organizations/${COUNCIL_ID}/tasks`
-const listPath = (status: string, event = '') =>
+const listPath = (status: string, event = 'none') =>
   `${base}?view=${event ? 'all' : 'mine'}&status=${status}${event ? `&event=${event}` : ''}`
 const pathNow = () => window.location.pathname + window.location.search
 
@@ -40,7 +40,7 @@ function wide(matches = true) {
 }
 
 let api: ReturnType<typeof mockApi>
-function serve(open: TaskSummary[], done: TaskSummary[] = [], event = '') {
+function serve(open: TaskSummary[], done: TaskSummary[] = [], event = 'none') {
   api = mockApi()
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
@@ -212,7 +212,8 @@ test('업무가 없으면 보드 위에 빈 상태와 빈 열이 있고, [첫 �
 })
 
 test('학생회에 업무가 있는데 이 보기에서 비면 그 보기의 빈 문구이고 [첫 업무 추가]가 없다', async () => {
-  serve([])
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?tab=mine`)
+  serve([], [], '')
   api.on('GET', allPath('open'), () => list([]))
   api.on('GET', allPath('done'), () => list([task('d', { status: 'done', next: null })]))
   render(page())

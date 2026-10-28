@@ -38,9 +38,12 @@ function open(home: HomeResponse = homeWithTasks([homeTask(T1, 'overdue')])) {
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}`, () => json({ event: eventDetail() }))
   api.on('GET', `${base}/events/${EVENT_ID}/rooms`, () => json({ rooms: [], archived: false }))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () =>
-    json({ tasks: [homeTask(T1, 'overdue')], truncated: false }),
-  )
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [homeTask(T1, 'overdue')], truncated: false }),
+    )
   api.on('GET', `${base}/tasks/${T1}`, () =>
     json({ task: taskDetail({ id: T1, title: '현수막 주문' }) }),
   )
@@ -66,7 +69,7 @@ test('홈의 업무 줄을 누르면 업무 화면에서 그 업무 상세가 �
 test('홈의 모두 보기는 업무 화면(상세 없이)으로 가고, 홈으로 돌아오면 다시 읽는다', async () => {
   const api = open()
   fireEvent.click(await screen.findByRole('button', { name: '모두 보기' }))
-  expect(await screen.findByRole('heading', { level: 1, name: '업무' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
   const reads = () => api.calls.filter(call => call.path === `${base}/home`).length
   expect(reads()).toBe(1)

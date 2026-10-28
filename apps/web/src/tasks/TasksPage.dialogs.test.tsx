@@ -19,7 +19,7 @@ afterEach(() => {
 
 const T1 = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
 const BASE = `/api/organizations/${COUNCIL_ID}/tasks`
-const LIST = `${BASE}?view=mine&status=open`
+const LIST = `${BASE}?view=all&status=open&event=none`
 const summary: TaskSummary = {
   id: T1,
   title: '현수막 주문',

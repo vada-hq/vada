@@ -26,7 +26,12 @@ function open(options: { view?: CouncilView; unread?: number; rooms?: RoomListRe
         roomList(options.unread === undefined ? {} : { unreadTotal: options.unread }),
     ),
   )
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${base}/events/open`, () => json({ events: [], more: false }))
   render(<WorkspaceAt startPage="home" />)
   return api

@@ -52,7 +52,7 @@ type Props = {
   onChanged: () => void
 }
 
-// 옆 메뉴 '업무': 탭 넷(내 업무, 내 부서, 전체, 담당자 없음), 거르기 둘(끝나지 않은 것, 끝남), 보드·표·달력. 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
+// 옆 메뉴 '업무': 학생회 업무·내 업무 두 탭, 범위 칩과 보드·표·달력. 탭을 바꾸면 이전 탭의 늦은 응답은 버린다.
 // 넓은 화면의 기본은 상태 열 보드다(DEC-94). 좁은 화면과 표는 내 업무를 급한 순(지남·오늘·7일 안·나중·마감 없음), 전체와 담당자 없음을 부서 묶음에 진행 상황 수를 단다(요구 1, 14, 15, 20).
 // 행사 화면의 업무 탭은 같은 화면을 그 행사로 좁힌 것이다.
 // 달력과 넓은 화면의 보드는 끝난 업무도 함께 그린다. 그래서 그때만 끝난 업무를 더 읽는다. 행사와 이을 수 있는 행사는 달력과 표만 읽는다.
@@ -63,13 +63,20 @@ function useTaskLists(
     filter,
     layout,
     wide,
-  }: { view: TaskView; filter: TaskFilter; layout: TaskLayout; wide: boolean },
+    listEvent,
+  }: {
+    view: TaskView
+    filter: TaskFilter
+    layout: TaskLayout
+    wide: boolean
+    listEvent: string | undefined
+  },
 ) {
   const councilId = props.view.council.id
   const calendar = layout === 'calendar'
   const both = calendar || (layout === 'board' && wide)
   const table = wide && !props.eventId && layout === 'list'
-  const eventId = props.eventId
+  const eventId = listEvent
   const list = useTasks(
     councilId,
     { view, filter: both ? 'open' : filter, eventId },
@@ -100,14 +107,14 @@ function useTasksPage(props: Props) {
   const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useTaskOpeners(councilId, inEvent)
   const wide = useSplit()
-  const lists = useTaskLists(props, { view, filter, layout, wide })
+  const lists = useTaskLists(props, { view, filter, layout, wide, listEvent: controls.listEvent })
   const list = useNarrowed(lists.list, dept, controls, props.view)
   const done = useNarrowed(lists.done, dept, controls, props.view)
   const events = onlyEvent(lists.events, props.eventId)
   const board = layout === 'board' && wide
   const councilEmpty = useBoardEmpty({
     councilId,
-    eventId: props.eventId,
+    eventId: controls.listEvent,
     view,
     board,
     raw: [lists.list, lists.done],
@@ -197,7 +204,7 @@ function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
     return { label: name, onClear: controls.clearDept }
   }
   if (page.rows.inEvent && controls.view === 'unassigned')
-    return { label: NO_ASSIGNEE_LABEL, onClear: () => controls.setView('all') }
+    return { label: NO_ASSIGNEE_LABEL, onClear: controls.toggleUnassigned }
   return undefined
 }
 
@@ -290,9 +297,10 @@ export default function TasksPage(props: Props) {
       />
       <TaskTabs
         allowCalendar={props.eventId !== undefined}
-        showViews={!props.eventId}
+        tab={controls.inMenu ? { value: controls.tab, onChange: controls.setTab } : undefined}
+        scope={controls}
+        myDepartment={props.view.me.departments[0]?.id}
         showFilter={layout !== 'calendar' && !page.board}
-        hasDepartment={props.view.me.departments.length > 0}
         view={view}
         filter={filter}
         onView={controls.setView}
@@ -303,7 +311,7 @@ export default function TasksPage(props: Props) {
       {adding && (
         <TaskQuickAdd
           view={props.view}
-          taskView={view}
+          taskView={controls.assignee === 'none' ? 'unassigned' : view}
           dept={controls.dept}
           eventId={props.eventId}
           autoFocus={props.initialCreate}

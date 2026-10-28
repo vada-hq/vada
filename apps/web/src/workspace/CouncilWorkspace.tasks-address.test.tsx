@@ -64,6 +64,17 @@ function setup(startPage: Page, home: HomeResponse = homeWithTasks([homeTask(T1,
     }),
   )
   api.on('GET', list('all', 'done'), () => json({ tasks: [], truncated: false }))
+  api.on('GET', list('all') + '&event=none', () =>
+    json({
+      tasks: [
+        task(T1, { department: planning }),
+        task(T2, { department: finance, title: '정산 업무' }),
+      ],
+      truncated: false,
+    }),
+  )
+  api.on('GET', list('all', 'done') + '&event=none', () => json({ tasks: [], truncated: false }))
+
   api.on('GET', list('department'), () =>
     json({
       tasks: [
@@ -107,30 +118,30 @@ const selected = (name: string) =>
 const pushes = () => vi.spyOn(window.history, 'pushState')
 const readsOf = (path: string) => api.calls.filter(call => call.path === path).length
 
-test('보기 탭을 누르면 주소의 쿼리가 바뀌고 기록은 쌓이지 않으며, 기본 보기로 돌아오면 쿼리가 사라진다', async () => {
+test('업무 탭을 누르면 주소를 바꿔 쓰며 학생회 업무가 기본이다', async () => {
   startAt(`/tasks/${COUNCIL_ID}`)
-  expect(await selected('내 업무')).toBe('true')
+  expect(await selected('학생회 업무')).toBe('true')
   const push = pushes()
-  fireEvent.click(screen.getByRole('tab', { name: '전체' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
-  expect(await selected('전체')).toBe('true')
   fireEvent.click(screen.getByRole('tab', { name: '내 업무' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?tab=mine`))
+  expect(await selected('내 업무')).toBe('true')
+  fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
   expect(push).not.toHaveBeenCalled()
 })
 
 test('거르기와 배치도 주소에 남고 기본값은 남지 않는다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all`)
-  expect(await selected('전체')).toBe('true')
+  startAt(`/tasks/${COUNCIL_ID}?events=include`)
+  expect(await selected('학생회 업무')).toBe('true')
   fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&filter=done`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&events=include`))
   fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
   expect(screen.queryByRole('button', { name: '달력' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '표' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&layout=list`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list&events=include`))
   fireEvent.click(screen.getByRole('button', { name: '보드' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
 })
 
 test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아오면 표다. 새로 열어도 같다', async () => {
@@ -148,44 +159,44 @@ test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아�
 })
 
 test('새로 고침하면 주소의 보기·거르기가 그대로 열린다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all&filter=done`)
-  expect(await selected('전체')).toBe('true')
+  startAt(`/tasks/${COUNCIL_ID}?filter=done&events=include`)
+  expect(await selected('학생회 업무')).toBe('true')
   await waitFor(() => expect(readsOf(list('all', 'done'))).toBeGreaterThan(0))
   expect(screen.getByRole('button', { name: '끝남' }).getAttribute('aria-pressed')).toBe('true')
 })
 
 test('모르는 값은 기본값으로 읽고 주소를 고쳐 쓴다', async () => {
   const push = (startAt(`/tasks/${COUNCIL_ID}?view=nope&filter=x&layout=y&dept=z`), pushes())
-  expect(await selected('내 업무')).toBe('true')
+  expect(await selected('학생회 업무')).toBe('true')
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
-  expect(readsOf(list('mine'))).toBeGreaterThan(0)
+  expect(readsOf(list('all') + '&event=none')).toBeGreaterThan(0)
   expect(push).not.toHaveBeenCalled()
 })
 
 test('끝 슬래시와 대문자 id는 읽은 꼴로 고쳐 쓴다', async () => {
   startAt(`/tasks/${COUNCIL_ID.toUpperCase()}/?view=all`)
-  expect(await selected('전체')).toBe('true')
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+  expect(await selected('학생회 업무')).toBe('true')
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
 })
 
 test('부서 거르기는 주소에 남고 그 부서의 업무만 보이며, 풀면 주소에서 빠진다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=department&dept=${D2}`)
+  startAt(`/tasks/${COUNCIL_ID}?dept=${D2}`)
   expect(await screen.findByText('정산 업무')).toBeTruthy()
   expect(screen.queryByText('업무 3f2b')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '재정부 거르기 풀기' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=department`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
   expect(await screen.findByText('업무 3f2b')).toBeTruthy()
 })
 
 test('보기 탭을 바꾸면 부서 거르기가 풀린다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=department&dept=${D2}`)
+  startAt(`/tasks/${COUNCIL_ID}?dept=${D2}`)
   await screen.findByText('정산 업무')
-  fireEvent.click(screen.getByRole('tab', { name: '전체' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`))
+  fireEvent.click(screen.getByRole('tab', { name: '내 업무' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?tab=mine`))
 })
 
 test('목록에서 업무를 열면 /tasks/학생회/업무로 한 칸 쌓이고, 닫으면 같은 보기의 목록으로 돌아간다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all`)
+  startAt(`/tasks/${COUNCIL_ID}?events=include`)
   const push = pushes()
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog')
@@ -195,8 +206,8 @@ test('목록에서 업무를 열면 /tasks/학생회/업무로 한 칸 쌓이고
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await act(() => windowHistoryIdle())
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`)
-  expect(await selected('전체')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`)
+  expect(await selected('학생회 업무')).toBe('true')
 })
 
 test('홈에서 연 업무를 닫으면 홈으로 돌아간다', async () => {
@@ -213,7 +224,7 @@ test('홈에서 연 업무를 닫으면 홈으로 돌아간다', async () => {
 })
 
 test('업무 상세에서 누른 행사는 행사 주소로 열리고, 뒤로 가면 그 업무 상세다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all`)
+  startAt(`/tasks/${COUNCIL_ID}?events=include`)
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog', { name: '현수막 주문' })
   // 행사 칸의 ↗(행사 열기)다.
@@ -236,11 +247,11 @@ const council = (extra: Partial<NonNullable<HomeResponse['council']>> = {}) => (
   ...extra,
 })
 
-test('홈의 내 업무 모두 보기는 내 업무(기본)로 연다', async () => {
+test('홈의 내 업무 모두 보기는 내 업무 탭을 명시한다', async () => {
   setup('home')
   fireEvent.click(await screen.findByRole('button', { name: '모두 보기' }))
   expect(await selected('내 업무')).toBe('true')
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`)
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?tab=mine`)
 })
 
 test('내 부서 묶음의 모두 보기는 내 부서 보기에 그 부서 거르기로 연다', async () => {
@@ -260,8 +271,8 @@ test('내 부서 묶음의 모두 보기는 내 부서 보기에 그 부서 거�
   )
   const section = await screen.findByRole('region', { name: '기획부' })
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(await selected('내 부서')).toBe('true')
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=department&dept=${D1}`)
+  expect(await selected('학생회 업무')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}`)
 })
 
 test('회장단의 지난 업무 모두 보기는 전체 보기로 연다', async () => {
@@ -275,8 +286,8 @@ test('회장단의 지난 업무 모두 보기는 전체 보기로 연다', asyn
   )
   const section = await screen.findByRole('region', { name: '지난 업무' })
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(await selected('전체')).toBe('true')
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all`)
+  expect(await selected('학생회 업무')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`)
 })
 
 test('회장단의 부서별 막힌 곳 줄은 전체 보기에 그 부서 거르기로 연다', async () => {
@@ -287,32 +298,34 @@ test('회장단의 부서별 막힌 곳 줄은 전체 보기에 그 부서 거�
     }),
   )
   fireEvent.click(await screen.findByRole('button', { name: '기획부' }))
-  expect(await selected('전체')).toBe('true')
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  expect(await selected('학생회 업무')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`)
 })
 
 test('상세를 여는 동안 뒤의 목록은 보던 보기와 부서 거르기를 지키고, 닫으면 같은 보기다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  startAt(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`)
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog')
   await screen.findByRole('dialog', { name: '현수막 주문' })
   expect(screen.getByRole('button', { name: '기획부 거르기 풀기', hidden: true })).toBeTruthy()
   expect(
-    screen.getByRole('tab', { name: '전체', hidden: true }).getAttribute('aria-selected'),
+    screen.getByRole('tab', { name: '학생회 업무', hidden: true }).getAttribute('aria-selected'),
   ).toBe('true')
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   await act(() => windowHistoryIdle())
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`)
 })
 
 test('연 업무가 사라져도 보던 보기와 부서 거르기가 남는다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`)
+  startAt(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`)
   api.on('GET', `${base}/tasks/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   expect((await screen.findByRole('alert')).textContent).toMatch(/업무/)
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?view=all&dept=${D1}`))
-  expect(screen.getByRole('tab', { name: '전체' }).getAttribute('aria-selected')).toBe('true')
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`))
+  expect(screen.getByRole('tab', { name: '학생회 업무' }).getAttribute('aria-selected')).toBe(
+    'true',
+  )
 })
 
 test('내 부서가 아닌 부서 거르기도 홈이 알려 준 부서 이름으로 칩을 쓴다', async () => {
@@ -328,4 +341,31 @@ test('내 부서가 아닌 부서 거르기도 홈이 알려 준 부서 이름�
   fireEvent.click(await screen.findByRole('button', { name: '디자인부' }))
   const chip = await screen.findByRole('button', { name: '디자인부 거르기 풀기' })
   expect(chip.className).toContain('wrap-anywhere')
+})
+
+test.each([
+  ['view=mine', 'tab=mine', '내 업무'],
+  ['view=department', '', '학생회 업무'],
+  ['view=all', 'events=include', '학생회 업무'],
+  ['view=unassigned', 'assignee=none&events=include', '학생회 업무'],
+])('옛 %s 주소를 새 탭·칩 주소로 바꿔 쓴다', async (old, query, tab) => {
+  startAt(`/tasks/${COUNCIL_ID}?${old}`)
+  expect(await selected(tab)).toBe('true')
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}${query ? '?' + query : ''}`))
+})
+
+test('우리 학생회 업무 주소는 행사 업무 포함인 학생회 업무 탭으로 바꿔 쓴다', async () => {
+  startAt(`/council/${COUNCIL_ID}?tab=tasks`)
+  expect(await selected('학생회 업무')).toBe('true')
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`)
+})
+
+test('마지막에 고른 내 업무 탭은 다른 메뉴를 거쳐 옆 메뉴로 돌아와도 기억한다', async () => {
+  startAt(`/tasks/${COUNCIL_ID}`)
+  fireEvent.click(await screen.findByRole('tab', { name: '내 업무' }))
+  fireEvent.click(screen.getAllByRole('button', { name: '홈' })[0]!)
+  await screen.findByRole('heading', { level: 1, name: '홈' })
+  fireEvent.click(screen.getAllByRole('button', { name: /^업무/ })[0]!)
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?tab=mine`))
+  expect(await selected('내 업무')).toBe('true')
 })

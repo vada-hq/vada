@@ -49,7 +49,7 @@ test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않
   })
   assert.equal(
     menuPath('tasks', C, { view: 'mine', filter: 'open', layout: 'board' }),
-    `/tasks/${C}`,
+    `/tasks/${C}?view=mine`,
   )
   // 배치의 기본은 보드다(DEC-94). 표는 018의 값 list 그대로 주소에 남는다.
   assert.equal(menuPath('tasks', C, { layout: 'list' }), `/tasks/${C}?layout=list`)
@@ -103,7 +103,10 @@ test('행사 업무 탭의 보기와 거르기는 업무 메뉴와 같은 키로
     tab: 'registrations',
   })
   // 업무 메뉴의 주소는 그대로다.
-  assert.equal(menuPath('tasks', C, { view: 'mine', filter: 'done' }), `/tasks/${C}?filter=done`)
+  assert.equal(
+    menuPath('tasks', C, { view: 'mine', filter: 'done' }),
+    `/tasks/${C}?view=mine&filter=done`,
+  )
   assert.equal(menuPath('tasks', C, { view: 'all' }), `/tasks/${C}?view=all`)
 })
 
@@ -286,6 +289,7 @@ const movedTo = (path: string, moves?: AddressMove[]) => {
 
 // 메뉴 v7 설계 2.2 대응표의 줄마다 하나. 새 꼴은 다시 읽으면 같은 값이고(왕복), 다시 옮기지 않는다.
 const MOVES: [old: string, now: string][] = [
+  [`/tasks/${C}?view=mine`, `/tasks/${C}?tab=mine`],
   [`/council/${C}`, `/chat/${C}`],
   [`/council/${C}?tab=messages`, `/chat/${C}`],
   [`/council/${C}?tab=tasks`, `/tasks/${C}?events=include`],
@@ -326,8 +330,6 @@ test('옛 주소는 메뉴 v7의 새 주소로 옮기고, 새 주소는 다시 �
 test('그대로인 주소: 기록 주소(알림), 업무 첫 화면, 결산, 행사의 재정 탭', () => {
   for (const path of [
     `/tasks/${C}`,
-    // view=mine은 옛 기본값이라 읽을 때 빠진다(앱이 만든 적 없는 꼴). 업무 첫 화면과 같다.
-    `/tasks/${C}?view=mine`,
     `/tasks/${C}?layout=list&filter=done`,
     `/finance/${C}`,
     `/finance/${C}?tab=closing&period=${P}`,

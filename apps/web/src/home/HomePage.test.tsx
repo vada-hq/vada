@@ -76,7 +76,7 @@ test('내 업무는 지남과 오늘만 줄로 보이고 그 뒤는 수만 둔�
   expect(within(mine).queryByRole('button', { name: /업무 c/ })).toBeNull()
   expect(screen.getByText('7일 안 1 · 나중 4')).toBeTruthy()
   fireEvent.click(within(mine).getByRole('button', { name: '모두 보기' }))
-  expect(pathNow()).toBe('/tasks/c1')
+  expect(pathNow()).toBe('/tasks/c1?tab=mine')
 })
 
 test('맨 위 숫자 카드는 줄 수가 아니라 전체 수다', async () => {

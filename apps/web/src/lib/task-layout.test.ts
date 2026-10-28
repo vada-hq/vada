@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, test, vi } from 'vitest'
-import { rememberTaskLayout, withTaskLayout } from './task-layout'
+import { rememberTaskLayout, rememberTaskTab, withTaskLayout, withTaskTab } from './task-layout'
 
 test('캘린더 메뉴 분리 뒤 업무 링크에는 기억한 달력을 싣지 않고 행사에는 남긴다', () => {
   rememberTaskLayout('m1', 'calendar')
@@ -11,6 +11,19 @@ test('캘린더 메뉴 분리 뒤 업무 링크에는 기억한 달력을 싣지
 beforeEach(() => {
   window.localStorage.clear()
   vi.restoreAllMocks()
+})
+
+test('업무 메뉴는 첫 탭이 학생회 업무이고 마지막 탭은 사람별로 기억한다', () => {
+  expect(withTaskTab('m1', {})).toEqual({})
+  rememberTaskTab('m1', 'mine')
+  expect(withTaskTab('m1', {})).toEqual({ tab: 'mine' })
+  expect(withTaskTab('m2', {})).toEqual({})
+  expect(withTaskTab(null, {})).toEqual({})
+  expect(withTaskTab('m1', { tab: 'council' })).toEqual({ tab: 'council' })
+  rememberTaskTab('m1', 'council')
+  expect(withTaskTab('m1', {})).toEqual({ tab: 'council' })
+  window.localStorage.setItem('vada.task.tab.m1', 'nope')
+  expect(withTaskTab('m1', {})).toEqual({})
 })
 
 test('기억이 없으면 쿼리를 그대로 둔다(보드)', () => {
@@ -47,4 +60,6 @@ test('저장소를 못 쓰는 브라우저에서도 던지지 않고 보드다',
   })
   expect(() => rememberTaskLayout('m1', 'list')).not.toThrow()
   expect(withTaskLayout('m1', {})).toEqual({})
+  expect(() => rememberTaskTab('m1', 'mine')).not.toThrow()
+  expect(withTaskTab('m1', {})).toEqual({})
 })

@@ -260,6 +260,33 @@ test(
 )
 
 test(
+  'event=none은 행사 없는 업무만 학생회·보기·상태 조건과 함께 거른다',
+  run(async s => {
+    const eventId = await s.event(null)
+    const assigneeId = s.council.people.planningMember.memberId
+    const bare = await s.made({ title: '행사 없음', assigneeId })
+    const done = await s.made({ title: '끝남', assigneeId })
+    await s.post(`/${done.id}/status`, { status: 'done' })
+    await s.made({ title: '행사 업무', eventId, assigneeId })
+    const foreignBase = `/api/organizations/${s.other.councilId}/tasks`
+    assert.equal(
+      (await s.api.post(foreignBase, { title: '다른 학생회' }, 'o-president')).status,
+      201,
+    )
+    const ids = async (query: string, user = 's-president') => {
+      const response = await s.api.get(`${s.base}?${query}&event=none`, user)
+      assert.equal(response.status, 200)
+      return ((await response.json()) as TasksResponse).tasks.map(row => row.id)
+    }
+    assert.deepEqual(await ids('view=all'), [bare.id])
+    assert.deepEqual(await ids('view=mine', 's-planningMember'), [bare.id])
+    assert.deepEqual(await ids('view=all&status=done'), [done.id])
+    assert.deepEqual(await ids('view=unassigned'), [])
+    assert.equal((await s.api.get(`${foreignBase}?view=all&event=none`, 's-president')).status, 403)
+  }),
+)
+
+test(
   '업무 줄과 상세에 행사 이름이 지금 이름으로 보이고, 행사 없는 업무는 null이다',
   run(async s => {
     const eventId = await s.event(null, '이름 전')

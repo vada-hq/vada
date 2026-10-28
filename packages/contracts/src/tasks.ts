@@ -22,8 +22,8 @@ export type TaskFilter = (typeof TASK_FILTERS)[number]
 export const TaskListQuerySchema = z.strictObject({
   view: z.enum(TASK_VIEWS),
   status: z.enum(TASK_FILTERS).default('open'),
-  // 그 행사의 업무만. 다른 학생회 행사는 서버가 404로 답한다.
-  event: recordIdInput.optional(),
+  // none은 행사 없는 업무만, 식별자는 그 행사의 업무만. 다른 학생회 행사는 서버가 404로 답한다.
+  event: z.union([recordIdInput, z.literal('none')]).optional(),
 })
 export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 

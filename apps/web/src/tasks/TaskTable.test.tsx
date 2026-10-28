@@ -10,7 +10,8 @@ import { COUNCIL_ID } from '@/test-support/workspace-at'
 import TasksPage from './TasksPage'
 
 const base = `/api/organizations/${COUNCIL_ID}/tasks`
-const listPath = (view: string, status = 'open') => `${base}?view=${view}&status=${status}`
+const listPath = (view: string, status = 'open') =>
+  `${base}?view=${view}&status=${status}${view === 'all' ? '&event=none' : ''}`
 const ALL = ['task.change_status', 'task.change_assignee', 'task.change_department', 'task.edit']
 
 const task = (id: string, extra: Partial<TaskSummary> = {}): TaskSummary => ({
@@ -82,7 +83,7 @@ async function showAll(eventId?: string, onForbidden = () => {}) {
         : `/tasks/${COUNCIL_ID}?layout=list`,
     )
   render(page(eventId, onForbidden))
-  if (!eventId) fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  if (!eventId) fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
 }
 
 afterEach(() => {
@@ -100,7 +101,7 @@ test('넓은 화면은 표(열 제목 여섯)이고 좁은 화면은 지금의 �
   wide(false)
   serve(() => [task('a')])
   const narrow = render(page())
-  fireEvent.click(await screen.findByRole('tab', { name: '전체' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
   await screen.findByRole('button', { name: '업무 a' })
   expect(screen.queryByRole('grid')).toBeNull()
   narrow.unmount()
@@ -359,7 +360,7 @@ test('부서 거르기 보기에서도 고른 값이 옛 값으로 돌아가지 
   let release!: (response: Response) => void
   let saved = false
   const api = serve(() => [task('a')])
-  api.on('GET', `${base}?view=all&status=open`, () =>
+  api.on('GET', `${base}?view=all&status=open&event=none`, () =>
     list([task('a', saved ? { status: 'in_progress' } : {})]),
   )
   api.on('POST', `${base}/a/status`, () => {

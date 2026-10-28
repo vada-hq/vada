@@ -40,7 +40,12 @@ function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, hom
   api.on('GET', `${base}/members`, () => json(teamResponse()))
   api.on('GET', `${base}/rooms`, () => json(roomList()))
   api.on('GET', `${base}/home`, () => json(home ?? homeResponse()))
-  api.on('GET', `${base}/tasks?view=mine&status=open`, () => json({ tasks: [], truncated: false }))
+  for (const taskScope of ['mine', 'all'])
+    api.on(
+      'GET',
+      `${base}/tasks?view=${taskScope}&status=open${taskScope === 'all' ? '&event=none' : ''}`,
+      () => json({ tasks: [], truncated: false }),
+    )
   api.on('GET', `${base}/accounts`, () => json(accountsResponse()))
   for (const view of ['mine', 'pending', 'all'])
     api.on('GET', requestsOf(view), () =>
