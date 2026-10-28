@@ -156,7 +156,7 @@ exports[`내 이름 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -176,7 +176,7 @@ exports[`내 이름 창 열기 1`] = `
 <dd class="text-sm break-keep text-gray-800 wrap-anywhere">kim.bada.studentcouncil2026@university-mail.ac.kr</dd>
 </div>
 </dl>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mr-auto" type="button">탈퇴</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11" type="button">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11" type="submit">이름 저장</button>
@@ -261,7 +261,7 @@ exports[`다시 로그인 탈퇴 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -269,7 +269,7 @@ exports[`다시 로그인 탈퇴 창 열기 1`] = `
 <p id="radix-_id4_" class="text-sm text-gray-500 wrap-anywhere">학생회 기록의 내 이름은 '떠난 운영진'으로 바뀌어요. 되돌릴 수 없어요.</p>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">다시 로그인한 뒤 탈퇴할 수 있어요.</p>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">다시 로그인</button>
 </div>
@@ -304,7 +304,7 @@ exports[`대화상자 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -315,7 +315,7 @@ exports[`대화상자 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="g-dialog-name">행사 이름</label>
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="g-dialog-name">
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11" type="button">취소</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">행사 만들기</button>
 </div>
@@ -586,14 +586,14 @@ exports[`보내는 중 탈퇴 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id3_" class="text-base font-semibold text-gray-900 wrap-anywhere">탈퇴</h2>
 <p id="radix-_id4_" class="text-sm text-gray-500 wrap-anywhere">학생회 기록의 내 이름은 '떠난 운영진'으로 바뀌어요. 되돌릴 수 없어요.</p>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">탈퇴</button>
 </div>
@@ -763,14 +763,14 @@ exports[`보내는 중 확인 대화상자 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">박새내님을 내보낼까요?</h2>
 <p id="radix-_id3_" class="text-sm text-gray-500 wrap-anywhere">학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요.</p>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">내보내기</button>
 </div>
@@ -1792,7 +1792,7 @@ exports[`빈 일정 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 break-keep [&amp;>button]:max-sm:min-h-11 [&amp;>button]:max-sm:min-w-11" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom break-keep [&amp;>button]:max-sm:min-h-11 [&amp;>button]:max-sm:min-w-11" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -1891,7 +1891,7 @@ exports[`빈 일정 창 열기 1`] = `
 </textarea>
 </div>
 </fieldset>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11" type="button">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">저장</button>
 </div>
@@ -1927,7 +1927,7 @@ exports[`사용 중 구독 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -1940,7 +1940,7 @@ exports[`사용 중 구독 창 열기 1`] = `
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">구독 끊기</button>
 </div>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 </div>
 <button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
@@ -2022,7 +2022,7 @@ exports[`실패 탈퇴 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -2030,7 +2030,7 @@ exports[`실패 탈퇴 창 열기 1`] = `
 <p id="radix-_id4_" class="text-sm text-gray-500 wrap-anywhere">학생회 기록의 내 이름은 '떠난 운영진'으로 바뀌어요. 되돌릴 수 없어요.</p>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">탈퇴하지 못했어요. 다시 시도해 주세요.</p>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">탈퇴</button>
 </div>
@@ -2143,14 +2143,14 @@ exports[`일반 확인 대화상자 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900 wrap-anywhere">이재정님에게 회장 직급을 넘길까요?</h2>
 <p id="radix-_id3_" class="text-sm text-gray-500 wrap-anywhere">넘기면 나는 직급이 없어지고, 회장만 하던 일은 넘겨받은 사람이 해요.</p>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">넘기기</button>
 </div>
@@ -4239,7 +4239,7 @@ exports[`일정 오류 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 break-keep [&amp;>button]:max-sm:min-h-11 [&amp;>button]:max-sm:min-w-11" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom break-keep [&amp;>button]:max-sm:min-h-11 [&amp;>button]:max-sm:min-w-11" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -4339,7 +4339,7 @@ exports[`일정 오류 창 열기 1`] = `
 </textarea>
 </div>
 </fieldset>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11" type="button">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">저장</button>
 </div>
@@ -5507,7 +5507,7 @@ exports[`입금 확인 창(금액 칸) 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -5523,7 +5523,7 @@ exports[`입금 확인 창(금액 칸) 1`] = `
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" inputmode="numeric" id="_id3_" aria-required="true" aria-describedby="_id3_-hint" value="5000">
 </div>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">입금 확인</button>
 </div>
@@ -5691,7 +5691,7 @@ exports[`주소 생성 직후 구독 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -5716,7 +5716,7 @@ exports[`주소 생성 직후 구독 창 열기 1`] = `
 <p>주소는 이 창을 닫으면 다시 볼 수 없어요.</p>
 </div>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 </div>
 <button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
@@ -5750,14 +5750,14 @@ exports[`주소 없음 구독 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom min-w-0 break-keep" tabindex="-1" aria-labelledby="radix-_id2_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id2_" class="text-base font-semibold text-gray-900">캘린더 구독</h2>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">주소 만들기</button>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 </div>
 <button type="button" aria-label="닫기" class="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
@@ -6006,13 +6006,13 @@ exports[`지출 금액과 자릿수 확인 창 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id19_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id20_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id19_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id20_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id20_" class="text-base font-semibold text-gray-900 wrap-anywhere">금액과 자릿수를 확인하세요</h2>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">그래도 적기</button>
 </div>
@@ -6893,14 +6893,14 @@ exports[`코드 바꾸기 확인 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id24_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id25_" aria-describedby="radix-_id26_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id24_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id25_" aria-describedby="radix-_id26_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id25_" class="text-base font-semibold text-gray-900 wrap-anywhere">초대 코드를 바꿀까요?</h2>
 <p id="radix-_id26_" class="text-sm text-gray-500 wrap-anywhere">옛 링크와 코드로는 들어올 수 없어요. 이미 들어온 운영진은 그대로예요.</p>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">코드 바꾸기</button>
 </div>
@@ -6983,14 +6983,14 @@ exports[`탈퇴 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
 <h2 id="radix-_id3_" class="text-base font-semibold text-gray-900 wrap-anywhere">탈퇴</h2>
 <p id="radix-_id4_" class="text-sm text-gray-500 wrap-anywhere">학생회 기록의 내 이름은 '떠난 운영진'으로 바뀌어요. 되돌릴 수 없어요.</p>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">탈퇴</button>
 </div>
@@ -8418,7 +8418,7 @@ exports[`행사 참가자 표: 줄 동작에서 입금 금액 확인 창 1`] = `
 </div>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id11_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id12_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id11_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id12_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -8434,7 +8434,7 @@ exports[`행사 참가자 표: 줄 동작에서 입금 금액 확인 창 1`] = `
 <input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" inputmode="numeric" id="_id13_" aria-required="true" aria-describedby="_id13_-hint" value="5000">
 </div>
 </div>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">입금 확인</button>
 </div>
@@ -8472,7 +8472,7 @@ exports[`확인 대화상자 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id1_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id2_" aria-describedby="radix-_id3_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -8480,7 +8480,7 @@ exports[`확인 대화상자 열기 1`] = `
 <p id="radix-_id3_" class="text-sm text-gray-500 wrap-anywhere">학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요.</p>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">저장하지 못했어요. 다시 시도해 주세요.</p>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">내보내기</button>
 </div>
@@ -8563,7 +8563,7 @@ exports[`회장 탈퇴 창 열기 1`] = `
 </section>
 </div>
 <div data-state="open" class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/45 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0" style="pointer-events: auto;">
-<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
+<div role="dialog" id="radix-_id2_" data-state="open" data-slot="dialog-content" class="relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom" tabindex="-1" aria-labelledby="radix-_id3_" aria-describedby="radix-_id4_" style="pointer-events: auto;">
 <button type="button" hidden="" tabindex="-1" aria-hidden="true">
 </button>
 <div class="flex flex-col gap-1 pr-6">
@@ -8571,7 +8571,7 @@ exports[`회장 탈퇴 창 열기 1`] = `
 <p id="radix-_id4_" class="text-sm text-gray-500 wrap-anywhere">학생회 기록의 내 이름은 '떠난 운영진'으로 바뀌어요. 되돌릴 수 없어요.</p>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">회장 직급을 넘긴 뒤 탈퇴할 수 있어요.</p>
-<div class="flex flex-wrap justify-end gap-2">
+<div class="flex flex-wrap justify-end gap-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">닫기</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-destructive text-white hover:bg-red-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">탈퇴</button>
 </div>

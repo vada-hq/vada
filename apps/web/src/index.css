@@ -9,6 +9,11 @@
   scroll-padding-bottom: var(--bottom-navigation-space);
 }
 
+/* 휴대폰 창 시트의 바닥 버튼 줄이 iPhone 바닥 안전 영역 위에 놓이게 비운다. */
+@utility safe-bottom-3 {
+  padding-bottom: calc(var(--spacing) * 3 + env(safe-area-inset-bottom));
+}
+
 /* 와이어프레임(Figma)의 색은 Tailwind v4 기본 팔레트와 같다. shadcn 부품이 쓰는 이름으로 묶는다. */
 :root {
   --background: #f9fafb;

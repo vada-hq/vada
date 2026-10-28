@@ -74,17 +74,18 @@ export function BudgetFormDialog({
         >
           {children}
           {problem && <StateMessage kind="error">{problem}</StateMessage>}
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* 합계와 버튼을 한 줄로 휴대폰 시트 바닥에 함께 붙인다. */}
+          <DialogFooter className="items-center justify-between gap-3">
             {summary}
-            <DialogFooter className="ml-auto">
+            <div className="ml-auto flex flex-wrap justify-end gap-2">
               <Button type="button" variant="outline" busy={saving} onClick={onClose}>
                 닫기
               </Button>
               <Button type="submit" busy={saving}>
                 {submitLabel}
               </Button>
-            </DialogFooter>
-          </div>
+            </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

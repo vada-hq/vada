@@ -1,4 +1,4 @@
-import { useRef, type ComponentProps } from 'react'
+import { createContext, useContext, useRef, type ComponentProps } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -49,6 +49,15 @@ export function WindowHistory({
   return <DialogPrimitive.Close ref={close} hidden tabIndex={-1} aria-hidden="true" />
 }
 
+// 버튼 줄이 창 안에 있는지. 구매 요청 내기 화면처럼 창 밖 페이지도 DialogFooter를 쓰므로 바닥 고정은 창 안에서만 건다.
+const InDialog = createContext(false)
+
+// 640px 아래에서는 가운데 작은 창 대신 아래에 붙은 전체 폭 시트로 연다(M3 bottom sheet·full-screen dialog for compact, Apple HIG Sheets).
+// 짧은 확인 창은 내용만큼 낮은 시트, 긴 폼은 화면 높이까지 차고 창 안이 스크롤된다. 넓은 화면은 바꾸지 않는다.
+// scroll-pb-20은 초점이 바닥 고정 버튼 줄 밑의 칸으로 갈 때 그 줄 높이만큼 더 올려 보이게 한다.
+const SHEET_BELOW_SM =
+  'max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-dvh max-sm:max-w-none max-sm:overflow-y-auto max-sm:scroll-pb-20 max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:border-x-0 max-sm:border-b-0 max-sm:data-[state=open]:slide-in-from-bottom'
+
 // 통일 규칙: 오버레이 검정 45%, 반경 큰 값, 큰 그림자, 안쪽 여백 21px, 폭 약 440px.
 // 내용을 오버레이 안에 둔다(Radix 문서의 scrollable overlay). 좁거나 낮은 화면에서는 오버레이가 스크롤되어 내용이 잘리지 않는다.
 export function DialogContent({
@@ -68,13 +77,14 @@ export function DialogContent({
           data-slot="dialog-content"
           className={cn(
             'relative flex w-full max-w-lg flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+            SHEET_BELOW_SM,
             className,
           )}
           {...props}
           {...returnFocus}
         >
           <WindowHistory record={record} />
-          {children}
+          <InDialog.Provider value>{children}</InDialog.Provider>
           {/* 휴대폰에서는 누르는 자리만 44px로 넓힌다(아이콘 자리는 같다). QR 스캐너처럼 닫는 길이 이것 하나인 창이 있다. */}
           <DialogPrimitive.Close
             aria-label="닫기"
@@ -112,6 +122,19 @@ export function DialogDescription({
 }
 
 // 버튼 줄은 오른쪽 정렬한다. 회색 footer 띠는 쓰지 않는다(통일 규칙).
+// 휴대폰 시트에서는 긴 폼을 스크롤해도 제출 단추가 보이도록 시트 바닥에 붙인다. 창의 아래 여백(p-6)을 이 줄이 대신 채우므로 창 안 맨 끝에 둔다. 붙는 기준선이 스크롤 상자의 안쪽 여백만큼 올라가 있어 -bottom-6으로 내린다.
+const STICKY_BELOW_SM =
+  'max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-white max-sm:px-6 max-sm:pt-3 max-sm:safe-bottom-3'
+
 export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('flex flex-wrap justify-end gap-2', className)} {...props} />
+  return (
+    <div
+      className={cn(
+        'flex flex-wrap justify-end gap-2',
+        useContext(InDialog) && STICKY_BELOW_SM,
+        className,
+      )}
+      {...props}
+    />
+  )
 }
