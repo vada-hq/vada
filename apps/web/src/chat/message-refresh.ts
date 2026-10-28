@@ -29,10 +29,11 @@ export async function readRoomUpdates(
   where: RoomAt,
   cursor: { firstId: string | undefined; lastId: string | undefined },
   onPage: OnPage,
+  onRefresh: OnPage,
 ) {
   let active = true
   const accept: OnPage = page => (active = onPage(page))
   const outcome = await readNewer(where, cursor.lastId, accept)
   if (outcome !== 'done' || !cursor.firstId || !active) return outcome
-  return refreshLoaded(where, cursor.firstId, accept)
+  return refreshLoaded(where, cursor.firstId, onRefresh)
 }

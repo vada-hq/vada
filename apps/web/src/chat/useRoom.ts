@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MadeRecord } from '@vada/contracts'
+import type { ChatMessage, MadeRecord } from '@vada/contracts'
 import { useActive } from '@/lib/use-active'
 import { useVisiblePoll } from '@/lib/use-visible-poll'
 import { CHAT_POLL_MS, isRoomLost } from './chat-api'
@@ -9,6 +9,7 @@ import {
   loadRoom,
   prepended,
   readMessages,
+  refreshed,
   withSync,
   withMade,
   type RoomState,
@@ -41,10 +42,16 @@ export function useRoom(councilId: string, roomId: string) {
   const catchUp = useCallback(async () => {
     if (busy.current || !ready) return
     busy.current = true
-    const outcome = await readRoomUpdates(where, { firstId, lastId }, more => {
-      if (isActive()) setState(before => appended(before, more))
+    const accept = (merge: typeof appended) => (more: ChatMessage[]) => {
+      if (isActive()) setState(before => merge(before, more))
       return isActive()
-    })
+    }
+    const outcome = await readRoomUpdates(
+      where,
+      { firstId, lastId },
+      accept(appended),
+      accept(refreshed),
+    )
     busy.current = false
     if (!isActive()) return
     if (outcome === 'lost') lose()

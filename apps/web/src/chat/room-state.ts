@@ -76,15 +76,27 @@ export async function readNewer(
   return 'done'
 }
 
-// 기존 줄은 최신 응답으로 바꾸고 새 줄만 붙인다. 비운 본문은 늦은 응답으로 되살리지 않는다.
-export function appended(state: RoomState, more: ChatMessage[]): RoomState {
+// 비운 본문은 늦은 응답으로 되살리지 않는다. 삭제 확인은 새 글의 커서를 건너뛰지 않게 기존 줄만 바꾼다.
+export function refreshed(state: RoomState, more: ChatMessage[]): RoomState {
   if (state.kind !== 'ready') return state
-  const known = new Set(state.messages.map(item => item.id))
   const latest = new Map(more.map(item => [item.id, item]))
-  const refreshed = state.messages.map(item =>
-    item.body === null ? item : (latest.get(item.id) ?? item),
-  )
-  return { ...state, messages: [...refreshed, ...more.filter(item => !known.has(item.id))] }
+  return {
+    ...state,
+    messages: state.messages.map(item =>
+      item.body === null ? item : (latest.get(item.id) ?? item),
+    ),
+  }
+}
+
+// 기존 줄은 최신 응답으로 바꾸고 새 줄만 붙인다.
+export function appended(state: RoomState, more: ChatMessage[]): RoomState {
+  const current = refreshed(state, more)
+  if (current.kind !== 'ready') return current
+  const known = new Set(current.messages.map(item => item.id))
+  return {
+    ...current,
+    messages: [...current.messages, ...more.filter(item => !known.has(item.id))],
+  }
 }
 
 export function prepended(state: RoomState, older: MessagePageResponse): RoomState {

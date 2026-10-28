@@ -79,3 +79,63 @@ test('읽어 둔 옛 쪽의 삭제도 거슬러 반영하고 늦은 응답으로
   })
   expect(result.current.state.kind === 'ready' && result.current.state.messages[0]?.body).toBeNull()
 })
+
+test('새 글이 20쪽을 넘어도 삭제 확인은 새 글을 붙이지 않고 다음 읽기에서 시간순으로 따라잡는다', async () => {
+  const api = mockApi()
+  const initial = [message('a1', '삭제 전 본문'), message('a2', '남길 글')]
+  const messages = [
+    ...initial,
+    ...Array.from({ length: 1100 }, (_, index) => message(`new${index + 1}`, `새 글 ${index + 1}`)),
+  ]
+  const pageSize = 50
+  let refreshing = false
+  api.on('GET', base, () => json({ room: room('r1'), participants: [] }))
+  for (let start = initial.length; start < messages.length; start += pageSize) {
+    const page = messages.slice(start, start + pageSize)
+    api.on('GET', `${base}/messages?after=${messages[start - 1]?.id}`, () =>
+      json(messagePage(page, { hasNewer: start + pageSize < messages.length })),
+    )
+  }
+  for (let end = messages.length; end > 0; end -= pageSize) {
+    const start = Math.max(0, end - pageSize)
+    const page = messages
+      .slice(start, end)
+      .map(item =>
+        item.id === initial[0]?.id
+          ? { ...item, body: null, deletedAt: '2026-10-28T00:00:00Z' }
+          : item,
+      )
+    const path =
+      end === messages.length ? `${base}/messages` : `${base}/messages?before=${messages[end]?.id}`
+    api.on('GET', path, () =>
+      json(messagePage(refreshing ? page : initial, { hasOlder: refreshing && start > 0 })),
+    )
+  }
+  const { result } = renderHook(() => useRoom('c1', 'r1'))
+  await waitFor(() => expect(result.current.state.kind).toBe('ready'))
+  refreshing = true
+  await act(async () => {
+    await result.current.sync()
+  })
+  const first = result.current.state
+  if (first.kind !== 'ready') throw new Error('ready expected')
+  const caughtUp = initial.length + pageSize * 20
+  expect(first.messages.at(-1)?.id).toBe(messages[caughtUp - 1]?.id)
+  expect(first.messages.map(item => item.id)).toEqual(
+    messages.slice(0, caughtUp).map(item => item.id),
+  )
+  expect(first.messages[0]?.body).toBeNull()
+  expect(api.calls.filter(call => call.path.includes('?after='))).toHaveLength(20)
+  await act(async () => {
+    await result.current.sync()
+  })
+  const second = result.current.state
+  if (second.kind !== 'ready') throw new Error('ready expected')
+  expect(second.messages.map(item => item.id)).toEqual(messages.map(item => item.id))
+  expect(second.messages.at(-1)?.id).toBe(messages.at(-1)?.id)
+  expect(second.messages[0]?.body).toBeNull()
+  expect(api.calls.map(call => call.path)).toContain(
+    `${base}/messages?after=${messages[caughtUp - 1]?.id}`,
+  )
+  api.assertNoUnexpectedRequests()
+})
