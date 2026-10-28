@@ -305,6 +305,7 @@ export default function RoomView({
           readOnly={readOnly}
           onBack={onBack}
           side={side}
+          direct={state.room.type === 'direct'}
         />
       )}
       {flows.views}

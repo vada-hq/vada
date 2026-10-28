@@ -1,4 +1,4 @@
-import type { ChatMessage, RoomSummary } from '@vada/contracts'
+import type { ChatMessage } from '@vada/contracts'
 import { useState } from 'react'
 import { switchName } from '@/chat/chat-view'
 import Composer from '@/chat/Composer'
@@ -8,6 +8,7 @@ import RoomRow from '@/chat/RoomRow'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Section } from './GallerySection'
+import { chatRoom, DIRECT_ID, ROOMS } from './chat-samples'
 import { longName, unbroken } from './sample-text'
 import SideChatListView from '@/chat/SideChatListView'
 import SideChatRoomTitle from '@/chat/SideChatRoomTitle'
@@ -17,53 +18,6 @@ import { useSplit } from '@/lib/use-split'
 const noop = () => {}
 const now = new Date('2026-10-23T05:00:00.000Z')
 const HOME_PREVIEW_COUNT = 2
-const DIRECT_ID = '0199d1a0-0000-7000-8000-0000000000a9'
-
-const chatRoom = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
-  id,
-  type: 'all_members',
-  name: null,
-  departmentId: null,
-  readOnly: false,
-  unread: 0,
-  mentions: 0,
-  lastMessageAt: '2026-10-23T03:00:00.000Z',
-  lastMessage: null,
-  memberCount: 3,
-  ...extra,
-})
-
-const ROOMS = [
-  chatRoom('all', {
-    unread: 12,
-    mentions: 1,
-    memberCount: 24,
-    lastMessage: { senderName: '김바다', preview: `이번 주 정기 회의는 목요일 18:00 ${longName}` },
-  }),
-  chatRoom('lead', { type: 'leadership', lastMessageAt: null, memberCount: 2 }),
-  chatRoom('plan', {
-    type: 'department',
-    name: '기획부',
-    departmentId: 'd1',
-    unread: 120,
-    lastMessage: { senderName: '박해랑', preview: unbroken },
-  }),
-  chatRoom('photo', {
-    type: 'department',
-    name: unbroken,
-    departmentId: 'd2',
-    lastMessageAt: '2026-10-20T03:00:00.000Z',
-    lastMessage: { senderName: '정하늘', preview: '사진' },
-  }),
-  chatRoom('gone', {
-    type: 'direct',
-    name: '떠난 운영진 2',
-    readOnly: true,
-    memberCount: 2,
-    lastMessage: { senderName: '떠난 운영진 2', preview: '그동안 고마웠어요' },
-  }),
-]
-
 // 학생회 방 탭과 흐름(US-MSG-01). 방과 입력 띠는 행사 메시지 탭과 같은 부품이다.
 function MessageHomeSample() {
   const split = useSplit()
@@ -134,6 +88,7 @@ function SideChatSample() {
               name="정하늘"
               readOnly={false}
               side
+              direct
               onBack={() => setOpened(false)}
             />
             <ul className="mt-auto overflow-y-auto px-2 py-3">
@@ -189,6 +144,10 @@ export function RoomRowSection() {
     <Section title="대화 목록 줄">
       <MessageHomeSample />
       <SideChatSample />
+      {/* 휴대폰은 1:1을 전체 화면으로 연다. 머리는 PC 오른쪽 칸과 같은 호박색이다(MSG-04). */}
+      <div className={cn(cardClass, 'w-97.5 overflow-hidden')}>
+        <SideChatRoomTitle name="정하늘" readOnly={false} side={false} direct onBack={noop} />
+      </div>
       {['w-full', 'w-97.5'].map(width => (
         <ul key={width} aria-label={`대화방 ${width}`} className={cn(cardClass, 'divide-y', width)}>
           {ROOMS.map((room, index) => (

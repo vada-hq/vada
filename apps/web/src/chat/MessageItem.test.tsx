@@ -22,6 +22,15 @@ test.each([
   expect(screen.queryByRole('button')).toBeNull()
 })
 
+// 두 글자 이름도 휴대폰에서 누르는 칸이 44px 이상이다(Apple HIG 44pt). 넓은 화면은 글 폭 그대로다.
+test('이름 단추는 640 아래에서 최소 폭 44px이고 글은 왼쪽에 둔다', () => {
+  render(<PersonName councilId="c1" meId="m1" memberId="m2" name="정하" canDirect />)
+  const name = screen.getByRole('button', { name: '정하님과 1:1 대화' })
+  expect(name.className).toContain('max-sm:min-w-11')
+  expect(name.className).toContain('max-sm:min-h-11')
+  expect(name.className).toContain('justify-start')
+})
+
 test('이름을 두 번 눌러도 1:1 열기는 한 번이며 열린 방을 받는다', async () => {
   const api = mockApi()
   const pending = deferredResponse()

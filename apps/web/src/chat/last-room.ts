@@ -17,17 +17,21 @@ export function saveSideRoom(councilId: string, meId: string, roomId: string | n
   else sideRooms.delete(key)
 }
 
-export function savedDirectTab(councilId: string) {
+// 휴대폰 '1:1' 탭 기억은 기기를 돌려 쓰는 다른 운영진에게 이어지지 않게 사람마다 둔다.
+// 사람이 없던 옛 열쇠는 누구의 선택인지 몰라 읽지 않는다(한 번 학생회 방 탭으로 열릴 뿐이다).
+const directKey = (councilId: string, meId: string) => `${DIRECT_PREFIX}${councilId}:${meId}`
+
+export function savedDirectTab(councilId: string, meId: string) {
   try {
-    return window.localStorage.getItem(DIRECT_PREFIX + councilId) === 'true'
+    return window.localStorage.getItem(directKey(councilId, meId)) === 'true'
   } catch {
     return false
   }
 }
 
-export function saveDirectTab(councilId: string, direct: boolean) {
+export function saveDirectTab(councilId: string, meId: string, direct: boolean) {
   try {
-    window.localStorage.setItem(DIRECT_PREFIX + councilId, String(direct))
+    window.localStorage.setItem(directKey(councilId, meId), String(direct))
   } catch {
     // 저장소가 막혔으면 다음에는 학생회 방 탭을 연다.
   }

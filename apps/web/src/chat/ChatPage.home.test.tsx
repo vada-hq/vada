@@ -38,16 +38,18 @@ function Navigation() {
 function Harness({
   rooms = allRooms,
   initial = { kind: 'home' },
+  memberId = 'm1',
 }: {
   rooms?: typeof allRooms
   initial?: Screen
+  memberId?: string
 }) {
   const [current, setCurrent] = useState<Screen>(initial)
   return (
     <BottomNavigationVisibility>
       <ChatPage
         councilId="c1"
-        view={councilView('c1')}
+        view={councilView('c1', { memberId })}
         team={{} as never}
         rooms={{ state: { kind: 'ready', data: roomList({ rooms }) }, reload: async () => true }}
         screen={current}
@@ -105,13 +107,28 @@ test.each([768, 1023])('%i 폭은 오른쪽 칸 대신 1:1 탭을 보인다', wi
 
 test('PC는 1:1 탭 기억을 무시하고 학생회 흐름을 열며 탭을 바꿔도 1:1 칸을 남긴다', () => {
   navigationWidth(1280)
-  localStorage.setItem('vada.chat.direct-tab.c1', 'true')
+  localStorage.setItem('vada.chat.direct-tab.c1:m1', 'true')
   render(<Harness initial={{ kind: 'home', sideRoomId: 'direct' }} />)
   expect(screen.getByText('흐름 lead')).toBeTruthy()
   expect(screen.queryByRole('tab', { name: /1:1/ })).toBeNull()
   fireEvent.click(screen.getByRole('tab', { name: /운영부 방/ }))
   expect(screen.getByText('흐름 dept')).toBeTruthy()
   expect(screen.getByText('흐름 direct')).toBeTruthy()
+})
+
+// 같은 기기를 여러 운영진이 돌려 쓰면 앞 사람의 탭 선택이 다음 사람에게 이어지지 않는다.
+test('휴대폰 1:1 탭 기억은 학생회 안에서도 사람마다 따로다', () => {
+  navigationWidth(390)
+  const { unmount } = render(<Harness memberId="m1" />)
+  fireEvent.click(screen.getByRole('tab', { name: /1:1/ }))
+  unmount()
+  const other = render(<Harness memberId="m2" />)
+  expect(screen.getByText('흐름 lead')).toBeTruthy()
+  expect(screen.getByRole('tab', { name: /1:1/ }).getAttribute('aria-selected')).toBe('false')
+  other.unmount()
+  render(<Harness memberId="m1" />)
+  expect(screen.queryByText('흐름 lead')).toBeNull()
+  expect(screen.getByRole('tab', { name: /1:1/ }).getAttribute('aria-selected')).toBe('true')
 })
 
 test('휴대폰 1:1 탭은 학생회 방 기억을 덮지 않고 새 학생회 방 주소가 오면 그 흐름을 연다', () => {

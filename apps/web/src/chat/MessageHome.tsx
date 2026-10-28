@@ -77,7 +77,7 @@ export default function MessageHome({
 }) {
   const split = useSplit()
   const [directSelected, setDirectSelected] = useState(
-    () => !wanted && savedDirectTab(page.councilId),
+    () => !wanted && savedDirectTab(page.councilId, page.view.me.memberId),
   )
   const showDirect = !split && !wanted && directSelected
   const { state } = page.rooms
@@ -97,7 +97,7 @@ export default function MessageHome({
         onAll={onAll}
         onPick={roomId => {
           saveRoom(page.councilId, roomId)
-          saveDirectTab(page.councilId, false)
+          saveDirectTab(page.councilId, page.view.me.memberId, false)
           setDirectSelected(false)
           onPick(roomId)
         }}
@@ -107,7 +107,7 @@ export default function MessageHome({
                 active: showDirect,
                 unread: directUnreadOf(page.rooms),
                 onPick: () => {
-                  saveDirectTab(page.councilId, true)
+                  saveDirectTab(page.councilId, page.view.me.memberId, true)
                   setDirectSelected(true)
                   onDirectTab()
                 },

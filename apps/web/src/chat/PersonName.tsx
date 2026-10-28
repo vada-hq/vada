@@ -52,7 +52,7 @@ export default function PersonName({
         touch
         busy={opener.busy || (access?.busy ?? false)}
         aria-label={directNameLabel(name)}
-        className="h-auto min-w-0 justify-start p-0 text-inherit break-keep underline decoration-dotted underline-offset-2 wrap-anywhere whitespace-normal"
+        className="h-auto min-w-0 justify-start p-0 max-sm:min-w-11 text-inherit break-keep underline decoration-dotted underline-offset-2 wrap-anywhere whitespace-normal"
         onClick={() => void pick()}
       >
         {name}
