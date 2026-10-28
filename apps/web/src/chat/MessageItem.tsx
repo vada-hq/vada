@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import {
   coupangProductOf,
   DELETED_MESSAGE,
@@ -7,7 +7,6 @@ import {
 } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
-import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
@@ -117,6 +116,7 @@ function EditBody({
   save,
   close,
 }: ReturnType<typeof useMessageEdit>) {
+  const errorId = useId()
   return (
     <form
       className="flex w-80 max-w-full flex-col gap-2 break-keep rounded-lg border bg-white p-3"
@@ -131,16 +131,23 @@ function EditBody({
         }
       }}
     >
-      <Field label="메시지" required error={error ?? undefined}>
-        <Textarea
-          ref={input}
-          autoFocus
-          readOnly={busy}
-          value={body}
-          className="wrap-anywhere"
-          onChange={event => setBody(event.target.value)}
-        />
-      </Field>
+      {/* 보내기 입력 띠처럼 보이는 라벨 없이 말풍선 자리에서 고친다(Slack 고치기). 이름은 보내기 칸 '메시지'와 겹치지 않게 한다. */}
+      <Textarea
+        ref={input}
+        autoFocus
+        aria-label="고칠 메시지"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+        readOnly={busy}
+        value={body}
+        className="wrap-anywhere"
+        onChange={event => setBody(event.target.value)}
+      />
+      {error && (
+        <p id={errorId} className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" touch onClick={close}>
           취소

@@ -112,7 +112,7 @@ test('갤러리의 내 메시지 견본에서 삭제 확인 창이 열린다', a
 const edit = async () => {
   fireEvent.keyDown(screen.getByRole('button', { name: '메시지 동작' }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '메시지 고치기' }))
-  return screen.findByRole('textbox', { name: '메시지' })
+  return screen.findByRole('textbox', { name: '고칠 메시지' })
 }
 
 test('본인 표시와 관계없이 서버의 고치기 동작을 따르고 저장하면 새 글과 고침을 보인다', async () => {

@@ -25,7 +25,7 @@ test('메시지 고치기 칸', async () => {
   render(<MessageMenuSection />)
   fireEvent.keyDown(screen.getByRole('button', { name: '메시지 동작' }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '메시지 고치기' }))
-  await screen.findByRole('textbox', { name: '메시지' })
+  await screen.findByRole('textbox', { name: '고칠 메시지' })
   expect(snapshotHtml()).toMatchSnapshot()
 })
 
