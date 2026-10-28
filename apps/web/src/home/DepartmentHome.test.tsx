@@ -118,6 +118,8 @@ test('마감 몰림을 누르면 직급 부서·담당자·7일 안 거르기가
   expect(query.get('dept')).toBe(department.id)
   expect(query.get('heads')).toBe('true')
   expect(query.get('due')).toBe('week')
+  expect(query.get('view')).toBeNull()
+  expect(query.get('events')).toBe('include')
 })
 
 test('구매 전체 보기는 홈과 같은 부서 구매 보기로 간다', async () => {

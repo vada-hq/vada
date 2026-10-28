@@ -280,7 +280,7 @@ test('내 부서 묶음의 모두 보기는 내 부서 보기에 그 부서 거�
   const section = await screen.findByRole('region', { name: '기획부' })
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
   expect(await selected('학생회 업무')).toBe('true')
-  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}`)
+  expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?dept=${D1}&events=include`)
 })
 
 test('회장단의 지난 업무 모두 보기는 전체 보기로 연다', async () => {

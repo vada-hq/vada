@@ -10,7 +10,7 @@ import { riskParts } from './risk-parts'
 import TaskRow from './TaskRow'
 
 // 회장단이 보는 막힌 곳은 학생회 전체 업무다.
-const ALL = { view: 'all' } as const
+const ALL = { tab: 'council', events: 'include' } as const
 
 type Props = {
   council: HomeCouncil

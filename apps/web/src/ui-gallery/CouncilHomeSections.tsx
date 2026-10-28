@@ -135,7 +135,7 @@ const home: HomeResponse = {
         event: { id: 'e2', name: '진로 특강' },
       },
     ],
-    total: 3,
+    total: 4,
   },
   myRequests: { requests: [], total: 0 },
   mine: { tasks: [], counts: { overdue: 0, today: 0, soon: 0, later: 0, noDue: 0 } },

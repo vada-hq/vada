@@ -18,8 +18,8 @@ import { NewEventButton } from './NoOpenEvents'
 
 type Opens = {
   onOpenEvent: (eventId: string) => void
-  // 이유 칩: 그 행사 업무 탭. 담당자 없음은 그 보기로 거른다(지남 거르기는 업무 칩 줄이 생기면 더한다, 명세 027 조각 11).
-  onOpenTasks: (eventId: string, unassigned: boolean) => void
+  // 이유 칩이 센 범위로 행사 업무 탭을 연다(명세 027 조각 11).
+  onOpenTasks: (eventId: string, query: { due: 'overdue' } | { assignee: 'none' }) => void
 }
 
 // 이유 칩은 카드 전체를 덮는 행사 단추 위에 올려 따로 누른다.
@@ -76,14 +76,14 @@ function EventTile({
           <ReasonChip
             label="지남"
             count={tasks.overdue}
-            onOpen={() => onOpenTasks(event.id, false)}
+            onOpen={() => onOpenTasks(event.id, { due: 'overdue' })}
           />
         )}
         {tasks.unassigned > 0 && (
           <ReasonChip
             label="담당자 없음"
             count={tasks.unassigned}
-            onOpen={() => onOpenTasks(event.id, true)}
+            onOpen={() => onOpenTasks(event.id, { assignee: 'none' })}
           />
         )}
       </div>

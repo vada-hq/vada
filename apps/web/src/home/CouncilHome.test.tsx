@@ -124,9 +124,9 @@ test('행사 카드: 상태 칩, 이름, 날짜 · D-N, 업무 막대, 이유 �
   expect(onOpenEvent).toHaveBeenCalledWith('e1')
   // 이유 칩은 그 행사 업무 탭이다. 담당자 없음은 그 보기로 거른다.
   fireEvent.click(one.getByRole('button', { name: '담당자 없음 1' }))
-  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&view=unassigned')
+  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&assignee=none')
   fireEvent.click(one.getByRole('button', { name: '지남 2' }))
-  expect(pathNow()).toBe('/events/c1/e1?tab=tasks')
+  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&due=overdue')
 })
 
 test('행사가 셋보다 많으면 머리 상태별 수의 합으로 전체 n개 보기가 있고 행사 목록에 간다', async () => {
@@ -185,7 +185,7 @@ test('확인이 필요한 운영 상황: 지남 다음 담당자 없음, 줄에 
   fireEvent.click(within(first!).getByRole('button', { name: '업무 late' }))
   expect(pathNow()).toBe('/tasks/c1/late')
   fireEvent.click(within(attention).getByRole('button', { name: '전체 5건 보기' }))
-  expect(pathNow()).toBe('/tasks/c1?view=all')
+  expect(pathNow()).toBe('/tasks/c1?attention=true&events=include')
   fireEvent.click(within(attention).getByRole('button', { name: /미배정 구성원/ }))
   expect(pathNow()).toBe('/people/c1')
   expect(within(attention).getByText('2명')).toBeTruthy()
@@ -284,9 +284,8 @@ test('가까운 주요 일정: 날짜와 종류 칩이 있고 줄을 누르면 �
   expect(close!.textContent).toContain('18:00 · 참가 신청')
   expect(within(start!).getByText('행사')).toBeTruthy()
   expect(start!.textContent).toContain('10:00 · 행사 시작')
-  // 일정은 도착할 원래 화면 하나가 없어 전체 보기 없이 수만 있다(DEC-95).
-  expect(within(upcoming).getByText('4건')).toBeTruthy()
-  expect(within(upcoming).queryByRole('button', { name: /전체/ })).toBeNull()
+  fireEvent.click(within(upcoming).getByRole('button', { name: '전체 4건 보기' }))
+  expect(pathNow()).toBe('/calendar/c1')
   fireEvent.click(within(close!).getByRole('button', { name: '진로 특강 신청 마감' }))
   expect(onOpenEvent).toHaveBeenLastCalledWith('e2', 'registrations')
   fireEvent.click(within(start!).getByRole('button', { name: '진로 특강' }))

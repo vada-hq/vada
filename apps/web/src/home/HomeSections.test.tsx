@@ -164,7 +164,7 @@ test('내 부서: 머리에 진행 중과 막힌 수, 줄에 지난 업무와 �
   expect(pathNow()).toBe('/tasks/c1/late')
   expect(within(section).getByRole('button', { name: /업무 free/ })).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
-  expect(pathNow()).toBe(`/tasks/c1?view=department&dept=${DEPT}`)
+  expect(pathNow()).toBe(`/tasks/c1?dept=${DEPT}&events=include`)
 })
 
 test('내 업무에 이미 있는 업무는 내 부서 줄에서 뺀다', async () => {

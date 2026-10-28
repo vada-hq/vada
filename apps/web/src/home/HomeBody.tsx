@@ -121,7 +121,7 @@ function MainColumn({ home, councilId, mineIds, ...open }: Omit<Parts, 'extras'>
         <DepartmentsSection
           departments={home.departments}
           {...shared}
-          onSeeAll={department => seeTasks({ view: 'department', dept: department })}
+          onSeeAll={department => seeTasks({ tab: 'council', events: 'include', dept: department })}
         />
       )}
       {home.settling && (
