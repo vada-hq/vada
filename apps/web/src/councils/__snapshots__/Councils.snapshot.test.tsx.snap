@@ -5,7 +5,7 @@ exports[`내 학생회: 불러오기 오류 1`] = `
 <div>
 <div class="flex flex-col gap-3">
 <p role="alert" class="text-sm wrap-anywhere text-destructive">학생회를 확인하지 못했어요. 서버 연결을 확인해 주세요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4">다시 확인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">다시 확인</button>
 </div>
 </div>
 </div>"
@@ -33,7 +33,7 @@ exports[`내 학생회: 학생회 없음, 만들기 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id1_">초대 코드</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" id="_id1_" aria-required="true" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white font-normal text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" autocomplete="off" autocapitalize="characters" spellcheck="false" id="_id1_" aria-required="true" value="">
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4" type="submit">초대 코드로 들어가기</button>
 </form>
@@ -83,21 +83,21 @@ exports[`내 학생회: 학생회 없음, 만들기 열기 2`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">학교</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">학생회 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">운영 연도</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer" id="_id4_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id4_" aria-required="true">
 <option value="2025">2025년</option>
 <option value="2026">2026년</option>
 <option value="2027">2027년</option>
@@ -141,7 +141,7 @@ exports[`들어오기: 묻기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장">
 </div>
 <p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <div class="flex flex-col gap-2">
@@ -195,7 +195,7 @@ exports[`들어오기: 오류 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장">
 </div>
 <p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.</p>
@@ -279,7 +279,7 @@ exports[`들어오기: 진행 중 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장" disabled="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김회장" disabled="">
 </div>
 <p class="text-xs text-muted-foreground">들어가면 부서와 직급 없이 운영진이 되고, 이름과 이메일이 이 학생회의 운영진 명단에 들어가요. 부서는 회장단이 정해요.</p>
 <div class="flex flex-col gap-2">
@@ -322,7 +322,7 @@ exports[`만들기: 성공하면 초대 링크 1`] = `
 <div class="flex flex-col gap-5">
 <section aria-label="초대 링크" class="flex flex-col gap-2">
 <label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id1_">초대 링크</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id1_" readonly="" value="http://localhost:3000/join/ABCD2345">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 font-normal outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 font-mono text-base text-gray-500 sm:text-xs" id="_id1_" readonly="" value="http://localhost:3000/join/ABCD2345">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 self-start">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
 <rect width="14" height="14" x="8" y="8" rx="2" ry="2">
@@ -333,7 +333,7 @@ exports[`만들기: 성공하면 초대 링크 1`] = `
 </section>
 <section aria-label="초대 코드" class="flex flex-col gap-2">
 <label data-slot="label" class="text-sm font-semibold text-gray-900" for="_id2_">초대 코드</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 sm:text-sm outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 font-mono text-lg font-semibold tracking-widest text-gray-900" id="_id2_" readonly="" value="ABCD2345">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 sm:text-sm outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 font-mono text-lg font-semibold tracking-widest text-gray-900" id="_id2_" readonly="" value="ABCD2345">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 self-start">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true">
 <rect width="14" height="14" x="8" y="8" rx="2" ry="2">
@@ -382,7 +382,7 @@ exports[`만들기: 오류 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
 </div>
 </div>
 </section>
@@ -578,21 +578,21 @@ exports[`만들기: 운영 연도 오류 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">학교</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="한양대학교">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="한양대학교">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">학생회 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="소프트웨어학부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="소프트웨어학부">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">운영 연도</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer" id="_id4_" aria-required="true" aria-invalid="true" aria-describedby="_id4_-error">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id4_" aria-required="true" aria-invalid="true" aria-describedby="_id4_-error">
 <option value="2026">2026년</option>
 <option value="2027">2027년</option>
 <option value="2028">2028년</option>
@@ -644,21 +644,21 @@ exports[`만들기: 입력 전 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">학교</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id2_" aria-required="true" value="">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">학생회 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" value="">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">운영 연도</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer" id="_id4_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id4_" aria-required="true">
 <option value="2025">2025년</option>
 <option value="2026">2026년</option>
 <option value="2027">2027년</option>
@@ -705,7 +705,7 @@ exports[`만들기: 재정 부서 이름 후보 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
 </div>
 </div>
 </section>
@@ -725,7 +725,7 @@ exports[`만들기: 재정 부서 이름 후보 1`] = `
 <span aria-hidden="true" class="absolute top-1/2 bottom-0 -left-4 border-l sm:hidden border-gray-300">
 </span>
 <div class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3">
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 px-2" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 px-2" aria-label="재정 부서 이름" aria-required="true" data-row="finance" value="재정부">
 <div role="group" aria-label="재정 부서 이름 후보" class="flex flex-wrap gap-1.5">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep px-2" type="button">총무부</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep px-2" type="button">사무부</button>
@@ -887,7 +887,7 @@ exports[`만들기: 조직 구조 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
 </div>
 </div>
 </section>
@@ -1078,7 +1078,7 @@ exports[`만들기: 진행 중 1`] = `
 <label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">내 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" autocomplete="name" id="_id2_" aria-required="true" value="김구글">
 </div>
 </div>
 </section>

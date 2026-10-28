@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 // 와이어프레임 Btn: 반경 3.5px, 굵기 500. 모든 변형에 1px 테두리를 둬 주 버튼과 테두리 버튼의 높이(md 33.5px)를 맞춘다.
-export const buttonVariants = cva(
+const buttonStyles = cva(
   'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0',
   {
     variants: {
@@ -22,13 +22,17 @@ export const buttonVariants = cva(
         icon: 'p-2 [&_svg]:size-4',
       },
       // 휴대폰 폭(640px 미만)에서 누르는 대상을 44px 이상으로 키운다(WCAG 2.5.8, Apple HIG 44pt).
-      // 카드 한 장을 손가락으로 다루는 화면(온보딩)에 준다. 데스크톱 크기는 그대로다.
+      // 글 안 링크는 줄 전체를 누르게 하는 화면에서만 켠다. 데스크톱 크기는 그대로다.
       touch: { true: 'max-sm:min-h-11', false: '' },
     },
     compoundVariants: [{ touch: true, size: 'icon', class: 'max-sm:min-w-11' }],
     defaultVariants: { variant: 'default', size: 'md', touch: false },
   },
 )
+
+export function buttonVariants(props?: Parameters<typeof buttonStyles>[0]) {
+  return buttonStyles({ ...props, touch: props?.touch ?? props?.variant !== 'link' })
+}
 
 // type을 따로 정하지 않는다. form 안의 버튼은 브라우저 기본값(submit)을 그대로 쓴다.
 // busy는 보내는 중이라 다시 누르지 못하게 막는다. 그 밖의 이유로 버튼을 끄지 않는다(린트가 disabled를 막는다, AGENTS.md '화면 문구와 폼').
