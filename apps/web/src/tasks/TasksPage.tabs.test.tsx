@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { EVENT_ID } from '@/test-support/event-fixtures'
@@ -9,6 +10,9 @@ import { withTaskTab } from '@/lib/task-layout'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import TasksPage from './TasksPage'
 
+const DEPARTMENT = '0199d1a0-0000-7000-8000-0000000000d1'
+const PERSON = '0199d1a0-0000-7000-8000-000000000001'
+
 afterEach(() => {
   cleanup()
   window.history.replaceState(null, '', '/')
@@ -16,18 +20,33 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function setup(eventId?: string) {
+function setup(
+  eventId?: string,
+  tasks: TaskSummary[] = [],
+  truncated = false,
+  options: Parameters<typeof councilView>[1] = {},
+) {
   const api = mockApi()
   const base = `/api/organizations/${COUNCIL_ID}`
   for (const view of ['all', 'mine', 'unassigned'])
     for (const event of ['', '&event=none', `&event=${EVENT_ID}`])
       api.on('GET', `${base}/tasks?view=${view}&status=open${event}`, () =>
-        json({ tasks: [], truncated: false }),
+        json({ tasks, truncated }),
       )
-  api.on('GET', `${base}/members`, () => json(teamResponse()))
+  api.on('GET', `${base}/members`, () => {
+    const team = teamResponse()
+    return json({
+      ...team,
+      departments: team.departments.map((dept, index) => ({
+        ...dept,
+        id: index === 0 ? DEPARTMENT : '0199d1a0-0000-7000-8000-0000000000d2',
+      })),
+      members: [...team.members, { ...team.members[0], id: PERSON, name: '김운영' }],
+    })
+  })
   render(
     <TasksPage
-      view={councilView(COUNCIL_ID)}
+      view={councilView(COUNCIL_ID, options)}
       eventId={eventId}
       onForbidden={() => {}}
       onChanged={() => {}}
@@ -61,14 +80,14 @@ test('행사 업무에는 메뉴 탭과 행사 포함 칩 없이 전체 업무/�
   const api = setup(EVENT_ID)
   expect(screen.queryByRole('tablist', { name: '업무 보기' })).toBeNull()
   expect(screen.queryByRole('button', { name: '행사 업무 포함' })).toBeNull()
-  expect(screen.getByRole('button', { name: '담당자 없음' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  expect(await screen.findByRole('button', { name: '담당자 없음 0' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '담당자 없음 0' }))
   await waitFor(() => expect(window.location.search).toBe('?tab=tasks&assignee=none'))
   fireEvent.click(screen.getByRole('button', { name: '내 업무' }))
   await waitFor(() => expect(window.location.search).toBe('?tab=tasks&view=mine&assignee=none'))
-  expect(
-    api.calls.some(call => call.path.endsWith(`view=mine&status=open&event=${EVENT_ID}`)),
-  ).toBe(true)
+  expect(api.calls.some(call => call.path.endsWith(`view=all&status=open&event=${EVENT_ID}`))).toBe(
+    true,
+  )
   expect(api.calls.some(call => call.path.includes('event=none'))).toBe(false)
 })
 
@@ -79,27 +98,127 @@ test('행사 개요의 옛 담당자 없음 주소도 칩이 켜져 있고 눌�
     `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks&view=unassigned`,
   )
   setup(EVENT_ID)
-  const chip = screen.getByRole('button', { name: '담당자 없음' })
+  const chip = await screen.findByRole('button', { name: '담당자 없음 0' })
   expect(chip.getAttribute('aria-pressed')).toBe('true')
   fireEvent.click(chip)
   await waitFor(() => expect(window.location.search).toBe('?tab=tasks'))
   expect(chip.getAttribute('aria-pressed')).toBe('false')
 })
 
-test('담당자 없음 칩은 목록 상한 전에 서버에서 거르고 해제하면 전체를 다시 읽는다', async () => {
+test('칩 수는 거르기 전 목록에서 세고 누르는 칩은 하나만 켜지며 필터를 함께 해제한다', async () => {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
-  const api = setup()
-  const path = `/api/organizations/${COUNCIL_ID}/tasks?view=unassigned&status=open&event=none`
-  api.on('GET', path, () =>
-    json({
-      tasks: [taskDetail({ id: 'late', title: '301번째 담당자 없는 업무', assignee: null })],
-      truncated: false,
+  const api = setup(undefined, [
+    taskDetail({ id: 'a', title: '지난 업무', overdue: true, assignee: null }),
+    taskDetail({ id: 'b', title: '담당자 없는 업무', assignee: null, dueDate: null }),
+    taskDetail({
+      id: 'c',
+      title: '내 카드',
+      assignee: { id: 'm1', name: '김회장', current: true },
+      department: { id: DEPARTMENT, name: '재정부' },
     }),
+  ])
+  const chip = await screen.findByRole('button', { name: '담당자 없음 2' })
+  await screen.findByRole('button', { name: '재정부' })
+  const row = screen.getByRole('group', { name: '업무 범위' })
+  expect(row.textContent).toMatch(
+    /전체 업무내 업무지남 1내 담당 1담당자 없음 2마감 없음 1재정부기획부부서 없음/,
   )
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
-  await waitFor(() => expect(api.calls.some(call => call.path === path)).toBe(true))
-  expect(await screen.findByText('301번째 담당자 없는 업무')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  expect(within(row).queryByRole('button', { name: '내 담당 1' })).toBeNull()
+  fireEvent.click(chip)
+  await waitFor(() => expect(window.location.search).toBe('?assignee=none'))
+  expect(screen.queryByRole('button', { name: '내 카드' })).toBeNull()
+  expect(screen.getByText('담당자 없음만 보고 있어요')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '지난 업무' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '담당자 없는 업무' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '지남 1' }))
+  await waitFor(() => expect(window.location.search).toBe('?due=overdue'))
+  expect(chip.getAttribute('aria-pressed')).toBe('false')
+  expect(screen.queryByRole('button', { name: '담당자 없는 업무' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
   await waitFor(() => expect(window.location.search).toBe(''))
-  expect(screen.queryByText('301번째 담당자 없는 업무')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '재정부' }))
+  fireEvent.click(screen.getByRole('button', { name: '내 업무' }))
+  await waitFor(() => expect(window.location.search).toContain('only=mine'))
+  expect(window.location.search).toContain(`dept=${DEPARTMENT}`)
+  expect(screen.getByRole('button', { name: '내 카드' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '지난 업무' })).toBeNull()
+  expect(screen.getByRole('button', { name: '담당자 없음 2' })).toBeTruthy()
+  expect(api.calls.some(call => call.path.includes('view=unassigned'))).toBe(false)
+  expect(api.calls.some(call => call.path.includes('view=mine'))).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
+  expect(screen.getByRole('button', { name: '전체 업무' }).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
 })
+
+test('0인 마감 칩은 숨기고 잘린 목록의 수에 +를 붙이며 담당자 선택은 주소에 남는다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?assignee=none`)
+  setup(
+    undefined,
+    [taskDetail({ title: '김운영 업무', assignee: { id: PERSON, name: '김운영', current: true } })],
+    true,
+  )
+  expect(await screen.findByRole('button', { name: '담당자 없음 0+' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /^지남 / })).toBeNull()
+  expect(screen.queryByRole('button', { name: /^마감 없음 / })).toBeNull()
+  await screen.findByRole('option', { name: '김운영' })
+  fireEvent.change(await screen.findByRole('combobox', { name: '담당자별' }), {
+    target: { value: PERSON },
+  })
+  await waitFor(() => expect(window.location.search).toBe(`?assignee=${PERSON}`))
+  expect(screen.getByRole('button', { name: '김운영 업무' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '담당자 없음 0+' }).getAttribute('aria-pressed')).toBe(
+    'false',
+  )
+})
+
+test('행사 주소로 다시 열어도 칩이 켜지고 담당 부서만 보이며 잘린 수를 유지한다', async () => {
+  const tasks = [
+    taskDetail({
+      id: 'event-overdue',
+      title: '지난 행사 업무',
+      overdue: true,
+      department: { id: DEPARTMENT, name: '재정부' },
+    }),
+    taskDetail({
+      id: 'event-no-due',
+      title: '마감 없는 행사 업무',
+      dueDate: null,
+      department: null,
+      assignee: null,
+    }),
+  ]
+  window.history.replaceState(null, '', `/events/${COUNCIL_ID}/${EVENT_ID}?tab=tasks&due=overdue`)
+  setup(EVENT_ID, tasks, true)
+  expect(
+    (await screen.findByRole('button', { name: '지남 1+' })).getAttribute('aria-pressed'),
+  ).toBe('true')
+  expect(screen.getByRole('button', { name: '지난 행사 업무' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '마감 없는 행사 업무' })).toBeNull()
+  const row = screen.getByRole('group', { name: '업무 범위' })
+  expect(await within(row).findByRole('button', { name: '재정부' })).toBeTruthy()
+  expect(within(row).queryByRole('button', { name: '기획부' })).toBeNull()
+  expect(within(row).queryByRole('button', { name: '부서 없음' })).toBeNull()
+  expect(within(row).queryByRole('button', { name: '행사 업무 포함' })).toBeNull()
+  expect(within(row).getByRole('button', { name: '마감 없음 1+' })).toBeTruthy()
+  expect(within(row).getByRole('button', { name: '담당자 없음 1+' })).toBeTruthy()
+})
+
+test.each([null, 'head'] as const)(
+  '부원·부서장(%s)의 기본값은 전체이며 다른 부서 업무도 보인다',
+  async (rank: 'head' | null) => {
+    window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
+    setup(undefined, [taskDetail({ title: '다른 부서 업무', department: null })], false, {
+      councilRank: null,
+      departments: [{ id: DEPARTMENT, name: '재정부', role: null, rank }],
+    })
+    expect(await screen.findByRole('button', { name: '다른 부서 업무' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '전체 업무' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    expect(
+      (await screen.findByRole('button', { name: '재정부' })).getAttribute('aria-pressed'),
+    ).toBe('false')
+    expect(window.location.search).toBe('')
+  },
+)

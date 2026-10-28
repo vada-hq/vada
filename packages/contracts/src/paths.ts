@@ -84,17 +84,17 @@ type QueryRule = {
 type QuerySpec = Record<string, QueryRule | QueryRule[]>
 
 // 업무 화면의 쿼리. 업무 메뉴와 행사의 업무 탭이 같은 정의를 쓴다(DEC-94). 기본 보기만 다르다(행사 안은 그 행사의 모든 업무).
-const taskQuery = (startView: TaskView, onlyWith?: QueryRule['onlyWith']) =>
+const taskQuery = (startView: TaskView | null, onlyWith?: QueryRule['onlyWith']) =>
   ({
     view: { values: TASK_VIEWS, fallback: startView, onlyWith },
     filter: { values: TASK_FILTERS, fallback: 'open', onlyWith },
     layout: { values: TASK_LAYOUTS, fallback: 'board', onlyWith },
-    dept: { values: 'uuid', fallback: null, onlyWith },
+    dept: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
     // none은 메뉴 v7의 '담당자 없음' 칩이다(옛 보기 unassigned를 옮긴 곳, 설계 2.2).
     assignee: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
     heads: { values: ['true'], fallback: null, onlyWith },
     attention: { values: ['true'], fallback: null, onlyWith },
-    due: { values: ['week'], fallback: null, onlyWith },
+    due: { values: ['week', 'overdue', 'none'], fallback: null, onlyWith },
   }) satisfies QuerySpec
 
 const eventTaskQuery = taskQuery('all', { key: 'tab', value: 'tasks' })
@@ -115,8 +115,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   // 옛 view는 기본값까지 남겨 v7 탭·칩 주소로 바꿔 쓴다. 쿼리 없는 주소는 학생회 업무다.
   tasks: {
     tab: { values: TASK_TABS, fallback: 'council' },
-    ...taskQuery('mine'),
-    view: { values: TASK_VIEWS, fallback: null },
+    ...taskQuery(null),
+    only: { values: ['mine'], fallback: null, onlyWith: { key: 'tab', value: 'council' } },
     events: { values: ['include'], fallback: null },
     // 내 업무에서 고른 학생회 업무·행사 범위를 새로고침해도 유지한다.
     scope: {

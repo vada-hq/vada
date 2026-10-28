@@ -197,6 +197,14 @@ const planningHead = councilView(COUNCIL_ID, {
 
 test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무를 부서로 묶어 담당자와 함께 보인다', async () => {
   const api = mockApi()
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () =>
+    json({
+      ...teamResponse(),
+      departments: [
+        { id: planningHead.me.departments[0]!.id, name: '기획부', role: null, memberCount: 1 },
+      ],
+    }),
+  )
   api.on('GET', listPath('mine'), () => list([]))
   api.on('GET', listPath('department'), () =>
     list([
@@ -219,7 +227,7 @@ test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무�
   unmount()
   render(<TasksPage view={planningHead} onForbidden={() => {}} onChanged={() => {}} />)
   fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))
-  fireEvent.click(screen.getByRole('button', { name: '내 부서' }))
+  fireEvent.click(await screen.findByRole('button', { name: '기획부' }))
   const section = await screen.findByRole('region', { name: '기획부' })
   expect(within(section).getByText('진행 중 1')).toBeTruthy()
   expect(rowOf('업무 1').textContent).toContain('김새내')
@@ -371,21 +379,20 @@ test('담당자 없는 업무는 맡길 권한이 있으면 줄에서 담당자�
   const onChanged = vi.fn()
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
   api.on('GET', listPath('mine'), () => list([]))
-  api.on('GET', listPath('unassigned'), () =>
+  api.on('GET', listPath('all'), () =>
     list([
       task('a', { assignee: null, actions: ['task.change_status', 'task.change_assignee'] }),
       task('b', { assignee: null }),
     ]),
   )
-  api.on('GET', listPath('all'), () => list([]))
   api.on('POST', `${base}/a/assignee`, () => json({ task: {} }))
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={onChanged} />)
   fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음' }))
+  fireEvent.click(await screen.findByRole('button', { name: '담당자 없음 2' }))
   const select = await screen.findByRole('combobox', { name: '업무 a 담당자' })
   expect(within(select).getByText('담당자 지정')).toBeTruthy()
   expect(screen.queryByRole('combobox', { name: '업무 b 담당자' })).toBeNull()
-  const reads = () => api.calls.filter(call => call.path === listPath('unassigned')).length
+  const reads = () => api.calls.filter(call => call.path === listPath('all')).length
   const before = reads()
   fireEvent.change(select, { target: { value: 'm2' } })
   await waitFor(() =>

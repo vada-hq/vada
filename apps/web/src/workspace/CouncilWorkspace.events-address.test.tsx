@@ -346,7 +346,7 @@ test('개요의 담당자 없음 [업무 보기]는 그 거르기가 든 업무 
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&view=unassigned`))
   expect(await screen.findByRole('button', { name: '의자 빌리기' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '현수막 주문' })).toBeNull()
-  expect(screen.getByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '필터 해제' })).toBeTruthy()
   // 화면 안의 뒤로도 들어온 곳(개요)의 이름을 단다.
   expect(screen.getByRole('button', { name: '개요' })).toBeTruthy()
   act(() => window.history.back())
@@ -363,7 +363,7 @@ test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에
   fireEvent.click(screen.getByRole('tab', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
   expect(await pressed('끝나지 않은 것')).toBe('true')
-  expect(screen.queryByRole('button', { name: '담당자 없음 거르기 풀기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '필터 해제' })).toBeNull()
 })
 
 test('마지막에 고른 배치는 행사 업무 탭으로 들어갈 때 주소에 실린다', async () => {

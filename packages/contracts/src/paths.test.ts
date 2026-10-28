@@ -18,6 +18,21 @@ const C = '0199d1a0-0000-7000-8000-00000000000a'
 const R = '0199d1a0-0000-7000-8000-00000000000b'
 const P = '0199d1a0-0000-7000-8000-00000000000c'
 
+test('업무 마감 칩과 부서 없음 주소를 남기고 내 카드 토글은 학생회 업무에서만 남긴다', () => {
+  for (const due of ['week', 'overdue', 'none']) {
+    const path = `/tasks/${C}?due=${due}`
+    assert.equal(appPath(parseAppPath(path)!), path)
+    const event = `/events/${C}/${R}?tab=tasks&due=${due}`
+    assert.equal(appPath(parseAppPath(event)!), event)
+  }
+  assert.deepEqual(parseAppPath(`/tasks/${C}?due=x`)?.query, {})
+  assert.deepEqual(parseAppPath(`/tasks/${C}?only=mine`)?.query, { only: 'mine' })
+  assert.deepEqual(parseAppPath(`/tasks/${C}?tab=council&only=mine`)?.query, { only: 'mine' })
+  assert.deepEqual(parseAppPath(`/tasks/${C}?tab=mine&only=mine`)?.query, { tab: 'mine' })
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=tasks&only=mine`)?.query, { tab: 'tasks' })
+  assert.deepEqual(parseAppPath(`/tasks/${C}?dept=none`)?.query, { dept: 'none' })
+})
+
 test('행사 정산은 현재 재정 탭에서 빠지고 옛 주소는 기간을 보존해 결산으로 왕복한다', () => {
   assert.equal(new Set<string>(FINANCE_TABS).has('settlements'), false)
   const old = parseAppPath(`/finance/${C}?tab=settlements&period=${P}`)!

@@ -12,8 +12,16 @@ import {
 import { useRecordQuery } from '@/lib/use-address-record'
 import { rememberTaskLayout, rememberTaskTab } from '@/lib/task-layout'
 import { pickQuery as pick, useMenuQuery } from '@/lib/use-menu-query'
+import { chipChange, type TaskChip } from './task-chips'
 
-const CLEAR_NARROW = { dept: null, assignee: null, heads: null, attention: null, due: null }
+const CLEAR_NARROW = {
+  dept: null,
+  assignee: null,
+  heads: null,
+  attention: null,
+  due: null,
+  only: null,
+}
 type QueryUrl = Pick<ReturnType<typeof useMenuQuery>, 'query' | 'set'>
 
 function listEventOf(eventId: string | undefined, inMenu: boolean, tab: TaskTab, query: AppQuery) {
@@ -23,24 +31,40 @@ function listEventOf(eventId: string | undefined, inMenu: boolean, tab: TaskTab,
   )
 }
 
-function changesOf(url: QueryUrl, memberId: string) {
+const assigneeOf = (query: AppQuery) =>
+  query['assignee'] ?? (query['view'] === 'unassigned' ? 'none' : null)
+
+function scopeChanges(url: QueryUrl) {
   const { query } = url
+  const legacy = query['view'] === 'unassigned'
   return {
+    setDept: (dept: string | null) => url.set({ dept }),
+    setAssignee: (assignee: string | null) =>
+      url.set({ assignee, ...(legacy ? { view: 'all' } : {}) }),
+    toggleChip: (chip: TaskChip) =>
+      url.set({
+        ...chipChange({ due: query['due'] ?? null, assignee: assigneeOf(query) }, chip),
+        ...(legacy ? { view: 'all' } : {}),
+      }),
+    toggleEvents: () => url.set({ events: query['events'] === 'include' ? null : 'include' }),
+    // 토글은 같은 보드 안에서 좁히므로 칩을 유지한다. 옛 행사 주소의 담당자 없음 보기도 칩으로 옮긴다.
+    setView: (view: TaskView) =>
+      url.set(
+        query['tab'] === 'tasks'
+          ? { ...(legacy ? { assignee: 'none' } : {}), view }
+          : { only: view === 'mine' ? 'mine' : null },
+      ),
+    clearNarrow: () => url.set({ ...CLEAR_NARROW, view: null, events: null }),
+  }
+}
+
+function changesOf(url: QueryUrl, memberId: string) {
+  return {
+    ...scopeChanges(url),
     setTab: (tab: TaskTab) => {
       rememberTaskTab(memberId, tab)
       url.set({ ...CLEAR_NARROW, tab, view: null, events: null })
     },
-    setDept: (dept: string | null) => url.set({ dept }),
-    toggleUnassigned: () =>
-      url.set(
-        query['view'] === 'unassigned'
-          ? { view: 'all', assignee: null }
-          : { assignee: query['assignee'] === 'none' ? null : 'none' },
-      ),
-    toggleEvents: () => url.set({ events: query['events'] === 'include' ? null : 'include' }),
-    // 토글은 같은 보드 안에서 좁히므로 칩을 유지한다. 옛 행사 주소의 담당자 없음 보기도 칩으로 옮긴다.
-    setView: (view: TaskView) =>
-      url.set({ ...(query['view'] === 'unassigned' ? { assignee: 'none' } : {}), view }),
     setFilter: (filter: TaskFilter) => url.set({ filter }),
     setScope: (scope: string | null) => url.set({ scope }),
     setState: (state: string | null) => url.set({ state }),
@@ -51,9 +75,6 @@ function changesOf(url: QueryUrl, memberId: string) {
     },
     // 끝남 열이 넘칠 때 표의 '끝남'으로 간다. 고른 배치가 아니라 길이라 기억하지 않는다.
     showDoneTable: () => url.set({ layout: 'list', filter: 'done' }),
-    clearDept: () => url.set({ dept: null }),
-    clearNarrow: () =>
-      url.set({ ...CLEAR_NARROW, ...(query['view'] === 'unassigned' ? { view: 'all' } : {}) }),
   }
 }
 
@@ -62,12 +83,13 @@ function viewsOf(
   tab: TaskTab,
   query: AppQuery,
 ): { view: TaskView; listView: TaskView } {
-  const startView: TaskView = inMenu && tab === 'mine' ? 'mine' : 'all'
+  const startView: TaskView =
+    inMenu && (tab === 'mine' || query['only'] === 'mine') ? 'mine' : 'all'
   const view = inMenu ? startView : pick(TASK_VIEWS, query['view'], startView)
   return {
-    view,
-    // 전체에서 담당자 없음으로 좁힐 때는 상한 전에 서버가 거른다. 내 업무와의 교집합은 원래 빈 목록이다.
-    listView: query['assignee'] === 'none' && view === 'all' ? 'unassigned' : view,
+    view: view === 'unassigned' ? 'all' : view,
+    // 보드 칩 수가 거르기에 따라 바뀌지 않게 학생회·행사 보드는 전체를 읽는다.
+    listView: inMenu && tab === 'mine' ? 'mine' : 'all',
   }
 }
 
@@ -91,7 +113,8 @@ export function useTaskControls(councilId: string, eventId: string | undefined, 
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),
     layout: pick<TaskLayout>(TASK_LAYOUTS, query['layout'], 'board'),
     dept: query['dept'] ?? null,
-    assignee: query['assignee'] ?? null,
+    assignee: assigneeOf(query),
+    due: query['due'] ?? null,
     heads: query['heads'] === 'true',
     attention: query['attention'] === 'true',
     week: query['due'] === 'week',

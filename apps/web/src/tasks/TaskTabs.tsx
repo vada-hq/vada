@@ -1,10 +1,11 @@
-import { CalendarDays, SquareKanban, Table2, X } from 'lucide-react'
+import { CalendarDays, SquareKanban, Table2 } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import type { TaskFilter, TaskLayout, TaskTab, TaskView } from '@vada/contracts'
 import PageHeading from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { TaskScopeChips } from './TaskScopeChips'
+import { CLEAR_FILTERS, filteredTasksText } from './task-chip-text'
 
 const TABS: { tab: TaskTab; label: string }[] = [
   { tab: 'council', label: '학생회 업무' },
@@ -24,7 +25,7 @@ const FILTERS: { filter: TaskFilter; label: string }[] = [
 type Props = {
   tab?: { value: TaskTab; onChange: (tab: TaskTab) => void } | undefined
   scope: ComponentProps<typeof TaskScopeChips>['scope']
-  myDepartment?: string | undefined
+  chips?: ComponentProps<typeof TaskScopeChips>['data']
   view: TaskView
   filter: TaskFilter
   onView: (view: TaskView) => void
@@ -68,6 +69,17 @@ function menuTitle(tab: Props['tab']) {
   return TABS.find(item => item.tab === tab?.value)?.label ?? '학생회 업무'
 }
 
+export function TaskFilterBand({ label, onClear }: NonNullable<Props['narrow']>) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-muted px-3 py-1 text-sm break-keep">
+      <span className="wrap-anywhere">{filteredTasksText(label)}</span>
+      <Button size="sm" variant="ghost" className="shrink-0 max-sm:min-h-11" onClick={onClear}>
+        {CLEAR_FILTERS}
+      </Button>
+    </div>
+  )
+}
+
 // 메뉴 탭 둘과 보드의 거르기는 다른 줄이다. 행사 안에서는 메뉴 탭 없이 같은 보드 거르기만 쓴다.
 export function TaskTabs(props: Props) {
   const { tab, showFilter = true, view, filter, onView, onFilter, layout } = props
@@ -97,24 +109,14 @@ export function TaskTabs(props: Props) {
       {(tab === undefined || tab.value === 'council') && (
         <TaskScopeChips
           scope={props.scope}
-          myDepartment={props.myDepartment}
+          data={props.chips}
           view={view}
           onView={onView}
+          calendar={layout?.value === 'calendar'}
         />
       )}
+      {narrow && <TaskFilterBand {...narrow} />}
       <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
-        {narrow && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-auto max-w-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11"
-            aria-label={`${narrow.label} 거르기 풀기`}
-            onClick={narrow.onClear}
-          >
-            {narrow.label}
-            <X aria-hidden />
-          </Button>
-        )}
         {showFilter && (
           <div role="group" aria-label="업무 거르기" className="flex gap-2">
             {FILTERS.map(item => (

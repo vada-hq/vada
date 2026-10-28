@@ -191,7 +191,7 @@ test('부서 거르기는 주소에 남고 그 부서의 업무만 보이며, �
   startAt(`/tasks/${COUNCIL_ID}?dept=${D2}`)
   expect(await screen.findByText('정산 업무')).toBeTruthy()
   expect(screen.queryByText('업무 3f2b')).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '재정부 거르기 풀기' }))
+  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}`))
   expect(await screen.findByText('업무 3f2b')).toBeTruthy()
 })
@@ -315,7 +315,7 @@ test('상세를 여는 동안 뒤의 목록은 보던 보기와 부서 거르기
   fireEvent.click(await screen.findByRole('button', { name: '업무 3f2b' }))
   const dialog = await screen.findByRole('dialog')
   await screen.findByRole('dialog', { name: '현수막 주문' })
-  expect(screen.getByRole('button', { name: '기획부 거르기 풀기', hidden: true })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '필터 해제', hidden: true })).toBeTruthy()
   expect(
     screen.getByRole('tab', { name: '학생회 업무', hidden: true }).getAttribute('aria-selected'),
   ).toBe('true')
@@ -347,7 +347,7 @@ test('내 부서가 아닌 부서 거르기도 홈이 알려 준 부서 이름�
     }),
   )
   fireEvent.click(await screen.findByRole('button', { name: '디자인부' }))
-  const chip = await screen.findByRole('button', { name: '디자인부 거르기 풀기' })
+  const chip = await screen.findByText('디자인부만 보고 있어요')
   expect(chip.className).toContain('wrap-anywhere')
 })
 

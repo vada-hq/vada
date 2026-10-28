@@ -4,7 +4,6 @@ import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import type { EventList } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
-import { recalledDepartment } from '@/lib/menu-memory'
 import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import { useTeam } from '@/team/useTeam'
@@ -13,7 +12,6 @@ import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskListBody, type TableSetup } from './TaskListBody'
 import { TaskQuickAdd } from './TaskQuickAdd'
-import { NO_ASSIGNEE_LABEL } from './task-view'
 import { TaskDeleteConfirm } from './TaskDeleteConfirm'
 import { TaskPanel } from './TaskPanel'
 import { TaskTabs } from './TaskTabs'
@@ -27,9 +25,7 @@ import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTaskLists } from './useTaskLists'
 import { useTaskRemove } from './useTaskRemove'
-import type { TaskList } from './useTasks'
-import { homeScopeActive, homeScopeLabel } from './home-task-scope'
-import { useNarrowed } from './useNarrowedTasks'
+import { useNarrowed, useTaskChipData } from './useNarrowedTasks'
 import { useTaskOpeners } from './useTaskOpeners'
 import { MyTasksPage } from './MyTasksPage'
 import { viewEmptyText } from './task-text'
@@ -107,6 +103,7 @@ function useTasksPage(props: Props) {
   const onEventChanged = controls.listEvent === 'none' ? eventUndo.note : undefined
   const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
   const team = useTeam(councilId, props.onForbidden)
+  const chips = useTaskChipData(lists, controls, props, team.data)
   const cells = useTaskCells(councilId, {
     onDone: changed,
     onForbidden: props.onForbidden,
@@ -133,7 +130,7 @@ function useTasksPage(props: Props) {
     board,
     councilEmpty,
     departments: team.data?.departments ?? [],
-    all: lists.list,
+    chips,
     openEventFromTask: opened.openEventFromTask,
     dialogs,
     list,
@@ -150,33 +147,6 @@ function useTasksPage(props: Props) {
     eventUndo,
     onEventChanged,
   }
-}
-
-// 부서 거르기 칩의 이름: 내 부서, 홈이 알려 준 이름, 받아 온 업무의 부서 차례다.
-function departmentName(id: string, council: CouncilView, all: TaskList) {
-  const tasks = all.state.kind === 'ready' ? all.state.tasks : []
-  return (
-    council.me.departments.find(item => item.id === id)?.name ??
-    recalledDepartment(id) ??
-    tasks.find(task => task.department?.id === id)?.department?.name ??
-    '부서'
-  )
-}
-
-// 목록을 좁힌 조건을 풀 수 있게 알리는 칩: 업무 화면의 부서 거르기, 행사의 업무 탭에서 '담당자 없음'으로 연 보기.
-function narrowOf(page: ReturnType<typeof useTasksPage>, council: CouncilView) {
-  const { controls } = page
-  if (homeScopeActive(controls)) {
-    const tasks = page.all.state.kind === 'ready' ? page.all.state.tasks : []
-    return { label: homeScopeLabel(controls, tasks), onClear: controls.clearNarrow }
-  }
-  if (controls.dept !== null) {
-    const name = departmentName(controls.dept, council, page.all)
-    return { label: name, onClear: controls.clearDept }
-  }
-  if (page.rows.inEvent && controls.view === 'unassigned')
-    return { label: NO_ASSIGNEE_LABEL, onClear: controls.toggleUnassigned }
-  return undefined
 }
 
 // 보드·표·달력 가운데 지금 배치의 몸통. 넓은 화면의 보드가 아니면 지금의 표(넓은 화면)와 줄(좁은 화면)이다.
@@ -283,13 +253,13 @@ function CouncilTasksPage(props: Props) {
         allowCalendar={props.eventId !== undefined}
         tab={controls.inMenu ? { value: controls.tab, onChange: controls.setTab } : undefined}
         scope={controls}
-        myDepartment={props.view.me.departments[0]?.id}
+        chips={page.chips.data}
         showFilter={layout !== 'calendar' && !page.board}
         view={view}
         filter={filter}
         onView={controls.setView}
         onFilter={controls.setFilter}
-        narrow={narrowOf(page, props.view)}
+        narrow={page.chips.narrow}
         layout={{ value: layout, onChange: controls.setLayout }}
       />
       {adding && (

@@ -11,6 +11,8 @@ import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { groupByDepartment } from '@/tasks/task-groups'
 import { MyTasksPreview } from '@/tasks/MyTasksPreview'
 import { Section } from './GallerySection'
+import { TaskScopeExample } from './TaskMenuSection'
+import { TaskFilterBand } from '@/tasks/TaskTabs'
 import { longName, unbroken } from './sample-text'
 
 const task = (id: string, extra: Partial<TaskSummary>): TaskSummary => ({
@@ -235,9 +237,14 @@ export function TaskBoardSection() {
   return (
     <Section title="업무 보드">
       <div className="w-full">
+        <TaskScopeExample menu />
+        <TaskFilterBand label="담당자 없음" onClear={noop} />
+      </div>
+      <div className="w-full">
         <TaskBoard open={boardList(boardOpen)} done={boardList(boardDone)} {...boardProps} />
       </div>
       <div className="w-full max-w-184">
+        <TaskScopeExample menu truncated />
         <TaskBoard
           open={boardList(boardOpen, true)}
           done={boardList(boardDone, true)}
@@ -245,6 +252,7 @@ export function TaskBoardSection() {
         />
       </div>
       <div className="w-full max-w-184">
+        <TaskScopeExample menu zero />
         <TaskBoard open={boardList([])} done={boardList([])} {...boardProps} onAddFirst={noop} />
       </div>
       <div className="w-full max-w-184">

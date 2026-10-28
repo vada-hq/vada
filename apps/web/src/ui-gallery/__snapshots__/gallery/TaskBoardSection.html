@@ -6,6 +6,44 @@
 </div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full">
+<div class="w-full">
+<div class="flex min-w-0 flex-col gap-3 break-keep">
+<span class="sr-only">학생회 업무</span>
+<div role="tablist" aria-label="업무 보기" class="flex border-b">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="true">학생회 업무</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="false">내 업무</button>
+</div>
+<div role="group" aria-label="업무 범위" class="flex min-w-0 max-w-full flex-wrap items-center gap-2 break-keep pb-1 max-sm:flex-nowrap max-sm:overflow-x-auto">
+<div role="group" aria-label="보드 업무 범위" class="flex shrink-0 rounded-md border p-0.5">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="true">전체 업무</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="false">내 업무</button>
+</div>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full text-red-600 max-sm:min-h-11" aria-pressed="false">지남 <span class="tabular-nums">2</span>
+</button>
+<span class="shrink-0 text-sm text-muted-foreground">내 담당 <span class="tabular-nums">3</span>
+</span>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full text-muted-foreground max-sm:min-h-11" aria-pressed="false">담당자 없음 <span class="tabular-nums">2</span>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full max-sm:min-h-11" aria-pressed="false">마감 없음 <span class="tabular-nums">1</span>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">기획부</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">부서 없음</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-36 shrink-0 max-sm:min-h-11" aria-label="담당자별">
+<option value="">담당자 전체</option>
+<option value="0199d1a0-0000-7000-8000-000000000001">김새내</option>
+</select>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full max-sm:min-h-11" aria-pressed="false">행사 업무 포함</button>
+</div>
+<div class="ml-auto flex flex-wrap items-center gap-2 pb-2">
+</div>
+</div>
+</div>
+<div class="flex min-w-0 items-center justify-between gap-3 rounded-md bg-muted px-3 py-1 text-sm break-keep">
+<span class="wrap-anywhere">담당자 없음만 보고 있어요</span>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 max-sm:min-h-11">필터 해제</button>
+</div>
+</div>
+<div class="w-full">
 <div class="flex flex-col gap-4">
 <div class="grid grid-cols-3 gap-4">
 <section aria-labelledby="_id1_" class="flex min-h-28 min-w-0 flex-col gap-3 rounded-xl border border-gray-200/50 bg-gray-100/50 p-3">
@@ -188,6 +226,38 @@
 </div>
 </div>
 <div class="w-full max-w-184">
+<div class="w-full">
+<div class="flex min-w-0 flex-col gap-3 break-keep">
+<span class="sr-only">학생회 업무</span>
+<div role="tablist" aria-label="업무 보기" class="flex border-b">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="true">학생회 업무</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="false">내 업무</button>
+</div>
+<div role="group" aria-label="업무 범위" class="flex min-w-0 max-w-full flex-wrap items-center gap-2 break-keep pb-1 max-sm:flex-nowrap max-sm:overflow-x-auto">
+<div role="group" aria-label="보드 업무 범위" class="flex shrink-0 rounded-md border p-0.5">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="true">전체 업무</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="false">내 업무</button>
+</div>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full text-red-600 max-sm:min-h-11" aria-pressed="false">지남 <span class="tabular-nums">2+</span>
+</button>
+<span class="shrink-0 text-sm text-muted-foreground">내 담당 <span class="tabular-nums">3+</span>
+</span>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full text-muted-foreground max-sm:min-h-11" aria-pressed="false">담당자 없음 <span class="tabular-nums">2+</span>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full max-sm:min-h-11" aria-pressed="false">마감 없음 <span class="tabular-nums">1+</span>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">기획부</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">부서 없음</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-36 shrink-0 max-sm:min-h-11" aria-label="담당자별">
+<option value="">담당자 전체</option>
+<option value="0199d1a0-0000-7000-8000-000000000001">김새내</option>
+</select>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full max-sm:min-h-11" aria-pressed="false">행사 업무 포함</button>
+</div>
+<div class="ml-auto flex flex-wrap items-center gap-2 pb-2">
+</div>
+</div>
+</div>
 <div class="flex flex-col gap-4">
 <div class="grid grid-cols-3 gap-4">
 <section aria-labelledby="_id4_" class="flex min-h-28 min-w-0 flex-col gap-3 rounded-xl border border-gray-200/50 bg-gray-100/50 p-3">
@@ -371,6 +441,34 @@
 </div>
 </div>
 <div class="w-full max-w-184">
+<div class="w-full">
+<div class="flex min-w-0 flex-col gap-3 break-keep">
+<span class="sr-only">학생회 업무</span>
+<div role="tablist" aria-label="업무 보기" class="flex border-b">
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="true">학생회 업무</button>
+<button type="button" role="tab" class="-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground px-3 max-sm:min-h-11 sm:px-4" aria-selected="false">내 업무</button>
+</div>
+<div role="group" aria-label="업무 범위" class="flex min-w-0 max-w-full flex-wrap items-center gap-2 break-keep pb-1 max-sm:flex-nowrap max-sm:overflow-x-auto">
+<div role="group" aria-label="보드 업무 범위" class="flex shrink-0 rounded-md border p-0.5">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="true">전체 업무</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" aria-pressed="false">내 업무</button>
+</div>
+<span class="shrink-0 text-sm text-muted-foreground">내 담당 <span class="tabular-nums">3</span>
+</span>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full text-muted-foreground max-sm:min-h-11" aria-pressed="false">담당자 없음 <span class="tabular-nums">0</span>
+</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">기획부</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 h-auto min-h-8 max-w-48 shrink-0 rounded-full text-left wrap-anywhere whitespace-normal max-sm:min-h-11" aria-pressed="false">부서 없음</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer w-36 shrink-0 max-sm:min-h-11" aria-label="담당자별">
+<option value="">담당자 전체</option>
+<option value="0199d1a0-0000-7000-8000-000000000001">김새내</option>
+</select>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 shrink-0 rounded-full max-sm:min-h-11" aria-pressed="false">행사 업무 포함</button>
+</div>
+<div class="ml-auto flex flex-wrap items-center gap-2 pb-2">
+</div>
+</div>
+</div>
 <div class="flex flex-col gap-4">
 <div class="flex flex-col items-center rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-8 text-gray-300" aria-hidden="true">

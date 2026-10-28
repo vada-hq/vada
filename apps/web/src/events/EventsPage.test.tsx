@@ -451,7 +451,7 @@ test('챙길 것의 담당자 없음 [업무 보기]는 업무 탭을 담당자 
   fireEvent.click(within(row).getByRole('button', { name: '업무 보기' }))
   expect(await screen.findByRole('button', { name: '의자 빌리기' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '현수막 주문' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '담당자 없음 거르기 풀기' }))
+  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
   expect(await screen.findByRole('button', { name: '현수막 주문' })).toBeTruthy()
   await settle()
 })
