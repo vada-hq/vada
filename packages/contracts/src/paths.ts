@@ -1,4 +1,5 @@
 import { HOME_VIEWS } from './home.js'
+import { CALENDAR_KINDS } from './calendar.js'
 import { isUuid } from './input.js'
 import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
 import { TASK_FILTERS, TASK_VIEWS, type TaskView } from './tasks.js'
@@ -114,7 +115,10 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     view: { values: TASK_VIEWS, fallback: null },
     events: { values: ['include'], fallback: null },
   },
-  calendar: {},
+  calendar: {
+    view: { values: ['month', 'list'], fallback: null },
+    kind: { values: CALENDAR_KINDS, fallback: null },
+  },
   // 기본 보기는 사람마다 달라(재정부는 결재 대기, 설계 4) 고른 보기는 모두 주소에 남긴다.
   purchases: {
     compose: { values: ['new'], fallback: null },

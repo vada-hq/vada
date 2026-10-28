@@ -43,6 +43,18 @@ test('행사 구매 보기와 단계는 money 탭에서만 왕복하고 전체 �
   })
 })
 
+test('캘린더의 고른 월·목록 보기와 종류만 주소에 남고 자동 보기는 비워 둔다', () => {
+  assert.equal(menuPath('calendar', C), `/calendar/${C}`)
+  for (const view of ['month', 'list']) {
+    for (const kind of ['event', 'meeting', 'deadline', 'academic', 'external', 'other']) {
+      const path = menuPath('calendar', C, { view, kind })
+      assert.equal(path, `/calendar/${C}?view=${view}&kind=${kind}`)
+      assert.equal(appPath(parseAppPath(path)!), path)
+    }
+  }
+  assert.deepEqual(parseAppPath(`/calendar/${C}?view=auto&kind=all&month=2026-10`)?.query, {})
+})
+
 test('메뉴 열하나와 기록 종류 일곱마다 만들고 다시 읽으면 같은 값이다', () => {
   assert.equal(APP_MENUS.length, 11)
   assert.equal(RECORD_KINDS.length, 7)

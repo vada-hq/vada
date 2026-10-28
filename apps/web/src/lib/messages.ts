@@ -195,6 +195,7 @@ export const HOME_LOAD_FAILED = '홈을 불러오지 못했어요. 연결을 확
 
 // 업무 목록과 카드. 상태 바꾸기 오류는 그 카드 안에 보인다. 표에 없는 코드는 일반 문구다.
 export const TASKS_LOAD_FAILED = '업무를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const CALENDAR_LOAD_FAILED = '일정을 불러오지 못했어요. 연결을 확인해 주세요.'
 export const TASK_STATUS_ERRORS = changeErrors({
   FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: '이 업무는 지워졌어요. 목록을 새로 불러왔어요.',

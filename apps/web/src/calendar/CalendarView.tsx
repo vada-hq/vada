@@ -1,58 +1,76 @@
-import { useState } from 'react'
-import type { EventSummary, TaskSummary } from '@vada/contracts'
-import { Button } from '@/components/ui/button'
-import { TaskCalendar } from '@/tasks/TaskCalendar'
-import { taskRowOf } from '@/tasks/TaskListBody'
+import type { ReactNode } from 'react'
+import type { CalendarItem, CalendarKind, CalendarTarget } from '@vada/contracts'
+import { monthOf, shiftMonth } from '@/tasks/calendar-month'
+import { itemsOn } from './calendar-items'
+import { CalendarHeader, type CalendarLayout } from './CalendarHeader'
+import { CalendarDay, CalendarList } from './CalendarList'
+import { CalendarMonth } from './CalendarMonth'
 
-const TYPES = [
-  { value: 'all', label: '전체' },
-  { value: 'events', label: '행사' },
-  { value: 'deadlines', label: '마감' },
-] as const
-type CalendarType = (typeof TYPES)[number]['value']
 type Props = {
-  tasks: TaskSummary[]
-  events: EventSummary[]
-  onOpenTask: (id: string) => void
-  onOpenEvent: (id: string) => void
-  today?: string | undefined
+  items: CalendarItem[]
+  today: string
+  month: string
+  selected: string
+  layout: CalendarLayout
+  kind: CalendarKind | null
+  onLayout: (layout: CalendarLayout) => void
+  onKind: (kind: CalendarKind | null) => void
+  onMonth: (month: string) => void
+  onSelect: (day: string) => void
+  onOpen: (target: CalendarTarget) => void
+  children?: ReactNode
 }
 
-export function CalendarView({ tasks, events, onOpenTask, onOpenEvent, today }: Props) {
-  const [type, setType] = useState<CalendarType>('all')
+export function CalendarView({
+  items,
+  today,
+  month,
+  selected,
+  layout,
+  kind,
+  onLayout,
+  onKind,
+  onMonth,
+  onSelect,
+  onOpen,
+  children,
+}: Props) {
+  const filtered = kind ? items.filter(item => item.kind === kind) : items
   return (
     <div className="flex min-w-0 flex-col gap-4 break-keep">
-      <div role="group" aria-label="일정 유형" className="flex flex-wrap gap-2">
-        {TYPES.map(item => (
-          <Button
-            key={item.value}
-            size="sm"
-            touch
-            variant={type === item.value ? 'secondary' : 'outline'}
-            className="rounded-full"
-            aria-pressed={type === item.value}
-            onClick={() => setType(item.value)}
-          >
-            {item.label}
-          </Button>
-        ))}
-      </div>
-      <TaskCalendar
-        tasks={
-          type === 'events'
-            ? []
-            : tasks.filter(task => task.dueDate !== null && task.status !== 'done')
-        }
-        events={type === 'deadlines' ? [] : events}
-        schedule
-        today={today}
-        row={taskRowOf(
-          { view: 'all', inEvent: false, readOnly: true, onOpenTask, onOpenEvent },
-          true,
-        )}
-        onOpenTask={onOpenTask}
-        onOpenEvent={onOpenEvent}
+      <CalendarHeader
+        month={month}
+        layout={layout}
+        kind={kind}
+        onLayout={onLayout}
+        onKind={onKind}
+        onShift={by => onMonth(shiftMonth(month, by))}
+        onToday={() => {
+          onMonth(monthOf(today))
+          onSelect(today)
+        }}
       />
+      {children ??
+        (layout === 'month' ? (
+          <>
+            <CalendarMonth
+              items={filtered}
+              month={month}
+              today={today}
+              selected={selected}
+              onSelect={onSelect}
+              onOpen={onOpen}
+            />
+            <CalendarDay
+              day={selected}
+              today={today}
+              items={itemsOn(filtered, selected)}
+              onOpen={onOpen}
+            />
+          </>
+        ) : (
+          <CalendarList items={filtered} month={month} today={today} onOpen={onOpen} />
+        ))}
     </div>
   )
 }

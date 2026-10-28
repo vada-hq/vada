@@ -1,39 +1,42 @@
+import { useState } from 'react'
+import type { CalendarKind } from '@vada/contracts'
 import { CalendarView } from '@/calendar/CalendarView'
-import { eventSummary } from '@/test-support/event-fixtures'
+import type { CalendarLayout } from '@/calendar/CalendarHeader'
+import { useCalendarNavigation } from '@/calendar/use-calendar-navigation'
+import { calendarItems } from '@/test-support/calendar-fixtures'
 import { Section } from './GallerySection'
 
 const noop = () => {}
+
+function CalendarExample({ initialLayout }: { initialLayout: CalendarLayout }) {
+  const navigation = useCalendarNavigation('2026-10-28')
+  const [layout, setLayout] = useState(initialLayout)
+  const [kind, setKind] = useState<CalendarKind | null>(null)
+  return (
+    <CalendarView
+      {...navigation}
+      onMonth={navigation.go}
+      onSelect={navigation.setSelected}
+      items={calendarItems}
+      layout={layout}
+      kind={kind}
+      onLayout={setLayout}
+      onKind={setKind}
+      onOpen={noop}
+    />
+  )
+}
 
 export function CalendarSection() {
   return (
     <Section title="캘린더">
       <div className="w-full min-w-0">
-        <CalendarView
-          today="2026-10-28"
-          onOpenTask={noop}
-          onOpenEvent={noop}
-          tasks={[
-            {
-              id: '0199d1a0-0000-7000-8000-0000000000a1',
-              title: '가을 축제 현수막 주문과 설치 위치 확인',
-              dueDate: '2026-10-28',
-              status: 'todo',
-              next: 'in_progress',
-              overdue: false,
-              department: { id: '0199d1a0-0000-7000-8000-0000000000d1', name: '기획부' },
-              event: null,
-              assignee: null,
-              actions: ['task.change_status', 'task.change_assignee'],
-            },
-          ]}
-          events={[
-            eventSummary({
-              name: '가을 축제',
-              startsAt: '2026-10-28T14:00',
-              endsAt: '2026-10-30T18:00',
-            }),
-          ]}
-        />
+        <h3 className="mb-3 text-sm font-medium">월 보기</h3>
+        <CalendarExample initialLayout="month" />
+      </div>
+      <div className="w-full min-w-0">
+        <h3 className="my-3 text-sm font-medium">목록 보기</h3>
+        <CalendarExample initialLayout="list" />
       </div>
     </Section>
   )

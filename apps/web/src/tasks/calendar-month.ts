@@ -1,4 +1,5 @@
 import { KOREAN_DATE_LENGTH, type EventSummary, type TaskSummary } from '@vada/contracts'
+import { rangeBarsOf } from '@/lib/range-bars'
 
 // 달의 칸 계산은 lib/month-grid가 원문이고, 업무 달력 쪽은 지금 불러 쓰는 이름 그대로 이 길로도 꺼낸다.
 export {
@@ -10,7 +11,6 @@ export {
   weekdayOf,
   weeksOf,
 } from '@/lib/month-grid'
-const WEEK_DAYS = 7
 
 // 행사가 걸친 날(시작일부터 끝일까지). 일시를 정하지 않은 행사는 달력에 없다.
 function eventRange(event: EventSummary) {
@@ -37,26 +37,7 @@ export type EventBar = {
 }
 
 export function eventBarsOf(events: EventSummary[], week: string[]): EventBar[] {
-  const first = week[0] ?? ''
-  const last = week[WEEK_DAYS - 1] ?? ''
-  const bars = events
-    .flatMap(event => {
-      const range = eventRange(event)
-      if (!range || range.to < first || range.from > last) return []
-      const start = range.from < first ? 0 : week.indexOf(range.from)
-      const end = range.to > last ? WEEK_DAYS - 1 : week.indexOf(range.to)
-      return [
-        { event, start, span: end - start + 1, before: range.from < first, after: range.to > last },
-      ]
-    })
-    .sort((a, b) => a.start - b.start || b.span - a.span)
-  const laneEnds: number[] = []
-  return bars.map(bar => {
-    const free = laneEnds.findIndex(end => end < bar.start)
-    const lane = free === -1 ? laneEnds.length : free
-    laneEnds[lane] = bar.start + bar.span - 1
-    return { ...bar, lane }
-  })
+  return rangeBarsOf(events, week, eventRange).map(({ item, ...bar }) => ({ ...bar, event: item }))
 }
 
 // 달력에서 보이는 업무의 상태. 지남은 끝나지 않았고 마감이 지난 것이다.

@@ -2,6 +2,8 @@ import { navigationWidth } from '@/test-support/navigation-width'
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { koreanDateOf } from '@vada/contracts'
+import { monthOf, weeksOf } from './tasks/calendar-month'
 import { renderApp } from './test-support/render-app'
 import { resetWindowHistory, windowHistoryIdle } from './lib/use-window-history'
 import { roomList } from './test-support/chat-fixtures'
@@ -393,10 +395,9 @@ test.each([`/calendar/${C1}`, `/tasks/${C1}?layout=calendar`])(
   '캘린더를 켜면 %s는 캘린더 본문과 메뉴를 열고 옛 주소를 남기지 않는다',
   async path => {
     live.moves = ['calendar']
-    api.on('GET', `/api/organizations/${C1}/tasks?view=all&status=open`, () =>
-      json({ tasks: [], truncated: false }),
-    )
-    api.on('GET', `/api/organizations/${C1}/events`, () => json({ events: [], truncated: false }))
+    const days = weeksOf(monthOf(koreanDateOf(new Date()))).flat()
+    const calendarPath = `/api/organizations/${C1}/calendar?from=${days[0]}&to=${days[days.length - 1]}`
+    api.on('GET', calendarPath, () => json({ items: [], truncated: false }))
     window.history.replaceState(null, '', path)
     const push = pushes()
     await renderApp()
@@ -405,8 +406,37 @@ test.each([`/calendar/${C1}`, `/tasks/${C1}?layout=calendar`])(
     expect(menu('캘린더').getAttribute('aria-current')).toBe('page')
     expect(pathNow()).toBe(`/calendar/${C1}`)
     expect(push).not.toHaveBeenCalled()
+    await waitFor(() => expect(api.calls.some(call => call.path === calendarPath)).toBe(true))
+    expect(
+      api.calls.some(call =>
+        [
+          `/api/organizations/${C1}/tasks?view=all&status=open`,
+          `/api/organizations/${C1}/events`,
+        ].includes(call.path),
+      ),
+    ).toBe(false)
   },
 )
+
+test('캘린더의 목록·종류 선택 주소는 새로 열어도 유지된다', async () => {
+  live.moves = ['calendar']
+  const days = weeksOf(monthOf(koreanDateOf(new Date()))).flat()
+  api.on(
+    'GET',
+    `/api/organizations/${C1}/calendar?from=${days[0]}&to=${days[days.length - 1]}`,
+    () => json({ items: [], truncated: false }),
+  )
+  window.history.replaceState(null, '', `/calendar/${C1}?view=list&kind=deadline`)
+  await renderApp()
+  expect(await screen.findByText('이 달 일정 없음')).toBeTruthy()
+  expect(pathNow()).toBe(`/calendar/${C1}?view=list&kind=deadline`)
+  expect(screen.getByRole('button', { name: '목록' }).getAttribute('aria-pressed')).toBe('true')
+  expect(
+    within(screen.getByRole('group', { name: '일정 유형' }))
+      .getByRole('button', { name: '마감' })
+      .getAttribute('aria-pressed'),
+  ).toBe('true')
+})
 
 test('구매 주소는 구매 목록을 열고 마지막 주소도 구매로 남긴다', async () => {
   window.localStorage.setItem(LAST, `/purchases/${C2}?view=all`)
