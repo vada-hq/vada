@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { sql } from 'drizzle-orm'
 import type { CreateCouncilRequest } from '@vada/contracts'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, rowsOf } from '../db/test-db.js'
 import { createPerson, enterCouncil } from './people.js'
 import { startFlow } from './server.js'
 
@@ -20,8 +20,7 @@ const COUNCIL: CreateCouncilRequest = {
 
 type Db = Awaited<ReturnType<typeof createTestDb>>['db']
 async function rows<T>(db: Db, query: ReturnType<typeof sql>) {
-  const result = await db.execute(query)
-  return (Array.isArray(result) ? result : result.rows) as T[]
+  return rowsOf<T>(await db.execute(query))
 }
 const count = async (db: Db, query: ReturnType<typeof sql>) =>
   Number((await rows<{ n: string }>(db, query))[0]!.n)

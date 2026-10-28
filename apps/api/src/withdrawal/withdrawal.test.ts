@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import type { MessagePageResponse, RoomListResponse, TeamResponse } from '@vada/contracts'
 import { inCouncilChange } from '../access/authorize.js'
 import { appModulesOf } from '../app-modules.js'
@@ -354,7 +353,7 @@ test('탈퇴는 학생회 행과 계정 행을 잠근 뒤에 회장인지 본다
   const testDb = await createTestDb()
   try {
     const queries: string[] = []
-    const logged = drizzle(testDb.pg, { logger: { logQuery: query => void queries.push(query) } })
+    const logged = testDb.drizzle({ logger: { logQuery: query => void queries.push(query) } })
     const ours = await seedCouncil(testDb.db, testDb.pg, 's')
     await seedLogins(testDb.pg, [ours.people.plain.userId], new Date(NOW.getTime() - HOUR))
     await logged.transaction(tx => withdrawAccount(tx, ours.people.plain.userId, NOW))

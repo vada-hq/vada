@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, type TestPg } from '../db/test-db.js'
 import type { Tx } from '../db/types.js'
 import { clockNow, createRecord, updateRecords, type AnyRecordChange } from './records.js'
 
@@ -62,9 +61,9 @@ const incomeOf = (tx: Tx, s: Seed, fiscalPeriodId: string, values: Record<string
 const change = (s: Seed, kind: string, id: string, changes: object) =>
   ({ kind, id, actor: s.kim, reason: null, changes }) as AnyRecordChange
 
-const versionCount = async (pg: PGlite, id: string) =>
+const versionCount = async (pg: TestPg, id: string) =>
   (await pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [id])).rows.length
-const recordCount = async (pg: PGlite) => (await pg.query('SELECT 1 FROM record')).rows.length
+const recordCount = async (pg: TestPg) => (await pg.query('SELECT 1 FROM record')).rows.length
 // drizzle을 거치면 원인이 cause에 있고, pg를 바로 부르면 오류 자신에 있다.
 const constraint = (name: string) => (error: unknown) =>
   String((error as { cause?: unknown }).cause ?? error).includes(name)

@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, type TestPg } from '../db/test-db.js'
 import type { Tx } from '../db/types.js'
 import { clockNow, createRecord, updateRecords, type AnyRecordChange } from './records.js'
 
-const versionsOf = async (pg: PGlite, id: string) =>
+const versionsOf = async (pg: TestPg, id: string) =>
   (await pg.query('SELECT version_no FROM record_version WHERE record_id = $1', [id])).rows
 
 // 학생회 둘. 첫 학생회에는 운영진 둘, 둘째에는 운영진 하나가 있고, 학생회마다 전체방이 하나 있다.

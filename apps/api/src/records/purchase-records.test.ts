@@ -1,15 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, type TestPg } from '../db/test-db.js'
 import type { Tx } from '../db/types.js'
 import { clockNow, createRecord, updateRecords, type AnyRecordChange } from './records.js'
 
-const versionCount = async (pg: PGlite, id: string) =>
+const versionCount = async (pg: TestPg, id: string) =>
   (await pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [id])).rows.length
-const rowOf = async (pg: PGlite, table: string, id: string) =>
+const rowOf = async (pg: TestPg, table: string, id: string) =>
   (await pg.query<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = $1`, [id])).rows[0]!
-const recordCount = async (pg: PGlite) => (await pg.query('SELECT 1 FROM record')).rows.length
+const recordCount = async (pg: TestPg) => (await pg.query('SELECT 1 FROM record')).rows.length
 // drizzle이 오류를 감싸므로 제약 이름은 원인에 있다.
 const constraint = (name: string) => (error: unknown) =>
   String((error as { cause?: unknown }).cause).includes(name)
@@ -422,7 +421,7 @@ test('가리키는 칸은 바꾸지 못한다', async () => {
 })
 
 // 행사, 계좌, 감사 기구는 이 모듈이 만드는 종류가 아니라(기능 006, 007) 시험이 기록과 하위 행을 직접 넣는다.
-async function plain(pg: PGlite, kind: 'event' | 'account' | 'audit_body', councilId: string) {
+async function plain(pg: TestPg, kind: 'event' | 'account' | 'audit_body', councilId: string) {
   const id = (await pg.query<{ id: string }>('SELECT gen_random_uuid() AS id')).rows[0]!.id
   await pg.query('INSERT INTO record (id, kind, council_id) VALUES ($1, $2, $3)', [
     id,

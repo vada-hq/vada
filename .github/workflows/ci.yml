@@ -63,6 +63,46 @@ jobs:
       - working-directory: apps/api
         run: pnpm exec tsx --test --test-shard=${{ matrix.shard }}/4 "src/**/*.test.ts" "scripts/**/*.test.ts"
 
+  # 같은 API 시험을 운영과 같은 드라이버(postgres.js)와 진짜 Postgres로 돈다(측정용).
+  test-api-pg:
+    needs: already-tested
+    if: needs.already-tested.outputs.hit != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: vada
+          POSTGRES_PASSWORD: vada
+          POSTGRES_DB: vada
+          POSTGRES_INITDB_ARGS: --locale=C.UTF-8 --encoding=UTF8
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U vada" --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgres://vada:vada@localhost:5432/vada
+    steps:
+      - name: Tune Postgres for throwaway test data
+        run: >-
+          docker exec ${{ job.services.postgres.id }} psql -U vada -d vada -v ON_ERROR_STOP=1
+          -c "ALTER SYSTEM SET fsync = off" -c "ALTER SYSTEM SET synchronous_commit = off"
+          -c "ALTER SYSTEM SET full_page_writes = off" -c "SELECT pg_reload_conf()" -c "SHOW server_version" -c "SHOW lc_collate"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # pnpm 버전은 package.json의 packageManager를 따른다.
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - working-directory: apps/api
+        run: pnpm exec tsx --test --test-shard=${{ matrix.shard }}/4 "src/**/*.test.ts" "scripts/**/*.test.ts"
+
   # 화면 시험은 check 안에서 차례로 돌 때 2.5~4분이 걸려(2026-10-28) 따로 나눠 나란히 돈다.
   test-web:
     needs: already-tested

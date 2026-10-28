@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { EVENT_LIST_LIMIT } from '@vada/contracts'
 import { actorOf } from '../access/actor.js'
 import { clockNow, createRecord } from '../records/records.js'
@@ -13,7 +12,7 @@ test(
   withSettlement(async t => {
     const actor = (await actorOf(t.db, 's-president', t.council.councilId, NOON))!
     const queries: string[] = []
-    const db = drizzle(t.pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = t.drizzle({ logger: { logQuery: query => void queries.push(query) } })
     const first = await t.event()
     assert.equal((await eventCardsOf(db, actor, NOON)).events[0]?.id, first)
     const singleCount = queries.length
@@ -137,7 +136,7 @@ test(
   withSettlement(async t => {
     const actor = (await actorOf(t.db, 's-president', t.council.councilId, NOON))!
     const queries: string[] = []
-    const db = drizzle(t.pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = t.drizzle({ logger: { logQuery: query => void queries.push(query) } })
     assert.deepEqual(await eventCardsOf(db, actor, NOON), { events: [], truncated: false })
     assert.equal(
       queries.some(query => /from "(?:expense|line_item|registration)"/.test(query)),

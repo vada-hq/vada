@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import {
   defaultDepartmentColor,
   type CreateCouncilResponse,
@@ -797,7 +796,7 @@ test('운영진 목록은 한 시점의 모습이다: 읽기 전용 REPEATABLE R
   try {
     const { base } = await setup(testDb)
     const queries: string[] = []
-    const logged = drizzle(testDb.pg, {
+    const logged = testDb.drizzle({
       logger: {
         logQuery: query => {
           queries.push(query)

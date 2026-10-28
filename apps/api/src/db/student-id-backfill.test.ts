@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { migratedUntil } from './test-db.js'
+import { migratedUntil, type TestPg } from './test-db.js'
 
 // 0012(학번 받기, DEC-75)가 이미 있는 양식을 채우는 방식. 앞 마이그레이션까지 적용한 DB에 양식을 넣고 0012를 적용한다.
 const TAG = '0012_registration_form_student_id'
 
-async function add(pg: PGlite, kind: string, council: string | null, fields: object) {
+async function add(pg: TestPg, kind: string, council: string | null, fields: object) {
   const { rows } = await pg.query<{ id: string }>(
     'INSERT INTO record (kind, council_id) VALUES ($1, $2) RETURNING id',
     [kind, council],

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { inCouncilChange } from '../access/authorize.js'
 import { createTestDb } from '../db/test-db.js'
 import { createRecord } from '../records/records.js'
@@ -13,10 +12,10 @@ const now = new Date('2026-10-19T03:00:00Z')
 // 업무를 잇는 보내기는 학생회 행 잠금 → 운영진 확인 → 업무 읽기 순서고, 잇지 않는 보내기는 잠그지 않는다.
 // 잠금 삼항을 되돌리거나 라우트로 되돌려도 이 시험이 실패한다(라우트를 거치지 않고 서비스를 직접 부른다).
 test('sendAs는 taskId가 있을 때만 학생회 행을 잠근 뒤에 운영진을 확인한다', async () => {
-  const { pg, db: plain, close } = await createTestDb()
+  const { pg, db: plain, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const memberId = council.people.president.memberId
     await inCouncilChange(

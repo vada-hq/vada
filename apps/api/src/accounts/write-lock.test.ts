@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { createApp } from '../app.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { BODY, withAccounts } from '../test-support/accounts.js'
@@ -12,7 +11,7 @@ test(
   '계좌 쓰기 세 길과 계좌를 쓴 지출은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 계좌를 읽는다',
   withAccounts(async t => {
     const queries: string[] = []
-    const db = drizzle(t.pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = t.drizzle({ logger: { logQuery: query => void queries.push(query) } })
     const api = caller(
       createApp({
         auth: { handler: async () => new Response() },

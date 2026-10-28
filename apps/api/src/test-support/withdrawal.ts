@@ -1,11 +1,11 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { TestPg } from '../db/test-db.js'
 
 // 탈퇴 시험이 같이 쓰는 로그인 자료. 사람마다 세션·알림 기기·Google 계정 행·동의 기록을 하나씩 둔다.
 // 다른 학생회와 같은 학생회의 다른 사람에게도 같은 모양으로 두어, 대상 거르기를 지우면 시험이 실패하게 한다.
 
 export const sessionIdOf = (userId: string) => `${userId}:session`
 
-export async function seedLogins(pg: PGlite, userIds: readonly string[], createdAt: Date) {
+export async function seedLogins(pg: TestPg, userIds: readonly string[], createdAt: Date) {
   for (const userId of userIds) {
     await pg.query(
       `INSERT INTO sessions (id, user_id, token, expires_at, created_at, ip_address, user_agent)
@@ -30,7 +30,7 @@ export async function seedLogins(pg: PGlite, userIds: readonly string[], created
 }
 
 // 사람 하나에 남은 것의 개수. 탈퇴하면 로그인 쪽은 모두 0이고, 동의 기록은 탈퇴한 시각이 적힌 채 남는다.
-export async function traceOf(pg: PGlite, userId: string, memberId: string) {
+export async function traceOf(pg: TestPg, userId: string, memberId: string) {
   const { rows } = await pg.query<Record<string, number>>(
     `SELECT
       (SELECT count(*)::int FROM users WHERE id = $1) AS users,
@@ -66,7 +66,7 @@ type WholeState = Record<
   | 'seats',
   number
 >
-export async function wholeStateOf(pg: PGlite) {
+export async function wholeStateOf(pg: TestPg) {
   const { rows } = await pg.query<WholeState>(
     `SELECT
       (SELECT count(*)::int FROM users) AS users,

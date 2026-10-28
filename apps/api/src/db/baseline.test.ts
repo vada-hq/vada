@@ -2,14 +2,13 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
 import { FILE_NAME_MAX, MESSAGE_BODY_MAX } from '@vada/contracts'
-import { createTestDb, migrationsFolder } from './test-db.js'
+import { createTestDb, migrationsFolder, type TestPg } from './test-db.js'
 
 // 기록과 하위 행을 함께 넣는다(vada-docs archive/tools/schema-check/setup.mjs의 recorder와 같다). 기록 모듈은 다음 작업에서 만든다.
 const COUNCIL_COLUMN = new Set(['cohort', 'department'])
 async function add(
-  pg: PGlite,
+  pg: TestPg,
   kind: string,
   council: string | null,
   fields: Record<string, unknown>,
@@ -31,7 +30,7 @@ async function add(
   return rows[0]!.id
 }
 
-async function seed(pg: PGlite) {
+async function seed(pg: TestPg) {
   const council = await add(pg, 'council', null, {
     name: '컴퓨터학부 학생회',
     unit: 'department',

@@ -1,8 +1,8 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { TestPg } from '../db/test-db.js'
 
 // 학생회의 대화방을 "방 이름 → 참여한 운영진 이름(정렬)"으로 읽는다. 방 이름은 all, leadership, dept:부서이름, direct:번호다.
 // 참여자가 없는 방도 빈 목록으로 나온다(방은 지우지 않으므로 그것도 지켜야 할 모습이다).
-export async function roomMap(pg: PGlite, councilId: string): Promise<Record<string, string[]>> {
+export async function roomMap(pg: TestPg, councilId: string): Promise<Record<string, string[]>> {
   const { rows } = await pg.query<{ room: string; person: string | null }>(
     `SELECT CASE WHEN cr.type = 'department' THEN 'dept:' || d.name
                  WHEN cr.type = 'direct' THEN 'direct:' || cr.id
@@ -23,7 +23,7 @@ export async function roomMap(pg: PGlite, councilId: string): Promise<Record<str
 }
 
 // 방 하나에서 한 사람이 들어온 시각. 줄이 없으면 null이다.
-export async function joinedAtOf(pg: PGlite, councilId: string, room: string, person: string) {
+export async function joinedAtOf(pg: TestPg, councilId: string, room: string, person: string) {
   const { rows } = await pg.query<{ joined_at: string }>(
     `SELECT rm.joined_at::text FROM room_membership rm
        JOIN member m ON m.id = rm.member_id

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
 import type {
   EventResponse,
   EventsResponse,
@@ -12,7 +11,7 @@ import type {
   SettlementResponse,
   TasksResponse,
 } from '@vada/contracts'
-import { createTestDb } from '../src/db/test-db.js'
+import { createTestDb, type TestPg } from '../src/db/test-db.js'
 import { startFlow } from '../src/flows/server.js'
 import { EVENT_A, EVENT_B, EVENT_C } from '../src/flows/rehearsal.js'
 import { FEE } from '../src/flows/rehearsal-event.js'
@@ -28,7 +27,7 @@ const now = new Date(Date.now() - 60_000)
 const EXPENSE_TOTAL = BANNER_WON + DIRECT_WON
 const UP_PREFIX = 'https://r2.test/up/'
 
-async function googleUser(pg: PGlite, id: string) {
+async function googleUser(pg: TestPg, id: string) {
   await pg.query('INSERT INTO users (id, name, email) VALUES ($1, $1, $2)', [
     id,
     `${id}@example.test`,
@@ -39,7 +38,7 @@ async function googleUser(pg: PGlite, id: string) {
   )
 }
 
-const count = async (pg: PGlite, table: string, where = 'true') =>
+const count = async (pg: TestPg, table: string, where = 'true') =>
   Number(
     ((await pg.query(`SELECT count(*) AS n FROM ${table} WHERE ${where}`)).rows[0] as { n: string })
       .n,

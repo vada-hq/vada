@@ -1,4 +1,4 @@
-import type { PGlite } from '@electric-sql/pglite'
+import type { TestPg } from '../db/test-db.js'
 import { sql } from 'drizzle-orm'
 import { memberLogin } from '../db/schema.js'
 import { CLOCK_OFFSET_SETTING, clockNow, createRecord, updateRecord } from '../records/records.js'
@@ -15,7 +15,7 @@ export const setDbClock = (db: Db, at: Date) =>
 
 // 시험용 로그인 계정. better-auth가 만드는 users 행과 같은 칸만 채운다. Google 로그인처럼 이메일은 확인된 것이 기본이다.
 export async function addUser(
-  pg: PGlite,
+  pg: TestPg,
   userId: string,
   { name = userId, email = `${userId}@example.test`, emailVerified = true } = {},
 ) {
@@ -28,7 +28,7 @@ export async function addUser(
 }
 
 // 탈퇴한 운영진(RULE-16). 표시 이름만 보는 시험은 탈퇴 전체(withdrawal/service.ts)를 돌리지 않고 이 도우미로 운영진 행만 바꾼다.
-export async function markLeft(pg: PGlite, memberId: string, leftAt: string) {
+export async function markLeft(pg: TestPg, memberId: string, leftAt: string) {
   await pg.query('UPDATE member SET left_at = $2, name = NULL, email = NULL WHERE id = $1', [
     memberId,
     leftAt,
@@ -39,7 +39,7 @@ export async function markLeft(pg: PGlite, memberId: string, leftAt: string) {
 // 사람: 회장, 부회장, 재정부원, 기획부장, 기획부 부부장, 기획부원, 직급과 부서가 없는 운영진, 내보낸 운영진(소속이 끝남).
 export async function seedCouncil(
   db: Db,
-  pg: PGlite,
+  pg: TestPg,
   prefix = 's',
   period = { startsOn: '2026-01-01', endsOn: '2026-12-31' },
 ) {

@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { WON_MAX } from '@vada/contracts'
 import { createRecord } from '../records/records.js'
 import { seedCouncil } from '../test-support/council.js'
 import { migratedUntil } from './test-db.js'
 
 test('0022는 기존 품목·판·승인금액을 보존하고 예상 가격의 범위와 합계 CHECK를 건다', async () => {
-  const { pg, applyTarget } = await migratedUntil('0022_purchase_estimates')
+  const { pg, db, applyTarget } = await migratedUntil('0022_purchase_estimates')
   try {
-    const db = drizzle(pg)
     const council = await seedCouncil(db, pg)
     const requestId = await db.transaction(tx =>
       createRecord(tx, {

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { CALENDAR_ITEM_LIMIT, type CalendarResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import {
@@ -122,7 +121,7 @@ test(
   '권한과 네 원본은 읽기 전용 REPEATABLE READ 거래 하나에서 읽는다',
   withSettlement(async t => {
     const queries: string[] = []
-    const db = drizzle(t.pg, {
+    const db = t.drizzle({
       logger: {
         logQuery: query => {
           queries.push(query)

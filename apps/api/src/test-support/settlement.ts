@@ -32,7 +32,7 @@ const nextCode = () =>
 
 // 학생회 둘(우리, 다른)과 정산 읽기를 띄운다. 기록은 기록 모듈로 바로 만들고, 남은 것이 빠지는 변화는 SQL로 바꾼다.
 async function startSettlement(options: { limit?: number; bundleLimit?: number } = {}) {
-  const { pg, db, close } = await createTestDb()
+  const { pg, db, drizzle, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
   // 시험이 시계를 옮길 수 있다(한국 날짜 경계).
@@ -215,6 +215,7 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
   return {
     pg,
     db,
+    drizzle,
     council,
     other,
     api,

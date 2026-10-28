@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import type {
   CreateCouncilResponse,
   InviteCodeResponse,
@@ -662,7 +661,7 @@ test('들어오기는 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤 코드를
   try {
     const { code } = await setup(testDb)
     const queries: string[] = []
-    const db = drizzle(testDb.pg, {
+    const db = testDb.drizzle({
       logger: {
         logQuery: query => {
           queries.push(query)

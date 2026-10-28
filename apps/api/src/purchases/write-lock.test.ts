@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import { seedCouncil } from '../test-support/council.js'
@@ -13,10 +12,10 @@ const noon = new Date('2026-10-25T03:00:00Z')
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 → 요청 행 읽기와 잠금 순서다(명세 '위험').
 // 잠금을 빼거나 잠그지 않는 거래로 바꾸면 이 시험이 실패한다. 결재와 취소가 겹칠 때 하나만 되는 것이 이 순서에 기댄다.
 test('구매 요청 쓰기 둘은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 운영진을 확인하고, 취소는 요청 행도 잠근다', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const api = caller(
       createApp({
@@ -75,10 +74,10 @@ test('구매 요청 쓰기 둘은 학생회 행을 FOR NO KEY UPDATE로 잠근 �
 // 결재는 학생회 행 → 운영진 확인 → 요청 행 → 품목 행 차례로 잠근 뒤에 결재 기록을 읽고 쓴다.
 // 이 차례가 같은 품목의 동시 결재와 취소·결재 겹침에서 하나만 되게 한다(실제 PostgreSQL 점검이 같은 두 경우를 더 본다).
 test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으로 잠그고 그 뒤에 결재 기록을 읽는다', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const api = caller(
       createApp({
@@ -145,10 +144,10 @@ test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으�
 
 // 기간 겹침과 같은 이름 검사는 학생회 행 잠금에 기댄다. 기간 만들기와 항목 더하기가 그 잠금과 운영진 확인 뒤에 읽고 쓴다.
 test('기간 만들기와 항목 더하기는 학생회 행 잠금과 운영진 확인 뒤에 읽고 쓴다', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const api = caller(
       createApp({

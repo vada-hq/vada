@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { sql } from 'drizzle-orm'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, rowsOf } from '../db/test-db.js'
 import { CLOCK_OFFSET_SETTING, createRecord, updateRecord } from './records.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -25,7 +25,7 @@ const makeMember = (db: Db) =>
       sql`select r.created_at::text as created, lower(v.valid)::text as started
         from record r join record_version v on v.record_id = r.id where r.id = ${id}`,
     )
-    const row = (Array.isArray(rows) ? rows[0] : rows.rows[0]) as {
+    const row = rowsOf(rows)[0] as {
       created: string
       started: string
     }
@@ -65,7 +65,7 @@ test('설정을 건 연결은 그 간격만큼 뒤의 기록 시각을 쓰고 �
       sql`select version_no, lower(valid)::text as lo, upper(valid)::text as hi
         from record_version where record_id = ${made.id} order by version_no`,
     )
-    const list = (Array.isArray(rows) ? rows : rows.rows) as { lo: string; hi: string | null }[]
+    const list = rowsOf<{ lo: string; hi: string | null }>(rows)
     assert.equal(list.length, 2)
     assert.equal(list[0]!.hi, list[1]!.lo)
     near(new Date(list[1]!.lo), Date.now() + THREE_DAYS)
@@ -81,8 +81,8 @@ test('설정을 비우면 실제 시각으로 돌아오고, 거래 안에서만 
     await setOffset(db, '')
     near((await makeMember(db)).created, Date.now())
     const inside = await db.transaction(async tx => {
-      await setOffset(tx as unknown as Db, `${THREE_DAYS} milliseconds`, true)
-      return makeMember(tx as unknown as Db)
+      await setOffset(tx, `${THREE_DAYS} milliseconds`, true)
+      return makeMember(tx)
     })
     near(inside.created, Date.now() + THREE_DAYS)
     near((await makeMember(db)).created, Date.now())
@@ -121,7 +121,7 @@ test('뒤로 미룬 간격에서도 고친 기록의 새 판은 그 시각에 �
     const rows = await db.execute(
       sql`select lower(valid)::text as lo from record_version where record_id = ${made.id} order by version_no desc limit 1`,
     )
-    const row = (Array.isArray(rows) ? rows[0] : rows.rows[0]) as { lo: string }
+    const row = rowsOf<{ lo: string }>(rows)[0]!
     near(new Date(row.lo), Date.now() - THREE_DAYS)
   } finally {
     await close()

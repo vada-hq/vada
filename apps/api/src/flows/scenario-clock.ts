@@ -1,20 +1,21 @@
-import { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
 import { PgTransaction } from 'drizzle-orm/pg-core'
+import { isSingleConnection } from '../db/single-connection.js'
 import type { Db } from '../db/types.js'
 import { CLOCK_OFFSET_SETTING } from '../records/records.js'
 
 // 시나리오 시계(기능 017). 앱 시계는 단계의 시나리오 시각이고, DB 기록 시각은 그 시각과의 간격을 연결 설정으로 더한다.
 // 간격은 줄지 않는다(max). 그래서 DB 시계는 앞으로만 가고, 같은 시나리오 시각의 요청이 여럿이어도 기록 시각이 뒤로 가지 않는다(판·소속 기간 CHECK).
 // 시각을 뒤로 돌리는 일은 던진다.
-// connection: 이 연결 전체에 건다. 연결이 하나인 PGlite만 받는다(풀에서는 다른 연결에 걸리거나 풀러를 거쳐 다른 클라이언트에 샌다).
+// connection: 이 연결 전체에 건다. 연결이 하나인 시험 DB(PGlite, 진짜 Postgres 시험 DB)만 받는다(풀에서는 다른 연결에 걸리거나 풀러를 거쳐 다른 클라이언트에 샌다).
 // transaction: 바깥 거래 안에서만 건다(거래가 끝나면 사라진다. 운영 DB에 쓰는 시연이 쓴다). 거래 핸들만 받고,
 // 시나리오 시각은 실제 시각을 넘지 못한다(미래로 커밋된 시연이 실제 운영진의 뒤 쓰기를 CHECK로 막지 않게).
 export type ClockScope = 'connection' | 'transaction'
 
 function assertScopeFits(db: Db, scope: ClockScope) {
-  const isPglite = (db as { $client?: unknown }).$client instanceof PGlite
-  if (scope === 'connection' && !isPglite) throw new Error('connection 범위는 PGlite에만 건다')
+  const single = isSingleConnection((db as { $client?: unknown }).$client)
+  if (scope === 'connection' && !single)
+    throw new Error('connection 범위는 연결이 하나인 시험 DB에만 건다')
   if (scope === 'transaction' && !(db instanceof PgTransaction))
     throw new Error('transaction 범위는 거래 핸들에만 건다')
 }

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import { createApp } from '../app.js'
 import { createTestDb } from '../db/test-db.js'
 import { createRecord } from '../records/records.js'
@@ -13,10 +12,10 @@ const noon = new Date('2026-10-25T03:00:00Z')
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 → 업무 행 읽기 순서다(명세 '(바꿈) 권한 묻기').
 // 잠금을 빼거나 잠그지 않는 거래로 바꾸면 이 시험이 실패한다.
 test('업무 쓰기 네 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 운영진을 확인하고 업무를 읽는다', async () => {
-  const { pg, db: plain, close } = await createTestDb()
+  const { pg, db: plain, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const taskId = await db.transaction(tx =>
       createRecord(tx, {

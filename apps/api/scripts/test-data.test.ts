@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
 import type { Db, Tx } from '../src/db/types.js'
-import { createTestDb } from '../src/db/test-db.js'
+import { createTestDb, rowsOf, type TestPg } from '../src/db/test-db.js'
 import { actorOf } from '../src/access/actor.js'
 import { createFiscalPeriod } from '../src/budget/service.js'
 import { roomMap } from '../src/test-support/chat.js'
@@ -19,7 +18,7 @@ import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/ops/migrate/mi
 
 const now = new Date('2026-10-19T03:00:00Z')
 
-async function googleUser(pg: PGlite, id: string) {
+async function googleUser(pg: TestPg, id: string) {
   await pg.query('INSERT INTO users (id, name, email) VALUES ($1, $1, $2)', [
     id,
     `${id}@example.test`,
@@ -123,10 +122,12 @@ test('이미 있는 시험 학생회를 다시 맞출 때도 학생회 행을 �
       transaction: (run: (tx: Tx) => Promise<unknown>) =>
         db.transaction(async tx => {
           const result = await run(tx)
-          const rows = (await tx.execute(
-            sql`SELECT xmax::text = pg_current_xact_id()::xid::text AS locked FROM council`,
-          )) as unknown as { rows: { locked: boolean }[] }
-          locked = rows.rows[0]?.locked
+          const rows = rowsOf<{ locked: boolean }>(
+            await tx.execute(
+              sql`SELECT xmax::text = pg_current_xact_id()::xid::text AS locked FROM council`,
+            ),
+          )
+          locked = rows[0]?.locked
           return result
         }),
     } as unknown as Db

@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
 import { CLOSING_REASON, REOPEN_REASON } from '../src/councils/closing.js'
 import { DESTROY_STEPS } from '../src/councils/destroy.js'
-import { createTestDb, type TestDb } from '../src/db/test-db.js'
+import { createTestDb, type TestDb, type TestPg } from '../src/db/test-db.js'
 import { clockNow, createRecord } from '../src/records/records.js'
 import { markLeft, seedCouncil } from '../src/test-support/council.js'
 import { fakeStorage } from '../src/test-support/storage.js'
@@ -265,9 +264,9 @@ test('council-destroy의 --apply는 저장소가 없거나 --expect가 없으면
 // --- 통째 파기: 시연 학생회 둘(같은 모양)과 시연이 쓰지 않는 표의 행 ---
 
 const DEMO_UP = 'https://r2.test/up/'
-const count = async (pg: PGlite, sql: string, params: unknown[] = []) =>
+const count = async (pg: TestPg, sql: string, params: unknown[] = []) =>
   Number((await pg.query<{ n: string }>(sql, params)).rows[0]!.n)
-const oneOf = async (pg: PGlite, sql: string, params: unknown[] = []) =>
+const oneOf = async (pg: TestPg, sql: string, params: unknown[] = []) =>
   (await pg.query<{ id: string }>(sql, params)).rows[0]!.id
 
 async function demoCouncil(testDb: TestDb, store: ReturnType<typeof fakeStorage>, key: string) {
@@ -404,7 +403,7 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
 }
 
 // 표마다 행의 지문(행 전체의 해시). 다른 학생회의 행이 하나도 바뀌거나 사라지지 않았는지 본다.
-async function fingerprints(pg: PGlite) {
+async function fingerprints(pg: TestPg) {
   const tables = await pg.query<{ name: string }>(
     `SELECT table_name AS name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY 1`,

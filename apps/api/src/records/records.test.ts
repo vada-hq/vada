@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, type TestPg } from '../db/test-db.js'
 import {
   clockNow,
   createRecord,
@@ -20,7 +18,7 @@ type Version = {
   changed_by: string | null
   reason: string | null
 }
-const versionsOf = async (pg: PGlite, id: string) =>
+const versionsOf = async (pg: TestPg, id: string) =>
   (
     await pg.query<Version>(
       `SELECT version_no, lower(valid)::text AS lower, upper(valid)::text AS upper, data, changed_by, reason
@@ -580,10 +578,10 @@ test('지금 판이 없으면 새 판을 열 수 없어 Error로 거부하고 �
 })
 
 test('지금 판이 없으면 하위 행을 바꾸는 문장을 보내기 전에 거부한다(쓰기 전에 실패하므로 드라이버와 상관없이 같다)', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, {
+    const db = drizzleWith({
       logger: {
         logQuery: query => {
           queries.push(query)

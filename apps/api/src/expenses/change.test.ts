@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { drizzle } from 'drizzle-orm/pglite'
 import type { ExpenseDetail, ExpensesResponse, PurchaseRequestDetail } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createBudgetRoutes } from '../budget/routes.js'
@@ -250,10 +249,10 @@ test(
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 → 지출 행 순서다. 취소와 환급이 겹치면 지출 행 잠금 뒤의 값을 읽어 하나만 된다.
 test('지출 쓰기는 학생회 행을 잠근 뒤 운영진을 확인하고, 취소와 환급은 지출 행을 잠근 뒤에 쓴다', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, { logger: { logQuery: query => void queries.push(query) } })
+    const db = drizzleWith({ logger: { logQuery: query => void queries.push(query) } })
     const council = await seedCouncil(db, pg)
     const noon = new Date('2026-10-25T03:00:00Z')
     const api = caller(

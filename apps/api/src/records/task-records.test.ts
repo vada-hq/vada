@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PGlite } from '@electric-sql/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, type TestPg } from '../db/test-db.js'
 import type { Tx } from '../db/types.js'
 import { clockNow, createRecord, updateRecords, type AnyRecordChange } from './records.js'
 
-const versionCount = async (pg: PGlite, id: string) =>
+const versionCount = async (pg: TestPg, id: string) =>
   (await pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [id])).rows.length
 
 // 학생회 둘. 첫 학생회에는 부서 하나와 운영진 둘, 둘째에는 부서 하나와 운영진 하나가 있다.
@@ -70,7 +69,7 @@ const change = (s: Seed, id: string, changes: object) =>
 // drizzle이 오류를 감싸므로 제약 이름은 원인에 있다.
 const constraint = (name: string) => (error: unknown) =>
   String((error as { cause?: unknown }).cause).includes(name)
-const rowOf = async (pg: PGlite, id: string) =>
+const rowOf = async (pg: TestPg, id: string) =>
   (await pg.query<Record<string, unknown>>('SELECT * FROM task WHERE id = $1', [id])).rows[0]!
 
 test('제목 100자와 내용 1000자는 받고, 101자와 1001자(이모지 포함)는 DB가 거절한다', async () => {

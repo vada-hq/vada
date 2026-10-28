@@ -23,7 +23,7 @@ type Values = Record<string, unknown>
 
 // 학생회 둘(우리, 다른)과 계좌, 지출 라우트를 띄운다.
 async function startAccounts() {
-  const { pg, db, close } = await createTestDb()
+  const { pg, db, drizzle, close } = await createTestDb()
   const council = await seedCouncil(db, pg)
   const other = await seedCouncil(db, pg, 'o')
   let now = NOON
@@ -146,6 +146,7 @@ async function startAccounts() {
   return {
     pg,
     db,
+    drizzle,
     council,
     other,
     api,

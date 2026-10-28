@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { sql } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/pglite'
-import { createTestDb } from '../db/test-db.js'
+import { createTestDb, rowsOf } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { addUser, seedCouncil } from '../test-support/council.js'
 import { actorOf, actorOfMember } from './actor.js'
@@ -301,10 +300,10 @@ test('authorize: 운영진이 아니거나 권한이 없으면 403이고, 바꾸
 })
 
 test('authorizeChange: 권한을 보기 전에 학생회 행을 FOR NO KEY UPDATE로 잠그고, 칸이 없는 사람은 잠근 뒤에 403이다', async () => {
-  const { pg, close } = await createTestDb()
+  const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
     const queries: string[] = []
-    const db = drizzle(pg, {
+    const db = drizzleWith({
       logger: {
         logQuery: query => {
           queries.push(query)
@@ -331,9 +330,10 @@ test('authorizeChange: 권한을 보기 전에 학생회 행을 FOR NO KEY UPDAT
         sql`SELECT mode FROM pg_locks WHERE locktype = 'relation' AND relation = 'council'::regclass AND pid = pg_backend_pid()`,
       )
     })
+    const modes = rowsOf<{ mode: string }>(held)
     assert.ok(
-      held.rows.some(row => (row as { mode: string }).mode === 'RowShareLock'),
-      JSON.stringify(held.rows),
+      modes.some(row => row.mode === 'RowShareLock'),
+      JSON.stringify(modes),
     )
     // 칸이 없는 사람(부장은 member.manage가 없다)은 403이고, 소속이 없는 사람도 403이다.
     await addUser(pg, 'stranger')
