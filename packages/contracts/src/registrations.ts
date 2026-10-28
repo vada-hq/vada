@@ -3,6 +3,7 @@ import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import type { ApplicantDeposit } from './deposits.js'
 import { koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
+export * from './event-applicants.js'
 
 // 신청 양식(기능 007, DEC-44). 값은 DB CHECK와 같다.
 export const REGISTRATION_FORM_NAME_MAX = 50

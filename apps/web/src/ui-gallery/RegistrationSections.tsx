@@ -2,10 +2,13 @@ import {
   REGISTRATION_STATUSES,
   type Applicant,
   type ApplicantChange,
+  type EventApplicant,
+  type EventApplicantsResponse,
   type RegistrationForm,
 } from '@vada/contracts'
 import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
+import { EventApplicantsView } from '@/registrations/EventApplicantsView'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -129,6 +132,96 @@ export function RegistrationSection() {
         ))}
         <Card data={form('view', { actions: [], capacity: null, opensAt: '2026-10-22T09:00' })} />
         <Card data={form('long', { name: `${unbroken} ${longName}` })} />
+      </div>
+    </Section>
+  )
+}
+
+const eventRows: EventApplicant[] = [
+  {
+    ...applicant('00000000-0000-4000-8000-000000000101', {}),
+    formId: '00000000-0000-4000-8000-000000000201',
+    formTitle: '재학생 참가 신청',
+    affiliation: null,
+    needsAttention: false,
+  },
+  {
+    ...applicant('00000000-0000-4000-8000-000000000102', {
+      name: '이확인',
+      studentId: '20260002',
+      duplicateStudentId: true,
+    }),
+    formId: '00000000-0000-4000-8000-000000000202',
+    formTitle: '신입생 참가 신청',
+    affiliation: null,
+    needsAttention: true,
+  },
+  {
+    ...applicant('00000000-0000-4000-8000-000000000103', {
+      name: `${longName} ${unbroken}`,
+      studentId: '20260003',
+      attended: true,
+      deposit: { status: 'confirmed', amount: 5000 },
+      actions: ['registration.cancel_check_in', 'deposit.cancel'],
+    }),
+    formId: '00000000-0000-4000-8000-000000000201',
+    formTitle: '재학생 참가 신청',
+    affiliation: null,
+    needsAttention: false,
+  },
+]
+
+const eventList: EventApplicantsResponse = {
+  applicants: eventRows,
+  counts: { applicants: 53, attended: 1 },
+  total: 53,
+  page: 1,
+  canView: true,
+  canManage: true,
+  showAffiliation: false,
+  showForm: true,
+  accessToken: null,
+}
+
+// 1280px·420px에서 표/줄 목록, 읽기 권한만 있음, 개인정보 권한 없음, 일괄 부분 실패를 맞대 본다.
+export function EventApplicantsSection() {
+  const failedId = eventRows[1]!.id
+  return (
+    <Section title="행사 참가자 표·일괄 처리">
+      <div className="flex w-full min-w-0 flex-col gap-6">
+        <EventApplicantsView councilId="c1" data={eventList} />
+        <EventApplicantsView
+          councilId="c1"
+          data={{
+            ...eventList,
+            canManage: false,
+            applicants: eventRows.map(row => ({ ...row, actions: [] })),
+          }}
+        />
+        <EventApplicantsView
+          councilId="c1"
+          data={{
+            ...eventList,
+            applicants: [],
+            total: 0,
+            canView: false,
+            canManage: false,
+            showForm: false,
+          }}
+        />
+        <div className="w-105 max-w-full">
+          <EventApplicantsView
+            councilId="c1"
+            data={eventList}
+            selected={new Set([failedId])}
+            result={{
+              results: [
+                { registrationId: eventRows[0]!.id, error: null },
+                { registrationId: failedId, error: 'DEPOSIT_EXISTS' },
+              ],
+            }}
+          />
+        </div>
       </div>
     </Section>
   )

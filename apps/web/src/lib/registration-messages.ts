@@ -1,6 +1,7 @@
 // 참가 신청(기능 007)의 안내 문구. 여러 화면이 같이 쓰는 문구는 messages.ts에 있다.
 import { changeErrors } from './change-errors'
 import { TASK_INVALID } from './messages'
+import type { DepositStatus } from '@vada/contracts'
 
 // 공개 참가 신청(기능 007): 로그인 없이 쓰는 화면이라 학생이 읽는 말이다.
 export const REGISTRATION_LOST = '신청 정보를 찾을 수 없어요. 링크를 다시 확인해 주세요.'
@@ -57,3 +58,56 @@ export const FEE_ACCOUNTS_FAILED =
   '계좌 목록을 불러오지 못했어요. 이 창을 닫았다가 다시 열어 주세요.'
 export const FEE_ACCOUNT_CLOSED = '고른 계좌를 닫았어요. 다른 계좌를 골라 주세요.'
 export const APPLICANTS_LOAD_FAILED = '신청자를 불러오지 못했어요. 연결을 확인해 주세요.'
+export const EVENT_APPLICANTS = {
+  title: '행사 참가자',
+  empty: '행사 참가자 없음',
+  search: '이름이나 학번으로 찾기',
+  searchInvalid: '검색어가 너무 길거나 사용할 수 없는 글자가 있어요.',
+  registration: '신청 상태',
+  deposit: '입금 상태',
+  depositColumn: '입금',
+  attendance: '참석 상태',
+  attention: '확인 필요',
+  bulkDeposit: '납부 확인',
+  bulkAttendance: '참석 처리',
+  allRegistrations: '신청 전체',
+  allDeposits: '입금 전체',
+  allAttendance: '참석 전체',
+  active: '신청',
+  cancelled: '취소',
+  attended: '참석',
+  notAttended: '미참석',
+  free: '무료',
+  name: '이름',
+  studentId: '학번',
+  affiliation: '소속',
+  form: '양식',
+  actions: '동작',
+  selectPage: '현재 쪽 모두 선택',
+  pages: '참가자 쪽 넘기기',
+  previousPage: '이전 쪽',
+  nextPage: '다음 쪽',
+  reload: '새로 읽기',
+  retry: '다시 시도',
+  loading: '불러오는 중이에요',
+  unknownApplicant: '신청자',
+}
+export const eventApplicantTotal = (count: number) => `총 ${count}명`
+export const eventApplicantSelected = (count: number) => `${count}명 선택`
+export const eventApplicantCount = (kind: 'applicants' | 'attended', count: number) =>
+  `${kind === 'applicants' ? EVENT_APPLICANTS.active : EVENT_APPLICANTS.attended} ${count}명`
+export const eventApplicantSelect = (name: string) => `${name} 선택`
+export const eventApplicantActions = (name: string) => `${name} 동작`
+export const DEPOSIT_LABEL: Record<DepositStatus, string> = {
+  none: '입금 안 함',
+  confirmed: '입금 확인',
+  refund_pending: '환불 대기',
+  refunded: '환불함',
+}
+export const bulkApplicantsSummary = (done: number, failed: number) =>
+  `${done}명 처리, ${failed}명 실패`
+export const applicantFailure = (code: string) => {
+  if (code === 'NOT_FOUND') return REGISTRATION_STAFF_LOST
+  if (code === 'FORBIDDEN') return '처리 권한이 없어요.'
+  return REGISTRATION_STAFF_ERRORS[code] ?? REGISTRATION_STAFF_FAILED
+}

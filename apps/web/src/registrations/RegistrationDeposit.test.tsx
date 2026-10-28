@@ -2,20 +2,18 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { WON_MAX, type Applicant, type FormAction, type FormListAction } from '@vada/contracts'
-import { councilView } from '@/test-support/council-fixtures'
+import { ApplicantListHarness } from '@/test-support/ApplicantListHarness'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import {
   APPLICANTS_PATH,
   FORMS_PATH,
   REGISTRATION_ID,
-  STAFF_EVENT_ID,
   applicant,
   applicantChange,
   staffForm,
 } from '@/test-support/staff-registration-fixtures'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { REGISTRATION_STAFF_ERRORS, REGISTRATION_STAFF_LOST } from '@/lib/registration-messages'
-import { RegistrationTab } from './RegistrationTab'
 
 afterEach(() => {
   cleanup()
@@ -61,18 +59,7 @@ async function open(options: Options = {}) {
   )
   api.on('GET', '/api/organizations/c1/accounts', () => json({ accounts: [], truncated: false }))
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
-  const view = councilView('c1', { memberId: 'm9' })
-  render(
-    <RegistrationTab
-      view={view}
-      eventId={STAFF_EVENT_ID}
-      event={null}
-      onEditEvent={vi.fn()}
-      {...handlers}
-    />,
-  )
-  fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
-  fireEvent.click(await screen.findByRole('button', { name: '신청자 보기' }))
+  render(<ApplicantListHarness {...handlers} />)
   const row = (await screen.findByText('김새내')).closest('li') as HTMLElement
   return { api, handlers, row }
 }

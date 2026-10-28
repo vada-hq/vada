@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { councilView } from '@/test-support/council-fixtures'
+import { ApplicantListHarness } from '@/test-support/ApplicantListHarness'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import {
@@ -44,6 +45,19 @@ type Options = {
 
 function setup(options: Options = {}) {
   const api = mockApi()
+  api.on('GET', `/api/organizations/c1/events/${STAFF_EVENT_ID}/applicants?page=1`, () =>
+    json({
+      applicants: [],
+      counts: { applicants: 3, attended: 1 },
+      total: 0,
+      page: 1,
+      canView: false,
+      canManage: false,
+      showAffiliation: false,
+      showForm: false,
+      accessToken: null,
+    }),
+  )
   const forms = options.forms ?? [staffForm()]
   api.on('GET', FORMS_PATH, () =>
     json({
@@ -422,7 +436,7 @@ test('마감 지난 양식은 [멈추기]가 없다. 누르던 사이 마감되�
 
 test('링크와 신청자: 공개 링크 복사와 QR만 보인다', async () => {
   setup({ forms: [staffForm({ actions: [] })] })
-  fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 링크' }))
   expect(screen.getByText(`${window.location.origin}/apply/ABCD2345`)).toBeTruthy()
   expect(screen.getByRole('img', { name: /신청 링크 QR/ })).toBeTruthy()
   expect(screen.queryByText('2027년 10월 24일')).toBeNull()
@@ -431,7 +445,7 @@ test('링크와 신청자: 공개 링크 복사와 QR만 보인다', async () =>
 
 test('열람 권한이 없으면 신청 수만 보이고 신청자 목록을 읽지 않는다', async () => {
   const { api } = setup({ forms: [staffForm({ actions: [] })] })
-  fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 링크' }))
   expect(screen.queryByText(/신청은 3명이에요/)).toBeNull()
   expect(screen.queryByRole('button', { name: '신청자 보기' })).toBeNull()
   await settle()
@@ -451,14 +465,12 @@ async function openApplicants(
     }),
   ],
 ) {
-  const view = setup()
-  view.api.on('GET', APPLICANTS_PATH, () => json({ applicants: list, truncated: false }))
-  fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
-  // 열기 전에는 읽지 않는다(읽을 때마다 열람 기록이 남는다)
-  expect(view.api.calls.some(call => call.path === APPLICANTS_PATH)).toBe(false)
-  fireEvent.click(screen.getByRole('button', { name: '신청자 보기' }))
+  const api = mockApi()
+  api.on('GET', APPLICANTS_PATH, () => json({ applicants: list, truncated: false }))
+  const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
+  render(<ApplicantListHarness {...handlers} />)
   await screen.findByText('김새내')
-  return view
+  return { api, handlers }
 }
 
 test('신청자 목록: 이름·학번, 납부자 칩, 같은 학번, 출석이 보이고 이름이나 학번으로 찾는다', async () => {
@@ -537,11 +549,11 @@ test('신청 취소는 확인을 거치고, 취소하면 목록에서 빠진다.
 })
 
 test('신청자 목록을 읽다 403이면 학생회를 다시 읽게 하고 이유를 보인다', async () => {
-  const view = setup()
-  view.api.on('GET', APPLICANTS_PATH, () => json({ error: 'FORBIDDEN' }, 403))
-  fireEvent.click(await screen.findByRole('button', { name: '링크와 신청자' }))
-  fireEvent.click(screen.getByRole('button', { name: '신청자 보기' }))
-  await waitFor(() => expect(view.handlers.onForbidden).toHaveBeenCalled())
+  const api = mockApi()
+  api.on('GET', APPLICANTS_PATH, () => json({ error: 'FORBIDDEN' }, 403))
+  const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
+  render(<ApplicantListHarness {...handlers} />)
+  await waitFor(() => expect(handlers.onForbidden).toHaveBeenCalled())
   expect(await screen.findByText(PERMISSION_CHANGED)).toBeTruthy()
 })
 

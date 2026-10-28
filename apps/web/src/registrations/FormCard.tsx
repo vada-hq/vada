@@ -21,11 +21,12 @@ type Props = EventDialogHandlers & {
   onEdit: () => void
   // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
   onChanged: () => void
+  hideApplicants?: boolean
 }
 
 // 신청 양식 카드: 이름, 기간, 신청 수/정원, 상태. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
 export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit, ...rest }: Props) {
-  const { onChanged, ...handlers } = rest
+  const { onChanged, hideApplicants, ...handlers } = rest
   const [open, setOpen] = useState(false)
   const post = useStaffPost(handlers, undefined, form.actions)
 
@@ -46,20 +47,23 @@ export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit,
         onEdit={onEdit}
         onPause={() => void setPaused(!form.paused)}
         onToggle={() => setOpen(!open)}
+        {...(hideApplicants && { hideApplicants: true })}
       />
       {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
       {open && (
         <div className="flex flex-col gap-4 border-t pt-4">
           <FormLink form={form} />
-          <Applicants
-            councilId={councilId}
-            form={form}
-            changes={changes}
-            onChange={onChange}
-            onLoaded={onLoaded}
-            onCancelled={onChanged}
-            {...handlers}
-          />
+          {!hideApplicants && (
+            <Applicants
+              councilId={councilId}
+              form={form}
+              changes={changes}
+              onChange={onChange}
+              onLoaded={onLoaded}
+              onCancelled={onChanged}
+              {...handlers}
+            />
+          )}
         </div>
       )}
     </Card>
@@ -89,10 +93,19 @@ type ActionsProps = {
   onEdit: () => void
   onPause: () => void
   onToggle: () => void
+  hideApplicants?: boolean
 }
 
 // 양식 카드의 버튼 줄. [고치기]와 [멈추기]·[다시 받기]는 그 동작이 actions에 있을 때만 보인다.
-function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsProps) {
+function FormActions({
+  form,
+  busy,
+  open,
+  onEdit,
+  onPause,
+  onToggle,
+  hideApplicants,
+}: ActionsProps) {
   const canEdit = form.actions.includes('form.update')
   const canToggle = form.actions.includes(form.paused ? 'form.resume' : 'form.pause')
   return (
@@ -108,7 +121,7 @@ function FormActions({ form, busy, open, onEdit, onPause, onToggle }: ActionsPro
         </Button>
       )}
       <Button variant="outline" size="sm" touch aria-expanded={open} onClick={onToggle}>
-        {open ? '접기' : '링크와 신청자'}
+        {open ? '접기' : hideApplicants ? '신청 링크' : '링크와 신청자'}
       </Button>
     </div>
   )

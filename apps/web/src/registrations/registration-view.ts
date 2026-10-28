@@ -1,4 +1,4 @@
-import type { Applicant, DepositStatus, RegistrationForm } from '@vada/contracts'
+import type { Applicant, RegistrationForm } from '@vada/contracts'
 import { momentLabel } from '@/events/event-view'
 
 // '10월 24일 (토) 14:00 ~ 10월 25일 (일) 18:00'. 시작이 없으면 마감만 적는다.
@@ -16,12 +16,7 @@ export const countLabel = (
 // 학생이 여는 공개 링크. 카톡방에 올리고 포스터 QR로 찍는다.
 export const applyUrl = (publicCode: string) => `${window.location.origin}/apply/${publicCode}`
 
-export const DEPOSIT_LABEL: Record<DepositStatus, string> = {
-  none: '입금 안 함',
-  confirmed: '입금 확인',
-  refund_pending: '환불 대기',
-  refunded: '환불함',
-}
+export { DEPOSIT_LABEL } from '@/lib/registration-messages'
 
 export type ApplicantView = 'all' | 'unpaid' | 'refund_pending'
 

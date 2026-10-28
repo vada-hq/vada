@@ -17,6 +17,7 @@ import {
 } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
 import { FormCard } from './FormCard'
+import { EventApplicants } from './EventApplicants'
 import { FormCreated } from './FormCreated'
 import { FormEditor } from './FormEditor'
 import { TabDialogs, type TabDialog } from './TabDialogs'
@@ -156,12 +157,24 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
         onScan={() => setDialog({ kind: 'scan' })}
       />
       {tab.notice && <StateMessage kind="error">{tab.notice}</StateMessage>}
+      {ready && (
+        <EventApplicants
+          key={`${councilId}/${props.eventId}`}
+          councilId={councilId}
+          eventId={props.eventId}
+          changes={rows.changes}
+          onChange={rows.apply}
+          onLoaded={rows.forget}
+          {...handlers}
+        />
+      )}
       <FormList state={read.state} onRetry={reload}>
         {form => (
           <FormCard
             key={form.id}
             councilId={councilId}
             form={form}
+            hideApplicants
             changes={rows.changes}
             onChange={rows.apply}
             onLoaded={rows.forget}

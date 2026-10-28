@@ -9,6 +9,7 @@ import {
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { MenuItem } from '@/components/ui/menu'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { REGISTRATION_ACTION_GONE } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
@@ -25,6 +26,7 @@ type Props = EventDialogHandlers & {
   applicant: Applicant
   onChange: (change: ApplicantChange) => void
   onGone: () => void
+  menu?: boolean
 }
 
 // 이 신청자에게 보내는 쓰기 둘: 출석(취소)과 신청 취소. 404면 신청이 이미 없어졌으니 목록에서 뺀다(이유는 useStaffPost가 부모에게 알린다).
@@ -59,11 +61,41 @@ type ButtonsProps = {
   busy: boolean
   onToggle: () => void
   onCancel: () => void
+  menu?: boolean
 }
 
 // 그 줄의 actions에 있는 버튼만 보인다.
-function ActionButtons({ applicant, attended, busy, onToggle, onCancel }: ButtonsProps) {
+function ActionButtons({ applicant, attended, busy, onToggle, onCancel, menu }: ButtonsProps) {
   const toggle = attended ? 'registration.cancel_check_in' : 'registration.check_in'
+  if (menu)
+    return (
+      <>
+        {applicant.actions.includes(toggle) && (
+          <MenuItem
+            disabled={busy}
+            className="max-sm:min-h-11"
+            onSelect={event => {
+              event.preventDefault()
+              onToggle()
+            }}
+          >
+            {attended ? '출석 취소' : '출석'}
+          </MenuItem>
+        )}
+        {applicant.actions.includes('registration.cancel') && (
+          <MenuItem
+            disabled={busy}
+            className="max-sm:min-h-11"
+            onSelect={event => {
+              event.preventDefault()
+              onCancel()
+            }}
+          >
+            신청 취소
+          </MenuItem>
+        )}
+      </>
+    )
   return (
     <div className="flex flex-wrap gap-2">
       {applicant.actions.includes(toggle) && (
@@ -106,6 +138,7 @@ export function ApplicantActions(props: Props) {
     <>
       <ActionButtons
         applicant={applicant}
+        {...(props.menu && { menu: true })}
         attended={attended}
         busy={post.busy}
         onToggle={() => {

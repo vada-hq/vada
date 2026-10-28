@@ -18,7 +18,7 @@ import { applicantActionsOf, applicantFactsFrom, decideOnEvent, eventFactsOf } f
 import { formRowOf } from './queries.js'
 
 // 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번(DEC-26: 막지 않고 드러낸다)
-async function duplicateStudentIds(tx: Tx, eventId: string) {
+export async function duplicateStudentIds(tx: Tx, eventId: string) {
   const rows = await tx
     .select({ studentId: registration.studentId })
     .from(registration)
@@ -38,7 +38,7 @@ async function duplicateStudentIds(tx: Tx, eventId: string) {
 // 취소하지 않은 입금 기록이 있고 환불 전이다(신청이 취소됐으면 환불 대기).
 const unrefunded = and(isNotNull(deposit.id), isNull(deposit.refundedAt))
 
-function depositOf(row: {
+export function depositOf(row: {
   depositId: string | null
   depositAmount: string | null
   refundedAt: Date | null

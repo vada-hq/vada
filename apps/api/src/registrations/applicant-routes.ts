@@ -17,6 +17,7 @@ import { parseQuery } from '../http/query.js'
 import { json } from '../http/validate.js'
 import { purgeFormIfDue } from './purge.js'
 import { applicantsOf } from './applicants.js'
+import { addEventApplicantRoutes } from './event-applicant-routes.js'
 import { cancelAttendance, checkInByQr, checkInManually } from './attendance.js'
 import { cancelByStaff } from './cancel-by-staff.js'
 import { applicantChangeOf } from './staff-registration.js'
@@ -32,6 +33,7 @@ import {
 // 신청자 목록, 운영진 취소, 출석. 신청자 정보를 담는 응답(목록, 출석 결과)은 열람 기록을 같은 거래에서 쓴다.
 // 목록은 기록을 쓰므로 읽기 전용 거래가 아니다.
 export function addApplicantRoutes(kit: RouteKit) {
+  addEventApplicantRoutes(kit)
   const { routes, auth, db, clock } = kit
   const { changing, limited } = kitHelpers(kit)
   routes.get(`${root}/registration-forms/:formId/applicants`, auth, async c => {

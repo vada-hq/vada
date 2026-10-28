@@ -8,7 +8,7 @@ import { MyNameSection } from './JoinSections'
 import { EventEditSection } from './EventEditSections'
 import { CreateCouncilSection } from './OnboardingSections'
 import { ConfirmSection, DialogSheetSection } from './OverlaySections'
-import { ApplicantRowSection } from './RegistrationSections'
+import { ApplicantRowSection, EventApplicantsSection } from './RegistrationSections'
 import { WithdrawSection } from './WithdrawSections'
 
 // 부품 확인 화면에서 대화상자를 연 모양. 시험마다 그 버튼이 있는 묶음만 그린다(전체 화면은 Gallery.snapshot.test.tsx).
@@ -60,6 +60,16 @@ test('입금 확인 창(금액 칸)', () => {
   render(<ApplicantRowSection />)
   fireEvent.click(screen.getAllByRole('button', { name: '입금 확인' })[0]!)
   expect(screen.getByRole('dialog', { name: '김새내님의 입금을 확인할까요?' })).toBeTruthy()
+  expect(snapshotHtml()).toMatchSnapshot()
+})
+
+test('행사 참가자 표: 줄 동작에서 입금 금액 확인 창', async () => {
+  render(<EventApplicantsSection />)
+  fireEvent.keyDown(screen.getAllByRole('button', { name: '김새내 동작' })[0]!, {
+    key: 'ArrowDown',
+  })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '입금 확인' }))
+  expect(await screen.findByRole('dialog', { name: '김새내님의 입금을 확인할까요?' })).toBeTruthy()
   expect(snapshotHtml()).toMatchSnapshot()
 })
 

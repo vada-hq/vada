@@ -8,6 +8,7 @@ import {
 } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { MenuItem } from '@/components/ui/menu'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { REGISTRATION_ACTION_GONE } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
@@ -28,6 +29,7 @@ type Props = EventDialogHandlers & {
   onChange: (change: ApplicantChange) => void
   // 신청이 없어졌다(404). 줄을 뺀다.
   onGone: () => void
+  menu?: boolean
 }
 
 type Step = 'confirm' | 'cancel' | 'refund' | null
@@ -77,12 +79,55 @@ function DepositButtons({
   busy,
   touch,
   open,
+  menu,
 }: {
   allowed: Allowed
   busy: boolean
   touch: boolean
   open: Open
+  menu?: boolean
 }) {
+  if (menu)
+    return (
+      <>
+        {allowed.confirm && (
+          <MenuItem
+            disabled={busy}
+            className="max-sm:min-h-11"
+            onSelect={event => {
+              event.preventDefault()
+              open('confirm')
+            }}
+          >
+            입금 확인
+          </MenuItem>
+        )}
+        {allowed.undo && (
+          <MenuItem
+            disabled={busy}
+            className="max-sm:min-h-11"
+            onSelect={event => {
+              event.preventDefault()
+              open('cancel')
+            }}
+          >
+            확인 취소
+          </MenuItem>
+        )}
+        {allowed.refund && (
+          <MenuItem
+            disabled={busy}
+            className="max-sm:min-h-11"
+            onSelect={event => {
+              event.preventDefault()
+              open('refund')
+            }}
+          >
+            환불함
+          </MenuItem>
+        )}
+      </>
+    )
   return (
     <div className="flex flex-wrap gap-2">
       {allowed.confirm && (
@@ -206,6 +251,7 @@ export function DepositActions(props: Props) {
         busy={post.busy}
         touch={props.touch ?? false}
         open={openStep}
+        {...(props.menu && { menu: true })}
       />
       <DepositProblem post={post} step={step} onReload={props.onReload} />
       <DepositSteps
