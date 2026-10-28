@@ -28,6 +28,12 @@ const list: ExpenseList = {
           evidenceCount: 0,
           amount: 12000,
         }),
+        expenseSummary('0199d1a0-0000-7000-8000-00000000e003', {
+          vendor: '취소한 지출',
+          cancelled: true,
+          evidenceCount: 0,
+          amount: 9000,
+        }),
       ],
       allocations: [
         {
@@ -47,13 +53,13 @@ const list: ExpenseList = {
 }
 
 function Sample() {
-  const [periodId, setPeriodId] = useState<string | null>(period.id)
+  const [periodId, setPeriodId] = useState<string | null>(null)
   return <ExpensesPanel list={list} onOpen={noop} periodId={periodId} onPeriod={setPeriodId} />
 }
 
 export function ExpenseListSection() {
   return (
-    <Section title="지출 거르기·찾기·행 복사 (1280·390)">
+    <Section title="사용 내역 표·요약·카드 (1280·1024·390)">
       <div className="flex w-full min-w-0 flex-col gap-6">
         <Sample />
         <h3 className="text-base font-semibold">지출 예정</h3>

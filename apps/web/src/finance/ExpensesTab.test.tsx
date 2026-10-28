@@ -5,7 +5,13 @@ import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { openHistory } from '@/test-support/history'
-import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
+import {
+  MEMBER_PERMISSIONS,
+  HEAD_PERMISSIONS,
+  FINANCE_PERMISSIONS,
+  PRESIDENT_PERMISSIONS,
+} from '@/test-support/council-fixtures'
+import { navigationWidth } from '@/test-support/navigation-width'
 import { expenseDetail, expenseSummary } from '@/test-support/expense-fixtures'
 import {
   EXPENSES,
@@ -30,6 +36,28 @@ const list = (
   truncated = false,
 ) => json({ expenses, truncated })
 const card = (name: string) => screen.getByRole('heading', { name }).closest('div')!.parentElement!
+
+test.each([
+  { name: '부원', permissions: MEMBER_PERMISSIONS },
+  { name: '부서장', permissions: HEAD_PERMISSIONS },
+  { name: '회장단', permissions: PRESIDENT_PERMISSIONS },
+  { name: '재정부', permissions: FINANCE_PERMISSIONS },
+])('$name 권한에서도 같은 지출 표와 요약을 읽는다', async ({ permissions }) => {
+  navigationWidth(1280)
+  const api = serveFinance()
+  api.on('GET', EXPENSES, () =>
+    list([expenseSummary('a', { evidenceCount: 0 }), expenseSummary('b', { cancelled: true })]),
+  )
+  showFinance(permissions)
+  openExpensesTab()
+  const table = await screen.findByRole('table', { name: '지출 목록' })
+  expect(within(table).getByRole('button', { name: '사용처 a' })).toBeTruthy()
+  expect(within(table).getByRole('button', { name: '사용처 b' })).toBeTruthy()
+  expect(screen.getByText('지출 합계', { selector: 'dt' }).parentElement?.textContent).toBe(
+    '지출 합계36,000원',
+  )
+  expect(screen.getByText('건수', { selector: 'dt' }).parentElement?.textContent).toBe('건수2건')
+})
 
 test('상시를 고르면 행사 없는 지출만 보이고 전체 행사로 되돌릴 수 있다', async () => {
   const api = serveFinance()

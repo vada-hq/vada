@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import { EXPENSE_LIST_LIMIT, type ExpensesResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { EXPENSES_LOAD_FAILED } from '@/lib/messages'
+import { useSplit } from '@/lib/use-split'
 import ExpenseCard from './ExpenseCard'
 import type { ExpenseList } from './useExpenses'
 import { ExpenseFilters } from './ExpenseFilters'
+import { ExpenseTable } from './ExpenseTable'
+import { ExpenseSummaryCells } from './ExpenseSummaryCells'
+import { summarizeExpenses } from './expense-summary'
 import { expenseAmount, filterExpenses } from './expense-filter'
 import { wonLabel } from './purchase-view'
 
@@ -54,9 +58,7 @@ function ReadyExpenses({
     return <StateMessage kind="error">회계 기간을 찾을 수 없어요.</StateMessage>
   const selected = { ...filters, period, eventId: eventId ?? filters.eventId }
   const found = filterExpenses(expenses, allocations, selected)
-  const total = found
-    .filter(row => !row.cancelled)
-    .reduce((sum, row) => sum + expenseAmount(row, allocations, selected), 0)
+  const summary = summarizeExpenses(found, allocations, selected)
   return (
     <>
       <ExpenseFilters
@@ -70,26 +72,44 @@ function ReadyExpenses({
           if (next.eventId !== selected.eventId) onEvent?.(next.eventId)
         }}
       />
-      <div className="flex justify-between gap-3 text-sm text-gray-500 tabular-nums" role="status">
-        <span>{found.length}건</span>
-        <span>합계 {wonLabel(total)}</span>
-      </div>
-      {found.length === 0 && <StateMessage kind="empty">지출 없음</StateMessage>}
-      <ul className="flex flex-col gap-2">
-        {found.map(expense => (
-          <li key={expense.id}>
-            <ExpenseCard expense={expense} onOpen={() => onOpen(expense.id)} />
-            {expenseAmount(expense, allocations, selected) !== expense.amount && (
-              <p className="text-right text-xs text-gray-500 tabular-nums">
-                선택 범위 {wonLabel(expenseAmount(expense, allocations, selected))}
-              </p>
-            )}
-          </li>
-        ))}
-      </ul>
+      <ExpenseSummaryCells summary={summary} />
       {truncated && (
         <StateMessage kind="notice">지출이 많아서 {EXPENSE_LIST_LIMIT}개만 보여요.</StateMessage>
       )}
+      {found.length === 0 && <StateMessage kind="empty">지출 없음</StateMessage>}
+      <ExpenseRows expenses={found} allocations={allocations} filters={selected} onOpen={onOpen} />
     </>
+  )
+}
+
+function ExpenseRows({
+  expenses,
+  allocations,
+  filters,
+  onOpen,
+}: ComponentProps<typeof ExpenseTable>) {
+  const wide = useSplit()
+  if (wide)
+    return (
+      <ExpenseTable
+        expenses={expenses}
+        allocations={allocations}
+        filters={filters}
+        onOpen={onOpen}
+      />
+    )
+  return (
+    <ul className="flex flex-col gap-2">
+      {expenses.map(expense => (
+        <li key={expense.id}>
+          <ExpenseCard expense={expense} onOpen={() => onOpen(expense.id)} />
+          {expenseAmount(expense, allocations, filters) !== expense.amount && (
+            <p className="text-right text-xs text-gray-500 tabular-nums">
+              선택 범위 {wonLabel(expenseAmount(expense, allocations, filters))}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
   )
 }

@@ -1,11 +1,9 @@
 import type { ExpenseSummary } from '@vada/contracts'
-import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { dayLabel } from '@/lib/korean-date-text'
-import { copyText } from '@/lib/copy-text'
-import { copyExpenseRow } from './expense-filter'
+import { ExpenseCopyButton } from './ExpenseCopyButton'
 import { chipsOf, METHOD_LABEL } from './expense-view'
 import { wonLabel } from './purchase-view'
 
@@ -18,13 +16,6 @@ export default function ExpenseCard({
   onOpen: () => void
 }) {
   const chips = chipsOf(expense)
-  const [copied, setCopied] = useState<string | null>(null)
-  const copy = async () =>
-    setCopied(
-      (await copyText(copyExpenseRow(expense)))
-        ? '행 복사 완료'
-        : '복사하지 못했어요. 다시 눌러 주세요.',
-    )
   return (
     <Card className="flex flex-col gap-2 p-4">
       <div className="flex items-start gap-2">
@@ -55,16 +46,7 @@ export default function ExpenseCard({
       {expense.event && (
         <p className="text-xs break-keep text-gray-500 wrap-anywhere">{expense.event.name}</p>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" touch onClick={() => void copy()}>
-          행 복사
-        </Button>
-        {copied && (
-          <span role="status" className="text-xs break-keep text-gray-500">
-            {copied}
-          </span>
-        )}
-      </div>
+      <ExpenseCopyButton expense={expense} />
     </Card>
   )
 }

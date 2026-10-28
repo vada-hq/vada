@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { expenseSummary } from '@/test-support/expense-fixtures'
-import { expenseAmount, filterExpenses, copyExpenseRow } from './expense-filter'
+import { expenseAmount, expensePurposes, filterExpenses, copyExpenseRow } from './expense-filter'
 
 const period = { id: 'p1', name: '1학기', startsOn: '2026-01-01', endsOn: '2026-06-30' }
 const expenses = [
@@ -15,6 +15,21 @@ const allocations = [
   { expenseId: 'other', budgetItemId: 'b2', purpose: '식비', periodId: 'p2', amount: 40 },
 ]
 const filters = { period, eventId: '', budgetItemId: '', evidence: '', search: '' }
+
+test('예산 항목 이름은 같은 지출의 선택 범위에서만 중복 없이 잇고 항목이 없으면 비운다', () => {
+  const rows = [
+    ...allocations,
+    { ...allocations[0]!, amount: 0 },
+    { expenseId: 'linked', budgetItemId: null, purpose: null, periodId: null, amount: 0 },
+  ]
+  expect(expensePurposes(expenses[0]!, rows, { ...filters, period: null })).toBe('소모품, 식비')
+  expect(expensePurposes(expenses[0]!, rows, filters)).toBe('소모품')
+  expect(
+    expensePurposes(expenses[0]!, rows, { ...filters, period: null, budgetItemId: 'b2' }),
+  ).toBe('식비')
+  expect(expensePurposes(expenses[0]!, rows, { ...filters, budgetItemId: 'b2' })).toBe('')
+  expect(expensePurposes(expenses[1]!, rows, filters)).toBe('')
+})
 
 test('항목에 든 지출은 항목 기간, 항목 없는 지출만 결제일로 거르고 취소는 뺀다', () => {
   const found = filterExpenses(expenses, allocations, filters)

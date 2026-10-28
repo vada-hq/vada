@@ -26,6 +26,18 @@ export function expenseAmount(
   return allocationsFor(rows, filters).reduce((sum, row) => sum + row.amount, 0)
 }
 
+export function expensePurposes(
+  expense: ExpenseSummary,
+  allocations: ExpenseAllocation[],
+  filters: ExpenseFilters,
+) {
+  const rows = allocationsFor(
+    allocations.filter(row => row.expenseId === expense.id),
+    filters,
+  )
+  return [...new Set(rows.flatMap(row => (row.purpose ? [row.purpose] : [])))].join(', ')
+}
+
 function inBudget(
   expense: ExpenseSummary,
   allocations: ExpenseAllocation[],

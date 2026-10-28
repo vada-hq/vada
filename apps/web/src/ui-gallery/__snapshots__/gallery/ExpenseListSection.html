@@ -1,8 +1,8 @@
 <div>
 <section class="flex flex-col gap-3 border-b py-6">
 <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-<h2 class="text-base break-keep wrap-anywhere">지출 거르기·찾기·행 복사 (1280·390)</h2>
-<a href="/ui.html?section=%EC%A7%80%EC%B6%9C+%EA%B1%B0%EB%A5%B4%EA%B8%B0%C2%B7%EC%B0%BE%EA%B8%B0%C2%B7%ED%96%89+%EB%B3%B5%EC%82%AC+%281280%C2%B7390%29" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+<h2 class="text-base break-keep wrap-anywhere">사용 내역 표·요약·카드 (1280·1024·390)</h2>
+<a href="/ui.html?section=%EC%82%AC%EC%9A%A9+%EB%82%B4%EC%97%AD+%ED%91%9C%C2%B7%EC%9A%94%EC%95%BD%C2%B7%EC%B9%B4%EB%93%9C+%281280%C2%B71024%C2%B7390%29" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
 </div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-full min-w-0 flex-col gap-6">
@@ -32,10 +32,20 @@
 <label data-slot="label" class="text-xs font-medium text-gray-700 flex min-w-0 flex-col gap-2">사용처·내역 검색<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" type="search" value="">
 </label>
 </div>
-<div class="flex justify-between gap-3 text-sm text-gray-500 tabular-nums" role="status">
-<span>2건</span>
-<span>합계 48,000원</span>
+<dl role="status" class="grid grid-cols-3 gap-2">
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm min-w-0 p-3">
+<dt class="text-xs break-keep text-gray-500">지출 합계</dt>
+<dd class="mt-1 text-base font-semibold break-keep tabular-nums wrap-anywhere text-gray-900">48,000원</dd>
 </div>
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm min-w-0 p-3">
+<dt class="text-xs break-keep text-gray-500">건수</dt>
+<dd class="mt-1 text-base font-semibold break-keep tabular-nums wrap-anywhere text-gray-900">3건</dd>
+</div>
+<div class="rounded-lg border bg-card text-card-foreground shadow-sm min-w-0 p-3">
+<dt class="text-xs break-keep text-gray-500">증빙 없음</dt>
+<dd class="mt-1 text-base font-semibold break-keep tabular-nums wrap-anywhere text-amber-700">1건</dd>
+</div>
+</dl>
 <ul class="flex flex-col gap-2">
 <li>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
@@ -69,6 +79,25 @@
 <span>10월 20일 (화)</span>
 <span>카드</span>
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">증빙 없음</span>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">행 복사</button>
+</div>
+</div>
+</li>
+<li>
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4">
+<div class="flex items-start gap-2">
+<h2 class="min-w-0 flex-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-gray-900 wrap-anywhere">취소한 지출</button>
+</h2>
+<span class="text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">9,000원</span>
+</div>
+<p class="text-sm break-keep wrap-anywhere text-gray-700">포스터 인쇄</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<span>10월 20일 (화)</span>
+<span>카드</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소됨</span>
 </div>
 <div class="flex flex-wrap items-center gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">행 복사</button>
