@@ -9,7 +9,7 @@ import {
   CALENDAR_FEED_CREATE_FAILED,
   CALENDAR_FEED_DELETE_FAILED,
   CALENDAR_FEED_ERRORS,
-} from '@/lib/messages'
+} from '@/lib/calendar-messages'
 
 export type FeedState =
   | { kind: 'loading' }

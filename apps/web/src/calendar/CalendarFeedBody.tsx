@@ -2,7 +2,7 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { dayLabel } from '@/lib/korean-date-text'
 import { useNow } from '@/lib/use-now'
-import { CALENDAR_FEED_LOAD_FAILED } from '@/lib/messages'
+import { CALENDAR_FEED_LOAD_FAILED } from '@/lib/calendar-messages'
 import type { FeedState } from './use-calendar-feed'
 import { CalendarFeedAddress } from './CalendarFeedAddress'
 

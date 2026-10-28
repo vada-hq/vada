@@ -10,7 +10,8 @@ import { navigate, releaseRecord } from '@/lib/app-location'
 import { useAddressRecord } from '@/lib/use-address-record'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { postJson } from '@/lib/api'
-import { SAVE_FAILED, SCHEDULE_NOT_FOUND } from '@/lib/messages'
+import { SAVE_FAILED } from '@/lib/messages'
+import { SCHEDULE_NOT_FOUND } from '@/lib/calendar-messages'
 
 function closeSchedule(councilId: string) {
   releaseRecord()
