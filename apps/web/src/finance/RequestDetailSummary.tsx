@@ -30,7 +30,7 @@ export function RequestDetailSummary({
       {request.event && (
         <Button
           variant="link"
-          className="h-auto justify-start p-0 whitespace-normal"
+          className="h-auto justify-start p-0 whitespace-normal wrap-anywhere"
           onClick={() => navigate(recordPath('events', councilId, request.event!.id))}
         >
           {request.event.name}
