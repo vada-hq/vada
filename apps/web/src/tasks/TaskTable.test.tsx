@@ -308,10 +308,13 @@ test('Enter는 제목 칸이면 상세를, 고르는 칸이면 고치기를 열�
   expect(document.activeElement).toBe(select)
   press('F2')
   expect(document.activeElement).toBe(cell('a', 1))
-  // 고칠 수 없는 칸에서는 아무 일도 없다.
+  // 고칠 수 없는 칸에서는 아무 일도 없다(담당자 칸은 이름의 1:1 단추로 들어간다).
+  cell('a', 4).focus()
+  press('Enter')
+  expect(document.activeElement).toBe(cell('a', 4))
   cell('a', 2).focus()
   press('Enter')
-  expect(document.activeElement).toBe(cell('a', 2))
+  expect(document.activeElement).toBe(within(cell('a', 2)).getByRole('button'))
   // 제목 칸의 Enter는 상세다(주소가 업무로 바뀐다).
   cell('a', 0).focus()
   press('Enter')

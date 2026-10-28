@@ -164,6 +164,18 @@ test.each([true, false])('표의 편집 권한 %s와 별개로 이름은 1:1을 
   await waitFor(() => expect(location.pathname).toBe(chatPath))
 })
 
+test('고칠 수 없는 표 칸에서는 Enter·F2가 이름 단추로 들어가고 Escape로 칸에 돌아온다', () => {
+  table(false)
+  const cell = nameButton().closest('td')!
+  for (const key of ['Enter', 'F2']) {
+    cell.focus()
+    fireEvent.keyDown(cell, { key })
+    expect(document.activeElement).toBe(nameButton())
+    fireEvent.keyDown(nameButton(), { key: 'Escape' })
+    expect(document.activeElement).toBe(cell)
+  }
+})
+
 test('1:1 권한이 없어도 표의 업무 읽기와 담당자 고르기는 유지된다', () => {
   const save = table(true, false)
   expect(screen.queryByRole('button', { name: /님과 1:1 대화/ })).toBeNull()

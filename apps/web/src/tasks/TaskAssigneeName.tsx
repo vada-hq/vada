@@ -32,6 +32,7 @@ export function TaskAssigneeName({ assignee, direct, overRecord, tabIndex }: Pro
   return (
     <span
       className="min-w-0 has-[button]:relative has-[button]:z-10"
+      data-cell-action={tabIndex === undefined ? undefined : ''}
       onClick={event => event.stopPropagation()}
       onDragStart={event => {
         event.preventDefault()
