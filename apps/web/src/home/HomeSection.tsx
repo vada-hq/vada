@@ -33,7 +33,7 @@ export default function HomeSection({
   footer,
 }: Props) {
   return (
-    <section id={id} aria-label={title} className="flex scroll-mt-4 flex-col gap-2">
+    <section id={id} aria-label={title} className="flex scroll-mt-4 flex-col gap-2 max-sm:gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 wrap-anywhere">
           {Icon && <Icon aria-hidden className="size-4 text-gray-500" />}
