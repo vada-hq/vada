@@ -65,3 +65,6 @@ export function collectedItems(
     ...(form.collectsPhone ? ['휴대폰 번호'] : []),
   ]
 }
+
+export const inquiryText = (notice: string | null) =>
+  notice ? '문의는 위 안내에 적힌 곳으로 해 주세요.' : '문의는 이 링크를 보낸 운영진에게 해 주세요.'

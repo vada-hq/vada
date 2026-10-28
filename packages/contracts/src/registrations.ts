@@ -174,9 +174,8 @@ export interface CancelRegistrationResponse {
 
 // 개인 링크로 보는 내 신청. 내가 넣은 것과 적용 참가비, 참가비가 0보다 크면 계좌, 출석 QR 글자를 담는다.
 export interface MyRegistration {
-  councilName: string
-  event: PublicRegistrationForm['event']
-  form: PublicRegistrationForm['form']
+  event: Pick<PublicRegistrationForm['event'], 'name'>
+  form: Pick<PublicRegistrationForm['form'], 'notice'>
   mine: { name: string; studentId: string | null; phone: string | null }
   appliedFee: number
   // 자기 신청의 현재 입금 확인 여부만 준다. 입금액·환불 내역은 공개하지 않는다.
@@ -186,7 +185,6 @@ export interface MyRegistration {
   attended: boolean
   // 마감 전이고 출석 전이면 스스로 취소할 수 있다(멈춤이어도).
   cancellable: boolean
-  purgeOn: string
 }
 
 // 출석 QR 글자는 'VADA:'와 토큰 SHA-256(대문자 16진)이다. 저장은 소문자 16진 64자(DB CHECK)라 찾을 때 맞춘다.

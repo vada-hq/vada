@@ -6,7 +6,7 @@ import { REGISTRATION_FORM_LOST, REGISTRATION_LOAD_FAILED } from '@/lib/registra
 import ApplyFields from './ApplyFields'
 import FormSummary from './FormSummary'
 import { mineHref } from './public-path'
-import { closedLine } from './registration-text'
+import RegistrationUnavailable from './RegistrationUnavailable'
 import { savedToken, saveToken } from './saved-links'
 import { EMPTY_VALUES, parseApply, useApply, type ApplyValues } from './useApply'
 import { usePublicForm } from './usePublicForm'
@@ -16,7 +16,10 @@ function AlreadyApplied({ token }: { token: string }) {
   return (
     <Alert tone="info" className="flex flex-wrap items-center justify-between gap-2">
       <span>이미 신청했어요.</span>
-      <a href={mineHref(token)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+      <a
+        href={mineHref(token)}
+        className={buttonVariants({ variant: 'outline', size: 'sm', touch: true })}
+      >
         내 신청 보기
       </a>
     </Alert>
@@ -49,14 +52,13 @@ export default function ApplyPage({ code, onApplied }: Props) {
   if (state.kind === 'failed')
     return <StateMessage kind="error">{REGISTRATION_LOAD_FAILED}</StateMessage>
   const data = state.data
-  const closed = closedLine(data)
   const saved = savedToken(code)
   return (
     <div className="flex flex-col gap-6">
       {saved && <AlreadyApplied token={saved} />}
       <FormSummary data={data} />
-      {closed ? (
-        <Alert tone="warning">{closed}</Alert>
+      {data.status !== 'open' ? (
+        <RegistrationUnavailable data={data} />
       ) : (
         <ApplyFields
           data={data}

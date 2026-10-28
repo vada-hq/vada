@@ -33,9 +33,8 @@ export const publicForm = (
 })
 
 export const myRegistration = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
-  councilName: '소프트웨어학부 학생회',
-  event: publicForm().event,
-  form: publicForm().form,
+  event: { name: publicForm().event.name },
+  form: { notice: publicForm().form.notice },
   mine: { name: '김새내', studentId: '20260001', phone: null },
   appliedFee: 5000,
   depositConfirmed: false,
@@ -43,6 +42,5 @@ export const myRegistration = (extra: Partial<MyRegistration> = {}): MyRegistrat
   qrText: `VADA:${'0123456789ABCDEF'.repeat(4)}`,
   attended: false,
   cancellable: true,
-  purgeOn: '2027-10-24',
   ...extra,
 })

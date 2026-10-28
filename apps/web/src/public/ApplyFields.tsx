@@ -5,7 +5,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { useReveal } from '@/lib/use-reveal'
-import { collectedItems, dateText, noticePurpose } from './registration-text'
+import { collectedItems, dateText, inquiryText, noticePurpose } from './registration-text'
 import { applyErrors, type ApplyValues } from './useApply'
 
 type Props = {
@@ -27,9 +27,7 @@ function Notice({ data }: { data: PublicRegistrationForm }) {
       받는 곳: {data.councilName} · 받는 항목: {collectedItems(data).join(', ')} · 목적:{' '}
       {noticePurpose(data)} · 지우는 날:{' '}
       {data.purgeOn ? dateText(data.purgeOn) : '행사가 끝나고 1년 뒤'}.{' '}
-      {data.form.notice
-        ? '문의는 위 안내에 적힌 곳으로 해 주세요.'
-        : '문의는 이 링크를 보낸 운영진에게 해 주세요.'}
+      {inquiryText(data.form.notice)}
     </p>
   )
 }

@@ -50,12 +50,12 @@ test('참가비가 없으면 계좌가 없고, 출석했으면 QR 대신 출석 
   expect(screen.queryByText('입금 확인 전')).toBeNull()
 })
 
-test('QR 캡처 묶음에는 행사명과 안내만 더하고 개인 정보와 입금 상태는 복제하지 않는다', async () => {
+test('QR에는 개인정보·입금 상태를 복제하지 않고 행사명은 완료 화면에 한 번만 보인다', async () => {
   setup()
   const qr = await screen.findByRole('img', { name: '출석 확인 QR' })
   const card = qr.closest('section')!
-  expect(within(card).getByRole('heading', { name: '신입생 환영회' })).toBeTruthy()
-  expect(within(card).getByText('행사 당일 이 QR을 보여 주세요.')).toBeTruthy()
+  expect(screen.getAllByText('신입생 환영회')).toHaveLength(1)
+  expect(within(card).queryByText('신입생 환영회')).toBeNull()
   for (const text of ['김새내', '20260001', '입금 확인 전'])
     expect(within(card).queryByText(text)).toBeNull()
   expect(qr.parentElement?.className).toContain('p-4')
@@ -156,4 +156,39 @@ test('주소 복사가 막히면 주소를 보여 길게 눌러 복사하게 한
   vi.stubGlobal('navigator', { clipboard: undefined })
   fireEvent.click(await screen.findByRole('button', { name: '주소 복사' }))
   expect(await screen.findByText(/길게 눌러 복사해 주세요/)).toBeTruthy()
+})
+
+test('완료 제목·행사·신청자·참가비·안내·문의 다음에 QR·계좌·주소 저장·취소가 보인다', async () => {
+  setup()
+  const title = await screen.findByRole('heading', { name: '신청 완료', level: 1 })
+  const fee = screen.getByRole('region', { name: '참가비' })
+  expect(within(fee).getByText('5,000원')).toBeTruthy()
+  expect(within(fee).getByText('입금 확인 전')).toBeTruthy()
+  const ordered = [
+    title,
+    screen.getByRole('heading', { name: '신입생 환영회' }),
+    screen.getByText('김새내'),
+    fee,
+    screen.getByRole('heading', { name: '안내 사항' }),
+    screen.getByRole('heading', { name: '문의' }),
+    screen.getByRole('img', { name: '출석 확인 QR' }),
+    screen.getByText('국민은행 123-456-789012'),
+    screen.getByRole('button', { name: '주소 복사' }),
+    screen.getByRole('button', { name: '신청 취소' }),
+  ]
+  for (let index = 1; index < ordered.length; index++)
+    expect(
+      ordered[index - 1]!.compareDocumentPosition(ordered[index]!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  expect(screen.getByText(myRegistration().form.notice!)).toBeTruthy()
+  expect(screen.getAllByText(/행사 당일 이 QR/)).toHaveLength(1)
+})
+
+test('확인한 참가비도 완료 화면 참가비 칸에 한 번만 보인다', async () => {
+  setup(myRegistration({ depositConfirmed: true }))
+  const fee = await screen.findByRole('region', { name: '참가비' })
+  expect(within(fee).getByText('입금 확인됨')).toBeTruthy()
+  expect(screen.getAllByText('입금 확인됨')).toHaveLength(1)
+  expect(screen.queryByText('입금 확인 전')).toBeNull()
 })

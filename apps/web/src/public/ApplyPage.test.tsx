@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { APPLY_PATH, FORM_CODE, FORM_PATH, publicForm } from '@/test-support/registration-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
@@ -337,3 +337,32 @@ test('기본 양식 이름은 숨기고 별도 이름은 보인다', async () =>
   setup(form)
   expect(await screen.findByText(form.form.name)).toBeTruthy()
 })
+
+test.each([
+  ['before_open', '시작 전', '10월 22일 (목) 09:00부터 신청할 수 있어요.'],
+  ['full', '정원 마감', '정원이 다 찼어요.'],
+  ['paused', '잠시 멈춤', '신청을 잠시 멈췄어요. 다시 열리면 이 링크로 신청할 수 있어요.'],
+  ['closed', '마감', '신청이 마감됐어요.'],
+] as const)(
+  '%s는 신청 칸 대신 아이콘·제목·설명·돌아가기 카드가 보인다',
+  async (status, title, description) => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    const { api } = setup(
+      publicForm({
+        status,
+        form: { ...publicForm().form, opensAt: '2026-10-22T09:00' },
+      }),
+    )
+    const card = await screen.findByRole('region', { name: title })
+    expect(within(card).getByRole('heading', { name: title })).toBeTruthy()
+    expect(within(card).getByText(description)).toBeTruthy()
+    expect(card.querySelector('svg[aria-hidden="true"]')).toBeTruthy()
+    const button = within(card).getByRole('button', { name: '돌아가기' })
+    expect(button.className).toContain('max-sm:min-h-11')
+    expect(screen.queryByRole('form')).toBeNull()
+    fireEvent.click(button)
+    expect(back).toHaveBeenCalledOnce()
+    expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+    back.mockRestore()
+  },
+)

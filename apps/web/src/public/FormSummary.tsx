@@ -20,7 +20,7 @@ export default function FormSummary({ data }: { data: PublicRegistrationForm }) 
         <span className="text-xs text-gray-500">남은 자리 {data.remaining}</span>
       )}
       <dl className="flex flex-col gap-3">
-        {/* 받는 중일 때만. 받지 않을 때는 칸 대신 이유 한 줄(closedLine)이 보인다. 마감이 빈 것은 만드는 중인 미리보기뿐이다. */}
+        {/* 받는 중일 때만. 받지 않을 때는 신청 불가 카드가 보인다. 마감이 빈 것은 만드는 중인 미리보기뿐이다. */}
         {data.status === 'open' && form.closesAt !== '' && (
           <Fact label="신청 마감">{`${momentLabel(form.closesAt)}까지`}</Fact>
         )}

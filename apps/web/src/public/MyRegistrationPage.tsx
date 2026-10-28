@@ -5,7 +5,7 @@ import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { REGISTRATION_LOAD_FAILED, REGISTRATION_LOST } from '@/lib/registration-messages'
-import { AttendanceBlock, FeeBlock, MineFacts } from './MineDetails'
+import { AccountBlock, AttendanceBlock, MineFacts, SavedLinkBlock } from './MineDetails'
 import { useMyRegistration } from './useMyRegistration'
 
 type Cancel = { busy: boolean; problem: string; run: () => Promise<void> }
@@ -33,16 +33,13 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
   )
 }
 
-function Ready({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
+export function MyRegistrationView({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <p className="text-xs text-gray-500 wrap-anywhere">{mine.councilName}</p>
-        <h1 className="text-lg font-bold text-gray-900">내 신청</h1>
-      </div>
-      <AttendanceBlock mine={mine} />
       <MineFacts mine={mine} />
-      <FeeBlock mine={mine} />
+      <AttendanceBlock mine={mine} />
+      <AccountBlock mine={mine} />
+      <SavedLinkBlock mine={mine} />
       {mine.cancellable && <CancelBlock cancel={cancel} />}
       {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
       {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
@@ -64,12 +61,12 @@ export default function MyRegistrationPage({ token }: { token: string }) {
       return (
         <div className="flex flex-col items-start gap-2">
           <StateMessage kind="error">{REGISTRATION_LOAD_FAILED}</StateMessage>
-          <Button variant="outline" onClick={retry}>
+          <Button variant="outline" touch onClick={retry}>
             다시 시도
           </Button>
         </div>
       )
     case 'ready':
-      return <Ready mine={state.data} cancel={{ busy, problem, run: cancel }} />
+      return <MyRegistrationView mine={state.data} cancel={{ busy, problem, run: cancel }} />
   }
 }

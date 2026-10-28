@@ -1,12 +1,10 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import { koreanOf, qrTextOf, type MyRegistration } from '@vada/contracts'
+import { qrTextOf, type MyRegistration } from '@vada/contracts'
 import {
   account,
   attendance,
-  council,
   deposit,
   event,
-  record,
   registration,
   registrationForm,
   registrationLink,
@@ -15,12 +13,9 @@ import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { hashOfToken } from './link.js'
-import { purgeOnOf } from './purge-date.js'
 import { isFormClosed } from './state.js'
 
 type Reader = Pick<Db, 'select'>
-
-const koreanOrNull = (value: Date | null) => (value ? koreanOf(value) : null)
 
 // 개인 링크 토큰이 가리키는 취소하지 않은 신청과 그 양식. 모르는 토큰, 취소했거나 비운 신청(링크가 지워졌다)은 모두 없다(null)이다.
 // 계좌는 신청의 적용 참가비가 0보다 클 때만 읽는다(공개 응답에 낼 때 줄이 아니라 이 칸으로 가른다).
@@ -34,13 +29,7 @@ export async function mineRowOf(db: Reader, token: string) {
       phone: registration.phone,
       appliedFee: registration.appliedFee,
       depositId: deposit.id,
-      councilName: council.name,
       eventName: event.name,
-      eventStartsAt: event.startsAt,
-      eventEndsAt: event.endsAt,
-      eventPlace: event.place,
-      formName: registrationForm.name,
-      opensAt: registrationForm.opensAt,
       closesAt: registrationForm.closesAt,
       notice: registrationForm.notice,
       bank: account.bank,
@@ -52,8 +41,6 @@ export async function mineRowOf(db: Reader, token: string) {
     .innerJoin(registration, eq(registration.id, registrationLink.registrationId))
     .innerJoin(registrationForm, eq(registrationForm.id, registration.formId))
     .innerJoin(event, eq(event.id, registrationForm.eventId))
-    .innerJoin(record, eq(record.id, event.id))
-    .innerJoin(council, eq(council.id, record.councilId))
     .leftJoin(account, eq(account.id, registrationForm.feeAccountId))
     .leftJoin(
       deposit,
@@ -88,19 +75,8 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
   const appliedFee = Number(row.appliedFee)
   const hasAccount = row.bank !== null && row.accountNumber !== null && row.holder !== null
   return {
-    councilName: row.councilName,
-    event: {
-      name: row.eventName,
-      startsAt: koreanOrNull(row.eventStartsAt),
-      endsAt: koreanOrNull(row.eventEndsAt),
-      place: row.eventPlace,
-    },
-    form: {
-      name: row.formName,
-      opensAt: koreanOrNull(row.opensAt),
-      closesAt: koreanOf(row.closesAt),
-      notice: row.notice,
-    },
+    event: { name: row.eventName },
+    form: { notice: row.notice },
     mine: { name: row.name, studentId: row.studentId, phone: row.phone },
     appliedFee,
     depositConfirmed: row.depositId !== null,
@@ -111,10 +87,5 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
     qrText: qrTextOf(row.tokenHash),
     attended,
     cancellable: !attended && !completed && !isFormClosed(row.closesAt, now),
-    purgeOn: purgeOnOf({
-      eventEndsAt: row.eventEndsAt,
-      eventStartsAt: row.eventStartsAt,
-      closesAt: row.closesAt,
-    }),
   }
 }

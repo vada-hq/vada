@@ -38,14 +38,10 @@ test(
     assert.equal(response.status, 200)
     assert.equal(response.headers.get('cache-control'), 'no-store')
     assert.deepEqual(await response.json(), {
-      councilName: 's 학생회',
       event: {
         name: '가을 축제',
-        startsAt: '2026-11-05T14:00',
-        endsAt: '2026-11-05T18:00',
-        place: '대운동장',
       },
-      form: { name: form.name, opensAt: null, closesAt: '2026-11-01T18:00', notice: '문의는 카톡' },
+      form: { notice: '문의는 카톡' },
       mine: person,
       appliedFee: 5000,
       depositConfirmed: false,
@@ -53,7 +49,6 @@ test(
       qrText: `VADA:${sha256(token).toUpperCase()}`,
       attended: false,
       cancellable: true,
-      purgeOn: '2027-11-05',
     })
     // QR 글자는 대문자이고 저장된 소문자 해시와 맞춰진다.
     const mine = await mineOf(t, token)
@@ -107,8 +102,20 @@ test(
     assert.equal(confirmed.depositConfirmed, true)
     assert.equal(confirmed.appliedFee, 5000)
     assert.equal((await mineOf(t, second)).depositConfirmed, false)
-    for (const hidden of ['deposit', 'amount', 'refundAmount', 'refundedAt', 'depositId'])
-      assert.equal(Object.hasOwn(confirmed, hidden), false, hidden)
+    assert.deepEqual(Object.keys(confirmed).sort(), [
+      'account',
+      'appliedFee',
+      'attended',
+      'cancellable',
+      'depositConfirmed',
+      'event',
+      'form',
+      'mine',
+      'qrText',
+    ])
+    const serialized = JSON.stringify(confirmed)
+    for (const hidden of ['deposit', 'amount', 'refundAmount', 'refundedAt', 'depositId', 'refund'])
+      assert.ok(!serialized.includes(`"${hidden}":`), hidden)
     assert.equal(
       (await t.post(`/registrations/${rows[0]!.id}/deposit/cancel`, { reason: '오인 확인' }))
         .status,

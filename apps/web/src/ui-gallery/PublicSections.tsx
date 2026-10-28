@@ -2,7 +2,8 @@ import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
 import QrCode from '@/components/QrCode'
 import ApplyFields from '@/public/ApplyFields'
 import FormSummary from '@/public/FormSummary'
-import { AttendanceBlock, FeeBlock, MineFacts } from '@/public/MineDetails'
+import { MyRegistrationView } from '@/public/MyRegistrationPage'
+import RegistrationUnavailable from '@/public/RegistrationUnavailable'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -35,9 +36,8 @@ const publicForm = (extra: Partial<PublicRegistrationForm> = {}): PublicRegistra
 })
 
 const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
-  councilName: '소프트웨어학부 학생회',
-  event,
-  form,
+  event: { name: event.name },
+  form: { notice: form.notice },
   mine: { name: '김새내', studentId: '20260001', phone: null },
   appliedFee: 5000,
   depositConfirmed: false,
@@ -45,38 +45,41 @@ const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
   qrText: QR_TEXT,
   attended: false,
   cancellable: true,
-  purgeOn: '2027-10-24',
   ...extra,
 })
 
-// 로그인 없이 쓰는 참가 신청 화면의 부품. 390px 폭에서 본다.
+// 실제 공개 화면과 같은 max-w-md 틀로 1280px·390px에서 비교한다.
 export function PublicSection() {
+  const completed = [
+    mineOf(),
+    mineOf({ depositConfirmed: true }),
+    mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }),
+    mineOf({ event: { name: unbroken }, mine: { name: longName, studentId: null, phone: null } }),
+  ]
   return (
     <Section title="참가 신청 화면">
-      <div className="flex w-96 max-w-full flex-col gap-4">
+      <div className="flex w-full max-w-md flex-col gap-4">
         <FormSummary data={publicForm()} />
-        <FormSummary
-          data={publicForm({
-            status: 'full',
-            remaining: 0,
-            event: {
-              name: `${unbroken} ${longName}`,
-              startsAt: null,
-              endsAt: null,
-              place: longName,
-            },
-          })}
-        />
       </div>
-      <div className="flex w-96 max-w-full flex-col gap-4">
-        <AttendanceBlock mine={mineOf()} />
-        <AttendanceBlock mine={mineOf({ attended: true })} />
-        <MineFacts mine={mineOf()} />
-        <FeeBlock mine={mineOf()} />
-        <FeeBlock mine={mineOf({ depositConfirmed: true })} />
-        <FeeBlock mine={mineOf({ appliedFee: 0, account: null })} />
-        <AttendanceBlock mine={mineOf({ event: { ...event, name: unbroken } })} />
-      </div>
+      {(['before_open', 'full', 'paused', 'closed'] as const).map(status => (
+        <div key={status} className="w-full max-w-md">
+          <RegistrationUnavailable
+            data={publicForm({
+              status,
+              remaining: status === 'full' ? 0 : null,
+              form: { ...form, opensAt: '2026-10-22T09:00' },
+            })}
+          />
+        </div>
+      ))}
+      {completed.map((mine, index) => (
+        <div key={index} className="w-full max-w-md">
+          <MyRegistrationView
+            mine={mine}
+            cancel={{ busy: false, problem: '', run: async () => {} }}
+          />
+        </div>
+      ))}
       <QrCode text={QR_TEXT} label="QR 예시" />
     </Section>
   )
