@@ -19,7 +19,7 @@ import { assertNewEventOpen, assertReferences, attendeeIdsOf } from './reference
 
 type Target = { id: string; now: Date }
 
-async function lockedMeeting(tx: Tx, actor: Actor, id: string, action: MeetingAction) {
+export async function lockedMeeting(tx: Tx, actor: Actor, id: string, action: MeetingAction) {
   await tx
     .select({ id: meeting.id })
     .from(meeting)

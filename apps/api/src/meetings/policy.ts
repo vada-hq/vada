@@ -25,7 +25,7 @@ export function decide(actor: Actor, facts: MeetingFacts, action: MeetingAction)
   const permission = action === 'meeting.minutes' ? 'meeting.write' : 'meeting.manage'
   if (!can(actor, permission, contextOf(facts))) return 'FORBIDDEN'
   if (facts.cancelledAt) return 'MEETING_CANCELLED'
-  if (action === 'meeting.minutes') return null
+  // 사유 있는 확정 뒤 고치기는 회의 조각 6에서 연다.
   if (facts.confirmedAt) return 'RECORD_CONFIRMED'
   return action === 'meeting.cancel' && facts.hasTasks ? 'MEETING_HAS_TASKS' : null
 }

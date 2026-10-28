@@ -19,6 +19,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { useNow } from '@/lib/use-now'
 import { MEETING_STATUS, MINUTES_STATUS } from './meeting-text'
 import { meetingGroups, meetingTime, type MeetingGroup } from './meeting-view'
+import { minutesButton } from './meeting-text'
 
 function MeetingCard({
   meeting,
@@ -74,7 +75,7 @@ function MeetingCard({
         className="shrink-0 self-end md:w-32 md:self-center"
         onClick={() => onOpen(meeting.id)}
       >
-        {meeting.status === 'cancelled' ? '취소 내용 보기' : '상세 보기'}
+        {minutesButton(meeting)}
       </Button>
     </Card>
   )

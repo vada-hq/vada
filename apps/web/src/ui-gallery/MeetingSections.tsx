@@ -4,6 +4,12 @@ import { MeetingList } from '@/meetings/MeetingList'
 import { MeetingForm } from '@/meetings/MeetingForm'
 import { MeetingDetail } from '@/meetings/MeetingDetail'
 import { MeetingCancelDialog } from '@/meetings/MeetingCancelDialog'
+import { MeetingMinutesView } from '@/meetings/MeetingMinutes'
+import {
+  minutesSample,
+  minutesDraftSample,
+  changeMinutesSample,
+} from '@/meetings/test-support/minutes-samples'
 import {
   MEETING_MEMBER,
   meetingOptions,
@@ -122,18 +128,63 @@ export function MeetingScheduledSection() {
 }
 export function MeetingCancelledSection() {
   return (
-    <Section title="취소 회의">
+    <>
+      <Section title="취소 회의">
+        <div className="flex w-full min-w-0 flex-col gap-5 break-keep">
+          <MeetingDetail
+            meeting={meetingSample({
+              status: 'cancelled',
+              actions: [],
+              cancelReason: '행사 일정 변경으로 회의 취소',
+              cancelledAt: '2026-10-29T02:20:00Z',
+            })}
+            onEdit={noop}
+            onCancel={noop}
+            onEvent={noop}
+          />
+        </div>
+      </Section>
+      <MinutesExample title="회의록 쓰기" />
+      <MinutesExample title="회의록 읽기" readonly />
+      <MinutesExample title="회의록 충돌" conflict />
+    </>
+  )
+}
+
+function MinutesExample({
+  title,
+  readonly = false,
+  conflict = false,
+}: {
+  title: string
+  readonly?: boolean
+  conflict?: boolean
+}) {
+  const [meeting, setMeeting] = useState(() => minutesSample(!readonly))
+  const [selectedId, setSelectedId] = useState(meeting.agenda[1]!.id)
+  const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]!
+  const [draft, setDraft] = useState(() => minutesDraftSample(item, conflict))
+  return (
+    <Section title={title}>
       <div className="flex w-full min-w-0 flex-col gap-5 break-keep">
-        <MeetingDetail
-          meeting={meetingSample({
-            status: 'cancelled',
-            actions: [],
-            cancelReason: '행사 일정 변경으로 회의 취소',
-            cancelledAt: '2026-10-29T02:20:00Z',
-          })}
-          onEdit={noop}
-          onCancel={noop}
-          onEvent={noop}
+        <MeetingMinutesView
+          meeting={meeting}
+          selectedId={item?.id ?? null}
+          draft={item ? draft : undefined}
+          onSelect={id => {
+            setSelectedId(id)
+            setDraft(minutesDraftSample(meeting.agenda.find(a => a.id === id)!))
+          }}
+          submit={(suffix, value) => {
+            setMeeting(changeMinutesSample(meeting, suffix, value))
+            return Promise.resolve(null)
+          }}
+          onChange={text => setDraft(before => ({ ...before, text }))}
+          onRetry={() => setDraft(before => ({ ...before, savedText: before.text, error: null }))}
+          onOverwrite={() =>
+            setDraft(before => ({ ...before, savedText: before.text, conflict: null }))
+          }
+          onAdopt={() => setDraft(minutesDraftSample(item))}
         />
       </div>
     </Section>

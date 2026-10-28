@@ -175,7 +175,7 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   meetings: {
     agenda: { values: 'uuid', fallback: null },
-    mode: { values: ['edit'], fallback: null },
+    mode: { values: ['edit', 'minutes'], fallback: null },
   },
   schedule: {},
   chat: {},

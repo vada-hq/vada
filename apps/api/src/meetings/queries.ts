@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql, type SQL } from 'drizzle-orm'
+import { and, asc, eq, sql, type SQL } from 'drizzle-orm'
 import {
   MEETING_LIST_LIMIT,
   koreanOf,
@@ -10,7 +10,6 @@ import {
 import type { Actor } from '../access/actor.js'
 import { currentMembersAmong } from '../chat/current-members.js'
 import {
-  agendaItem,
   department,
   event,
   meeting,
@@ -22,7 +21,8 @@ import {
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { memberNamesOf, joinedDisplayNameOf } from '../team/display-name.js'
-import { aggregatesOf, currentVersionOf } from './aggregates.js'
+import { aggregatesOf } from './aggregates.js'
+import { minutesAgendaOf } from './minutes-query.js'
 import { listWhere } from './list-query.js'
 import { actionsOf, relationOf } from './policy.js'
 import { assertReferences } from './references.js'
@@ -122,22 +122,6 @@ async function attendeesOf(tx: Tx, actor: Actor, id: string, now: Date) {
   return rows.map(row => ({ ...row, current: current.has(row.id) }))
 }
 
-async function agendaOf(tx: Tx, id: string) {
-  return tx
-    .select({
-      id: agendaItem.id,
-      position: agendaItem.position,
-      title: agendaItem.title,
-      body: agendaItem.body,
-      notes: agendaItem.notes,
-      versionNo: currentVersionOf(record.id),
-    })
-    .from(agendaItem)
-    .innerJoin(record, eq(record.id, agendaItem.id))
-    .where(and(eq(agendaItem.meetingId, id), isNull(agendaItem.cancelledAt)))
-    .orderBy(asc(agendaItem.position), asc(agendaItem.id))
-}
-
 export async function meetingDetailOf(
   tx: Tx,
   actor: Actor,
@@ -160,6 +144,6 @@ export async function meetingDetailOf(
     cancelledAt: row.meeting.cancelledAt?.toISOString() ?? null,
     cancelReason: row.meeting.cancelReason,
     attendees: await attendeesOf(tx, actor, id, now),
-    agenda: await agendaOf(tx, id),
+    agenda: await minutesAgendaOf(tx, actor, id, now),
   }
 }

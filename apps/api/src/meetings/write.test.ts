@@ -148,7 +148,7 @@ test(
       assert.equal(await errorOf(response), 'RECORD_CONFIRMED')
     }
     assert.equal((await h.detail(made.id)).status, 'done')
-    assert.deepEqual((await h.detail(made.id)).actions, ['meeting.minutes'])
+    assert.deepEqual((await h.detail(made.id)).actions, [])
   }),
 )
 

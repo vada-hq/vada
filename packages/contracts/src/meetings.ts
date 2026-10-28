@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { text } from './input.js'
+import { codePoints, nulOrLoneSurrogate, text } from './input.js'
 import { koreanDate, koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
 
@@ -12,6 +12,8 @@ export const MEETING_AGENDA_BODY_MAX = 500
 export const MEETING_AGENDA_LIMIT = 30
 export const MEETING_ATTENDEE_LIMIT = 200
 export const MEETING_LIST_LIMIT = 300
+export const MEETING_NOTES_MAX = 10000
+export const MEETING_DECISION_MAX = 500
 
 export const MEETING_STATUSES = [
   'scheduled',
@@ -53,6 +55,32 @@ export const CreateMeetingSchema = z
   .refine(input => input.endsAt > input.heldAt, { path: ['endsAt'] })
 
 const VERSION_NO_MAX = 2_147_483_647
+const baseVersionNo = z.int().min(1).max(VERSION_NO_MAX)
+// 자동 저장하는 글은 자르지 않는다. 빈 글만 서버에서 null로 맞춘다.
+export const MeetingNotesSchema = z
+  .string()
+  .refine(value => !nulOrLoneSurrogate.test(value) && codePoints(value) <= MEETING_NOTES_MAX)
+  .nullable()
+export const AddAgendaSchema = agendaInput
+export const UpdateAgendaSchema = z.strictObject({
+  title: text(MEETING_AGENDA_TITLE_MAX).optional(),
+  body: text(MEETING_AGENDA_BODY_MAX).nullable().optional(),
+  notes: MeetingNotesSchema.optional(),
+  baseVersionNo,
+})
+export const AddDecisionSchema = z.strictObject({
+  content: text(MEETING_DECISION_MAX),
+  rationale: text(MEETING_DECISION_MAX).nullable().default(null),
+})
+export const UpdateDecisionSchema = z.strictObject({
+  content: text(MEETING_DECISION_MAX).optional(),
+  rationale: text(MEETING_DECISION_MAX).nullable().optional(),
+  baseVersionNo,
+})
+export type AddAgendaRequest = z.infer<typeof AddAgendaSchema>
+export type UpdateAgendaRequest = z.infer<typeof UpdateAgendaSchema>
+export type AddDecisionRequest = z.infer<typeof AddDecisionSchema>
+export type UpdateDecisionRequest = z.infer<typeof UpdateDecisionSchema>
 export const UpdateMeetingSchema = z
   .strictObject({
     title: fields.title.optional(),
@@ -62,7 +90,7 @@ export const UpdateMeetingSchema = z
     purpose: fields.purpose.optional(),
     eventId: fields.eventId.optional(),
     hostDepartmentId: fields.hostDepartmentId.optional(),
-    baseVersionNo: z.int().min(1).max(VERSION_NO_MAX),
+    baseVersionNo,
   })
   .refine(input => !input.heldAt || !input.endsAt || input.endsAt > input.heldAt, {
     path: ['endsAt'],
@@ -116,6 +144,17 @@ export interface MeetingAgendaItem {
   title: string
   body: string | null
   notes: string | null
+  versionNo: number
+  updatedBy: MeetingPerson | null
+  updatedAt: string
+  decisions: MeetingDecision[]
+}
+export interface MeetingDecision {
+  id: string
+  content: string
+  rationale: string | null
+  decidedBy: MeetingPerson | null
+  decidedAt: string
   versionNo: number
 }
 export interface MeetingDetail extends MeetingSummary {

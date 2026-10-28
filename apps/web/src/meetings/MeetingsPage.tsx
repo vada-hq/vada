@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   appPath,
   menuPath,
@@ -24,6 +24,8 @@ import { MeetingList } from './MeetingList'
 import { MeetingDetail } from './MeetingDetail'
 import { MeetingCancelDialog } from './MeetingCancelDialog'
 import { MeetingEditor } from './MeetingEditor'
+import { MeetingMinutes } from './MeetingMinutes'
+import { meetingMinutesPath } from './minutes-path'
 import { MEETING_LOAD_FAILED, MEETING_LOST, meetingError } from './meeting-text'
 
 type Props = { view: CouncilView; onForbidden: () => void }
@@ -64,7 +66,14 @@ function MeetingsListPage({ view, onForbidden }: Props) {
     />
   )
 }
-function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; edit: boolean }) {
+function MeetingRecord({
+  view,
+  onForbidden,
+  id,
+  edit,
+  minutes,
+  agenda,
+}: Props & { id: string; edit: boolean; minutes: boolean; agenda: string | null }) {
   const councilId = view.council.id
   const path = `/api/organizations/${councilId}/meetings/${id}`
   const [lost, setLost] = useState(false)
@@ -73,8 +82,10 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
   const read = usePolledRead<MeetingResponse>(path, status => {
     if (status === statusOf('FORBIDDEN') || status === statusOf('NOT_FOUND')) setLost(true)
   })
+  const replace = read.replace
+  const saved = useCallback((item: Detail) => replace({ meeting: item }), [replace])
   const meeting = read.state.kind === 'ready' ? read.state.data.meeting : null
-  const editing = useLatched(edit, meeting?.actions.includes('meeting.edit') ?? false)
+  const editing = useLatched(edit, Boolean(meeting && meeting.actions.includes('meeting.edit')))
   const guarded = useAskingGuard(asking, cancelProblem(meeting), message => {
     setAsking(false)
     setNotice(message)
@@ -115,11 +126,28 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
     )
   if (editing)
     return <MeetingEditor view={view} item={meeting} onForbidden={onForbidden} onClose={close} />
+  if (minutesVisible(meeting, minutes))
+    return (
+      <MeetingMinutes
+        meeting={meeting}
+        base={path}
+        selectedId={agenda}
+        onSaved={saved}
+        onSelect={agendaId =>
+          // 같은 회의의 안건 이동은 초안을 보존하므로 실패한 초안의 나가기 확인을 건너뛴다.
+          navigate(meetingMinutesPath(councilId, id, agendaId), {
+            replace: true,
+            force: true,
+          })
+        }
+      />
+    )
   return (
     <>
       {notice && <StateMessage kind="notice">{notice}</StateMessage>}
       <MeetingDetail
         meeting={meeting}
+        onMinutes={() => navigate(meetingMinutesPath(councilId, id))}
         onEdit={() =>
           navigate(
             appPath({
@@ -137,6 +165,9 @@ function MeetingRecord({ view, onForbidden, id, edit }: Props & { id: string; ed
       {asking && <MeetingCancelDialog onClose={() => setAsking(false)} onCancel={cancel} />}
     </>
   )
+}
+function minutesVisible(meeting: Detail, minutes: boolean) {
+  return meeting.status !== 'cancelled' && (minutes || meeting.status !== 'scheduled')
 }
 // 폼을 연 뒤 다시 읽기에서 권한이 빠져도 쓴 글을 지우지 않는다. 저장은 서버가 막고 문구를 보인다.
 function useLatched(wanted: boolean, allowed: boolean) {
@@ -156,6 +187,8 @@ function routeOf(location: AppLocation | null, councilId: string) {
           kind: 'record',
           id: location.recordId,
           edit: location.query['mode'] === 'edit',
+          minutes: location.query['mode'] === 'minutes',
+          agenda: location.query['agenda'] ?? null,
         } as const)
       : ({ kind: 'list' } as const)
   return location.menu === 'meetings' && location.query['compose'] === 'new'
@@ -173,7 +206,16 @@ export default function MeetingsPage(props: Props) {
   )
   let content
   if (route.kind === 'record')
-    content = <MeetingRecord key={route.id} {...props} id={route.id} edit={route.edit} />
+    content = (
+      <MeetingRecord
+        key={route.id}
+        {...props}
+        id={route.id}
+        edit={route.edit}
+        minutes={route.minutes}
+        agenda={route.agenda}
+      />
+    )
   else if (composing) content = <MeetingEditor {...props} onClose={close} />
   else content = <MeetingsListPage {...props} />
   return <PageColumn className="min-w-0 break-keep">{content}</PageColumn>

@@ -24,6 +24,7 @@ import { json } from '../http/validate.js'
 import { meetingOptionsOf } from './options.js'
 import { meetingDetailOf, meetingListOf } from './queries.js'
 import { createMeeting, updateMeeting, replaceMeetingAttendees, cancelMeeting } from './service.js'
+import { addMinutesWrites } from './minutes-routes.js'
 
 const root = '/organizations/:councilId/meetings'
 const CREATED = 201
@@ -109,15 +110,17 @@ function addWrites(routes: Routes, db: Db, auth: Auth, asked: Asked) {
 export function createMeetingRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; writeLimiter?: RateLimiter } = {},
+  options: { clock?: () => Date; writeLimiter?: RateLimiter; notesLimiter?: RateLimiter } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
   const limiter = options.writeLimiter ?? createRateLimiter(WRITE_LIMIT)
+  const notesLimiter = options.notesLimiter ?? createRateLimiter(WRITE_LIMIT)
   const routes = new Hono<SessionEnv>()
   const auth = requireSession(getSession)
   const asked: Asked = c => {
     const now = clock()
-    if (c.req.method === 'POST' && !limiter.take(c.get('userId'), now))
+    const writeLimiter = /\/agenda\/[^/]+$/.test(c.req.path) ? notesLimiter : limiter
+    if (c.req.method === 'POST' && !writeLimiter.take(c.get('userId'), now))
       throw new ApiError('TOO_MANY_REQUESTS')
     return {
       userId: c.get('userId'),
@@ -128,5 +131,6 @@ export function createMeetingRoutes(
   }
   addReads(routes, db, auth, asked)
   addWrites(routes, db, auth, asked)
+  addMinutesWrites(routes, { db, auth, asked })
   return routes
 }

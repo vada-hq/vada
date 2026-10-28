@@ -551,3 +551,13 @@ test('옛 내 업무 주소를 옮길 때 새 범위가 끼지 않고 새 주소
   assert.equal(movedTo(`/tasks/${C}?view=mine&scope=council`), `/tasks/${C}?tab=mine`)
   assert.equal(movedTo(`/tasks/${C}?tab=mine&scope=council&state=todo`), null)
 })
+test('회의록 화면 주소의 mode와 고른 안건이 왕복한다', () => {
+  const path = appPath({
+    type: 'record',
+    record: 'meetings',
+    councilId: C,
+    recordId: R,
+    query: { mode: 'minutes', agenda: P },
+  })
+  assert.deepEqual(parseAppPath(path)?.query, { mode: 'minutes', agenda: P })
+})
