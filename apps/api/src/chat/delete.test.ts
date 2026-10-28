@@ -74,6 +74,51 @@ const run = (body: (s: Kit) => Promise<void>) => async () => {
 }
 
 test(
+  '보내기·최신/이후 쪽 읽기는 보는 사람의 삭제 동작을 주고 삭제 뒤에는 비운다',
+  run(async s => {
+    const first = await s.send()
+    const second = await s.send()
+    assert.deepEqual(second.message.actions, ['message.delete'])
+    for (const user of [WRITER, 's-president', 's-plain']) {
+      for (const query of ['', `?after=${first.message.id}`]) {
+        const response = await s.api.get(`${s.base}/rooms/${s.room}/messages${query}`, user)
+        assert.equal(response.status, 200)
+        const page = (await response.json()) as MessagePageResponse
+        assert.deepEqual(
+          page.messages.find(item => item.id === second.message.id)!.actions,
+          user === WRITER ? ['message.delete'] : [],
+        )
+      }
+    }
+    const deleted = (await (await s.remove(second.message.id)).json()) as ChatMessage
+    assert.deepEqual(deleted.actions, [])
+    const page = (await (
+      await s.api.get(`${s.base}/rooms/${s.room}/messages`, WRITER)
+    ).json()) as MessagePageResponse
+    assert.deepEqual(page.messages.find(item => item.id === second.message.id)!.actions, [])
+  }),
+)
+
+test(
+  '그만두는 학생회의 메시지는 읽히지만 삭제 동작이 없고 서버도 삭제를 거절한다',
+  run(async s => {
+    const { message } = await s.send()
+    await s.pg.query('UPDATE council SET closing_requested_at = $1 WHERE id = $2', [
+      NOW,
+      s.council.councilId,
+    ])
+    const response = await s.api.get(`${s.base}/rooms/${s.room}/messages`, WRITER)
+    assert.equal(response.status, 200)
+    const page = (await response.json()) as MessagePageResponse
+    assert.equal(page.messages[0]!.body, BODY)
+    assert.deepEqual(page.messages[0]!.actions, [])
+    const rejected = await s.remove(message.id)
+    assert.equal(rejected.status, 409)
+    assert.deepEqual(await rejected.json(), { error: 'COUNCIL_CLOSING' })
+  }),
+)
+
+test(
   '쓴 사람만 삭제: 남의 메시지·다른 학생회·없는 번호는 404, 미인증은 401이고 바뀌지 않는다',
   run(async s => {
     const { message } = await s.send()

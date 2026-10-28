@@ -82,9 +82,12 @@ export function refreshed(state: RoomState, more: ChatMessage[]): RoomState {
   const latest = new Map(more.map(item => [item.id, item]))
   return {
     ...state,
-    messages: state.messages.map(item =>
-      item.body === null ? item : (latest.get(item.id) ?? item),
-    ),
+    messages: state.messages.map(item => {
+      const incoming = latest.get(item.id) ?? item
+      return item.body === null
+        ? { ...incoming, body: null, photos: [], deletedAt: incoming.deletedAt ?? item.deletedAt }
+        : incoming
+    }),
   }
 }
 

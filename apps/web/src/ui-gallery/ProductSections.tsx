@@ -42,6 +42,7 @@ const sample = (id: string, body: string, options: Partial<ChatMessage> = {}): C
   sentAt: '2026-10-23T00:30:00Z',
   deletedAt: null,
   photos: [],
+  actions: [],
   made: [],
   ...options,
 })
@@ -51,6 +52,7 @@ const MESSAGES: ChatMessage[] = [
   sample('p3', '테이블 대여비 영수증이에요', {
     senderId: 'g-me',
     senderName: '박해랑',
+    actions: ['message.delete'],
   }),
 ]
 

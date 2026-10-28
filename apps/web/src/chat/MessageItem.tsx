@@ -139,8 +139,11 @@ export default function MessageItem(props: Props) {
 // 말풍선 묶음은 줄의 60%까지다(와이어프레임). 휴대폰은 칸이 좁아 80%다(사이드챗의 85%와 비슷하게). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 function PersonItem({ councilId, message: original, continued, mine, ...actionArgs }: Props) {
-  const [deleted, setDeleted] = useState(false)
-  const message = deleted ? { ...original, body: null, photos: [] } : original
+  const [deletedActions, setDeletedActions] = useState<ChatMessage['actions'] | null>(null)
+  const message =
+    deletedActions !== null
+      ? { ...original, body: null, photos: [], actions: deletedActions }
+      : original
   const photos = message.photos
   const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
@@ -174,8 +177,7 @@ function PersonItem({ councilId, message: original, continued, mine, ...actionAr
           actions={actions}
           councilId={councilId}
           message={message}
-          mine={mine}
-          onDeleted={() => setDeleted(true)}
+          onDeleted={deleted => setDeletedActions(deleted.actions)}
         />
       </div>
     </li>

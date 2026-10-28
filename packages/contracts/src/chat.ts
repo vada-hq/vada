@@ -72,6 +72,8 @@ export interface ChatMessage {
   sentAt: string
   deletedAt: string | null
   photos: ChatPhoto[]
+  // 보는 사람이 이 메시지에 할 수 있는 동작. 웹은 본인 여부로 다시 정하지 않는다(DEC-38).
+  actions: 'message.delete'[]
   // 보는 사람이 읽을 수 있는 연결 기록만 싣는다(DEC-90).
   made: MadeRecord[]
 }

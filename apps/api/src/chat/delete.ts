@@ -6,21 +6,23 @@ import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import type { FileStorage } from '../storage/storage.js'
 import { eraseMessages } from './erase.js'
+import { decideDeletion } from './deletion-policy.js'
 import { messageOf, visibleMessage } from './messages.js'
 
 async function eraseOwn(tx: Tx, actor: Actor, messageId: string) {
   const [found] = await tx
-    .select({ deletedAt: message.deletedAt })
+    .select({ senderId: record.createdBy, deletedAt: message.deletedAt })
     .from(message)
     .innerJoin(record, eq(record.id, message.id))
     .innerJoin(chatRoom, eq(chatRoom.id, message.roomId))
-    .where(
-      and(eq(message.id, messageId), eq(record.createdBy, actor.memberId), visibleMessage(actor)),
-    )
+    .where(and(eq(message.id, messageId), visibleMessage(actor)))
     .for('update', { of: message })
   if (!found) throw new ApiError('NOT_FOUND')
+  // inCouncilChange가 학생회 행을 잠그고 그만두기 중이 아님을 확인한 뒤 부른다.
+  const decision = decideDeletion(actor, { ...found, closing: false })
+  if (decision !== 'delete' && decision !== 'deleted') throw new ApiError(decision)
   const storageKeys: string[] = []
-  if (found.deletedAt === null) {
+  if (decision === 'delete') {
     const photos = await tx
       .select({ key: file.storageKey })
       .from(file)

@@ -7,11 +7,13 @@ import {
   type MessagePageResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
+import { isClosing } from '../access/authorize.js'
 import { cohortOfDay } from '../access/current-cohort.js'
 import { chatRoom, cohort, file, member, message, record, roomMembership } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { madeOf } from './made.js'
+import { deletionActionsOf } from './deletion-policy.js'
 import { inNoticeRoom } from './plan-room.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -52,6 +54,7 @@ async function photosOf(db: Reader, messageIds: string[]) {
 }
 
 async function chatMessagesOf(db: Reader, actor: Actor, rows: Row[]): Promise<ChatMessage[]> {
+  const closing = await isClosing(db, actor.councilId)
   const photos = await photosOf(
     db,
     rows.map(row => row.id),
@@ -65,6 +68,7 @@ async function chatMessagesOf(db: Reader, actor: Actor, rows: Row[]): Promise<Ch
     ...row,
     sentAt: row.sentAt.toISOString(),
     deletedAt: row.deletedAt?.toISOString() ?? null,
+    actions: deletionActionsOf(actor, { ...row, closing }),
     photos: photos.get(row.id) ?? [],
     made: made.get(row.id) ?? [],
   }))

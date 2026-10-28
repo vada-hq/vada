@@ -10,12 +10,13 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const draw = (mine = true) =>
+const draw = (mine = true, actions: 'message.delete'[] = ['message.delete']) =>
   render(
     <ul>
       <MessageItem
         councilId="c1"
         message={message('m1', '삭제할 글', {
+          actions,
           photos: [{ id: 'f1' }],
           made: [{ id: 'e1', kind: 'expense', title: '마커 값', blocking: true }],
         })}
@@ -34,7 +35,7 @@ const open = async () => {
   return screen.findByRole('dialog', { name: '메시지를 삭제할까요?' })
 }
 
-test('내 메시지만 삭제 메뉴가 있고 확인 전·닫기에는 요청하지 않는다', async () => {
+test('서버가 허용한 메시지만 삭제 메뉴가 있고 확인 전·닫기에는 요청하지 않는다', async () => {
   const fetch = vi.fn()
   vi.stubGlobal('fetch', fetch)
   draw()
@@ -48,16 +49,24 @@ test('내 메시지만 삭제 메뉴가 있고 확인 전·닫기에는 요청�
   expect(fetch).not.toHaveBeenCalled()
 })
 
-test('남의 메시지는 삭제 메뉴가 없다', () => {
-  draw(false)
+test.each([false, true])('서버가 삭제 동작을 주지 않으면 메뉴가 없다(내 메시지 %s)', mine => {
+  draw(mine, [])
   expect(screen.queryByRole('button', { name: '메시지 동작' })).toBeNull()
+})
+
+test('본인 여부 표시와 관계없이 서버가 준 삭제 동작을 따른다', async () => {
+  draw(false)
+  expect(await open()).toBeTruthy()
 })
 
 test('삭제 성공 후 본문·사진·메뉴는 사라지고 삭제된 메시지와 만든 지출은 남는다', async () => {
   const fetch = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify({ id: 'm1', body: null, deletedAt: '2026-10-28T00:00:00Z' }), {
-      status: 200,
-    }),
+    new Response(
+      JSON.stringify(message('m1', '', { body: null, deletedAt: '2026-10-28T00:00:00Z' })),
+      {
+        status: 200,
+      },
+    ),
   )
   vi.stubGlobal('fetch', fetch)
   draw()

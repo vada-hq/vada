@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
+import type { ChatMessage } from '@vada/contracts'
 import { message, messagePage, room } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { useRoom } from './useRoom'
@@ -14,6 +15,7 @@ const base = '/api/organizations/c1/rooms/r1'
 test('열어 둔 방의 다음 읽기에서 기존 메시지의 삭제를 반영하고 새 글과 만든 기록을 보존한다', async () => {
   const api = mockApi()
   const original = message('a1', '삭제 전 본문', {
+    actions: ['message.delete'],
     photos: [{ id: 'f1' }],
     made: [{ id: 'e1', kind: 'expense', title: '마커 값', blocking: true }],
   })
@@ -24,12 +26,23 @@ test('열어 둔 방의 다음 읽기에서 기존 메시지의 삭제를 반영
     json(
       messagePage(
         deleted
-          ? [{ ...original, body: null, photos: [], deletedAt: '2026-10-28T00:00:00Z' }, last]
+          ? [
+              {
+                ...original,
+                body: null,
+                photos: [],
+                actions: [],
+                deletedAt: '2026-10-28T00:00:00Z',
+              },
+              last,
+            ]
           : [original, last],
       ),
     ),
   )
-  api.on('GET', `${base}/messages?after=a2`, () => json(messagePage([message('a3', '새 글')])))
+  api.on('GET', `${base}/messages?after=a2`, () =>
+    json(messagePage([message('a3', '새 글', { actions: ['message.delete'] })])),
+  )
   const { result } = renderHook(() => useRoom('c1', 'r1'))
   await waitFor(() => expect(result.current.state.kind).toBe('ready'))
   deleted = true
@@ -40,7 +53,13 @@ test('열어 둔 방의 다음 읽기에서 기존 메시지의 삭제를 반영
   expect(state.kind).toBe('ready')
   if (state.kind !== 'ready') throw new Error('ready expected')
   expect(state.messages.map(item => item.id)).toEqual(['a1', 'a2', 'a3'])
-  expect(state.messages[0]).toMatchObject({ body: null, photos: [], made: original.made })
+  expect(state.messages[0]).toMatchObject({
+    body: null,
+    photos: [],
+    actions: [],
+    made: original.made,
+  })
+  expect(state.messages[2]?.actions).toEqual(['message.delete'])
 })
 
 test('읽어 둔 옛 쪽의 삭제도 거슬러 반영하고 늦은 응답으로 본문을 되살리지 않는다', async () => {
@@ -62,7 +81,13 @@ test('읽어 둔 옛 쪽의 삭제도 거슬러 반영하고 늦은 응답으로
   api.on('GET', `${base}/messages?before=a3`, () =>
     json(
       messagePage([
-        stale ? first : { ...first, body: null, photos: [], deletedAt: '2026-10-28T00:00:00Z' },
+        stale
+          ? {
+              ...first,
+              senderName: '떠난 운영진 2',
+              made: [{ id: 'e1', kind: 'expense', title: '바뀐 제목', blocking: true }],
+            }
+          : { ...first, body: null, photos: [], deletedAt: '2026-10-28T00:00:00Z' },
         message('a2', '글 2'),
       ]),
     ),
@@ -78,16 +103,14 @@ test('읽어 둔 옛 쪽의 삭제도 거슬러 반영하고 늦은 응답으로
     await result.current.sync()
   })
   expect(result.current.state.kind === 'ready' && result.current.state.messages[0]?.body).toBeNull()
+  expect(result.current.state.kind === 'ready' && result.current.state.messages[0]).toMatchObject({
+    senderName: '떠난 운영진 2',
+    made: [{ id: 'e1', title: '바뀐 제목' }],
+  })
 })
 
-test('새 글이 20쪽을 넘어도 삭제 확인은 새 글을 붙이지 않고 다음 읽기에서 시간순으로 따라잡는다', async () => {
+function backlog(initial: ChatMessage[], messages: ChatMessage[], pageSize: number) {
   const api = mockApi()
-  const initial = [message('a1', '삭제 전 본문'), message('a2', '남길 글')]
-  const messages = [
-    ...initial,
-    ...Array.from({ length: 1100 }, (_, index) => message(`new${index + 1}`, `새 글 ${index + 1}`)),
-  ]
-  const pageSize = 50
   let refreshing = false
   api.on('GET', base, () => json({ room: room('r1'), participants: [] }))
   for (let start = initial.length; start < messages.length; start += pageSize) {
@@ -111,9 +134,20 @@ test('새 글이 20쪽을 넘어도 삭제 확인은 새 글을 붙이지 않고
       json(messagePage(refreshing ? page : initial, { hasOlder: refreshing && start > 0 })),
     )
   }
+  return { api, refresh: () => (refreshing = true) }
+}
+
+test('새 글이 20쪽을 넘어도 삭제 확인은 새 글을 붙이지 않고 다음 읽기에서 시간순으로 따라잡는다', async () => {
+  const initial = [message('a1', '삭제 전 본문'), message('a2', '남길 글')]
+  const messages = [
+    ...initial,
+    ...Array.from({ length: 1100 }, (_, index) => message(`new${index + 1}`, `새 글 ${index + 1}`)),
+  ]
+  const pageSize = 50
+  const { api, refresh } = backlog(initial, messages, pageSize)
   const { result } = renderHook(() => useRoom('c1', 'r1'))
   await waitFor(() => expect(result.current.state.kind).toBe('ready'))
-  refreshing = true
+  refresh()
   await act(async () => {
     await result.current.sync()
   })

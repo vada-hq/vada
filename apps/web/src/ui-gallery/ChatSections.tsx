@@ -77,6 +77,7 @@ const chatMessage = (id: string, senderName: string | null, body: string): ChatM
   sentAt: '2026-10-23T01:30:00Z',
   deletedAt: null,
   photos: [],
+  actions: senderName === '박해랑' ? ['message.delete'] : [],
   made: [],
 })
 // 지운 메시지(DEC-54): 본문 없이 지운 시각만 있다.
@@ -84,6 +85,7 @@ const deletedMessage = (id: string, senderName: string): ChatMessage => ({
   ...chatMessage(id, senderName, ''),
   body: null,
   deletedAt: '2026-10-23T02:00:00Z',
+  actions: [],
 })
 
 // 시스템 글, 남의 첫 메시지와 이어 쓴 것, 탈퇴한 사람(사람 아이콘), 지운 메시지(남의 것, 내 것), 내 메시지(링크·긴 주소)와 이어 쓴 것.

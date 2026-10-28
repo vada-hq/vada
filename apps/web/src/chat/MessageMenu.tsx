@@ -19,8 +19,7 @@ type Props = {
   actions: MessageAction[]
   councilId: string
   message: ChatMessage
-  mine: boolean
-  onDeleted: () => void
+  onDeleted: (message: ChatMessage) => void
   // 동작이 진행 중이면 메뉴를 막는다. 지금 메뉴의 동작은 모두 대화상자를 열 뿐이라 기본은 false다.
   busy?: boolean
 }
@@ -30,7 +29,6 @@ export default function MessageMenu({
   actions,
   councilId,
   message,
-  mine,
   onDeleted,
   busy = false,
 }: Props) {
@@ -43,7 +41,7 @@ export default function MessageMenu({
     remove,
   } = useMessageDeletion(councilId, message.id, onDeleted)
   const trigger = useRef<HTMLButtonElement>(null)
-  const canDelete = mine && message.body !== null
+  const canDelete = message.actions.includes('message.delete')
   if (actions.length === 0 && !canDelete) return null
   return (
     <>

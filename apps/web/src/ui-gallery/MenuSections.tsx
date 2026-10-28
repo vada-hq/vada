@@ -1,3 +1,4 @@
+import type { ChatMessage } from '@vada/contracts'
 import { CalendarDays, Check, Ellipsis, Settings } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
@@ -107,7 +108,7 @@ export function EmptyAvatarSection() {
 
 // 내 메시지 메뉴: 구매 요청·지출과 메시지 삭제 확인 창을 확인한다.
 export function MessageMenuSection() {
-  const message = {
+  const message: ChatMessage = {
     id: '11111111-1111-4111-8111-111111111111',
     senderId: '22222222-2222-4222-8222-222222222222',
     senderName: '박해랑',
@@ -115,6 +116,7 @@ export function MessageMenuSection() {
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
     photos: [],
+    actions: ['message.delete'],
     made: [],
   }
   return (
@@ -146,6 +148,7 @@ export function SystemMessageSection() {
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
     photos: [],
+    actions: [],
     made: [],
   })
   const flow = [

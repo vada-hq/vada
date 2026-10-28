@@ -5,7 +5,11 @@ import { DELETE_MESSAGE_ERRORS, DELETE_MESSAGE_FAILED } from '@/lib/messages'
 import { useActive } from '@/lib/use-active'
 import { chatBase } from './chat-api'
 
-export function useMessageDeletion(councilId: string, messageId: string, onDeleted: () => void) {
+export function useMessageDeletion(
+  councilId: string,
+  messageId: string,
+  onDeleted: (message: ChatMessage) => void,
+) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +29,7 @@ export function useMessageDeletion(councilId: string, messageId: string, onDelet
     setBusy(false)
     if (result.ok) {
       setOpen(false)
-      onDeleted()
+      onDeleted(result.data)
     } else setError(DELETE_MESSAGE_ERRORS[result.code] ?? DELETE_MESSAGE_FAILED)
   }
   return {
