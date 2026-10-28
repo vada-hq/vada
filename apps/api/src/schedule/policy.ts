@@ -2,12 +2,17 @@ import { SCHEDULE_ACTIONS, type ErrorCode, type ScheduleAction } from '@vada/con
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 
+const PERMISSION_OF = {
+  'schedule_item.update': 'schedule.update',
+  'schedule_item.cancel': 'schedule.delete',
+} as const satisfies Record<ScheduleAction, string>
+
 type Facts = { departmentId: string | null; createdBy: string | null; cancelledAt: Date | null }
 
 // 읽기의 동작과 쓰기의 거절은 같은 판정이다(DEC-38·102).
 export function decide(actor: Actor, facts: Facts, action: ScheduleAction): ErrorCode | null {
   if (facts.cancelledAt) return 'NOT_FOUND'
-  return can(actor, action, {
+  return can(actor, PERMISSION_OF[action], {
     ...(facts.departmentId ? { departmentId: facts.departmentId } : {}),
     ...(facts.createdBy ? { createdBy: facts.createdBy } : {}),
   })

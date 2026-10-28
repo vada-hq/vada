@@ -53,7 +53,7 @@ test(
     assert.equal(made.allDay, true)
     assert.equal(made.start, '2026-10-28')
     assert.equal(made.end, null)
-    assert.deepEqual(made.actions, ['schedule.update', 'schedule.delete'])
+    assert.deepEqual(made.actions, ['schedule_item.update', 'schedule_item.cancel'])
     assert.equal(made.createdBy?.id, t.council.people.plain.memberId)
     const response = await h.post(`/${made.id}`, {
       ...full,

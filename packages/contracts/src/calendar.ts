@@ -76,7 +76,8 @@ export const DeleteScheduleItemSchema = EmptyRequestSchema
 export type CreateScheduleItemRequest = z.infer<typeof CreateScheduleItemSchema>
 export type UpdateScheduleItemRequest = z.infer<typeof UpdateScheduleItemSchema>
 
-export const SCHEDULE_ACTIONS = ['schedule.update', 'schedule.delete'] as const
+// 일정 상세가 주는 동작. 이름은 권한 키(schedule.update·schedule.delete)와 떼어 둔다(web structure/actions-reach.test.ts).
+export const SCHEDULE_ACTIONS = ['schedule_item.update', 'schedule_item.cancel'] as const
 export type ScheduleAction = (typeof SCHEDULE_ACTIONS)[number]
 export interface ScheduleItemDetail {
   id: string

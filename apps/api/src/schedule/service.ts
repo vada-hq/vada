@@ -70,7 +70,7 @@ export async function updateScheduleItem(
   target: { id: string; now: Date },
   input: UpdateScheduleItemRequest,
 ) {
-  const row = await lockedItem(tx, actor, target.id, 'schedule.update')
+  const row = await lockedItem(tx, actor, target.id, 'schedule_item.update')
   await assertScheduleReferences(tx, actor.councilId, input)
   if (input.departmentId !== row.item.departmentId) assertDepartment(actor, input.departmentId)
   await updateRecord(tx, {
@@ -84,7 +84,7 @@ export async function updateScheduleItem(
 }
 
 export async function deleteScheduleItem(tx: Tx, actor: Actor, id: string) {
-  await lockedItem(tx, actor, id, 'schedule.delete')
+  await lockedItem(tx, actor, id, 'schedule_item.cancel')
   await updateRecord(tx, {
     kind: 'schedule_item',
     id,
