@@ -71,7 +71,7 @@ function ItemRow({
   const errorId = `${item.id}-amount-error`
   return (
     <li className="flex flex-col gap-2 rounded-sm border p-3">
-      <Label className="flex items-center gap-2 text-sm">
+      <Label className="flex items-center gap-2 text-sm max-sm:min-h-11">
         <input
           type="checkbox"
           className="size-4 accent-blue-600"

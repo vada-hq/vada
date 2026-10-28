@@ -71,7 +71,7 @@ function CheckField({
   onChange?: (checked: boolean) => void
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <Label htmlFor={id} className="flex items-center gap-2 font-normal max-sm:min-h-11">
       <input
         id={id}
         type="checkbox"
@@ -80,10 +80,8 @@ function CheckField({
         disabled={disabled || locked}
         onChange={event => onChange?.(event.target.checked)}
       />
-      <Label htmlFor={id} className="font-normal">
-        {label}
-      </Label>
-    </div>
+      {label}
+    </Label>
   )
 }
 
