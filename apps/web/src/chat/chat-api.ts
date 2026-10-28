@@ -22,6 +22,9 @@ export type DirectResponse = OpenDirectResponse
 export const messagesPath = (councilId: string, roomId: string) =>
   `${roomPath(councilId, roomId)}/messages`
 
+export const messagePath = (councilId: string, messageId: string) =>
+  `${chatBase(councilId)}/messages/${encodeURIComponent(messageId)}`
+
 // 올리기 주소 받기 `POST rooms/:roomId/uploads`(본문 없음): 서버가 정한 키와 올리기 주소(서명 PUT)를 준다.
 export const uploadsPath = (councilId: string, roomId: string) =>
   `${roomPath(councilId, roomId)}/uploads`

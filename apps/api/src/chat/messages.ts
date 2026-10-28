@@ -9,11 +9,21 @@ import {
 import type { Actor } from '../access/actor.js'
 import { isClosing } from '../access/authorize.js'
 import { cohortOfDay } from '../access/current-cohort.js'
-import { chatRoom, cohort, file, member, message, record, roomMembership } from '../db/schema.js'
+import {
+  chatRoom,
+  cohort,
+  evidenceLink,
+  file,
+  member,
+  message,
+  record,
+  roomMembership,
+} from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { madeOf } from './made.js'
-import { deletionActionsOf } from './deletion-policy.js'
+import { deletionActionsOf, editActionsOf } from './deletion-policy.js'
+import { completedEventIdsAmong } from '../policy/locks.js'
 import { inNoticeRoom } from './plan-room.js'
 import { displayNameOf } from '../team/display-name.js'
 
@@ -25,6 +35,8 @@ const columns = {
   body: message.body,
   sentAt: message.sentAt,
   deletedAt: message.deletedAt,
+  editedAt: message.editedAt,
+  eventId: chatRoom.eventId,
   senderId: record.createdBy,
   senderName: displayNameOf(member, record.councilId),
 }
@@ -37,6 +49,16 @@ const rowsOf = (db: Reader) =>
     .leftJoin(member, eq(member.id, record.createdBy))
 
 type Row = Awaited<ReturnType<ReturnType<typeof rowsOf>['limit']>>[number]
+
+// 취소된 기록도 원문을 근거로 가지므로 made의 blocking과 별도로 모든 연결을 본다.
+export async function linkedMessageIds(db: Reader, messageIds: string[]) {
+  if (!messageIds.length) return new Set<string>()
+  const rows = await db
+    .select({ id: evidenceLink.messageId })
+    .from(evidenceLink)
+    .where(inArray(evidenceLink.messageId, messageIds))
+  return new Set(rows.map(row => row.id))
+}
 
 // 메시지에 붙은 사진 번호. 보낸 차례(만든 시각)대로다. 지운 메시지의 사진(저장소 위치를 비운 파일)은 없다.
 async function photosOf(db: Reader, messageIds: string[]) {
@@ -55,6 +77,13 @@ async function photosOf(db: Reader, messageIds: string[]) {
 
 async function chatMessagesOf(db: Reader, actor: Actor, rows: Row[]): Promise<ChatMessage[]> {
   const closing = await isClosing(db, actor.councilId)
+  const linked = await linkedMessageIds(
+    db,
+    rows.map(row => row.id),
+  )
+  const archived = await completedEventIdsAmong(db, [
+    ...new Set(rows.flatMap(row => (row.eventId ? [row.eventId] : []))),
+  ])
   const photos = await photosOf(
     db,
     rows.map(row => row.id),
@@ -64,11 +93,20 @@ async function chatMessagesOf(db: Reader, actor: Actor, rows: Row[]): Promise<Ch
     actor,
     rows.map(row => row.id),
   )
-  return rows.map(row => ({
+  return rows.map(({ eventId, ...row }) => ({
     ...row,
     sentAt: row.sentAt.toISOString(),
     deletedAt: row.deletedAt?.toISOString() ?? null,
-    actions: deletionActionsOf(actor, { ...row, closing }),
+    editedAt: row.editedAt?.toISOString() ?? null,
+    actions: [
+      ...deletionActionsOf(actor, { ...row, closing }),
+      ...editActionsOf(actor, {
+        ...row,
+        closing,
+        linked: linked.has(row.id),
+        archived: eventId !== null && archived.has(eventId),
+      }),
+    ],
     photos: photos.get(row.id) ?? [],
     made: made.get(row.id) ?? [],
   }))

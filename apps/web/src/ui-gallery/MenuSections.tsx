@@ -118,8 +118,9 @@ export function MessageMenuSection() {
     body: '현수막 2개 사 주세요\n색은 파랑이면 좋겠어요',
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
+    editedAt: null,
     photos: [],
-    actions: ['message.delete'],
+    actions: ['message.delete', 'message.edit'],
     made: [],
   }
   return (
@@ -150,6 +151,7 @@ export function SystemMessageSection() {
     body,
     sentAt: '2026-10-23T01:30:00Z',
     deletedAt: null,
+    editedAt: null,
     photos: [],
     actions: [],
     made: [],

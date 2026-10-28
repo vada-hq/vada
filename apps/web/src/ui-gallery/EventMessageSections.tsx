@@ -45,8 +45,9 @@ const sample = (id: string, sender: string, body: string): ChatMessage => ({
   body,
   sentAt: '2026-10-23T00:30:00Z',
   deletedAt: null,
+  editedAt: null,
   photos: [],
-  actions: sender === '박해랑' ? ['message.delete'] : [],
+  actions: sender === '박해랑' ? ['message.delete', 'message.edit'] : [],
   made: [],
 })
 const FLOW = [

@@ -23,6 +23,7 @@ export {
   OpenDirectSchema,
   ReadMarkerSchema,
   SendMessageSchema,
+  EditMessageSchema,
   ROOM_TYPES,
   type ChatMessage,
   type MadeRecord,

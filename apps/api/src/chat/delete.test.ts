@@ -78,7 +78,7 @@ test(
   run(async s => {
     const first = await s.send()
     const second = await s.send()
-    assert.deepEqual(second.message.actions, ['message.delete'])
+    assert.deepEqual(second.message.actions, ['message.delete', 'message.edit'])
     for (const user of [WRITER, 's-president', 's-plain']) {
       for (const query of ['', `?after=${first.message.id}`]) {
         const response = await s.api.get(`${s.base}/rooms/${s.room}/messages${query}`, user)
@@ -86,7 +86,7 @@ test(
         const page = (await response.json()) as MessagePageResponse
         assert.deepEqual(
           page.messages.find(item => item.id === second.message.id)!.actions,
-          user === WRITER ? ['message.delete'] : [],
+          user === WRITER ? ['message.delete', 'message.edit'] : [],
         )
       }
     }

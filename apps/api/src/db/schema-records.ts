@@ -31,6 +31,7 @@ export const message = pgTable('message', {
   sentAt: at('sent_at').notNull(),
   isNotice: boolean('is_notice').notNull().default(false),
   deletedAt: at('deleted_at'),
+  editedAt: at('edited_at'),
 })
 
 export const file = pgTable('file', {

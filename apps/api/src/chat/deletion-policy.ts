@@ -17,3 +17,18 @@ export function decideDeletion(actor: Actor, facts: DeletionFacts) {
 
 export const deletionActionsOf = (actor: Actor, facts: DeletionFacts): ChatMessage['actions'] =>
   decideDeletion(actor, facts) === 'delete' ? ['message.delete'] : []
+
+type EditFacts = DeletionFacts & { body: string | null; archived: boolean; linked: boolean }
+
+// 메뉴와 요청은 근거로 이은 원문을 같은 판정으로 보호한다(DEC-71).
+export function decideEdit(actor: Actor, facts: EditFacts) {
+  if (facts.closing) return 'COUNCIL_CLOSING'
+  if (facts.senderId !== actor.memberId || facts.deletedAt !== null) return 'NOT_FOUND'
+  if (!facts.body) return 'MESSAGE_INVALID'
+  if (facts.archived) return 'ROOM_ARCHIVED'
+  if (facts.linked) return 'MESSAGE_LINKED'
+  return 'edit'
+}
+
+export const editActionsOf = (actor: Actor, facts: EditFacts): ChatMessage['actions'] =>
+  decideEdit(actor, facts) === 'edit' ? ['message.edit'] : []

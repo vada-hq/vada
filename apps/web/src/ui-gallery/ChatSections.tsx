@@ -76,8 +76,9 @@ const chatMessage = (id: string, senderName: string | null, body: string): ChatM
   body,
   sentAt: '2026-10-23T01:30:00Z',
   deletedAt: null,
+  editedAt: null,
   photos: [],
-  actions: senderName === '박해랑' ? ['message.delete'] : [],
+  actions: senderName === '박해랑' ? ['message.delete', 'message.edit'] : [],
   made: [],
 })
 // 지운 메시지(DEC-54): 본문 없이 지운 시각만 있다.
@@ -117,7 +118,11 @@ const FLOW: { message: ChatMessage; mine: boolean; continued: boolean }[] = [
     mine: true,
     continued: false,
   },
-  { message: chatMessage('d', '박해랑', longName), mine: true, continued: true },
+  {
+    message: { ...chatMessage('d', '박해랑', longName), editedAt: '2026-10-23T02:00:00Z' },
+    mine: true,
+    continued: true,
+  },
 ]
 
 // 메시지 말풍선(와이어프레임 메시지 화면). 휴대폰 폭(390px)과 PC 방 칸 폭(약 700px)으로 그린다.

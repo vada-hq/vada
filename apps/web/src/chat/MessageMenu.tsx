@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import type { ChatMessage } from '@vada/contracts'
 import type { LucideIcon } from 'lucide-react'
-import { Ellipsis, Trash2 } from 'lucide-react'
+import { Ellipsis, Pencil, Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
@@ -20,6 +20,7 @@ type Props = {
   councilId: string
   message: ChatMessage
   onDeleted: (message: ChatMessage) => void
+  onEdit: () => void
   // 동작이 진행 중이면 메뉴를 막는다. 지금 메뉴의 동작은 모두 대화상자를 열 뿐이라 기본은 false다.
   busy?: boolean
 }
@@ -30,6 +31,7 @@ export default function MessageMenu({
   councilId,
   message,
   onDeleted,
+  onEdit,
   busy = false,
 }: Props) {
   const {
@@ -41,8 +43,11 @@ export default function MessageMenu({
     remove,
   } = useMessageDeletion(councilId, message.id, onDeleted)
   const trigger = useRef<HTMLButtonElement>(null)
+  const editing = useRef(false)
   const canDelete = message.actions.includes('message.delete')
-  if (actions.length === 0 && !canDelete) return null
+  const canEdit = message.actions.includes('message.edit')
+  const waiting = busy || deleting
+  if (actions.length === 0 && !canDelete && !canEdit) return null
   return (
     <>
       <Menu>
@@ -53,29 +58,45 @@ export default function MessageMenu({
             size="icon"
             touch
             aria-label="메시지 동작"
-            busy={busy || deleting}
+            busy={waiting}
           >
             <Ellipsis />
           </Button>
         </MenuTrigger>
-        <MenuContent>
+        <MenuContent
+          onCloseAutoFocus={event => {
+            if (editing.current) {
+              event.preventDefault()
+              editing.current = false
+            }
+          }}
+        >
           {actions.map(({ key, label, icon: Icon, onSelect }) => (
             <MenuItem
               key={key}
               className="break-keep max-sm:min-h-11"
-              disabled={busy || deleting}
+              disabled={waiting}
               onSelect={onSelect}
             >
               <Icon aria-hidden />
               {label}
             </MenuItem>
           ))}
-          {canDelete && (
+          {canEdit && (
             <MenuItem
               className="break-keep max-sm:min-h-11"
-              disabled={busy || deleting}
-              onSelect={ask}
+              disabled={waiting}
+              onSelect={() => {
+                editing.current = true
+                onEdit()
+              }}
             >
+              <Pencil aria-hidden />
+              메시지 고치기
+            </MenuItem>
+          )}
+          {canDelete && (
+            <MenuItem className="break-keep max-sm:min-h-11" disabled={waiting} onSelect={ask}>
               <Trash2 aria-hidden />
               메시지 삭제
             </MenuItem>

@@ -82,3 +82,20 @@ test('탈퇴한 사람의 얼굴은 첫 글자가 아니라 사람 아이콘이�
   expect(screen.queryByText('떠')).toBeNull()
   expect(screen.getByRole('listitem').querySelector('svg.lucide-user')).toBeTruthy()
 })
+
+test('남의 글도 고친 시각이 있으면 보낸 시각 옆에 고침을 보인다', () => {
+  draw(message('m1', '고친 글', { editedAt: '2026-10-28T01:00:00Z' }))
+  expect(screen.getByText('(고침)').className).toContain('text-muted-foreground')
+  expect(screen.getByText('(고침)').parentElement?.querySelector('time')).toBeTruthy()
+})
+
+test('삭제된 글에는 고침을 보이지 않는다', () => {
+  draw(
+    message('m1', '', {
+      body: null,
+      editedAt: '2026-10-28T01:00:00Z',
+      deletedAt: '2026-10-28T02:00:00Z',
+    }),
+  )
+  expect(screen.queryByText('(고침)')).toBeNull()
+})

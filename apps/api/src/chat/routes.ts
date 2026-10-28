@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono'
 import {
   CreatePhotoUploadSchema,
   EmptyRequestSchema,
+  EditMessageSchema,
   MessagePageQuerySchema,
   NO_CONTENT,
   OpenDirectSchema,
@@ -35,6 +36,7 @@ import type { Actor } from '../access/actor.js'
 import type { Db, Tx } from '../db/types.js'
 import { openDirect } from './direct.js'
 import { deleteOwnMessage } from './delete.js'
+import { editOwnMessage } from './edit.js'
 import { eventRoomsOf } from './event-rooms.js'
 import { messagePage } from './messages.js'
 import type { ChatPush } from './notify.js'
@@ -136,8 +138,16 @@ function roomRoutes({ routes, auth, db, asked, inRoom, push }: Kit) {
   })
 }
 
-function writeRoutes(kit: Kit) {
-  const { routes, auth, db, asked, sendLimiter, change, push, clock, storage } = kit
+function messageRoutes({ routes, auth, db, asked, storage }: Kit) {
+  routes.post(`${root}/messages/:messageId`, json(EditMessageSchema), auth, async c => {
+    const edited = await editOwnMessage(
+      db,
+      asked(c),
+      recordIdOf(c.req.param('messageId')),
+      c.req.valid('json').body,
+    )
+    return c.json(edited satisfies ChatMessage)
+  })
   routes.post(`${root}/messages/:messageId/delete`, json(EmptyRequestSchema), auth, async c => {
     const deleted = await deleteOwnMessage(
       db,
@@ -147,6 +157,10 @@ function writeRoutes(kit: Kit) {
     )
     return c.json(deleted satisfies ChatMessage)
   })
+}
+
+function writeRoutes(kit: Kit) {
+  const { routes, auth, db, asked, sendLimiter, change, push, clock, storage } = kit
   routes.post(`${root}/rooms/:roomId/messages`, json(SendMessageSchema), auth, async c => {
     const request = asked(c)
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
@@ -268,6 +282,7 @@ export function createChatRoutes(
   }
   listRoutes(kit)
   roomRoutes(kit)
+  messageRoutes(kit)
   writeRoutes(kit)
   photoRoutes(kit)
   return kit.routes

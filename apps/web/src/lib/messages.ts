@@ -170,6 +170,7 @@ export const TASK_TEAM_FAILED = '운영진과 부서를 불러오지 못했어�
 
 // 메시지 보내기와 사진 올리기. 오류는 입력칸 옆에 보인다. 표에 없는 코드는 일반 문구다.
 export const SEND_ERRORS = changeErrors({
+  MESSAGE_LINKED: '기록이 이어진 메시지는 고칠 수 없어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 보내 주세요.',
   ROOM_READ_ONLY: '이 방은 보기만 할 수 있어요.',
   ROOM_ARCHIVED: '완료된 행사의 방이라 보낼 수 없어요.',

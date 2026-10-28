@@ -71,9 +71,10 @@ export interface ChatMessage {
   body: string | null
   sentAt: string
   deletedAt: string | null
+  editedAt: string | null
   photos: ChatPhoto[]
   // 보는 사람이 이 메시지에 할 수 있는 동작. 웹은 본인 여부로 다시 정하지 않는다(DEC-38).
-  actions: 'message.delete'[]
+  actions: ('message.delete' | 'message.edit')[]
   // 보는 사람이 읽을 수 있는 연결 기록만 싣는다(DEC-90).
   made: MadeRecord[]
 }
@@ -157,6 +158,8 @@ export const SendMessageSchema = z
   .refine(value => value.body !== undefined || value.photos.length > 0)
   .refine(value => new Set(value.photos).size === value.photos.length)
 export type SendMessageRequest = z.input<typeof SendMessageSchema>
+
+export const EditMessageSchema = z.strictObject({ body: text(MESSAGE_BODY_MAX) })
 
 // 사진 올리기 주소 받기. 보낼 값이 없다.
 export const CreatePhotoUploadSchema = EmptyRequestSchema

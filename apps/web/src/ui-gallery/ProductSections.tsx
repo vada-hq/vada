@@ -41,6 +41,7 @@ const sample = (id: string, body: string, options: Partial<ChatMessage> = {}): C
   body,
   sentAt: '2026-10-23T00:30:00Z',
   deletedAt: null,
+  editedAt: null,
   photos: [],
   actions: [],
   made: [],

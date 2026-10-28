@@ -6,6 +6,9 @@ import {
   type ChatMessage,
 } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
+import { Button } from '@/components/ui/button'
+import { Field } from '@/components/ui/field'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -14,6 +17,7 @@ import MessageMade from './MessageMade'
 import MessagePhotos from './MessagePhotos'
 import { useProductOpener } from './product-open'
 import { useMessageActions, type MessageActionArgs } from './useMessageActions'
+import { useMessageEdit } from './useMessageEdit'
 
 type Props = MessageActionArgs & {
   councilId: string
@@ -85,11 +89,78 @@ function Sender({ message, mine, continued }: Pick<Props, 'message' | 'mine' | '
 
 // 말풍선 아래의 시각(와이어프레임). 이어 쓴 메시지는 화면 낭독기에만 읽힌다.
 function Time({ message, continued }: Pick<Props, 'message' | 'continued'>) {
-  return (
-    <time dateTime={message.sentAt} className={continued ? 'sr-only' : 'text-xs text-gray-500'}>
+  const edited = message.body !== null && !!message.editedAt
+  const time = (
+    <time
+      dateTime={message.sentAt}
+      className={continued && !edited ? 'sr-only' : 'text-xs text-gray-500'}
+    >
       {clockLabel(message.sentAt)}
     </time>
   )
+  return edited ? (
+    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+      {time}
+      <span className="text-muted-foreground">(고침)</span>
+    </span>
+  ) : (
+    time
+  )
+}
+
+function EditBody({
+  input,
+  busy,
+  body,
+  error,
+  setBody,
+  save,
+  close,
+}: ReturnType<typeof useMessageEdit>) {
+  return (
+    <form
+      className="flex w-80 max-w-full flex-col gap-2 break-keep rounded-lg border bg-white p-3"
+      onSubmit={event => {
+        event.preventDefault()
+        void save()
+      }}
+      onKeyDown={event => {
+        if (event.key === 'Escape') {
+          event.stopPropagation()
+          close()
+        }
+      }}
+    >
+      <Field label="메시지" required error={error ?? undefined}>
+        <Textarea
+          ref={input}
+          autoFocus
+          readOnly={busy}
+          value={body}
+          className="wrap-anywhere"
+          onChange={event => setBody(event.target.value)}
+        />
+      </Field>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" touch onClick={close}>
+          취소
+        </Button>
+        <Button type="submit" touch busy={busy}>
+          저장
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function Bubble({
+  message,
+  mine,
+  editor,
+}: Pick<Props, 'message' | 'mine'> & { editor: ReturnType<typeof useMessageEdit> }) {
+  if (message.body === null) return <Deleted />
+  if (editor.open) return <EditBody {...editor} />
+  return message.body !== '' ? <Body message={message} mine={mine} /> : null
 }
 
 // 남의 메시지 왼쪽의 얼굴(와이어프레임): 흰 원에 이름 첫 글자. 탈퇴한 사람('떠난 운영진 N')은 첫 글자가 '떠'라
@@ -139,11 +210,12 @@ export default function MessageItem(props: Props) {
 // 말풍선 묶음은 줄의 60%까지다(와이어프레임). 휴대폰은 칸이 좁아 80%다(사이드챗의 85%와 비슷하게). 얼굴과 '…'는 묶음의 아래에 맞춘다. '…'는 마우스로 쓰면 올리거나
 // 포커스할 때만, 손가락으로 쓰면 늘 보인다(Slack·Teams, NN/g 문맥 메뉴 지침).
 function PersonItem({ councilId, message: original, continued, mine, ...actionArgs }: Props) {
+  const editor = useMessageEdit(councilId, original)
   const [deletedActions, setDeletedActions] = useState<ChatMessage['actions'] | null>(null)
   const message =
     deletedActions !== null
       ? { ...original, body: null, photos: [], actions: deletedActions }
-      : original
+      : editor.message
   const photos = message.photos
   const { actions } = useMessageActions({ councilId, message, ...actionArgs })
   return (
@@ -163,23 +235,22 @@ function PersonItem({ councilId, message: original, continued, mine, ...actionAr
         )}
       >
         <Sender message={message} mine={mine} continued={continued} />
-        {message.body === null ? (
-          <Deleted />
-        ) : (
-          message.body !== '' && <Body message={message} mine={mine} />
-        )}
+        <Bubble message={message} mine={mine} editor={editor} />
         {photos.length > 0 && <MessagePhotos councilId={councilId} photos={photos} />}
         <MessageMade councilId={councilId} records={message.made ?? []} />
         <Time message={message} continued={continued} />
       </div>
-      <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
-        <MessageMenu
-          actions={actions}
-          councilId={councilId}
-          message={message}
-          onDeleted={deleted => setDeletedActions(deleted.actions)}
-        />
-      </div>
+      {!editor.open && (
+        <div className="pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 pointer-fine:has-data-[state=open]:opacity-100">
+          <MessageMenu
+            actions={actions}
+            councilId={councilId}
+            message={message}
+            onDeleted={deleted => setDeletedActions(deleted.actions)}
+            onEdit={editor.begin}
+          />
+        </div>
+      )}
     </li>
   )
 }

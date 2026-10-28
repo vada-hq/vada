@@ -13,11 +13,20 @@ import { ApplicantRowSection, EventApplicantsSection } from './RegistrationSecti
 import { WithdrawSection } from './WithdrawSections'
 import { CalendarSection } from './CalendarSections'
 import { CalendarFeedSection } from './CalendarFeedSections'
+import { MessageMenuSection } from './MenuSections'
 
 // 부품 확인 화면에서 대화상자를 연 모양. 시험마다 그 버튼이 있는 묶음만 그린다(전체 화면은 Gallery.snapshot.test.tsx).
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
+})
+
+test('메시지 고치기 칸', async () => {
+  render(<MessageMenuSection />)
+  fireEvent.keyDown(screen.getByRole('button', { name: '메시지 동작' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '메시지 고치기' }))
+  await screen.findByRole('textbox', { name: '메시지' })
+  expect(snapshotHtml()).toMatchSnapshot()
 })
 
 const openers: [string, ComponentType][] = [
