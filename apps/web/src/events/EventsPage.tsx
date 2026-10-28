@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { CalendarDays } from 'lucide-react'
 import { EVENT_LIST_LIMIT, menuPath, type CouncilView } from '@vada/contracts'
 import type { RoomPage } from '../chat/ChatPage'
+import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -29,18 +31,21 @@ type Props = {
 }
 
 // 빈 화면에서 첫 행사를 시작할 수 있어야 한다(DEC-96).
-function NoEvents({ canCreate, onCreate }: { canCreate: boolean; onCreate: () => void }) {
+export function NoEvents({ canCreate, onCreate }: { canCreate: boolean; onCreate: () => void }) {
   return (
-    <Card className="flex flex-col items-center gap-3 p-6 text-center">
-      <StateMessage kind="empty">행사 없음</StateMessage>
-      {canCreate ? (
+    <EmptyState
+      icon={CalendarDays}
+      iconClassName="bg-gray-100 text-gray-400"
+      className="break-keep"
+      title="행사 없음"
+      {...(canCreate ? {} : { description: '회장단과 부서장이 만들어요' })}
+    >
+      {canCreate && (
         <Button touch onClick={onCreate}>
           새 행사
         </Button>
-      ) : (
-        <p className="text-sm break-keep text-muted-foreground">회장단과 부서장이 만들어요</p>
       )}
-    </Card>
+    </EmptyState>
   )
 }
 

@@ -2,6 +2,7 @@ import type { EventAction, EventDetail, EventSummary } from '@vada/contracts'
 import { TabButton } from '@/components/ui/tab-button'
 import { EventHeader } from '@/events/EventHeader'
 import EventRow from '@/events/EventRow'
+import { NoEvents } from '@/events/EventsPage'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
@@ -17,6 +18,11 @@ const event = (id: string, extra: Partial<EventSummary>): EventSummary => ({
 })
 
 const noop = () => {}
+
+const EMPTY_WIDTHS = [
+  { label: '1280px', className: 'w-320 shrink-0' },
+  { label: '420px', className: 'w-105 shrink-0' },
+]
 
 export function EventSection() {
   return (
@@ -48,6 +54,16 @@ export function EventSection() {
           })}
           onOpen={noop}
         />
+      </div>
+      <div className="flex max-w-full flex-col gap-4 overflow-x-auto">
+        {EMPTY_WIDTHS.map(width => (
+          <div key={width.label} className={width.className}>
+            <p className="text-xs text-gray-500">{width.label} · 만들 수 있음</p>
+            <NoEvents canCreate onCreate={noop} />
+            <p className="text-xs text-gray-500">{width.label} · 만들 수 없음</p>
+            <NoEvents canCreate={false} onCreate={noop} />
+          </div>
+        ))}
       </div>
     </Section>
   )

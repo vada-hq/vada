@@ -526,9 +526,18 @@ test('행사가 없으면 빈 화면에서 새 행사를 만들고, 만들 수 �
   await screen.findByText('날짜 미정 행사')
   api.on('GET', BASE, () => json({ events: [], truncated: false }))
   document.dispatchEvent(new Event('visibilitychange'))
-  await screen.findByText('행사 없음')
+  const title = await screen.findByText('행사 없음')
+  const empty = title.parentElement!
+  const icon = empty.querySelector('svg.lucide-calendar-days')
+  expect(icon?.getAttribute('aria-hidden')).toBe('true')
+  expect(icon?.parentElement?.classList.contains('rounded-full')).toBe(true)
+  expect(icon?.parentElement?.classList.contains('bg-gray-100')).toBe(true)
   const create = screen.getByRole('button', { name: '새 행사' })
-  expect(create.closest('div')?.textContent).toContain('행사 없음')
+  expect(empty.contains(create)).toBe(true)
+  expect([...empty.children].indexOf(title)).toBeLessThan(
+    [...empty.children].indexOf(create.parentElement!),
+  )
+  expect(screen.queryByText('회장단과 부서장이 만들어요')).toBeNull()
   fireEvent.click(create)
   expect(await screen.findByRole('dialog')).toBeTruthy()
   cleanup()
@@ -536,7 +545,9 @@ test('행사가 없으면 빈 화면에서 새 행사를 만들고, 만들 수 �
   await screen.findByText('날짜 미정 행사')
   member.api.on('GET', BASE, () => json({ events: [], truncated: false }))
   document.dispatchEvent(new Event('visibilitychange'))
-  await screen.findByText('행사 없음')
-  expect(screen.getByText('회장단과 부서장이 만들어요')).toBeTruthy()
+  const memberTitle = await screen.findByText('행사 없음')
+  const memberEmpty = memberTitle.parentElement!
+  expect(memberEmpty.querySelector('svg.lucide-calendar-days')).toBeTruthy()
+  expect(within(memberEmpty).getByText('회장단과 부서장이 만들어요')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
 })
