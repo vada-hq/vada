@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { StrictMode, useState } from 'react'
+import type { MeetingDetail } from '@vada/contracts'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -11,7 +12,7 @@ import { MeetingList } from './MeetingList'
 import { hasDirtyEntry } from './minutes-entry'
 import { resetKeptMinutes } from './minutes-drafts'
 import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
-import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
+import { LEAVE_CONFIRM, LEAVE_TITLE, PERMISSION_CHANGED } from '@/lib/messages'
 
 const base = `/api/organizations/${MEETING_COUNCIL}/meetings/${MEETING_ID}`
 const ME = '0199d1a0-0000-7000-8000-00000000aaa1'
@@ -47,18 +48,114 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 const posts = () => api.calls.filter(c => c.method === 'POST')
-const draw = (meeting = sample()) =>
-  render(
-    <MeetingMinutes
-      view={councilView(MEETING_COUNCIL, { memberId: ME })}
-      meeting={meeting}
-      base={base}
-      memberId={ME}
-      selectedId={null}
-      onSelect={select}
-      onSaved={changed}
-    />,
+const minutes = (meeting: MeetingDetail, selectedId: string | null = null) => (
+  <MeetingMinutes
+    view={councilView(MEETING_COUNCIL, { memberId: ME })}
+    meeting={meeting}
+    base={base}
+    memberId={ME}
+    selectedId={selectedId}
+    onSelect={select}
+    onSaved={changed}
+  />
+)
+const draw = (meeting = sample()) => render(minutes(meeting))
+
+const tasksBase = `/api/organizations/${MEETING_COUNCIL}/tasks`
+const optionsCalls = () => api.calls.filter(call => call.path.startsWith(`${tasksBase}/options`))
+function followUpOptions(meeting: MeetingDetail) {
+  const eventId = meeting.event?.id
+  api.on('GET', `${tasksBase}/options${eventId ? `?event=${eventId}` : ''}`, () =>
+    json({
+      departments: [{ id: null, name: null, assignees: [{ id: null, name: null }] }],
+      linkableEvents: [{ departmentId: null, eventIds: eventId ? [eventId] : [] }],
+    }),
   )
+  api.on('GET', `/api/organizations/${MEETING_COUNCIL}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
+}
+
+test.each(['권한', '고른 안건', '마지막 안건', '행사'] as const)(
+  '%s 변경으로 회의를 다시 읽어도 열린 업무 창의 입력과 처음 출처를 남긴다',
+  async change => {
+    vi.useRealTimers()
+    const meeting = sample()
+    meeting.event = { id: '0199d1a0-0000-7000-8000-0000000000e1', name: '가을 축제' }
+    if (change === '마지막 안건') meeting.agenda = [meeting.agenda[0]!]
+    followUpOptions(meeting)
+    api.on('POST', tasksBase, () =>
+      json(
+        { error: change === '권한' ? 'FORBIDDEN' : 'RECORD_CONFIRMED' },
+        change === '권한' ? 403 : 409,
+      ),
+    )
+    const { rerender } = draw(meeting)
+    fireEvent.click(await screen.findByRole('button', { name: '업무 만들기' }))
+    const title = screen.getByRole<HTMLInputElement>('textbox', { name: /^제목/ })
+    fireEvent.change(title, { target: { value: '다시 읽어도 남길 업무' } })
+    const fresh: MeetingDetail = {
+      ...meeting,
+      ...(change === '권한' ? { actions: [] } : {}),
+      ...(change.includes('안건') ? { agenda: meeting.agenda.slice(1) } : {}),
+      ...(change === '행사'
+        ? { event: { id: '0199d1a0-0000-7000-8000-0000000000e2', name: '다른 행사' } }
+        : {}),
+    }
+    rerender(minutes(fresh))
+    await act(async () => {})
+    expect(screen.getByRole('dialog', { name: '업무 추가' })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /^제목/ })).toBe(title)
+    expect(title.value).toBe('다시 읽어도 남길 업무')
+    expect(optionsCalls()).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+    await act(async () => {})
+    expect(posts().at(-1)!.body).toMatchObject({
+      title: '다시 읽어도 남길 업무',
+      agendaItemId: meeting.agenda[0]!.id,
+      eventId: meeting.event.id,
+    })
+    expect(screen.getByRole('dialog', { name: '업무 추가' })).toBeTruthy()
+    expect(title.value).toBe('다시 읽어도 남길 업무')
+    if (change === '권한') expect(screen.getByText(PERMISSION_CHANGED)).toBeTruthy()
+    else expect(screen.getByText('확정된 회의록에는 후속 업무를 만들 수 없어요.')).toBeTruthy()
+  },
+)
+
+test('안건을 오가도 업무 선택지는 다시 읽지 않고 새 창은 고른 안건에서 만든다', async () => {
+  vi.useRealTimers()
+  const meeting = sample()
+  followUpOptions(meeting)
+  api.on('POST', tasksBase, () => json({ task: taskDetail() }, 201))
+  api.on('GET', base, () => json({ meeting }))
+  const { rerender } = draw(meeting)
+  await screen.findByRole('button', { name: '업무 만들기' })
+  for (const selected of [meeting.agenda[1]!.id, meeting.agenda[0]!.id, meeting.agenda[1]!.id]) {
+    rerender(minutes(meeting, selected))
+    await act(async () => {})
+  }
+  expect(optionsCalls()).toHaveLength(1)
+  fireEvent.click(screen.getByRole('button', { name: '업무 만들기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), {
+    target: { value: '둘째 안건의 업무' },
+  })
+  rerender(minutes(meeting, meeting.agenda[0]!.id))
+  fireEvent.click(screen.getByRole('button', { name: '업무 추가' }))
+  await waitFor(() => expect(changed).toHaveBeenCalledWith(meeting))
+  expect(posts().at(-1)!.body).toMatchObject({ agendaItemId: meeting.agenda[1]!.id })
+  expect(screen.queryByRole('dialog', { name: '업무 추가' })).toBeNull()
+  expect(optionsCalls()).toHaveLength(1)
+})
+
+test('회의록을 읽기만 하거나 안건이 없으면 업무 선택지를 읽지 않는다', async () => {
+  const meeting = sample()
+  const { rerender } = draw({ ...meeting, actions: [] })
+  await act(async () => {})
+  expect(optionsCalls()).toHaveLength(0)
+  rerender(minutes({ ...meeting, agenda: [] }))
+  await act(async () => {})
+  expect(optionsCalls()).toHaveLength(0)
+})
 
 test('업무 만들기는 행사·주관 부서를 미리 채우고 상세 갱신 뒤에도 쓰던 논의 글을 남긴다', async () => {
   vi.useRealTimers()

@@ -24,7 +24,7 @@ import { MINUTES_TEXT as T, agendaNumber, participantCount } from './minutes-tex
 import { isMinutesDirty, lostEntries, type MinutesDraft } from './minutes-drafts'
 import { MinutesScopeContext } from './minutes-scope'
 import { MinutesFollowUps } from './MinutesFollowUps'
-import { MinutesFollowUpCreate } from './MinutesFollowUpCreate'
+import { useFollowUpCreate } from './use-follow-up-create'
 
 type Props = {
   view: CouncilView
@@ -113,6 +113,7 @@ function MinutesAgendaHeading({
 type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 'onCancel'> & {
   councilId: string
   followUpCreate?: ReactNode
+  followUpDialog?: ReactNode
   draft: MinutesDraft | undefined
   orphans: string[]
   submit: ReturnType<typeof useMinutesMutation>
@@ -125,7 +126,8 @@ const agendaHasNoLinks = (item: MeetingAgendaItem) =>
   item.decisions.length === 0 && item.followUps.length === 0
 export function MeetingMinutesView({
   councilId,
-  followUpCreate,
+  followUpCreate: createTask,
+  followUpDialog,
   meeting,
   selectedId,
   onSelect,
@@ -181,11 +183,7 @@ export function MeetingMinutesView({
                 submit={submit}
                 onRemove={target => ask('decision', target)}
               />
-              <MinutesFollowUps
-                councilId={councilId}
-                items={item.followUps}
-                create={followUpCreate}
-              />
+              <MinutesFollowUps councilId={councilId} items={item.followUps} create={createTask} />
               {writable && agendaHasNoLinks(item) && (
                 <Button
                   touch
@@ -220,6 +218,7 @@ export function MeetingMinutesView({
           onClose={() => setRemoving(null)}
         />
       )}
+      {followUpDialog}
     </div>
   )
 }
@@ -237,6 +236,7 @@ export function MeetingMinutes({
 }: Props) {
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
   const id = item?.id ?? null
+  const followUp = useFollowUpCreate({ view, meeting, agendaItemId: id, onSaved, onForbidden })
   const scope = useMemo(() => ({ base, memberId }), [base, memberId])
   const { drafts, store } = useMinutesAutosave(scope, meeting, onSaved)
   const mutate = useMinutesMutation(base, onSaved)
@@ -264,16 +264,8 @@ export function MeetingMinutes({
     <MinutesScopeContext value={scope}>
       <MeetingMinutesView
         councilId={view.council.id}
-        followUpCreate={
-          <MinutesFollowUpCreate
-            key={id}
-            view={view}
-            meeting={meeting}
-            agendaItemId={id}
-            onSaved={onSaved}
-            onForbidden={onForbidden}
-          />
-        }
+        followUpCreate={followUp.button}
+        followUpDialog={followUp.dialog}
         meeting={meeting}
         selectedId={id}
         draft={id ? drafts.get(id) : undefined}
