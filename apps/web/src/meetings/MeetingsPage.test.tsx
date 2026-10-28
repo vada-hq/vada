@@ -219,6 +219,17 @@ test('고치는 중 다시 읽기에서 고칠 동작이 빠져도 쓰던 글을
   expect(screen.getByLabelText<HTMLInputElement>('회의명').value).toBe('내가 쓰던 총회')
 })
 
+test('참가자를 저장한 뒤 고치기가 막히면 참가자는 저장했다고 알린다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}?mode=edit`)
+  api.on('POST', `${base}/${MEETING_ID}/attendees`, () => json({ meeting: meetingSample() }))
+  api.on('POST', `${base}/${MEETING_ID}`, () => json({ error: 'EVENT_COMPLETED' }, 409))
+  render(page())
+  fireEvent.change(await screen.findByLabelText('회의명'), { target: { value: '고친 총회' } })
+  fireEvent.click(screen.getByRole('checkbox', { name: '이기획' }))
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  expect(await screen.findByText(/^참가자는 저장했어요\. 완료한 행사에는/)).toBeTruthy()
+})
+
 test('판 충돌은 다시 읽어도 쓰던 글을 남긴다', async () => {
   window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}?mode=edit`)
   api.on('POST', `${base}/${MEETING_ID}`, () => json({ error: 'VERSION_CONFLICT' }, 409))

@@ -55,6 +55,10 @@ test('다음 날 끝나는 회의를 고치면 끝 날짜를 날짜 칸에서 �
   expect(meetingFormErrors(value).end).toBeUndefined()
   expect(parseMeetingForm(value).data?.endsAt).toBe('2026-11-04T01:00')
   expect(parseMeetingForm({ ...value, date: '2026-11-30' }).data?.endsAt).toBe('2026-12-01T01:00')
+  // 시각을 고치면 폼(MeetingForm의 change)이 endDayOffset을 0으로 되돌린다.
+  expect(
+    parseMeetingForm({ ...value, start: '14:00', end: '15:00', endDayOffset: 0 }).data?.endsAt,
+  ).toBe('2026-11-03T15:00')
 })
 test('고치기는 바뀐 칸만 보내고 참가자 순서와 안건은 본문에 넣지 않는다', () => {
   const original = meetingSample()

@@ -56,7 +56,9 @@ function useMeetingForm(props: Props) {
   })
   const change = (patch: Partial<MeetingFormValue>) => {
     if (patch.attendeeIds) options.markModified()
-    setValue(before => ({ ...before, ...patch }))
+    // 시각을 고치면 다음 날 끝나던 회의도 그 날짜 안의 회의로 다시 본다.
+    const retimed = 'start' in patch || 'end' in patch
+    setValue(before => ({ ...before, ...patch, ...(retimed ? { endDayOffset: 0 } : {}) }))
     setDirty(true)
     setError(null)
   }

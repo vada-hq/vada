@@ -8,7 +8,7 @@ import {
 import { getJson, postJson, type ApiResult } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { meetingBase, meetingUpdate, sameAttendees } from './meeting-form'
-import { meetingError } from './meeting-text'
+import { ATTENDEES_SAVED_BUT, meetingError } from './meeting-text'
 
 type Failure = Extract<ApiResult<MeetingResponse>, { ok: false }>
 type SaveState = {
@@ -41,7 +41,8 @@ async function saveMeeting(
   // 참가자를 먼저 바꾼다. 주관 부서를 옮기면 그 요청 뒤에 고칠 권한을 잃을 수 있다.
   // 참가자 바꾸기는 판을 올리지 않아 이어지는 고치기의 baseVersionNo가 그대로 맞는다.
   const previousPeople = state.people.filter(id => id !== item.createdBy?.id)
-  if (!sameAttendees(value.attendeeIds, previousPeople)) {
+  const peopleChanged = !sameAttendees(value.attendeeIds, previousPeople)
+  if (peopleChanged) {
     const attendees = await postJson<MeetingResponse>(`${base}/${item.id}/attendees`, {
       attendeeIds: value.attendeeIds,
     })
@@ -50,7 +51,10 @@ async function saveMeeting(
     state.people = value.attendeeIds
   }
   const result = await postJson<MeetingResponse>(`${base}/${item.id}`, parsed.data)
-  if (!result.ok) return fail(result)
+  if (!result.ok) {
+    const problem = await fail(result)
+    return peopleChanged ? ATTENDEES_SAVED_BUT(problem) : problem
+  }
   state.saved = result.data.meeting
   state.previous = value
   state.version = result.data.meeting.versionNo

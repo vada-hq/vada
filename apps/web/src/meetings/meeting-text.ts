@@ -27,4 +27,5 @@ const MEETING_ERRORS = changeErrors({
 })
 export const meetingError = (code: string) =>
   MEETING_ERRORS[code] ?? '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+export const ATTENDEES_SAVED_BUT = (problem: string) => `참가자는 저장했어요. ${problem}`
 export const MEETING_FIELD_ERROR = '길이나 입력한 글자를 확인해 주세요.'

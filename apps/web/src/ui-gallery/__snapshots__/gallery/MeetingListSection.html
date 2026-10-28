@@ -44,101 +44,230 @@
 </path>
 </svg>
 <span class="min-w-0 wrap-anywhere text-left text-base font-semibold whitespace-normal">정기·상시 회의</span>
-<span class="ml-auto text-xs text-muted-foreground tabular-nums">총 4건</span>
+<span class="text-xs font-normal text-muted-foreground tabular-nums">총 4건</span>
+<span class="ml-auto text-xs font-normal text-muted-foreground tabular-nums max-sm:hidden">가장 가까운 회의: 10월 29일 (목) 11:30</span>
 </button>
-<p class="mb-3 text-xs text-muted-foreground tabular-nums">가장 가까운 회의: 10월 29일 (목) 11:30</p>
-<div class="grid min-w-0 gap-4 sm:grid-cols-2">
-<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-3 p-5">
+<p class="mb-3 text-xs text-muted-foreground tabular-nums sm:hidden">가장 가까운 회의: 10월 29일 (목) 11:30</p>
+<div class="flex min-w-0 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+<div class="flex min-w-0 flex-1 flex-col gap-2">
 <div class="flex min-w-0 items-start gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">진행 중</span>
 <h3 class="min-w-0 wrap-anywhere text-base font-semibold">부서별 현황 공유</h3>
 </div>
-<p class="text-sm tabular-nums">10월 29일 (목) 11:30~13:00</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">학생회관 3층 회의실</p>
-<dl class="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+<p class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+<span class="inline-flex items-center gap-1 tabular-nums">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>10월 29일 (목) 11:30~13:00</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin size-4 shrink-0" aria-hidden="true">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+</path>
+<circle cx="12" cy="10" r="3">
+</circle>
+</svg>학생회관 3층 회의실</span>
+</p>
+</div>
+<dl class="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
 <div>
-<dt>참가자</dt>
-<dd class="mt-1 text-right tabular-nums">2명</dd>
+<dt class="text-xs text-muted-foreground">참가자</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">2명</dd>
 </div>
 <div>
-<dt>안건</dt>
-<dd class="mt-1 text-right tabular-nums">1건</dd>
+<dt class="text-xs text-muted-foreground">안건</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">1건</dd>
 </div>
 <div>
-<dt>회의록</dt>
-<dd class="mt-1 text-right">작성 중</dd>
+<dt class="text-xs text-muted-foreground">회의록</dt>
+<dd class="mt-1 text-sm font-medium">작성 중</dd>
 </div>
 </dl>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mt-auto self-end">상세 보기</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 shrink-0 self-end md:w-32 md:self-center">상세 보기</button>
 </div>
-<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-3 p-5">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+<div class="flex min-w-0 flex-1 flex-col gap-2">
 <div class="flex min-w-0 items-start gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
 <h3 class="min-w-0 wrap-anywhere text-base font-semibold">학생회 정기 총회</h3>
 </div>
-<p class="text-sm tabular-nums">11월 3일 (화) 14:00~15:30</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">학생회관 3층 회의실</p>
-<dl class="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+<p class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+<span class="inline-flex items-center gap-1 tabular-nums">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>11월 3일 (화) 14:00~15:30</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin size-4 shrink-0" aria-hidden="true">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+</path>
+<circle cx="12" cy="10" r="3">
+</circle>
+</svg>학생회관 3층 회의실</span>
+</p>
+</div>
+<dl class="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
 <div>
-<dt>참가자</dt>
-<dd class="mt-1 text-right tabular-nums">2명</dd>
+<dt class="text-xs text-muted-foreground">참가자</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">2명</dd>
 </div>
 <div>
-<dt>안건</dt>
-<dd class="mt-1 text-right tabular-nums">1건</dd>
+<dt class="text-xs text-muted-foreground">안건</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">1건</dd>
 </div>
 <div>
-<dt>회의록</dt>
-<dd class="mt-1 text-right">작성 전</dd>
+<dt class="text-xs text-muted-foreground">회의록</dt>
+<dd class="mt-1 text-sm font-medium">작성 전</dd>
 </div>
 </dl>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mt-auto self-end">상세 보기</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 shrink-0 self-end md:w-32 md:self-center">상세 보기</button>
 </div>
-<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-3 p-5">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+<div class="flex min-w-0 flex-1 flex-col gap-2">
 <div class="flex min-w-0 items-start gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
 <h3 class="min-w-0 wrap-anywhere text-base font-semibold">홍보 준비 회의</h3>
 </div>
-<p class="text-sm tabular-nums">11월 3일 (화) 14:00~15:30</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">학생회관 3층 회의실</p>
-<dl class="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+<p class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+<span class="inline-flex items-center gap-1 tabular-nums">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>11월 3일 (화) 14:00~15:30</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin size-4 shrink-0" aria-hidden="true">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+</path>
+<circle cx="12" cy="10" r="3">
+</circle>
+</svg>학생회관 3층 회의실</span>
+</p>
+</div>
+<dl class="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
 <div>
-<dt>참가자</dt>
-<dd class="mt-1 text-right tabular-nums">2명</dd>
+<dt class="text-xs text-muted-foreground">참가자</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">2명</dd>
 </div>
 <div>
-<dt>안건</dt>
-<dd class="mt-1 text-right tabular-nums">1건</dd>
+<dt class="text-xs text-muted-foreground">안건</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">1건</dd>
 </div>
 <div>
-<dt>회의록</dt>
-<dd class="mt-1 text-right">취소</dd>
+<dt class="text-xs text-muted-foreground">회의록</dt>
+<dd class="mt-1 text-sm font-medium">취소</dd>
 </div>
 </dl>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mt-auto self-end">취소 내용 보기</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 shrink-0 self-end md:w-32 md:self-center">취소 내용 보기</button>
 </div>
-<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-3 p-5">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+<div class="flex min-w-0 flex-1 flex-col gap-2">
 <div class="flex min-w-0 items-start gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">완료</span>
 <h3 class="min-w-0 wrap-anywhere text-base font-semibold">10월 운영 회의</h3>
 </div>
-<p class="text-sm tabular-nums">10월 22일 (목) 14:00~15:30</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">학생회관 3층 회의실</p>
-<dl class="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+<p class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+<span class="inline-flex items-center gap-1 tabular-nums">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>10월 22일 (목) 14:00~15:30</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin size-4 shrink-0" aria-hidden="true">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+</path>
+<circle cx="12" cy="10" r="3">
+</circle>
+</svg>학생회관 3층 회의실</span>
+</p>
+</div>
+<dl class="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
 <div>
-<dt>참가자</dt>
-<dd class="mt-1 text-right tabular-nums">2명</dd>
+<dt class="text-xs text-muted-foreground">참가자</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">2명</dd>
 </div>
 <div>
-<dt>안건</dt>
-<dd class="mt-1 text-right tabular-nums">1건</dd>
+<dt class="text-xs text-muted-foreground">안건</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">1건</dd>
 </div>
 <div>
-<dt>회의록</dt>
-<dd class="mt-1 text-right">정리 완료</dd>
+<dt class="text-xs text-muted-foreground">회의록</dt>
+<dd class="mt-1 text-sm font-medium">정리 완료</dd>
 </div>
 </dl>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mt-auto self-end">상세 보기</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 shrink-0 self-end md:w-32 md:self-center">상세 보기</button>
 </div>
 </div>
 </section>
@@ -149,33 +278,76 @@
 </path>
 </svg>
 <span class="min-w-0 wrap-anywhere text-left text-base font-semibold whitespace-normal">가을 축제</span>
-<span class="ml-auto text-xs text-muted-foreground tabular-nums">총 1건</span>
+<span class="text-xs font-normal text-muted-foreground tabular-nums">총 1건</span>
+<span class="ml-auto text-xs font-normal text-muted-foreground tabular-nums max-sm:hidden">가장 가까운 회의: 11월 3일 (화) 14:00</span>
 </button>
-<p class="mb-3 text-xs text-muted-foreground tabular-nums">가장 가까운 회의: 11월 3일 (화) 14:00</p>
-<div class="grid min-w-0 gap-4 sm:grid-cols-2">
-<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-3 p-5">
+<p class="mb-3 text-xs text-muted-foreground tabular-nums sm:hidden">가장 가까운 회의: 11월 3일 (화) 14:00</p>
+<div class="flex min-w-0 flex-col gap-3">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex min-w-0 flex-col gap-4 p-5 md:flex-row md:items-center">
+<div class="flex min-w-0 flex-1 flex-col gap-2">
 <div class="flex min-w-0 items-start gap-2">
 <span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">예정</span>
 <h3 class="min-w-0 wrap-anywhere text-base font-semibold">가을 축제 준비 회의</h3>
 </div>
-<p class="text-sm tabular-nums">11월 3일 (화) 14:00~15:30</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">학생회관 3층 회의실</p>
-<p class="wrap-anywhere text-sm text-muted-foreground">주관 기획부</p>
-<dl class="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+<p class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+<span class="inline-flex items-center gap-1 tabular-nums">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>11월 3일 (화) 14:00~15:30</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin size-4 shrink-0" aria-hidden="true">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+</path>
+<circle cx="12" cy="10" r="3">
+</circle>
+</svg>학생회관 3층 회의실</span>
+<span class="inline-flex min-w-0 items-center gap-1 wrap-anywhere">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users size-4 shrink-0" aria-hidden="true">
+<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+</path>
+<path d="M16 3.128a4 4 0 0 1 0 7.744">
+</path>
+<path d="M22 21v-2a4 4 0 0 0-3-3.87">
+</path>
+<circle cx="9" cy="7" r="4">
+</circle>
+</svg>주관 기획부</span>
+</p>
+</div>
+<dl class="grid shrink-0 grid-cols-3 gap-4 text-center md:w-64">
 <div>
-<dt>참가자</dt>
-<dd class="mt-1 text-right tabular-nums">2명</dd>
+<dt class="text-xs text-muted-foreground">참가자</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">2명</dd>
 </div>
 <div>
-<dt>안건</dt>
-<dd class="mt-1 text-right tabular-nums">1건</dd>
+<dt class="text-xs text-muted-foreground">안건</dt>
+<dd class="mt-1 text-sm font-medium tabular-nums">1건</dd>
 </div>
 <div>
-<dt>회의록</dt>
-<dd class="mt-1 text-right">작성 전</dd>
+<dt class="text-xs text-muted-foreground">회의록</dt>
+<dd class="mt-1 text-sm font-medium">작성 전</dd>
 </div>
 </dl>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 mt-auto self-end">상세 보기</button>
+<button data-slot="button" class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 shrink-0 self-end md:w-32 md:self-center">상세 보기</button>
 </div>
 </div>
 </section>
