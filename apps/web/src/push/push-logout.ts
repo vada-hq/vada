@@ -1,3 +1,4 @@
+import { updateAppBadge } from '@/lib/app-badge'
 import { withTimeout } from './push-client'
 import { removeDevice, settlePendingSaves } from './push-device'
 
@@ -14,6 +15,7 @@ async function currentEndpoint(): Promise<string | null> {
 // 로그아웃 전에 서버의 이 기기 줄을 지워, 그 계정의 알림이 이 기기로 오지 않게 한다. 브라우저 구독은 남긴다(다음 로그인 때 다시 저장한다).
 // 실패하거나 시간이 넘어도 던지지 않는다. 로그아웃을 막지 않기 위해서다.
 export async function forgetThisDevice(timeoutMs = LOGOUT_FORGET_MS): Promise<void> {
+  void updateAppBadge(0)
   try {
     await withTimeout(
       settlePendingSaves()

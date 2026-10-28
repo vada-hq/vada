@@ -19,6 +19,14 @@ function sameSitePath(value) {
   }
 }
 
+async function markAppBadge() {
+  try {
+    await self.navigator.setAppBadge?.()
+  } catch {
+    // 배지를 지원해도 OS에서 거부할 수 있다. 알림은 계속 띄운다.
+  }
+}
+
 // 아이폰은 알림을 띄우지 않는 푸시가 거듭되면 허락을 거둘 수 있다. 내용을 못 읽어도 늘 띄운다.
 self.addEventListener('push', event => {
   let message = {}
@@ -37,6 +45,7 @@ self.addEventListener('push', event => {
     typeof message.tag === 'string' && message.tag ? { tag: message.tag, renotify: true } : {}
   event.waitUntil(
     Promise.all([
+      markAppBadge(),
       tellWindows({ type: 'vada:push' }),
       self.registration.showNotification(title, {
         body,

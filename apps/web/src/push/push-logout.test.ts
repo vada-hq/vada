@@ -19,6 +19,26 @@ function stubBrowser(subscription: { endpoint: string } | null, request = vi.fn(
   return request
 }
 
+test('로그아웃할 때 구독이 없어도 이 기기의 앱 배지를 지운다', async () => {
+  const clearAppBadge = vi.fn(async () => {})
+  vi.stubGlobal('navigator', { clearAppBadge })
+  await forgetThisDevice()
+  expect(clearAppBadge).toHaveBeenCalledOnce()
+})
+
+test('배지 지우기가 실패하거나 끝나지 않아도 로그아웃을 막지 않는다', async () => {
+  for (const clearAppBadge of [
+    vi.fn(async () => {
+      throw new Error('denied')
+    }),
+    vi.fn(() => new Promise<void>(() => {})),
+  ]) {
+    vi.stubGlobal('navigator', { clearAppBadge })
+    await expect(forgetThisDevice()).resolves.toBeUndefined()
+    expect(clearAppBadge).toHaveBeenCalledOnce()
+  }
+})
+
 test('이 기기의 구독 주소로 서버의 기기 줄을 지운다', async () => {
   const request = stubBrowser(
     { endpoint: ENDPOINT },

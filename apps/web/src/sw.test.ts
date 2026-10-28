@@ -11,9 +11,10 @@ type Client = {
 }
 
 // 가짜 서비스 워커 전역(self)에 sw.js를 불러 이벤트를 보낸다.
-function load(windows: Client[] = []) {
+function load(windows: Client[] = [], navigator: { setAppBadge?: () => Promise<void> } = {}) {
   const listeners = new Map<string, (event: unknown) => void>()
   const self = {
+    navigator,
     location: { origin: 'https://vada.test' },
     addEventListener: (type: string, listener: (event: unknown) => void) => {
       listeners.set(type, listener)
@@ -39,6 +40,38 @@ function load(windows: Client[] = []) {
   }
   return { self, fire }
 }
+
+test('푸시를 받으면 알림과 함께 숫자 없는 앱 배지를 설정한다', async () => {
+  const setAppBadge = vi.fn(async () => {})
+  const { self, fire } = load([], { setAppBadge })
+  await fire('push', { data: { json: () => ({ title: 'VADA' }) } })
+  expect(setAppBadge).toHaveBeenCalledExactlyOnceWith()
+  expect(self.registration.showNotification).toHaveBeenCalledOnce()
+})
+
+test('배지 미지원 환경에서도 푸시 알림을 띄운다', async () => {
+  const { self, fire } = load()
+  await fire('push', { data: { json: () => ({ title: 'VADA' }) } })
+  expect(self.registration.showNotification).toHaveBeenCalledOnce()
+})
+
+test('배지 호출이 거부되거나 던져도 푸시 알림과 창 알림을 보낸다', async () => {
+  for (const setAppBadge of [
+    vi.fn(async () => {
+      throw new Error('denied')
+    }),
+    vi.fn(() => {
+      throw new Error('unavailable')
+    }),
+  ]) {
+    const window = openWindowClient()
+    const { self, fire } = load([window], { setAppBadge })
+    await fire('push', { data: { json: () => ({ title: 'VADA' }) } })
+    expect(setAppBadge).toHaveBeenCalledOnce()
+    expect(self.registration.showNotification).toHaveBeenCalledOnce()
+    expect(window.postMessage).toHaveBeenCalledWith({ type: 'vada:push' })
+  }
+})
 
 test('푸시를 받으면 받은 내용으로 알림을 띄운다', async () => {
   const { self, fire } = load()

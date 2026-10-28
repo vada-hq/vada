@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { updateAppBadge } from '@/lib/app-badge'
 import { useRoomList } from '../chat/useRoomList'
 import { useSidebarEvents } from '../events/useSidebarEvents'
 import { useTaskCount } from '../tasks/useTaskCount'
@@ -9,6 +11,9 @@ export function useWorkspaceLists(councilId: string, data: CouncilData) {
   const ready = data.state.kind === 'ready'
   const rooms = useRoomList(councilId, data.reload, ready)
   const unread = rooms.state.kind === 'ready' ? rooms.state.data.unreadTotal : 0
+  useEffect(() => {
+    if (ready && rooms.state.kind === 'ready') void updateAppBadge(unread)
+  }, [ready, rooms.state, unread])
   const { tasks, count: taskCount } = useTaskCount(councilId, data.reload, ready)
   const events = useSidebarEvents(councilId, data.reload, ready)
   // 학생회를 잃었거나 다시 읽는 중이면 남은 줄을 그리지 않는다.
