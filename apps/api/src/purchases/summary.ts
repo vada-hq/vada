@@ -11,7 +11,6 @@ import {
   request,
   shipment,
 } from '../db/schema.js'
-import { allows } from '../access/permissions.js'
 import { lastOutcomeOf } from './last-outcome.js'
 import type { Db } from '../db/types.js'
 import { joinedDisplayNameOf } from '../team/display-name.js'
@@ -56,19 +55,13 @@ export function summaryRows(
     .innerJoin(member, eq(member.id, request.requestedBy))
     .innerJoin(lineItem, eq(lineItem.requestId, request.id))
     .leftJoin(event, eq(event.id, request.eventId))
-    .where(and(eq(record.councilId, actor.councilId), requestVisibility(actor), options.where))
+    .where(and(eq(record.councilId, actor.councilId), options.where))
     .groupBy(request.id, record.id, member.id, event.id)
     .having(options.having)
     .orderBy(...options.order)
     .limit(options.limit)
 }
 export type PurchaseSummaryRow = Awaited<ReturnType<typeof summaryRows>>[number]
-
-// 부원은 주소나 보기 값을 바꾸어도 남의 요청을 읽을 수 없다(메뉴 v7 S2 사용자 지시).
-const requestVisibility = (actor: Actor) =>
-  allows(actor, { who: ['finance', 'leadership', 'any_department_head'] })
-    ? undefined
-    : eq(request.requestedBy, actor.memberId)
 
 const statusOfRow = (row: PurchaseSummaryRow) => requestStatusOf(row.cancelledAt !== null, row)
 

@@ -63,6 +63,34 @@ test('명시한 내 요청과 내 부서 보기는 기본값보다 먼저 적용
   )
 })
 
+test.each([
+  ['부서 없음', []],
+  ['부원', [{ id: EVENT_ID, name: '기획부', role: null, rank: null }]],
+] as const)('내 부서 칩은 서버가 준 소속 부서로 표시한다: %s', async (_, departments) => {
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all`, () => list())
+  api.on('GET', `${base}/purchase-requests?view=department`, () => list([]))
+  show(councilView(COUNCIL_ID, { councilRank: null, departments: [...departments] }))
+  await screen.findByRole('heading', { name: '요청 a' })
+  const chip = screen.queryByRole('button', { name: '내 부서' })
+  expect(chip !== null).toBe(departments.length > 0)
+  if (chip) {
+    fireEvent.click(chip)
+    await waitFor(() =>
+      expect(api.calls.some(call => call.path.endsWith('?view=department'))).toBe(true),
+    )
+  }
+})
+
+test('부원도 서버가 돌려준 다른 사람의 요청을 본다', async () => {
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all`, () =>
+    list([purchaseSummary('다른 사람', { requestedBy: { id: 'other-member', name: '이요청' } })]),
+  )
+  show(councilView(COUNCIL_ID, { councilRank: null }))
+  expect(await screen.findByRole('heading', { name: '요청 다른 사람' })).toBeTruthy()
+})
+
 test('상시·행사 범위는 서버 질의와 주소에 남고 행사 요약과 새 요청에도 이어진다', async () => {
   const api = mockApi()
   api.on('GET', `${base}/purchase-requests?view=all`, () => list())

@@ -41,20 +41,40 @@ test(
     assert.equal((await list(s, `view=all&event=${id}`)).requests.length, 100)
     assert.deepEqual(await titles(s, 'view=department&event=none', 's-planningHead'), ['상시'])
     assert.deepEqual(await titles(s, 'view=mine&event=none', 's-planningMember'), ['상시'])
-    assert.deepEqual(await titles(s, 'view=all', 's-planningMember'), ['상시'])
+    assert.deepEqual(await titles(s, 'view=all&event=none', 's-planningMember'), ['상시'])
     assert.deepEqual(await titles(s, 'view=pending&event=none', 's-financeMember'), ['상시'])
   }),
 )
 
 test(
-  '부원은 모든 보기·범위와 상세에서 남의 요청을 읽을 수 없고 관리자는 전체를 읽는다',
+  '부원도 학생회 안의 전체·결재 대기와 상세를 읽고 내 요청·내 부서는 목록만 거른다',
   runPurchases(async s => {
     const id = await event(s)
     const own = await s.made({ title: '내 상시', items: [ITEM] }, 's-planningMember')
     await s.made({ title: '내 행사', eventId: id, items: [ITEM] }, 's-planningMember')
     const other = await s.made({ title: '남의 상시', items: [ITEM] }, 's-plain')
     await s.made({ title: '남의 행사', eventId: id, items: [ITEM] }, 's-plain')
-    for (const view of ['all', 'pending', 'department', 'mine']) {
+    for (const user of ['s-planningMember', 's-plain']) {
+      for (const view of ['all', 'pending']) {
+        assert.deepEqual((await titles(s, `view=${view}`, user)).sort(), [
+          '남의 상시',
+          '남의 행사',
+          '내 상시',
+          '내 행사',
+        ])
+        assert.deepEqual((await titles(s, `view=${view}&event=none`, user)).sort(), [
+          '남의 상시',
+          '내 상시',
+        ])
+        assert.deepEqual((await titles(s, `view=${view}&event=${id}`, user)).sort(), [
+          '남의 행사',
+          '내 행사',
+        ])
+      }
+      for (const request of [own, other])
+        assert.equal((await s.api.get(`${s.base}/${request.id}`, user)).status, 200)
+    }
+    for (const view of ['department', 'mine']) {
       assert.deepEqual((await titles(s, `view=${view}`, 's-planningMember')).sort(), [
         '내 상시',
         '내 행사',
@@ -62,8 +82,6 @@ test(
       assert.deepEqual(await titles(s, `view=${view}&event=none`, 's-planningMember'), ['내 상시'])
       assert.deepEqual(await titles(s, `view=${view}&event=${id}`, 's-planningMember'), ['내 행사'])
     }
-    assert.equal((await s.api.get(`${s.base}/${other.id}`, 's-planningMember')).status, 404)
-    assert.equal((await s.api.get(`${s.base}/${own.id}`, 's-planningMember')).status, 200)
     for (const user of [
       's-president',
       's-vicePresident',
@@ -93,6 +111,7 @@ test(
           404,
         )
     assert.equal((await s.api.get(`${s.base}?view=all&event=none`, 'o-president')).status, 403)
+    assert.deepEqual(await titles(s, 'view=all&event=none', 's-plain'), ['우리 상시'])
     assert.equal((await s.api.get(`${s.base}?view=all&event=none`)).status, 401)
     for (const query of ['event=', 'event=NONE', 'event=none&event=none', 'event=not-a-uuid'])
       assert.equal(

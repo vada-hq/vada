@@ -258,19 +258,19 @@ test('계정마다 10초에 21번째는 429이고 다른 사람은 막히지 않
 })
 
 test(
-  '요청자만 취소한다: 204와 판 2, 부원에게 남의 요청은 404이고 다른 권한 실패는 403',
+  '요청한 사람만 취소한다: 204, 취소한 시각과 판 2, 재정부와 회장단과 다른 사람은 403',
   runPurchases(async s => {
     const request = await s.made()
     const cancel = (user: string, id = request.id) => s.api.post(`${s.base}/${id}/cancel`, {}, user)
     for (const user of ['s-financeMember', 's-president', 's-plain', 's-ended', 'o-president'])
-      assert.equal((await cancel(user)).status, user === 's-plain' ? 404 : 403, user)
+      assert.equal((await cancel(user)).status, 403, user)
     assert.equal((await s.api.post(`${s.base}/${request.id}/cancel`, {})).status, 401)
     assert.equal(await s.versions(request.id), 1)
     const done = await cancel('s-planningMember')
     assert.equal(done.status, 204)
     assert.equal(await done.text(), '')
     assert.equal(await s.versions(request.id), 2)
-    const read = await detailOf(await s.api.get(`${s.base}/${request.id}`, 's-president'))
+    const read = await detailOf(await s.api.get(`${s.base}/${request.id}`, 's-plain'))
     assert.equal(read.status, 'cancelled')
     assert.deepEqual(read.actions, [])
     assert.deepEqual(

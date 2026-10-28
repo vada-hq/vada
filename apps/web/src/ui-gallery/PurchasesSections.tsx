@@ -63,7 +63,7 @@ export function PurchasesSection() {
         <Button touch variant="link" className="self-start">
           예산 현황
         </Button>
-        <RequestFilter view={view} onView={setView} hasHeads canDecide />
+        <RequestFilter view={view} onView={setView} hasDepartments canDecide />
         <PurchaseStages
           requests={requests}
           stage={stage}

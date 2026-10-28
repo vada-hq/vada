@@ -65,7 +65,7 @@ function PurchasesList({ view, onForbidden }: Props) {
       <RequestFilter
         view={filter}
         onView={next => url.set({ view: next, stage: null })}
-        hasHeads={view.me.departments.some(dept => dept.rank !== null)}
+        hasDepartments={view.me.departments.length > 0}
         canDecide={canDecide}
       />
       <PurchaseStages

@@ -12,18 +12,18 @@ const LABEL: Record<PurchaseView, string> = {
 export function RequestFilter({
   view,
   onView,
-  hasHeads = false,
+  hasDepartments = false,
   canDecide = false,
 }: {
   view: PurchaseView
   onView: (view: PurchaseView) => void
-  hasHeads?: boolean
+  hasDepartments?: boolean
   canDecide?: boolean
 }) {
   return (
     <div role="group" aria-label="구매 요청 거르기" className="flex flex-wrap gap-2">
       {VIEWS.filter(
-        item => (item !== 'department' || hasHeads) && (item !== 'pending' || canDecide),
+        item => (item !== 'department' || hasDepartments) && (item !== 'pending' || canDecide),
       ).map(item => (
         <Button
           key={item}
