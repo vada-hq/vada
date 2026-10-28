@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { RoomSummary } from '@vada/contracts'
 import PageActions from '@/components/PageActions'
 import PageHeading from '@/components/PageHeading'
@@ -63,10 +63,11 @@ export default function MessageHome({
   onPick: (roomId: string) => void
   onAll: () => void
 }) {
-  const [saved, setSaved] = useState(() => savedRoom(page.councilId))
   const { state } = page.rooms
   const rooms = state.kind === 'ready' ? councilRooms(state.data.rooms) : []
-  const chosen = state.kind === 'ready' ? roomToShow(state.data, wanted ?? saved) : null
+  // 기억은 매번 기기에서 읽는다. 주소로 연 방도 기억되므로, 메뉴로 다시 오면 그 방이다.
+  const chosen =
+    state.kind === 'ready' ? roomToShow(state.data, wanted ?? savedRoom(page.councilId)) : null
   const room = rooms.find(item => item.id === chosen)
   useEffect(() => {
     if (chosen) saveRoom(page.councilId, chosen)
@@ -79,7 +80,6 @@ export default function MessageHome({
         onAll={onAll}
         onPick={roomId => {
           saveRoom(page.councilId, roomId)
-          setSaved(roomId)
           onPick(roomId)
         }}
       />

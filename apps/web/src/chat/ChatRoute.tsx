@@ -14,9 +14,10 @@ function screenOf(here: ReturnType<typeof useHere>, props: Props): Screen {
   const location = here.location
   if (location?.councilId !== props.councilId) return { kind: 'home' }
   if (location.type === 'record' && location.record === 'chat') {
-    const rooms = props.rooms.state.kind === 'ready' ? props.rooms.state.data.rooms : []
     const roomId = location.recordId
-    return councilRooms(rooms).some(room => room.id === roomId)
+    // 방 종류를 알기 전에는 첫 화면이 목록을 기다리거나 다시 시도를 보인다. 학생회 방을 전체 폭으로 잘못 열지 않는다.
+    if (props.rooms.state.kind !== 'ready') return { kind: 'home', roomId }
+    return councilRooms(props.rooms.state.data.rooms).some(room => room.id === roomId)
       ? { kind: 'home', roomId }
       : { kind: 'room', roomId }
   }

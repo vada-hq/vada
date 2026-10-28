@@ -102,3 +102,28 @@ test('전체 보기에는 행사·1:1·부서 간 방까지 남고 1:1을 열 �
   expect(screen.getByText('흐름 direct')).toBeTruthy()
   expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
 })
+
+// 공지 주소(업무 결과물·알림)로 연 방이 기억이 된다. 그 뒤 메뉴로 첫 화면에 오면 옛 기억이 아니라 그 방이다.
+test('주소로 연 학생회 방을 기억해 메뉴로 다시 오면 그 탭을 연다', () => {
+  localStorage.setItem('vada.chat.room.c1', 'dept')
+  const page = (screenNow: Screen) => (
+    <ChatPage
+      councilId="c1"
+      view={councilView('c1')}
+      team={{} as never}
+      rooms={{
+        state: { kind: 'ready', data: roomList({ rooms: allRooms }) },
+        reload: async () => true,
+      }}
+      screen={screenNow}
+      onScreen={() => {}}
+      onBack={() => {}}
+      onForbidden={() => {}}
+      onOpenRequest={() => {}}
+    />
+  )
+  const { rerender } = render(page({ kind: 'home', roomId: 'notice' }))
+  expect(screen.getByText('흐름 notice')).toBeTruthy()
+  rerender(page({ kind: 'home' }))
+  expect(screen.getByText('흐름 notice')).toBeTruthy()
+})

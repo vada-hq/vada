@@ -47,7 +47,10 @@ test('재정에서 보기는 그 요청의 주소로 쌓고, 뒤로 가면 그 �
       councilId={COUNCIL_ID}
       view={councilView(COUNCIL_ID)}
       team={{} as never}
-      rooms={{ state: { kind: 'loading' }, reload: async () => true }}
+      rooms={{
+        state: { kind: 'ready', data: roomList({ rooms: [room(ROOM, { type: 'direct' })] }) },
+        reload: async () => true,
+      }}
       onForbidden={() => {}}
     />,
   )
@@ -58,6 +61,24 @@ test('재정에서 보기는 그 요청의 주소로 쌓고, 뒤로 가면 그 �
   await vi.waitFor(() => expect(window.location.pathname).toBe(`/chat/${COUNCIL_ID}/${ROOM}`))
   expect(screen.getByText(`room ${ROOM}`)).toBeTruthy()
 })
+
+// 방 종류를 모르는 동안 학생회 방을 전체 폭으로 열면 탭과 휴대폰 아래 메뉴가 사라진다. 첫 화면이 목록을 기다리거나 다시 시도를 보인다.
+test.each(['loading', 'failed'] as const)(
+  '방 목록이 %s이면 방 주소도 메시지 첫 화면으로 둔다',
+  kind => {
+    window.history.replaceState(null, '', `/chat/${COUNCIL_ID}/${ROOM}`)
+    render(
+      <ChatRoute
+        councilId={COUNCIL_ID}
+        view={councilView(COUNCIL_ID)}
+        team={{} as never}
+        rooms={{ state: { kind }, reload: async () => true }}
+        onForbidden={() => {}}
+      />,
+    )
+    expect(screen.getByText(`home ${ROOM}`)).toBeTruthy()
+  },
+)
 
 test('목록의 행사 방을 누르면 행사 메시지 탭을 한 칸 쌓는다', async () => {
   const eventId = '0199d1a0-0000-7000-8000-0000000000e1'
