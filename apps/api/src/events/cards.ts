@@ -3,7 +3,7 @@ import type { EventsResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { record, recordVersion, registration, registrationForm } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { remainingOf } from '../settlement/remaining.js'
+import { remainingCountsByEvent } from '../settlement/remaining-counts.js'
 import { openTasksOf, type OpenTask } from '../tasks/open-tasks.js'
 import { departmentsOf } from './header.js'
 import { eventListOf, taskCountsByEvent } from './queries.js'
@@ -62,17 +62,14 @@ export async function eventCardsOf(db: Reader, actor: Actor, now: Date): Promise
   const tasks = tasksByEvent(await openTasksOf(db, actor, now))
   const applicants = await applicantsByEvent(db, actor.councilId, ids)
   const versions = await lastVersionsByEvent(db, ids)
-  const events = []
-  for (const event of list.events) {
-    const remaining = await remainingOf(db, { councilId: actor.councilId, eventId: event.id })
-    events.push({
-      ...event,
-      departments: departmentsOf(tasks.get(event.id) ?? []),
-      tasks: counts.get(event.id) ?? { open: 0, total: 0 },
-      applicantCount: applicants.get(event.id) ?? 0,
-      remaining: remaining.reduce((sum, item) => sum + item.count, 0),
-      updatedAt: versions.get(event.id)!,
-    })
-  }
+  const remaining = await remainingCountsByEvent(db, { councilId: actor.councilId, eventIds: ids })
+  const events = list.events.map(event => ({
+    ...event,
+    departments: departmentsOf(tasks.get(event.id) ?? []),
+    tasks: counts.get(event.id) ?? { open: 0, total: 0 },
+    applicantCount: applicants.get(event.id) ?? 0,
+    remaining: remaining.get(event.id) ?? 0,
+    updatedAt: versions.get(event.id)!,
+  }))
   return { ...list, events }
 }

@@ -28,13 +28,23 @@ const total = sql<number>`count(*) over ()`.mapWith(Number)
 // 정산에 남은 것(DEC-39, DEC-40, DEC-55). 저장하지 않고 센다. 취소한 요청·지출·입금은 보지 않고,
 // 학생회와 행사로 거른다(품목은 요청의 행사로 센다. 다른 행사와 상시 지출이 섞이지 않게).
 
-// 요청의 행사로 센 품목. 마지막 결과가 없으면 대기, 승인(취소하지 않은)이고 취소하지 않은 결제 내역이 없으면 결제 전이다.
-async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<SettlementRemaining> {
+// 단건 정산과 행사 목록이 마지막 결재·유효한 결제를 같은 조건으로 판정한다.
+export function itemConditions(db: Reader) {
   const paid = db
     .select({ one: sql`1` })
     .from(paymentLine)
     .innerJoin(expense, eq(expense.id, paymentLine.expenseId))
     .where(and(eq(paymentLine.lineItemId, lineItem.id), isNull(expense.cancelledAt)))
+  const last = lastOutcomeOf(lineItem.id)
+  return {
+    pending: sql`${last} is null`,
+    unpaid: and(sql`${last} = 'approved'`, notExists(paid))!,
+  }
+}
+
+// 요청의 행사로 센 품목. 마지막 결과가 없으면 대기, 승인(취소하지 않은)이고 취소하지 않은 결제 내역이 없으면 결제 전이다.
+async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<SettlementRemaining> {
+  const conditions = itemConditions(db)
   const rows = await db
     .select({ id: request.id, title: request.title, count: sql<number>`count(*)`.mapWith(Number) })
     .from(lineItem)
@@ -45,9 +55,7 @@ async function itemsOf(db: Reader, scope: Scope, unpaid: boolean): Promise<Settl
         eq(record.councilId, scope.councilId),
         eq(request.eventId, scope.eventId),
         isNull(request.cancelledAt),
-        unpaid
-          ? and(sql`${lastOutcomeOf(lineItem.id)} = 'approved'`, notExists(paid))
-          : sql`${lastOutcomeOf(lineItem.id)} is null`,
+        unpaid ? conditions.unpaid : conditions.pending,
       ),
     )
     .groupBy(request.id, record.createdAt)
