@@ -67,6 +67,7 @@ export const decision = pgTable('decision', {
   decidedAt: at('decided_at').notNull(),
   originId: uuid('origin_id'),
   originKind: text('origin_kind'),
+  cancelledAt: at('cancelled_at'),
 })
 
 export const evidenceLink = pgTable(

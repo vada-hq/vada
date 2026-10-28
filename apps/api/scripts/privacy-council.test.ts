@@ -353,6 +353,11 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
   await raw('voting_body', { council_id: councilId, name: '대의원회' })
   const meeting = await raw('meeting', { title: '회의', held_at: new Date(), event_id: eventId })
   const agenda = await raw('agenda_item', { meeting_id: meeting, position: 1, title: '안건' })
+  await pg.query('INSERT INTO meeting_attendee (meeting_id, member_id) VALUES ($1, $2)', [
+    meeting,
+    president,
+  ])
+  await raw('task', { title: '후속 업무', origin_id: agenda, origin_kind: 'agenda_item' })
   const poll = await raw('poll', { title: '투표', origin_id: agenda, origin_kind: 'agenda_item' })
   const option = await raw('poll_option', { poll_id: poll, position: 1, label: '찬성' })
   await raw('poll_response', { poll_id: poll, member_id: president, option_id: option })

@@ -18,6 +18,7 @@ export const DESTROY_STEPS = [
   { table: 'evidence_link', column: 'record_id' },
   { table: 'document_link', column: 'document_id' },
   { table: 'room_membership', column: 'room_id' },
+  { table: 'meeting_attendee', column: 'meeting_id' },
   { table: 'notification', column: 'id' },
   { table: 'source', column: 'id' },
   { table: 'draft_item', column: 'id' },

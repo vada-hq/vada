@@ -62,6 +62,70 @@ test(
   }),
 )
 
+test(
+  '회의·안건·결정·참가자·나온 곳 있는 업무를 모두 파기하고 다른 학생회의 회의는 남긴다',
+  withSettlement(async t => {
+    const heldAt = new Date('2026-10-29T05:00:00Z')
+    const meeting = await t.make(t.council, 'meeting', { title: '회의', heldAt })
+    const agendas: string[] = []
+    for (const position of [1, 2])
+      agendas.push(
+        await t.make(t.council, 'agenda_item', { meetingId: meeting, position, title: '안건' }),
+      )
+    await t.make(t.council, 'decision', {
+      content: '결정',
+      decidedBy: t.council.people.president.memberId,
+      decidedAt: heldAt,
+      originId: agendas[0],
+      originKind: 'agenda_item',
+    })
+    await t.make(t.council, 'task', {
+      title: '후속 업무',
+      originId: agendas[1],
+      originKind: 'agenda_item',
+    })
+    for (const member of [t.council.people.president, t.council.people.planningMember])
+      await t.pg.query('INSERT INTO meeting_attendee (meeting_id, member_id) VALUES ($1, $2)', [
+        meeting,
+        member.memberId,
+      ])
+    const other = await t.make(t.other, 'meeting', { title: '다른 학생회 회의', heldAt })
+    await t.pg.query('INSERT INTO meeting_attendee (meeting_id, member_id) VALUES ($1, $2)', [
+      other,
+      t.other.people.president.memberId,
+    ])
+    const otherRows = async () => ({
+      meeting: (await t.pg.query('SELECT * FROM meeting WHERE id = $1', [other])).rows,
+      attendees: (await t.pg.query('SELECT * FROM meeting_attendee WHERE meeting_id = $1', [other]))
+        .rows,
+      versions: (await t.pg.query('SELECT * FROM record_version WHERE record_id = $1', [other]))
+        .rows,
+    })
+    const before = await otherRows()
+    const plan = await destroyPlanOf(t.db, t.council.councilId)
+    for (const [table, rows] of [
+      ['meeting', 1],
+      ['agenda_item', 2],
+      ['decision', 1],
+      ['meeting_attendee', 2],
+      ['task', 1],
+    ] as const)
+      assert.equal(plan.tables.find(item => item.table === table)?.rows, rows, table)
+    await t.db.transaction(tx => destroyCouncilRows(tx, plan))
+    for (const step of DESTROY_STEPS)
+      assert.equal(
+        (
+          await t.pg.query(`SELECT 1 FROM ${step.table} WHERE ${step.column} = ANY($1::uuid[])`, [
+            plan.ids,
+          ])
+        ).rows.length,
+        0,
+        step.table,
+      )
+    assert.deepEqual(await otherRows(), before)
+  }),
+)
+
 // 학생회 파기(기능 021 정한 것 15)가 표를 빠뜨리지 않는지 스키마로 본다. 새 표가 생기면 어느 쪽인지 정할 때까지 이 시험이 실패한다.
 // 파기하는 표의 행을 가리키는 외래 키는 모두 모아, 가리키는 표도 파기하고 먼저 지우는지 본다.
 type ForeignKey = { child: string; parent: string; columns: string; deferrable: boolean }
