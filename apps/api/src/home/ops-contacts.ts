@@ -15,6 +15,8 @@ export interface OpsPeople {
   tints: Map<string, number>
   // 지금 회장단(학생회 직급이 있는 사람)
   council: Set<string>
+  // 회장단 → 학생회가 정한 직급 표시 이름(회장·부회장)
+  councilTitles: Map<string, string>
   // 이 학생회의 부서(부장이 없을 때 그 부서를 알리려고)
   departments: { id: string; name: string; finance: boolean }[]
   // 부서 → 그 부서의 지금 부장(먼저 맡은 사람 하나)
@@ -77,13 +79,30 @@ export async function opsPeopleOf(db: Reader, actor: Actor): Promise<OpsPeople> 
       .orderBy(asc(department.id))
   ).map(row => ({ id: row.id, name: row.name, finance: row.role === 'finance' }))
   const [titles] = await db
-    .select({ headTitle: council.headTitle })
+    .select({
+      headTitle: council.headTitle,
+      president: council.presidentTitle,
+      vicePresident: council.vicePresidentTitle,
+    })
     .from(council)
     .where(eq(council.id, actor.councilId))
+  const councilTitles = new Map(
+    members.flatMap(row =>
+      row.rank === null
+        ? []
+        : [
+            [
+              row.memberId,
+              (row.rank === 'president' ? titles?.president : titles?.vicePresident) ?? '',
+            ],
+          ],
+    ),
+  )
   const names = await memberNamesOf(db, actor.councilId, [...tints.keys()])
   return {
     tints,
     council: presidents,
+    councilTitles,
     departments,
     heads,
     headTitle: titles?.headTitle ?? '',
@@ -145,3 +164,10 @@ function financeDepartmentOf(people: OpsPeople) {
 // 결재는 재정 역할 부서를 본다. 그런 부서가 없으면 null이다('재정 담당 없음'이 맡는다).
 export const financeHeadlessOf = (people: OpsPeople) =>
   headless(people, financeDepartmentOf(people))
+
+// 회장단 업무의 담당자(③): 회장단이고 내가 아닐 때만
+export function councilOwnerOf(people: OpsPeople, actor: Actor, memberId: string | undefined) {
+  if (!memberId || memberId === actor.memberId) return null
+  const title = people.councilTitles.get(memberId)
+  return title === undefined ? null : personOf(people, memberId, { kind: 'council', title })
+}

@@ -2,6 +2,7 @@ import type { HomeCouncilBoard, HomeResponse, HomeTask } from '@vada/contracts'
 import CouncilHome from '@/home/CouncilHome'
 import { Section } from './GallerySection'
 import { mainOps } from './HomeOpsSections'
+import { mainTodo, mainWeek } from './HomeTodoSections'
 import { noop, pushBand, today, Width } from './home-frame-samples'
 import { longName } from './sample-text'
 import { financeCouncilId, financeSummary } from './finance-home-samples'
@@ -91,6 +92,8 @@ const board: HomeCouncilBoard = {
   },
   unassignedMembers: 1,
   ops: mainOps,
+  todo: mainTodo,
+  week: mainWeek,
 }
 
 const home: HomeResponse = {
@@ -138,6 +141,13 @@ const emptyBoard: HomeCouncilBoard = {
     assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: false },
     total: 1,
   },
+  todo: {
+    rows: [],
+    counts: { minutes: 0, event_tidy: 0, task_late: 0, task_today: 0 },
+    total: 0,
+    meTint: 0,
+  },
+  week: { items: [], total: 0 },
 }
 
 function Sample({ empty = false, band = false }: { empty?: boolean; band?: boolean }) {

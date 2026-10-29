@@ -17,6 +17,8 @@ export type HomeOpsRole =
   | { kind: 'head'; department: string; title: string }
   | { kind: 'assignee' }
   | { kind: 'finance_head'; department: string; title: string }
+  // 회장단 업무의 담당자(③). title은 그 학생회가 정한 학생회 직급 표시 이름이다(회장·부회장).
+  | { kind: 'council'; title: string }
 
 export interface HomeOpsPerson {
   memberId: string

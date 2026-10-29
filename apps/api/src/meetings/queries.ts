@@ -18,7 +18,7 @@ import {
   record,
   recordVersion,
 } from '../db/schema.js'
-import type { Tx } from '../db/types.js'
+import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { memberNamesOf, joinedDisplayNameOf } from '../team/display-name.js'
 import { aggregatesOf } from './aggregates.js'
@@ -28,7 +28,8 @@ import { actionsOf, relationOf } from './policy.js'
 import { assertReferences } from './references.js'
 import { statusOf } from './status.js'
 
-function rowsOf(tx: Tx, actor: Actor, where?: SQL) {
+// 회의 목록·상세·홈(③ 회의록 줄, ⑤ 다음 회의)이 같은 읽기를 쓴다.
+export function meetingRowsOf(tx: Pick<Db, 'select'>, actor: Actor, where?: SQL) {
   return tx
     .select({
       meeting,
@@ -46,7 +47,7 @@ function rowsOf(tx: Tx, actor: Actor, where?: SQL) {
     .leftJoin(department, eq(department.id, meeting.hostDepartmentId))
     .where(and(eq(record.councilId, actor.councilId), where))
 }
-type Row = Awaited<ReturnType<typeof rowsOf>>[number]
+type Row = Awaited<ReturnType<typeof meetingRowsOf>>[number]
 export const factsOf = (row: Row) => ({
   hostDepartmentId: row.meeting.hostDepartmentId,
   createdBy: row.createdBy,
@@ -83,7 +84,7 @@ export async function meetingListOf(
 ): Promise<MeetingsResponse> {
   if (query.event)
     await assertReferences(tx, actor, { eventId: query.event, hostDepartmentId: null })
-  const rows = await rowsOf(tx, actor, listWhere(actor, query))
+  const rows = await meetingRowsOf(tx, actor, listWhere(actor, query))
     .orderBy(asc(meeting.heldAt), asc(meeting.id))
     .limit(MEETING_LIST_LIMIT + 1)
   return {
@@ -93,7 +94,7 @@ export async function meetingListOf(
 }
 
 export async function meetingRowOf(tx: Tx, actor: Actor, id: string) {
-  const [row] = await rowsOf(tx, actor, eq(meeting.id, id))
+  const [row] = await meetingRowsOf(tx, actor, eq(meeting.id, id))
   if (!row) throw new ApiError('NOT_FOUND')
   return row
 }

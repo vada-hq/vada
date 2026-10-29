@@ -51,6 +51,7 @@ function headLabel(department: string, title: string) {
 export function contactText(person: HomeOpsPerson) {
   const { role } = person
   if (role.kind === 'assignee') return `${person.name} 담당자`
+  if (role.kind === 'council') return `${person.name} ${role.title}`
   return `${person.name} ${headLabel(role.department, role.title)}`
 }
 

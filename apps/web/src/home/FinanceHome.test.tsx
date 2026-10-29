@@ -155,7 +155,8 @@ test('품목은 요청으로, 예산 미입력·음수 사용 가능은 받은 �
   expect(path()).toBe('/events/01900000-0000-7000-8000-000000000001/e1?tab=money')
 })
 
-test('회장단 요약은 금액과 미입력 행사를 보이고 재정 첫 화면을 연다', async () => {
+// 회장단 홈의 재정은 '사용 가능' 한 줄이다(c35 안 b). 예산 미입력 행사는 ② 행사 신호로 옮겨 간다(시연 조각 ㉰).
+test('회장단 홈의 사용 가능 한 줄은 음수를 위험 색으로 보이고 재정 첫 화면을 연다', async () => {
   open(
     councilHome(
       {},
@@ -167,11 +168,10 @@ test('회장단 요약은 금액과 미입력 행사를 보이고 재정 첫 화
       },
     ),
   )
-  const summary = await card('전체 재정 요약')
-  expect(within(summary).queryByText('열람 전용')).toBeNull()
-  expect(within(summary).getByText('체육대회 예산 미입력')).toBeTruthy()
-  expect(within(summary).getByText('-20원').className).toContain('danger')
-  fireEvent.click(within(summary).getByRole('button'))
+  const line = await screen.findByRole('region', { name: '사용 가능' })
+  expect(screen.queryByRole('region', { name: '전체 재정 요약' })).toBeNull()
+  expect(within(line).getByText('-20원').className).toContain('danger')
+  fireEvent.click(within(line).getByRole('button', { name: '재정 보기' }))
   expect(path()).toBe('/finance/01900000-0000-7000-8000-000000000001')
 })
 

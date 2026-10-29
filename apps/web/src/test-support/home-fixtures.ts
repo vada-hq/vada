@@ -11,6 +11,8 @@ import type {
   HomeResponse,
   HomeTask,
   HomeTaskGroup,
+  HomeTodo,
+  HomeWeek,
   PurchaseRequestSummary,
   RoomSummary,
 } from '@vada/contracts'
@@ -131,6 +133,20 @@ export const opsRow = (
   ...extra,
 })
 
+// ③ 내가 할 일, ⑤ 이번 주. 시험이 정하지 않으면 0건이다.
+export const emptyTodo = (extra: Partial<HomeTodo> = {}): HomeTodo => ({
+  rows: [],
+  counts: { minutes: 0, event_tidy: 0, task_late: 0, task_today: 0 },
+  total: 0,
+  meTint: 0,
+  ...extra,
+})
+export const emptyWeek = (extra: Partial<HomeWeek> = {}): HomeWeek => ({
+  items: [],
+  total: 0,
+  ...extra,
+})
+
 const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard => ({
   financeStaffed: true,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
@@ -138,6 +154,8 @@ const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard =
   attention: { items: [], total: 0 },
   unassignedMembers: 0,
   ops: emptyOps(),
+  todo: emptyTodo(),
+  week: emptyWeek(),
   ...extra,
 })
 

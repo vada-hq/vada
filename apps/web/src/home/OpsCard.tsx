@@ -3,15 +3,14 @@ import { ChevronRight, UserPlus } from 'lucide-react'
 import { HOME_OPS_SHOWN, type HomeOps, type HomeOpsRow } from '@vada/contracts'
 import AssignRow, { TEXT_LINK, type AssignLink } from '@/components/AssignRow'
 import { Button } from '@/components/ui/button'
-import PersonFace from '@/components/PersonFace'
 import QuietBand from '@/components/QuietBand'
 import SeeAllButton from '@/components/SeeAllButton'
 import TwoColumnRow from '@/components/TwoColumnRow'
 import { Tray, TrayGroup, TrayHead } from '@/components/Tray'
+import PersonText from './PersonText'
 import {
   OPS_ICON,
   OPS_TITLE,
-  contactText,
   factText,
   hasAssign,
   hiddenText,
@@ -44,13 +43,7 @@ function Contact({ row, onSetHead }: { row: HomeOpsRow; onSetHead: Props['onSetH
       </span>
     )
   }
-  if (!row.contact) return null
-  return (
-    <span className="-mx-1.5 inline-flex min-h-9 max-w-full items-center gap-2 px-1.5 pr-2.5 text-row-sub font-medium text-primary-strong">
-      <PersonFace name={row.contact.name} tint={row.contact.tint} />
-      <span className="min-w-0 wrap-anywhere">{`${contactText(row.contact)}에게 묻기`}</span>
-    </span>
-  )
+  return row.contact && <PersonText person={row.contact} ask />
 }
 
 function assignLinks(ops: HomeOps, props: Props): AssignLink[] {

@@ -21,15 +21,18 @@ type Props = {
   // 사실 뒤 흐린 글(행사 이름, 말줄임)
   detail?: string | null | undefined
   who?: ReactNode
+  // 줄 끝. 없으면 꺾쇠(일 보기). 있으면 고정 폭 칸(넓은 칸 7rem)에 두어 누구 칸이 같은 세로선에 선다(③의 확인하기 알약).
+  trailing?: ReactNode
   onOpen: () => void
 }
 
-export default function TwoColumnRow({ icon, title, fact, danger, detail, who, onOpen }: Props) {
+export default function TwoColumnRow(props: Props) {
+  const { icon, title, fact, danger, detail, who, trailing, onOpen } = props
   return (
     <li
       className={cn(
         ROW_BOX,
-        'hover:bg-muted/60 has-[[data-title]:focus-visible]:ring-2 has-[[data-title]:focus-visible]:ring-primary-strong has-[[data-title]:focus-visible]:ring-inset',
+        'hover:bg-muted/60 has-[[data-who]:hover]:bg-transparent has-[[data-title]:focus-visible]:ring-2 has-[[data-title]:focus-visible]:ring-primary-strong has-[[data-title]:focus-visible]:ring-inset',
       )}
     >
       <IconDot icon={icon} />
@@ -65,9 +68,13 @@ export default function TwoColumnRow({ icon, title, fact, danger, detail, who, o
             )}
           </p>
         </div>
-        {who && <div className="mt-1.5 min-w-0 @2xl:mt-0">{who}</div>}
+        {who && <div className="mt-1.5 min-w-0 empty:hidden @2xl:mt-0">{who}</div>}
       </div>
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-fg-muted" />
+      {trailing ? (
+        <div className="flex shrink-0 justify-end @2xl:w-28">{trailing}</div>
+      ) : (
+        <ChevronRight aria-hidden className="size-5 shrink-0 text-fg-muted" />
+      )}
     </li>
   )
 }

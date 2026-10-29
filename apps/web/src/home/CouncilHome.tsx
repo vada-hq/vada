@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 import { menuPath, type EventTab, type HomeCouncilBoard, type HomeResponse } from '@vada/contracts'
 import { openEventTasks, openMenu, openRecord } from '@/lib/go-to'
+import { meetingMinutesPath } from '../meetings/minutes-path'
 import { navigate } from '@/lib/app-location'
 import { departmentFocus } from '@/lib/org-focus'
 import type { Page } from '../workspace/pages'
-import { FollowUpCard } from './CouncilColumns'
 import CouncilEventsCard from './CouncilEventsCard'
 import { CouncilHead, CouncilSplit } from './CouncilHomeLayout'
-import { HOME_PLANS } from './home-kinds'
 import OpsCard from './OpsCard'
-import UpcomingCard from './UpcomingCard'
-import FinanceSummary from './FinanceSummary'
+import AvailableLine from './AvailableLine'
+import TodoCard from './TodoCard'
+import WeekCard from './WeekCard'
 
 type Props = {
   home: HomeResponse
@@ -23,6 +23,48 @@ type Props = {
   onOpenEvent: (eventId: string, tab?: EventTab) => void
   onOpenPage: (page: Page) => void
   onNewEvent?: (() => void) | undefined
+}
+
+// 오른쪽 단(③ 내가 할 일 · ⑤ 이번 주 · 사용 가능 한 줄, c35 확정). 줄은 원래 화면을 연다.
+// 사용 가능은 회계 기간이 없거나(overview null) 재정 담당이 없으면 숨긴다.
+function rightColumn({
+  home,
+  board,
+  councilId,
+  name,
+  onOpenEvent,
+}: Pick<Props, 'home' | 'board' | 'councilId' | 'name' | 'onOpenEvent'>) {
+  const openMinutes = (meetingId: string) => navigate(meetingMinutesPath(councilId, meetingId))
+  const available = board.financeStaffed ? home.financeSummary?.overview?.available : undefined
+  return {
+    right: [
+      <TodoCard
+        key="todo"
+        todo={board.todo}
+        name={name}
+        onOpen={row => {
+          if (row.kind === 'minutes') openMinutes(row.meeting.id)
+          else if (row.kind === 'event_tidy')
+            onOpenEvent(row.event.id, row.remaining.settlement > 0 ? 'money' : undefined)
+          else openRecord('tasks', councilId, row.task.id, { behind: 'home' })
+        }}
+      />,
+      <WeekCard
+        key="week"
+        week={board.week}
+        onOpen={item =>
+          item.kind === 'meeting'
+            ? openRecord('meetings', councilId, item.meeting.id)
+            : openRecord('schedule', councilId, item.item.id)
+        }
+        onAgenda={openMinutes}
+        onSeeCalendar={() => openMenu('calendar', councilId)}
+      />,
+    ],
+    bottomRight: available !== undefined && (
+      <AvailableLine amount={available} onFinance={() => openMenu('finance', councilId)} />
+    ),
+  }
 }
 
 // 회장단 홈 배치 L3(notes layout-report.md '가'): 머리(날짜 + 인사) → ① 한 단 전체 → 아래 두 단(왼쪽 ② 행사, 오른쪽 ③⑤·사용 가능).
@@ -70,28 +112,7 @@ export default function CouncilHome({ home, board, councilId, name, pushBand, ..
             onNewEvent={open.onNewEvent}
           />
         }
-        right={[
-          <FollowUpCard
-            key="follow-up"
-            followUp={board.followUp}
-            onOpenEvent={open.onOpenEvent}
-            onSeeAll={() => openMenu('finance', councilId, { tab: 'closing' })}
-          />,
-          <UpcomingCard
-            councilId={councilId}
-            key="upcoming"
-            title={HOME_PLANS.council.columns[2]}
-            upcoming={home.upcoming}
-            onOpenTask={openTask}
-            onOpenEvent={open.onOpenEvent}
-          />,
-        ]}
-        bottomRight={
-          <FinanceSummary
-            summary={home.financeSummary}
-            onOpen={() => openMenu('finance', councilId)}
-          />
-        }
+        {...rightColumn({ home, board, councilId, name, onOpenEvent: open.onOpenEvent })}
       />
     </div>
   )
