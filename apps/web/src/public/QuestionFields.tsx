@@ -49,6 +49,8 @@ function QuestionInput({
     return (
       <RadioGroup
         {...control}
+        // 칸 확인이 첫 문제 칸(aria-invalid)으로 초점을 옮길 수 있게 한다.
+        tabIndex={-1}
         aria-label={question.title}
         value={typeof value === 'string' ? value : ''}
         disabled={busy}
@@ -64,7 +66,7 @@ function QuestionInput({
     )
   const picked = Array.isArray(value) ? value : []
   return (
-    <div {...control} role="group" aria-label={question.title} className="grid gap-2">
+    <div {...control} role="group" aria-label={question.title} tabIndex={-1} className="grid gap-2">
       {question.choices.map(choice => (
         <Label key={choice.id} className={choiceRow}>
           <input

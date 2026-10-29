@@ -69,7 +69,9 @@ export function useApply({ code, reload, onLost, onApplied }: Handlers) {
     setBusy(true)
     setProblem('')
     // 값이 앞 시도와 같으면 같은 번호라, 응답을 잃었어도 서버가 같은 신청의 링크를 다시 준다.
-    const { commandId: _placeholder, ...content } = checked
+    // 질문이 없는 양식은 답을 빼고 보낸다. 배포 전 기기 표지(본문 해시)와 같은 본문이라 같은 번호가 된다.
+    const { commandId: _placeholder, answers, ...rest } = checked
+    const content = answers.length ? { ...rest, answers } : rest
     // 해시가 무거워 저가 폰에서는 화면이 멎는다. '보내는 중'이 먼저 그려지게 한 번 양보한다.
     await new Promise(resolve => setTimeout(resolve, 0))
     const result = await postJson<ApplyResponse>(
