@@ -383,6 +383,7 @@ test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은
     payerFee: 5000,
     nonPayerFee: 10000,
     feeAccountId: ACCOUNT_ID,
+    questions: [],
   })
   expect(submit(form)).toHaveProperty('disabled', true)
   pending.resolve(json({ form: staffForm() }, 201))
@@ -797,4 +798,47 @@ test('입금 줄의 거절 문구도 다시 읽은 줄에 새 동작이 나타�
   fireEvent.click(screen.getByRole('button', { name: '새로 읽기', hidden: true }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.queryByText(REGISTRATION_STAFF_ERRORS.DEPOSIT_EXISTS!)).toBeNull()
+})
+
+// 질문(기능 025 조각 21): 받는 항목 아래에 질문을 더하고 저장할 때 목록 전체를 보낸다.
+test('질문을 더하면 카드가 펼쳐지고, 비운 질문은 칸 아래 오류이며 저장하면 질문 목록을 보낸다', async () => {
+  const { api } = setup({ forms: [], actions: ['form.create'] })
+  api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
+  const { form } = await openCreate(api)
+  fireEvent.click(within(form).getByRole('button', { name: '하나 고르기' }))
+  fireEvent.click(submit(form))
+  expect(await within(form).findByText('질문을 입력해 주세요')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
+  fireEvent.change(within(form).getByLabelText('질문'), { target: { value: '사이즈' } })
+  fireEvent.click(within(form).getByLabelText('필수 응답'))
+  fireEvent.click(submit(form))
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
+  const body = api.calls.find(call => call.method === 'POST')!.body as { questions: unknown }
+  expect(body.questions).toEqual([
+    {
+      kind: 'single_choice',
+      title: '사이즈',
+      required: true,
+      choices: [{ label: '선택 1' }, { label: '선택 2' }],
+    },
+  ])
+})
+
+test('신청이 있는 양식은 질문을 목록으로만 보이고 더하기·빼기가 없다', async () => {
+  const questions = [
+    {
+      id: '00000000-0000-4000-8000-000000000801',
+      kind: 'short_text' as const,
+      title: '이니셜',
+      required: true,
+      choices: [],
+    },
+  ]
+  setup({ forms: [staffForm({ applicantCount: 3, questions })] })
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  expect(within(form).getByText('신청이 있어 질문을 바꿀 수 없어요.')).toBeTruthy()
+  expect(within(form).getAllByText('이니셜').length).toBeGreaterThan(0)
+  expect(within(form).queryByRole('button', { name: '짧은 답' })).toBeNull()
+  expect(within(form).queryByRole('button', { name: '이니셜 빼기' })).toBeNull()
 })

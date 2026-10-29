@@ -5,6 +5,7 @@ import FormSummary from '@/public/FormSummary'
 import { MyRegistrationView } from '@/public/MyRegistrationPage'
 import RegistrationUnavailable from '@/public/RegistrationUnavailable'
 import { Section } from './GallerySection'
+import { sampleAnswers, sampleQuestions } from './question-samples'
 import { longName, unbroken } from './sample-text'
 
 const QR_TEXT = 'VADA:0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'
@@ -57,6 +58,7 @@ export function PublicSection() {
     mineOf({ depositConfirmed: true }),
     mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }),
     mineOf({ event: { name: unbroken }, mine: { name: longName, studentId: null, phone: null } }),
+    mineOf({ answers: sampleAnswers }),
   ]
   return (
     <Section title="참가 신청 화면">
@@ -87,7 +89,7 @@ export function PublicSection() {
   )
 }
 
-const emptyValues = { name: '', studentId: '', phone: '' }
+const emptyValues = { name: '', studentId: '', phone: '', answers: {} }
 
 // 신청 칸과 버튼 아래 고지. 참가비가 있으면 목적에 입금 확인이 붙고, 무료 양식에는 없다(DEC-93). 공개 화면과 같은 폭(max-w-md)이다.
 export function ApplyNoticeSection() {
@@ -99,11 +101,13 @@ export function ApplyNoticeSection() {
       collectsStudentId: false,
       collectsPhone: true,
     }),
+    // 질문 제목이 고지의 받는 항목에 실린다(DEC-93).
+    publicForm({ payerFee: 0, nonPayerFee: 0, questions: sampleQuestions }),
   ]
   return (
     <Section title="참가 신청 칸·고지(참가비 있음·없음)">
       {cases.map(data => (
-        <div key={String(data.payerFee)} className="w-full max-w-md">
+        <div key={`${data.payerFee}-${data.questions.length}`} className="w-full max-w-md">
           <ApplyFields
             data={data}
             values={emptyValues}

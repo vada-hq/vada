@@ -55,14 +55,15 @@ export function closedLine(form: PublicRegistrationForm) {
   }
 }
 
-// 받는 항목 글. 서버가 받는 칸만 적는다.
+// 받는 항목 글. 서버가 받는 칸과 질문 제목을 그대로 적는다(DEC-93: 질문 제목이 고지의 받는 항목에 실린다).
 export function collectedItems(
-  form: Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhone'>,
+  form: Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhone' | 'questions'>,
 ) {
   return [
     '이름',
     ...(form.collectsStudentId ? ['학번'] : []),
     ...(form.collectsPhone ? ['휴대폰 번호'] : []),
+    ...form.questions.map(question => question.title),
   ]
 }
 

@@ -4,6 +4,7 @@ import {
   type PublicRegistrationForm,
   type RegistrationForm,
 } from '@vada/contracts'
+import { draftsOf, previewQuestions, questionsRequest, type QuestionDraft } from './question-draft'
 
 // 참가비를 어떻게 받는지. 공지 사례는 참가비 하나가 가장 많고(13건), 학생회비 납부로 나누는 것은 적다(5건, RFC-11).
 // 그래서 하나를 먼저 두고, 나눌 때만 두 칸을 연다. 나누면 학생이 학번을 낸다(DEC-67).
@@ -26,6 +27,8 @@ export type FormValues = {
   // feeKind가 split일 때의 두 참가비
   payerFee: string
   nonPayerFee: string
+  // 신청자가 답할 질문(차례대로). 저장하면 목록 전체를 보낸다.
+  questions: QuestionDraft[]
 }
 
 // 행사에 양식은 보통 하나라서(DEC-44 결과) 이름을 짓지 않아도 되게 채워 둔다.
@@ -43,6 +46,7 @@ export const emptyFormValues: FormValues = {
   fee: '',
   payerFee: '',
   nonPayerFee: '',
+  questions: [],
 }
 
 const textOf = (value: number | string | null) => (value === null ? '' : String(value))
@@ -70,6 +74,7 @@ export const valuesOfForm = (form: RegistrationForm): FormValues => ({
   collectsPhone: form.collectsPhone,
   collectsStudentId: form.collectsStudentId,
   ...feeValuesOf(form),
+  questions: draftsOf(form.questions),
 })
 
 const DIGITS = /^[0-9]+$/
@@ -111,6 +116,7 @@ export const formRequest = (values: FormValues, feeAccountId: string | null) => 
   collectsStudentId: collectsStudentId(values),
   ...feesOf(values),
   feeAccountId: hasFee(values) ? feeAccountId : null,
+  questions: questionsRequest(values.questions),
 })
 
 type FormErrorKey =
@@ -193,6 +199,6 @@ export function previewOf(
     collectsStudentId: collectsStudentId(values),
     collectsPhone: values.collectsPhone,
     purgeOn: purgeOnOf(event, values.closesAt) ?? '',
-    questions: [],
+    questions: previewQuestions(values.questions),
   }
 }
