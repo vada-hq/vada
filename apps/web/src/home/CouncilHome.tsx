@@ -26,7 +26,7 @@ type Props = {
 }
 
 // 오른쪽 단(③ 내가 할 일 · ⑤ 이번 주 · 사용 가능 한 줄, c35 확정). 줄은 원래 화면을 연다.
-// 사용 가능은 회계 기간이 없거나(overview null) 재정 담당이 없으면 숨긴다.
+// 사용 가능은 회계 기간이 없으면(overview null) 숨긴다. 재정 담당이 없어도 금액은 사실이라 보인다(재정 담당 없음은 ①의 몫, c235 2.5).
 function rightColumn({
   home,
   board,
@@ -35,7 +35,7 @@ function rightColumn({
   onOpenEvent,
 }: Pick<Props, 'home' | 'board' | 'councilId' | 'name' | 'onOpenEvent'>) {
   const openMinutes = (meetingId: string) => navigate(meetingMinutesPath(councilId, meetingId))
-  const available = board.financeStaffed ? home.financeSummary?.overview?.available : undefined
+  const available = home.financeSummary?.overview?.available
   return {
     right: [
       <TodoCard

@@ -9,6 +9,8 @@ export const HOME_TODO_KINDS = ['minutes', 'event_tidy', 'task_late', 'task_toda
 export type HomeTodoKind = (typeof HOME_TODO_KINDS)[number]
 // 화면이 처음에 그리는 줄 수. 넘으면 '전체 n건 보기'로 홈 안에서 펼친다.
 export const HOME_TODO_SHOWN = 5
+// 서버가 보내는 줄 상한. 펼친 목록이 이만큼까지다(갈래별 수는 전체를 센다).
+export const HOME_TODO_ROW_LIMIT = 50
 
 export type HomeTodoRow =
   | {
@@ -41,7 +43,7 @@ export type HomeTodoRow =
     }
 
 export interface HomeTodo {
-  // 갈래 차례로 HOME_LIST_LIMIT줄까지. 업무 지남은 오래된 것부터다.
+  // 갈래 차례로 HOME_TODO_ROW_LIMIT줄까지. 업무 지남은 오래된 것부터다.
   rows: HomeTodoRow[]
   counts: Record<HomeTodoKind, number>
   total: number

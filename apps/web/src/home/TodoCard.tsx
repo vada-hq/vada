@@ -57,6 +57,7 @@ export default function TodoCard({ todo, name, onOpen }: Props) {
             title={todoTitle(row)}
             fact={todoFact(row)}
             danger={isTodoDanger(row)}
+            wrapFact
             who={<Who row={row} />}
             trailing={
               row.kind === 'minutes' || row.kind === 'event_tidy' ? (

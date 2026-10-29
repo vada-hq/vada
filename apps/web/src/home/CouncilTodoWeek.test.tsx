@@ -190,7 +190,7 @@ const summary = (available: number) => ({
   missing: [],
 })
 
-test('사용 가능 한 줄: 음수만 위험 색이고 재정 보기로 재정에 간다. 기간이 없거나 재정 담당이 없으면 숨긴다', async () => {
+test('사용 가능 한 줄: 음수만 위험 색이고 재정 보기로 재정에 간다. 기간이 없으면 숨기고 재정 담당이 없어도 보인다', async () => {
   open(councilHome({}, { financeSummary: summary(-120000) }))
   const line = await screen.findByRole('region', { name: '사용 가능' })
   expect(within(line).getByText('-120,000원').className).toContain('text-danger')
@@ -206,6 +206,5 @@ test('사용 가능 한 줄: 음수만 위험 색이고 재정 보기로 재정�
   expect(screen.queryByRole('region', { name: '사용 가능' })).toBeNull()
   cleanup()
   open(councilHome({ financeStaffed: false }, { financeSummary: summary(470000) }))
-  await screen.findByRole('heading', { name: '이번 주 일정 없음' })
-  expect(screen.queryByRole('region', { name: '사용 가능' })).toBeNull()
+  expect(await screen.findByRole('region', { name: '사용 가능' })).toBeTruthy()
 })
