@@ -136,14 +136,20 @@ function setup(home: HomeResponse, list = tasks) {
     const team = teamResponse()
     return json({ ...team, departments: [department, other] })
   })
+  // jsdom 폭은 1024px 아래라 도착 화면은 상태 탭이고, 끝남 탭 수를 세려고 끝난 업무도 읽는다.
   for (const scope of ['all', 'unassigned', 'mine']) {
     for (const source of ['', '&event=none', `&event=${E}`]) {
-      const scoped = list.filter(
-        task => task.status !== 'done' && taskSource(task, source) && taskScope(task, scope),
-      )
-      api.on('GET', `${base}/tasks?view=${scope}&status=open${source}`, () =>
-        json({ tasks: scoped, truncated: false }),
-      )
+      for (const status of ['open', 'done'] as const) {
+        const scoped = list.filter(
+          task =>
+            (task.status === 'done') === (status === 'done') &&
+            taskSource(task, source) &&
+            taskScope(task, scope),
+        )
+        api.on('GET', `${base}/tasks?view=${scope}&status=${status}${source}`, () =>
+          json({ tasks: scoped, truncated: false }),
+        )
+      }
     }
   }
   const shown = render(
@@ -185,6 +191,8 @@ test('확인 필요 전체 수와 도착 수가 같고 행사 업무·지남과 
   )
   destination()
   await expectTasks(expected)
+  // 휴대폰 도착 화면의 할 일 탭 수도 홈의 수와 같다.
+  expect(await screen.findByRole('tab', { name: '할 일 5' })).toBeTruthy()
   expect(screen.getByRole('tab', { name: '학생회 업무' }).getAttribute('aria-selected')).toBe(
     'true',
   )
