@@ -17,6 +17,7 @@ import { createTaskRoutes } from '../tasks/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { capturePushLogs, fanoutSummary } from '../test-support/push.js'
 import { createChatPush } from './notify.js'
 import { createChatRoutes } from './routes.js'
 import { linkSourceMessage } from './source-message.js'
@@ -383,10 +384,16 @@ test(
     const [{ id: lateId }] = (
       await t.pg.query<{ id: string }>('SELECT id FROM message WHERE room_id = $1', [room])
     ).rows as [{ id: string }]
-    await createChatPush(t.db, async (...args) => {
-      t.calls.push(args)
-      return { result: 'sent' }
-    }).notify(lateId, now)
+    const logs = await capturePushLogs(() =>
+      createChatPush(t.db, async (...args) => {
+        t.calls.push(args)
+        return { result: 'sent' }
+      }).notify(lateId, now),
+    )
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [{ ...fanoutSummary('chat'), skipped: 'archived' }],
+    )
     assert.equal(t.calls.length, 0)
     await t.cancelCompletion(eventId)
     assert.equal((await t.send(room, { body: '다시 열었어요' }, 's-planningHead')).status, 201)

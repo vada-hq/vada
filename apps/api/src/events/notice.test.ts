@@ -5,6 +5,7 @@ import { createChatPush } from '../chat/notify.js'
 import type { PushSender } from '../push/sender.js'
 import { createRecord } from '../records/records.js'
 import { startEvents, type EventKit } from '../test-support/events.js'
+import { capturePushLogs, fanoutSummary } from '../test-support/push.js'
 
 // 행사의 자동 글(025 조각 4, DEC-90, DEC-93, DEC-80): 행사를 만들거나 정해진 일시·장소를 다른 값으로 바꾸면 같은 거래에서 공지방에 보낸 사람 없는 글 하나.
 
@@ -94,6 +95,19 @@ const create = async (t: Kit, body: unknown, user = 's-president') => {
   assert.equal(response.status, 201)
   return ((await response.json()) as { event: EventDetail }).event
 }
+
+test(
+  '끼룩이 공지 글마다 notice 발송 요약 한 줄을 남긴다',
+  run(async t => {
+    const logs = await capturePushLogs(async () => {
+      await create(t, FULL)
+    })
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [fanoutSummary('notice', 6, 6, 6)],
+    )
+  }),
+)
 
 test(
   '행사를 만들면 우리 학생회 공지방에 보낸 사람 없는 끼룩이 글이 하나 있다',

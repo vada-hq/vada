@@ -71,7 +71,7 @@ vada-docs `decisions/0086-notices-point-to-records-on-home.md`(DEC-86)로 썼다
 - **볼 수 있는 범위(깊게, PRIN-5).** `visibleMessage`·`shownNotice`가 사진 보기(`chat/photos.ts`), 대화에서 요청·지출 만들기(011, `purchases`, `expenses/chat-evidence`), 업무 결과물(015)의 볼 수 있는가를 정한다. 이 조건을 공지 표로 옮기고, 보이는 공지와 내릴 수 있는 공지와 넓어지는 메시지가 한 도우미에서 나오게 한다(자주 잡힌 것 12). 내린 공지의 메시지는 다시 DEC-20을 따른다. 다른 학생회의 같은 모양 공지로 거르기를 시험한다(자주 잡힌 것 6, 11).
 - **권한 이름 바꾸기(깊게).** `chat.notice` → `notice.manage`가 contracts `Action`, `access/permissions.ts`(시험 포함), 업무 `canMake`, 화면의 메뉴 조건에 닿는다. 가진 사람은 그대로다.
 - **기록 쓰기 고리.** `notice` 기록 쓰기는 결과물 종류가 아니지만 그 대상 메시지의 단계를 바꾼다. `tasks/result-sync.ts`가 공지 쓰기를 대상 메시지로 옮겨 세는지, 기존 `tasks/result-others.test.ts`의 공지 경우가 새 길로 그대로 통과하는지 본다. pg-smoke의 공지 경우(`ops/pg-smoke/pg-smoke-notice-case.ts`)를 새 길로 고치고 진행이 돌린다.
-- **뒤에서 보내는 알림.** 거래가 끝난 뒤 한 번 보낸다(지금 멘션 알림과 같은 길). 실패는 `push_send_failed` 한 줄이고 공지는 그대로다. 받는 사람은 보낼 때 다시 읽은 지금 운영진이다. 잠금 화면 내용은 DEC-59 범위다.
+- **뒤에서 보내는 알림.** 거래가 끝난 뒤 한 번 보낸다(지금 멘션 알림과 같은 길). 이벤트 요약은 `push_fanout` 한 줄(칸은 003 '위험'), 예외·기기 실패는 `push_send_failed`이고 공지는 그대로다. 정상 종료 때 대기 업무 타이머를 바로 내보내고 진행 중인 알림을 최대 5초 기다린다. 강제 종료·상한 뒤의 유실을 막는 outbox는 나중이다. 받는 사람은 보낼 때 다시 읽은 지금 운영진이며 보는 중이어도 보낸다(시연 기준). 잠금 화면 내용은 DEC-59 범위다.
 - **새 라우트 모듈.** `notices`를 `AppOptions`로 연결하고 `boundary.test.ts`가 두 변경 라우트를 검사한다. AGENTS.md의 입력 경우(모르는 키, 틀린 종류, 형식이 틀린 번호, 다른 학생회 사용자, 미인증)를 시험한다.
 - **와이어프레임.** Figma(`B5OHqrl9bbvXCUkhME4Sfo`)의 홈 노드와 비교하되, 공지가 맨 위로 온 것은 이 명세가 정한 차이다.
 

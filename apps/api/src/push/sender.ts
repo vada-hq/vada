@@ -1,4 +1,5 @@
 import webpush, { type RequestOptions } from 'web-push'
+import { setTimeout } from 'node:timers/promises'
 import { type PushTestResult } from '@vada/contracts'
 import { GONE, NOT_FOUND } from '../http/status.js'
 import type { PushConfig } from './config.js'
@@ -18,6 +19,19 @@ export type PushSender = (
 type Send = (target: PushTarget, payload: string, options: RequestOptions) => Promise<unknown>
 
 const TEST_TTL_SECONDS = 60
+const SEND_TIMEOUT_MS = 10_000
+const FIRST_RETRY_DELAY_MS = 500
+const SECOND_RETRY_DELAY_MS = 1500
+const RETRY_DELAYS_MS = [FIRST_RETRY_DELAY_MS, SECOND_RETRY_DELAY_MS]
+const RETRY_AFTER_MAX_MS = 3000
+const MILLISECONDS_PER_SECOND = 1000
+const TOO_MANY_REQUESTS = 429
+const SERVER_ERROR_START = 500
+const SERVER_ERROR_END = 600
+type Wait = (ms: number) => Promise<void>
+const wait: Wait = async ms => {
+  await setTimeout(ms)
+}
 
 const sendWithLibrary: Send = (target, payload, options) =>
   webpush.sendNotification(target, payload, options)
@@ -32,9 +46,55 @@ function diagnosisOf(error: unknown): Pick<PushOutcome, 'status' | 'code'> {
   return {}
 }
 
+function retryable(status: number | undefined) {
+  return (
+    status === undefined ||
+    status === TOO_MANY_REQUESTS ||
+    (status >= SERVER_ERROR_START && status < SERVER_ERROR_END)
+  )
+}
+
+function retryDelay(error: unknown, fallback: number) {
+  if (diagnosisOf(error).status !== TOO_MANY_REQUESTS) return fallback
+  const headers = (error as { headers?: Record<string, unknown> }).headers
+  const value = headers?.['retry-after']
+  if (typeof value !== 'string') return fallback
+  const delay = /^\d+$/.test(value)
+    ? Number(value) * MILLISECONDS_PER_SECOND
+    : value.includes(':')
+      ? Date.parse(value) - Date.now()
+      : Number.NaN
+  return Number.isFinite(delay) ? Math.min(RETRY_AFTER_MAX_MS, Math.max(0, delay)) : fallback
+}
+
+async function sendWithRetry(attempt: () => Promise<unknown>, pause: Wait): Promise<PushOutcome> {
+  for (let retries = 0; ; retries++) {
+    try {
+      await attempt()
+      return { result: 'sent' }
+    } catch (error) {
+      const diagnosis = diagnosisOf(error)
+      const fallback = RETRY_DELAYS_MS[retries]
+      if (fallback !== undefined && retryable(diagnosis.status)) {
+        await pause(retryDelay(error, fallback))
+        continue
+      }
+      return {
+        result:
+          diagnosis.status === NOT_FOUND || diagnosis.status === GONE ? 'expired' : 'rejected',
+        ...diagnosis,
+      }
+    }
+  }
+}
+
 // 알림 서버가 404·410을 주면 그 구독은 끝났다. 그 밖의 실패(거절, 시간 초과, 연결 실패)는 받지 않은 것으로 본다.
 // 예상한 실패라 던지지 않고 결과로 돌려준다.
-export function createPushSender(config: PushConfig, send: Send = sendWithLibrary): PushSender {
+export function createPushSender(
+  config: PushConfig,
+  send: Send = sendWithLibrary,
+  pause: Wait = wait,
+): PushSender {
   const options: RequestOptions = {
     vapidDetails: {
       subject: config.subject,
@@ -42,20 +102,13 @@ export function createPushSender(config: PushConfig, send: Send = sendWithLibrar
       privateKey: config.privateKey,
     },
     urgency: 'high',
-    timeout: 10_000,
+    timeout: SEND_TIMEOUT_MS,
   }
   return async (target, message, { ttl = TEST_TTL_SECONDS } = {}) => {
     if (!isKnownPushService(target.endpoint)) return { result: 'rejected' }
-    try {
-      await send(target, JSON.stringify(message), { ...options, TTL: ttl })
-      return { result: 'sent' }
-    } catch (error) {
-      const diagnosis = diagnosisOf(error)
-      return {
-        result:
-          diagnosis.status === NOT_FOUND || diagnosis.status === GONE ? 'expired' : 'rejected',
-        ...diagnosis,
-      }
-    }
+    return sendWithRetry(
+      () => send(target, JSON.stringify(message), { ...options, TTL: ttl }),
+      pause,
+    )
   }
 }

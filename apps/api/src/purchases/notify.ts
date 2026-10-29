@@ -5,6 +5,7 @@ import type { Db } from '../db/types.js'
 import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
+import { createPendingPush, type PendingPush } from '../push/pending.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { itemCountColumns } from './last-outcome.js'
 import { requestStatusOf } from './policy.js'
@@ -80,20 +81,26 @@ async function messageOf(db: Db, notice: PurchaseNotice): Promise<PushMessage | 
 }
 
 // 구매 요청의 휴대폰 알림(새 요청, 결재 결과). 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
-// 받는 사람은 알림 기록을 남긴 사람이다. 재시작 중이면 그 알림은 사라진다(기능 003 '위험').
-export function createPurchasePush(db: Db, send: PushSender) {
+// 받는 사람은 알림 기록을 남긴 사람이다. 종료 시 진행 중인 알림을 기다린다(기능 003 '위험').
+export function createPurchasePush(
+  db: Db,
+  send: PushSender,
+  pending: PendingPush = createPendingPush(),
+) {
   const fanout = createFanout(db, send)
-  return {
-    async notify(notice: PurchaseNotice) {
-      try {
-        const message = await messageOf(db, notice)
-        if (!message) return
-        const accounts = await loginAccountsOf(db, notice.recipientIds)
-        await fanout.deliver(new Map(accounts.map(account => [account.userId, message])))
-      } catch (error) {
-        console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
-      }
-    },
+  async function notify(notice: PurchaseNotice) {
+    try {
+      const message = await messageOf(db, notice)
+      if (!message) return fanout.skip('purchase', 'no_message')
+      const accounts = await loginAccountsOf(db, notice.recipientIds)
+      await fanout.deliver(new Map(accounts.map(account => [account.userId, message])), {
+        kind: 'purchase',
+        recipients: new Set(notice.recipientIds).size,
+      })
+    } catch (error) {
+      console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+    }
   }
+  return { notify: (notice: PurchaseNotice) => pending.track(notify(notice)) }
 }
 export type PurchasePush = ReturnType<typeof createPurchasePush>

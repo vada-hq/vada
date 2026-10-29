@@ -10,6 +10,7 @@ import { createAuth } from './auth/auth.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 import { pushConfigFrom } from './push/config.js'
 import { createPushSender } from './push/sender.js'
+import { createPendingPush, type PendingPush } from './push/pending.js'
 import { realTimer } from './tasks/notify.js'
 import { createR2Storage, r2ConfigFrom } from './storage/storage.js'
 import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
@@ -19,6 +20,8 @@ import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
 import type { Db } from './db/types.js'
 
 type Env = NodeJS.ProcessEnv
+const PUSH_SHUTDOWN_LIMIT_MS = 5_000
+const DB_SHUTDOWN_TIMEOUT_SECONDS = 5
 
 // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
 function connectClient(url: string, options: postgres.Options<Record<string, never>> = {}) {
@@ -41,7 +44,12 @@ function pushOf(env: Env) {
   const pushConfig = pushConfigFrom(env)
   if (!pushConfig) return undefined
   console.log('휴대폰 알림 켜짐 (Web Push)')
-  return { publicKey: pushConfig.publicKey, send: createPushSender(pushConfig), after: realTimer }
+  return {
+    publicKey: pushConfig.publicKey,
+    send: createPushSender(pushConfig),
+    after: realTimer,
+    pending: createPendingPush(),
+  }
 }
 
 // 파일 저장소(R2) 값 넷이 모두 있어야 켠다. 없으면 사진만 막히고 서버와 글 대화는 돈다.
@@ -58,7 +66,11 @@ function productLookupOf(env: Env) {
   return apiKey ? createReefLookup({ apiKey }) : undefined
 }
 
-function appOf(env: Env, db: Db, storage: ReturnType<typeof storageOf>) {
+function appOf(
+  env: Env,
+  db: Db,
+  services: { storage: ReturnType<typeof storageOf>; push: ReturnType<typeof pushOf> },
+) {
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET!,
     baseURL: env.BETTER_AUTH_URL!,
@@ -71,8 +83,7 @@ function appOf(env: Env, db: Db, storage: ReturnType<typeof storageOf>) {
     clock: () => new Date(),
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: env.BETTER_AUTH_SECRET!,
-    storage,
-    push: pushOf(env),
+    ...services,
     productLookup: productLookupOf(env),
     deliveryLookup: env.DELIVERY_TRACKER_API_KEY?.trim()
       ? createDeliveryLookup({ apiKey: env.DELIVERY_TRACKER_API_KEY.trim() })
@@ -85,7 +96,7 @@ function listen(
   app: ReturnType<typeof appOf>,
   client: { end(options: { timeout: number }): Promise<void> },
   address: { hostname: string; port: number; production: boolean },
-  stopPurge: () => void,
+  shutdownDeps: { stopPurge: () => void; pending: PendingPush },
 ) {
   const { hostname, port, production } = address
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
@@ -93,14 +104,18 @@ function listen(
   })
   server.on('error', () => {
     console.error('서버 실행 실패. 호스트와 포트 사용 여부를 확인하세요.')
-    void client.end({ timeout: 5 })
+    void client.end({ timeout: DB_SHUTDOWN_TIMEOUT_SECONDS })
     process.exitCode = 1
   })
   const shutdown = () => {
-    stopPurge()
+    shutdownDeps.stopPurge()
+    shutdownDeps.pending.flush()
     server.close(() => {
-      void client.end({ timeout: 5 })
-      void stopErrorReporting()
+      void (async () => {
+        await shutdownDeps.pending.settle(PUSH_SHUTDOWN_LIMIT_MS)
+        await client.end({ timeout: DB_SHUTDOWN_TIMEOUT_SECONDS })
+        await stopErrorReporting()
+      })()
     })
   }
   process.once('SIGTERM', shutdown)
@@ -117,24 +132,28 @@ function main() {
     console.log('오류 알림 켜짐 (Sentry)')
   const { client, db } = connectDb(env)
   const storage = storageOf(env)
-  const app = appOf(env, db, storage)
+  const push = pushOf(env)
+  const app = appOf(env, db, { storage, push })
   if (production) attachWeb(app)
   // 기한이 지난 개인정보와 열람 기록을 시작 때와 1시간마다 지운다.
   listen(
     app,
     client,
     { hostname, port, production },
-    startPurge(
-      db,
-      storage
-        ? {
-            objects: {
-              storage,
-              lock: objectPurgeLockOf(env.DATABASE_URL, connectClient),
-            },
-          }
-        : {},
-    ),
+    {
+      pending: push?.pending ?? createPendingPush(),
+      stopPurge: startPurge(
+        db,
+        storage
+          ? {
+              objects: {
+                storage,
+                lock: objectPurgeLockOf(env.DATABASE_URL, connectClient),
+              },
+            }
+          : {},
+      ),
+    },
   )
 }
 

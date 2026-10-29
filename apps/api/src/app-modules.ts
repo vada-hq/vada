@@ -40,6 +40,7 @@ import type { SessionReader } from './auth/require-session.js'
 import type { Db } from './db/types.js'
 import type { RateLimiter } from './http/rate-limit.js'
 import type { PushSender } from './push/sender.js'
+import { createPendingPush, type PendingPush } from './push/pending.js'
 import type { FileStorage } from './storage/storage.js'
 
 export type AppDeps = {
@@ -60,6 +61,7 @@ export type AppDeps = {
         wait?: (ms: number) => Promise<void>
         // 배정 알림을 모으는 타이머. 운영은 realTimer, 시험은 가짜를 넣는다.
         after: AfterTimer
+        pending?: PendingPush
       }
     | undefined
   // 쿠팡 상품 정보를 부르는 함수. 운영은 ReefAPI, 시험은 가짜 fetch를 넣는다. 없으면(키 없음) 불러오기만 꺼진다.
@@ -70,6 +72,7 @@ export type AppDeps = {
 function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
   const { push, clock } = deps
   if (!push) return { routes: undefined }
+  const pending = push.pending ?? createPendingPush()
   return {
     routes: createPushRoutes(session, {
       publicKey: push.publicKey,
@@ -78,9 +81,9 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
       forget: (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
       clock,
     }),
-    chat: createChatPush(db, push.send),
-    task: createTaskPush(db, push.send, push.after),
-    purchase: createPurchasePush(db, push.send),
+    chat: createChatPush(db, push.send, pending),
+    task: createTaskPush(db, push.send, push.after, pending),
+    purchase: createPurchasePush(db, push.send, pending),
   }
 }
 

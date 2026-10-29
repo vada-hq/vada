@@ -8,6 +8,7 @@ import { clockNow, createRecord } from '../records/records.js'
 import { memberLogin } from '../db/schema.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { capturePushLogs, fanoutSummary } from '../test-support/push.js'
 import { fakeStorage } from '../test-support/storage.js'
 import { createChatPush } from './notify.js'
 import { createChatRoutes } from './routes.js'
@@ -217,7 +218,7 @@ test(
 )
 
 test(
-  '10초 안에 그 방의 최신 쪽을 읽은 사람은 빠지고 10초가 지나면 다시 받는다',
+  '그 방의 최신 쪽을 방금 읽은 사람도 받고 보낸 사람은 받지 않는다',
   run(async s => {
     const all = await s.roomId('all')
     const first = (await (await s.send(all, 's-president', { body: '하나' })).json()) as ChatMessage
@@ -226,7 +227,8 @@ test(
     // 이전 쪽(before) 읽기는 보는 중이 아니다.
     await s.api.get(`${s.base}/rooms/${all}/messages?before=${first.id}`, 's-financeMember')
     await s.send(all, 's-president', { body: '둘' })
-    assert.ok(!endpointsOf(s).includes(endpointOf('s-plain')))
+    assert.ok(endpointsOf(s).includes(endpointOf('s-plain')))
+    assert.ok(!endpointsOf(s).includes(endpointOf('s-president')))
     assert.ok(endpointsOf(s).includes(endpointOf('s-financeMember')))
     s.calls.length = 0
     s.setNow(new Date(start.getTime() + 10_000))
@@ -377,7 +379,7 @@ test(
 )
 
 test(
-  '최신까지 이어 읽는 중이면 10초가 지나도 알림이 오지 않고, 이전 쪽을 보는 사람은 받는다',
+  '최신까지 이어 읽는 사람과 이전 쪽을 보는 사람 모두 알림을 받는다',
   run(async s => {
     const all = await s.roomId('all')
     const first = (await (await s.send(all, 's-president', { body: '하나' })).json()) as ChatMessage
@@ -391,7 +393,52 @@ test(
       await s.api.get(`${s.base}/rooms/${all}/messages?before=${first.id}`, 's-financeMember')
     }
     await s.send(all, 's-president', { body: '둘' })
-    assert.ok(!endpointsOf(s).includes(endpointOf('s-plain')))
+    assert.ok(endpointsOf(s).includes(endpointOf('s-plain')))
+    assert.ok(!endpointsOf(s).includes(endpointOf('s-president')))
     assert.ok(endpointsOf(s).includes(endpointOf('s-financeMember')))
+  }),
+)
+
+test(
+  '발송 요약은 이벤트마다 한 줄이며 숫자와 고정 문자열만 남긴다',
+  run(async s => {
+    const all = await s.roomId('all')
+    const logs = await capturePushLogs(async () => {
+      await s.send(all, 's-president', { body: '비밀 본문' })
+    })
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [fanoutSummary('chat', 6, 6, 6)],
+    )
+    for (const secret of [
+      all,
+      s.council.people.plain.memberId,
+      's-plain',
+      endpointOf('s-plain'),
+      '비밀 본문',
+    ])
+      assert.ok(!logs.join('').includes(secret), secret)
+  }),
+)
+
+test(
+  '지운 메시지는 skipped 한 줄만 남긴다',
+  run(async s => {
+    const all = await s.roomId('all')
+    const posted = (await (
+      await s.send(all, 's-president', { body: '지울 글' })
+    ).json()) as ChatMessage
+    await s.pg.query('UPDATE message SET body = NULL, deleted_at = now() WHERE id = $1', [
+      posted.id,
+    ])
+    s.calls.length = 0
+    const logs = await capturePushLogs(() =>
+      createChatPush(s.db, async () => ({ result: 'sent' })).notify(posted.id, start),
+    )
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [{ ...fanoutSummary('chat'), skipped: 'deleted' }],
+    )
+    assert.equal(s.calls.length, 0)
   }),
 )

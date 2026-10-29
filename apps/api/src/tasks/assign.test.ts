@@ -7,6 +7,8 @@ import { createRateLimiter } from '../http/rate-limit.js'
 import type { PushSender } from '../push/sender.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { capturePushLogs, fanoutSummary } from '../test-support/push.js'
+import { createPendingPush } from '../push/pending.js'
 import { ASSIGNMENT_NOTICE_DELAY_MS, createTaskPush, type AfterTimer } from './notify.js'
 import { createTaskRoutes } from './routes.js'
 
@@ -47,7 +49,8 @@ async function start(
     return { result: 'sent' }
   }
   const timer = fakeTimer()
-  const push = createTaskPush(db, send, timer.after)
+  const pendingPush = createPendingPush()
+  const push = createTaskPush(db, send, timer.after, pendingPush)
   for (const person of Object.values(council.people))
     await pg.query(
       'INSERT INTO push_device (user_id, endpoint, p256dh, auth) VALUES ($1,$2,$3,$4)',
@@ -106,6 +109,8 @@ async function start(
     settled,
     hold,
     timer,
+    push,
+    pendingPush,
     close,
   }
 }
@@ -377,6 +382,46 @@ const rawAssign = (s: S, id: string, assigneeId: string | null, user = 's-presid
   s.api.post(`${s.base}/${id}/assignee`, { assigneeId }, user)
 
 test(
+  'flush는 10초를 기다리지 않고 대기 업무를 보내고 타이머를 지운다',
+  run(async s => {
+    const task = await s.made({ title: 'a' })
+    await rawAssign(s, task.id, s.council.people.plain.memberId)
+    const logs = await capturePushLogs(async () => {
+      s.push.flush()
+      await s.pendingPush.settle(5000)
+    })
+    assert.deepEqual(sentTo(s), [endpointOf('s-plain')])
+    assert.equal(s.timer.waiting(), 0)
+    await s.timer.advance(DELAY)
+    assert.equal(s.calls.length, 1)
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [fanoutSummary('task', 1, 1, 1)],
+    )
+  }),
+)
+
+test(
+  '처음 담당자로 되돌린 업무는 flush해도 보내지 않고 reverted 한 줄을 남긴다',
+  run(async s => {
+    const { planningMember, plain } = s.council.people
+    const task = await s.made({ title: 'a', assigneeId: planningMember.memberId })
+    s.calls.length = 0
+    await rawAssign(s, task.id, plain.memberId)
+    await rawAssign(s, task.id, planningMember.memberId)
+    const logs = await capturePushLogs(async () => {
+      await s.pendingPush.settle(5000)
+    })
+    assert.equal(s.calls.length, 0)
+    assert.equal(s.timer.waiting(), 0)
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [{ ...fanoutSummary('task'), skipped: 'reverted' }],
+    )
+  }),
+)
+
+test(
   '9.999초에는 가지 않고 10초에 한 번 간다. 만들 때 정한 담당자도 같다',
   run(async s => {
     const { planningMember, financeMember } = s.council.people
@@ -452,8 +497,17 @@ test(
     await s.api.post(`${s.base}/${three.id}/delete`, {}, 's-president')
     await rawAssign(s, four.id, planningMember.memberId)
     assert.equal(s.timer.waiting(), 4)
-    await s.timer.advance(DELAY)
+    const logs = await capturePushLogs(() => s.timer.advance(DELAY))
     assert.deepEqual(sentTo(s), [endpointOf('s-planningMember')])
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [
+        { ...fanoutSummary('task'), skipped: 'self' },
+        { ...fanoutSummary('task'), skipped: 'unassigned' },
+        { ...fanoutSummary('task'), skipped: 'cancelled' },
+        fanoutSummary('task', 1, 1, 1),
+      ],
+    )
   }),
 )
 
@@ -464,8 +518,12 @@ test(
     const task = await s.made({ title: 'a' })
     await rawAssign(s, task.id, financeMember.memberId)
     await s.pg.query('UPDATE task SET assignee_id = $1 WHERE id = $2', [plain.memberId, task.id])
-    await s.timer.advance(DELAY)
+    const logs = await capturePushLogs(() => s.timer.advance(DELAY))
     assert.equal(s.calls.length, 0)
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [{ ...fanoutSummary('task'), skipped: 'reassigned' }],
+    )
   }),
 )
 

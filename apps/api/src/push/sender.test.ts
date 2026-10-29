@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import webpush from 'web-push'
-import { createPushSender } from './sender.js'
+import { createPushSender as makePushSender } from './sender.js'
+
+const createPushSender = (...args: Parameters<typeof makePushSender>) =>
+  makePushSender(args[0], args[1], args[2] ?? (async () => {}))
 
 const keys = webpush.generateVAPIDKeys()
 const config = {
@@ -116,4 +119,121 @@ test('알려지지 않은 서버는 rejected를 돌려주고 send를 호출하�
   const unknownTarget = { endpoint: 'https://127.0.0.1/x', keys: { p256dh: 'p', auth: 'a' } }
   assert.deepEqual(await send(unknownTarget, message), { result: 'rejected' })
   assert.deepEqual(calls, [])
+})
+
+for (const statusCode of [404, 410, 400, 403, 413]) {
+  test(`${statusCode}는 재시도하지 않는다`, async () => {
+    let calls = 0
+    const waits: number[] = []
+    const send = createPushSender(
+      config,
+      async () => {
+        calls++
+        throw Object.assign(new Error('secret'), { statusCode })
+      },
+      async ms => {
+        waits.push(ms)
+      },
+    )
+    const outcome = await send(target, message)
+    assert.equal(outcome.result, statusCode === 404 || statusCode === 410 ? 'expired' : 'rejected')
+    assert.equal(calls, 1)
+    assert.deepEqual(waits, [])
+  })
+}
+
+test('5xx 뒤 성공하면 sent이고 첫 기다림은 0.5초다', async () => {
+  let calls = 0
+  const waits: number[] = []
+  const send = createPushSender(
+    config,
+    async () => {
+      if (++calls === 1) throw Object.assign(new Error('secret'), { statusCode: 503 })
+    },
+    async ms => {
+      waits.push(ms)
+    },
+  )
+  assert.deepEqual(await send(target, message), { result: 'sent' })
+  assert.equal(calls, 2)
+  assert.deepEqual(waits, [500])
+})
+
+test('429의 Retry-After 초는 3초로 제한하고 HTTP 날짜도 읽는다', async () => {
+  for (const header of ['10', new Date(Date.now() + 60_000).toUTCString()]) {
+    let calls = 0
+    const waits: number[] = []
+    const send = createPushSender(
+      config,
+      async () => {
+        if (++calls === 1)
+          throw Object.assign(new Error('secret'), {
+            statusCode: 429,
+            headers: { 'retry-after': header },
+          })
+      },
+      async ms => {
+        waits.push(ms)
+      },
+    )
+    assert.deepEqual(await send(target, message), { result: 'sent' })
+    assert.deepEqual(waits, [3000])
+  }
+})
+
+test('연결 오류는 최대 두 번 더 시도하고 마지막 진단을 돌려준다', async () => {
+  const waits: number[] = []
+  let calls = 0
+  const send = createPushSender(
+    config,
+    async () => {
+      calls++
+      throw Object.assign(new Error('secret'), { code: calls === 3 ? 'ETIMEDOUT' : 'ECONNRESET' })
+    },
+    async ms => {
+      waits.push(ms)
+    },
+  )
+  assert.deepEqual(await send(target, message), { result: 'rejected', code: 'ETIMEDOUT' })
+  assert.equal(calls, 3)
+  assert.deepEqual(waits, [500, 1500])
+})
+
+test('알 수 없는 서비스는 기다림도 호출하지 않는다', async () => {
+  const waits: number[] = []
+  const send = createPushSender(
+    config,
+    async () => {
+      assert.fail('보내면 안 됨')
+    },
+    async ms => {
+      waits.push(ms)
+    },
+  )
+  assert.deepEqual(await send({ ...target, endpoint: 'https://127.0.0.1/x' }, message), {
+    result: 'rejected',
+  })
+  assert.deepEqual(waits, [])
+})
+
+test('읽을 수 없는 Retry-After는 기본 기다림을 쓴다', async () => {
+  for (const header of ['invalid', '1.5', '-10']) {
+    let calls = 0
+    const waits: number[] = []
+    const send = createPushSender(
+      config,
+      async () => {
+        if (++calls === 1)
+          throw Object.assign(new Error('secret'), {
+            statusCode: 429,
+            headers: { 'retry-after': header },
+          })
+      },
+      async ms => {
+        waits.push(ms)
+      },
+    )
+    assert.deepEqual(await send(target, message), { result: 'sent' })
+    assert.deepEqual(waits, [500])
+  }
 })

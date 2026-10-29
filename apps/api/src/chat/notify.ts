@@ -14,6 +14,7 @@ import type { Db } from '../db/types.js'
 import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
+import { createPendingPush, type PendingPush } from '../push/pending.js'
 import type { PushMessage, PushSender } from '../push/sender.js'
 import { isArchivedEvent } from './archive.js'
 import { currentMembersAmong } from './current-members.js'
@@ -27,6 +28,8 @@ const ROOM_TITLES: Partial<Record<RoomType, string>> = {
   leadership: '회장단방',
   inter_department: '부서 간 방',
 }
+// 시연 기준으로 늘 보낸다. 나중에 화면이 보이고 초점이 있을 때만(Slack 방식) 제외하도록 다시 켤 수 있다.
+const SUPPRESS_WHILE_VIEWING = false
 
 async function sentMessage(db: Db, messageId: string) {
   const [row] = await db
@@ -74,6 +77,9 @@ async function audienceOf(db: Db, sent: Sent, now: Date, skip: string | null) {
 }
 
 type Sent = NonNullable<Awaited<ReturnType<typeof sentMessage>>>
+// except는 자동 공지를 일으킨 사람이다. 발신자가 없는 글도 공지로 세어 except 없는 자동 글을 포함한다.
+const kindOf = (sent: Sent | undefined, except: string | undefined) =>
+  except !== undefined || (sent && !sent.senderId) ? 'notice' : 'chat'
 
 // 알림 제목: 1:1은 보낸 사람, 부서방은 부서 이름, 나머지는 방 종류 이름이다(끼룩이 글은 공지방).
 // 행사 방은 앞에 행사 이름을 붙인다('{행사} 공지방', '{행사} {부서}', 022 정한 것 1).
@@ -93,17 +99,22 @@ async function calledOf(db: Db, messageId: string) {
 }
 
 // 메시지를 보낸 뒤의 휴대폰 알림. 커밋 뒤에 떼어 부르고 응답은 기다리지 않는다(notify는 던지지 않는다).
-// 받는 사람: 그 방의 지금 참여자 - 보낸 사람 - 10초 안에 그 방을 본 사람. 부름 받은 사람은 부름 문구로 한 번만 받는다.
-// 재시작 중이면 그 알림은 사라진다(outbox는 '나중', 기능 003 '위험').
-export function createChatPush(db: Db, send: PushSender) {
+// 받는 사람: 그 방의 지금 참여자 - 보낸 사람. 부름 받은 사람은 부름 문구로 한 번만 받는다.
+export function createChatPush(
+  db: Db,
+  send: PushSender,
+  pending: PendingPush = createPendingPush(),
+) {
   const presence = createPresence()
   const fanout = createFanout(db, send)
   async function run(messageId: string, now: Date, except: string | undefined) {
     const sent = await sentMessage(db, messageId)
+    const kind = kindOf(sent, except)
     // 보내자마자 지운 메시지와 보관된 행사 방의 글은 알리지 않는다(DEC-54, DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
-    if (!sent?.councilId || sent.body === null || (await isArchivedEvent(db, sent.eventId))) return
+    if (!sent?.councilId || sent.body === null) return fanout.skip(kind, 'deleted')
+    if (await isArchivedEvent(db, sent.eventId)) return fanout.skip(kind, 'archived')
     const viewers = (await audienceOf(db, sent, now, sent.senderId ?? except ?? null)).filter(
-      id => !presence.isViewing(sent.roomId, id, now),
+      id => !SUPPRESS_WHILE_VIEWING || !presence.isViewing(sent.roomId, id, now),
     )
     const called = await calledOf(db, messageId)
     const url = chatRoomUrl(sent.councilId, sent.roomId, sent.eventId)
@@ -119,7 +130,14 @@ export function createChatPush(db: Db, send: PushSender) {
     const messages = new Map<string, PushMessage>()
     for (const { memberId, userId } of await loginAccountsOf(db, viewers))
       messages.set(userId, called.has(memberId) ? mention : normal)
-    await fanout.deliver(messages)
+    await fanout.deliver(messages, { kind, recipients: viewers.length })
+  }
+  async function notify(messageId: string, now: Date, except: string | undefined) {
+    try {
+      await run(messageId, now, except)
+    } catch (error) {
+      console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+    }
   }
   return {
     // 방의 최신 쪽을 읽은 사람을 '보는 중'으로 적는다.
@@ -127,13 +145,8 @@ export function createChatPush(db: Db, send: PushSender) {
       presence.see(roomId, memberId, now)
     },
     // except: 보낸 사람 없는 글을 일으킨 운영진. 그 사람은 받지 않는다.
-    async notify(messageId: string, now: Date, options: { except?: string } = {}) {
-      try {
-        await run(messageId, now, options.except)
-      } catch (error) {
-        console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
-      }
-    },
+    notify: (messageId: string, now: Date, options: { except?: string } = {}) =>
+      pending.track(notify(messageId, now, options.except)),
   }
 }
 export type ChatPush = ReturnType<typeof createChatPush>
