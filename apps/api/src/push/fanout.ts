@@ -21,6 +21,7 @@ export type SkipReason =
   | 'self'
   | 'reverted'
   | 'no_message'
+  | 'failed'
 type Counts = {
   recipients: number
   devices: number
@@ -33,6 +34,11 @@ function summarize(kind: Kind, counts: Counts, skipped?: SkipReason) {
   console.log(
     JSON.stringify({ event: 'push_fanout', kind, ...counts, ...(skipped ? { skipped } : {}) }),
   )
+}
+
+function failed(kind: Kind, error: unknown) {
+  console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+  summarize(kind, emptyCounts(), 'failed')
 }
 
 // 사람들의 기기마다 알림 한 번씩. 던지지 않는다: 커밋 뒤에 떼어 보내는 일이라 실패가 응답이나 프로세스에 닿으면 안 된다.
@@ -84,5 +90,6 @@ export function createFanout(db: Db, send: PushSender) {
     // 사람마다 보낼 알림이 다르다(부름 받은 사람). 계정 번호 → 알림이다.
     deliver,
     skip: (kind: Kind, reason: SkipReason) => summarize(kind, emptyCounts(), reason),
+    failed,
   }
 }

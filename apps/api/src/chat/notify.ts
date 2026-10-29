@@ -11,7 +11,6 @@ import {
   roomMembership,
 } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import { createPendingPush, type PendingPush } from '../push/pending.js'
@@ -77,6 +76,7 @@ async function audienceOf(db: Db, sent: Sent, now: Date, skip: string | null) {
 }
 
 type Sent = NonNullable<Awaited<ReturnType<typeof sentMessage>>>
+type ChatNotice = { messageId: string; now: Date; except: string | undefined }
 // except는 자동 공지를 일으킨 사람이다. 발신자가 없는 글도 공지로 세어 except 없는 자동 글을 포함한다.
 const kindOf = (sent: Sent | undefined, except: string | undefined) =>
   except !== undefined || (sent && !sent.senderId) ? 'notice' : 'chat'
@@ -107,8 +107,7 @@ export function createChatPush(
 ) {
   const presence = createPresence()
   const fanout = createFanout(db, send)
-  async function run(messageId: string, now: Date, except: string | undefined) {
-    const sent = await sentMessage(db, messageId)
+  async function run(sent: Sent | undefined, { messageId, now, except }: ChatNotice) {
     const kind = kindOf(sent, except)
     // 보내자마자 지운 메시지와 보관된 행사 방의 글은 알리지 않는다(DEC-54, DEC-90). 보관 전에 보낸 글의 알림이 늦게 가도 빠진다.
     if (!sent?.councilId || sent.body === null) return fanout.skip(kind, 'deleted')
@@ -133,10 +132,12 @@ export function createChatPush(
     await fanout.deliver(messages, { kind, recipients: viewers.length })
   }
   async function notify(messageId: string, now: Date, except: string | undefined) {
+    let sent: Sent | undefined
     try {
-      await run(messageId, now, except)
+      sent = await sentMessage(db, messageId)
+      await run(sent, { messageId, now, except })
     } catch (error) {
-      console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+      fanout.failed(kindOf(sent, except), error)
     }
   }
   return {

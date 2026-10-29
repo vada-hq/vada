@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm'
 import { purchaseRequestTag, purchaseRequestUrl, type PurchaseStatus } from '@vada/contracts'
 import { lineItem, member, record, request } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout } from '../push/fanout.js'
 import { createPendingPush, type PendingPush } from '../push/pending.js'
@@ -98,7 +97,7 @@ export function createPurchasePush(
         recipients: new Set(notice.recipientIds).size,
       })
     } catch (error) {
-      console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+      fanout.failed('purchase', error)
     }
   }
   return { notify: (notice: PurchaseNotice) => pending.track(notify(notice)) }

@@ -18,10 +18,9 @@ import { startPurge } from './purge/run.js'
 import { objectPurgeLockOf } from './storage/orphan-connection.js'
 import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
 import type { Db } from './db/types.js'
+import { DB_SHUTDOWN_TIMEOUT_SECONDS, shutdown } from './shutdown.js'
 
 type Env = NodeJS.ProcessEnv
-const PUSH_SHUTDOWN_LIMIT_MS = 5_000
-const DB_SHUTDOWN_TIMEOUT_SECONDS = 5
 
 // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
 function connectClient(url: string, options: postgres.Options<Record<string, never>> = {}) {
@@ -107,19 +106,11 @@ function listen(
     void client.end({ timeout: DB_SHUTDOWN_TIMEOUT_SECONDS })
     process.exitCode = 1
   })
-  const shutdown = () => {
-    shutdownDeps.stopPurge()
-    shutdownDeps.pending.flush()
-    server.close(() => {
-      void (async () => {
-        await shutdownDeps.pending.settle(PUSH_SHUTDOWN_LIMIT_MS)
-        await client.end({ timeout: DB_SHUTDOWN_TIMEOUT_SECONDS })
-        await stopErrorReporting()
-      })()
-    })
+  const onShutdown = () => {
+    void shutdown({ ...shutdownDeps, server, client, stopErrorReporting })
   }
-  process.once('SIGTERM', shutdown)
-  process.once('SIGINT', shutdown)
+  process.once('SIGTERM', onShutdown)
+  process.once('SIGINT', onShutdown)
 }
 
 function main() {

@@ -1,3 +1,13 @@
+import type { Db } from '../db/types.js'
+
+export function failingPushDb() {
+  return {
+    select: () => {
+      throw new Error('secret')
+    },
+  } as unknown as Db
+}
+
 export async function capturePushLogs(run: () => Promise<void>) {
   const lines: string[] = []
   const original = console.log

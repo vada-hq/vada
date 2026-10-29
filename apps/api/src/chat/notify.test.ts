@@ -8,7 +8,7 @@ import { clockNow, createRecord } from '../records/records.js'
 import { memberLogin } from '../db/schema.js'
 import { seedCouncil } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
-import { capturePushLogs, fanoutSummary } from '../test-support/push.js'
+import { capturePushLogs, failingPushDb, fanoutSummary } from '../test-support/push.js'
 import { fakeStorage } from '../test-support/storage.js'
 import { createChatPush } from './notify.js'
 import { createChatRoutes } from './routes.js'
@@ -16,6 +16,30 @@ import { createChatRoutes } from './routes.js'
 const start = new Date('2026-10-19T03:00:00Z')
 const JOINED = '2026-03-01T00:00:00Z'
 const endpointOf = (user: string, n = 1) => `https://fcm.googleapis.com/fcm/send/${user}-${n}`
+
+test('메시지 조회 실패도 대화·공지마다 failed 요약과 정제한 경고 한 줄을 남긴다', async t => {
+  const warnings: string[] = []
+  t.mock.method(console, 'warn', (line: string) => void warnings.push(line))
+  const push = createChatPush(failingPushDb(), async () => assert.fail('보내면 안 됨'))
+  for (const [except, kind] of [
+    [undefined, 'chat'],
+    ['secret-actor', 'notice'],
+  ] as const) {
+    warnings.length = 0
+    const logs = await capturePushLogs(() =>
+      push.notify('secret-message', start, except === undefined ? {} : { except }),
+    )
+    assert.deepEqual(
+      logs.map(line => JSON.parse(line) as unknown),
+      [{ ...fanoutSummary(kind), skipped: 'failed' }],
+    )
+    assert.deepEqual(
+      warnings.map(line => JSON.parse(line) as unknown),
+      [{ event: 'push_send_failed' }],
+    )
+    assert.ok(![...logs, ...warnings].join('').includes('secret'))
+  }
+})
 
 type Outcome = Awaited<ReturnType<PushSender>> | 'throw'
 async function setup(outcomeOf: (endpoint: string) => Outcome) {

@@ -18,6 +18,7 @@ test('settle은 기다리는 중에 새로 추적한 일까지 기다린다', as
   void pending.track(second.promise)
   first.resolve()
   await first.promise
+  await new Promise<void>(resolve => setImmediate(resolve))
   assert.equal(settled, false)
   second.resolve()
   await done

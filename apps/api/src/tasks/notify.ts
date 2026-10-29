@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm'
 import { koreanDateOf, taskTag, taskUrl } from '@vada/contracts'
 import { member, record, task } from '../db/schema.js'
 import type { Db } from '../db/types.js'
-import { sqlState } from '../http/on-error.js'
 import { loginAccountsOf } from '../push/accounts.js'
 import { createFanout, type SkipReason } from '../push/fanout.js'
 import { createPendingPush, type PendingPush } from '../push/pending.js'
@@ -84,7 +83,7 @@ async function deliver(
       recipients: 1,
     })
   } catch (error) {
-    console.warn(JSON.stringify({ event: 'push_send_failed', sqlState: sqlState(error) }))
+    fanout.failed('task', error)
   }
 }
 
