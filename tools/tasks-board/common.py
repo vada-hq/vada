@@ -9,7 +9,7 @@ PORT = os.environ.get("BOARD_PORT", "5294")
 BASE = f"http://127.0.0.1:{PORT}/tasks-board.html"
 SCREENS = Path("C:/Users/82108/vada-hq/notes/integration/review/screens/tasks/board")
 VIEW = {1920: (1920, 1032), 1280: (1280, 800), 390: (390, 844)}
-VARIANTS = ["b1", "b2", "b3"]
+VARIANTS = ["b1", "b2", "b3", "now"]
 # 안마다 찍는 장: 세 폭 x main, 1280 x few·many·adding
 CASES = [(1920, "main"), (1280, "main"), (390, "main"), (1280, "few"), (1280, "many"), (1280, "adding")]
 

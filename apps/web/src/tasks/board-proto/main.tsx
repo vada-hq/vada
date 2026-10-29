@@ -4,6 +4,7 @@ import '../../index.css'
 import { B1Board, B1List } from './b1/Board'
 import { B2Board, B2List } from './b2/Board'
 import { B3Board, B3List } from './b3/Board'
+import { NowBoard } from './now/Board'
 import { DATA_NAMES, SAMPLES, type DataName } from './data'
 import { Frame } from './Frame'
 
@@ -14,6 +15,7 @@ const VARIANTS = {
   b1: { board: B1Board, list: B1List },
   b2: { board: B2Board, list: B2List },
   b3: { board: B3Board, list: B3List },
+  now: { board: NowBoard, list: B1List },
 }
 type Variant = keyof typeof VARIANTS
 const variant = (params.get('variant') ?? 'b1') as Variant
