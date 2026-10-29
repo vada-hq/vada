@@ -1,5 +1,4 @@
-import { coupangProductOf } from '@vada/contracts'
-import { PRODUCT_NONE_REASON, useProductInfo } from '@/lib/product-info'
+import { isProductLink, PRODUCT_NONE_REASON, useProductInfo } from '@/lib/product-info'
 import { ProductPreview } from './ProductPreview'
 
 function LoadedProduct({ councilId, link }: { councilId: string; link: string }) {
@@ -25,7 +24,7 @@ export function RequestProductInfo({
   councilId?: string | undefined
   link: string | null
 }) {
-  return councilId && link && coupangProductOf(link) ? (
+  return councilId && link && isProductLink(link) ? (
     <LoadedProduct councilId={councilId} link={link} />
   ) : null
 }

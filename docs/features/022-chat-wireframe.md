@@ -27,7 +27,7 @@
 - DEC-90의 '첫 주 뒤'와 '미룸': 부서 간 방(`chat_room`에 부서 칸이 하나뿐이라 표를 바꿀 수 있다), 메시지에서 업무 만들기, 방의 링크 모아 보기.
 - 구매 후보 보드, 메시지 옮기기, 일반 파일 첨부, 방 만들기·인원 추가·나가기, 공지방 보내기 권한 설정, 공지 고정, 홈 공지, 모두 부르기.
 - `message.is_notice` 칸 지우기(표를 바꾸고 얻는 것이 없다), 방 유일 인덱스.
-- 불러온 가격·배송을 품목에 저장하기(`line_item`에 칸이 없고 금액은 승인 때 정한다, DEC-40). 상품 사진, 쿠팡 밖 쇼핑몰의 정보 불러오기, 단축 주소 풀기.
+- 불러온 가격·배송을 품목에 저장하기(`line_item`에 칸이 없고 금액은 승인 때 정한다, DEC-40). 상품 사진, 쿠팡 밖 쇼핑몰의 정보 불러오기, `coupa.ng` 단축 주소 풀기.
 - 우리 학생회 공간 화면(옆 메뉴 영역), 재정 쪽 차이(구매 목적 초안, 제출 권한, 증빙 공개 범위), 업무 영역의 '공지 만들기' 다시 보기.
 - 방마다 알림 끄기(RFC-7 '되도록'). 넣을 때 공지방은 끄지 못하게 한다(DEC-90).
 
@@ -49,7 +49,7 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 | 10 ReefAPI 호출 | `POST https://api.reefapi.com/coupang/v1/product`, 본문 `{"product_id": <정규화한 상품 주소>}`(상품 id, item id, 전체 상품 주소를 모두 받는다), `content-type: application/json`. `max_rotations`는 기본(4)을 둔다. 응답 `{ ok, data, meta, error }`, `data.items[]`(그 상품 id의 판매 단위마다 이름·가격·정가·할인·배송·도착 예정·item id·vendor item id), `data.item`(쿠팡이 맨 앞에 둔 것), `data.price_range` | [ReefAPI Coupang](https://reefapi.com/docs/coupang)("Look up ONE Coupang product by id", 2 credits), [ReefAPI docs](https://reefapi.com/docs) | 쉽다 |
 | 11 인증·환경 변수 | 헤더 `x-api-key`. 키는 서버 환경 변수 `REEF_API_KEY` 하나다. 없으면 불러오기만 꺼지고 서버는 시작한다(휴대폰 알림 `push/config.ts`와 같은 선택 값). 필수 목록(`runtime.ts`)에 넣지 않고 `.env.example`과 Render에 둔다. 키는 로그·응답·Sentry에 넣지 않는다 | [ReefAPI 인증](https://reefapi.com/docs#authentication) "Pass your key as the `x-api-key` header", DEC-89 | 쉽다 |
 | 12 비용 | 한 번에 2 credits, 실패한 호출은 무료(SHEIN 예외만 과금). 무료 1,000 credits(500번), Pro 월 $15(연 결제면 $7.5)에 10,000 credits(5,000번), 남은 credits는 없어지지 않는다. 잔액은 `GET https://api.reefapi.com/account/v1/credits`(무료, 시간에 몇 번만). 응답 `meta.charged_credits`, 헤더 `X-Credits-Remaining` | [ReefAPI 가격](https://reefapi.com/pricing), [docs#credits](https://reefapi.com/docs#credits) | 쉽다 |
-| 13 보내는 주소 | 받는 링크는 `coupang.com`·`www.coupang.com`의 `/vp/products/{숫자}`와 `m.coupang.com`의 `/vm/products/{숫자}`뿐이다. 보낼 때 `https://www.coupang.com/vp/products/{id}`에 `itemId`·`vendorItemId`(숫자일 때)만 붙이고 나머지 쿼리(검색어 `q`, `searchId`, 추적 값)는 버린다. 그 밖의 주소(단축 주소 `link.coupang.com`·`coupa.ng`, 다른 쇼핑몰)는 부르지 않는다. ReefAPI에는 이 주소만 보내고 사람·학생회·메시지는 보내지 않는다 | DEC-89("상품 주소만 보낸다"), DEC-90(단축 주소는 링크만), ReefAPI 문서에 단축 주소 언급 없음 | 쉽다 |
+| 13 보내는 주소 | 받는 링크는 `coupang.com`·`www.coupang.com`의 `/vp/products/{숫자}`와 `m.coupang.com`의 `/vm/products/{숫자}`뿐이다. 보낼 때 `https://www.coupang.com/vp/products/{id}`에 `itemId`·`vendorItemId`(숫자일 때)만 붙이고 나머지 쿼리(검색어 `q`, `searchId`, 추적 값)는 버린다. 쿠팡 앱 공유 단축 링크 `https://link.coupang.com/a/{코드}`(https만, 호스트 정확히 일치, 포트·계정 없음)는 서버가 코드로 다시 만든 그 주소를 한 번만 연다(`redirect: 'manual'`, 3초, 본문은 읽지 않음). 301·302·303·307·308의 `Location`이 데스크탑 상품 주소(https, `www.coupang.com`·`coupang.com`의 `/vp/products/{숫자}`)일 때만 위 규칙으로 맞춰 쓰고, 그 주소는 열지 않는다. `Location`이 없거나 상대 주소·다른 호스트·다시 단축 링크(다중 홉)면 `unsupported`, 시간 초과·연결 실패는 `unavailable`이다. 3초는 ReefAPI 10초 안에서 쓰고 남은 몫을 ReefAPI가 쓴다. 캐시 열쇠는 풀린 상품 주소이고, 푼 결과도 10분 둔다(실패는 두지 않음). 로그 `product_info` 줄에는 푼 결과 코드 `short`만 더한다. 그 밖의 주소(`coupa.ng`, 다른 쇼핑몰)는 부르지 않는다. ReefAPI에는 상품 주소만 보내고 사람·학생회·메시지는 보내지 않는다 | DEC-89("상품 주소만 보낸다"), 아래 '바꾼 것: 단축 링크 풀기' | 쉽다 |
 | 14 고른 판매 단위 | 주소의 `itemId`(없으면 `vendorItemId`)와 같은 `items[]` 줄, 없으면 `data.item`. 품목 이름은 그 줄의 이름이다. 옵션 칸은 비운다: 문서가 "the option/variant attribute list"를 주지 않는다고 적는다(미확인: `items[]`의 `name`에 옵션 글이 드는지, 조각 4의 확인 단계) | [ReefAPI Coupang](https://reefapi.com/docs/coupang) "You do NOT get: … the option/variant attribute list" | 쉽다 |
 | 15 우리 API | `POST /api/organizations/:councilId/product-info`, 본문 `ProductInfoSchema = { url }`(`token(PURCHASE_ITEM_LINK_MAX)`, http·https만). 응답 `ProductInfoResponse = { product: ProductInfo \| null; reason: 'unsupported' \| 'not_found' \| 'unavailable' \| null }`, `ProductInfo = { name, items: { itemId, name, price, listPrice }[], selectedItemId, shipping, deliveryEta, rocket }`. 불러오기 실패는 200이고 `product: null`이다(막지 않는다, DEC-89). 권한은 그 학생회 운영진(`council.view`). 아무것도 바꾸지 않지만 credits를 쓰므로 공통 가드(출처 확인)가 걸리는 변경 경로 모양으로 둔다 | AGENTS.md '새 API', `http/guard.ts` | 쉽다(늘리기) |
 | 16 실패 | `NOT_FOUND`(404) → `not_found`. 시간 초과, `TARGET_BLOCKED`·`PARSE_ERROR`(502), `UPSTREAM_TIMEOUT`(504), `RATE_LIMITED`(429), `QUOTA_EXCEEDED`(402), `AUTH_FAILED`(401), `DISABLED`(503), `INTERNAL`(500), 연결 실패, 키 없음, `ok`가 아니거나 모양이 다른 응답 → `unavailable`. 서버는 다시 시도하지 않는다(ReefAPI가 출구를 바꿔 최대 4번 시도하고, 사람은 패널을 다시 열면 된다). 시간 제한 10초 | [docs#errors](https://reefapi.com/docs#errors), [NN/g 응답 시간 한계 10초](https://www.nngroup.com/articles/response-times-3-important-limits/), 실측 지연 5.0초(Coupang 문서 예시)·0.5~13.6초(ReefAPI 첫 화면) | 쉽다 |
@@ -77,6 +77,14 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 - 상품 패널·구매 요청 양식의 직접 조회와 같은 정규화·10분 캐시·진행 중 조회 합치기·하루 150회 상한을 쓴다. 선조회는 한 번에 하나, 대기는 구매 요청 품목 상한까지만 둔다. 대기 상한으로 빠진 링크도 사람이 열면 기존 경로로 조회한다.
 - 새 입력·영속 저장·자동 요청 제출은 없다. 사람이 상품 정보를 확인하고 요청을 제출하며 메시지 근거 연결은 유지한다. 사진·재고 필드와 예상 금액 저장은 별도 범위다.
 - 자동 검증: 느린 조회 중 채팅 응답, 직접 조회와 중복 합치기·캐시 재사용, 실패 후 수동 재조회, 권한 실패·미지원 링크 무호출, 대기/하루 상한 보존.
+
+## 바꾼 것: 단축 링크 풀기 (2026-10-29)
+
+- 무엇: 정한 것 13이 막던 쿠팡 앱 공유 단축 링크(`link.coupang.com/a/{코드}`)를 서버가 한 번 풀어 상품 정보를 불러온다. 화면은 단축 링크도 쿠팡 링크로 보고(`lib/product-info.ts`의 `isProductLink`) 상품 패널·구매 요청 양식·전송 후 선조회가 같은 경로를 쓴다. 안내 문구는 그대로다.
+- 왜: 학생회가 대화에 붙이는 쿠팡 링크는 대부분 휴대폰 앱의 '공유'로 나오는 단축 링크라, 막아 두면 상품 정보 불러오기가 거의 쓰이지 않는다. 단축 링크는 302 한 번으로 `www.coupang.com/vp/products/{id}?…`로 간다(확인함). 처음 막은 까닭은 '어디로 가는지 모르는 주소를 서버가 따라가지 않는다'였는데, 여는 주소를 `link.coupang.com` 하나로 고정하고 이동할 곳은 열지 않고 읽기만 하면 그 위험이 없다. ReefAPI에는 지금처럼 풀린 상품 주소만 간다.
+- 안전: 입력 호스트 정확히 일치·https만, 여는 주소는 받은 글이 아니라 코드로 다시 만듦, 자동 따라가기 없음·한 홉, 이동할 곳은 데스크탑 상품 주소 판별을 통과해야만 씀, 3초 제한, 본문 읽지 않음, 로그에 원문 주소·코드·이동할 곳 없음.
+- vada-docs DEC-90의 '앱 공유 단축 주소처럼 상품을 알 수 없는 링크는 링크만 채운다'에서 쿠팡 앱 공유 단축 링크는 이제 상품을 알 수 있는 링크다. `coupa.ng`와 다른 쇼핑몰은 그대로 링크만이다.
+- 자동 검증: 판별(`coupang-url.test.ts`, 웹 `lib/product-info.test.ts`), 풀기(`short-link.test.ts`: 성공·호스트 위반·Location 없음·다중 홉·시간 초과·캐시), 조회(`service.test.ts`: 쓴 시간 넘기기·실패 코드·키 없음), 경로(`routes.test.ts`), 선조회(`prefetch.test.ts`), ReefAPI 예산(`reef.test.ts`).
 
 ## 위험
 
@@ -122,7 +130,7 @@ DEC-90과 DEC-89는 다시 정하지 않는다. 코드로 옮기려고 더 정�
 ### 4. 쿠팡 상품 정보 불러오기(서버, ReefAPI) [x]
 - 먼저 main에: 없음. 시작 전에 사람이 키를 넣는다(위). 확인 단계(위험 '미확인')를 진행 에이전트가 이 조각을 올리기 전에 한다.
 - 할 수 있게 되는 것: 운영진의 화면이 쿠팡 상품 주소로 상품명·판매 단위별 가격·배송을 받는다.
-- 수용 기준: `POST /api/organizations/:councilId/product-info`에 쿠팡 상품 주소를 보내면 `product`가 오고, 가짜 ReefAPI가 받은 본문은 정한 것 13의 정규화한 주소 하나뿐이며 헤더에 `x-api-key`가 있다. 주소의 `itemId`와 같은 판매 단위가 `selectedItemId`다. 단축 주소·다른 쇼핑몰은 ReefAPI를 부르지 않고 `reason: 'unsupported'`, ReefAPI `NOT_FOUND`는 `not_found`, 정한 것 16의 나머지와 10초 시간 초과·모양이 다른 응답·키 없음은 `unavailable`이고 모두 200이다. 같은 주소(쿼리만 다른 것 포함)를 10분 안에 다시 보내면 ReefAPI를 부르지 않는다. `unavailable` 뒤에는 다시 부른다. 계정마다 1분 21번째는 429다. 로그에는 결과 종류만 있고 주소·키가 없다. 다른 학생회 `councilId`는 403, 로그인하지 않으면 401, 빈 값·`javascript:`·2001자·모르는 키는 400. 키가 없어도 서버가 시작한다.
+- 수용 기준: `POST /api/organizations/:councilId/product-info`에 쿠팡 상품 주소를 보내면 `product`가 오고, 가짜 ReefAPI가 받은 본문은 정한 것 13의 정규화한 주소 하나뿐이며 헤더에 `x-api-key`가 있다. 주소의 `itemId`와 같은 판매 단위가 `selectedItemId`다. `coupa.ng`·다른 쇼핑몰은 ReefAPI를 부르지 않고 `reason: 'unsupported'`(앱 공유 단축 링크는 아래 '바꾼 것: 단축 링크 풀기'), ReefAPI `NOT_FOUND`는 `not_found`, 정한 것 16의 나머지와 10초 시간 초과·모양이 다른 응답·키 없음은 `unavailable`이고 모두 200이다. 같은 주소(쿼리만 다른 것 포함)를 10분 안에 다시 보내면 ReefAPI를 부르지 않는다. `unavailable` 뒤에는 다시 부른다. 계정마다 1분 21번째는 429다. 로그에는 결과 종류만 있고 주소·키가 없다. 다른 학생회 `councilId`는 403, 로그인하지 않으면 401, 빈 값·`javascript:`·2001자·모르는 키는 400. 키가 없어도 서버가 시작한다.
 - 닿는 곳: contracts 상품 정보 계약(새, `ProductInfoSchema`·`ProductInfoResponse`), `index.ts`, api 상품 정보 모듈(새: 주소 정규화, ReefAPI 부르기, 캐시, 라우트), `app.ts`(`AppOptions`)·`serve.ts`, `http/boundary.test.ts`, `.env.example`.
 - 검토: 깊게(외부 서비스, 비밀 값). 마이그레이션: 없음.
 - main: 5d60c88, 56aabb8. 그 뒤 고친 것: 같은 주소의 진행 중인 요청은 함께 기다려 ReefAPI를 한 번만 부른다. 판매 단위는 줄마다 검사해 한 줄이 틀려도 나머지를 주고, 고른 판매 단위는 늘 목록 안의 줄이다(실제 키 확인에서 한 상품의 판매 단위가 41개). 서버 전체 하루 150번(한국 날짜, `apps/api/src/product-info/service.ts`의 `REEF_CALLS_PER_DAY`)을 넘으면 부르지 않고 `unavailable`이다.

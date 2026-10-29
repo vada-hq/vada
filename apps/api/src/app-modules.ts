@@ -28,6 +28,7 @@ import { createProductInfoRoutes } from './product-info/routes.js'
 import { createProductInfo } from './product-info/service.js'
 import { createProductPrefetch } from './product-info/prefetch.js'
 import type { ProductLookup } from './product-info/reef.js'
+import type { ShortLinkResolver } from './product-info/short-link.js'
 import { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createSettlementRoutes } from './settlement/routes.js'
@@ -66,6 +67,8 @@ export type AppDeps = {
     | undefined
   // 쿠팡 상품 정보를 부르는 함수. 운영은 ReefAPI, 시험은 가짜 fetch를 넣는다. 없으면(키 없음) 불러오기만 꺼진다.
   productLookup?: ProductLookup | undefined
+  // 쿠팡 앱 공유 단축 링크를 상품 주소로 푸는 함수. 운영은 link.coupang.com을 한 번 열고, 없으면 단축 링크는 받지 않는다.
+  resolveShortLink?: ShortLinkResolver | undefined
   deliveryLookup?: DeliveryLookup | undefined
 }
 
@@ -91,9 +94,9 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
 // 반환 타입이 AppOptions의 모든 모듈을 요구하므로 AppOptions에 모듈을 더하고 여기 연결하지 않으면 타입 오류다.
 // 가입 동의, 휴대폰 기기 저장, 내 이름은 시각을 쓰지 않아 시계를 받지 않는다.
 export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
-  const { clock, writeLimiter, receiptKey, storage, productLookup } = deps
+  const { clock, writeLimiter, receiptKey, storage, productLookup, resolveShortLink } = deps
   const push = pushModules(db, session, deps)
-  const productInfo = createProductInfo({ lookup: productLookup, clock })
+  const productInfo = createProductInfo({ lookup: productLookup, resolveShortLink, clock })
   const prefetchProducts = createProductPrefetch(productInfo)
   return {
     councils: createCouncilRoutes(db, session, clock),

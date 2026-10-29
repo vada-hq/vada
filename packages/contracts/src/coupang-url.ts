@@ -1,5 +1,4 @@
-// 받는 쿠팡 상품 주소의 모양(기능 022 정한 것 13). 단축 주소(link.coupang.com, coupa.ng)는 풀지 않는다.
-// 어디로 가는지 모르는 주소를 서버가 따라가지 않고, ReefAPI 문서도 단축 주소를 받는다고 적지 않는다.
+// 받는 쿠팡 상품 주소의 모양(기능 022 정한 것 13). 앱 공유 단축 링크는 아래 coupangShortLinkOf가 가르고, coupa.ng는 받지 않는다.
 const PRODUCT_PATHS = new Map([
   ['coupang.com', /^\/vp\/products\/(\d+)\/?$/],
   ['www.coupang.com', /^\/vp\/products\/(\d+)\/?$/],
@@ -46,4 +45,18 @@ export function coupangProductOf(value: string): CoupangProduct | null {
   if (vendorItemId) kept.set('vendorItemId', vendorItemId)
   const query = kept.size ? `?${kept.toString()}` : ''
   return { url: `https://www.coupang.com/vp/products/${productId}${query}`, itemId, vendorItemId }
+}
+
+// 쿠팡 앱 공유 단축 링크(기능 022 정한 것 13). 서버가 이 모양만 한 번 열어 이동할 곳을 읽는다.
+// 호스트는 정확히 link.coupang.com이고 https만이다. 여는 주소는 받은 글이 아니라 코드로 다시 만든다(쿼리·조각은 버림).
+const SHORT_LINK_HOST = 'link.coupang.com'
+const SHORT_LINK_PATH = /^\/a\/([A-Za-z0-9_-]{1,64})\/?$/
+
+// 단축 링크가 아니면 null이다.
+export function coupangShortLinkOf(value: string): string | null {
+  const url = parsed(value)
+  if (!url || url.protocol !== 'https:' || url.hostname !== SHORT_LINK_HOST) return null
+  if (url.port || url.username || url.password) return null
+  const code = SHORT_LINK_PATH.exec(url.pathname)?.[1]
+  return code ? `https://${SHORT_LINK_HOST}/a/${code}` : null
 }

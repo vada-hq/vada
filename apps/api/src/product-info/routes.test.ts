@@ -8,11 +8,14 @@ import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { fakeReef, reefItem, reefProduct } from '../test-support/reef.js'
 import { createReefLookup } from './reef.js'
 import { createProductInfoRoutes } from './routes.js'
+import { createShortLinkResolver } from './short-link.js'
 
 const MINUTE = 60_000
 const KEY = 'reef-secret-key'
 const PRODUCT = 'https://www.coupang.com/vp/products/7334523?itemId=12&q=펜&searchId=abc'
 const NORMALIZED = 'https://www.coupang.com/vp/products/7334523?itemId=12'
+const PRODUCT_LOCATION = 'https://www.coupang.com/vp/products/7334523?itemId=12&vendorItemId=34'
+const SHORT = 'https://link.coupang.com/a/bXyZ12'
 
 type Respond = Parameters<typeof fakeReef>[0]
 
@@ -21,6 +24,14 @@ async function setup(testDb: TestDb, respond: Respond, { withKey = true } = {}) 
   const seeded = await seedCouncil(testDb.db, testDb.pg)
   const other = await seedCouncil(testDb.db, testDb.pg, 'o')
   const reef = fakeReef(respond)
+  // 가짜 쿠팡 단축 링크 서버: 302 한 번으로 상품 주소를 준다.
+  const coupang = fakeReef(
+    () =>
+      new Response(null, {
+        status: 302,
+        headers: { location: `${PRODUCT_LOCATION}&traceid=t1` },
+      }),
+  )
   const clock = { now: new Date('2026-06-01T03:00:00Z') }
   const app = createApp({
     auth: { handler: async () => new Response() },
@@ -28,6 +39,7 @@ async function setup(testDb: TestDb, respond: Respond, { withKey = true } = {}) 
     productInfo: createProductInfoRoutes(testDb.db, testSession, {
       clock: () => clock.now,
       lookup: withKey ? createReefLookup({ apiKey: KEY, fetcher: reef.fetch }) : undefined,
+      resolveShortLink: createShortLinkResolver({ fetcher: coupang.fetch, clock: () => clock.now }),
     }),
   })
   const api = caller(app)
@@ -36,7 +48,7 @@ async function setup(testDb: TestDb, respond: Respond, { withKey = true } = {}) 
     const response = await api.post(path, { url }, userId)
     return { status: response.status, body: (await response.json()) as ProductInfoResponse }
   }
-  return { seeded, other, reef, clock, api, path, ask }
+  return { seeded, other, reef, coupang, clock, api, path, ask }
 }
 
 // 서버가 남긴 로그 줄을 모은다(log와 warn).
@@ -88,13 +100,46 @@ test('상품 정보: 쿠팡 상품 주소면 product가 오고, ReefAPI는 정�
   }
 })
 
-test('상품 정보: 단축 주소·다른 쇼핑몰은 부르지 않고 unsupported(200)다', async t => {
+test('상품 정보: 쿠팡 앱 공유 단축 링크는 한 번 풀어 그 상품으로 부른다. ReefAPI는 정규화한 상품 주소만 받는다', async t => {
   const testDb = await createTestDb()
   try {
     const logs = captureLogs(t)
-    const { reef, ask } = await setup(testDb, () => Response.json(twoItems()))
+    const { reef, coupang, ask } = await setup(testDb, () => Response.json(twoItems()))
+    const { status, body } = await ask(`${SHORT}?lptag=x`)
+    assert.equal(status, 200)
+    assert.equal(body.product?.selectedItemId, '12')
+    assert.deepEqual(
+      coupang.calls.map(call => call.url),
+      [SHORT],
+    )
+    assert.equal(reef.calls.length, 1)
+    assert.deepEqual(JSON.parse(reef.calls[0]!.body), {
+      product_id: `${NORMALIZED}&vendorItemId=34`,
+    })
+    // 같은 단축 링크를 다시 열면 쿠팡도 ReefAPI도 부르지 않는다.
+    assert.equal((await ask(SHORT)).body.product?.selectedItemId, '12')
+    assert.equal(coupang.calls.length, 1)
+    assert.equal(reef.calls.length, 1)
+    assert.deepEqual(
+      logs.map(entry => JSON.parse(entry.line) as unknown),
+      [
+        { event: 'product_info', outcome: 'ok', status: 200, attempts: 1, short: 'ok' },
+        { event: 'product_info', outcome: 'cached', short: 'ok' },
+      ],
+    )
+    assert.ok(!logs.some(entry => entry.line.includes('bXyZ12')))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('상품 정보: http 단축 주소·coupa.ng·다른 쇼핑몰은 부르지 않고 unsupported(200)다', async t => {
+  const testDb = await createTestDb()
+  try {
+    const logs = captureLogs(t)
+    const { reef, coupang, ask } = await setup(testDb, () => Response.json(twoItems()))
     for (const url of [
-      'https://link.coupang.com/a/bXyZ12',
+      'http://link.coupang.com/a/bXyZ12',
       'https://coupa.ng/abc',
       'https://smartstore.naver.com/shop/products/123',
     ]) {
@@ -104,6 +149,7 @@ test('상품 정보: 단축 주소·다른 쇼핑몰은 부르지 않고 unsuppo
       })
     }
     assert.equal(reef.calls.length, 0)
+    assert.equal(coupang.calls.length, 0)
     assert.deepEqual(logs, [])
   } finally {
     await testDb.close()

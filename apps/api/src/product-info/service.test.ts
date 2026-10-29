@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test, type TestContext } from 'node:test'
 import type { CoupangProduct } from './coupang-url.js'
 import type { LookupResult } from './reef.js'
+import type { ShortLinkResolver } from './short-link.js'
 import { createProductInfo } from './service.js'
 
 const product = {
@@ -103,4 +104,75 @@ test('하루 상한: 한국 날짜마다 실제로 부른 150번까지만 부르
   clock.now = new Date('2026-06-01T15:00:00Z') // 한국 6월 2일 0:00
   assert.equal((await productInfo(urlOf(151))).reason, null)
   assert.equal(asked.length, 151)
+})
+
+const SHORT = 'https://link.coupang.com/a/bXyZ12'
+
+test('단축 링크: 풀린 상품 주소로 ReefAPI를 부르고 캐시 열쇠도 그 상품이다. 쓴 시간을 넘기고 로그에는 short 코드만 더한다', async t => {
+  const lines = quiet(t)
+  const clock = { now: new Date('2026-06-01T03:00:00Z') }
+  const resolved: string[] = []
+  const resolveShortLink: ShortLinkResolver = async url => {
+    resolved.push(url)
+    clock.now = new Date('2026-06-01T03:00:02.500Z')
+    return { code: 'ok', product: { url: urlOf(7), itemId: null, vendorItemId: null } }
+  }
+  const asked: { url: string; spentMs: number | undefined }[] = []
+  const lookup = async (wanted: CoupangProduct, spentMs?: number): Promise<LookupResult> => {
+    asked.push({ url: wanted.url, spentMs })
+    return { outcome: 'ok', product, diag: { status: 200, attempts: 1 } }
+  }
+  const productInfo = createProductInfo({ lookup, resolveShortLink, clock: () => clock.now })
+  assert.equal((await productInfo(SHORT)).reason, null)
+  assert.deepEqual(asked, [{ url: urlOf(7), spentMs: 2500 }])
+  // 같은 상품을 긴 주소로 열면 캐시다.
+  assert.equal((await productInfo(urlOf(7))).reason, null)
+  assert.equal(asked.length, 1)
+  assert.deepEqual(resolved, [SHORT])
+  assert.deepEqual(lines, [
+    `log ${JSON.stringify({ event: 'product_info', outcome: 'ok', status: 200, attempts: 1, short: 'ok' })}`,
+    `log ${JSON.stringify({ event: 'product_info', outcome: 'cached' })}`,
+  ])
+  assert.ok(!lines.join('\n').includes('bXyZ12'))
+})
+
+test('단축 링크를 못 풀면 ReefAPI를 부르지 않는다: 이동할 곳이 틀리면 unsupported, 시간 초과·연결 실패는 unavailable', async t => {
+  const lines = quiet(t)
+  for (const [code, reason] of [
+    ['bad_location', 'unsupported'],
+    ['no_location', 'unsupported'],
+    ['bad_status', 'unsupported'],
+    ['timeout', 'unavailable'],
+    ['network', 'unavailable'],
+  ] as const) {
+    const { asked, lookup } = fakeLookup()
+    const productInfo = createProductInfo({
+      lookup,
+      resolveShortLink: async () => ({ code }),
+      clock: () => new Date('2026-06-01T03:00:00Z'),
+    })
+    assert.deepEqual(await productInfo(SHORT), { product: null, reason }, code)
+    assert.equal(asked.length, 0)
+    assert.equal(
+      lines.at(-1),
+      `log ${JSON.stringify({ event: 'product_info', outcome: 'short_failed', short: code })}`,
+    )
+  }
+})
+
+test('단축 링크: 키가 없으면 풀지 않고 unavailable, 푸는 함수가 없으면 unsupported다', async () => {
+  let resolved = 0
+  const resolveShortLink: ShortLinkResolver = async () => {
+    resolved++
+    return { code: 'network' }
+  }
+  const clock = () => new Date('2026-06-01T03:00:00Z')
+  const keyless = createProductInfo({ lookup: undefined, resolveShortLink, clock })
+  assert.deepEqual(await keyless(SHORT), { product: null, reason: 'unavailable' })
+  assert.equal(resolved, 0)
+  const { lookup } = fakeLookup()
+  assert.deepEqual(await createProductInfo({ lookup, clock })(SHORT), {
+    product: null,
+    reason: 'unsupported',
+  })
 })

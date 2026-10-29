@@ -1,4 +1,9 @@
-import { bodyParts, coupangProductOf, PURCHASE_ITEMS_MAX } from '@vada/contracts'
+import {
+  bodyParts,
+  coupangProductOf,
+  coupangShortLinkOf,
+  PURCHASE_ITEMS_MAX,
+} from '@vada/contracts'
 import type { createProductInfo } from './service.js'
 
 export type ProductPrefetch = (body: string | null) => Promise<void>
@@ -30,9 +35,9 @@ export function createProductPrefetch(
   return body => {
     for (const part of bodyParts(body ?? '')) {
       if (part.kind !== 'link') continue
-      const product = coupangProductOf(part.text)
-      if (product && product.url !== active && queued.size < PURCHASE_ITEMS_MAX)
-        queued.add(product.url)
+      // 앱 공유 단축 링크는 코드만 남긴 주소로 올리고, 푸는 것은 조회(service.ts)가 한다.
+      const link = coupangProductOf(part.text)?.url ?? coupangShortLinkOf(part.text)
+      if (link && link !== active && queued.size < PURCHASE_ITEMS_MAX) queued.add(link)
     }
     if (queued.size && !running) running = drain()
     return running ?? Promise.resolve()

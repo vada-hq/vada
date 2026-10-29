@@ -1,13 +1,9 @@
 import { useContext, useId, useState } from 'react'
-import {
-  coupangProductOf,
-  DELETED_MESSAGE,
-  isLeftMemberName,
-  type ChatMessage,
-} from '@vada/contracts'
+import { DELETED_MESSAGE, isLeftMemberName, type ChatMessage } from '@vada/contracts'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { isProductLink } from '@/lib/product-info'
 import { cn } from '@/lib/utils'
 import { clockLabel } from './chat-view'
 import { bodyParts } from './message-links'
@@ -50,7 +46,7 @@ function Body({ message, mine }: { message: ChatMessage; mine: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={event => {
-              if (openProduct && coupangProductOf(part.text)) {
+              if (openProduct && isProductLink(part.text)) {
                 event.preventDefault()
                 openProduct({ url: part.text, message })
               }

@@ -364,3 +364,17 @@ test('키 설정: REEF_API_KEY가 없거나 비면 null이라 불러오기만 �
   assert.equal(reefKeyFrom({ REEF_API_KEY: '  ' }), null)
   assert.equal(reefKeyFrom({ REEF_API_KEY: ' key ' }), 'key')
 })
+
+test('앞에서 쓴 시간(단축 링크 풀기)은 10초 예산에서 빼고, 남은 시간이 3초 미만이면 다시 부르지 않는다', async () => {
+  for (const [spentMs, attempts] of [
+    [7500, 1],
+    [6000, 2],
+  ]) {
+    const reef = fakeReef(failure('INTERNAL', 500, true))
+    const result = await createReefLookup({ apiKey: 'k', fetcher: reef.fetch, now: () => 0 })(
+      productOf('https://www.coupang.com/vp/products/100'),
+      spentMs,
+    )
+    assert.equal(result.diag?.attempts, attempts, String(spentMs))
+  }
+})

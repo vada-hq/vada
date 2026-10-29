@@ -17,6 +17,7 @@ import { createPurchaseWriteLimiter } from './purchases/write-limit.js'
 import { startPurge } from './purge/run.js'
 import { objectPurgeLockOf } from './storage/orphan-connection.js'
 import { createReefLookup, reefKeyFrom } from './product-info/reef.js'
+import { createShortLinkResolver } from './product-info/short-link.js'
 import type { Db } from './db/types.js'
 import { DB_SHUTDOWN_TIMEOUT_SECONDS, shutdown } from './shutdown.js'
 
@@ -77,13 +78,15 @@ function appOf(
     googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
+  const clock = () => new Date()
   const modules = appModulesOf(db, session, {
     trustedOrigin: env.BETTER_AUTH_URL!,
-    clock: () => new Date(),
+    clock,
     writeLimiter: createPurchaseWriteLimiter(),
     receiptKey: env.BETTER_AUTH_SECRET!,
     ...services,
     productLookup: productLookupOf(env),
+    resolveShortLink: createShortLinkResolver({ clock }),
     deliveryLookup: env.DELIVERY_TRACKER_API_KEY?.trim()
       ? createDeliveryLookup({ apiKey: env.DELIVERY_TRACKER_API_KEY.trim() })
       : undefined,

@@ -7,6 +7,7 @@ import { ApiError } from '../http/errors.js'
 import { createRateLimiter } from '../http/rate-limit.js'
 import { json } from '../http/validate.js'
 import type { ProductLookup } from './reef.js'
+import type { ShortLinkResolver } from './short-link.js'
 import { createProductInfo } from './service.js'
 
 const root = '/organizations/:councilId/product-info'
@@ -21,12 +22,15 @@ export function createProductInfoRoutes(
   options: {
     clock?: () => Date
     lookup?: ProductLookup | undefined
+    resolveShortLink?: ShortLinkResolver | undefined
     // 전송 후 선조회와 같은 캐시·진행 조회·하루 상한을 쓴다.
     productInfo?: ReturnType<typeof createProductInfo> | undefined
   } = {},
 ) {
   const clock = options.clock ?? (() => new Date())
-  const productInfo = options.productInfo ?? createProductInfo({ lookup: options.lookup, clock })
+  const productInfo =
+    options.productInfo ??
+    createProductInfo({ lookup: options.lookup, resolveShortLink: options.resolveShortLink, clock })
   const limiter = createRateLimiter(PRODUCT_INFO_LIMIT)
   const routes = new Hono<SessionEnv>()
   routes.post(root, json(ProductInfoSchema), requireSession(getSession), async c => {

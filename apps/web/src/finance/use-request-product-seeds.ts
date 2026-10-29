@@ -1,6 +1,6 @@
 import { useEffect, type Dispatch, type SetStateAction } from 'react'
-import { coupangProductOf, PURCHASE_TITLE_MAX } from '@vada/contracts'
-import { readProductInfo } from '@/lib/product-info'
+import { PURCHASE_TITLE_MAX } from '@vada/contracts'
+import { isProductLink, readProductInfo } from '@/lib/product-info'
 import { clipText, withLoaded } from '../chat/request-seed'
 import type { RequestValues } from './request-form'
 
@@ -14,7 +14,7 @@ export function useRequestProductSeeds(
   useEffect(() => {
     let live = true
     for (const item of initial.items) {
-      if (item.loadedProduct || !coupangProductOf(item.link)) continue
+      if (item.loadedProduct || !isProductLink(item.link)) continue
       void readProductInfo(councilId, item.link).then(state => {
         if (!live || state.kind !== 'ready') return
         setValues(current => {

@@ -17,7 +17,8 @@ type LookupValue =
   { outcome: 'ok'; product: ProductInfo } | { outcome: Exclude<LookupOutcome, 'ok'> }
 type LookupDiag = { code?: string; status: number | null; attempts: number }
 export type LookupResult = LookupValue & { diag?: LookupDiag }
-export type ProductLookup = (product: CoupangProduct) => Promise<LookupResult>
+// spentMs: 같은 요청에서 앞서 쓴 시간(단축 링크 풀기). 10초 예산에서 뺀다.
+export type ProductLookup = (product: CoupangProduct, spentMs?: number) => Promise<LookupResult>
 type AttemptResult = { result: LookupResult; retryable?: boolean }
 
 // RATE_LIMITED·DISABLED는 곧 풀리는 일시 실패라 quota/auth 경고와 구분해 other로 두고 진단 코드로 가른다.
@@ -206,9 +207,10 @@ export function createReefLookup({
   timeoutMs?: number
   now?: () => number
 }): ProductLookup {
-  return async product => {
-    const deadline = now() + timeoutMs
-    const signal = AbortSignal.timeout(timeoutMs)
+  return async (product, spentMs = 0) => {
+    const budgetMs = Math.max(timeoutMs - spentMs, 0)
+    const deadline = now() + budgetMs
+    const signal = AbortSignal.timeout(budgetMs)
     const request: RequestInit = {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },

@@ -98,3 +98,14 @@ test('선조회와 직접 조회는 기존 하루 150회 상한·다음 한국 �
   await prefetch(url(151))
   assert.equal(calls.length, 151)
 })
+
+test('쿠팡 앱 공유 단축 링크도 코드만 남긴 주소로 한 번씩 준비한다', async () => {
+  const calls: string[] = []
+  const prefetch = createProductPrefetch(async link => {
+    calls.push(link)
+    return missing
+  })
+  await prefetch(`https://link.coupang.com/a/bXyZ12?lptag=a https://link.coupang.com/a/bXyZ12
+    http://link.coupang.com/a/other https://link.coupang.com.evil/a/x`)
+  assert.deepEqual(calls, ['https://link.coupang.com/a/bXyZ12'])
+})
