@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { InviteFields } from '@/components/InviteFields'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,16 @@ import { INVITE_LOAD_ERRORS, INVITE_NOTICES } from '@/lib/messages'
 import { inviteLink } from '../councils/invite-path'
 import { RotateInviteDialog } from './RotateInviteDialog'
 import { useInvite } from './useInvite'
+
+// 회장단에게만 회장단 카드 아래의 [구성원 초대]와 그 창(DEC-47, DEC-91, 와이어프레임 ORG-03A). 권한을 잃으면 둘 다 사라진다.
+export function InviteButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="sm" className="self-start text-primary-strong" onClick={onClick}>
+      <Plus aria-hidden />
+      구성원 초대
+    </Button>
+  )
+}
 
 type FrameProps = { open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }
 

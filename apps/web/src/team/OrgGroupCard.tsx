@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
-import type { TeamMember } from '@vada/contracts'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -9,30 +8,21 @@ type Props = {
   icon?: ReactNode
   // 제목 옆 표시(재정 역할 배지).
   badge?: ReactNode
-  // 머리 오른쪽의 작은 글(인원, 부장이 없으면 '부장 없음').
-  meta: string
+  // 머리 오른쪽의 작은 글(인원, 부장이 없으면 '부장 없음'). 회장단 카드는 와이어프레임처럼 없다.
+  meta?: string
   // 머리 오른쪽 끝(부서 ⋯ 메뉴).
   action?: ReactNode
   // 머리 자리를 대신하는 제자리 편집(이름 바꾸기). 있으면 제목은 화면 읽기 프로그램에만 남는다.
   editor?: ReactNode
-  // 격자 한 줄을 다 차지하는 묶음(회장단, 미배정). 사람 줄을 부서 칸과 같은 단으로 늘어놓아
-  // 회장단 사람이 아래 부서 칸과 같은 세로줄에 선다.
-  wide?: boolean
   reveal?: boolean
   className?: string
-  people: TeamMember[]
-  // 묶음 키. 겸직자의 줄이 묶음마다 있어 ⋯ 버튼을 묶음 키와 함께 가린다.
-  groupKey: string
-  person: (member: TeamMember, groupKey: string) => ReactNode
+  // 카드 몸통(사람 카드들, 부서면 부장 칸과 부원 칸).
+  children: ReactNode
 }
 
-// 넓은 묶음의 단 수는 OrgLayout의 부서 격자와 같다(같은 @container를 본다).
-const wideList =
-  'grid @2xl:grid-cols-2 @2xl:gap-x-4 @2xl:divide-y-0 @4xl:grid-cols-3 @6xl:grid-cols-4'
-
-// 조직 화면의 묶음 하나(와이어프레임 ORG-03A의 회장단 카드·부서 카드): 한 줄 머리(제목, 배지, 인원, ⋯)와 그 묶음 사람 목록.
-// 사람은 상자 대신 줄로 늘어놓는다(DEC-91, 조사 R3 '묶은 사람 목록').
-export function OrgGroupCard({ title, icon, badge, meta, action, editor, wide, ...props }: Props) {
+// 조직도의 카드 하나(와이어프레임 ORG-03A의 회장단 카드·부서 카드): 한 줄 머리(제목, 배지, 인원, ⋯)와 몸통.
+// reveal이면 그 카드로 스크롤하고 초점을 옮긴다(홈의 '재정 담당 없음'·'부장 정하기').
+export function OrgGroupCard({ title, icon, badge, meta, action, editor, ...props }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -65,18 +55,12 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, wide, .
               {title}
             </h2>
             {badge}
-            <p className="ml-auto shrink-0 text-xs text-fg-muted">{meta}</p>
+            {meta && <p className="ml-auto shrink-0 text-xs text-fg-muted">{meta}</p>}
             {action}
           </>
         )}
       </div>
-      {props.people.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-fg-muted">구성원 없음</p>
-      ) : (
-        <ul aria-label={`${title} 구성원`} className={cn('divide-y', wide && wideList)}>
-          {props.people.map(member => props.person(member, props.groupKey))}
-        </ul>
-      )}
+      <div className="flex flex-col gap-3 p-4">{props.children}</div>
     </section>
   )
 }

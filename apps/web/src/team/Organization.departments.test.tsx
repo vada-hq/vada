@@ -130,11 +130,11 @@ test('위에서부터 회장단, 부서마다 이름·재정 배지·인원(부�
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await loaded()
   expect(groups()).toEqual(['회장단', '재정부', '기획부', '미배정 구성원'])
-  expect(group('회장단').textContent).toContain('1명')
+  expect(group('회장단').textContent).toContain('김회장')
   expect(within(group('재정부')).getByText('재정')).toBeTruthy()
   expect(within(group('재정부')).getByText('1명')).toBeTruthy()
   expect(within(group('기획부')).getByText('부장 없음 · 0명')).toBeTruthy()
-  expect(within(group('기획부')).getByText('구성원 없음')).toBeTruthy()
+  expect(within(group('기획부')).getByText('부원 0명')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '부서 추가' })).toBeNull()
   expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
 })
@@ -186,8 +186,9 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await loaded()
   // 이름은 모두 세 글자다.
+  // 부서 카드는 부장 칸과 부원 칸이라 카드 안의 사람 카드를 차례로 본다.
   const names = (name: string) =>
-    within(screen.getByRole('list', { name: `${name} 구성원` }))
+    within(group(name))
       .getAllByRole('listitem')
       .map(item => item.textContent?.slice(0, 3))
   // 묶음 안은 직급 순, 같은 직급은 이름 가나다순이다(최부회가 먼저 들어왔어도 정부회가 앞).
@@ -197,7 +198,7 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
   expect(within(group('재정부')).getByText('2명')).toBeTruthy()
   // 부서 묶음의 줄은 그 부서를 빼고 다른 소속만 적는다.
   const rowText = (name: string) =>
-    within(screen.getByRole('list', { name: `${name} 구성원` }))
+    within(group(name))
       .getAllByRole('listitem')
       .map(item => item.textContent?.replace(/\d+월.*$/, ''))
   expect(rowText('재정부')).toEqual(['이재정부장', '한겸직부장기획부'])
@@ -667,4 +668,34 @@ test('부서를 없애 확인 창이 닫힐 때는 까닭 문구를 보이지 �
   await settle()
   expect(screen.queryByText(GONE)).toBeNull()
   expect(screen.queryByText(LOST)).toBeNull()
+})
+
+// 조직도 모양(ORG-03A): 회장단 카드 안에 [구성원 초대], 부서 카드 안은 부장 칸과 부원 칸이다.
+test('부서 카드는 부장 칸과 부원 칸으로 나뉘고, 부장이 없으면 [부장 지정]으로 고른 사람의 부서 창을 연다', async () => {
+  serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await loaded()
+  expect(within(group('회장단')).getByRole('button', { name: '구성원 초대' })).toBeTruthy()
+  expect(within(group('재정부')).getByRole('list', { name: '재정부 부장' }).textContent).toContain(
+    '이재정',
+  )
+  expect(within(group('재정부')).getByText('부원 0명')).toBeTruthy()
+  expect(within(group('재정부')).queryByRole('button', { name: '재정부 부장 지정' })).toBeNull()
+  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '기획부 부장 지정' }), {
+    key: 'Enter',
+  })
+  fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: '박새내' }))
+  expect(await screen.findByRole('dialog', { name: '박새내의 부서' })).toBeTruthy()
+})
+
+test('직급 없는 운영진도 부서 카드의 부장·부원을 다 보고, [부장 지정]과 [구성원 초대]는 없다', async () => {
+  serve()
+  render(<Harness permissions={MEMBER_PERMISSIONS} />)
+  await loaded()
+  expect(within(group('재정부')).getByRole('list', { name: '재정부 부장' }).textContent).toContain(
+    '이재정',
+  )
+  expect(within(group('기획부')).getByText('부원 0명')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '기획부 부장 지정' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
 })

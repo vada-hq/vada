@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { UserPlus } from 'lucide-react'
-import type { CouncilView, TeamDepartment, TeamMember } from '@vada/contracts'
+import type { CouncilView, TeamDepartment } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
 import { pageState } from '@/lib/app-location'
 import { focusedDepartmentOf } from '@/lib/org-focus'
-import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -15,11 +13,10 @@ import { DepartmentDialogs } from './DepartmentDialogs'
 import { DepartmentColorDialog } from './DepartmentColorDialog'
 import { DepartmentMenu } from './DepartmentMenu'
 import { DepartmentRename } from './DepartmentRename'
-import { InviteSheet, InviteSheetBody } from './InviteSheet'
-import { MemberRow } from './MemberRow'
+import { InviteButton, InviteSheet, InviteSheetBody } from './InviteSheet'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
 import { OrgLayout } from './OrgLayout'
-import { rowActions } from './people-access'
+import { peopleSlots } from './PeopleSlots'
 import { PeopleConfirmDialogs } from './PeopleConfirmDialogs'
 import { useDepartments, type DepartmentsState } from './useDepartments'
 import { usePeople, type PeopleState } from './usePeople'
@@ -36,7 +33,7 @@ type Props = {
 }
 
 // 조직(DEC-91): 사람과 부서를 한 화면에서 본다. 모든 운영진이 회장단과 부서별 사람을 보고, 회장단은 그 자리에서 부서를 고친다.
-// 사람 줄의 ⋯ 메뉴(부서 배정, 직급, 회장 넘기기, 내보내기)는 사람 화면의 것 그대로다. 회장단은 머리글의 [구성원 초대]로 초대 창을 연다.
+// 사람 카드의 ⋯ 메뉴(부서 배정, 직급, 회장 넘기기, 내보내기)는 사람 화면의 것 그대로다. 회장단은 회장단 카드의 [구성원 초대]로 초대 창을 연다.
 // 동작 버튼은 서버가 준 내 권한 목록으로만 보이거나 숨긴다(DEC-38). 대화상자는 대상이 목록에 있고 권한이 있을 때만 열려 있다.
 export default function Organization({
   view,
@@ -47,6 +44,7 @@ export default function Organization({
 }: Props) {
   const people = usePeople({ view, reading }, team, onOwnChange)
   const departments = useDepartments(view, team, reading)
+  const [inviting, setInviting] = useState(false)
   if (!team.data) return <LoadState failed={team.loadFailed} onRetry={team.reload} />
   const titles = view.council.titles
   // 권한을 잃으면 사람 쪽과 부서 쪽이 같은 까닭을 함께 알린다. 같은 글은 한 번만 보인다.
@@ -55,7 +53,9 @@ export default function Organization({
     // 부서 카드 격자라 업무 보드처럼 넓게 쓴다. 1600px 창에서 부서 넷이 한 줄에 선다.
     <PageColumn>
       {people.can('invite.manage') && (
-        <Invite councilId={view.council.id} onForbidden={onCouncilChanged} />
+        <InviteSheet open={inviting} onOpenChange={setInviting}>
+          <InviteSheetBody councilId={view.council.id} onForbidden={onCouncilChanged} />
+        </InviteSheet>
       )}
       {messages.map(text => (
         <PageMessage key={text} text={text} />
@@ -67,9 +67,8 @@ export default function Organization({
         unassignedFirst={people.can('member.manage')}
         focusFinance={pageState() === 'finance'}
         focusDepartment={focusedDepartmentOf(pageState())}
-        person={(member, group) => (
-          <PersonRow key={member.id} member={member} group={group} {...{ people, team, view }} />
-        )}
+        invite={people.can('invite.manage') && <InviteButton onClick={() => setInviting(true)} />}
+        {...peopleSlots({ people, team, view })}
         {...departmentSlots(departments, team.saving)}
       />
       <Dialogs people={people} departments={departments} view={view} team={team} />
@@ -128,35 +127,6 @@ function departmentSlots(state: DepartmentsState, saving: boolean) {
   }
 }
 
-type RowProps = {
-  member: TeamMember
-  // 줄이 든 묶음. 겸직자는 묶음마다 줄이 있어 닫은 뒤 초점을 연 묶음의 줄로 돌려준다.
-  group: string
-  people: PeopleState
-  team: Team
-  view: CouncilView
-}
-
-function PersonRow({ member, group, people, team, view }: RowProps) {
-  const key = `${group}:${member.id}`
-  return (
-    <MemberRow
-      member={member}
-      departments={team.data?.departments ?? []}
-      titles={view.council.titles}
-      inDepartment={team.data?.departments.some(item => item.id === group) ? group : null}
-      actions={rowActions(member, people.can)}
-      saving={team.saving}
-      triggerRef={people.menuFocus.triggerRef(key)}
-      onAssign={() => people.openAssign(member, key)}
-      // '{부회장} 해제'는 그 줄이 회장단 묶음에서 빠져 초점이 body로 떨어진다. 조각 5(묶음 머리의 부회장 지정)에서 고친다.
-      onToggleRank={() => people.toggleViceRank(member)}
-      onTransfer={() => people.askConfirm('transfer', member, key)}
-      onRemove={() => people.askConfirm('remove', member, key)}
-    />
-  )
-}
-
 type DialogProps = {
   people: PeopleState
   departments: DepartmentsState
@@ -213,24 +183,6 @@ function AssignDialog({ people, view, team }: Omit<DialogProps, 'departments'>) 
       onAssign={(departmentId, rank) => people.assign(member, departmentId, rank)}
       onRemove={departmentId => people.removeFrom(member, departmentId)}
     />
-  )
-}
-
-// 회장단에게만 머리글의 [구성원 초대]와 그 창(DEC-47, DEC-91). 권한을 잃으면 둘 다 사라진다.
-function Invite({ councilId, onForbidden }: { councilId: string; onForbidden: () => void }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <>
-      <PageActions>
-        <Button variant="outline" onClick={() => setOpen(true)}>
-          <UserPlus aria-hidden />
-          구성원 초대
-        </Button>
-      </PageActions>
-      <InviteSheet open={open} onOpenChange={setOpen}>
-        <InviteSheetBody councilId={councilId} onForbidden={onForbidden} />
-      </InviteSheet>
-    </>
   )
 }
 

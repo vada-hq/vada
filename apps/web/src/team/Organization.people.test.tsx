@@ -103,7 +103,7 @@ test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 �
   render(<Harness permissions={MEMBER_PERMISSIONS} />)
   await loaded()
   const rows = (group: string) =>
-    within(screen.getByRole('list', { name: `${group} 구성원` }))
+    within(screen.getByRole('region', { name: group }))
       .getAllByRole('listitem')
       .map(item => item.textContent)
   expect(rows('회장단')).toEqual(['김회장위원장'])
@@ -111,10 +111,10 @@ test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 �
   expect(rows('미배정 구성원')).toEqual(['박새내'])
   // 회장은 노랑, 부서 직급은 회색 배지다.
   expect(
-    within(screen.getByRole('list', { name: '회장단 구성원' })).getByText('위원장').className,
+    within(screen.getByRole('region', { name: '회장단' })).getByText('위원장').className,
   ).toContain('warning')
   expect(
-    within(screen.getByRole('list', { name: '재정부 구성원' })).getByText('국장').className,
+    within(screen.getByRole('list', { name: '재정부 국장' })).getByText('국장').className,
   ).toContain('text-fg-muted')
   expect(document.body.textContent).not.toContain('@')
 })
@@ -346,9 +346,9 @@ test('부서 배정 대화상자에서 부서와 부서 직급을 정하고, 부
   })
   // 기획부 묶음에 차장 배지로 나온다.
   expect(row('박새내').textContent).toContain('박새내차장')
-  expect(
-    screen.getByRole('list', { name: '기획부 구성원', hidden: true }).contains(row('박새내')),
-  ).toBe(true)
+  expect(screen.getByRole('region', { name: '기획부', hidden: true }).contains(row('박새내'))).toBe(
+    true,
+  )
   fireEvent.click(within(dialog).getByRole('button', { name: '기획부에서 빼기' }))
   await waitFor(() => expect(within(dialog).getByText('부서 없음')).toBeTruthy())
 })
@@ -736,7 +736,7 @@ test('두 묶음에 든 사람의 ⋯ 메뉴로 연 대화상자를 닫으면 �
   serve(team)
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   for (const group of ['재정부', '기획부']) {
-    const list = within(await screen.findByRole('list', { name: `${group} 구성원` }))
+    const list = within(await screen.findByRole('region', { name: group }))
     const trigger = list.getByRole('button', { name: '이재정 동작' })
     fireEvent.keyDown(trigger, { key: 'Enter' })
     fireEvent.click(

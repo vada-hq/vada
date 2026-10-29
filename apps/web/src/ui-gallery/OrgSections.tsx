@@ -11,7 +11,8 @@ import { InviteFields } from '@/components/InviteFields'
 import { Button } from '@/components/ui/button'
 import type { InviteNotice } from '@/lib/messages'
 import { DepartmentAdd } from '@/team/DepartmentAdd'
-import { InviteSheet } from '@/team/InviteSheet'
+import { HeadPicker } from '@/team/HeadPicker'
+import { InviteButton, InviteSheet } from '@/team/InviteSheet'
 import { DepartmentMenu } from '@/team/DepartmentMenu'
 import { DepartmentRename } from '@/team/DepartmentRename'
 import { MemberRow } from '@/team/MemberRow'
@@ -101,6 +102,17 @@ function LeadOrg({ renaming = false, adding = false }: { renaming?: boolean; add
       titles={titles}
       unassignedFirst
       person={row(true)}
+      invite={<InviteButton onClick={noop} />}
+      headPicker={department => (
+        <HeadPicker
+          departmentName={department.name}
+          headTitle={titles.head}
+          candidates={members}
+          saving={false}
+          triggerRef={noop}
+          onPick={noop}
+        />
+      )}
       departmentAction={department => (
         <DepartmentMenu
           department={department}
@@ -195,7 +207,7 @@ export function OrgInviteSection() {
   )
 }
 
-// 조직 화면(와이어프레임 ORG-03A, DEC-91): 회장단 카드 → 부서 카드 격자 → [부서 추가]. 연결선 없이 묶은 사람 목록이다.
+// 조직 화면(와이어프레임 ORG-03A, DEC-91): 회장단 카드 → 연결선 → 부서 카드(부장 칸, 부원 칸) → [부서 추가].
 export function OrgSection() {
   return (
     <Section title="조직 화면">
