@@ -309,7 +309,7 @@ export interface Applicant {
   appliedFee: number
   // 두 참가비가 같으면 구분이 없어 null이다.
   payer: boolean | null
-  // 같은 행사(양식 여럿 포함)에 취소하지 않은 같은 학번이 둘 이상이다(DEC-26: 막지 않고 드러낸다).
+  // 같은 행사(양식 여럿 포함)에 취소하지 않은 같은 학번이 둘 이상이다. 같은 양식 안은 신청에서 막고(DEC-107) 다른 양식 사이는 드러낸다(DEC-26·DEC-67).
   duplicateStudentId: boolean
   attended: boolean
   appliedAt: string

@@ -100,10 +100,12 @@ test(
     await t.makeFeePayment({ studentId: null, paidFrom: '2026-10-20', paidUntil: '2026-10-25' })
     const feeAt = async (at: string, studentId = '202612345') => {
       t.setNow(korean(at))
-      await t.applied(form.publicCode, { ...phoneless, studentId })
+      const token = await t.applied(form.publicCode, { ...phoneless, studentId })
       const row = (
         await t.pg.query('SELECT applied_fee FROM registration ORDER BY id DESC LIMIT 1')
       ).rows[0] as { applied_fee: string }
+      // 같은 양식에 같은 학번을 다시 신청하려면 앞 신청을 취소한다(DEC-107). 적용 참가비는 그대로 남는다.
+      assert.equal((await t.cancelMine(token)).status, 200)
       return Number(row.applied_fee)
     }
     assert.equal(await feeAt('2026-10-19T23:59:59'), 5000)
@@ -189,13 +191,101 @@ test(
 )
 
 test(
-  '같은 학번 둘은 모두 된다(막으면 남의 학번으로 신청 여부를 떠볼 수 있다)',
+  '같은 양식에 취소하지 않은 같은 학번이 있으면 409 DUPLICATE_STUDENT_ID이고 아무것도 쓰지 않는다. 앞뒤 공백은 같은 학번이다(DEC-107)',
   withRegistrations(async t => {
     const form = await splitForm(t)
     await t.applied(form.publicCode, person)
-    await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const receipts = await t.count('SELECT count(*) AS n FROM command_receipt')
+    for (const studentId of [person.studentId, ` ${person.studentId} `]) {
+      const again = await t.apply(form.publicCode, { ...person, name: '이신청', studentId })
+      assert.equal(again.status, 409, studentId)
+      assert.equal(again.headers.get('cache-control'), 'no-store')
+      assert.deepEqual(await body(again), { error: 'DUPLICATE_STUDENT_ID' })
+    }
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 1)
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_link'), 1)
+    assert.equal(await t.count('SELECT count(*) AS n FROM command_receipt'), receipts)
+    // 다른 학번은 된다.
+    await t.applied(form.publicCode, { ...person, studentId: '202612346' })
+  }),
+)
+
+test(
+  '취소한 신청과 신청자 정보를 비운 신청의 학번은 같은 양식에 다시 신청할 수 있다(DEC-107)',
+  withRegistrations(async t => {
+    const form = await splitForm(t)
+    const token = await t.applied(form.publicCode, person)
+    assert.equal((await t.cancelMine(token)).status, 200)
+    await t.applied(form.publicCode, person)
+    // 1년이 지나 비운 신청은 학번이 없어 세지 않는다(DEC-55).
+    await t.pg.query('UPDATE registration SET student_id = NULL WHERE cancelled_at IS NULL')
+    await t.applied(form.publicCode, person)
+    assert.equal(
+      await t.count('SELECT count(*) AS n FROM registration WHERE cancelled_at IS NULL'),
+      2,
+    )
+  }),
+)
+
+test(
+  '같은 행사의 다른 양식에는 같은 학번으로 각각 신청하고, 다른 양식 사이의 같은 학번 표시는 그대로다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const first = (await t.activeForm(event)).form
+    const second = (await t.activeForm(event)).form
+    await t.applied(first.publicCode, { name: '가', studentId: '202612345' })
+    await t.applied(second.publicCode, { name: '가', studentId: '202612345' })
+    const listed = (await (
+      await t.api.get(`${t.orgBase}/registration-forms/${first.id}/applicants`, 's-president')
+    ).json()) as { applicants: { duplicateStudentId: boolean }[] }
+    assert.deepEqual(
+      listed.applicants.map(row => row.duplicateStudentId),
+      [true],
+    )
+  }),
+)
+
+test(
+  '학번을 받지 않는 양식은 같은 이름·휴대폰으로 여러 번 신청할 수 있다(DEC-107은 학번만 본다)',
+  withRegistrations(async t => {
+    const plain = (
+      await t.activeForm(await t.makeEvent(), { collectsStudentId: false, collectsPhone: true })
+    ).form
+    const same = { name: '가', phone: '01012345678' }
+    await t.applied(plain.publicCode, same)
+    await t.applied(plain.publicCode, same)
     assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 2)
-    assert.equal(await t.count('SELECT count(DISTINCT token_hash) AS n FROM registration_link'), 2)
+  }),
+)
+
+test(
+  '같은 학번 신청 둘이 함께 와도 하나만 되고 나머지는 DUPLICATE_STUDENT_ID다',
+  withRegistrations(async t => {
+    const form = await splitForm(t)
+    const responses = await Promise.all([
+      t.apply(form.publicCode, person),
+      t.apply(form.publicCode, { ...person, name: '이신청' }),
+    ])
+    assert.deepEqual(
+      responses.map(response => response.status).sort((a, b) => a - b),
+      [201, 409],
+    )
+    const rejected = responses.find(response => response.status === 409)!
+    assert.deepEqual(await body(rejected), { error: 'DUPLICATE_STUDENT_ID' })
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 1)
+  }),
+)
+
+test(
+  '같은 명령 번호의 재전송은 같은 학번이어도 거절하지 않고 처음 신청의 새 링크를 받는다(DEC-84)',
+  withRegistrations(async t => {
+    const form = await splitForm(t)
+    const sent = { ...person, commandId: '3f2b8a52-6c1e-4d0b-9a7e-2d5c8f1b4a61' }
+    assert.equal((await t.apply(form.publicCode, sent)).status, 201)
+    const again = await t.apply(form.publicCode, sent)
+    assert.equal(again.status, 201)
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration'), 1)
+    assert.equal((await t.lookup(((await body(again)) as { token: string }).token)).status, 200)
   }),
 )
 

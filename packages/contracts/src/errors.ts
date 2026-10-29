@@ -86,6 +86,8 @@ export const ERROR_STATUS = {
   ATTENDANCE_CHANGED: 409,
   REGISTRATION_FULL: 409,
   REGISTRATION_NOT_OPEN: 409,
+  // 같은 양식에 이 학번의 취소하지 않은 신청이 이미 있다(DEC-107)
+  DUPLICATE_STUDENT_ID: 409,
   // 입금 확인과 환불함(기능 008)
   DEPOSIT_CLOSED: 409,
   DEPOSIT_EXISTS: 409,

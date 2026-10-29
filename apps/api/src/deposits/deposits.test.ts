@@ -458,17 +458,17 @@ test(
   '신청자 목록: 입금 상태와 거르기(입금, 환불 대기). 환불 대기는 목록에 남고 환불한 신청은 빠진다. 틀린 거르기는 400이다',
   withRegistrations(async t => {
     const { form } = await started(t)
-    const another = async (name: string) => {
-      await t.applied(form.publicCode, { ...kim, name })
+    const another = async (name: string, studentId: string) => {
+      await t.applied(form.publicCode, { ...kim, name, studentId })
       return (
         (await t.pg.query('SELECT id FROM registration ORDER BY id DESC LIMIT 1')).rows[0] as {
           id: string
         }
       ).id
     }
-    const paid = await another('입금함')
-    const pending = await another('대기함')
-    const refunded = await another('환불함')
+    const paid = await another('입금함', '202612346')
+    const pending = await another('대기함', '202612347')
+    const refunded = await another('환불함', '202612348')
     for (const id of [paid, pending, refunded]) await confirm(t, id)
     for (const id of [pending, refunded]) await cancelStaff(t, id)
     await refund(t, refunded)

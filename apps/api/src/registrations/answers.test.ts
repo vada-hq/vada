@@ -52,6 +52,7 @@ test(
     const [initial, size, sports] = answersOf(form)
     const second = await t.applied(form.publicCode, {
       ...person,
+      studentId: '202612346',
       answers: [initial, size, { ...sports, choiceIds: [] }],
     })
     const other = (await (await t.lookup(second)).json()) as MyRegistration
@@ -273,7 +274,11 @@ test(
   withRegistrations(async t => {
     const { form } = await questionForm(t)
     for (let n = 0; n < 3; n++)
-      await t.applied(form.publicCode, { ...person, answers: answersOf(form) })
+      await t.applied(form.publicCode, {
+        ...person,
+        studentId: `20261234${n}`,
+        answers: answersOf(form),
+      })
     const ids = (
       await t.pg.query<{ id: string }>('SELECT id FROM registration ORDER BY id')
     ).rows.map(row => row.id)

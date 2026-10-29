@@ -68,7 +68,7 @@ export const applyAs = (
   db: Db,
   run: Race,
   code: string,
-  options: { hold?: () => Promise<void>; commandId?: string } = {},
+  options: { hold?: () => Promise<void>; commandId?: string; studentId?: string } = {},
 ) =>
   db.transaction(async tx => {
     const done = await applyToForm(
@@ -77,7 +77,7 @@ export const applyAs = (
       {
         commandId: options.commandId ?? randomUUID(),
         name: '점검 신청자',
-        studentId: null,
+        studentId: options.studentId ?? null,
         phone: null,
         answers: [],
       },

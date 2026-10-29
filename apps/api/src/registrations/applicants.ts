@@ -17,7 +17,7 @@ import { recordApplicantAccess } from './access-log.js'
 import { applicantActionsOf, applicantFactsFrom, decideOnEvent, eventFactsOf } from './policy.js'
 import { formRowOf } from './queries.js'
 
-// 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번(DEC-26: 막지 않고 드러낸다)
+// 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번. 같은 양식 안은 신청에서 막으므로(DEC-107) 다른 양식 사이를 드러낸다(DEC-26·DEC-67)
 export async function duplicateStudentIds(tx: Tx, eventId: string) {
   const rows = await tx
     .select({ studentId: registration.studentId })

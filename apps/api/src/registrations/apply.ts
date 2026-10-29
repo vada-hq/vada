@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { PUBLIC_CODE_PATTERN, type ApplyRequest } from '@vada/contracts'
-import { registrationForm } from '../db/schema.js'
+import { registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { lockedCompleted } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
@@ -52,9 +52,27 @@ function assertFieldsMatch(input: ApplyRequest, wants: { studentId: boolean; pho
     throw new ApiError('FORM_CHANGED')
 }
 
+// 같은 양식에 이 학번의 취소하지 않은 신청이 있으면 던진다(DEC-107). 학번을 받지 않는 신청은 보지 않는다.
+// 양식 행을 잠근 뒤에 읽으므로 같은 학번 신청 둘이 겹쳐도 뒤의 것이 앞의 신청을 본다. 취소와 1년 파기는 학번을 비워 세지 않는다.
+async function assertNewStudentId(tx: Tx, formId: string, studentId: string | null) {
+  if (studentId === null) return
+  const [taken] = await tx
+    .select({ id: registration.id })
+    .from(registration)
+    .where(
+      and(
+        eq(registration.formId, formId),
+        eq(registration.studentId, studentId),
+        isNull(registration.cancelledAt),
+      ),
+    )
+    .limit(1)
+  if (taken) throw new ApiError('DUPLICATE_STUDENT_ID')
+}
+
 // 로그인 없이 코드로 신청한다. 신청하면 개인 링크 토큰을 한 번만 돌려준다.
 // 모르는 코드는 404, 받는 중이 아니면 REGISTRATION_NOT_OPEN(마감·멈춤·시작 전), 정원 참은 REGISTRATION_FULL이다.
-// 같은 학번이 이미 있어도 막지 않는다(막으면 남의 학번으로 신청 여부를 떠볼 수 있다, DEC-26).
+// 같은 양식에 같은 학번이 이미 있으면 DUPLICATE_STUDENT_ID다(DEC-107). 다른 양식 사이는 막지 않고 신청자 목록에 표시한다(DEC-67).
 export async function applyToForm(
   tx: Tx,
   target: { code: string; now: Date; receiptKey: string },
@@ -75,6 +93,8 @@ export async function applyToForm(
   await assertOpen(tx, form, { now: target.now, eventCompleted })
   // 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75).
   assertFieldsMatch(input, { studentId: form.collectsStudentId, phone: form.collectsPhone })
+  // 같은 명령의 재전송은 위에서 돌려주었으므로 여기까지 온 같은 학번은 새 신청이다.
+  await assertNewStudentId(tx, form.id, input.studentId)
   // 질문은 양식 행을 잠근 뒤에 읽는다. 질문 바꾸기(question-write.ts)도 같은 행을 잠그므로 낡은 질문의 답을 받지 않는다.
   const answers = answerRowsOf(await questionsOfForm(tx, form.id), input.answers)
   // 양식 기록은 늘 학생회 번호가 있다(학생회 번호가 없는 것은 학생회와 운영진뿐이다).

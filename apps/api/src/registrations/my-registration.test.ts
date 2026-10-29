@@ -78,7 +78,11 @@ test(
     const attended = await mineOf(t, token)
     assert.deepEqual([attended.attended, attended.cancellable], [true, false])
     t.setNow(korean('2026-11-01T17:59:59'))
-    const second = await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const second = await t.applied(form.publicCode, {
+      ...person,
+      name: '이신청',
+      studentId: '202612346',
+    })
     assert.equal((await mineOf(t, second)).cancellable, true)
     t.setNow(korean('2026-11-01T18:00:00'))
     assert.equal((await mineOf(t, second)).cancellable, false)
@@ -90,7 +94,11 @@ test(
   withRegistrations(async t => {
     const form = await split(t)
     const first = await t.applied(form.publicCode, person)
-    const second = await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const second = await t.applied(form.publicCode, {
+      ...person,
+      name: '이신청',
+      studentId: '202612346',
+    })
     const rows = (await t.pg.query('SELECT id FROM registration ORDER BY id')).rows as {
       id: string
     }[]
@@ -193,7 +201,11 @@ test(
   withRegistrations(async t => {
     const form = await split(t)
     const token = await t.applied(form.publicCode, person)
-    const other = await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const other = await t.applied(form.publicCode, {
+      ...person,
+      name: '이신청',
+      studentId: '202612346',
+    })
     const id = (await t.pg.query(`SELECT id FROM registration WHERE name = '김신청'`)).rows[0] as {
       id: string
     }
@@ -284,7 +296,11 @@ test(
   withRegistrations(async t => {
     const form = await split(t)
     const first = await t.applied(form.publicCode, person)
-    const second = await t.applied(form.publicCode, { ...person, name: '이신청' })
+    const second = await t.applied(form.publicCode, {
+      ...person,
+      name: '이신청',
+      studentId: '202612346',
+    })
     const id = (await t.pg.query(`SELECT id FROM registration WHERE name = '김신청'`)).rows[0] as {
       id: string
     }
