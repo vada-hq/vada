@@ -80,6 +80,14 @@ export function addApplicantRoutes(kit: RouteKit) {
       return c.json(result satisfies CheckInResult)
     },
   )
+  addAbsenceRoute(kit)
+  addCancelRoutes(kit)
+}
+
+// 불참 처리(DEC-93). 신청자 정보를 담지 않아 열람 기록이 없다.
+function addAbsenceRoute(kit: RouteKit) {
+  const { routes, auth, db } = kit
+  const { changing, limited } = kitHelpers(kit)
   routes.post(
     `${root}/registrations/:registrationId/absence`,
     json(EmptyRequestSchema),
@@ -93,7 +101,6 @@ export function addApplicantRoutes(kit: RouteKit) {
       return c.json({ applicant } satisfies ApplicantChangeResponse)
     },
   )
-  addCancelRoutes(kit)
 }
 
 // 출석 취소와 신청 취소: 성공하면 cancelled다. 신청자 정보를 담지 않아 열람 기록이 없다.

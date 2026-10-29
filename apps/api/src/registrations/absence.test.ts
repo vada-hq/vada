@@ -35,7 +35,11 @@ test(
     const { applicant } = (await response.json()) as ApplicantChangeResponse
     assert.deepEqual([applicant.attended, applicant.absent], [false, true])
     assert.ok(!applicant.actions.includes('registration.mark_absent'))
-    for (const action of ['registration.check_in', 'registration.cancel_check_in', 'registration.cancel'])
+    for (const action of [
+      'registration.check_in',
+      'registration.cancel_check_in',
+      'registration.cancel',
+    ])
       assert.ok(applicant.actions.includes(action as never), action)
     assert.equal((await absent(t, id)).status, 200)
     assert.deepEqual((await records(t, id)).rows, [
@@ -100,7 +104,10 @@ test(
     const token = await t.applied(form.publicCode, { name: '김불참', studentId: '202612345' })
     const id = ((await t.pg.query('SELECT id FROM registration')).rows[0] as { id: string }).id
     await absent(t, id)
-    const mine = (await (await t.lookup(token)).json()) as { attended: boolean; cancellable: boolean }
+    const mine = (await (await t.lookup(token)).json()) as {
+      attended: boolean
+      cancellable: boolean
+    }
     assert.deepEqual([mine.attended, mine.cancellable], [false, true])
     assert.equal((await t.cancelMine(token)).status, 200)
   }),

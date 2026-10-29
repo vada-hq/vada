@@ -88,6 +88,20 @@ test(
 )
 
 test(
+  '신청을 모두 취소해도(환불 대기 포함) 받은 적 있는 양식은 마감을 비울 수 없다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ startsAt: korean('2026-11-05T14:00') })
+    const { form } = await t.activeForm(event)
+    const id = await t.makeRegistration(form.id, { appliedFee: '5000' })
+    await t.change('registration', id, { cancelledAt: new Date('2026-10-20T00:00:00Z') })
+    assert.equal((await t.post(`/registration-forms/${form.id}/pause`, {})).status, 200)
+    const response = await t.post(`/registration-forms/${form.id}`, EDIT)
+    assert.equal(response.status, 409)
+    assert.equal(await errorOf(response), 'CLOSES_AT_REQUIRED')
+  }),
+)
+
+test(
   'DB는 멈추지 않은 양식의 마감 비우기를 CHECK로 막는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()

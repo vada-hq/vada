@@ -120,9 +120,7 @@ test('⋯에서 기존 입금 확인 금액 창을 연다', async () => {
 })
 
 test('일괄 실패 줄이 재조회한 필터에서 빠져도 처리 당시 이름과 이유를 남긴다', async () => {
-  const { api } = setup(
-    data({ applicants: [row(), row({ id: secondId, name: '이실패' })] }),
-  )
+  const { api } = setup(data({ applicants: [row(), row({ id: secondId, name: '이실패' })] }))
   await screen.findByText('김새내')
   api.on('POST', `${PATH}/deposit`, () =>
     json({
@@ -358,4 +356,33 @@ test('입금 안 함 수와 거르기는 받을 돈이 있는 신청만이다(�
   await waitFor(() => expect(screen.queryByText('무료생')).toBeNull())
   expect(screen.getByText('미입금')).toBeTruthy()
   expect(within(filters).getByRole('button', { name: '입금 안 함 1' })).toBeTruthy()
+})
+
+test('불참한 줄의 ⋯에는 출석과 불참 취소가 있고, 불참 취소는 출석 취소 길로 보낸다', async () => {
+  const absent = row({
+    absent: true,
+    actions: ['registration.check_in', 'registration.cancel_check_in', 'registration.cancel'],
+  })
+  const { api } = setup(data({ applicants: [absent] }))
+  await screen.findByText('김새내')
+  api.on('POST', `/api/organizations/c1/registrations/${absent.id}/attendance/cancel`, () =>
+    json({
+      cancelled: true,
+      applicant: {
+        id: absent.id,
+        attended: false,
+        absent: false,
+        cancelled: false,
+        deposit: absent.deposit,
+        listed: true,
+        actions: ['registration.check_in', 'registration.mark_absent', 'registration.cancel'],
+      },
+    }),
+  )
+  fireEvent.keyDown(screen.getByRole('button', { name: '김새내 동작' }), { key: 'ArrowDown' })
+  expect(await screen.findByRole('menuitem', { name: '출석' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('menuitem', { name: '불참 취소' }))
+  await waitFor(() =>
+    expect(api.calls.some(call => call.path.endsWith('/attendance/cancel'))).toBe(true),
+  )
 })

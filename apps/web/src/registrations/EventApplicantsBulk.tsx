@@ -118,7 +118,12 @@ export function BulkBar(props: Props) {
         )}
         <span className="ml-auto">{unselect}</span>
       </span>
-      <span className={cn('grid w-full', actions.length > 2 ? 'grid-cols-3' : 'grid-cols-2')}>
+      <span
+        className={cn(
+          'grid w-full',
+          actions.length === BULK.length ? 'grid-cols-3' : 'grid-cols-2',
+        )}
+      >
         {actions}
       </span>
     </Frame>

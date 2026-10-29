@@ -1,14 +1,10 @@
-import {
-  EVENT_APPLICANT_PAGE_SIZE,
-  type DepositStatus,
-  type EventApplicant,
-} from '@vada/contracts'
+import { EVENT_APPLICANT_PAGE_SIZE, type DepositStatus, type EventApplicant } from '@vada/contracts'
 
 // 행사 참가자 명단의 거르기·찾기·쪽 넘김·머리 수·줄 차례·확인 필요 까닭(신청자 관리 화면, 10/30 확정 '문서 속 얇은 표 모양').
 // 서버는 명단을 한 번에 준다(DEC-93: 서버에서 쪽을 넘기면 쪽마다 열람 기록이 는다). 그래서 거르기를 바꿔도 다시 부르지 않고,
 // 머리 수는 늘 받은 명단 전부에서 센다.
 
-export type AttendanceFilter = 'attended' | 'absent' | 'none'
+type AttendanceFilter = 'attended' | 'absent' | 'none'
 export type ApplicantFilter = {
   registration?: 'active' | 'cancelled' | undefined
   deposit?: DepositStatus | undefined
@@ -36,13 +32,14 @@ const attendanceOf = (row: EventApplicant): AttendanceFilter =>
 // '입금 안 함'은 받을 돈이 있는 신청만이다. 무료 신청(줄에는 '무료')을 담으면 수와 줄이 어긋난다(Codex 검토).
 const owing = (row: EventApplicant) => row.appliedFee > 0
 
-const MATCHES: { [K in StatusKey]: (row: EventApplicant, value: NonNullable<ApplicantFilter[K]>) => boolean } =
-  {
-    registration: (row, value) => row.cancelled === (value === 'cancelled'),
-    deposit: (row, value) => row.deposit.status === value && (value !== 'none' || owing(row)),
-    attendance: (row, value) => attendanceOf(row) === value,
-    needsAttention: (row, value) => row.needsAttention === value,
-  }
+const MATCHES: {
+  [K in StatusKey]: (row: EventApplicant, value: NonNullable<ApplicantFilter[K]>) => boolean
+} = {
+  registration: (row, value) => row.cancelled === (value === 'cancelled'),
+  deposit: (row, value) => row.deposit.status === value && (value !== 'none' || owing(row)),
+  attendance: (row, value) => attendanceOf(row) === value,
+  needsAttention: (row, value) => row.needsAttention === value,
+}
 
 // 이름·학번 찾기는 대소문자를 가리지 않는 부분 일치다.
 function matchesSearch(row: EventApplicant, search: string | undefined) {
@@ -59,7 +56,7 @@ function matchesStatus(row: EventApplicant, filter: StatusFilter) {
   })
 }
 
-export const filterRows = (rows: EventApplicant[], filter: ApplicantFilter) =>
+const filterRows = (rows: EventApplicant[], filter: ApplicantFilter) =>
   rows.filter(row => matchesStatus(row, filter) && matchesSearch(row, filter.search))
 
 export const statusOf = (filter: ApplicantFilter): StatusFilter =>
@@ -87,16 +84,15 @@ export function quickFilters(rows: EventApplicant[], filter: ApplicantFilter): Q
 }
 
 // 확인 필요 줄을 맨 위로 모은다(받은 차례 안에서 안정 정렬). 명단 전부를 정렬한 뒤 쪽을 나눠, 확인 필요가 첫 쪽부터 모인다.
-export const attentionFirst = (rows: EventApplicant[]) =>
+const attentionFirst = (rows: EventApplicant[]) =>
   rows
     .map((row, i) => ({ row, i }))
     .sort((a, b) => Number(b.row.needsAttention) - Number(a.row.needsAttention) || a.i - b.i)
     .map(item => item.row)
 
-export const pageCountOf = (count: number) =>
-  Math.max(1, Math.ceil(count / EVENT_APPLICANT_PAGE_SIZE))
+const pageCountOf = (count: number) => Math.max(1, Math.ceil(count / EVENT_APPLICANT_PAGE_SIZE))
 // 쪽 번호는 1부터다. 거르기로 줄이 줄어 쪽이 사라졌으면 마지막 쪽을 보인다.
-export function pageOf<T>(rows: T[], page: number) {
+function pageOf<T>(rows: T[], page: number) {
   const last = pageCountOf(rows.length)
   const shown = Math.min(Math.max(1, page), last)
   const start = (shown - 1) * EVENT_APPLICANT_PAGE_SIZE

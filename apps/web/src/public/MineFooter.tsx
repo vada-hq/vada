@@ -128,11 +128,7 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
 }
 
 // 띠 아래: 행사 정보·문의 → 내 답 → 다시 열기 → 취소 → 지우는 날.
-export function MineFooter(props: {
-  mine: MyRegistration
-  cancel: Cancel
-  copy: Copy
-}) {
+export function MineFooter(props: { mine: MyRegistration; cancel: Cancel; copy: Copy }) {
   const { mine, cancel, copy } = props
   return (
     <div className="flex flex-col gap-6 pt-6 pb-12">

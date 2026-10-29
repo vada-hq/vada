@@ -7,8 +7,10 @@ import {
   type RegistrationForm,
   type UpdateFormRequest,
 } from '@vada/contracts'
+import { eq } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
 import { assertUsableAccount } from '../accounts/queries.js'
+import { registration } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
@@ -18,7 +20,6 @@ import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
 import { insertQuestions, replaceQuestions } from './question-write.js'
 import { freshPublicCode } from './public-code.js'
-import { applicantCountOf } from './public-form.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 행사·양식 읽기 → 권한표 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -78,12 +79,17 @@ export async function createForm(
   return formDetailOf(tx, actor, id, target.now)
 }
 
-// 마감 비우기는 초안(멈춘 채 신청이 0명인 양식, DEC-93)만 된다. 받는 중이거나 신청이 있으면 마감이 상태와 지우는 날을 정한다.
+// 마감 비우기는 신청을 한 번도 받지 않은 멈춘 양식(초안, DEC-93)만 된다. 받는 중이거나 신청 행이 하나라도 있으면
+// 마감이 상태와 지우는 날을 정한다. 취소한 신청도 센다: 환불 대기는 이름·휴대폰이 남아 지우는 날이 있어야 한다(Codex 검토).
 // 신청은 멈춘 양식에 들어오지 않고 같은 거래가 학생회 행을 잠갔으므로 센 뒤에 신청이 생기지 않는다.
 async function assertClosesAtAllowed(tx: Tx, row: FormRow, input: UpdateFormRequest) {
   if (input.closesAt !== null || row.closesAt === null) return
-  if (row.pausedAt === null || (await applicantCountOf(tx, row.id)) > 0)
-    throw new ApiError('CLOSES_AT_REQUIRED')
+  const [taken] = await tx
+    .select({ id: registration.id })
+    .from(registration)
+    .where(eq(registration.formId, row.id))
+    .limit(1)
+  if (row.pausedAt === null || taken) throw new ApiError('CLOSES_AT_REQUIRED')
 }
 
 // 받는 칸. 학번 받기를 바꾸면 그 뒤의 신청부터 따른다(DEC-75).
@@ -100,7 +106,9 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
   return {
     ...(input.name !== row.name ? { name: input.name } : {}),
     ...(koreanOrNull(row.opensAt) !== input.opensAt ? { opensAt: fromKorean(input.opensAt) } : {}),
-    ...(koreanOrNull(row.closesAt) !== input.closesAt ? { closesAt: fromKorean(input.closesAt) } : {}),
+    ...(koreanOrNull(row.closesAt) !== input.closesAt
+      ? { closesAt: fromKorean(input.closesAt) }
+      : {}),
     ...(input.capacity !== row.capacity ? { capacity: input.capacity } : {}),
     ...(input.notice !== row.notice ? { notice: input.notice } : {}),
     ...collectChangesOf(row, input),

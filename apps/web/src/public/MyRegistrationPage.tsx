@@ -62,11 +62,7 @@ export default function MyRegistrationPage({ token }: { token: string }) {
       )
     case 'ready':
       return (
-        <MyRegistrationView
-          mine={state.data}
-          day={day}
-          cancel={{ busy, problem, run: cancel }}
-        />
+        <MyRegistrationView mine={state.data} day={day} cancel={{ busy, problem, run: cancel }} />
       )
   }
 }

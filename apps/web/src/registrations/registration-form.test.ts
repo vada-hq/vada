@@ -61,13 +61,16 @@ test('누를 때 확인: 빈 필수 칸, 마감 순서, 숫자가 아닌 정원�
     closesAt: '신청 마감을 입력해 주세요',
   })
   expect(
-    formErrors({
-      ...filled,
-      opensAt: '2026-10-24T09:00',
-      capacity: '열',
-      feeKind: 'one',
-      fee: '',
-    }, false),
+    formErrors(
+      {
+        ...filled,
+        opensAt: '2026-10-24T09:00',
+        capacity: '열',
+        feeKind: 'one',
+        fee: '',
+      },
+      false,
+    ),
   ).toEqual({
     closesAt: '신청 시작보다 늦은 시각을 입력해 주세요',
     capacity: '1 이상의 숫자를 입력해 주세요',
@@ -141,11 +144,16 @@ test('새 양식의 신청 마감은 행사 시작 시각이고, 행사 시작�
 
 test('남은 필수 칸은 화면 차례대로 이름·마감·참가비 금액·계좌이고, 계좌는 참가비가 있을 때만 센다', () => {
   expect(missingRequired(filled, null, false)).toEqual([])
-  expect(missingRequired({ ...emptyFormValues, name: ' ' }, null, false)).toEqual(['name', 'closesAt'])
-  expect(missingRequired({ ...filled, feeKind: 'one' }, null, false)).toEqual(['fee'])
-  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, null, false)).toEqual(['account'])
-  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID, false)).toEqual([])
-  expect(missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID, false)).toEqual([
-    'nonPayerFee',
+  expect(missingRequired({ ...emptyFormValues, name: ' ' }, null, false)).toEqual([
+    'name',
+    'closesAt',
   ])
+  expect(missingRequired({ ...filled, feeKind: 'one' }, null, false)).toEqual(['fee'])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, null, false)).toEqual([
+    'account',
+  ])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID, false)).toEqual([])
+  expect(
+    missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID, false),
+  ).toEqual(['nonPayerFee'])
 })

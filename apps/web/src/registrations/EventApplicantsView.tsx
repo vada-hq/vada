@@ -226,9 +226,7 @@ function CountsOnlySheet({ data }: { data: EventApplicantsResponse }) {
 function Rows({ props, list, wide }: { props: Full; list: ListProps; wide: boolean }) {
   if (list.rows.length === 0)
     return (
-      <Message>
-        {isWhole(props.query) ? EVENT_APPLICANTS.empty : EVENT_APPLICANTS.noMatch}
-      </Message>
+      <Message>{isWhole(props.query) ? EVENT_APPLICANTS.empty : EVENT_APPLICANTS.noMatch}</Message>
     )
   return wide ? <EventApplicantsTable {...list} /> : <EventApplicantsList {...list} />
 }

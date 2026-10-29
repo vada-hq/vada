@@ -60,59 +60,65 @@ type ButtonsProps = {
   attended: boolean
   busy: boolean
   onToggle: () => void
+  onUndoAbsent: () => void
   onCancel: () => void
   menu?: boolean
 }
 
-// 그 줄의 actions에 있는 버튼만 보인다.
-function ActionButtons({ applicant, attended, busy, onToggle, onCancel, menu }: ButtonsProps) {
+// 그 줄의 actions에 있는 버튼만 보인다. 불참한 줄은 [출석](늦게 왔다)과 [불참 취소](잘못 처리했다)를 함께 준다(DEC-93).
+function itemsOf({ applicant, attended, onToggle, onUndoAbsent, onCancel }: ButtonsProps) {
+  const has = (action: Applicant['actions'][number]) => applicant.actions.includes(action)
   const toggle = attended ? 'registration.cancel_check_in' : 'registration.check_in'
-  if (menu)
+  return [
+    { show: has(toggle), label: attended ? '출석 취소' : '출석', run: onToggle },
+    {
+      show: applicant.absent && has('registration.cancel_check_in'),
+      label: '불참 취소',
+      run: onUndoAbsent,
+    },
+    { show: has('registration.cancel'), label: '신청 취소', run: onCancel },
+  ].filter(item => item.show)
+}
+
+function ActionButtons(props: ButtonsProps) {
+  const items = itemsOf(props)
+  if (props.menu)
     return (
       <>
-        {applicant.actions.includes(toggle) && (
+        {items.map(item => (
           <MenuItem
-            disabled={busy}
+            key={item.label}
+            disabled={props.busy}
             className="max-sm:min-h-11"
             onSelect={event => {
               event.preventDefault()
-              onToggle()
+              item.run()
             }}
           >
-            {attended ? '출석 취소' : '출석'}
+            {item.label}
           </MenuItem>
-        )}
-        {applicant.actions.includes('registration.cancel') && (
-          <MenuItem
-            disabled={busy}
-            className="max-sm:min-h-11"
-            onSelect={event => {
-              event.preventDefault()
-              onCancel()
-            }}
-          >
-            신청 취소
-          </MenuItem>
-        )}
+        ))}
       </>
     )
   return (
     <div className="flex flex-wrap gap-2">
-      {applicant.actions.includes(toggle) && (
-        <Button variant="outline" size="sm" touch busy={busy} onClick={onToggle}>
-          {attended ? '출석 취소' : '출석'}
+      {items.map(item => (
+        <Button
+          key={item.label}
+          variant="outline"
+          size="sm"
+          touch
+          busy={props.busy}
+          onClick={item.run}
+        >
+          {item.label}
         </Button>
-      )}
-      {applicant.actions.includes('registration.cancel') && (
-        <Button variant="outline" size="sm" touch busy={busy} onClick={onCancel}>
-          신청 취소
-        </Button>
-      )}
+      ))}
     </div>
   )
 }
 
-// 신청자 한 줄의 [출석]·[출석 취소]·[신청 취소]. 버튼은 그 줄의 actions에 있는 것만 보인다.
+// 신청자 한 줄의 [출석]·[출석 취소]·[불참 취소]·[신청 취소]. 버튼은 그 줄의 actions에 있는 것만 보인다.
 // 신청 취소는 확인을 거친다. 확인 창이 열린 동안 그 동작이 사라지면 닫고 이유를 보인다. 오류는 버튼 아래(확인 중에는 확인 창)에 보인다.
 export function ApplicantActions(props: Props) {
   const { applicant } = props
@@ -144,6 +150,10 @@ export function ApplicantActions(props: Props) {
         onToggle={() => {
           setGone(null)
           void setAttended(!attended)
+        }}
+        onUndoAbsent={() => {
+          setGone(null)
+          void setAttended(false)
         }}
         onCancel={() => {
           setGone(null)
