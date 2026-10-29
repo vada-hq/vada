@@ -55,7 +55,7 @@ const twoPending = (extra: Partial<PurchaseRequestDetail> = {}) =>
 
 function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod()) {
   const api = mockApi()
-  api.on('GET', `${BASE}?view=pending`, () =>
+  api.on('GET', `${BASE}?view=all`, () =>
     json({ requests: [purchaseSummary(REQUEST)], truncated: false }),
   )
   api.on('GET', `${BASE}/${REQUEST}`, () => json({ request: detail }))

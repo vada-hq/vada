@@ -1,22 +1,11 @@
-import { useState } from 'react'
-import {
-  EVENT_PURCHASE_VIEWS,
-  type EventSettlement,
-  type EventSettlementRow,
-  type EventSummary,
-  type PurchaseRequestSummary,
-  type PurchaseStage,
-} from '@vada/contracts'
+import { type EventSettlement, type EventSettlementRow, type EventSummary } from '@vada/contracts'
 import { EventSettlementList } from '@/finance/EventSettlementList'
 import { EventSettlementTable } from '@/finance/EventSettlementTable'
 import { useSplit } from '@/lib/use-split'
 import { SettlementRemaining } from '@/events/SettlementRemaining'
-import { SettlementBudget } from '@/events/SettlementSummary'
+import { PurchaseBudgetSummary } from '@/purchases/PurchaseBudgetSummary'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { RequestFilter } from '@/purchases/RequestFilter'
-import { PurchaseStages } from '@/purchases/PurchaseStages'
-import { PurchasesBody } from '@/purchases/PurchasesBody'
 import { Section } from './GallerySection'
 import { longName } from './sample-text'
 
@@ -67,62 +56,19 @@ const settlement: EventSettlement = {
   approvals: [],
 }
 
-const request: PurchaseRequestSummary = {
-  id: '0199d1a0-0000-7000-8000-000000000001',
-  title: '신입생 환영회 간식과 행사 물품 구매',
-  status: 'pending',
-  requestedBy: { id: '0199d1a0-0000-7000-8000-000000000002', name: '김새내' },
-  neededBy: '2026-10-30',
-  itemCount: 2,
-  createdAt: '2026-10-28T03:00:00Z',
-  payable: false,
-  event: { id: '0199d1a0-0000-7000-8000-000000000003', name: '신입생 환영회' },
-  progress: { decided: false, paid: false, partlyPaid: false, hasShipment: false },
-}
-
-// 실제 탭과 같은 부품·차례로 예산 → 행동 → 요청 목록 → 정산에 남은 것을 본다.
+// 행사 구매 탭의 예산 요약(재정부 버튼 포함)과 정산에 남은 것. 품목 칸반은 PurchasesSection에 있다.
 export function SettlementSection() {
-  const [view, setView] = useState<(typeof EVENT_PURCHASE_VIEWS)[number]>('all')
-  const [stage, setStage] = useState<PurchaseStage | undefined>()
   return (
-    <Section title="행사 구매 탭">
-      <div className="flex min-w-0 w-full flex-col gap-6">
-        <SettlementBudget settlement={settlement} />
-        <div className="flex flex-wrap gap-2">
-          {['구매 요청 내기', '예산 편성', '지출 적기'].map(label => (
-            <Button key={label} touch variant="outline" size="sm">
+    <Section title="행사 구매 탭의 예산 요약">
+      <div className="flex w-full min-w-0 flex-col gap-6">
+        <PurchaseBudgetSummary
+          settlement={settlement}
+          actions={['예산 편성', '지출 적기'].map(label => (
+            <Button key={label} touch variant="outline">
               {label}
             </Button>
           ))}
-        </div>
-        <section aria-label="행사 구매 요청" className="flex flex-col gap-4">
-          <RequestFilter
-            views={EVENT_PURCHASE_VIEWS}
-            view={view}
-            onView={next => {
-              setView(next === 'mine' ? 'mine' : 'all')
-              setStage(undefined)
-            }}
-          />
-          <PurchaseStages
-            counts={{ pending: 1, unpaid: 0, paid: 0, closed: 0 }}
-            stage={stage}
-            onStage={next => setStage(next ?? undefined)}
-          />
-          <PurchasesBody
-            view={view}
-            list={{
-              state: {
-                kind: 'ready',
-                requests: !stage || stage === 'pending' ? [request] : [],
-                truncated: false,
-                stageCounts: { pending: 1, unpaid: 0, paid: 0, closed: 0 },
-              },
-              reload: async () => {},
-            }}
-            onOpen={noop}
-          />
-        </section>
+        />
         <SettlementRemaining settlement={settlement} onOpenRequest={noop} onOpenExpense={noop} />
       </div>
     </Section>

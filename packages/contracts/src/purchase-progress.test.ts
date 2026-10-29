@@ -4,7 +4,7 @@ import { menuPath, parseAppPath } from './paths.js'
 import { PurchaseRequestListQuerySchema } from './purchases.js'
 import { purchaseProgressOf, purchaseStageOf } from './purchase-progress.js'
 
-test('구매 범위는 none·UUID만 받고 주소에서 보기·단계와 함께 왕복한다', () => {
+test('구매 범위는 none·UUID만 받고 주소에서 보기·보드와 함께 왕복한다', () => {
   const council = '0199d1a0-0000-7000-8000-000000000001'
   const event = '0199d1a0-0000-7000-8000-000000000002'
   for (const scope of ['none', event]) {
@@ -12,7 +12,7 @@ test('구매 범위는 none·UUID만 받고 주소에서 보기·단계와 함�
       PurchaseRequestListQuerySchema.safeParse({ view: 'all', event: scope }).success,
       true,
     )
-    const query = { scope, view: 'mine', stage: 'unpaid' }
+    const query = { view: 'mine', scope, board: 'items' }
     assert.deepEqual(parseAppPath(menuPath('purchases', council, query)), {
       type: 'menu',
       menu: 'purchases',

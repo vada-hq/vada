@@ -32,6 +32,17 @@ export const PURCHASE_PENDING_LIMIT = 300
 export const PURCHASE_RECENT_LIMIT = 100
 
 export const PURCHASE_VIEWS = ['mine', 'pending', 'all', 'department'] as const
+// 구매 칸반의 보드(품목 현황이 기본, 재정부는 처리 단계·요청 기록도), 처리 단계의 업무 영역, 내 구매 요청 쪽 화면(와이어프레임 PUR-00·EVT-FIN-01B·MY-REQ-01).
+export const PURCHASE_BOARDS = ['items', 'process', 'records'] as const
+export type PurchaseBoard = (typeof PURCHASE_BOARDS)[number]
+export const PURCHASE_AREAS = ['review', 'ready', 'goods', 'rental', 'service', 'refund'] as const
+export type PurchaseArea = (typeof PURCHASE_AREAS)[number]
+// 구매 메뉴와 행사의 구매 탭이 같은 보드 주소 규칙을 쓴다(paths.ts). 기본 보드는 사람마다 달라(재정부는 처리 단계) 화면이 정한다.
+export const purchaseBoardQuery = <T>(onlyWith: T) => ({
+  board: { values: PURCHASE_BOARDS, fallback: null, onlyWith },
+  area: { values: PURCHASE_AREAS, fallback: 'review', onlyWith },
+  page: { values: ['mine'], fallback: null, onlyWith },
+})
 export type PurchaseView = (typeof PURCHASE_VIEWS)[number]
 // none은 행사 없는 요청, UUID는 그 행사에 이은 요청만 준다.
 export const PurchaseRequestListQuerySchema = z.strictObject({
@@ -154,6 +165,25 @@ export interface PurchaseRequestSummary {
   bodyPreview?: string | null
   // 목록과 상세 진행 막대가 같은 실제 품목·결제·송장 기록으로 센다.
   progress?: PurchaseProgress
+  // 구매 칸반은 품목 하나가 카드 한 장이라(와이어프레임 PUR-00) 목록이 품목도 함께 준다. 옛 응답에는 없을 수 있다.
+  itemBriefs?: PurchaseItemBrief[]
+  // 요청한 사람의 지금 부서 이름. 저장하지 않고 읽을 때 센다(겸직이면 여럿, 재정 통합 F9).
+  requesterDepartments?: string[]
+}
+
+export interface PurchaseItemBrief {
+  id: string
+  name: string
+  quantity: number
+  // 수량 × 예상 단가 + 배송비. 예상 단가가 없으면 null이다.
+  estimate: number | null
+  // 승인할 때 정한 금액. 결재 전에는 null이다.
+  amount: number | null
+  status: LineItemStatus
+  // 취소되지 않은 결제 내역이 있다.
+  paid: boolean
+  // 취소되지 않은 송장에 든 품목이다.
+  shipped: boolean
 }
 
 export interface PurchaseLineItem {

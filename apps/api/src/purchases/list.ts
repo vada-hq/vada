@@ -4,6 +4,7 @@ import {
   PURCHASE_RECENT_LIMIT,
   purchaseStageOf,
   type PurchaseRequestListQuery,
+  type PurchaseRequestSummary,
   type PurchaseRequestsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
@@ -12,6 +13,7 @@ import type { Db } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { departmentRequestsOf } from '../home/department-purchases.js'
 import { lastOutcomeOf } from './last-outcome.js'
+import { itemBriefsOf, requesterDepartmentsOf } from './list-items.js'
 import { requestStageSql, stageCountsOf, stageCountsOfRequests } from './list-stages.js'
 import { payableRequestIds } from './payable-requests.js'
 import { summaryOf, summaryRows } from './summary.js'
@@ -45,7 +47,7 @@ async function departmentListOf(
   )
   const requests = scoped.filter(row => !query.stage || purchaseStageOf(row) === query.stage)
   return {
-    requests: requests.slice(0, PURCHASE_RECENT_LIMIT),
+    requests: await withItems(db, actor, requests.slice(0, PURCHASE_RECENT_LIMIT)),
     truncated: requests.length > PURCHASE_RECENT_LIMIT,
     stageCounts: stageCountsOfRequests(scoped),
   }
@@ -72,8 +74,30 @@ export async function requestListOf(
   const shown = rows.slice(0, options.limit)
   const payable = await payableRequestIds(db, shown)
   return {
-    requests: shown.map(row => summaryOf(row, payable.has(row.id))),
+    requests: await withItems(
+      db,
+      actor,
+      shown.map(row => summaryOf(row, payable.has(row.id))),
+    ),
     truncated: rows.length > options.limit,
     stageCounts,
   }
+}
+
+// 구매 칸반이 품목 카드와 요청 부서를 그리도록 목록에 실린 요청마다 품목 요약과 요청한 사람의 지금 부서를 붙인다.
+async function withItems(
+  db: Pick<Db, 'select'>,
+  actor: Actor,
+  requests: PurchaseRequestSummary[],
+): Promise<PurchaseRequestSummary[]> {
+  const ids = requests.map(row => row.id)
+  const [items, departments] = await Promise.all([
+    itemBriefsOf(db, actor, ids),
+    requesterDepartmentsOf(db, actor, ids),
+  ])
+  return requests.map(row => ({
+    ...row,
+    itemBriefs: items.get(row.id) ?? [],
+    requesterDepartments: departments.get(row.id) ?? [],
+  }))
 }

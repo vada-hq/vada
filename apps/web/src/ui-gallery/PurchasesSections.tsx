@@ -1,85 +1,33 @@
 import { useState } from 'react'
-import {
-  purchaseStageOf,
-  type PurchaseRequestSummary,
-  type PurchaseStage,
-  type PurchaseView,
-} from '@vada/contracts'
-import { Button } from '@/components/ui/button'
-import { PurchaseScopeChips } from '@/purchases/PurchaseScope'
-import { PurchaseStages } from '@/purchases/PurchaseStages'
-import { RequestFilter } from '@/purchases/RequestFilter'
-import RequestCard from '@/finance/RequestCard'
+import type { PurchaseArea } from '@vada/contracts'
+import { MyPurchaseRequests } from '@/purchases/MyPurchaseRequests'
+import { PurchaseBudgetSummary } from '@/purchases/PurchaseBudgetSummary'
+import { PurchaseItemBoard } from '@/purchases/PurchaseItemBoard'
+import { PurchaseProcessBoard } from '@/purchases/PurchaseProcessBoard'
+import { PurchaseRequestTable } from '@/purchases/PurchaseRequestTable'
+import { cardsOf } from '@/purchases/purchase-board'
 import { Section } from './GallerySection'
-import { longName } from './sample-text'
+import { boardSettlement, REQUESTS } from '@/test-support/purchase-board-fixtures'
 
-const EVENT = '0199d1a0-0000-7000-8000-0000000000e1'
-const samples: PurchaseRequestSummary[] = [
-  {
-    id: '0199d1a0-0000-7000-8000-000000000001',
-    title: longName,
-    status: 'pending',
-    requestedBy: { id: '0199d1a0-0000-7000-8000-0000000000a1', name: '김새내' },
-    neededBy: '2026-10-30',
-    itemCount: 2,
-    createdAt: '2026-10-28T03:00:00Z',
-    payable: false,
-    event: { id: EVENT, name: '신입생 환영회' },
-    progress: { decided: false, paid: false, partlyPaid: false, hasShipment: false },
-  },
-  {
-    id: '0199d1a0-0000-7000-8000-000000000002',
-    title: '행사 포스터 인쇄',
-    status: 'approved',
-    requestedBy: { id: '0199d1a0-0000-7000-8000-0000000000a2', name: '박운영' },
-    neededBy: '2026-10-30',
-    itemCount: 3,
-    createdAt: '2026-10-27T03:00:00Z',
-    payable: true,
-    event: null,
-    progress: { decided: true, paid: false, partlyPaid: true, hasShipment: true },
-  },
-]
+const noop = () => {}
 
 export function PurchasesSection() {
-  const [view, setView] = useState<PurchaseView>('all')
-  const [scope, setScope] = useState<string | undefined>()
-  const [stage, setStage] = useState<PurchaseStage | undefined>()
-  const requests = samples.filter(row =>
-    scope === 'none' ? row.event === null : !scope || row.event?.id === scope,
-  )
+  const [area, setArea] = useState<PurchaseArea>('review')
+  const cards = cardsOf(REQUESTS)
   return (
-    <Section title="구매 범위·단계 목록">
-      <div className="flex w-full flex-col gap-4">
-        <Button touch className="self-start">
-          구매 요청 내기
-        </Button>
-        <PurchaseScopeChips
-          scope={scope}
-          eventScope={scope === EVENT}
-          onScope={value => setScope(value ?? undefined)}
-          onEvent={() => setScope(EVENT)}
+    <Section title="구매 칸반·처리 단계·요청 표">
+      <div className="flex w-full min-w-0 flex-col gap-8">
+        <PurchaseBudgetSummary settlement={boardSettlement.settlement} />
+        <PurchaseItemBoard cards={cards} showEvent onOpen={noop} />
+        <PurchaseProcessBoard cards={cards} area={area} onArea={setArea} onOpen={noop} />
+        <PurchaseRequestTable requests={REQUESTS} variant="records" onOpen={noop} />
+        <MyPurchaseRequests
+          requests={REQUESTS.filter(row => row.requestedBy.name === '박해랑')}
+          who="박해랑 · 운영부"
+          onBack={noop}
+          onCreate={noop}
+          onOpen={noop}
         />
-        <Button touch variant="link" className="self-start">
-          예산 현황
-        </Button>
-        <RequestFilter view={view} onView={setView} canViewDepartment />
-        <PurchaseStages
-          counts={
-            scope === 'none'
-              ? { pending: 0, unpaid: 1, paid: 0, closed: 0 }
-              : scope === EVENT
-                ? { pending: 1, unpaid: 0, paid: 0, closed: 0 }
-                : { pending: 1, unpaid: 1, paid: 0, closed: 0 }
-          }
-          stage={stage}
-          onStage={value => setStage(value ?? undefined)}
-        />
-        {requests
-          .filter(row => !stage || purchaseStageOf(row) === stage)
-          .map(row => (
-            <RequestCard key={row.id} request={row} onOpen={() => {}} />
-          ))}
       </div>
     </Section>
   )

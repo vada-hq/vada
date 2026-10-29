@@ -45,7 +45,7 @@ function setup(detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')) 
 }
 
 const openCreate = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '새 구매 요청' }))
   return screen.findByRole('form', { name: '구매 요청 내기' })
 }
 const submit = () => asElement(screen.getByRole('button', { name: '내기' }), HTMLButtonElement)

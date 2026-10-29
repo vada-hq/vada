@@ -1,21 +1,45 @@
 import type { PurchaseRequestDetail, PurchaseRequestSummary } from '@vada/contracts'
 
 // 구매 요청 화면 시험이 같이 쓰는 응답. 값은 서버 응답과 같은 모양이다.
+// 구매 칸반은 품목 카드의 이름을 눌러 요청을 연다. 따로 주지 않으면 요청 제목과 같은 이름의 품목 하나를 요청 상태대로 둔다.
+const ITEM_STATUS = {
+  pending: 'pending',
+  approved: 'approved',
+  partial: 'approved',
+  rejected: 'rejected',
+  cancelled: 'cancelled',
+} as const
 export const purchaseSummary = (
   id: string,
   extra: Partial<PurchaseRequestSummary> = {},
-): PurchaseRequestSummary => ({
-  id,
-  title: `요청 ${id}`,
-  status: 'pending',
-  requestedBy: { id: 'm1', name: '김회장' },
-  neededBy: '2026-10-25',
-  itemCount: 2,
-  createdAt: '2026-10-21T05:03:00.000Z',
-  payable: false,
-  event: null,
-  ...extra,
-})
+): PurchaseRequestSummary => {
+  const title = extra.title ?? `요청 ${id}`
+  const status = extra.status ?? 'pending'
+  return {
+    id,
+    title,
+    status,
+    requestedBy: { id: 'm1', name: '김회장' },
+    neededBy: '2026-10-25',
+    itemCount: 2,
+    createdAt: '2026-10-21T05:03:00.000Z',
+    payable: false,
+    event: null,
+    itemBriefs: [
+      {
+        id: `${id}-item`,
+        name: title,
+        quantity: 1,
+        estimate: null,
+        amount: null,
+        status: ITEM_STATUS[status],
+        paid: extra.progress?.paid ?? false,
+        shipped: extra.progress?.hasShipment ?? false,
+      },
+    ],
+    ...extra,
+  }
+}
 
 export const purchaseDetail = (
   id = 'r1',

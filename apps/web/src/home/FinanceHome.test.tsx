@@ -90,7 +90,7 @@ test('안 읽은 방은 메시지함에만 보이고 내 업무 바로가기는 
   expect(path()).toBe('/tasks/01900000-0000-7000-8000-000000000001?tab=mine')
 })
 
-test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 노랑이고 전체 보기는 결재 대기다', async () => {
+test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 노랑이고 전체 보기는 처리 단계다', async () => {
   open(
     finance({
       pending: {
@@ -113,7 +113,7 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
   fireEvent.click(within(rows[0]!).getByRole('button', { name: '요청 r1' }))
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001/r1')
   fireEvent.click(within(pending).getByRole('button', { name: '전체 4건 보기' }))
-  expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001?view=pending')
+  expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001?board=process')
 })
 
 test('품목은 요청으로, 예산 미입력·음수 사용 가능은 받은 값 그대로 행사 재정으로 간다', async () => {

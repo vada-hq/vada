@@ -1,22 +1,17 @@
-import {
-  menuPath,
-  PURCHASE_STAGES,
-  PURCHASE_VIEWS,
-  type CouncilView,
-  type PurchaseView,
-} from '@vada/contracts'
+import { menuPath, type CouncilView } from '@vada/contracts'
+import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
-import { Button } from '@/components/ui/button'
 import { navigate, useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
-import { pickQuery, useMenuQuery } from '@/lib/use-menu-query'
+import { useMenuQuery } from '@/lib/use-menu-query'
 import { PurchasePage } from '@/finance/PurchasePage'
 import { usePurchases } from '@/finance/usePurchases'
-import { RequestFilter } from './RequestFilter'
-import { PurchaseScope } from './PurchaseScope'
+import { MyPurchaseRequests } from './MyPurchaseRequests'
 import { PurchaseBudget } from './PurchaseBudget'
-import { PurchaseStages } from './PurchaseStages'
-import { PurchasesBody } from './PurchasesBody'
+import { PurchaseHeadActions } from './PurchaseHeadActions'
+import { PurchaseScope } from './PurchaseScope'
+import { PurchaseWork } from './PurchaseWork'
+import { usePurchaseBoardQuery, whoOf } from './purchase-board-query'
 
 type Props = { view: CouncilView; onForbidden: () => void }
 
@@ -33,12 +28,10 @@ export default function PurchasesPage(props: Props) {
 function PurchasesList({ view, onForbidden }: Props) {
   const councilId = view.council.id
   const url = useMenuQuery('purchases', councilId)
-  const canDecide = view.permissions.includes('purchase.approve')
-  const defaultView = canDecide ? 'pending' : 'all'
-  const filter = pickQuery<PurchaseView>(PURCHASE_VIEWS, url.query['view'], defaultView)
+  const board = usePurchaseBoardQuery(view, url.query)
   const scope = url.query['scope']
-  const stage = PURCHASE_STAGES.find(value => value === url.query['stage'])
-  const list = usePurchases(councilId, filter, onForbidden, { event: scope, stage })
+  const list = usePurchases(councilId, board.fetchView, onForbidden, { event: scope })
+  const canRequest = view.permissions.includes('purchase.request')
   const create = () =>
     navigate(menuPath('purchases', councilId, { compose: 'new' }), {
       pageState: {
@@ -48,34 +41,45 @@ function PurchasesList({ view, onForbidden }: Props) {
         eventId: scope === 'none' ? null : scope,
       },
     })
+  const open = (id: string) => openRecord('purchases', councilId, id)
+  if (board.page === 'mine')
+    return (
+      <PageColumn>
+        <MyPurchaseRequests
+          requests={list.state.kind === 'ready' ? list.state.requests : []}
+          who={whoOf(view)}
+          onBack={() => url.set({ page: null })}
+          onCreate={canRequest ? create : null}
+          onOpen={open}
+        />
+      </PageColumn>
+    )
   return (
     <PageColumn>
-      {view.permissions.includes('purchase.request') && (
-        <Button touch className="self-start" onClick={create}>
-          구매 요청 내기
-        </Button>
-      )}
+      <PageActions>
+        <PurchaseHeadActions
+          onMine={() => url.set({ page: 'mine' })}
+          onCreate={canRequest ? create : null}
+        />
+      </PageActions>
       <PurchaseScope
         councilId={councilId}
         scope={scope}
-        onScope={next => url.set({ scope: next, stage: null })}
+        onScope={next => url.set({ scope: next })}
         onForbidden={onForbidden}
       />
       <PurchaseBudget councilId={councilId} scope={scope} onForbidden={onForbidden} />
-      <RequestFilter
-        view={filter}
-        onView={next => url.set({ view: next, stage: null })}
-        canViewDepartment={view.permissions.includes('purchase.view_department')}
-      />
-      <PurchaseStages
-        counts={list.state.kind === 'ready' ? list.state.stageCounts : undefined}
-        stage={stage}
-        onStage={next => url.set({ stage: next })}
-      />
-      <PurchasesBody
+      <PurchaseWork
         list={list}
-        view={filter}
-        onOpen={id => openRecord('purchases', councilId, id)}
+        canProcess={board.canProcess}
+        board={board.board}
+        area={board.area}
+        view={board.view}
+        onBoard={next => url.set({ board: next })}
+        onArea={next => url.set({ area: next })}
+        onView={next => url.set({ view: next })}
+        showEvent={!scope || scope === 'none'}
+        onOpen={open}
       />
     </PageColumn>
   )

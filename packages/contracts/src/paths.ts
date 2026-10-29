@@ -2,7 +2,7 @@ import { HOME_VIEWS } from './home.js'
 import { CALENDAR_KINDS } from './calendar.js'
 import { MEETING_STATUSES } from './meetings.js'
 import { isUuid } from './input.js'
-import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
+import { PURCHASE_VIEWS, purchaseBoardQuery } from './purchases.js'
 import { TASK_DUE_FILTERS, TASK_FILTERS, TASK_STATUSES, TASK_VIEWS } from './tasks.js'
 import type { TaskStatus, TaskView } from './tasks.js'
 
@@ -168,7 +168,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     compose: { values: ['new'], fallback: null },
     view: { values: PURCHASE_VIEWS, fallback: null },
     scope: { values: 'uuid', also: ['none'], fallback: null },
-    stage: { values: PURCHASE_STAGES, fallback: null },
+    // 단계는 칸반의 열이 되어 주소에 남기지 않는다(옛 stage는 읽을 때 빠진다).
+    ...purchaseBoardQuery(undefined),
   },
   finance: {
     compose: { values: ['new'], fallback: null },
@@ -215,7 +216,7 @@ const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
       eventTaskQuery.view,
       { values: EVENT_PURCHASE_VIEWS, fallback: 'all', onlyWith: { key: 'tab', value: 'money' } },
     ],
-    stage: { values: PURCHASE_STAGES, fallback: null, onlyWith: { key: 'tab', value: 'money' } },
+    ...purchaseBoardQuery({ key: 'tab', value: 'money' }),
   },
   tasks: {},
   purchases: {},

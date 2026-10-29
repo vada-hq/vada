@@ -1,16 +1,8 @@
 import { useEffect } from 'react'
-import {
-  appPath,
-  EVENT_PURCHASE_VIEWS,
-  EVENT_TABS,
-  eventRoomPath,
-  PURCHASE_STAGES,
-  type AppQuery,
-  type EventTab,
-} from '@vada/contracts'
+import { appPath, EVENT_TABS, eventRoomPath, type AppQuery, type EventTab } from '@vada/contracts'
 import { navigate, rewriteAddress, useHere } from '@/lib/app-location'
 import { withTaskLayout } from '@/lib/task-layout'
-import { patchQuery, pickQuery } from '@/lib/use-menu-query'
+import { patchQuery } from '@/lib/use-menu-query'
 
 const tabOf = (value: string | undefined): EventTab =>
   EVENT_TABS.find(tab => tab === value) ?? 'messages'
@@ -61,8 +53,7 @@ export function useEventPurchaseAddress(councilId: string, eventId: string) {
       ? location.query
       : { tab: 'money' }
   return {
-    view: pickQuery(EVENT_PURCHASE_VIEWS, query['view'], 'all'),
-    stage: PURCHASE_STAGES.find(stage => stage === query['stage']),
+    query,
     set: (patch: Record<string, string | null>) =>
       navigate(
         appPath({

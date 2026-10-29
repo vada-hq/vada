@@ -382,7 +382,7 @@ test('요청 상세의 결제한 지출을 누르면 그 지출이 열린다', a
   api.on('GET', `${EXPENSES}/0199d1a0-0000-7000-8000-00000000b101`, () =>
     json({ expense: expenseDetail() }),
   )
-  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine&board=items`)
   showFinance()
   fireEvent.click(
     await screen.findByRole('button', { name: '요청 0199d1a0-0000-7000-8000-00000000a001' }),

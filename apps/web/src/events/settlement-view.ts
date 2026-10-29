@@ -14,9 +14,3 @@ export const REMAINING_LABEL: Record<SettlementRemainingKind, string> = {
 export function targetLabel(target: SettlementTarget) {
   return target.type === 'request' ? target.title : `${target.vendor} · ${wonLabel(target.amount)}`
 }
-
-// 예산 − 실제. 쓴 돈이 예산을 넘으면 얼마나 넘었는지 말로 적는다.
-export function differenceLabel(difference: number) {
-  if (difference < 0) return `예산보다 ${wonLabel(-difference)} 더 썼어요`
-  return `${wonLabel(difference)} 남았어요`
-}

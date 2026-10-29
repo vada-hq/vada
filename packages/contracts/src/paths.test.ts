@@ -87,30 +87,41 @@ test('행사 정산은 현재 재정 탭에서 빠지고 옛 주소는 기간을
   assert.equal(movedLocationOf(moved), null)
 })
 
-test('행사 구매 보기와 단계는 money 탭에서만 왕복하고 전체 요청은 주소에서 빠진다', () => {
+test('행사 구매 보기·보드·영역·내 구매 요청은 money 탭에서만 왕복하고 기본값과 옛 단계는 빠진다', () => {
   const base = `/events/${C}/${R}`
   for (const suffix of [
     '?tab=money&view=mine',
-    '?tab=money&stage=paid',
-    '?tab=money&view=mine&stage=unpaid',
+    '?tab=money&board=process',
+    '?tab=money&board=process&area=goods',
+    '?tab=money&page=mine',
   ]) {
     const parsed = parseAppPath(base + suffix)!
     assert.equal(appPath(parsed), base + suffix)
   }
-  assert.deepEqual(parseAppPath(`${base}?tab=money&view=all&stage=closed`)?.query, {
+  assert.deepEqual(parseAppPath(`${base}?tab=money&view=all&area=review&stage=closed`)?.query, {
     tab: 'money',
-    stage: 'closed',
   })
   for (const view of ['pending', 'department', 'unassigned']) {
     assert.deepEqual(parseAppPath(`${base}?tab=money&view=${view}`)?.query, { tab: 'money' })
   }
-  assert.deepEqual(parseAppPath(`${base}?tab=overview&view=mine&stage=paid`)?.query, {
+  assert.deepEqual(parseAppPath(`${base}?tab=overview&view=mine&board=process`)?.query, {
     tab: 'overview',
   })
-  assert.deepEqual(parseAppPath(`${base}?tab=tasks&view=unassigned&stage=paid`)?.query, {
+  assert.deepEqual(parseAppPath(`${base}?tab=tasks&view=unassigned&page=mine`)?.query, {
     tab: 'tasks',
     view: 'unassigned',
   })
+})
+
+test('구매 메뉴의 보드·영역·내 구매 요청은 주소에 남고 옛 단계는 빠진다', () => {
+  for (const query of [
+    '?board=records',
+    '?view=mine&board=items',
+    '?board=process&area=refund',
+    '?page=mine',
+  ])
+    assert.equal(appPath(parseAppPath(`/purchases/${C}${query}`)!), `/purchases/${C}${query}`)
+  assert.equal(appPath(parseAppPath(`/purchases/${C}?stage=paid&area=review`)!), `/purchases/${C}`)
 })
 
 test('캘린더의 고른 월·목록 보기와 종류만 주소에 남고 자동 보기는 비워 둔다', () => {
