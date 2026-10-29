@@ -204,6 +204,13 @@
       "when": 1793259524490,
       "tag": "0028_left_room_read",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793270505940,
+      "tag": "0029_product_info",
+      "breakpoints": true
     }
   ]
 }

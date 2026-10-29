@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { PURCHASE_ITEMS_MAX, type ProductInfoResponse } from '@vada/contracts'
+import { createTestDb } from '../db/test-db.js'
 import { createProductPrefetch } from './prefetch.js'
 import { createProductInfo } from './service.js'
 
@@ -81,7 +82,10 @@ test('선조회와 직접 조회는 기존 하루 150회 상한·다음 한국 �
   t.mock.method(console, 'warn', () => {})
   let now = new Date('2026-10-25T14:59:00Z')
   const calls: string[] = []
+  const testDb = await createTestDb()
+  t.after(() => testDb.close())
   const read = createProductInfo({
+    db: testDb.db,
     clock: () => now,
     lookup: async wanted => {
       calls.push(wanted.url)

@@ -96,7 +96,7 @@ function pushModules(db: Db, session: SessionReader, deps: AppDeps) {
 export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
   const { clock, writeLimiter, receiptKey, storage, productLookup, resolveShortLink } = deps
   const push = pushModules(db, session, deps)
-  const productInfo = createProductInfo({ lookup: productLookup, resolveShortLink, clock })
+  const productInfo = createProductInfo({ db, lookup: productLookup, resolveShortLink, clock })
   const prefetchProducts = createProductPrefetch(productInfo)
   return {
     councils: createCouncilRoutes(db, session, clock),

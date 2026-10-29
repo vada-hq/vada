@@ -10,6 +10,13 @@ import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import type { ProductLookup } from './reef.js'
 
 const NOW = new Date('2026-10-25T03:00:00Z')
+
+// 선조회는 메시지 응답 뒤에 DB를 읽고 부른다. 조건이 설 때까지 기다린다.
+async function until(done: () => boolean | Promise<boolean>) {
+  for (let i = 0; i < 500 && !(await done()); i++)
+    await new Promise(resolve => setTimeout(resolve, 10))
+  assert.ok(await done())
+}
 const URL = 'https://www.coupang.com/vp/products/123?itemId=11'
 const product: ProductInfo = {
   name: '행사 준비물',
@@ -38,11 +45,14 @@ async function setup(testDb: TestDb, lookup: ProductLookup) {
     }),
   )
   const base = `/api/organizations/${council.councilId}`
+  const storedCount = async () =>
+    (await testDb.pg.query<{ n: number }>('SELECT count(*)::int AS n FROM product_info')).rows[0]!.n
   const response = await api.get(`${base}/rooms`, 's-president')
   assert.equal(response.status, 200)
   const { rooms } = (await response.json()) as RoomListResponse
   return {
     api,
+    storedCount,
     ask: () => api.post(`${base}/product-info`, { url: URL }, 's-president'),
     send: (body: unknown, user: string | undefined = 's-president') =>
       api.post(`${base}/rooms/${rooms[0]!.id}/messages`, body, user),
@@ -66,16 +76,19 @@ test(
       })
       const sent = await api.send({ body: URL })
       assert.equal(sent.status, 201)
-      assert.equal(calls, 1, '성공한 메시지의 상품 조회를 미리 시작해야 한다')
+      assert.equal(await api.storedCount(), 0)
+      await until(() => calls === 1)
       const reading = api.ask()
       finish()
       const response = await reading
       assert.equal(response.status, 200)
-      assert.deepEqual(await response.json(), {
-        product: { ...product, fetchedAt: NOW.toISOString() },
-        reason: null,
-      })
-      assert.equal(calls, 1, '선조회와 실제 상품 패널/양식 조회는 캐시와 진행 조회를 공유한다')
+      const expected = { product: { ...product, fetchedAt: NOW.toISOString() }, reason: null }
+      assert.deepEqual(await response.json(), expected)
+      assert.equal(calls, 1, '선조회와 실제 상품 패널/양식 조회는 진행 조회를 공유한다')
+      // 보낼 때 불러온 것은 DB에 두고, 그 뒤 읽기는 저장값이다.
+      await until(async () => (await api.storedCount()) === 1)
+      assert.deepEqual(await (await api.ask()).json(), expected)
+      assert.equal(calls, 1)
     } finally {
       finish()
       await testDb.close()
@@ -83,7 +96,7 @@ test(
   },
 )
 
-test('같은 상품 링크를 다시 보내거나 열어도 캐시를 재사용하며 권한 실패·미지원 링크는 선조회하지 않는다', async () => {
+test('같은 상품 링크를 다시 보내거나 열어도 저장값을 쓰며 권한 실패·미지원 링크는 선조회하지 않는다', async () => {
   const testDb = await createTestDb()
   const asked: string[] = []
   try {
@@ -100,9 +113,11 @@ test('같은 상품 링크를 다시 보내거나 열어도 캐시를 재사용�
     )
     assert.equal(asked.length, 0)
     assert.equal((await api.send({ body: `${URL}&q=첫검색 ${URL}&q=다른검색` })).status, 201)
+    await until(async () => (await api.storedCount()) === 1)
     assert.deepEqual(asked, [URL])
     assert.equal((await api.send({ body: URL })).status, 201)
     assert.equal((await api.ask()).status, 200)
+    await new Promise(resolve => setTimeout(resolve, 50))
     assert.deepEqual(asked, [URL])
   } finally {
     await testDb.close()
@@ -118,6 +133,10 @@ test('상품 선조회 실패는 채팅 성공을 유지하고, 사용자가 다
       return calls === 1 ? { outcome: 'blocked' } : { outcome: 'ok', product }
     })
     assert.equal((await api.send({ body: URL })).status, 201)
+    await until(() => calls === 1)
+    await new Promise(resolve => setTimeout(resolve, 20))
+    // 일시 실패는 저장하지 않으므로 사람이 열면 다시 부른다.
+    assert.equal(await api.storedCount(), 0)
     const response = await api.ask()
     assert.equal(response.status, 200)
     assert.equal(((await response.json()) as ProductInfoResponse).reason, null)

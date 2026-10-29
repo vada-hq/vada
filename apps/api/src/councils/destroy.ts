@@ -82,6 +82,8 @@ export const ACCOUNT_TABLES = [
 ]
 // 학생회와 이어지지만 남기는 표: 남기는 운영진의 로그인 잇기, 신청자 열람 기록(DEC-72, 1년 뒤 기한 파기가 지운다).
 export const KEPT_TABLES = ['member_login', 'applicant_access_log']
+// 학생회·사람과 잇지 않는 표: 불러온 쿠팡 상품 정보(공개 정보, 0029). 학생회를 지워도 남는다.
+export const UNRELATED_TABLES = ['product_info']
 
 type TableCount = { table: string; rows: number }
 export type DestroyPlan = {

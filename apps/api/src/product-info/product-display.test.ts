@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { createTestDb } from '../db/test-db.js'
 import { fakeReef, reefItem, reefProduct } from '../test-support/reef.js'
 import { coupangProductOf } from './coupang-url.js'
 import { createReefLookup } from './reef.js'
@@ -39,12 +40,15 @@ test('사진 주소가 http·외부 호스트면 사진만 버리고 상품 조�
   }
 })
 
-test('캐시 적중은 실제 조회 시각을 바꾸거나 외부 요청을 늘리지 않는다', async t => {
+test('저장값을 줄 때는 실제 조회 시각을 바꾸거나 외부 요청을 늘리지 않는다', async t => {
   t.mock.method(console, 'log', () => {})
+  const testDb = await createTestDb()
+  t.after(() => testDb.close())
   let now = new Date('2026-10-27T01:00:00Z')
   const item = reefItem()
   const reef = fakeReef(() => Response.json(reefProduct({ item, items: [item] })))
   const productInfo = createProductInfo({
+    db: testDb.db,
     lookup: createReefLookup({ apiKey: 'k', fetcher: reef.fetch }),
     clock: () => now,
   })

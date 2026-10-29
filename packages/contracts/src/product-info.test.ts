@@ -33,3 +33,11 @@ test('상품 정보 요청: http·https 주소를 다듬어 받고, 빈 값·공
   }
   assert.equal(isStrictObject(ProductInfoSchema), true)
 })
+
+test('상품 정보 요청: 새로고침 refresh는 선택이고 참·거짓만 받는다', () => {
+  const url = 'https://www.coupang.com/vp/products/123'
+  assert.deepEqual(ProductInfoSchema.parse({ url, refresh: true }), { url, refresh: true })
+  assert.deepEqual(ProductInfoSchema.parse({ url, refresh: false }), { url, refresh: false })
+  for (const refresh of ['true', 1, null])
+    assert.equal(ProductInfoSchema.safeParse({ url, refresh }).success, false, String(refresh))
+})

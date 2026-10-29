@@ -19,7 +19,7 @@ const SHORT = 'https://link.coupang.com/a/bXyZ12'
 
 type Respond = Parameters<typeof fakeReef>[0]
 
-// 시험마다 새 앱(캐시와 속도 제한이 새것)이다. 시계는 시험이 미룬다.
+// 시험마다 새 앱(속도 제한이 새것)과 새 DB다. 시계는 시험이 미룬다.
 async function setup(testDb: TestDb, respond: Respond, { withKey = true } = {}) {
   const seeded = await seedCouncil(testDb.db, testDb.pg)
   const other = await seedCouncil(testDb.db, testDb.pg, 'o')
@@ -124,7 +124,7 @@ test('상품 정보: 쿠팡 앱 공유 단축 링크는 한 번 풀어 그 상�
       logs.map(entry => JSON.parse(entry.line) as unknown),
       [
         { event: 'product_info', outcome: 'ok', status: 200, attempts: 1, short: 'ok' },
-        { event: 'product_info', outcome: 'cached', short: 'ok' },
+        { event: 'product_info', outcome: 'stored', short: 'ok' },
       ],
     )
     assert.ok(!logs.some(entry => entry.line.includes('bXyZ12')))
@@ -219,31 +219,50 @@ test('상품 정보: NOT_FOUND는 not_found, 그 밖의 실패·모양이 다른
   }
 })
 
-test('상품 정보 캐시: 같은 주소(쿼리만 다른 것 포함)는 10분 안에 다시 부르지 않고, 10분이 지나면 다시 부른다', async t => {
+test('상품 정보 저장: 같은 상품(쿼리만 다른 것 포함)은 한 달이 지나도 저장값을 주고, refresh면 다시 불러 덮어쓴다', async t => {
   const testDb = await createTestDb()
   try {
     const logs = captureLogs(t)
-    const { reef, clock, ask } = await setup(testDb, () => Response.json(twoItems()))
+    let respond = () => Response.json(twoItems())
+    const { reef, clock, api, path, ask, seeded } = await setup(testDb, () => respond())
     const first = await ask(PRODUCT)
-    clock.now = new Date(clock.now.getTime() + 10 * MINUTE - 1)
+    assert.equal(first.body.product?.fetchedAt, clock.now.toISOString())
+    clock.now = new Date(clock.now.getTime() + 30 * 24 * 60 * MINUTE)
     const again = await ask(
       'https://m.coupang.com/vm/products/7334523?itemId=12&q=다른검색&traceId=t',
     )
     assert.deepEqual(again, first)
     assert.equal(reef.calls.length, 1)
-    assert.equal(logs.at(-1)?.line, JSON.stringify({ event: 'product_info', outcome: 'cached' }))
+    assert.equal(logs.at(-1)?.line, JSON.stringify({ event: 'product_info', outcome: 'stored' }))
     // 고른 판매 단위가 다르면 다른 주소다.
     await ask('https://www.coupang.com/vp/products/7334523?itemId=11')
     assert.equal(reef.calls.length, 2)
-    clock.now = new Date(clock.now.getTime() + 2)
-    await ask(PRODUCT)
+    const refresh = async () => {
+      const response = await api.post(
+        path,
+        { url: PRODUCT, refresh: true },
+        seeded.people.planningMember.userId,
+      )
+      return { status: response.status, body: (await response.json()) as ProductInfoResponse }
+    }
+    const refreshed = await refresh()
+    assert.equal(refreshed.status, 200)
+    assert.equal(refreshed.body.product?.fetchedAt, clock.now.toISOString())
     assert.equal(reef.calls.length, 3)
+    assert.deepEqual(await ask(PRODUCT), refreshed)
+    // 새로고침이 실패하면 저장값을 그대로 주고 실패를 알린다.
+    respond = () => Response.json({ ok: false, error: { code: 'QUOTA_EXCEEDED' } }, { status: 402 })
+    assert.deepEqual(await refresh(), {
+      status: 200,
+      body: { ...refreshed.body, refreshFailed: true },
+    })
+    assert.deepEqual(await ask(PRODUCT), refreshed)
   } finally {
     await testDb.close()
   }
 })
 
-test('상품 정보 캐시: not_found도 10분 두고, unavailable은 두지 않아 다음에 다시 부른다', async () => {
+test('상품 정보 저장: not_found도 두고, unavailable은 두지 않아 다음에 다시 부른다', async () => {
   const testDb = await createTestDb()
   try {
     let next = () => Response.json({ ok: false, error: { code: 'NOT_FOUND' } }, { status: 404 })

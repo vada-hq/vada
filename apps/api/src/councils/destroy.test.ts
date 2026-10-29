@@ -5,6 +5,7 @@ import {
   ACCOUNT_TABLES,
   DESTROY_STEPS,
   KEPT_TABLES,
+  UNRELATED_TABLES,
   destroyCouncilRows,
   destroyPlanOf,
 } from './destroy.js'
@@ -182,9 +183,9 @@ async function schemaOf() {
 
 const destroyed: string[] = DESTROY_STEPS.map(step => step.table)
 
-test('모든 표가 파기하는 표, 로그인 쪽 표, 남기는 표 가운데 한 곳에만 있다', async () => {
+test('모든 표가 파기하는 표, 로그인 쪽 표, 남기는 표, 학생회와 무관한 표 가운데 한 곳에만 있다', async () => {
   const { tables, hasColumn } = await schemaOf()
-  const classified = [...destroyed, ...ACCOUNT_TABLES, ...KEPT_TABLES]
+  const classified = [...destroyed, ...ACCOUNT_TABLES, ...KEPT_TABLES, ...UNRELATED_TABLES]
   assert.equal(new Set(classified).size, classified.length, '두 곳에 있거나 두 번 지우는 표')
   assert.deepEqual([...classified].sort(), tables)
   for (const step of DESTROY_STEPS)

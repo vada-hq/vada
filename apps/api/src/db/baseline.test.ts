@@ -45,14 +45,14 @@ async function seed(pg: TestPg) {
   return { council, cohort, member }
 }
 
-test('마이그레이션은 필요한 표 66개를 빠짐없이 만든다', async () => {
+test('마이그레이션은 필요한 표 67개를 빠짐없이 만든다', async () => {
   const { pg, close } = await createTestDb()
   try {
     const { rows } = await pg.query<{ table_name: string }>(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
     )
     const names = rows.map(row => row.table_name)
-    assert.equal(names.length, 66)
+    assert.equal(names.length, 67)
     for (const name of [
       'users',
       'accounts',
@@ -71,6 +71,7 @@ test('마이그레이션은 필요한 표 66개를 빠짐없이 만든다', asyn
       'schedule_item',
       'meeting_attendee',
       'left_room_read',
+      'product_info',
       'registration_question',
       'registration_question_choice',
       'registration_answer',
@@ -117,9 +118,10 @@ test('마이그레이션은 필요한 표 66개를 빠짐없이 만든다', asyn
         '0026_meeting_minutes',
         '0027_registration_questions',
         '0028_left_room_read',
+        '0029_product_info',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 29)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 30)
   } finally {
     await close()
   }
