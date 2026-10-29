@@ -16,6 +16,7 @@ import { currentFinanceMembers } from '../purchases/finance-members.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
 import { unassignedMembersOf } from './council.js'
 import { followUpRowsOf } from './follow-up.js'
+import { opsOf } from './ops.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -91,11 +92,14 @@ export async function councilBoardOf(
   now: Date,
   open: OpenTask[],
 ): Promise<HomeCouncilBoard> {
+  const financeStaffed = (await currentFinanceMembers(db, actor, now)).length > 0
+  const unassignedMembers = await unassignedMembersOf(db, actor)
   return {
-    financeStaffed: (await currentFinanceMembers(db, actor, now)).length > 0,
+    financeStaffed,
     events: await eventCardsOf(db, actor, now, open),
     followUp: await followUpOf(db, actor, now),
     attention: attentionOf(open),
-    unassignedMembers: await unassignedMembersOf(db, actor),
+    unassignedMembers,
+    ops: await opsOf(db, actor, now, { open, unassignedMembers, financeStaffed }),
   }
 }

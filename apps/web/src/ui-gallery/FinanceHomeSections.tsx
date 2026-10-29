@@ -25,6 +25,12 @@ const councilBoard = {
   followUp: { events: [], total: 0 },
   attention: { items: [], total: 0 },
   unassignedMembers: 0,
+  ops: {
+    rows: [],
+    counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
+    assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
+    total: 0,
+  },
 }
 
 // 견본을 누를 때 갤러리 주소를 바꾸지 않는다. 실제 홈의 주소 유지·새로 읽기는 FinanceHome.test가 검사한다.
@@ -47,7 +53,6 @@ function DualSample() {
           board={councilBoard}
           councilId={financeCouncilId}
           name="김바다"
-          inboxRooms={[]}
           onOpenEvent={noop}
           onOpenPage={noop}
         />

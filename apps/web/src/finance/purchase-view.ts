@@ -1,4 +1,10 @@
-import { DAY_MS, koreanDateOf, type LineItemStatus, type PurchaseStatus } from '@vada/contracts'
+import {
+  DAY_MS,
+  PURCHASE_NEEDED_SOON_DAYS,
+  koreanDateOf,
+  type LineItemStatus,
+  type PurchaseStatus,
+} from '@vada/contracts'
 import { monthDay } from '@/lib/korean-date-text'
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
@@ -34,15 +40,14 @@ export const ITEM_STATUS_TONE: Record<LineItemStatus, Tone> = {
 export const neededByLabel = (neededBy: string | null) =>
   neededBy ? `${monthDay(neededBy)}까지 필요` : '필요한 때 없음'
 
-// 결재 목록에서 '임박'을 붙이는 기간: 필요한 때가 오늘(한국)부터 이 날수 안(DEC-92, 024 정한 것 9). 시범 운영에서 고친다.
-const NEEDED_SOON_DAYS = 3
+// 결재 목록에서 '임박'을 붙이는 기간은 회장단 홈 ①의 결재 줄과 같은 값이다(PURCHASE_NEEDED_SOON_DAYS, DEC-92).
 export type NeededMark = 'overdue' | 'soon' | null
 
 // 필요한 때 표시: 이미 지났으면 '지남'(업무의 지남과 같은 빨강), 3일 안이면 '임박'(노랑), 아니면 없다.
 export function neededMarkOf(neededBy: string | null, now: Date): NeededMark {
   if (neededBy === null) return null
   if (neededBy < koreanDateOf(now)) return 'overdue'
-  return neededBy <= koreanDateOf(new Date(now.getTime() + NEEDED_SOON_DAYS * DAY_MS))
+  return neededBy <= koreanDateOf(new Date(now.getTime() + PURCHASE_NEEDED_SOON_DAYS * DAY_MS))
     ? 'soon'
     : null
 }

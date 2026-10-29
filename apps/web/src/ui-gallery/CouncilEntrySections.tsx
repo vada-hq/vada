@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import CreateBasicStep from '@/councils/CreateBasicStep'
 import NoCouncil from '@/councils/NoCouncil'
 import { useCouncilDraft } from '@/councils/useCouncilDraft'
-import { AttentionCard } from '@/home/CouncilColumns'
+import OpsCard from '@/home/OpsCard'
 import UnassignedBand from '@/home/UnassignedBand'
 import CouncilMenu from '@/workspace/CouncilMenu'
 import type { CouncilEntry } from '@/workspace/pages'
@@ -75,14 +75,15 @@ export function CouncilEntrySection() {
           <EntrySample />
           <UnassignedBand />
           {pushBand}
-          <AttentionCard
-            board={{
-              attention: { items: [], total: 0 },
-              unassignedMembers: 2,
-              financeStaffed: true,
+          <OpsCard
+            ops={{
+              rows: [],
+              counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
+              assign: { noDepartment: 0, unassignedMembers: 2, financeStaffed: true },
+              total: 1,
             }}
-            onOpenTask={noop}
-            onSeeAll={noop}
+            onOpen={noop}
+            onAssignTasks={noop}
             onSeePeople={noop}
             onSeeFinance={noop}
           />

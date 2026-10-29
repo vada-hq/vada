@@ -1,6 +1,7 @@
 import type { EventRef } from './budget.js'
 import type { HomeFinanceBoard, HomeFinanceSummary } from './home-finance.js'
 import type { HomeDepartmentBoard } from './home-department.js'
+import type { HomeOps } from './home-ops.js'
 export {
   HOME_CONGESTION_TASKS,
   type HomeCongestion,
@@ -222,6 +223,8 @@ export interface HomeCouncilBoard {
   attention: { items: HomeAttention[]; total: number }
   // 지금 기수에 학생회 직급도 열린 부서 소속도 없는 운영진 수(DEC-87)
   unassignedMembers: number
+  // ① 확인이 필요한 운영 상황(f8). attention을 대신하며, attention은 화면이 더 읽지 않으면 걷는다.
+  ops: HomeOps
 }
 
 export interface HomeResponse {

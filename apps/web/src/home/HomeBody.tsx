@@ -258,7 +258,6 @@ export default function HomeBody({ name, memberId, awaitingDepartment = false, .
           board={home.councilBoard}
           councilId={councilId}
           name={name}
-          inboxRooms={rooms.kind === 'ready' ? inboxRooms(rooms.data.rooms) : []}
           pushBand={pushBand}
           {...opens}
         />

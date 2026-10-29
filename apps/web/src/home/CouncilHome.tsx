@@ -1,23 +1,13 @@
 import type { ReactNode } from 'react'
-import { ClipboardList } from 'lucide-react'
-import {
-  menuPath,
-  type EventTab,
-  type HomeCouncilBoard,
-  type HomeResponse,
-  type RoomSummary,
-} from '@vada/contracts'
-import { openEventTasks, openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
+import { menuPath, type EventTab, type HomeCouncilBoard, type HomeResponse } from '@vada/contracts'
+import { openEventTasks, openMenu, openRecord } from '@/lib/go-to'
 import { navigate } from '@/lib/app-location'
 import type { Page } from '../workspace/pages'
-import { AttentionCard, FollowUpCard } from './CouncilColumns'
+import { FollowUpCard } from './CouncilColumns'
 import CouncilEventsCard from './CouncilEventsCard'
-import { myTasksLabel } from './council-view'
-import HomeFrame from './HomeFrame'
-import HomeGreeting, { HomeShortcut } from './HomeGreeting'
+import { CouncilHead, CouncilSplit } from './CouncilHomeLayout'
 import { HOME_PLANS } from './home-kinds'
-import { COLUMN_HEAD, CouncilLayout } from './HomeLayout'
-import MessageInbox from './MessageInbox'
+import OpsCard from './OpsCard'
 import UpcomingCard from './UpcomingCard'
 import FinanceSummary from './FinanceSummary'
 
@@ -25,10 +15,8 @@ type Props = {
   home: HomeResponse
   board: HomeCouncilBoard
   councilId: string
-  // 인사 카드의 이름(학생회 읽기의 내 이름)
+  // 머리 인사의 이름(학생회 읽기의 내 이름)
   name: string
-  // 메시지함 칩(inboxRooms가 고른 방). 없으면 메시지함이 스스로 빠진다.
-  inboxRooms: RoomSummary[]
   // 알림 꺼짐 띠 자리(작업 공간의 띠가 이 자리에 그려진다)
   pushBand?: ReactNode
   onOpenEvent: (eventId: string, tab?: EventTab) => void
@@ -36,53 +24,39 @@ type Props = {
   onNewEvent?: (() => void) | undefined
 }
 
-// 회장단 홈(HOME-01C, DEC-95): 인사 카드(메시지함 오른쪽, 주요 행사 타일 없음, 아래 '내 업무' 바로가기)
-// → 전체 행사 진행 현황 → 3열(확인이 필요한 운영 상황 · 후속 정리 중인 행사 · 가까운 주요 일정).
-// 맨 아래 '전체 재정 요약'은 재정 첫 화면과 같은 셈이다(명세 027 조각 8).
-// 줄은 원래 기록을 연다: 업무는 업무 주소, 행사는 행사 주소(정산이 남으면 '재정' 탭), 참가 신청 마감은 '인원 관리' 탭.
-export default function CouncilHome({
-  home,
-  board,
-  councilId,
-  name,
-  inboxRooms,
-  pushBand,
-  ...open
-}: Props) {
+// 회장단 홈 배치 L3(notes layout-report.md '가'): 머리(날짜 + 인사) → ① 한 단 전체 → 아래 두 단(왼쪽 ② 행사, 오른쪽 ③⑤·사용 가능).
+// ①이 0건이면 ① 띠 대신 머리 한 문장 '…님, 오늘은 확인할 일 없어요'로 합친다(merge).
+// ②③⑤ 자리는 시연 조각 ㉯㉰에서 새 구역으로 바뀐다. 그때까지 지금 카드(행사 진행 현황, 후속 정리, 가까운 일정, 재정 요약)를 그 자리에 둔다.
+export default function CouncilHome({ home, board, councilId, name, pushBand, ...open }: Props) {
   const openTask = (taskId: string) => openRecord('tasks', councilId, taskId, { behind: 'home' })
+  const calm = board.ops.total === 0
   return (
-    <HomeFrame
-      pushBand={pushBand}
-      greeting={
-        <HomeGreeting
-          today={home.today}
-          name={name}
-          inbox={
-            <MessageInbox
-              inCard
-              rooms={inboxRooms}
-              onOpenRoom={(roomId, eventId) => openMessageRoom(councilId, roomId, eventId)}
-              onSeeAll={() => openMenu('chat', councilId)}
-            />
+    <div className="@container flex flex-col gap-4 @2xl:gap-6">
+      {pushBand}
+      <CouncilHead today={home.today} name={name} calm={calm} />
+      {!calm && (
+        <OpsCard
+          ops={board.ops}
+          onOpen={target =>
+            target.kind === 'task'
+              ? openTask(target.id)
+              : openRecord('purchases', councilId, target.id)
           }
-          shortcuts={
-            <HomeShortcut
-              icon={ClipboardList}
-              label={myTasksLabel(home.myTasks)}
-              onOpen={() => openMenu('tasks', councilId, { tab: 'mine' })}
-            />
+          onAssignTasks={() =>
+            openMenu('tasks', councilId, {
+              tab: 'council',
+              events: 'include',
+              dept: 'none',
+              assignee: 'none',
+            })
           }
+          onSeePeople={() => openMenu('people', councilId)}
+          onSeeFinance={() => navigate(menuPath('people', councilId), { pageState: 'finance' })}
         />
-      }
-    >
-      <CouncilLayout
-        bottom={
-          <FinanceSummary
-            summary={home.financeSummary}
-            onOpen={() => openMenu('finance', councilId)}
-          />
-        }
-        top={
+      )}
+      <CouncilSplit
+        ruleAbove={!calm}
+        left={
           <CouncilEventsCard
             events={board.events}
             today={home.today}
@@ -92,21 +66,7 @@ export default function CouncilHome({
             onNewEvent={open.onNewEvent}
           />
         }
-        columns={[
-          <AttentionCard
-            key="attention"
-            board={board}
-            onOpenTask={openTask}
-            onSeeAll={() =>
-              openMenu('tasks', councilId, {
-                tab: 'council',
-                events: 'include',
-                attention: 'true',
-              })
-            }
-            onSeePeople={() => openMenu('people', councilId)}
-            onSeeFinance={() => navigate(menuPath('people', councilId), { pageState: 'finance' })}
-          />,
+        right={[
           <FollowUpCard
             key="follow-up"
             followUp={board.followUp}
@@ -118,12 +78,17 @@ export default function CouncilHome({
             key="upcoming"
             title={HOME_PLANS.council.columns[2]}
             upcoming={home.upcoming}
-            headClassName={COLUMN_HEAD}
             onOpenTask={openTask}
             onOpenEvent={open.onOpenEvent}
           />,
         ]}
+        bottomRight={
+          <FinanceSummary
+            summary={home.financeSummary}
+            onOpen={() => openMenu('finance', councilId)}
+          />
+        }
       />
-    </HomeFrame>
+    </div>
   )
 }

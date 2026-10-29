@@ -201,6 +201,7 @@ export * from './closing.js'
 export * from './labels.js'
 export * from './incomes.js'
 export * from './home.js'
+export * from './home-ops.js'
 export * from './home-finance.js'
 export {
   AttachChatEvidenceSchema,

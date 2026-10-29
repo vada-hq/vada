@@ -1,7 +1,6 @@
 import {
   KOREAN_DATE_LENGTH,
   CALENDAR_KIND_LABELS,
-  type HomeAttention,
   type HomeBoardEvent,
   type HomeBoardEventRef,
   type HomeCouncilBoard,
@@ -56,13 +55,6 @@ export const remainingTidyLabel = ({ tasks, settlement }: HomeFollowUp['remainin
   tasks === 0 && settlement === 0
     ? EVENT_SETTLED_LABEL
     : `남은 정리: 업무 ${tasks} · 정산 ${settlement}`
-
-// 확인이 필요한 운영 상황의 메타: '{부서 또는 학생회 업무} · {행사} · {마감}'. 부서는 회장단이 누구에게 물을지 알려 준다(DEC-95).
-export const attentionParts = ({ task }: HomeAttention) => [
-  task.department?.name ?? COUNCIL_TASK_LABEL,
-  task.event?.name ?? null,
-  task.dueDate ? `${dueText(task.dueDate)} 마감` : null,
-]
 
 export const ATTENTION_CHIP = { overdue: '지남', unassigned: '담당자 없음' } as const
 

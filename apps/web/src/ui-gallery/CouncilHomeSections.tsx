@@ -1,30 +1,12 @@
-import type { HomeCouncilBoard, HomeResponse, HomeTask, RoomSummary } from '@vada/contracts'
+import type { HomeCouncilBoard, HomeResponse, HomeTask } from '@vada/contracts'
 import CouncilHome from '@/home/CouncilHome'
 import { Section } from './GallerySection'
+import { mainOps } from './HomeOpsSections'
 import { noop, pushBand, today, Width } from './home-frame-samples'
 import { longName } from './sample-text'
 import { financeCouncilId, financeSummary } from './finance-home-samples'
 
 // 회장단 홈(기능 027 조각 6, HOME-01C)을 실제 부품으로 그린다. 폭은 실제 화면의 본문 폭이다(Width).
-
-const room = (id: string, extra: Partial<RoomSummary>): RoomSummary => ({
-  id,
-  type: 'all_members',
-  name: null,
-  departmentId: null,
-  readOnly: false,
-  unread: 1,
-  mentions: 0,
-  lastMessageAt: '2026-10-26T03:00:00.000Z',
-  lastMessage: null,
-  memberCount: 3,
-  ...extra,
-})
-const rooms = [
-  room('a', { type: 'direct', name: '김민준', unread: 1 }),
-  room('b', { unread: 3 }),
-  room('c', { type: 'department', name: '기획부', departmentId: 'd1', unread: 2 }),
-]
 
 const task = (id: string, title: string, extra: Partial<HomeTask> = {}): HomeTask => ({
   id,
@@ -108,6 +90,7 @@ const board: HomeCouncilBoard = {
     total: 4,
   },
   unassignedMembers: 1,
+  ops: mainOps,
 }
 
 const home: HomeResponse = {
@@ -149,6 +132,12 @@ const emptyBoard: HomeCouncilBoard = {
   followUp: { events: [], total: 0 },
   attention: { items: [], total: 0 },
   unassignedMembers: 0,
+  ops: {
+    rows: [],
+    counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
+    assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: false },
+    total: 1,
+  },
 }
 
 function Sample({ empty = false, band = false }: { empty?: boolean; band?: boolean }) {
@@ -164,7 +153,6 @@ function Sample({ empty = false, band = false }: { empty?: boolean; band?: boole
       board={value}
       councilId={financeCouncilId}
       name="김바다"
-      inboxRooms={empty ? [] : rooms}
       pushBand={band ? pushBand : undefined}
       onOpenEvent={noop}
       onOpenPage={noop}

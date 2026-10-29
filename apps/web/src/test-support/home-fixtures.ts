@@ -4,6 +4,9 @@ import type {
   HomeCouncilBoard,
   HomeFollowUp,
   HomeList,
+  HomeOps,
+  HomeOpsKind,
+  HomeOpsRow,
   HomeParticipation,
   HomeResponse,
   HomeTask,
@@ -103,12 +106,37 @@ export const followUpRow = (id: string, extra: Partial<HomeFollowUp> = {}): Home
   ...extra,
 })
 
+// ① 확인이 필요한 운영 상황. 시험이 정하지 않으면 0건이다.
+export const emptyOps = (extra: Partial<HomeOps> = {}): HomeOps => ({
+  rows: [],
+  counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
+  assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
+  total: 0,
+  ...extra,
+})
+
+export const opsRow = (
+  id: string,
+  kind: HomeOpsKind,
+  extra: Partial<HomeOpsRow> = {},
+): HomeOpsRow => ({
+  kind,
+  target: { kind: kind === 'approval' ? 'request' : 'task', id },
+  title: `일 ${id}`,
+  days: 0,
+  event: null,
+  contact: null,
+  actions: [],
+  ...extra,
+})
+
 const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard => ({
   financeStaffed: true,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
   attention: { items: [], total: 0 },
   unassignedMembers: 0,
+  ops: emptyOps(),
   ...extra,
 })
 
