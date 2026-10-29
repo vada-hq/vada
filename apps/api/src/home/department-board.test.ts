@@ -215,15 +215,21 @@ test(
   withSettlement(async t => {
     const h = open(t)
     const ours = await t.event({ name: '우리 끝난 행사' })
+    const older = await t.event({
+      name: '우리 먼저 끝난 행사',
+      startsAt: new Date('2026-10-10T00:00:00Z'),
+    })
     const theirs = await t.event({ name: '재정부 끝난 행사' })
     await h.planning('뒷정리', null, { eventId: ours })
+    await h.planning('먼저 뒷정리', null, { eventId: older })
     await h.task({ title: '정산', eventId: theirs, departmentId: h.departments.finance })
     const { todo } = await h.board()
     assert.deepEqual(
       todo.rows.flatMap(row => (row.kind === 'event_tidy' ? [row.event.name] : [])),
-      ['우리 끝난 행사'],
+      // 끝난 지 오래된 것부터(회장단 행사 정리와 같은 차례)
+      ['우리 먼저 끝난 행사', '우리 끝난 행사'],
     )
-    assert.equal(todo.counts.event_tidy, 1)
+    assert.equal(todo.counts.event_tidy, 2)
   }),
 )
 

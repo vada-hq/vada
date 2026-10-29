@@ -23,9 +23,10 @@ const ourEventIdsOf = (scoped: OpenTask[]) => [
 
 // ③ 행사 정리: 우리 부서가 맡은 행사 가운데 끝났고 완료하지 않은 것(회장단 행사 정리와 같은 셈, 끝난 지 오래된 것부터).
 async function followUpOf(db: Reader, actor: Actor, now: Date, eventIds: string[]) {
-  const ended = (await openEventsAmong(db, actor, now, eventIds)).filter(
-    row => row.status === 'ended',
-  )
+  // 행사 목록 차례(listOrder)는 끝난 행사를 최근 것부터 두므로 뒤집어 회장단 행사 정리(정산 탭)와 같은 차례로 맞춘다.
+  const ended = (await openEventsAmong(db, actor, now, eventIds))
+    .filter(row => row.status === 'ended')
+    .reverse()
   const events = await followUpRowsOf(db, await withSettlements(db, actor, ended), now)
   return { events, total: events.length }
 }
