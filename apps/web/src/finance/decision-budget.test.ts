@@ -8,6 +8,7 @@ const item = (id: string, available: number, event: string | null = null): Budge
   amount: available,
   type: 'expense',
   event: event ? { id: event, name: `행사 ${event}` } : null,
+  department: null,
   selectable: true,
   deletable: true,
   history: [],

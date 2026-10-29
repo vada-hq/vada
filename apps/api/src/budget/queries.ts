@@ -81,15 +81,19 @@ export async function budgetViewOf(
   const histories = await budgetItemHistoriesOf(db, period.councilId, ids)
   return {
     period: { id, name, startsOn, endsOn },
-    items: items.map(({ id: itemId, purpose, amount, eventId, eventName, usage }) => ({
-      id: itemId,
-      purpose,
-      amount,
-      ...usage,
-      event: eventId && eventName ? { id: eventId, name: eventName } : null,
-      selectable: budgetItemSelectable(eventId, completed),
-      deletable: deletableOf(used, itemId, histories.get(itemId)?.length ?? 0),
-      history: histories.get(itemId) ?? [],
+    items: items.map(row => ({
+      id: row.id,
+      purpose: row.purpose,
+      amount: row.amount,
+      ...row.usage,
+      event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
+      department:
+        row.departmentId && row.departmentName
+          ? { id: row.departmentId, name: row.departmentName }
+          : null,
+      selectable: budgetItemSelectable(row.eventId, completed),
+      deletable: deletableOf(used, row.id, histories.get(row.id)?.length ?? 0),
+      history: histories.get(row.id) ?? [],
     })),
   }
 }

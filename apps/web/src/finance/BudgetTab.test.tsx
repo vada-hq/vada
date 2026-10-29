@@ -233,7 +233,7 @@ test('예산 편성은 이름과 금액이 비거나 금액이 숫자가 아니�
   fireEvent.click(button('예산 저장'))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
-    items: [{ purpose: '간식', amount: 12000, type: 'expense', eventId: null }],
+    items: [{ purpose: '간식', amount: 12000, type: 'expense', eventId: null, departmentId: null }],
   })
 })
 
@@ -301,6 +301,7 @@ test('수입 항목에만 종류 칩이 보이고 행사가 있으면 행사 이
     amount: 100000,
     type: 'income',
     event: { id: 'e1', name: '봄 축제' },
+    department: null,
     selectable: true,
     actual: 40000,
     committed: null,
@@ -340,6 +341,7 @@ test('수입 항목은 예산과 들어온 돈만 있고 지출 예정과 사용
       amount: 100000,
       type: 'income',
       event: null,
+      department: null,
       selectable: true,
       actual: 40000,
       committed: null,

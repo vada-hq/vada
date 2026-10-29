@@ -5,11 +5,11 @@ import type { Db } from '../db/types.js'
 import { openEventsAmong } from '../events/queries.js'
 import { withSettlements } from '../settlement/settling.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
-import { departmentBudgetOf } from './demo-budget.js'
 import { departmentOpsOf } from './department-ops.js'
 import { eventLanesOf } from './event-lanes.js'
 import type { financeBudgetOf } from './finance-budget.js'
 import { followUpRowsOf } from './follow-up.js'
+import { departmentBudgetOf } from './department-budget.js'
 import { opsPeopleOf } from './ops-contacts.js'
 import { todoOf } from './todo.js'
 import { weekOf } from './week.js'
@@ -54,6 +54,6 @@ export async function departmentBoardOf(
     }),
     week: await weekOf(db, actor, now),
     lanes: await eventLanesOf(db, actor, now, { open: scoped, budget, eventIds }),
-    budget: await departmentBudgetOf(db, actor),
+    budget: await departmentBudgetOf(db, actor, now),
   }
 }

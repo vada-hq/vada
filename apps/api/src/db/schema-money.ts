@@ -50,6 +50,7 @@ export const budgetItem = pgTable('budget_item', {
   purpose: text('purpose').notNull(),
   amount: won('amount').notNull(),
   eventId: uuid('event_id'),
+  departmentId: uuid('department_id'),
 })
 
 export const income = pgTable('income', {

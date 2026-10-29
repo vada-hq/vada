@@ -27,6 +27,8 @@ export const ERROR_STATUS = {
   COHORT_NOT_STARTED: 409,
   // 그만둔다고 알린 학생회는 파기할 때까지 읽기만 된다(기능 021, DEC-55)
   COUNCIL_CLOSING: 409,
+  // 고른 부서가 이 학생회의 부서가 아니다(없는 부서 포함). 예산 항목의 담당 부서가 쓴다
+  DEPARTMENT_INVALID: 409,
   DEPARTMENT_IN_USE: 409,
   DEPARTMENT_NAME_TAKEN: 409,
   EMAIL_IN_USE: 409,

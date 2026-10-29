@@ -225,6 +225,13 @@
       "when": 1793307482178,
       "tag": "0031_attendance_result",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793311918188,
+      "tag": "0032_budget_item_department",
+      "breakpoints": true
     }
   ]
 }

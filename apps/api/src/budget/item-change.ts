@@ -7,6 +7,7 @@ import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { assertEventOpen, isPeriodClosed } from '../policy/locks.js'
 import { updateRecord } from '../records/records.js'
+import { assertCouncilDepartment } from '../team/council-department.js'
 import { deletableOf, usedBudgetItemIds } from './item-facts.js'
 import { assertNamesFree } from './names.js'
 import { budgetViewOf, periodById } from './queries.js'
@@ -39,7 +40,7 @@ async function viewOfPeriod(tx: Tx, periodId: string): Promise<BudgetResponse> {
   return budgetViewOf(tx, (await periodById(tx, periodId))!)
 }
 
-// 이름과 금액을 바꾸고 사유를 판에 남긴다. 종류와 행사는 바꾸지 않는다(DEC-68).
+// 이름, 금액, 담당 부서(보냈을 때만)를 바꾸고 사유를 판에 남긴다. 종류와 행사는 바꾸지 않는다(DEC-68).
 export async function updateBudgetItem(
   tx: Tx,
   actor: Actor,
@@ -47,6 +48,7 @@ export async function updateBudgetItem(
   input: UpdateBudgetItem,
 ): Promise<BudgetResponse> {
   const item = await changeableItem(tx, actor, itemId)
+  await assertCouncilDepartment(tx, actor, input.departmentId)
   // 이름을 바꿀 때만 같은 이름을 본다. 금액만 고치는 것은 막지 않는다(막기 전에 생긴 같은 이름의 항목도 고칠 수 있게).
   if (input.purpose !== item.purpose)
     await assertNamesFree(
@@ -60,7 +62,11 @@ export async function updateBudgetItem(
     id: itemId,
     actor: actor.memberId,
     reason: input.reason,
-    changes: { purpose: input.purpose, amount: String(input.amount) },
+    changes: {
+      purpose: input.purpose,
+      amount: String(input.amount),
+      ...(input.departmentId === undefined ? {} : { departmentId: input.departmentId }),
+    },
   })
   return viewOfPeriod(tx, item.periodId)
 }

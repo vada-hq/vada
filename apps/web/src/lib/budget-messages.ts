@@ -12,6 +12,7 @@ export const BUDGET_ERRORS = changeErrors({
   NO_FISCAL_PERIOD: '지금 회계 기간이 없어요. 먼저 회계 기간을 만들어 주세요.',
   EVENT_COMPLETED: '완료한 행사라 바꿀 수 없어요. 회장단이 완료를 취소하면 다시 할 수 있어요.',
   EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
+  DEPARTMENT_INVALID: '이 학생회의 부서가 아니에요. 다른 부서를 골라 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
   BUDGET_ITEM_DUPLICATE: '같은 이름의 예산 항목이 있어요. 이름을 바꿔 주세요.',

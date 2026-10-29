@@ -3,7 +3,11 @@ import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { BudgetResponse } from '@vada/contracts'
-import { FINANCE_PERMISSIONS, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
+import {
+  FINANCE_PERMISSIONS,
+  MEMBER_PERMISSIONS,
+  teamResponse,
+} from '@/test-support/council-fixtures'
 import { BUDGET_A, budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import { asElement } from '@/test-support/elements'
 import { eventSummary } from '@/test-support/event-fixtures'
@@ -24,6 +28,7 @@ afterEach(async () => {
 const ORG = `/api/organizations/${COUNCIL_ID}`
 const BUDGET = `${ORG}/budget`
 const SPRING = '00000000-0000-4000-8000-0000000000e1'
+const PLANNING = '00000000-0000-4000-8000-0000000000d2'
 
 function show(permissions = FINANCE_PERMISSIONS, budget: BudgetResponse = budgetWithPeriod()) {
   const api = mockApi()
@@ -33,6 +38,12 @@ function show(permissions = FINANCE_PERMISSIONS, budget: BudgetResponse = budget
   api.on('GET', BUDGET, () => json(budget))
   api.on('GET', `${ORG}/events`, () =>
     json({ events: [eventSummary({ id: SPRING, name: '봄 축제' })] }),
+  )
+  api.on('GET', `${ORG}/members`, () =>
+    json({
+      ...teamResponse(),
+      departments: [{ id: PLANNING, name: '기획부', role: null, memberCount: 0 }],
+    }),
   )
   const handlers = { onForbidden: vi.fn(), onChanged: vi.fn() }
   const rendered = render(
@@ -100,10 +111,82 @@ test('여러 행을 한 번에 보낸다: 빈 행은 버리고, 합계가 보이
   expect(posts(api).map(call => call.body)).toEqual([
     {
       items: [
-        { purpose: '학생회 운영비', amount: 1000000, type: 'expense', eventId: null },
-        { purpose: '간식', amount: 50000, type: 'expense', eventId: null },
+        {
+          purpose: '학생회 운영비',
+          amount: 1000000,
+          type: 'expense',
+          eventId: null,
+          departmentId: null,
+        },
+        { purpose: '간식', amount: 50000, type: 'expense', eventId: null, departmentId: null },
       ],
     },
+  ])
+})
+
+test('담당 부서(선택)는 비어 있고, 고르면 창의 모든 행에 실어 보낸다', async () => {
+  const { api } = show()
+  api.on('POST', `${ORG}/budget-items/batch`, () => json(budgetWithPeriod(), 201))
+  const form = await openPlan()
+  const department = asElement(
+    await within(form).findByRole('combobox', { name: /^담당 부서/ }),
+    HTMLSelectElement,
+  )
+  await waitFor(() => expect(department.disabled).toBe(false))
+  expect(department.value).toBe('')
+  expect([...department.options].map(option => option.text)).toEqual(['부서 없음', '기획부'])
+  fireEvent.change(department, { target: { value: PLANNING } })
+  fill('항목 1 이름', '가을 축제 상금')
+  fill('항목 1 금액', '600000')
+  fireEvent.click(within(form).getByRole('button', { name: '항목 추가' }))
+  fill('항목 2 이름', '홍보비')
+  fill('항목 2 금액', '50000')
+  fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(posts(api).map(call => call.body)).toEqual([
+    {
+      items: [
+        {
+          purpose: '가을 축제 상금',
+          amount: 600000,
+          type: 'expense',
+          eventId: null,
+          departmentId: PLANNING,
+        },
+        {
+          purpose: '홍보비',
+          amount: 50000,
+          type: 'expense',
+          eventId: null,
+          departmentId: PLANNING,
+        },
+      ],
+    },
+  ])
+})
+
+test('항목 고치기: 지금 담당 부서가 골라져 있고, 부서 없음으로 바꾸면 비워 보낸다', async () => {
+  const budget = budgetWithPeriod()
+  budget.items[0] = { ...budget.items[0]!, department: { id: PLANNING, name: '기획부' } }
+  const { api } = show(FINANCE_PERMISSIONS, budget)
+  api.on('POST', `${ORG}/budget-items/${BUDGET_A}`, () => json(budgetWithPeriod()))
+  fireEvent.keyDown(await screen.findByRole('button', { name: '행사 홍보 더 보기' }), {
+    key: 'Enter',
+  })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '예산 항목 고치기' })
+  const department = asElement(
+    within(form).getByRole('combobox', { name: /^담당 부서/ }),
+    HTMLSelectElement,
+  )
+  expect(department.value).toBe(PLANNING)
+  await waitFor(() => expect(department.disabled).toBe(false))
+  fireEvent.change(department, { target: { value: '' } })
+  fill('사유', '재정부가 직접 씀')
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(posts(api).map(call => call.body)).toEqual([
+    { purpose: '행사 홍보', amount: 300000, departmentId: null, reason: '재정부가 직접 씀' },
   ])
 })
 
@@ -194,7 +277,7 @@ test('항목 고치기: 이름·금액·사유(필수)를 보내고, 판 이력�
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posts(api).map(call => call.body)).toEqual([
-    { purpose: '행사 홍보', amount: 250000, reason: '회의에서 줄임' },
+    { purpose: '행사 홍보', amount: 250000, departmentId: null, reason: '회의에서 줄임' },
   ])
   fireEvent.keyDown(screen.getByRole('button', { name: '행사 홍보 더 보기' }), { key: 'Enter' })
   fireEvent.click(await screen.findByRole('menuitem', { name: '이력 보기' }))

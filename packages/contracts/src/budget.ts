@@ -28,12 +28,17 @@ export type BudgetItemType = (typeof BUDGET_ITEM_TYPES)[number]
 export const budgetItemPurpose = text(BUDGET_PURPOSE_MAX)
 export const budgetItemAmount = z.number().int().min(1).max(WON_MAX)
 
-// 더할 때 종류와 행사(선택)를 고르고, 더한 뒤에는 바꾸지 않는다(DEC-68).
+// 예산 항목의 담당 부서(선택). 돈은 재정부가 쥐고, 맡은 부서는 부장 홈에서 그 항목의 한도를 본다(대표 10/30).
+// 같은 학생회의 부서여야 한다(아니면 409 DEPARTMENT_INVALID). 비우면(null) 맡은 부서가 없다.
+export const budgetItemDepartmentId = recordIdInput.nullable()
+
+// 더할 때 종류와 행사(선택)를 고르고, 더한 뒤에는 바꾸지 않는다(DEC-68). 담당 부서는 더할 때 고르고 고치기에서 바꾼다.
 export const CreateBudgetItemSchema = z.strictObject({
   purpose: budgetItemPurpose,
   amount: budgetItemAmount,
   type: z.enum(BUDGET_ITEM_TYPES).default('expense'),
   eventId: recordIdInput.nullable().default(null),
+  departmentId: budgetItemDepartmentId.default(null),
 })
 export type CreateBudgetItem = z.infer<typeof CreateBudgetItemSchema>
 
@@ -78,6 +83,8 @@ export type BudgetItemView = BudgetItemUsage & {
   purpose: string
   amount: number
   event: EventRef | null
+  // 담당 부서(없으면 null)
+  department: { id: string; name: string } | null
   // 결재·지출·수입에서 고를 수 있는가. 완료한 행사의 항목이면 false다(RULE-11). 서버가 정책에서 정한다.
   selectable: boolean
   // 지울 수 있는가. 결재·지출·수입·요청이 가리킨 적 없고 만든 뒤 고친 적도 없을 때만이다(DEC-92, 이력을 지우지 않게).

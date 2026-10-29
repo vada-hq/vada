@@ -5,7 +5,7 @@ import { ApiError } from '../http/errors.js'
 import type { AnyRecordChange, RecordKind } from './records.js'
 
 // 기록이 가리키는 다른 기록과 사람은 같은 학생회의 것이어야 한다. 외래 키는 학생회까지 맞추지 못해 여기서 막는다.
-// 이 검사는 만들 때 하고, 만든 뒤에도 바꿀 수 있는 칸(업무의 부서·담당자·행사, 행사의 책임자, 요청한 사람, 품목과 지출의 예산 항목, 지출의 행사·부탁한 사람·먼저 낸 사람, 양식의 참가비 계좌, 입금 기록의 수입, 수입의 예산 항목과 계좌)은 바꿀 때 다시 한다(assertChangeStaysInCouncil).
+// 이 검사는 만들 때 하고, 만든 뒤에도 바꿀 수 있는 칸(업무의 부서·담당자·행사, 예산 항목의 담당 부서, 행사의 책임자, 요청한 사람, 품목과 지출의 예산 항목, 지출의 행사·부탁한 사람·먼저 낸 사람, 양식의 참가비 계좌, 입금 기록의 수입, 수입의 예산 항목과 계좌)은 바꿀 때 다시 한다(assertChangeStaysInCouncil).
 // 가리키는 곳이 없거나(null) 학생회를 알 수 없으면 ''를 돌려줘 기록의 학생회와 달라지게 한다.
 
 // 업무에 잇는 결과물은 그 업무와 같은 학생회의 것이어야 한다(기능 015). 연결 표에는 학생회 번호가 없어 여기서 막는다.
@@ -113,6 +113,7 @@ const ownersOf: Partial<
   budget_item: async (tx, _, v) => [
     ...(await optional(tx, field(v, 'budgetId', 'budget_id'))),
     ...(await optional(tx, field(v, 'eventId', 'event_id'))),
+    ...(await optional(tx, field(v, 'departmentId', 'department_id'))),
   ],
   request: async (tx, councilId, v) => [
     ...(await members(tx, councilId, [field(v, 'requestedBy', 'requested_by')])),
@@ -183,6 +184,7 @@ export async function assertSameCouncil(
 // 바꿀 때 다시 보는 종류. 바꿀 수 있는 칸이 다른 학생회를 가리킬 수 있는 종류다.
 const changeChecked: ReadonlySet<RecordKind> = new Set([
   'schedule_item',
+  'budget_item',
   'task',
   'event',
   'request',

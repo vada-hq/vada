@@ -3,6 +3,7 @@ import { alias, type AnyPgColumn } from 'drizzle-orm/pg-core'
 import type { BudgetItemType, BudgetItemUsage } from '@vada/contracts'
 import {
   budgetItem,
+  department,
   event,
   expense,
   income,
@@ -87,6 +88,8 @@ export type BudgetItemRow = {
   amount: number
   eventId: string | null
   eventName: string | null
+  departmentId: string | null
+  departmentName: string | null
   usage: BudgetItemUsage
 }
 
@@ -105,12 +108,15 @@ export async function budgetItemsWithUsage(
       amount: budgetItem.amount,
       eventId: budgetItem.eventId,
       eventName: event.name,
+      departmentId: budgetItem.departmentId,
+      departmentName: department.name,
       actual: actualSql(councilId),
       committed: committedSql(councilId),
     })
     .from(budgetItem)
     .innerJoin(record, eq(record.id, budgetItem.id))
     .leftJoin(event, eq(event.id, budgetItem.eventId))
+    .leftJoin(department, eq(department.id, budgetItem.departmentId))
     .where(and(eq(record.councilId, councilId), where))
     .orderBy(...orderBy)
   return rows.map(({ type, amount, actual, committed, ...rest }) => {

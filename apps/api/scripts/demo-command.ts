@@ -6,8 +6,7 @@ import {
 import { databaseUrlOf, NPM_SWALLOWED_DRY_RUN, npmSwallowedDryRun } from '../src/ops/script-args.js'
 import type { Db } from '../src/db/types.js'
 import type { FileStorage } from '../src/storage/storage.js'
-import { DEMO_SCHOOL_NAME } from '../src/home/demo-budget.js'
-import { seedDemoCouncil } from './demo-data.js'
+import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
 
 // demo 명령의 판단 전부. manage-demo-data.ts는 실제 연결(postgres-js)을 이어 주기만 한다. 시험은 PGlite를 감싼 가짜 connect로 돌린다.
 // 인자 규칙은 db:migrate와 같다: 기본은 미리 보기, 실제로 쓰는 것은 --apply뿐이고, 셸의 DATABASE_URL은 --from-shell을 줄 때만 쓴다.

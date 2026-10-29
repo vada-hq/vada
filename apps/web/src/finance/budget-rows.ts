@@ -3,7 +3,7 @@ import type { FieldErrors, Parsed } from '@/lib/use-form-check'
 import { wonOf } from '@/lib/won-input'
 
 // 예산 편성 창(DEC-92, 와이어프레임 EVT-FIN-01B '행사 예산 편성')의 값과 칸 확인. 행마다 이름과 금액이고,
-// 종류와 행사는 창 하나에 하나다(와이어프레임도 행사 예산과 총예산을 따로 짠다). 칸 이름은 'rows.{행 번호}.purpose|amount'다.
+// 종류와 행사, 담당 부서는 창 하나에 하나다(와이어프레임도 행사 예산과 총예산을 따로 짠다). 칸 이름은 'rows.{행 번호}.purpose|amount'다.
 
 // 행사 예산을 짤 때 채워 두는 행(와이어프레임 미편성 기본 행).
 const EVENT_BUDGET_ROWS = ['행사 운영비', '홍보비', '식비'] as const
@@ -12,6 +12,7 @@ export type BudgetRow = { key: number; purpose: string; amount: string }
 export type BudgetRowsValues = {
   type: BudgetItemType
   eventId: string | null
+  departmentId: string | null
   rows: BudgetRow[]
 }
 // 같은 이름을 견줄 이미 있는 항목(지금 기간). 행사가 같은(둘 다 없음 포함) 항목끼리만 견준다(서버와 같은 범위).
@@ -44,6 +45,7 @@ export const budgetItemsOf = (values: BudgetRowsValues): CreateBudgetItems => ({
     amount: wonOf(row.amount),
     type: values.type,
     eventId: values.eventId,
+    departmentId: values.departmentId,
   })),
 })
 

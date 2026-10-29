@@ -28,6 +28,7 @@ const spend = (id: string, purpose: string, money: Spend): BudgetItemView => ({
   purpose,
   type: 'expense',
   event: null,
+  department: null,
   selectable: true,
   deletable: true,
   history: [
@@ -80,6 +81,7 @@ const items: BudgetItemView[] = [
     purpose: '후원',
     type: 'income',
     event: null,
+    department: null,
     selectable: true,
     deletable: false,
     history: [],
@@ -188,7 +190,7 @@ const ERRORS = {
   'rows.2.purpose': '같은 이름의 항목이 있어요',
 }
 
-// 예산 탭에서 연 창은 종류·행사를 고르고, 행사 화면에서 연 창(event)은 그 행사의 지출로 고정해 행만 있다.
+// 예산 탭에서 연 창은 종류·행사를 고르고, 행사 화면에서 연 창(event)은 그 행사의 지출로 고정해 행만 있다. 담당 부서(선택)는 둘 다 있다.
 function PlanFrame({
   width,
   rows,
@@ -203,25 +205,41 @@ function PlanFrame({
   const [current, setCurrent] = useState(rows)
   return (
     <DialogFrame title={event ? '행사 예산 편성' : '예산 편성'} width={width}>
-      {!event && (
-        <div className="grid gap-4 @md:grid-cols-2">
-          <Field label="종류" required>
-            <NativeSelect defaultValue="expense">
-              <option value="expense">지출</option>
-              <option value="income">수입</option>
-            </NativeSelect>
-          </Field>
-          <Field label="행사" optional>
-            <NativeSelect defaultValue="">
-              <option value="">행사 없음</option>
-              <option value="spring">봄 축제</option>
-            </NativeSelect>
-          </Field>
-        </div>
-      )}
+      <div className="grid gap-4 @md:grid-cols-2">
+        {!event && (
+          <>
+            <Field label="종류" required>
+              <NativeSelect defaultValue="expense">
+                <option value="expense">지출</option>
+                <option value="income">수입</option>
+              </NativeSelect>
+            </Field>
+            <Field label="행사" optional>
+              <NativeSelect defaultValue="">
+                <option value="">행사 없음</option>
+                <option value="spring">봄 축제</option>
+              </NativeSelect>
+            </Field>
+          </>
+        )}
+        <DepartmentSelect value={event ? 'planning' : ''} />
+      </div>
       <BudgetRows rows={current} errors={errors} saving={false} onChange={setCurrent} />
       <Footer submit="예산 저장" summary={<BudgetRowsTotal rows={current} income={false} />} />
     </DialogFrame>
+  )
+}
+
+// 담당 부서 칸(finance/DepartmentField): '부서 없음'과 학생회의 부서들
+function DepartmentSelect({ value }: { value: string }) {
+  return (
+    <Field label="담당 부서" optional>
+      <NativeSelect defaultValue={value}>
+        <option value="">부서 없음</option>
+        <option value="finance">재정부</option>
+        <option value="planning">기획부</option>
+      </NativeSelect>
+    </Field>
   )
 }
 
@@ -234,6 +252,7 @@ function EditFrame({ width }: { width: string }) {
       <Field label="금액(원)" required>
         <Input inputMode="numeric" className="text-right tabular-nums" defaultValue="250,000" />
       </Field>
+      <DepartmentSelect value="planning" />
       <Field label="사유" required error="사유를 입력해 주세요">
         <Textarea />
       </Field>

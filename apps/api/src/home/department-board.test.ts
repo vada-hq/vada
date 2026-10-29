@@ -3,8 +3,9 @@ import { test } from 'node:test'
 import type { HomeDepartmentBoard, HomeResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
+import { clockNow } from '../records/records.js'
 import { withSettlement, type SettlementKit } from '../test-support/settlement.js'
-import { DEMO_COUNCIL_IDS, DEMO_SCHOOL_NAME, isDemoCouncil } from './demo-budget.js'
+import { DEPARTMENT_BUDGET_NAME } from './department-budget.js'
 import { createHomeRoutes } from './routes.js'
 
 // 부장 홈(HOME-01D, 10/30 확정): 회장단 홈 구역에 부장 범위의 데이터만. 한국 시각 2026-10-25(일) 12:00.
@@ -257,36 +258,81 @@ test(
 )
 
 test(
-  '시연용 임시 예산 한 줄은 시연 학생회의 부장 홈에만 온다',
+  '우리 부서가 맡은 예산: 지금 기간의 지출 항목 가운데 직급 부서가 맡은 것만 세고, 없으면 줄을 숨긴다',
   withSettlement(async t => {
     const h = open(t)
-    assert.equal((await h.board()).budget, null)
-    await t.pg.query('UPDATE council SET school_name = $1 WHERE id = $2', [
-      DEMO_SCHOOL_NAME,
-      t.other.councilId,
-    ])
-    assert.equal((await h.board()).budget, null)
-    await t.pg.query('UPDATE council SET school_name = $1 WHERE id = $2', [
-      DEMO_SCHOOL_NAME,
-      t.council.councilId,
-    ])
-    assert.deepEqual((await h.board()).budget, {
-      name: '기말고사 간식행사 간식비',
-      amount: 300_000,
-      remaining: 300_000,
+    assert.equal((await h.board()).budget, null, '회계 기간이 없다')
+    const { budget } = await t.budgetOf()
+    // 맡지 않은 것: 다른 부서, 담당 없음, 수입 항목, 지난 기간, 다른 학생회
+    await t.budgetItem(budget, { purpose: '재정부 몫', departmentId: h.departments.finance })
+    await t.budgetItem(budget, { purpose: '담당 없음' })
+    await t.budgetItem(budget, {
+      purpose: '기획부 수입',
+      type: 'income',
+      departmentId: h.departments.planning,
     })
+    const past = await t.make(t.council, 'fiscal_period', {
+      name: '2026-1',
+      startsOn: '2026-03-01',
+      endsOn: '2026-08-31',
+    })
+    const pastBudget = await t.make(t.council, 'budget', { fiscalPeriodId: past })
+    await t.budgetItem(pastBudget, { purpose: '지난 기간', departmentId: h.departments.planning })
+    const { budget: theirs } = await t.budgetOf(t.other)
+    await t.budgetItem(
+      theirs,
+      { purpose: '다른 학생회', departmentId: t.other.departments.planning },
+      t.other,
+    )
+    assert.equal((await h.board()).budget, null, '맡은 항목이 없다')
+    assert.equal((await h.board('s-planningViceHead')).budget, null)
   }),
 )
 
-test('배포 시연 학생회는 학교 이름이 달라도 학생회 id로 시연 학생회다', () => {
-  const [demo] = DEMO_COUNCIL_IDS
-  assert.equal(isDemoCouncil({ id: demo, schoolName: '서울과학기술대학교' }), true)
-  assert.equal(
-    isDemoCouncil({ id: '01900000-0000-7000-8000-000000000001', schoolName: '서울과학기술대학교' }),
-    false,
-  )
-  assert.equal(
-    isDemoCouncil({ id: '01900000-0000-7000-8000-000000000001', schoolName: DEMO_SCHOOL_NAME }),
-    true,
-  )
-})
+test(
+  '우리 부서가 맡은 예산: 하나면 그 항목 이름과 금액, 남음은 예산 탭의 사용 가능이라 결재·지출만큼 준다. 여럿이면 합이다',
+  withSettlement(async t => {
+    const h = open(t)
+    const { budget } = await t.budgetOf()
+    const prize = await t.budgetItem(budget, {
+      purpose: '가을 축제 상금',
+      amount: '600000',
+      departmentId: h.departments.planning,
+    })
+    assert.deepEqual((await h.board()).budget, {
+      name: '가을 축제 상금',
+      amount: 600_000,
+      remaining: 600_000,
+    })
+    assert.deepEqual((await h.board('s-planningViceHead')).budget, (await h.board()).budget)
+    // 구매 요청이 결재되면(지출 예정) 남음이 준다. 일부를 결제해도 남음은 같다.
+    const { line } = await t.requestWithItem(null)
+    await t.pg.query('UPDATE line_item SET amount = $1, budget_item_id = $2 WHERE id = $3', [
+      '100000',
+      prize,
+      line,
+    ])
+    await t.approve(line)
+    assert.equal((await h.board()).budget?.remaining, 500_000)
+    await t.pay(await t.expense({ amount: '40000' }), line, '40000')
+    assert.equal((await h.board()).budget?.remaining, 500_000)
+    // 항목에 바로 이은 지출도 빼고, 취소한 지출은 빼지 않는다.
+    await t.expense({ amount: '30000', budgetItemId: prize })
+    await t.expense({ amount: '99000', budgetItemId: prize, cancelledAt: clockNow })
+    assert.equal((await h.board()).budget?.remaining, 470_000)
+    const budgetTab = (await (
+      await t.api.get(`/api/organizations/${t.council.councilId}/budget`, 's-planningHead')
+    ).json()) as { items: { id: string; available: number }[] }
+    assert.equal(budgetTab.items.find(item => item.id === prize)?.available, 470_000)
+    await t.budgetItem(budget, {
+      purpose: '홍보비',
+      amount: '50000',
+      departmentId: h.departments.planning,
+    })
+    assert.deepEqual((await h.board()).budget, {
+      name: DEPARTMENT_BUDGET_NAME,
+      amount: 650_000,
+      remaining: 520_000,
+    })
+  }),
+)

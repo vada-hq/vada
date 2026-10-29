@@ -10,6 +10,19 @@
 <div class="relative flex max-w-full flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl w-160">
 <h3 class="pr-6 text-base font-semibold text-fg">행사 예산 편성</h3>
 <div class="@container flex flex-col gap-4">
+<div class="grid gap-4 @md:grid-cols-2">
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id1_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id1_">
+<option value="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning" selected="">기획부</option>
+</select>
+</div>
+</div>
 <div class="flex flex-col gap-2">
 <div aria-hidden="true" class="flex gap-2 text-xs font-medium text-fg-secondary">
 <span class="min-w-0 flex-1">항목 이름 <span class="text-danger-emphasis">*</span>
@@ -98,22 +111,33 @@
 <div class="grid gap-4 @md:grid-cols-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id1_">종류</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id2_">종류</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id1_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id2_" aria-required="true">
 <option value="expense" selected="">지출</option>
 <option value="income">수입</option>
 </select>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id2_">행사</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id3_">행사</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id2_">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id3_">
 <option value="" selected="">행사 없음</option>
 <option value="spring">봄 축제</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id4_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id4_">
+<option value="" selected="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning">기획부</option>
 </select>
 </div>
 </div>
@@ -240,26 +264,37 @@
 <div class="@container flex flex-col gap-4">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id3_">항목 이름</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">항목 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id3_" aria-required="true" value="행사 홍보">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id5_" aria-required="true" value="행사 홍보">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id4_">금액(원)</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id6_">금액(원)</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" id="_id4_" aria-required="true" value="250,000">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" id="_id6_" aria-required="true" value="250,000">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">사유</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id7_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id7_">
+<option value="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning" selected="">기획부</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id8_">사유</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle" id="_id5_" aria-required="true" aria-invalid="true" aria-describedby="_id5_-error">
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle" id="_id8_" aria-required="true" aria-invalid="true" aria-describedby="_id8_-error">
 </textarea>
-<p id="_id5_-error" class="text-xs text-danger-emphasis">사유를 입력해 주세요</p>
+<p id="_id8_-error" class="text-xs text-danger-emphasis">사유를 입력해 주세요</p>
 </div>
 <div class="flex flex-wrap items-center justify-between gap-3">
 <div class="ml-auto flex flex-wrap justify-end gap-2">
@@ -282,17 +317,17 @@
 <div class="@container flex flex-col gap-4">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id6_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id6_" aria-required="true" value="2026년 2학기">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" value="2026년 2학기">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id7_">시작일</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">시작일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-07-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id7_" aria-required="true" data-state="closed">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-07-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
 <span class="truncate">7월 1일 (수)</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
 <path d="M8 2v3">
@@ -320,10 +355,10 @@
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id8_">끝일</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id11_">끝일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id8_" aria-required="true" data-state="closed">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id11_" aria-required="true" data-state="closed">
 <span class="truncate">12월 31일 (목)</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
 <path d="M8 2v3">
@@ -371,6 +406,19 @@
 <div class="relative flex max-w-full flex-col gap-6 rounded-lg border bg-white p-6 shadow-2xl w-89.5 [&amp;_input]:text-base [&amp;_select]:text-base [&amp;_textarea]:text-base">
 <h3 class="pr-6 text-base font-semibold text-fg">행사 예산 편성</h3>
 <div class="@container flex flex-col gap-4">
+<div class="grid gap-4 @md:grid-cols-2">
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id12_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id12_">
+<option value="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning" selected="">기획부</option>
+</select>
+</div>
+</div>
 <div class="flex flex-col gap-2">
 <div aria-hidden="true" class="flex gap-2 text-xs font-medium text-fg-secondary">
 <span class="min-w-0 flex-1">항목 이름 <span class="text-danger-emphasis">*</span>
@@ -459,22 +507,33 @@
 <div class="grid gap-4 @md:grid-cols-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">종류</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id13_">종류</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id9_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id13_" aria-required="true">
 <option value="expense" selected="">지출</option>
 <option value="income">수입</option>
 </select>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">행사</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id14_">행사</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id10_">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id14_">
 <option value="" selected="">행사 없음</option>
 <option value="spring">봄 축제</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id15_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id15_">
+<option value="" selected="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning">기획부</option>
 </select>
 </div>
 </div>
@@ -601,26 +660,37 @@
 <div class="@container flex flex-col gap-4">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id11_">항목 이름</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id16_">항목 이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id11_" aria-required="true" value="행사 홍보">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id16_" aria-required="true" value="행사 홍보">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id12_">금액(원)</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id17_">금액(원)</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" id="_id12_" aria-required="true" value="250,000">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" id="_id17_" aria-required="true" value="250,000">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id13_">사유</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id18_">담당 부서</label>
+<span class="text-xs text-fg-muted">(선택)</span>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="_id18_">
+<option value="">부서 없음</option>
+<option value="finance">재정부</option>
+<option value="planning" selected="">기획부</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id19_">사유</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle" id="_id13_" aria-required="true" aria-invalid="true" aria-describedby="_id13_-error">
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle" id="_id19_" aria-required="true" aria-invalid="true" aria-describedby="_id19_-error">
 </textarea>
-<p id="_id13_-error" class="text-xs text-danger-emphasis">사유를 입력해 주세요</p>
+<p id="_id19_-error" class="text-xs text-danger-emphasis">사유를 입력해 주세요</p>
 </div>
 <div class="flex flex-wrap items-center justify-between gap-3">
 <div class="ml-auto flex flex-wrap justify-end gap-2">
@@ -643,17 +713,17 @@
 <div class="@container flex flex-col gap-4">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id14_">이름</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id20_">이름</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id14_" aria-required="true" value="2026년 2학기">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id20_" aria-required="true" value="2026년 2학기">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id15_">시작일</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id21_">시작일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-07-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id15_" aria-required="true" data-state="closed">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-07-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id21_" aria-required="true" data-state="closed">
 <span class="truncate">7월 1일 (수)</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
 <path d="M8 2v3">
@@ -681,10 +751,10 @@
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id16_">끝일</label>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id22_">끝일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id16_" aria-required="true" data-state="closed">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id22_" aria-required="true" data-state="closed">
 <span class="truncate">12월 31일 (목)</span>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
 <path d="M8 2v3">

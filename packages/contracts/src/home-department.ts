@@ -3,8 +3,8 @@ import type { HomeEventLanes } from './home-lanes.js'
 import type { HomeTodo } from './home-todo.js'
 import type { HomeWeek } from './home-week.js'
 
-// 시연용 임시: 우리 부서가 맡은 예산 한 줄(대표 10/30, notes dept-home-content.md). 시연 학생회에만 온다.
-// 시연 뒤 budget_item 담당 부서로 바꾼다(남음 = 그 항목 예산 - 결재된 구매 요청).
+// 우리 부서가 맡은 예산 한 줄(대표 10/30): 지금 기간의 지출 예산 항목 가운데 담당 부서가 직급 부서인 것.
+// 하나면 그 항목 이름, 여럿이면 '우리 부서 예산'과 합이다. remaining은 예산 탭의 사용 가능(배정 − 실제 지출 − 지출 예정)이다.
 export interface HomeDepartmentBudget {
   name: string
   amount: number
@@ -23,5 +23,6 @@ export interface HomeDepartmentBoard {
   week: HomeWeek
   // ② 우리 부서가 맡은 행사(그 행사에 이은 끝나지 않은 업무를 직급 부서가 맡음, EventDetail.departments와 같은 뜻)
   lanes: HomeEventLanes
+  // 맡은 예산 항목이 없거나 지금 회계 기간이 없으면 null(줄을 숨긴다)
   budget: HomeDepartmentBudget | null
 }

@@ -122,7 +122,9 @@ test('예산 편성: 종류는 지출이 기본이고 수입과 행사를 골라
   fireEvent.click(screen.getByRole('button', { name: '예산 저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(posted(api)).toEqual({
-    items: [{ purpose: '참가비', amount: 100000, type: 'income', eventId: SPRING }],
+    items: [
+      { purpose: '참가비', amount: 100000, type: 'income', eventId: SPRING, departmentId: null },
+    ],
   })
 })
 
@@ -134,6 +136,7 @@ test('결재의 예산 항목 고르기에는 지출 항목만 보인다', async
     amount: 1,
     type: 'income',
     event: null,
+    department: null,
     selectable: true,
     deletable: true,
     history: [],

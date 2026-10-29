@@ -6,8 +6,7 @@ import { createTestDb, type TestDb, type TestPg } from '../src/db/test-db.js'
 import { clockNow, createRecord } from '../src/records/records.js'
 import { markLeft, seedCouncil } from '../src/test-support/council.js'
 import { fakeStorage } from '../src/test-support/storage.js'
-import { DEMO_SCHOOL_NAME } from '../src/home/demo-budget.js'
-import { seedDemoCouncil } from './demo-data.js'
+import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
 import { parsePrivacyArgs, runPrivacy, type PrivacyRun } from './privacy-command.js'
 
 // privacy council-close·council-reopen·council-destroy(기능 021 조각 9, 정한 것 15, DEC-55, DEC-56, DEC-72).

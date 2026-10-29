@@ -9,6 +9,7 @@ import { assertCouncilEvent } from '../events/council-event.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord } from '../records/records.js'
 import { assertEventsOpen, isPeriodClosed } from '../policy/locks.js'
+import { assertCouncilDepartment } from '../team/council-department.js'
 import { assertNamesFree } from './names.js'
 import { budgetViewOf, pickedPeriodOf, periodById, previousPeriodIdFor } from './queries.js'
 
@@ -75,6 +76,8 @@ export async function addBudgetItems(
   if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
   for (const eventId of new Set(inputs.map(input => input.eventId)))
     await assertCouncilEvent(tx, actor, eventId)
+  for (const departmentId of new Set(inputs.map(input => input.departmentId)))
+    await assertCouncilDepartment(tx, actor, departmentId)
   await assertEventsOpen(
     tx,
     inputs.map(input => input.eventId),
@@ -92,6 +95,7 @@ export async function addBudgetItems(
         budgetId: period.budgetId,
         type: input.type,
         eventId: input.eventId,
+        departmentId: input.departmentId,
         purpose: input.purpose,
         amount: String(input.amount),
       },

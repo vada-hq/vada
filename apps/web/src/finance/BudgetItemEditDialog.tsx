@@ -7,6 +7,7 @@ import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { wonOf } from '@/lib/won-input'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { BudgetOverConfirm } from './BudgetOverConfirm'
+import { DepartmentField } from './DepartmentField'
 import { budgetItemPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
 
@@ -16,7 +17,7 @@ type Props = BudgetChangeHandlers & {
   onClose: () => void
 }
 
-type Values = { purpose: string; amount: string; reason: string }
+type Values = { purpose: string; amount: string; departmentId: string | null; reason: string }
 
 const editErrors = (values: Values) => ({
   purpose: requiredText(values.purpose, '항목 이름을'),
@@ -33,11 +34,12 @@ function overspentAfter(item: BudgetItemView, amount: number) {
   return available < 0 ? available : null
 }
 
-// 예산 항목 고치기(DEC-92): 이름과 금액을 바로 고치고 사유(필수)를 판에 남긴다. 종류와 행사는 바꾸지 않는다.
+// 예산 항목 고치기(DEC-92): 이름, 금액, 담당 부서를 바로 고치고 사유(필수)를 판에 남긴다. 종류와 행사는 바꾸지 않는다.
 export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: Props) {
   const [values, setValues] = useState<Values>({
     purpose: item.purpose,
     amount: item.amount.toLocaleString('ko-KR'),
+    departmentId: item.department?.id ?? null,
     reason: '',
   })
   const [saving, setSaving] = useState(false)
@@ -45,6 +47,7 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
   const body = {
     purpose: values.purpose,
     amount: wonOf(values.amount),
+    departmentId: values.departmentId,
     reason: values.reason,
   }
   const change = useBudgetChange(budgetItemPath(councilId, item.id), body, UpdateBudgetItemSchema, {
@@ -85,6 +88,14 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
             onChange={event => set({ amount: event.target.value })}
           />
         </Field>
+        <DepartmentField
+          councilId={councilId}
+          value={values.departmentId}
+          current={item.department}
+          disabled={saving}
+          onChange={departmentId => set({ departmentId })}
+          onForbidden={handlers.onForbidden}
+        />
         <Field label="사유" required error={errors.reason}>
           <Textarea
             value={values.reason}

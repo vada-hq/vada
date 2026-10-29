@@ -36,6 +36,7 @@ const BUDGET_ITEM = {
   amount: BUDGET_AMOUNT,
   type: 'expense',
   eventId: null,
+  departmentId: null,
 } as const
 
 // 학생회 하나(재정 역할 부서는 학생회를 만들 때 함께 생긴다), 그 부서에 든 부원 둘, 요청만 내는 부원 하나, 오늘이 든 기간과 지출 예산 항목 하나.

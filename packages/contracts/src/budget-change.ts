@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { budgetItemAmount, budgetItemPurpose, CreateBudgetItemSchema } from './budget.js'
+import {
+  budgetItemAmount,
+  budgetItemDepartmentId,
+  budgetItemPurpose,
+  CreateBudgetItemSchema,
+} from './budget.js'
 import { text } from './input.js'
 import { PURCHASE_REASON_MAX } from './purchases.js'
 
@@ -15,10 +20,12 @@ export const CreateBudgetItemsSchema = z.strictObject({
 })
 export type CreateBudgetItems = z.infer<typeof CreateBudgetItemsSchema>
 
-// 고치기는 이름과 금액만 바꾸고 사유는 꼭 받는다(판에 남는다). 종류와 행사는 바꾸지 않는다(DEC-68).
+// 고치기는 이름, 금액, 담당 부서를 바꾸고 사유는 꼭 받는다(판에 남는다). 종류와 행사는 바꾸지 않는다(DEC-68).
+// 담당 부서를 빼고 보내면 그대로 두고, null이면 비운다(담당 부서 전의 고치기 본문도 그대로 받는다).
 export const UpdateBudgetItemSchema = z.strictObject({
   purpose: budgetItemPurpose,
   amount: budgetItemAmount,
+  departmentId: budgetItemDepartmentId.optional(),
   reason: text(PURCHASE_REASON_MAX),
 })
 export type UpdateBudgetItem = z.infer<typeof UpdateBudgetItemSchema>

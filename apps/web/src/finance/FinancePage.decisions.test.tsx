@@ -579,6 +579,7 @@ const budgetLine = (
   amount: 100000,
   type: 'expense' as const,
   event,
+  department: null,
   selectable,
   deletable: true,
   history: [],

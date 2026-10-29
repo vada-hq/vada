@@ -15,6 +15,7 @@ import {
 } from './budget-rows'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { BudgetRows, BudgetRowsTotal } from './BudgetRows'
+import { DepartmentField } from './DepartmentField'
 import { EventField } from './EventField'
 import { budgetItemsBatchPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
@@ -40,6 +41,7 @@ type SharedProps = {
 }
 
 // 종류와 행사는 창의 모든 행에 같이 걸린다. 사람이 행을 고치기 전이면 바꿀 때 기본 행을 다시 채운다(행사 지출이면 셋).
+// 담당 부서와 같은 칸 묶음(두 칸씩)에 들어가도록 묶음 상자 없이 칸만 돌려준다.
 function SharedFields({ councilId, values, saving, onChange, onForbidden }: SharedProps) {
   const pick = (patch: { type?: BudgetItemType; eventId?: string | null }) => {
     const next = { ...values, ...patch }
@@ -48,7 +50,7 @@ function SharedFields({ councilId, values, saving, onChange, onForbidden }: Shar
     )
   }
   return (
-    <div className="grid gap-4 @md:grid-cols-2">
+    <>
       <Field label="종류" required>
         <NativeSelect
           value={values.type}
@@ -66,7 +68,7 @@ function SharedFields({ councilId, values, saving, onChange, onForbidden }: Shar
         onChange={eventId => pick({ eventId })}
         onForbidden={onForbidden}
       />
-    </div>
+    </>
   )
 }
 
@@ -86,6 +88,7 @@ export function BudgetItemDialog({
   const [values, setValues] = useState<BudgetRowsValues>(() => ({
     type: 'expense',
     eventId,
+    departmentId: null,
     rows: defaultRows('expense', eventId),
   }))
   const [saving, setSaving] = useState(false)
@@ -124,15 +127,24 @@ export function BudgetItemDialog({
       wide
       summary={<BudgetRowsTotal rows={values.rows} income={values.type === 'income'} />}
     >
-      {eventId === null && (
-        <SharedFields
+      <div className="grid gap-4 @md:grid-cols-2">
+        {eventId === null && (
+          <SharedFields
+            councilId={councilId}
+            values={values}
+            saving={saving}
+            onChange={setValues}
+            onForbidden={handlers.onForbidden}
+          />
+        )}
+        <DepartmentField
           councilId={councilId}
-          values={values}
-          saving={saving}
-          onChange={setValues}
+          value={values.departmentId}
+          disabled={saving}
+          onChange={departmentId => setValues({ ...values, departmentId })}
           onForbidden={handlers.onForbidden}
         />
-      )}
+      </div>
       <BudgetRows
         rows={values.rows}
         errors={fieldErrors}
