@@ -1,0 +1,167 @@
+<div>
+<section class="flex flex-col gap-3 border-b py-6">
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+<h2 class="text-base break-keep wrap-anywhere">완료된 행사 (REC-01)</h2>
+<a href="/ui.html?section=%EC%99%84%EB%A3%8C%EB%90%9C+%ED%96%89%EC%82%AC+%28REC-01%29" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+</div>
+<div class="flex flex-wrap items-start gap-3">
+<div class="flex w-full min-w-0 flex-col gap-8">
+<div class="@container flex min-w-0 flex-col gap-4 break-keep">
+<div class="flex min-w-0 max-w-220 flex-wrap items-center gap-3">
+<div class="relative w-full min-w-0 @xl:w-72">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search pointer-events-none absolute top-3 left-3 size-4 text-fg-subtle" aria-hidden="true">
+<path d="m21 21-4.34-4.34">
+</path>
+<circle cx="11" cy="11" r="8">
+</circle>
+</svg>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle pl-9 max-sm:min-h-11" aria-label="행사명 찾기" placeholder="행사명 찾기" type="search" value="">
+</div>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive cursor-pointer ml-auto w-40 max-sm:min-h-11" aria-label="정렬">
+<option value="completed">완료 처리일순</option>
+<option value="date">행사 일시순</option>
+</select>
+</div>
+<ul aria-label="완료된 행사 목록" class="grid w-full min-w-0 max-w-220 grid-cols-1 gap-3">
+<li class="min-w-0">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm relative max-sm:min-h-11 has-focus-visible:ring-2 has-focus-visible:ring-inset has-focus-visible:ring-primary-strong flex min-w-0 flex-col gap-3 p-5 break-keep transition-colors hover:border-primary-border-strong">
+<div class="flex min-w-0 items-start gap-3">
+<div class="flex min-w-0 flex-1 flex-col items-start gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">완료</span>
+<h3 class="w-full min-w-0 text-base font-semibold text-fg wrap-anywhere">가을 축제 학생회 부스</h3>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-primary-strong underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-3.5 after:absolute after:inset-0 focus-visible:ring-0 h-auto p-0 text-sm" aria-label="가을 축제 학생회 부스 상세 보기">상세 보기</button>
+</div>
+<div class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
+<p class="flex min-w-0 items-start gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days mt-0.5 size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+<span class="min-w-0 tabular-nums wrap-anywhere">10월 17일 (토) 11:00 ~ 17:00</span>
+</p>
+<p class="min-w-0 wrap-anywhere">담당 기획부, 대외협력부 · 이기획</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">참석 186명 (신청 210명)</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">예산 집행 92%</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">완료 업무 14건</span>
+</div>
+<p class="text-xs text-fg-subtle tabular-nums">완료 처리 10월 24일 (토)</p>
+</div>
+</li>
+<li class="min-w-0">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm relative max-sm:min-h-11 has-focus-visible:ring-2 has-focus-visible:ring-inset has-focus-visible:ring-primary-strong flex min-w-0 flex-col gap-3 p-5 break-keep transition-colors hover:border-primary-border-strong">
+<div class="flex min-w-0 items-start gap-3">
+<div class="flex min-w-0 flex-1 flex-col items-start gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">완료</span>
+<h3 class="w-full min-w-0 text-base font-semibold text-fg wrap-anywhere">2025학년도 종강 행사</h3>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-primary-strong underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-3.5 after:absolute after:inset-0 focus-visible:ring-0 h-auto p-0 text-sm" aria-label="2025학년도 종강 행사 상세 보기">상세 보기</button>
+</div>
+<div class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
+<p class="flex min-w-0 items-start gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days mt-0.5 size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+<span class="min-w-0 tabular-nums wrap-anywhere">2025년 12월 19일 (금) 18:00 ~ 21:00</span>
+</p>
+<p class="min-w-0 wrap-anywhere">담당 학술체육부 · 박체육</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">참석 320명 (신청 356명)</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">예산 집행 88%</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">완료 업무 21건</span>
+</div>
+<p class="text-xs text-fg-subtle tabular-nums">완료 처리 1월 7일 (수)</p>
+</div>
+</li>
+<li class="min-w-0">
+<div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm relative max-sm:min-h-11 has-focus-visible:ring-2 has-focus-visible:ring-inset has-focus-visible:ring-primary-strong flex min-w-0 flex-col gap-3 p-5 break-keep transition-colors hover:border-primary-border-strong">
+<div class="flex min-w-0 items-start gap-3">
+<div class="flex min-w-0 flex-1 flex-col items-start gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">완료</span>
+<h3 class="w-full min-w-0 text-base font-semibold text-fg wrap-anywhere">신입생 환영 간담회</h3>
+</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-primary-strong underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-3.5 after:absolute after:inset-0 focus-visible:ring-0 h-auto p-0 text-sm" aria-label="신입생 환영 간담회 상세 보기">상세 보기</button>
+</div>
+<div class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
+<p class="flex min-w-0 items-start gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days mt-0.5 size-4 shrink-0" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+<span class="min-w-0 tabular-nums wrap-anywhere">일시 미정</span>
+</p>
+<p class="min-w-0 wrap-anywhere">담당 미정 · 미정</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">참석 0명 (신청 0명)</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">예산 없음</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-secondary tabular-nums">완료 업무 0건</span>
+</div>
+<p class="text-xs text-fg-subtle tabular-nums">완료 처리 2025년 3월 28일 (금)</p>
+</div>
+</li>
+</ul>
+</div>
+<p class="py-8 text-center text-sm text-fg-muted">완료된 행사 없음</p>
+</div>
+</div>
+</section>
+</div>

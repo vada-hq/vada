@@ -1,9 +1,10 @@
 import { useEffect, type ReactNode } from 'react'
-import type { EventDetail } from '@vada/contracts'
+import { eventRecordPath, type EventDetail } from '@vada/contracts'
 import { HistoryMenu } from '@/components/HistoryMenu'
 import PageActions from '@/components/PageActions'
 import PageHeading from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
+import { navigate } from '@/lib/app-location'
 import { PERMISSION_CHANGED } from '@/lib/messages'
 import { eventTrail } from '../workspace/pages'
 import { ApprovalNote } from './ApprovalNote'
@@ -39,7 +40,16 @@ type Props = EventDialogHandlers & {
 // 이름 줄: 이름, '⋯' 이력, 완료 사유(DEC-80). 와이어프레임의 [행사 설정]은 요약 줄의 [기본정보 수정]과 같은 곳으로 가서 두지 않는다.
 // 작업 공간에서는 이름과 경로 칸(행사명 > 탭)을 공통 머리글 제목으로, '⋯'를 머리글 오른쪽 행동 칸으로 보낸다
 // (와이어프레임 EVT-02: 머리글 제목이 행사명이고 그 아래 바로 탭 줄). 그러면 이 줄은 비어 숨는다.
-function EventTitle({ event, tabLabel }: { event: EventDetail; tabLabel: string }) {
+// 완료한 행사는 완료 사유 옆에 [기록 보기]로 기록 메뉴의 그 행사 기록에 간다(DEC-110). 읽기 링크라 모든 운영진에게 보인다.
+function EventTitle({
+  councilId,
+  event,
+  tabLabel,
+}: {
+  councilId: string
+  event: EventDetail
+  tabLabel: string
+}) {
   return (
     <>
       <div className="flex items-start gap-3 empty:hidden">
@@ -52,7 +62,19 @@ function EventTitle({ event, tabLabel }: { event: EventDetail; tabLabel: string 
           <HistoryMenu history={event.history} line={versionLine} />
         </PageActions>
       </div>
-      <ApprovalNote approvals={event.approvals} />
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-1 empty:hidden">
+        <ApprovalNote approvals={event.approvals} />
+        {event.status === 'completed' && (
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-sm"
+            onClick={() => navigate(eventRecordPath(councilId, event.id))}
+          >
+            기록 보기
+          </Button>
+        )}
+      </div>
     </>
   )
 }
@@ -106,7 +128,7 @@ export function EventHeader({
   }, [allowed, onLost, setEditing])
   return (
     <div className="flex flex-col gap-4">
-      {event && <EventTitle event={event} tabLabel={tabLabel} />}
+      {event && <EventTitle councilId={councilId} event={event} tabLabel={tabLabel} />}
       <div className="flex flex-col">
         {tabs}
         {bar !== undefined

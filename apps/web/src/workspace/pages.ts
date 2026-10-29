@@ -21,6 +21,7 @@ const PAGE_WIDTHS: Record<Page, PageWidth> = {
   people: 'default',
   departments: 'default',
   settings: 'narrow',
+  records: 'default',
 }
 
 // 주소로 폭을 정해 로딩 중에도 고정한다. 행사 기록은 모든 탭에서 끝까지 쓴다(DEC-101).
@@ -42,6 +43,8 @@ export const pageTitles: Record<Page, { crumbs: string[]; title: string }> = {
   people: { crumbs: ['조직'], title: '조직' },
   departments: { crumbs: ['조직'], title: '조직' },
   settings: { crumbs: ['설정'], title: '학생회 정보' },
+  // 기록 메뉴의 첫 화면은 완료된 행사다(와이어프레임 REC-01 '기록 > 완료된 행사'). 행사 기록은 행사명 칸을 더한다.
+  records: { crumbs: ['기록', '완료된 행사'], title: '완료된 행사' },
 }
 
 // 머리글의 경로 줄과 제목: 학생회 이름 > 메뉴 칸 > 화면이 넘긴 칸. 제목은 화면이 넘긴 것(행사는 행사명)이 먼저다.

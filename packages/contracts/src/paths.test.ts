@@ -11,9 +11,8 @@ import {
   parseAppPath,
   RECORD_KINDS,
   recordPath,
-  recordsPath,
-  eventRecordPath,
 } from './paths.js'
+import { eventRecordPath, recordsPath } from './records.js'
 import { ENTRY_PATHS } from './entry-paths.js'
 import { movedLocationOf, type AddressMove } from './moved-paths.js'
 
@@ -127,8 +126,8 @@ test('캘린더의 고른 월·목록 보기와 종류만 주소에 남고 자�
 })
 
 test('메뉴와 기록 종류마다 만들고 다시 읽으면 같은 값이다', () => {
-  assert.equal(APP_MENUS.length, 12)
-  assert.equal(RECORD_KINDS.length, 8)
+  assert.equal(APP_MENUS.length, 13)
+  assert.equal(RECORD_KINDS.length, 9)
   for (const menu of APP_MENUS) {
     const path = menuPath(menu, C)
     assert.equal(path, `/${menu}/${C}`)
@@ -379,6 +378,7 @@ test('기록 주소의 상위 목록은 종류마다 여는 메뉴와 탭이다'
   assert.equal(up('purchases'), `/purchases/${C}`)
   assert.equal(up('expenses'), `/finance/${C}?tab=ledger`)
   assert.equal(up('incomes'), `/finance/${C}?tab=ledger&kind=income`)
+  assert.equal(up('records'), `/records/${C}`)
   const menu = parseAppPath(`/tasks/${C}`)!
   assert.equal(parentOf(menu), menu)
 })
@@ -597,4 +597,24 @@ test('회의록 화면 주소의 mode와 고른 안건이 왕복한다', () => {
 test('기록 메뉴 주소: 목록과 행사 기록은 메뉴·기록 주소와 같은 꼴이고 id는 소문자다', () => {
   assert.equal(recordsPath(C.toUpperCase()), `/records/${C}`)
   assert.equal(eventRecordPath(C, R.toUpperCase()), `/records/${C}/${R}`)
+  assert.equal(recordsPath(C), menuPath('records', C))
+  assert.equal(eventRecordPath(C, R), recordPath('records', C, R))
+  // 새로고침해도 열린다: 화면 해석기가 읽고 서버 진입 목록에 있다.
+  assert.deepEqual(parseAppPath(recordsPath(C)), {
+    type: 'menu',
+    menu: 'records',
+    councilId: C,
+    query: {},
+  })
+  assert.deepEqual(parseAppPath(`${eventRecordPath(C, R)}?tab=tasks`), {
+    type: 'record',
+    record: 'records',
+    councilId: C,
+    recordId: R,
+    query: {},
+  })
+  assert.ok(
+    ENTRY_PATHS.some(path => path.startsWith('/records/:council{') && path.includes(':record{')),
+  )
+  assert.ok(ENTRY_PATHS.some(path => path.startsWith('/records/:council{') && path.endsWith('}')))
 })

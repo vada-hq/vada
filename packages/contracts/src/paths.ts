@@ -22,6 +22,8 @@ export const APP_MENUS = [
   'people',
   'departments',
   'settings',
+  // 기록 메뉴(DEC-110, 기능 030). 옆 메뉴에서는 재정 아래다. 목록 끝에 더해 다른 메뉴의 차례를 바꾸지 않는다.
+  'records',
 ] as const
 export type AppMenu = (typeof APP_MENUS)[number]
 
@@ -84,6 +86,8 @@ const RECORD_PARENTS = {
   purchases: { menu: 'purchases' },
   expenses: { menu: 'finance', query: { tab: 'ledger' } },
   incomes: { menu: 'finance', query: { tab: 'ledger', kind: 'income' } },
+  // 행사 기록(REC-02)의 상위 목록은 완료된 행사(REC-01)다. 기록 id는 행사 id다.
+  records: { menu: 'records' },
 } as const satisfies Record<string, { menu: AppMenu; query?: Record<string, string> }>
 export type RecordKind = keyof typeof RECORD_PARENTS
 export const RECORD_KINDS = Object.keys(RECORD_PARENTS) as RecordKind[]
@@ -191,6 +195,8 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
   departments: {},
   // 계좌·납부자 명단이 옮겨 올 칸(설계 3.3).
   settings: { section: { values: ['accounts', 'fees'], fallback: null } },
+  // 찾기와 정렬은 화면에만 둔다(행사 목록과 같다).
+  records: {},
 }
 const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   meetings: {
@@ -215,6 +221,7 @@ const RECORD_QUERY: Record<RecordKind, QuerySpec> = {
   purchases: {},
   expenses: {},
   incomes: {},
+  records: {},
 }
 
 export type AppQuery = Readonly<Record<string, string>>
@@ -355,11 +362,3 @@ export function parentOf(location: AppLocation): AppLocation {
   const params = new URLSearchParams(Object.entries(parent.query ?? {}))
   return menuLocationOf(parent.menu, location.councilId.toLowerCase(), params)
 }
-
-// 기록 메뉴(DEC-110, 기능 030). 목록은 /records/<학생회>, 행사 기록은 /records/<학생회>/<행사>다(메뉴·기록 주소와 같은 꼴).
-// 주소 읽기(parseAppPath)와 옆 메뉴는 화면 조각이 APP_MENUS·RECORD_PARENTS에 'records'를 더할 때 붙인다.
-// 그때 이 둘은 menuPath·recordPath로 바꿔 써도 같은 주소다(paths.test.ts가 꼴을 지킨다).
-const pathSegment = (id: string) => encodeURIComponent(id.toLowerCase())
-export const recordsPath = (councilId: string) => `/records/${pathSegment(councilId)}`
-export const eventRecordPath = (councilId: string, eventId: string) =>
-  `${recordsPath(councilId)}/${pathSegment(eventId)}`

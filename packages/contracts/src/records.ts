@@ -1,4 +1,5 @@
 import type { EventSummary } from './events.js'
+import { menuPath, recordPath } from './paths.js'
 
 // 기록 메뉴(DEC-110, 기능 030)의 응답. 완료한 행사의 숫자는 쌓인 기록에서 열 때마다 서버가 센다. 사람이 쓰는 칸은 없다.
 // 대목(overview, outcome, timeline, sources)마다 칸을 더하기만으로 늘린다. 현장 운영·회고·인수인계는 나중에 붙일 살이다.
@@ -93,3 +94,8 @@ export interface EventRecord {
 export interface EventRecordResponse {
   record: EventRecord
 }
+
+// 기록 메뉴의 주소. 목록은 /records/<학생회>, 행사 기록은 /records/<학생회>/<행사>다(메뉴·기록 주소, paths.ts).
+export const recordsPath = (councilId: string) => menuPath('records', councilId)
+export const eventRecordPath = (councilId: string, eventId: string) =>
+  recordPath('records', councilId, eventId)

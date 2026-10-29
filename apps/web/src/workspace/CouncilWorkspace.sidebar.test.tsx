@@ -6,6 +6,7 @@ import type { CouncilView, RoomListResponse } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { room, roomList } from '@/test-support/chat-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { resetWindowHistory } from '@/lib/use-window-history'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 
 // 옆 메뉴 틀(기능 028 조각 3, 와이어프레임 사이드바 v6.2 US-MSG-01 옆 메뉴, DEC-96).
@@ -43,9 +44,9 @@ const nav = () => screen.findByRole('navigation', { name: '학생회 메뉴' })
 const topItems = async () =>
   within(await nav())
     .getAllByRole('button')
-    .slice(0, 8)
+    .slice(0, 9)
 
-test('최상위 차례가 홈 · 메시지 · 업무 · 회의 · 캘린더 · 구매 · 재정 · 조직이며 아이콘도 같은 차례다', async () => {
+test('최상위 차례가 홈 · 메시지 · 업무 · 회의 · 캘린더 · 구매 · 재정 · 기록 · 조직이며 아이콘도 같은 차례다', async () => {
   open()
   const items = await topItems()
   expect(items.map(item => item.textContent)).toEqual([
@@ -56,6 +57,7 @@ test('최상위 차례가 홈 · 메시지 · 업무 · 회의 · 캘린더 · �
     '캘린더',
     '구매',
     '재정',
+    '기록',
     '조직',
   ])
   expect(items.map(item => item.querySelector('svg')?.getAttribute('class'))).toEqual([
@@ -66,6 +68,7 @@ test('최상위 차례가 홈 · 메시지 · 업무 · 회의 · 캘린더 · �
     expect.stringContaining('lucide-calendar-days'),
     expect.stringContaining('lucide-shopping-cart'),
     expect.stringContaining('lucide-chart-no-axes-column'),
+    expect.stringContaining('lucide-file-text'),
     expect.stringContaining('lucide-users'),
   ])
 })
@@ -216,7 +219,7 @@ test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   const items = within(within(sheet).getByRole('navigation', { name: '학생회 메뉴' }))
     .getAllByRole('button')
-    .slice(0, 8)
+    .slice(0, 9)
   expect(items.map(item => item.textContent)).toEqual([
     '홈',
     '메시지99+',
@@ -225,9 +228,25 @@ test('휴대폰 서랍도 같은 틀이고 머리 단추는 닫기 단추 자리
     '캘린더',
     '구매',
     '재정',
+    '기록',
     '조직',
   ])
   const head = within(sheet).getByRole('button', { name: 'Vada 컴퓨터학부 학생회 학생회 메뉴' })
   expect(head.className).toContain('pr-12')
   expect(within(sheet).getByRole('button', { name: /^내 이름: 김회장/ })).toBeTruthy()
+})
+
+test('기록을 누르면 완료된 행사 목록 주소로 가고 그 칸이 켜진다(DEC-110)', async () => {
+  // 앞 시험이 열어 둔 창의 기록 칸이 남아 이동을 미루지 않게 비운다.
+  resetWindowHistory()
+  const api = open()
+  api.on('GET', `${base}/records/events`, () => json({ events: [], truncated: false }))
+  fireEvent.click(within(await nav()).getByRole('button', { name: '기록' }))
+  expect(window.location.pathname).toBe(`/records/${COUNCIL_ID}`)
+  expect(await screen.findByText('완료된 행사 없음')).toBeTruthy()
+  expect(
+    within(await nav())
+      .getByRole('button', { name: '기록' })
+      .getAttribute('aria-current'),
+  ).toBe('page')
 })

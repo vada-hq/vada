@@ -3,6 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { EVENT_ENDED_NOTICE_DAYS, type EventAction, type EventDetail } from '@vada/contracts'
 import { COMPLETION_BLOCKED } from '@/lib/messages'
+import { resetWindowHistory } from '@/lib/use-window-history'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { EventHeader, type EventEditing } from './EventHeader'
@@ -142,4 +143,30 @@ test('남은 업무가 없으면 확인 창에 남은 항목 목록이 없다', 
   fireEvent.click(within(bar()).getByRole('button', { name: '완료' }))
   const dialog = await screen.findByRole('dialog', { name: '이 행사를 완료할까요?' })
   expect(within(dialog).queryByRole('list', { name: '남은 항목' })).toBeNull()
+})
+
+test('완료한 행사 머리에는 동작 권한과 관계없이 [기록 보기]가 있고 그 행사 기록으로 간다(DEC-110)', () => {
+  // 앞 시험이 열어 둔 창의 기록 칸이 남아 이동을 미루지 않게 비운다.
+  resetWindowHistory()
+  show(
+    of({
+      status: 'completed',
+      approvals: [
+        {
+          outcome: 'completed',
+          at: '2026-10-25T05:00:00.000Z',
+          by: { id: 'm1', name: '김회장' },
+          reason: null,
+        },
+      ],
+    }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '기록 보기' }))
+  expect(window.location.pathname).toBe(`/records/c1/${eventDetail().id}`)
+  window.history.replaceState(null, '', '/')
+})
+
+test.each(['ongoing', 'ended'] as const)('%s 행사에는 [기록 보기]가 없다', status => {
+  show(of({ status }, ['event.complete', 'event.update']))
+  expect(screen.queryByRole('button', { name: '기록 보기' })).toBeNull()
 })

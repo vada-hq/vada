@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ChartNoAxesColumn,
   Clipboard,
+  FileText,
   House,
   MessageSquare,
   Presentation,
@@ -40,7 +41,7 @@ function TopItem({
   )
 }
 
-// 옆 메뉴 가운데(DEC-103): 홈 · 메시지(안 읽은 수 합계) · 업무('지남 N') · 회의 · 캘린더 · 구매 · 재정 · 조직,
+// 옆 메뉴 가운데(DEC-103): 홈 · 메시지(안 읽은 수 합계) · 업무('지남 N') · 회의 · 캘린더 · 구매 · 재정 · 기록(DEC-110) · 조직,
 // 그 아래 '행사'(완료하지 않은 행사, 전체 행사 보기, 새 행사). 수 배지는 나에게 걸린 것 둘뿐이다.
 // 아이콘은 와이어프레임 그대로(홈 House, 업무 Clipboard, 재정 막대그래프 BarChart2 = ChartNoAxesColumn, 조직 Users). 메시지는 말풍선이다.
 // 조직은 사람과 부서를 한 화면에서(DEC-91) 보고 옛 부서 주소도 이 칸이 켜진다. '운영진' 머리는 없다.
@@ -111,6 +112,12 @@ export default function SidebarNav({
         label="재정"
         active={menuActive(active, 'finance')}
         onClick={() => onPage('finance')}
+      />
+      <TopItem
+        icon={FileText}
+        label="기록"
+        active={menuActive(active, 'records')}
+        onClick={() => onPage('records')}
       />
       <TopItem
         icon={Users}
