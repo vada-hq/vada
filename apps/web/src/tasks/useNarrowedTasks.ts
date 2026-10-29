@@ -15,12 +15,13 @@ import type { useTaskControls } from './useTaskControls'
 type Controls = ReturnType<typeof useTaskControls>
 
 // 칩·홈 범위(부서, 마감, 담당자, 확인 필요, 직급 부서)는 서버가 목록 상한 전에 거른다. 화면은 다시 거르지 않는다.
-// 담당자 없음은 보기(listView=unassigned)가 이미 실으므로 담당자 키로는 사람만 보낸다.
+// 담당자 없음은 보기가 unassigned이면 이미 실었으므로 겹쳐 보내지 않는다(내 업무·옛 내 부서 보기와는 겹쳐 보낸다).
 export function listNarrowOf(controls: Controls): TaskNarrow {
+  const unassignedView = controls.listView === 'unassigned' && controls.assignee === 'none'
   return {
     dept: controls.dept,
     due: controls.due,
-    assignee: controls.assignee === 'none' ? null : controls.assignee,
+    assignee: unassignedView ? null : controls.assignee,
     attention: controls.attention ? 'true' : null,
     heads: controls.heads ? 'true' : null,
   }

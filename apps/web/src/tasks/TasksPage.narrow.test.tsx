@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { TASK_OPEN_LIMIT, type TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
@@ -105,6 +105,35 @@ test('거르지 않은 목록은 칩 수와 같은 응답을 다시 쓰고 거�
   const reads = api.calls.filter(call => call.path.startsWith(`${base}?`))
   expect(new Set(reads.map(call => call.path))).toEqual(
     new Set([`${base}?view=all&status=open&event=none`]),
+  )
+  api.assertNoUnexpectedRequests()
+})
+
+test('행사에서 담당자 없음 칩과 내 업무 토글을 함께 켜면 서버에 둘 다 보낸다', async () => {
+  const EVENT = '0199d1a0-0000-7000-8000-0000000000e1'
+  window.history.replaceState(
+    null,
+    '',
+    `/events/${COUNCIL_ID}/${EVENT}?tab=tasks&view=mine&assignee=none`,
+  )
+  const api = mockApi()
+  api.onPrefix('GET', `${base}?`, () => json({ tasks: [], truncated: false }))
+  api.on('GET', `${base}/options?event=${EVENT}`, () =>
+    json({ departments: [], linkableEvents: [] }),
+  )
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
+  render(
+    <TasksPage
+      view={councilView(COUNCIL_ID)}
+      eventId={EVENT}
+      onForbidden={() => {}}
+      onChanged={() => {}}
+    />,
+  )
+  await waitFor(() =>
+    expect(api.calls.map(call => call.path)).toContain(
+      `${base}?view=mine&status=open&event=${EVENT}&assignee=none`,
+    ),
   )
   api.assertNoUnexpectedRequests()
 })
