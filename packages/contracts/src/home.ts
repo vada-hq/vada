@@ -2,6 +2,7 @@ import type { EventRef } from './budget.js'
 import type { HomeFinanceBoard, HomeFinanceSummary } from './home-finance.js'
 import type { HomeDepartmentBoard } from './home-department.js'
 import type { HomeOps } from './home-ops.js'
+import type { HomeEventLanes } from './home-lanes.js'
 import type { HomeTodo } from './home-todo.js'
 import type { HomeWeek } from './home-week.js'
 export {
@@ -231,6 +232,8 @@ export interface HomeCouncilBoard {
   todo: HomeTodo
   // ⑤ 이번 주(c35 안 b). 회장단 홈의 upcoming 쓰임을 대신한다.
   week: HomeWeek
+  // ② 행사(e6). events를 대신하며, events는 화면이 더 읽지 않으면 걷는다.
+  lanes: HomeEventLanes
 }
 
 export interface HomeResponse {

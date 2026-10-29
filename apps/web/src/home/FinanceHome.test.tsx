@@ -182,7 +182,7 @@ test('회장단+재정 전환은 replace 주소로 남고 새로 열어도 재�
   await card('결재 대기')
   const length = window.history.length
   fireEvent.click(screen.getByRole('button', { name: '운영 보기' }))
-  await card('전체 행사 진행 현황')
+  await card('진행 중인 행사 없음')
   expect(path()).toBe('/home/01900000-0000-7000-8000-000000000001')
   fireEvent.click(screen.getByRole('button', { name: '재정 보기' }))
   await card('결재 대기')

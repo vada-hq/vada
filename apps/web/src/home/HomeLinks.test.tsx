@@ -4,9 +4,9 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import type { HomeDepartmentBoard, HomeResponse, TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import {
-  boardEvent,
   councilHome,
   emptyOps,
+  eventLane,
   homeResponse,
   memberHome,
   noRooms,
@@ -215,30 +215,23 @@ test('① 부서 미정 업무 n건은 업무 목록의 부서 없음 + 담당�
   api.assertNoUnexpectedRequests()
 })
 
-test.each([
-  { label: '지남 2', query: 'due=overdue', ids: ['late', 'both'] },
-  { label: '담당자 없음 1', query: 'assignee=none', ids: ['both'] },
-])(
-  '행사 이유 칩 $label은 그 칩이 켜진 행사 업무 탭에서 같은 수를 보인다',
-  async ({ label, query, ids }) => {
-    const { api, destination } = setup(
-      councilHome({
-        events: {
-          cards: [boardEvent(E, { tasks: { done: 1, total: 4, overdue: 2, unassigned: 1 } })],
-          counts: { planning: 1, ongoing: 0, followUp: 0 },
-        },
-      }),
-    )
-    fireEvent.click(await screen.findByRole('button', { name: label }))
-    expect(window.location.pathname + window.location.search).toBe(
-      `/events/${C}/${E}?tab=tasks&${query}`,
-    )
-    destination(E)
-    await expectTasks(tasks.filter(task => ids.includes(task.id)))
-    expect(screen.getByRole('button', { name: label }).getAttribute('aria-pressed')).toBe('true')
-    api.assertNoUnexpectedRequests()
-  },
-)
+test('② 행사의 늦은 부서 신호는 그 부서·지남 거르기가 켜진 행사 업무 탭에서 같은 수를 보인다', async () => {
+  const { api, destination } = setup(
+    councilHome({
+      lanes: {
+        events: [eventLane(E, { late: [{ department, overdue: 2 }] })],
+        total: 1,
+      },
+    }),
+  )
+  fireEvent.click(await screen.findByRole('button', { name: '기획부 지남 2' }))
+  expect(window.location.pathname + window.location.search).toBe(
+    `/events/${C}/${E}?tab=tasks&dept=${department.id}&due=overdue`,
+  )
+  destination(E)
+  await expectTasks(tasks.filter(task => ['late', 'both'].includes(task.id)))
+  api.assertNoUnexpectedRequests()
+})
 
 test('부서장 업무 전체 보기는 그 부서 칩과 행사 포함으로 홈의 확인 필요 수를 유지한다', async () => {
   const expected = tasks.slice(0, 4)

@@ -204,6 +204,8 @@ export * from './home.js'
 export * from './home-ops.js'
 export * from './home-todo.js'
 export * from './home-week.js'
+export * from './home-lanes.js'
+export * from './event-colors.js'
 export * from './home-finance.js'
 export {
   AttachChatEvidenceSchema,

@@ -5,7 +5,7 @@ import { meetingMinutesPath } from '../meetings/minutes-path'
 import { navigate } from '@/lib/app-location'
 import { departmentFocus } from '@/lib/org-focus'
 import type { Page } from '../workspace/pages'
-import CouncilEventsCard from './CouncilEventsCard'
+import EventLanesCard from './EventLanesCard'
 import { CouncilHead, CouncilSplit } from './CouncilHomeLayout'
 import OpsCard from './OpsCard'
 import AvailableLine from './AvailableLine'
@@ -103,11 +103,20 @@ export default function CouncilHome({ home, board, councilId, name, pushBand, ..
       <CouncilSplit
         ruleAbove={!calm}
         left={
-          <CouncilEventsCard
-            events={board.events}
+          <EventLanesCard
+            lanes={board.lanes}
             today={home.today}
-            onOpenEvent={eventId => open.onOpenEvent(eventId)}
-            onOpenTasks={(eventId, query) => openEventTasks(councilId, eventId, query)}
+            onOpen={lane => open.onOpenEvent(lane.event.id)}
+            onSignal={(lane, target) => {
+              const id = lane.event.id
+              if (target.kind === 'late')
+                openEventTasks(councilId, id, {
+                  dept: target.departmentId ?? 'none',
+                  due: 'overdue',
+                })
+              else if (target.kind === 'overview') open.onOpenEvent(id)
+              else open.onOpenEvent(id, target.kind)
+            }}
             onSeeAll={() => open.onOpenPage('events')}
             onNewEvent={open.onNewEvent}
           />

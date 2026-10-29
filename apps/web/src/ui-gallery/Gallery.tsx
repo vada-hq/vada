@@ -61,6 +61,7 @@ import { TaskMenuSection } from './TaskMenuSection'
 import { CouncilHomeSection } from './CouncilHomeSections'
 import { HomeOpsSection, HomePartsSection } from './HomeOpsSections'
 import { HomeTodoSection, HomeWeekSection } from './HomeTodoSections'
+import { HomeLanesSection } from './HomeLanesSections'
 import { MemberHomeSection } from './MemberHomeSections'
 import { DepartmentHomeSection } from './DepartmentHomeSections'
 import { FinanceHomeSection, HomeFinanceSummarySection } from './FinanceHomeSections'
@@ -151,6 +152,7 @@ export const gallerySections = [
   CouncilHomeSection,
   HomeOpsSection,
   HomePartsSection,
+  HomeLanesSection,
   HomeTodoSection,
   HomeWeekSection,
   MemberHomeSection,
