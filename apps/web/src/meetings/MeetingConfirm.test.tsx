@@ -562,3 +562,21 @@ test('안건 더하기 폼에 쓰다가 폭이 바뀌어도 폼과 떠날 때 �
   expect(screen.getByLabelText<HTMLInputElement>('안건 제목').value).toBe('쓰던 안건')
   expect(hasUnsavedInput()).toBe(true)
 })
+
+test('안건 더하기 저장 중 폭이 바뀌어 다시 연 폼은 늦은 성공이 닫지 않는다', async () => {
+  const resize = navigationWidth(1280)
+  const pending = deferredResponse()
+  api.on('POST', `${base}/agenda`, () => pending.promise)
+  const meeting = sample()
+  draw(meeting)
+  fireEvent.click(screen.getByRole('button', { name: '안건 더하기' }))
+  fireEvent.change(screen.getByLabelText('안건 제목'), { target: { value: '안건 하나' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await act(async () => resize(390))
+  fireEvent.change(screen.getByLabelText('안건 제목'), { target: { value: '안건 하나 더' } })
+  await act(async () => {
+    pending.resolve(json({ meeting }, 201))
+  })
+  expect(screen.getByLabelText<HTMLInputElement>('안건 제목').value).toBe('안건 하나 더')
+  expect(hasUnsavedInput()).toBe(true)
+})

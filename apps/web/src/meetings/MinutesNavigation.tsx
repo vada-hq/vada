@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { MeetingDetail } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -25,13 +26,23 @@ export function MinutesAgendaAdd({
   submit,
   adding,
 }: Pick<Props, 'submit'> & { adding: AgendaAdding }) {
+  // 저장 중 폭이 바뀌어 이 자리가 내려가면, 늦게 온 성공이 다른 자리에서 다시 연 폼을 닫지 못하게 한다(mtg-6 검토).
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
   return adding.open ? (
     <MinutesEntryForm
       kind="agenda"
       formKey="agenda:new"
       agendaId={null}
       onSave={value => submit('/agenda', value)}
-      onClose={() => adding.setOpen(false)}
+      onClose={() => {
+        if (mounted.current) adding.setOpen(false)
+      }}
     />
   ) : (
     <Button touch variant="outline" onClick={() => adding.setOpen(true)}>
