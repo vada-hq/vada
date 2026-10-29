@@ -62,6 +62,14 @@ export async function eventRowOf(db: Reader, actor: Actor, eventId: string) {
   return row
 }
 
+// 이 학생회의 행사 몇 개(차례 없음). 다른 학생회 행사는 빠진다. 기록 메뉴의 목록이 summariesOf와 함께 쓴다.
+export async function eventRowsAmong(db: Reader, actor: Actor, eventIds: string[]) {
+  if (!eventIds.length) return []
+  return eventSelect(db).where(
+    and(eq(record.councilId, actor.councilId), inArray(event.id, eventIds)),
+  )
+}
+
 // 책임자가 지금 이 학생회의 운영진인가. 떠난 책임자는 남기고 '떠난 사람'으로 보인다.
 export async function summariesOf(
   db: Reader,

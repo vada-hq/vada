@@ -10,6 +10,7 @@ import { createClosingRoutes } from './closing/routes.js'
 import { createCouncilRoutes } from './councils/routes.js'
 import { createDepositRoutes } from './deposits/routes.js'
 import { createEventRoutes } from './events/routes.js'
+import { createEventRecordRoutes } from './event-records/routes.js'
 import { createExpenseRoutes } from './expenses/routes.js'
 import { createFeePaymentRoutes } from './fee-payments/routes.js'
 import { createHomeRoutes } from './home/routes.js'
@@ -129,6 +130,7 @@ export function appModulesOf(db: Db, session: SessionReader, deps: AppDeps) {
     registrations: createRegistrationRoutes(db, session, { clock }),
     deposits: createDepositRoutes(db, session, { clock }),
     settlement: createSettlementRoutes(db, session, { clock }),
+    eventRecords: createEventRecordRoutes(db, session, { clock }),
     feePayments: createFeePaymentRoutes(db, session, { clock }),
     productInfo: createProductInfoRoutes(db, session, { clock, productInfo }),
     publicRegistrations: createPublicRegistrationRoutes(db, { clock, receiptKey }),

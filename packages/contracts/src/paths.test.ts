@@ -11,6 +11,8 @@ import {
   parseAppPath,
   RECORD_KINDS,
   recordPath,
+  recordsPath,
+  eventRecordPath,
 } from './paths.js'
 import { ENTRY_PATHS } from './entry-paths.js'
 import { movedLocationOf, type AddressMove } from './moved-paths.js'
@@ -590,4 +592,9 @@ test('회의록 화면 주소의 mode와 고른 안건이 왕복한다', () => {
     query: { mode: 'minutes', agenda: P },
   })
   assert.deepEqual(parseAppPath(path)?.query, { mode: 'minutes', agenda: P })
+})
+
+test('기록 메뉴 주소: 목록과 행사 기록은 메뉴·기록 주소와 같은 꼴이고 id는 소문자다', () => {
+  assert.equal(recordsPath(C.toUpperCase()), `/records/${C}`)
+  assert.equal(eventRecordPath(C, R.toUpperCase()), `/records/${C}/${R}`)
 })

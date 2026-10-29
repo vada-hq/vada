@@ -5,6 +5,7 @@ import { createChatRoutes } from '../chat/routes.js'
 import { createTestDb } from '../db/test-db.js'
 import { createDepositRoutes } from '../deposits/routes.js'
 import { createEventRoutes } from '../events/routes.js'
+import { createEventRecordRoutes } from '../event-records/routes.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createFeePaymentRoutes } from '../fee-payments/routes.js'
 import { createClosingRoutes } from '../closing/routes.js'
@@ -76,6 +77,7 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
       tasks: createTaskRoutes(db, testSession, { clock, writeLimiter }),
       chat: createChatRoutes(db, testSession, { clock }),
       feePayments: createFeePaymentRoutes(db, testSession, { clock, writeLimiter }),
+      eventRecords: createEventRecordRoutes(db, testSession, { clock }),
     }),
   )
   const base = `/api/organizations/${council.councilId}/events`

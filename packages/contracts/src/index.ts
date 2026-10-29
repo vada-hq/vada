@@ -282,3 +282,5 @@ export * from './department-colors.js'
 export * from './calendar.js'
 export * from './calendar-feed.js'
 export * from './meetings.js'
+// 기록 메뉴: 완료한 행사 목록과 행사 기록(기능 030, DEC-110).
+export * from './records.js'

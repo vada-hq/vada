@@ -355,3 +355,11 @@ export function parentOf(location: AppLocation): AppLocation {
   const params = new URLSearchParams(Object.entries(parent.query ?? {}))
   return menuLocationOf(parent.menu, location.councilId.toLowerCase(), params)
 }
+
+// 기록 메뉴(DEC-110, 기능 030). 목록은 /records/<학생회>, 행사 기록은 /records/<학생회>/<행사>다(메뉴·기록 주소와 같은 꼴).
+// 주소 읽기(parseAppPath)와 옆 메뉴는 화면 조각이 APP_MENUS·RECORD_PARENTS에 'records'를 더할 때 붙인다.
+// 그때 이 둘은 menuPath·recordPath로 바꿔 써도 같은 주소다(paths.test.ts가 꼴을 지킨다).
+const pathSegment = (id: string) => encodeURIComponent(id.toLowerCase())
+export const recordsPath = (councilId: string) => `/records/${pathSegment(councilId)}`
+export const eventRecordPath = (councilId: string, eventId: string) =>
+  `${recordsPath(councilId)}/${pathSegment(eventId)}`

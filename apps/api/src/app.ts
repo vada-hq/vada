@@ -14,6 +14,7 @@ import type { createEventRoutes } from './events/routes.js'
 import type { createPublicRegistrationRoutes } from './registrations/public-routes.js'
 import type { createDepositRoutes } from './deposits/routes.js'
 import type { createSettlementRoutes } from './settlement/routes.js'
+import type { createEventRecordRoutes } from './event-records/routes.js'
 import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeePaymentRoutes } from './fee-payments/routes.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
@@ -87,6 +88,8 @@ export type AppOptions = {
   deposits?: ReturnType<typeof createDepositRoutes>
   // 행사 정산 읽기
   settlement?: ReturnType<typeof createSettlementRoutes>
+  // 기록 메뉴: 완료한 행사 목록과 행사 기록 읽기(기능 030)
+  eventRecords?: ReturnType<typeof createEventRecordRoutes>
   // 학생회비 납부자 명단: 보기, 올리기, 빼기
   feePayments?: ReturnType<typeof createFeePaymentRoutes>
   // 쿠팡 상품 정보 불러오기(ReefAPI). 키가 없으면 경로는 있고 불러오기만 꺼진다.
