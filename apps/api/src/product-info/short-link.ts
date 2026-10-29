@@ -25,7 +25,7 @@ const REDIRECTS = new Set([
 // 로그에 남기는 결과 코드. 원문 주소·코드·Location은 남기지 않는다.
 export type ShortLinkCode =
   'ok' | 'not_short' | 'bad_status' | 'no_location' | 'bad_location' | 'timeout' | 'network'
-export type ShortLinkResult =
+type ShortLinkResult =
   { code: 'ok'; product: CoupangProduct } | { code: Exclude<ShortLinkCode, 'ok'> }
 export type ShortLinkResolver = (url: string) => Promise<ShortLinkResult>
 
