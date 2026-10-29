@@ -9,6 +9,8 @@ import { targetOf } from '../../workspace/address'
 import { HomeS5Preview, type S5Variant } from './HomeS5'
 import { S5_DATA, type S5DataName } from './s5-data'
 import { S7_DATA, type S7Greeting } from '../s7/s7-data'
+import C1Preview from '../c1/C1Preview'
+import type { C1DataName } from '../c1/c1-view'
 import '../../index.css'
 
 // S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C|B2&data=main|normal|empty[&greeting=line|date|merge]
@@ -133,12 +135,20 @@ function Workspace() {
 
 // 실제 앱은 작업 공간을 h-dvh 열(SignedInView) 안에 둔다. 미리보기에 그 열이 없어 짧은 페이지에서 옆 메뉴 바탕이
 // 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
+// C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
+const c1 = params.get('component') === 'c1'
 createRoot(document.getElementById('root')!).render(
+  c1 ? (
+    <StrictMode>
+      <C1Preview variant={params.get('variant') === 'B' ? 'B' : 'A'} data={(params.get('data') ?? 'main') as C1DataName} />
+    </StrictMode>
+  ) : (
   <StrictMode>
     <HomeS5Preview.Provider value={{ variant, data, s7 }}>
       <div className="flex min-h-dvh flex-col">
         <Workspace />
       </div>
     </HomeS5Preview.Provider>
-  </StrictMode>,
+  </StrictMode>
+  ),
 )
