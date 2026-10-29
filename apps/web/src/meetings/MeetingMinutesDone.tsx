@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { dayTimeLabel } from '@/lib/korean-date-text'
+import { useUnsavedInput } from '@/lib/leave-guard'
 import { MinutesDoneSidebar } from './MinutesDoneSidebar'
 import { OrphanDrafts } from './MinutesDraftTexts'
 import { MinutesDoneSummary } from './MinutesDoneSummary'
@@ -35,18 +36,18 @@ export function MeetingMinutesDone({
 }: Props) {
   const [editing, setEditing] = useState<AmendTarget | null>(initialEditing ?? null)
   const amendable = meeting.actions.includes('meeting.amend')
+  const remaining = entries(editing ? `amend:${editing.kind}:${editing.id}` : undefined).filter(
+    text => !orphans.includes(text),
+  )
+  // 확정으로 폼이 내려가면 폼의 떠날 때 확인도 풀린다. 남은 폼 글은 메모리에만 있으므로 여기서 다시 건다.
+  useUnsavedInput(remaining.length > 0)
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
       <PageHeading trail={{ title: T.done, crumbs: [{ label: meeting.title, truncate: true }] }}>
         <h1 className="text-xl font-semibold">{T.done}</h1>
       </PageHeading>
       <OrphanDrafts texts={orphans} />
-      <OrphanDrafts
-        texts={entries(editing ? `amend:${editing.kind}:${editing.id}` : undefined).filter(
-          text => !orphans.includes(text),
-        )}
-        label={T.remainingEntry}
-      />
+      <OrphanDrafts texts={remaining} label={T.remainingEntry} />
       <Alert tone="success" role="status" className="flex flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-semibold">{T.confirmed}</span>

@@ -15,8 +15,12 @@ export function minutesCounts(meeting: MeetingDetail) {
 }
 
 // 저장 중 이어 쓴 글은 저장소가 다음 요청으로 보낸다. 그 요청까지 끝나야 확정한다.
-export async function saveAllMinutes(store: ReturnType<typeof minutesDrafts>) {
-  let ids = [...store.snapshot().keys()]
+// 빠진 안건의 초안은 보낼 곳이 없으므로 살아 있는 안건(agendaIds)만 저장한다.
+export async function saveAllMinutes(
+  store: ReturnType<typeof minutesDrafts>,
+  agendaIds: readonly string[],
+) {
+  let ids = [...store.snapshot().keys()].filter(id => agendaIds.includes(id))
   while (ids.length) {
     await Promise.all(ids.map(id => store.save(id)))
     ids = [...store.snapshot()].filter(([, draft]) => draft.saving).map(([id]) => id)

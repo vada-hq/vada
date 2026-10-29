@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { councilView } from '@/test-support/council-fixtures'
-import { resetLeaveGuard } from '@/lib/leave-guard'
+import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
 import { PageTrailProvider } from '@/components/PageHeading'
 import { MeetingMinutes } from './MeetingMinutes'
 import { resetKeptMinutes } from './minutes-drafts'
@@ -315,12 +315,21 @@ test('완료 회의록 고치기 충돌·다시 그리기·다시 열기는 글�
   fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '내가 고친 논의' } })
   fireEvent.change(screen.getByLabelText('고친 사유'), { target: { value: '설명 보완' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
-  expect(await screen.findByText(/다른 사람이 먼저 고쳤어요/)).toBeTruthy()
+  expect(
+    await screen.findByText(
+      '다른 사람이 먼저 고쳤어요. 새로 불러온 내용을 확인하고 다시 저장해 주세요.',
+    ),
+  ).toBeTruthy()
   expect(posts()[0]!.body).toMatchObject({
     baseVersionNo: 1,
     notes: '내가 고친 논의',
     reason: '설명 보완',
   })
+  // 안 바꾼 칸(설명)은 보내지 않아 그사이 다른 사람이 고친 것을 덮지 않는다.
+  expect(posts()[0]!.body).not.toHaveProperty('body')
+  // 내가 고친 칸을 다른 사람도 고쳤으면 다시 저장하기 전에 그 글을 보인다.
+  const notice = screen.getByText('다른 사람이 먼저 고쳤어요').parentElement!
+  expect(within(notice).getByText('상대 제목')).toBeTruthy()
   expect(screen.getByLabelText<HTMLInputElement>('안건 제목').value).toBe('내가 고친 제목')
   unmount()
   draw(fresh)
@@ -392,4 +401,49 @@ test('완료 회의록으로 바뀌어도 열려 있던 후속 업무 창과 입
   expect(screen.getByRole('dialog', { name: '업무 추가' })).toBeTruthy()
   expect(screen.getByRole('textbox', { name: /^제목/ })).toBe(input)
   expect(input.value).toBe('확정 때 쓰던 후속 업무')
+})
+
+test('빠진 안건에 남은 글은 확정을 막지 않고 완료 화면에도 남는다', async () => {
+  const meeting = sample()
+  const first = meeting.agenda[0]!
+  api.on('POST', `${base}/agenda/${first.id}`, () => json({ error: 'NOT_FOUND' }, 404))
+  const props = {
+    view: councilView(MEETING_COUNCIL),
+    memberId: MEETING_MEMBER,
+    base,
+    onSelect: () => {},
+    onSaved: () => {},
+  }
+  const { rerender } = render(<MeetingMinutes {...props} meeting={meeting} selectedId={first.id} />)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '빠진 안건 글' } })
+  const rest = { ...meeting, agenda: meeting.agenda.slice(1) }
+  rerender(<MeetingMinutes {...props} meeting={rest} selectedId={null} />)
+  api.on('POST', `${base}/confirm`, () => json({ meeting: done(rest) }))
+  rerender(<MeetingMinutes {...props} meeting={rest} selectedId={null} />)
+  ask()
+  confirm()
+  await waitFor(() => expect(posts().some(call => call.path === `${base}/confirm`)).toBe(true))
+  rerender(<MeetingMinutes {...props} meeting={done(rest)} selectedId={null} />)
+  expect(screen.getByText('완료된 회의록')).toBeTruthy()
+  expect(screen.getByText('빠진 안건 글')).toBeTruthy()
+})
+
+test('다른 사람의 확정으로 폼이 내려가도 남은 폼 글은 떠날 때 확인을 건다', () => {
+  const meeting = sample()
+  const props = {
+    view: councilView(MEETING_COUNCIL),
+    memberId: MEETING_MEMBER,
+    base,
+    selectedId: null,
+    onSelect: () => {},
+    onSaved: () => {},
+  }
+  const { rerender } = render(<MeetingMinutes {...props} meeting={meeting} />)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  fireEvent.change(screen.getByLabelText('결정 내용'), { target: { value: '쓰던 결정' } })
+  expect(hasUnsavedInput()).toBe(true)
+  rerender(<MeetingMinutes {...props} meeting={{ ...done(meeting), actions: [] }} />)
+  expect(screen.queryByLabelText('결정 내용')).toBeNull()
+  expect(screen.getByText('쓰던 결정')).toBeTruthy()
+  expect(hasUnsavedInput()).toBe(true)
 })

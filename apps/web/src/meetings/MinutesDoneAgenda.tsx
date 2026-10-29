@@ -55,6 +55,7 @@ function DoneDecision({
             notes: '',
             baseVersionNo: decision.versionNo,
           }}
+          current={{ main: decision.content, extra: decision.rationale ?? '', notes: '' }}
           onSave={value => submit(`/decisions/${decision.id}`, value)}
           onClose={() => onEdit(null)}
         />
@@ -113,6 +114,7 @@ export function MinutesDoneAgenda({
             notes: amendNotes(item, draft),
             baseVersionNo: item.versionNo,
           }}
+          current={{ main: item.title, extra: item.body ?? '', notes: item.notes ?? '' }}
           onSave={async value => {
             const problem = await submit(`/agenda/${item.id}`, value)
             if (!problem) onAmended(item.id)

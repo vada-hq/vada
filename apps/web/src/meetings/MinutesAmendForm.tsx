@@ -1,23 +1,57 @@
 import { useState } from 'react'
 import StateMessage from '@/components/StateMessage'
+import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { entryFields, type MinutesEntryKind } from './minutes-entry'
-import { useAmendEntry, type AmendInitial } from './minutes-amend'
-import { MINUTES_TEXT as T } from './minutes-text'
+import {
+  overlappingChanges,
+  useAmendEntry,
+  type AmendField,
+  type AmendInitial,
+  type AmendTexts,
+} from './minutes-amend'
+import { MINUTES_TEXT as T, minutesConflict } from './minutes-text'
 
 type Props = {
   kind: MinutesEntryKind
   id: string
   agendaId: string
   initial: AmendInitial
+  // 지금 서버에 저장된 값. 폼을 연 뒤 다른 사람이 같은 칸을 고쳤으면 그 글을 보여 준다.
+  current: AmendTexts
   onSave: (value: object) => Promise<string | null>
   onClose: () => void
 }
 const NOTES_ROWS = 8
+// 다시 저장하면 덮게 될 상대 글을 칸마다 보인다. 확인 없이 덮지 않게, 보고 나서 저장하게 한다(mtg-6 검토).
+function OverlapNotice({
+  kind,
+  fields,
+  current,
+}: {
+  kind: MinutesEntryKind
+  fields: AmendField[]
+  current: AmendTexts
+}) {
+  if (!fields.length) return null
+  const labels = entryFields[kind]
+  const labelOf = { main: labels.label, extra: labels.extraLabel, notes: T.discussion }
+  return (
+    <Alert tone="warning" role="status" className="flex min-w-0 flex-col gap-2 text-sm">
+      <p className="font-medium">{minutesConflict()}</p>
+      {fields.map(key => (
+        <div key={key} className="min-w-0">
+          <p className="text-xs text-muted-foreground">{labelOf[key]}</p>
+          <p className="wrap-anywhere whitespace-pre-wrap text-gray-800">{current[key]}</p>
+        </div>
+      ))}
+    </Alert>
+  )
+}
 function AmendMainField({
   kind,
   value,
@@ -52,9 +86,10 @@ function AmendMainField({
     </Field>
   )
 }
-export function MinutesAmendForm({ kind, id, agendaId, initial, onSave, onClose }: Props) {
-  const entry = useAmendEntry(kind, id, agendaId, initial)
+export function MinutesAmendForm({ kind, id, agendaId, initial, current, onSave, onClose }: Props) {
+  const entry = useAmendEntry({ kind, id, agendaId }, initial, current)
   const { value, change } = entry
+  const overlap = overlappingChanges(value, entry.first, current)
   const fields = entryFields[kind]
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -132,6 +167,7 @@ export function MinutesAmendForm({ kind, id, agendaId, initial, onSave, onClose 
           onChange={e => change('reason', e.target.value)}
         />
       </Field>
+      <OverlapNotice kind={kind} fields={overlap} current={current} />
       {error && <StateMessage kind="error">{error}</StateMessage>}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" touch busy={busy} onClick={close}>

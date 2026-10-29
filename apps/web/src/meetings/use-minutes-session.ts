@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { MeetingDetail } from '@vada/contracts'
 import { isMinutesDirty, lostEntries, type MinutesScope } from './minutes-drafts'
 import { hasDirtyEntry } from './minutes-entry'
-import { remainingEntryTexts, saveAllMinutes } from './minutes-confirm'
+import { saveAllMinutes } from './minutes-confirm'
 import { useMinutesAutosave } from './use-minutes-autosave'
 import { useMinutesMutation } from './use-minutes-mutation'
 import { MINUTES_TEXT as T } from './minutes-text'
@@ -33,15 +33,14 @@ export function useMinutesSession(
       .map(([, draft]) => draft.text),
     ...lostEntries(scope, agendaIds),
   ]
+  // 확정 전에 저장할 수 있는 글(살아 있는 안건의 논의 초안, 열린 폼)만 막는다. 빠진 안건의 글이나
+  // 닫힌 폼에 남은 글은 저장할 곳이 없거나 지금 보이지 않아 막으면 확정할 길이 없다. 그 글은 완료 화면에도 그대로 보인다.
   const confirm = async () => {
-    await saveAllMinutes(store)
-    if (
-      store.hasUnsaved() ||
-      hasDirtyEntry() ||
-      orphans.length ||
-      remainingEntryTexts(scope).length
+    await saveAllMinutes(store, agendaIds)
+    const live = [...store.snapshot()].some(
+      ([id, draft]) => agendaIds.includes(id) && isMinutesDirty(draft),
     )
-      return T.confirmUnsaved
+    if (live || hasDirtyEntry()) return T.confirmUnsaved
     return mutate('/confirm', {})
   }
   return { scope, drafts, store, submit, orphans, confirm }
