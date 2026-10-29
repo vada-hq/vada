@@ -132,6 +132,28 @@ test('쿠팡 상품 패널에서 선택한 이름과 링크가 실제 양식에 
   expect(posted).not.toHaveProperty('items.0.loadedPrice')
 })
 
+test('판매 단위가 여럿이면 패널에서 하나를 골라 보이고 그 단위로 구매 요청을 채운다', async () => {
+  serve({
+    ...PRODUCT,
+    items: [
+      ...PRODUCT.items,
+      { itemId: '18698272', name: '네임펜 24색 1세트', price: 17900, listPrice: null },
+    ],
+  })
+  render(<ChatHarness />)
+  await openAllRoom()
+  fireEvent.click(await screen.findByRole('link', { name: LINK }))
+  const panel = within(await screen.findByRole('complementary', { name: '상품 정보' }))
+  const unit = await panel.findByLabelText<HTMLSelectElement>('판매 단위')
+  expect(unit.value).toBe('18698271')
+  expect(panel.getByText('불러온 가격 9,900원')).toBeTruthy()
+  fireEvent.change(unit, { target: { value: '18698272' } })
+  expect(panel.getByText('불러온 가격 17,900원')).toBeTruthy()
+  fireEvent.click(panel.getByRole('button', { name: '구매 요청 만들기' }))
+  const form = within(await screen.findByRole('form', { name: '구매 요청 내기' }))
+  expect(form.getByLabelText<HTMLInputElement>('품목 1 이름').value).toBe('네임펜 24색 1세트')
+})
+
 test('메시지 메뉴에서도 상품명을 채우며 늦게 불러온 정보가 직접 고친 이름을 덮지 않는다', async () => {
   const api = serve()
   const pending = deferredResponse()

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useHideBottomNavigation } from '@/components/BottomNavigationVisibility'
@@ -7,7 +7,7 @@ import { blockingOf } from './useMessageActions'
 import { useWindowHistory } from '@/lib/use-window-history'
 import type { RoomPage } from './ChatPage'
 import { useProductInfo } from './product-info'
-import ProductDetails from './ProductDetails'
+import ProductDetails, { withItem } from './ProductDetails'
 import type { ProductTarget } from './product-open'
 import RequestFlowView from './RequestFlowView'
 import { useRequestFlow } from './useRequestFlow'
@@ -110,12 +110,16 @@ function ProductContent({ page, target }: Props) {
   const flow = useRequestFlow()
   const { view } = page
   const canRequest = view.permissions.includes('purchase.request')
-  const product = state.kind === 'ready' ? state.product : null
+  // 판매 단위가 여럿이면 패널에서 고른 단위로 구매 요청을 채운다. 고르기 전에는 링크가 가리킨 단위다.
+  const [itemId, setItemId] = useState<string>()
+  const product = state.kind === 'ready' ? withItem(state.product, itemId) : null
   return (
     <>
       <ProductDetails
         state={state}
         url={target.url}
+        itemId={itemId}
+        onItemChange={setItemId}
         request={
           canRequest && <RequestButton councilId={page.councilId} target={target} flow={flow} />
         }
@@ -128,7 +132,7 @@ function ProductContent({ page, target }: Props) {
         canAssign={view.permissions.includes('finance.manage')}
         flow={flow}
         eventId={target.eventId}
-        picked={product ? { link: target.url, product } : undefined}
+        picked={product ? { link: target.url, product, itemId: product.selectedItemId } : undefined}
         onOpenRequest={page.onOpenRequest}
         onForbidden={page.onForbidden}
       />
