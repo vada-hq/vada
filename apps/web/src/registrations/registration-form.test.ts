@@ -6,6 +6,8 @@ import {
   formErrors,
   formRequest,
   hasFee,
+  missingRequired,
+  newFormValues,
   previewOf,
   valuesOfForm,
 } from './registration-form'
@@ -117,4 +119,24 @@ test('미리보기는 행사 일시·장소와 받는 칸을 그대로 담고, �
     payerFee: null,
     purgeOn: '2027-11-07',
   })
+})
+
+test('새 양식의 신청 마감은 행사 시작 시각이고, 행사 시작이 없거나 행사를 읽기 전이면 비어 있다', () => {
+  expect(newFormValues({ startsAt: '2026-10-24T14:00' })).toEqual({
+    ...emptyFormValues,
+    closesAt: '2026-10-24T14:00',
+  })
+  expect(newFormValues({ startsAt: null }).closesAt).toBe('')
+  expect(newFormValues(null).closesAt).toBe('')
+})
+
+test('남은 필수 칸은 화면 차례대로 이름·마감·참가비 금액·계좌이고, 계좌는 참가비가 있을 때만 센다', () => {
+  expect(missingRequired(filled, null)).toEqual([])
+  expect(missingRequired({ ...emptyFormValues, name: ' ' }, null)).toEqual(['name', 'closesAt'])
+  expect(missingRequired({ ...filled, feeKind: 'one' }, null)).toEqual(['fee'])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, null)).toEqual(['account'])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID)).toEqual([])
+  expect(missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID)).toEqual([
+    'nonPayerFee',
+  ])
 })

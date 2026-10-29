@@ -335,7 +335,7 @@ test('공지 보내기가 404이면 업무가 아니라 방을 잃었다고 알�
   })
 })
 
-test('신청 양식 창은 행사의 일시·장소 미정을 알리고, 만든 뒤 링크를 보인 다음 닫으면 업무를 다시 읽는다', async () => {
+test('신청 양식 창은 맨 위 행사 줄에 일시·장소 미정을 보이고, 만든 뒤 링크를 보인 다음 닫으면 업무를 다시 읽는다', async () => {
   const { api } = setup(
     detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } }),
   )
@@ -344,8 +344,7 @@ test('신청 양식 창은 행사의 일시·장소 미정을 알리고, 만든 
   )
   await make('신청 양식')
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
-  fireEvent.click(within(form).getByRole('button', { name: '펼치기' }))
-  expect((await within(form).findAllByText('미정')).length).toBe(2)
+  expect(await within(form).findByText('일시 미정 · 장소 미정')).toBeTruthy()
   await pickDateTime(within(form).getByLabelText(/신청 마감/), '2026-11-01T18:00')
   api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
     json({ form: staffForm({ id: 'f1', name: '환영회 신청' }) }, 201),

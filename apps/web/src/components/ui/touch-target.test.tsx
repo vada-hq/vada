@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ExpensePaymentItems } from '@/finance/ExpenseRequestFields'
 import { emptyExpense } from '@/finance/expense-form'
-import { CollectFields, FeeFields } from '@/registrations/FormFields'
+import { FeeValue } from '@/registrations/FormFee'
 import { emptyFormValues } from '@/registrations/registration-form'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { Button, buttonVariants } from './button'
@@ -107,25 +107,35 @@ test('인자 없는 단추 클래스도 휴대폰 높이를 키우고 명시한 
   expect(buttonVariants({ className: 'w-full' }).split(' ')).toContain('w-full')
 })
 
-test('신청 양식 체크칸은 16px 모양과 id를 유지하고 44px 라벨 줄 전체로 고른다', () => {
+test('신청 양식 참가비 체크칸·라디오는 16px 모양을 유지하고 터치 기기에서 44px 라벨 줄 전체로 고른다', () => {
   const onChange = vi.fn()
-  const props = { values: emptyFormValues, disabled: false, onChange, errors: {} }
-  render(
-    <>
-      <CollectFields {...props} />
-      <FeeFields {...props} values={{ ...emptyFormValues, feeKind: 'one' }} />
-    </>,
-  )
-  for (const checkbox of screen.getAllByRole('checkbox')) {
-    const label = checkbox.closest('label')
-    expect(checkbox.className).toBe('size-4 accent-primary-emphasis')
-    expect(label?.classList.contains('max-sm:min-h-11')).toBe(true)
-    expect(label?.htmlFor).toBe(checkbox.id)
+  const ids = {
+    name: 'n',
+    closesAt: 'c',
+    opensAt: 'o',
+    capacity: 'p',
+    fee: 'f',
+    payerFee: 'pf',
+    nonPayerFee: 'nf',
+    account: 'a',
+    notice: 't',
   }
-  fireEvent.click(screen.getByText('휴대폰 번호'))
-  expect(onChange).toHaveBeenLastCalledWith({ ...emptyFormValues, collectsPhone: true })
-  fireEvent.click(screen.getByText('학생회비 납부자 별도 금액'))
-  expect(onChange).toHaveBeenLastCalledWith({ ...emptyFormValues, feeKind: 'split' })
+  render(
+    <FeeValue
+      ids={ids}
+      values={{ ...emptyFormValues, feeKind: 'one' }}
+      errors={{}}
+      onChange={onChange}
+    />,
+  )
+  for (const choice of [...screen.getAllByRole('checkbox'), ...screen.getAllByRole('radio')]) {
+    expect(choice.className).toBe('size-4 accent-primary-emphasis')
+    expect(choice.closest('label')?.classList.contains('pointer-coarse:min-h-11')).toBe(true)
+  }
+  fireEvent.click(screen.getByText('학생회비 납부자 금액 다름'))
+  expect(onChange).toHaveBeenLastCalledWith({ feeKind: 'split' })
+  fireEvent.click(screen.getByText('없음'))
+  expect(onChange).toHaveBeenLastCalledWith({ feeKind: 'none' })
 })
 
 test('지출 품목 체크칸은 16px 모양을 유지하고 휴대폰 라벨 높이만 최소 44px로 키운다', () => {

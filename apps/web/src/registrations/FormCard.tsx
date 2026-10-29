@@ -1,169 +1,192 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
-  registrationStatusLabel,
-  type ApplicantChange,
-  type RegistrationForm,
-  type RegistrationFormResponse,
-} from '@vada/contracts'
-import { FormReception } from './FormReception'
-import type { ComponentProps } from 'react'
+  CalendarDays,
+  Clock,
+  Eye,
+  Landmark,
+  ListChecks,
+  MoreHorizontal,
+  Pencil,
+  UserRound,
+  Wallet,
+} from 'lucide-react'
+import type { EventDetail, RegistrationForm } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
+import type { EventFieldFocus } from '@/events/EventFields'
+import { whenLabel } from '@/events/event-view'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
-import { STATUS_TONE } from '@/public/registration-text'
-import { ApplicantList } from './ApplicantList'
-import { FormLink } from './FormLink'
-import { formPath } from './registration-api'
-import { countLabel, periodLabel } from './registration-view'
-import { useStaffPost } from './useStaffPost'
+import { feeText } from '@/public/registration-text'
+import { PageIcon, PropRow, TextAction } from './DocParts'
+import { sheet, size, type } from './doc-look'
+import { cardTone, chargesFee } from './form-card-text'
+import { FormCardBand } from './FormCardBand'
+import { CollectedValue, Missing } from './FormCardValues'
+import { PreviewDialog } from './FormPreview'
+import { previewOf, valuesOfForm } from './registration-form'
+import { periodLabel } from './registration-view'
+import { useFormCardActions, type EditorFocus, type FormCardActions } from './useFormCardActions'
 
 type Props = EventDialogHandlers & {
   councilId: string
+  councilName: string
+  // 행사 일시 줄과 미리보기에 쓴다. 읽기 전이면 null이다.
+  event: EventDetail | null
   form: RegistrationForm
-  changes: ReadonlyMap<string, ApplicantChange>
-  onChange: (change: ApplicantChange) => void
-  onLoaded: (registrationIds: string[]) => void
-  onEdit: () => void
-  // 멈추기·다시 받기·신청 취소로 양식 값이 바뀌었다(목록을 다시 읽는다).
+  onEdit: (focus?: EditorFocus) => void
+  onEditEvent: (focus: EventFieldFocus) => void
   onChanged: () => void
-  hideApplicants?: boolean
-  reception?: Pick<
-    ComponentProps<typeof FormReception>,
-    'councilName' | 'event' | 'onEditEvent' | 'onEdit'
-  >
 }
 
-// 신청 양식 카드: 이름, 기간, 신청 수/정원, 상태. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-export function FormCard({ councilId, form, changes, onChange, onLoaded, onEdit, ...rest }: Props) {
-  const { onChanged, hideApplicants, reception, ...handlers } = rest
-  const [open, setOpen] = useState(false)
-  const post = useStaffPost(handlers, undefined, form.actions)
+// 양식 카드 = 앱 바탕 위 문서 한 장(대표 확정 시안 '문서 한 장 모양' refined). 위에서부터 머리(이름·[미리보기]·[고치기]·•••),
+// 머리 띠(상태·큰 수·링크와 QR 또는 [설문 링크 활성화]), 설정 속성 줄. 빠진 조건은 그 줄의 값 자리에 '비어 있음 · 채우기'.
+// 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38). 읽기는 가리지 않는다.
 
-  async function setPaused(paused: boolean) {
-    const path = `${formPath(councilId, form.id)}/${paused ? 'pause' : 'resume'}`
-    await post.send<RegistrationFormResponse>(path)
-    // 거절(마감이 지남 등)이어도 다시 읽는다. 버튼이 사라지고 거절 문구만 남는다.
-    onChanged()
-  }
-
-  if (reception)
-    return (
-      <FormReception
-        councilId={councilId}
-        form={form}
-        onChanged={onChanged}
-        {...handlers}
-        {...reception}
-      />
-    )
-  return (
-    <Card className="flex flex-col gap-3 p-4">
-      <FormSummary form={form} />
-      <FormActions
-        form={form}
-        busy={post.busy}
-        open={open}
-        onEdit={onEdit}
-        onPause={() => void setPaused(!form.paused)}
-        onToggle={() => setOpen(!open)}
-        {...(hideApplicants && { hideApplicants: true })}
-      />
-      {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
-      {open && (
-        <div className="flex flex-col gap-4 border-t pt-4">
-          <FormLink form={form} />
-          {!hideApplicants && (
-            <Applicants
-              councilId={councilId}
-              form={form}
-              changes={changes}
-              onChange={onChange}
-              onLoaded={onLoaded}
-              onCancelled={onChanged}
-              {...handlers}
-            />
-          )}
-        </div>
-      )}
-    </Card>
-  )
-}
-
-// 이름(긴 글은 줄바꿈), 상태, 기간, 신청 수/정원.
-function FormSummary({ form }: { form: RegistrationForm }) {
-  return (
-    <>
-      <div className="flex items-start gap-2">
-        <h3 className="min-w-0 flex-1 text-sm font-semibold text-fg wrap-anywhere">{form.name}</h3>
-        <Badge tone={STATUS_TONE[form.status]}>
-          {registrationStatusLabel(form.status, form.applicantCount)}
-        </Badge>
-      </div>
-      <p className="text-xs text-fg-muted">{periodLabel(form)}</p>
-      <p className="text-xs text-fg-secondary">{countLabel(form)}</p>
-    </>
-  )
-}
-
-type ActionsProps = {
-  form: RegistrationForm
-  busy: boolean
-  open: boolean
-  onEdit: () => void
-  onPause: () => void
-  onToggle: () => void
-  hideApplicants?: boolean
-}
-
-// 양식 카드의 버튼 줄. [고치기]와 [멈추기]·[다시 받기]는 그 동작이 actions에 있을 때만 보인다.
-function FormActions({
+function Head({
   form,
-  busy,
-  open,
+  actions,
+  onPreview,
   onEdit,
-  onPause,
-  onToggle,
-  hideApplicants,
-}: ActionsProps) {
-  const canEdit = form.actions.includes('form.update')
-  const canToggle = form.actions.includes(form.paused ? 'form.resume' : 'form.pause')
+}: {
+  form: RegistrationForm
+  actions: FormCardActions
+  onPreview: (() => void) | null
+  onEdit: () => void
+}) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {canEdit && (
-        <Button variant="outline" size="sm" touch onClick={onEdit}>
-          고치기
-        </Button>
-      )}
-      {canToggle && (
-        <Button variant="outline" size="sm" touch busy={busy} onClick={onPause}>
-          {form.paused ? '다시 받기' : '멈추기'}
-        </Button>
-      )}
-      <Button variant="outline" size="sm" touch aria-expanded={open} onClick={onToggle}>
-        {open ? '접기' : hideApplicants ? '신청 링크' : '링크와 신청자'}
-      </Button>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <PageIcon />
+      <h3 className={`min-w-0 flex-1 ${type.cardTitle} text-fg wrap-anywhere`}>{form.name}</h3>
+      <div className="flex items-center max-sm:-ml-2 max-sm:w-full sm:-mr-2">
+        {onPreview && (
+          <TextAction icon={Eye} onClick={onPreview}>
+            미리보기
+          </TextAction>
+        )}
+        {form.actions.includes('form.update') && (
+          <TextAction icon={Pencil} onClick={onEdit}>
+            고치기
+          </TextAction>
+        )}
+        {form.actions.includes('form.pause') && (
+          <Menu>
+            <MenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="양식 더보기"
+                className={`${size.iconHit} rounded-lg`}
+              >
+                <MoreHorizontal aria-hidden />
+              </Button>
+            </MenuTrigger>
+            <MenuContent>
+              <MenuItem onSelect={actions.pause}>멈추기</MenuItem>
+            </MenuContent>
+          </Menu>
+        )}
+      </div>
     </div>
   )
 }
 
-type ApplicantsProps = EventDialogHandlers &
-  Pick<Props, 'councilId' | 'form' | 'changes' | 'onChange' | 'onLoaded'> & {
-    onCancelled: () => void
-  }
+type RowsProps = Pick<Props, 'form' | 'event'> & { actions: FormCardActions; draft: boolean }
 
-// 신청자 정보(이름, 학번, 휴대폰)는 열람 권한자에게만 보이고, 아니면 신청 수만 보인다. 열람은 기록이 남아 눌러야 읽는다.
-function Applicants({ form, ...rest }: ApplicantsProps) {
-  const [shown, setShown] = useState(false)
-  if (!form.actions.includes('form.view_applicants')) return null
-  if (!shown)
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <Button variant="outline" size="sm" touch onClick={() => setShown(true)}>
-          신청자 보기
-        </Button>
-      </div>
-    )
-  return <ApplicantList formId={form.id} {...rest} />
+// 행사 일시는 초안에서만 보인다(받는 중 이후 카드는 행사 화면 안이라 반복).
+function EventRow({ event, actions }: Pick<RowsProps, 'event' | 'actions'>) {
+  if (!event && !actions.missing.includes('event_starts_at')) return null
+  return (
+    <PropRow icon={CalendarDays} label="행사 일시">
+      {actions.missing.includes('event_starts_at') || !event ? (
+        <Missing label="행사 시작 일시" onFill={actions.fills.event_starts_at} />
+      ) : (
+        <span className="text-fg-secondary wrap-anywhere">
+          {whenLabel(event)} · {event.place ?? '장소 미정'}
+        </span>
+      )}
+    </PropRow>
+  )
+}
+
+function DeadlineValue({ form, actions }: Pick<RowsProps, 'form' | 'actions'>) {
+  if (actions.missing.includes('closes_at'))
+    return <Missing label="신청 마감" onFill={actions.fills.closes_at} />
+  return (
+    <span className="flex flex-wrap items-center gap-x-2">
+      {periodLabel(form)}
+      {actions.missing.includes('registration_period') && (
+        <>
+          <span className="text-danger">신청 시작보다 이름</span>
+          {actions.fills.registration_period && (
+            <TextAction strong data-fill onClick={actions.fills.registration_period}>
+              고치기
+            </TextAction>
+          )}
+        </>
+      )}
+    </span>
+  )
+}
+
+function SettingRows({ form, event, actions, draft }: RowsProps) {
+  return (
+    <div className="flex flex-col gap-1 sm:gap-0">
+      {draft && <EventRow event={event} actions={actions} />}
+      <PropRow icon={Clock} label="신청 마감">
+        <DeadlineValue form={form} actions={actions} />
+      </PropRow>
+      <PropRow icon={Wallet} label="참가비">
+        {feeText(form)}
+      </PropRow>
+      {chargesFee(form) && (
+        <PropRow icon={Landmark} label="참가비 받을 계좌">
+          {actions.missing.includes('fee_account') || !form.feeAccount ? (
+            <Missing label="참가비 받을 계좌" onFill={actions.fills.fee_account} />
+          ) : (
+            <span className="wrap-anywhere">{form.feeAccount.name}</span>
+          )}
+        </PropRow>
+      )}
+      <PropRow icon={UserRound} label="정원">
+        {form.capacity === null ? '제한 없음' : `${form.capacity.toLocaleString()}명`}
+      </PropRow>
+      <PropRow icon={ListChecks} label="받는 항목">
+        <CollectedValue form={form} />
+      </PropRow>
+    </div>
+  )
+}
+
+export function FormCard(props: Props) {
+  const { form, event, councilName } = props
+  const actions = useFormCardActions(props)
+  const [previewing, setPreviewing] = useState(false)
+  const article = useRef<HTMLElement>(null)
+  const tone = cardTone(form)
+  return (
+    <article
+      ref={article}
+      aria-label={form.name}
+      className={`flex w-full min-w-0 flex-col gap-5 px-4 py-5 break-keep sm:px-8 sm:py-7 ${sheet}`}
+    >
+      <Head
+        form={form}
+        actions={actions}
+        onPreview={event ? () => setPreviewing(true) : null}
+        onEdit={() => props.onEdit()}
+      />
+      <FormCardBand form={form} tone={tone} actions={actions} sheet={article} />
+      {actions.post.problem && <StateMessage kind="error">{actions.post.problem}</StateMessage>}
+      <SettingRows form={form} event={event} actions={actions} draft={tone === 'draft'} />
+      {event && (
+        <PreviewDialog
+          data={previewOf(valuesOfForm(form), event, councilName)}
+          open={previewing}
+          onOpenChange={setPreviewing}
+        />
+      )}
+    </article>
+  )
 }

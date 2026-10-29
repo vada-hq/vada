@@ -49,6 +49,13 @@ export const emptyFormValues: FormValues = {
   questions: [],
 }
 
+// 새 양식의 처음 값. 신청 마감은 행사 시작 시각이다(Luma 관례, 보통 행사 직전까지 받는다).
+// 행사 시작이 없거나 행사를 아직 읽지 못했으면 비워 두고 운영진이 넣는다(서버 계약은 마감 필수 그대로).
+export const newFormValues = (event: Pick<EventDetail, 'startsAt'> | null): FormValues => ({
+  ...emptyFormValues,
+  closesAt: event?.startsAt ?? '',
+})
+
 const textOf = (value: number | string | null) => (value === null ? '' : String(value))
 
 function feeValuesOf(form: Pick<RegistrationForm, 'payerFee' | 'nonPayerFee'>) {
@@ -163,6 +170,29 @@ export function formErrors(values: FormValues): FormErrors {
     ...feeErrors(values),
   }
   return Object.fromEntries(Object.entries(errors).filter(([, message]) => message))
+}
+
+// 편집기 머리줄 '필수 N칸 남음'이 세는 칸(화면 차례). 누를 때 확인(formErrors)과 같은 필수 칸이고, 계좌는 참가비가 있을 때만이다.
+export type RequiredField = 'name' | 'closesAt' | 'fee' | 'payerFee' | 'nonPayerFee' | 'account'
+
+export function missingRequired(values: FormValues, accountId: string | null): RequiredField[] {
+  const empty = (value: string) => value.trim() === ''
+  const fees: [RequiredField, string][] =
+    values.feeKind === 'one'
+      ? [['fee', values.fee]]
+      : values.feeKind === 'split'
+        ? [
+            ['payerFee', values.payerFee],
+            ['nonPayerFee', values.nonPayerFee],
+          ]
+        : []
+  const checks: [RequiredField, boolean][] = [
+    ['name', empty(values.name)],
+    ['closesAt', empty(values.closesAt)],
+    ...fees.map(([field, value]): [RequiredField, boolean] => [field, empty(value)]),
+    ['account', hasFee(values) && accountId === null],
+  ]
+  return checks.filter(([, missing]) => missing).map(([field]) => field)
 }
 
 // 신청자 정보를 지우는 날(DEC-55): 행사 끝(없으면 시작, 없으면 양식 마감)의 날짜 + 1년. 서버 purgeOnOf와 같은 규칙이다.

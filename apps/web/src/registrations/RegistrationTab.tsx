@@ -6,9 +6,9 @@ import type {
   FormListAction,
   RegistrationForm,
 } from '@vada/contracts'
+import { Plus, ScanLine } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { PERMISSION_CHANGED } from '@/lib/messages'
@@ -17,9 +17,10 @@ import {
   REGISTRATION_STAFF_LOST,
 } from '@/lib/registration-messages'
 import { useDialogGuard } from '@/lib/use-dialog-guard'
+import { MainButton, PageIcon, TextAction } from './DocParts'
+import { sheet, type } from './doc-look'
 import { FormCard } from './FormCard'
 import { EventApplicants } from './EventApplicants'
-import { FormCreated } from './FormCreated'
 import { FormEditor } from './FormEditor'
 import { TabDialogs, type TabDialog } from './TabDialogs'
 import { useRegistrationForms } from './useRegistrationForms'
@@ -74,7 +75,7 @@ function useTabDialogs(
 ) {
   const [dialog, setDialog] = useState<TabDialog>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  // 방금 만든 양식. 목록 대신 링크와 QR을 보인다.
+  // 방금 만든 양식. 목록을 다시 읽기 전에도 카드로 보인다(만든 직후 중간 화면 없이 초안 카드로 돌아간다).
   const [created, setCreated] = useState<RegistrationForm | null>(null)
   const handlers: EventDialogHandlers = {
     onForbidden,
@@ -97,7 +98,6 @@ function useTabDialogs(
       setNotice(null)
       reload()
     },
-    closeCreated: () => setCreated(null),
     checked: (change: ApplicantChange) => {
       apply(change)
       reload()
@@ -137,7 +137,17 @@ function EditorScreen({
   )
 }
 
-// 양식 목록: 도구 줄, 이유 글, 양식 카드, QR 스캐너.
+// 만든 양식이 아직 읽은 목록에 없으면 끝에 더한다(다시 읽으면 서버 값이 앞선다).
+function withCreated(
+  state: FormsRead['state'],
+  created: RegistrationForm | null,
+): FormsRead['state'] {
+  if (state.kind !== 'ready' || !created) return state
+  if (state.data.forms.some(form => form.id === created.id)) return state
+  return { ...state, data: { ...state.data, forms: [...state.data.forms, created] } }
+}
+
+// 양식 목록: 도구 줄, 이유 글, 양식 카드(양식마다 하나), QR 스캐너.
 type ViewProps = {
   props: Props
   tab: Tab
@@ -150,17 +160,20 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
   const councilId = props.view.council.id
   const { setDialog, handlers } = tab
   const reload = () => void read.reload()
+  const state = withCreated(read.state, tab.created)
   return (
     <div className="flex flex-col gap-3">
-      <TabToolbar
-        actions={ready?.forms.length ? ready.actions : []}
-        scannable={canScan(ready?.forms ?? [])}
-        onCreate={() => setDialog({ kind: 'create' })}
-        onScan={() => setDialog({ kind: 'scan' })}
-      />
+      {state.kind === 'ready' && state.data.forms.length > 0 && (
+        <TabToolbar
+          actions={state.data.actions}
+          scannable={canScan(state.data.forms)}
+          onCreate={() => setDialog({ kind: 'create' })}
+          onScan={() => setDialog({ kind: 'scan' })}
+        />
+      )}
       {tab.notice && <StateMessage kind="error">{tab.notice}</StateMessage>}
       <FormList
-        state={read.state}
+        state={state}
         onRetry={reload}
         onCreate={
           ready?.actions.includes('form.create') ? () => setDialog({ kind: 'create' }) : undefined
@@ -170,20 +183,14 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
           <FormCard
             key={form.id}
             councilId={councilId}
+            councilName={props.view.council.name}
+            event={props.event}
             form={form}
-            hideApplicants
-            changes={rows.changes}
-            onChange={rows.apply}
-            onLoaded={rows.forget}
-            onEdit={() => setDialog({ kind: 'edit', formId: form.id })}
+            onEdit={focus =>
+              setDialog({ kind: 'edit', formId: form.id, ...(focus ? { focus } : {}) })
+            }
+            onEditEvent={props.onEditEvent}
             onChanged={reload}
-            reception={{
-              councilName: props.view.council.name,
-              event: props.event,
-              onEditEvent: props.onEditEvent,
-              onEdit: focus =>
-                setDialog({ kind: 'edit', formId: form.id, ...(focus ? { focus } : {}) }),
-            }}
             {...handlers}
           />
         )}
@@ -212,7 +219,7 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
 }
 
 // 행사의 '참가 신청' 탭: 신청 양식 카드, 양식 만들기(탭 안 화면), QR로 출석 확인. 버튼은 서버가 준 actions로만 보이거나 숨는다(DEC-38).
-// 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다. 양식을 만든 바로 뒤에는 링크와 QR을 보인다.
+// 신청자 정보는 열람 권한자에게만 보이고 아니면 신청 수만 보인다. 양식을 만든 바로 뒤에는 카드 목록으로 돌아가 초안을 보인다.
 export function RegistrationTab(props: Props) {
   const { view, eventId, event: _event, onEditEvent: _edit, ...parent } = props
   const read = useRegistrationForms(view.council.id, eventId, parent)
@@ -222,7 +229,6 @@ export function RegistrationTab(props: Props) {
   useDialogGuard(tab.dialog !== null, dialogLostReason(tab.dialog, ready), tab.handlers.onLost)
   if (tab.dialog?.kind === 'create' || tab.dialog?.kind === 'edit')
     return <EditorScreen props={props} tab={tab} forms={ready?.forms ?? []} />
-  if (tab.created) return <FormCreated form={tab.created} onDone={tab.closeCreated} />
   return <FormsView props={props} tab={tab} read={read} ready={ready} rows={rows} />
 }
 
@@ -233,19 +239,21 @@ type ToolbarProps = {
   onScan: () => void
 }
 
-// [신청 양식 만들기](목록의 form.create)와 [QR로 출석 확인](양식의 form.check_in). 서버가 지금 사람이 할 수 있는 동작을 준다.
+// '신청 양식' 이름 + [참여 설문 만들기](목록의 form.create)와 [QR로 출석 확인](양식의 form.check_in).
+// 서버가 지금 사람이 할 수 있는 동작을 준다. 양식이 없으면 빈 종이의 [참여 설문 만들기]가 맡는다.
 function TabToolbar({ actions, scannable, onCreate, onScan }: ToolbarProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex w-full flex-wrap items-center gap-x-1">
+      <h2 className={`mr-auto ${type.small} font-semibold text-fg-tertiary`}>신청 양식</h2>
       {actions.includes('form.create') && (
-        <Button touch onClick={onCreate}>
+        <TextAction icon={Plus} onClick={onCreate}>
           참여 설문 만들기
-        </Button>
+        </TextAction>
       )}
       {scannable && (
-        <Button variant="outline" touch onClick={onScan}>
+        <TextAction icon={ScanLine} onClick={onScan}>
           QR로 출석 확인
-        </Button>
+        </TextAction>
       )}
     </div>
   )
@@ -259,7 +267,6 @@ type ListProps = {
 }
 
 function FormList({ state, onRetry, children, onCreate }: ListProps) {
-  const [selected, setSelected] = useState<string | null>(null)
   if (state.kind === 'loading') return <StateMessage kind="loading">불러오는 중이에요</StateMessage>
   if (state.kind === 'failed')
     return (
@@ -271,39 +278,24 @@ function FormList({ state, onRetry, children, onCreate }: ListProps) {
       </div>
     )
   const { forms, truncated } = state.data
-  const selectedForm = forms.find(form => form.id === selected) ?? forms[0]
   return (
     <>
       {forms.length === 0 && (
-        <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-6">
-          <h3 className="text-base font-semibold">참여 설문 없음</h3>
+        <article
+          className={`flex w-full flex-col items-center gap-5 px-4 py-10 text-center sm:py-12 ${sheet}`}
+        >
+          <div className="flex flex-col items-center gap-3">
+            <PageIcon large />
+            <h3 className={`${type.cardTitle} text-fg`}>신청 양식 없음</h3>
+          </div>
           {onCreate && (
-            <Button touch onClick={onCreate}>
+            <MainButton icon={Plus} onClick={onCreate}>
               참여 설문 만들기
-            </Button>
+            </MainButton>
           )}
-        </Card>
+        </article>
       )}
-      {selectedForm && children(selectedForm)}
-      {forms.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-muted-foreground">다른 양식</span>
-          {forms
-            .filter(form => form.id !== selectedForm?.id)
-            .map(form => (
-              <Button
-                key={form.id}
-                variant="link"
-                size="sm"
-                touch
-                className="max-w-full whitespace-normal break-keep wrap-anywhere"
-                onClick={() => setSelected(form.id)}
-              >
-                {form.name}
-              </Button>
-            ))}
-        </div>
-      )}
+      {forms.map(children)}
       {truncated && <StateMessage kind="notice">양식이 많아 앞의 일부만 보여요.</StateMessage>}
     </>
   )

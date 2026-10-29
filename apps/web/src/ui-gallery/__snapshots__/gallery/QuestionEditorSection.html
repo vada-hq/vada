@@ -1,21 +1,100 @@
 <div>
 <section class="flex flex-col gap-3 border-b py-6">
 <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-<h2 class="text-base break-keep wrap-anywhere">신청 양식 질문(편집·신청 있음)</h2>
-<a href="/ui.html?section=%EC%8B%A0%EC%B2%AD+%EC%96%91%EC%8B%9D+%EC%A7%88%EB%AC%B8%28%ED%8E%B8%EC%A7%91%C2%B7%EC%8B%A0%EC%B2%AD+%EC%9E%88%EC%9D%8C%29" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
+<h2 class="text-base break-keep wrap-anywhere">신청 양식 받는 항목(편집·신청 있음)</h2>
+<a href="/ui.html?section=%EC%8B%A0%EC%B2%AD+%EC%96%91%EC%8B%9D+%EB%B0%9B%EB%8A%94+%ED%95%AD%EB%AA%A9%28%ED%8E%B8%EC%A7%91%C2%B7%EC%8B%A0%EC%B2%AD+%EC%9E%88%EC%9D%8C%29" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
 </div>
 <div class="flex flex-wrap items-start gap-3">
 <div class="w-full max-w-xl">
+<section aria-label="받는 항목" class="flex flex-col gap-5">
 <div class="flex flex-col gap-2">
-<ol aria-label="질문 목록" class="flex flex-col gap-2">
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-surface-muted hover:text-fg-secondary py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 shrink grow justify-start px-1 text-left text-fg" type="button" aria-expanded="false">
-<span class="truncate font-medium">이니셜</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">필수</span>
+<div class="flex items-center gap-3">
+<h3 class="text-xs/5 font-semibold text-fg-muted">받는 항목</h3>
+<div aria-hidden="true" class="h-px flex-1 bg-border-default">
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-body">이름</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-muted">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock size-3.5 shrink-0" aria-hidden="true">
+<rect width="18" height="11" x="3" y="11" rx="2" ry="2">
+</rect>
+<path d="M7 11V7a5 5 0 0 1 10 0v4">
+</path>
+</svg>늘 받음</span>
+</div>
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-body">학번</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-secondary">받기<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-8 w-11 rounded-full p-0 hover:bg-transparent pointer-coarse:h-11" type="button" role="switch" aria-checked="true" aria-label="학번 받기">
+<span aria-hidden="true" class="flex h-5 w-9 items-center rounded-full p-0.5 transition-colors justify-end bg-primary-emphasis">
+<span class="size-4 rounded-full bg-white shadow-sm">
+</span>
+</span>
 </button>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">짧은 답</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" type="button" aria-label="이니셜 빼기">
+</span>
+</div>
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-muted">휴대폰 번호<span class="ml-1.5 text-xs/5 font-normal">받지 않음</span>
+</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-secondary">받기<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-8 w-11 rounded-full p-0 hover:bg-transparent pointer-coarse:h-11" type="button" role="switch" aria-checked="false" aria-label="휴대폰 번호 받기">
+<span aria-hidden="true" class="flex h-5 w-9 items-center rounded-full p-0.5 transition-colors justify-start bg-muted-strong">
+<span class="size-4 rounded-full bg-white shadow-sm">
+</span>
+</span>
+</button>
+</span>
+</div>
+</div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="1번 질문" value="이니셜">
+<span aria-hidden="true" class="text-danger-emphasis">*</span>
+<span class="ml-2 text-xs/5 text-fg-muted">짧은 답</span>
+</div>
+<div class="opacity-60 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 size-8 pointer-coarse:size-11 rounded-lg" type="button" aria-label="1번 질문 설정" id="radix-_id1_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
+<circle cx="12" cy="12" r="1">
+</circle>
+<circle cx="19" cy="12" r="1">
+</circle>
+<circle cx="5" cy="12" r="1">
+</circle>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="2번 질문" value="티셔츠 사이즈">
+<span aria-hidden="true" class="text-danger-emphasis">*</span>
+<span class="ml-2 text-xs/5 text-fg-muted">하나 고르기</span>
+</div>
+<div class="opacity-60 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 size-8 pointer-coarse:size-11 rounded-lg" type="button" aria-label="2번 질문 설정" id="radix-_id2_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
+<circle cx="12" cy="12" r="1">
+</circle>
+<circle cx="19" cy="12" r="1">
+</circle>
+<circle cx="5" cy="12" r="1">
+</circle>
+</svg>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-0.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 1" value="S">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary max-sm:min-h-11 max-sm:min-w-11 size-7 rounded-md p-0 [&amp;_svg]:size-3.5 pointer-coarse:size-11" type="button" aria-label="선택지 1 지우기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
 </path>
@@ -23,16 +102,12 @@
 </path>
 </svg>
 </button>
-</div>
-</li>
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-surface-muted hover:text-fg-secondary py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 shrink grow justify-start px-1 text-left text-fg" type="button" aria-expanded="false">
-<span class="truncate font-medium">티셔츠 사이즈</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">필수</span>
-</button>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">하나 고르기</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" type="button" aria-label="티셔츠 사이즈 빼기">
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-0.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 2" value="M">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary max-sm:min-h-11 max-sm:min-w-11 size-7 rounded-md p-0 [&amp;_svg]:size-3.5 pointer-coarse:size-11" type="button" aria-label="선택지 2 지우기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
 </path>
@@ -40,15 +115,12 @@
 </path>
 </svg>
 </button>
-</div>
-</li>
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<button data-slot="button" class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-surface-muted hover:text-fg-secondary py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 shrink grow justify-start px-1 text-left text-fg" type="button" aria-expanded="false">
-<span class="truncate font-medium">참가 종목</span>
-</button>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">여럿 고르기</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" type="button" aria-label="참가 종목 빼기">
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-0.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 3" value="L">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary max-sm:min-h-11 max-sm:min-w-11 size-7 rounded-md p-0 [&amp;_svg]:size-3.5 pointer-coarse:size-11" type="button" aria-label="선택지 3 지우기">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
 <path d="M18 6 6 18">
 </path>
@@ -56,49 +128,212 @@
 </path>
 </svg>
 </button>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center border whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent [&amp;_svg]:size-4 max-sm:min-h-11 min-h-8 pointer-coarse:min-h-11 gap-1.5 rounded-lg px-2 py-0 text-row-sub pointer-coarse:min-w-11 pointer-coarse:px-3 font-medium text-fg-secondary hover:bg-surface-muted hover:text-fg-secondary" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>선택지</button>
 </div>
-</li>
-</ol>
-<div class="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-3">
-<span class="text-xs text-fg-muted">질문 추가</span>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" type="button">짧은 답</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" type="button">하나 고르기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11" type="button">여럿 고르기</button>
 </div>
 </div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="3번 질문" value="참가 종목">
+<span class="text-xs/5 text-fg-muted">(선택)</span>
+<span class="ml-2 text-xs/5 text-fg-muted">여럿 고르기</span>
+</div>
+<div class="opacity-60 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11 size-8 pointer-coarse:size-11 rounded-lg" type="button" aria-label="3번 질문 설정" id="radix-_id3_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis lucide-more-horizontal" aria-hidden="true">
+<circle cx="12" cy="12" r="1">
+</circle>
+<circle cx="19" cy="12" r="1">
+</circle>
+<circle cx="5" cy="12" r="1">
+</circle>
+</svg>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-0.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check size-3 text-transparent" aria-hidden="true">
+<path d="M20 6 9 17l-5-5">
+</path>
+</svg>
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="3번 질문 선택지 1" value="축구">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary max-sm:min-h-11 max-sm:min-w-11 size-7 rounded-md p-0 [&amp;_svg]:size-3.5 pointer-coarse:size-11" type="button" aria-label="선택지 1 지우기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-0.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check size-3 text-transparent" aria-hidden="true">
+<path d="M20 6 9 17l-5-5">
+</path>
+</svg>
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="3번 질문 선택지 2" value="농구">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary max-sm:min-h-11 max-sm:min-w-11 size-7 rounded-md p-0 [&amp;_svg]:size-3.5 pointer-coarse:size-11" type="button" aria-label="선택지 2 지우기">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+<path d="M18 6 6 18">
+</path>
+<path d="m6 6 12 12">
+</path>
+</svg>
+</button>
+</span>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center border whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent [&amp;_svg]:size-4 max-sm:min-h-11 min-h-8 pointer-coarse:min-h-11 gap-1.5 rounded-lg px-2 py-0 text-row-sub pointer-coarse:min-w-11 pointer-coarse:px-3 font-medium text-fg-secondary hover:bg-surface-muted hover:text-fg-secondary" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>선택지</button>
+</div>
+</div>
+</div>
+<div class="-ml-2 flex flex-wrap items-center gap-1">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center border whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent [&amp;_svg]:size-4 max-sm:min-h-11 min-h-8 pointer-coarse:min-h-11 gap-1.5 rounded-lg px-2 py-0 text-row-sub pointer-coarse:min-w-11 pointer-coarse:px-3 font-medium text-fg-secondary hover:bg-surface-muted hover:text-fg-secondary" type="button" aria-expanded="false">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
+<path d="M5 12h14">
+</path>
+<path d="M12 5v14">
+</path>
+</svg>질문 추가</button>
+</div>
+</section>
 </div>
 <div class="w-full max-w-xl">
+<section aria-label="받는 항목" class="flex flex-col gap-5">
 <div class="flex flex-col gap-2">
-<p class="text-xs text-fg-muted">신청이 있어 질문을 바꿀 수 없어요.</p>
-<ol aria-label="질문 목록" class="flex flex-col gap-2">
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<span class="flex min-w-0 grow items-center gap-2 px-1 text-sm font-medium">
-<span class="truncate">이니셜</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">필수</span>
+<div class="flex items-center gap-3">
+<h3 class="text-xs/5 font-semibold text-fg-muted">받는 항목</h3>
+<div aria-hidden="true" class="h-px flex-1 bg-border-default">
+</div>
+</div>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-muted">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock size-3.5 shrink-0" aria-hidden="true">
+<rect width="18" height="11" x="3" y="11" rx="2" ry="2">
+</rect>
+<path d="M7 11V7a5 5 0 0 1 10 0v4">
+</path>
+</svg>신청이 있어 질문은 바꿀 수 없어요</span>
+</div>
+<div class="flex flex-col">
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-body">이름</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-muted">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock size-3.5 shrink-0" aria-hidden="true">
+<rect width="18" height="11" x="3" y="11" rx="2" ry="2">
+</rect>
+<path d="M7 11V7a5 5 0 0 1 10 0v4">
+</path>
+</svg>늘 받음</span>
+</div>
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-body">학번</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-secondary">받기<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-8 w-11 rounded-full p-0 hover:bg-transparent pointer-coarse:h-11" type="button" role="switch" aria-checked="true" aria-label="학번 받기">
+<span aria-hidden="true" class="flex h-5 w-9 items-center rounded-full p-0.5 transition-colors justify-end bg-primary-emphasis">
+<span class="size-4 rounded-full bg-white shadow-sm">
 </span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">짧은 답</span>
-</div>
-</li>
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<span class="flex min-w-0 grow items-center gap-2 px-1 text-sm font-medium">
-<span class="truncate">티셔츠 사이즈</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">필수</span>
 </span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">하나 고르기</span>
-</div>
-</li>
-<li class="rounded-lg border bg-card text-card-foreground shadow-sm">
-<div class="flex items-center gap-2 px-3 py-2">
-<span class="flex min-w-0 grow items-center gap-2 px-1 text-sm font-medium">
-<span class="truncate">참가 종목</span>
+</button>
 </span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">여럿 고르기</span>
 </div>
-</li>
-</ol>
+<div class="flex min-h-9 pointer-coarse:min-h-11 items-center justify-between gap-3">
+<span class="text-row-sub font-semibold text-fg-muted">휴대폰 번호<span class="ml-1.5 text-xs/5 font-normal">받지 않음</span>
+</span>
+<span class="inline-flex items-center gap-1 text-xs/5 text-fg-secondary">받기<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-8 w-11 rounded-full p-0 hover:bg-transparent pointer-coarse:h-11" type="button" role="switch" aria-checked="false" aria-label="휴대폰 번호 받기">
+<span aria-hidden="true" class="flex h-5 w-9 items-center rounded-full p-0.5 transition-colors justify-start bg-muted-strong">
+<span class="size-4 rounded-full bg-white shadow-sm">
+</span>
+</span>
+</button>
+</span>
 </div>
+</div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="1번 질문" readonly="" value="이니셜">
+<span aria-hidden="true" class="text-danger-emphasis">*</span>
+<span class="ml-2 text-xs/5 text-fg-muted">짧은 답</span>
+</div>
+</div>
+</div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="2번 질문" readonly="" value="티셔츠 사이즈">
+<span aria-hidden="true" class="text-danger-emphasis">*</span>
+<span class="ml-2 text-xs/5 text-fg-muted">하나 고르기</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-2.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 1" readonly="" value="S">
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-2.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 2" readonly="" value="M">
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-2.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded-full">
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="2번 질문 선택지 3" readonly="" value="L">
+</span>
+</div>
+</div>
+</div>
+<div class="group flex flex-col gap-1.5">
+<div class="flex items-start gap-1">
+<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+<input data-slot="input" class="border-input placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-9 pointer-coarse:min-h-11 max-w-full min-w-12 w-auto field-sizing-content -ml-2.5 px-2.5 py-1.5 font-semibold text-fg-body text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:ml-0 read-only:px-0 read-only:hover:bg-transparent read-only:focus:ring-0" aria-label="3번 질문" readonly="" value="참가 종목">
+<span class="text-xs/5 text-fg-muted">(선택)</span>
+<span class="ml-2 text-xs/5 text-fg-muted">여럿 고르기</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-2.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check size-3 text-transparent" aria-hidden="true">
+<path d="M20 6 9 17l-5-5">
+</path>
+</svg>
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="3번 질문 선택지 1" readonly="" value="축구">
+</span>
+<span class="inline-flex min-h-8 pointer-coarse:min-h-11 items-center gap-1.5 rounded-lg pl-2.5 ring-1 ring-border-default ring-inset pr-2.5">
+<span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center bg-white ring-1 ring-border-strong ring-inset rounded">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check size-3 text-transparent" aria-hidden="true">
+<path d="M20 6 9 17l-5-5">
+</path>
+</svg>
+</span>
+<input data-slot="input" class="border-input font-normal text-fg-body placeholder:text-fg-subtle focus-visible:border-primary disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border min-h-7 max-w-60 min-w-8 w-auto field-sizing-content px-1 py-0 text-base sm:text-row-sub h-auto rounded-lg border-0 bg-transparent shadow-none outline-none hover:bg-surface-muted focus:bg-white focus:ring-2 focus:ring-primary-emphasis focus-visible:ring-2 focus-visible:ring-primary-emphasis aria-invalid:bg-white aria-invalid:ring-2 aria-invalid:ring-danger-emphasis read-only:bg-transparent read-only:hover:bg-transparent read-only:focus:ring-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="3번 질문 선택지 2" readonly="" value="농구">
+</span>
+</div>
+</div>
+</div>
+</section>
 </div>
 </div>
 </section>

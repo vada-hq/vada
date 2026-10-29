@@ -1,14 +1,12 @@
 import {
   REGISTRATION_STATUSES,
   type Applicant,
-  type ApplicantChange,
   type EventApplicant,
   type EventApplicantsResponse,
   type RegistrationForm,
 } from '@vada/contracts'
 import { ApplicantRow } from '@/registrations/ApplicantRow'
 import { FormCard } from '@/registrations/FormCard'
-import { FormReception } from '@/registrations/FormReception'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { EventApplicantsView } from '@/registrations/EventApplicantsView'
 import { Section } from './GallerySection'
@@ -43,11 +41,11 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
 
 const noop = () => {}
 const handlers = { onForbidden: noop, onLost: noop }
-const changes = new Map<string, ApplicantChange>()
+const galleryEvent = eventDetail({ id: '00000000-0000-4000-8000-000000000401' }, ['event.update'])
 
-// 초안과 활성 양식을 같은 화면 구성으로 비교한다. 미리보기까지 열 수 있는 UUID 견본이다.
+// 초안(빠진 계좌)과 활성 양식 카드를 같은 화면 구성으로 비교한다. 미리보기까지 열 수 있는 UUID 견본이다.
 export function RegistrationReceptionSection() {
-  const event = eventDetail({ id: '00000000-0000-4000-8000-000000000401' }, ['event.update'])
+  const event = galleryEvent
   const active = form('00000000-0000-4000-8000-000000000402', {
     eventId: event.id,
     feeAccount: { id: '00000000-0000-4000-8000-000000000403', name: '행사 참가비 통장' },
@@ -68,7 +66,7 @@ export function RegistrationReceptionSection() {
     <Section title="신청 받기 · 초안·활성">
       <div className="flex w-full min-w-0 flex-col gap-8">
         {[draft, active].map(data => (
-          <FormReception
+          <FormCard
             key={data.id}
             councilId="00000000-0000-4000-8000-000000000405"
             councilName="한양대학교 학생회"
@@ -89,11 +87,11 @@ function Card({ data }: { data: RegistrationForm }) {
   return (
     <FormCard
       councilId="c1"
+      councilName="한양대학교 학생회"
+      event={galleryEvent}
       form={data}
-      changes={changes}
-      onChange={noop}
-      onLoaded={noop}
       onEdit={noop}
+      onEditEvent={noop}
       onChanged={noop}
       {...handlers}
     />
@@ -154,10 +152,10 @@ export function ApplicantRowSection() {
   )
 }
 
-// 신청 양식 카드(상태 배지 다섯, 권한 없음, 긴 이름). 390px 폭에서 본다. QR 스캐너의 결과 카드는 ScanVerdictSection에 있다.
+// 신청 양식 카드(상태 다섯, 권한 없음, 긴 이름). 390px 폭에서 본다. QR 스캐너의 결과 카드는 ScanVerdictSection에 있다.
 export function RegistrationSection() {
   return (
-    <Section title="신청 양식 카드·상태 배지">
+    <Section title="신청 양식 카드·상태">
       <div className="flex w-96 max-w-full flex-col gap-2">
         {REGISTRATION_STATUSES.map(status => (
           <Card

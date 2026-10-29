@@ -80,7 +80,7 @@ test('신청 받기의 초안·활성 견본에서 실제 미리보기를 열 �
   const previews = screen.getAllByRole('button', { name: '미리보기' })
   expect(previews).toHaveLength(2)
   fireEvent.click(previews[0]!)
-  const dialog = screen.getByRole('dialog', { name: '미리보기' })
+  const dialog = screen.getByRole('dialog', { name: '학생 화면 미리보기' })
   expect(within(dialog).getByText('신입생 환영회')).toBeTruthy()
   expect(dialog.querySelector('[inert]')).toBeTruthy()
 })

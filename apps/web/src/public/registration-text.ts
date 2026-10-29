@@ -9,13 +9,6 @@ export const STATUS_LABEL: Record<RegistrationStatus, string> = {
   paused: '잠시 멈춤',
   closed: '마감',
 }
-export const STATUS_TONE: Record<RegistrationStatus, 'success' | 'info' | 'warning' | 'neutral'> = {
-  open: 'success',
-  before_open: 'info',
-  full: 'warning',
-  paused: 'warning',
-  closed: 'neutral',
-}
 
 export const won = (amount: number) =>
   amount === 0 ? '무료' : `${amount.toLocaleString('ko-KR')}원`

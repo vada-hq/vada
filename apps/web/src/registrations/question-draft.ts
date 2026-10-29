@@ -82,7 +82,3 @@ export function questionErrors(drafts: QuestionDraft[]): FieldErrors {
     })),
   ) as FieldErrors
 }
-
-// 그 질문의 칸에 문제가 있는가(닫힌 카드도 펼쳐 보인다).
-export const hasQuestionError = (errors: FieldErrors, at: number) =>
-  Object.entries(errors).some(([key, message]) => message && key.startsWith(`questions.${at}.`))
