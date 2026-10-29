@@ -1,0 +1,136 @@
+import { StrictMode, useEffect } from 'react'
+import { createRoot } from 'react-dom/client'
+import { menuPath, type HomeResponse, type MyCouncil } from '@vada/contracts'
+import { rewriteAddress, useHere } from '@/lib/app-location'
+import { agreementResponse } from '@/test-support/agreement-fixtures'
+import { councilView, PRESIDENT_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
+import CouncilWorkspace from '../../workspace/CouncilWorkspace'
+import { targetOf } from '../../workspace/address'
+import { HomeS5Preview, type S5Variant } from './HomeS5'
+import { S5_DATA, type S5DataName } from './s5-data'
+import '../../index.css'
+
+// S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C&data=main|normal|empty
+// 실제 작업 공간(옆 메뉴 포함)을 가짜 API로 띄우고, 회장단 홈 자리만 시안으로 바꾼다(S1 1절과 같은 방법).
+const params = new URLSearchParams(window.location.search)
+const variant = (['A', 'B', 'C'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A') as S5Variant
+const dataName = (params.get('data') ?? 'main') as S5DataName
+const data = S5_DATA[dataName] ?? S5_DATA.main
+
+const COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c1'
+const council: MyCouncil = {
+  id: COUNCIL_ID,
+  name: 'VADA 시연 학생회',
+  unit: 'department',
+  schoolName: 'VADA 시연 학교',
+  councilRank: 'president',
+  departments: [],
+}
+const base = `/api/organizations/${COUNCIL_ID}`
+
+const view = councilView(COUNCIL_ID, { name: council.name, permissions: PRESIDENT_PERMISSIONS })
+view.me.name = data.name
+
+// 홈 읽기는 회장단 홈 종류만 맞으면 된다(그리는 내용은 시안 견본 데이터).
+const home = {
+  today: data.today,
+  kind: 'council',
+  financeView: false,
+  asOf: `${data.today}T09:00`,
+  myTasks: { open: data.myTasks.open, overdue: 0, nearest: null },
+  featuredEvents: [],
+  participating: { events: [], total: 0 },
+  upcoming: { items: [], total: 0 },
+  myRequests: { requests: [], total: 0 },
+  mine: { tasks: [], counts: { overdue: 0, today: 0, soon: 0, later: 0, noDue: 0 } },
+  councilBoard: {
+    financeStaffed: true,
+    events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
+    followUp: { events: [], total: 0 },
+    attention: { items: [], total: 0 },
+    unassignedMembers: 0,
+  },
+} satisfies HomeResponse
+
+const room = (id: string, name: string | null, type: string, unread: number) => ({
+  id,
+  type,
+  name,
+  departmentId: null,
+  readOnly: false,
+  unread,
+  mentions: 0,
+  lastMessageAt: '2026-10-29T00:00:00.000Z',
+  lastMessage: null,
+  memberCount: 3,
+})
+const rooms = data.rooms.map(item =>
+  room(item.id, item.name.replace(' · 1:1', ''), item.name.includes('1:1') ? 'direct' : 'all_members', item.unread),
+)
+
+const sideEvents = [
+  { id: 'ev-1', name: '가을 축제', status: 'ongoing' },
+  { id: 'ev-2', name: '진로 특강', status: 'upcoming' },
+  { id: 'ev-3', name: '2026 소프트웨어융합대학 체육대회 및 학과 대항 e스포츠 리그', status: 'upcoming' },
+  { id: 'ev-4', name: '겨울 MT', status: 'tbd' },
+  { id: 'ev-5', name: '신입생 환영회', status: 'ended' },
+]
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+
+const routes: Record<string, () => Response> = {
+  'GET /api/me/agreement': () => json(agreementResponse()),
+  // 알림 서버 꺼짐(404)이면 알림 꺼짐 띠가 없다. 띠는 측정 때 56px를 더해 본다(규칙 K8).
+  'GET /api/me/push': () => json({ error: 'NOT_FOUND' }, 404),
+  [`GET ${base}`]: () => json(view),
+  [`GET ${base}/members`]: () => json(teamResponse()),
+  [`GET ${base}/rooms`]: () =>
+    json({ rooms, unreadTotal: rooms.reduce((sum, item) => sum + item.unread, 0), mentionTotal: 0 }),
+  [`GET ${base}/home`]: () => json(home),
+  [`GET ${base}/events/open`]: () => json({ events: dataName === 'empty' ? [] : sideEvents, more: false }),
+  [`GET ${base}/tasks?view=mine&status=open`]: () => json({ tasks: [], truncated: false }),
+}
+
+window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  const url = new URL(input instanceof Request ? input.url : String(input), window.location.origin)
+  const method = (init?.method ?? 'GET').toUpperCase()
+  const key = `${method} ${url.pathname}${url.search}`
+  const handler = routes[key] ?? routes[`${method} ${url.pathname}`]
+  if (handler) return handler()
+  console.warn(`[s5] 가짜 API에 없는 요청: ${key}`)
+  return json({ error: 'NOT_FOUND' }, 404)
+}) as typeof fetch
+
+window.history.replaceState(null, '', menuPath('home', COUNCIL_ID))
+
+function Workspace() {
+  const target = targetOf(useHere(), [council])
+  const moved = target.kind === 'moved' ? target.to : null
+  useEffect(() => {
+    if (moved) rewriteAddress(moved)
+  }, [moved])
+  if (target.kind !== 'ready') return null
+  return (
+    <CouncilWorkspace
+      council={council}
+      councils={[council]}
+      target={target}
+      onSelect={() => {}}
+      returnFocusTo={null}
+      user={{ id: 'u1', name: data.name, email: 'kim@example.com' }}
+      logoutBusy={false}
+      onLogout={() => {}}
+      onCouncilsChanged={() => {}}
+      onCouncilLost={() => {}}
+    />
+  )
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <HomeS5Preview.Provider value={{ variant, data }}>
+      <Workspace />
+    </HomeS5Preview.Provider>
+  </StrictMode>,
+)
