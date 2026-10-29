@@ -6,6 +6,8 @@
 - 판(열 = 테마를 씨앗으로 섞은 차례, 이름은 가·나·다만. 테마·갈래 이름은 판에 쓰지 않는다):
     tiles-compare.png  ① 판: 행 = v3 977 / v1 977 / v3 390
     tiles-board.png    타일 판: 세 타일 나란히
+--with-base: 맨 왼쪽에 기준(base)을 '지금'으로 고정한 4열 판을 만든다(나머지 열은 같은 씨앗·같은 대응).
+    tiles-compare-4.png, tiles-board-4.png, tiles-parts-4.png(타일의 색 견본·① 뺀 부품 부분만 2×2로 크게)
 - 가·나·다 ↔ 테마 대응은 터미널과 notes/visual-language/tiles-mapping.md에만 적는다.
 --no-shoot: 이미 찍은 낱장으로 판만 다시 만든다."""
 
@@ -52,6 +54,10 @@ def shoot_tile(browser, theme):
     page.wait_for_timeout(300)
     out = TILES / f"tile-{theme}.png"
     page.screenshot(path=str(out), full_page=True)
+    # 부품 부분(글자 단계·초점 블록·숫자·버튼·칩·목록·입력칸): 색 견본과 ① 사이의 두 칸 묶음
+    page.locator("[data-theme-tile] > div.grid").screenshot(
+        path=str(TILES / f"tile-parts-{theme}.png")
+    )
     print(out.name + (f"  로그 {logs[:3]}" if logs else ""))
     page.close()
 
@@ -76,24 +82,24 @@ def half(path):
     return img.resize((img.width // SCALE, img.height // SCALE), Image.LANCZOS)
 
 
-def canvas(cols, cw, body_h):
-    W = 2 * M + len(cols) * cw + (len(cols) - 1) * GAP
+def canvas(labels, cw, body_h):
+    W = 2 * M + len(labels) * cw + (len(labels) - 1) * GAP
     H = M + HEAD + body_h + M
     img = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(img)
-    for i in range(len(cols)):
+    for i, label in enumerate(labels):
         x = M + i * (cw + GAP)
-        d.text((x, M), NAMES[i], font=F(34, True), fill=INK)
+        d.text((x, M), label, font=F(34, True), fill=INK)
         if i:
             d.line((x - GAP // 2, M, x - GAP // 2, H - M), fill=LINE, width=2)
     return img, d
 
 
-def compose_c1r(order, out):
+def compose_c1r(order, labels, out):
     cols = [[half(TILES / f"c1r-v{v}-{w}-{t}.png") for v, w, _ in ROWS] for t in order]
     cw = max(img.width for col in cols for img in col)
     heights = [max(col[r].height for col in cols) for r in range(len(ROWS))]
-    img, d = canvas(cols, cw, sum(heights) + len(ROWS) * (ROW_GAP + 24))
+    img, d = canvas(labels, cw, sum(heights) + len(ROWS) * (ROW_GAP + 24))
     for i, col in enumerate(cols):
         x, y = M + i * (cw + GAP), M + HEAD
         for r, (_, _, name) in enumerate(ROWS):
@@ -104,12 +110,35 @@ def compose_c1r(order, out):
     print(out, img.size)
 
 
-def compose_tiles(order, out):
+def compose_tiles(order, labels, out):
     cols = [half(TILES / f"tile-{t}.png") for t in order]
     cw = max(c.width for c in cols)
-    img, _ = canvas(cols, cw, max(c.height for c in cols))
+    img, _ = canvas(labels, cw, max(c.height for c in cols))
     for i, c in enumerate(cols):
         img.paste(c, (M + i * (cw + GAP), M + HEAD))
+    img.save(out)
+    print(out, img.size)
+
+
+def compose_parts(order, labels, out):
+    """부품 부분만 2×2(넷)로 크게: 한 칸 폭이 원래 CSS 폭(1232)이라 한 화면에서 글자가 읽힌다."""
+    cells = [half(TILES / f"tile-parts-{t}.png") for t in order]
+    cw, ch = max(c.width for c in cells), max(c.height for c in cells)
+    per_row = 2
+    rows = (len(cells) + per_row - 1) // per_row
+    W = 2 * M + per_row * cw + (per_row - 1) * GAP
+    H = M + rows * (HEAD + ch + GAP) - GAP + M
+    img = Image.new("RGB", (W, H), "white")
+    d = ImageDraw.Draw(img)
+    for i, (c, label) in enumerate(zip(cells, labels)):
+        x = M + (i % per_row) * (cw + GAP)
+        y = M + (i // per_row) * (HEAD + ch + GAP)
+        d.text((x, y), label, font=F(34, True), fill=INK)
+        img.paste(c, (x, y + HEAD))
+    d.line((M + cw + GAP // 2, M, M + cw + GAP // 2, H - M), fill=LINE, width=2)
+    for r in range(1, rows):
+        y = M + r * (HEAD + ch + GAP) - GAP // 2
+        d.line((M, y, W - M, y), fill=LINE, width=2)
     img.save(out)
     print(out, img.size)
 
@@ -150,6 +179,7 @@ def main():
         "--seed", type=int, default=1, help="열 차례를 섞는 씨앗(1 = 가 b, 나 c, 다 a)"
     )
     ap.add_argument("--no-shoot", action="store_true")
+    ap.add_argument("--with-base", action="store_true", help="맨 왼쪽 '지금'(base) 고정 4열 판")
     a = ap.parse_args()
     themes = [t for t in a.themes.split(",") if t in THEMES]
     order = list(themes)
@@ -158,13 +188,21 @@ def main():
     if not a.no_shoot:
         with sync_playwright() as p:
             b = launch(p)
-            for t in themes:
+            for t in (["base"] if a.with_base else []) + themes:
                 shoot_tile(b, t)
                 for v, w in sorted({(v, w) for v, w, _ in ROWS}):
                     shoot_c1r(b, t, v, w)
             b.close()
-    compose_c1r(order, VISUAL / "tiles-compare.png")
-    compose_tiles(order, VISUAL / "tiles-board.png")
+    labels = list(NAMES[: len(order)])
+    if a.with_base:
+        cols, labels = ["base"] + order, ["지금"] + labels
+        n = len(cols)
+        compose_c1r(cols, labels, VISUAL / f"tiles-compare-{n}.png")
+        compose_tiles(cols, labels, VISUAL / f"tiles-board-{n}.png")
+        compose_parts(cols, labels, VISUAL / f"tiles-parts-{n}.png")
+    else:
+        compose_c1r(order, labels, VISUAL / "tiles-compare.png")
+        compose_tiles(order, labels, VISUAL / "tiles-board.png")
     write_mapping(order, a.seed)
 
 
