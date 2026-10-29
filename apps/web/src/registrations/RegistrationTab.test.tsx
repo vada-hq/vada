@@ -355,7 +355,8 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   const closes = within(form).getByLabelText('신청 마감')
   expect(closes).toHaveProperty('value', '2026-10-24')
   expect(within(form).getByRole('combobox', { name: '마감 시각' })).toHaveProperty('value', '14:00')
-  expect(closes.getAttribute('aria-required')).toBe('true')
+  // 새 양식은 초안이라 마감 없이도 저장된다(활성화가 마감을 묻는다, DEC-93).
+  expect(closes.getAttribute('aria-required')).toBeNull()
   expect(within(form).getByLabelText('없음')).toHaveProperty('checked', true)
   expect(within(form).queryByLabelText('학생회비 납부자 금액 다름')).toBeNull()
   expect(within(form).queryByRole('switch', { name: '이름 받기' })).toBeNull()
@@ -373,18 +374,18 @@ test('만들기는 목록 대신 탭 안 화면으로 열리고, 양식 이름�
   expect(screen.getByText('신청 양식 없음')).toBeTruthy()
 })
 
-test('행사 시작이 없으면 마감은 비어 있고, 필수 N칸 남음을 누르면 첫 빈 필수 칸으로 옮긴다', async () => {
+test('행사 시작이 없으면 마감은 비어 있고 초안이라 남은 필수 칸이 아니다. 필수 N칸 남음을 누르면 첫 빈 필수 칸으로 옮긴다', async () => {
   setup({ forms: [], actions: ['form.create'], event: eventDetail({ startsAt: null }) })
   fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   const closes = within(form).getByLabelText('신청 마감')
   expect(closes).toHaveProperty('value', '')
-  fireEvent.click(screen.getByRole('button', { name: '필수 1칸 남음' }))
-  expect(document.activeElement).toBe(closes)
+  expect(screen.queryByRole('button', { name: /칸 남음/ })).toBeNull()
   fireEvent.click(within(form).getByLabelText('있음'))
-  expect(screen.getByRole('button', { name: '필수 2칸 남음' })).toBeTruthy()
-  await pickDateTime(closes, '2026-10-23T18:00')
-  fireEvent.change(within(form).getByLabelText('참가비'), { target: { value: '5000' } })
+  fireEvent.click(screen.getByRole('button', { name: '필수 1칸 남음' }))
+  const fee = within(form).getByLabelText('참가비')
+  expect(document.activeElement).toBe(fee)
+  fireEvent.change(fee, { target: { value: '5000' } })
   await waitFor(() => expect(screen.queryByRole('button', { name: /칸 남음/ })).toBeNull())
 })
 
@@ -523,8 +524,8 @@ test('초안은 계좌 없이 참가비를 저장하고 링크는 공개하지 �
   expect(screen.queryByRole('button', { name: '링크 복사' })).toBeNull()
 })
 
-test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 눌러도 보내지 않고 마감 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
-  // 행사 시작이 없으면 마감이 빈 채로 열린다(마감 칸은 필수라 지우기가 없다).
+test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 행사 시작이 없어 마감이 비면 마감 없이 초안을 만든다', async () => {
+  // 행사 시작이 없으면 마감이 빈 채로 열린다. 초안은 마감 없이 저장되고 카드가 '신청 마감 · 채우기'를 보인다.
   const { api } = setup({
     forms: [],
     actions: ['form.create'],
@@ -532,18 +533,12 @@ test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이
   })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
   const { form } = await openCreate(api, { closes: false })
-  const closes = within(form).getByLabelText('신청 마감')
-  expect(submit()).toHaveProperty('disabled', false)
+  expect(within(form).getByLabelText('신청 마감')).toHaveProperty('value', '')
   fireEvent.click(submit())
-  expect(within(form).getByText('신청 마감을 입력해 주세요')).toBeTruthy()
-  expect(closes.getAttribute('aria-invalid')).toBe('true')
-  await waitFor(() => expect(document.activeElement).toBe(closes))
-  expect(posts(api)).toHaveLength(0)
-  await pickDateTime(closes, '2026-10-23T18:00')
   expect(within(form).queryByText('신청 마감을 입력해 주세요')).toBeNull()
-  fireEvent.click(submit())
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]?.body).toMatchObject({
+    closesAt: null,
     payerFee: null,
     nonPayerFee: null,
     feeAccountId: null,

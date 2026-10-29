@@ -204,6 +204,8 @@ type Props = {
   ids: FieldIds
   values: FormValues
   errors: FieldErrors
+  // 초안은 마감을 비워 저장할 수 있다(활성화가 묻는다). 그때는 필수 별표를 달지 않는다.
+  closesRequired: boolean
   account: FeeAccount
   event: EventDetail | null
   onChange: Change
@@ -215,6 +217,7 @@ export function SettingRows({
   ids,
   values,
   errors,
+  closesRequired,
   account,
   event,
   onChange,
@@ -228,13 +231,18 @@ export function SettingRows({
           <EventValue event={event} onEdit={rest.onEditEvent} />
         </PropRow>
       )}
-      <PropRow icon={Clock} label="신청 마감" mark="required" htmlFor={ids.closesAt}>
+      <PropRow
+        icon={Clock}
+        label="신청 마감"
+        mark={closesRequired ? 'required' : undefined}
+        htmlFor={ids.closesAt}
+      >
         <DateValue
           id={ids.closesAt}
           value={values.closesAt}
           // 시각 칸 이름은 라벨 글을 담지 않는다. 라벨로 날짜 칸을 찾을 때 둘이 함께 걸리지 않게 한다.
           timeLabel="마감 시각"
-          required
+          required={closesRequired}
           error={errors.closesAt}
           onChange={closesAt => onChange({ closesAt })}
         />

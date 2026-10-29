@@ -56,7 +56,7 @@ test('납부자 별도 금액이면 학번 받기를 꺼도 학번을 받는다'
 })
 
 test('누를 때 확인: 빈 필수 칸, 마감 순서, 숫자가 아닌 정원과 참가비를 칸마다 알린다', () => {
-  expect(formErrors({ ...emptyFormValues, name: ' ' })).toEqual({
+  expect(formErrors({ ...emptyFormValues, name: ' ' }, false)).toEqual({
     name: '양식 이름을 입력해 주세요',
     closesAt: '신청 마감을 입력해 주세요',
   })
@@ -67,13 +67,22 @@ test('누를 때 확인: 빈 필수 칸, 마감 순서, 숫자가 아닌 정원�
       capacity: '열',
       feeKind: 'one',
       fee: '',
-    }),
+    }, false),
   ).toEqual({
     closesAt: '신청 시작보다 늦은 시각을 입력해 주세요',
     capacity: '1 이상의 숫자를 입력해 주세요',
     fee: '참가비를 입력해 주세요',
   })
-  expect(formErrors(filled)).toEqual({})
+  expect(formErrors(filled, false)).toEqual({})
+})
+
+test('초안은 마감을 비워도 칸 문제가 없고 남은 필수 칸에 세지 않으며 요청의 마감은 null이다', () => {
+  const open = { ...filled, closesAt: '' }
+  expect(formErrors(open, true)).toEqual({})
+  expect(formErrors(open, false)).toEqual({ closesAt: '신청 마감을 입력해 주세요' })
+  expect(missingRequired(open, null, true)).toEqual([])
+  expect(formRequest(open, null).closesAt).toBeNull()
+  expect(CreateFormSchema.safeParse(formRequest(open, null)).success).toBe(true)
 })
 
 test('계약도 숫자가 아닌 글과 마감 순서를 거절한다', () => {
@@ -131,12 +140,12 @@ test('새 양식의 신청 마감은 행사 시작 시각이고, 행사 시작�
 })
 
 test('남은 필수 칸은 화면 차례대로 이름·마감·참가비 금액·계좌이고, 계좌는 참가비가 있을 때만 센다', () => {
-  expect(missingRequired(filled, null)).toEqual([])
-  expect(missingRequired({ ...emptyFormValues, name: ' ' }, null)).toEqual(['name', 'closesAt'])
-  expect(missingRequired({ ...filled, feeKind: 'one' }, null)).toEqual(['fee'])
-  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, null)).toEqual(['account'])
-  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID)).toEqual([])
-  expect(missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID)).toEqual([
+  expect(missingRequired(filled, null, false)).toEqual([])
+  expect(missingRequired({ ...emptyFormValues, name: ' ' }, null, false)).toEqual(['name', 'closesAt'])
+  expect(missingRequired({ ...filled, feeKind: 'one' }, null, false)).toEqual(['fee'])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, null, false)).toEqual(['account'])
+  expect(missingRequired({ ...filled, feeKind: 'one', fee: '5000' }, ACCOUNT_ID, false)).toEqual([])
+  expect(missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID, false)).toEqual([
     'nonPayerFee',
   ])
 })

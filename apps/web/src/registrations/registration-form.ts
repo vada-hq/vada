@@ -50,7 +50,7 @@ export const emptyFormValues: FormValues = {
 }
 
 // 새 양식의 처음 값. 신청 마감은 행사 시작 시각이다(Luma 관례, 보통 행사 직전까지 받는다).
-// 행사 시작이 없거나 행사를 아직 읽지 못했으면 비워 두고 운영진이 넣는다(서버 계약은 마감 필수 그대로).
+// 행사 시작이 없거나 행사를 아직 읽지 못했으면 비워 둔다. 초안은 마감 없이 저장되고 활성화가 마감을 묻는다(DEC-93).
 export const newFormValues = (event: Pick<EventDetail, 'startsAt'> | null): FormValues => ({
   ...emptyFormValues,
   closesAt: event?.startsAt ?? '',
@@ -75,7 +75,7 @@ function feeValuesOf(form: Pick<RegistrationForm, 'payerFee' | 'nonPayerFee'>) {
 export const valuesOfForm = (form: RegistrationForm): FormValues => ({
   name: form.name,
   opensAt: form.opensAt ?? '',
-  closesAt: form.closesAt,
+  closesAt: form.closesAt ?? '',
   capacity: textOf(form.capacity),
   notice: form.notice ?? '',
   collectsPhone: form.collectsPhone,
@@ -116,7 +116,7 @@ export const collectsStudentId = (values: FormValues) =>
 export const formRequest = (values: FormValues, feeAccountId: string | null) => ({
   name: values.name,
   opensAt: values.opensAt === '' ? null : values.opensAt,
-  closesAt: values.closesAt,
+  closesAt: values.closesAt === '' ? null : values.closesAt,
   capacity: numberOf(values.capacity),
   notice: values.notice.trim() === '' ? null : values.notice,
   collectsPhone: values.collectsPhone,
@@ -153,13 +153,16 @@ function feeErrors(values: FormValues): FormErrors {
 
 // 만들기를 눌렀을 때 칸 아래에 보일 문제(GOV.UK: 버튼을 끄지 않고 보낼 때 확인한다).
 // 길이 상한처럼 여기서 다루지 않는 규칙은 계약(safeParse)이 마지막에 막는다.
-export function formErrors(values: FormValues): FormErrors {
+// 초안(새 양식, 신청이 없는 멈춘 양식)은 마감을 비워도 된다. 받는 중이거나 신청이 있으면 서버가 마감 비우기를 막는다.
+export function formErrors(values: FormValues, draft: boolean): FormErrors {
   const { opensAt, closesAt, capacity } = values
   const errors: FormErrors = {
     name: values.name.trim() === '' ? ENTER('양식 이름을') : undefined,
     closesAt:
       closesAt === ''
-        ? ENTER('신청 마감을')
+        ? draft
+          ? undefined
+          : ENTER('신청 마감을')
         : opensAt !== '' && closesAt <= opensAt
           ? '신청 시작보다 늦은 시각을 입력해 주세요'
           : undefined,
@@ -175,7 +178,11 @@ export function formErrors(values: FormValues): FormErrors {
 // 편집기 머리줄 '필수 N칸 남음'이 세는 칸(화면 차례). 누를 때 확인(formErrors)과 같은 필수 칸이고, 계좌는 참가비가 있을 때만이다.
 export type RequiredField = 'name' | 'closesAt' | 'fee' | 'payerFee' | 'nonPayerFee' | 'account'
 
-export function missingRequired(values: FormValues, accountId: string | null): RequiredField[] {
+export function missingRequired(
+  values: FormValues,
+  accountId: string | null,
+  draft: boolean,
+): RequiredField[] {
   const empty = (value: string) => value.trim() === ''
   const fees: [RequiredField, string][] =
     values.feeKind === 'one'
@@ -188,7 +195,7 @@ export function missingRequired(values: FormValues, accountId: string | null): R
         : []
   const checks: [RequiredField, boolean][] = [
     ['name', empty(values.name)],
-    ['closesAt', empty(values.closesAt)],
+    ['closesAt', !draft && empty(values.closesAt)],
     ...fees.map(([field, value]): [RequiredField, boolean] => [field, empty(value)]),
     ['account', hasFee(values) && accountId === null],
   ]

@@ -60,7 +60,7 @@ export const registrationForm = pgTable('registration_form', {
   eventId: uuid('event_id').notNull(),
   name: text('name').notNull(),
   opensAt: at('opens_at'),
-  closesAt: at('closes_at').notNull(),
+  closesAt: at('closes_at'),
   capacity: integer('capacity'),
   notice: text('notice'),
   collectsPhone: boolean('collects_phone').notNull().default(false),

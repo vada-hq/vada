@@ -60,8 +60,10 @@ async function candidatesOf(
 }
 
 // 지울 날(행사 끝+1년의 한국 날짜)이 오늘이거나 지났다. 날짜는 한국 날짜로 견주므로 한국 자정에 바뀐다.
-const isDue = (form: Awaited<ReturnType<typeof candidatesOf>>[number], now: Date) =>
-  purgeOnOf(form) <= koreanDateOf(now)
+const isDue = (form: Awaited<ReturnType<typeof candidatesOf>>[number], now: Date) => {
+  const purgeOn = purgeOnOf(form)
+  return purgeOn !== null && purgeOn <= koreanDateOf(now)
+}
 
 // 기한이 지난 모든 양식의 신청자 정보를 비운다. 같은 일을 두 번 해도 같다.
 export async function purgeRegistrations(tx: Tx, now: Date) {

@@ -89,6 +89,9 @@ function accountError(
   return hasFee(values) && accountId === null ? '참가비 받을 계좌를 골라 주세요' : undefined
 }
 
+const isDraft = (form: RegistrationForm | undefined) =>
+  !form || (form.paused && form.applicantCount === 0)
+
 // 처음 값. 만들기 화면을 연 뒤에 행사를 읽었으면, 아직 손대지 않은 값에 행사 시작 마감을 채운다(떠날 때 묻지 않게 기준도 함께).
 function useStartValues(props: Props) {
   const mode = modeOf(props)
@@ -118,11 +121,13 @@ function useFormEditor(props: Props) {
     ...formRequest(values, account.pick.id),
     ...(!form && taskId ? { taskId } : {}),
   }
+  // 초안(새 양식, 신청이 없는 멈춘 양식)은 마감 없이 저장된다. 서버가 같은 조건으로 마감 비우기를 막는다(CLOSES_AT_REQUIRED).
+  const draft = isDraft(form)
   const parsed = mode.schema.safeParse(request)
   const { formRef, errors, attempt } = useFormCheck(() =>
     withContract(
       {
-        ...formErrors(values),
+        ...formErrors(values, draft),
         ...questionErrors(values.questions),
         account: accountError(form, values, account.pick.id),
       },
@@ -137,6 +142,7 @@ function useFormEditor(props: Props) {
   }
   return {
     mode,
+    draft,
     values,
     change: (patch: Partial<FormValues>) => setValues(current => ({ ...current, ...patch })),
     setChosen,
@@ -184,7 +190,7 @@ export function FormEditor(props: Props) {
   const ids = useFieldIds()
   const formId = useId()
   const [previewing, setPreviewing] = useState(false)
-  const { mode, values, errors, account, formRef, change, setChosen, saving, post } = editor
+  const { mode, draft, values, errors, account, formRef, change, setChosen, saving, post } = editor
   useStartFocus(props.focus, ids, account.accounts !== null)
   const preview = props.event && previewOf(values, props.event, props.councilName)
   return (
@@ -195,7 +201,7 @@ export function FormEditor(props: Props) {
         formId={formId}
         backLabel={props.backLabel ?? '신청 양식 목록'}
         busy={saving}
-        missing={missingRequired(values, account.pick.id).map(field => ids[field])}
+        missing={missingRequired(values, account.pick.id, draft).map(field => ids[field])}
         onBack={editor.close}
         onPreview={preview ? () => setPreviewing(true) : null}
       />
@@ -223,6 +229,7 @@ export function FormEditor(props: Props) {
               ids={ids}
               values={values}
               errors={errors}
+              closesRequired={!draft}
               account={account}
               event={props.event}
               onChange={change}

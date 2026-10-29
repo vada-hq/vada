@@ -92,7 +92,7 @@ function missingConditionsOf(row: FormRow) {
   return missingFormConditions({
     eventStartsAt: row.eventStartsAt ? koreanOf(row.eventStartsAt) : null,
     opensAt: row.opensAt ? koreanOf(row.opensAt) : null,
-    closesAt: koreanOf(row.closesAt),
+    closesAt: row.closesAt ? koreanOf(row.closesAt) : null,
     payerFee: feeOf(row.payerFee),
     nonPayerFee: feeOf(row.nonPayerFee),
     feeAccountId: row.feeAccountClosedOn === null ? row.feeAccountId : null,
@@ -119,7 +119,7 @@ function formOf(
     eventId: row.eventId,
     name: row.name,
     opensAt: row.opensAt ? koreanOf(row.opensAt) : null,
-    closesAt: koreanOf(row.closesAt),
+    closesAt: row.closesAt ? koreanOf(row.closesAt) : null,
     capacity: row.capacity,
     notice: row.notice,
     collectsPhone: row.collectsPhone,

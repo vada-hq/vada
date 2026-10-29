@@ -71,7 +71,10 @@ export async function publicFormOf(
   const row = await publicRowOf(db, code)
   const applicantCount = await applicantCountOf(db, row.id)
   // DEC-93의 초안은 멈춘 채 신청이 0명인 양식이다. 미리보기 자료는 운영진 경로에서만 읽는다.
-  if (row.pausedAt !== null && applicantCount === 0) throw new ApiError('REGISTRATION_NOT_OPEN')
+  // 마감 없는 양식은 초안뿐이라(DB CHECK와 서버가 신청 0명을 본다) 같은 판정이다.
+  if ((row.pausedAt !== null && applicantCount === 0) || row.closesAt === null)
+    throw new ApiError('REGISTRATION_NOT_OPEN')
+  const closesAt = row.closesAt
   const completed = await completedEventIdsAmong(db, [row.eventId])
   const payerFee = feeOf(row.payerFee)
   const nonPayerFee = feeOf(row.nonPayerFee)
@@ -86,7 +89,7 @@ export async function publicFormOf(
     form: {
       name: row.name,
       opensAt: koreanOrNull(row.opensAt),
-      closesAt: koreanOf(row.closesAt),
+      closesAt: koreanOf(closesAt),
       notice: row.notice,
     },
     // 완료한 행사와 그만두는 학생회의 양식은 받지 않는다(신청은 REGISTRATION_NOT_OPEN). 운영진 응답과 같은 함수가 센다.
@@ -109,6 +112,7 @@ export async function publicFormOf(
     collectsPhone: row.collectsPhone,
     // 질문 제목은 화면 고지의 받는 항목에 그대로 실린다(DEC-93). 선택지 번호는 신청 본문이 쓴다.
     questions: await questionsOfForm(db, row.id),
-    purgeOn: purgeOnOf({ ...row, eventStartsAt: row.eventStartsAt, eventEndsAt: row.eventEndsAt }),
+    // 마감이 있어 늘 센다.
+    purgeOn: purgeOnOf({ ...row, closesAt })!,
   }
 }

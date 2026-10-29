@@ -197,7 +197,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     const id = await makeForm(eventId, {
       ...input,
       opensAt: input.opensAt ? dateFromKorean(input.opensAt) : null,
-      closesAt: dateFromKorean(input.closesAt),
+      closesAt: input.closesAt ? dateFromKorean(input.closesAt) : null,
       payerFee: input.payerFee === null ? null : String(input.payerFee),
       nonPayerFee: input.nonPayerFee === null ? null : String(input.nonPayerFee),
     })

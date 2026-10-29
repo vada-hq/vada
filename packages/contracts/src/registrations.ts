@@ -76,11 +76,11 @@ export type FormActivationFailure = z.infer<typeof FormActivationFailureSchema>
 const fee = z.number().int().min(0).max(REGISTRATION_FEE_MAX)
 const capacity = z.number().int().min(1).max(REGISTRATION_CAPACITY_MAX)
 
-// 마감은 필수이고 시작 뒤다. 참가비 두 값은 둘 다 있거나 둘 다 없다. 일시는 한국 시각이라 글자 순서가 시간 순서다.
+// 마감은 시작 뒤다. 초안은 마감을 비울 수 있고(행사 시작이 미정일 때, DEC-93) 활성화가 마감 없음을 막는다. 참가비 두 값은 둘 다 있거나 둘 다 없다. 일시는 한국 시각이라 글자 순서가 시간 순서다.
 // 두 참가비가 다르면 학번을 꼭 받는다. 적용 참가비를 납부자 명단과 학번으로 정하기 때문이다(DEC-75, DB CHECK와 같다).
 type FeePair = { payerFee: number | null; nonPayerFee: number | null }
-const hasValidSpan = (input: { opensAt: string | null; closesAt: string }) =>
-  input.opensAt === null || input.closesAt > input.opensAt
+const hasValidSpan = (input: { opensAt: string | null; closesAt: string | null }) =>
+  input.opensAt === null || input.closesAt === null || input.closesAt > input.opensAt
 const hasFeePair = (input: FeePair) => (input.payerFee === null) === (input.nonPayerFee === null)
 const collectsNeededStudentId = (input: FeePair & { collectsStudentId: boolean }) =>
   input.collectsStudentId || input.payerFee === input.nonPayerFee
@@ -92,7 +92,8 @@ const isValidForm = (
 const fields = {
   name: text(REGISTRATION_FORM_NAME_MAX),
   opensAt: koreanDateTime.nullable(),
-  closesAt: koreanDateTime,
+  // 칸은 늘 보낸다. 비우기(null)는 신청이 없는 멈춘 양식(초안)만 된다(409 CLOSES_AT_REQUIRED).
+  closesAt: koreanDateTime.nullable(),
   capacity: capacity.nullable(),
   notice: text(REGISTRATION_NOTICE_MAX).nullable(),
   collectsPhone: z.boolean(),
@@ -150,7 +151,8 @@ export interface RegistrationForm {
   name: string
   // 한국 시각 YYYY-MM-DDTHH:mm
   opensAt: string | null
-  closesAt: string
+  // 초안만 비어 있을 수 있다(행사 시작이 미정일 때). 비었으면 missingConditions에 closes_at이 있다.
+  closesAt: string | null
   capacity: number | null
   notice: string | null
   collectsPhone: boolean
@@ -167,8 +169,8 @@ export interface RegistrationForm {
   attendedCount: number
   // 정원이 없으면 null이고, 정원을 지금 수보다 줄였으면 0이다.
   remaining: number | null
-  // 신청자 정보를 지우는 날(한국 날짜 YYYY-MM-DD)
-  purgeOn: string
+  // 신청자 정보를 지우는 날(한국 날짜 YYYY-MM-DD). 행사 일시도 마감도 없는 초안은 셀 근거가 없어 null이다.
+  purgeOn: string | null
   // 서버가 활성화 시 검사하는 부족 조건. 읽기 권한과 무관하게 모든 운영진에게 준다.
   missingConditions: FormActivationCondition[]
   // 신청자가 답할 질문(차례대로). 이름·학번·휴대폰 칸 밖의 받는 항목이다.

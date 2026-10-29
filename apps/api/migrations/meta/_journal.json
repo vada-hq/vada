@@ -211,6 +211,13 @@
       "when": 1793270505940,
       "tag": "0029_product_info",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793306980868,
+      "tag": "0030_draft_form_without_close",
+      "breakpoints": true
     }
   ]
 }

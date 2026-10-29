@@ -32,6 +32,7 @@ export const CANCEL_REGISTRATION_FAILED = '취소하지 못했어요. 연결을 
 export const ATTENDANCE_CHANGED = '다른 운영진이 이미 바꿨어요.'
 export const REGISTRATION_STAFF_ERRORS = changeErrors({
   FORM_NOT_READY: '링크 활성화 조건을 확인해 주세요.',
+  CLOSES_AT_REQUIRED: '받는 중이거나 신청이 있는 양식은 신청 마감을 비울 수 없어요.',
   FORM_HAS_APPLICANTS: '신청이 들어와 질문을 바꿀 수 없어요. 양식을 새로 불러와 확인해 주세요.',
   TASK_INVALID,
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',

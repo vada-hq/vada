@@ -90,7 +90,12 @@ function decide(actor: Actor, facts: FormFacts, action: FormPolicyAction): Error
 
 // 이미 읽은 값으로 사실을 만든다(목록은 행사마다 한 번 읽어 여러 양식에 나눠 준다).
 export const factsFrom = (
-  read: { context: Context; eventCompleted: boolean; closesAt: Date; pausedAt: Date | null },
+  read: {
+    context: Context
+    eventCompleted: boolean
+    closesAt: Date | null
+    pausedAt: Date | null
+  },
   now: Date,
 ): FormFacts => ({
   context: read.context,
@@ -111,7 +116,7 @@ export async function eventFactsOf(db: Reader, actor: Actor, row: EventRow): Pro
   return { context, eventCompleted }
 }
 
-type FactsRow = EventRow & { closesAt: Date; pausedAt: Date | null }
+type FactsRow = EventRow & { closesAt: Date | null; pausedAt: Date | null }
 
 // 양식 하나의 사실(읽기와 쓰기가 같이 쓴다).
 async function factsOf(db: Reader, actor: Actor, row: FactsRow, now: Date) {

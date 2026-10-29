@@ -39,7 +39,8 @@ function registrationOf(forms: LaneForm[], now: Date): HomeEventLane['registrati
       ),
     }))
     .filter(({ status }) => status === 'open' || status === 'full')
-    .sort((a, b) => a.form.closesAt.getTime() - b.form.closesAt.getTime())
+    // 받는 중·정원 참은 멈추지 않은 양식이라 마감이 있다(DB CHECK).
+    .sort((a, b) => a.form.closesAt!.getTime() - b.form.closesAt!.getTime())
   const [first] = live
   if (!first) return null
   const { form } = first

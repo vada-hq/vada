@@ -218,13 +218,12 @@ test(
 )
 
 test(
-  '마감이 없거나 시작보다 이르거나 같으면 400이다',
+  '마감 칸이 빠졌거나 시작보다 이르거나 같으면 400이다(마감 비우기는 form-draft-close.test.ts)',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const { closesAt: _closesAt, ...withoutClose } = FORM
     for (const body of [
       withoutClose,
-      { ...FORM, closesAt: null },
       { ...FORM, opensAt: '2026-11-01T18:00' },
       { ...FORM, opensAt: '2026-11-02T09:00' },
       { ...FORM, closesAt: '2026-11-01' },
@@ -429,7 +428,7 @@ test(
       { ...EDIT, extra: 1 },
       withoutNotice,
       withoutStudentId,
-      { ...EDIT, closesAt: null },
+      { ...withoutNotice, closesAt: null },
       { ...EDIT, opensAt: '2026-11-02T18:00' },
       { ...EDIT, payerFee: 100 },
     ])

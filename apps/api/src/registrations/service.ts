@@ -18,6 +18,7 @@ import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
 import { insertQuestions, replaceQuestions } from './question-write.js'
 import { freshPublicCode } from './public-code.js'
+import { applicantCountOf } from './public-form.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 행사·양식 읽기 → 권한표 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
@@ -61,7 +62,7 @@ export async function createForm(
       eventId: eventRow.id,
       name: input.name,
       opensAt: fromKorean(input.opensAt),
-      closesAt: dateFromKorean(input.closesAt),
+      closesAt: fromKorean(input.closesAt),
       capacity: input.capacity,
       notice: input.notice,
       collectsPhone: input.collectsPhone,
@@ -75,6 +76,14 @@ export async function createForm(
   })
   await insertQuestions(tx, id, input.questions)
   return formDetailOf(tx, actor, id, target.now)
+}
+
+// 마감 비우기는 초안(멈춘 채 신청이 0명인 양식, DEC-93)만 된다. 받는 중이거나 신청이 있으면 마감이 상태와 지우는 날을 정한다.
+// 신청은 멈춘 양식에 들어오지 않고 같은 거래가 학생회 행을 잠갔으므로 센 뒤에 신청이 생기지 않는다.
+async function assertClosesAtAllowed(tx: Tx, row: FormRow, input: UpdateFormRequest) {
+  if (input.closesAt !== null || row.closesAt === null) return
+  if (row.pausedAt === null || (await applicantCountOf(tx, row.id)) > 0)
+    throw new ApiError('CLOSES_AT_REQUIRED')
 }
 
 // 받는 칸. 학번 받기를 바꾸면 그 뒤의 신청부터 따른다(DEC-75).
@@ -91,9 +100,7 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
   return {
     ...(input.name !== row.name ? { name: input.name } : {}),
     ...(koreanOrNull(row.opensAt) !== input.opensAt ? { opensAt: fromKorean(input.opensAt) } : {}),
-    ...(koreanOf(row.closesAt) !== input.closesAt
-      ? { closesAt: dateFromKorean(input.closesAt) }
-      : {}),
+    ...(koreanOrNull(row.closesAt) !== input.closesAt ? { closesAt: fromKorean(input.closesAt) } : {}),
     ...(input.capacity !== row.capacity ? { capacity: input.capacity } : {}),
     ...(input.notice !== row.notice ? { notice: input.notice } : {}),
     ...collectChangesOf(row, input),
@@ -117,6 +124,7 @@ export async function updateForm(
   const row = await formRowOf(tx, actor, target.formId)
   await assertEventAction(tx, actor, 'form.update', row)
   await assertFeeAccount(tx, actor, input, row.pausedAt !== null)
+  await assertClosesAtAllowed(tx, row, input)
   // 질문은 다른 칸보다 먼저 본다. 신청이 있어 바꿀 수 없으면 409로 거래 전체가 되돌아간다.
   if (input.questions) await replaceQuestions(tx, row.id, input.questions)
   const changes = changesOf(row, input)
@@ -171,7 +179,7 @@ async function activateForm(
     ...fees,
     eventStartsAt: koreanOrNull(row.eventStartsAt),
     opensAt: koreanOrNull(row.opensAt),
-    closesAt: koreanOf(row.closesAt),
+    closesAt: koreanOrNull(row.closesAt),
   })
   if (missingConditions.length) return { error: 'FORM_NOT_READY', missingConditions }
   try {

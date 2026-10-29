@@ -2,7 +2,8 @@ import type { RegistrationStatus } from '@vada/contracts'
 
 type StateInput = {
   opensAt: Date | null
-  closesAt: Date
+  // 초안만 비어 있다(멈춘 양식이라 상태는 paused다).
+  closesAt: Date | null
   paused: boolean
   capacity: number | null
   // 취소하지 않은 신청 수
@@ -11,8 +12,9 @@ type StateInput = {
   eventCompleted: boolean
 }
 
-// 마감 시각이 지났는가. 상태와 정책(멈추기·다시 받기)이 같은 판단을 쓴다.
-export const isFormClosed = (closesAt: Date, now: Date) => now.getTime() >= closesAt.getTime()
+// 마감 시각이 지났는가. 상태와 정책(멈추기·다시 받기)이 같은 판단을 쓴다. 마감이 없는 초안은 마감되지 않았다.
+export const isFormClosed = (closesAt: Date | null, now: Date) =>
+  closesAt !== null && now.getTime() >= closesAt.getTime()
 
 // 상태는 저장하지 않고 센다. 운영진 응답, 공개 응답, 신청이 이 함수 하나를 쓴다. 앞에서 맞는 것이 상태다: 마감(완료한 행사, 지금 ≥ 마감) → 멈춤 → 시작 전 → 정원 참 → 받는 중.
 // 초안도 paused로 막아 공개 읽기와 신청이 같은 판정을 쓴다. 정원을 지금 신청 수보다 줄여도 되므로 정원 참은 '같거나 많음'이다.

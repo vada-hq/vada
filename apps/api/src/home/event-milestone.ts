@@ -15,7 +15,7 @@ export type MilestoneInput = {
   endsAt: Date | null
   ongoing: boolean
   // 멈추지 않은 양식(초안·멈춤은 뺀다)
-  forms: { opensAt: Date | null; closesAt: Date }[]
+  forms: { opensAt: Date | null; closesAt: Date | null }[]
 }
 
 const candidate = (kind: HomeEventMilestone, at: Date | null): Candidate[] =>

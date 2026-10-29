@@ -9,7 +9,8 @@ export type LaneForm = {
   id: string
   eventId: string
   opensAt: Date | null
-  closesAt: Date
+  // 초안만 비어 있다(멈춘 양식이라 받는 중으로 세지 않는다).
+  closesAt: Date | null
   capacity: number | null
   paused: boolean
   // 취소하지 않은 신청 수(공개 양식의 applicantCountOf와 같은 셈)

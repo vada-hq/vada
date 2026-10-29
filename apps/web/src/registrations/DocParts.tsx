@@ -30,7 +30,7 @@ export function PropRow({
 }: {
   icon: Icon
   label: string
-  mark?: 'required' | 'optional'
+  mark?: 'required' | 'optional' | undefined
   htmlFor?: string
   children: ReactNode
 }) {
