@@ -26,9 +26,26 @@ export function Tray({
 }
 
 // 쟁반 머리: 구역 이름과 건수. 왼쪽 끝을 묶음 안 줄의 아이콘 원 왼쪽 끝에 맞춘다(쟁반 + 묶음 + 줄 안쪽 여백의 합).
-export function TrayHead({ id, title, count }: { id: string; title: string; count?: number }) {
+// lead는 이름 앞에 두는 것(③ 내가 할 일의 내 얼굴). 있으면 얼굴과 글의 가운데를 맞춘다.
+export function TrayHead({
+  id,
+  title,
+  count,
+  lead,
+}: {
+  id: string
+  title: string
+  count?: number
+  lead?: ReactNode
+}) {
   return (
-    <div className="flex items-baseline gap-2 px-4.5 pt-3 pb-2 @2xl:px-5.5 @2xl:pt-3.5 @2xl:pb-3">
+    <div
+      className={cn(
+        'flex px-4.5 pt-3 pb-2 @2xl:px-5.5 @2xl:pt-3.5 @2xl:pb-3',
+        lead ? 'items-center gap-2.5' : 'items-baseline gap-2',
+      )}
+    >
+      {lead}
       <h2 className="min-w-0 text-xl font-bold tracking-tight break-keep text-fg" id={id}>
         {title}
       </h2>

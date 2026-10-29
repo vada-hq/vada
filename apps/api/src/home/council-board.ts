@@ -17,6 +17,9 @@ import type { OpenTask } from '../tasks/open-tasks.js'
 import { unassignedMembersOf } from './council.js'
 import { followUpRowsOf } from './follow-up.js'
 import { opsOf } from './ops.js'
+import { opsPeopleOf } from './ops-contacts.js'
+import { todoOf } from './todo.js'
+import { weekOf } from './week.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -94,12 +97,16 @@ export async function councilBoardOf(
 ): Promise<HomeCouncilBoard> {
   const financeStaffed = (await currentFinanceMembers(db, actor, now)).length > 0
   const unassignedMembers = await unassignedMembersOf(db, actor)
+  const people = await opsPeopleOf(db, actor)
+  const followUp = await followUpOf(db, actor, now)
   return {
     financeStaffed,
     events: await eventCardsOf(db, actor, now, open),
-    followUp: await followUpOf(db, actor, now),
+    followUp,
     attention: attentionOf(open),
     unassignedMembers,
-    ops: await opsOf(db, actor, now, { open, unassignedMembers, financeStaffed }),
+    ops: await opsOf(db, actor, now, { open, people, unassignedMembers, financeStaffed }),
+    todo: await todoOf(db, actor, now, { open, people, followUp }),
+    week: await weekOf(db, actor, now),
   }
 }

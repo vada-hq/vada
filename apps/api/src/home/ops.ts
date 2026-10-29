@@ -21,7 +21,6 @@ import {
   financeHeadlessOf,
   headlessOf,
   headOf,
-  opsPeopleOf,
   personOf,
   type OpsPeople,
 } from './ops-contacts.js'
@@ -48,7 +47,7 @@ function taskContact(people: OpsPeople, row: OpenTask) {
 }
 
 // 담당자가 나이거나 회장단인 업무는 ③(내가 할 일) 몫이라 ①에서 뺀다. ①은 남이 맡은 일이다.
-function isCouncilWork(people: OpsPeople, actor: Actor, row: OpenTask) {
+export function isCouncilWork(people: OpsPeople, actor: Actor, row: OpenTask) {
   const assignee = row.summary.assignee?.id
   return assignee !== undefined && (assignee === actor.memberId || people.council.has(assignee))
 }
@@ -111,9 +110,14 @@ export async function opsOf(
   db: Reader,
   actor: Actor,
   now: Date,
-  board: { open: OpenTask[]; unassignedMembers: number; financeStaffed: boolean },
+  board: {
+    open: OpenTask[]
+    people: OpsPeople
+    unassignedMembers: number
+    financeStaffed: boolean
+  },
 ): Promise<HomeOps> {
-  const people = await opsPeopleOf(db, actor)
+  const { people } = board
   const approvals = await approvalsOf(db, actor, people, now)
   const rows = [
     ...taskRowsOf(board.open, people, actor, koreanDateOf(now)),

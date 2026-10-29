@@ -2,6 +2,8 @@ import type { EventRef } from './budget.js'
 import type { HomeFinanceBoard, HomeFinanceSummary } from './home-finance.js'
 import type { HomeDepartmentBoard } from './home-department.js'
 import type { HomeOps } from './home-ops.js'
+import type { HomeTodo } from './home-todo.js'
+import type { HomeWeek } from './home-week.js'
 export {
   HOME_CONGESTION_TASKS,
   type HomeCongestion,
@@ -225,6 +227,10 @@ export interface HomeCouncilBoard {
   unassignedMembers: number
   // ① 확인이 필요한 운영 상황(f8). attention을 대신하며, attention은 화면이 더 읽지 않으면 걷는다.
   ops: HomeOps
+  // ③ 내가 할 일(c35). followUp을 대신하며, followUp은 화면이 더 읽지 않으면 걷는다.
+  todo: HomeTodo
+  // ⑤ 이번 주(c35 안 b). 회장단 홈의 upcoming 쓰임을 대신한다.
+  week: HomeWeek
 }
 
 export interface HomeResponse {

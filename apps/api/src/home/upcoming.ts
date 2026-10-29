@@ -33,7 +33,7 @@ type Range = { from: Date; until: Date }
 const TIME_START = KOREAN_DATE_LENGTH + 1
 
 // 오늘 0시(한국)부터 7일째 끝까지. 업무 마감의 '7일 안'(dueGroupOf, HOME_SOON_DAYS)과 같은 경계다.
-function rangeOf(now: Date): Range {
+export function rangeOf(now: Date): Range {
   const from = dateFromKorean(`${koreanDateOf(now)}T00:00`)
   return { from, until: new Date(from.getTime() + (HOME_SOON_DAYS + 1) * DAY_MS) }
 }
@@ -121,7 +121,7 @@ const KIND_ORDER: HomeUpcomingItem['kind'][] = [
   'registration_close',
 ]
 
-async function schedulesOf(db: Reader, actor: Actor, range: Range): Promise<Entry[]> {
+export async function schedulesOf(db: Reader, actor: Actor, range: Range): Promise<Entry[]> {
   return (await scheduleItems(db, actor, range)).map(row => {
     // 범위 앞에서 시작해 이어지는 일정도 실제 시작 일시를 보인다(DEC-102 원본 하나).
     const at = row.allDay ? null : dateFromKorean(row.start)

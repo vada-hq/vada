@@ -4,15 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import type { CouncilView, HomeResponse } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { menuPath } from '@vada/contracts'
-import {
-  boardEvent,
-  councilHome,
-  emptyOps,
-  followUpRow,
-  homeTask,
-  noRooms,
-  opsRow,
-} from '@/test-support/home-fixtures'
+import { boardEvent, councilHome, emptyOps, noRooms, opsRow } from '@/test-support/home-fixtures'
 import { mockApi, json } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { pageState } from '@/lib/app-location'
@@ -40,12 +32,12 @@ const headings = () =>
 
 test('①이 0건이면 머리 한 문장으로 합치고 ② → ③ → ⑤ 차례이며 지금 홈의 부분이 없다', async () => {
   const { api } = open(councilHome())
-  await card('가까운 주요 일정')
+  await screen.findByRole('heading', { name: '이번 주 일정 없음' })
   expect(headings()).toEqual([
     '김회장님, 확인이 필요한 운영 상황 없어요',
     '전체 행사 진행 현황',
-    '후속 정리 중인 행사',
-    '가까운 주요 일정',
+    '내가 할 일 없음',
+    '이번 주 일정 없음',
   ])
   expect(screen.queryByRole('region', { name: '확인이 필요한 운영 상황' })).toBeNull()
   for (const name of ['지금 볼 것', '부서별 막힌 곳', '지난 업무', '내 업무', '행사', '메시지함'])
@@ -70,8 +62,8 @@ test('①이 있으면 머리는 인사이고 ①이 행사 위에 온다', asyn
     '김회장님, 안녕하세요',
     '확인이 필요한 운영 상황',
     '전체 행사 진행 현황',
-    '후속 정리 중인 행사',
-    '가까운 주요 일정',
+    '내가 할 일 없음',
+    '이번 주 일정 없음',
   ])
 })
 
@@ -263,89 +255,3 @@ test.each(['president', 'vice_president'] as const)(
     expect(pageState()).toBe('finance')
   },
 )
-
-test('후속 정리 중인 행사: 종료 날짜, 7일째부터 끝난 지 N일, 남은 정리, 다 0이면 완료 가능. 정산이 남으면 구매 탭으로 연다', async () => {
-  const { onOpenEvent } = open(
-    councilHome({
-      followUp: {
-        events: [
-          followUpRow('e1', { remaining: { tasks: 2, settlement: 1 } }),
-          followUpRow('e2', {
-            event: { ...followUpRow('e2').event, endsAt: '2026-10-20T12:00' },
-            endedDays: 3,
-          }),
-        ],
-        total: 2,
-      },
-    }),
-  )
-  const followUp = await card('후속 정리 중인 행사')
-  const [first, second] = within(followUp).getAllByRole('listitem')
-  expect(within(first!).getByText('후속 정리 중')).toBeTruthy()
-  expect(first!.textContent).toContain('10월 8일 (목) 종료 · 끝난 지 15일')
-  expect(first!.textContent).toContain('남은 정리: 업무 2 · 정산 1')
-  expect(second!.textContent).toContain('10월 20일 (화) 종료')
-  expect(second!.textContent).not.toContain('끝난 지')
-  expect(second!.textContent).toContain('완료 가능')
-  fireEvent.click(within(first!).getByRole('button', { name: '행사 e1' }))
-  expect(onOpenEvent).toHaveBeenLastCalledWith('e1', 'money')
-  fireEvent.click(within(second!).getByRole('button', { name: '행사 e2' }))
-  expect(onOpenEvent).toHaveBeenLastCalledWith('e2')
-  expect(within(followUp).getByText('2개')).toBeTruthy()
-})
-
-test('가까운 주요 일정: 날짜와 종류 칩이 있고 줄을 누르면 그 업무, 행사, 행사 인원 관리 탭으로 간다', async () => {
-  const task = homeTask('t1', 'soon', {
-    title: '부스 배치안 확정',
-    event: { id: 'e1', name: '가을 축제' },
-  })
-  const event = { id: 'e2', name: '진로 특강' }
-  const { onOpenEvent } = open(
-    councilHome(
-      {},
-      {
-        upcoming: {
-          items: [
-            { kind: 'task_due', date: '2026-10-24', time: null, task },
-            {
-              kind: 'registration_close',
-              date: '2026-10-26',
-              time: '18:00',
-              event,
-              form: { id: 'f1', name: '신청' },
-            },
-            { kind: 'event_start', date: '2026-10-27', time: '10:00', event },
-          ],
-          total: 4,
-        },
-      },
-    ),
-  )
-  const upcoming = await card('가까운 주요 일정')
-  const [due, close, start] = within(upcoming).getAllByRole('listitem')
-  expect(due!.textContent).toContain('10월 24일 (토)')
-  expect(due!.textContent).toContain('가을 축제 · 업무 마감')
-  // 일정 종류는 상태 칩('지남')과 갈라 테두리 없는 태그다(와이어프레임 HomePrototypeScheduleTag).
-  expect(within(due!).getByText('마감').className).toContain('border-transparent')
-  expect(within(close!).getByRole('button', { name: '진로 특강 신청 마감' })).toBeTruthy()
-  expect(close!.textContent).toContain('18:00 · 참가 신청')
-  expect(within(start!).getByText('행사')).toBeTruthy()
-  expect(start!.textContent).toContain('10:00 · 행사 시작')
-  fireEvent.click(within(upcoming).getByRole('button', { name: '전체 4건 보기' }))
-  expect(pathNow()).toBe('/calendar/c1')
-  fireEvent.click(within(close!).getByRole('button', { name: '진로 특강 신청 마감' }))
-  expect(onOpenEvent).toHaveBeenLastCalledWith('e2', 'registrations')
-  fireEvent.click(within(start!).getByRole('button', { name: '진로 특강' }))
-  expect(onOpenEvent).toHaveBeenLastCalledWith('e2')
-  fireEvent.click(within(due!).getByRole('button', { name: '부스 배치안 확정' }))
-  expect(pathNow()).toBe('/tasks/c1/t1')
-})
-
-test('후속 정리 중인 행사가 셋보다 많으면 전체 n개 보기로 결산 탭에 간다', async () => {
-  const events = ['e1', 'e2', 'e3', 'e4'].map(id => followUpRow(id))
-  open(councilHome({ followUp: { events, total: 5 } }))
-  const followUp = await card('후속 정리 중인 행사')
-  expect(within(followUp).getAllByRole('listitem')).toHaveLength(3)
-  fireEvent.click(within(followUp).getByRole('button', { name: '전체 5개 보기' }))
-  expect(pathNow()).toBe('/finance/c1?tab=closing')
-})

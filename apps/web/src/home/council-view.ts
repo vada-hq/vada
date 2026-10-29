@@ -8,7 +8,7 @@ import {
   type HomeMyTasks,
   type HomeUpcomingItem,
 } from '@vada/contracts'
-import { dueText, endedLabel, nextLabel } from '../events/event-header-view'
+import { dueText, nextLabel } from '../events/event-header-view'
 import { EVENT_SETTLED_LABEL } from '../events/event-view'
 import { COUNCIL_TASK_LABEL } from '../tasks/task-view'
 import { dDay } from './home-view'
@@ -43,12 +43,6 @@ export function eventDayLabel(
 // 행사 카드 맨 아래: 업무 마감이면 와이어프레임 이름 '다음 마감', 행사 시작이 더 이르면 행사 머리와 같은 '다음 일정'이다.
 export const nextDeadlineLabel = (next: HomeBoardEvent['next']) =>
   next?.kind === 'task' ? `다음 마감 · ${dueText(next.dueDate)} ${next.title}` : nextLabel(next)
-
-// 후속 정리 중인 행사의 메타: '10월 8일 (목) 종료', 7일째부터 '끝난 지 N일'(행사 머리와 같은 날수).
-export function followUpParts({ event, endedDays }: HomeFollowUp) {
-  const end = event.endsAt ?? event.startsAt
-  return [end && `${dayOf(end)} 종료`, endedLabel(endedDays)].filter(part => part !== null)
-}
 
 // 남은 정리(DEC-93 '끝나지 않은 업무 N · 정산 N'). 다 0이면 '완료 가능'이다.
 export const remainingTidyLabel = ({ tasks, settlement }: HomeFollowUp['remaining']) =>

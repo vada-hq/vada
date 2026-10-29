@@ -31,6 +31,13 @@ const councilBoard = {
     assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
     total: 0,
   },
+  todo: {
+    rows: [],
+    counts: { minutes: 0, event_tidy: 0, task_late: 0, task_today: 0 },
+    total: 0,
+    meTint: 0,
+  },
+  week: { items: [], total: 0 },
 }
 
 // 견본을 누를 때 갤러리 주소를 바꾸지 않는다. 실제 홈의 주소 유지·새로 읽기는 FinanceHome.test가 검사한다.
