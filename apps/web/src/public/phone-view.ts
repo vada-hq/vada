@@ -6,7 +6,8 @@ const MIDDLE_LONG = 4
 const MIDDLE_SHORT = 3
 
 export function phoneView(raw: string) {
-  const digits = raw.replace(/\D/g, '').slice(0, PHONE_DIGITS)
+  // 넘친 숫자는 자르지 않는다. 자르면 다른 번호가 칸 확인을 통과해 저장된다(넘친 채로 두어 칸 아래에 알린다).
+  const digits = raw.replace(/\D/g, '')
   if (digits.length <= HEAD) return digits
   const middle = digits.length < PHONE_DIGITS ? MIDDLE_SHORT : MIDDLE_LONG
   const cut = HEAD + middle

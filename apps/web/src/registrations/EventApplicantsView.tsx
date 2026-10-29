@@ -16,7 +16,7 @@ import {
   eventApplicantCount,
 } from '@/lib/registration-messages'
 import { ApplicantPeek } from './ApplicantPeek'
-import { attentionFirst, eventStarted, isWhole, reasonOf } from './applicant-summary'
+import { attentionFirst, eventStarted, isWhole, reasonOf, shownRows } from './applicant-summary'
 import { sheet } from './doc-look'
 import { EventApplicantActions } from './EventApplicantActions'
 import { BulkBar, BulkResult, type BulkKind } from './EventApplicantsBulk'
@@ -169,7 +169,7 @@ function Message({ children }: { children: string }) {
 function rowModels(props: Full): RowModel[] {
   const { data } = props
   const results = new Map(props.result?.results.map(item => [item.registrationId, item.error]))
-  return attentionFirst(data.applicants).map(row => {
+  return attentionFirst(shownRows(data, props.query)).map(row => {
     const error = results.get(row.id)
     return {
       row,

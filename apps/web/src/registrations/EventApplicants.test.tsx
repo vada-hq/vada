@@ -372,3 +372,19 @@ test('데스크톱 창이어도 명단 종이가 열을 다 담지 못하면(양
   setup(data({ total: 1 }))
   expect(await screen.findByRole('table')).toBeTruthy()
 })
+
+test('입금 안 함 수와 거르기는 받을 돈이 있는 신청만이다(무료 신청은 빼고 센다)', async () => {
+  const free = row({ id: thirdId, name: '무료생', appliedFee: 0, payer: true })
+  const owing = row({ name: '미입금' })
+  const paid = row({ id: secondId, name: '입금함', deposit: { status: 'confirmed', amount: 5000 } })
+  const { api } = setup(data({ total: 3, applicants: [owing, paid, free] }))
+  await screen.findByText('무료생')
+  const filters = screen.getByRole('group', { name: '참가자 거르기' })
+  api.on('GET', `${PATH}?page=1&registration=active&deposit=none&accessToken=read-once`, () =>
+    json(data({ total: 2, applicants: [owing, free] })),
+  )
+  fireEvent.click(within(filters).getByRole('button', { name: '입금 안 함 1' }))
+  await waitFor(() => expect(screen.queryByText('무료생')).toBeNull())
+  expect(screen.getByText('미입금')).toBeTruthy()
+  expect(within(filters).getByRole('button', { name: '입금 안 함 1' })).toBeTruthy()
+})

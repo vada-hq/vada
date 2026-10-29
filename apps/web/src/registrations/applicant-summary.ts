@@ -20,9 +20,12 @@ const QUICK: Record<QuickKey, StatusQuery> = {
   notAttended: { attendance: 'not_attended', registration: 'active' },
 }
 
-// 서버 거르기와 같은 규칙으로 센다(event-applicant-rows.ts filtersOf).
+// 서버 거르기와 같은 규칙으로 센다(event-applicant-rows.ts filtersOf). '입금 안 함'만 받을 돈이 있는 신청으로 좁힌다:
+// 서버 거르기(deposit=none)는 무료 신청(줄에는 '무료')도 담아, 납부자 무료·미납자 유료 양식이면 수와 줄이 어긋난다(Codex 검토).
+// 서버에 참가비 거르기가 없어 웹이 받은 쪽 안에서 무료 줄을 뺀다.
+const owing = (row: EventApplicant) => row.appliedFee > 0
 const COUNT: Record<Exclude<QuickKey, 'all'>, (row: EventApplicant) => boolean> = {
-  unpaid: row => row.deposit.status === 'none' && !row.cancelled,
+  unpaid: row => row.deposit.status === 'none' && !row.cancelled && owing(row),
   attention: row => row.needsAttention,
   attended: row => row.attended,
   notAttended: row => !row.attended && !row.cancelled,
@@ -42,20 +45,30 @@ export const isWhole = (data: EventApplicantsResponse, query: Query) =>
   data.page === 1 &&
   data.total === data.applicants.length
 
-// 받을 돈이 있는 사람이 없으면(무료 행사) '입금 안 함'은 뜻이 없다.
-const owes = (rows: EventApplicant[]) => rows.some(row => COUNT.unpaid(row) && row.appliedFee > 0)
+const isUnpaid = (query: Query) => sameStatus(statusOf(query), QUICK.unpaid)
+const onePage = (data: EventApplicantsResponse) =>
+  data.page === 1 && data.total === data.applicants.length
+
+// 화면에 보일 줄: '입금 안 함' 거르기에서는 무료 신청을 뺀다.
+export const shownRows = (data: EventApplicantsResponse, query: Query) =>
+  isUnpaid(query) ? data.applicants.filter(owing) : data.applicants
+
+function activeCount(key: QuickKey, data: EventApplicantsResponse) {
+  if (key !== 'unpaid') return data.total
+  // 여러 쪽이면 다른 쪽의 무료 신청 수를 몰라 비운다.
+  return onePage(data) ? data.applicants.filter(owing).length : null
+}
 
 function countOf(key: QuickKey, data: EventApplicantsResponse, whole: boolean, active: boolean) {
-  if (active) return data.total
+  if (active) return activeCount(key, data)
   if (!whole) return null
   return key === 'all' ? data.total : data.applicants.filter(COUNT[key]).length
 }
 
 // 0명으로 아는 거르기는 숨긴다. 참석·불참은 출석이 하나라도 생긴 뒤에만 뜻이 있다(행사 전에는 모두 기록 없음).
-function shown(quick: Quick, data: EventApplicantsResponse, whole: boolean) {
+function shown(quick: Quick, data: EventApplicantsResponse) {
   if (quick.key === 'all' || quick.active) return true
   if (quick.count === 0) return false
-  if (quick.key === 'unpaid') return !whole || owes(data.applicants)
   if (quick.key === 'attended' || quick.key === 'notAttended') return data.counts.attended > 0
   return true
 }
@@ -68,7 +81,7 @@ export function quickFilters(data: EventApplicantsResponse, query: Query): Quick
       const active = sameStatus(status, QUICK[key])
       return { key, active, query: QUICK[key], count: countOf(key, data, whole, active) }
     })
-    .filter(quick => shown(quick, data, whole))
+    .filter(quick => shown(quick, data))
 }
 
 // 확인 필요 줄을 맨 위로 모은다(받은 차례 안에서 안정 정렬). 머리 '확인 필요 N'을 읽은 눈이 바로 아래로 이어지고 같은 학번 짝이 붙어 선다.
