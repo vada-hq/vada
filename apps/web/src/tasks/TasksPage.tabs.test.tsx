@@ -58,7 +58,12 @@ function setup(
 test('학생회 업무가 기본이고 행사 없는 업무를 서버에서 읽으며 내 업무 탭은 모든 내 업무다', async () => {
   window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}`)
   const api = setup()
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['학생회 업무', '내 업무'])
+  const menuTabs = screen.getByRole('tablist', { name: '업무 보기' })
+  expect(
+    within(menuTabs)
+      .getAllByRole('tab')
+      .map(tab => tab.textContent),
+  ).toEqual(['학생회 업무', '내 업무'])
   expect(screen.getByRole('tab', { name: '학생회 업무' }).getAttribute('aria-selected')).toBe(
     'true',
   )

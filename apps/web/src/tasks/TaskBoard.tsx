@@ -1,6 +1,6 @@
 import { useId, type ReactNode } from 'react'
 import { Clipboard, Plus } from 'lucide-react'
-import type { TaskStatus, TaskSummary } from '@vada/contracts'
+import type { TaskSummary } from '@vada/contracts'
 import type { MenuAction } from '@/components/HistoryMenu'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,7 @@ import { TASKS_LOAD_FAILED } from '@/lib/messages'
 import { cn } from '@/lib/utils'
 import { departmentColorOf } from './department-color'
 import { STATUS_LABEL } from './task-view'
+import { columnsOf, countText, type Column } from './task-columns'
 import { TaskCard } from './TaskCard'
 import type { TaskDirect } from './TaskAssigneeName'
 import type { useStatusChange } from './useStatusChange'
@@ -35,10 +36,6 @@ type Props = {
   cardMenu?: ((task: TaskSummary) => MenuAction[]) | undefined
 }
 
-type Column = { status: TaskStatus; tasks: TaskSummary[]; truncated: boolean }
-
-// 열 머리 수는 그 열에 보이는 카드 수다. 받은 목록이 상한에서 잘렸으면 수 뒤에 '+'다(끝남은 '50+').
-const countText = ({ tasks, truncated }: Column) => `${tasks.length}${truncated ? '+' : ''}`
 const loadedTasks = (list: TaskList) => (list.state.kind === 'ready' ? list.state.tasks : [])
 
 function BoardColumn({
@@ -80,7 +77,7 @@ function BoardColumn({
 }
 
 // 업무가 하나도 없을 때 보드 위의 칸(와이어프레임 OPS-TASK-01 빈 상태). 설명 줄은 두지 않는다(DEC-94).
-function BoardEmpty({ onAddFirst }: Pick<Props, 'onAddFirst'>) {
+export function BoardEmpty({ onAddFirst }: Pick<Props, 'onAddFirst'>) {
   return (
     <div className="flex flex-col items-center rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center">
       <Clipboard aria-hidden className="size-8 text-gray-300" />
@@ -92,15 +89,6 @@ function BoardEmpty({ onAddFirst }: Pick<Props, 'onAddFirst'>) {
       )}
     </div>
   )
-}
-
-function columnsOf(open: TaskSummary[], openTruncated: boolean, done: Column): Column[] {
-  const byStatus = (status: TaskStatus) => ({
-    status,
-    tasks: open.filter(task => task.status === status),
-    truncated: openTruncated,
-  })
-  return [byStatus('todo'), byStatus('in_progress'), done]
 }
 
 // 넓은 화면(lg 이상)의 상태 열 보드(DEC-94): 열 셋(할 일·진행 중·끝남), 열 머리에 수, 카드. '검토 필요' 열은 없다(DEC-39).

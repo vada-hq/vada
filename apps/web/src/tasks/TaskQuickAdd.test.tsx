@@ -163,7 +163,8 @@ test.each([
 test('끝남에는 빠른 추가가 없다', async () => {
   setup()
   await screen.findByRole('textbox', { name: '새 업무' })
-  fireEvent.click(screen.getByRole('button', { name: '끝남' }))
+  // 1024px 아래는 끝남 거르기 대신 상태 탭이다.
+  fireEvent.click(screen.getByRole('tab', { name: /^끝남/ }))
   await waitFor(() => expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull())
 })
 
@@ -297,5 +298,5 @@ test('서버 선택지가 비었으면 만들기 단추만 없고 목록 읽기�
   expect(screen.queryByRole('button', { name: '업무 추가' })).toBeNull()
   expect(screen.queryByRole('button', { name: '자세히' })).toBeNull()
   expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull()
-  expect(await screen.findByText('끝나지 않은 업무 없음')).toBeTruthy()
+  expect(await screen.findByText('할 일 없음')).toBeTruthy()
 })

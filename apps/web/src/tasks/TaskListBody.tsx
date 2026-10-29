@@ -45,6 +45,8 @@ type Props = {
   onOpenEvent?: ((eventId: string) => void) | undefined
   // 행사의 업무 탭이면 참
   inEvent: boolean
+  // 빈 목록 문구. 없으면 거르기의 문구다(휴대폰 상태 탭은 그 탭의 문구).
+  emptyText?: string | undefined
 }
 
 // 내 업무(끝나지 않은 것)는 급한 순 묶음, 그 밖은 부서 묶음이다. 끝난 업무는 한 묶음이다.
@@ -165,6 +167,6 @@ export function TaskListBody(props: Props) {
       </div>
     )
   if (state.tasks.length === 0)
-    return <StateMessage kind="empty">{EMPTY[props.filter]}</StateMessage>
+    return <StateMessage kind="empty">{props.emptyText ?? EMPTY[props.filter]}</StateMessage>
   return <Ready {...props} tasks={state.tasks} truncated={state.truncated} />
 }

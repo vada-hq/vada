@@ -1,7 +1,6 @@
 import { type CouncilView, type EventSummary } from '@vada/contracts'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
-import type { EventList } from '@/events/useEvents'
 import { openRecord } from '@/lib/go-to'
 import { useSplit } from '@/lib/use-split'
 import { useRecordDialogs } from '@/lib/use-record-dialogs'
@@ -11,6 +10,8 @@ import { taskDirectOf } from './TaskAssigneeName'
 import { cardMenuOf } from './task-card-menu'
 import { TaskCalendarBody } from './TaskCalendarBody'
 import { TaskListBody, type TableSetup } from './TaskListBody'
+import { TaskStatusTabs } from './TaskStatusTabs'
+import { pageLayoutOf } from './task-page-layout'
 import { TaskQuickAdd } from './TaskQuickAdd'
 import { TaskCreateEntry } from './TaskCreateDialog'
 import { useTaskCreateEntry } from './useTaskCreateEntry'
@@ -48,14 +49,6 @@ type Props = {
   onChanged: () => void
 }
 
-// 행사의 업무 탭 달력에는 그 행사만 그린다. 학생회의 다른 행사는 업무 메뉴의 달력에 있다.
-function onlyEvent(events: EventList, eventId: string | undefined): EventList {
-  const { state } = events
-  if (eventId === undefined || state.kind !== 'ready') return events
-  const only = state.data.events.filter(event => event.id === eventId)
-  return { ...events, state: { ...state, data: { ...state.data, events: only } } }
-}
-
 // 화면의 상태: 보기, 거르기, 목록·달력, 대화상자, 목록, 상태 바꾸기, 줄에서 맡기기와 그때 고를 사람들.
 function useTasksPage(props: Props) {
   const councilId = props.view.council.id
@@ -74,13 +67,14 @@ function useTasksPage(props: Props) {
   })
   const list = useNarrowed(lists.list, dept, controls, props.view)
   const done = useNarrowed(lists.done, dept, controls, props.view)
-  const events = onlyEvent(lists.events, props.eventId)
-  const board = layout === 'board' && wide
+  const { events } = lists
+  const shape = pageLayoutOf(controls, wide)
+  const { board, statusTabs } = shape
   const councilEmpty = useBoardEmpty({
     councilId,
     eventId: controls.listEvent,
     view: controls.listView,
-    board,
+    board: board || statusTabs,
     raw: [lists.list, lists.done],
     shown: [list, done],
     onForbidden: props.onForbidden,
@@ -130,7 +124,8 @@ function useTasksPage(props: Props) {
   }
   return {
     controls,
-    board,
+    ...shape,
+    wide,
     councilEmpty,
     departments: team.data?.departments ?? [],
     chips,
@@ -163,6 +158,7 @@ function TasksBody({
   onAddFirst: (() => void) | undefined
 }) {
   const { controls, list, rows, table } = page
+  const emptyText = viewEmptyText(controls.view, controls.dept)
   if (controls.layout === 'calendar')
     return (
       <TaskCalendarBody
@@ -172,6 +168,21 @@ function TasksBody({
         eventId={page.eventId}
         calendarEvent={page.calendarEvent}
         {...rows}
+      />
+    )
+  if (page.statusTabs)
+    return (
+      <TaskStatusTabs
+        open={list}
+        done={page.done}
+        column={controls.column}
+        onColumn={controls.setColumn}
+        councilEmpty={page.councilEmpty}
+        emptyText={emptyText}
+        onAddFirst={onAddFirst}
+        body={(shown, filter, emptyTab) => (
+          <TaskListBody list={shown} table={table} filter={filter} emptyText={emptyTab} {...rows} />
+        )}
       />
     )
   if (page.board)
@@ -185,7 +196,7 @@ function TasksBody({
         onOpenTask={rows.onOpenTask}
         onShowDoneTable={controls.showDoneTable}
         councilEmpty={page.councilEmpty}
-        emptyText={viewEmptyText(controls.view, controls.dept)}
+        emptyText={emptyText}
         onAddFirst={onAddFirst}
         cardMenu={cardMenuOf(councilId, page.remove.ask)}
       />
@@ -223,8 +234,6 @@ function CouncilTasksPage(props: Props) {
     props.onForbidden,
   )
   const notices = undoNoticesOf(page, props.view.council.id)
-  // 빠른 추가는 보드나 표이고 끝나지 않은 업무를 볼 때만 있다. 넓은 화면의 보드는 거르기 없이 늘 끝나지 않은 업무를 담는다.
-  const adding = layout !== 'calendar' && (page.board || filter === 'open')
   return (
     <PageColumn>
       <TaskCreateEntry
@@ -257,7 +266,8 @@ function CouncilTasksPage(props: Props) {
         tab={controls.inMenu ? { value: controls.tab, onChange: controls.setTab } : undefined}
         scope={controls}
         chips={page.chips.data}
-        showFilter={layout !== 'calendar' && !page.board}
+        showFilter={page.showFilter}
+        wide={page.wide}
         view={view}
         filter={filter}
         onView={controls.setView}
@@ -265,7 +275,7 @@ function CouncilTasksPage(props: Props) {
         narrow={page.chips.narrow}
         layout={{ value: layout, onChange: controls.setLayout }}
       />
-      {adding && (
+      {page.adding && (
         <TaskQuickAdd
           view={props.view}
           taskView={taskView}

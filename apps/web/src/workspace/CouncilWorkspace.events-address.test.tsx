@@ -302,25 +302,27 @@ function onEventTasks() {
     json({ tasks: [unassigned], truncated: false }),
   )
 }
-const pressed = (name: string) =>
-  screen.findByRole('button', { name }).then(button => button.getAttribute('aria-pressed'))
+// 1024px 아래 행사 업무 탭은 끝남 거르기 대신 상태 탭이다(026 조각 4). 수는 읽은 뒤에 붙는다.
+const statusTab = (status: string) => screen.findByRole('tab', { name: new RegExp(`^${status}`) })
+const tabSelected = (status: string) =>
+  statusTab(status).then(tab => tab.getAttribute('aria-selected'))
 
 test('행사 업무 탭에서 고른 끝남은 주소에 남아 새로 고침해도 끝남이고, 기본값을 고르면 주소에서 빠진다', async () => {
   const view = setup(`${EVENT_AT}?tab=tasks`)
   onEventTasks()
   const push = vi.spyOn(window.history, 'pushState')
-  fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  fireEvent.click(await statusTab('끝남'))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&col=done`))
   expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
   expect(push).not.toHaveBeenCalled()
   view.unmount()
-  setup(`${EVENT_AT}?tab=tasks&filter=done`)
+  setup(`${EVENT_AT}?tab=tasks&col=done`)
   onEventTasks()
-  expect(await pressed('끝남')).toBe('true')
+  expect(await tabSelected('끝남')).toBe('true')
   expect(await screen.findByRole('button', { name: '끝난 업무' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
+  fireEvent.click(await statusTab('할 일'))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
-  expect(await pressed('끝나지 않은 것')).toBe('true')
+  expect(await tabSelected('할 일')).toBe('true')
 })
 
 test('행사 업무 탭에서 보기를 바꿔도 뒤로는 행사에 들어오기 전이다', async () => {
@@ -328,8 +330,8 @@ test('행사 업무 탭에서 보기를 바꿔도 뒤로는 행사에 들어오�
   onEventTasks()
   fireEvent.click(await screen.findByRole('button', { name: '신입생 환영회' }))
   fireEvent.click(await screen.findByRole('tab', { name: '업무' }))
-  fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&filter=done`))
+  fireEvent.click(await statusTab('끝남'))
+  await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks&col=done`))
   act(() => window.history.back())
   await waitFor(() => expect(pathNow()).toBe(`/events/${COUNCIL_ID}`))
   expect(await screen.findByRole('button', { name: '둘째 행사' })).toBeTruthy()
@@ -355,14 +357,14 @@ test('개요의 담당자 없음 [업무 보기]는 그 거르기가 든 업무 
 })
 
 test('행사 업무 탭에서 다른 탭으로 가면 업무 쿼리가 주소에서 빠진다', async () => {
-  setup(`${EVENT_AT}?tab=tasks&view=unassigned&filter=done`)
+  setup(`${EVENT_AT}?tab=tasks&view=unassigned&col=done`)
   onEventTasks()
   expect(await selected('업무')).toBe('true')
   fireEvent.click(screen.getByRole('tab', { name: '개요' }))
   await waitFor(() => expect(pathNow()).toBe(OVERVIEW_AT))
   fireEvent.click(screen.getByRole('tab', { name: '업무' }))
   await waitFor(() => expect(pathNow()).toBe(`${EVENT_AT}?tab=tasks`))
-  expect(await pressed('끝나지 않은 것')).toBe('true')
+  expect(await tabSelected('할 일')).toBe('true')
   expect(screen.queryByRole('button', { name: '필터 해제' })).toBeNull()
 })
 

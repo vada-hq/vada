@@ -49,6 +49,7 @@ import {
   TaskUndoBarSection,
 } from './TaskSections'
 import { TaskDetailSection } from './TaskDetailSections'
+import { TaskStatusTabsSection } from './TaskStatusTabsSection'
 import {
   HomeEmptyEventsSection,
   HomeInboxSection,
@@ -124,6 +125,7 @@ export const gallerySections = [
   TaskMenuSection,
   TaskTableSection,
   TaskBoardSection,
+  TaskStatusTabsSection,
   TaskQuickAddSection,
   TaskUndoBarSection,
   TaskDetailSection,

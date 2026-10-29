@@ -1,4 +1,4 @@
-import type { TaskCause, TaskChange, TaskVersion, TaskView } from '@vada/contracts'
+import type { TaskCause, TaskChange, TaskStatus, TaskVersion, TaskView } from '@vada/contracts'
 import { monthDay, monthDayTime } from '@/lib/korean-date-text'
 import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
 
@@ -33,6 +33,13 @@ const VIEW_EMPTY: Record<TaskView, string> = {
 }
 export const viewEmptyText = (view: TaskView, dept: string | null) =>
   dept === null ? VIEW_EMPTY[view] : '이 부서 업무 없음'
+
+// 휴대폰 상태 탭 하나가 비었을 때(TaskStatusTabs).
+export const STATUS_EMPTY: Record<TaskStatus, string> = {
+  todo: '할 일 없음',
+  in_progress: '진행 중인 업무 없음',
+  done: '끝난 업무 없음',
+}
 
 const dueText = (value: string | null) => (value === null ? NONE : monthDay(value))
 type Side = { id: string; name: string | null } | null

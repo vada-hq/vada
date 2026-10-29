@@ -85,6 +85,12 @@ test.each(['', '?tab=messages', '?tab=unknown&layout=list'])(
 )
 
 test('옛 학생회 업무 주소는 학생회 업무 탭의 같은 거르기·배치로 열리고 뒤로에도 새 주소다', async () => {
+  // [표]와 끝남 거르기는 1024px 이상에만 있다.
+  vi.stubGlobal('matchMedia', () => ({
+    matches: true,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
   const { api, rendered } = setup(`${councilPath}?tab=tasks&layout=list&filter=done`)
   const target = `/tasks/${COUNCIL_ID}?filter=done&layout=list&events=include`
   await waitFor(() => expect(pathNow()).toBe(target))

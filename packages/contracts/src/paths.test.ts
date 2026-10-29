@@ -55,6 +55,20 @@ test('업무 마감 칩과 부서 없음 주소를 남기고 내 카드 토글�
   assert.deepEqual(parseAppPath(`/tasks/${C}?dept=none`)?.query, { dept: 'none' })
 })
 
+test('휴대폰 업무 상태 탭은 업무 메뉴와 행사 업무 탭 주소에 남고 할 일은 기본이라 빠진다', () => {
+  for (const col of ['in_progress', 'done']) {
+    const path = `/tasks/${C}?col=${col}`
+    assert.equal(appPath(parseAppPath(path)!), path)
+    const event = `/events/${C}/${R}?tab=tasks&col=${col}`
+    assert.equal(appPath(parseAppPath(event)!), event)
+  }
+  assert.deepEqual(parseAppPath(`/tasks/${C}?col=todo`)?.query, {})
+  assert.deepEqual(parseAppPath(`/tasks/${C}?col=review`)?.query, {})
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=overview&col=done`)?.query, {
+    tab: 'overview',
+  })
+})
+
 test('행사 정산은 현재 재정 탭에서 빠지고 옛 주소는 기간을 보존해 결산으로 왕복한다', () => {
   assert.equal(new Set<string>(FINANCE_TABS).has('settlements'), false)
   const old = parseAppPath(`/finance/${C}?tab=settlements&period=${P}`)!

@@ -1,12 +1,14 @@
 import {
   TASK_FILTERS,
   TASK_LAYOUTS,
+  TASK_STATUSES,
   TASK_TABS,
   TASK_VIEWS,
   type AppQuery,
   type TaskTab,
   type TaskFilter,
   type TaskLayout,
+  type TaskStatus,
   type TaskView,
 } from '@vada/contracts'
 import { useRecordQuery } from '@/lib/use-address-record'
@@ -66,6 +68,8 @@ function changesOf(url: QueryUrl, memberId: string) {
       url.set({ ...CLEAR_NARROW, tab, view: null, events: null })
     },
     setFilter: (filter: TaskFilter) => url.set({ filter }),
+    // 휴대폰 상태 탭. 할 일은 기본값이라 주소에서 빠진다.
+    setColumn: (col: TaskStatus) => url.set({ col }),
     setScope: (scope: string | null) => url.set({ scope }),
     setState: (state: string | null) => url.set({ state }),
     clearMyFilters: () => url.set({ scope: null, state: null }),
@@ -113,6 +117,7 @@ export function useTaskControls(councilId: string, eventId: string | undefined, 
     includeEvents: query['events'] === 'include',
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),
     layout: pick<TaskLayout>(TASK_LAYOUTS, query['layout'], 'board'),
+    column: pick<TaskStatus>(TASK_STATUSES, query['col'], 'todo'),
     dept: query['dept'] ?? null,
     assignee: assigneeOf(query),
     due: query['due'] ?? null,

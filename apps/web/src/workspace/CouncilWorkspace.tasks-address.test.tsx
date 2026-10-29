@@ -125,6 +125,16 @@ const selected = (name: string) =>
   screen.findByRole('tab', { name }).then(tab => tab.getAttribute('aria-selected'))
 const pushes = () => vi.spyOn(window.history, 'pushState')
 const readsOf = (path: string) => api.calls.filter(call => call.path === path).length
+// 거르기·[표]는 1024px 이상에만 있다. 1024px 아래는 상태 탭이다(026 조각 4).
+const wide = () => {
+  vi.stubGlobal('matchMedia', (media: string) => ({
+    matches: true,
+    media,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
+  api.on('GET', `${base}/tasks/options`, () => json({ departments: [], linkableEvents: [] }))
+}
 
 test('업무 탭을 누르면 주소를 바꿔 쓰며 학생회 업무가 기본이다', async () => {
   startAt(`/tasks/${COUNCIL_ID}`)
@@ -139,21 +149,37 @@ test('업무 탭을 누르면 주소를 바꿔 쓰며 학생회 업무가 기본
 })
 
 test('거르기와 배치도 주소에 남고 기본값은 남지 않는다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?events=include`)
+  startAt(`/tasks/${COUNCIL_ID}?layout=list&events=include`)
+  wide()
   expect(await selected('학생회 업무')).toBe('true')
   fireEvent.click(await screen.findByRole('button', { name: '끝남' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&events=include`))
+  await waitFor(() =>
+    expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&layout=list&events=include`),
+  )
   fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list&events=include`))
   expect(screen.queryByRole('button', { name: '달력' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '보드' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
   fireEvent.click(screen.getByRole('button', { name: '표' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list&events=include`))
-  fireEvent.click(screen.getByRole('button', { name: '보드' }))
+})
+
+test('1024px 아래의 상태 탭도 주소에 남고 할 일은 기본값이라 남지 않는다', async () => {
+  const view = startAt(`/tasks/${COUNCIL_ID}?events=include`)
+  expect(screen.queryByRole('group', { name: '보기 모양' })).toBeNull()
+  fireEvent.click(await screen.findByRole('tab', { name: '끝남 0' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?col=done&events=include`))
+  view.unmount()
+  startAt(pathNow())
+  expect(await selected('끝남 0')).toBe('true')
+  fireEvent.click(await screen.findByRole('tab', { name: '할 일 2' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?events=include`))
 })
 
 test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아오면 표다. 새로 열어도 같다', async () => {
   const view = startAt(`/tasks/${COUNCIL_ID}`)
+  wide()
   fireEvent.click(await screen.findByRole('button', { name: '표' }))
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
   fireEvent.click(screen.getAllByRole('button', { name: '홈' })[0]!)
@@ -162,12 +188,14 @@ test('표를 고르고 다른 메뉴에 갔다가 옆 메뉴 [업무]로 돌아�
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
   view.unmount()
   startAt(`/home/${COUNCIL_ID}`, 'home')
+  wide()
   fireEvent.click((await screen.findAllByRole('button', { name: /^업무/ }))[0]!)
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
 })
 
 test('새로 고침하면 주소의 보기·거르기가 그대로 열린다', async () => {
-  startAt(`/tasks/${COUNCIL_ID}?filter=done&events=include`)
+  startAt(`/tasks/${COUNCIL_ID}?filter=done&layout=list&events=include`)
+  wide()
   expect(await selected('학생회 업무')).toBe('true')
   await waitFor(() => expect(readsOf(list('all', 'done'))).toBeGreaterThan(0))
   expect(screen.getByRole('button', { name: '끝남' }).getAttribute('aria-pressed')).toBe('true')

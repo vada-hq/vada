@@ -181,8 +181,9 @@ test('전체의 부서 묶음 머리 오른쪽에 진행 중·지남·담당자 
   )
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
   fireEvent.click(await screen.findByRole('tab', { name: '학생회 업무' }))
+  // 1024px 아래는 할 일 탭이 기본이라 진행 중인 업무는 진행 중 탭에 있다.
   const section = await screen.findByRole('region', { name: '기획부' })
-  expect(within(section).getByText('진행 중 1')).toBeTruthy()
+  expect(within(section).queryByText(/^진행 중 \d+$/)).toBeNull()
   expect(within(section).getByText('지남 1')).toBeTruthy()
   expect(within(section).getByText('담당자 없음 2')).toBeTruthy()
   const other = screen.getByRole('region', { name: '홍보부' })
@@ -228,6 +229,7 @@ test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무�
   render(<TasksPage view={planningHead} onForbidden={() => {}} onChanged={() => {}} />)
   fireEvent.click(screen.getByRole('tab', { name: '학생회 업무' }))
   fireEvent.click(await screen.findByRole('button', { name: '기획부' }))
+  fireEvent.click(await screen.findByRole('tab', { name: '진행 중 1' }))
   const section = await screen.findByRole('region', { name: '기획부' })
   expect(within(section).getByText('진행 중 1')).toBeTruthy()
   expect(rowOf('업무 1').textContent).toContain('김새내')

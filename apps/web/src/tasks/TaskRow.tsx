@@ -115,11 +115,12 @@ export function TaskRow(props: Props) {
     <li className="flex flex-col gap-1 px-4 py-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-1 basis-60 flex-col gap-0.5">
+          {/* 제목 단추는 Button 바탕의 shrink-0을 풀어야 띄어쓰기 없는 긴 제목(URL)이 줄을 옆으로 늘리지 않는다. */}
           <div className="flex items-center gap-2">
             <Button
               variant="link"
               touch
-              className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
+              className="h-auto min-w-0 shrink justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
               onClick={props.onOpen}
             >
               {task.title}

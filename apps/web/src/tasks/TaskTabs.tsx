@@ -36,31 +36,39 @@ type Props = {
   // 목록을 좁힌 조건(부서, 담당자 없음)과 그것을 푸는 동작
   narrow?: { label: string; onClear: () => void } | undefined
   allowCalendar?: boolean | undefined
+  // 1024px 아래는 보드와 표가 같은 상태 탭 목록이라 [표]를 두지 않는다. 고를 것이 하나뿐이면 전환이 없다.
+  wide?: boolean | undefined
+}
+
+function layoutChoices({ allowCalendar, wide = true }: Pick<Props, 'allowCalendar' | 'wide'>) {
+  return LAYOUTS.filter(
+    item => (item.layout !== 'calendar' || allowCalendar) && (wide || item.layout !== 'list'),
+  )
 }
 
 // 보드·표·달력 전환. 같은 업무를 다른 모양으로 보는 것이라 탭이 아니라 눌린 단추 묶음이다. 휴대폰은 탭과 한 줄에 두려고 그림만 보인다.
 function LayoutSwitch({
   value,
   onChange,
-  allowCalendar,
-}: NonNullable<Props['layout']> & Pick<Props, 'allowCalendar'>) {
+  choices,
+}: NonNullable<Props['layout']> & { choices: ReturnType<typeof layoutChoices> }) {
+  // 좁은 화면의 표 주소는 보드와 같은 화면이라 [보드]가 눌려 있다.
+  const shown = choices.some(item => item.layout === value) ? value : 'board'
   return (
     <div role="group" aria-label="보기 모양" className="flex rounded-md border p-0.5">
-      {LAYOUTS.filter(item => item.layout !== 'calendar' || allowCalendar).map(
-        ({ layout, label, Icon }) => (
-          <Button
-            key={layout}
-            size="sm"
-            variant={value === layout ? 'secondary' : 'ghost'}
-            aria-pressed={value === layout}
-            className="py-1 max-sm:min-h-11"
-            onClick={() => onChange(layout)}
-          >
-            <Icon aria-hidden />
-            <span className="sr-only sm:not-sr-only">{label}</span>
-          </Button>
-        ),
-      )}
+      {choices.map(({ layout, label, Icon }) => (
+        <Button
+          key={layout}
+          size="sm"
+          variant={shown === layout ? 'secondary' : 'ghost'}
+          aria-pressed={shown === layout}
+          className="py-1 max-sm:min-h-11"
+          onClick={() => onChange(layout)}
+        >
+          <Icon aria-hidden />
+          <span className="sr-only sm:not-sr-only">{label}</span>
+        </Button>
+      ))}
     </div>
   )
 }
@@ -80,10 +88,37 @@ export function TaskFilterBand({ label, onClear }: NonNullable<Props['narrow']>)
   )
 }
 
+// 끝남 거르기와 보기 모양 전환 줄. 둘 다 없으면 줄도 없다.
+function ViewControls({ showFilter = true, filter, onFilter, layout, ...props }: Props) {
+  const choices = layoutChoices(props)
+  const switching = layout !== undefined && choices.length > 1
+  if (!showFilter && !switching) return null
+  return (
+    <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
+      {showFilter && (
+        <div role="group" aria-label="업무 거르기" className="flex gap-2">
+          {FILTERS.map(item => (
+            <Button
+              key={item.filter}
+              size="sm"
+              variant={filter === item.filter ? 'secondary' : 'outline'}
+              aria-pressed={filter === item.filter}
+              className="max-sm:min-h-11"
+              onClick={() => onFilter(item.filter)}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      )}
+      {switching && <LayoutSwitch {...layout} choices={choices} />}
+    </div>
+  )
+}
+
 // 메뉴 탭 둘과 보드의 거르기는 다른 줄이다. 행사 안에서는 메뉴 탭 없이 같은 보드 거르기만 쓴다.
 export function TaskTabs(props: Props) {
-  const { tab, showFilter = true, view, filter, onView, onFilter, layout } = props
-  const { narrow } = props
+  const { tab, view, onView, layout, narrow } = props
   const title = menuTitle(tab)
   return (
     <div className="flex min-w-0 flex-col gap-3 break-keep">
@@ -116,25 +151,7 @@ export function TaskTabs(props: Props) {
         />
       )}
       {narrow && <TaskFilterBand {...narrow} />}
-      <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
-        {showFilter && (
-          <div role="group" aria-label="업무 거르기" className="flex gap-2">
-            {FILTERS.map(item => (
-              <Button
-                key={item.filter}
-                size="sm"
-                variant={filter === item.filter ? 'secondary' : 'outline'}
-                aria-pressed={filter === item.filter}
-                className="max-sm:min-h-11"
-                onClick={() => onFilter(item.filter)}
-              >
-                {item.label}
-              </Button>
-            ))}
-          </div>
-        )}
-        {layout && <LayoutSwitch {...layout} allowCalendar={props.allowCalendar} />}
-      </div>
+      <ViewControls {...props} />
     </div>
   )
 }

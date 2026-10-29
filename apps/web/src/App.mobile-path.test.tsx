@@ -68,6 +68,10 @@ beforeEach(() => {
   onHomeExtras(api, {}, COUNCIL_ID)
   for (const query of ['view=mine&status=open', 'view=all&status=open&event=none'])
     api.on('GET', `${BASE}/tasks?${query}`, () => json({ tasks: [task], truncated: false }))
+  // 1024px 아래 업무 화면은 상태 탭의 끝남 수를 세려고 끝난 업무도 읽는다.
+  api.on('GET', `${BASE}/tasks?view=all&status=done&event=none`, () =>
+    json({ tasks: [], truncated: false }),
+  )
   api.on('GET', `${BASE}/tasks/${TASK}`, () => json({ task }))
   api.on('GET', `${BASE}/tasks/options`, () => json({ departments: [], linkableEvents: [] }))
   const rooms = [
