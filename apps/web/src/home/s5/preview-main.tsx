@@ -15,12 +15,15 @@ import C1rPreview, { C1R_VARIANTS, type C1rVariant } from '../c1r/C1rPreview'
 import { C1R_DATA_NAMES, type C1rDataName } from '../c1r/c1r-data'
 import ThemeTile from '../c1r/themes/ThemeTile'
 import { applyTheme, themeOf } from '../c1r/themes/theme'
+import { councilHomeSample } from '../../ui-gallery/CouncilHomeSections'
 import '../../index.css'
 
 // S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C|B2&data=main|normal|empty[&greeting=line|date|merge]
 // B2는 10/29 내용 확정판(s7). greeting은 B2에서만 쓴다.
 // 실제 작업 공간(옆 메뉴 포함)을 가짜 API로 띄우고, 회장단 홈 자리만 시안으로 바꾼다(S1 1절과 같은 방법).
 const params = new URLSearchParams(window.location.search)
+// 실제 회장단 홈(시안 덮개 없이, 부품 갤러리 견본 데이터)을 작업 공간째 띄운다: ?component=home&theme=base|a|b|c
+const realHome = params.get('component') === 'home'
 const variant = (['A', 'B', 'C', 'B2'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A') as S5Variant
 const dataName = (params.get('data') ?? 'main') as S5DataName
 const data = S5_DATA[dataName] ?? S5_DATA.main
@@ -97,7 +100,7 @@ const routes: Record<string, () => Response> = {
   [`GET ${base}/members`]: () => json(teamResponse()),
   [`GET ${base}/rooms`]: () =>
     json({ rooms, unreadTotal: rooms.reduce((sum, item) => sum + item.unread, 0), mentionTotal: 0 }),
-  [`GET ${base}/home`]: () => json(home),
+  [`GET ${base}/home`]: () => json(realHome ? councilHomeSample : home),
   [`GET ${base}/events/open`]: () => json({ events: dataName === 'empty' ? [] : sideEvents, more: false }),
   [`GET ${base}/tasks?view=mine&status=open`]: () => json({ tasks: [], truncated: false }),
 }
@@ -146,7 +149,7 @@ const c1 = params.get('component') === 'c1'
 const c1r = params.get('component') === 'c1r'
 const tile = params.get('component') === 'tile'
 const theme = themeOf(params.get('theme'))
-if (c1r || tile) applyTheme(theme)
+if (c1r || tile || realHome) applyTheme(theme)
 const c1rVariant = (Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0') as C1rVariant
 const c1rData = (C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main') as C1rDataName
 createRoot(document.getElementById('root')!).render(
@@ -161,6 +164,12 @@ createRoot(document.getElementById('root')!).render(
   ) : c1 ? (
     <StrictMode>
       <C1Preview variant={params.get('variant') === 'B' ? 'B' : 'A'} data={(params.get('data') ?? 'main') as C1DataName} />
+    </StrictMode>
+  ) : realHome ? (
+    <StrictMode>
+      <div className="flex min-h-dvh flex-col">
+        <Workspace />
+      </div>
     </StrictMode>
   ) : (
   <StrictMode>

@@ -334,3 +334,8 @@
 :root[data-theme]:not([data-theme='base']) [data-slot='input'] {
   background-color: var(--field);
 }
+
+/* b만: 정보 칩(기획 중 등)의 blue-200 테두리가 B '테두리 0'에서 혼자 튀어(실제 회장단 홈) 면과 같게 잇는다. */
+:root[data-theme='b'] {
+  --color-blue-200: var(--primary-surface);
+}

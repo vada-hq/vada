@@ -197,3 +197,6 @@ export function CouncilHomeSection() {
     </Section>
   )
 }
+
+// 회장단 홈 테마 미리보기(home-s5.html?component=home)가 실제 작업 공간에 같은 견본을 띄운다.
+export const councilHomeSample: HomeResponse = { ...home, financeSummary, councilBoard: board }
