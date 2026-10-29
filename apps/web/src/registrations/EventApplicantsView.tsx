@@ -162,6 +162,12 @@ function Pager({
   )
 }
 
+// [불참 처리]는 행사 첫날부터, 고른 줄 가운데 서버가 불참 처리를 준 줄이 있을 때 보인다(줄의 actions만 본다, DEC-38).
+const canMarkAbsent = (data: EventApplicantsResponse, selected: ReadonlySet<string>) =>
+  data.applicants.some(
+    row => selected.has(row.id) && row.actions.includes('registration.mark_absent'),
+  )
+
 function Message({ children }: { children: string }) {
   return (
     <p
@@ -280,7 +286,7 @@ function Applicants({ props }: { props: Full }) {
           allPicked={rows.length > 0 && rows.every(model => model.picked)}
           busy={props.busy}
           wide={wide}
-          started={started}
+          absence={started && canMarkAbsent(data, props.selected)}
           onBulk={props.onBulk}
           onUnselect={props.onUnselect}
           onSelectPage={props.onTogglePage}

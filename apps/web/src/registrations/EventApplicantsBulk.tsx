@@ -32,7 +32,8 @@ type Props = {
   allPicked: boolean
   busy: boolean
   wide: boolean
-  started: boolean
+  // [불참 처리]를 보일까(행사 첫날부터, 고른 줄에 불참 처리 동작이 있을 때)
+  absence: boolean
   onBulk: (kind: BulkKind) => void
   onUnselect: () => void
   onSelectPage: () => void
@@ -71,7 +72,7 @@ export function BulkBar(props: Props) {
       {eventApplicantSelected(props.count)}
     </span>
   )
-  const actions = BULK.filter(item => item.kind !== 'absence' || props.started).map(item => (
+  const actions = BULK.filter(item => item.kind !== 'absence' || props.absence).map(item => (
     <Button
       key={item.kind}
       type="button"
