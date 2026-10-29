@@ -27,7 +27,6 @@ const RANK_CHECKS = [
 // 직급·역할을 읽지만 보이기를 정하지 않는 파일. 가림이 아닌 까닭을 한 줄로 적는다. 이유 없이 더하지 않는다.
 const ALLOWED: Record<string, string> = {
   'home/member-view.ts': '부서 배정 전 안내 띠(DEC-87). 무엇도 가리지 않는다',
-  'tasks/home-task-scope.ts': '사람이 켠 직급 부서 거르기. 서버가 준 업무를 가리지 않는다',
   'tasks/task-defaults.ts': '빠른 추가의 기본 부서. 서버가 준 선택지 안에서만 고른다',
   'team/DepartmentMenu.tsx': '재정 역할 주기·거두기 메뉴 문구',
   'team/MemberRow.tsx': '직급 배지 색과 부회장 주기·거두기 문구',
